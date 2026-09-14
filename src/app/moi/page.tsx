@@ -31,6 +31,15 @@ export default async function MyPage() {
     reglee: "Titres inscrits à votre nom. Prochain coupon selon l'échéancier de l'avis d'opéré.",
     annulee: "Annulée.",
   };
+  const NEXT_FUND: Record<string, string> = {
+    recue: "Un conseiller vous rappelle pour confirmer.",
+    confirmee: "Signez le bulletin de souscription et effectuez le virement indiqué sur l'appel de fonds.",
+    transmise: "Ordre transmis à la société de gestion — exécution à la prochaine valeur liquidative.",
+    servie: "Exécuté à la VL retenue. Inscription des parts au registre, puis avis d'opération.",
+    non_servie: "Non exécuté. Fonds restitués sous deux jours ouvrés.",
+    reglee: "Parts inscrites à votre nom au registre du dépositaire ; valeur suivant la VL publiée.",
+    annulee: "Annulée.",
+  };
 
   return (
     <div className={styles.wrap}>
@@ -122,12 +131,12 @@ export default async function MyPage() {
                     <td>
                       <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
                     </td>
-                    <td className="r num">{i.amount ? `${fmt(i.amount)} ${o?.kind === "RACHAT" ? "titres" : "FCFA"}` : "—"}</td>
+                    <td className="r num">{i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${o?.kind === "RACHAT" ? "titres" : "FCFA"}`) : "—"}</td>
                     <td>
                       <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
                     </td>
                     <td className="muted" style={{ fontSize: ".8rem" }}>
-                      {NEXT[i.state]}
+                      {(o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state]}
                     </td>
                   </tr>
                 );

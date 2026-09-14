@@ -249,7 +249,7 @@ export default async function DeskPage() {
                     <td>
                       <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
                     </td>
-                    <td className="r num">{i.amount ? (o?.kind === "RACHAT" ? `${fmt(i.amount)} titres` : fmt(i.amount)) : "—"}</td>
+                    <td className="r num">{i.amount ? (o?.kind === "RACHAT" ? `${fmt(i.amount)} titres` : i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : fmt(i.amount)) : "—"}</td>
                     <td>{i.channel}</td>
                     <td className="num">{fmtTime(i.createdAt)}</td>
                     <td>
@@ -257,13 +257,13 @@ export default async function DeskPage() {
                     </td>
                     <td>
                       <div className={styles.rowbtns}>
-                        {(i.type === "achat" || i.type === "vente") && i.state === "transmise" ? (
+                        {(i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise" ? (
                           <Link className="btn sm primary" href="/desk/marche">
                             Exécuter (Marché)
                           </Link>
                         ) : null}
                         {next
-                          .filter((s) => s !== "annulee" && !((i.type === "achat" || i.type === "vente") && i.state === "transmise"))
+                          .filter((s) => s !== "annulee" && !((i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise"))
                           .map((s) => (
                             <form key={s} action={transitionIntent}>
                               <input type="hidden" name="intentId" value={i.id} />

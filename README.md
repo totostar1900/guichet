@@ -96,6 +96,14 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - Le panneau *Marché* montre le dernier bulletin (indice BVMAC All Share, lignes lues, anomalies à vérifier, avis publiés), permet de relancer une séance ou de **déposer le PDF** reçu par e-mail en secours ; la saisie manuelle d'un cours reste possible mais est marquée « Saisie desk » sur la fiche.
 - Ordres d'achat / vente : quantité, prix limite facultatif (marché sinon), compte-titres requis, vente limitée aux titres détenus. Cycle : reçu → confirmé (ordre de bourse + appel de fonds) → placé → **exécuté** (prix et quantité, partiel possible) → **réglé** (avis d'opéré). Les positions sont nettées des ventes (FIFO).
 
+## OPCVM (page Fonds, desk › Marché)
+
+- Les 45 fonds dont la VL paraît au bulletin deviennent des lignes `kind: FONDS` (id `fund-<clé>`, champ `fund` : société de gestion, dépositaire, catégorie, périodicité, VL, origine, performance) — **masquées** tant qu'aucune convention de distribution n'existe. La page publique `/fonds` les présente tous (VL, variation, depuis l'origine, société de gestion) ; un fonds non distribué reçoit des intentions « information / rappel » seulement.
+- Le desk active un fonds dans *Marché › OPCVM* : case « distribué », référence de la convention (obligatoire), droits d'entrée / de sortie, minimum, heure de centralisation. Le fonds passe alors « Souscription ouverte » dans le Guichet.
+- Intentions `souscription` (montant FCFA, minimum du fonds) et `rachat` (nombre de parts, limité aux parts détenues) — réservées aux dossiers KYC approuvés (les parts sont inscrites au nom du client au registre du dépositaire, pas de sous-compte SVT). Cycle identique aux ordres de bourse : confirmé (bulletin de souscription + appel de fonds, ou demande de rachat) → transmis → **exécuté** à la VL retenue (VL et parts saisies par le desk d'après l'avis de la société de gestion) → **réglé** (avis d'opération). Positions en parts, valorisées à la VL de la dernière exécution.
+- **Bordereau de centralisation** par société de gestion (`generateFundBordereau`) : tous les ordres confirmés / transmis de ses fonds, porteurs et références de registre, espèces réglées par Purpose Capital.
+- Modèles PDF dédiés dans `src/lib/documents/pdf/fund-templates.tsx` (aucune mention d'adjudication ni de SVT).
+
 ## Reporting (desk › Reporting)
 
 - Journal des ordres sur une période avec l'horodatage de chaque étape (reçu, confirmé, transmis, exécuté, réglé), registre des clients (statut, risque, revue, contrôle sanctions), positions en conservation, statistiques d'activité (intentions, montants, règlements par instrument et par segment, comptes ouverts, documents, diffusion).
@@ -118,5 +126,5 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 ## Prochaines étapes
 
 1. Vérification d'identité automatisée (Smile ID) dans la revue KYC.
-2. Souscription / rachat de parts d'OPCVM (fonds lus dans le bulletin) sous conventions de distribution ; pré-remplissage des ordres depuis les positions.
+2. Pré-remplissage des ordres depuis les positions ; virement automatique des produits de rachat (RIB du dossier).
 3. Rapport d'activité périodique en PDF (COSUMAF) à partir du reporting.

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { generateForIntent } from "@/lib/documents/generate";
+import { generateForIntent, generateFundBordereau } from "@/lib/documents/generate";
 import { positionFor } from "@/lib/documents/position";
 import { fmt, fmtPrice } from "@/lib/format";
 import { bocUrl, ingestBoc } from "@/lib/market/boc";
@@ -58,18 +58,20 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
   const r = repo();
   const intents = await r.listIntents();
   const i = intents.find((x) => x.id === p.data.intentId);
-  if (!i || (i.type !== "achat" && i.type !== "vente")) return { ok: false, error: "Ordre introuvable." };
+  if (!i || !["achat", "vente", "souscription", "rachat"].includes(i.type)) return { ok: false, error: "Ordre introuvable." };
   if (i.state !== "transmise") return { ok: false, error: "L'ordre doit être placé (transmis) avant exécution." };
   const o = await r.getOffer(i.offerId);
   if (!o) return { ok: false, error: "Ligne introuvable." };
   const asked = positionFor(i, o).units;
-  const units = Math.min(p.data.executedUnits, asked);
+  // Funds: the subscription amount is fixed, units follow the NAV retained — accept what the manager confirms.
+  const units = o.kind === "FONDS" ? p.data.executedUnits : Math.min(p.data.executedUnits, asked);
   const updated = await r.updateIntent(i.id, { state: "servie", executedPrice: p.data.executedPrice, servedUnits: units, allocationPct: Math.round((units / Math.max(asked, 1)) * 100) });
-  await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) — <b>exécuté</b> ${fmt(units)} / ${fmt(asked)} à ${o.instrument === "obligation" ? fmtPrice(p.data.executedPrice) : fmt(p.data.executedPrice) + " FCFA"} · par ${desk.name}` });
+  const unitsText = o.kind === "FONDS" ? `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL ${fmt(p.data.executedPrice)} FCFA` : `${fmt(units)} / ${fmt(asked)} à ${o.instrument === "obligation" ? fmtPrice(p.data.executedPrice) : fmt(p.data.executedPrice) + " FCFA"}`;
+  await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) — <b>exécuté</b> ${unitsText} · par ${desk.name}` });
   await notifyIntentUpdated(updated, o, "servie", desk.name);
   revalidatePath("/desk/marche");
   revalidatePath("/desk");
-  return { ok: true, message: `Exécuté : ${fmt(units)} unité(s). Passez l'ordre en réglé après le règlement T+${o.settlementDays ?? 3}.` };
+  return { ok: true, message: o.kind === "FONDS" ? `Exécuté : ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts. Passez en réglé à réception de l'avis du dépositaire.` : `Exécuté : ${fmt(units)} unité(s). Passez l'ordre en réglé après le règlement T+${o.settlementDays ?? 3}.` };
 }
 
 /** Settlement of an executed market order → position, avis d'opéré. */
@@ -96,6 +98,56 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   return { ok: true, message: "Réglé : position mise à jour, avis d'opéré généré." };
 }
 
+/* ---------------- OPCVM ---------------- */
+
+const fundSchema = z.object({
+  offerId: z.string().min(1),
+  distributed: z.enum(["on", "off"]).default("off"),
+  entryFeePct: z.coerce.number().min(0).max(10).default(0),
+  exitFeePct: z.coerce.number().min(0).max(10).default(0),
+  minAmount: z.coerce.number().min(0).default(100_000),
+  cutoff: z.string().max(120).optional(),
+  agreementRef: z.string().max(80).optional(),
+  settlementDays: z.coerce.number().int().min(0).max(30).optional(),
+});
+
+/** Terms of the distribution agreement for one fund; activating it shows the fund in the Guichet with « Souscrire ». */
+export async function updateFundTermsAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+  const desk = await requireDesk("/desk/marche");
+  const raw: Record<string, string> = {};
+  form.forEach((v, k) => {
+    if (typeof v === "string" && v.trim()) raw[k] = v.trim().replace(",", ".");
+  });
+  const p = fundSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: "Conditions invalides (frais 0–10 %, minimum ≥ 0)." };
+  const r = repo();
+  const o = await r.getOffer(p.data.offerId);
+  if (!o || o.kind !== "FONDS" || !o.fund) return { ok: false, error: "Fonds introuvable." };
+  const distributed = p.data.distributed === "on";
+  if (distributed && !p.data.agreementRef) return { ok: false, error: "Indiquez la référence de la convention de distribution avant d'activer la souscription." };
+  const fund = { ...o.fund, distributed, entryFeePct: p.data.entryFeePct, exitFeePct: p.data.exitFeePct, minAmount: p.data.minAmount, cutoff: p.data.cutoff, agreementRef: p.data.agreementRef, settlementDays: p.data.settlementDays };
+  await r.upsertOffer({ ...o, fund, hidden: !distributed, commissionPct: fund.entryFeePct, pricedAt: new Date().toISOString(), version: o.version + 1 });
+  await r.logEvent({ kind: "desk", offerId: o.id, html: `OPCVM <b>${o.title}</b> ${distributed ? "ouvert à la souscription" : "retiré de la souscription"} · droits d'entrée ${fund.entryFeePct} % · sortie ${fund.exitFeePct} % · minimum ${fmt(fund.minAmount)} FCFA${fund.agreementRef ? ` · convention ${fund.agreementRef}` : ""} · par ${desk.name}` });
+  revalidatePath("/");
+  revalidatePath("/fonds");
+  revalidatePath("/desk/marche");
+  return { ok: true, message: distributed ? "Fonds ouvert à la souscription dans le Guichet." : "Conditions enregistrées ; fonds présenté sur demande." };
+}
+
+/** Grouped subscription / redemption orders for one manager, addressed to its centralising agent. */
+export async function fundBordereauAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+  const desk = await requireDesk("/desk/marche");
+  const manager = String(form.get("manager") ?? "");
+  try {
+    const doc = await generateFundBordereau(manager, { advisor: desk.name });
+    revalidatePath("/desk/documents");
+    revalidatePath("/desk/marche");
+    return { ok: true, message: `${doc.number} généré — à retrouver dans Documents.` };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Génération impossible." };
+  }
+}
+
 /* ---------------- BVMAC bulletin ---------------- */
 
 /** Desk asks for a given session's bulletin (default: today); same path as the cron. */
@@ -111,7 +163,7 @@ export async function ingestBocAction(_p: MarketResult | null, form: FormData): 
     revalidatePath("/desk");
     revalidatePath("/desk/marche");
     const b = res.bulletin!;
-    return { ok: true, message: `BOC n° ${b.number} du ${date} ingéré par ${desk.name} : ${b.counts.equities} actions, ${b.counts.bonds} obligations, ${b.counts.funds} OPCVM${res.created.length ? ` · ${res.created.length} nouvelle(s) ligne(s)` : ""}${b.anomalies.length ? ` · ${b.anomalies.length} anomalie(s)` : ""}.` };
+    return { ok: true, message: `BOC n° ${b.number} du ${date} ingéré par ${desk.name} : ${b.counts.equities} actions, ${b.counts.bonds} obligations, ${b.counts.funds} OPCVM${res.created.filter((id) => !id.startsWith("fund-")).length ? ` · ${res.created.filter((id) => !id.startsWith("fund-")).length} nouvelle(s) ligne(s) cotée(s)` : ""}${res.created.filter((id) => id.startsWith("fund-")).length ? ` · ${res.created.filter((id) => id.startsWith("fund-")).length} fonds ajouté(s)` : ""}${b.anomalies.length ? ` · ${b.anomalies.length} anomalie(s)` : ""}.` };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Ingestion impossible." };
   }

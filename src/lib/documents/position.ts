@@ -100,6 +100,22 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
     const principal = n * ref;
     return { label: `${n.toLocaleString("fr-FR")} actions`, units: n, unitWord: "actions", priceLabel: `${ref.toLocaleString("fr-FR")} FCFA`, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: principal * com, total: sell ? -(principal * (1 - com)) : principal * (1 + com), schedule: [] };
   }
+  if (offer.kind === "FONDS" && offer.fund) {
+    // Subscription: amount is FCFA, units = net of entry fee / NAV. Redemption: amount is units, proceeds net of exit fee.
+    const f = offer.fund;
+    const nav = intent.executedPrice ?? f.nav;
+    const navLabel = `VL ${nav.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} FCFA`;
+    if (intent.type === "rachat") {
+      const units = opts.unitsOverride ?? amount;
+      const gross = units * nav;
+      const fee = gross * (f.exitFeePct / 100);
+      return { label: `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts`, units, unitWord: "parts", priceLabel: navLabel, nominalAmount: gross, principal: gross, accrued: 0, accruedDays: 0, commission: fee, total: -(gross - fee), schedule: [] };
+    }
+    const units = opts.unitsOverride ?? (intent.servedUnits ?? (nav > 0 ? Math.floor((amount / (1 + f.entryFeePct / 100) / nav) * 1000) / 1000 : 0));
+    const principal = units * nav;
+    const fee = principal * (f.entryFeePct / 100);
+    return { label: `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts`, units, unitWord: "parts", priceLabel: navLabel, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: fee, total: opts.unitsOverride != null ? principal + fee : amount, schedule: [] };
+  }
   // RACHAT — the client sells `amount` titles at par and receives the proceeds.
   const n = opts.unitsOverride ?? amount;
   const proceeds = n * offer.nominal;

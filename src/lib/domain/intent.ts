@@ -9,19 +9,21 @@ export const INTENT_LABEL: Record<IntentType, string> = {
   cession: "Cession",
   achat: "Ordre d'achat",
   vente: "Ordre de vente",
+  souscription: "Souscription",
+  rachat: "Rachat de parts",
 };
 
 /** "Prise ferme reçue", "Appétit reçu" — agreement with the intent noun. */
 export function receivedLabel(type: IntentType): string {
-  const fem = type === "ferme" || type === "cession" || type === "info";
-  if (type === "achat" || type === "vente") return `${INTENT_LABEL[type]} reçu`;
+  const fem = type === "ferme" || type === "cession" || type === "info" || type === "souscription";
+  if (type === "achat" || type === "vente" || type === "rachat") return `${INTENT_LABEL[type]} reçu`;
   return `${INTENT_LABEL[type]} ${fem ? "reçue" : "reçu"}`;
 }
 
 export const INTENT_STATE_LABEL: Record<IntentState, string> = {
   recue: "À traiter",
   confirmee: "Confirmée",
-  transmise: "Transmise SVT",
+  transmise: "Transmise",
   servie: "Servie",
   non_servie: "Non servie",
   reglee: "Réglée",
@@ -31,15 +33,19 @@ export const INTENT_STATE_LABEL: Record<IntentState, string> = {
 /** Which intents make sense for an offer in a given state. First = default. */
 export function allowedIntents(o: Offer, s: DisplayStatus): IntentType[] {
   if (o.kind === "MARCHE") return s === "quoted" ? ["achat", "vente", "info"] : ["info"];
+  if (o.kind === "FONDS") return s === "quoted" ? ["souscription", "rachat", "info"] : s === "on_request" ? ["info", "rappel"] : ["info"];
   if (o.kind === "RACHAT") return isPast(s) ? ["info"] : ["cession", "info"];
   if (isPast(s)) return ["info", "rappel"];
   if (s === "upcoming") return ["appetit", "rappel", "info"];
   return ["ferme", "appetit", "info", "rappel"];
 }
 
+/** Intents that become an order the desk transmits (bulletin, appel de fonds, bordereau). */
+export const FIRM_TYPES: IntentType[] = ["ferme", "cession", "achat", "vente", "souscription", "rachat"];
+
 /** Legal next states from the desk's point of view. */
 export function nextStates(state: IntentState, type: IntentType): IntentState[] {
-  const firm = type === "ferme" || type === "cession" || type === "achat" || type === "vente";
+  const firm = FIRM_TYPES.includes(type);
   switch (state) {
     case "recue":
       return ["confirmee", "annulee"];

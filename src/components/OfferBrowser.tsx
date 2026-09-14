@@ -9,7 +9,7 @@ import { fmtDateTime, fmtPct } from "@/lib/format";
 import { OfferCard } from "./OfferCard";
 import styles from "./OfferBrowser.module.css";
 
-const KINDS: OfferKind[] = ["OTA", "BTA", "ACTIONS", "APE", "RACHAT", "MARCHE"];
+const KINDS: OfferKind[] = ["OTA", "BTA", "ACTIONS", "APE", "RACHAT", "MARCHE", "FONDS"];
 const COUNTRIES = ["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."];
 const STATUSES: [string, string][] = [
   ["open", "Ouvertes"],
@@ -26,11 +26,12 @@ const TENORS: [string, string][] = [
   ["eq", "Actions"],
 ];
 type Sort = "deadline" | "yield" | "tenor" | "recent";
-const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, results: 3, closed: 3, live: 4, matured: 5 };
+const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 2, results: 3, closed: 3, live: 4, matured: 5 };
 
 function normStatus(s: DisplayStatus): string {
   if (s === "closing") return "open";
   if (s === "closed") return "results";
+  if (s === "on_request") return "quoted";
   return s;
 }
 

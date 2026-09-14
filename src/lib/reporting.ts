@@ -18,7 +18,7 @@ export interface Period {
 }
 const inPeriod = (iso: string, p: Period) => iso.slice(0, 10) >= p.from && iso.slice(0, 10) <= p.to;
 
-const FIRM: Intent["type"][] = ["ferme", "cession", "achat", "vente"];
+const FIRM: Intent["type"][] = ["ferme", "cession", "achat", "vente", "souscription", "rachat"];
 const STATE_ORDER: IntentState[] = ["confirmee", "transmise", "servie", "non_servie", "reglee", "annulee"];
 
 /** Transition timestamps recovered from the desk's log lines (« — <b>Confirmée</b> »). */

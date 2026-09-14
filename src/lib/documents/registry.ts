@@ -33,7 +33,7 @@ export const DOC_PREFIX: Record<DocumentType, string> = {
 
 /** Documents the lifecycle produces when an intent reaches a state. */
 export function docsForTransition(type: IntentType, state: IntentState): IntentDocumentType[] {
-  if (state === "confirmee") return type === "ferme" ? ["bulletin", "fonds"] : type === "cession" ? ["cession"] : type === "achat" ? ["bulletin", "fonds"] : type === "vente" ? ["bulletin"] : [];
+  if (state === "confirmee") return type === "ferme" || type === "achat" || type === "souscription" ? ["bulletin", "fonds"] : type === "cession" || type === "rachat" ? ["cession"] : type === "vente" ? ["bulletin"] : [];
   if (state === "servie") return ["allocation"];
   if (state === "non_servie") return ["non_allocation"];
   if (state === "reglee") return ["opere"];
@@ -42,11 +42,11 @@ export function docsForTransition(type: IntentType, state: IntentState): IntentD
 
 /** Documents the desk may (re)generate by hand for an intent in its current state. */
 export function docsAvailable(i: Intent): IntentDocumentType[] {
-  const firm = i.type === "ferme" || i.type === "achat" || i.type === "vente";
-  const ces = i.type === "cession";
+  const firm = i.type === "ferme" || i.type === "achat" || i.type === "vente" || i.type === "souscription";
+  const ces = i.type === "cession" || i.type === "rachat";
   const out: IntentDocumentType[] = [];
   if ((firm || ces) && i.state !== "recue" && i.state !== "annulee") out.push(firm ? "bulletin" : "cession");
-  if ((i.type === "ferme" || i.type === "achat") && i.state !== "recue" && i.state !== "annulee") out.push("fonds");
+  if ((i.type === "ferme" || i.type === "achat" || i.type === "souscription") && i.state !== "recue" && i.state !== "annulee") out.push("fonds");
   if (["servie", "reglee"].includes(i.state)) out.push("allocation");
   if (i.state === "non_servie") out.push("non_allocation");
   if (i.state === "reglee") out.push("opere");

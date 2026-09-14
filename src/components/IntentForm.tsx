@@ -18,6 +18,8 @@ const DONE: Record<IntentType, (by: string) => string> = {
   info: (by) => `Un conseiller vous répond ${by} dans l'heure.`,
   achat: (by) => `Votre ordre d'achat est enregistré. Un conseiller le confirme ${by}, vous envoie l'ordre de bourse à signer et l'appel de fonds ; exécution au marché, règlement T+3.`,
   vente: (by) => `Votre ordre de vente est enregistré. Un conseiller vérifie votre position et vous confirme ${by} ; produit crédité après règlement.`,
+  souscription: (by) => `Votre souscription est enregistrée. Un conseiller vous confirme ${by}, vous envoie le bulletin de souscription et l'appel de fonds ; les parts sont inscrites à votre nom chez le dépositaire à la prochaine VL.`,
+  rachat: (by) => `Votre demande de rachat est enregistrée. Un conseiller vérifie vos parts et vous confirme ${by} ; le produit est viré après la VL de rachat.`,
 };
 const BY: Record<string, string> = { WhatsApp: "sur WhatsApp", Appel: "par téléphone", "E-mail": "par e-mail" };
 
@@ -33,12 +35,21 @@ function marketEstimate(o: Offer, qty: number, type: IntentType): string {
   return `${fmt(qty)} ${isBond ? "titres" : "actions"} × ${isBond ? `${ref} %` : `${fmt(ref)} FCFA`} = ${fmt(gross)} FCFA · commission ${fmt(com)} · ${type === "vente" ? "net encaissé" : "total"} ≈ ${fmt(type === "vente" ? gross - com : gross + com)} FCFA · prix d'exécution selon le marché`;
 }
 
+/** Fund redemption: the amount field is a number of units. */
+function redemptionEstimate(o: Offer, units: number): string {
+  if (!o.fund) return "";
+  if (!units) return "Indiquez un nombre de parts pour voir l'estimation à la dernière VL.";
+  const gross = units * o.fund.nav;
+  const fee = gross * (o.fund.exitFeePct / 100);
+  return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · droits de sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
+}
+
 export function IntentForm({ offer, types, initialType, priceText, past, signedIn, tier = 0 }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean; signedIn: boolean; tier?: number }) {
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<IntentType>(initialType);
   const est = estimate(offer, parseAmount(amount));
-  const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente";
+  const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
   const market = offer.kind === "MARCHE";
 
   if (state?.ok) {
@@ -68,7 +79,7 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
     );
   }
 
-  const amtLabel = market ? `Quantité (${offer.instrument === "obligation" ? "titres" : "actions"})` : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)";
+  const amtLabel = market ? `Quantité (${offer.instrument === "obligation" ? "titres" : "actions"})` : offer.kind === "FONDS" ? (type === "rachat" ? "Parts à racheter" : "Montant (FCFA)") : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)";
 
   return (
     <div className={styles.wrap}>
@@ -114,7 +125,13 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
             </select>
           </label>
         </div>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : est.text}</div>}
+        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parseAmount(amount)) : est.text}</div>}
+        {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
+          <div className={styles.tierNote}>
+            Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis{" "}
+            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>complétez votre dossier</Link> (10 min).
+          </div>
+        )}
         {signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && (
           <div className={styles.tierNote}>
             Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
@@ -135,7 +152,7 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
           </div>
         )}
         <div className={styles.foot}>
-          <small>Une prise ferme engage la transmission de votre offre à l&apos;adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d&apos;allocation.</small>
+          <small>{offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative, inconnue au moment de l'ordre ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation."}</small>
           <button className="btn primary" type="submit" disabled={pending || !signedIn}>
             {pending ? "Envoi…" : "Envoyer au desk"}
           </button>

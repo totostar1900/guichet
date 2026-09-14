@@ -85,3 +85,35 @@
 .hiddenRow td {
   opacity: 0.55;
 }
+.short {
+  width: 64px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.wide {
+  width: 190px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+.managers {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 16px 12px;
+}

@@ -76,6 +76,8 @@ export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {
   cession: "CS",
   achat: "OA",
   vente: "OV",
+  souscription: "SO",
+  rachat: "RA",
 };
 
 /** PF-0914-018 — prefix, MMDD, running number for the day. */

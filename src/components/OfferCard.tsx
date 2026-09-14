@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
-import { countdown, displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, STATUS_LABEL } from "@/lib/domain/status";
+import { countdown, displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, statusLabel } from "@/lib/domain/status";
 import { tenorText } from "@/lib/finance";
+import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./OfferCard.module.css";
 
@@ -29,6 +30,21 @@ function Hero({ o }: { o: Offer }) {
         </div>
       </div>
     );
+  if (o.kind === "FONDS" && o.fund) {
+    const v = o.fund.variationPct;
+    return (
+      <div className={styles.hero}>
+        <div className={`${styles.big} num`}>{fmt(o.fund.nav)}</div>
+        <div className={styles.lbl}>
+          FCFA · valeur liquidative au {fmtDate(o.fund.navDate, false)}
+          <br />
+          {v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)} sur la période · ` : ""}
+          {o.fund.perfSinceInceptionPct > 0 ? "+" : ""}
+          {fmtPct(o.fund.perfSinceInceptionPct, 2)} depuis l&apos;origine
+        </div>
+      </div>
+    );
+  }
   if (o.kind === "MARCHE") {
     const isBond = o.instrument === "obligation";
     return (
@@ -76,6 +92,13 @@ function facts(o: Offer): [string, string][] {
       ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
       ["Titres", o.sharesOffered ? fmt(o.sharesOffered) : "—"],
     ];
+  if (o.kind === "FONDS" && o.fund)
+    return [
+      ["Catégorie", FUND_CATEGORY_LABEL[o.fund.category]],
+      ["Valorisation", FUND_FREQUENCY_LABEL[o.fund.frequency].replace("VL ", "")],
+      ["Minimum", o.fund.distributed ? `${fmt(o.fund.minAmount)} FCFA` : "sur demande"],
+      ["Droits d'entrée", o.fund.distributed ? fmtPct(o.fund.entryFeePct, 2) : "—"],
+    ];
   if (o.kind === "MARCHE")
     return o.instrument === "obligation"
       ? [
@@ -116,10 +139,33 @@ export function OfferCard({ o, now, layout = "cards" }: { o: Offer; now: Date; l
   const st = displayStatus(o, now);
   const past = isPast(st);
   const href = `/offres/${o.id}`;
-  const dlText = st === "quoted" ? `Cotation continue · règlement T+${o.settlementDays ?? 3}` : st === "upcoming" ? `Ouvre ${fmtDateTime(o.opensAt)}` : past ? `Close le ${fmtDate(o.deadlineAt)}` : `Clôture ${fmtDateTime(o.deadlineAt)}`;
-  const cd = st === "quoted" ? "" : st === "upcoming" ? countdown(o.opensAt, now) : past ? "" : countdown(o.deadlineAt, now);
+  const dlText = o.kind === "FONDS" ? (st === "quoted" ? `Souscription à la prochaine VL${o.fund?.cutoff ? ` · centralisation ${o.fund.cutoff}` : ""}` : "VL publiée au bulletin · distribution sur demande") : st === "quoted" ? `Cotation continue · règlement T+${o.settlementDays ?? 3}` : st === "upcoming" ? `Ouvre ${fmtDateTime(o.opensAt)}` : past ? `Close le ${fmtDate(o.deadlineAt)}` : `Clôture ${fmtDateTime(o.deadlineAt)}`;
+  const cd = st === "quoted" || st === "on_request" ? "" : st === "upcoming" ? countdown(o.opensAt, now) : past ? "" : countdown(o.deadlineAt, now);
 
-  const ctas = st === "quoted" ? (
+  const ctas = o.kind === "FONDS" ? (
+    st === "quoted" ? (
+      <>
+        <Link className="btn primary" href={`${href}?intent=souscription`}>
+          Souscrire
+        </Link>
+        <Link className="btn" href={`${href}?intent=rachat`}>
+          Racheter
+        </Link>
+        <Link className="btn ghost" href={`${href}?intent=info`}>
+          Question
+        </Link>
+      </>
+    ) : (
+      <>
+        <Link className="btn" href={href}>
+          Voir la fiche
+        </Link>
+        <Link className="btn ghost" href={`${href}?intent=info`}>
+          Souscrire — sur demande
+        </Link>
+      </>
+    )
+  ) : st === "quoted" ? (
     <>
       <Link className="btn primary" href={`${href}?intent=achat`}>
         Acheter
@@ -188,7 +234,7 @@ export function OfferCard({ o, now, layout = "cards" }: { o: Offer; now: Date; l
             {o.issuer} · <span className="mono">{o.isin}</span>
           </div>
         </div>
-        <span className={`pill ${st}`}>{STATUS_LABEL[st]}</span>
+        <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
       </div>
       <Hero o={o} />
       <div className={styles.facts}>

@@ -6,6 +6,7 @@ import type { DocumentType, GeneratedDocument, Offer } from "@/lib/domain/types"
 import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { AppelDeFonds, AvisOpere, AvisResultat, Bordereau, Bulletin, OrdreDeCession, type BordereauCtx, type ClientDocCtx } from "./pdf/templates";
+import { AppelDeFondsOpcvm, AvisOperationOpcvm, BordereauSgo, BulletinSouscriptionOpcvm, DemandeRachatOpcvm, type FundBordereauCtx } from "./pdf/fund-templates";
 import { positionFor } from "./position";
 import { DOC_LABEL, DOC_PREFIX, type IntentDocumentType } from "./registry";
 
@@ -33,6 +34,16 @@ const CLIENT_TEMPLATES: Record<IntentDocumentType, (ctx: ClientDocCtx) => PdfEle
   opere: (c) => el(createElement(AvisOpere, c)),
 };
 
+/** OPCVM orders speak of NAVs and registers, not of auctions. */
+const FUND_TEMPLATES: Record<IntentDocumentType, (ctx: ClientDocCtx) => PdfElement> = {
+  bulletin: (c) => el(createElement(BulletinSouscriptionOpcvm, c)),
+  fonds: (c) => el(createElement(AppelDeFondsOpcvm, c)),
+  cession: (c) => el(createElement(DemandeRachatOpcvm, c)),
+  allocation: (c) => el(createElement(AvisOperationOpcvm, c)),
+  non_allocation: (c) => el(createElement(AvisOperationOpcvm, c)),
+  opere: (c) => el(createElement(AvisOperationOpcvm, c)),
+};
+
 export interface GenerateOpts {
   advisor?: string;
   allocation?: number; // 0..1, result documents
@@ -49,7 +60,7 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   const number = await nextNumber(type, now);
   const account = intent.clientId ? (await r.getClientFileByUser(intent.clientId))?.review.custodianAccount : undefined;
   const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account };
-  const pdf = await renderToBuffer(CLIENT_TEMPLATES[type](ctx));
+  const pdf = await renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
   return store({ type, number, title: `${DOC_LABEL[type]} — ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor }, pdf, now);
 }
 
@@ -58,7 +69,7 @@ export async function auctionLines(country: string, deadlineAt: string): Promise
   const r = repo();
   const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
   const dl = parseDate(deadlineAt).getTime();
-  const lineOffers = offers.filter((o) => o.country === country && parseDate(o.deadlineAt).getTime() === dl && o.kind !== "ACTIONS");
+  const lineOffers = offers.filter((o) => o.country === country && parseDate(o.deadlineAt).getTime() === dl && o.kind !== "ACTIONS" && o.kind !== "MARCHE" && o.kind !== "FONDS");
   const lines = lineOffers
     .map((offer) => ({
       offer,
@@ -82,6 +93,26 @@ export async function generateBordereau(country: string, deadlineAt: string, opt
   const pdf = await renderToBuffer(el(createElement(Bordereau, ctx)));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
   return store({ type: "bordereau", number, title: `Bordereau SVT — ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor }, pdf, now);
+}
+
+/** Confirmed / transmitted OPCVM orders of one manager, grouped for its centralising agent. */
+export async function generateFundBordereau(manager: string, opts: GenerateOpts = {}): Promise<GeneratedDocument> {
+  const r = repo();
+  const [offers, intents, files] = await Promise.all([r.listOffers(), r.listIntents(), r.listClientFiles()]);
+  const funds = offers.filter((o) => o.kind === "FONDS" && o.fund && o.fund.manager === manager);
+  const lines: FundBordereauCtx["lines"] = funds
+    .map((offer) => ({
+      offer,
+      intents: intents.filter((i) => i.offerId === offer.id && (i.type === "souscription" || i.type === "rachat") && (i.state === "confirmee" || i.state === "transmise")).map((intent) => ({ intent, position: positionFor(intent, offer) })),
+    }))
+    .filter((l) => l.intents.length > 0);
+  if (!lines.length) throw new Error(`Aucun ordre confirmé sur les fonds de ${manager}.`);
+  const accounts = new Map(files.map((f) => [f.userId, f.review.custodianAccount]));
+  const now = new Date();
+  const number = await nextNumber("bordereau", now);
+  const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts })));
+  const n = lines.reduce((a, l) => a + l.intents.length, 0);
+  return store({ type: "bordereau", number, title: `Bordereau de centralisation — ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor }, pdf, now);
 }
 
 async function store(meta: Omit<GeneratedDocument, "id" | "fileKey" | "status" | "createdAt">, pdf: Buffer, now: Date): Promise<GeneratedDocument> {

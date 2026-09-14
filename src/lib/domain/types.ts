@@ -3,7 +3,7 @@
  * Mirrors the SQL schema in supabase/migrations — keep both in sync.
  */
 
-export type OfferKind = "OTA" | "BTA" | "ACTIONS" | "APE" | "RACHAT" | "MARCHE";
+export type OfferKind = "OTA" | "BTA" | "ACTIONS" | "APE" | "RACHAT" | "MARCHE" | "FONDS";
 
 export type OfferOperation =
   | "nouvelle_ligne"
@@ -11,7 +11,8 @@ export type OfferOperation =
   | "rachat"
   | "ipo"
   | "emprunt_ape"
-  | "secondaire";
+  | "secondaire"
+  | "opcvm";
 
 export type Country = "RCA" | "Congo" | "Cameroun" | "Gabon" | "Tchad" | "Guinée éq.";
 
@@ -27,6 +28,7 @@ export type OfferStatus =
 /** Derived status shown to clients. */
 export type DisplayStatus =
   | "quoted"
+  | "on_request" // fund read from the bulletin, not (yet) distributed by us
   | "upcoming"
   | "open"
   | "closing"
@@ -34,6 +36,30 @@ export type DisplayStatus =
   | "results"
   | "live"
   | "matured";
+
+/** An OPCVM as we distribute it: what the bulletin says, plus the terms of our agreement with the manager. */
+export interface FundTerms {
+  key: string; // fund_navs.fund_key
+  manager: string;
+  depositary: string;
+  category: "M" | "O" | "D" | "A" | "?";
+  frequency: "quotidienne" | "hebdomadaire" | "mensuelle" | "trimestrielle" | "?";
+  nav: number; // FCFA per unit
+  navDate: string; // YYYY-MM-DD
+  navOrigin: number;
+  inceptionDate: string;
+  perfSinceInceptionPct: number;
+  variationPct?: number;
+  /** Distribution agreement with the manager: without it the fund is information only. */
+  distributed: boolean;
+  agreementRef?: string;
+  entryFeePct: number; // droits d'entrée, kept by the fund / manager (our retrocession is inside)
+  exitFeePct: number;
+  minAmount: number; // FCFA, first subscription
+  cutoff?: string; // "mardi 12 h pour la VL du jeudi"
+  settlementDays?: number; // units delivered / cash paid J+n after the NAV
+  registerNote?: string; // "compte-titres tenu par le dépositaire au nom du client"
+}
 
 export interface OfferDocument {
   name: string;
@@ -93,13 +119,16 @@ export interface Offer {
   priceSource?: "boc" | "desk"; // where lastPrice comes from: the ingested bulletin, or a desk fallback entry
   hidden?: boolean; // ingested line the desk chose not to show in the Guichet
 
+  // OPCVM (kind FONDS) — NAV from the bulletin, terms from the distribution agreement
+  fund?: FundTerms;
+
   // publication
   version: number;
   pricedAt?: string; // ISO — when the desk published the current price
   resultLine?: string; // "Servie à 96,500 % · …"
 }
 
-export type IntentType = "appetit" | "ferme" | "info" | "rappel" | "cession" | "achat" | "vente";
+export type IntentType = "appetit" | "ferme" | "info" | "rappel" | "cession" | "achat" | "vente" | "souscription" | "rachat";
 export type IntentState = "recue" | "confirmee" | "transmise" | "servie" | "non_servie" | "reglee" | "annulee";
 export type Channel = "WhatsApp" | "Appel" | "E-mail";
 

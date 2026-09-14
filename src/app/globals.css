@@ -487,3 +487,15 @@ h3 {
   background: var(--info-soft);
   color: var(--info);
 }
+.pill.on_request {
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+}
+.st.souscription {
+  background: var(--navy);
+  color: #fff;
+}
+.st.rachat {
+  background: var(--info-soft);
+  color: var(--info);
+}

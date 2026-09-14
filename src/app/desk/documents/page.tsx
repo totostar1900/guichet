@@ -37,7 +37,7 @@ export default async function DocumentsPage() {
   // Auctions: one per (country, deadline) among non-equity offers, open or recently closed.
   const auctions = new Map<string, { country: string; deadlineAt: string; issuer: string; n: number }>();
   offers
-    .filter((o) => o.kind !== "ACTIONS" && o.kind !== "MARCHE" && (isActionable(displayStatus(o, now)) || now.getTime() - parseDate(o.deadlineAt).getTime() < 7 * 86400e3))
+    .filter((o) => o.kind !== "ACTIONS" && o.kind !== "MARCHE" && o.kind !== "FONDS" && (isActionable(displayStatus(o, now)) || now.getTime() - parseDate(o.deadlineAt).getTime() < 7 * 86400e3))
     .forEach((o) => {
       const key = `${o.country}|${o.deadlineAt}`;
       const a = auctions.get(key) ?? { country: o.country, deadlineAt: o.deadlineAt, issuer: o.issuer, n: 0 };

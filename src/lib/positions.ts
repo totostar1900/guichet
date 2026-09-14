@@ -33,7 +33,7 @@ export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date
   // Sales settled on the secondary market reduce the earliest holdings of the same line (FIFO).
   const sold = new Map<string, number>();
   intents
-    .filter((i) => i.state === "reglee" && i.type === "vente")
+    .filter((i) => i.state === "reglee" && (i.type === "vente" || i.type === "rachat"))
     .forEach((i) => {
       const o = byId.get(i.offerId);
       if (!o) return;
@@ -41,7 +41,7 @@ export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date
       sold.set(key, (sold.get(key) ?? 0) + servedUnits(i, o));
     });
   return intents
-    .filter((i) => i.state === "reglee" && (i.type === "ferme" || i.type === "appetit" || i.type === "achat"))
+    .filter((i) => i.state === "reglee" && (i.type === "ferme" || i.type === "appetit" || i.type === "achat" || i.type === "souscription"))
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     .flatMap((i) => {
       const o = byId.get(i.offerId);

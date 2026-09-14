@@ -55,6 +55,7 @@ type OfferRow = {
   settlement_days: number | null;
   price_source: Offer["priceSource"] | null;
   hidden: boolean;
+  fund: Offer["fund"] | null;
   version: number;
   priced_at: string | null;
   result_line: string | null;
@@ -129,6 +130,7 @@ function toOffer(r: OfferRow): Offer {
     settlementDays: u(r.settlement_days),
     priceSource: u(r.price_source),
     hidden: r.hidden || undefined,
+    fund: u(r.fund),
     version: r.version,
     pricedAt: u(r.priced_at),
     resultLine: u(r.result_line),
@@ -194,7 +196,7 @@ function fromOffer(o: Offer): OfferRow {
     price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
     min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
     shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
-    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
   };
 }
 

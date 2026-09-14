@@ -15,7 +15,7 @@ import { fmt } from "@/lib/format";
 
 const schema = z.object({
   offerId: z.string().min(1),
-  type: z.enum(["appetit", "ferme", "info", "rappel", "cession", "achat", "vente"]),
+  type: z.enum(["appetit", "ferme", "info", "rappel", "cession", "achat", "vente", "souscription", "rachat"]),
   limitPrice: z.string().optional(),
   amount: z.string().optional(),
   channel: z.enum(["WhatsApp", "Appel", "E-mail"]),
@@ -42,9 +42,10 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
 
   const amt = parseAmount(amount);
   if ((type === "ferme" || type === "cession") && !amt) return { ok: false, error: "Indiquez un montant pour une prise ferme ou une cession." };
-  if ((type === "achat" || type === "vente") && !amt) return { ok: false, error: "Indiquez une quantité." };
+  if ((type === "achat" || type === "vente" || type === "rachat") && !amt) return { ok: false, error: "Indiquez une quantité." };
+  if (type === "souscription" && (!amt || (offer.fund && amt < offer.fund.minAmount))) return { ok: false, error: `Indiquez un montant (minimum ${fmt(offer.fund?.minAmount ?? 0)} FCFA).` };
   const limit = limitPrice ? Number(String(limitPrice).replace(",", ".")) : null;
-  if (type === "vente") {
+  if (type === "vente" || type === "rachat") {
     const [allIntents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
     const held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), offers).filter((p) => p.offer.isin === offer.isin).reduce((s, p) => s + p.units, 0);
     if (amt > held) return { ok: false, error: `Vous détenez ${fmt(held)} unité(s) de cette ligne chez nous : la vente ne peut pas dépasser ce nombre.` };
@@ -58,7 +59,8 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
       if (held + amt > INDIVISION_CEILING) return { ok: false, error: `Un groupement en indivision est limité à ${fmt(INDIVISION_CEILING)} FCFA de nominal (déjà détenu : ${fmt(held)}). Au-delà, le groupe doit être une association déclarée — parlez-en au desk.` };
     }
   }
-  const needsAccount = (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && session.tier < 2;
+  // Funds are registered at the depositary in the client's name: an approved file is enough, no SVT sub-account needed.
+  const needsAccount = (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && session.tier < 2 ? true : (type === "souscription" || type === "rachat") && session.tier < 2 && session.kycStatus !== "approuve";
   const intent = await r.createIntent({
     offerId,
     type,

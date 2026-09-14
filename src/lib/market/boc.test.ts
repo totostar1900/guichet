@@ -67,11 +67,17 @@ describe("ingestBoc (memory repository, real PDF when present)", () => {
     expect(first.bulletin?.number).toBe(2565);
     expect(first.bulletin?.counts).toEqual({ equities: 7, bonds: 32, funds: 41 });
     expect(first.bulletin?.anomalies).toEqual([]);
-    expect(first.created.length + first.refreshed.length).toBe(39);
+    expect([...first.created, ...first.refreshed].filter((id) => !id.startsWith("fund-")).length).toBe(39);
+    expect(first.created.filter((id) => id.startsWith("fund-")).length).toBe(41);
     expect(first.refreshed).toContain("mkt-bhc"); // seeded line refreshed, not duplicated
     const again = await ingestBoc({ sessionDate: "2026-08-04", bytes: pdf, by: "desk", sourceUrl: "test" });
     expect(again.created).toEqual([]);
-    expect(again.refreshed.length).toBe(39);
+    expect(again.refreshed.length).toBe(39 + 41);
+    const fund = (await memoryRepository.listOffers()).find((o) => o.id === "fund-fcp-sogefirst")!;
+    expect(fund.kind).toBe("FONDS");
+    expect(fund.hidden).toBe(true);
+    expect(fund.fund?.nav).toBe(11184);
+    expect(fund.fund?.distributed).toBe(false);
     const bhc = await memoryRepository.listQuotes("GA0000010074");
     expect(bhc.length).toBe(1);
     expect(bhc[0].close).toBe(90_000);

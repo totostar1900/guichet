@@ -5,7 +5,7 @@ import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl } from "@/lib/market/boc";
-import { ExecuteForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
+import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
 import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -14,10 +14,17 @@ export const metadata = { title: "Marché secondaire" };
 
 export default async function MarketPage() {
   const r = repo();
-  const [offers, intents, bulletins, navs] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10), r.latestFundNavs()]);
+  const [offers, intents, bulletins] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10)]);
   const lines = offers.filter((o) => o.kind === "MARCHE").sort((a, b) => (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.title.localeCompare(b.title));
   const byId = new Map(offers.map((o) => [o.id, o]));
-  const orders = intents.filter((i) => (i.type === "achat" || i.type === "vente") && i.state !== "annulee").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const orders = intents.filter((i) => (i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state !== "annulee").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const funds = offers.filter((o) => o.kind === "FONDS" && o.fund).sort((a, b) => Number(Boolean(b.fund?.distributed)) - Number(Boolean(a.fund?.distributed)) || a.title.localeCompare(b.title));
+  const fundById = new Map(funds.map((o) => [o.id, o]));
+  const pendingByManager = new Map<string, number>();
+  for (const i of orders) {
+    const o = fundById.get(i.offerId);
+    if (o?.fund && (i.state === "confirmee" || i.state === "transmise")) pendingByManager.set(o.fund.manager, (pendingByManager.get(o.fund.manager) ?? 0) + 1);
+  }
   const last = bulletins[0];
   const today = localIso(new Date());
   const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
@@ -196,11 +203,18 @@ export default async function MarketPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Valeurs liquidatives des OPCVM</h2>
+          <h2>OPCVM — {funds.length} fonds lus au bulletin, {funds.filter((o) => o.fund?.distributed).length} ouvert{funds.filter((o) => o.fund?.distributed).length > 1 ? "s" : ""} à la souscription</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {navs.length} fonds publiés par les sociétés de gestion agréées COSUMAF, tels que lus dans le dernier bulletin
+            VL publiées par les sociétés de gestion agréées COSUMAF. Un fonds n&apos;est proposé à la souscription qu&apos;avec une convention de distribution : cochez « distribué », renseignez la référence, les droits et le minimum.
           </span>
         </div>
+        {pendingByManager.size > 0 && (
+          <div className={styles.managers}>
+            {[...pendingByManager.entries()].map(([m, n]) => (
+              <FundBordereauButton key={m} manager={m} count={n} />
+            ))}
+          </div>
+        )}
         <div className="scroll-x">
           <table className="tbl">
             <thead>
@@ -209,37 +223,54 @@ export default async function MarketPage() {
                 <th>Société de gestion · dépositaire</th>
                 <th>Catégorie</th>
                 <th className="r">VL</th>
-                <th>Date</th>
-                <th className="r">Var.</th>
-                <th className="r">Depuis l&apos;origine</th>
+                <th className="r">Var. · origine</th>
+                <th>Conditions de distribution</th>
               </tr>
             </thead>
             <tbody>
-              {navs.map((n) => (
-                <tr key={n.fundKey}>
-                  <td>
-                    <b>{n.name}</b>
-                  </td>
-                  <td>
-                    {n.manager}
-                    <br />
-                    <small className="muted">{n.depositary}</small>
-                  </td>
-                  <td>
-                    {FUND_CATEGORY_LABEL[n.category]}
-                    <br />
-                    <small className="muted">{FUND_FREQUENCY_LABEL[n.frequency]}</small>
-                  </td>
-                  <td className="r num">{fmt(n.nav)}</td>
-                  <td className="num">{fmtDate(n.navDate)}</td>
-                  <td className="r num">{signed(n.variationPct)}</td>
-                  <td className="r num">{signed(n.perfSinceInceptionPct)}</td>
-                </tr>
-              ))}
-              {navs.length === 0 && (
+              {funds.map((o) => {
+                const f = o.fund!;
+                return (
+                  <tr key={o.id} className={f.distributed ? undefined : styles.hiddenRow}>
+                    <td>
+                      <b>
+                        <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
+                          {o.title}
+                        </Link>
+                      </b>
+                      <br />
+                      <small className="muted">{f.distributed ? `ouvert · convention ${f.agreementRef ?? "—"}` : "sur demande"}</small>
+                    </td>
+                    <td>
+                      {f.manager}
+                      <br />
+                      <small className="muted">{f.depositary}</small>
+                    </td>
+                    <td>
+                      {FUND_CATEGORY_LABEL[f.category]}
+                      <br />
+                      <small className="muted">{FUND_FREQUENCY_LABEL[f.frequency]}</small>
+                    </td>
+                    <td className="r num">
+                      {fmt(f.nav)}
+                      <br />
+                      <small className="muted">{fmtDate(f.navDate)}</small>
+                    </td>
+                    <td className="r num">
+                      {signed(f.variationPct)}
+                      <br />
+                      <small className="muted">{signed(f.perfSinceInceptionPct)}</small>
+                    </td>
+                    <td>
+                      <FundTermsForm offerId={o.id} fund={f} />
+                    </td>
+                  </tr>
+                );
+              })}
+              {funds.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="muted">
-                    Aucune VL : elles arrivent avec le premier bulletin ingéré.
+                  <td colSpan={6} className="muted">
+                    Aucun fonds : ils arrivent avec le premier bulletin ingéré.
                   </td>
                 </tr>
               )}
@@ -250,9 +281,9 @@ export default async function MarketPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Ordres de bourse</h2>
+          <h2>Ordres de bourse et d&apos;OPCVM</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            reçu → confirmé (ordre de bourse signé, appel de fonds) → placé → exécuté (prix, quantité) → réglé T+3
+            reçu → confirmé (ordre signé, appel de fonds) → placé / centralisé → exécuté (cours ou VL, quantité) → réglé
           </span>
         </div>
         <div className="scroll-x">
@@ -276,6 +307,8 @@ export default async function MarketPage() {
                 if (!o) return null;
                 const p = positionFor(i, o);
                 const isBond = o.instrument === "obligation";
+                const isFund = o.kind === "FONDS";
+                const qty = (v: number) => (isFund ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
                 return (
                   <tr key={i.id}>
                     <td className="mono">{i.ref}</td>
@@ -288,10 +321,11 @@ export default async function MarketPage() {
                       <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
                     </td>
                     <td className="r num">
-                      {fmt(p.units)}
-                      {i.servedUnits != null && i.servedUnits !== p.units ? <small className="muted"> (exéc. {fmt(i.servedUnits)})</small> : null}
+                      {qty(p.units)}
+                      {isFund ? <small className="muted"> parts{i.type === "souscription" && i.servedUnits == null ? " (est.)" : ""}</small> : null}
+                      {i.servedUnits != null && i.servedUnits !== p.units ? <small className="muted"> (exéc. {qty(i.servedUnits)})</small> : null}
                     </td>
-                    <td className="r num">{i.limitPrice != null ? (isBond ? fmtPrice(i.limitPrice) : fmt(i.limitPrice)) : "marché"}</td>
+                    <td className="r num">{isFund ? `VL ${fmt(o.fund?.nav ?? 0)}` : i.limitPrice != null ? (isBond ? fmtPrice(i.limitPrice) : fmt(i.limitPrice)) : "marché"}</td>
                     <td className="r num">
                       {fmt(Math.abs(p.total))}
                       {i.executedPrice != null ? <small className="muted"> @ {isBond ? fmtPrice(i.executedPrice) : fmt(i.executedPrice)}</small> : null}
@@ -300,7 +334,7 @@ export default async function MarketPage() {
                       <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
                     </td>
                     <td className={styles.right}>
-                      {i.state === "transmise" && <ExecuteForm intentId={i.id} units={p.units} refPrice={i.limitPrice ?? (i.type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0))} step={isBond ? "0.001" : "1"} />}
+                      {i.state === "transmise" && <ExecuteForm intentId={i.id} units={p.units} refPrice={isFund ? (o.fund?.nav ?? 0) : (i.limitPrice ?? (i.type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0)))} step={isBond ? "0.001" : isFund ? "0.01" : "1"} unitStep={isFund ? "0.001" : "1"} />}
                       {i.state === "servie" && <SettleButton intentId={i.id} />}
                       {(i.state === "recue" || i.state === "confirmee") && (
                         <Link className="btn sm" href="/desk">

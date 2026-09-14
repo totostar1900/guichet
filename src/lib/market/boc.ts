@@ -5,6 +5,9 @@ import { repo } from "@/lib/data";
 import { fmt, fmtDate } from "@/lib/format";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
+import { prettyName } from "./names";
+
+export { prettyName };
 
 /**
  * Daily ingestion of the BVMAC « Bulletin Officiel de la Cote ».
@@ -130,24 +133,6 @@ export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], pr
 
 /* ---------------- listed lines of the Guichet ---------------- */
 
-const ACRONYMS = new Set(["BDEAC", "BEAC", "SNPC", "ACEP", "BGFI", "SCG", "CCA", "BHC", "SEMC", "SAF", "REG", "SOCAP", "BANGE", "UBA", "SA", "S.A.", "SARL", "MT", "II"]);
-const SMALL = new Set(["DE", "DU", "DES", "LA", "LE", "LES", "ET", "EN", "D", "L", "AU", "AUX"]);
-/** "SOCIETE DES EAUX MINERALES DU CAMEROUN" → "Societe des Eaux Minerales du Cameroun"; acronyms kept. */
-export function prettyName(raw: string): string {
-  return raw
-    .trim()
-    .split(/\s+/)
-    .map((w, i) => {
-      const up = w.toUpperCase();
-      if (up === "ETAT") return "État";
-      if (ACRONYMS.has(up)) return up;
-      if (i > 0 && SMALL.has(up)) return up.toLowerCase();
-      if (/^[A-Z]{1,3}$/.test(up)) return up;
-      return up.charAt(0) + up.slice(1).toLowerCase();
-    })
-    .join(" ");
-}
-
 const couponFromDesignation = (d: string): number | undefined => {
   const m = d.match(/(\d+(?:[.,]\d+)?)\s?%/);
   return m ? Number(m[1].replace(",", ".")) : undefined;
@@ -200,6 +185,74 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
   };
 }
 
+/** An OPCVM line of the Guichet: information only until the desk records a distribution agreement. */
+export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer): Offer {
+  const geo = COUNTRY_OF_DEPOSITARY(n.depositary);
+  const base: Offer = existing ?? {
+    id: `fund-${n.fundKey}`,
+    kind: "FONDS",
+    operation: "opcvm",
+    country: geo.country,
+    countryName: geo.name,
+    issuer: prettyName(n.manager),
+    title: n.name.replace(/^(FCPE|FCP|SICAV)\s+(.*)$/, (_, k: string, rest: string) => `${k} ${prettyName(rest)}`),
+    isin: n.fundKey,
+    status: "published",
+    hidden: true,
+    blurb: `${n.name} — fonds ${FUND_WORD[n.category] ?? ""} géré par ${prettyName(n.manager)}, dépositaire ${prettyName(n.depositary)}. Valeur liquidative ${FREQ_WORD[n.frequency] ?? ""} publiée au Bulletin Officiel de la Cote (source : sociétés de gestion agréées COSUMAF).`,
+    documents: [],
+    opensAt: `${n.inceptionDate}T09:00:00`,
+    deadlineAt: "2099-12-31T17:00:00",
+    settleOn: n.navDate,
+    nominal: 1,
+    commissionPct: 0,
+    version: 0,
+  };
+  const prior = base.fund;
+  return {
+    ...base,
+    fund: {
+      key: n.fundKey,
+      manager: n.manager,
+      depositary: n.depositary,
+      category: n.category,
+      frequency: n.frequency,
+      nav: n.nav,
+      navDate: n.navDate,
+      navOrigin: n.navOrigin,
+      inceptionDate: n.inceptionDate,
+      perfSinceInceptionPct: n.perfSinceInceptionPct,
+      variationPct: n.variationPct,
+      distributed: prior?.distributed ?? false,
+      agreementRef: prior?.agreementRef,
+      entryFeePct: prior?.entryFeePct ?? 0,
+      exitFeePct: prior?.exitFeePct ?? 0,
+      minAmount: prior?.minAmount ?? 100_000,
+      cutoff: prior?.cutoff,
+      settlementDays: prior?.settlementDays,
+      registerNote: prior?.registerNote,
+    },
+    commissionPct: prior?.entryFeePct ?? base.commissionPct,
+    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(n.sessionDate)}` }, ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote")],
+    lastPrice: n.nav,
+    lastPriceOn: n.navDate,
+    pricedAt: new Date().toISOString(),
+    priceSource: "boc",
+    version: base.version + 1,
+  };
+}
+const FUND_WORD: Record<string, string> = { M: "monétaire", O: "obligataire", D: "diversifié", A: "actions" };
+const FREQ_WORD: Record<string, string> = { quotidienne: "quotidienne", hebdomadaire: "hebdomadaire", mensuelle: "mensuelle", trimestrielle: "trimestrielle" };
+const COUNTRY_OF_DEPOSITARY = (d: string): { country: Country; name: string } => {
+  const u = d.toUpperCase();
+  if (/GABON/.test(u)) return { country: "Gabon", name: "Gabon · OPCVM" };
+  if (/CONGO|LCB/.test(u)) return { country: "Congo", name: "Congo · OPCVM" };
+  if (/TCHAD/.test(u)) return { country: "Tchad", name: "Tchad · OPCVM" };
+  if (/CENTRAFRIQUE/.test(u)) return { country: "RCA", name: "RCA · OPCVM" };
+  if (/GUINEA|GUINEE/.test(u)) return { country: "Guinée éq.", name: "Guinée équatoriale · OPCVM" };
+  return { country: "Cameroun", name: "Cameroun · OPCVM" };
+};
+
 /* ---------------- ingestion ---------------- */
 
 export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array; sourceUrl?: string; by: MarketBulletin["ingestedBy"] }): Promise<IngestResult> {
@@ -248,6 +301,16 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     (existing ? refreshed : created).push(next.id);
   }
 
+  // OPCVM lines: NAV refreshed, terms kept; new funds arrive hidden (information only until an agreement exists).
+  const byKey = new Map(offers.filter((o) => o.kind === "FONDS" && o.fund).map((o) => [o.fund!.key, o]));
+  for (const n of navs) {
+    const existing = byKey.get(n.fundKey);
+    if (existing && existing.fund && existing.fund.navDate > n.navDate) continue;
+    const next = offerFromNav(n, parsed.bulletinNo, existing);
+    await r.upsertOffer(next);
+    (existing ? refreshed : created).push(next.id);
+  }
+
   const status: MarketBulletin["status"] = anomalies.length || parsed.warnings.length ? "partiel" : "ok";
   const bulletin: MarketBulletin = {
     id: sessionDate,
@@ -270,7 +333,9 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   if (!already) {
     const idx = parsed.index ? ` · BVMAC All Share ${fmt(parsed.index.value)} (${parsed.index.variationPct >= 0 ? "+" : ""}${parsed.index.variationPct.toFixed(2).replace(".", ",")} %)` : "";
     const flag = anomalies.length ? ` — <b>${anomalies.length} anomalie${anomalies.length > 1 ? "s" : ""} à vérifier</b>` : "";
-    await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC n° ${parsed.bulletinNo}</b> du ${fmtDate(sessionDate)} ingéré : ${parsed.equities.length} actions, ${parsed.bonds.length} obligations, ${parsed.funds.length} OPCVM${idx}${created.length ? ` · ${created.length} nouvelle(s) ligne(s) au Guichet` : ""}${flag}` });
+    const newLines = created.filter((id) => id.startsWith("boc-")).length;
+    const newFunds = created.filter((id) => id.startsWith("fund-")).length;
+    await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC n° ${parsed.bulletinNo}</b> du ${fmtDate(sessionDate)} ingéré : ${parsed.equities.length} actions, ${parsed.bonds.length} obligations, ${parsed.funds.length} OPCVM${idx}${newLines ? ` · ${newLines} nouvelle(s) ligne(s) cotée(s)` : ""}${newFunds ? ` · ${newFunds} fonds ajouté(s) (sur demande)` : ""}${flag}` });
     for (const n of parsed.notices) await r.logEvent({ kind: "desk", html: `<b>Avis BVMAC</b> (BOC n° ${parsed.bulletinNo}) : ${n.replace(/</g, "&lt;")}` });
   }
   return { found: true, bulletin, created, refreshed };

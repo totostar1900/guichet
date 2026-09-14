@@ -3,6 +3,7 @@ import { bondCalc, btaCalc, parseDate, yearsBetween } from "../finance";
 
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
   quoted: "Cotée",
+  on_request: "Sur demande",
   upcoming: "À venir",
   open: "Ouverte",
   closing: "Clôture imminente",
@@ -12,11 +13,18 @@ export const STATUS_LABEL: Record<DisplayStatus, string> = {
   matured: "Échue",
 };
 
+/** Pill text: a distributed fund is « ouvert à la souscription », not « coté ». */
+export function statusLabel(o: Offer, s: DisplayStatus): string {
+  if (o.kind === "FONDS" && s === "quoted") return "Souscription ouverte";
+  return STATUS_LABEL[s];
+}
+
 export const CLOSING_WINDOW_MS = 6 * 3600 * 1000;
 
 /** What the client sees, derived from stored status + clock. */
 export function displayStatus(o: Offer, now: Date = new Date()): DisplayStatus {
   if (o.kind === "MARCHE") return o.status === "withdrawn" ? "matured" : "quoted";
+  if (o.kind === "FONDS") return o.status === "withdrawn" ? "matured" : o.fund?.distributed && !o.hidden ? "quoted" : "on_request";
   if (o.status === "live") return "live";
   if (o.status === "matured") return "matured";
   if (o.status === "results") return "results";
@@ -94,6 +102,7 @@ export const KIND_LABEL: Record<Offer["kind"], string> = {
   APE: "Obligations APE",
   RACHAT: "Rachat",
   MARCHE: "Marché secondaire",
+  FONDS: "OPCVM",
 };
 
 export const OPERATION_LABEL: Record<Offer["operation"], string> = {
@@ -103,4 +112,5 @@ export const OPERATION_LABEL: Record<Offer["operation"], string> = {
   ipo: "IPO",
   emprunt_ape: "Emprunt obligataire",
   secondaire: "Cotation",
+  opcvm: "Fonds commun de placement",
 };

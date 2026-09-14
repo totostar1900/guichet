@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FlowsChart } from "@/components/FlowsChart";
+import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
+import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { IntentForm } from "@/components/IntentForm";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, STATUS_LABEL } from "@/lib/domain/status";
+import { displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, statusLabel } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
@@ -30,6 +32,12 @@ function Kpis({ o }: { o: Offer }) {
           [`Prix ${o.servedPricePct ? "servi" : "Purpose"}`, fmtPrice(o.servedPricePct ?? o.pricePct ?? 100), false],
           ["Coupon annuel", fmtPct(o.couponRate ?? 0, 2), false],
         ]
+      : o.kind === "FONDS" && o.fund
+        ? [
+            ["Valeur liquidative (FCFA)", fmt(o.fund.nav), true],
+            ["Depuis l'origine", `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, false],
+            ["Catégorie", `${FUND_CATEGORY_LABEL[o.fund.category]} · ${FUND_FREQUENCY_LABEL[o.fund.frequency]}`, false],
+          ]
       : o.kind === "MARCHE"
         ? [
             [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", true],
@@ -112,6 +120,27 @@ function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.gain)}</div>
           <div className="hl">Rendement actuariel</div>
           <div>{fmtPct(r.yieldPct, 2)}</div>
+        </div>
+      </>
+    );
+  }
+  if (o.kind === "FONDS" && o.fund) {
+    const f = o.fund;
+    const amount = Math.max(f.minAmount, 1_000_000);
+    const net = amount / (1 + f.entryFeePct / 100);
+    const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
+    return (
+      <>
+        <h3>Pour {fmt(amount)} FCFA à la dernière VL</h3>
+        <div className="out">
+          <div>Droits d&apos;entrée {fmtPct(f.entryFeePct, 2)}</div>
+          <div>{fmt(amount - net)}</div>
+          <div>Investi dans le fonds</div>
+          <div>{fmt(net)}</div>
+          <div className="tot">Parts (VL {fmt(f.nav)} du {fmtDate(f.navDate, false)})</div>
+          <div>≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</div>
+          <div>Droits de sortie</div>
+          <div>{fmtPct(f.exitFeePct, 2)}</div>
         </div>
       </>
     );
@@ -213,18 +242,26 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
+  const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 60) : [];
   const st = displayStatus(o);
   const past = isPast(st);
   const types = allowedIntents(o, st);
   const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
 
   const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
-  const stamp = o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
-  const priceText = o.kind === "MARCHE" ? `cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}` : o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
+  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
+  const priceText = o.kind === "FONDS" && o.fund ? `VL ${fmt(o.fund.nav)} FCFA` : o.kind === "MARCHE" ? `cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}` : o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
   const timeline: [string, string][] =
-    o.kind === "MARCHE"
+    o.kind === "FONDS" && o.fund
+      ? [
+          ["Société de gestion", o.fund.manager],
+          ["Dépositaire", o.fund.depositary],
+          ["Centralisation", o.fund.cutoff ?? (st === "quoted" ? "avant la prochaine VL" : "sur demande")],
+          ["Création du fonds", fmtDate(o.fund.inceptionDate)],
+        ]
+      : o.kind === "MARCHE"
       ? [
           ["Marché", o.market ?? "—"],
           ["Cotation", "continue, jours ouvrés"],
@@ -246,7 +283,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
         ];
 
   const risks =
-    o.kind === "MARCHE"
+    o.kind === "FONDS"
+      ? [
+          ["Valeur liquidative inconnue à l'ordre.", "Une souscription ou un rachat s'exécute à la prochaine VL calculée par la société de gestion, pas à celle affichée ; le nombre de parts n'est connu qu'après centralisation."],
+          ["Performance non garantie.", "Les performances passées ne préjugent pas des performances futures ; la VL peut baisser, y compris pour un fonds monétaire ou obligataire."],
+          ["Frais et liquidité.", "Droits d'entrée et de sortie, frais de gestion prélevés dans la VL ; un rachat est réglé après la VL de rachat, selon la périodicité du fonds. Les parts sont inscrites à votre nom chez le dépositaire ; Purpose Capital n'est que distributeur."],
+        ]
+      : o.kind === "MARCHE"
       ? [
           ["Prix d'exécution.", "Le cours indiqué est le dernier connu ; votre ordre s'exécute au prix du marché ou à votre limite, en tout ou partie, selon la contrepartie disponible."],
           ["Liquidité.", "Le marché secondaire régional est étroit : un ordre peut rester non exécuté plusieurs séances."],
@@ -272,7 +315,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         </Link>
         <div className={styles.head}>
           <div className={`eyebrow ${styles.eyebrow}`}>
-            <span className="cc">{o.country.toUpperCase()}</span> {KIND_LABEL[o.kind]} · {OPERATION_LABEL[o.operation]} <span className={`pill ${st}`}>{STATUS_LABEL[st]}</span>
+            <span className="cc">{o.country.toUpperCase()}</span> {KIND_LABEL[o.kind]} · {OPERATION_LABEL[o.operation]} <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
             {o.isExample && <span className="tag-ex">exemple</span>}
           </div>
           <h1 className="display">{o.title}</h1>
@@ -298,6 +341,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </p>
         </section>
 
+        {navs.length > 0 && (
+          <section className={styles.sec}>
+            <h3>Valeurs liquidatives publiées</h3>
+            <NavHistory navs={navs} />
+            <p className={styles.note}>VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement. {o.fund?.distributed ? "" : "Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore — dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion."}</p>
+          </section>
+        )}
         {quotes.length > 0 && (
           <section className={styles.sec}>
             <h3>Au bulletin de la BVMAC</h3>
@@ -345,7 +395,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
 
       <aside className={styles.side}>
-        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} signedIn={Boolean(session)} tier={session?.tier ?? 0} />
+        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             Durée réelle <b>{tenorText(o.settleOn, o.maturityOn)}</b> · règlement le {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

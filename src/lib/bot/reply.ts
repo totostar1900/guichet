@@ -9,6 +9,7 @@ import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
 import type { Contact, Intent, Offer } from "@/lib/domain/types";
 import { bondCalc, tenorText } from "@/lib/finance";
+import { FUND_CATEGORY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import { positionsFrom } from "@/lib/positions";
 
@@ -47,6 +48,7 @@ function offerFacts(o: Offer): string {
   }
   if (o.kind === "BTA") return `${base}\n  bon à intérêts précomptés · taux ${fmtPct(o.precountRate ?? 0, 2)}${o.rateNote ? " (indicatif)" : ""} · rendement actuariel ${y != null ? fmtPct(y, 2) : "—"} · nominal ${fmt(o.nominal)} · commission ${fmtPct(o.commissionPct, 2)}`;
   if (o.kind === "ACTIONS") return `${base}\n  prix ${fmt(o.pricePerShare ?? 0)} FCFA/action · minimum ${o.minShares} actions · dividende ${fmt(o.dividendPerShare ?? 0)} (${y != null ? fmtPct(y, 2) : "—"}) · dernier cours ${o.lastPrice ? fmt(o.lastPrice) : "—"} · souscription du ${fmtDate(o.opensAt)} au ${fmtDate(o.deadlineAt)}`;
+  if (o.kind === "FONDS" && o.fund) return `${base}\n  OPCVM ${FUND_CATEGORY_LABEL[o.fund.category].toLowerCase()} géré par ${o.fund.manager}, dépositaire ${o.fund.depositary} · VL ${fmt(o.fund.nav)} FCFA au ${fmtDate(o.fund.navDate)} · depuis l'origine ${fmtPct(o.fund.perfSinceInceptionPct, 2)} · ${o.fund.distributed ? `souscription ouverte : minimum ${fmt(o.fund.minAmount)} FCFA, droits d'entrée ${fmtPct(o.fund.entryFeePct, 2)}, sortie ${fmtPct(o.fund.exitFeePct, 2)}, exécution à la prochaine VL` : "présenté à titre d'information, souscription sur demande (pas encore de convention de distribution)"} · parts au nom du client chez le dépositaire`;
   if (o.kind === "MARCHE") return `${base}\n  ${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}${o.lastPriceOn ? ` au ${fmtDate(o.lastPriceOn)}` : ""} · acheteur ${o.bid ?? "—"} / vendeur ${o.ask ?? "—"} · quantité min ${o.lotSize ?? 1} · commission ${fmtPct(o.commissionPct, 2)} · règlement T+${o.settlementDays ?? 3} · ordres d'achat / vente au marché ou à cours limité (le prix d'exécution dépend du marché)`;
   return `${base}\n  rachat par l'émetteur à 100 % du nominal · commission ${fmtPct(o.commissionPct, 2)}`;
 }
@@ -57,6 +59,7 @@ In fine : le capital revient en une fois à l'échéance.
 Adjudication : le Trésor retient les offres les mieux-disantes ; une soumission peut être servie en partie ou pas du tout. Purpose Capital présente les ordres au prix qu'elle publie, via un SVT (banque agréée).
 Nouvelle ligne / abondement / rachat : ligne nouvelle sans coupon couru ; abondement = réouverture d'une ligne existante ; rachat = l'émetteur reprend ses titres, en général au pair.
 BTA : bon du Trésor à intérêts précomptés (on paie moins que le nominal, on reçoit le nominal) ; OTA : obligation du Trésor à coupon annuel.
+OPCVM / FCP : fonds commun de placement géré par une société de gestion agréée COSUMAF ; on achète des parts à la valeur liquidative (VL) suivante, inconnue au moment de l’ordre ; les parts sont au nom du client chez le dépositaire ; Purpose Capital est distributeur. Liste des fonds : ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/fonds.
 Niveaux de relation : 1 = identifié (appétit, question) ; 2 = compte-titres ouvert (prise ferme, cession). Ouverture du compte : ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/ouvrir-un-compte (10 minutes, pièces en photo).`;
 
 export async function answerInbound(from: string, text: string, opts: { dryRun?: boolean } = {}): Promise<{ answer: BotAnswer; contact?: Contact; createdRef?: string }> {

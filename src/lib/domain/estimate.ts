@@ -51,6 +51,13 @@ export function estimate(o: Offer, amount: number): Estimate {
     const r = isBond && o.couponRate != null && o.maturityOn ? bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, n * o.nominal, ref) : undefined;
     return { ok: n > 0, titles: n, outlay: r ? r.outlay : n * unit, text: n > 0 ? `≈ ${fmt(n)} ${isBond ? "titres" : "actions"} au cours de référence ${isBond ? fmtPrice(ref) : fmt(ref) + " FCFA"} · ${fmt(r ? r.outlay : n * unit)} FCFA${r?.accruedDays ? ` dont ${fmt(r.accrued)} de coupon couru` : ""} · règlement T+${o.settlementDays ?? 3} · le prix d'exécution dépend du marché` : "Montant inférieur à une unité." };
   }
+  if (o.kind === "FONDS" && o.fund) {
+    const f = o.fund;
+    if (amount < f.minAmount) return { ok: false, text: `Souscription minimale ${fmt(f.minAmount)} FCFA.` };
+    const net = amount / (1 + f.entryFeePct / 100);
+    const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
+    return { ok: units > 0, titles: units, outlay: amount, text: `≈ ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL du ${fmtDate(f.navDate, false)} (${fmt(f.nav)} FCFA)${f.entryFeePct ? ` · droits d'entrée ${fmtPct(f.entryFeePct, 2)} inclus` : " · sans droits d'entrée"} · le nombre exact de parts dépend de la VL retenue à la centralisation` };
+  }
   if (o.kind === "RACHAT") {
     const proceeds = amount * o.nominal;
     return { ok: true, titles: amount, outlay: -proceeds, text: `${fmt(amount)} titres · produit de cession ${fmt(proceeds)} FCFA à 100 %, commission déduite ${fmt(proceeds * (1 - o.commissionPct / 100))}` };
