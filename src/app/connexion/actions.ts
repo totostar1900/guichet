@@ -6,7 +6,7 @@ import { authMode } from "@/lib/auth";
 import { clearDevSession, writeDevSession } from "@/lib/auth/dev";
 import type { Session } from "@/lib/auth/types";
 
-export type LoginState = { step: "email"; error?: string } | { step: "code"; email: string; error?: string };
+export type LoginState = { step: "email"; error?: string } | { step: "code"; email: string; error?: string } | { step: "phone"; error?: string } | { step: "phone-code"; phone: string; error?: string };
 
 const safeNext = (n: unknown): string => (typeof n === "string" && n.startsWith("/") && !n.startsWith("//") ? n : "/");
 
@@ -32,6 +32,33 @@ export async function verifyCode(_prev: LoginState, form: FormData): Promise<Log
   const sb = await supabaseAuthClient();
   const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
   if (error) return { step: "code", email, error: "Code incorrect ou expiré." };
+  redirect(next);
+}
+
+/* ---------- Supabase : téléphone (SMS ou WhatsApp selon le fournisseur configuré) ---------- */
+
+export async function sendPhoneCode(_prev: LoginState, form: FormData): Promise<LoginState> {
+  const raw = String(form.get("phone") ?? "").replace(/[^\d+]/g, "");
+  const phone = raw.startsWith("+") ? raw : `+${raw}`;
+  if (!/^\+\d{8,15}$/.test(phone)) return { step: "phone", error: "Numéro au format international, ex. +237 6 87 67 67 67." };
+  if (authMode() !== "supabase") return { step: "phone", error: "Supabase n'est pas configuré." };
+  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+  const sb = await supabaseAuthClient();
+  const channel = process.env.PHONE_OTP_CHANNEL === "whatsapp" ? "whatsapp" : "sms";
+  const { error } = await sb.auth.signInWithOtp({ phone, options: { channel, shouldCreateUser: true } });
+  if (error) return { step: "phone", error: `Envoi impossible : ${error.message}` };
+  return { step: "phone-code", phone };
+}
+
+export async function verifyPhoneCode(_prev: LoginState, form: FormData): Promise<LoginState> {
+  const phone = String(form.get("phone") ?? "");
+  const token = String(form.get("code") ?? "").replace(/\s/g, "");
+  const next = safeNext(form.get("next"));
+  if (!/^\d{6,8}$/.test(token)) return { step: "phone-code", phone, error: "Le code comporte 6 chiffres." };
+  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+  const sb = await supabaseAuthClient();
+  const { error } = await sb.auth.verifyOtp({ phone, token, type: "sms" });
+  if (error) return { step: "phone-code", phone, error: "Code incorrect ou expiré." };
   redirect(next);
 }
 

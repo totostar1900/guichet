@@ -75,13 +75,26 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - **Positions** : dérivées des ordres réglés (jamais stockées) — `src/lib/positions.ts` ; visibles dans *Mon espace* et sur le desk avec les flux à venir. Le segment « Porteurs de la ligne » des diffusions se résout sur ces positions.
 - **Avis de coupon** : `/api/cron/coupons` (J-3 et jour J, idempotent), planifié dans `vercel.json` ; protégé par `CRON_SECRET`.
 
+## Robot WhatsApp
+
+- `src/lib/bot/reply.ts` répond aux messages entrants (webhook) avec Claude en sortie structurée : réponse, besoin de rappel, intention détectée. Il connaît le glossaire, les offres publiées (chiffres calculés, jamais inventés), les intentions et positions de l'expéditeur. Il ne conseille pas, ne promet rien, ne parle pas des autres clients ; prise ferme et cession = appétit enregistré + rappel d'un conseiller.
+- STOP / START gèrent l'opt-in WhatsApp. `BOT_ENABLED=0` coupe le robot (les messages restent journalisés).
+- Banc d'essai : **/desk/robot** — tester un message comme un client, sans envoi.
+
+## Déploiement
+
+1. **Supabase** : projet, migrations `0001` → `0007` dans l'ordre, `seed.sql` (optionnel), Auth › Email (code `{{ .Token }}`), Auth › Phone si `PHONE_OTP_ENABLED=1`, URL de redirection `/auth/callback`.
+2. **Vercel** (ou tout hôte Node) : importer le dépôt, renseigner les variables de `.env.example` (Supabase, `AUTH_SECRET`, `DESK_EMAILS`, `ANTHROPIC_API_KEY`, WhatsApp, Resend, `SETTLEMENT_*`, `NEXT_PUBLIC_APP_URL`, `CRON_SECRET`). `vercel.json` planifie les avis de coupon.
+3. **Meta** : application WhatsApp Business, numéro, webhook `https://<domaine>/api/whatsapp/webhook` avec `WHATSAPP_VERIFY_TOKEN`, modèles `guichet_offre` (4 paramètres) et `guichet_maj` (2) soumis à approbation.
+4. Vérifier : `npm run build`, puis /connexion, /desk (rôle desk via `DESK_EMAILS`), une publication depuis /desk/a-valider, une intention depuis une fiche.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
 - `/desk/*` est protégé par `src/proxy.ts` (anonyme → /connexion) et par `src/app/desk/layout.tsx` (rôle desk). Les actions serveur revérifient.
 - Une intention porte `client_id` = utilisateur connecté ; sans session, le formulaire renvoie vers /connexion puis revient sur la fiche.
 - Rôle : `profiles.role` ; amorçage par `DESK_EMAILS`. Niveaux 0/1/2 (visiteur, identifié, compte ouvert) dans `profiles.tier` — la prise ferme exigera le niveau 2 après l'onboarding.
-- Connexion WhatsApp/SMS OTP : à activer dans Supabase (fournisseur SMS) — le code est prêt à l'accueillir via `signInWithOtp({ phone })`.
+- Connexion par téléphone (SMS ou WhatsApp via le fournisseur configuré dans Supabase) : `PHONE_OTP_ENABLED=1`, `PHONE_OTP_CHANNEL=sms|whatsapp`.
 
 ## Principes
 
@@ -91,6 +104,6 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Relevés de position (PDF mensuel), attestation de détention.
-2. Screening sanctions / PPE (OpenSanctions), vérification d'identité (Smile ID).
-3. Connexion WhatsApp par téléphone (OTP), robot de réponse aux questions.
+1. Screening sanctions / PPE (OpenSanctions) et vérification d'identité (Smile ID) dans la revue KYC.
+2. Marché secondaire : cotations BVMAC, ordres d'achat / vente hors adjudication.
+3. Reporting COSUMAF : journal des ordres exportable, statistiques d'activité.

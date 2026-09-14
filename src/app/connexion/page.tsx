@@ -19,8 +19,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 className="display">Se connecter</h1>
         {mode === "supabase" ? (
           <>
-            <p className={styles.lead}>Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir. La connexion WhatsApp arrive avec l&apos;étape suivante.</p>
-            <EmailOtpForm next={next} />
+            <p className={styles.lead}>Recevez un code à usage unique par e-mail{process.env.PHONE_OTP_ENABLED === "1" ? ", par WhatsApp ou par SMS" : ""}. Aucun mot de passe à retenir.</p>
+            <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} />
           </>
         ) : (
           <>
