@@ -60,6 +60,14 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - Webhook entrant : `/api/whatsapp/webhook` (vérification `WHATSAPP_VERIFY_TOKEN`, messages entrants journalisés dans le flux du desk).
 - Le desk se rafraîchit seul : Realtime Supabase (`intents`, `events`) ou toutes les 20 s en démo. Les clients ont leur espace **/moi** (intentions, états, documents).
 
+## Onboarding, KYC, compte-titres
+
+- **/ouvrir-un-compte** (client) : type (physique, morale, groupement, institutionnel), identité, personnes (représentants, mandataires, bénéficiaires effectifs), pièces en photo (liste par type, `src/lib/kyc/checklist.ts`), origine des fonds, PPE, questionnaire investisseur, consentements, **acceptation de la convention par code** (WhatsApp / e-mail, affiché en démo). Soumission bloquée tant que le dossier est incomplet.
+- **/desk/clients** : file des dossiers, contrôles automatiques (majorité, validité de la pièce, complétude, PPE ; sanctions à brancher), pièces à vérifier, notation de risque (suggérée), décision : approuver (→ niveau 2, convention signée + dossier d'ouverture SVT générés, client prévenu), compléments, refus. Revue périodique 1 / 3 / 5 ans selon le risque.
+- Une prise ferme reste possible au niveau 1 : l'intention est gardée et marquée « compte-titres à ouvrir », le client est renvoyé vers l'ouverture de compte, le desk voit l'alerte.
+- Niveau de relation dans la session (`tier`) : 1 identifié, 2 compte ouvert ; `profiles.tier` sur Supabase, dossier `client_files` (migration 0006, bucket `kyc`).
+- Décisions ouvertes : structure de compte au SVT (nominatif ou omnibus) — le dossier d'ouverture généré convient aux deux ; forme des groupements (association déclarée ou indivision de mandataires) — champ `legalForm`.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -76,4 +84,6 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Onboarding client, KYC, ouverture de compte-titres.
+1. Vie du titre : positions, avis de coupon, relevés ; résultats d'adjudication saisis en masse.
+2. Screening sanctions / PPE (OpenSanctions), vérification d'identité (Smile ID).
+3. Connexion WhatsApp par téléphone (OTP), robot de réponse aux questions.

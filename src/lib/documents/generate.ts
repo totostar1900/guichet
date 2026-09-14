@@ -88,3 +88,20 @@ async function store(meta: Omit<GeneratedDocument, "id" | "fileKey" | "status" |
   await repo().logEvent({ kind: "document", intentId: meta.intentId, offerId: meta.offerId, html: `<b>${DOC_LABEL[meta.type]}</b> ${meta.number} généré${meta.clientName ? ` pour ${meta.clientName}` : ""}${meta.createdBy ? ` · par ${meta.createdBy}` : ""}` });
   return doc;
 }
+
+/* ---------------- KYC documents ---------------- */
+import type { ClientFile } from "@/lib/domain/kyc";
+import { Convention, DossierOuverture } from "./pdf/kyc-templates";
+
+/** Blank convention model (read before acceptance). Not stored. */
+export async function renderConventionModel(): Promise<Buffer> {
+  return renderToBuffer(el(createElement(Convention, { number: "MODÈLE", now: new Date() })));
+}
+
+export async function generateKycDocument(type: "convention" | "dossier_svt", file: ClientFile, advisor?: string): Promise<GeneratedDocument> {
+  const now = new Date();
+  const number = await nextNumber(type, now);
+  const element = type === "convention" ? createElement(Convention, { number, file, now }) : createElement(DossierOuverture, { number, file, now });
+  const pdf = await renderToBuffer(el(element));
+  return store({ type, number, title: `${DOC_LABEL[type]} — ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor }, pdf, now);
+}

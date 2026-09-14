@@ -36,6 +36,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
         <Link href="/desk/a-valider" aria-current="page">
           À valider {todo.length > 0 && <span className={styles.badge}>{todo.length}</span>}
         </Link>
+        <Link href="/desk/clients">Clients</Link>
         <Link href="/desk/documents">Documents</Link>
       </nav>
 

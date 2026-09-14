@@ -62,6 +62,7 @@ export default async function DocumentsPage() {
       <nav className={deskStyles.sub} aria-label="Desk">
         <Link href="/desk">Carnet du jour</Link>
         <Link href="/desk/a-valider">À valider</Link>
+        <Link href="/desk/clients">Clients</Link>
         <Link href="/desk/documents" aria-current="page">
           Documents
         </Link>

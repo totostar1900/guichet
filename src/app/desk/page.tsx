@@ -46,6 +46,7 @@ export default async function DeskPage() {
           Carnet du jour
         </Link>
         <Link href="/desk/a-valider">À valider</Link>
+        <Link href="/desk/clients">Clients</Link>
         <Link href="/desk/documents">Documents</Link>
       </nav>
 

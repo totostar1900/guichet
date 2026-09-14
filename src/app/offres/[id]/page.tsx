@@ -269,7 +269,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
 
       <aside className={styles.side}>
-        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} signedIn={Boolean(session)} />
+        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} signedIn={Boolean(session)} tier={session?.tier ?? 0} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             Durée réelle <b>{tenorText(o.settleOn, o.maturityOn)}</b> · règlement le {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

@@ -10,8 +10,10 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   const doc = await repo().getDocument((await ctx.params).id);
   if (!doc) return new NextResponse("Document introuvable", { status: 404 });
   if (s.role !== "desk") {
-    const intents = await repo().listIntents();
-    const mine = intents.find((i) => i.id === doc.intentId && i.clientId === s.userId);
+    if (doc.type === "dossier_svt" || doc.type === "bordereau") return new NextResponse("Accès refusé", { status: 403 });
+    let mine = false;
+    if (doc.intentId) mine = (await repo().listIntents()).some((i) => i.id === doc.intentId && i.clientId === s.userId);
+    if (!mine && doc.clientFileId) mine = (await repo().getClientFile(doc.clientFileId))?.userId === s.userId;
     if (!mine) return new NextResponse("Accès refusé", { status: 403 });
   }
   const bytes = await readSource(doc.fileKey);

@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer } from "@/lib/domain/types";
+import type { ClientFile } from "@/lib/domain/kyc";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -229,6 +230,31 @@ const fromNotif = (p: Partial<Notification>): Partial<NotifRow> => {
   return row;
 };
 
+type KycRow = {
+  id: string; user_id: string; kind: ClientFile["kind"]; status: ClientFile["status"]; identity: ClientFile["identity"]; persons: ClientFile["persons"];
+  documents: ClientFile["documents"]; funds: ClientFile["funds"]; profile: ClientFile["profile"]; consents: ClientFile["consents"]; review: ClientFile["review"];
+  created_at: string; updated_at: string; submitted_at: string | null;
+};
+const toKyc = (r: KycRow): ClientFile => ({
+  id: r.id, userId: r.user_id, kind: r.kind, status: r.status, identity: r.identity, persons: r.persons ?? [], documents: r.documents ?? [], funds: r.funds,
+  profile: r.profile, consents: r.consents ?? {}, review: r.review ?? {}, createdAt: r.created_at, updatedAt: r.updated_at, submittedAt: u(r.submitted_at),
+});
+const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
+  const row: Partial<KycRow> = {};
+  if (p.userId !== undefined) row.user_id = p.userId;
+  if (p.kind !== undefined) row.kind = p.kind;
+  if (p.status !== undefined) row.status = p.status;
+  if (p.identity !== undefined) row.identity = p.identity;
+  if (p.persons !== undefined) row.persons = p.persons;
+  if (p.documents !== undefined) row.documents = p.documents;
+  if (p.funds !== undefined) row.funds = p.funds;
+  if (p.profile !== undefined) row.profile = p.profile;
+  if (p.consents !== undefined) row.consents = p.consents;
+  if (p.review !== undefined) row.review = p.review;
+  if (p.submittedAt !== undefined) row.submitted_at = p.submittedAt;
+  return row;
+};
+
 const toEvent = (r: EventRow): EventLog => ({ id: r.id, at: r.at, kind: r.kind, html: r.html, intentId: u(r.intent_id), offerId: u(r.offer_id) });
 
 let client: SupabaseClient | undefined;
@@ -410,5 +436,34 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("notifications").update(fromNotif(patch)).eq("id", id).select("*").single();
     if (error) fail("updateNotification", error);
     return toNotif(data as NotifRow);
+  },
+
+  async listClientFiles() {
+    const { data, error } = await db().from("client_files").select("*").order("updated_at", { ascending: false });
+    if (error) fail("listClientFiles", error);
+    return (data as KycRow[]).map(toKyc);
+  },
+  async getClientFile(id) {
+    const { data, error } = await db().from("client_files").select("*").eq("id", id).maybeSingle();
+    if (error) fail("getClientFile", error);
+    return data ? toKyc(data as KycRow) : undefined;
+  },
+  async getClientFileByUser(userId) {
+    const { data, error } = await db().from("client_files").select("*").eq("user_id", userId).maybeSingle();
+    if (error) fail("getClientFileByUser", error);
+    return data ? toKyc(data as KycRow) : undefined;
+  },
+  async createClientFile(f) {
+    const { data, error } = await db().from("client_files").insert(fromKyc(f)).select("*").single();
+    if (error) fail("createClientFile", error);
+    return toKyc(data as KycRow);
+  },
+  async updateClientFile(id, patch) {
+    const { data, error } = await db().from("client_files").update(fromKyc(patch)).eq("id", id).select("*").single();
+    if (error) fail("updateClientFile", error);
+    const f = toKyc(data as KycRow);
+    // Mirror the essentials onto the profile (name, phone, opt-in, tier).
+    await db().from("profiles").update({ display_name: f.identity.name, phone: f.identity.phone ?? null, segment: f.kind, whatsapp_opt_in: Boolean(f.consents.whatsappAt), whatsapp_opt_in_at: f.consents.whatsappAt ?? null, tier: f.status === "approuve" ? 2 : 1 }).eq("id", f.userId);
+    return f;
   },
 };

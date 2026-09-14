@@ -115,3 +115,23 @@
   font-size: 0.8rem;
   margin-bottom: 10px;
 }
+.tierNote {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  background: var(--info-soft);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.tierNote a {
+  color: var(--info);
+  font-weight: 500;
+}
+.needAccount {
+  margin-top: 8px;
+  color: var(--ink);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}

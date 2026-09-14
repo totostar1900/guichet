@@ -19,7 +19,7 @@ const DONE: Record<IntentType, (by: string) => string> = {
 };
 const BY: Record<string, string> = { WhatsApp: "sur WhatsApp", Appel: "par téléphone", "E-mail": "par e-mail" };
 
-export function IntentForm({ offer, types, initialType, priceText, past, signedIn }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean; signedIn: boolean }) {
+export function IntentForm({ offer, types, initialType, priceText, past, signedIn, tier = 0 }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean; signedIn: boolean; tier?: number }) {
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<IntentType>(initialType);
@@ -32,6 +32,14 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
         <div className={styles.done}>
           <b>Reçu — réf. {state.ref}</b>
           {DONE[state.type](BY[state.channel])}
+          {state.needsAccount && (
+            <div className={styles.needAccount}>
+              Pour transmettre cet ordre, votre compte-titres doit être ouvert : dix minutes sur votre téléphone.{" "}
+              <Link className="btn primary sm" href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>
+                Ouvrir mon compte
+              </Link>
+            </div>
+          )}
           <div className={styles.doneActions}>
             <Link className="btn sm" href={`/offres/${offer.id}`}>
               Autre intention
@@ -86,6 +94,12 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
           </label>
         </div>
         {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{est.text}</div>}
+        {signedIn && tier < 2 && (type === "ferme" || type === "cession") && (
+          <div className={styles.tierNote}>
+            Prise ferme et cession demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
+            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>ouvrez votre compte</Link> (10 min).
+          </div>
+        )}
         <label className="field" style={{ marginBottom: 10 }}>
           Message (facultatif)
           <textarea name="message" rows={2} placeholder={offer.kind === "RACHAT" ? "Titres détenus chez… / date de disponibilité" : "Ex. : plutôt la ligne la plus courte ; contrainte de trésorerie le 16."} />

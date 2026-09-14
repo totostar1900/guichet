@@ -1,5 +1,6 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer } from "@/lib/domain/types";
+import type { ClientFile } from "@/lib/domain/kyc";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -17,6 +18,7 @@ interface Store {
   documents: GeneratedDocument[];
   contacts: Contact[];
   notifications: Notification[];
+  clientFiles: ClientFile[];
   seq: number;
 }
 
@@ -37,6 +39,7 @@ function store(): Store {
       documents: [],
       contacts: structuredClone(SEED_CONTACTS),
       notifications: [],
+      clientFiles: [],
       seq: 17,
     };
   }
@@ -45,6 +48,7 @@ function store(): Store {
   if (!g.__guichetStore.documents) g.__guichetStore.documents = [];
   if (!g.__guichetStore.contacts) g.__guichetStore.contacts = structuredClone(SEED_CONTACTS);
   if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
+  if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = [];
   return g.__guichetStore;
 }
 
@@ -191,5 +195,40 @@ export const memoryRepository: Repository = {
     if (i < 0) throw new Error(`Notification ${id} not found`);
     s.notifications[i] = { ...s.notifications[i], ...patch };
     return structuredClone(s.notifications[i]);
+  },
+
+  async listClientFiles() {
+    return structuredClone(store().clientFiles);
+  },
+  async getClientFile(id) {
+    const f = store().clientFiles.find((x) => x.id === id);
+    return f ? structuredClone(f) : undefined;
+  },
+  async getClientFileByUser(userId) {
+    const f = store().clientFiles.find((x) => x.userId === userId);
+    return f ? structuredClone(f) : undefined;
+  },
+  async createClientFile(f) {
+    const row: ClientFile = { id: uid(), ...f };
+    store().clientFiles.unshift(row);
+    // A file makes its owner reachable.
+    const c = store().contacts.find((x) => x.id === f.userId);
+    if (!c) store().contacts.push({ id: f.userId, name: f.identity.name, segment: f.kind, phone: f.identity.phone, email: f.identity.email, whatsappOptIn: false });
+    return structuredClone(row);
+  },
+  async updateClientFile(id, patch) {
+    const s = store();
+    const i = s.clientFiles.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error(`ClientFile ${id} not found`);
+    s.clientFiles[i] = { ...s.clientFiles[i], ...patch, updatedAt: nowIso() };
+    const f = s.clientFiles[i];
+    const c = s.contacts.find((x) => x.id === f.userId);
+    if (c) {
+      c.name = f.identity.name || c.name;
+      c.phone = f.identity.phone ?? c.phone;
+      c.email = f.identity.email ?? c.email;
+      c.whatsappOptIn = Boolean(f.consents.whatsappAt);
+    }
+    return structuredClone(f);
   },
 };

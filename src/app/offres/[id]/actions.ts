@@ -18,7 +18,7 @@ const schema = z.object({
   message: z.string().max(1000).optional(),
 });
 
-export type IntentResult = { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"] } | { ok: false; error: string };
+export type IntentResult = { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean } | { ok: false; error: string };
 
 /**
  * Creates an intent at the offer's current published version, attributed to
@@ -39,17 +39,19 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const amt = parseAmount(amount);
   if ((type === "ferme" || type === "cession") && !amt) return { ok: false, error: "Indiquez un montant pour une prise ferme ou une cession." };
 
+  const needsAccount = (type === "ferme" || type === "cession") && session.tier < 2;
   const intent = await r.createIntent({
     offerId,
     type,
     amount: amt || null,
     channel,
-    message,
+    message: needsAccount ? `[compte-titres à ouvrir] ${message ?? ""}`.trim() : message,
     clientId: session.userId,
     clientName: session.name,
     clientSegment: session.segment,
   });
+  if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} — <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
   await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined);
   revalidatePath("/desk");
-  return { ok: true, ref: intent.ref, type, channel };
+  return { ok: true, ref: intent.ref, type, channel, needsAccount };
 }

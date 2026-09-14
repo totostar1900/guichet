@@ -59,3 +59,15 @@
     display: none;
   }
 }
+.open {
+  color: #e0b65a;
+  border: 1px solid rgba(224, 182, 90, 0.6);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.open:hover {
+  background: rgba(224, 182, 90, 0.15);
+}

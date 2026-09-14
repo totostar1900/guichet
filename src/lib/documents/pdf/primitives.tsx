@@ -121,8 +121,8 @@ export function Table({ cols, rows, total }: { cols: Col[]; rows: (string | numb
   );
 }
 
-export function KV({ rows, total }: { rows: [string, string][]; total?: [string, string] }) {
-  return <Table cols={[{ label: "", flex: 3 }, { label: "", flex: 1.4, right: true }]} rows={rows} total={total} />;
+export function KV({ rows, total, left }: { rows: [string, string][]; total?: [string, string]; left?: boolean }) {
+  return <Table cols={[{ label: "", flex: left ? 1.2 : 3 }, { label: "", flex: left ? 3 : 1.4, right: !left }]} rows={rows} total={total} />;
 }
 
 export function Addr({ blocks }: { blocks: [string, string[]][] }) {

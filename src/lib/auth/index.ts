@@ -6,13 +6,25 @@ import type { Session } from "./types";
 
 export const authMode = (): "supabase" | "dev" => (process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "dev");
 
-/** Current session, or null. Cached per request. */
+/** Current session, or null. Cached per request. Tier 2 comes from an approved KYC file. */
 export const getSession = cache(async (): Promise<Session | null> => {
+  let s: Session | null;
   if (authMode() === "supabase") {
     const { readSupabaseSession } = await import("./supabase");
-    return readSupabaseSession();
+    s = await readSupabaseSession();
+  } else {
+    s = await readDevSession();
   }
-  return readDevSession();
+  if (s && s.role === "client") {
+    const { repo } = await import("@/lib/data");
+    const f = await repo().getClientFileByUser(s.userId);
+    if (f) {
+      s.tier = f.status === "approuve" ? 2 : 1;
+      s.kycStatus = f.status;
+      if (f.identity.name) s.name = f.identity.name;
+    }
+  }
+  return s;
 });
 
 /** Redirects to login when anonymous; returns the session otherwise. */

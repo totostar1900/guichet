@@ -1,4 +1,5 @@
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer } from "@/lib/domain/types";
+import type { ClientFile } from "@/lib/domain/kyc";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -39,6 +40,13 @@ export interface Repository {
   listNotifications(limit?: number): Promise<Notification[]>;
   createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;
   updateNotification(id: string, patch: Partial<Notification>): Promise<Notification>;
+
+  /** KYC files — one per user. */
+  listClientFiles(): Promise<ClientFile[]>;
+  getClientFile(id: string): Promise<ClientFile | undefined>;
+  getClientFileByUser(userId: string): Promise<ClientFile | undefined>;
+  createClientFile(f: Omit<ClientFile, "id">): Promise<ClientFile>;
+  updateClientFile(id: string, patch: Partial<ClientFile>): Promise<ClientFile>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {

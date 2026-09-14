@@ -16,7 +16,8 @@ export default async function MyPage() {
   const [intents, offers, docs] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments()]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
-  const myDocs = docs.filter((d) => d.intentId && mine.some((i) => i.id === d.intentId));
+  const myFile = await r.getClientFileByUser(s.userId);
+  const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id)));
 
   const NEXT: Record<string, string> = {
     recue: "Un conseiller vous rappelle avant la clôture.",
@@ -35,9 +36,14 @@ export default async function MyPage() {
           <div className="eyebrow">Mon espace</div>
           <h1 className="display">{s.name}</h1>
           <div className="muted" style={{ fontSize: ".85rem" }}>
-            {s.segment} · niveau {s.tier} {s.tier < 2 ? "— compte-titres à ouvrir pour les prises fermes (prochaine étape)" : "— compte-titres actif"}
+            {s.segment} · niveau {s.tier} {s.tier < 2 ? "— compte-titres à ouvrir pour les prises fermes" : "— compte-titres actif"}
           </div>
         </div>
+        {s.tier < 2 && (
+          <Link href="/ouvrir-un-compte" className="btn primary">
+            {s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte"}
+          </Link>
+        )}
         <Link href="/" className="btn">
           Voir les offres
         </Link>

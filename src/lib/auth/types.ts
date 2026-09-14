@@ -11,6 +11,8 @@ export interface Session {
   phone?: string;
   segment: string; // "Personne physique · Douala"
   tier: Tier;
+  /** KYC file status when one exists (brouillon → approuve). */
+  kycStatus?: string;
   /** Which auth backed this session — useful in the header and for debugging. */
   provider: "supabase" | "dev";
 }
