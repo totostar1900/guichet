@@ -1,7 +1,7 @@
 import type { DocumentType, Intent, IntentState, IntentType } from "@/lib/domain/types";
 
 /** Documents that belong to one intent (everything but the grouped bordereau). */
-export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt">;
+export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation">;
 
 export const DOC_LABEL: Record<DocumentType, string> = {
   bulletin: "Bulletin d'ordre de souscription",
@@ -13,6 +13,8 @@ export const DOC_LABEL: Record<DocumentType, string> = {
   opere: "Avis d'opéré",
   convention: "Convention d'ouverture de compte-titres",
   dossier_svt: "Dossier d'ouverture de compte (SVT / dépositaire)",
+  releve: "Relevé de position",
+  attestation: "Attestation de détention",
 };
 
 export const DOC_PREFIX: Record<DocumentType, string> = {
@@ -25,6 +27,8 @@ export const DOC_PREFIX: Record<DocumentType, string> = {
   opere: "AO",
   convention: "CONV",
   dossier_svt: "DOS",
+  releve: "REL",
+  attestation: "ATT",
 };
 
 /** Documents the lifecycle produces when an intent reaches a state. */

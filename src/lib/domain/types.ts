@@ -188,7 +188,7 @@ export interface IntakeItem {
 
 /* ---------------- Documents ---------------- */
 
-export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt";
+export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation";
 export type DocumentStatus = "genere" | "envoye" | "signe";
 
 export interface GeneratedDocument {
@@ -203,6 +203,8 @@ export interface GeneratedDocument {
   auctionKey?: string;
   /** For KYC documents: the client file. */
   clientFileId?: string;
+  /** For statements: the client (user id). */
+  clientId?: string;
   fileKey: string; // storage key of the PDF
   status: DocumentStatus;
   sentVia?: string[];

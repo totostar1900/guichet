@@ -179,12 +179,12 @@ function fromOffer(o: Offer): OfferRow {
 
 type DocRow = {
   id: string; type: GeneratedDocument["type"]; number: string; title: string; intent_id: string | null; offer_id: string | null; client_name: string | null;
-  auction_key: string | null; file_key: string; status: GeneratedDocument["status"]; sent_via: string[] | null; sent_at: string | null; signed_at: string | null;
+  auction_key: string | null; client_file_id: string | null; client_id: string | null; file_key: string; status: GeneratedDocument["status"]; sent_via: string[] | null; sent_at: string | null; signed_at: string | null;
   created_at: string; created_by: string | null;
 };
 const toDoc = (r: DocRow): GeneratedDocument => ({
   id: r.id, type: r.type, number: r.number, title: r.title, intentId: u(r.intent_id), offerId: u(r.offer_id), clientName: u(r.client_name),
-  auctionKey: u(r.auction_key), fileKey: r.file_key, status: r.status, sentVia: u(r.sent_via), sentAt: u(r.sent_at), signedAt: u(r.signed_at),
+  auctionKey: u(r.auction_key), clientFileId: u(r.client_file_id), clientId: u(r.client_id), fileKey: r.file_key, status: r.status, sentVia: u(r.sent_via), sentAt: u(r.sent_at), signedAt: u(r.signed_at),
   createdAt: r.created_at, createdBy: u(r.created_by),
 });
 const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
@@ -196,6 +196,8 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   if (p.offerId !== undefined) row.offer_id = p.offerId;
   if (p.clientName !== undefined) row.client_name = p.clientName;
   if (p.auctionKey !== undefined) row.auction_key = p.auctionKey;
+  if (p.clientFileId !== undefined) row.client_file_id = p.clientFileId;
+  if (p.clientId !== undefined) row.client_id = p.clientId;
   if (p.fileKey !== undefined) row.file_key = p.fileKey;
   if (p.status !== undefined) row.status = p.status;
   if (p.sentVia !== undefined) row.sent_via = p.sentVia;

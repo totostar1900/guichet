@@ -105,3 +105,20 @@ export async function generateKycDocument(type: "convention" | "dossier_svt", fi
   const pdf = await renderToBuffer(el(element));
   return store({ type, number, title: `${DOC_LABEL[type]} — ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor }, pdf, now);
 }
+
+/* ---------------- Statements ---------------- */
+import { positionsFrom } from "@/lib/positions";
+import { AttestationDetention, RelevePosition } from "./pdf/statement-templates";
+
+export async function generateStatement(type: "releve" | "attestation", clientId: string, advisor?: string): Promise<GeneratedDocument> {
+  const r = repo();
+  const contact = await r.getContact(clientId);
+  if (!contact) throw new Error("Client introuvable");
+  const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+  const positions = positionsFrom(intents.filter((i) => i.clientId === clientId), offers);
+  const now = new Date();
+  const number = await nextNumber(type, now);
+  const element = type === "releve" ? createElement(RelevePosition, { number, contact, positions, now }) : createElement(AttestationDetention, { number, contact, positions, now });
+  const pdf = await renderToBuffer(el(element));
+  return store({ type, number, title: `${DOC_LABEL[type]} — ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor }, pdf, now);
+}

@@ -5,6 +5,7 @@ import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { positionsFrom } from "@/lib/positions";
+import { StatementButtons } from "./StatementButtons";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function MyPage() {
   const byOffer = new Map(offers.map((o) => [o.id, o]));
   const myFile = await r.getClientFileByUser(s.userId);
   const positions = positionsFrom(mine, offers);
-  const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id)));
+  const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
 
   const NEXT: Record<string, string> = {
     recue: "Un conseiller vous rappelle avant la clôture.",
@@ -58,6 +59,9 @@ export default async function MyPage() {
             <span className="muted" style={{ fontSize: ".8rem" }}>
               titres inscrits à votre nom · flux à venir
             </span>
+            <div className="right">
+              <StatementButtons />
+            </div>
           </div>
           <div className="scroll-x">
             <table className="tbl">

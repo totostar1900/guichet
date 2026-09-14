@@ -14,6 +14,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     let mine = false;
     if (doc.intentId) mine = (await repo().listIntents()).some((i) => i.id === doc.intentId && i.clientId === s.userId);
     if (!mine && doc.clientFileId) mine = (await repo().getClientFile(doc.clientFileId))?.userId === s.userId;
+    if (!mine && doc.clientId) mine = doc.clientId === s.userId;
     if (!mine) return new NextResponse("Accès refusé", { status: 403 });
   }
   const bytes = await readSource(doc.fileKey);
