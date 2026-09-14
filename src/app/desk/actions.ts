@@ -7,6 +7,7 @@ import { repo } from "@/lib/data";
 import { INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
 import { generateForIntent } from "@/lib/documents/generate";
 import { docsForTransition } from "@/lib/documents/registry";
+import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 
 const schema = z.object({
   intentId: z.string().min(1),
@@ -39,6 +40,7 @@ export async function transitionIntent(form: FormData): Promise<void> {
       await r.logEvent({ kind: "system", intentId, html: `Document non généré (${type}) : ${e instanceof Error ? e.message : "erreur"}` });
     }
   }
+  if (offer) await notifyIntentUpdated(updated, offer, state, desk.name);
   revalidatePath("/desk");
   revalidatePath("/desk/documents");
 }

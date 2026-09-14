@@ -1,5 +1,5 @@
-import { SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import type { EventLog, GeneratedDocument, IntakeItem, Intent, Offer } from "@/lib/domain/types";
+import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer } from "@/lib/domain/types";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -15,6 +15,8 @@ interface Store {
   events: EventLog[];
   intake: IntakeItem[];
   documents: GeneratedDocument[];
+  contacts: Contact[];
+  notifications: Notification[];
   seq: number;
 }
 
@@ -33,12 +35,16 @@ function store(): Store {
       ],
       intake: structuredClone(SEED_INTAKE),
       documents: [],
+      contacts: structuredClone(SEED_CONTACTS),
+      notifications: [],
       seq: 17,
     };
   }
   // Dev hot-reload can keep an older store shape around.
   if (!g.__guichetStore.intake) g.__guichetStore.intake = structuredClone(SEED_INTAKE);
   if (!g.__guichetStore.documents) g.__guichetStore.documents = [];
+  if (!g.__guichetStore.contacts) g.__guichetStore.contacts = structuredClone(SEED_CONTACTS);
+  if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
   return g.__guichetStore;
 }
 
@@ -162,5 +168,28 @@ export const memoryRepository: Repository = {
     if (i < 0) throw new Error(`Document ${id} not found`);
     s.documents[i] = { ...s.documents[i], ...patch };
     return structuredClone(s.documents[i]);
+  },
+
+  async listContacts() {
+    return structuredClone(store().contacts);
+  },
+  async getContact(id) {
+    const c = store().contacts.find((x) => x.id === id);
+    return c ? structuredClone(c) : undefined;
+  },
+  async listNotifications(limit = 50) {
+    return structuredClone(store().notifications.slice(0, limit));
+  },
+  async createNotification(n) {
+    const row: Notification = { id: uid(), createdAt: nowIso(), ...n };
+    store().notifications.unshift(row);
+    return structuredClone(row);
+  },
+  async updateNotification(id, patch) {
+    const s = store();
+    const i = s.notifications.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error(`Notification ${id} not found`);
+    s.notifications[i] = { ...s.notifications[i], ...patch };
+    return structuredClone(s.notifications[i]);
   },
 };

@@ -7,6 +7,8 @@ import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
 import { parseAmount } from "@/lib/format";
+import { estimate } from "@/lib/domain/estimate";
+import { notifyIntentReceived } from "@/lib/notify/dispatch";
 
 const schema = z.object({
   offerId: z.string().min(1),
@@ -47,6 +49,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     clientName: session.name,
     clientSegment: session.segment,
   });
+  await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined);
   revalidatePath("/desk");
   return { ok: true, ref: intent.ref, type, channel };
 }

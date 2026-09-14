@@ -52,6 +52,14 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - Numérotation `PC-<PREFIXE>-<année>-<n>`, original conservé (`docs/…pdf`), états généré → envoyé (WhatsApp / e-mail) → signé. Un client ne voit que ses documents (`/desk/documents/pdf/[id]`, RLS sur `documents`).
 - Coordonnées de règlement : `SETTLEMENT_BANK` / `SETTLEMENT_IBAN` ; SVT par pays dans `src/lib/config.ts`.
 
+## Diffusion (WhatsApp, e-mail)
+
+- `src/lib/notify` : `compose.ts` (les textes : offre publiée, accusé de réception, mises à jour du cycle, envoi de document), `providers.ts` (WhatsApp Cloud API : modèles, texte libre, document ; e-mail via Resend), `dispatch.ts` (destinataires par opt-in / canal préféré, journalisation dans `notifications`).
+- **Sans identifiants, rien ne part** : chaque message est enregistré « préparé » et visible dans le panneau *Diffusion* du desk, avec le texte exact. Renseigner `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` (+ modèles approuvés) et `RESEND_API_KEY` / `EMAIL_FROM` pour envoyer.
+- Déclencheurs : publication (segment + canaux cochés), intention reçue (accusé sur le canal choisi), transition du carnet (confirmée, transmise, servie…), bouton « Envoyé · WhatsApp / E-mail » d'un document (PDF joint).
+- Webhook entrant : `/api/whatsapp/webhook` (vérification `WHATSAPP_VERIFY_TOKEN`, messages entrants journalisés dans le flux du desk).
+- Le desk se rafraîchit seul : Realtime Supabase (`intents`, `events`) ou toutes les 20 s en démo. Les clients ont leur espace **/moi** (intentions, états, documents).
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -68,5 +76,4 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Diffusion WhatsApp (Cloud API) et e-mail à la publication ; Realtime sur le desk.
-2. Onboarding client, KYC, ouverture de compte-titres.
+1. Onboarding client, KYC, ouverture de compte-titres.

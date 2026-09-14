@@ -10,6 +10,7 @@ import { fmtPct } from "@/lib/format";
 import { emptyDraft, extractionAvailable, extractOffer, type ExtractionInput } from "@/lib/intake/extract";
 import { buildOffer } from "@/lib/intake/publish";
 import { saveSource } from "@/lib/intake/storage";
+import { notifyOfferPublished } from "@/lib/notify/dispatch";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -187,6 +188,7 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
       offerId: offer.id,
       html: `<b>${offer.title}</b> publié par ${desk.name} (v${offer.version}, ${priceTxt}, com. ${fmtPct(offer.commissionPct, 2)}) — diffusion ${channels.length ? channels.join(", ") : "Guichet"} · ${decision.segment}`,
     });
+    await notifyOfferPublished(offer, channels, decision.segment);
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Publication impossible." };
   }

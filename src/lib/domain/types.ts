@@ -206,3 +206,37 @@ export interface GeneratedDocument {
   createdAt: string;
   createdBy?: string;
 }
+
+/* ---------------- Contacts & notifications ---------------- */
+
+/** Who we can reach — until onboarding lands, a light contact record. */
+export interface Contact {
+  id: string; // = client userId when known
+  name: string;
+  segment: string;
+  phone?: string; // E.164, e.g. +237687676767
+  email?: string;
+  whatsappOptIn: boolean;
+}
+
+export type NotifyChannel = "whatsapp" | "email";
+export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
+export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results";
+
+export interface Notification {
+  id: string;
+  kind: NotifyKind;
+  channel: NotifyChannel;
+  to: string; // phone or email
+  contactName?: string;
+  subject?: string; // email subject / template name
+  body: string; // text as sent (or would be sent)
+  documentId?: string;
+  intentId?: string;
+  offerId?: string;
+  status: NotifyStatus;
+  providerId?: string;
+  error?: string;
+  createdAt: string;
+  sentAt?: string;
+}

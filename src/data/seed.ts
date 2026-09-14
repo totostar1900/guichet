@@ -1,4 +1,4 @@
-import type { IntakeItem, Intent, Offer } from "@/lib/domain/types";
+import type { Contact, IntakeItem, Intent, Offer } from "@/lib/domain/types";
 
 /**
  * Seed offers — the real September 2026 deal flow, from:
@@ -294,6 +294,7 @@ export const SEED_INTENTS: Intent[] = [
   {
     id: "i-011",
     ref: "PF-0914-011",
+    clientId: "c-am",
     offerId: "rca-ota-c-2028",
     offerVersion: 1,
     clientName: "A. M.",
@@ -308,6 +309,7 @@ export const SEED_INTENTS: Intent[] = [
   {
     id: "i-012",
     ref: "AP-0914-012",
+    clientId: "c-tontine",
     offerId: "rca-ota-a-2028",
     offerVersion: 1,
     clientName: "Tontine Espoir",
@@ -322,6 +324,7 @@ export const SEED_INTENTS: Intent[] = [
   {
     id: "i-013",
     ref: "PF-0914-013",
+    clientId: "c-se",
     offerId: "rca-ota-c-2028",
     offerVersion: 1,
     clientName: "S. E.",
@@ -336,6 +339,7 @@ export const SEED_INTENTS: Intent[] = [
   {
     id: "i-014",
     ref: "AP-0914-014",
+    clientId: "c-avc",
     offerId: "rca-ota-b-2029",
     offerVersion: 1,
     clientName: "Assur-Vie Centrale",
@@ -350,6 +354,7 @@ export const SEED_INTENTS: Intent[] = [
   {
     id: "i-016",
     ref: "CS-0914-016",
+    clientId: "c-mbaiki",
     offerId: "rca-rachat-2026-11",
     offerVersion: 1,
     clientName: "Groupe Mbaïki SARL",
@@ -364,6 +369,7 @@ export const SEED_INTENTS: Intent[] = [
   {
     id: "i-017",
     ref: "PF-0914-017",
+    clientId: "c-jpo",
     offerId: "rca-ota-a-2028",
     offerVersion: 1,
     clientName: "J.-P. O.",
@@ -528,4 +534,15 @@ Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 20
     extractedIn: 58,
     draft: { kind: "OTA", operation: "abondement", official: true, confidence: {}, remarks: [] },
   },
+];
+
+/** Contacts reachable for broadcasts (demo). Phone numbers are placeholders. */
+export const SEED_CONTACTS: Contact[] = [
+  { id: "c-am", name: "A. M.", segment: "Personne physique · Douala", phone: "+237600000011", email: "a.m@example.com", whatsappOptIn: true },
+  { id: "c-se", name: "S. E.", segment: "Diaspora · Paris", phone: "+33600000013", email: "s.e@example.com", whatsappOptIn: true },
+  { id: "c-avc", name: "Assur-Vie Centrale", segment: "Institutionnel · Bangui", email: "tresorerie@avc.example.com", whatsappOptIn: false },
+  { id: "c-tontine", name: "Tontine Espoir", segment: "Groupement · Yaoundé", phone: "+237600000012", whatsappOptIn: true },
+  { id: "c-mbaiki", name: "Groupe Mbaïki SARL", segment: "Entreprise · Bangui", phone: "+236700000016", email: "dg@mbaiki.example.com", whatsappOptIn: true },
+  { id: "c-jpo", name: "J.-P. O.", segment: "Personne physique · Yaoundé", phone: "+237600000017", whatsappOptIn: true },
+  { id: "dev-client-g-nitcheu", name: "G. Nitcheu", segment: "Personne physique · Yaoundé", phone: "+237687676767", email: "georges.nitcheu@gmail.com", whatsappOptIn: true },
 ];

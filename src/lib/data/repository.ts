@@ -1,4 +1,4 @@
-import type { EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Offer } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer } from "@/lib/domain/types";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -30,6 +30,15 @@ export interface Repository {
   getDocument(id: string): Promise<GeneratedDocument | undefined>;
   createDocument(doc: Omit<GeneratedDocument, "id">): Promise<GeneratedDocument>;
   updateDocument(id: string, patch: Partial<GeneratedDocument>): Promise<GeneratedDocument>;
+
+  /** Reachable contacts. */
+  listContacts(): Promise<Contact[]>;
+  getContact(id: string): Promise<Contact | undefined>;
+
+  /** Outbound messages, whatever the channel. */
+  listNotifications(limit?: number): Promise<Notification[]>;
+  createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;
+  updateNotification(id: string, patch: Partial<Notification>): Promise<Notification>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {

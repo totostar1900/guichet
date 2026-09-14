@@ -6,6 +6,7 @@ import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/format";
 import { transitionIntent } from "./actions";
+import { DeskLive } from "@/components/DeskLive";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];
 
 export default async function DeskPage() {
   const r = repo();
-  const [offers, intents, events] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30)]);
+  const [offers, intents, events, notifications] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20)]);
   const now = new Date();
   const byId = new Map(offers.map((o) => [o.id, o]));
 
@@ -35,8 +36,11 @@ export default async function DeskPage() {
   const totalA = rows.reduce((s, x) => s + x.sA, 0);
   const todo = intents.filter((i) => i.state === "recue").length;
 
+  const notifStatus: Record<string, [string, string]> = { sent: ["confirmee", "Envoyé"], skipped: ["recue", "Préparé"], failed: ["annulee", "Échec"], queued: ["info", "En file"] };
+
   return (
     <>
+      <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
       <nav className={styles.sub} aria-label="Desk">
         <Link href="/desk" aria-current="page">
           Carnet du jour
@@ -82,6 +86,54 @@ export default async function DeskPage() {
               <span dangerouslySetInnerHTML={{ __html: e.html }} />
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Diffusion</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>
+            Messages sortants (WhatsApp, e-mail) — « préparé » tant que le canal n&apos;est pas configuré
+          </span>
+        </div>
+        <div className="scroll-x">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Quand</th>
+                <th>Canal</th>
+                <th>Destinataire</th>
+                <th>Message</th>
+                <th>État</th>
+              </tr>
+            </thead>
+            <tbody>
+              {notifications.map((n) => (
+                <tr key={n.id}>
+                  <td className="num">{fmtTime(n.createdAt)}</td>
+                  <td>{n.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</td>
+                  <td className="who">
+                    {n.contactName ?? n.to}
+                    <small className="mono">{n.to}</small>
+                  </td>
+                  <td>
+                    <span className="muted" style={{ fontSize: ".78rem" }}>{n.body.split("\n").slice(0, 2).join(" · ").slice(0, 140)}</span>
+                  </td>
+                  <td>
+                    <span className={`st ${notifStatus[n.status][0]}`}>{notifStatus[n.status][1]}</span>
+                    {n.error && <small className="muted"> · {n.error}</small>}
+                  </td>
+                </tr>
+              ))}
+              {notifications.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="muted">
+                    Aucun message sortant pour l&apos;instant.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Offer } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer } from "@/lib/domain/types";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -201,6 +201,34 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   return row;
 };
 
+type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean };
+const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in });
+type NotifRow = {
+  id: string; kind: Notification["kind"]; channel: Notification["channel"]; to_address: string; contact_name: string | null; subject: string | null; body: string;
+  document_id: string | null; intent_id: string | null; offer_id: string | null; status: Notification["status"]; provider_id: string | null; error: string | null; created_at: string; sent_at: string | null;
+};
+const toNotif = (r: NotifRow): Notification => ({
+  id: r.id, kind: r.kind, channel: r.channel, to: r.to_address, contactName: u(r.contact_name), subject: u(r.subject), body: r.body, documentId: u(r.document_id), intentId: u(r.intent_id),
+  offerId: u(r.offer_id), status: r.status, providerId: u(r.provider_id), error: u(r.error), createdAt: r.created_at, sentAt: u(r.sent_at),
+});
+const fromNotif = (p: Partial<Notification>): Partial<NotifRow> => {
+  const row: Partial<NotifRow> = {};
+  if (p.kind !== undefined) row.kind = p.kind;
+  if (p.channel !== undefined) row.channel = p.channel;
+  if (p.to !== undefined) row.to_address = p.to;
+  if (p.contactName !== undefined) row.contact_name = p.contactName;
+  if (p.subject !== undefined) row.subject = p.subject;
+  if (p.body !== undefined) row.body = p.body;
+  if (p.documentId !== undefined) row.document_id = p.documentId;
+  if (p.intentId !== undefined) row.intent_id = p.intentId;
+  if (p.offerId !== undefined) row.offer_id = p.offerId;
+  if (p.status !== undefined) row.status = p.status;
+  if (p.providerId !== undefined) row.provider_id = p.providerId;
+  if (p.error !== undefined) row.error = p.error;
+  if (p.sentAt !== undefined) row.sent_at = p.sentAt;
+  return row;
+};
+
 const toEvent = (r: EventRow): EventLog => ({ id: r.id, at: r.at, kind: r.kind, html: r.html, intentId: u(r.intent_id), offerId: u(r.offer_id) });
 
 let client: SupabaseClient | undefined;
@@ -356,5 +384,31 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("documents").update(fromDoc(patch)).eq("id", id).select("*").single();
     if (error) fail("updateDocument", error);
     return toDoc(data as DocRow);
+  },
+
+  async listContacts() {
+    const { data, error } = await db().from("profiles").select("id, display_name, segment, phone, email, whatsapp_opt_in").eq("role", "client");
+    if (error) fail("listContacts", error);
+    return (data as ProfileRow[]).map(toContact);
+  },
+  async getContact(id) {
+    const { data, error } = await db().from("profiles").select("id, display_name, segment, phone, email, whatsapp_opt_in").eq("id", id).maybeSingle();
+    if (error) fail("getContact", error);
+    return data ? toContact(data as ProfileRow) : undefined;
+  },
+  async listNotifications(limit = 50) {
+    const { data, error } = await db().from("notifications").select("*").order("created_at", { ascending: false }).limit(limit);
+    if (error) fail("listNotifications", error);
+    return (data as NotifRow[]).map(toNotif);
+  },
+  async createNotification(n) {
+    const { data, error } = await db().from("notifications").insert(fromNotif(n)).select("*").single();
+    if (error) fail("createNotification", error);
+    return toNotif(data as NotifRow);
+  },
+  async updateNotification(id, patch) {
+    const { data, error } = await db().from("notifications").update(fromNotif(patch)).eq("id", id).select("*").single();
+    if (error) fail("updateNotification", error);
+    return toNotif(data as NotifRow);
   },
 };

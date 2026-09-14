@@ -6,6 +6,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { generateBordereau, generateForIntent } from "@/lib/documents/generate";
 import { DOC_LABEL } from "@/lib/documents/registry";
+import { notifyDocument } from "@/lib/notify/dispatch";
 
 export type DocResult = { ok: true; id: string } | { ok: false; error: string };
 
@@ -66,9 +67,13 @@ export async function markDocumentAction(form: FormData): Promise<void> {
     await r.updateDocument(doc.id, { status: "signe", signedAt: now });
     await r.logEvent({ kind: "document", intentId: doc.intentId, offerId: doc.offerId, html: `${DOC_LABEL[doc.type]} ${doc.number} <b>signé</b> — reçu par ${desk.name}` });
   } else {
-    const sentVia = Array.from(new Set([...(doc.sentVia ?? []), p.data.mark]));
-    await r.updateDocument(doc.id, { status: doc.status === "signe" ? "signe" : "envoye", sentVia, sentAt: now });
-    await r.logEvent({ kind: "document", intentId: doc.intentId, offerId: doc.offerId, html: `${DOC_LABEL[doc.type]} ${doc.number} <b>envoyé</b> par ${p.data.mark}${doc.clientName ? ` à ${doc.clientName}` : ""} — ${desk.name}` });
+    const n = await notifyDocument(doc, p.data.mark === "WhatsApp" ? "whatsapp" : "email");
+    const outcome = !n ? "aucun destinataire" : n.status === "sent" ? "envoyé" : n.status === "skipped" ? `préparé (${n.error})` : `échec (${n.error})`;
+    if (n && n.status === "sent") {
+      const sentVia = Array.from(new Set([...(doc.sentVia ?? []), p.data.mark]));
+      await r.updateDocument(doc.id, { status: doc.status === "signe" ? "signe" : "envoye", sentVia, sentAt: now });
+    }
+    await r.logEvent({ kind: "document", intentId: doc.intentId, offerId: doc.offerId, html: `${DOC_LABEL[doc.type]} ${doc.number} — <b>${outcome}</b> par ${p.data.mark}${doc.clientName ? ` à ${doc.clientName}` : ""} · ${desk.name}` });
   }
   revalidatePath("/desk/documents");
   revalidatePath("/desk");

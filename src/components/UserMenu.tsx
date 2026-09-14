@@ -18,10 +18,10 @@ export function UserMenu({ session }: { session: Session | null }) {
     .toUpperCase();
   return (
     <div className={styles.menu}>
-      <div className={styles.who}>
+      <Link href={session.role === "desk" ? "/desk" : "/moi"} className={styles.who}>
         <b>{session.name}</b>
         <span>{session.role === "desk" ? "Desk" : session.segment}</span>
-      </div>
+      </Link>
       <div className={`${styles.avatar} ${session.role === "desk" ? styles.desk : ""}`} title={session.email ?? session.segment}>
         {initials}
       </div>
