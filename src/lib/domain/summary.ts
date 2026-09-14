@@ -1,5 +1,5 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
-import { countdown, displayStatus, headlineYield, isPast, KIND_LABEL, statusLabel } from "./status";
+import { countdown, displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, KIND_LABEL, type MarketSegment, offerFamily, statusLabel } from "./status";
 import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime } from "../format";
 
@@ -11,7 +11,8 @@ export interface OfferSummary {
   st: DisplayStatus;
   status: string; // pill text
   statusClass: string; // pill modifier
-  kind: string; // "OTA", "Marché", "OPCVM"
+  kind: string; // "OTA", "Action", "Obligation", "OPCVM"
+  segment: MarketSegment; // primaire · secondaire · fonds
   title: string;
   subtitle: string; // issuer · code · operation
   hero: string; // the one number
@@ -31,7 +32,6 @@ export interface OfferSummary {
   past: boolean;
 }
 
-const KIND_SHORT: Record<Offer["kind"], string> = { OTA: "OTA", BTA: "BTA", ACTIONS: "IPO", APE: "APE", RACHAT: "Rachat", MARCHE: "Marché", FONDS: "OPCVM" };
 const OP: Record<Offer["operation"], string> = { nouvelle_ligne: "nouvelle ligne", abondement: "abondement", rachat: "rachat par le Trésor", ipo: "introduction", emprunt_ape: "emprunt obligataire", secondaire: "cotation", opcvm: "fonds" };
 
 export function summarize(o: Offer, now: Date): OfferSummary {
@@ -44,7 +44,8 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     st,
     status: statusLabel(o, st),
     statusClass: st,
-    kind: KIND_SHORT[o.kind],
+    kind: FAMILY_SHORT[offerFamily(o)],
+    segment: FAMILY_SEGMENT[offerFamily(o)],
     title: o.title,
     subtitle: `${o.issuer} · ${o.isin}${o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OP[o.operation]}` : ""}`,
     yieldPct: y,
@@ -168,7 +169,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   const isBond = o.instrument === "obligation";
   return {
     ...base,
-    subtitle: `${o.market} · ${o.isin} · ${isBond ? "obligation" : "action"}`,
+    subtitle: `${o.market} · ${o.isin} · cotation continue`,
     hero: o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—",
     heroSub: `${isBond ? "du nominal" : "FCFA"}${o.lastPriceOn ? ` · clôture ${fmtDate(o.lastPriceOn, false)}` : ""}${o.priceSource === "desk" ? " · saisi par le desk" : ""}`,
     gold: false,

@@ -44,11 +44,12 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · droits de sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0 }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "" }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string }) {
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
+  const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
   const est = estimate(offer, parse(amount));
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
@@ -85,7 +86,8 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
 
   return (
     <div className={styles.wrap}>
-      <h3 className="display">{past ? "Une question sur cette ligne ?" : `Votre intention sur cette ligne — ${priceText}`}</h3>
+      <h3 className="display">{past ? "Une question sur cette ligne ?" : "Votre intention sur cette ligne"}</h3>
+      {!past && <div className={styles.priceLine}>{priceText}</div>}
       <form action={action}>
         <input type="hidden" name="offerId" value={offer.id} />
         <div className={styles.radio}>
@@ -96,7 +98,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           ))}
         </div>
-        <div className={styles.row} style={market && (type === "achat" || type === "vente") ? { gridTemplateColumns: "1fr 1fr 1fr" } : undefined}>
+        <div className={styles.row}>
           {needsAmount ? (
             <label className="field">
               {amtLabel}
@@ -126,14 +128,27 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={offer.instrument === "obligation" ? String(offer.lastPrice ?? "") : String(offer.lastPrice ?? "")} />
             </label>
           )}
+        </div>
+        <div className={styles.row}>
           <label className="field">
             Me joindre par
-            <select name="channel" defaultValue="WhatsApp">
+            <select name="channel" value={channel} onChange={(e) => setChannel(e.target.value as typeof channel)}>
               <option>WhatsApp</option>
               <option>Appel</option>
               <option>E-mail</option>
             </select>
           </label>
+          {channel === "E-mail" ? (
+            <label className="field">
+              Adresse e-mail
+              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required />
+            </label>
+          ) : (
+            <label className="field">
+              {channel === "WhatsApp" ? "Numéro WhatsApp" : "Numéro de téléphone"}
+              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={phone} required />
+            </label>
+          )}
         </div>
         {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (

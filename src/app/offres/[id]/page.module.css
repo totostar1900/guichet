@@ -136,6 +136,14 @@
   border-radius: 3px;
   font-size: 0.66rem;
 }
+.docLink {
+  text-decoration: none;
+  color: inherit;
+}
+.docLink:hover {
+  border-color: var(--navy);
+  background: var(--surface);
+}
 .docMeta {
   margin-left: auto;
   color: var(--ink-3);

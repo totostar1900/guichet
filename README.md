@@ -147,3 +147,9 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 1. Vérification d'identité automatisée (Smile ID) dans la revue KYC.
 2. Virement automatique des produits de rachat depuis le RIB du dossier (fichier de virement bancaire).
 3. Rapport d'activité périodique en PDF (COSUMAF) à partir du reporting.
+
+### Migration 0013 — contact sur l'intention
+
+`supabase/migrations/0013_intent_contact.sql` ajoute `contact_phone` / `contact_email` sur `intents` (le numéro ou l'e-mail que le client donne avec son intention). Tant qu'elle n'est pas appliquée, l'app garde le contact dans le message de l'intention et l'indique dans les logs.
+
+`node scripts/seed-supabase.ts` charge les offres d'exemple (OTA, BTA, IPO, rachats) dans le projet Supabase de `.env.local` sans toucher aux lignes du BOC.

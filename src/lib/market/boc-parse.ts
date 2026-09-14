@@ -105,9 +105,10 @@ export const num = (s: string): number => {
   const n = Number(t);
   return Number.isFinite(n) ? n : NaN;
 };
+/** "26/12/2025" → "2025-12-26"; the BVMAC sometimes prints "05/012/2025" — the month keeps its last two digits. */
 export const isoDate = (d: string): string => {
-  const m = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  return m ? `${m[3]}-${m[2]}-${m[1]}` : d;
+  const m = d.match(/^(\d{2})\/(\d{2,3})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2].slice(-2)}-${m[1]}` : d;
 };
 
 export function parseBoc(text: string): BocParsed {
@@ -447,7 +448,7 @@ function parseBonds(lines: string[], warnings: string[]): BocBond[] {
 }
 
 /* ---------------- OPCVM ---------------- */
-const FUND_TAIL = /\b([MODA0])\s+([\d ]+?)\s+(-|\d{1,3}(?: \d{3})*,\d{2})\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{1,3}(?: \d{3})*,\d{2})\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{2}\/\d{2}\/\d{4})\s+(-?[\d ]+(?:,\d{1,2})?%)\s+(-|-?[\d ]+(?:,\d{1,2})?%)\s*$/;
+const FUND_TAIL = /\b([MODA0])\s+([\d ]+?)\s+(-|\d{1,3}(?: \d{3})*,\d{2})\s+(\d{2}\/\d{2,3}\/\d{4})\s+(\d{1,3}(?: \d{3})*,\d{2})\s+(\d{2}\/\d{2,3}\/\d{4})\s+(\d{2}\/\d{2,3}\/\d{4})\s+(-?[\d ]+(?:,\d{1,2})?%)\s+(-|-?[\d ]+(?:,\d{1,2})?%)\s*$/;
 const MANAGER_RE = /^(.*?(ASSET MANAGEMENT(?: S\.A\.?| CEMAC| CENTRAL AFRICA)?|CAPITAL CENTRAL AFRICA))\s+(.*)$/;
 const FUND_SKIP = /^(BULLETIN OFFICIEL|Société de gestion|Valeur liquidative|Origine|Précédente|Variation|Valeur Date|CAPITAL VARIABLE|\d{1,2}$)/;
 const SECTION: Record<string, BocFund["frequency"]> = { quotidiennes: "quotidienne", hebdomadaires: "hebdomadaire", mensuelles: "mensuelle", trimestrielles: "trimestrielle" };
@@ -482,9 +483,17 @@ function parseFunds(lines: string[], warnings: string[]): BocFund[] {
       if (buffer.length > 260) buffer = "";
       continue;
     }
-    const prefix = buffer.slice(0, m.index).trim();
+    let prefix = buffer.slice(0, m.index).trim();
     buffer = "";
-    const nameAt = prefix.search(/\b(FCPE|FCP|SICAV)/);
+    // A previous row that did not match (odd cell, missing value) leaves its figures in the
+    // prefix: keep only what follows the last date or percentage, and anchor the name on the last FCP.
+    const junk = [...prefix.matchAll(/(\d{1,2}\/\d{2,3}\/\d{4}|-?[\d ]+,\d{1,2}%)/g)].pop();
+    if (junk && junk.index != null) {
+      warnings.push(`OPCVM : ligne ignorée (format inattendu) avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
+      prefix = prefix.slice(junk.index + junk[0].length).trim();
+    }
+    const names = [...prefix.matchAll(/\b(FCPE|FCP|SICAV)/g)];
+    const nameAt = names.length ? (names[names.length - 1].index ?? -1) : prefix.search(/\b(FCPE|FCP|SICAV)/);
     const name = nameAt >= 0 ? prefix.slice(nameAt).replace(/^FCP(?=[A-DF-Z]|E[A-Z])/, "FCP ").replace(/\s+/g, " ").trim() : prefix;
     const prior = byName.get(name);
     if (prior) {

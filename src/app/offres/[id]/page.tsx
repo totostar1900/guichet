@@ -9,7 +9,7 @@ import { IntentForm } from "@/components/IntentForm";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, statusLabel } from "@/lib/domain/status";
+import { displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, offerFamily, OPERATION_LABEL, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
@@ -324,7 +324,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         </Link>
         <div className={styles.head}>
           <div className={`eyebrow ${styles.eyebrow}`}>
-            <span className="cc">{o.country.toUpperCase()}</span> {KIND_LABEL[o.kind]} · {OPERATION_LABEL[o.operation]} <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
+            <span className="cc">{o.country.toUpperCase()}</span> {SEGMENT_LABEL[FAMILY_SEGMENT[offerFamily(o)]]} · {FAMILY_SHORT[offerFamily(o)]}{o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OPERATION_LABEL[o.operation]}` : ""} <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
             {o.isExample && <span className="tag-ex">exemple</span>}
           </div>
           <h1 className="display">{o.title}</h1>
@@ -390,13 +390,21 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <h3>Documents</h3>
           <div className={styles.docs}>
             {o.documents.length === 0 && <span className="muted" style={{ fontSize: ".82rem" }}>Documents archivés.</span>}
-            {o.documents.map((d) => (
-              <div key={d.name} className={styles.doc}>
-                <span className="mono">PDF</span>
-                {d.name}
-                <span className={styles.docMeta}>{d.meta}</span>
-              </div>
-            ))}
+            {o.documents.map((d) =>
+              d.url ? (
+                <a key={d.name} className={`${styles.doc} ${styles.docLink}`} href={d.url} target="_blank" rel="noreferrer">
+                  <span className="mono">{/\.(png|jpe?g)$/i.test(d.url) ? "IMG" : "PDF"}</span>
+                  {d.name}
+                  <span className={styles.docMeta}>{d.meta} ↗</span>
+                </a>
+              ) : (
+                <div key={d.name} className={styles.doc} title="Sur demande au desk">
+                  <span className="mono">PDF</span>
+                  {d.name}
+                  <span className={styles.docMeta}>{d.meta} · sur demande</span>
+                </div>
+              ),
+            )}
           </div>
         </section>
 
@@ -413,7 +421,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
 
       <aside className={styles.side}>
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             Durée réelle <b>{tenorText(o.settleOn, o.maturityOn)}</b> · règlement le {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

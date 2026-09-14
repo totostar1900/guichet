@@ -72,6 +72,8 @@ type IntentRow = {
   type: Intent["type"];
   amount: number | null;
   channel: Intent["channel"];
+  contact_phone: string | null;
+  contact_email: string | null;
   message: string | null;
   state: IntentState;
   allocation_pct: number | null;
@@ -149,6 +151,8 @@ function toIntent(r: IntentRow): Intent {
     type: r.type,
     amount: r.amount === null ? null : Number(r.amount),
     channel: r.channel,
+    contactPhone: u(r.contact_phone),
+    contactEmail: u(r.contact_email),
     message: u(r.message),
     state: r.state,
     allocationPct: r.allocation_pct === null ? undefined : Number(r.allocation_pct),
@@ -399,24 +403,32 @@ export const supabaseRepository: Repository = {
     const { data: seqData, error: seqErr } = await db().rpc("next_intent_seq");
     if (seqErr) fail("next_intent_seq", seqErr);
     const ref = makeRef(input.type, Number(seqData));
-    const { data, error } = await db()
-      .from("intents")
-      .insert({
-        ref,
-        offer_id: offer.id,
-        offer_version: offer.version,
-        client_id: input.clientId ?? null,
-        client_name: input.clientName,
-        client_segment: input.clientSegment,
-        type: input.type,
-        amount: input.amount ?? null,
-        limit_price: input.limitPrice ?? null,
-        channel: input.channel,
-        message: input.message?.trim() || null,
-        state: "recue",
-      })
-      .select("*")
-      .single();
+    const row: Record<string, unknown> = {
+      ref,
+      offer_id: offer.id,
+      offer_version: offer.version,
+      client_id: input.clientId ?? null,
+      client_name: input.clientName,
+      client_segment: input.clientSegment,
+      type: input.type,
+      amount: input.amount ?? null,
+      limit_price: input.limitPrice ?? null,
+      channel: input.channel,
+      contact_phone: input.contactPhone ?? null,
+      contact_email: input.contactEmail ?? null,
+      message: input.message?.trim() || null,
+      state: "recue",
+    };
+    let { data, error } = await db().from("intents").insert(row).select("*").single();
+    if (error && /contact_(phone|email)/.test(error.message)) {
+      // Migration 0013 not applied yet: keep taking orders, the contact stays in the message.
+      console.warn("[intents] migration 0013_intent_contact.sql manquante — contact gardé dans le message");
+      delete row.contact_phone;
+      delete row.contact_email;
+      const contact = [input.contactPhone, input.contactEmail].filter(Boolean).join(" · ");
+      if (contact) row.message = `[${contact}] ${row.message ?? ""}`.trim();
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
     if (error) fail("createIntent", error);
     const intent = toIntent(data as IntentRow);
     const unit = offer.kind === "RACHAT" ? "titres" : "FCFA";
@@ -521,6 +533,14 @@ export const supabaseRepository: Repository = {
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
     if (error) fail("setContactOptIn", error);
+  },
+  async updateContact(id, patch) {
+    const row: Record<string, string> = {};
+    if (patch.phone) row.phone = patch.phone;
+    if (patch.email) row.email = patch.email;
+    if (!Object.keys(row).length) return;
+    const { error } = await db().from("profiles").update(row).eq("id", id);
+    if (error) fail("updateContact", error);
   },
   async listNotifications(limit = 50) {
     const { data, error } = await db().from("notifications").select("*").order("created_at", { ascending: false }).limit(limit);

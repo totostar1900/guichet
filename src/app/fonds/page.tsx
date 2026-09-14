@@ -77,7 +77,7 @@ export default async function FondsPage() {
                         <td className={styles.name}>
                           <Link href={`/offres/${o.id}`}>{o.title}</Link>
                           <small>
-                            {FUND_FREQUENCY_LABEL[f.frequency]} · créé le {fmtDate(f.inceptionDate)}
+                            {FUND_CATEGORY_LABEL[f.category]} · {FUND_FREQUENCY_LABEL[f.frequency]}
                           </small>
                         </td>
                         <td className={styles.hideSm}>

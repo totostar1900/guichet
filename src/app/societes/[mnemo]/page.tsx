@@ -5,7 +5,9 @@ import { companyByMnemo } from "@/data/companies";
 import { repo } from "@/lib/data";
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
 import { COUNTRY_CODE } from "@/lib/domain/summary";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { Info, Term } from "@/components/Info";
+import type { TermKey } from "@/lib/glossary";
+import { fmt, fmtDate, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/format";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: Props) {
   return { title: c ? `${c.shortName} — analyse` : "Société" };
 }
 
-const bn = (v?: number) => (v == null ? "—" : `${(v / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Md`);
+const RATIO_TERM: Record<string, TermKey> = { per: "per", yield: "rendement_dividende", payout: "payout", margin: "marge_nette", roe: "roe", pb: "price_to_book", float: "flottant" };
 const DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
 
 export default async function SocietePage({ params, searchParams }: Props) {
@@ -37,6 +39,9 @@ export default async function SocietePage({ params, searchParams }: Props) {
   const figs = [...c.figures].sort((x, y) => x.year - y.year);
   const years = figs.map((f) => String(f.year));
   const listedLine = (await r.listOffers()).find((o) => o.kind === "MARCHE" && o.isin === c.isin);
+  const scale = pickScale(figs.flatMap((f) => [f.revenue, f.netIncome, f.equity, f.totalAssets]));
+  const sc = (v?: number | null) => (v == null ? "—" : fmtScaled(v, scale.div));
+  const revenueTerm: TermKey = a.latest.revenueLabel.startsWith("Produit") ? "pnb" : a.latest.revenueLabel.startsWith("Primes") ? "primes" : "chiffre_affaires";
 
   return (
     <>
@@ -66,27 +71,37 @@ export default async function SocietePage({ params, searchParams }: Props) {
 
       <div className={styles.kpis}>
         <div className={`${styles.kpi} ${styles.gold}`}>
-          <span>Cours</span>
+          <span>
+            Cours <Info term="cours" />
+          </span>
           <b>{quote ? fmt(quote.close) : "—"}</b>
           <small>FCFA · {quote ? `clôture ${fmtDate(quote.sessionDate)}` : "pas de cours"}{quote?.variationPct ? ` · ${signed(quote.variationPct)}` : ""}</small>
         </div>
         <div className={styles.kpi}>
-          <span>Depuis le 1er janvier</span>
+          <span>
+            Depuis le 1er janvier <Info term="ytd" />
+          </span>
           <b className={cls(quote?.ytdVariationPct)}>{quote?.ytdVariationPct != null ? signed(quote.ytdVariationPct) : "—"}</b>
           <small>{quote?.ytdVariationPct == null && c.listedOn.startsWith(String(new Date().getFullYear())) ? `introduite le ${fmtDate(c.listedOn)}` : "variation publiée par la BVMAC"}</small>
         </div>
         <div className={styles.kpi}>
-          <span>Capitalisation</span>
-          <b>{bn(a.marketCap)}</b>
-          <small>{fmt(c.sharesTotal)} actions · flottant {fmtPct(c.freeFloatPct, 1)}</small>
+          <span>
+            Capitalisation <Info term="capitalisation" />
+          </span>
+          <b>{a.marketCap != null ? fmtUnits(a.marketCap) : "—"}</b>
+          <small>FCFA · {fmtUnits(c.sharesTotal)} actions · flottant {fmtPct(c.freeFloatPct, 1)}</small>
         </div>
         <div className={styles.kpi}>
-          <span>PER</span>
+          <span>
+            PER <Info term="per" />
+          </span>
           <b>{a.per != null ? `${a.per.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} ×` : "—"}</b>
           <small>bénéfice {a.latest.year} de {fmt(a.eps ?? 0)} FCFA / action</small>
         </div>
         <div className={styles.kpi}>
-          <span>Rendement du dividende</span>
+          <span>
+            Rendement du dividende <Info term="rendement_dividende" />
+          </span>
           <b>{a.dividendYieldPct != null ? fmtPct(a.dividendYieldPct, 2) : "—"}</b>
           <small>{quote?.lastDividend != null ? `${fmt(quote.lastDividend)} FCFA brut${quote.dividendDate ? ` payé le ${fmtDate(quote.dividendDate)}` : ""}` : "pas de dividende récent"}</small>
         </div>
@@ -96,7 +111,9 @@ export default async function SocietePage({ params, searchParams }: Props) {
         <div>
           <div className={styles.panel}>
             <div className={styles.panelH}>
-              <h2>Cours de l&apos;action</h2>
+              <h2>
+                Cours de l&apos;action <Info term="cours" />
+              </h2>
               <nav className={styles.periods} aria-label="Période">
                 {PERIODS.map(([k, l]) => (
                   <Link key={k} href={`?p=${k}`} aria-current={k === p ? "true" : undefined} scroll={false}>
@@ -117,8 +134,9 @@ export default async function SocietePage({ params, searchParams }: Props) {
 
           <div className={styles.panel}>
             <h2>
-              {a.latest.revenueLabel} et bénéfice net · {figs[0].year}–{a.latest.year}
+              {a.latest.revenueLabel} <Info term={revenueTerm} /> et bénéfice net <Info term="resultat_net" /> · {figs[0].year}–{a.latest.year}
             </h2>
+            <div className={styles.unitNote}>en FCFA · survolez les barres pour les montants exacts et la variation d&apos;une année sur l&apos;autre</div>
             <BarChart groups={years} series={[{ name: a.latest.revenueLabel, values: figs.map((f) => f.revenue) }, { name: "Bénéfice net", values: figs.map((f) => f.netIncome), accent: true }]} ariaLabel={`${a.latest.revenueLabel} et bénéfice net par année`} />
             <div className={styles.reading}>
               <b>Comment lire.</b> Les barres bleues mesurent l&apos;activité ({a.latest.revenueLabel.toLowerCase()}), les barres dorées ce qu&apos;il en reste une fois tout payé. Un bénéfice qui suit les revenus est le signe d&apos;une entreprise dont les marges tiennent ; un bénéfice qui décroche alors que les revenus montent signale des coûts ou des provisions en hausse.
@@ -126,7 +144,10 @@ export default async function SocietePage({ params, searchParams }: Props) {
           </div>
 
           <div className={styles.panel}>
-            <h2>Fonds propres et total du bilan</h2>
+            <h2>
+              Fonds propres <Info term="fonds_propres" /> et total du bilan <Info term="total_bilan" />
+            </h2>
+            <div className={styles.unitNote}>en FCFA · survolez les barres pour les montants exacts</div>
             <BarChart groups={years} series={[{ name: "Total du bilan", values: figs.map((f) => f.totalAssets) }, { name: "Fonds propres", values: figs.map((f) => f.equity), accent: true }]} ariaLabel="Total du bilan et fonds propres par année" />
             <div className={styles.reading}>
               <b>Comment lire.</b> Le total du bilan est tout ce que l&apos;entreprise possède ; les fonds propres, la part qui appartient aux actionnaires. Des fonds propres qui grossissent année après année veulent dire que l&apos;entreprise garde une partie de ses bénéfices. {c.sector === "Banque" || c.sector === "Holding bancaire" ? "Pour une banque, un bilan très supérieur aux fonds propres est normal : il est constitué des dépôts des clients." : ""}
@@ -134,12 +155,13 @@ export default async function SocietePage({ params, searchParams }: Props) {
           </div>
 
           <div className={styles.panel}>
-            <h2>Chiffres clés certifiés (FCFA)</h2>
+            <h2>Chiffres clés certifiés</h2>
+            <div className={styles.unitNote}>en {scale.label}, sauf les montants par action (FCFA)</div>
             <div className="scroll-x">
               <table className={styles.tbl}>
                 <thead>
                   <tr>
-                    <th></th>
+                    <th>{scale.short}</th>
                     {figs.map((f) => (
                       <th key={f.year} className={styles.r}>
                         {f.year}
@@ -150,17 +172,19 @@ export default async function SocietePage({ params, searchParams }: Props) {
                 <tbody>
                   {(
                     [
-                      [a.latest.revenueLabel, (f) => fmt(f.revenue)],
-                      ["Valeur ajoutée", (f) => (f.valueAdded != null ? fmt(f.valueAdded) : "—")],
-                      ["Résultat net", (f) => fmt(f.netIncome)],
-                      ["Fonds propres", (f) => fmt(f.equity)],
-                      ["Total du bilan", (f) => fmt(f.totalAssets)],
-                      ["Bénéfice par action", (f) => fmt(f.netIncome / c.sharesTotal)],
-                      ["Dividende brut par action", (f) => (f.dividendPerShare === null ? "non distribué" : f.dividendPerShare != null ? fmt(f.dividendPerShare) : "—")],
-                    ] as [string, (f: (typeof figs)[number]) => string][]
-                  ).map(([label, fn]) => (
+                      [a.latest.revenueLabel, revenueTerm, (f) => sc(f.revenue)],
+                      ["Valeur ajoutée", "valeur_ajoutee", (f) => sc(f.valueAdded)],
+                      ["Résultat net", "resultat_net", (f) => sc(f.netIncome)],
+                      ["Fonds propres", "fonds_propres", (f) => sc(f.equity)],
+                      ["Total du bilan", "total_bilan", (f) => sc(f.totalAssets)],
+                      ["Bénéfice par action (FCFA)", "bnpa", (f) => fmt(f.netIncome / c.sharesTotal)],
+                      ["Dividende brut par action (FCFA)", "dividende", (f) => (f.dividendPerShare === null ? "non distribué" : f.dividendPerShare != null ? fmt(f.dividendPerShare) : "—")],
+                    ] as [string, TermKey, (f: (typeof figs)[number]) => string][]
+                  ).map(([label, term, fn]) => (
                     <tr key={label}>
-                      <td>{label}</td>
+                      <td>
+                        {label} <Info term={term} />
+                      </td>
                       {figs.map((f) => (
                         <td key={f.year} className={styles.r}>
                           {fn(f)}
@@ -171,7 +195,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
                 </tbody>
               </table>
             </div>
-            <div className={styles.source}>Sources : {[...new Set(figs.map((f) => f.source))].join(" · ")}. Normes {[...new Set(figs.map((f) => f.standard))].join(" / ")}. Bénéfice par action calculé sur {fmt(c.sharesTotal)} actions.</div>
+            <div className={styles.source}>Sources : {[...new Set(figs.map((f) => f.source))].join(" · ")}. Normes {[...new Set(figs.map((f) => f.standard))].join(" / ")}. Bénéfice par action calculé sur {fmt(c.sharesTotal)} actions.{scale.div > 1 ? ` 1 ${scale.short.replace(" FCFA", "")} = ${fmt(scale.div)} FCFA.` : ""}</div>
           </div>
         </div>
 
@@ -195,27 +219,29 @@ export default async function SocietePage({ params, searchParams }: Props) {
 
           <div className={styles.panel}>
             <h2>Ratios, et comment les lire</h2>
-            <table className={styles.tbl}>
-              <tbody>
-                {a.ratios.map((x) => (
-                  <tr key={x.key} className={styles.ratio}>
-                    <td>{x.label}</td>
-                    <td>{x.value}</td>
-                    <td>{x.reading}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ul className={styles.ratios}>
+              {a.ratios.map((x) => (
+                <li key={x.key}>
+                  <div className={styles.ratioHead}>
+                    <span className={styles.ratioLabel}>{RATIO_TERM[x.key] ? <Term term={RATIO_TERM[x.key]}>{x.label}</Term> : x.label}</span>
+                    <b className={styles.ratioValue}>{x.value}</b>
+                  </div>
+                  <p className={styles.ratioReading}>{x.reading}</p>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className={styles.panel}>
-            <h2>Actionnariat</h2>
+            <h2>
+              Actionnariat <Info term="flottant" />
+            </h2>
             <ShareBar parts={c.coreShareholders} />
             <dl className={styles.facts} style={{ marginTop: 12 }}>
               <dt>Introduite en bourse</dt>
               <dd>{fmtDate(c.listedOn)}{c.ipoPrice ? ` à ${fmt(c.ipoPrice)} FCFA` : ""}</dd>
               <dt>Capital social</dt>
-              <dd>{fmt(c.shareCapital)} FCFA</dd>
+              <dd>{fmtUnits(c.shareCapital, true)}</dd>
               <dt>Actions</dt>
               <dd>{fmt(c.sharesTotal)} dont {fmt(c.sharesFloat)} en bourse</dd>
               {c.chair && (

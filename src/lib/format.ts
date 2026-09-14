@@ -40,3 +40,39 @@ export const parseUnits = (s: string | null | undefined): number => {
 
 /** YYYY-MM-DD in local time (toISOString would shift the day in UTC+1). */
 export const localIso = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/**
+ * Human units for FCFA amounts: 1 234 567 890 → "1,23 Md", 45 600 000 → "45,6 M",
+ * 812 000 → "812 k", 4 500 → "4 500". `unit` appends " FCFA".
+ */
+export const fmtUnits = (n: number, unit = false): string => {
+  const a = Math.abs(n);
+  const s =
+    a >= 1e9
+      ? `${(n / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} Md`
+      : a >= 1e6
+        ? `${(n / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} M`
+        : a >= 1e4
+          ? `${(n / 1e3).toLocaleString("fr-FR", { maximumFractionDigits: 0 })} k`
+          : nf.format(Math.round(n));
+  return unit ? `${s} FCFA` : s;
+};
+
+/** The scale that fits a whole series, so a table reads in one unit: "millions de FCFA". */
+export const pickScale = (values: number[]): { div: number; label: string; short: string } => {
+  const m = Math.max(0, ...values.map((v) => Math.abs(v)));
+  if (m >= 1e10) return { div: 1e9, label: "milliards de FCFA", short: "Md FCFA" };
+  if (m >= 1e7) return { div: 1e6, label: "millions de FCFA", short: "M FCFA" };
+  if (m >= 1e4) return { div: 1e3, label: "milliers de FCFA", short: "k FCFA" };
+  return { div: 1, label: "FCFA", short: "FCFA" };
+};
+export const fmtScaled = (n: number, div: number, decimals = 1): string => (n / div).toLocaleString("fr-FR", { minimumFractionDigits: div === 1 ? 0 : decimals, maximumFractionDigits: div === 1 ? 0 : decimals });
+
+/** "6 87 67 67 67" → "+237687676767"; a number already in +E.164 is kept. */
+export const normalizePhone = (s: string | undefined): string => {
+  const d = String(s ?? "").replace(/[^\d+]/g, "");
+  if (!d) return "";
+  if (d.startsWith("+")) return d;
+  if (d.startsWith("00")) return `+${d.slice(2)}`;
+  return d.length === 9 ? `+237${d}` : `+${d}`;
+};

@@ -128,3 +128,46 @@
 .seg4 {
   background: var(--line-2);
 }
+.wrapRel {
+  position: relative;
+}
+.cross {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.band {
+  fill: var(--navy);
+  fill-opacity: 0.05;
+}
+.dim {
+  opacity: 0.55;
+}
+.tip {
+  position: absolute;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 2px;
+  min-width: 150px;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.74rem;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
+  z-index: 30;
+}
+.tip b {
+  color: var(--surface);
+  font-weight: 800;
+}
+.tip > b {
+  font-size: 0.86rem;
+}
+.tip span {
+  opacity: 0.9;
+}

@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
-import { parseAmount, parseUnits } from "@/lib/format";
+import { normalizePhone, parseAmount, parseUnits } from "@/lib/format";
 import { estimate } from "@/lib/domain/estimate";
 import { notifyIntentReceived } from "@/lib/notify/dispatch";
 import { INDIVISION_CEILING, isIndivision } from "@/lib/kyc/checklist";
@@ -19,8 +19,11 @@ const schema = z.object({
   limitPrice: z.string().optional(),
   amount: z.string().optional(),
   channel: z.enum(["WhatsApp", "Appel", "E-mail"]),
+  contactPhone: z.string().max(30).optional(),
+  contactEmail: z.string().max(120).optional(),
   message: z.string().max(1000).optional(),
 });
+
 
 export type IntentResult = { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean } | { ok: false; error: string };
 
@@ -34,6 +37,10 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { ok: false, error: "Formulaire incomplet — vérifiez le type et le canal." };
   const { offerId, type, amount, channel, message, limitPrice } = parsed.data;
+  const contactPhone = normalizePhone(parsed.data.contactPhone);
+  const contactEmail = (parsed.data.contactEmail ?? "").trim().toLowerCase();
+  if ((channel === "WhatsApp" || channel === "Appel") && !/^\+\d{8,15}$/.test(contactPhone)) return { ok: false, error: "Indiquez un numéro de téléphone joignable (ex. +237 6 87 67 67 67)." };
+  if (channel === "E-mail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) return { ok: false, error: "Indiquez une adresse e-mail valide." };
 
   const r = repo();
   const offer = await r.getOffer(offerId);
@@ -67,11 +74,15 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     amount: amt || null,
     limitPrice: limit && !isNaN(limit) ? limit : null,
     channel,
+    contactPhone: contactPhone || undefined,
+    contactEmail: contactEmail || undefined,
     message: needsAccount ? `[compte-titres à ouvrir] ${message ?? ""}`.trim() : message,
     clientId: session.userId,
     clientName: session.name,
     clientSegment: session.segment,
   });
+  // Keep the profile reachable with what the client just typed (the desk calls from there).
+  await r.updateContact(session.userId, { phone: contactPhone || undefined, email: contactEmail || undefined });
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} — <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
   await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined);
   revalidatePath("/desk");

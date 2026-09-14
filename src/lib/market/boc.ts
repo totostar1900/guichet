@@ -6,6 +6,18 @@ import { fmt, fmtDate, localIso } from "@/lib/format";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { prettyName } from "./names";
+import { companyByIsin } from "@/data/companies";
+
+const COMPANY_DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
+/** The issuer's own filings at the BVMAC, newest first, for the fiche of a listed share. */
+function companyDocuments(isin: string): Offer["documents"] {
+  const c = companyByIsin(isin);
+  if (!c) return [];
+  return [...c.documents]
+    .sort((a, b) => b.year - a.year)
+    .slice(0, 4)
+    .map((d) => ({ name: `${COMPANY_DOC_LABEL[d.kind] ?? "Document"} ${d.year}`, meta: `bvm-ac.org · ${d.url.endsWith(".pdf") ? "PDF" : "image"}`, url: d.url }));
+}
 
 export { prettyName };
 
@@ -159,7 +171,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
     blurb: isBond
       ? `Obligation cotée à la BVMAC (${q.mnemo}). Ordres d'achat et de vente au cours du jour, coupon couru réglé au prorata, règlement T+3.`
       : `Action cotée à la BVMAC (${q.mnemo}). Ordres d'achat et de vente exécutés au marché ou à cours limité, règlement T+3.`,
-    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo}` }],
+    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo}`, url: bocUrl(q.sessionDate) }],
     opensAt: `${q.sessionDate}T09:00:00`,
     deadlineAt: "2099-12-31T17:00:00",
     settleOn: q.sessionDate,
@@ -177,7 +189,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
   return {
     ...base,
     isin: q.isin,
-    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(q.sessionDate)}` }, ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote")],
+    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(q.sessionDate)} · PDF`, url: bocUrl(q.sessionDate) }, ...companyDocuments(q.isin), ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote" && !d.meta.startsWith("bvm-ac.org"))],
     lastPrice: q.close,
     lastPriceOn: q.sessionDate,
     pricedAt: new Date().toISOString(),
@@ -236,7 +248,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer): 
       registerNote: prior?.registerNote,
     },
     commissionPct: prior?.entryFeePct ?? base.commissionPct,
-    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(n.sessionDate)}` }, ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote")],
+    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(n.sessionDate)} · PDF`, url: bocUrl(n.sessionDate) }, ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote")],
     lastPrice: n.nav,
     lastPriceOn: n.navDate,
     pricedAt: new Date().toISOString(),

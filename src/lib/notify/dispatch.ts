@@ -45,7 +45,11 @@ async function deliver(kind: NotifyKind, t: Target, m: Message, refs: { intentId
   }
 }
 
-const contactForIntent = async (i: Intent): Promise<Contact | undefined> => (i.clientId ? repo().getContact(i.clientId) : undefined);
+const contactForIntent = async (i: Intent): Promise<Contact | undefined> => {
+  const c = i.clientId ? await repo().getContact(i.clientId) : undefined;
+  if (!c) return i.contactPhone || i.contactEmail ? { id: i.clientId ?? i.id, name: i.clientName, segment: i.clientSegment, phone: i.contactPhone, email: i.contactEmail, whatsappOptIn: Boolean(i.contactPhone) } : undefined;
+  return { ...c, phone: i.contactPhone ?? c.phone, email: i.contactEmail ?? c.email, whatsappOptIn: c.whatsappOptIn || Boolean(i.contactPhone) };
+};
 
 /** Broadcast a freshly published offer to the segment through the chosen channels. */
 export async function notifyOfferPublished(o: Offer, channels: string[], segment: string): Promise<{ sent: number; skipped: number; failed: number }> {

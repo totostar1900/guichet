@@ -174,3 +174,22 @@ describe("BOC n° 2551 du 15/07/2026 — issuer glued to the ISIN, traded dense 
     expect(reg.issuer).toMatch(/REGIONALE/);
   });
 });
+
+describe("OPCVM rows the BVMAC prints oddly", () => {
+  const head = "BULLETIN OFFICIEL DE LA COTE N° 2400 DU 05/01/2026\nOPCVM :\nhebdomadaires\n";
+  it("accepts a three-digit month and keeps the fund name clean", () => {
+    const text = `${head}HARVEST ASSET MANAGEMENT BANQUE ATLANTQUE CAMEROUN FCP ATLANTIQUE PERFORMANCE 0 10 000 14 765,39 05/012/2025 14 845,18 09/01/2026 17/09/2021 48,45% 0,54%\nHARVEST ASSET MANAGEMENT BANQUE ATLANTQUE CAMEROUN FCP HARVEST LIQUIDITES M 10 000 12 000,00 02/01/2026 12 010,00 09/01/2026 17/09/2021 20,10% 0,08%\n`;
+    const b = parseBoc(text);
+    expect(b.funds.map((f) => f.name)).toEqual(["FCP ATLANTIQUE PERFORMANCE", "FCP HARVEST LIQUIDITES"]);
+    expect(b.funds[0].previousDate).toBe("2025-12-05");
+    expect(b.funds[1].manager).toBe("HARVEST ASSET MANAGEMENT");
+  });
+  it("drops a row whose figures cannot be read instead of gluing it to the next name", () => {
+    const text = `${head}HARVEST ASSET MANAGEMENT BANQUE ATLANTQUE CAMEROUN FCP ATLANTIQUE PERFORMANCE 0 10 000 14 765,39 05/2025 14 845,18 09/01/2026 17/09/2021 48,45% 0,54%\nHARVEST ASSET MANAGEMENT BANQUE ATLANTQUE CAMEROUN FCP HARVEST LIQUIDITES M 10 000 12 000,00 02/01/2026 12 010,00 09/01/2026 17/09/2021 20,10% 0,08%\n`;
+    const b = parseBoc(text);
+    expect(b.funds.map((f) => f.name)).toEqual(["FCP HARVEST LIQUIDITES"]);
+    expect(b.funds[0].manager).toBe("HARVEST ASSET MANAGEMENT");
+    expect(b.funds[0].depositary).toBe("BANQUE ATLANTQUE CAMEROUN");
+    expect(b.warnings.some((w) => w.startsWith("OPCVM : ligne ignorée"))).toBe(true);
+  });
+});

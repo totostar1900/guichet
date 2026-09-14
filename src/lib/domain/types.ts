@@ -143,6 +143,9 @@ export interface Intent {
   type: IntentType;
   amount?: number | null; // FCFA, or titles for cession
   channel: Channel;
+  /** Where the client asked to be reached for this intent (kept with the order: profiles change). */
+  contactPhone?: string;
+  contactEmail?: string;
   message?: string;
   state: IntentState;
   /** Results: share of the order served (0..100) and the units actually allocated. */
@@ -170,6 +173,8 @@ export interface NewIntentInput {
   amount?: number | null;
   limitPrice?: number | null;
   channel: Channel;
+  contactPhone?: string;
+  contactEmail?: string;
   message?: string;
   clientName: string;
   clientSegment: string;

@@ -250,7 +250,15 @@ export default async function DeskPage() {
                       <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
                     </td>
                     <td className="r num">{i.amount ? (o?.kind === "RACHAT" ? `${fmt(i.amount)} titres` : i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : fmt(i.amount)) : "—"}</td>
-                    <td>{i.channel}</td>
+                    <td>
+                      {i.channel}
+                      {(i.contactPhone || i.contactEmail) && (
+                        <>
+                          <br />
+                          <small className="muted">{i.channel === "E-mail" ? (i.contactEmail ?? i.contactPhone) : (i.contactPhone ?? i.contactEmail)}</small>
+                        </>
+                      )}
+                    </td>
                     <td className="num">{fmtTime(i.createdAt)}</td>
                     <td>
                       <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>

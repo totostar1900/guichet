@@ -108,6 +108,8 @@ export const memoryRepository: Repository = {
       amount: input.amount ?? null,
       limitPrice: input.limitPrice ?? null,
       channel: input.channel,
+      contactPhone: input.contactPhone,
+      contactEmail: input.contactEmail,
       message: input.message?.trim() || undefined,
       state: "recue",
       createdAt: at,
@@ -207,6 +209,12 @@ export const memoryRepository: Repository = {
     if (c) c.whatsappOptIn = optIn;
     const f = store().clientFiles.find((x) => x.userId === id);
     if (f) f.consents.whatsappAt = optIn ? (f.consents.whatsappAt ?? nowIso()) : undefined;
+  },
+  async updateContact(id, patch) {
+    const c = store().contacts.find((x) => x.id === id);
+    if (!c) return;
+    if (patch.phone) c.phone = patch.phone;
+    if (patch.email) c.email = patch.email;
   },
   async listNotifications(limit = 50) {
     return structuredClone(store().notifications.slice(0, limit));

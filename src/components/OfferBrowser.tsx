@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { DisplayStatus, Offer, OfferKind } from "@/lib/domain/types";
-import { displayStatus, headlineYield, isActionable, KIND_LABEL, tenorYears } from "@/lib/domain/status";
+import type { DisplayStatus, Offer } from "@/lib/domain/types";
+import { displayStatus, FAMILIES, FAMILY_LABEL, FAMILY_SEGMENT, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
+import { Info } from "./Info";
+import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
 
 /**
@@ -16,7 +18,7 @@ import styles from "./OfferBrowser.module.css";
  * view can be shared on WhatsApp and comes back the same.
  */
 
-const KINDS: OfferKind[] = ["OTA", "BTA", "ACTIONS", "APE", "RACHAT", "MARCHE", "FONDS"];
+const SEGMENTS: MarketSegment[] = ["primaire", "secondaire", "fonds"];
 const COUNTRIES = ["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."];
 const STATUSES: [string, string][] = [
   ["open", "Ouvertes"],
@@ -81,12 +83,18 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
       </button>
       {open && (
         <div className={styles.ddMenu} role="group" aria-label={label}>
-          {items.map(([v, l]) => (
-            <label key={v} className={styles.ddItem}>
-              <input type={single ? "radio" : "checkbox"} checked={selected.has(v)} onChange={() => toggle(v)} />
-              {l}
-            </label>
-          ))}
+          {items.map(([v, l]) =>
+            v.startsWith("#") ? (
+              <div key={v} className={styles.ddGroup}>
+                {l}
+              </div>
+            ) : (
+              <label key={v} className={styles.ddItem}>
+                <input type={single ? "radio" : "checkbox"} checked={selected.has(v)} onChange={() => toggle(v)} />
+                {l}
+              </label>
+            ),
+          )}
           {active && (
             <button type="button" className={styles.ddClear} onClick={() => onChange(new Set())}>
               Effacer
@@ -99,7 +107,7 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
 }
 
 /* ---------- table ---------- */
-function Th({ k, label, sort, dir, onSort, right }: { k: SortKey; label: string; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; right?: boolean }) {
+function Th({ k, label, sort, dir, onSort, right, term }: { k: SortKey; label: string; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; right?: boolean; term?: TermKey }) {
   const on = sort === k;
   return (
     <th className={`${right ? styles.r : ""} ${on ? styles.sorted : ""}`} aria-sort={on ? (dir === "asc" ? "ascending" : "descending") : "none"}>
@@ -107,6 +115,7 @@ function Th({ k, label, sort, dir, onSort, right }: { k: SortKey; label: string;
         {label}
         <span aria-hidden="true">{on ? (dir === "asc" ? "↑" : "↓") : ""}</span>
       </button>
+      {term && <Info term={term} />}
     </th>
   );
 }
@@ -123,11 +132,11 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
             <th>Pays</th>
             <th>Statut</th>
             <Th k="deadline" label="Clôture" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="yield" label="Rendement · cours" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="coupon" label="Coupon" sort={sort} dir={dir} onSort={onSort} right />
+            <Th k="yield" label="Rendement · cours" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
+            <Th k="coupon" label="Coupon" sort={sort} dir={dir} onSort={onSort} right term="coupon" />
             <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right />
             <Th k="minimum" label="Minimum" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right />
+            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right term="commission" />
             <th></th>
           </tr>
         </thead>
@@ -136,7 +145,7 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
             <tr key={o.id} className={s.past ? styles.past : ""}>
               <td className={styles.line}>
                 <Link href={`/offres/${o.id}`}>
-                  <span className={styles.kind}>{s.kind}</span> · {s.title}
+                  <span className={`${styles.kind} ${styles[`seg_${s.segment}`]}`}>{s.kind}</span> · {s.title}
                 </Link>
                 <small>{s.subtitle}</small>
               </td>
@@ -179,10 +188,10 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
   return (
     <div className={styles.list}>
       {rows.map(({ o, s }) => (
-        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`}>
+        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${styles[`band_${s.segment}`]} ${s.past ? styles.past : ""}`}>
           <div className={styles.rowMain}>
             <div className={styles.rowTitle}>
-              <span className={styles.kind}>{s.kind}</span> · {s.title}
+              <span className={`${styles.kind} ${styles[`seg_${s.segment}`]}`}>{s.kind}</span> · {s.title}
             </div>
             <small>{s.subtitle}</small>
           </div>
@@ -212,6 +221,7 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
   const setOf = (k: string) => new Set((sp.get(k) ?? "").split(",").filter(Boolean));
 
   const kind = setOf("instrument");
+  const segment = (sp.get("marche") as MarketSegment | null) ?? undefined;
   const country = setOf("pays");
   const status = setOf("statut");
   const tenor = setOf("duree");
@@ -242,8 +252,13 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
     if (sort === k) update({ sens: dir === "asc" ? "desc" : "asc" });
     else update({ tri: k, sens: undefined });
   };
-  const reset = () => update({ instrument: undefined, pays: undefined, statut: undefined, duree: undefined, rendement: undefined, q: undefined });
-  const filterCount = kind.size + country.size + status.size + tenor.size + minYield.size;
+  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, rendement: undefined, q: undefined });
+  const filterCount = kind.size + country.size + status.size + tenor.size + minYield.size + (segment ? 1 : 0);
+  const segCount = useMemo(() => {
+    const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
+    for (const o of offers) c[FAMILY_SEGMENT[offerFamily(o)]]++;
+    return c;
+  }, [offers]);
 
   const rows = useMemo(() => {
     const ql = q.trim().toLowerCase();
@@ -251,7 +266,9 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
     const out = offers
       .filter((o) => {
         const st = displayStatus(o, now);
-        if (kind.size && !kind.has(o.kind)) return false;
+        const fam = offerFamily(o);
+        if (segment && FAMILY_SEGMENT[fam] !== segment) return false;
+        if (kind.size && !kind.has(fam)) return false;
         if (country.size && !country.has(o.country)) return false;
         if (status.size && !status.has(normStatus(st))) return false;
         if (tenor.size) {
@@ -264,7 +281,7 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
           if (y == null || y < min) return false;
         }
         if (ql) {
-          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], o.fund?.manager ?? ""].join(" ").toLowerCase();
+          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], FAMILY_LABEL[fam], o.fund?.manager ?? ""].join(" ").toLowerCase();
           if (!hay.includes(ql)) return false;
         }
         return true;
@@ -302,6 +319,17 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
 
   return (
     <div className={styles.wrap}>
+      <div className={styles.segments} role="tablist" aria-label="Marché">
+        <button type="button" role="tab" aria-selected={!segment} onClick={() => update({ marche: undefined, instrument: undefined })}>
+          Tout <b>{offers.length}</b>
+        </button>
+        {SEGMENTS.filter((sg) => segCount[sg] > 0 || segment === sg).map((sg) => (
+          <button key={sg} type="button" role="tab" aria-selected={segment === sg} title={SEGMENT_HINT[sg]} onClick={() => update({ marche: sg, instrument: undefined })}>
+            {SEGMENT_LABEL[sg]} <b>{segCount[sg]}</b>
+          </button>
+        ))}
+      </div>
+      {segment && <p className={styles.segHint}>{SEGMENT_HINT[segment]}</p>}
       <div className={styles.toolbar}>
         <label className={styles.search}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -310,7 +338,12 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
           </svg>
           <input type="search" placeholder="Rechercher une ligne, un émetteur, un ISIN" aria-label="Rechercher" defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
         </label>
-        <Dropdown label="Instrument" items={KINDS.map((k) => [k, KIND_LABEL[k]])} selected={kind} onChange={setFilter("instrument")} />
+        <Dropdown
+          label="Instrument"
+          items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES.filter((f) => FAMILY_SEGMENT[f] === sg).map((f) => [f, FAMILY_LABEL[f]] as [string, string])])}
+          selected={kind}
+          onChange={setFilter("instrument")}
+        />
         <Dropdown label="Pays" items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
         <Dropdown label="Statut" items={STATUSES} selected={status} onChange={setFilter("statut")} />
         <Dropdown label="Durée" items={TENORS} selected={tenor} onChange={setFilter("duree")} />
