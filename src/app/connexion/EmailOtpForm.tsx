@@ -22,7 +22,7 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="mode" value={mode} />
         <p className={styles.hint}>
-          Code envoyé à <b>{to}</b>. Il est valable quelques minutes.
+          Message envoyé à <b>{to}</b>{state.step === "code" ? " : saisissez le code qu'il contient, ou cliquez simplement sur son lien de connexion." : ". Le code est valable quelques minutes."}
         </p>
         <label className="field">
           Code à 6 chiffres
