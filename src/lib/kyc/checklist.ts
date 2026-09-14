@@ -112,7 +112,12 @@ export function autoChecks(f: ClientFile, now = new Date()): Check[] {
   checks.push({ label: "PPE déclaré", ok: !pep, detail: pep ? "oui — diligence renforcée" : "non" });
   if (f.kind === "groupement") checks.push({ label: "Forme du groupement", ok: isIndivision(f) ? declaredAmountFloor(f.funds.expectedAmount) <= INDIVISION_CEILING : true, detail: isIndivision(f) ? `indivision de mandataires — plafond ${(INDIVISION_CEILING / 1e6).toFixed(0)} M FCFA de nominal` : (f.identity.legalForm ?? "—") });
   checks.push({ label: "Même nom sur le RIB", ok: null, detail: "vérification visuelle par le desk" });
-  checks.push({ label: "Sanctions / PPE (listes)", ok: null, detail: "à brancher : OpenSanctions, puis liste commerciale" });
+  const sc = f.screening;
+  checks.push({
+    label: "Sanctions / PPE (listes)",
+    ok: sc?.attestedAt ? sc.outcome !== "confirme" : null,
+    detail: sc?.attestedAt ? `attesté par ${sc.attestedBy} — ${sc.lists ?? "listes non précisées"} — ${sc.outcome === "aucun" ? "aucune correspondance" : sc.outcome === "faux_positif" ? "faux positif documenté" : "correspondance confirmée"}` : sc?.auto ? `pré-contrôle ${sc.auto.provider} : ${sc.auto.hits.length} correspondance(s) — attestation du desk requise` : "attestation du desk requise avant approbation",
+  });
   if (f.identity.residentAbroad) checks.push({ label: "Résident à l'étranger", ok: null, detail: "appel vidéo + justificatif d'adresse étranger" });
   return checks;
 }

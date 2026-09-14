@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import type { ClientFile, RiskRating } from "@/lib/domain/kyc";
 import { DOC_LABEL } from "@/lib/kyc/checklist";
-import { reviewAction, setCustodianAccountAction, type ReviewResult } from "./actions";
+import { autoScreenAction, reviewAction, setCustodianAccountAction, type ReviewResult } from "./actions";
 import styles from "./page.module.css";
 
 function AccountForm({ file }: { file: ClientFile }) {
@@ -31,12 +31,77 @@ function AccountForm({ file }: { file: ClientFile }) {
   );
 }
 
+function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean }) {
+  const sc = file.screening;
+  return (
+    <div className={styles.screening}>
+      <span className="eyebrow">Contrôle sanctions / PPE</span>
+      {sc?.auto && (
+        <div className={styles.autoHits}>
+          Pré-contrôle {sc.auto.provider} du {new Date(sc.auto.checkedAt).toLocaleString("fr-FR")} — {sc.auto.queries.length} nom(s) — {sc.auto.hits.length} correspondance(s){sc.auto.error ? ` · erreur : ${sc.auto.error}` : ""}
+          {sc.auto.hits.slice(0, 5).map((h, i) => (
+            <div key={i}>
+              {h.url ? (
+                <a href={h.url} target="_blank" rel="noreferrer">
+                  {h.name}
+                </a>
+              ) : (
+                h.name
+              )}{" "}
+              · score {Math.round(h.score * 100)} % · {h.topics.join(", ") || "—"} · {h.datasets.slice(0, 3).join(", ")}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className={styles.grid}>
+        <label className="field">
+          Listes consultées
+          <input name="screeningLists" defaultValue={sc?.lists ?? "ONU, UE, OFAC (OpenSanctions) ; PPE : recherche presse"} disabled={closed} />
+        </label>
+        <label className="field">
+          Résultat
+          <select name="screeningOutcome" defaultValue={sc?.outcome ?? ""} disabled={closed}>
+            <option value="">— à renseigner —</option>
+            <option value="aucun">Aucune correspondance</option>
+            <option value="faux_positif">Correspondance écartée (faux positif documenté)</option>
+            <option value="confirme">Correspondance confirmée — diligence renforcée</option>
+          </select>
+        </label>
+        <label className="field" style={{ gridColumn: "1 / -1" }}>
+          Notes du contrôle (homonymie écartée, sources, date de naissance comparée…)
+          <input name="screeningNotes" defaultValue={sc?.notes} disabled={closed} />
+        </label>
+      </div>
+      {sc?.attestedAt && (
+        <small className="muted">
+          Attesté par {sc.attestedBy} le {new Date(sc.attestedAt).toLocaleString("fr-FR")}.
+        </small>
+      )}
+    </div>
+  );
+}
+
+function AutoScreenButton({ file }: { file: ClientFile }) {
+  const [state, action, pending] = useActionState<ReviewResult | null, FormData>(autoScreenAction, null);
+  return (
+    <form action={action} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+      <input type="hidden" name="fileId" value={file.id} />
+      <button className="btn sm" type="submit" disabled={pending}>
+        {pending ? "Contrôle…" : "Lancer le pré-contrôle automatique"}
+      </button>
+      {state && <small style={{ color: state.ok ? "var(--good)" : "var(--warn)", fontSize: ".76rem" }}>{state.ok ? state.message : state.error}</small>}
+    </form>
+  );
+}
+
 export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; suggested: RiskRating; riskLabels: Record<RiskRating, string> }) {
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(reviewAction, null);
   const closed = file.status === "approuve" || file.status === "refuse";
   if (file.status === "approuve" && !file.review.custodianAccount) return <AccountForm file={file} />;
   return (
-    <form action={action} className={styles.review}>
+    <div className={styles.review}>
+    {!closed && <AutoScreenButton file={file} />}
+    <form action={action} className={styles.reviewInner}>
       <input type="hidden" name="fileId" value={file.id} />
       <h3>Décision de conformité</h3>
       <div className={styles.grid}>
@@ -61,6 +126,7 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
           <input name="requestedItems" defaultValue={file.review.requestedItems} disabled={closed} placeholder="Ex. justificatif de domicile lisible, pièce du second mandataire" />
         </label>
       </div>
+      <ScreeningBlock file={file} closed={closed} />
       {file.documents.length > 0 && (
         <div className={styles.verify}>
           <span className="eyebrow">Pièces vérifiées visuellement</span>
@@ -95,5 +161,6 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
         </div>
       )}
     </form>
+    </div>
   );
 }

@@ -239,11 +239,12 @@ const fromNotif = (p: Partial<Notification>): Partial<NotifRow> => {
 type KycRow = {
   id: string; user_id: string; kind: ClientFile["kind"]; status: ClientFile["status"]; identity: ClientFile["identity"]; persons: ClientFile["persons"];
   documents: ClientFile["documents"]; funds: ClientFile["funds"]; profile: ClientFile["profile"]; consents: ClientFile["consents"]; review: ClientFile["review"];
+  screening: ClientFile["screening"] | null;
   created_at: string; updated_at: string; submitted_at: string | null;
 };
 const toKyc = (r: KycRow): ClientFile => ({
   id: r.id, userId: r.user_id, kind: r.kind, status: r.status, identity: r.identity, persons: r.persons ?? [], documents: r.documents ?? [], funds: r.funds,
-  profile: r.profile, consents: r.consents ?? {}, review: r.review ?? {}, createdAt: r.created_at, updatedAt: r.updated_at, submittedAt: u(r.submitted_at),
+  profile: r.profile, consents: r.consents ?? {}, review: r.review ?? {}, screening: r.screening ?? undefined, createdAt: r.created_at, updatedAt: r.updated_at, submittedAt: u(r.submitted_at),
 });
 const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
   const row: Partial<KycRow> = {};
@@ -257,6 +258,7 @@ const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
   if (p.profile !== undefined) row.profile = p.profile;
   if (p.consents !== undefined) row.consents = p.consents;
   if (p.review !== undefined) row.review = p.review;
+  if (p.screening !== undefined) row.screening = p.screening;
   if (p.submittedAt !== undefined) row.submitted_at = p.submittedAt;
   return row;
 };

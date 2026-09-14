@@ -68,6 +68,15 @@ export interface ClientFile {
   profile: { objectives?: string; horizon?: string; experience?: string; riskTolerance?: string; lossCapacity?: string; category: "non_professionnel" | "professionnel" };
   consents: { dataAt?: string; whatsappAt?: string; conventionAt?: string; conventionMethod?: string; pendingCodeHash?: string; pendingCodeAt?: string };
   review: { risk?: RiskRating; notes?: string; reviewedBy?: string; reviewedAt?: string; nextReviewOn?: string; custodianAccount?: string; requestedItems?: string };
+  /** Sanctions / PEP screening: the officer's attestation (mandatory) and the last automatic pre-check (optional). */
+  screening?: {
+    attestedBy?: string;
+    attestedAt?: string;
+    lists?: string; // "Liste ONU, UE, OFAC ; PPE : recherche presse"
+    outcome?: "aucun" | "faux_positif" | "confirme";
+    notes?: string;
+    auto?: { provider: string; checkedAt: string; queries: string[]; hits: { name: string; score: number; datasets: string[]; topics: string[]; url?: string }[]; error?: string };
+  };
   createdAt: string;
   updatedAt: string;
   submittedAt?: string;
