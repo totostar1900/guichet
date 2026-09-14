@@ -6,6 +6,8 @@ import styles from "./layout.module.css";
 import { COMPANY, DISCLAIMER, PRODUCT } from "@/lib/config";
 import { NavTabs } from "@/components/NavTabs";
 import { backendName } from "@/lib/data";
+import { getSession } from "@/lib/auth";
+import { UserMenu } from "@/components/UserMenu";
 
 const display = Playfair_Display({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display", display: "swap" });
 const ui = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-ui", display: "swap" });
@@ -16,8 +18,9 @@ export const metadata: Metadata = {
   description: "Opportunités et instruments financiers en CEMAC — titres publics, BVMAC, opérations de marché.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
+  const session = await getSession();
   return (
     <html lang="fr" className={`${display.variable} ${ui.variable} ${mono.variable}`}>
       <body>
@@ -36,9 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   démo · mémoire
                 </span>
               )}
-              <div className={styles.avatar} title="Client connecté (démo)">
-                GN
-              </div>
+              <UserMenu session={session} />
             </div>
           </div>
         </header>

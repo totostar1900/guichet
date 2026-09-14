@@ -50,17 +50,6 @@
   border-radius: 999px;
   padding: 2px 8px;
 }
-.avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #e0b65a;
-  color: var(--navy);
-  display: grid;
-  place-items: center;
-  font-weight: 600;
-  font-size: 0.8rem;
-}
 .main {
   max-width: 1380px;
   margin: 0 auto;

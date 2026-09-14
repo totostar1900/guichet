@@ -19,7 +19,7 @@ const DONE: Record<IntentType, (by: string) => string> = {
 };
 const BY: Record<string, string> = { WhatsApp: "sur WhatsApp", Appel: "par téléphone", "E-mail": "par e-mail" };
 
-export function IntentForm({ offer, types, initialType, priceText, past }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean }) {
+export function IntentForm({ offer, types, initialType, priceText, past, signedIn }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean; signedIn: boolean }) {
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<IntentType>(initialType);
@@ -91,9 +91,17 @@ export function IntentForm({ offer, types, initialType, priceText, past }: { off
           <textarea name="message" rows={2} placeholder={offer.kind === "RACHAT" ? "Titres détenus chez… / date de disponibilité" : "Ex. : plutôt la ligne la plus courte ; contrainte de trésorerie le 16."} />
         </label>
         {state && !state.ok && <div className={styles.error}>{state.error}</div>}
+        {!signedIn && (
+          <div className={styles.login}>
+            Identifiez-vous pour envoyer votre intention — un code par e-mail suffit, aucun compte à créer d&apos;avance.
+            <Link className="btn primary sm" href={`/connexion?next=${encodeURIComponent(`/offres/${offer.id}?intent=${type}`)}`}>
+              Se connecter
+            </Link>
+          </div>
+        )}
         <div className={styles.foot}>
           <small>Une prise ferme engage la transmission de votre offre à l&apos;adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d&apos;allocation.</small>
-          <button className="btn primary" type="submit" disabled={pending}>
+          <button className="btn primary" type="submit" disabled={pending || !signedIn}>
             {pending ? "Envoi…" : "Envoyer au desk"}
           </button>
         </div>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
@@ -18,10 +19,12 @@ const schema = z.object({
 export type IntentResult = { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"] } | { ok: false; error: string };
 
 /**
- * Creates an intent at the offer's current published version.
- * Client identity is a placeholder until auth lands (next step).
+ * Creates an intent at the offer's current published version, attributed to
+ * the signed-in client. Anonymous visitors are sent to the login page by the form.
  */
 export async function submitIntent(_prev: IntentResult | null, form: FormData): Promise<IntentResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Connectez-vous pour envoyer une intention." };
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { ok: false, error: "Formulaire incomplet — vérifiez le type et le canal." };
   const { offerId, type, amount, channel, message } = parsed.data;
@@ -40,8 +43,9 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     amount: amt || null,
     channel,
     message,
-    clientName: "G. N. (vous)",
-    clientSegment: "Client connecté",
+    clientId: session.userId,
+    clientName: session.name,
+    clientSegment: session.segment,
   });
   revalidatePath("/desk");
   return { ok: true, ref: intent.ref, type, channel };

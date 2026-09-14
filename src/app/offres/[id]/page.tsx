@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FlowsChart } from "@/components/FlowsChart";
 import { IntentForm } from "@/components/IntentForm";
+import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, STATUS_LABEL } from "@/lib/domain/status";
@@ -155,7 +156,7 @@ function Reference({ o }: { o: Offer }) {
 
 export default async function OfferPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const o = await repo().getOffer(id);
+  const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
   const st = displayStatus(o);
   const past = isPast(st);
@@ -268,7 +269,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
 
       <aside className={styles.side}>
-        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} />
+        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} signedIn={Boolean(session)} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             Durée réelle <b>{tenorText(o.settleOn, o.maturityOn)}</b> · règlement le {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

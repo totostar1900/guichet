@@ -103,3 +103,15 @@
     align-items: stretch;
   }
 }
+.login {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  background: var(--gold-soft);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}

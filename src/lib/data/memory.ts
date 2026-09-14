@@ -1,6 +1,6 @@
 import { SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import type { EventLog, Intent, Offer } from "@/lib/domain/types";
-import { INTENT_LABEL } from "@/lib/domain/intent";
+import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
 
@@ -88,7 +88,7 @@ export const memoryRepository: Repository = {
       kind: "intent",
       intentId: intent.id,
       offerId: offer.id,
-      html: `<b>${INTENT_LABEL[intent.type]}</b> reçue de ${intent.clientName} sur ${offer.title}${intent.amount ? ` · ${fmt(intent.amount)} ${unit}` : ""} · réf. ${intent.ref}`,
+      html: `<b>${receivedLabel(intent.type)}</b> de ${intent.clientName} sur ${offer.title}${intent.amount ? ` · ${fmt(intent.amount)} ${unit}` : ""} · réf. ${intent.ref}`,
     });
     return structuredClone(intent);
   },

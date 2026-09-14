@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
 
@@ -12,6 +13,7 @@ const schema = z.object({
 
 /** Desk moves an intent along its lifecycle; every move is logged. */
 export async function transitionIntent(form: FormData): Promise<void> {
+  const desk = await requireDesk();
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return;
   const { intentId, state } = parsed.data;
@@ -25,7 +27,7 @@ export async function transitionIntent(form: FormData): Promise<void> {
     kind: "desk",
     intentId,
     offerId: updated.offerId,
-    html: `${updated.ref} (${updated.clientName}) — <b>${INTENT_STATE_LABEL[state]}</b>${offer ? ` · ${offer.title}` : ""}`,
+    html: `${updated.ref} (${updated.clientName}) — <b>${INTENT_STATE_LABEL[state]}</b>${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
   });
   revalidatePath("/desk");
 }

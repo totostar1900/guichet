@@ -9,6 +9,12 @@ export const INTENT_LABEL: Record<IntentType, string> = {
   cession: "Cession",
 };
 
+/** "Prise ferme reçue", "Appétit reçu" — agreement with the intent noun. */
+export function receivedLabel(type: IntentType): string {
+  const fem = type === "ferme" || type === "cession" || type === "info";
+  return `${INTENT_LABEL[type]} ${fem ? "reçue" : "reçu"}`;
+}
+
 export const INTENT_STATE_LABEL: Record<IntentState, string> = {
   recue: "À traiter",
   confirmee: "Confirmée",
