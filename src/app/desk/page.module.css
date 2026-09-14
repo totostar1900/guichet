@@ -1,0 +1,121 @@
+.sub {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.sub a {
+  padding: 10px 14px;
+  color: var(--ink-2);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.sub a[aria-current="page"] {
+  color: var(--ink);
+  border-bottom-color: var(--gold);
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.kpi span {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.kpi b {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 600;
+  display: block;
+  line-height: 1.2;
+}
+.kpi small {
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+.hot b {
+  color: var(--warn);
+}
+.feed {
+  max-height: 260px;
+  overflow: auto;
+}
+.ev {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.ev:last-child {
+  border-bottom: 0;
+}
+.evNew {
+  background: var(--gold-soft);
+}
+.when {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.bar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 90px;
+  display: flex;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+}
+.barFirm {
+  background: var(--navy) !important;
+}
+:global(:root[data-theme="dark"]) .barFirm {
+  background: var(--info) !important;
+}
+.cd {
+  color: var(--warn);
+  font-family: var(--font-mono);
+}
+.rowbtns {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.placeholder {
+  background: var(--surface);
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius);
+  padding: 28px;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  max-width: 70ch;
+}
+.placeholder h2 {
+  font-family: var(--font-display);
+  margin-bottom: 6px;
+}
+@media (max-width: 1000px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
