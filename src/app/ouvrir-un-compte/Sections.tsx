@@ -104,7 +104,7 @@ export function IdentitySection({ file, editable }: P) {
                   <select name="legalForm" defaultValue={id.legalForm ?? ""}>
                     <option value="">—</option>
                     <option value="association déclarée">Association déclarée (compte au nom de l&apos;association)</option>
-                    <option value="indivision de mandataires">Groupe informel — compte en indivision au nom des mandataires</option>
+                    <option value="indivision de mandataires">Groupe informel — compte en indivision au nom des mandataires (jusqu&apos;à 25 M FCFA)</option>
                     <option value="coopérative / GIC">Coopérative ou GIC</option>
                   </select>
                 ) : (
@@ -115,6 +115,11 @@ export function IdentitySection({ file, editable }: P) {
                 NIU (identifiant fiscal)
                 <input name="taxId" defaultValue={id.taxId} />
               </label>
+              {file.kind === "groupement" && (
+                <p className={styles.hint} style={{ gridColumn: "1 / -1", margin: 0 }}>
+                  Un groupe informel peut investir jusqu&apos;à <b>25 M FCFA</b> de nominal sur un compte en indivision au nom de ses mandataires (2 ou 3 membres, PV et règle de décision). Au-delà, le groupe doit être une <b>association déclarée</b> : le compte est alors ouvert à son nom et lui appartient quels que soient ses membres.
+                </p>
+              )}
               {file.kind === "groupement" && (
                 <label className="field">
                   Règle de décision pour passer un ordre

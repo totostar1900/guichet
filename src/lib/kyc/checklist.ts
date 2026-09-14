@@ -1,5 +1,17 @@
 import type { ClientFile, ClientKind, KycDocKind, RiskRating } from "@/lib/domain/kyc";
 
+/** Groupements: an informal group (indivision de mandataires) may hold at most this nominal; above it, the group must be a declared association. */
+export const INDIVISION_CEILING = 25_000_000;
+export const isIndivision = (f: ClientFile): boolean => f.kind === "groupement" && /indivision/i.test(f.identity.legalForm ?? "");
+/** Declared 12-month amount band → lower bound in FCFA (for the form-level check). */
+export function declaredAmountFloor(band?: string): number {
+  if (!band) return 0;
+  if (/plus de 100/i.test(band)) return 100_000_001;
+  if (/25 à 100/i.test(band)) return 25_000_001;
+  if (/5 à 25/i.test(band)) return 5_000_000;
+  return 0;
+}
+
 export const KIND_LABEL: Record<ClientKind, string> = {
   physique: "Personne physique",
   morale: "Personne morale",
@@ -64,6 +76,7 @@ export function missingForSubmission(f: ClientFile): string[] {
   if (f.kind === "physique" && !f.identity.idNumber) out.push("numéro de pièce d'identité");
   if ((f.kind === "morale" || f.kind === "institutionnel") && !f.identity.registration) out.push("RCCM / immatriculation");
   if (f.kind === "groupement" && !f.identity.legalForm) out.push("forme du groupement");
+  if (isIndivision(f) && declaredAmountFloor(f.funds.expectedAmount) > INDIVISION_CEILING) out.push("association déclarée requise au-delà de 25 M FCFA (montant envisagé trop élevé pour une indivision)");
   if (f.kind !== "physique" && f.persons.length === 0) out.push("au moins un représentant ou mandataire");
   if (!f.funds.source) out.push("origine des fonds");
   if (!f.profile.objectives || !f.profile.horizon || !f.profile.riskTolerance) out.push("questionnaire investisseur");
@@ -97,6 +110,7 @@ export function autoChecks(f: ClientFile, now = new Date()): Check[] {
   checks.push({ label: "Dossier complet", ok: miss.length === 0, detail: miss.length ? `manque : ${miss.slice(0, 4).join(", ")}${miss.length > 4 ? "…" : ""}` : "toutes les pièces requises" });
   const pep = f.funds.pep || f.persons.some((p) => p.pep);
   checks.push({ label: "PPE déclaré", ok: !pep, detail: pep ? "oui — diligence renforcée" : "non" });
+  if (f.kind === "groupement") checks.push({ label: "Forme du groupement", ok: isIndivision(f) ? declaredAmountFloor(f.funds.expectedAmount) <= INDIVISION_CEILING : true, detail: isIndivision(f) ? `indivision de mandataires — plafond ${(INDIVISION_CEILING / 1e6).toFixed(0)} M FCFA de nominal` : (f.identity.legalForm ?? "—") });
   checks.push({ label: "Même nom sur le RIB", ok: null, detail: "vérification visuelle par le desk" });
   checks.push({ label: "Sanctions / PPE (listes)", ok: null, detail: "à brancher : OpenSanctions, puis liste commerciale" });
   if (f.identity.residentAbroad) checks.push({ label: "Résident à l'étranger", ok: null, detail: "appel vidéo + justificatif d'adresse étranger" });

@@ -76,7 +76,7 @@ export function DossierOuverture({ number, file, now }: { number: string; file: 
           ["Type", KIND_LABEL[file.kind]],
           ["Adresse", [id.address, id.city, id.country].filter(Boolean).join(", ") || "—"],
           ["Téléphone · e-mail", [id.phone, id.email].filter(Boolean).join(" · ") || "—"],
-          ...(file.kind === "physique" ? ([["Naissance · nationalité", [id.birthDate ? fmtDate(id.birthDate) : "", id.nationality].filter(Boolean).join(" · ") || "—"], ["Pièce d'identité", `${id.idType ?? "—"} n° ${id.idNumber ?? "—"}${id.idExpiresOn ? `, expire le ${fmtDate(id.idExpiresOn)}` : ""}`], ["Profession", id.profession ?? "—"]] as [string, string][]) : ([["Immatriculation", id.registration ?? "—"], ["Forme", id.legalForm ?? "—"], ...(id.decisionRule ? [["Règle de décision", id.decisionRule]] : [])] as [string, string][])),
+          ...(file.kind === "physique" ? ([["Naissance · nationalité", [id.birthDate ? fmtDate(id.birthDate) : "", id.nationality].filter(Boolean).join(" · ") || "—"], ["Pièce d'identité", `${id.idType ?? "—"} n° ${id.idNumber ?? "—"}${id.idExpiresOn ? `, expire le ${fmtDate(id.idExpiresOn)}` : ""}`], ["Profession", id.profession ?? "—"]] as [string, string][]) : ([["Immatriculation", id.registration ?? "—"], ["Forme", `${id.legalForm ?? "—"}${file.kind === "groupement" && /indivision/i.test(id.legalForm ?? "") ? " — plafond 25 000 000 FCFA de nominal" : ""}`], ...(id.decisionRule ? [["Règle de décision", id.decisionRule]] : [])] as [string, string][])),
           ["NIU", id.taxId ?? "—"],
           ["Résident hors CEMAC", id.residentAbroad ? "oui" : "non"],
           ["Origine des fonds", file.funds.source ?? "—"],

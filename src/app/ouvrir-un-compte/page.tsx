@@ -73,7 +73,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
               <span>
                 {k === "physique" && "CNI ou passeport, justificatif de domicile, RIB, NIU."}
                 {k === "morale" && "RCCM, statuts, pouvoirs, bénéficiaires effectifs (> 25 %)."}
-                {k === "groupement" && "Association déclarée ou indivision de mandataires ; PV désignant les mandataires et la règle de décision."}
+                {k === "groupement" && "Association déclarée, ou indivision de mandataires jusqu'à 25 M FCFA ; PV désignant les mandataires et la règle de décision."}
                 {k === "institutionnel" && "Assureur, caisse, trésorerie d'entreprise : matrice des signataires et plafonds."}
               </span>
             </button>
