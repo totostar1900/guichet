@@ -32,6 +32,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           Clients {todo > 0 && <span className={styles.badge}>{todo}</span>}
         </Link>
         <Link href="/desk/documents">Documents</Link>
+      <Link href="/desk/resultats">Résultats & positions</Link>
       </nav>
 
       <div className={styles.layout}>

@@ -109,6 +109,13 @@ export const memoryRepository: Repository = {
     });
     return structuredClone(intent);
   },
+  async updateIntent(id, patch) {
+    const s = store();
+    const it = s.intents.find((x) => x.id === id);
+    if (!it) throw new Error(`Intent ${id} not found`);
+    Object.assign(it, patch, { updatedAt: nowIso() });
+    return structuredClone(it);
+  },
   async setIntentState(id, state) {
     const s = store();
     const it = s.intents.find((x) => x.id === id);

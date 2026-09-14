@@ -14,6 +14,7 @@ export interface Repository {
   listIntents(): Promise<Intent[]>;
   createIntent(input: NewIntentInput): Promise<Intent>;
   setIntentState(id: string, state: IntentState): Promise<Intent>;
+  updateIntent(id: string, patch: Partial<Pick<Intent, "state" | "allocationPct" | "servedUnits" | "message">>): Promise<Intent>;
 
   listEvents(limit?: number): Promise<EventLog[]>;
   logEvent(e: Omit<EventLog, "id" | "at">): Promise<EventLog>;

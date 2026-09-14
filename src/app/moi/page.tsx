@@ -3,7 +3,8 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
-import { fmt, fmtDateTime } from "@/lib/format";
+import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { positionsFrom } from "@/lib/positions";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,7 @@ export default async function MyPage() {
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
   const myFile = await r.getClientFileByUser(s.userId);
+  const positions = positionsFrom(mine, offers);
   const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id)));
 
   const NEXT: Record<string, string> = {
@@ -48,6 +50,47 @@ export default async function MyPage() {
           Voir les offres
         </Link>
       </div>
+
+      {positions.length > 0 && (
+        <div className="panel">
+          <div className="panel-h">
+            <h2>Mes positions</h2>
+            <span className="muted" style={{ fontSize: ".8rem" }}>
+              titres inscrits à votre nom · flux à venir
+            </span>
+          </div>
+          <div className="scroll-x">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Ligne</th>
+                  <th className="r">Quantité</th>
+                  <th className="r">Nominal</th>
+                  <th>Prochain flux</th>
+                  <th>Échéance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {positions.map((p) => (
+                  <tr key={p.intent.id}>
+                    <td>
+                      <Link href={`/offres/${p.offer.id}`}>{p.offer.title}</Link>
+                      <br />
+                      <span className="mono muted">{p.offer.isin}</span>
+                    </td>
+                    <td className="r num">
+                      {fmt(p.units)} {p.unitWord}
+                    </td>
+                    <td className="r num">{fmt(p.nominalAmount)} FCFA</td>
+                    <td>{p.nextFlow ? `${fmtDate(p.nextFlow.date)} · ${fmt(p.nextFlow.amount)} FCFA · ${p.nextFlow.label}` : "—"}</td>
+                    <td>{p.maturityOn ? fmtDate(p.maturityOn) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-h">

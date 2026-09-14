@@ -104,6 +104,9 @@ export interface Intent {
   channel: Channel;
   message?: string;
   state: IntentState;
+  /** Results: share of the order served (0..100) and the units actually allocated. */
+  allocationPct?: number;
+  servedUnits?: number;
   createdAt: string;
   updatedAt: string;
 }

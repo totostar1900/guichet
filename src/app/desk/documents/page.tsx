@@ -66,6 +66,7 @@ export default async function DocumentsPage() {
         <Link href="/desk/documents" aria-current="page">
           Documents
         </Link>
+      <Link href="/desk/resultats">Résultats & positions</Link>
       </nav>
 
       <div className="panel">

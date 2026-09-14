@@ -2,6 +2,7 @@ import "server-only";
 import { repo } from "@/lib/data";
 import type { Contact, GeneratedDocument, Intent, IntentState, Notification, NotifyChannel, NotifyKind, Offer } from "@/lib/domain/types";
 import { readSource } from "@/lib/intake/storage";
+import { positionsFrom } from "@/lib/positions";
 import { documentSent, emailHtml, intentReceived, intentUpdated, offerPublished, type Message } from "./compose";
 import { emailConfigured, sendEmail, sendWhatsAppDocument, sendWhatsAppTemplate, sendWhatsAppText, whatsappConfigured } from "./providers";
 
@@ -53,7 +54,14 @@ export async function notifyOfferPublished(o: Offer, channels: string[], segment
   if (channels.some((c) => /mail/i.test(c))) wanted.push("email");
   const tally = { sent: 0, skipped: 0, failed: 0 };
   if (!wanted.length) return tally;
-  const contacts = (await repo().listContacts()).filter((c) => matchesSegment(c, segment));
+  let contacts = (await repo().listContacts()).filter((c) => matchesSegment(c, segment));
+  if (/porteur/i.test(segment)) {
+    // Holders of the same line (ISIN): clients with a settled position on it.
+    const r = repo();
+    const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+    const holders = new Set(positionsFrom(intents, offers).filter((p) => p.offer.isin === o.isin).map((p) => p.intent.clientId));
+    contacts = (await r.listContacts()).filter((c) => holders.has(c.id));
+  }
   for (const c of contacts) {
     const m = offerPublished(o, c.name.split(" ")[0]);
     for (const t of targets(c, wanted)) {
@@ -70,7 +78,7 @@ function matchesSegment(c: Contact, segment: string): boolean {
   if (/tous/i.test(segment)) return true;
   if (/institutionnel/i.test(segment)) return /institutionnel|entreprise/.test(s);
   if (/physique/i.test(segment)) return /physique|groupement|diaspora/.test(s);
-  if (/porteur/i.test(segment)) return false; // holders of the line — needs positions (onboarding step)
+  if (/porteur/i.test(segment)) return false; // resolved separately from positions
   return true;
 }
 

@@ -68,6 +68,13 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - Niveau de relation dans la session (`tier`) : 1 identifié, 2 compte ouvert ; `profiles.tier` sur Supabase, dossier `client_files` (migration 0006, bucket `kyc`).
 - Décisions ouvertes : structure de compte au SVT (nominatif ou omnibus) — le dossier d'ouverture généré convient aux deux ; forme des groupements (association déclarée ou indivision de mandataires) — champ `legalForm`.
 
+## Résultats, règlement, positions (desk › Résultats & positions)
+
+- **Résultats** : par adjudication, prix (ou taux) servi par ligne et allocation (%) par ordre transmis ; un seul envoi passe les ordres en servie / non servie, fixe `servedPricePct` sur l'offre, génère les avis et prévient les clients (`src/lib/results/service.ts`).
+- **Règlement** : un clic passe les ordres servis en réglée, l'offre en « en vie », génère les avis d'opéré.
+- **Positions** : dérivées des ordres réglés (jamais stockées) — `src/lib/positions.ts` ; visibles dans *Mon espace* et sur le desk avec les flux à venir. Le segment « Porteurs de la ligne » des diffusions se résout sur ces positions.
+- **Avis de coupon** : `/api/cron/coupons` (J-3 et jour J, idempotent), planifié dans `vercel.json` ; protégé par `CRON_SECRET`.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -84,6 +91,6 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Vie du titre : positions, avis de coupon, relevés ; résultats d'adjudication saisis en masse.
+1. Relevés de position (PDF mensuel), attestation de détention.
 2. Screening sanctions / PPE (OpenSanctions), vérification d'identité (Smile ID).
 3. Connexion WhatsApp par téléphone (OTP), robot de réponse aux questions.

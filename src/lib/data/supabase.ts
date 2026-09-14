@@ -64,6 +64,8 @@ type IntentRow = {
   channel: Intent["channel"];
   message: string | null;
   state: IntentState;
+  allocation_pct: number | null;
+  served_units: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -128,6 +130,8 @@ function toIntent(r: IntentRow): Intent {
     channel: r.channel,
     message: u(r.message),
     state: r.state,
+    allocationPct: r.allocation_pct === null ? undefined : Number(r.allocation_pct),
+    servedUnits: r.served_units === null ? undefined : Number(r.served_units),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -342,6 +346,16 @@ export const supabaseRepository: Repository = {
       html: `<b>${receivedLabel(intent.type)}</b> de ${intent.clientName} sur ${offer.title}${intent.amount ? ` · ${fmt(intent.amount)} ${unit}` : ""} · réf. ${intent.ref}`,
     });
     return intent;
+  },
+  async updateIntent(id, patch) {
+    const row: Partial<IntentRow> = { updated_at: new Date().toISOString() };
+    if (patch.state !== undefined) row.state = patch.state;
+    if (patch.allocationPct !== undefined) row.allocation_pct = patch.allocationPct;
+    if (patch.servedUnits !== undefined) row.served_units = patch.servedUnits;
+    if (patch.message !== undefined) row.message = patch.message ?? null;
+    const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
+    if (error) fail("updateIntent", error);
+    return toIntent(data as IntentRow);
   },
   async setIntentState(id, state) {
     const { data, error } = await db().from("intents").update({ state, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
