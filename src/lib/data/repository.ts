@@ -36,6 +36,7 @@ export interface Repository {
   /** Reachable contacts. */
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
+  setContactOptIn(id: string, optIn: boolean): Promise<void>;
 
   /** Outbound messages, whatever the channel. */
   listNotifications(limit?: number): Promise<Notification[]>;

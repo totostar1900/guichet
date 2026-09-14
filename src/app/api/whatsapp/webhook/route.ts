@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { repo } from "@/lib/data";
+import { answerInbound, botAvailable } from "@/lib/bot/reply";
+import { sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
 
 /**
  * Meta WhatsApp Cloud API webhook.
@@ -26,6 +28,15 @@ export async function POST(req: NextRequest) {
       for (const m of v?.messages ?? []) {
         const text = m.text?.body ?? m.button?.text ?? m.interactive?.button_reply?.title ?? m.interactive?.list_reply?.title ?? `(${m.type})`;
         await r.logEvent({ kind: "intent", html: `<b>WhatsApp entrant</b> de +${m.from} : « ${text.slice(0, 200).replace(/</g, "&lt;")} »` });
+        const reply = await handleInbound(m.from, text);
+        if (reply && whatsappConfigured()) {
+          try {
+            const id = await sendWhatsAppText(m.from, reply);
+            await r.createNotification({ kind: "intent_update", channel: "whatsapp", to: `+${m.from}`, body: reply, status: "sent", providerId: id, sentAt: new Date().toISOString() });
+          } catch (e) {
+            await r.createNotification({ kind: "intent_update", channel: "whatsapp", to: `+${m.from}`, body: reply, status: "failed", error: e instanceof Error ? e.message : "échec" });
+          }
+        }
       }
       for (const s of v?.statuses ?? []) {
         if (s.status === "failed") await r.logEvent({ kind: "system", html: `WhatsApp : échec de remise (${s.id}) — ${s.errors?.[0]?.title ?? "erreur"}` });
@@ -33,4 +44,30 @@ export async function POST(req: NextRequest) {
     }
   }
   return NextResponse.json({ ok: true });
+}
+
+/** Keywords first (opt-out / opt-in), then the robot when it is enabled. */
+async function handleInbound(from: string, text: string): Promise<string | undefined> {
+  const r = repo();
+  const t = text.trim().toLowerCase();
+  const contacts = await r.listContacts();
+  const digits = from.replace(/[^\d]/g, "");
+  const contact = contacts.find((c) => c.phone && c.phone.replace(/[^\d]/g, "") === digits);
+  if (["stop", "arret", "arrêt", "désabonner", "desabonner"].includes(t)) {
+    if (contact) await r.setContactOptIn(contact.id, false);
+    await r.logEvent({ kind: "system", html: `STOP reçu de +${from} — diffusion WhatsApp désactivée` });
+    return "C'est noté : vous ne recevrez plus nos offres sur WhatsApp. Répondez START pour les réactiver. Vos documents et avis restent disponibles dans votre espace Guichet.";
+  }
+  if (["start", "oui", "ok", "reprendre"].includes(t)) {
+    if (contact) await r.setContactOptIn(contact.id, true);
+    return "Merci ! Vous recevrez à nouveau nos offres et avis sur WhatsApp. Répondez STOP à tout moment pour arrêter.";
+  }
+  if (!botAvailable()) return undefined;
+  try {
+    const { answer } = await answerInbound(from, text);
+    return answer.reply;
+  } catch (e) {
+    await r.logEvent({ kind: "system", html: `Robot indisponible : ${e instanceof Error ? e.message : "erreur"}` });
+    return undefined;
+  }
 }

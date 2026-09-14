@@ -438,6 +438,10 @@ export const supabaseRepository: Repository = {
     if (error) fail("getContact", error);
     return data ? toContact(data as ProfileRow) : undefined;
   },
+  async setContactOptIn(id, optIn) {
+    const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
+    if (error) fail("setContactOptIn", error);
+  },
   async listNotifications(limit = 50) {
     const { data, error } = await db().from("notifications").select("*").order("created_at", { ascending: false }).limit(limit);
     if (error) fail("listNotifications", error);

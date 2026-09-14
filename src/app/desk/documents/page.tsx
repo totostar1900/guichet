@@ -67,6 +67,7 @@ export default async function DocumentsPage() {
           Documents
         </Link>
       <Link href="/desk/resultats">Résultats & positions</Link>
+      <Link href="/desk/robot">Robot</Link>
       </nav>
 
       <div className="panel">

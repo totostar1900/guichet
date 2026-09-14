@@ -188,6 +188,12 @@ export const memoryRepository: Repository = {
     const c = store().contacts.find((x) => x.id === id);
     return c ? structuredClone(c) : undefined;
   },
+  async setContactOptIn(id, optIn) {
+    const c = store().contacts.find((x) => x.id === id);
+    if (c) c.whatsappOptIn = optIn;
+    const f = store().clientFiles.find((x) => x.userId === id);
+    if (f) f.consents.whatsappAt = optIn ? (f.consents.whatsappAt ?? nowIso()) : undefined;
+  },
   async listNotifications(limit = 50) {
     return structuredClone(store().notifications.slice(0, limit));
   },
