@@ -29,6 +29,20 @@ function Hero({ o }: { o: Offer }) {
         </div>
       </div>
     );
+  if (o.kind === "MARCHE") {
+    const isBond = o.instrument === "obligation";
+    return (
+      <div className={styles.hero}>
+        <div className={`${styles.big} num`}>{o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—"}</div>
+        <div className={styles.lbl}>
+          {isBond ? "dernier cours (% du nominal)" : "FCFA · dernier cours"}
+          {o.lastPriceOn ? ` au ${fmtDate(o.lastPriceOn, false)}` : ""}
+          <br />
+          {o.bid != null && o.ask != null ? `acheteur ${isBond ? fmtPrice(o.bid) : fmt(o.bid)} · vendeur ${isBond ? fmtPrice(o.ask) : fmt(o.ask)}` : y != null ? `rendement ${fmtPct(y, 2)}` : o.market}
+        </div>
+      </div>
+    );
+  }
   if (o.kind === "BTA")
     return (
       <div className={styles.hero}>
@@ -62,6 +76,20 @@ function facts(o: Offer): [string, string][] {
       ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
       ["Titres", o.sharesOffered ? fmt(o.sharesOffered) : "—"],
     ];
+  if (o.kind === "MARCHE")
+    return o.instrument === "obligation"
+      ? [
+          ["Marché", o.market ?? "—"],
+          ["Coupon", fmtPct(o.couponRate ?? 0, 2)],
+          ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
+          ["Com.", fmtPct(o.commissionPct, 2)],
+        ]
+      : [
+          ["Marché", o.market ?? "—"],
+          ["Quantité min", String(o.lotSize ?? 1)],
+          ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
+          ["Com.", fmtPct(o.commissionPct, 2)],
+        ];
   if (o.kind === "BTA")
     return [
       ["Nominal", fmt(o.nominal)],
@@ -88,10 +116,22 @@ export function OfferCard({ o, now, layout = "cards" }: { o: Offer; now: Date; l
   const st = displayStatus(o, now);
   const past = isPast(st);
   const href = `/offres/${o.id}`;
-  const dlText = st === "upcoming" ? `Ouvre ${fmtDateTime(o.opensAt)}` : past ? `Close le ${fmtDate(o.deadlineAt)}` : `Clôture ${fmtDateTime(o.deadlineAt)}`;
-  const cd = st === "upcoming" ? countdown(o.opensAt, now) : past ? "" : countdown(o.deadlineAt, now);
+  const dlText = st === "quoted" ? `Cotation continue · règlement T+${o.settlementDays ?? 3}` : st === "upcoming" ? `Ouvre ${fmtDateTime(o.opensAt)}` : past ? `Close le ${fmtDate(o.deadlineAt)}` : `Clôture ${fmtDateTime(o.deadlineAt)}`;
+  const cd = st === "quoted" ? "" : st === "upcoming" ? countdown(o.opensAt, now) : past ? "" : countdown(o.deadlineAt, now);
 
-  const ctas = past ? (
+  const ctas = st === "quoted" ? (
+    <>
+      <Link className="btn primary" href={`${href}?intent=achat`}>
+        Acheter
+      </Link>
+      <Link className="btn" href={`${href}?intent=vente`}>
+        Vendre
+      </Link>
+      <Link className="btn ghost" href={`${href}?intent=info`}>
+        Question
+      </Link>
+    </>
+  ) : past ? (
     <>
       <Link className="btn" href={href}>
         Voir la fiche

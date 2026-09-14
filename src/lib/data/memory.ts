@@ -93,6 +93,7 @@ export const memoryRepository: Repository = {
       clientId: input.clientId,
       type: input.type,
       amount: input.amount ?? null,
+      limitPrice: input.limitPrice ?? null,
       channel: input.channel,
       message: input.message?.trim() || undefined,
       state: "recue",

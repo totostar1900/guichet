@@ -30,12 +30,29 @@ export function servedUnits(i: Intent, o: Offer): number {
 export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date()): Position[] {
   const byId = new Map(offers.map((o) => [o.id, o]));
   const today = localIso(now);
+  // Sales settled on the secondary market reduce the earliest holdings of the same line (FIFO).
+  const sold = new Map<string, number>();
+  intents
+    .filter((i) => i.state === "reglee" && i.type === "vente")
+    .forEach((i) => {
+      const o = byId.get(i.offerId);
+      if (!o) return;
+      const key = `${i.clientId}|${o.isin}`;
+      sold.set(key, (sold.get(key) ?? 0) + servedUnits(i, o));
+    });
   return intents
-    .filter((i) => i.state === "reglee" && (i.type === "ferme" || i.type === "appetit"))
+    .filter((i) => i.state === "reglee" && (i.type === "ferme" || i.type === "appetit" || i.type === "achat"))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     .flatMap((i) => {
       const o = byId.get(i.offerId);
       if (!o) return [];
-      const units = servedUnits(i, o);
+      let units = servedUnits(i, o);
+      const key = `${i.clientId}|${o.isin}`;
+      const toDeduct = Math.min(units, sold.get(key) ?? 0);
+      if (toDeduct) {
+        units -= toDeduct;
+        sold.set(key, (sold.get(key) ?? 0) - toDeduct);
+      }
       if (!units) return [];
       const p = positionFor(i, o, { pricePct: o.servedPricePct, unitsOverride: units });
       const flows = p.schedule.map((f) => ({ date: localIso(f.date), amount: f.amount, label: f.label })).filter((f) => f.date >= today);

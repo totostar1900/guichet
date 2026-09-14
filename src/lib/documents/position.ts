@@ -81,6 +81,25 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
       schedule: [],
     };
   }
+  if (offer.kind === "MARCHE") {
+    // Secondary market: amount = quantity; price = executed, else limit, else ask/bid/last.
+    const isBond = offer.instrument === "obligation";
+    const sell = intent.type === "vente";
+    const ref = intent.executedPrice ?? intent.limitPrice ?? (sell ? (offer.bid ?? offer.lastPrice ?? 0) : (offer.ask ?? offer.lastPrice ?? 0));
+    const n = opts.unitsOverride ?? amount;
+    const settleOn = (() => {
+      const d = new Date(intent.createdAt);
+      d.setDate(d.getDate() + (offer.settlementDays ?? 3));
+      return d.toISOString().slice(0, 10);
+    })();
+    if (isBond && offer.couponRate != null && offer.maturityOn) {
+      const r = bondCalc({ nominal: offer.nominal, couponRate: offer.couponRate, settleOn, maturityOn: offer.maturityOn, lastCouponOn: offer.lastCouponOn }, n * offer.nominal, ref);
+      const gross = r.outlay;
+      return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: n * r.pricePerTitle, accrued: r.accrued, accruedDays: r.accruedDays, commission: gross * com, total: sell ? -(gross * (1 - com)) : gross * (1 + com), irr: r.irr, schedule: r.flows };
+    }
+    const principal = n * ref;
+    return { label: `${n.toLocaleString("fr-FR")} actions`, units: n, unitWord: "actions", priceLabel: `${ref.toLocaleString("fr-FR")} FCFA`, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: principal * com, total: sell ? -(principal * (1 - com)) : principal * (1 + com), schedule: [] };
+  }
   // RACHAT — the client sells `amount` titles at par and receives the proceeds.
   const n = opts.unitsOverride ?? amount;
   const proceeds = n * offer.nominal;

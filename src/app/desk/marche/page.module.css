@@ -1,0 +1,35 @@
+.inline {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.num {
+  width: 92px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.date {
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.76rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.right {
+  text-align: right;
+}
+.ok {
+  color: var(--good);
+  font-size: 0.74rem;
+}
+.err {
+  color: var(--crit);
+  font-size: 0.74rem;
+}

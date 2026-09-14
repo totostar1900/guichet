@@ -28,7 +28,7 @@ const Answer = z.object({
   handoffReason: z.string().nullable(),
   intent: z
     .object({
-      type: z.enum(["appetit", "info", "rappel"]).describe("Seuls appétit, information et rappel peuvent être créés automatiquement. Une prise ferme ou une cession = appétit + handoff."),
+      type: z.enum(["appetit", "info", "rappel"]).describe("Seuls appétit, information et rappel peuvent être créés automatiquement. Une prise ferme, une cession, un ordre d'achat ou de vente = appétit + handoff."),
       offerId: z.string(),
       amount: z.number().nullable().describe("Montant nominal en FCFA si le client l'a exprimé, sinon null"),
       note: z.string().nullable(),
@@ -47,6 +47,7 @@ function offerFacts(o: Offer): string {
   }
   if (o.kind === "BTA") return `${base}\n  bon à intérêts précomptés · taux ${fmtPct(o.precountRate ?? 0, 2)}${o.rateNote ? " (indicatif)" : ""} · rendement actuariel ${y != null ? fmtPct(y, 2) : "—"} · nominal ${fmt(o.nominal)} · commission ${fmtPct(o.commissionPct, 2)}`;
   if (o.kind === "ACTIONS") return `${base}\n  prix ${fmt(o.pricePerShare ?? 0)} FCFA/action · minimum ${o.minShares} actions · dividende ${fmt(o.dividendPerShare ?? 0)} (${y != null ? fmtPct(y, 2) : "—"}) · dernier cours ${o.lastPrice ? fmt(o.lastPrice) : "—"} · souscription du ${fmtDate(o.opensAt)} au ${fmtDate(o.deadlineAt)}`;
+  if (o.kind === "MARCHE") return `${base}\n  ${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}${o.lastPriceOn ? ` au ${fmtDate(o.lastPriceOn)}` : ""} · acheteur ${o.bid ?? "—"} / vendeur ${o.ask ?? "—"} · quantité min ${o.lotSize ?? 1} · commission ${fmtPct(o.commissionPct, 2)} · règlement T+${o.settlementDays ?? 3} · ordres d'achat / vente au marché ou à cours limité (le prix d'exécution dépend du marché)`;
   return `${base}\n  rachat par l'émetteur à 100 % du nominal · commission ${fmtPct(o.commissionPct, 2)}`;
 }
 

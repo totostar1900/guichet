@@ -475,3 +475,15 @@ h3 {
     transition: none !important;
   }
 }
+.pill.quoted {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.st.achat {
+  background: var(--navy);
+  color: #fff;
+}
+.st.vente {
+  background: var(--info-soft);
+  color: var(--info);
+}

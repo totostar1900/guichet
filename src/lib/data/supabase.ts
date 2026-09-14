@@ -46,6 +46,12 @@ type OfferRow = {
   dividend_per_share: number | null;
   last_price: number | null;
   last_price_on: string | null;
+  market: Offer["market"] | null;
+  instrument: Offer["instrument"] | null;
+  bid: number | null;
+  ask: number | null;
+  lot_size: number | null;
+  settlement_days: number | null;
   version: number;
   priced_at: string | null;
   result_line: string | null;
@@ -66,6 +72,8 @@ type IntentRow = {
   state: IntentState;
   allocation_pct: number | null;
   served_units: number | null;
+  limit_price: number | null;
+  executed_price: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -110,6 +118,12 @@ function toOffer(r: OfferRow): Offer {
     dividendPerShare: u(r.dividend_per_share) && Number(r.dividend_per_share),
     lastPrice: u(r.last_price) && Number(r.last_price),
     lastPriceOn: u(r.last_price_on),
+    market: u(r.market),
+    instrument: u(r.instrument),
+    bid: u(r.bid) && Number(r.bid),
+    ask: u(r.ask) && Number(r.ask),
+    lotSize: u(r.lot_size),
+    settlementDays: u(r.settlement_days),
     version: r.version,
     pricedAt: u(r.priced_at),
     resultLine: u(r.result_line),
@@ -132,6 +146,8 @@ function toIntent(r: IntentRow): Intent {
     state: r.state,
     allocationPct: r.allocation_pct === null ? undefined : Number(r.allocation_pct),
     servedUnits: r.served_units === null ? undefined : Number(r.served_units),
+    limitPrice: r.limit_price === null ? null : Number(r.limit_price),
+    executedPrice: r.executed_price === null ? null : Number(r.executed_price),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -173,7 +189,7 @@ function fromOffer(o: Offer): OfferRow {
     price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
     min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
     shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
-    last_price_on: o.lastPriceOn ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
   };
 }
 
@@ -334,6 +350,7 @@ export const supabaseRepository: Repository = {
         client_segment: input.clientSegment,
         type: input.type,
         amount: input.amount ?? null,
+        limit_price: input.limitPrice ?? null,
         channel: input.channel,
         message: input.message?.trim() || null,
         state: "recue",
@@ -356,6 +373,7 @@ export const supabaseRepository: Repository = {
     if (patch.state !== undefined) row.state = patch.state;
     if (patch.allocationPct !== undefined) row.allocation_pct = patch.allocationPct;
     if (patch.servedUnits !== undefined) row.served_units = patch.servedUnits;
+    if (patch.executedPrice !== undefined) row.executed_price = patch.executedPrice;
     if (patch.message !== undefined) row.message = patch.message ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);

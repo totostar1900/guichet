@@ -15,7 +15,8 @@ import { fmt } from "@/lib/format";
 
 const schema = z.object({
   offerId: z.string().min(1),
-  type: z.enum(["appetit", "ferme", "info", "rappel", "cession"]),
+  type: z.enum(["appetit", "ferme", "info", "rappel", "cession", "achat", "vente"]),
+  limitPrice: z.string().optional(),
   amount: z.string().optional(),
   channel: z.enum(["WhatsApp", "Appel", "E-mail"]),
   message: z.string().max(1000).optional(),
@@ -32,7 +33,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if (!session) return { ok: false, error: "Connectez-vous pour envoyer une intention." };
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { ok: false, error: "Formulaire incomplet — vérifiez le type et le canal." };
-  const { offerId, type, amount, channel, message } = parsed.data;
+  const { offerId, type, amount, channel, message, limitPrice } = parsed.data;
 
   const r = repo();
   const offer = await r.getOffer(offerId);
@@ -41,6 +42,13 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
 
   const amt = parseAmount(amount);
   if ((type === "ferme" || type === "cession") && !amt) return { ok: false, error: "Indiquez un montant pour une prise ferme ou une cession." };
+  if ((type === "achat" || type === "vente") && !amt) return { ok: false, error: "Indiquez une quantité." };
+  const limit = limitPrice ? Number(String(limitPrice).replace(",", ".")) : null;
+  if (type === "vente") {
+    const [allIntents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+    const held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), offers).filter((p) => p.offer.isin === offer.isin).reduce((s, p) => s + p.units, 0);
+    if (amt > held) return { ok: false, error: `Vous détenez ${fmt(held)} unité(s) de cette ligne chez nous : la vente ne peut pas dépasser ce nombre.` };
+  }
 
   if (type === "ferme" && amt) {
     const file = await r.getClientFileByUser(session.userId);
@@ -50,11 +58,12 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
       if (held + amt > INDIVISION_CEILING) return { ok: false, error: `Un groupement en indivision est limité à ${fmt(INDIVISION_CEILING)} FCFA de nominal (déjà détenu : ${fmt(held)}). Au-delà, le groupe doit être une association déclarée — parlez-en au desk.` };
     }
   }
-  const needsAccount = (type === "ferme" || type === "cession") && session.tier < 2;
+  const needsAccount = (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && session.tier < 2;
   const intent = await r.createIntent({
     offerId,
     type,
     amount: amt || null,
+    limitPrice: limit && !isNaN(limit) ? limit : null,
     channel,
     message: needsAccount ? `[compte-titres à ouvrir] ${message ?? ""}`.trim() : message,
     clientId: session.userId,

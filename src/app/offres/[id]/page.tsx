@@ -29,6 +29,12 @@ function Kpis({ o }: { o: Offer }) {
           [`Prix ${o.servedPricePct ? "servi" : "Purpose"}`, fmtPrice(o.servedPricePct ?? o.pricePct ?? 100), false],
           ["Coupon annuel", fmtPct(o.couponRate ?? 0, 2), false],
         ]
+      : o.kind === "MARCHE"
+        ? [
+            [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", true],
+            ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${o.instrument === "obligation" ? fmtPrice(o.bid) : fmt(o.bid)} / ${o.instrument === "obligation" ? fmtPrice(o.ask) : fmt(o.ask)}` : "—", false],
+            [o.instrument === "obligation" ? "Rendement au cours vendeur" : "Rendement du dividende", y != null ? fmtPct(y, 2) : "—", false],
+          ]
       : o.kind === "BTA"
         ? [
             ["Rendement actuariel", y != null ? fmtPct(y, 2) : "—", true],
@@ -109,6 +115,53 @@ function Reference({ o }: { o: Offer }) {
       </>
     );
   }
+  if (o.kind === "MARCHE") {
+    const isBond = o.instrument === "obligation";
+    const ref = o.ask ?? o.lastPrice ?? 0;
+    const n = isBond ? 1000 : 100;
+    if (isBond && o.couponRate != null && o.maturityOn) {
+      const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, n * o.nominal, ref);
+      return (
+        <>
+          <h3>Pour {fmt(n)} titres au cours vendeur</h3>
+          <div className="out">
+            <div>Prix {fmtPrice(ref)}</div>
+            <div>{fmt(r.titles * r.pricePerTitle)}</div>
+            <div>Coupon couru ({r.accruedDays} jours)</div>
+            <div>{fmt(r.accrued)}</div>
+            <div className="tot">Décaissement (règlement T+{o.settlementDays ?? 3})</div>
+            <div>{fmt(r.outlay)} FCFA</div>
+            <div>Commission {fmtPct(o.commissionPct, 2)}</div>
+            <div>{fmt(r.commission)}</div>
+            <div className="hl">Rendement actuariel brut à ce cours</div>
+            <div>{fmtPct(r.irr, 2)}</div>
+          </div>
+          <FlowsChart r={r} settleOn={o.settleOn} />
+        </>
+      );
+    }
+    return (
+      <>
+        <h3>Pour {n} actions au cours vendeur</h3>
+        <div className="out">
+          <div>Cours vendeur</div>
+          <div>{fmt(ref)} FCFA</div>
+          <div className="tot">Montant</div>
+          <div>{fmt(n * ref)} FCFA</div>
+          <div>Commission {fmtPct(o.commissionPct, 2)}</div>
+          <div>{fmt((n * ref * o.commissionPct) / 100)}</div>
+          {o.dividendPerShare ? (
+            <>
+              <div>Dividende annuel attendu</div>
+              <div>{fmt(n * o.dividendPerShare)}</div>
+            </>
+          ) : null}
+          <div className="hl">Total à décaisser</div>
+          <div>{fmt(n * ref * (1 + o.commissionPct / 100))} FCFA</div>
+        </div>
+      </>
+    );
+  }
   if (o.kind === "ACTIONS" && o.pricePerShare) {
     const n = 100;
     return (
@@ -164,12 +217,19 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
 
   const stampPending = Boolean(o.priceNote || o.rateNote);
-  const stamp = o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
-  const priceText = o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
+  const stamp = o.kind === "MARCHE" ? `Cours mis à jour par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}` : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
+  const priceText = o.kind === "MARCHE" ? `cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}` : o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
   const timeline: [string, string][] =
-    o.kind === "ACTIONS"
+    o.kind === "MARCHE"
+      ? [
+          ["Marché", o.market ?? "—"],
+          ["Cotation", "continue, jours ouvrés"],
+          ["Règlement", `T+${o.settlementDays ?? 3}`],
+          [o.instrument === "obligation" ? "Échéance" : "Dernier cours", o.instrument === "obligation" ? (o.maturityOn ? fmtDate(o.maturityOn) : "—") : o.lastPriceOn ? fmtDate(o.lastPriceOn) : "—"],
+        ]
+      : o.kind === "ACTIONS"
       ? [
           ["Ouverture", fmtDate(o.opensAt)],
           ["Clôture", fmtDate(o.deadlineAt)],
@@ -184,7 +244,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
         ];
 
   const risks =
-    o.kind === "ACTIONS"
+    o.kind === "MARCHE"
+      ? [
+          ["Prix d'exécution.", "Le cours indiqué est le dernier connu ; votre ordre s'exécute au prix du marché ou à votre limite, en tout ou partie, selon la contrepartie disponible."],
+          ["Liquidité.", "Le marché secondaire régional est étroit : un ordre peut rester non exécuté plusieurs séances."],
+          ["Perte en capital.", "La valeur des titres varie ; céder avant l'échéance peut dégager une perte."],
+        ]
+      : o.kind === "ACTIONS"
       ? [
           ["Volatilité et liquidité.", "Le cours dépend de l'offre et de la demande sur un compartiment actions encore étroit ; la BVMAC borne les variations quotidiennes."],
           ["Perte en capital.", "Comme tout actionnaire, l'investisseur peut perdre tout ou partie de sa mise."],

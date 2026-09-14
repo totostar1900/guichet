@@ -7,11 +7,14 @@ export const INTENT_LABEL: Record<IntentType, string> = {
   info: "Information",
   rappel: "Rappel",
   cession: "Cession",
+  achat: "Ordre d'achat",
+  vente: "Ordre de vente",
 };
 
 /** "Prise ferme reçue", "Appétit reçu" — agreement with the intent noun. */
 export function receivedLabel(type: IntentType): string {
   const fem = type === "ferme" || type === "cession" || type === "info";
+  if (type === "achat" || type === "vente") return `${INTENT_LABEL[type]} reçu`;
   return `${INTENT_LABEL[type]} ${fem ? "reçue" : "reçu"}`;
 }
 
@@ -27,6 +30,7 @@ export const INTENT_STATE_LABEL: Record<IntentState, string> = {
 
 /** Which intents make sense for an offer in a given state. First = default. */
 export function allowedIntents(o: Offer, s: DisplayStatus): IntentType[] {
+  if (o.kind === "MARCHE") return s === "quoted" ? ["achat", "vente", "info"] : ["info"];
   if (o.kind === "RACHAT") return isPast(s) ? ["info"] : ["cession", "info"];
   if (isPast(s)) return ["info", "rappel"];
   if (s === "upcoming") return ["appetit", "rappel", "info"];
@@ -35,7 +39,7 @@ export function allowedIntents(o: Offer, s: DisplayStatus): IntentType[] {
 
 /** Legal next states from the desk's point of view. */
 export function nextStates(state: IntentState, type: IntentType): IntentState[] {
-  const firm = type === "ferme" || type === "cession";
+  const firm = type === "ferme" || type === "cession" || type === "achat" || type === "vente";
   switch (state) {
     case "recue":
       return ["confirmee", "annulee"];

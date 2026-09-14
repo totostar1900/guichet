@@ -9,10 +9,11 @@ import { fmtDateTime, fmtPct } from "@/lib/format";
 import { OfferCard } from "./OfferCard";
 import styles from "./OfferBrowser.module.css";
 
-const KINDS: OfferKind[] = ["OTA", "BTA", "ACTIONS", "APE", "RACHAT"];
+const KINDS: OfferKind[] = ["OTA", "BTA", "ACTIONS", "APE", "RACHAT", "MARCHE"];
 const COUNTRIES = ["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."];
 const STATUSES: [string, string][] = [
   ["open", "Ouvertes"],
+  ["quoted", "Cotées"],
   ["upcoming", "À venir"],
   ["results", "Résultats"],
   ["live", "En vie"],
@@ -25,7 +26,7 @@ const TENORS: [string, string][] = [
   ["eq", "Actions"],
 ];
 type Sort = "deadline" | "yield" | "tenor" | "recent";
-const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, results: 3, closed: 3, live: 4, matured: 5 };
+const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, results: 3, closed: 3, live: 4, matured: 5 };
 
 function normStatus(s: DisplayStatus): string {
   if (s === "closing") return "open";
@@ -80,7 +81,7 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
       if (status.size && !status.has(normStatus(st))) return false;
       if (tenor.size) {
         const t = tenorYears(o);
-        const k = o.kind === "ACTIONS" ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
+        const k = o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
         if (!tenor.has(k)) return false;
       }
       if (minYield) {
@@ -113,7 +114,7 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
     const out: { o: Offer; st: DisplayStatus; when: string; n: number }[] = [];
     offers.forEach((o) => {
       const st = displayStatus(o, now);
-      if (!isActionable(st)) return;
+      if (!isActionable(st) || st === "quoted") return;
       const when = st === "upcoming" ? o.opensAt : o.deadlineAt;
       if (parseDate(when).getTime() - now.getTime() > 48 * 3600e3) return;
       const key = `${o.countryName}|${st === "upcoming" ? "open" : "close"}`;

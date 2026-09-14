@@ -17,6 +17,7 @@ export default async function RobotPage() {
         <Link href="/desk/clients">Clients</Link>
         <Link href="/desk/documents">Documents</Link>
         <Link href="/desk/resultats">Résultats & positions</Link>
+        <Link href="/desk/marche">Marché</Link>
         <Link href="/desk/robot" aria-current="page">
           Robot
         </Link>

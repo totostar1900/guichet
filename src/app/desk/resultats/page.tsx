@@ -21,7 +21,7 @@ export default async function ResultsPage() {
   // Auctions with work to do: transmitted orders (results, entered once the issuer publishes) or served orders (settlement).
   const groups = new Map<string, { country: string; deadlineAt: string; issuer: string; offers: Offer[] }>();
   offers
-    .filter((o) => o.kind !== "ACTIONS" && (intents.some((i) => i.offerId === o.id && (i.state === "transmise" || i.state === "servie")) || (parseDate(o.deadlineAt) <= now && now.getTime() - parseDate(o.deadlineAt).getTime() < 30 * 86400e3)))
+    .filter((o) => o.kind !== "ACTIONS" && o.kind !== "MARCHE" && (intents.some((i) => i.offerId === o.id && (i.state === "transmise" || i.state === "servie")) || (parseDate(o.deadlineAt) <= now && now.getTime() - parseDate(o.deadlineAt).getTime() < 30 * 86400e3)))
     .forEach((o) => {
       const key = `${o.country}|${o.deadlineAt}`;
       const g = groups.get(key) ?? { country: o.country, deadlineAt: o.deadlineAt, issuer: o.issuer, offers: [] };
@@ -47,6 +47,7 @@ export default async function ResultsPage() {
         <Link href="/desk/resultats" aria-current="page">
           Résultats & positions
         </Link>
+      <Link href="/desk/marche">Marché</Link>
       <Link href="/desk/robot">Robot</Link>
       </nav>
 

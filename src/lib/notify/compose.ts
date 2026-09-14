@@ -31,7 +31,9 @@ export function offerPublished(o: Offer, firstName?: string): Message {
         ? `${y != null ? fmtPct(y) : "—"} de rendement actuariel à ${fmtPct(o.precountRate ?? 0, 2)} précompté · ${o.maturityOn ? tenorText(o.settleOn, o.maturityOn) : ""}`
         : o.kind === "ACTIONS"
           ? `${fmt(o.pricePerShare ?? 0)} FCFA par action · minimum ${o.minShares ?? 1} actions`
-          : "rachat au pair (100 % du nominal)";
+          : o.kind === "MARCHE"
+            ? `${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"} · achat / vente au marché, règlement T+${o.settlementDays ?? 3}`
+            : "rachat au pair (100 % du nominal)";
   const text = `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · nouvelle offre\n${o.title} — ${o.issuer}\n${headline}\nCommission ${fmtPct(o.commissionPct, 2)}. Titres inscrits à votre nom.\nDépôt des offres : ${fmtDateTime(o.deadlineAt)}.\n\nVoir la fiche et répondre : ${link(o)}\n\n${DISCLAIMER}`;
   return {
     subject: `${COMPANY.name} — ${o.title} · ${headline.split(" · ")[0]}`,
@@ -63,8 +65,8 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
         : i.type === "cession"
           ? `Votre ordre de cession est confirmé${advisor ? ` par ${advisor}` : ""}. L'ordre à signer suit dans ce fil.`
           : `Votre ${INTENT_LABEL[i.type].toLowerCase()} est pris en compte${advisor ? ` par ${advisor}` : ""}. Nous revenons vers vous avant la clôture pour arrêter le montant.`,
-    transmise: `Votre ordre ${i.ref} a été transmis au SVT pour l'adjudication du ${fmtDate(o.deadlineAt)}. Résultats attendus ${o.resultsAt ? fmtDateTime(o.resultsAt) : "dans la journée"}.`,
-    servie: `Résultats : votre ordre ${i.ref} est servi${o.servedPricePct != null ? ` à ${fmtPrice(o.servedPricePct)}` : ""}. Règlement le ${fmtDate(o.settleOn)}. L'avis de résultat suit.`,
+    transmise: o.kind === "MARCHE" ? `Votre ordre ${i.ref} est placé sur ${o.market}${i.limitPrice != null ? ` (limite ${i.limitPrice})` : " au marché"}. Nous vous confirmons l'exécution dès qu'elle intervient.` : `Votre ordre ${i.ref} a été transmis au SVT pour l'adjudication du ${fmtDate(o.deadlineAt)}. Résultats attendus ${o.resultsAt ? fmtDateTime(o.resultsAt) : "dans la journée"}.`,
+    servie: o.kind === "MARCHE" ? `Votre ordre ${i.ref} est exécuté${i.executedPrice != null ? ` à ${o.instrument === "obligation" ? fmtPrice(i.executedPrice) : fmt(i.executedPrice) + " FCFA"}` : ""}${i.servedUnits != null ? ` pour ${fmt(i.servedUnits)} unités` : ""}. Règlement T+${o.settlementDays ?? 3}, puis avis d'opéré.` : `Résultats : votre ordre ${i.ref} est servi${o.servedPricePct != null ? ` à ${fmtPrice(o.servedPricePct)}` : ""}. Règlement le ${fmtDate(o.settleOn)}. L'avis de résultat suit.`,
     non_servie: `Résultats : votre ordre ${i.ref} n'a pas été servi. Les fonds sont restitués sous deux jours ouvrés, sans frais.`,
     reglee: `Règlement effectué le ${fmtDate(o.settleOn)} : vos titres ${o.isin} sont inscrits à votre nom. L'avis d'opéré suit.`,
     annulee: `Votre intention ${i.ref} a été annulée. Contactez-nous si ce n'est pas attendu.`,

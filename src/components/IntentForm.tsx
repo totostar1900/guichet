@@ -16,15 +16,30 @@ const DONE: Record<IntentType, (by: string) => string> = {
   cession: (by) => `Votre demande de cession est enregistrée. Nous vérifions la position et vous confirmons ${by}.`,
   rappel: (by) => `Nous vous prévenons ${by} dès l'ouverture.`,
   info: (by) => `Un conseiller vous répond ${by} dans l'heure.`,
+  achat: (by) => `Votre ordre d'achat est enregistré. Un conseiller le confirme ${by}, vous envoie l'ordre de bourse à signer et l'appel de fonds ; exécution au marché, règlement T+3.`,
+  vente: (by) => `Votre ordre de vente est enregistré. Un conseiller vérifie votre position et vous confirme ${by} ; produit crédité après règlement.`,
 };
 const BY: Record<string, string> = { WhatsApp: "sur WhatsApp", Appel: "par téléphone", "E-mail": "par e-mail" };
+
+/** Secondary market: the amount field is a quantity. */
+function marketEstimate(o: Offer, qty: number, type: IntentType): string {
+  if (!qty) return "Indiquez une quantité pour voir l'estimation au cours de référence.";
+  const isBond = o.instrument === "obligation";
+  const ref = type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0);
+  const unit = isBond ? (o.nominal * ref) / 100 : ref;
+  if (o.lotSize && qty < o.lotSize) return `Quantité minimale : ${o.lotSize}.`;
+  const gross = qty * unit;
+  const com = gross * (o.commissionPct / 100);
+  return `${fmt(qty)} ${isBond ? "titres" : "actions"} × ${isBond ? `${ref} %` : `${fmt(ref)} FCFA`} = ${fmt(gross)} FCFA · commission ${fmt(com)} · ${type === "vente" ? "net encaissé" : "total"} ≈ ${fmt(type === "vente" ? gross - com : gross + com)} FCFA · prix d'exécution selon le marché`;
+}
 
 export function IntentForm({ offer, types, initialType, priceText, past, signedIn, tier = 0 }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean; signedIn: boolean; tier?: number }) {
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<IntentType>(initialType);
   const est = estimate(offer, parseAmount(amount));
-  const needsAmount = type === "ferme" || type === "cession" || type === "appetit";
+  const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente";
+  const market = offer.kind === "MARCHE";
 
   if (state?.ok) {
     return (
@@ -53,7 +68,7 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
     );
   }
 
-  const amtLabel = offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)";
+  const amtLabel = market ? `Quantité (${offer.instrument === "obligation" ? "titres" : "actions"})` : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)";
 
   return (
     <div className={styles.wrap}>
@@ -68,7 +83,7 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
             </label>
           ))}
         </div>
-        <div className={styles.row}>
+        <div className={styles.row} style={market && (type === "achat" || type === "vente") ? { gridTemplateColumns: "1fr 1fr 1fr" } : undefined}>
           {needsAmount ? (
             <label className="field">
               {amtLabel}
@@ -84,6 +99,12 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
           ) : (
             <span />
           )}
+          {market && (type === "achat" || type === "vente") && (
+            <label className="field">
+              Prix limite (facultatif — {offer.instrument === "obligation" ? "% du nominal" : "FCFA par action"})
+              <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={offer.instrument === "obligation" ? String(offer.lastPrice ?? "") : String(offer.lastPrice ?? "")} />
+            </label>
+          )}
           <label className="field">
             Me joindre par
             <select name="channel" defaultValue="WhatsApp">
@@ -93,10 +114,10 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
             </select>
           </label>
         </div>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{est.text}</div>}
-        {signedIn && tier < 2 && (type === "ferme" || type === "cession") && (
+        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : est.text}</div>}
+        {signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && (
           <div className={styles.tierNote}>
-            Prise ferme et cession demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
+            Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
             <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>ouvrez votre compte</Link> (10 min).
           </div>
         )}

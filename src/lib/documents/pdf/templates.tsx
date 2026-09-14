@@ -25,22 +25,24 @@ const lineTitle = (o: Offer) => `${o.title}${o.operation === "abondement" ? " (r
 
 /* ---------------- Bulletin d'ordre ---------------- */
 export function Bulletin({ number, intent, offer, position: p, now, advisor, account }: ClientDocCtx) {
-  const isBond = offer.kind === "OTA" || offer.kind === "APE";
+  const isBond = offer.kind === "OTA" || offer.kind === "APE" || (offer.kind === "MARCHE" && offer.instrument === "obligation");
+  const market = offer.kind === "MARCHE";
+  const sell = intent.type === "vente";
   return (
     <Letter heading={`Bulletin d'ordre · ${number}`}>
-      <Text style={s.h1}>Ordre de souscription — {offer.issuer}</Text>
+      <Text style={s.h1}>{market ? `Ordre de bourse — ${sell ? "vente" : "achat"} · ${offer.market}` : `Ordre de souscription — ${offer.issuer}`}</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDate(isoDay(now))} · intention {intent.ref} · offre v{offer.version} (prix publié le {offer.pricedAt ? fmtDateTime(offer.pricedAt) : "—"})
       </Text>
       <Addr
         blocks={[
           clientBlock(intent, account),
-          ["Intermédiaire", [COMPANY.legalName, `Transmission via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`, `Dépôt des offres : ${fmtDateTime(offer.deadlineAt)}`]],
+          ["Intermédiaire", market ? [COMPANY.legalName, `Exécution sur ${offer.market}`, `Règlement T+${offer.settlementDays ?? 3}`] : [COMPANY.legalName, `Transmission via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`, `Dépôt des offres : ${fmtDateTime(offer.deadlineAt)}`]],
         ]}
       />
       <Table
         cols={[{ label: "Ligne", flex: 3 }, { label: "Code", flex: 1.4, mono: true }, { label: p.unitWord, right: true }, { label: "Prix", right: true }, { label: "Nominal (FCFA)", flex: 1.3, right: true }]}
-        rows={[[lineTitle(offer), offer.isin, fmt(p.units), p.priceLabel, fmt(p.nominalAmount)]]}
+        rows={[[lineTitle(offer), offer.isin, fmt(p.units), market ? (intent.limitPrice != null ? `limite ${p.priceLabel}` : `au marché (réf. ${p.priceLabel})`) : p.priceLabel, fmt(p.nominalAmount)]]}
       />
       <KV
         rows={[
@@ -48,7 +50,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
           ...(isBond ? ([[`Coupon couru${p.accruedDays ? ` du ${offer.lastCouponOn ? fmtDate(offer.lastCouponOn, false) : "—"} au ${fmtDate(offer.settleOn, false)} (${p.accruedDays} jours)` : " (ligne nouvelle)"}`, p.accruedDays ? fmt(p.accrued) : "néant"]] as [string, string][]) : []),
           [`Commission d'intermédiation ${fmtPct(offer.commissionPct, 2)}`, fmt(p.commission)],
         ]}
-        total={[`Montant total à régler, valeur ${fmtDate(offer.settleOn)}`, `${fmt(p.total)} FCFA`]}
+        total={market ? [sell ? `Produit net estimé, règlement T+${offer.settlementDays ?? 3}` : `Montant total estimé, règlement T+${offer.settlementDays ?? 3}`, `${fmt(Math.abs(p.total))} FCFA`] : [`Montant total à régler, valeur ${fmtDate(offer.settleOn)}`, `${fmt(p.total)} FCFA`]}
       />
       {p.irr != null && (
         <View style={s.box}>
@@ -60,7 +62,10 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
         </View>
       )}
       <Text style={s.p}>
-        Le donneur d&apos;ordre demande à {COMPANY.legalName} de présenter cet ordre à l&apos;adjudication du {fmtDate(offer.deadlineAt)}, au prix ci-dessus. L&apos;ordre est irrévocable dès sa transmission au SVT. En cas d&apos;allocation partielle, les montants sont ajustés au prorata ; en cas de non-allocation, les fonds sont restitués sous deux jours ouvrés, sans frais.
+        {market
+          ? `Le donneur d'ordre demande à ${COMPANY.legalName} de présenter cet ordre sur ${offer.market}${intent.limitPrice != null ? ` au prix limite de ${p.priceLabel}` : " au prix du marché"}, valable jusqu'à révocation ou exécution. Exécution totale ou partielle selon la contrepartie disponible ; les montants ci-dessus sont estimés au cours de référence et sont arrêtés à l'exécution.`
+          : `Le donneur d'ordre demande à ${COMPANY.legalName} de présenter cet ordre à l'adjudication du ${fmtDate(offer.deadlineAt)}, au prix ci-dessus.`}
+        {market ? "" : " "} L&apos;ordre est irrévocable dès sa transmission au SVT. En cas d&apos;allocation partielle, les montants sont ajustés au prorata ; en cas de non-allocation, les fonds sont restitués sous deux jours ouvrés, sans frais.
       </Text>
       <Sig left="Le donneur d'ordre — « lu et approuvé », date et signature" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
@@ -167,7 +172,7 @@ export function AvisOpere({ number, intent, offer, position: p, now, allocation 
       <Text style={s.ref}>
         {number} · opération du {fmtDate(offer.settleOn)} · émis le {fmtDateTime(now.toISOString())}
       </Text>
-      <Addr blocks={[["Titulaire", [intent.clientName, intent.clientSegment]], ["Opération", [`${intent.type === "cession" ? "Cession" : "Achat"} sur le marché primaire — ${offer.issuer}`, `Intermédiaire : ${COMPANY.legalName} via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`]]]} />
+      <Addr blocks={[["Titulaire", [intent.clientName, intent.clientSegment]], ["Opération", [offer.kind === "MARCHE" ? `${intent.type === "vente" ? "Vente" : "Achat"} sur ${offer.market} — ${offer.issuer}` : `${intent.type === "cession" ? "Cession" : "Achat"} sur le marché primaire — ${offer.issuer}`, `Intermédiaire : ${COMPANY.legalName} via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`]]]} />
       <Table
         cols={[{ label: "Titre", flex: 2.4 }, { label: "Code", flex: 1.3, mono: true }, { label: "Quantité", right: true }, { label: "Cours", right: true }, { label: "Brut", flex: 1.2, right: true }, { label: "Coupon couru", flex: 1.1, right: true }, { label: "Commission", right: true }, { label: "Net", flex: 1.2, right: true }]}
         rows={[[offer.title, offer.isin, fmt(pos.units), pos.priceLabel, fmt(pos.principal), fmt(pos.accrued), fmt(pos.commission), fmt(Math.abs(pos.total))]]}

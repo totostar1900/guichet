@@ -14,7 +14,7 @@ export interface Repository {
   listIntents(): Promise<Intent[]>;
   createIntent(input: NewIntentInput): Promise<Intent>;
   setIntentState(id: string, state: IntentState): Promise<Intent>;
-  updateIntent(id: string, patch: Partial<Pick<Intent, "state" | "allocationPct" | "servedUnits" | "message">>): Promise<Intent>;
+  updateIntent(id: string, patch: Partial<Pick<Intent, "state" | "allocationPct" | "servedUnits" | "message" | "executedPrice">>): Promise<Intent>;
 
   listEvents(limit?: number): Promise<EventLog[]>;
   logEvent(e: Omit<EventLog, "id" | "at">): Promise<EventLog>;
@@ -57,6 +57,8 @@ export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {
   info: "IN",
   rappel: "RP",
   cession: "CS",
+  achat: "OA",
+  vente: "OV",
 };
 
 /** PF-0914-018 — prefix, MMDD, running number for the day. */

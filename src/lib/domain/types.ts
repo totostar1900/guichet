@@ -3,14 +3,15 @@
  * Mirrors the SQL schema in supabase/migrations — keep both in sync.
  */
 
-export type OfferKind = "OTA" | "BTA" | "ACTIONS" | "APE" | "RACHAT";
+export type OfferKind = "OTA" | "BTA" | "ACTIONS" | "APE" | "RACHAT" | "MARCHE";
 
 export type OfferOperation =
   | "nouvelle_ligne"
   | "abondement"
   | "rachat"
   | "ipo"
-  | "emprunt_ape";
+  | "emprunt_ape"
+  | "secondaire";
 
 export type Country = "RCA" | "Congo" | "Cameroun" | "Gabon" | "Tchad" | "Guinée éq.";
 
@@ -25,6 +26,7 @@ export type OfferStatus =
 
 /** Derived status shown to clients. */
 export type DisplayStatus =
+  | "quoted"
   | "upcoming"
   | "open"
   | "closing"
@@ -81,13 +83,21 @@ export interface Offer {
   lastPrice?: number;
   lastPriceOn?: string;
 
+  // secondary market (kind MARCHE)
+  market?: "BVMAC" | "Trésor secondaire";
+  instrument?: "action" | "obligation";
+  bid?: number; // FCFA per share, or % of nominal for bonds
+  ask?: number;
+  lotSize?: number; // minimum quantity
+  settlementDays?: number; // T+n
+
   // publication
   version: number;
   pricedAt?: string; // ISO — when the desk published the current price
   resultLine?: string; // "Servie à 96,500 % · …"
 }
 
-export type IntentType = "appetit" | "ferme" | "info" | "rappel" | "cession";
+export type IntentType = "appetit" | "ferme" | "info" | "rappel" | "cession" | "achat" | "vente";
 export type IntentState = "recue" | "confirmee" | "transmise" | "servie" | "non_servie" | "reglee" | "annulee";
 export type Channel = "WhatsApp" | "Appel" | "E-mail";
 
@@ -107,6 +117,9 @@ export interface Intent {
   /** Results: share of the order served (0..100) and the units actually allocated. */
   allocationPct?: number;
   servedUnits?: number;
+  /** Secondary market: client's limit (FCFA per share, or % of nominal) and the executed price. */
+  limitPrice?: number | null;
+  executedPrice?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -124,6 +137,7 @@ export interface NewIntentInput {
   offerId: string;
   type: IntentType;
   amount?: number | null;
+  limitPrice?: number | null;
   channel: Channel;
   message?: string;
   clientName: string;

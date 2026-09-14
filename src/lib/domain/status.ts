@@ -2,6 +2,7 @@ import type { DisplayStatus, Offer } from "./types";
 import { bondCalc, btaCalc, parseDate, yearsBetween } from "../finance";
 
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
+  quoted: "Cotée",
   upcoming: "À venir",
   open: "Ouverte",
   closing: "Clôture imminente",
@@ -15,6 +16,7 @@ export const CLOSING_WINDOW_MS = 6 * 3600 * 1000;
 
 /** What the client sees, derived from stored status + clock. */
 export function displayStatus(o: Offer, now: Date = new Date()): DisplayStatus {
+  if (o.kind === "MARCHE") return o.status === "withdrawn" ? "matured" : "quoted";
   if (o.status === "live") return "live";
   if (o.status === "matured") return "matured";
   if (o.status === "results") return "results";
@@ -33,7 +35,7 @@ export function isPast(s: DisplayStatus): boolean {
   return PAST_STATUSES.includes(s);
 }
 export function isActionable(s: DisplayStatus): boolean {
-  return s === "open" || s === "closing" || s === "upcoming";
+  return s === "open" || s === "closing" || s === "upcoming" || s === "quoted";
 }
 
 /** "2 h 30", "1 j 4 h", or "clôturée". */
@@ -73,6 +75,13 @@ export function headlineYield(o: Offer): number | null {
     case "ACTIONS":
       if (!o.dividendPerShare || !o.pricePerShare) return null;
       return (o.dividendPerShare / o.pricePerShare) * 100;
+    case "MARCHE": {
+      if (o.instrument === "obligation" && o.couponRate != null && o.maturityOn && o.lastPrice != null) {
+        return bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, o.nominal * 1000, o.ask ?? o.lastPrice).irr;
+      }
+      if (o.instrument === "action" && o.dividendPerShare && o.lastPrice) return (o.dividendPerShare / o.lastPrice) * 100;
+      return null;
+    }
     default:
       return null;
   }
@@ -84,6 +93,7 @@ export const KIND_LABEL: Record<Offer["kind"], string> = {
   ACTIONS: "Actions",
   APE: "Obligations APE",
   RACHAT: "Rachat",
+  MARCHE: "Marché secondaire",
 };
 
 export const OPERATION_LABEL: Record<Offer["operation"], string> = {
@@ -92,4 +102,5 @@ export const OPERATION_LABEL: Record<Offer["operation"], string> = {
   rachat: "Rachat par le Trésor",
   ipo: "IPO",
   emprunt_ape: "Emprunt obligataire",
+  secondaire: "Cotation",
 };

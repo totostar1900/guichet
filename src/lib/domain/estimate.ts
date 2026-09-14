@@ -42,6 +42,15 @@ export function estimate(o: Offer, amount: number): Estimate {
     const div = o.dividendPerShare ? ` · dividende attendu ${fmt(n * o.dividendPerShare)}` : "";
     return { ok: true, titles: n, outlay: n * o.pricePerShare, text: `≈ ${fmt(n)} actions · à libérer ${fmt(n * o.pricePerShare)} FCFA${div}` };
   }
+  if (o.kind === "MARCHE") {
+    const isBond = o.instrument === "obligation";
+    const ref = o.ask ?? o.lastPrice ?? 0;
+    const unit = isBond ? (o.nominal * ref) / 100 : ref;
+    const n = Math.floor(amount / Math.max(unit, 1));
+    if (o.lotSize && n < o.lotSize) return { ok: false, text: `Quantité minimale ${o.lotSize} — soit ${fmt(o.lotSize * unit)} FCFA au cours actuel.` };
+    const r = isBond && o.couponRate != null && o.maturityOn ? bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, n * o.nominal, ref) : undefined;
+    return { ok: n > 0, titles: n, outlay: r ? r.outlay : n * unit, text: n > 0 ? `≈ ${fmt(n)} ${isBond ? "titres" : "actions"} au cours de référence ${isBond ? fmtPrice(ref) : fmt(ref) + " FCFA"} · ${fmt(r ? r.outlay : n * unit)} FCFA${r?.accruedDays ? ` dont ${fmt(r.accrued)} de coupon couru` : ""} · règlement T+${o.settlementDays ?? 3} · le prix d'exécution dépend du marché` : "Montant inférieur à une unité." };
+  }
   if (o.kind === "RACHAT") {
     const proceeds = amount * o.nominal;
     return { ok: true, titles: amount, outlay: -proceeds, text: `${fmt(amount)} titres · produit de cession ${fmt(proceeds)} FCFA à 100 %, commission déduite ${fmt(proceeds * (1 - o.commissionPct / 100))}` };

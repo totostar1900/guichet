@@ -22,7 +22,7 @@ export default async function DeskPage() {
   const byId = new Map(offers.map((o) => [o.id, o]));
 
   // Book: open offers, grouped by their deadline (an auction = one deadline per issuer).
-  const live = offers.filter((o) => isActionable(displayStatus(o, now)) && o.kind !== "ACTIONS");
+  const live = offers.filter((o) => isActionable(displayStatus(o, now)) && o.kind !== "ACTIONS" && o.kind !== "MARCHE");
   const rows = live.map((o) => {
     const its = intents.filter((i) => i.offerId === o.id && OPEN_STATES.includes(i.state));
     const firm = its.filter(FIRM);
@@ -256,8 +256,13 @@ export default async function DeskPage() {
                     </td>
                     <td>
                       <div className={styles.rowbtns}>
+                        {(i.type === "achat" || i.type === "vente") && i.state === "transmise" ? (
+                          <Link className="btn sm primary" href="/desk/marche">
+                            Exécuter (Marché)
+                          </Link>
+                        ) : null}
                         {next
-                          .filter((s) => s !== "annulee")
+                          .filter((s) => s !== "annulee" && !((i.type === "achat" || i.type === "vente") && i.state === "transmise"))
                           .map((s) => (
                             <form key={s} action={transitionIntent}>
                               <input type="hidden" name="intentId" value={i.id} />
