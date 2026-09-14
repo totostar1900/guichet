@@ -47,7 +47,8 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   if (!offer) throw new Error("Offre introuvable");
   const now = new Date();
   const number = await nextNumber(type, now);
-  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1 };
+  const account = intent.clientId ? (await r.getClientFileByUser(intent.clientId))?.review.custodianAccount : undefined;
+  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account };
   const pdf = await renderToBuffer(CLIENT_TEMPLATES[type](ctx));
   return store({ type, number, title: `${DOC_LABEL[type]} — ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor }, pdf, now);
 }
@@ -72,10 +73,12 @@ export async function auctionLines(country: string, deadlineAt: string): Promise
 export async function generateBordereau(country: string, deadlineAt: string, opts: GenerateOpts = {}): Promise<GeneratedDocument> {
   const { offers, lines } = await auctionLines(country, deadlineAt);
   if (!lines.length) throw new Error("Aucun ordre confirmé sur cette adjudication.");
+  const files = await repo().listClientFiles();
+  const accounts = new Map(files.map((f) => [f.userId, f.review.custodianAccount]));
   const now = new Date();
   const number = await nextNumber("bordereau", now);
   const first = offers[0];
-  const ctx: BordereauCtx = { number, country, issuer: first.issuer, deadlineAt, settleOn: first.settleOn, sourceRef: first.documents[0]?.name, lines, now };
+  const ctx: BordereauCtx = { number, country, issuer: first.issuer, deadlineAt, settleOn: first.settleOn, sourceRef: first.documents[0]?.name, lines, now, accounts };
   const pdf = await renderToBuffer(el(createElement(Bordereau, ctx)));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
   return store({ type: "bordereau", number, title: `Bordereau SVT — ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor }, pdf, now);

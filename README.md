@@ -66,7 +66,7 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - **/desk/clients** : file des dossiers, contrôles automatiques (majorité, validité de la pièce, complétude, PPE ; sanctions à brancher), pièces à vérifier, notation de risque (suggérée), décision : approuver (→ niveau 2, convention signée + dossier d'ouverture SVT générés, client prévenu), compléments, refus. Revue périodique 1 / 3 / 5 ans selon le risque.
 - Une prise ferme reste possible au niveau 1 : l'intention est gardée et marquée « compte-titres à ouvrir », le client est renvoyé vers l'ouverture de compte, le desk voit l'alerte.
 - Niveau de relation dans la session (`tier`) : 1 identifié, 2 compte ouvert ; `profiles.tier` sur Supabase, dossier `client_files` (migration 0006, bucket `kyc`).
-- Décisions ouvertes : structure de compte au SVT (nominatif ou omnibus) — le dossier d'ouverture généré convient aux deux ; forme des groupements (association déclarée ou indivision de mandataires) — champ `legalForm`.
+- **Structure de compte : nominative** (décision du 14 sept. 2026). Un dossier approuvé devient un compte *actif* (niveau 2, prises fermes) quand le SVT retourne le numéro de sous-compte, saisi dans Desk › Clients. Le numéro figure sur les bulletins et dans l'annexe du bordereau. Décision encore ouverte : forme des groupements (association déclarée ou indivision de mandataires) — champ `legalForm`.
 
 ## Résultats, règlement, positions (desk › Résultats & positions)
 

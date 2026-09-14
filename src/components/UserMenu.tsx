@@ -27,7 +27,7 @@ export function UserMenu({ session }: { session: Session | null }) {
       </div>
       {session.role === "client" && session.tier < 2 && (
         <Link href="/ouvrir-un-compte" className={styles.open} title="Ouvrir mon compte-titres">
-          {session.kycStatus === "soumis" || session.kycStatus === "en_revue" ? "Dossier en revue" : session.kycStatus === "complements" ? "Compléter mon dossier" : "Ouvrir un compte"}
+          {session.kycStatus === "soumis" || session.kycStatus === "en_revue" ? "Dossier en revue" : session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? "Compte en cours d'ouverture" : "Ouvrir un compte"}
         </Link>
       )}
       <form action={logout}>

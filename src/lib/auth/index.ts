@@ -19,7 +19,8 @@ export const getSession = cache(async (): Promise<Session | null> => {
     const { repo } = await import("@/lib/data");
     const f = await repo().getClientFileByUser(s.userId);
     if (f) {
-      s.tier = f.status === "approuve" ? 2 : 1;
+      // Nominative structure: the account is active once the SVT has returned the sub-account number.
+      s.tier = f.status === "approuve" && f.review.custodianAccount ? 2 : 1;
       s.kycStatus = f.status;
       if (f.identity.name) s.name = f.identity.name;
     }

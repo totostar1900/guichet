@@ -483,7 +483,7 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateClientFile", error);
     const f = toKyc(data as KycRow);
     // Mirror the essentials onto the profile (name, phone, opt-in, tier).
-    await db().from("profiles").update({ display_name: f.identity.name, phone: f.identity.phone ?? null, segment: f.kind, whatsapp_opt_in: Boolean(f.consents.whatsappAt), whatsapp_opt_in_at: f.consents.whatsappAt ?? null, tier: f.status === "approuve" ? 2 : 1 }).eq("id", f.userId);
+    await db().from("profiles").update({ display_name: f.identity.name, phone: f.identity.phone ?? null, segment: f.kind, whatsapp_opt_in: Boolean(f.consents.whatsappAt), whatsapp_opt_in_at: f.consents.whatsappAt ?? null, tier: f.status === "approuve" && f.review.custodianAccount ? 2 : 1 }).eq("id", f.userId);
     return f;
   },
 };

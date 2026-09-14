@@ -15,14 +15,16 @@ export interface ClientDocCtx {
   advisor?: string;
   /** Result documents: allocation ratio (1 = fully served) and served price. */
   allocation?: number;
+  /** Nominative sub-account number at the SVT, once opened. */
+  account?: string;
 }
 
 const isoDay = localIso;
-const clientBlock = (i: Intent): [string, string[]] => ["Donneur d'ordre", [i.clientName, i.clientSegment, `Compte-titres : ${i.clientId ? `réf. ${i.clientId.slice(0, 12)}` : "à l'ouverture"}`]];
+const clientBlock = (i: Intent, account?: string): [string, string[]] => ["Donneur d'ordre", [i.clientName, i.clientSegment, `Sous-compte nominatif : ${account ?? "en cours d'ouverture"}`]];
 const lineTitle = (o: Offer) => `${o.title}${o.operation === "abondement" ? " (réouverture)" : o.operation === "nouvelle_ligne" ? " (ligne nouvelle)" : ""}`;
 
 /* ---------------- Bulletin d'ordre ---------------- */
-export function Bulletin({ number, intent, offer, position: p, now, advisor }: ClientDocCtx) {
+export function Bulletin({ number, intent, offer, position: p, now, advisor, account }: ClientDocCtx) {
   const isBond = offer.kind === "OTA" || offer.kind === "APE";
   return (
     <Letter heading={`Bulletin d'ordre · ${number}`}>
@@ -32,7 +34,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor }: C
       </Text>
       <Addr
         blocks={[
-          clientBlock(intent),
+          clientBlock(intent, account),
           ["Intermédiaire", [COMPANY.legalName, `Transmission via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`, `Dépôt des offres : ${fmtDateTime(offer.deadlineAt)}`]],
         ]}
       />
@@ -196,9 +198,11 @@ export interface BordereauCtx {
   sourceRef?: string;
   lines: { offer: Offer; intents: { intent: Intent; position: Position }[] }[];
   now: Date;
+  /** clientId → nominative sub-account number at the SVT. */
+  accounts?: Map<string, string | undefined>;
 }
 
-export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourceRef, lines, now }: BordereauCtx) {
+export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourceRef, lines, now, accounts }: BordereauCtx) {
   const svt = SVT_BY_COUNTRY[country] ?? { name: "SVT partenaire", address: "" };
   const rows = lines.map(({ offer, intents }) => {
     const units = intents.reduce((a, x) => a + x.position.units, 0);
@@ -222,13 +226,13 @@ export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourc
         rows={rows.map((r) => [r.offer.title, r.offer.isin, r.cession ? "Cession (rachat)" : "Souscription", fmt(r.units), r.cession ? "100,000" : r.offer.kind === "BTA" ? `${r.offer.precountRate ?? "—"} %` : (r.offer.pricePct ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 3 }), fmt(r.nominal), r.cession ? "selon émetteur" : fmt(r.accrued), r.cession ? `(${fmt(Math.abs(r.settle))})` : fmt(r.settle)])}
         total={["Net à régler par Purpose Capital", "", "", "", "", fmt(rows.reduce((a, r) => a + (r.cession ? -r.nominal : r.nominal), 0)), "", `${fmt(net)} FCFA`]}
       />
-      <Text style={[s.p, s.b]}>Annexe — ventilation par client final (titres inscrits au nom de chaque client)</Text>
+      <Text style={[s.p, s.b]}>Annexe — ventilation par client final (sous-comptes nominatifs ouverts dans vos livres sous le regroupement Purpose Capital)</Text>
       <Table
-        cols={[{ label: "Client", flex: 2 }, { label: "Segment", flex: 1.6 }, { label: "Ligne", flex: 1.5, mono: true }, { label: "Titres", right: true }, { label: "Réf. ordre", flex: 1.2, mono: true }, { label: "État" }]}
-        rows={lines.flatMap(({ offer, intents }) => intents.map(({ intent, position }) => [intent.clientName, intent.clientSegment, offer.isin, fmt(position.units), intent.ref, intent.state === "transmise" ? "transmis" : "confirmé"]))}
+        cols={[{ label: "Client", flex: 2 }, { label: "Sous-compte", flex: 1.5, mono: true }, { label: "Ligne", flex: 1.5, mono: true }, { label: "Titres", right: true }, { label: "Réf. ordre", flex: 1.2, mono: true }, { label: "État" }]}
+        rows={lines.flatMap(({ offer, intents }) => intents.map(({ intent, position }) => [intent.clientName, (intent.clientId && accounts?.get(intent.clientId)) || "à ouvrir", offer.isin, fmt(position.units), intent.ref, intent.state === "transmise" ? "transmis" : "confirmé"]))}
       />
       <Text style={s.p}>
-        Règlement-livraison : débit de notre compte espèces ouvert dans vos livres, valeur {fmtDate(settleOn)} ; livraison des titres sur les comptes-titres des clients listés. Merci de nous confirmer la réception avant l&apos;heure limite et de nous transmettre les résultats dès publication.
+        Règlement-livraison : débit de notre compte espèces ouvert dans vos livres, valeur {fmtDate(settleOn)} ; livraison des titres sur les sous-comptes nominatifs des clients listés (ouverture préalable pour ceux marqués « à ouvrir », dossiers transmis). Merci de nous confirmer la réception avant l&apos;heure limite et de nous transmettre les résultats dès publication.
       </Text>
       <Sig left={`Pour ${COMPANY.legalName} — le Directeur Général, signature et cachet`} right={`Réception ${svt.name.split(" — ")[0]} — heure, visa`} />
     </Letter>

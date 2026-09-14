@@ -35,7 +35,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       <div className={styles.head}>
         <div>
           <div className="eyebrow">Ouverture de compte-titres</div>
-          <h1 className="display">{file.status === "approuve" ? "Votre compte est ouvert" : "Ouvrir mon compte"}</h1>
+          <h1 className="display">{file.status === "approuve" ? (file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé — compte en cours d'ouverture") : "Ouvrir mon compte"}</h1>
           <p className={styles.lead}>
             Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l&apos;origine des fonds et votre profil, puis l&apos;acceptation de la convention par code. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l&apos;étranger.
           </p>
@@ -44,6 +44,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           <span className={`${styles.pill} ${styles[`st_${file.status}`]}`}>{STATUS_LABEL[file.status]}</span>
           {file.submittedAt && <small className="muted">soumis le {fmtDateTime(file.submittedAt)}</small>}
           {file.status === "complements" && file.review.requestedItems && <div className={styles.request}>Compléments demandés : {file.review.requestedItems}</div>}
+          {file.status === "approuve" && file.review.custodianAccount && <small className="muted">sous-compte n° {file.review.custodianAccount}</small>}
           {file.status === "approuve" && (
             <Link href={sp.next && sp.next.startsWith("/") ? sp.next : "/"} className="btn primary sm">
               Aller au Guichet

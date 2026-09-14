@@ -16,7 +16,7 @@ export function Convention({ number, file, now }: { number: string; file?: Clien
   const id = file?.identity;
   const articles: [string, string][] = [
     ["1. Objet", `${COMPANY.legalName} (« l'Intermédiaire »), ${COMPANY.licence}, ouvre au Titulaire un compte-titres destiné à recevoir les instruments financiers acquis par son intermédiaire sur le marché monétaire de la CEMAC (bons et obligations du Trésor) et sur le marché financier régional (BVMAC).`],
-    ["2. Conservation", "Les titres sont dématérialisés et inscrits au nom du Titulaire dans les livres du dépositaire désigné par l'Intermédiaire (établissement agréé Spécialiste en Valeurs du Trésor ou dépositaire central). L'Intermédiaire tient la position du Titulaire et lui adresse un avis d'opéré par opération et un relevé de position au moins annuel."],
+    ["2. Conservation", "Les titres sont dématérialisés et inscrits au nom du Titulaire sur un sous-compte nominatif ouvert à son nom, sous le regroupement de l'Intermédiaire, dans les livres du dépositaire désigné (établissement agréé Spécialiste en Valeurs du Trésor ou dépositaire central). Le Titulaire en est propriétaire de plein droit, y compris en cas de défaillance de l'Intermédiaire. L'Intermédiaire tient la position du Titulaire et lui adresse un avis d'opéré par opération et un relevé de position au moins annuel."],
     ["3. Espèces", "Les espèces nécessaires aux opérations transitent par un compte de règlement ségrégué des fonds propres de l'Intermédiaire. Les fonds doivent provenir d'un compte bancaire ouvert au nom du Titulaire ; tout versement d'un tiers est refusé."],
     ["4. Ordres", "Une intention transmise par le Guichet, WhatsApp ou tout autre canal n'est pas un ordre. Un ordre naît de la confirmation par l'Intermédiaire et de l'acceptation d'un bulletin d'ordre par le Titulaire. L'ordre est irrévocable dès sa transmission à l'adjudication ou au marché. Les prix et volumes servis sont arrêtés par l'émetteur ou le marché ; l'Intermédiaire ne garantit aucune allocation."],
     ["5. Information et catégorisation", `Le Titulaire est catégorisé « ${file?.profile.category === "professionnel" ? "professionnel" : "non professionnel"} ». Il reconnaît avoir reçu l'information sur les risques (crédit, prix, liquidité, allocation) et que les communications de l'Intermédiaire ont un caractère promotionnel et ne constituent pas un conseil personnalisé, sauf convention distincte.`],
@@ -62,12 +62,12 @@ export function DossierOuverture({ number, file, now }: { number: string; file: 
   const id = file.identity;
   return (
     <Letter heading={`Dossier d'ouverture · ${number}`}>
-      <Text style={s.h1}>Dossier d&apos;ouverture de compte — {id.name}</Text>
+      <Text style={s.h1}>Demande d&apos;ouverture de sous-compte nominatif — {id.name}</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDate(localIso(now))} · dossier KYC {file.id.slice(0, 8)} · {KIND_LABEL[file.kind]}
       </Text>
       <Text style={s.p}>
-        {COMPANY.legalName} demande l&apos;ouverture d&apos;un compte-titres au nom du client ci-dessous, sous son regroupement, et atteste avoir procédé à son identification et à la vérification de ses pièces conformément à la réglementation CEMAC en matière de LBC/FT.
+        {COMPANY.legalName} demande l&apos;ouverture d&apos;un sous-compte titres nominatif au nom du client ci-dessous, sous son regroupement, et atteste avoir procédé à son identification et à la vérification de ses pièces conformément à la réglementation CEMAC en matière de LBC/FT.
       </Text>
       <KV
         left

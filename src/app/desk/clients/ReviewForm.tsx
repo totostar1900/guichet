@@ -3,12 +3,38 @@
 import { useActionState } from "react";
 import type { ClientFile, RiskRating } from "@/lib/domain/kyc";
 import { DOC_LABEL } from "@/lib/kyc/checklist";
-import { reviewAction, type ReviewResult } from "./actions";
+import { reviewAction, setCustodianAccountAction, type ReviewResult } from "./actions";
 import styles from "./page.module.css";
+
+function AccountForm({ file }: { file: ClientFile }) {
+  const [state, action, pending] = useActionState<ReviewResult | null, FormData>(setCustodianAccountAction, null);
+  return (
+    <form action={action} className={styles.review}>
+      <input type="hidden" name="fileId" value={file.id} />
+      <h3>Sous-compte nominatif chez le SVT</h3>
+      <p className="muted" style={{ fontSize: ".82rem", margin: 0 }}>
+        Dossier approuvé et dossier d&apos;ouverture transmis. Le compte devient actif (prises fermes possibles) dès que le SVT communique le numéro de sous-compte ouvert au nom du client.
+      </p>
+      <div className={styles.grid}>
+        <label className="field">
+          N° de sous-compte attribué
+          <input name="custodianAccount" placeholder="ex. ECB-CT-2026-00087" required />
+        </label>
+      </div>
+      {state && (state.ok ? <div className={styles.okMsg}>{state.message}</div> : <div className={styles.errMsg}>{state.error}</div>)}
+      <div className={styles.actions}>
+        <button className="btn primary" type="submit" disabled={pending}>
+          {pending ? "…" : "Enregistrer et activer le compte"}
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; suggested: RiskRating; riskLabels: Record<RiskRating, string> }) {
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(reviewAction, null);
   const closed = file.status === "approuve" || file.status === "refuse";
+  if (file.status === "approuve" && !file.review.custodianAccount) return <AccountForm file={file} />;
   return (
     <form action={action} className={styles.review}>
       <input type="hidden" name="fileId" value={file.id} />
@@ -23,8 +49,8 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
           </select>
         </label>
         <label className="field">
-          N° de compte chez le dépositaire (si attribué)
-          <input name="custodianAccount" defaultValue={file.review.custodianAccount} disabled={closed} placeholder="attribué par le SVT après le dossier d'ouverture" />
+          N° de sous-compte nominatif (si déjà attribué par le SVT)
+          <input name="custodianAccount" defaultValue={file.review.custodianAccount} disabled={closed} placeholder="sinon, à renseigner après l'approbation" />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           Notes internes

@@ -44,11 +44,11 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
     });
     await generateKycDocument("convention", updated, desk.name);
     await generateKycDocument("dossier_svt", updated, desk.name);
-    await r.logEvent({ kind: "desk", html: `<b>Compte ouvert</b> — ${updated.identity.name} (${updated.kind}, risque ${risk}${custodianAccount ? `, compte ${custodianAccount}` : ""}) · par ${desk.name}` });
+    await r.logEvent({ kind: "desk", html: `<b>Dossier approuvé</b> — ${updated.identity.name} (${updated.kind}, risque ${risk}${custodianAccount ? `, compte ${custodianAccount}` : ""}) · par ${desk.name}` });
     await notifyKycDecision(updated, "approuve");
     revalidatePath("/desk/clients");
     revalidatePath("/desk");
-    return { ok: true, message: "Compte ouvert : convention et dossier d'ouverture générés, client prévenu." };
+    return { ok: true, message: custodianAccount ? "Compte actif : convention et dossier d'ouverture générés, client prévenu." : "Dossier approuvé : convention et demande d'ouverture de sous-compte générées. Saisissez le numéro de sous-compte dès retour du SVT." };
   }
   if (decision === "complements") {
     if (!requestedItems) return { ok: false, error: "Indiquez les compléments demandés." };
@@ -68,4 +68,21 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
   await r.updateClientFile(fileId, { status: "en_revue", documents, review: { ...f.review, risk: risk ?? f.review.risk, notes: notes ?? f.review.notes, reviewedBy: desk.name } });
   revalidatePath("/desk/clients");
   return { ok: true, message: "Revue enregistrée." };
+}
+
+/** After approval: the SVT returned the nominative sub-account number → account active (tier 2), client told. */
+export async function setCustodianAccountAction(_p: ReviewResult | null, form: FormData): Promise<ReviewResult> {
+  const desk = await requireDesk("/desk/clients");
+  const fileId = String(form.get("fileId") ?? "");
+  const custodianAccount = String(form.get("custodianAccount") ?? "").trim();
+  if (!custodianAccount) return { ok: false, error: "Indiquez le numéro de sous-compte attribué par le SVT." };
+  const r = repo();
+  const f = await r.getClientFile(fileId);
+  if (!f || f.status !== "approuve") return { ok: false, error: "Le dossier doit être approuvé." };
+  const updated = await r.updateClientFile(fileId, { review: { ...f.review, custodianAccount } });
+  await r.logEvent({ kind: "desk", html: `<b>Sous-compte nominatif ouvert</b> — ${updated.identity.name} · n° ${custodianAccount} · par ${desk.name}` });
+  await notifyKycDecision(updated, "approuve");
+  revalidatePath("/desk/clients");
+  revalidatePath("/desk");
+  return { ok: true, message: "Compte actif : le client peut passer des prises fermes." };
 }
