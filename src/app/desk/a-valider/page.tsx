@@ -41,6 +41,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
       <Link href="/desk/resultats">Résultats & positions</Link>
       <Link href="/desk/marche">Marché</Link>
       <Link href="/desk/robot">Robot</Link>
+      <Link href="/desk/reporting">Reporting</Link>
       </nav>
 
       <div className={styles.intake}>

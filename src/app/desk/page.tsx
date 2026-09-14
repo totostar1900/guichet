@@ -50,6 +50,7 @@ export default async function DeskPage() {
         <Link href="/desk/documents">Documents</Link>
       <Link href="/desk/resultats">Résultats & positions</Link>
       <Link href="/desk/robot">Robot</Link>
+      <Link href="/desk/reporting">Reporting</Link>
       </nav>
 
       <div className={styles.kpis}>

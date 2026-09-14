@@ -55,6 +55,7 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 ## Diffusion (WhatsApp, e-mail)
 
 - `src/lib/notify` : `compose.ts` (les textes : offre publiée, accusé de réception, mises à jour du cycle, envoi de document), `providers.ts` (WhatsApp Cloud API : modèles, texte libre, document ; e-mail via Resend), `dispatch.ts` (destinataires par opt-in / canal préféré, journalisation dans `notifications`).
+- Contrôle sanctions / PPE : attestation obligatoire du desk avant approbation ; pré-contrôle OpenSanctions optionnel (`OPENSANCTIONS_API_KEY`).
 - **Sans identifiants, rien ne part** : chaque message est enregistré « préparé » et visible dans le panneau *Diffusion* du desk, avec le texte exact. Renseigner `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` (+ modèles approuvés) et `RESEND_API_KEY` / `EMAIL_FROM` pour envoyer.
 - Déclencheurs : publication (segment + canaux cochés), intention reçue (accusé sur le canal choisi), transition du carnet (confirmée, transmise, servie…), bouton « Envoyé · WhatsApp / E-mail » d'un document (PDF joint).
 - Webhook entrant : `/api/whatsapp/webhook` (vérification `WHATSAPP_VERIFY_TOKEN`, messages entrants journalisés dans le flux du desk).
@@ -88,6 +89,16 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 3. **Meta** : application WhatsApp Business, numéro, webhook `https://<domaine>/api/whatsapp/webhook` avec `WHATSAPP_VERIFY_TOKEN`, modèles `guichet_offre` (4 paramètres) et `guichet_maj` (2) soumis à approbation.
 4. Vérifier : `npm run build`, puis /connexion, /desk (rôle desk via `DESK_EMAILS`), une publication depuis /desk/a-valider, une intention depuis une fiche.
 
+## Marché secondaire (desk › Marché)
+
+- Lignes cotées (`kind: MARCHE`, BVMAC ou Trésor secondaire ; action ou obligation) : dernier cours, acheteur / vendeur, quantité minimale, règlement T+n — mis à jour par le desk, horodatés sur la fiche. Statut « Cotée » dans le Guichet.
+- Ordres d'achat / vente : quantité, prix limite facultatif (marché sinon), compte-titres requis, vente limitée aux titres détenus. Cycle : reçu → confirmé (ordre de bourse + appel de fonds) → placé → **exécuté** (prix et quantité, partiel possible) → **réglé** (avis d'opéré). Les positions sont nettées des ventes (FIFO).
+
+## Reporting (desk › Reporting)
+
+- Journal des ordres sur une période avec l'horodatage de chaque étape (reçu, confirmé, transmis, exécuté, réglé), registre des clients (statut, risque, revue, contrôle sanctions), positions en conservation, statistiques d'activité (intentions, montants, règlements par instrument et par segment, comptes ouverts, documents, diffusion).
+- Exports CSV (`/desk/reporting/export?type=ordres|clients|positions`) au format Excel français (BOM, point-virgule). Tout est recalculé depuis les lignes : reproductible, jamais saisi à la main.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -104,6 +115,6 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Screening sanctions / PPE (OpenSanctions) et vérification d'identité (Smile ID) dans la revue KYC.
-2. Marché secondaire : cotations BVMAC, ordres d'achat / vente hors adjudication.
-3. Reporting COSUMAF : journal des ordres exportable, statistiques d'activité.
+1. Vérification d'identité automatisée (Smile ID) dans la revue KYC.
+2. Import automatique des cotations BVMAC ; pré-remplissage des ordres depuis les positions.
+3. Rapport d'activité périodique en PDF (COSUMAF) à partir du reporting.

@@ -21,6 +21,7 @@ export default async function RobotPage() {
         <Link href="/desk/robot" aria-current="page">
           Robot
         </Link>
+      <Link href="/desk/reporting">Reporting</Link>
       </nav>
       <div className="panel">
         <div className="panel-h">

@@ -49,6 +49,7 @@ export default async function ResultsPage() {
         </Link>
       <Link href="/desk/marche">Marché</Link>
       <Link href="/desk/robot">Robot</Link>
+      <Link href="/desk/reporting">Reporting</Link>
       </nav>
 
       {auctions.length === 0 && <div className="empty">Aucune adjudication close en attente de résultats ou de règlement.</div>}
