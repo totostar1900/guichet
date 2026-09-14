@@ -64,7 +64,16 @@ export interface ClientFile {
   };
   persons: KycPerson[];
   documents: KycDocument[];
-  funds: { source?: string; expectedAmount?: string; bankName?: string; pep: boolean; pepDetails?: string };
+  funds: {
+    source?: string;
+    expectedAmount?: string;
+    bankName?: string;
+    /** Settlement account in the client's name — where sale, redemption, coupon and redemption proceeds are paid. */
+    bankAccount?: string; // RIB / IBAN
+    bankHolder?: string; // intitulé du compte, must match the client
+    pep: boolean;
+    pepDetails?: string;
+  };
   profile: { objectives?: string; horizon?: string; experience?: string; riskTolerance?: string; lossCapacity?: string; category: "non_professionnel" | "professionnel" };
   consents: { dataAt?: string; whatsappAt?: string; conventionAt?: string; conventionMethod?: string; pendingCodeHash?: string; pendingCodeAt?: string };
   review: { risk?: RiskRating; notes?: string; reviewedBy?: string; reviewedAt?: string; nextReviewOn?: string; custodianAccount?: string; requestedItems?: string };

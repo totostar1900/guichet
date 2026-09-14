@@ -71,6 +71,8 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Résultats, règlement, positions (desk › Résultats & positions)
 
+- Positions valorisées au dernier cours de clôture BVMAC (ligne cotée de même ISIN) ou à la dernière VL (`marketValue`, `valuedOn`) ; `/moi` propose « Vendre » / « Racheter » pré-rempli avec la quantité détenue (`?intent=vente&qty=`), le formulaire affiche la détention et un raccourci « tout vendre ». Le RIB du compte de règlement (dossier KYC, étape « Fonds & profil ») est imprimé sur les ordres de cession, demandes de rachat, avis d'opéré de vente et le bordereau de centralisation.
+
 - **Résultats** : par adjudication, prix (ou taux) servi par ligne et allocation (%) par ordre transmis ; un seul envoi passe les ordres en servie / non servie, fixe `servedPricePct` sur l'offre, génère les avis et prévient les clients (`src/lib/results/service.ts`).
 - **Règlement** : un clic passe les ordres servis en réglée, l'offre en « en vie », génère les avis d'opéré.
 - **Positions** : dérivées des ordres réglés (jamais stockées) — `src/lib/positions.ts` ; visibles dans *Mon espace* et sur le desk avec les flux à venir. Le segment « Porteurs de la ligne » des diffusions se résout sur ces positions.
@@ -84,7 +86,9 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Déploiement
 
-1. **Supabase** : projet, migrations `0001` → `0007` dans l'ordre, `seed.sql` (optionnel), Auth › Email (code `{{ .Token }}`), Auth › Phone si `PHONE_OTP_ENABLED=1`, URL de redirection `/auth/callback`.
+Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
+
+1. **Supabase** : projet, migrations `0001` → `0011` dans l'ordre, `seed.sql` (optionnel), Auth › Email (code `{{ .Token }}`), Auth › Phone si `PHONE_OTP_ENABLED=1`, URL de redirection `/auth/callback`.
 2. **Vercel** (ou tout hôte Node) : importer le dépôt, renseigner les variables de `.env.example` (Supabase, `AUTH_SECRET`, `DESK_EMAILS`, `ANTHROPIC_API_KEY`, WhatsApp, Resend, `SETTLEMENT_*`, `NEXT_PUBLIC_APP_URL`, `CRON_SECRET`). `vercel.json` planifie les avis de coupon.
 3. **Meta** : application WhatsApp Business, numéro, webhook `https://<domaine>/api/whatsapp/webhook` avec `WHATSAPP_VERIFY_TOKEN`, modèles `guichet_offre` (4 paramètres) et `guichet_maj` (2) soumis à approbation.
 4. Vérifier : `npm run build`, puis /connexion, /desk (rôle desk via `DESK_EMAILS`), une publication depuis /desk/a-valider, une intention depuis une fiche.
@@ -106,6 +110,8 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Reporting (desk › Reporting)
 
+- **Rapport d'activité périodique (PDF)** : `/desk/reporting/pdf?from&to` — synthèse (intentions, ordres, règlements par instrument et segment, comptes ouverts, encours valorisé), journal des ordres, clientèle et conformité (types, risques, attestations sanctions, revues échues), positions en conservation, bulletins BVMAC utilisés. Rendu à la demande depuis les mêmes lignes que la page, jamais saisi.
+
 - Journal des ordres sur une période avec l'horodatage de chaque étape (reçu, confirmé, transmis, exécuté, réglé), registre des clients (statut, risque, revue, contrôle sanctions), positions en conservation, statistiques d'activité (intentions, montants, règlements par instrument et par segment, comptes ouverts, documents, diffusion).
 - Exports CSV (`/desk/reporting/export?type=ordres|clients|positions`) au format Excel français (BOM, point-virgule). Tout est recalculé depuis les lignes : reproductible, jamais saisi à la main.
 
@@ -126,5 +132,5 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 ## Prochaines étapes
 
 1. Vérification d'identité automatisée (Smile ID) dans la revue KYC.
-2. Pré-remplissage des ordres depuis les positions ; virement automatique des produits de rachat (RIB du dossier).
+2. Virement automatique des produits de rachat depuis le RIB du dossier (fichier de virement bancaire).
 3. Rapport d'activité périodique en PDF (COSUMAF) à partir du reporting.

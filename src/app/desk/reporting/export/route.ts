@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
   } else if (type === "positions") {
     const rows = positionsFrom(intents, offers);
     csv = toCsv(
-      ["Client", "Segment", "Ligne", "ISIN", "Quantité", "Unité", "Nominal (FCFA)", "Coût (FCFA)", "Prochain flux", "Montant du flux", "Échéance", "Réf. ordre"],
-      rows.map((x) => [x.intent.clientName, x.intent.clientSegment, x.offer.title, x.offer.isin, x.units, x.unitWord, Math.round(x.nominalAmount), Math.round(x.costBasis), x.nextFlow?.date, x.nextFlow ? Math.round(x.nextFlow.amount) : undefined, x.maturityOn, x.intent.ref]),
+      ["Client", "Segment", "Ligne", "ISIN", "Quantité", "Unité", "Nominal (FCFA)", "Valeur (FCFA)", "Valorisé le", "Coût (FCFA)", "Prochain flux", "Montant du flux", "Échéance", "Réf. ordre"],
+      rows.map((x) => [x.intent.clientName, x.intent.clientSegment, x.offer.title, x.offer.isin, x.units, x.unitWord, Math.round(x.nominalAmount), x.marketValue != null ? Math.round(x.marketValue) : undefined, x.valuedOn, Math.round(x.costBasis), x.nextFlow?.date, x.nextFlow ? Math.round(x.nextFlow.amount) : undefined, x.maturityOn, x.intent.ref]),
     );
     name = `positions_${d.to}.csv`;
   } else {

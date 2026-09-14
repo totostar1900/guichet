@@ -11,12 +11,13 @@ import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus, headlineYield, isPast, KIND_LABEL, OPERATION_LABEL, statusLabel } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
+import { positionsFrom } from "@/lib/positions";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const o = await repo().getOffer((await params).id);
@@ -247,6 +248,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const past = isPast(st);
   const types = allowedIntents(o, st);
   const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
+  // What the signed-in client already holds on this line — caps sales / redemptions and pre-fills « tout vendre ».
+  let held = 0;
+  if (session && (o.kind === "MARCHE" || o.kind === "FONDS")) {
+    const [allIntents, allOffers] = await Promise.all([repo().listIntents(), repo().listOffers()]);
+    held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
+  }
+  const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
 
   const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
@@ -395,7 +403,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
 
       <aside className={styles.side}>
-        <IntentForm offer={o} types={types} initialType={initial} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             Durée réelle <b>{tenorText(o.settleOn, o.maturityOn)}</b> · règlement le {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

@@ -2,7 +2,7 @@ import { COMPANY, SETTLEMENT } from "@/lib/config";
 import type { FundTerms, Intent, Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
 import type { Position } from "../position";
-import type { ClientDocCtx } from "./templates";
+import { payoutLine, type ClientDocCtx } from "./templates";
 import { Addr, KV, Letter, Sig, Table, Text, s } from "./primitives";
 import { prettyName } from "@/lib/market/names";
 
@@ -72,7 +72,7 @@ export function AppelDeFondsOpcvm({ number, intent, offer, now }: ClientDocCtx) 
 }
 
 /* ---------------- Demande de rachat ---------------- */
-export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, advisor }: ClientDocCtx) {
+export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, advisor, payout }: ClientDocCtx) {
   const f = fundOf(offer);
   return (
     <Letter heading={`Demande de rachat · ${number}`}>
@@ -86,11 +86,12 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
           ["Parts à racheter", units3(p.units)],
           [`Valeur estimée à la dernière VL (${fmt(f.nav)} FCFA)`, fmt(p.principal)],
           [`Droits de sortie ${fmtPct(f.exitFeePct, 2)}`, fmt(p.commission)],
+          ["Compte de règlement du porteur (virement du produit)", payoutLine(payout)],
         ]}
         total={["Produit net estimé", `${fmt(Math.abs(p.total))} FCFA`]}
       />
       <Text style={s.p}>
-        Le porteur demande à {COMPANY.legalName} de transmettre cette demande à {prettyName(f.manager)} pour exécution à la prochaine valeur liquidative de rachat. Le produit, arrêté à cette VL, est viré sur le compte bancaire du porteur enregistré dans son dossier, dans le délai prévu par le règlement du fonds{f.settlementDays != null ? ` (J+${f.settlementDays} après la VL)` : ""}.
+        Le porteur demande à {COMPANY.legalName} de transmettre cette demande à {prettyName(f.manager)} pour exécution à la prochaine valeur liquidative de rachat. Le produit, arrêté à cette VL, est viré sur le compte de règlement ci-dessus, ouvert au nom du porteur, dans le délai prévu par le règlement du fonds{f.settlementDays != null ? ` (J+${f.settlementDays} après la VL)` : ""}.
       </Text>
       <Sig left="Le porteur — date et signature" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
@@ -98,7 +99,7 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
 }
 
 /* ---------------- Avis d'opération (exécution / règlement) ---------------- */
-export function AvisOperationOpcvm({ number, intent, offer, position: p, now }: ClientDocCtx) {
+export function AvisOperationOpcvm({ number, intent, offer, position: p, now, payout }: ClientDocCtx) {
   const f = fundOf(offer);
   const redemption = intent.type === "rachat";
   const nav = intent.executedPrice ?? f.nav;
@@ -114,7 +115,7 @@ export function AvisOperationOpcvm({ number, intent, offer, position: p, now }: 
         rows={[[offer.title, redemption ? "Rachat" : "Souscription", units3(p.units), fmt(nav), fmt(p.principal), fmt(p.commission), fmt(Math.abs(p.total))]]}
       />
       <Text style={s.p}>
-        {redemption ? "Les parts rachetées sont retirées de votre compte au registre du dépositaire ; le produit net est viré sur votre compte bancaire." : "Les parts sont inscrites à votre nom au registre tenu par le dépositaire du fonds."} Cet avis reprend la confirmation de la société de gestion et tient lieu de confirmation d&apos;exécution ; votre relevé de position est disponible dans votre espace Guichet.
+        {redemption ? `Les parts rachetées sont retirées de votre compte au registre du dépositaire ; le produit net est viré sur votre compte de règlement (${payoutLine(payout)}).` : "Les parts sont inscrites à votre nom au registre tenu par le dépositaire du fonds."} Cet avis reprend la confirmation de la société de gestion et tient lieu de confirmation d&apos;exécution ; votre relevé de position est disponible dans votre espace Guichet.
       </Text>
     </Letter>
   );
@@ -128,9 +129,11 @@ export interface FundBordereauCtx {
   lines: { offer: Offer; intents: { intent: Intent; position: Position }[] }[];
   /** clientId → register / account reference at the depositary, when known. */
   accounts?: Map<string, string | undefined>;
+  /** clientId → bank + RIB where redemption proceeds are paid. */
+  payouts?: Map<string, string | undefined>;
 }
 
-export function BordereauSgo({ number, manager, now, lines, accounts }: FundBordereauCtx) {
+export function BordereauSgo({ number, manager, now, lines, accounts, payouts }: FundBordereauCtx) {
   const subs = lines.flatMap((l) => l.intents.filter((x) => x.intent.type === "souscription").map((x) => ({ ...x, offer: l.offer })));
   const reds = lines.flatMap((l) => l.intents.filter((x) => x.intent.type === "rachat").map((x) => ({ ...x, offer: l.offer })));
   const cash = subs.reduce((a, x) => a + (x.intent.amount ?? 0), 0);
@@ -149,6 +152,15 @@ export function BordereauSgo({ number, manager, now, lines, accounts }: FundBord
         ]}
         total={["Espèces de souscription réglées par Purpose Capital", "", "", "", `${fmt(cash)} FCFA`, "", ""]}
       />
+      {reds.length > 0 && (
+        <>
+          <Text style={[s.p, s.b]}>Comptes de règlement des porteurs pour les rachats</Text>
+          <Table
+            cols={[{ label: "Porteur", flex: 2 }, { label: "Réf.", flex: 1, mono: true }, { label: "Banque · RIB / IBAN (au nom du porteur)", flex: 3.5, mono: true }]}
+            rows={reds.map((x) => [x.intent.clientName, x.intent.ref, (x.intent.clientId && payouts?.get(x.intent.clientId)) || "RIB à communiquer"])}
+          />
+        </>
+      )}
       <Text style={s.p}>
         Merci d&apos;exécuter ces ordres à la prochaine valeur liquidative, d&apos;inscrire les parts au nom de chaque porteur au registre tenu par le dépositaire (dossiers d&apos;identification joints pour les porteurs marqués « à créer ») et de nous adresser les avis d&apos;opération individuels. Les espèces de souscription sont virées depuis notre compte de règlement clients ségrégué ; les produits de rachat sont à virer directement sur le compte bancaire de chaque porteur tel qu&apos;indiqué au registre.
       </Text>

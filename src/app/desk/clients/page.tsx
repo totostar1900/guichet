@@ -111,6 +111,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     {selected.funds.expectedAmount ? ` · ${selected.funds.expectedAmount}` : ""}
                     {selected.funds.bankName ? ` · banque ${selected.funds.bankName}` : ""}
                   </dd>
+                  <dt>Compte de règlement</dt>
+                  <dd className="mono">{selected.funds.bankAccount ? `${selected.funds.bankAccount}${selected.funds.bankHolder ? ` · ${selected.funds.bankHolder}` : ""}` : "RIB manquant"}</dd>
                   <dt>PPE</dt>
                   <dd>{selected.funds.pep ? `oui — ${selected.funds.pepDetails ?? ""}` : "non"}</dd>
                   <dt>Profil</dt>

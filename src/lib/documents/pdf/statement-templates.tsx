@@ -8,6 +8,9 @@ import { Addr, Letter, Sig, Table, Text, s } from "./primitives";
 export function RelevePosition({ number, contact, positions, now }: { number: string; contact: Contact; positions: Position[]; now: Date }) {
   const nominal = positions.reduce((a, p) => a + p.nominalAmount, 0);
   const cost = positions.reduce((a, p) => a + p.costBasis, 0);
+  const value = positions.reduce((a, p) => a + (p.marketValue ?? p.nominalAmount), 0);
+  const units = (p: Position) => `${p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} ${p.unitWord}`;
+  const valued = (p: Position) => (p.marketValue != null ? `${fmt(p.marketValue)}${p.valuedOn ? ` (${fmtDate(p.valuedOn, false)})` : ""}` : "au nominal");
   const flows = positions.flatMap((p) => p.flows.map((f) => ({ ...f, line: p.offer.title }))).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 12);
   return (
     <Letter heading={`Relevé de position · ${number}`}>
@@ -17,9 +20,9 @@ export function RelevePosition({ number, contact, positions, now }: { number: st
       </Text>
       <Addr blocks={[["Titulaire", [contact.name, contact.segment, contact.phone ?? "", contact.email ?? ""]], ["Teneur de compte", [COMPANY.legalName, COMPANY.licence, "Titres inscrits au nom du titulaire chez le dépositaire désigné"]]]} />
       <Table
-        cols={[{ label: "Ligne", flex: 2.4 }, { label: "Code", flex: 1.3, mono: true }, { label: "Quantité", right: true }, { label: "Nominal (FCFA)", flex: 1.3, right: true }, { label: "Coût d'acquisition", flex: 1.3, right: true }, { label: "Prochain flux", flex: 1.6 }, { label: "Échéance", flex: 1.1 }]}
-        rows={positions.map((p) => [p.offer.title, p.offer.isin, `${fmt(p.units)} ${p.unitWord}`, fmt(p.nominalAmount), fmt(p.costBasis), p.nextFlow ? `${fmtDate(p.nextFlow.date, false)} · ${fmt(p.nextFlow.amount)}` : "—", p.maturityOn ? fmtDate(p.maturityOn) : "—"])}
-        total={["Total", "", "", fmt(nominal), fmt(cost), "", ""]}
+        cols={[{ label: "Ligne", flex: 2.2 }, { label: "Code", flex: 1.2, mono: true }, { label: "Quantité", right: true }, { label: "Nominal (FCFA)", flex: 1.2, right: true }, { label: "Valeur au dernier cours / VL", flex: 1.6, right: true }, { label: "Coût d'acquisition", flex: 1.2, right: true }, { label: "Prochain flux", flex: 1.4 }, { label: "Échéance", flex: 1 }]}
+        rows={positions.map((p) => [p.offer.title, p.offer.isin, units(p), fmt(p.nominalAmount), valued(p), fmt(p.costBasis), p.nextFlow ? `${fmtDate(p.nextFlow.date, false)} · ${fmt(p.nextFlow.amount)}` : "—", p.maturityOn ? fmtDate(p.maturityOn) : "—"])}
+        total={["Total", "", "", fmt(nominal), fmt(value), fmt(cost), "", ""]}
       />
       {flows.length > 0 && (
         <>
@@ -28,7 +31,7 @@ export function RelevePosition({ number, contact, positions, now }: { number: st
         </>
       )}
       {positions.length === 0 && <Text style={s.p}>Aucune position en portefeuille à cette date.</Text>}
-      <Text style={s.small}>Ce relevé reflète les ordres réglés enregistrés par {COMPANY.legalName}. Les coupons et remboursements sont payés par l&apos;émetteur aux dates indiquées, sur le compte de règlement du titulaire. Toute réclamation dans les trente jours.</Text>
+      <Text style={s.small}>Valeurs indicatives : dernier cours de clôture publié par la BVMAC ou dernière valeur liquidative publiée par la société de gestion ; lignes du marché primaire non cotées valorisées au nominal. Ce relevé reflète les ordres réglés enregistrés par {COMPANY.legalName}. Les coupons et remboursements sont payés par l&apos;émetteur aux dates indiquées, sur le compte de règlement du titulaire. Toute réclamation dans les trente jours.</Text>
     </Letter>
   );
 }
@@ -45,9 +48,9 @@ export function AttestationDetention({ number, contact, positions, now }: { numb
         {COMPANY.legalName}, {COMPANY.licence}, atteste que <Text style={s.b}>{contact.name}</Text> détient, à la date du {fmtDate(localIso(now))}, les instruments financiers suivants, inscrits à son nom dans les livres du dépositaire désigné :
       </Text>
       <Table
-        cols={[{ label: "Ligne", flex: 2.4 }, { label: "Code", flex: 1.4, mono: true }, { label: "Quantité", right: true }, { label: "Nominal (FCFA)", flex: 1.3, right: true }, { label: "Échéance", flex: 1.1 }]}
-        rows={positions.map((p) => [p.offer.title, p.offer.isin, `${fmt(p.units)} ${p.unitWord}`, fmt(p.nominalAmount), p.maturityOn ? fmtDate(p.maturityOn) : "—"])}
-        total={["Total nominal", "", "", fmt(positions.reduce((a, p) => a + p.nominalAmount, 0)), ""]}
+        cols={[{ label: "Ligne", flex: 2.4 }, { label: "Code", flex: 1.4, mono: true }, { label: "Quantité", right: true }, { label: "Nominal (FCFA)", flex: 1.3, right: true }, { label: "Valeur indicative", flex: 1.4, right: true }, { label: "Échéance", flex: 1.1 }]}
+        rows={positions.map((p) => [p.offer.title, p.offer.isin, `${p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} ${p.unitWord}`, fmt(p.nominalAmount), p.marketValue != null ? fmt(p.marketValue) : "au nominal", p.maturityOn ? fmtDate(p.maturityOn) : "—"])}
+        total={["Total", "", "", fmt(positions.reduce((a, p) => a + p.nominalAmount, 0)), fmt(positions.reduce((a, p) => a + (p.marketValue ?? p.nominalAmount), 0)), ""]}
       />
       <Text style={s.p}>La présente attestation est délivrée à la demande du titulaire pour servir et valoir ce que de droit. Elle ne vaut ni évaluation ni engagement de rachat.</Text>
       <Sig left={`Pour ${COMPANY.legalName} — signature et cachet`} right="" />

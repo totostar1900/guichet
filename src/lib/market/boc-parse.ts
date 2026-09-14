@@ -228,7 +228,8 @@ function segmentOf(designation: string): BocBond["segment"] {
   return "privees";
 }
 
-const DENSE = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(.+?,\d{3})(\d{1,4},\d{2})(\d*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
+// date · prev % · price+nominal · accrued · volumes (may hold spaces when the line traded) · status · open · close · high · low · var · ref
+const DENSE = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(.+?,\d{3})(\d{1,4},\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
 
 function parseBonds(lines: string[], warnings: string[]): BocBond[] {
   const out: BocBond[] = [];
@@ -239,7 +240,9 @@ function parseBonds(lines: string[], warnings: string[]): BocBond[] {
     return out;
   }
   const seen = new Set<string>();
-  const section = lines.slice(start, end > start ? end : undefined);
+  // When a line traded, pdf-parse may glue the next bond's head to the end of the data row
+  // ("…0,00%9 700,00ETAT DU GABON…"): split after a ",dd" amount that is followed by capitals.
+  const section = lines.slice(start, end > start ? end : undefined).flatMap((l) => l.split(/(?<=,\d{2})(?=[A-Z]{2,})/));
   for (let i = 0; i < section.length; i++) {
     const l = section[i].replace(/\s+/g, " ");
     // Layout A: dense head "ISSUER TITLE ISIN MNEMO" + dense data line(s)

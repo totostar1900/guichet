@@ -78,9 +78,10 @@ export default async function MyPage() {
                 <tr>
                   <th>Ligne</th>
                   <th className="r">Quantité</th>
-                  <th className="r">Nominal</th>
+                  <th className="r">Nominal · valeur</th>
                   <th>Prochain flux</th>
                   <th>Échéance</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -92,11 +93,28 @@ export default async function MyPage() {
                       <span className="mono muted">{p.offer.isin}</span>
                     </td>
                     <td className="r num">
-                      {fmt(p.units)} {p.unitWord}
+                      {p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} {p.unitWord}
                     </td>
-                    <td className="r num">{fmt(p.nominalAmount)} FCFA</td>
+                    <td className="r num">
+                      {p.offer.kind === "FONDS" ? "" : `${fmt(p.nominalAmount)} FCFA`}
+                      {p.marketValue != null && (
+                        <>
+                          {p.offer.kind === "FONDS" ? "" : <br />}
+                          <span className={p.offer.kind === "FONDS" ? "" : "muted"}>
+                            {fmt(p.marketValue)} FCFA{p.valuedOn ? ` ${p.offer.kind === "FONDS" ? "à la VL" : "au cours"} du ${fmtDate(p.valuedOn, false)}` : ""}
+                          </span>
+                        </>
+                      )}
+                    </td>
                     <td>{p.nextFlow ? `${fmtDate(p.nextFlow.date)} · ${fmt(p.nextFlow.amount)} FCFA · ${p.nextFlow.label}` : "—"}</td>
                     <td>{p.maturityOn ? fmtDate(p.maturityOn) : "—"}</td>
+                    <td className="r">
+                      {p.exit && (
+                        <Link className="btn sm" href={`/offres/${p.exit.offerId}?intent=${p.exit.intent}&qty=${p.units}`}>
+                          {p.exit.intent === "rachat" ? "Racheter" : "Vendre"}
+                        </Link>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

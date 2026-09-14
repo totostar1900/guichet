@@ -118,7 +118,7 @@ export async function uploadDocAction(_p: StepResult | null, form: FormData): Pr
 export async function saveFundsProfileAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
   if (!editable(file)) return { ok: false, error: "Dossier non modifiable." };
-  const funds: ClientFile["funds"] = { source: str(form, "source"), expectedAmount: str(form, "expectedAmount"), bankName: str(form, "bankName"), pep: form.get("pep") === "on", pepDetails: str(form, "pepDetails") };
+  const funds: ClientFile["funds"] = { source: str(form, "source"), expectedAmount: str(form, "expectedAmount"), bankName: str(form, "bankName"), bankAccount: str(form, "bankAccount")?.replace(/\s+/g, " ").trim(), bankHolder: str(form, "bankHolder"), pep: form.get("pep") === "on", pepDetails: str(form, "pepDetails") };
   const profile: ClientFile["profile"] = { ...file.profile, objectives: str(form, "objectives"), horizon: str(form, "horizon"), experience: str(form, "experience"), riskTolerance: str(form, "riskTolerance"), lossCapacity: str(form, "lossCapacity") };
   if (!funds.source) return { ok: false, error: "Indiquez l'origine des fonds." };
   await repo().updateClientFile(file.id, { funds, profile });

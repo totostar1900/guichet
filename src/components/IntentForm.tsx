@@ -7,7 +7,7 @@ import { submitIntent } from "@/app/offres/[id]/actions";
 import { estimate } from "@/lib/domain/estimate";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
-import { fmt, parseAmount } from "@/lib/format";
+import { fmt, parseAmount, parseUnits } from "@/lib/format";
 import styles from "./IntentForm.module.css";
 
 const DONE: Record<IntentType, (by: string) => string> = {
@@ -44,11 +44,13 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · droits de sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, priceText, past, signedIn, tier = 0 }: { offer: Offer; types: IntentType[]; initialType: IntentType; priceText: string; past: boolean; signedIn: boolean; tier?: number }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0 }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number }) {
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
-  const [amount, setAmount] = useState("");
+  const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
+  const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
-  const est = estimate(offer, parseAmount(amount));
+  const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
+  const est = estimate(offer, parse(amount));
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
   const market = offer.kind === "MARCHE";
 
@@ -104,8 +106,16 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
                 placeholder={offer.kind === "RACHAT" ? "500" : "10 000 000"}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                onBlur={() => amount && setAmount(fmt(parseAmount(amount)))}
+                onBlur={() => amount && setAmount(type === "rachat" ? fmtUnits(parse(amount)) : fmt(parse(amount)))}
               />
+              {held > 0 && (type === "vente" || type === "rachat") && (
+                <small className={styles.held}>
+                  Vous détenez {fmtUnits(held)} {offer.kind === "FONDS" ? "parts" : offer.instrument === "obligation" ? "titres" : "actions"} ·{" "}
+                  <button type="button" className={styles.linkBtn} onClick={() => setAmount(fmtUnits(held))}>
+                    tout {type === "rachat" ? "racheter" : "vendre"}
+                  </button>
+                </small>
+              )}
             </label>
           ) : (
             <span />
@@ -125,7 +135,7 @@ export function IntentForm({ offer, types, initialType, priceText, past, signedI
             </select>
           </label>
         </div>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parseAmount(amount)) : est.text}</div>}
+        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
           <div className={styles.tierNote}>
             Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis{" "}

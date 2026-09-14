@@ -111,7 +111,7 @@ export function autoChecks(f: ClientFile, now = new Date()): Check[] {
   const pep = f.funds.pep || f.persons.some((p) => p.pep);
   checks.push({ label: "PPE déclaré", ok: !pep, detail: pep ? "oui — diligence renforcée" : "non" });
   if (f.kind === "groupement") checks.push({ label: "Forme du groupement", ok: isIndivision(f) ? declaredAmountFloor(f.funds.expectedAmount) <= INDIVISION_CEILING : true, detail: isIndivision(f) ? `indivision de mandataires — plafond ${(INDIVISION_CEILING / 1e6).toFixed(0)} M FCFA de nominal` : (f.identity.legalForm ?? "—") });
-  checks.push({ label: "Même nom sur le RIB", ok: null, detail: "vérification visuelle par le desk" });
+  checks.push({ label: "RIB du compte de règlement", ok: f.funds.bankAccount ? null : false, detail: f.funds.bankAccount ? `${f.funds.bankName ?? ""} ${f.funds.bankAccount} — intitulé « ${f.funds.bankHolder ?? "?"} » : même nom que le client, à vérifier sur la pièce` : "manquant — indispensable pour virer ventes, rachats et coupons" });
   const sc = f.screening;
   checks.push({
     label: "Sanctions / PPE (listes)",

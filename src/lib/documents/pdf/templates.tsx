@@ -17,7 +17,10 @@ export interface ClientDocCtx {
   allocation?: number;
   /** Nominative sub-account number at the SVT, once opened. */
   account?: string;
+  /** Client's settlement account (RIB) — printed where money goes back to the client. */
+  payout?: { bank?: string; account?: string; holder?: string };
 }
+export const payoutLine = (p?: ClientDocCtx["payout"]) => (p?.account ? `${p.bank ? `${p.bank} · ` : ""}${p.account}${p.holder ? ` (${p.holder})` : ""}` : "RIB à communiquer au desk");
 
 const isoDay = localIso;
 const clientBlock = (i: Intent, account?: string): [string, string[]] => ["Donneur d'ordre", [i.clientName, i.clientSegment, `Sous-compte nominatif : ${account ?? "en cours d'ouverture"}`]];
@@ -101,7 +104,7 @@ export function AppelDeFonds({ number, intent, offer, position: p, now }: Client
 }
 
 /* ---------------- Ordre de cession ---------------- */
-export function OrdreDeCession({ number, intent, offer, position: p, now, advisor }: ClientDocCtx) {
+export function OrdreDeCession({ number, intent, offer, position: p, now, advisor, payout }: ClientDocCtx) {
   return (
     <Letter heading={`Ordre de cession · ${number}`}>
       <Text style={s.h1}>Ordre de cession — rachat par l&apos;émetteur</Text>
@@ -114,7 +117,7 @@ export function OrdreDeCession({ number, intent, offer, position: p, now, adviso
         rows={[[lineTitle(offer), offer.isin, fmt(p.units), p.priceLabel, fmt(p.nominalAmount), fmt(p.commission), fmt(-p.total)]]}
       />
       <Text style={s.p}>
-        Le coupon couru est réglé par l&apos;émetteur selon les modalités du rachat. Le cédant atteste détenir les titres libres de tout nantissement et autorise leur livraison contre paiement, valeur {fmtDate(offer.settleOn)}. Produit de cession crédité sur le compte d&apos;origine sous un jour ouvré après règlement.
+        Le coupon couru est réglé par l&apos;émetteur selon les modalités du rachat. Le cédant atteste détenir les titres libres de tout nantissement et autorise leur livraison contre paiement, valeur {fmtDate(offer.settleOn)}. Produit de cession crédité sous un jour ouvré après règlement sur le compte de règlement du cédant : {payoutLine(payout)}.
       </Text>
       <Sig left="Le cédant — date, signature et cachet" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
@@ -164,7 +167,8 @@ export function AvisResultat({ number, intent, offer, position: p, now, allocati
 }
 
 /* ---------------- Avis d'opéré ---------------- */
-export function AvisOpere({ number, intent, offer, position: p, now, allocation = 1 }: ClientDocCtx) {
+export function AvisOpere({ number, intent, offer, position: p, now, allocation = 1, payout }: ClientDocCtx) {
+  const paysClient = intent.type === "vente" || intent.type === "cession";
   const pos = positionFor(intent, offer, { pricePct: offer.servedPricePct, unitsOverride: Math.floor(p.units * allocation) });
   return (
     <Letter heading={`Avis d'opéré · ${number}`}>
@@ -187,7 +191,7 @@ export function AvisOpere({ number, intent, offer, position: p, now, allocation 
         </>
       )}
       <Text style={s.p}>
-        Date de valeur : {fmtDate(offer.settleOn)}. Titres dématérialisés, inscrits à votre nom. Cet avis tient lieu de confirmation d&apos;exécution ; votre relevé de position est disponible dans votre espace Guichet.
+        Date de valeur : {fmtDate(offer.settleOn)}. {paysClient ? `Produit net viré sur votre compte de règlement (${payoutLine(payout)}).` : "Titres dématérialisés, inscrits à votre nom."} Cet avis tient lieu de confirmation d&apos;exécution ; votre relevé de position est disponible dans votre espace Guichet.
       </Text>
     </Letter>
   );

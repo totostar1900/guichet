@@ -292,6 +292,14 @@ export function FundsSection({ file, editable }: P) {
             Banque du compte de règlement (au nom du client)
             <input name="bankName" defaultValue={f.bankName} placeholder="Ex. Afriland First Bank" />
           </label>
+          <label className="field">
+            RIB / IBAN de ce compte — y sont virés vos produits de vente, de rachat, coupons et remboursements
+            <input name="bankAccount" defaultValue={f.bankAccount} placeholder="Ex. CM21 10005 00001 12345678901 23" inputMode="text" autoComplete="off" />
+          </label>
+          <label className="field">
+            Intitulé du compte (doit être le vôtre)
+            <input name="bankHolder" defaultValue={f.bankHolder} placeholder="Nom tel qu'il figure sur le RIB" />
+          </label>
           <label className={styles.check}>
             <input type="checkbox" name="pep" defaultChecked={f.pep} /> Je suis (ou un proche est) une personne politiquement exposée
           </label>

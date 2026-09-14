@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { catchUp } from "@/lib/market/boc";
 
-export const maxDuration = 120;
+// Six bulletins to catch up after a holiday week take ~1 min; Vercel Fluid compute allows up to 300 s.
+export const maxDuration = 300;
 
 /**
  * Daily BVMAC bulletin ingestion — call after the session (≈ 18:30 UTC) with

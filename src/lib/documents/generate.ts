@@ -58,8 +58,10 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   if (!offer) throw new Error("Offre introuvable");
   const now = new Date();
   const number = await nextNumber(type, now);
-  const account = intent.clientId ? (await r.getClientFileByUser(intent.clientId))?.review.custodianAccount : undefined;
-  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account };
+  const file = intent.clientId ? await r.getClientFileByUser(intent.clientId) : undefined;
+  const account = file?.review.custodianAccount;
+  const payout = file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined;
+  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout };
   const pdf = await renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
   return store({ type, number, title: `${DOC_LABEL[type]} — ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor }, pdf, now);
 }
@@ -108,9 +110,10 @@ export async function generateFundBordereau(manager: string, opts: GenerateOpts 
     .filter((l) => l.intents.length > 0);
   if (!lines.length) throw new Error(`Aucun ordre confirmé sur les fonds de ${manager}.`);
   const accounts = new Map(files.map((f) => [f.userId, f.review.custodianAccount]));
+  const payouts = new Map(files.map((f) => [f.userId, f.funds.bankAccount ? `${f.funds.bankName ? `${f.funds.bankName} ` : ""}${f.funds.bankAccount}` : undefined]));
   const now = new Date();
   const number = await nextNumber("bordereau", now);
-  const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts })));
+  const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts, payouts })));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
   return store({ type: "bordereau", number, title: `Bordereau de centralisation — ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor }, pdf, now);
 }
@@ -155,4 +158,28 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   const element = type === "releve" ? createElement(RelevePosition, { number, contact, positions, now }) : createElement(AttestationDetention, { number, contact, positions, now });
   const pdf = await renderToBuffer(el(element));
   return store({ type, number, title: `${DOC_LABEL[type]} — ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor }, pdf, now);
+}
+
+/* ---------------- Rapport d'activité (COSUMAF) ---------------- */
+import { activity, clientRegister, orderJournal, type Period } from "@/lib/reporting";
+import { RapportActivite } from "./pdf/report-templates";
+
+/** Periodic activity report, rendered on demand from the same rows as the reporting page (not stored: reproducible). */
+export async function renderActivityReport(period: Period): Promise<{ pdf: Buffer; number: string }> {
+  const r = repo();
+  const [offers, intents, events, files, docs, notifs, bulletins] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listDocuments(), r.listNotifications(5000), r.listBulletins(400)]);
+  const now = new Date();
+  const number = `PC-RAP-${period.from.replace(/-/g, "")}-${period.to.replace(/-/g, "")}`;
+  const ctx = {
+    number,
+    period,
+    now,
+    activity: activity(intents, offers, files, docs, notifs, period),
+    journal: orderJournal(intents, offers, events, period),
+    clients: clientRegister(files),
+    positions: positionsFrom(intents, offers),
+    bulletins: bulletins.filter((b) => b.sessionDate >= period.from && b.sessionDate <= period.to).map((b) => ({ number: b.number, sessionDate: b.sessionDate, status: b.status })),
+  };
+  const pdf = await renderToBuffer(el(createElement(RapportActivite, ctx)));
+  return { pdf, number };
 }

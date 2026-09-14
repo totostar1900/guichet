@@ -91,3 +91,19 @@ describe("BOC n° 2565 du 04/08/2026", () => {
     expect(boc.warnings).toEqual([]);
   });
 });
+
+describe("BOC n° 2591 du 09/09/2026 — a session where a bond traded", () => {
+  const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260909.txt", import.meta.url), "utf8"));
+  it("reads every bond even when the next head is glued to a traded row", () => {
+    expect(b.bulletinNo).toBe(2591);
+    expect(b.warnings).toEqual([]);
+    expect(b.bonds.length).toBe(31);
+    const ega15 = b.bonds.find((x) => x.isin === "GA0000020552")!;
+    expect(ega15.status).toBe("PEq");
+    expect(ega15.close).toBe(97);
+    expect(ega15.accruedCoupon).toBeCloseTo(466.52, 2);
+    const ega16 = b.bonds.find((x) => x.isin === "GA0000020560")!;
+    expect(ega16.mnemo).toBe("EGA16");
+    expect(ega16.previousPct).toBe(97);
+  });
+});

@@ -52,6 +52,9 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         <button className="btn" type="submit">
           Appliquer
         </button>
+        <a className="btn primary" href={`/desk/reporting/pdf?${q}`} target="_blank" rel="noreferrer">
+          Rapport d&apos;activité PDF
+        </a>
         <span className="muted" style={{ fontSize: ".78rem" }}>
           Tout est recalculé depuis les lignes du registre : rien n&apos;est saisi à la main, tout est reproductible.
         </span>
