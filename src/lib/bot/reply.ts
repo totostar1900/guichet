@@ -65,7 +65,7 @@ export async function answerInbound(from: string, text: string, opts: { dryRun?:
   const contacts = await r.listContacts();
   const contact = contacts.find((c) => c.phone && c.phone.replace(/[^\d]/g, "") === phone.replace(/[^\d]/g, ""));
   const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
-  const open = offers.filter((o) => isActionable(displayStatus(o)));
+  const open = offers.filter((o) => !o.hidden && isActionable(displayStatus(o)));
   const mine: Intent[] = contact ? intents.filter((i) => i.clientId === contact.id) : [];
   const byId = new Map(offers.map((o) => [o.id, o]));
   const positions = contact ? positionsFrom(mine, offers) : [];

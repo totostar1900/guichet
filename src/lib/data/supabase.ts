@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
+import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -52,6 +53,8 @@ type OfferRow = {
   ask: number | null;
   lot_size: number | null;
   settlement_days: number | null;
+  price_source: Offer["priceSource"] | null;
+  hidden: boolean;
   version: number;
   priced_at: string | null;
   result_line: string | null;
@@ -124,6 +127,8 @@ function toOffer(r: OfferRow): Offer {
     ask: u(r.ask) && Number(r.ask),
     lotSize: u(r.lot_size),
     settlementDays: u(r.settlement_days),
+    priceSource: u(r.price_source),
+    hidden: r.hidden || undefined,
     version: r.version,
     pricedAt: u(r.priced_at),
     resultLine: u(r.result_line),
@@ -189,7 +194,7 @@ function fromOffer(o: Offer): OfferRow {
     price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
     min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
     shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
-    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
   };
 }
 
@@ -282,6 +287,53 @@ const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
 const toEvent = (r: EventRow): EventLog => ({ id: r.id, at: r.at, kind: r.kind, html: r.html, intentId: u(r.intent_id), offerId: u(r.offer_id) });
 
 let client: SupabaseClient | undefined;
+type BulletinRow = {
+  session_date: string; number: number; source_url: string | null; file_key: string | null; ingested_at: string; ingested_by: MarketBulletin["ingestedBy"]; status: MarketBulletin["status"];
+  index_value: string | null; index_variation_pct: string | null; counts: MarketBulletin["counts"]; warnings: string[]; anomalies: string[]; notices: string[];
+};
+const toBulletin = (r: BulletinRow): MarketBulletin => ({
+  id: r.session_date, number: r.number, sessionDate: r.session_date, sourceUrl: u(r.source_url), fileKey: u(r.file_key), ingestedAt: r.ingested_at, ingestedBy: r.ingested_by, status: r.status,
+  indexValue: nn(r.index_value), indexVariationPct: nn(r.index_variation_pct), counts: r.counts, warnings: r.warnings ?? [], anomalies: r.anomalies ?? [], notices: r.notices ?? [],
+});
+const fromBulletin = (b: MarketBulletin): BulletinRow => ({
+  session_date: b.sessionDate, number: b.number, source_url: b.sourceUrl ?? null, file_key: b.fileKey ?? null, ingested_at: b.ingestedAt, ingested_by: b.ingestedBy, status: b.status,
+  index_value: b.indexValue != null ? String(b.indexValue) : null, index_variation_pct: b.indexVariationPct != null ? String(b.indexVariationPct) : null, counts: b.counts, warnings: b.warnings, anomalies: b.anomalies, notices: b.notices,
+});
+type QuoteRow = {
+  isin: string; session_date: string; bulletin_no: number; instrument: Quote["instrument"]; mnemo: string; issuer: string; designation: string; segment: Quote["segment"] | null;
+  previous_close: string; previous_date: string; open: string; close: string; threshold_high: string; threshold_low: string; variation_pct: string; reference_next: string;
+  volume_traded: number; value_traded: string; trades: number; status: string; nominal_remaining: string | null; accrued_coupon: string | null; ytd_variation_pct: string | null;
+};
+const N = (v: string | number) => Number(v);
+const nn = (v: string | number | null): number | undefined => (v === null ? undefined : Number(v));
+const toQuote = (r: QuoteRow): Quote => ({
+  isin: r.isin, sessionDate: r.session_date, bulletinNo: r.bulletin_no, instrument: r.instrument, mnemo: r.mnemo, issuer: r.issuer, designation: r.designation, segment: u(r.segment),
+  previousClose: N(r.previous_close), previousDate: r.previous_date, open: N(r.open), close: N(r.close), thresholdHigh: N(r.threshold_high), thresholdLow: N(r.threshold_low), variationPct: N(r.variation_pct),
+  referenceNext: N(r.reference_next), volumeTraded: r.volume_traded, valueTraded: N(r.value_traded), trades: r.trades, status: r.status,
+  nominalRemaining: nn(r.nominal_remaining), accruedCoupon: nn(r.accrued_coupon), ytdVariationPct: r.ytd_variation_pct === null ? null : N(r.ytd_variation_pct),
+});
+const fromQuote = (q: Quote): QuoteRow => ({
+  isin: q.isin, session_date: q.sessionDate, bulletin_no: q.bulletinNo, instrument: q.instrument, mnemo: q.mnemo, issuer: q.issuer, designation: q.designation, segment: q.segment ?? null,
+  previous_close: String(q.previousClose), previous_date: q.previousDate, open: String(q.open), close: String(q.close), threshold_high: String(q.thresholdHigh), threshold_low: String(q.thresholdLow),
+  variation_pct: String(q.variationPct), reference_next: String(q.referenceNext), volume_traded: q.volumeTraded, value_traded: String(q.valueTraded), trades: q.trades, status: q.status,
+  nominal_remaining: q.nominalRemaining != null ? String(q.nominalRemaining) : null, accrued_coupon: q.accruedCoupon != null ? String(q.accruedCoupon) : null, ytd_variation_pct: q.ytdVariationPct != null ? String(q.ytdVariationPct) : null,
+});
+type NavRow = {
+  fund_key: string; nav_date: string; name: string; manager: string; depositary: string; category: FundNav["category"]; frequency: FundNav["frequency"]; nav: string; previous_nav: string | null; previous_date: string | null;
+  nav_origin: string; inception_date: string; perf_since_inception_pct: string; variation_pct: string | null; variation_monthly_pct: string | null; variation_quarterly_pct: string | null; bulletin_no: number; session_date: string;
+};
+const toNav = (r: NavRow): FundNav => ({
+  fundKey: r.fund_key, navDate: r.nav_date, name: r.name, manager: r.manager, depositary: r.depositary, category: r.category, frequency: r.frequency, nav: N(r.nav), previousNav: nn(r.previous_nav),
+  previousDate: u(r.previous_date), navOrigin: N(r.nav_origin), inceptionDate: r.inception_date, perfSinceInceptionPct: N(r.perf_since_inception_pct), variationPct: nn(r.variation_pct),
+  variationMonthlyPct: nn(r.variation_monthly_pct), variationQuarterlyPct: nn(r.variation_quarterly_pct), bulletinNo: r.bulletin_no, sessionDate: r.session_date,
+});
+const numOrNull = (v?: number) => (v != null && Number.isFinite(v) ? String(v) : null);
+const fromNav = (n: FundNav): NavRow => ({
+  fund_key: n.fundKey, nav_date: n.navDate, name: n.name, manager: n.manager, depositary: n.depositary, category: n.category, frequency: n.frequency, nav: String(n.nav), previous_nav: numOrNull(n.previousNav),
+  previous_date: n.previousDate ?? null, nav_origin: String(n.navOrigin), inception_date: n.inceptionDate, perf_since_inception_pct: String(n.perfSinceInceptionPct), variation_pct: numOrNull(n.variationPct),
+  variation_monthly_pct: numOrNull(n.variationMonthlyPct), variation_quarterly_pct: numOrNull(n.variationQuarterlyPct), bulletin_no: n.bulletinNo, session_date: n.sessionDate,
+});
+
 function db(): SupabaseClient {
   if (!client) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -505,5 +557,51 @@ export const supabaseRepository: Repository = {
     // Mirror the essentials onto the profile (name, phone, opt-in, tier).
     await db().from("profiles").update({ display_name: f.identity.name, phone: f.identity.phone ?? null, segment: f.kind, whatsapp_opt_in: Boolean(f.consents.whatsappAt), whatsapp_opt_in_at: f.consents.whatsappAt ?? null, tier: f.status === "approuve" && f.review.custodianAccount ? 2 : 1 }).eq("id", f.userId);
     return f;
+  },
+
+  async listBulletins(limit = 30) {
+    const { data, error } = await db().from("market_bulletins").select("*").order("session_date", { ascending: false }).limit(limit);
+    if (error) fail("listBulletins", error);
+    return (data as BulletinRow[]).map(toBulletin);
+  },
+  async getBulletin(sessionDate) {
+    const { data, error } = await db().from("market_bulletins").select("*").eq("session_date", sessionDate).maybeSingle();
+    if (error) fail("getBulletin", error);
+    return data ? toBulletin(data as BulletinRow) : undefined;
+  },
+  async upsertBulletin(b) {
+    const { data, error } = await db().from("market_bulletins").upsert(fromBulletin(b), { onConflict: "session_date" }).select("*").single();
+    if (error) fail("upsertBulletin", error);
+    return toBulletin(data as BulletinRow);
+  },
+  async upsertQuotes(quotes) {
+    if (!quotes.length) return;
+    const { error } = await db().from("quotes").upsert(quotes.map(fromQuote), { onConflict: "isin,session_date" });
+    if (error) fail("upsertQuotes", error);
+  },
+  async listQuotes(isin, limit = 60) {
+    const { data, error } = await db().from("quotes").select("*").eq("isin", isin).order("session_date", { ascending: false }).limit(limit);
+    if (error) fail("listQuotes", error);
+    return (data as QuoteRow[]).map(toQuote);
+  },
+  async latestQuotes() {
+    const { data, error } = await db().from("latest_quotes").select("*");
+    if (error) fail("latestQuotes", error);
+    return (data as QuoteRow[]).map(toQuote);
+  },
+  async upsertFundNavs(navs) {
+    if (!navs.length) return;
+    const { error } = await db().from("fund_navs").upsert(navs.map(fromNav), { onConflict: "fund_key,nav_date" });
+    if (error) fail("upsertFundNavs", error);
+  },
+  async listFundNavs(fundKey, limit = 60) {
+    const { data, error } = await db().from("fund_navs").select("*").eq("fund_key", fundKey).order("nav_date", { ascending: false }).limit(limit);
+    if (error) fail("listFundNavs", error);
+    return (data as NavRow[]).map(toNav);
+  },
+  async latestFundNavs() {
+    const { data, error } = await db().from("latest_fund_navs").select("*").order("name");
+    if (error) fail("latestFundNavs", error);
+    return (data as NavRow[]).map(toNav);
   },
 };

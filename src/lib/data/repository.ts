@@ -1,5 +1,6 @@
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
+import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -49,6 +50,22 @@ export interface Repository {
   getClientFileByUser(userId: string): Promise<ClientFile | undefined>;
   createClientFile(f: Omit<ClientFile, "id">): Promise<ClientFile>;
   updateClientFile(id: string, patch: Partial<ClientFile>): Promise<ClientFile>;
+
+  /** Market data from the BVMAC bulletin (ingested, never typed). */
+  listBulletins(limit?: number): Promise<MarketBulletin[]>;
+  getBulletin(sessionDate: string): Promise<MarketBulletin | undefined>;
+  upsertBulletin(b: MarketBulletin): Promise<MarketBulletin>;
+  /** Idempotent on (isin, sessionDate). */
+  upsertQuotes(quotes: Quote[]): Promise<void>;
+  /** History of one line, most recent first. */
+  listQuotes(isin: string, limit?: number): Promise<Quote[]>;
+  /** Latest quote of every line. */
+  latestQuotes(): Promise<Quote[]>;
+  /** Idempotent on (fundKey, navDate). */
+  upsertFundNavs(navs: FundNav[]): Promise<void>;
+  listFundNavs(fundKey: string, limit?: number): Promise<FundNav[]>;
+  /** Latest NAV of every fund. */
+  latestFundNavs(): Promise<FundNav[]>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {

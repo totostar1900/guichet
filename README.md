@@ -91,7 +91,9 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Marché secondaire (desk › Marché)
 
-- Lignes cotées (`kind: MARCHE`, BVMAC ou Trésor secondaire ; action ou obligation) : dernier cours, acheteur / vendeur, quantité minimale, règlement T+n — mis à jour par le desk, horodatés sur la fiche. Statut « Cotée » dans le Guichet.
+- **Bulletin Officiel de la Cote (BVMAC), ingéré automatiquement.** La BVMAC n'a pas d'API ; elle publie chaque jour de bourse un PDF à une adresse déterministe (`https://www.bvm-ac.org/wp-content/uploads/AAAA/MM/BOC-AAAAMMJJ.pdf`). `/api/cron/boc` (18 h 30 UTC, jours ouvrés, `vercel.json`, protégé par `CRON_SECRET`) télécharge le bulletin du jour et rattrape les séances de la semaine non encore lues ; le texte est extrait en Node (`pdf-parse`), lu par un parseur déterministe testé sur un bulletin réel (`src/lib/market/boc-parse.ts`), validé (seuils, dates, écarts > 15 % avec la veille, lignes disparues) puis versé dans l'historique des cotations (`quotes`), des VL d'OPCVM (`fund_navs`) et le registre des bulletins (`market_bulletins`). Le PDF est conservé (`sources/boc/`).
+- Chaque action et obligation cotée devient une ligne du Guichet (`kind: MARCHE`, id `boc-<isin>`) avec la clôture du jour, le n° de bulletin en source et la commission par défaut (1 % actions, 0,5 % obligations) ; les lignes existantes sont rafraîchies sans perdre les réglages du desk (commission, fourchette acheteur / vendeur). Le desk peut **masquer** une ligne. La fiche affiche l'historique des clôtures (courbe, seuils, volumes, coupon couru) avec l'attribution « BOC n° … ».
+- Le panneau *Marché* montre le dernier bulletin (indice BVMAC All Share, lignes lues, anomalies à vérifier, avis publiés), permet de relancer une séance ou de **déposer le PDF** reçu par e-mail en secours ; la saisie manuelle d'un cours reste possible mais est marquée « Saisie desk » sur la fiche.
 - Ordres d'achat / vente : quantité, prix limite facultatif (marché sinon), compte-titres requis, vente limitée aux titres détenus. Cycle : reçu → confirmé (ordre de bourse + appel de fonds) → placé → **exécuté** (prix et quantité, partiel possible) → **réglé** (avis d'opéré). Les positions sont nettées des ventes (FIFO).
 
 ## Reporting (desk › Reporting)
@@ -116,5 +118,5 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 ## Prochaines étapes
 
 1. Vérification d'identité automatisée (Smile ID) dans la revue KYC.
-2. Import automatique des cotations BVMAC ; pré-remplissage des ordres depuis les positions.
+2. Souscription / rachat de parts d'OPCVM (fonds lus dans le bulletin) sous conventions de distribution ; pré-remplissage des ordres depuis les positions.
 3. Rapport d'activité périodique en PDF (COSUMAF) à partir du reporting.

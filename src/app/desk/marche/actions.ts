@@ -7,6 +7,7 @@ import { repo } from "@/lib/data";
 import { generateForIntent } from "@/lib/documents/generate";
 import { positionFor } from "@/lib/documents/position";
 import { fmt, fmtPrice } from "@/lib/format";
+import { bocUrl, ingestBoc } from "@/lib/market/boc";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 
 export type MarketResult = { ok: true; message: string } | { ok: false; error: string };
@@ -32,7 +33,7 @@ export async function updateQuoteAction(_p: MarketResult | null, form: FormData)
   const o = await r.getOffer(p.data.offerId);
   if (!o || o.kind !== "MARCHE") return { ok: false, error: "Ligne introuvable." };
   const now = new Date();
-  await r.upsertOffer({ ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: p.data.lastPriceOn || now.toISOString().slice(0, 10), pricedAt: now.toISOString(), version: o.version + 1 });
+  await r.upsertOffer({ ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: p.data.lastPriceOn || now.toISOString().slice(0, 10), pricedAt: now.toISOString(), priceSource: "desk", priceNote: `Cours saisi par le desk (${desk.name}).`, version: o.version + 1 });
   await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> : ${o.instrument === "obligation" ? fmtPrice(p.data.lastPrice) : fmt(p.data.lastPrice) + " FCFA"}${p.data.bid ? ` · acheteur ${p.data.bid}` : ""}${p.data.ask ? ` · vendeur ${p.data.ask}` : ""} · par ${desk.name}` });
   revalidatePath("/");
   revalidatePath("/desk/marche");
@@ -93,4 +94,60 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   revalidatePath("/desk");
   revalidatePath("/moi");
   return { ok: true, message: "Réglé : position mise à jour, avis d'opéré généré." };
+}
+
+/* ---------------- BVMAC bulletin ---------------- */
+
+/** Desk asks for a given session's bulletin (default: today); same path as the cron. */
+export async function ingestBocAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+  const desk = await requireDesk("/desk/marche");
+  const date = String(form.get("sessionDate") ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: "Date de séance invalide." };
+  try {
+    const res = await ingestBoc({ sessionDate: date, by: "desk" });
+    if (!res.found) return { ok: false, error: `Aucun bulletin publié pour le ${date} à l'adresse BVMAC (${bocUrl(date)}). Réessayez plus tard ou déposez le PDF ci-dessous.` };
+    if (res.error) return { ok: false, error: `Bulletin téléchargé mais illisible : ${res.error}.` };
+    revalidatePath("/");
+    revalidatePath("/desk");
+    revalidatePath("/desk/marche");
+    const b = res.bulletin!;
+    return { ok: true, message: `BOC n° ${b.number} du ${date} ingéré par ${desk.name} : ${b.counts.equities} actions, ${b.counts.bonds} obligations, ${b.counts.funds} OPCVM${res.created.length ? ` · ${res.created.length} nouvelle(s) ligne(s)` : ""}${b.anomalies.length ? ` · ${b.anomalies.length} anomalie(s)` : ""}.` };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Ingestion impossible." };
+  }
+}
+
+/** Fallback when the site is down or the URL changed: the desk drops the PDF it received by e-mail. */
+export async function uploadBocAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+  const desk = await requireDesk("/desk/marche");
+  const file = form.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Déposez le PDF du bulletin." };
+  if (file.size > 15 * 1024 * 1024) return { ok: false, error: "PDF trop lourd (15 Mo max)." };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const fromName = file.name.match(/(\d{4})(\d{2})(\d{2})/);
+  const guess = fromName ? `${fromName[1]}-${fromName[2]}-${fromName[3]}` : new Date().toISOString().slice(0, 10);
+  try {
+    const res = await ingestBoc({ sessionDate: guess, bytes, by: "desk", sourceUrl: `upload:${file.name}` });
+    if (res.error) return { ok: false, error: `PDF illisible : ${res.error}.` };
+    revalidatePath("/");
+    revalidatePath("/desk");
+    revalidatePath("/desk/marche");
+    const b = res.bulletin!;
+    return { ok: true, message: `BOC n° ${b.number} du ${b.sessionDate} ingéré depuis le fichier par ${desk.name}${b.anomalies.length ? ` · ${b.anomalies.length} anomalie(s)` : ""}.` };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Ingestion impossible." };
+  }
+}
+
+/** Show or hide an ingested line in the Guichet (it keeps being quoted). */
+export async function toggleHiddenAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/marche");
+  const id = String(form.get("offerId") ?? "");
+  const r = repo();
+  const o = await r.getOffer(id);
+  if (!o || o.kind !== "MARCHE") return;
+  await r.upsertOffer({ ...o, hidden: !o.hidden, version: o.version + 1 });
+  await r.logEvent({ kind: "desk", offerId: o.id, html: `Ligne <b>${o.title}</b> ${o.hidden ? "affichée au" : "masquée du"} Guichet · par ${desk.name}` });
+  revalidatePath("/");
+  revalidatePath("/desk/marche");
 }

@@ -90,6 +90,8 @@ export interface Offer {
   ask?: number;
   lotSize?: number; // minimum quantity
   settlementDays?: number; // T+n
+  priceSource?: "boc" | "desk"; // where lastPrice comes from: the ingested bulletin, or a desk fallback entry
+  hidden?: boolean; // ingested line the desk chose not to show in the Guichet
 
   // publication
   version: number;

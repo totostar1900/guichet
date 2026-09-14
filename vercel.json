@@ -1,8 +1,6 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/coupons",
-      "schedule": "0 7 * * *"
-    }
+    { "path": "/api/cron/coupons", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/boc", "schedule": "30 18 * * 1-5" }
   ]
 }

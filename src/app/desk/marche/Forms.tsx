@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { executeOrderAction, settleOrderAction, updateQuoteAction, type MarketResult } from "./actions";
+import { executeOrderAction, ingestBocAction, settleOrderAction, toggleHiddenAction, updateQuoteAction, uploadBocAction, type MarketResult } from "./actions";
 import styles from "./page.module.css";
 
 function Msg({ state }: { state: MarketResult | null }) {
@@ -50,6 +50,43 @@ export function SettleButton({ intentId }: { intentId: string }) {
         {pending ? "…" : "Réglé"}
       </button>
       <Msg state={state} />
+    </form>
+  );
+}
+
+export function IngestForm({ defaultDate }: { defaultDate: string }) {
+  const [state, action, pending] = useActionState<MarketResult | null, FormData>(ingestBocAction, null);
+  return (
+    <form action={action} className={styles.inline}>
+      <input name="sessionDate" type="date" defaultValue={defaultDate} aria-label="Séance" className={styles.date} required />
+      <button className="btn sm primary" type="submit" disabled={pending}>
+        {pending ? "Téléchargement et lecture…" : "Ingérer le bulletin"}
+      </button>
+      <Msg state={state} />
+    </form>
+  );
+}
+
+export function UploadForm() {
+  const [state, action, pending] = useActionState<MarketResult | null, FormData>(uploadBocAction, null);
+  return (
+    <form action={action} className={styles.inline}>
+      <input name="file" type="file" accept="application/pdf" aria-label="PDF du bulletin" className={styles.date} required />
+      <button className="btn sm" type="submit" disabled={pending}>
+        {pending ? "Lecture…" : "Lire ce PDF"}
+      </button>
+      <Msg state={state} />
+    </form>
+  );
+}
+
+export function HideButton({ offerId, hidden }: { offerId: string; hidden: boolean }) {
+  return (
+    <form action={toggleHiddenAction} className={styles.inline}>
+      <input type="hidden" name="offerId" value={offerId} />
+      <button className="btn sm" type="submit" title={hidden ? "Réafficher cette ligne dans le Guichet" : "Masquer cette ligne du Guichet (elle reste cotée ici)"}>
+        {hidden ? "Afficher" : "Masquer"}
+      </button>
     </form>
   );
 }

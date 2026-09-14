@@ -212,7 +212,7 @@ export const SEED_OFFERS: Offer[] = [
     countryName: "Gabon · BVMAC",
     issuer: "BGFI Holding Corporation S.A.",
     title: "BGFI Holding — augmentation de capital (2e tranche)",
-    isin: "BHC · BVMAC",
+    isin: "GA0000010074",
     status: "published",
     blurb:
       "1 006 975 actions nouvelles à 80 000 FCFA, pour porter le flottant de 3,86 % à 10 %. Premier dividende 2 500 FCFA/action (3,12 % sur le prix d'introduction). Cours au 26 août : 90 000 FCFA.",
@@ -243,7 +243,7 @@ export const SEED_OFFERS: Offer[] = [
     countryName: "Gabon · BVMAC",
     issuer: "BGFI Holding Corporation S.A.",
     title: "BGFI Holding (BHC) — action cotée",
-    isin: "BHC · BVMAC",
+    isin: "GA0000010074",
     status: "published",
     blurb: "Action BGFI Holding cotée à la BVMAC depuis le 26 août 2026. Premier dividende 2 500 FCFA. Ordres d'achat et de vente exécutés au marché, règlement T+3.",
     documents: [{ name: "Fiche valeur BVMAC", meta: "Lien" }],
@@ -304,7 +304,7 @@ export const SEED_OFFERS: Offer[] = [
     countryName: "Gabon · BVMAC",
     issuer: "BGFI Holding Corporation S.A.",
     title: "BGFI Holding — introduction en bourse (1re tranche)",
-    isin: "BHC · BVMAC",
+    isin: "GA0000010074",
     status: "live",
     blurb:
       "Première tranche close en avril 2026. Le titre est coté à la BVMAC depuis le 26 août ; un premier dividende de 2 500 FCFA a été versé.",

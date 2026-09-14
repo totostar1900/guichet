@@ -4,6 +4,6 @@ import { repo } from "@/lib/data";
 export const dynamic = "force-dynamic";
 
 export default async function GuichetPage() {
-  const offers = await repo().listOffers();
+  const offers = (await repo().listOffers()).filter((o) => !o.hidden);
   return <OfferBrowser offers={offers} nowIso={new Date().toISOString()} />;
 }

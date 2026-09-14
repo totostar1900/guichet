@@ -1,6 +1,7 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
+import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -19,6 +20,9 @@ interface Store {
   contacts: Contact[];
   notifications: Notification[];
   clientFiles: ClientFile[];
+  bulletins: MarketBulletin[];
+  quotes: Quote[];
+  fundNavs: FundNav[];
   seq: number;
 }
 
@@ -40,6 +44,9 @@ function store(): Store {
       contacts: structuredClone(SEED_CONTACTS),
       notifications: [],
       clientFiles: [],
+      bulletins: [],
+      quotes: [],
+      fundNavs: [],
       seq: 17,
     };
   }
@@ -49,6 +56,9 @@ function store(): Store {
   if (!g.__guichetStore.contacts) g.__guichetStore.contacts = structuredClone(SEED_CONTACTS);
   if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
   if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = [];
+  if (!g.__guichetStore.bulletins) g.__guichetStore.bulletins = [];
+  if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
+  if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
   return g.__guichetStore;
 }
 
@@ -244,5 +254,58 @@ export const memoryRepository: Repository = {
       c.whatsappOptIn = Boolean(f.consents.whatsappAt);
     }
     return structuredClone(f);
+  },
+
+  async listBulletins(limit = 30) {
+    return structuredClone([...store().bulletins].sort((a, b) => b.sessionDate.localeCompare(a.sessionDate)).slice(0, limit));
+  },
+  async getBulletin(sessionDate) {
+    const b = store().bulletins.find((x) => x.sessionDate === sessionDate);
+    return b ? structuredClone(b) : undefined;
+  },
+  async upsertBulletin(b) {
+    const s = store();
+    const i = s.bulletins.findIndex((x) => x.sessionDate === b.sessionDate);
+    if (i >= 0) s.bulletins[i] = structuredClone(b);
+    else s.bulletins.push(structuredClone(b));
+    return structuredClone(b);
+  },
+  async upsertQuotes(quotes) {
+    const s = store();
+    for (const q of quotes) {
+      const i = s.quotes.findIndex((x) => x.isin === q.isin && x.sessionDate === q.sessionDate);
+      if (i >= 0) s.quotes[i] = structuredClone(q);
+      else s.quotes.push(structuredClone(q));
+    }
+  },
+  async listQuotes(isin, limit = 60) {
+    return structuredClone(store().quotes.filter((q) => q.isin === isin).sort((a, b) => b.sessionDate.localeCompare(a.sessionDate)).slice(0, limit));
+  },
+  async latestQuotes() {
+    const latest = new Map<string, Quote>();
+    for (const q of store().quotes) {
+      const cur = latest.get(q.isin);
+      if (!cur || q.sessionDate > cur.sessionDate) latest.set(q.isin, q);
+    }
+    return structuredClone([...latest.values()]);
+  },
+  async upsertFundNavs(navs) {
+    const s = store();
+    for (const n of navs) {
+      const i = s.fundNavs.findIndex((x) => x.fundKey === n.fundKey && x.navDate === n.navDate);
+      if (i >= 0) s.fundNavs[i] = structuredClone(n);
+      else s.fundNavs.push(structuredClone(n));
+    }
+  },
+  async listFundNavs(fundKey, limit = 60) {
+    return structuredClone(store().fundNavs.filter((n) => n.fundKey === fundKey).sort((a, b) => b.navDate.localeCompare(a.navDate)).slice(0, limit));
+  },
+  async latestFundNavs() {
+    const latest = new Map<string, FundNav>();
+    for (const n of store().fundNavs) {
+      const cur = latest.get(n.fundKey);
+      if (!cur || n.navDate > cur.navDate) latest.set(n.fundKey, n);
+    }
+    return structuredClone([...latest.values()].sort((a, b) => a.name.localeCompare(b.name)));
   },
 };

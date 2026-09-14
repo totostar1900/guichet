@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FlowsChart } from "@/components/FlowsChart";
+import { QuoteHistory } from "@/components/QuoteHistory";
 import { IntentForm } from "@/components/IntentForm";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -211,13 +212,14 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
+  const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
   const st = displayStatus(o);
   const past = isPast(st);
   const types = allowedIntents(o, st);
   const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
 
-  const stampPending = Boolean(o.priceNote || o.rateNote);
-  const stamp = o.kind === "MARCHE" ? `Cours mis à jour par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}` : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
+  const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
+  const stamp = o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
   const priceText = o.kind === "MARCHE" ? `cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}` : o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
@@ -295,6 +297,14 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <Link href="/simulateur">simulateur</Link>.
           </p>
         </section>
+
+        {quotes.length > 0 && (
+          <section className={styles.sec}>
+            <h3>Au bulletin de la BVMAC</h3>
+            <QuoteHistory quotes={quotes} />
+            <p className={styles.note}>Cours de clôture publiés par la Bourse des Valeurs Mobilières de l&apos;Afrique Centrale, repris chaque jour de bourse sans retraitement. Ils ne préjugent pas du prix auquel votre ordre sera exécuté.</p>
+          </section>
+        )}
 
         <section className={styles.sec}>
           <h3>Calendrier</h3>
