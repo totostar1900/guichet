@@ -157,3 +157,20 @@ describe("BOC n° 2421 du 05/01/2026 — older dense layout", () => {
     expect(b.warnings.filter((w) => /Obligation|Action/.test(w))).toEqual([]);
   });
 });
+
+describe("BOC n° 2551 du 15/07/2026 — issuer glued to the ISIN, traded dense rows", () => {
+  const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260715.txt", import.meta.url), "utf8"));
+  it("reads all seven equities including La Régionale and BHC", () => {
+    expect(b.equities.map((e) => e.mnemo).sort()).toEqual(["BANGE", "BHC", "REG", "SAF", "SCGRE", "SEMC", "SOCAP"]);
+    const bhc = b.equities.find((e) => e.mnemo === "BHC")!;
+    expect(bhc.close).toBe(86000);
+    expect(bhc.status).toBe("PEq");
+    expect(bhc.valueTraded).toBe(18_748_000);
+    expect(bhc.trades).toBe(2);
+    expect(bhc.volumeTraded).toBe(218);
+    expect(bhc.ytdVariationPct).toBeNull();
+    const reg = b.equities.find((e) => e.mnemo === "REG")!;
+    expect(reg.close).toBe(39000);
+    expect(reg.issuer).toMatch(/REGIONALE/);
+  });
+});

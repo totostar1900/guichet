@@ -180,7 +180,7 @@ function parseCapitalisation(lines: string[], warnings: string[]): BocCapitalisa
 }
 
 /* ---------------- Actions ---------------- */
-const ISIN_LOOSE = /^([A-Z]{2})\s?(\d{10})(.*)$/;
+const ISIN_LOOSE = /^(.*?)([A-Z]{2})\s?(\d{10})(.*)$/;
 const MNEMO_BY_ISIN: Record<string, string> = { CM0000010009: "SEMC", CM0000010017: "SAF", CM0000010025: "SOCAP", CM0000010041: "REG", GQ0000010050: "BANGE", GA0000010066: "SCGRE", GA0000010074: "BHC" };
 // An amount printed with thousand spaces: "49 000", "228 085", "1 250" or a small "800".
 const AMT = "(?:[1-9]\\d{0,2}(?: \\d{3})*|0)";
@@ -190,19 +190,45 @@ const EQ_DENSE = new RegExp("^(" + AMT + ")(\\d{2}/\\d{2}/\\d{4})([\\d ]*?)([A-Z
 function parseEquityDense(isin: string, issuer: string, line: string): BocEquity | undefined {
   const m = line.replace(/\s+/g, " ").trim().match(EQ_DENSE);
   if (!m) return undefined;
-  const vols = m[3].replace(/\s/g, "");
+  // Volumes are glued without separators. When the line traded (PEq) the value keeps its thousand
+  // spaces and the trade count is the last digit: "…41821818 748 0002" → the split is chosen so that
+  // value / volume falls inside the session's price band (here 18 748 000 / 218 = 86 000).
+  const low = num(m[8]);
+  const high = num(m[7]);
+  let valueTraded = 0;
+  let volumeTraded = 0;
+  let trades = 0;
+  if (m[4] !== "NC") {
+    const v = m[3].trim();
+    const tr = v.match(/(\d)$/);
+    const body = tr ? v.slice(0, -1) : v;
+    outer: for (const lead of [1, 2, 3]) {
+      const mv = body.match(new RegExp(`(\\d{${lead}}(?: \\d{3})+)$`));
+      if (!mv) continue;
+      const value = num(mv[1]);
+      const before = body.slice(0, -mv[1].length).replace(/\s/g, "");
+      for (let len = 1; len <= Math.min(6, before.length); len++) {
+        const vol = Number(before.slice(-len));
+        if (vol > 0 && value / vol >= low * 0.98 && value / vol <= high * 1.02) {
+          valueTraded = value;
+          volumeTraded = vol;
+          trades = tr ? Number(tr[1]) : 1;
+          break outer;
+        }
+      }
+    }
+  }
   return {
     isin,
     mnemo: MNEMO_BY_ISIN[isin] ?? "",
     issuer,
     previousClose: num(m[1]),
     previousDate: isoDate(m[2]),
-    // volumes are printed without separators in this layout: only the trade count is unambiguous
     volumeBid: 0,
     volumeAsk: 0,
-    volumeTraded: 0,
-    valueTraded: 0,
-    trades: vols ? Number(vols.slice(-1)) : 0,
+    volumeTraded,
+    valueTraded,
+    trades,
     status: m[4],
     open: num(m[5]),
     close: num(m[6]),
@@ -227,8 +253,8 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
   const section = lines.slice(start, end > start ? end : undefined);
   for (let i = 0; i < section.length; i++) {
     const loose = section[i].match(ISIN_LOOSE);
-    if (!loose) continue;
-    const isin = `${loose[1]}${loose[2]}`;
+    if (!loose || /\d{2}\/\d{2}\/\d{4}/.test(section[i])) continue;
+    const isin = `${loose[2]}${loose[3]}`;
     // issuer = the non-empty lines just above, until a previous row's trailing number
     const issuerLines: string[] = [];
     for (let j = i - 1; j >= 0 && j >= i - 3; j--) {
@@ -236,7 +262,7 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
       if (!l || /^[\d\s,.%-]+$/.test(l) || ISIN_LOOSE.test(l) || /^(Haut|Bas|Variation)\b/.test(l) || /\d{2}\/\d{2}\/\d{4}/.test(l)) break;
       issuerLines.unshift(l);
     }
-    const issuer = issuerLines.join(" ").replace(/\s+/g, " ").trim();
+    const issuer = [...issuerLines, loose[1]].join(" ").replace(/\s+/g, " ").trim();
     // Older layout: the whole row sits on the next 1–2 lines (prev close glued to the date).
     let dense: BocEquity | undefined;
     for (let k = 1; k <= 2 && !dense; k++) {
