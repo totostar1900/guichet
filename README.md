@@ -25,6 +25,12 @@ Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (m
 
 `npm run seed:sql` régénère `supabase/seed.sql` depuis `src/data/seed.ts`.
 
+## Le Guichet (page d'accueil)
+
+- Une barre de filtres (Instrument, Pays, Statut, Durée, Rendement ≥ — menus à cases avec compteur) et une recherche plein texte ; trois vues des mêmes lignes : **Tableau** (défaut sur ordinateur, plat, triable par en-tête), **Liste** (défaut sur mobile) et **Cartes**. Filtres, tri, sens et vue vivent dans l'URL (`?instrument=OTA,MARCHE&statut=open&tri=yield&sens=desc&vue=table`), donc une vue filtrée se partage sur WhatsApp.
+- Ce que chaque ligne affiche par instrument (chiffre-héros, condition, coupon, échéance, minimum, action) est calculé une fois dans `src/lib/domain/summary.ts` et partagé par les trois vues.
+- Typographie : une seule famille (Manrope, chiffres tabulaires) ; l'or est réservé au rendement actionnable, le navy à la barre et au bouton principal, les couleurs de statut aux pastilles.
+
 ## Structure
 
 ```

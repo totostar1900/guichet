@@ -5,14 +5,14 @@
   --gold: #b8860b;
   --gold-ink: #8a6408;
   --gold-soft: #fbf1da;
-  --paper: #f5f3ed;
+  --paper: #f6f7f9;
   --surface: #ffffff;
-  --surface-2: #eef1f6;
-  --line: #dce1ea;
-  --line-2: #c3cbd9;
-  --ink: #14213a;
-  --ink-2: #4a5568;
-  --ink-3: #7c8797;
+  --surface-2: #f0f2f5;
+  --line: #e5e7eb;
+  --line-2: #d1d5db;
+  --ink: #111827;
+  --ink-2: #4b5563;
+  --ink-3: #6b7280;
   --on-navy: #ffffff;
   --on-navy-2: #b9c6da;
   --fill: #0b2545;
@@ -29,11 +29,12 @@
   --neutral-soft: #e8ebf0;
   --chart-out: #0b2545;
   --chart-in: #c9962b;
-  --radius: 6px;
-  --shadow: 0 10px 30px rgba(11, 37, 69, 0.12);
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
+  --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* Legacy aliases — every face is the same family now. */
+  --font-display: var(--font-ui);
+  --font-mono: var(--font-ui);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -106,6 +107,7 @@ body {
   color: var(--ink);
   font-family: var(--font-ui);
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 button,
@@ -136,33 +138,33 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 .mono {
-  font-family: var(--font-mono);
   font-size: 0.82em;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 .eyebrow {
   font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--gold-ink);
+  color: var(--ink-3);
 }
 .muted {
   color: var(--ink-3);
 }
 .display {
-  font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 /* ---------- shared primitives ---------- */
 .btn {
   border: 1px solid var(--line-2);
   background: var(--surface);
-  border-radius: var(--radius);
-  padding: 7px 12px;
+  border-radius: 999px;
+  padding: 7px 14px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
   text-decoration: none;
@@ -195,11 +197,11 @@ h3 {
 }
 
 .pill {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
   border-radius: 999px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -236,13 +238,13 @@ h3 {
 }
 
 .cc {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
+  font-weight: 800;
   background: var(--neutral-soft);
   color: var(--ink-2);
   padding: 2px 6px;
-  border-radius: 3px;
-  letter-spacing: 0.06em;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
 }
 .tag-ex {
   font-size: 0.65rem;

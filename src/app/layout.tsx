@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { IBM_Plex_Mono, Inter, Playfair_Display } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 import styles from "./layout.module.css";
 import { COMPANY, DISCLAIMER, PRODUCT } from "@/lib/config";
@@ -9,9 +9,8 @@ import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
 
-const display = Playfair_Display({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display", display: "swap" });
-const ui = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-ui", display: "swap" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500"], variable: "--font-mono", display: "swap" });
+// One family for everything — display, text and figures — with tabular numerals; see globals.css.
+const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: `${PRODUCT.name} · ${COMPANY.name}`, template: `%s · ${PRODUCT.name}` },
@@ -22,7 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const backend = backendName();
   const session = await getSession();
   return (
-    <html lang="fr" className={`${display.variable} ${ui.variable} ${mono.variable}`}>
+    <html lang="fr" className={ui.variable}>
       <body>
         <header className={styles.top}>
           <div className={styles.topIn}>
