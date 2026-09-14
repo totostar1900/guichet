@@ -5,6 +5,8 @@ import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
+import { generateForIntent } from "@/lib/documents/generate";
+import { docsForTransition } from "@/lib/documents/registry";
 
 const schema = z.object({
   intentId: z.string().min(1),
@@ -29,5 +31,14 @@ export async function transitionIntent(form: FormData): Promise<void> {
     offerId: updated.offerId,
     html: `${updated.ref} (${updated.clientName}) — <b>${INTENT_STATE_LABEL[state]}</b>${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
   });
+  // The lifecycle produces its paperwork: bulletin + appel de fonds on confirmation, avis on results, avis d'opéré on settlement.
+  for (const type of docsForTransition(updated.type, state)) {
+    try {
+      await generateForIntent(type, intentId, { advisor: desk.name });
+    } catch (e) {
+      await r.logEvent({ kind: "system", intentId, html: `Document non généré (${type}) : ${e instanceof Error ? e.message : "erreur"}` });
+    }
+  }
   revalidatePath("/desk");
+  revalidatePath("/desk/documents");
 }

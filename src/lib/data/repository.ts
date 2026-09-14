@@ -1,4 +1,4 @@
-import type { EventLog, IntakeItem, Intent, IntentState, NewIntentInput, Offer } from "@/lib/domain/types";
+import type { EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Offer } from "@/lib/domain/types";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -24,6 +24,12 @@ export interface Repository {
   updateIntake(id: string, patch: Partial<IntakeItem>): Promise<IntakeItem>;
   /** Create or replace a whole offer (publication from a draft). */
   upsertOffer(offer: Offer): Promise<Offer>;
+
+  /** Generated documents (PDFs on the letterhead). */
+  listDocuments(): Promise<GeneratedDocument[]>;
+  getDocument(id: string): Promise<GeneratedDocument | undefined>;
+  createDocument(doc: Omit<GeneratedDocument, "id">): Promise<GeneratedDocument>;
+  updateDocument(id: string, patch: Partial<GeneratedDocument>): Promise<GeneratedDocument>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {

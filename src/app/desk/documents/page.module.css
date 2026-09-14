@@ -1,0 +1,48 @@
+.right {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.gen {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.genForm {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.alloc {
+  width: 56px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.err {
+  font-size: 0.72rem;
+  color: var(--crit);
+}
+.st {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.st_new {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.st_sent {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.st_ok {
+  background: var(--good-soft);
+  color: var(--good);
+}

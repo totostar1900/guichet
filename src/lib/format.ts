@@ -31,3 +31,6 @@ export const fmtMillions = (n: number): string => `${nf.format(Math.round(n / 1e
 
 /** "10 000 000" → 10000000 */
 export const parseAmount = (s: string | null | undefined): number => Number(String(s ?? "").replace(/[^\d]/g, "")) || 0;
+
+/** YYYY-MM-DD in local time (toISOString would shift the day in UTC+1). */
+export const localIso = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

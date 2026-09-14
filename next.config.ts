@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // PDF rendering runs in Node on the server; keep the package out of the bundler.
+  serverExternalPackages: ["@react-pdf/renderer"],
 };
 
 export default nextConfig;

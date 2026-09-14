@@ -1,5 +1,5 @@
 import { SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import type { EventLog, IntakeItem, Intent, Offer } from "@/lib/domain/types";
+import type { EventLog, GeneratedDocument, IntakeItem, Intent, Offer } from "@/lib/domain/types";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -14,6 +14,7 @@ interface Store {
   intents: Intent[];
   events: EventLog[];
   intake: IntakeItem[];
+  documents: GeneratedDocument[];
   seq: number;
 }
 
@@ -31,11 +32,13 @@ function store(): Store {
         { id: "e4", at: "2026-09-14T08:41:00", kind: "intent", html: "<b>Appétit</b> reçu d'Assur-Vie Centrale sur OTA 6,50 % · 12 août 2029 · 200 000 000 FCFA · réf. AP-0914-014" },
       ],
       intake: structuredClone(SEED_INTAKE),
+      documents: [],
       seq: 17,
     };
   }
   // Dev hot-reload can keep an older store shape around.
   if (!g.__guichetStore.intake) g.__guichetStore.intake = structuredClone(SEED_INTAKE);
+  if (!g.__guichetStore.documents) g.__guichetStore.documents = [];
   return g.__guichetStore;
 }
 
@@ -139,5 +142,25 @@ export const memoryRepository: Repository = {
     if (i < 0) s.offers.push(structuredClone(offer));
     else s.offers[i] = structuredClone(offer);
     return structuredClone(offer);
+  },
+
+  async listDocuments() {
+    return structuredClone(store().documents);
+  },
+  async getDocument(id) {
+    const d = store().documents.find((x) => x.id === id);
+    return d ? structuredClone(d) : undefined;
+  },
+  async createDocument(doc) {
+    const d: GeneratedDocument = { id: uid(), ...doc };
+    store().documents.unshift(d);
+    return structuredClone(d);
+  },
+  async updateDocument(id, patch) {
+    const s = store();
+    const i = s.documents.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error(`Document ${id} not found`);
+    s.documents[i] = { ...s.documents[i], ...patch };
+    return structuredClone(s.documents[i]);
   },
 };

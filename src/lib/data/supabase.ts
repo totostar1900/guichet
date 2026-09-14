@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { EventLog, IntakeItem, Intent, IntentState, Offer } from "@/lib/domain/types";
+import type { EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Offer } from "@/lib/domain/types";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -172,6 +172,35 @@ function fromOffer(o: Offer): OfferRow {
   };
 }
 
+type DocRow = {
+  id: string; type: GeneratedDocument["type"]; number: string; title: string; intent_id: string | null; offer_id: string | null; client_name: string | null;
+  auction_key: string | null; file_key: string; status: GeneratedDocument["status"]; sent_via: string[] | null; sent_at: string | null; signed_at: string | null;
+  created_at: string; created_by: string | null;
+};
+const toDoc = (r: DocRow): GeneratedDocument => ({
+  id: r.id, type: r.type, number: r.number, title: r.title, intentId: u(r.intent_id), offerId: u(r.offer_id), clientName: u(r.client_name),
+  auctionKey: u(r.auction_key), fileKey: r.file_key, status: r.status, sentVia: u(r.sent_via), sentAt: u(r.sent_at), signedAt: u(r.signed_at),
+  createdAt: r.created_at, createdBy: u(r.created_by),
+});
+const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
+  const row: Partial<DocRow> = {};
+  if (p.type !== undefined) row.type = p.type;
+  if (p.number !== undefined) row.number = p.number;
+  if (p.title !== undefined) row.title = p.title;
+  if (p.intentId !== undefined) row.intent_id = p.intentId;
+  if (p.offerId !== undefined) row.offer_id = p.offerId;
+  if (p.clientName !== undefined) row.client_name = p.clientName;
+  if (p.auctionKey !== undefined) row.auction_key = p.auctionKey;
+  if (p.fileKey !== undefined) row.file_key = p.fileKey;
+  if (p.status !== undefined) row.status = p.status;
+  if (p.sentVia !== undefined) row.sent_via = p.sentVia;
+  if (p.sentAt !== undefined) row.sent_at = p.sentAt;
+  if (p.signedAt !== undefined) row.signed_at = p.signedAt;
+  if (p.createdAt !== undefined) row.created_at = p.createdAt;
+  if (p.createdBy !== undefined) row.created_by = p.createdBy;
+  return row;
+};
+
 const toEvent = (r: EventRow): EventLog => ({ id: r.id, at: r.at, kind: r.kind, html: r.html, intentId: u(r.intent_id), offerId: u(r.offer_id) });
 
 let client: SupabaseClient | undefined;
@@ -306,5 +335,26 @@ export const supabaseRepository: Repository = {
     if (error) fail("upsertOffer", error);
     await db().from("offer_versions").upsert({ offer_id: offer.id, version: offer.version, price_pct: offer.pricePct ?? null, precount_rate: offer.precountRate ?? null, commission_pct: offer.commissionPct, min_titles: offer.minTitles ?? null }, { onConflict: "offer_id,version" });
     return toOffer(data as OfferRow);
+  },
+
+  async listDocuments() {
+    const { data, error } = await db().from("documents").select("*").order("created_at", { ascending: false });
+    if (error) fail("listDocuments", error);
+    return (data as DocRow[]).map(toDoc);
+  },
+  async getDocument(id) {
+    const { data, error } = await db().from("documents").select("*").eq("id", id).maybeSingle();
+    if (error) fail("getDocument", error);
+    return data ? toDoc(data as DocRow) : undefined;
+  },
+  async createDocument(doc) {
+    const { data, error } = await db().from("documents").insert(fromDoc(doc)).select("*").single();
+    if (error) fail("createDocument", error);
+    return toDoc(data as DocRow);
+  },
+  async updateDocument(id, patch) {
+    const { data, error } = await db().from("documents").update(fromDoc(patch)).eq("id", id).select("*").single();
+    if (error) fail("updateDocument", error);
+    return toDoc(data as DocRow);
   },
 };

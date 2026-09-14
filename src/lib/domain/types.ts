@@ -182,3 +182,27 @@ export interface IntakeItem {
   extractedIn?: number; // seconds
   notes?: string;
 }
+
+/* ---------------- Documents ---------------- */
+
+export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere";
+export type DocumentStatus = "genere" | "envoye" | "signe";
+
+export interface GeneratedDocument {
+  id: string;
+  type: DocumentType;
+  number: string; // PC-BUL-2026-0018
+  title: string; // shown in lists
+  intentId?: string;
+  offerId?: string;
+  clientName?: string;
+  /** For a bordereau: the deadline that groups the auction's lines. */
+  auctionKey?: string;
+  fileKey: string; // storage key of the PDF
+  status: DocumentStatus;
+  sentVia?: string[];
+  sentAt?: string;
+  signedAt?: string;
+  createdAt: string;
+  createdBy?: string;
+}

@@ -45,6 +45,13 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 - Le desk fixe **prix (ou taux indicatif), commission, ticket minimum, segment, canaux** ; l'aperçu client se recalcule en direct. **Publier** crée ou met à jour l'offre (version +1, horodatage) et journalise la diffusion. Une photo ou un message transféré reste **bloqué** tant que « source officielle jointe » n'est pas coché.
 - Tester l'extracteur hors application : `npm run extract:test -- "chemin/communique.pdf"`.
 
+## Documents (desk)
+
+- PDF sur papier à en-tête, rendus côté serveur (`@react-pdf/renderer`, polices intégrées) depuis les lignes : `src/lib/documents/pdf/templates.tsx` (bulletin d'ordre, appel de fonds, ordre de cession, avis de résultat / non-allocation, avis d'opéré, bordereau SVT + annexe par client). Les montants viennent d'un seul calcul, `src/lib/documents/position.ts`.
+- **Déclenchés par le cycle de vie** (`docsForTransition`) : confirmée → bulletin + appel de fonds (ou ordre de cession) ; servie / non servie → avis ; réglée → avis d'opéré. Le bordereau se génère depuis **/desk/documents** par adjudication et passe les ordres en « transmise ».
+- Numérotation `PC-<PREFIXE>-<année>-<n>`, original conservé (`docs/…pdf`), états généré → envoyé (WhatsApp / e-mail) → signé. Un client ne voit que ses documents (`/desk/documents/pdf/[id]`, RLS sur `documents`).
+- Coordonnées de règlement : `SETTLEMENT_BANK` / `SETTLEMENT_IBAN` ; SVT par pays dans `src/lib/config.ts`.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -61,6 +68,5 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Documents : bulletin d'ordre, appel de fonds, bordereau SVT, avis de résultat, avis d'opéré.
-2. Diffusion WhatsApp (Cloud API) et e-mail à la publication ; Realtime sur le desk.
-3. Onboarding client, KYC, ouverture de compte-titres.
+1. Diffusion WhatsApp (Cloud API) et e-mail à la publication ; Realtime sur le desk.
+2. Onboarding client, KYC, ouverture de compte-titres.
