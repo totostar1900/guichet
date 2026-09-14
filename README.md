@@ -38,6 +38,13 @@ src/
 supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS, realtime)
 ```
 
+## Intake « À valider » (desk)
+
+- Une source (PDF, photo, e-mail collé) est déposée depuis **/desk/a-valider → Nouvelle source**. L'original est conservé (`.uploads/` en démo, bucket privé `sources` sur Supabase).
+- Avec `ANTHROPIC_API_KEY` dans `.env.local`, les champs sont extraits par Claude (`src/lib/intake/extract.ts`, sorties structurées) avec une confiance par champ : vert = lu, orange = déduit (à vérifier), rouge = absent. Sans clé, le desk saisit les champs à la main.
+- Le desk fixe **prix (ou taux indicatif), commission, ticket minimum, segment, canaux** ; l'aperçu client se recalcule en direct. **Publier** crée ou met à jour l'offre (version +1, horodatage) et journalise la diffusion. Une photo ou un message transféré reste **bloqué** tant que « source officielle jointe » n'est pas coché.
+- Tester l'extracteur hors application : `npm run extract:test -- "chemin/communique.pdf"`.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -54,7 +61,6 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 ## Prochaines étapes
 
-1. Desk « À valider » : intake des communiqués (e-mail, PDF, photo) → extraction → publication.
-2. Documents : bulletin d'ordre, appel de fonds, bordereau SVT, avis de résultat, avis d'opéré.
-3. Diffusion WhatsApp (Cloud API) et e-mail à la publication ; Realtime sur le desk.
-4. Onboarding client, KYC, ouverture de compte-titres.
+1. Documents : bulletin d'ordre, appel de fonds, bordereau SVT, avis de résultat, avis d'opéré.
+2. Diffusion WhatsApp (Cloud API) et e-mail à la publication ; Realtime sur le desk.
+3. Onboarding client, KYC, ouverture de compte-titres.

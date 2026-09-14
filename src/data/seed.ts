@@ -1,4 +1,4 @@
-import type { Intent, Offer } from "@/lib/domain/types";
+import type { IntakeItem, Intent, Offer } from "@/lib/domain/types";
 
 /**
  * Seed offers — the real September 2026 deal flow, from:
@@ -374,5 +374,158 @@ export const SEED_INTENTS: Intent[] = [
     state: "recue",
     createdAt: "2026-09-14T09:18:00",
     updatedAt: "2026-09-14T09:18:00",
+  },
+];
+
+/** Intake queue — sources received this week, as the extractor would leave them. */
+export const SEED_INTAKE: IntakeItem[] = [
+  {
+    id: "q-cg-ota",
+    source: "mail",
+    title: "Communiqué OTA 6 ans Congo — n° 000473/MFBPP",
+    fromLabel: "dobm@tresor-congo.cg · ven. 11 sept. 16:20",
+    receivedAt: "2026-09-11T16:20:00",
+    state: "a_valider",
+    offerId: "cg-ota-2028",
+    extractedIn: 41,
+    rawText: `MINISTÈRE DES FINANCES, DU BUDGET ET DU PORTEFEUILLE PUBLIC — DIRECTION GÉNÉRALE DU TRÉSOR — DOBM
+N° 000473 / MFBPP/DGT/DGAT/DOBM/SOMD — Brazzaville, le 11 sept. 2026
+
+COMMUNIQUÉ D'ANNONCE — ÉMISSION DES OBLIGATIONS DU TRÉSOR
+
+Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 2026 à l'émission par voie d'adjudication, des Obligations du Trésor assimilables par abondement dont les caractéristiques sont les suivantes :
+• Désignation : Obligations du trésor à 6 ans
+• Code Émission : CG2L00000012 OTA 6 ans 6,00% - 31 MARS 2028
+• Échéance : 31 mars 2028
+• Remboursement : In fine
+• Forme des titres : Titres dématérialisés
+• Volume d'émission (en millions de FCFA) : 10 000
+• Valeur nominale unitaire (en FCFA) : 10 000
+• Rendement : 6.00% du nominal (les intérêts sont payés annuellement)
+• Date limite de souscription : Mardi 15 septembre 2026
+• Lieu de souscription : auprès des banques et établissements financiers de la CEMAC agréés comme « Spécialistes en Valeurs du Trésor »
+• Date d'annonce des résultats : Mardi 15 septembre 2026 avant 15 h 00
+• Date de règlement : Jeudi 17 septembre 2026 avant 15 h 00
+• Date de valeur : Jeudi 17 septembre 2026 avant 15 h 00
+
+Les personnes physiques ou morales souhaitant acquérir ces titres doivent s'adresser aux établissements de crédit suivants : Afriland First Bank, BGFI Bank, CCEI Bank, Commercial Bank of Cameroun, UBA, BSCA Bank Congo, Crédit du Congo, Ecobank, BOA, Orabank, SCB, UBC, Société Générale, Coris Bank, CCA Bank, BANGE…
+
+Pour le Ministre — Le Directeur Général du Trésor, Albert NGONDO`,
+    draft: {
+      kind: "OTA",
+      operation: "abondement",
+      country: "Congo",
+      countryName: "République du Congo",
+      issuer: "Trésor public de la République du Congo",
+      isin: "CG2L00000012",
+      sourceRef: "n° 000473/MFBPP du 11 sept. 2026",
+      nominal: 10_000,
+      couponRate: 6,
+      maturityOn: "2028-03-31",
+      lastCouponOn: "2026-03-31",
+      deadlineAt: "2026-09-15T12:00",
+      resultsAt: "2026-09-15T15:00",
+      settleOn: "2026-09-17",
+      sizeLabel: "10 Mds FCFA",
+      title: "OTA 6,00 % · 31 mars 2028",
+      blurb: "Abondement de la ligne 6 ans du Congo, 1 an et 6 mois restants. Coupon annuel de 6,00 %, remboursement in fine le 31 mars 2028.",
+      official: true,
+      confidence: { kind: "sure", operation: "sure", country: "sure", issuer: "sure", isin: "sure", nominal: "sure", couponRate: "sure", maturityOn: "sure", lastCouponOn: "check", deadlineAt: "check", resultsAt: "sure", settleOn: "sure", sizeLabel: "sure" },
+      remarks: ["Dernier coupon déduit de l'échéance (31 mars) : à confirmer avec l'historique de la ligne.", "Heure limite de dépôt non précisée dans le communiqué : 12 h 00 retenu par convention."],
+    },
+  },
+  {
+    id: "q-cg-bta",
+    source: "mail",
+    title: "Communiqué BTA 52 semaines Congo — n° 000474/MFBPP",
+    fromLabel: "dobm@tresor-congo.cg · ven. 11 sept. 16:21",
+    receivedAt: "2026-09-11T16:21:00",
+    state: "a_valider",
+    offerId: "cg-bta-52-2027",
+    extractedIn: 38,
+    rawText: `N° 000474 / MFBPP/DGT/DGAT/DOBM/SOMD — 11 sept. 2026
+COMMUNIQUÉ D'ANNONCE — ÉMISSION DES BONS DU TRÉSOR
+
+Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 2026 à l'émission par voie d'adjudication des bons du Trésor assimilables :
+• Désignation : Bons du trésor à 52 semaines
+• Code Émission : CG1300001472 BTA-52 16 SEPT 2027
+• Échéance : 16 septembre 2027
+• Remboursement : In fine — Titres dématérialisés
+• Volume (en millions de FCFA) : 10 000
+• Valeur nominale unitaire (en FCFA) : 1 000 000
+• Rendement : les intérêts sont précomptés sur la valeur nominale des Bons
+• Date limite de souscription : Mardi 15 septembre 2026
+• Date d'annonce des résultats : Mardi 15 septembre 2026 avant 15 h 00
+• Date de règlement / de valeur : Jeudi 17 septembre 2026`,
+    draft: {
+      kind: "BTA",
+      operation: "nouvelle_ligne",
+      country: "Congo",
+      countryName: "République du Congo",
+      issuer: "Trésor public de la République du Congo",
+      isin: "CG1300001472",
+      sourceRef: "n° 000474/MFBPP du 11 sept. 2026",
+      nominal: 1_000_000,
+      maturityOn: "2027-09-16",
+      deadlineAt: "2026-09-15T12:00",
+      resultsAt: "2026-09-15T15:00",
+      settleOn: "2026-09-17",
+      sizeLabel: "10 Mds FCFA",
+      title: "BTA 52 semaines · 16 sept. 2027",
+      blurb: "Bon à intérêts précomptés à 52 semaines : vous payez moins que le nominal et recevez 1 000 000 FCFA par bon le 16 septembre 2027.",
+      official: true,
+      confidence: { kind: "sure", operation: "sure", country: "sure", issuer: "sure", isin: "sure", nominal: "sure", precountRate: "missing", maturityOn: "sure", deadlineAt: "check", resultsAt: "sure", settleOn: "sure", sizeLabel: "sure" },
+      remarks: ["Taux précompté fixé à l'adjudication : le desk indique un taux indicatif.", "Heure limite non précisée : 12 h 00 retenu."],
+    },
+  },
+  {
+    id: "q-ga-bta",
+    source: "photo",
+    title: "Écran « BTA Gabon 26 sem. — adjudication 23 sept. »",
+    fromLabel: "Desk BGFI Bourse (WhatsApp) · lun. 14 sept. 08:47",
+    receivedAt: "2026-09-14T08:47:00",
+    state: "bloque",
+    extractedIn: 22,
+    rawText: "[Photo d'écran transférée sur WhatsApp — IMG_20260914_084711.jpg]\n\nADJUDICATION BTA — TRÉSOR GABON\nMercredi 23/09/2026\nBTA 26 semaines · éch. 25/03/2027\nVolume : 15 000 (M FCFA)\nNominal 1 000 000\nCode : GA13000…(flou)\nDépôt avant 12h00 — SVT",
+    draft: {
+      kind: "BTA",
+      operation: "nouvelle_ligne",
+      country: "Gabon",
+      countryName: "République gabonaise",
+      issuer: "Trésor public de la République gabonaise",
+      nominal: 1_000_000,
+      maturityOn: "2027-03-25",
+      deadlineAt: "2026-09-23T12:00",
+      settleOn: "2026-09-25",
+      sizeLabel: "15 Mds FCFA ?",
+      title: "BTA 26 semaines · 25 mars 2027",
+      official: false,
+      confidence: { kind: "sure", operation: "check", country: "sure", issuer: "sure", isin: "missing", nominal: "sure", maturityOn: "check", deadlineAt: "check", settleOn: "check", sizeLabel: "check" },
+      remarks: ["Source non officielle (photo d'écran) : demander le communiqué au Trésor gabonais avant toute publication.", "Code émission illisible.", "Date de règlement déduite (J+2)."],
+    },
+  },
+  {
+    id: "q-bhc",
+    source: "mail",
+    title: "Teaser BHC 2e tranche + formulaire de réservation",
+    fromLabel: "bgfibourse@bgfi.com · sam. 12 sept. 10:05",
+    receivedAt: "2026-09-12T10:05:00",
+    state: "publie",
+    offerId: "bhc-ipo-t2",
+    publishedAt: "2026-09-12T11:30:00",
+    extractedIn: 64,
+    draft: { kind: "ACTIONS", operation: "ipo", official: true, confidence: {}, remarks: [] },
+  },
+  {
+    id: "q-rca",
+    source: "pdf",
+    title: "Communiqué OTA RCA — n° 0762/MCFB (3 lignes + 2 rachats)",
+    fromLabel: "snreetp@minfb-rca.org · mer. 9 sept. 15:10",
+    receivedAt: "2026-09-09T15:10:00",
+    state: "publie",
+    offerId: "rca-ota-c-2028",
+    publishedAt: "2026-09-09T18:42:00",
+    extractedIn: 58,
+    draft: { kind: "OTA", operation: "abondement", official: true, confidence: {}, remarks: [] },
   },
 ];

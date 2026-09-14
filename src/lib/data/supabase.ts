@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { EventLog, Intent, IntentState, Offer } from "@/lib/domain/types";
+import type { EventLog, IntakeItem, Intent, IntentState, Offer } from "@/lib/domain/types";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -132,6 +132,46 @@ function toIntent(r: IntentRow): Intent {
   };
 }
 
+type IntakeRow = {
+  id: string; source: IntakeItem["source"]; title: string; from_label: string; received_at: string; state: IntakeItem["state"];
+  file_name: string | null; mime_type: string | null; raw_text: string | null; draft: IntakeItem["draft"]; offer_id: string | null;
+  published_at: string | null; extracted_in: number | null; notes: string | null;
+};
+const toIntake = (r: IntakeRow): IntakeItem => ({
+  id: r.id, source: r.source, title: r.title, fromLabel: r.from_label, receivedAt: r.received_at, state: r.state,
+  fileName: u(r.file_name), mimeType: u(r.mime_type), rawText: u(r.raw_text), draft: r.draft, offerId: u(r.offer_id),
+  publishedAt: u(r.published_at), extractedIn: u(r.extracted_in), notes: u(r.notes),
+});
+const fromIntake = (p: Partial<IntakeItem>): Partial<IntakeRow> => {
+  const row: Partial<IntakeRow> = {};
+  if (p.source !== undefined) row.source = p.source;
+  if (p.title !== undefined) row.title = p.title;
+  if (p.fromLabel !== undefined) row.from_label = p.fromLabel;
+  if (p.receivedAt !== undefined) row.received_at = p.receivedAt;
+  if (p.state !== undefined) row.state = p.state;
+  if (p.fileName !== undefined) row.file_name = p.fileName;
+  if (p.mimeType !== undefined) row.mime_type = p.mimeType;
+  if (p.rawText !== undefined) row.raw_text = p.rawText;
+  if (p.draft !== undefined) row.draft = p.draft;
+  if (p.offerId !== undefined) row.offer_id = p.offerId;
+  if (p.publishedAt !== undefined) row.published_at = p.publishedAt;
+  if (p.extractedIn !== undefined) row.extracted_in = p.extractedIn;
+  if (p.notes !== undefined) row.notes = p.notes;
+  return row;
+};
+function fromOffer(o: Offer): OfferRow {
+  return {
+    id: o.id, kind: o.kind, operation: o.operation, country: o.country, country_name: o.countryName, issuer: o.issuer, title: o.title, isin: o.isin,
+    status: o.status, is_example: Boolean(o.isExample), blurb: o.blurb, documents: o.documents, opens_at: o.opensAt, deadline_at: o.deadlineAt,
+    results_at: o.resultsAt ?? null, settle_on: o.settleOn, maturity_on: o.maturityOn ?? null, last_coupon_on: o.lastCouponOn ?? null,
+    nominal: o.nominal, coupon_rate: o.couponRate ?? null, precount_rate: o.precountRate ?? null, price_pct: o.pricePct ?? null,
+    price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
+    min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
+    shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
+    last_price_on: o.lastPriceOn ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+  };
+}
+
 const toEvent = (r: EventRow): EventLog => ({ id: r.id, at: r.at, kind: r.kind, html: r.html, intentId: u(r.intent_id), offerId: u(r.offer_id) });
 
 let client: SupabaseClient | undefined;
@@ -239,5 +279,32 @@ export const supabaseRepository: Repository = {
       .single();
     if (error) fail("logEvent", error);
     return toEvent(data as EventRow);
+  },
+
+  async listIntake() {
+    const { data, error } = await db().from("intake_items").select("*").order("received_at", { ascending: false });
+    if (error) fail("listIntake", error);
+    return (data as IntakeRow[]).map(toIntake);
+  },
+  async getIntake(id) {
+    const { data, error } = await db().from("intake_items").select("*").eq("id", id).maybeSingle();
+    if (error) fail("getIntake", error);
+    return data ? toIntake(data as IntakeRow) : undefined;
+  },
+  async createIntake(item) {
+    const { data, error } = await db().from("intake_items").insert(fromIntake(item)).select("*").single();
+    if (error) fail("createIntake", error);
+    return toIntake(data as IntakeRow);
+  },
+  async updateIntake(id, patch) {
+    const { data, error } = await db().from("intake_items").update(fromIntake(patch)).eq("id", id).select("*").single();
+    if (error) fail("updateIntake", error);
+    return toIntake(data as IntakeRow);
+  },
+  async upsertOffer(offer) {
+    const { data, error } = await db().from("offers").upsert(fromOffer(offer)).select("*").single();
+    if (error) fail("upsertOffer", error);
+    await db().from("offer_versions").upsert({ offer_id: offer.id, version: offer.version, price_pct: offer.pricePct ?? null, precount_rate: offer.precountRate ?? null, commission_pct: offer.commissionPct, min_titles: offer.minTitles ?? null }, { onConflict: "offer_id,version" });
+    return toOffer(data as OfferRow);
   },
 };

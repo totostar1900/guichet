@@ -127,3 +127,58 @@ export interface NewIntentInput {
   clientSegment: string;
   clientId?: string;
 }
+
+/* ---------------- Intake (À valider) ---------------- */
+
+export type IntakeSource = "mail" | "pdf" | "photo" | "texte";
+export type IntakeState = "a_valider" | "publie" | "bloque" | "rejete";
+export type Confidence = "sure" | "check" | "missing";
+
+/** Structured fields read from a communiqué, before the desk prices it. */
+export interface OfferDraft {
+  kind?: OfferKind;
+  operation?: OfferOperation;
+  country?: Country;
+  countryName?: string;
+  issuer?: string;
+  title?: string;
+  isin?: string;
+  sourceRef?: string; // n° du communiqué
+  nominal?: number;
+  couponRate?: number;
+  precountRate?: number;
+  maturityOn?: string;
+  lastCouponOn?: string | null;
+  opensAt?: string;
+  deadlineAt?: string;
+  resultsAt?: string;
+  settleOn?: string;
+  sizeLabel?: string;
+  pricePerShare?: number;
+  minShares?: number;
+  sharesOffered?: number;
+  dividendPerShare?: number;
+  blurb?: string;
+  /** Per-field confidence from the extractor; missing = not found. */
+  confidence: Partial<Record<keyof Omit<OfferDraft, "confidence" | "official" | "remarks">, Confidence>>;
+  /** True when the source is an official communiqué (not a photo/forward). */
+  official: boolean;
+  remarks: string[];
+}
+
+export interface IntakeItem {
+  id: string;
+  source: IntakeSource;
+  title: string;
+  fromLabel: string; // "dobm@tresor-congo.cg · ven. 11 sept. 16:20"
+  receivedAt: string;
+  state: IntakeState;
+  fileName?: string;
+  mimeType?: string;
+  rawText?: string; // pasted e-mail / extracted text, for the preview
+  draft: OfferDraft;
+  offerId?: string; // set once published (or when the source updates an existing offer)
+  publishedAt?: string;
+  extractedIn?: number; // seconds
+  notes?: string;
+}

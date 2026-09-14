@@ -1,4 +1,4 @@
-import type { EventLog, Intent, IntentState, NewIntentInput, Offer } from "@/lib/domain/types";
+import type { EventLog, IntakeItem, Intent, IntentState, NewIntentInput, Offer } from "@/lib/domain/types";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -16,6 +16,14 @@ export interface Repository {
 
   listEvents(limit?: number): Promise<EventLog[]>;
   logEvent(e: Omit<EventLog, "id" | "at">): Promise<EventLog>;
+
+  /** Intake queue (desk « À valider »). */
+  listIntake(): Promise<IntakeItem[]>;
+  getIntake(id: string): Promise<IntakeItem | undefined>;
+  createIntake(item: Omit<IntakeItem, "id">): Promise<IntakeItem>;
+  updateIntake(id: string, patch: Partial<IntakeItem>): Promise<IntakeItem>;
+  /** Create or replace a whole offer (publication from a draft). */
+  upsertOffer(offer: Offer): Promise<Offer>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {
