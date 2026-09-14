@@ -183,3 +183,24 @@ export async function renderActivityReport(period: Period): Promise<{ pdf: Buffe
   const pdf = await renderToBuffer(el(createElement(RapportActivite, ctx)));
   return { pdf, number };
 }
+
+/* ---------------- Rapport sur une société cotée ---------------- */
+import { companyByMnemo } from "@/data/companies";
+import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
+import { RapportSociete } from "./pdf/company-templates";
+
+/** Company report over a chart period — same analysis as the page, rendered on demand. */
+export async function renderCompanyReport(mnemo: string, p: string): Promise<{ pdf: Buffer; number: string } | undefined> {
+  const c = companyByMnemo(mnemo);
+  if (!c) return undefined;
+  const history = (await repo().listQuotes(c.isin, 2000)).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+  const quote = history[history.length - 1];
+  const a = analyse(c, quote);
+  const key = PERIODS.some(([k]) => k === p) ? p : "ytd";
+  const slice = history.filter((q) => q.sessionDate >= periodFrom(key));
+  const period = pricePeriod(slice);
+  const now = new Date();
+  const number = `PC-SOC-${c.mnemo}-${now.toISOString().slice(0, 10).replace(/-/g, "")}`;
+  const pdf = await renderToBuffer(el(createElement(RapportSociete, { number, company: c, analysis: a, quotes: slice, period, periodLabel: PERIODS.find(([k]) => k === key)?.[1] ?? key, periodText: period ? periodComment(period, c) : undefined, now })));
+  return { pdf, number };
+}

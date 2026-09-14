@@ -45,6 +45,16 @@ export interface Quote {
   nominalRemaining?: number; // obligations, FCFA per bond at J+3
   accruedCoupon?: number; // obligations, FCFA per bond at J+3
   ytdVariationPct?: number | null;
+  // equities — from the bulletin's capitalisation table
+  sharesFloat?: number;
+  sharesTotal?: number;
+  lastDividend?: number; // FCFA gross per share
+  dividendYear?: number;
+  dividendDate?: string;
+  liquidity3mPct?: number;
+  eps?: number;
+  marketCapFloat?: number;
+  marketCapTotal?: number;
 }
 
 export interface FundNav {
@@ -66,6 +76,20 @@ export interface FundNav {
   variationQuarterlyPct?: number;
   bulletinNo: number;
   sessionDate: string;
+}
+
+/** A document published by a listed company on the BVMAC site, and our archived copy. */
+export interface IssuerDocument {
+  id?: string;
+  mnemo: string;
+  kind: string;
+  year?: number;
+  title: string;
+  sourceUrl: string;
+  fileKey?: string;
+  bytes?: number;
+  hasText?: boolean;
+  collectedAt: string;
 }
 
 export const FUND_CATEGORY_LABEL: Record<FundNav["category"], string> = { M: "Monétaire", O: "Obligataire", D: "Diversifié", A: "Actions", "?": "—" };

@@ -2,7 +2,7 @@ import "server-only";
 import type { Country, Offer } from "@/lib/domain/types";
 import { fundKey, type FundNav, type MarketBulletin, type Quote } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt, fmtDate, localIso } from "@/lib/format";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { prettyName } from "./names";
@@ -73,7 +73,10 @@ export async function pdfText(bytes: Uint8Array): Promise<string> {
 const isinCountry = (isin: string) => COUNTRY_BY_ISIN[isin.slice(0, 2)] ?? { country: "Cameroun" as Country, name: "CEMAC · BVMAC" };
 
 export function equityQuote(e: BocEquity, b: BocParsed): Quote {
+  const c = b.capitalisation.find((x) => x.isin === e.isin);
+  const cap = c ? { sharesFloat: c.sharesFloat, sharesTotal: c.sharesTotal, lastDividend: c.lastDividend, dividendYear: c.dividendYear, dividendDate: c.dividendDate, liquidity3mPct: c.liquidity3mPct, eps: c.eps, marketCapFloat: c.marketCapFloat, marketCapTotal: c.marketCapTotal } : {};
   return {
+    ...cap,
     isin: e.isin, sessionDate: b.sessionDate, bulletinNo: b.bulletinNo, instrument: "action", mnemo: e.mnemo, issuer: e.issuer, designation: e.issuer,
     previousClose: e.previousClose, previousDate: e.previousDate, open: e.open, close: e.close, thresholdHigh: e.thresholdHigh, thresholdLow: e.thresholdLow,
     variationPct: e.variationPct, referenceNext: e.referenceNext, volumeTraded: e.volumeTraded, valueTraded: e.valueTraded, trades: e.trades, status: e.status, ytdVariationPct: e.ytdVariationPct,
@@ -255,7 +258,7 @@ const COUNTRY_OF_DEPOSITARY = (d: string): { country: Country; name: string } =>
 
 /* ---------------- ingestion ---------------- */
 
-export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array; sourceUrl?: string; by: MarketBulletin["ingestedBy"] }): Promise<IngestResult> {
+export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array; sourceUrl?: string; by: MarketBulletin["ingestedBy"]; keepPdf?: boolean }): Promise<IngestResult> {
   const r = repo();
   let bytes = opts.bytes;
   let sourceUrl = opts.sourceUrl;
@@ -269,8 +272,8 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   const text = await pdfText(bytes);
   const parsed = parseBoc(text);
   const sessionDate = parsed.sessionDate || opts.sessionDate;
-  const fileKey = `boc/BOC-${sessionDate.replace(/-/g, "")}.pdf`;
-  await saveSource(fileKey, bytes, "application/pdf");
+  const fileKey = opts.keepPdf === false ? undefined : `boc/BOC-${sessionDate.replace(/-/g, "")}.pdf`;
+  if (fileKey) await saveSource(fileKey, bytes, "application/pdf");
 
   if (!parsed.bulletinNo) {
     const bulletin: MarketBulletin = { id: sessionDate, number: 0, sessionDate, sourceUrl, fileKey, ingestedAt: new Date().toISOString(), ingestedBy: opts.by, status: "echec", counts: { equities: 0, bonds: 0, funds: 0 }, warnings: parsed.warnings, anomalies: ["En-tête du bulletin non reconnu : aucun cours n'a été retenu."], notices: [] };
@@ -343,16 +346,23 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
 
 /** Sessions to try for a daily run: today, then the previous business days not yet ingested (holidays, late publication). */
 export async function catchUp(by: MarketBulletin["ingestedBy"], today = new Date(), lookbackDays = 7): Promise<IngestResult[]> {
+  const to = localIso(today);
+  const from = new Date(today);
+  from.setDate(from.getDate() - lookbackDays);
+  return backfill(by, localIso(from), to, true);
+}
+
+/** Every business day of [from, to] not yet ingested, oldest first — history for charts and reports (PDFs kept only when asked). */
+export async function backfill(by: MarketBulletin["ingestedBy"], from: string, to: string, keepPdf = false): Promise<IngestResult[]> {
   const r = repo();
   const results: IngestResult[] = [];
-  for (let i = 0; i <= lookbackDays; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
+  const known = new Set((await r.listBulletins(2000)).map((b) => b.sessionDate));
+  for (let d = new Date(`${from}T12:00:00`); localIso(d) <= to; d.setDate(d.getDate() + 1)) {
     if (d.getDay() === 0 || d.getDay() === 6) continue;
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    if (await r.getBulletin(iso)) continue;
+    const iso = localIso(d);
+    if (known.has(iso)) continue;
     try {
-      results.push({ ...(await ingestBoc({ sessionDate: iso, by })), sessionDate: iso });
+      results.push({ ...(await ingestBoc({ sessionDate: iso, by, keepPdf })), sessionDate: iso });
     } catch (e) {
       results.push({ found: true, created: [], refreshed: [], sessionDate: iso, error: e instanceof Error ? e.message : String(e) });
     }

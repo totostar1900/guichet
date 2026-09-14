@@ -69,6 +69,22 @@ export interface BocFund {
   variationPct: number;
 }
 
+/** Capitalisation table: shares, market cap, last dividend, EPS and liquidity per listed equity. */
+export interface BocCapitalisation {
+  isin: string;
+  mnemo: string;
+  close: number;
+  sharesFloat: number;
+  sharesTotal: number;
+  lastDividend?: number; // FCFA per share, gross
+  dividendYear?: number;
+  dividendDate?: string; // YYYY-MM-DD
+  liquidity3mPct?: number;
+  eps?: number;
+  marketCapFloat: number;
+  marketCapTotal: number;
+}
+
 export interface BocParsed {
   bulletinNo: number;
   sessionDate: string; // YYYY-MM-DD
@@ -76,6 +92,7 @@ export interface BocParsed {
   equities: BocEquity[];
   bonds: BocBond[];
   funds: BocFund[];
+  capitalisation: BocCapitalisation[];
   notices: string[]; // titles of the avis (amortissements, paiements d'intérêts…)
   warnings: string[];
 }
@@ -117,12 +134,88 @@ export function parseBoc(text: string): BocParsed {
   const equities = parseEquities(lines, warnings);
   const bonds = parseBonds(lines, warnings);
   const funds = parseFunds(lines, warnings);
+  const capitalisation = parseCapitalisation(lines, warnings);
   const notices = lines.filter((l) => /^«.*»\s*$/.test(l)).map((l) => l.replace(/[«»]/g, "").trim());
 
-  return { bulletinNo, sessionDate, index, equities, bonds, funds, notices, warnings };
+  return { bulletinNo, sessionDate, index, equities, bonds, funds, capitalisation, notices, warnings };
+}
+
+/* ---------------- Capitalisation boursière ---------------- */
+// One cell per line after the ISIN: mnemo, short name, close, float shares, total shares,
+// then either "dividend amount / year / date" or "-", liquidity, "-", EPS (or "-"), float cap, global cap.
+function parseCapitalisation(lines: string[], warnings: string[]): BocCapitalisation[] {
+  const out: BocCapitalisation[] = [];
+  const start = lines.findIndex((l) => /^CAPITALISATION BOURSIERE/.test(l));
+  if (start < 0) {
+    warnings.push("Section « Capitalisation boursière » introuvable.");
+    return out;
+  }
+  const end = lines.findIndex((l, i) => i > start && /^Total$/.test(l.trim()));
+  const section = lines.slice(start, end > start ? end : start + 200).map((l) => l.trim());
+  const isNum = (c: string) => /^-?[\d ]+(?:,\d+)?$/.test(c) && c !== "-";
+  for (let i = 0; i < section.length; i++) {
+    const m = section[i].match(ISIN_RE);
+    if (!m) continue;
+    const isin = `${m[1]}${m[2]}`;
+    // cells until the next ISIN's issuer name (two lines before the next ISIN) or the end
+    let j = i + 1;
+    while (j < section.length && !ISIN_RE.test(section[j])) j++;
+    const cells = section.slice(i + 1, ISIN_RE.test(section[j] ?? "") ? j - 1 : j).filter((c) => c !== "");
+    const nums = cells.filter(isNum).map(num);
+    const mnemo = cells[0];
+    if (nums.length < 5) {
+      warnings.push(`Capitalisation ${isin} : cellules incomplètes.`);
+      continue;
+    }
+    const [close, sharesFloat, sharesTotal] = nums;
+    const dateAt = cells.findIndex((c) => DATE_RE.test(c));
+    const dividend = dateAt > 0 ? { lastDividend: num(cells[dateAt - 2]), dividendYear: Number(cells[dateAt - 1]), dividendDate: isoDate(cells[dateAt]) } : {};
+    const marketCapTotal = nums[nums.length - 1];
+    const marketCapFloat = nums[nums.length - 2];
+    // between the dividend date and the caps: liquidity (%), then EPS when published
+    const tail = (dateAt > 0 ? cells.slice(dateAt + 1) : cells.slice(5)).filter(isNum).map(num).slice(0, -2);
+    out.push({ isin, mnemo, close, sharesFloat, sharesTotal, ...dividend, liquidity3mPct: tail[0], eps: tail[1], marketCapFloat, marketCapTotal });
+  }
+  return out;
 }
 
 /* ---------------- Actions ---------------- */
+const ISIN_LOOSE = /^([A-Z]{2})\s?(\d{10})(.*)$/;
+const MNEMO_BY_ISIN: Record<string, string> = { CM0000010009: "SEMC", CM0000010017: "SAF", CM0000010025: "SOCAP", CM0000010041: "REG", GQ0000010050: "BANGE", GA0000010066: "SCGRE", GA0000010074: "BHC" };
+// An amount printed with thousand spaces: "49 000", "228 085", "1 250" or a small "800".
+const AMT = "(?:[1-9]\\d{0,2}(?: \\d{3})*|0)";
+// prev close · date · volumes (glued) · status · open · close · high · low · var% · ref · ytd high · ytd low · ytd var
+const EQ_DENSE = new RegExp("^(" + AMT + ")(\\d{2}/\\d{2}/\\d{4})([\\d ]*?)([A-Z]{1,3}[a-z]?)(" + AMT + ")(" + AMT + ")(" + AMT + ")\\s*(" + AMT + ")\\s*(-?\\d+,\\d{2})%(" + AMT + ")(" + AMT + ")(" + AMT + ")(-?\\d+,\\d{2}|-)?$");
+
+function parseEquityDense(isin: string, issuer: string, line: string): BocEquity | undefined {
+  const m = line.replace(/\s+/g, " ").trim().match(EQ_DENSE);
+  if (!m) return undefined;
+  const vols = m[3].replace(/\s/g, "");
+  return {
+    isin,
+    mnemo: MNEMO_BY_ISIN[isin] ?? "",
+    issuer,
+    previousClose: num(m[1]),
+    previousDate: isoDate(m[2]),
+    // volumes are printed without separators in this layout: only the trade count is unambiguous
+    volumeBid: 0,
+    volumeAsk: 0,
+    volumeTraded: 0,
+    valueTraded: 0,
+    trades: vols ? Number(vols.slice(-1)) : 0,
+    status: m[4],
+    open: num(m[5]),
+    close: num(m[6]),
+    thresholdHigh: num(m[7]),
+    thresholdLow: num(m[8]),
+    variationPct: num(m[9]),
+    referenceNext: num(m[10]),
+    ytdHigh: num(m[11]),
+    ytdLow: num(m[12]),
+    ytdVariationPct: m[13] && m[13] !== "-" ? num(m[13]) : null,
+  };
+}
+
 function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
   const out: BocEquity[] = [];
   const start = lines.findIndex((l) => /^MARCHE DES ACTIONS/.test(l));
@@ -133,15 +226,31 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
   }
   const section = lines.slice(start, end > start ? end : undefined);
   for (let i = 0; i < section.length; i++) {
-    const m = section[i].match(ISIN_RE);
-    if (!m) continue;
-    const isin = `${m[1]}${m[2]}`;
+    const loose = section[i].match(ISIN_LOOSE);
+    if (!loose) continue;
+    const isin = `${loose[1]}${loose[2]}`;
     // issuer = the non-empty lines just above, until a previous row's trailing number
     const issuerLines: string[] = [];
     for (let j = i - 1; j >= 0 && j >= i - 3; j--) {
       const l = section[j];
-      if (!l || /^[\d\s,.%-]+$/.test(l) || ISIN_RE.test(l) || /^(Haut|Bas|Variation)\b/.test(l)) break;
+      if (!l || /^[\d\s,.%-]+$/.test(l) || ISIN_LOOSE.test(l) || /^(Haut|Bas|Variation)\b/.test(l) || /\d{2}\/\d{2}\/\d{4}/.test(l)) break;
       issuerLines.unshift(l);
+    }
+    const issuer = issuerLines.join(" ").replace(/\s+/g, " ").trim();
+    // Older layout: the whole row sits on the next 1–2 lines (prev close glued to the date).
+    let dense: BocEquity | undefined;
+    for (let k = 1; k <= 2 && !dense; k++) {
+      const cand = section.slice(i + 1, i + 1 + k).join("").replace(/^[A-Za-z\s-]+(?=\d)/, "");
+      if (/^[\d ]+\d{2}\/\d{2}\/\d{4}/.test(cand)) dense = parseEquityDense(isin, issuer, cand);
+    }
+    if (dense) {
+      out.push(dense);
+      continue;
+    }
+    const m = section[i].match(ISIN_RE);
+    if (!m) {
+      warnings.push(`Action ${isin} : ligne dense non reconnue.`);
+      continue;
     }
     const cells = section.slice(i + 1, i + 24);
     // mnemo (1–2 lines) until the previous close (a number)
@@ -167,8 +276,8 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
     const ytdVar = after[8] === "-" || after[8] === undefined || Number.isNaN(n(8)) ? null : n(8);
     out.push({
       isin,
-      mnemo: (mnemoParts[0] ?? "").replace(/\s/g, ""),
-      issuer: issuerLines.join(" ").replace(/\s+/g, " ").trim(),
+      mnemo: (mnemoParts[0] ?? "").replace(/\s/g, "") || MNEMO_BY_ISIN[isin] || "",
+      issuer,
       previousClose,
       previousDate,
       volumeBid: vols[0] ?? 0,
@@ -198,11 +307,10 @@ const BOND_HEAD = /^(.*?)([A-Z]{2}\d{10})([A-Z][A-Z0-9]{3,5}?)(\d{2}\/\d{2}\/\d{
 function splitPriceNominal(mid: string, pct: number): { price: number; nominal: number } | undefined {
   const clean = mid.replace(/ /g, "");
   const m = clean.match(/^(.*?),(\d{3})$/);
-  if (!m) return undefined;
-  const body = m[1]; // "<price><nominal-int>" with optional ",dd" in price
+  const body = m ? m[1] : clean; // "<price><nominal-int>" with optional ",dd" in price; nominal decimals optional
   for (let cut = 1; cut < body.length; cut++) {
     const price = num(body.slice(0, cut));
-    const nominal = num(`${body.slice(cut)},${m[2]}`);
+    const nominal = num(m ? `${body.slice(cut)},${m[2]}` : body.slice(cut));
     if (!Number.isFinite(price) || !Number.isFinite(nominal) || nominal <= 0) continue;
     if (Math.abs(price - (pct * nominal) / 100) < 1.5) return { price, nominal };
   }
@@ -230,6 +338,19 @@ function segmentOf(designation: string): BocBond["segment"] {
 
 // date · prev % · price+nominal · accrued · volumes (may hold spaces when the line traded) · status · open · close · high · low · var · ref
 const DENSE = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(.+?,\d{3})(\d{1,4},\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
+// Older bulletins print the nominal without decimals ("5910" + "6000" + "28,54"): the accrued coupon is then the first ",dd" amount.
+const DENSE_OLD = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(\d{6,16}),(\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
+
+/** Old layout: "<price><nominal><accrued-int>" glued, then ",dd" — pick the accrued length that makes price ≈ pct × nominal. */
+function splitOld(digits: string, dec: string, pct: number): { price: number; nominal: number; accrued: number } | undefined {
+  for (let n = 1; n <= 4; n++) {
+    if (digits.length - n < 2) break;
+    const pn = splitPriceNominal(digits.slice(0, -n), pct);
+    const accrued = num(`${digits.slice(-n)},${dec}`);
+    if (pn && accrued < pn.nominal * 0.15) return { ...pn, accrued };
+  }
+  return undefined;
+}
 
 function parseBonds(lines: string[], warnings: string[]): BocBond[] {
   const out: BocBond[] = [];
@@ -253,23 +374,27 @@ function parseBonds(lines: string[], warnings: string[]): BocBond[] {
       // The data row may start on the head line itself and wrap over up to three lines.
       let r: RegExpMatchArray | null = null;
       let cand = (h[4] ?? "").trim();
-      for (let k = 0; k <= 3 && !r; k++) {
+      let old: RegExpMatchArray | null = null;
+      for (let k = 0; k <= 4 && !r && !old; k++) {
         if (k > 0) cand += (section[i + k] ?? "").replace(/\s{2,}/g, " ");
         r = cand.match(DENSE);
+        if (!r) old = cand.match(DENSE_OLD);
       }
-      if (!r) {
+      const m0 = r ?? old;
+      if (!m0) {
         warnings.push(`Obligation ${isin} : ligne de cours non reconnue.`);
         continue;
       }
-      const pct = num(r[2]);
-      const pn = splitPriceNominal(r[3], pct);
+      const pct = num(m0[2]);
+      const pn = r ? splitPriceNominal(r[3], pct) : splitOld(old![3], old![4], pct);
       if (!pn) {
-        warnings.push(`Obligation ${isin} : prix / nominal ambigus (« ${r[3]} »).`);
+        warnings.push(`Obligation ${isin} : prix / nominal ambigus (« ${m0[3]} »).`);
         continue;
       }
+      const accrued = r ? num(r[4]) : ((pn as { accrued?: number }).accrued ?? 0);
       seen.add(isin);
       const { issuer, designation } = splitIssuer(h[1]);
-      out.push({ isin, mnemo: h[3], issuer, designation, segment: segmentOf(issuer), previousDate: isoDate(r[1]), previousPct: pct, previousFcfa: pn.price, nominalRemaining: pn.nominal, accruedCoupon: num(r[4]), status: r[6], open: num(r[7]), close: num(r[8]), thresholdHigh: num(r[9]), thresholdLow: num(r[10]), variationPct: num(r[11]), referenceNextFcfa: num(r[12]) });
+      out.push({ isin, mnemo: h[3], issuer, designation, segment: segmentOf(issuer), previousDate: isoDate(m0[1]), previousPct: pct, previousFcfa: pn.price, nominalRemaining: pn.nominal, accruedCoupon: accrued, status: m0[6], open: num(m0[7]), close: num(m0[8]), thresholdHigh: num(m0[9]), thresholdLow: num(m0[10]), variationPct: num(m0[11]), referenceNextFcfa: num(m0[12]) });
       continue;
     }
     // Layout B: one cell per line — "ISSUER", "TITLE", "ISIN", "MNEMO", date, pct, fcfa, nominal, accrued, vol×5, status, open, close, high, low, variation, ref

@@ -1,7 +1,7 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -23,6 +23,7 @@ interface Store {
   bulletins: MarketBulletin[];
   quotes: Quote[];
   fundNavs: FundNav[];
+  issuerDocs: IssuerDocument[];
   seq: number;
 }
 
@@ -47,6 +48,7 @@ function store(): Store {
       bulletins: [],
       quotes: [],
       fundNavs: [],
+      issuerDocs: [],
       seq: 17,
     };
   }
@@ -59,6 +61,7 @@ function store(): Store {
   if (!g.__guichetStore.bulletins) g.__guichetStore.bulletins = [];
   if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
+  if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   return g.__guichetStore;
 }
 
@@ -307,5 +310,17 @@ export const memoryRepository: Repository = {
       if (!cur || n.navDate > cur.navDate) latest.set(n.fundKey, n);
     }
     return structuredClone([...latest.values()].sort((a, b) => a.name.localeCompare(b.name)));
+  },
+
+  async listIssuerDocuments(mnemo) {
+    return structuredClone(store().issuerDocs.filter((d) => !mnemo || d.mnemo === mnemo));
+  },
+  async upsertIssuerDocument(d) {
+    const s = store();
+    const i = s.issuerDocs.findIndex((x) => x.sourceUrl === d.sourceUrl);
+    const row = { ...d, id: d.id ?? uid() };
+    if (i >= 0) s.issuerDocs[i] = row;
+    else s.issuerDocs.push(row);
+    return structuredClone(row);
   },
 };

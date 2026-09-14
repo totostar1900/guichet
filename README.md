@@ -106,6 +106,13 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 - Le panneau *Marché* montre le dernier bulletin (indice BVMAC All Share, lignes lues, anomalies à vérifier, avis publiés), permet de relancer une séance ou de **déposer le PDF** reçu par e-mail en secours ; la saisie manuelle d'un cours reste possible mais est marquée « Saisie desk » sur la fiche.
 - Ordres d'achat / vente : quantité, prix limite facultatif (marché sinon), compte-titres requis, vente limitée aux titres détenus. Cycle : reçu → confirmé (ordre de bourse + appel de fonds) → placé → **exécuté** (prix et quantité, partiel possible) → **réglé** (avis d'opéré). Les positions sont nettées des ventes (FIFO).
 
+## Sociétés cotées (page Sociétés)
+
+- `src/data/companies.ts` : les 7 émetteurs du compartiment actions (identité, actionnariat, dirigeants, documents publiés sur bvm-ac.org) et leurs **chiffres clés certifiés** par exercice (total bilan, fonds propres, chiffre d'affaires / PNB / primes, valeur ajoutée, résultat net, dividende) relevés dans les fiches signalétiques et états financiers — source citée par année.
+- `src/lib/companies/analysis.ts` : ratios (PER, rendement, distribution, marge, ROE, cours / fonds propres, flottant) avec leur lecture en français courant, phrase de synthèse, commentaires ; `pricePeriod` / `periodComment` pour le cours sur une période. Pages `/societes` (tableau comparatif) et `/societes/[mnemo]` (cours sur 1 mois → max, graphiques CA / résultat et bilan / fonds propres, tableau des comptes, ratios, actionnariat, documents) ; rapport PDF `/societes/[mnemo]/rapport?p=`.
+- Le bulletin BVMAC fournit aussi la **capitalisation** (actions flottantes / totales, dernier dividende et sa date, liquidité 3 mois, BNPA) — `quotes` (migration 0012) ; `/api/cron/boc?from=&to=` rejoue l'historique (cours et VL, PDF non archivés) et le parseur lit les mises en page 2026 antérieures (lignes actions et obligataires « denses »).
+- `src/lib/companies/collect.ts` + `/api/cron/emetteurs` (lundi 6 h UTC) : les documents des sociétés cotées publiés sur bvm-ac.org sont catalogués (`issuer_documents`) et archivés dans `sources/issuers/<MNEMO>/` ; un nouveau document alerte le desk pour mettre à jour `companies.ts`.
+
 ## OPCVM (page Fonds, desk › Marché)
 
 - Les 45 fonds dont la VL paraît au bulletin deviennent des lignes `kind: FONDS` (id `fund-<clé>`, champ `fund` : société de gestion, dépositaire, catégorie, périodicité, VL, origine, performance) — **masquées** tant qu'aucune convention de distribution n'existe. La page publique `/fonds` les présente tous (VL, variation, depuis l'origine, société de gestion) ; un fonds non distribué reçoit des intentions « information / rappel » seulement.

@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -305,6 +305,7 @@ type QuoteRow = {
   isin: string; session_date: string; bulletin_no: number; instrument: Quote["instrument"]; mnemo: string; issuer: string; designation: string; segment: Quote["segment"] | null;
   previous_close: string; previous_date: string; open: string; close: string; threshold_high: string; threshold_low: string; variation_pct: string; reference_next: string;
   volume_traded: number; value_traded: string; trades: number; status: string; nominal_remaining: string | null; accrued_coupon: string | null; ytd_variation_pct: string | null;
+  shares_float: number | null; shares_total: number | null; last_dividend: string | null; dividend_year: number | null; dividend_date: string | null; liquidity_3m_pct: string | null; eps: string | null; market_cap_float: string | null; market_cap_total: string | null;
 };
 const N = (v: string | number) => Number(v);
 const nn = (v: string | number | null): number | undefined => (v === null ? undefined : Number(v));
@@ -313,12 +314,14 @@ const toQuote = (r: QuoteRow): Quote => ({
   previousClose: N(r.previous_close), previousDate: r.previous_date, open: N(r.open), close: N(r.close), thresholdHigh: N(r.threshold_high), thresholdLow: N(r.threshold_low), variationPct: N(r.variation_pct),
   referenceNext: N(r.reference_next), volumeTraded: r.volume_traded, valueTraded: N(r.value_traded), trades: r.trades, status: r.status,
   nominalRemaining: nn(r.nominal_remaining), accruedCoupon: nn(r.accrued_coupon), ytdVariationPct: r.ytd_variation_pct === null ? null : N(r.ytd_variation_pct),
+  sharesFloat: u(r.shares_float), sharesTotal: u(r.shares_total), lastDividend: nn(r.last_dividend), dividendYear: u(r.dividend_year), dividendDate: u(r.dividend_date), liquidity3mPct: nn(r.liquidity_3m_pct), eps: nn(r.eps), marketCapFloat: nn(r.market_cap_float), marketCapTotal: nn(r.market_cap_total),
 });
 const fromQuote = (q: Quote): QuoteRow => ({
   isin: q.isin, session_date: q.sessionDate, bulletin_no: q.bulletinNo, instrument: q.instrument, mnemo: q.mnemo, issuer: q.issuer, designation: q.designation, segment: q.segment ?? null,
   previous_close: String(q.previousClose), previous_date: q.previousDate, open: String(q.open), close: String(q.close), threshold_high: String(q.thresholdHigh), threshold_low: String(q.thresholdLow),
   variation_pct: String(q.variationPct), reference_next: String(q.referenceNext), volume_traded: q.volumeTraded, value_traded: String(q.valueTraded), trades: q.trades, status: q.status,
   nominal_remaining: q.nominalRemaining != null ? String(q.nominalRemaining) : null, accrued_coupon: q.accruedCoupon != null ? String(q.accruedCoupon) : null, ytd_variation_pct: q.ytdVariationPct != null ? String(q.ytdVariationPct) : null,
+  shares_float: q.sharesFloat ?? null, shares_total: q.sharesTotal ?? null, last_dividend: numOrNull(q.lastDividend), dividend_year: q.dividendYear ?? null, dividend_date: q.dividendDate ?? null, liquidity_3m_pct: numOrNull(q.liquidity3mPct), eps: numOrNull(q.eps), market_cap_float: numOrNull(q.marketCapFloat), market_cap_total: numOrNull(q.marketCapTotal),
 });
 type NavRow = {
   fund_key: string; nav_date: string; name: string; manager: string; depositary: string; category: FundNav["category"]; frequency: FundNav["frequency"]; nav: string; previous_nav: string | null; previous_date: string | null;
@@ -335,6 +338,9 @@ const fromNav = (n: FundNav): NavRow => ({
   previous_date: n.previousDate ?? null, nav_origin: String(n.navOrigin), inception_date: n.inceptionDate, perf_since_inception_pct: String(n.perfSinceInceptionPct), variation_pct: numOrNull(n.variationPct),
   variation_monthly_pct: numOrNull(n.variationMonthlyPct), variation_quarterly_pct: numOrNull(n.variationQuarterlyPct), bulletin_no: n.bulletinNo, session_date: n.sessionDate,
 });
+
+type IssuerDocRow = { id: string; mnemo: string; kind: string; year: number | null; title: string; source_url: string; file_key: string | null; bytes: number | null; has_text: boolean | null; collected_at: string };
+const toIssuerDoc = (r: IssuerDocRow): IssuerDocument => ({ id: r.id, mnemo: r.mnemo, kind: r.kind, year: u(r.year), title: r.title, sourceUrl: r.source_url, fileKey: u(r.file_key), bytes: u(r.bytes), hasText: u(r.has_text), collectedAt: r.collected_at });
 
 function db(): SupabaseClient {
   if (!client) {
@@ -605,5 +611,18 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("latest_fund_navs").select("*").order("name");
     if (error) fail("latestFundNavs", error);
     return (data as NavRow[]).map(toNav);
+  },
+
+  async listIssuerDocuments(mnemo) {
+    let q = db().from("issuer_documents").select("*").order("year", { ascending: false });
+    if (mnemo) q = q.eq("mnemo", mnemo);
+    const { data, error } = await q;
+    if (error) fail("listIssuerDocuments", error);
+    return (data as IssuerDocRow[]).map(toIssuerDoc);
+  },
+  async upsertIssuerDocument(d) {
+    const { data, error } = await db().from("issuer_documents").upsert({ mnemo: d.mnemo, kind: d.kind, year: d.year ?? null, title: d.title, source_url: d.sourceUrl, file_key: d.fileKey ?? null, bytes: d.bytes ?? null, has_text: d.hasText ?? null, collected_at: d.collectedAt }, { onConflict: "source_url" }).select("*").single();
+    if (error) fail("upsertIssuerDocument", error);
+    return toIssuerDoc(data as IssuerDocRow);
   },
 };

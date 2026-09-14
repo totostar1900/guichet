@@ -6,6 +6,7 @@ import styles from "./NavTabs.module.css";
 
 const TABS = [
   { href: "/", label: "Guichet", match: (p: string) => p === "/" || p.startsWith("/offres") },
+  { href: "/societes", label: "Sociétés", match: (p: string) => p.startsWith("/societes") },
   { href: "/fonds", label: "Fonds", match: (p: string) => p.startsWith("/fonds") },
   { href: "/simulateur", label: "Simulateur & repères", match: (p: string) => p.startsWith("/simulateur") },
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk") },

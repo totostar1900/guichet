@@ -107,3 +107,53 @@ describe("BOC n° 2591 du 09/09/2026 — a session where a bond traded", () => {
     expect(ega16.previousPct).toBe(97);
   });
 });
+
+describe("capitalisation table", () => {
+  const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260909.txt", import.meta.url), "utf8"));
+  it("reads shares, dividend and market cap of the 7 equities", () => {
+    expect(b.capitalisation.length).toBe(7);
+    const semc = b.capitalisation.find((c) => c.isin === "CM0000010009")!;
+    expect(semc.mnemo).toBe("SEMC");
+    expect(semc.close).toBe(53000);
+    expect(semc.sharesFloat).toBe(38367);
+    expect(semc.sharesTotal).toBe(192473);
+    expect(semc.lastDividend).toBe(800);
+    expect(semc.dividendYear).toBe(2025);
+    expect(semc.dividendDate).toBe("2026-06-25");
+    expect(semc.marketCapFloat).toBe(2_033_451_000);
+    expect(semc.marketCapTotal).toBe(10_201_069_000);
+    const bhc = b.capitalisation.find((c) => c.mnemo === "BHC")!;
+    expect(bhc.sharesTotal).toBe(14_728_385);
+    expect(bhc.lastDividend).toBe(2500);
+    expect(bhc.marketCapTotal).toBe(1_370_490_952_635);
+    const reg = b.capitalisation.find((c) => c.mnemo === "REG")!;
+    expect(reg.dividendYear).toBe(2023);
+    expect(reg.lastDividend).toBe(894);
+  });
+});
+
+describe("BOC n° 2421 du 05/01/2026 — older dense layout", () => {
+  const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260105.txt", import.meta.url), "utf8"));
+  it("reads the six equities from glued rows", () => {
+    expect(b.equities.length).toBe(6);
+    const semc = b.equities.find((e) => e.isin === "CM0000010009")!;
+    expect(semc.mnemo).toBe("SEMC");
+    expect(semc.previousClose).toBe(49000);
+    expect(semc.close).toBe(49000);
+    expect(semc.thresholdHigh).toBe(53900);
+    expect(semc.thresholdLow).toBe(44100);
+    expect(semc.ytdVariationPct).toBeCloseTo(4.26, 2);
+    const bange = b.equities.find((e) => e.isin === "GQ0000010050")!;
+    expect(bange.close).toBe(228085);
+    const reg = b.equities.find((e) => e.isin === "CM0000010041")!;
+    expect(reg.ytdVariationPct).toBeCloseTo(-1.18, 2);
+  });
+  it("reads the regional and private bonds of the older layout", () => {
+    const bdeac = b.bonds.find((x) => x.isin === "CG0000020261")!;
+    expect(bdeac.previousPct).toBe(98.5);
+    expect(bdeac.nominalRemaining).toBe(6000);
+    expect(bdeac.accruedCoupon).toBeCloseTo(28.54, 2);
+    expect(b.bonds.some((x) => x.isin === "CM0000020412")).toBe(true);
+    expect(b.warnings.filter((w) => /Obligation|Action/.test(w))).toEqual([]);
+  });
+});

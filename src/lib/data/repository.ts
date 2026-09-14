@@ -1,6 +1,6 @@
 import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -66,6 +66,10 @@ export interface Repository {
   listFundNavs(fundKey: string, limit?: number): Promise<FundNav[]>;
   /** Latest NAV of every fund. */
   latestFundNavs(): Promise<FundNav[]>;
+
+  /** Documents published by listed companies (collected from the BVMAC site). */
+  listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;
+  upsertIssuerDocument(d: IssuerDocument): Promise<IssuerDocument>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {

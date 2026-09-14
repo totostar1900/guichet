@@ -4,6 +4,7 @@ import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
+import { companyByIsin } from "@/data/companies";
 import { IntentForm } from "@/components/IntentForm";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -354,6 +355,15 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <h3>Valeurs liquidatives publiées</h3>
             <NavHistory navs={navs} />
             <p className={styles.note}>VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement. {o.fund?.distributed ? "" : "Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore — dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion."}</p>
+          </section>
+        )}
+        {o.kind === "MARCHE" && o.instrument === "action" && companyByIsin(o.isin) && (
+          <section className={styles.sec}>
+            <h3>La société</h3>
+            <p className={styles.note}>
+              {companyByIsin(o.isin)!.activity}{" "}
+              <Link href={`/societes/${companyByIsin(o.isin)!.mnemo.toLowerCase()}`}>Analyse complète : comptes certifiés, ratios, dividendes, rapport PDF →</Link>
+            </p>
           </section>
         )}
         {quotes.length > 0 && (
