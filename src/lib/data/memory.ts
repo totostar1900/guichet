@@ -284,6 +284,9 @@ export const memoryRepository: Repository = {
   async listQuotes(isin, limit = 60) {
     return structuredClone(store().quotes.filter((q) => q.isin === isin).sort((a, b) => b.sessionDate.localeCompare(a.sessionDate)).slice(0, limit));
   },
+  async quotesOn(sessionDate) {
+    return structuredClone(store().quotes.filter((q) => q.sessionDate === sessionDate));
+  },
   async latestQuotes() {
     const latest = new Map<string, Quote>();
     for (const q of store().quotes) {

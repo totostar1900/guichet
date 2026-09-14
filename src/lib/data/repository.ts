@@ -61,6 +61,8 @@ export interface Repository {
   listQuotes(isin: string, limit?: number): Promise<Quote[]>;
   /** Latest quote of every line. */
   latestQuotes(): Promise<Quote[]>;
+  /** Every line quoted at one session. */
+  quotesOn(sessionDate: string): Promise<Quote[]>;
   /** Idempotent on (fundKey, navDate). */
   upsertFundNavs(navs: FundNav[]): Promise<void>;
   listFundNavs(fundKey: string, limit?: number): Promise<FundNav[]>;

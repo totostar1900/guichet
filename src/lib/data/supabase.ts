@@ -592,6 +592,11 @@ export const supabaseRepository: Repository = {
     if (error) fail("listQuotes", error);
     return (data as QuoteRow[]).map(toQuote);
   },
+  async quotesOn(sessionDate) {
+    const { data, error } = await db().from("quotes").select("*").eq("session_date", sessionDate);
+    if (error) fail("quotesOn", error);
+    return (data as QuoteRow[]).map(toQuote);
+  },
   async latestQuotes() {
     const { data, error } = await db().from("latest_quotes").select("*");
     if (error) fail("latestQuotes", error);

@@ -285,9 +285,8 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((o) => bondQuote(o, parsed))];
   const navs = parsed.funds.map((f) => fundNav(f, parsed));
   // Reference = the session right before this one (during a backfill the "latest" quotes may be months later).
-  const before = (await r.latestQuotes()).filter((q) => q.sessionDate < sessionDate);
-  const prevDate = before.reduce((d, q) => (q.sessionDate > d ? q.sessionDate : d), "");
-  const previous = before.filter((q) => q.sessionDate === prevDate);
+  const prevDate = (await r.listBulletins(2000)).map((b) => b.sessionDate).filter((d) => d < sessionDate).sort().pop();
+  const previous = prevDate ? await r.quotesOn(prevDate) : [];
   const anomalies = validate(parsed, quotes, navs, previous);
   const already = await r.getBulletin(sessionDate);
 
