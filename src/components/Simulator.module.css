@@ -8,3 +8,38 @@
     grid-template-columns: 1fr;
   }
 }
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.tiles > div {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  min-width: 0;
+}
+.tiles span {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.tiles b {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.gold b {
+  color: var(--gold-ink);
+}
+@media (max-width: 640px) {
+  .tiles {
+    grid-template-columns: 1fr;
+  }
+}

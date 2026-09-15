@@ -42,6 +42,13 @@ export const GLOSSARY = {
   adjudication: { short: "Adjudication", text: "La vente aux enchères des titres du Trésor : chaque banque agréée (SVT) dépose des offres, le Trésor retient les mieux-disantes. Une offre peut être servie en partie ou pas du tout." },
   apes: { short: "APE", long: "Appel public à l'épargne", text: "Emprunt obligataire d'une entreprise ou d'un État ouvert au public, visé par la COSUMAF, puis coté à la BVMAC." },
   opcvm: { short: "OPCVM", long: "Organisme de placement collectif en valeurs mobilières", text: "Un fonds commun de placement (FCP) : un portefeuille géré par une société de gestion agréée, dont on achète des parts. Monétaire, obligataire, diversifié ou actions selon ce qu'il détient." },
+  in_fine: { short: "In fine", text: "Le capital revient en une seule fois, à l'échéance. Entre-temps, vous ne percevez que les coupons annuels." },
+  prix_limite: { short: "Adjudication et prix limite", text: "Le Trésor retient les offres les mieux-disantes. Le prix publié par Purpose Capital est le prix auquel vos ordres sont présentés ; vous pouvez être servi en partie, ou pas du tout." },
+  lignes: { short: "Nouvelle ligne, abondement, rachat", text: "Une ligne nouvelle démarre sans coupon couru. Un abondement rouvre une ligne existante, avec sa durée restante. Un rachat est l'inverse : le Trésor reprend ses titres, en général au pair." },
+  precompte: { short: "BTA à intérêts précomptés", text: "Vous payez moins que le nominal et recevez le nominal à l'échéance. Le taux précompté est calculé sur 360 jours ; le rendement réel est un peu plus élevé." },
+  svt: { short: "SVT", long: "Spécialiste en Valeurs du Trésor", text: "La banque agréée qui dépose les offres à l'adjudication. Purpose Capital regroupe vos ordres et les transmet à un SVT avant l'heure limite." },
+  decote_duree: { short: "Décote et durée", text: "Une même décote rapporte d'autant plus par an que la ligne est courte : une réouverture à 1 an 5 mois peut offrir un rendement supérieur à une ligne à 3 ans." },
+  pair: { short: "Au pair", text: "Un titre acheté à 100 % de son nominal. Il rapporte alors son taux nominal : le rendement actuariel n'a de sens qu'avec une décote (moins de 100 %) ou une prime (plus de 100 %)." },
   pnb: { short: "Produit net bancaire", text: "Le « chiffre d'affaires » d'une banque : marge d'intérêt plus commissions, nettes des charges d'intérêt." },
   primes: { short: "Primes acquises", text: "Le « chiffre d'affaires » d'un assureur ou réassureur : les primes correspondant à la couverture de l'exercice." },
 } as const satisfies Record<string, Term>;

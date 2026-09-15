@@ -73,8 +73,24 @@ export function Simulator() {
         const nominal = 10_000;
         const lastOk = last && parseDate(last) < parseDate(settle) ? last : null;
         const r = bondCalc({ nominal, couponRate: coupon, settleOn: settle, maturityOn: maturity, lastCouponOn: lastOk, commissionPct: 0.5 }, amt, price);
+        // At par a bond earns its nominal rate; the actuarial yield only differs by day-count convention.
+        const atPar = Math.abs(price - 100) <= 0.05;
         return (
           <>
+            <div className={styles.tiles}>
+              <div className={styles.gold}>
+                <span>{atPar ? "Taux nominal · au pair" : price < 100 ? "Rendement actuariel brut · décote" : "Rendement actuariel brut · prime"}</span>
+                <b>{fmtPct(atPar ? coupon : r.irr, 2)}</b>
+              </div>
+              <div>
+                <span>Décaissement le {fmtDate(settle, false)}</span>
+                <b>{fmt(r.outlay)} FCFA</b>
+              </div>
+              <div>
+                <span>Gain brut jusqu&apos;au terme</span>
+                <b>{fmt(r.gain)} FCFA</b>
+              </div>
+            </div>
             <div className="out" style={{ marginTop: 12 }}>
               <div>Titres (nominal {fmt(nominal)})</div>
               <div>{fmt(r.titles)}</div>
@@ -84,10 +100,16 @@ export function Simulator() {
               <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
               <div className="tot">Décaissement le {fmtDate(settle, false)}</div>
               <div>{fmt(r.outlay)} FCFA</div>
-              <div>Gain net hors commission, jusqu&apos;au terme</div>
+              <div>Gain brut hors commission, jusqu&apos;au terme</div>
               <div>{fmt(r.gain)}</div>
-              <div className="hl">Rendement actuariel brut</div>
-              <div>{fmtPct(r.irr, 2)}</div>
+              <div className="hl">{atPar ? "Taux nominal (au pair)" : "Rendement actuariel brut"}</div>
+              <div>{fmtPct(atPar ? coupon : r.irr, 2)}</div>
+              {atPar && (
+                <>
+                  <div className="muted">Rendement actuariel, convention Exact/Exact</div>
+                  <div className="muted">{fmtPct(r.irr, 2)}</div>
+                </>
+              )}
             </div>
             {r.titles > 0 && <FlowsChart r={r} settleOn={settle} />}
           </>
@@ -97,6 +119,21 @@ export function Simulator() {
       {valid && kind === "BTA" && (() => {
         const r = btaCalc({ nominal: 1_000_000, settleOn: settle, maturityOn: maturity }, amt, rate);
         return (
+          <>
+          <div className={styles.tiles}>
+            <div className={styles.gold}>
+              <span>Rendement actuariel brut</span>
+              <b>{fmtPct(r.yieldPct, 2)}</b>
+            </div>
+            <div>
+              <span>Décaissement le {fmtDate(settle, false)}</span>
+              <b>{fmt(r.outlay)} FCFA</b>
+            </div>
+            <div>
+              <span>Intérêt précompté</span>
+              <b>{fmt(r.gain)} FCFA</b>
+            </div>
+          </div>
           <div className="out" style={{ marginTop: 12 }}>
             <div>Bons (nominal 1 000 000)</div>
             <div>{fmt(r.n)}</div>
@@ -111,6 +148,7 @@ export function Simulator() {
             <div className="hl">Rendement actuariel ({r.days} jours)</div>
             <div>{fmtPct(r.yieldPct, 2)}</div>
           </div>
+          </>
         );
       })()}
     </>
