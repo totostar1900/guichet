@@ -46,7 +46,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
 
       <div className={styles.intake}>
         <aside className={styles.queue} aria-label="File d'entrée">
-          <Link href="/desk/a-valider?nouveau=1" className={`btn primary ${styles.newBtn}`}>
+          <Link href="/desk/a-valider?nouveau=1" className={`btn ${styles.newBtn}`}>
             + Nouvelle source
           </Link>
           {!extractionAvailable() && <div className={styles.noApi}>Extraction automatique désactivée — ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.</div>}

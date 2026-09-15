@@ -32,7 +32,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 4px;
 }
 .st_new {
   background: var(--warn-soft);

@@ -7,6 +7,8 @@ import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/format";
 import { transitionIntent } from "./actions";
 import { DeskLive } from "@/components/DeskLive";
+import { LineIdentity } from "@/components/LineIdentity";
+import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -165,13 +167,7 @@ export default async function DeskPage() {
               {rows.map(({ o, nF, sF, nA, sA }) => (
                 <tr key={o.id}>
                   <td>
-                    <b>
-                      <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
-                        {o.title}
-                      </Link>
-                    </b>
-                    <br />
-                    <span className="mono muted">{o.isin}</span>
+                    <LineIdentity o={o} s={summarize(o, now)} href={`/offres/${o.id}`} />
                   </td>
                   <td className="num">{o.kind === "BTA" ? fmtPct(o.precountRate ?? 0, 2) : fmtPrice(o.pricePct ?? 100)}{o.priceNote || o.rateNote ? <span className="muted"> (indic.)</span> : null}</td>
                   <td className="r">
