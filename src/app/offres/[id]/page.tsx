@@ -11,7 +11,7 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, FAMILY_SEGMENT, headlineYield, isPast, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { displayStatus, FAMILY_SEGMENT, headlineYield, isPast, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
@@ -38,15 +38,15 @@ function Kpis({ o }: { o: Offer }) {
         ]
       : o.kind === "FONDS" && o.fund
         ? [
-            ["Valeur liquidative (FCFA)", fmt(o.fund.nav), true],
-            ["Depuis l'origine", `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, false],
+            ["Depuis l'origine", `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, true],
+            ["Valeur liquidative (FCFA)", fmt(o.fund.nav), false],
             ["Catégorie", `${FUND_CATEGORY_LABEL[o.fund.category]} · ${FUND_FREQUENCY_LABEL[o.fund.frequency]}`, false],
           ]
       : o.kind === "MARCHE"
         ? [
-            [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", true],
-            ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${o.instrument === "obligation" ? fmtPrice(o.bid) : fmt(o.bid)} / ${o.instrument === "obligation" ? fmtPrice(o.ask) : fmt(o.ask)}` : "—", false],
-            [o.instrument === "obligation" ? "Rendement au cours vendeur" : "Rendement du dividende", y != null ? fmtPct(y, 2) : "—", false],
+            [o.instrument === "obligation" ? "Rendement actuariel brut au cours" : "Rendement du dernier dividende", y != null ? fmtPct(y, 2) : "—", true],
+            [o.instrument === "obligation" ? "Coupon facial" : "Dernier dividende brut", o.instrument === "obligation" ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
+            [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", false],
           ]
       : o.kind === "BTA"
         ? [
@@ -56,9 +56,9 @@ function Kpis({ o }: { o: Offer }) {
           ]
         : o.kind === "ACTIONS"
           ? [
-              ["Prix de souscription", fmt(o.pricePerShare ?? 0), true],
-              ["Dernier cours", o.lastPrice ? fmt(o.lastPrice) : "—", false],
-              ["Rendement du dividende", y != null ? fmtPct(y, 2) : "—", false],
+              ["Rendement du dividende au prix", y != null ? fmtPct(y, 2) : "—", true],
+              ["Dernier dividende brut", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
+              ["Prix de souscription (FCFA)", fmt(o.pricePerShare ?? 0), false],
             ]
           : [
               ["Prix de rachat", "100 %", true],
@@ -153,8 +153,9 @@ function Reference({ o }: { o: Offer }) {
     const isBond = o.instrument === "obligation";
     const ref = o.ask ?? o.lastPrice ?? 0;
     const n = isBond ? 1000 : 100;
-    if (isBond && o.couponRate != null && o.maturityOn) {
-      const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, n * o.nominal, ref);
+    const bi = isBond ? marketBondInput(o) : null;
+    if (bi && bi.maturityOn > bi.settleOn) {
+      const r = bondCalc(bi, n * o.nominal, ref);
       return (
         <>
           <h3>Pour {fmt(n)} titres au cours vendeur</h3>
@@ -170,7 +171,7 @@ function Reference({ o }: { o: Offer }) {
             <div className="hl">Rendement actuariel brut à ce cours</div>
             <div>{fmtPct(r.irr, 2)}</div>
           </div>
-          <FlowsChart r={r} settleOn={o.settleOn} />
+          <FlowsChart r={r} settleOn={bi.settleOn} />
         </>
       );
     }

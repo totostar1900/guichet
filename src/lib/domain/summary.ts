@@ -48,6 +48,14 @@ const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" :
 const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
 const maturityNote = (o: Offer): string | undefined => (o.maturityOn && yearOnly(o) ? "année seule au BOC" : undefined);
 
+/** Annualised performance since inception — the only return a fund line can show from the BOC alone. */
+const fundAnnualPct = (f: NonNullable<Offer["fund"]>, now: Date): number | null => {
+  const years = (parseDate(localIso(now)).getTime() - parseDate(f.inceptionDate).getTime()) / (365.25 * 24 * 3600 * 1000);
+  if (!(years > 0.5) || f.perfSinceInceptionPct == null) return null;
+  return (Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / years) - 1) * 100;
+};
+const signed = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
+
 export function summarize(o: Offer, now: Date): OfferSummary {
   const st = displayStatus(o, now);
   const past = isPast(st);
@@ -78,6 +86,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       ...base,
       hero: y != null ? fmtPct(y, 2) : "—",
       heroSub: o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}${pending ? " (indicatif)" : ""}` : "prix à fixer par le desk",
+      heroUnit: o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}` : "prix à fixer",
       gold: !past,
       deadline: dl(o.deadlineAt),
       deadlineParts: dlParts(o.deadlineAt),
@@ -108,6 +117,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       ...base,
       hero: y != null ? fmtPct(y, 2) : "—",
       heroSub: o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté${o.rateNote ? " (indicatif)" : ""}` : "taux à fixer par le desk",
+      heroUnit: o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer",
       gold: !past,
       deadline: dl(o.deadlineAt),
       deadlineParts: dlParts(o.deadlineAt),
@@ -136,14 +146,15 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   if (o.kind === "ACTIONS") {
     return {
       ...base,
-      hero: fmt(o.pricePerShare ?? 0),
-      heroSub: "FCFA par action",
-      gold: false,
+      hero: y != null ? fmtPct(y, 2) : "—",
+      heroSub: y != null ? `dividende ${fmt(o.dividendPerShare ?? 0)} · ${fmt(o.pricePerShare ?? 0)} FCFA / action` : `${fmt(o.pricePerShare ?? 0)} FCFA / action · pas de dividende connu`,
+      heroUnit: y != null ? `au prix de ${fmt(o.pricePerShare ?? 0)}` : `${fmt(o.pricePerShare ?? 0)} FCFA / action`,
+      gold: !past && y != null,
       deadline: dl(o.deadlineAt),
       deadlineParts: dlParts(o.deadlineAt),
       deadlineAt: o.deadlineAt,
       countdown: closing,
-      coupon: y != null ? `${fmtPct(y, 2)} div.` : "—",
+      coupon: o.dividendPerShare ? `${fmt(o.dividendPerShare)} div.` : "—",
       tenor: "—",
       maturity: "—",
       minimum: `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`,
@@ -156,9 +167,9 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Actions offertes", o.sharesOffered ? fmt(o.sharesOffered) : "—"],
       ],
       ledger: [
-        ["Prix", fmt(o.pricePerShare ?? 0), "FCFA par action"],
+        ["Rendement du dividende", y != null ? fmtPct(y, 2) : "—", `au prix de ${fmt(o.pricePerShare ?? 0)} FCFA`],
         ["Clôture", dl(o.deadlineAt)],
-        ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", y != null ? `${fmtPct(y, 2)} au prix` : undefined],
+        ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", "brut, dernier exercice"],
         ["Ticket", `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`, `${o.minShares ?? 1} action${(o.minShares ?? 1) > 1 ? "s" : ""}`],
       ],
     };
@@ -197,12 +208,14 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     const f = o.fund;
     const open = st === "quoted";
     const v = f.variationPct;
+    const annual = fundAnnualPct(f, now);
     return {
       ...base,
       subtitle: `${o.issuer} · ${f.depositary}`,
-      hero: fmt(f.nav),
-      heroSub: `FCFA · VL du ${fmtDate(f.navDate, false)}${f.perfSinceInceptionPct ? ` · ${f.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(f.perfSinceInceptionPct, 1)} depuis l'origine` : ""}`,
-      gold: false,
+      hero: annual != null ? signed(annual) : v != null ? signed(v) : "—",
+      heroSub: `${annual != null ? "par an depuis l'origine" : "sur la période"} · VL ${fmt(f.nav)} FCFA du ${fmtDate(f.navDate, false)}`,
+      heroUnit: annual != null ? "par an depuis l'origine" : "sur la période",
+      gold: annual != null,
       deadline: open ? (f.cutoff ?? "prochaine VL") : "sur demande",
       coupon: v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)}` : "—",
       tenor: "—",
@@ -218,9 +231,9 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         [open ? "Droits d'entrée" : "Minimum", open ? fmtPct(f.entryFeePct, 2) : "sur demande"],
       ],
       ledger: [
+        ["Performance", annual != null ? signed(annual) : "—", annual != null ? `par an · ${signed(f.perfSinceInceptionPct, 1)} depuis l'origine` : "moins de six mois d'historique"],
         ["VL", fmt(f.nav), `FCFA · ${fmtDate(f.navDate, false)}`],
-        ["Variation", v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)}` : "—"],
-        ["Depuis l'origine", `${f.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(f.perfSinceInceptionPct, 1)}`],
+        ["Variation", v != null ? signed(v) : "—", "dernière VL"],
         ["Ticket", open ? `${fmt(f.minAmount)} FCFA` : "sur demande"],
       ],
     };
@@ -228,15 +241,19 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   // MARCHE
   const isBond = o.instrument === "obligation";
   const lot = o.lotSize ?? 1;
+  const priceTxt = o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : `${fmt(o.lastPrice)} FCFA`) : "—";
   return {
     ...base,
     subtitle: `${o.market} · cotation continue`,
-    hero: o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—",
-    heroSub: `${isBond ? "du nominal" : "FCFA"}${o.lastPriceOn ? ` · clôture ${fmtDate(o.lastPriceOn, false)}` : ""}${o.priceSource === "desk" ? " · saisi par le desk" : ""}`,
-    heroUnit: isBond ? "du nominal" : "FCFA",
-    gold: false,
+    hero: y != null ? `${isBond && yearOnly(o) ? "≈ " : ""}${fmtPct(y, 2)}` : "—",
+    heroSub:
+      y != null
+        ? `${isBond ? "actuariel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
+        : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? "échéance à préciser" : "pas de dividende connu"}`,
+    heroUnit: `au cours ${priceTxt}`,
+    gold: y != null && st === "quoted",
     deadline: "continue",
-    coupon: isBond ? fmtPct(o.couponRate ?? 0, 2) : y != null ? `${fmtPct(y, 2)} div.` : "—",
+    coupon: isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} div.` : "—",
     tenor: isBond && o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : "—",
     maturity: maturityText(o),
     maturityNote: maturityNote(o),
@@ -245,13 +262,13 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     primary: st === "quoted" ? { label: "Acheter", intent: "achat" } : null,
     secondary: st === "quoted" ? { label: "Vendre", intent: "vente" } : { label: "Question", intent: "info" },
     facts: [
-      [isBond ? "Coupon" : "Rendement du dividende", isBond ? fmtPct(o.couponRate ?? 0, 2) : y != null ? fmtPct(y, 2) : "—"],
+      [isBond ? "Coupon" : "Dividende", isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
       isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—"] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
     ],
     ledger: [
-      ["Cours", o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", `${isBond ? "du nominal" : "FCFA"}${o.lastPriceOn ? ` · ${fmtDate(o.lastPriceOn, false)}` : ""}`],
-      isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2)] : ["Dividende", y != null ? fmtPct(y, 2) : "—", "rendement au cours"],
+      [isBond ? "Rendement actuariel" : "Rendement du dividende", y != null ? `${isBond && yearOnly(o) ? "≈ " : ""}${fmtPct(y, 2)}` : "—", `brut, au cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}`],
+      isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2), "taux facial"] : ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", "brut, dernier exercice"],
       isBond ? ["Échéance", maturityText(o), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—", `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""}`],
     ],

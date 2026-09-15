@@ -133,8 +133,8 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
             <Th k="title" label="Ligne" sort={sort} dir={dir} onSort={onSort} />
             <th>Statut</th>
             <Th k="deadline" label="Clôture" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="yield" label="Rendement · cours" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
-            <Th k="coupon" label="Coupon" sort={sort} dir={dir} onSort={onSort} right term="coupon" className={styles.hideMd} />
+            <Th k="yield" label="Rendement" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
+            <Th k="coupon" label="Coupon / div." sort={sort} dir={dir} onSort={onSort} right term="coupon" className={styles.hideMd} />
             <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
             <th className={`${styles.r} ${styles.hideMd}`}>Durée</th>
             <Th k="minimum" label="Ticket minimum" sort={sort} dir={dir} onSort={onSort} right term="ticket" />
@@ -155,7 +155,7 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
                 {s.deadlineParts ? s.deadlineParts[0] : s.deadline}
                 {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
               </td>
-              <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroUnit ? s.heroSub : undefined}>
+              <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
                 <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
                 <small>{s.heroUnit ?? s.heroSub}</small>
               </td>

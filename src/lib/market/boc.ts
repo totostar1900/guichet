@@ -192,6 +192,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
     documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(q.sessionDate)} · PDF`, url: bocUrl(q.sessionDate) }, ...companyDocuments(q.isin), ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote" && !d.meta.startsWith("bvm-ac.org"))],
     lastPrice: q.close,
     lastPriceOn: q.sessionDate,
+    dividendPerShare: q.lastDividend ?? base.dividendPerShare,
     pricedAt: new Date().toISOString(),
     priceSource: "boc",
     priceNote: source,
