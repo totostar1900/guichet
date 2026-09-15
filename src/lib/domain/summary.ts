@@ -1,7 +1,7 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
 import { countdown, displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, KIND_LABEL, type MarketSegment, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { parseDate, tenorText } from "../finance";
-import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime } from "../format";
+import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
 /**
  * What a listing row says about an offer, whatever the instrument — computed once
@@ -24,8 +24,10 @@ export interface OfferSummary {
   deadlineAt?: string; // ISO for sorting
   countdown?: string; // "2 h 10" when closing soon
   coupon: string;
-  tenor: string;
-  minimum: string;
+  tenor: string; // duration as text ("2 ans et 11 mois") — from settlement for new paper, from today for listed bonds
+  maturity: string; // exact repayment date when known, the year alone when only the year is printed
+  minimum: string; // the smallest ticket in FCFA
+  minimumSub: string; // what that buys ("100 titres de 10 000")
   commission: string;
   primary: { label: string; intent: IntentType } | null;
   secondary?: { label: string; intent: IntentType };
@@ -34,6 +36,12 @@ export interface OfferSummary {
 }
 
 const OP: Record<Offer["operation"], string> = { nouvelle_ligne: "nouvelle ligne", abondement: "abondement", rachat: "rachat par le Trésor", ipo: "introduction", emprunt_ape: "emprunt obligataire", secondaire: "cotation", opcvm: "fonds" };
+
+/** BOC bonds carry only the year of maturity ("NET 2024-2029"): we store 31/12 and say so. */
+const yearOnly = (o: Offer): boolean => o.kind === "MARCHE" && Boolean(o.maturityOn?.endsWith("-12-31")) && o.priceSource !== "desk";
+/** Time left from today; "échue" once the date has passed. */
+const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" : tenorText(localIso(now), to));
+const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? `${o.maturityOn.slice(0, 4)} (année)` : fmtDate(o.maturityOn));
 
 export function summarize(o: Offer, now: Date): OfferSummary {
   const st = displayStatus(o, now);
@@ -70,13 +78,15 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       countdown: closing,
       coupon: fmtPct(o.couponRate ?? 0, 2),
       tenor,
-      minimum: o.minTitles ? `${fmt(o.minTitles)} titres` : `${fmt(o.nominal)} FCFA`,
+      maturity: maturityText(o),
+      minimum: `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`,
+      minimumSub: o.minTitles ? `${fmt(o.minTitles)} titres de ${fmt(o.nominal)}` : "1 titre",
       primary: past ? null : st === "upcoming" ? { label: "Me réserver", intent: "appetit" } : { label: "Prise ferme", intent: "ferme" },
       secondary: past ? { label: "Question", intent: "info" } : { label: "Appétit", intent: "appetit" },
       facts: [
         ["Coupon", fmtPct(o.couponRate ?? 0, 2)],
-        ["Durée réelle", tenor],
-        ["Commission", com],
+        ["Échéance", o.maturityOn ? `${fmtDate(o.maturityOn)} · ${tenor}` : tenor],
+        ["Ticket min.", `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`],
       ],
     };
   }
@@ -91,12 +101,14 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       countdown: closing,
       coupon: "—",
       tenor,
+      maturity: maturityText(o),
       minimum: `${fmt(o.nominal)} FCFA`,
+      minimumSub: "1 bon, intérêts précomptés",
       primary: past ? null : st === "upcoming" ? { label: "Me réserver", intent: "appetit" } : { label: "Prise ferme", intent: "ferme" },
       secondary: past ? { label: "Question", intent: "info" } : { label: "Appétit", intent: "appetit" },
       facts: [
-        ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
-        ["Nominal", `${fmt(o.nominal)} FCFA`],
+        ["Remboursé", o.maturityOn ? `${fmtDate(o.maturityOn)} · ${tenor}` : "—"],
+        ["Ticket min.", `${fmt(o.nominal)} FCFA`],
         ["Commission", com],
       ],
     };
@@ -112,7 +124,9 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       countdown: closing,
       coupon: y != null ? `${fmtPct(y, 2)} div.` : "—",
       tenor: "—",
-      minimum: `${o.minShares ?? 1} actions`,
+      maturity: "—",
+      minimum: `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`,
+      minimumSub: `${o.minShares ?? 1} action${(o.minShares ?? 1) > 1 ? "s" : ""} à ${fmt(o.pricePerShare ?? 0)}`,
       primary: past ? null : { label: "Souscrire", intent: "ferme" },
       secondary: { label: "Question", intent: "info" },
       facts: [
@@ -132,8 +146,10 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       deadlineAt: o.deadlineAt,
       countdown: closing,
       coupon: "—",
-      tenor: o.maturityOn ? `éch. ${fmtDate(o.maturityOn, false)}` : "—",
+      tenor: o.maturityOn ? left(now, o.maturityOn) : "—",
+      maturity: o.maturityOn ? fmtDate(o.maturityOn) : "—",
       minimum: "—",
+      minimumSub: "au pair, sans minimum",
       primary: past ? null : { label: "Céder", intent: "cession" },
       secondary: { label: "Question", intent: "info" },
       facts: [
@@ -156,7 +172,9 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       deadline: open ? (f.cutoff ?? "prochaine VL") : "sur demande",
       coupon: v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)}` : "—",
       tenor: "—",
+      maturity: "—",
       minimum: open ? `${fmt(f.minAmount)} FCFA` : "—",
+      minimumSub: open ? `≈ ${(f.minAmount / f.nav).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} parts à la dernière VL` : "sur demande",
       commission: open ? `${fmtPct(f.entryFeePct, 2)} entrée` : "—",
       primary: open ? { label: "Souscrire", intent: "souscription" } : { label: "Sur demande", intent: "info" },
       secondary: open ? { label: "Racheter", intent: "rachat" } : undefined,
@@ -169,6 +187,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   }
   // MARCHE
   const isBond = o.instrument === "obligation";
+  const lot = o.lotSize ?? 1;
   return {
     ...base,
     subtitle: `${o.market} · ${o.isin} · cotation continue`,
@@ -177,8 +196,10 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     gold: false,
     deadline: "continue",
     coupon: isBond ? fmtPct(o.couponRate ?? 0, 2) : y != null ? `${fmtPct(y, 2)} div.` : "—",
-    tenor: isBond && o.maturityOn ? o.maturityOn.slice(0, 4) : "—",
-    minimum: `${o.lotSize ?? 1} ${isBond ? "titre" : "action"}${(o.lotSize ?? 1) > 1 ? "s" : ""}`,
+    tenor: isBond && o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : "—",
+    maturity: maturityText(o),
+    minimum: o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—",
+    minimumSub: `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""} au cours${isBond ? ` · nominal ${fmt(o.nominal)}` : ""}`,
     primary: st === "quoted" ? { label: "Acheter", intent: "achat" } : null,
     secondary: st === "quoted" ? { label: "Vendre", intent: "vente" } : { label: "Question", intent: "info" },
     facts: [

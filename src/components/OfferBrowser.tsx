@@ -43,7 +43,7 @@ const YIELDS: [string, string][] = [
 export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "commission" | "title" | "recent";
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
-const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "durée", minimum: "minimum", commission: "commission", title: "nom", recent: "plus récent" };
+const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", commission: "commission", title: "nom", recent: "plus récent" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
 const normStatus = (s: DisplayStatus): string => (s === "closing" ? "open" : s === "closed" ? "results" : s === "on_request" ? "quoted" : s);
@@ -135,8 +135,9 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
             <Th k="yield" label="Rendement · cours" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
             <Th k="coupon" label="Coupon" sort={sort} dir={dir} onSort={onSort} right term="coupon" className={styles.hideMd} />
             <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
-            <Th k="minimum" label="Minimum" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right term="commission" className={styles.hideMd} />
+            <th className={`${styles.r} ${styles.hideMd}`}>Durée</th>
+            <Th k="minimum" label="Ticket minimum" sort={sort} dir={dir} onSort={onSort} right term="ticket" />
+            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right term="commission" className={styles.hideLg} />
             <th></th>
           </tr>
         </thead>
@@ -158,9 +159,13 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
                 <small>{s.heroSub}</small>
               </td>
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.coupon}</td>
+              <td className={`${styles.r} ${styles.hideMd} num`}>{s.maturity}</td>
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
-              <td className={`${styles.r} num`}>{s.minimum}</td>
-              <td className={`${styles.r} ${styles.hideMd} num`}>{s.commission}</td>
+              <td className={`${styles.r} num`}>
+                {s.minimum}
+                <small>{s.minimumSub}</small>
+              </td>
+              <td className={`${styles.r} ${styles.hideLg} num`}>{s.commission}</td>
               <td className={styles.r}>
                 {s.primary ? (
                   <Link className="btn sm" href={`/offres/${o.id}?intent=${s.primary.intent}`}>
@@ -309,7 +314,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         case "coupon":
           return parseNum(a.s.coupon) - parseNum(b.s.coupon);
         case "tenor":
-          return tenorYears(a.o) - tenorYears(b.o);
+          return (a.o.maturityOn ?? "9999").localeCompare(b.o.maturityOn ?? "9999");
         case "minimum":
           return parseNum(a.s.minimum) - parseNum(b.s.minimum);
         case "commission":

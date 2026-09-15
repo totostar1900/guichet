@@ -241,7 +241,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-3);
-  padding: 9px 10px;
+  padding: 9px 8px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
   background: var(--surface);
@@ -268,7 +268,7 @@
   color: var(--ink);
 }
 .table td {
-  padding: 16px 10px;
+  padding: 16px 8px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
   white-space: nowrap;
@@ -370,6 +370,11 @@
 }
 @media (max-width: 1320px) {
   .hideMd {
+    display: none;
+  }
+}
+@media (max-width: 1520px) {
+  .hideLg {
     display: none;
   }
 }
