@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
 import { displayStatus, FAMILIES, FAMILY_LABEL, FAMILY_SEGMENT, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
-import { summarize, type OfferSummary } from "@/lib/domain/summary";
+import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketTabs } from "./MarketTabs";
@@ -108,6 +108,44 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
   );
 }
 
+/* ---------- grouping ---------- */
+type Row = { o: Offer; s: OfferSummary };
+/** Rows in their current order, bucketed by issuer (first appearance keeps the sort). */
+function groupByIssuer(rows: Row[]): { issuer: string; country: Offer["country"]; countryName: string; rows: Row[] }[] {
+  const out: { issuer: string; country: Offer["country"]; countryName: string; rows: Row[] }[] = [];
+  const idx = new Map<string, number>();
+  for (const r of rows) {
+    const k = r.o.issuer;
+    if (!idx.has(k)) {
+      idx.set(k, out.length);
+      out.push({ issuer: k, country: r.o.country, countryName: r.o.countryName, rows: [] });
+    }
+    out[idx.get(k)!].rows.push(r);
+  }
+  return out;
+}
+function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]; colSpan?: number }) {
+  const fams = [...new Set(g.rows.map((r) => r.s.kind))];
+  const inner = (
+    <>
+      <span className="cc" title={g.countryName}>
+        {COUNTRY_CODE[g.country]}
+      </span>
+      <b>{g.issuer}</b>
+      <span className={styles.groupMeta}>
+        {g.rows.length} ligne{g.rows.length > 1 ? "s" : ""} · {fams.join(" · ")}
+      </span>
+    </>
+  );
+  return colSpan ? (
+    <tr className={styles.groupRow}>
+      <td colSpan={colSpan}>{inner}</td>
+    </tr>
+  ) : (
+    <div className={styles.groupHead}>{inner}</div>
+  );
+}
+
 /* ---------- table ---------- */
 function Th({ k, label, sort, dir, onSort, right, term, className = "" }: { k: SortKey; label: string; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; right?: boolean; term?: TermKey; className?: string }) {
   const on = sort === k;
@@ -124,7 +162,8 @@ function Th({ k, label, sort, dir, onSort, right, term, className = "" }: { k: S
 
 const StatusPill = ({ s }: { s: OfferSummary }) => <span className={`pill ${s.statusClass}`}>{s.countdown ? `Clôture ${s.countdown}` : s.status}</span>;
 
-function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary }[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void }) {
+function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean }) {
+  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
@@ -142,7 +181,9 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ o, s }) => (
+          {groups.flatMap((g) => [
+            ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={9} />] : []),
+            ...g.rows.map(({ o, s }) => (
             <tr key={o.id} className={s.past ? styles.past : ""}>
               <td className={styles.line}>
                 <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
@@ -180,7 +221,8 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
                 )}
               </td>
             </tr>
-          ))}
+            )),
+          ])}
         </tbody>
       </table>
     </div>
@@ -188,10 +230,13 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
 }
 
 /* ---------- list ---------- */
-function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
+function List({ rows, grouped }: { rows: Row[]; grouped: boolean }) {
+  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.list}>
-      {rows.map(({ o, s }) => (
+      {groups.flatMap((g) => [
+        ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
+        ...g.rows.map(({ o, s }) => (
         <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family})` }}>
           <div className={styles.rowMain}>
             <LineIdentity o={o} s={s} size="lg" />
@@ -213,7 +258,8 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
           </dl>
           <div className={styles.rowAct}>{s.primary ? `${s.primary.label} →` : "Fiche →"}</div>
         </Link>
-      ))}
+        )),
+      ])}
     </div>
   );
 }
@@ -228,6 +274,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
   const kind = setOf("instrument");
   const segment = (sp.get("marche") as MarketSegment | null) ?? undefined;
+  const grouped = sp.get("groupe") === "emetteur";
   const country = setOf("pays");
   const status = setOf("statut");
   const tenor = setOf("duree");
@@ -383,6 +430,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           <b>{rows.length}</b> ligne{rows.length > 1 ? "s" : ""}
           {filterCount > 0 || q ? " correspondant aux filtres" : ""} · {live} ouverte{live > 1 ? "s" : ""} ou cotée{live > 1 ? "s" : ""}
         </span>
+        <label className={styles.groupToggle}>
+          <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
+          Grouper par émetteur
+        </label>
         <label className={styles.sortSel}>
           Tri
           <select value={sort} onChange={(e) => update({ tri: e.target.value, sens: undefined })} aria-label="Trier">
@@ -399,8 +450,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       </div>
 
       {rows.length === 0 && <div className="empty">Aucune ligne ne correspond à ces filtres.</div>}
-      {rows.length > 0 && view === "table" && <Table rows={rows} sort={sort} dir={dir} onSort={onSort} />}
-      {rows.length > 0 && view === "list" && <List rows={rows} />}
+      {rows.length > 0 && view === "table" && <Table rows={rows} sort={sort} dir={dir} onSort={onSort} grouped={grouped} />}
+      {rows.length > 0 && view === "list" && <List rows={rows} grouped={grouped} />}
       {rows.length > 0 && view === "cards" && (
         <div className={styles.cards}>
           {rows.map(({ o, s }) => (
