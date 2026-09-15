@@ -5,10 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
 import { displayStatus, FAMILIES, FAMILY_LABEL, FAMILY_SEGMENT, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
-import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
+import { summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketTabs } from "./MarketTabs";
+import { LineIdentity } from "./LineIdentity";
 import { Info } from "./Info";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
@@ -145,10 +146,7 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
           {rows.map(({ o, s }) => (
             <tr key={o.id} className={s.past ? styles.past : ""}>
               <td className={styles.line}>
-                <Link href={`/offres/${o.id}`}>
-                  <span className={`fam fam-${s.family}`}>{s.kind}</span> <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span> {s.title}
-                </Link>
-                <small>{s.subtitle}</small>
+                <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
               </td>
               <td>
                 <StatusPill s={s} />
@@ -198,10 +196,7 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
       {rows.map(({ o, s }) => (
         <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family})` }}>
           <div className={styles.rowMain}>
-            <div className={styles.rowTitle}>
-              <span className={`fam fam-${s.family}`}>{s.kind}</span> {s.title}
-            </div>
-            <small>{s.subtitle}</small>
+            <LineIdentity o={o} s={s} size="lg" />
           </div>
           <div className={styles.rowHero}>
             <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
@@ -209,7 +204,6 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
           </div>
           <div className={styles.rowSub}>
             <StatusPill s={s} />
-            <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span>
             <span>{s.deadline === "continue" ? "cotation continue" : s.deadline}</span>
             <span>com. {s.commission}</span>
             {s.primary && <span className={styles.rowAct}>{s.primary.label} →</span>}

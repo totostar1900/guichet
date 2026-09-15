@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
-import { COUNTRY_CODE, type OfferSummary } from "@/lib/domain/summary";
+import type { OfferSummary } from "@/lib/domain/summary";
+import { LineIdentity } from "./LineIdentity";
 import styles from "./OfferCard.module.css";
 
 /** One number, three facts, one action. Everything else is on the fiche. */
@@ -9,13 +10,7 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
   return (
     <article className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ borderTopColor: `var(--fam-${s.family})` }}>
       <div className={styles.head}>
-        <div className={styles.title}>
-          <Link href={href}>{s.title}</Link>
-          <small>
-            <span className={`fam fam-${s.family}`}>{s.kind}</span>
-            <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span> {s.subtitle.split(" · ")[0]}
-          </small>
-        </div>
+        <LineIdentity o={o} s={s} href={href} size="lg" />
         <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : s.status}</span>
       </div>
       <div className={`${styles.big} ${s.gold ? styles.gold : ""}`}>

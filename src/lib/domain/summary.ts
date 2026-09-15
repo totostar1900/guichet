@@ -15,7 +15,7 @@ export interface OfferSummary {
   family: OfferFamily;
   segment: MarketSegment; // primaire · secondaire · fonds
   title: string;
-  subtitle: string; // issuer · code · operation
+  subtitle: string; // issuer · operation (the ISIN has its own line)
   hero: string; // the one number
   heroSub: string; // its condition
   heroUnit?: string; // table: the unit alone ("du nominal", "FCFA"); the condition stays in a hover
@@ -61,7 +61,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     family: offerFamily(o),
     segment: FAMILY_SEGMENT[offerFamily(o)],
     title: o.title,
-    subtitle: `${o.issuer} · ${o.isin}${o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OP[o.operation]}` : ""}`,
+    subtitle: `${o.issuer}${o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OP[o.operation]}` : ""}`,
     yieldPct: y,
     past,
     commission: com,
@@ -199,7 +199,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   const lot = o.lotSize ?? 1;
   return {
     ...base,
-    subtitle: `${o.market} · ${o.isin} · cotation continue`,
+    subtitle: `${o.market} · cotation continue`,
     hero: o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—",
     heroSub: `${isBond ? "du nominal" : "FCFA"}${o.lastPriceOn ? ` · clôture ${fmtDate(o.lastPriceOn, false)}` : ""}${o.priceSource === "desk" ? " · saisi par le desk" : ""}`,
     heroUnit: isBond ? "du nominal" : "FCFA",
