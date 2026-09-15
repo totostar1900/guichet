@@ -8,11 +8,11 @@ import styles from "./LineIdentity.module.css";
  * the instrument name, then who issues it (family badge · country · issuer ·
  * operation), then the ISIN in monospace for bank orders.
  */
-export function LineIdentity({ o, s, href, size = "md" }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" }) {
+export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" | "xl"; as?: "div" | "h1" }) {
   const title = href ? <Link href={href}>{s.title}</Link> : s.title;
   return (
-    <div className={`${styles.id} ${size === "lg" ? styles.lg : ""}`}>
-      <div className={styles.title}>{title}</div>
+    <div className={`${styles.id} ${size === "lg" ? styles.lg : size === "xl" ? styles.xl : ""}`}>
+      <Tag className={styles.title}>{title}</Tag>
       <div className={styles.meta}>
         <span className={`fam fam-${s.family}`}>{s.kind}</span>
         <span className="cc" title={o.countryName}>

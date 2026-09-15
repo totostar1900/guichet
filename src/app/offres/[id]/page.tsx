@@ -6,10 +6,12 @@ import { QuoteHistory } from "@/components/QuoteHistory";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { companyByIsin } from "@/data/companies";
 import { IntentForm } from "@/components/IntentForm";
+import { LineIdentity } from "@/components/LineIdentity";
+import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, offerFamily, OPERATION_LABEL, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { displayStatus, FAMILY_SEGMENT, headlineYield, isPast, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
@@ -247,6 +249,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 60) : [];
   const st = displayStatus(o);
   const past = isPast(st);
+  const summary = summarize(o, new Date());
   const types = allowedIntents(o, st);
   const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
   // What the signed-in client already holds on this line — caps sales / redemptions and pre-fills « tout vendre ».
@@ -323,13 +326,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
           ← Toutes les offres
         </Link>
         <div className={styles.head}>
-          <div className={`eyebrow ${styles.eyebrow}`}>
-            <span className="cc">{o.country.toUpperCase()}</span> {SEGMENT_LABEL[FAMILY_SEGMENT[offerFamily(o)]]} · <span className={`fam fam-${offerFamily(o)}`}>{FAMILY_SHORT[offerFamily(o)]}</span>{o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OPERATION_LABEL[o.operation]}` : ""} <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
+          <div className={styles.crumb}>
+            {SEGMENT_LABEL[FAMILY_SEGMENT[offerFamily(o)]]}
             {o.isExample && <span className="tag-ex">exemple</span>}
           </div>
-          <h1 className="display">{o.title}</h1>
-          <div className={styles.issuer}>
-            {o.issuer} · <span className="mono">{o.isin}</span>
+          <div className={styles.headRow}>
+            <LineIdentity o={o} s={summary} size="xl" as="h1" />
+            <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
           </div>
         </div>
 

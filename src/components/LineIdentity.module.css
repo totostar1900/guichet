@@ -20,6 +20,21 @@
 .lg .title {
   font-size: 0.94rem;
 }
+.xl {
+  gap: 5px;
+}
+.xl .title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.xl .meta {
+  font-size: 0.8rem;
+}
+.xl .isin {
+  font-size: 0.76rem;
+}
 .meta {
   display: flex;
   align-items: center;
