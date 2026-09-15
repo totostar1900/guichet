@@ -153,3 +153,7 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 `supabase/migrations/0013_intent_contact.sql` ajoute `contact_phone` / `contact_email` sur `intents` (le numéro ou l'e-mail que le client donne avec son intention). Tant qu'elle n'est pas appliquée, l'app garde le contact dans le message de l'intention et l'indique dans les logs.
 
 `node scripts/seed-supabase.ts` charge les offres d'exemple (OTA, BTA, IPO, rachats) dans le projet Supabase de `.env.local` sans toucher aux lignes du BOC.
+
+### Échéanciers des obligations cotées
+
+`src/data/bond-terms.ts` porte, par ISIN, la date d'échéance exacte, la périodicité et le différé d'amortissement lus sur les fiches signalétiques publiées par la BVMAC (Espace émetteurs › Émetteurs obligations, images JPG). Le rendement actuariel d'une ligne cotée se calcule alors sur son vrai échéancier (`amortCalc`) ; sans fiche, il reste calculé in fine au 31 décembre de l'année imprimée au BOC et signalé « ≈ ». À mettre à jour à chaque nouvelle fiche (BDEAC et État du Congo manquent encore).
