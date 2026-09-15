@@ -50,6 +50,9 @@ export interface FundTerms {
   inceptionDate: string;
   perfSinceInceptionPct: number;
   variationPct?: number;
+  /** NAV change over the last 12 months, from the stored history (needs ≥ 11 months of NAVs). */
+  perf1yPct?: number;
+  perf1yFrom?: string;
   /** Distribution agreement with the manager: without it the fund is information only. */
   distributed: boolean;
   agreementRef?: string;

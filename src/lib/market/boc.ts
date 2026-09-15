@@ -3,6 +3,7 @@ import type { Country, Offer } from "@/lib/domain/types";
 import { fundKey, type FundNav, type MarketBulletin, type Quote } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
+import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { prettyName } from "./names";
@@ -202,7 +203,19 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
 }
 
 /** An OPCVM line of the Guichet: information only until the desk records a distribution agreement. */
-export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer): Offer {
+/** NAV one year before the print (closest earlier one, at most 45 days off) → 12-month performance. */
+export function perf1y(history: FundNav[], to: FundNav): { pct: number; from: string } | undefined {
+  const target = new Date(parseDate(to.navDate));
+  target.setFullYear(target.getFullYear() - 1);
+  const t = localIso(target);
+  const before = history.filter((h) => h.navDate <= t).sort((a, b) => b.navDate.localeCompare(a.navDate))[0];
+  if (!before || !before.nav) return undefined;
+  const gap = (parseDate(t).getTime() - parseDate(before.navDate).getTime()) / 86_400_000;
+  if (gap > 45) return undefined;
+  return { pct: (to.nav / before.nav - 1) * 100, from: before.navDate };
+}
+
+export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, yearAgo?: { pct: number; from: string }): Offer {
   const geo = COUNTRY_OF_DEPOSITARY(n.depositary);
   const base: Offer = existing ?? {
     id: `fund-${n.fundKey}`,
@@ -239,6 +252,8 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer): 
       inceptionDate: n.inceptionDate,
       perfSinceInceptionPct: n.perfSinceInceptionPct,
       variationPct: n.variationPct,
+      perf1yPct: yearAgo?.pct ?? prior?.perf1yPct,
+      perf1yFrom: yearAgo?.from ?? prior?.perf1yFrom,
       distributed: prior?.distributed ?? false,
       agreementRef: prior?.agreementRef,
       entryFeePct: prior?.entryFeePct ?? 0,
@@ -296,7 +311,15 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   }
 
   const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((o) => bondQuote(o, parsed))];
-  const navs = parsed.funds.map((f) => fundNav(f, parsed));
+  // A NAV dated years away from the session, or absurd, is a mis-read line: keep it out of the history.
+  const plausible = (n: FundNav): boolean => {
+    const d = parseDate(n.navDate).getTime();
+    const sd = parseDate(sessionDate).getTime();
+    const ok = d <= sd + 7 * 86_400_000 && d >= sd - 400 * 86_400_000 && n.nav > 0 && n.navDate >= n.inceptionDate;
+    if (!ok) parsed.warnings.push(`OPCVM ${n.name} : VL du ${n.navDate} ignorée (date ou valeur invraisemblable).`);
+    return ok;
+  };
+  const navs = parsed.funds.map((f) => fundNav(f, parsed)).filter(plausible);
   // Reference = the session right before this one (during a backfill the "latest" quotes may be months later).
   const prevDate = (await r.listBulletins(2000)).map((b) => b.sessionDate).filter((d) => d < sessionDate).sort().pop();
   const previous = prevDate ? await r.quotesOn(prevDate) : [];
@@ -324,7 +347,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   for (const n of navs) {
     const existing = byKey.get(n.fundKey);
     if (existing && existing.fund && existing.fund.navDate > n.navDate) continue;
-    const next = offerFromNav(n, parsed.bulletinNo, existing);
+    const next = offerFromNav(n, parsed.bulletinNo, existing, perf1y(await r.listFundNavs(n.fundKey, 400), n));
     await r.upsertOffer(next);
     (existing ? refreshed : created).push(next.id);
   }

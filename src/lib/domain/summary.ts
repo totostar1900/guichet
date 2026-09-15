@@ -214,10 +214,10 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     return {
       ...base,
       subtitle: `${o.issuer} · ${f.depositary}`,
-      hero: annual != null ? signed(annual) : v != null ? signed(v) : "—",
-      heroSub: `${annual != null ? "par an depuis l'origine" : "sur la période"} · VL ${fmt(f.nav)} FCFA du ${fmtDate(f.navDate, false)}`,
-      heroUnit: annual != null ? "par an depuis l'origine" : "sur la période",
-      gold: annual != null,
+      hero: f.perf1yPct != null ? signed(f.perf1yPct) : annual != null ? signed(annual) : v != null ? signed(v) : "—",
+      heroSub: `${f.perf1yPct != null ? "sur 12 mois" : annual != null ? "par an depuis l'origine" : "sur la période"} · VL ${fmt(f.nav)} FCFA du ${fmtDate(f.navDate, false)}`,
+      heroUnit: f.perf1yPct != null ? "sur 12 mois" : annual != null ? "par an depuis l'origine" : "sur la période",
+      gold: f.perf1yPct != null || annual != null,
       deadline: open ? (f.cutoff ?? "prochaine VL") : "sur demande",
       coupon: v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)}` : "—",
       tenor: "—",
@@ -233,7 +233,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         [open ? "Droits d'entrée" : "Minimum", open ? fmtPct(f.entryFeePct, 2) : "sur demande"],
       ],
       ledger: [
-        ["Performance", annual != null ? signed(annual) : "—", annual != null ? `par an · ${signed(f.perfSinceInceptionPct, 1)} depuis l'origine` : "moins de six mois d'historique"],
+        ["Performance", f.perf1yPct != null ? signed(f.perf1yPct) : annual != null ? signed(annual) : "—", f.perf1yPct != null ? `sur 12 mois · ${signed(f.perfSinceInceptionPct, 1)} depuis l'origine` : annual != null ? `par an · ${signed(f.perfSinceInceptionPct, 1)} depuis l'origine` : "moins de six mois d'historique"],
         ["VL", fmt(f.nav), `FCFA · ${fmtDate(f.navDate, false)}`],
         ["Variation", v != null ? signed(v) : "—", "dernière VL"],
         ["Ticket", open ? `${fmt(f.minAmount)} FCFA` : "sur demande"],

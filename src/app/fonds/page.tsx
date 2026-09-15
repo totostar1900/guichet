@@ -68,6 +68,7 @@ export default async function FondsPage() {
                     <th className={styles.hideSm}>Société de gestion · dépositaire</th>
                     <th className={styles.r}>VL (FCFA)</th>
                     <th className={styles.r}>Var.</th>
+                    <th className={styles.r}>12 mois</th>
                     <th className={`${styles.r} ${styles.hideSm}`}>Depuis l&apos;origine</th>
                     <th></th>
                   </tr>
@@ -95,6 +96,7 @@ export default async function FondsPage() {
                           <small className="muted">{fmtDate(f.navDate)}</small>
                         </td>
                         <td className={`${styles.r} ${cls(f.variationPct)}`}>{signed(f.variationPct)}</td>
+                        <td className={`${styles.r} ${cls(f.perf1yPct)}`}>{signed(f.perf1yPct)}</td>
                         <td className={`${styles.r} ${styles.hideSm} ${cls(f.perfSinceInceptionPct)}`}>{signed(f.perfSinceInceptionPct)}</td>
                         <td className={styles.r}>
                           {openHere ? (

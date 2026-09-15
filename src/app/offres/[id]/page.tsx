@@ -40,7 +40,7 @@ function Kpis({ o }: { o: Offer }) {
         ]
       : o.kind === "FONDS" && o.fund
         ? [
-            ["Depuis l'origine", `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, true],
+            [o.fund.perf1yPct != null ? "Performance sur 12 mois" : "Depuis l'origine", o.fund.perf1yPct != null ? `${o.fund.perf1yPct > 0 ? "+" : ""}${fmtPct(o.fund.perf1yPct, 2)}` : `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, true],
             ["Valeur liquidative (FCFA)", fmt(o.fund.nav), false],
             ["Catégorie", `${FUND_CATEGORY_LABEL[o.fund.category]} · ${FUND_FREQUENCY_LABEL[o.fund.frequency]}`, false],
           ]
