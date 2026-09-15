@@ -86,13 +86,17 @@ function matchesSegment(c: Contact, segment: string): boolean {
   return true;
 }
 
-/** Acknowledgement to the client who just raised a hand. */
-export async function notifyIntentReceived(i: Intent, o: Offer, estimate?: string): Promise<void> {
+/**
+ * Acknowledgement to the client who just raised a hand — on WhatsApp and by
+ * e-mail whenever both are known, so the client sees at once that both work.
+ */
+export async function notifyIntentReceived(i: Intent, o: Offer, estimate?: string): Promise<Notification[]> {
   const c = await contactForIntent(i);
-  if (!c) return;
+  if (!c) return [];
   const m = intentReceived(i, o, estimate);
-  const pref: NotifyChannel[] = i.channel === "E-mail" ? ["email"] : i.channel === "WhatsApp" ? ["whatsapp"] : ["whatsapp", "email"];
-  for (const t of targets(c, pref)) await deliver("intent_received", t, m, { intentId: i.id, offerId: o.id });
+  const out: Notification[] = [];
+  for (const t of targets(c, ["whatsapp", "email"])) out.push(await deliver("intent_received", t, m, { intentId: i.id, offerId: o.id }));
+  return out;
 }
 
 /** Lifecycle update to the client (confirmée, transmise, servie…). */

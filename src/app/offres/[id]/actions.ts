@@ -25,7 +25,9 @@ const schema = z.object({
 });
 
 
-export type IntentResult = { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean } | { ok: false; error: string };
+export type IntentResult =
+  | { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean; phone: string; email: string; sent: { channel: "whatsapp" | "email"; status: string }[] }
+  | { ok: false; error: string };
 
 /**
  * Creates an intent at the offer's current published version, attributed to
@@ -39,8 +41,9 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const { offerId, type, amount, channel, message, limitPrice } = parsed.data;
   const contactPhone = normalizePhone(parsed.data.contactPhone);
   const contactEmail = (parsed.data.contactEmail ?? "").trim().toLowerCase();
-  if ((channel === "WhatsApp" || channel === "Appel") && !/^\+\d{8,15}$/.test(contactPhone)) return { ok: false, error: "Indiquez un numéro de téléphone joignable (ex. +237 6 87 67 67 67)." };
-  if (channel === "E-mail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) return { ok: false, error: "Indiquez une adresse e-mail valide." };
+  // Both are required: the acknowledgement goes out on WhatsApp and by e-mail, the bulletin to sign by e-mail.
+  if (!/^\+\d{8,15}$/.test(contactPhone)) return { ok: false, error: "Indiquez un numéro de téléphone joignable, indicatif compris (ex. +237 6 87 67 67 67)." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) return { ok: false, error: "Indiquez une adresse e-mail valide : le bulletin à signer vous y est envoyé." };
 
   const r = repo();
   const offer = await r.getOffer(offerId);
@@ -84,7 +87,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   // Keep the profile reachable with what the client just typed (the desk calls from there).
   await r.updateContact(session.userId, { phone: contactPhone || undefined, email: contactEmail || undefined });
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} — <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
-  await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined);
+  const sent = (await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined)).map((n) => ({ channel: n.channel, status: n.status }));
   revalidatePath("/desk");
-  return { ok: true, ref: intent.ref, type, channel, needsAccount };
+  return { ok: true, ref: intent.ref, type, channel, needsAccount, phone: contactPhone, email: contactEmail, sent };
 }

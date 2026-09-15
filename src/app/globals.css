@@ -152,7 +152,6 @@ html {
 }
 body {
   margin: 0;
-  overflow-x: clip; /* wide tables scroll inside their own container, never the page */
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-ui);

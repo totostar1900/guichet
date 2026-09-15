@@ -234,6 +234,19 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
     return () => mq.removeEventListener("change", apply);
   }, []);
   const view = (sp.get("vue") as View) || autoView;
+  // The market tabs and the toolbar stay frozen under the site header; the table
+  // header then sticks right under them, whatever height the toolbar wraps to.
+  const top = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!top.current || !wrapRef.current) return;
+    const el = top.current;
+    const apply = () => wrapRef.current?.style.setProperty("--sticky-h", `${el.offsetHeight}px`);
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
@@ -314,47 +327,49 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
   const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.segments} role="tablist" aria-label="Marché">
-        <button type="button" role="tab" aria-selected={!segment} onClick={() => update({ marche: undefined, instrument: undefined })}>
-          Tout <b>{offers.length}</b>
-        </button>
-        {SEGMENTS.filter((sg) => segCount[sg] > 0 || segment === sg).map((sg) => (
-          <button key={sg} type="button" role="tab" aria-selected={segment === sg} title={SEGMENT_HINT[sg]} onClick={() => update({ marche: sg, instrument: undefined })}>
-            {SEGMENT_LABEL[sg]} <b>{segCount[sg]}</b>
+    <div className={styles.wrap} ref={wrapRef}>
+      <div className={styles.top} ref={top}>
+        <div className={styles.segments} role="tablist" aria-label="Marché">
+          <button type="button" role="tab" aria-selected={!segment} onClick={() => update({ marche: undefined, instrument: undefined })}>
+            Tout <b>{offers.length}</b>
           </button>
-        ))}
-      </div>
-      {segment && <p className={styles.segHint}>{SEGMENT_HINT[segment]}</p>}
-      <div className={styles.toolbar}>
-        <label className={styles.search}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <input type="search" placeholder="Rechercher une ligne, un émetteur, un ISIN" aria-label="Rechercher" defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
-        </label>
-        <Dropdown
-          label="Instrument"
-          items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES.filter((f) => FAMILY_SEGMENT[f] === sg).map((f) => [f, FAMILY_LABEL[f]] as [string, string])])}
-          selected={kind}
-          onChange={setFilter("instrument")}
-        />
-        <Dropdown label="Pays" items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
-        <Dropdown label="Statut" items={STATUSES} selected={status} onChange={setFilter("statut")} />
-        <Dropdown label="Durée" items={TENORS} selected={tenor} onChange={setFilter("duree")} />
-        <Dropdown label="Rendement" items={YIELDS} selected={minYield} onChange={setFilter("rendement")} single />
-        {(filterCount > 0 || q) && (
-          <button type="button" className={styles.clear} onClick={reset}>
-            Effacer
-          </button>
-        )}
-        <div className={styles.seg} role="group" aria-label="Affichage">
-          {(["table", "list", "cards"] as View[]).map((v) => (
-            <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
-              {v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes"}
+          {SEGMENTS.filter((sg) => segCount[sg] > 0 || segment === sg).map((sg) => (
+            <button key={sg} type="button" role="tab" aria-selected={segment === sg} title={SEGMENT_HINT[sg]} onClick={() => update({ marche: sg, instrument: undefined })}>
+              {SEGMENT_LABEL[sg]} <b>{segCount[sg]}</b>
             </button>
           ))}
+        </div>
+        {segment && <p className={styles.segHint}>{SEGMENT_HINT[segment]}</p>}
+        <div className={styles.toolbar}>
+          <label className={styles.search}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <input type="search" placeholder="Rechercher une ligne, un émetteur, un ISIN" aria-label="Rechercher" defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
+          </label>
+          <Dropdown
+            label="Instrument"
+            items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES.filter((f) => FAMILY_SEGMENT[f] === sg).map((f) => [f, FAMILY_LABEL[f]] as [string, string])])}
+            selected={kind}
+            onChange={setFilter("instrument")}
+          />
+          <Dropdown label="Pays" items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
+          <Dropdown label="Statut" items={STATUSES} selected={status} onChange={setFilter("statut")} />
+          <Dropdown label="Durée" items={TENORS} selected={tenor} onChange={setFilter("duree")} />
+          <Dropdown label="Rendement" items={YIELDS} selected={minYield} onChange={setFilter("rendement")} single />
+          {(filterCount > 0 || q) && (
+            <button type="button" className={styles.clear} onClick={reset}>
+              Effacer
+            </button>
+          )}
+          <div className={styles.seg} role="group" aria-label="Affichage">
+            {(["table", "list", "cards"] as View[]).map((v) => (
+              <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
+                {v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

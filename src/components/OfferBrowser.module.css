@@ -1,6 +1,18 @@
 .wrap {
   display: grid;
   gap: 12px;
+  --header-h: 60px;
+  --sticky-h: 96px;
+}
+/* Frozen under the site header (which is itself sticky). */
+.top {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 20;
+  background: var(--paper);
+  margin: -18px -20px 0;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--line);
 }
 
 /* ---------- toolbar ---------- */
@@ -178,7 +190,7 @@
 .segments {
   display: flex;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
   overflow-y: hidden;
@@ -252,7 +264,13 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  overflow-x: auto;
+  overflow-x: clip; /* not a scroll container, so the header can stick to the page */
+  min-width: 0;
+}
+@media (max-width: 1000px) {
+  .tableWrap {
+    overflow-x: auto;
+  }
 }
 .table {
   width: 100%;
@@ -271,7 +289,8 @@
   white-space: nowrap;
   background: var(--surface);
   position: sticky;
-  top: 0;
+  top: calc(var(--header-h) + var(--sticky-h));
+  z-index: 5;
 }
 .table th > button {
   border: none;
@@ -292,7 +311,7 @@
   color: var(--ink);
 }
 .table td {
-  padding: 10px 10px;
+  padding: 16px 10px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
   white-space: nowrap;
@@ -312,7 +331,7 @@
   white-space: nowrap;
 }
 .line {
-  max-width: min(380px, 28vw);
+  max-width: min(340px, 26vw);
   white-space: nowrap;
 }
 .line a {
@@ -392,7 +411,7 @@
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 14px;
 }
-@media (max-width: 1180px) {
+@media (max-width: 1320px) {
   .hideMd {
     display: none;
   }

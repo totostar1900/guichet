@@ -106,6 +106,25 @@
   width: 0;
   height: 0;
 }
+.procedure {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+.steps {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  display: grid;
+  gap: 4px;
+}
+.steps b {
+  display: inline;
+  margin: 0;
+  color: var(--ink);
+}
 .req {
   font-style: normal;
   font-weight: 500;

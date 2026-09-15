@@ -61,6 +61,14 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         <div className={styles.done}>
           <b>Reçu — réf. {state.ref}</b>
           {DONE[state.type](BY[state.channel])}
+          <ul className={styles.steps}>
+            <li>
+              Accusé de réception envoyé sur WhatsApp au <b>{state.phone}</b> et par e-mail à <b>{state.email}</b>
+              {state.sent.some((x) => x.status === "skipped") ? " (envoi automatique en cours d'activation : le desk vous écrit à la main)" : state.sent.some((x) => x.status === "failed") ? " — un envoi a échoué, le desk vous recontacte" : ""}.
+            </li>
+            <li>Un conseiller vous confirme {BY[state.channel]} — vérifiez que ce numéro reçoit bien les appels et WhatsApp.</li>
+            <li>Le bulletin à signer et l&apos;appel de fonds arrivent par e-mail ; l&apos;exécution vous est confirmée sur les deux canaux.</li>
+          </ul>
           {state.needsAccount && (
             <div className={styles.needAccount}>
               Pour transmettre cet ordre, votre compte-titres doit être ouvert : dix minutes sur votre téléphone.{" "}
@@ -142,16 +150,20 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           <div className={styles.row}>
             <label className="field">
               <span>
-                {channel === "Appel" ? "Téléphone" : "Téléphone (WhatsApp)"}
-                {channel !== "E-mail" && <em className={styles.req}> · requis</em>}
+                Téléphone (WhatsApp) <em className={styles.req}>· requis</em>
               </span>
-              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={phone} required={channel !== "E-mail"} />
+              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={phone} required pattern="[+0-9 ().-]{8,}" title="Numéro avec indicatif, ex. +237 6 87 67 67 67" />
             </label>
             <label className="field">
-              <span>E-mail{channel === "E-mail" && <em className={styles.req}> · requis</em>}</span>
-              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required={channel === "E-mail"} />
+              <span>
+                E-mail <em className={styles.req}>· requis</em>
+              </span>
+              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required />
             </label>
           </div>
+          <p className={styles.procedure}>
+            Les deux sont vérifiés à l&apos;envoi : vous recevez aussitôt un accusé de réception sur WhatsApp et par e-mail, un conseiller vous confirme {BY[channel]}, puis le bulletin à signer arrive par e-mail. En donnant ce numéro, vous acceptez d&apos;être contacté sur WhatsApp pour cette opération.
+          </p>
         </fieldset>
         {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (

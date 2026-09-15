@@ -54,6 +54,7 @@
   max-width: 1380px;
   margin: 0 auto;
   padding: 18px 20px 60px;
+  overflow-x: clip; /* wide content is cut or scrolls in its own container, never the page */
 }
 .footer {
   max-width: 1380px;

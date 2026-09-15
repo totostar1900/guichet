@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { ContactForm } from "./ContactForm";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
 import styles from "./page.module.css";
@@ -18,7 +19,7 @@ export default async function MyPage() {
   const [intents, offers, docs] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments()]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
-  const myFile = await r.getClientFileByUser(s.userId);
+  const [myFile, contact] = await Promise.all([r.getClientFileByUser(s.userId), r.getContact(s.userId)]);
   const positions = positionsFrom(mine, offers);
   const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
 
@@ -59,6 +60,14 @@ export default async function MyPage() {
         <Link href="/" className="btn">
           Voir les offres
         </Link>
+      </div>
+
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Mes coordonnées</h2>
+          {(!contact?.phone || !contact?.email) && <span className="pill closing">à compléter</span>}
+        </div>
+        <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
       </div>
 
       {positions.length > 0 && (
