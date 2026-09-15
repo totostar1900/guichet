@@ -1,5 +1,5 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
-import { countdown, displayStatus, displayYield, FAMILY_SEGMENT, FAMILY_SHORT, isPast, KIND_LABEL, type MarketSegment, type OfferFamily, offerFamily, statusLabel } from "./status";
+import { countdown, displayStatus, displayYield, FAMILY_SEGMENT, FAMILY_SHORT, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
@@ -42,7 +42,7 @@ export interface OfferSummary {
 const OP: Record<Offer["operation"], string> = { nouvelle_ligne: "nouvelle ligne", abondement: "abondement", rachat: "rachat par le Trésor", ipo: "introduction", emprunt_ape: "emprunt obligataire", secondaire: "cotation", opcvm: "fonds" };
 
 /** BOC bonds carry only the year of maturity ("NET 2024-2029"): we store 31/12 and say so. */
-const yearOnly = (o: Offer): boolean => o.kind === "MARCHE" && Boolean(o.maturityOn?.endsWith("-12-31")) && o.priceSource !== "desk";
+const yearOnly = maturityIsGuess;
 /** Time left from today; "échue" once the date has passed. */
 const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" : tenorText(localIso(now), to));
 const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
@@ -253,7 +253,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ? dy.atPar
           ? `taux nominal · au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}`
           : `${isBond ? "actuariel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
-        : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? "échéance à préciser" : "pas de dividende connu"}`,
+        : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? (o.maturityOn && o.maturityOn < localIso(now) ? `remboursée le ${fmtDate(o.maturityOn)}` : "échéance à préciser") : "pas de dividende connu"}`,
     heroUnit: dy.atPar ? "au pair · nominal" : `au cours ${priceTxt}`,
     gold: y != null && st === "quoted",
     deadline: "continue",

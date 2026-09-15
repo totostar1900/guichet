@@ -8,6 +8,7 @@ import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { prettyName } from "./names";
 import { companyByIsin } from "@/data/companies";
+import { bondTerms } from "@/data/bond-terms";
 
 const COMPANY_DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
 /** The issuer's own filings at the BVMAC, newest first, for the fiche of a listed share. */
@@ -176,7 +177,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
     opensAt: `${q.sessionDate}T09:00:00`,
     deadlineAt: "2099-12-31T17:00:00",
     settleOn: q.sessionDate,
-    maturityOn: isBond && maturityYear(q.designation) ? `${maturityYear(q.designation)}-12-31` : undefined,
+    maturityOn: isBond ? (bondTerms(q.isin)?.maturityOn ?? (maturityYear(q.designation) ? `${maturityYear(q.designation)}-12-31` : undefined)) : undefined,
     lastCouponOn: undefined,
     nominal: isBond ? (q.nominalRemaining ?? 10_000) : 1,
     couponRate: isBond ? couponFromDesignation(q.designation) : undefined,
@@ -198,6 +199,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
     priceSource: "boc",
     priceNote: source,
     nominal: isBond && q.nominalRemaining ? q.nominalRemaining : base.nominal,
+    maturityOn: isBond ? (bondTerms(q.isin)?.maturityOn ?? base.maturityOn) : base.maturityOn,
     version: base.version + 1,
   };
 }

@@ -181,3 +181,60 @@ export function btaAmountForBonds(b: BtaInput, n: number, precountRatePct: numbe
   const p = 1 - (precountRatePct / 100) * (days / 360);
   return n * b.nominal * p + 1;
 }
+
+export interface AmortInput {
+  nominal: number; // remaining nominal per title
+  couponRate: number; // % p.a. on the outstanding nominal
+  settleOn: string;
+  maturityOn: string;
+  periodsPerYear: 1 | 2 | 4;
+  graceUntil?: string; // payment dates up to this one repay no capital
+  commissionPct?: number;
+}
+
+/** Payment dates strictly after settlement, stepping back from maturity by the period. */
+export function paymentDates(settleOn: string, maturityOn: string, periodsPerYear: number): Date[] {
+  const settle = parseDate(settleOn);
+  const out: Date[] = [];
+  const d = parseDate(maturityOn);
+  const step = 12 / periodsPerYear;
+  while (d > settle) {
+    out.unshift(new Date(d));
+    d.setMonth(d.getMonth() - step);
+  }
+  return out;
+}
+
+/**
+ * A listed bond repaid in equal capital instalments on each payment date after
+ * its grace period (the schedule of every BVMAC fiche signalétique), bought at a
+ * clean price plus the interest accrued since the last payment. Yield is the
+ * annual rate that discounts every flow (actual/365) to the outlay.
+ */
+export function amortCalc(b: AmortInput, nominalAmount: number, pricePct: number): BondResult {
+  const titles = Math.max(0, Math.floor(nominalAmount / b.nominal));
+  const dates = paymentDates(b.settleOn, b.maturityOn, b.periodsPerYear);
+  const settle = parseDate(b.settleOn);
+  const periodRate = b.couponRate / 100 / b.periodsPerYear;
+  const amortising = dates.filter((d) => !b.graceUntil || d > parseDate(b.graceUntil));
+  const instalment = amortising.length ? b.nominal / amortising.length : 0;
+  // Accrued interest: the fraction of the current period already elapsed at settlement.
+  const prev = dates.length ? new Date(dates[0]) : settle;
+  if (dates.length) prev.setMonth(prev.getMonth() - 12 / b.periodsPerYear);
+  const periodDays = dates.length ? (dates[0].getTime() - prev.getTime()) / DAY : 1;
+  const accruedDays = dates.length ? Math.max(0, Math.round((settle.getTime() - prev.getTime()) / DAY)) : 0;
+  const accruedPerTitle = periodRate * b.nominal * (accruedDays / periodDays);
+  const pricePerTitle = (b.nominal * pricePct) / 100;
+  const outlay = titles * (pricePerTitle + accruedPerTitle);
+  let outstanding = b.nominal;
+  const flows: CashFlow[] = dates.map((date, i) => {
+    const interest = periodRate * outstanding;
+    const capital = amortising.includes(date) ? Math.min(instalment, outstanding) : 0;
+    outstanding -= capital;
+    const last = i === dates.length - 1;
+    return { date, t: (date.getTime() - settle.getTime()) / DAY / 365, amount: titles * (interest + (last ? capital + outstanding : capital)), label: capital > 0 ? "Coupon + capital" : "Coupon" };
+  });
+  const irr = solveIrr(outlay, flows);
+  const gain = flows.reduce((s, f) => s + f.amount, 0) - outlay;
+  return { titles, accruedDays, accruedPerTitle, accrued: titles * accruedPerTitle, pricePerTitle, outlay, commission: (outlay * (b.commissionPct ?? 0)) / 100, gain, irr, flows };
+}

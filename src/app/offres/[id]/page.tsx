@@ -11,7 +11,9 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, displayYield, FAMILY_SEGMENT, isPast, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { displayStatus, displayYield, FAMILY_SEGMENT, isPast, marketAmortInput, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { bondTerms } from "@/data/bond-terms";
+import { amortCalc } from "@/lib/finance";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
@@ -155,9 +157,12 @@ function Reference({ o }: { o: Offer }) {
     const isBond = o.instrument === "obligation";
     const ref = o.ask ?? o.lastPrice ?? 0;
     const n = isBond ? 1000 : 100;
+    const ai = isBond ? marketAmortInput(o) : null;
     const bi = isBond ? marketBondInput(o) : null;
-    if (bi && bi.maturityOn > bi.settleOn) {
-      const r = bondCalc(bi, n * o.nominal, ref);
+    const terms = bondTerms(o.isin);
+    if ((ai && ai.maturityOn > ai.settleOn) || (bi && bi.maturityOn > bi.settleOn)) {
+      const r = ai && ai.maturityOn > ai.settleOn ? amortCalc(ai, n * o.nominal, ref) : bondCalc(bi!, n * o.nominal, ref);
+      const settleOn = ai && ai.maturityOn > ai.settleOn ? ai.settleOn : bi!.settleOn;
       return (
         <>
           <h3>Pour {fmt(n)} titres au cours vendeur</h3>
@@ -173,7 +178,15 @@ function Reference({ o }: { o: Offer }) {
             <div className="hl">Rendement actuariel brut à ce cours</div>
             <div>{fmtPct(r.irr, 2)}</div>
           </div>
-          <FlowsChart r={r} settleOn={bi.settleOn} />
+          <FlowsChart r={r} settleOn={settleOn} />
+          {terms ? (
+            <p className={styles.note}>
+              Échéancier : remboursement du capital en {terms.periodsPerYear === 1 ? "annuités" : terms.periodsPerYear === 2 ? "semestrialités" : "trimestrialités"} égales jusqu&apos;au {fmtDate(terms.maturityOn)}
+              {terms.graceUntil ? `, intérêts seuls jusqu'au ${fmtDate(terms.graceUntil)}` : ""}, sur le nominal restant de {fmt(o.nominal)} FCFA par titre. Source : {terms.source}.
+            </p>
+          ) : (
+            <p className={styles.note}>Seule l&apos;année de l&apos;échéance figure au bulletin : rendement calculé sur un remboursement in fine au 31 décembre, à confirmer avec la note d&apos;information.</p>
+          )}
         </>
       );
     }

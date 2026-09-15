@@ -34,7 +34,7 @@ describe("offerFromQuote", () => {
     expect(o.country).toBe("Cameroun");
     expect(o.couponRate).toBe(6.25);
     expect(o.nominal).toBe(6000);
-    expect(o.maturityOn).toBe("2029-12-31");
+    expect(o.maturityOn).toBe("2029-05-27"); // exact date from the fiche signalétique, not the BOC year
     expect(o.lastPrice).toBe(100);
     expect(o.priceSource).toBe("boc");
     expect(o.commissionPct).toBe(0.5);

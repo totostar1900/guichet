@@ -1,6 +1,7 @@
 import type { DisplayStatus, Offer } from "./types";
-import { bondCalc, type BondInput, btaCalc, parseDate, yearsBetween } from "../finance";
+import { amortCalc, type AmortInput, bondCalc, type BondInput, btaCalc, parseDate, yearsBetween } from "../finance";
 import { localIso } from "../format";
+import { bondTerms } from "@/data/bond-terms";
 
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
   quoted: "Cotée",
@@ -69,6 +70,18 @@ export function tenorYears(o: Offer): number {
  * the buyer pays the coupon accrued since the last anniversary of the maturity
  * date. Without this a bond at par would show a yield far above its coupon.
  */
+/** Repayment schedule of a listed bond when its fiche signalétique is on file; settlement T+3 from today. */
+export function marketAmortInput(o: Offer, now = new Date()): AmortInput | null {
+  const t = bondTerms(o.isin);
+  if (!t || o.instrument !== "obligation" || o.couponRate == null) return null;
+  const settle = new Date(now);
+  settle.setDate(settle.getDate() + (o.settlementDays ?? 3));
+  return { nominal: o.nominal, couponRate: o.couponRate, settleOn: localIso(settle), maturityOn: t.maturityOn, periodsPerYear: t.periodsPerYear, graceUntil: t.graceUntil, commissionPct: o.commissionPct };
+}
+
+/** True when the BOC's year is all we know about the maturity (no fiche on file). */
+export const maturityIsGuess = (o: Offer): boolean => o.kind === "MARCHE" && o.instrument === "obligation" && !bondTerms(o.isin) && o.priceSource !== "desk" && Boolean(o.maturityOn?.endsWith("-12-31"));
+
 export function marketBondInput(o: Offer, now = new Date()): BondInput | null {
   if (o.instrument !== "obligation" || o.couponRate == null || !o.maturityOn) return null;
   const settle = new Date(now);
@@ -92,12 +105,13 @@ export function marketBondInput(o: Offer, now = new Date()): BondInput | null {
  */
 export function displayYield(o: Offer): { pct: number | null; atPar: boolean; approx: boolean } {
   const isBond = o.kind === "OTA" || o.kind === "APE" || (o.kind === "MARCHE" && o.instrument === "obligation");
+  // A listed bond past its maturity is still printed by the BOC for a while: nothing to earn.
+  if (o.kind === "MARCHE" && isBond && o.maturityOn && o.maturityOn < localIso(new Date())) return { pct: null, atPar: false, approx: false };
   if (isBond && o.couponRate != null) {
     const price = o.kind === "MARCHE" ? (o.ask ?? o.lastPrice) : (o.servedPricePct ?? o.pricePct);
     if (price != null && Math.abs(price - 100) <= 0.05) return { pct: o.couponRate, atPar: true, approx: false };
   }
-  const approx = o.kind === "MARCHE" && o.instrument === "obligation" && o.priceSource !== "desk" && Boolean(o.maturityOn?.endsWith("-12-31"));
-  return { pct: headlineYield(o), atPar: false, approx };
+  return { pct: headlineYield(o), atPar: false, approx: maturityIsGuess(o) };
 }
 
 /** The single number on the card. Null when nothing sensible exists (buybacks). */
@@ -122,11 +136,13 @@ export function headlineYield(o: Offer): number | null {
       return (o.dividendPerShare / o.pricePerShare) * 100;
     case "MARCHE": {
       if (o.instrument === "obligation" && o.lastPrice != null) {
+        const a = marketAmortInput(o);
+        if (a) return a.maturityOn > a.settleOn ? amortCalc(a, o.nominal * 1000, o.ask ?? o.lastPrice).irr : null;
         const b = marketBondInput(o);
         if (!b || b.maturityOn <= b.settleOn) return null;
         // Only the year of maturity is printed in the BOC: with less than a year left the
         // guess (31/12) swings the yield by tens of points — better no figure than a wrong one.
-        if (o.priceSource !== "desk" && o.maturityOn!.endsWith("-12-31") && yearsBetween(b.settleOn, b.maturityOn) < 1) return null;
+        if (maturityIsGuess(o) && yearsBetween(b.settleOn, b.maturityOn) < 1) return null;
         return bondCalc(b, o.nominal * 1000, o.ask ?? o.lastPrice).irr;
       }
       if (o.instrument === "action" && o.dividendPerShare && o.lastPrice) return (o.dividendPerShare / o.lastPrice) * 100;
