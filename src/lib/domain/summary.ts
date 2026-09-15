@@ -1,5 +1,5 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
-import { countdown, displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, KIND_LABEL, type MarketSegment, type OfferFamily, offerFamily, statusLabel } from "./status";
+import { countdown, displayStatus, displayYield, FAMILY_SEGMENT, FAMILY_SHORT, isPast, KIND_LABEL, type MarketSegment, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
@@ -59,7 +59,9 @@ const signed = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
 export function summarize(o: Offer, now: Date): OfferSummary {
   const st = displayStatus(o, now);
   const past = isPast(st);
-  const y = headlineYield(o);
+  const dy = displayYield(o);
+  const y = dy.pct;
+  const yTxt = y != null ? `${dy.approx ? "≈ " : ""}${fmtPct(y, 2)}` : "—";
   const tenor = o.maturityOn ? tenorText(o.settleOn, o.maturityOn) : "—";
   const com = fmtPct(o.commissionPct, 2);
   const base = {
@@ -84,9 +86,9 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     const pending = price == null || Boolean(o.priceNote);
     return {
       ...base,
-      hero: y != null ? fmtPct(y, 2) : "—",
-      heroSub: o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}${pending ? " (indicatif)" : ""}` : "prix à fixer par le desk",
-      heroUnit: o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}` : "prix à fixer",
+      hero: yTxt,
+      heroSub: dy.atPar ? `taux nominal · ${o.servedPricePct != null ? "servi" : "si servi"} au pair${pending ? " (indicatif)" : ""}` : o.servedPricePct != null ? `actuariel · servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `actuariel · si servi à ${fmtPrice(price)}${pending ? " (indicatif)" : ""}` : "prix à fixer par le desk",
+      heroUnit: dy.atPar ? `au pair · nominal` : o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}` : "prix à fixer",
       gold: !past,
       deadline: dl(o.deadlineAt),
       deadlineParts: dlParts(o.deadlineAt),
@@ -105,7 +107,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Ticket min.", `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`],
       ],
       ledger: [
-        ["Rendement", y != null ? fmtPct(y, 2) : "—", o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}` : "prix à fixer"],
+        [dy.atPar ? "Taux nominal" : "Rendement actuariel", yTxt, dy.atPar ? `${o.servedPricePct != null ? "servi" : "si servi"} au pair` : o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}` : "prix à fixer"],
         ["Clôture", dl(o.deadlineAt)],
         ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket", `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`, o.minTitles ? `${fmt(o.minTitles)} titres` : undefined],
@@ -115,8 +117,8 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   if (o.kind === "BTA") {
     return {
       ...base,
-      hero: y != null ? fmtPct(y, 2) : "—",
-      heroSub: o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté${o.rateNote ? " (indicatif)" : ""}` : "taux à fixer par le desk",
+      hero: yTxt,
+      heroSub: o.precountRate != null ? `actuariel · à ${fmtPct(o.precountRate, 2)} précompté${o.rateNote ? " (indicatif)" : ""}` : "taux à fixer par le desk",
       heroUnit: o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer",
       gold: !past,
       deadline: dl(o.deadlineAt),
@@ -136,7 +138,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Commission", com],
       ],
       ledger: [
-        ["Rendement", y != null ? fmtPct(y, 2) : "—", o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
+        ["Rendement actuariel", yTxt, o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
         ["Clôture", dl(o.deadlineAt)],
         ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket", `${fmt(o.nominal)} FCFA`, "1 bon"],
@@ -245,12 +247,14 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   return {
     ...base,
     subtitle: `${o.market} · cotation continue`,
-    hero: y != null ? `${isBond && yearOnly(o) ? "≈ " : ""}${fmtPct(y, 2)}` : "—",
+    hero: yTxt,
     heroSub:
       y != null
-        ? `${isBond ? "actuariel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
+        ? dy.atPar
+          ? `taux nominal · au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}`
+          : `${isBond ? "actuariel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
         : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? "échéance à préciser" : "pas de dividende connu"}`,
-    heroUnit: `au cours ${priceTxt}`,
+    heroUnit: dy.atPar ? "au pair · nominal" : `au cours ${priceTxt}`,
     gold: y != null && st === "quoted",
     deadline: "continue",
     coupon: isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} div.` : "—",
@@ -267,7 +271,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
     ],
     ledger: [
-      [isBond ? "Rendement actuariel" : "Rendement du dividende", y != null ? `${isBond && yearOnly(o) ? "≈ " : ""}${fmtPct(y, 2)}` : "—", `brut, au cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}`],
+      [dy.atPar ? "Taux nominal" : isBond ? "Rendement actuariel" : "Rendement du dividende", yTxt, dy.atPar ? `au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}` : `brut, au cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}`],
       isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2), "taux facial"] : ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", "brut, dernier exercice"],
       isBond ? ["Échéance", maturityText(o), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—", `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""}`],

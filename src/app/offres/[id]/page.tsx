@@ -11,7 +11,7 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, FAMILY_SEGMENT, headlineYield, isPast, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { displayStatus, displayYield, FAMILY_SEGMENT, isPast, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
@@ -28,11 +28,13 @@ export async function generateMetadata({ params }: Props) {
 }
 
 function Kpis({ o }: { o: Offer }) {
-  const y = headlineYield(o);
+  const dy = displayYield(o);
+  const y = dy.pct;
+  const yTxt = y != null ? `${dy.approx ? "≈ " : ""}${fmtPct(y, 2)}` : "—";
   const items: [string, string, boolean][] =
     o.kind === "OTA" || o.kind === "APE"
       ? [
-          [`Rendement ${o.servedPricePct ? "servi" : "visé"}`, y != null ? fmtPct(y, 2) : "—", true],
+          [dy.atPar ? `Taux nominal ${o.servedPricePct ? "servi" : "visé"} au pair` : `Rendement actuariel ${o.servedPricePct ? "servi" : "visé"}`, yTxt, true],
           [`Prix ${o.servedPricePct ? "servi" : "Purpose"}`, fmtPrice(o.servedPricePct ?? o.pricePct ?? 100), false],
           ["Coupon annuel", fmtPct(o.couponRate ?? 0, 2), false],
         ]
@@ -44,7 +46,7 @@ function Kpis({ o }: { o: Offer }) {
           ]
       : o.kind === "MARCHE"
         ? [
-            [o.instrument === "obligation" ? "Rendement actuariel brut au cours" : "Rendement du dernier dividende", y != null ? fmtPct(y, 2) : "—", true],
+            [dy.atPar ? "Taux nominal · au pair" : o.instrument === "obligation" ? "Rendement actuariel brut au cours" : "Rendement du dernier dividende", yTxt, true],
             [o.instrument === "obligation" ? "Coupon facial" : "Dernier dividende brut", o.instrument === "obligation" ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
             [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", false],
           ]

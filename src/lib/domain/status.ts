@@ -83,6 +83,23 @@ export function marketBondInput(o: Offer, now = new Date()): BondInput | null {
   return { nominal: o.nominal, couponRate: o.couponRate, settleOn, maturityOn: o.maturityOn, lastCouponOn: last, commissionPct: o.commissionPct };
 }
 
+/**
+ * What the Guichet prints as « rendement ». For a bond bought at par (±0,05 %)
+ * the nominal rate: the actuarial yield would differ by a few basis points of
+ * pure day-count convention and read as a second, contradictory number next to
+ * the coupon in the instrument's name. Away from par, the actuarial yield is
+ * the only honest figure. `approx` flags a maturity known by its year only.
+ */
+export function displayYield(o: Offer): { pct: number | null; atPar: boolean; approx: boolean } {
+  const isBond = o.kind === "OTA" || o.kind === "APE" || (o.kind === "MARCHE" && o.instrument === "obligation");
+  if (isBond && o.couponRate != null) {
+    const price = o.kind === "MARCHE" ? (o.ask ?? o.lastPrice) : (o.servedPricePct ?? o.pricePct);
+    if (price != null && Math.abs(price - 100) <= 0.05) return { pct: o.couponRate, atPar: true, approx: false };
+  }
+  const approx = o.kind === "MARCHE" && o.instrument === "obligation" && o.priceSource !== "desk" && Boolean(o.maturityOn?.endsWith("-12-31"));
+  return { pct: headlineYield(o), atPar: false, approx };
+}
+
 /** The single number on the card. Null when nothing sensible exists (buybacks). */
 export function headlineYield(o: Offer): number | null {
   switch (o.kind) {

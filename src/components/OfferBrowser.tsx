@@ -134,7 +134,6 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
             <th>Statut</th>
             <Th k="deadline" label="Clôture" sort={sort} dir={dir} onSort={onSort} right />
             <Th k="yield" label="Rendement" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
-            <Th k="coupon" label="Coupon / div." sort={sort} dir={dir} onSort={onSort} right term="coupon" className={styles.hideMd} />
             <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
             <th className={`${styles.r} ${styles.hideMd}`}>Durée</th>
             <Th k="minimum" label="Ticket minimum" sort={sort} dir={dir} onSort={onSort} right term="ticket" />
@@ -159,7 +158,6 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
                 <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
                 <small>{s.heroUnit ?? s.heroSub}</small>
               </td>
-              <td className={`${styles.r} ${styles.hideMd} num`}>{s.coupon}</td>
               <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
                 {s.maturity}
                 {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
