@@ -197,17 +197,23 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
         <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family})` }}>
           <div className={styles.rowMain}>
             <LineIdentity o={o} s={s} size="lg" />
+            <div className={styles.rowStatus}>
+              <StatusPill s={s} />
+              <span>com. {s.commission}</span>
+            </div>
           </div>
-          <div className={styles.rowHero}>
-            <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
-            <small>{s.heroSub}</small>
-          </div>
-          <div className={styles.rowSub}>
-            <StatusPill s={s} />
-            <span>{s.deadline === "continue" ? "cotation continue" : s.deadline}</span>
-            <span>com. {s.commission}</span>
-            {s.primary && <span className={styles.rowAct}>{s.primary.label} →</span>}
-          </div>
+          <dl className={styles.ledger}>
+            {s.ledger.map(([k, v, note], i) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd className={i === 0 && s.gold ? styles.gold : undefined}>
+                  {v}
+                  {note && <small>{note}</small>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <div className={styles.rowAct}>{s.primary ? `${s.primary.label} →` : "Fiche →"}</div>
         </Link>
       ))}
     </div>

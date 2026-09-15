@@ -13,8 +13,8 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
         <LineIdentity o={o} s={s} href={href} size="lg" />
         <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : s.status}</span>
       </div>
-      <div className={`${styles.big} ${s.gold ? styles.gold : ""}`}>
-        {s.hero}
+      <div className={styles.big}>
+        <b className={s.gold ? styles.gold : ""}>{s.hero}</b>
         <small>{s.heroSub}</small>
       </div>
       <div className={styles.facts}>
@@ -36,11 +36,13 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           </Link>
         )}
         {s.secondary && (
-          <Link className="btn sm ghost" href={`${href}?intent=${s.secondary.intent}`}>
+          <Link className={styles.link} href={`${href}?intent=${s.secondary.intent}`}>
             {s.secondary.label}
           </Link>
         )}
-        <span className={styles.when}>{s.deadline === "continue" ? "cotation continue" : s.deadline}</span>
+        <span className={styles.when}>
+          {s.deadline === "continue" ? "cotation continue" : s.deadline} · com. {s.commission}
+        </span>
       </div>
     </article>
   );

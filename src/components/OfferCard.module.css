@@ -29,20 +29,22 @@
 }
 .big {
   min-width: 0;
-  overflow-wrap: anywhere;
-  font-size: 1.7rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
   line-height: 1;
+}
+.big b {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 .big small {
-  display: block;
   font-size: 0.76rem;
   font-weight: 500;
-  letter-spacing: 0;
   color: var(--ink-3);
-  margin-top: 6px;
 }
 .gold {
   color: var(--gold-ink);
@@ -65,12 +67,21 @@
   display: block;
   font-size: 0.7rem;
   color: var(--ink-3);
-  font-weight: 600;
+  font-weight: 500;
 }
 .facts b {
-  font-size: 0.86rem;
-  font-weight: 700;
+  font-size: 0.84rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
+}
+.link {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  text-decoration: none;
+  padding: 5px 6px;
+}
+.link:hover {
+  text-decoration: underline;
 }
 .act {
   display: flex;

@@ -35,6 +35,7 @@ export interface OfferSummary {
   primary: { label: string; intent: IntentType } | null;
   secondary?: { label: string; intent: IntentType };
   facts: [string, string][]; // three facts for the card
+  ledger: [string, string, string?][]; // four labelled figures for the list: label, value, note
   past: boolean;
 }
 
@@ -94,6 +95,12 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Échéance", o.maturityOn ? `${fmtDate(o.maturityOn)} · ${tenor}` : tenor],
         ["Ticket min.", `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`],
       ],
+      ledger: [
+        ["Rendement", y != null ? fmtPct(y, 2) : "—", o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `si servi à ${fmtPrice(price)}` : "prix à fixer"],
+        ["Clôture", dl(o.deadlineAt)],
+        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
+        ["Ticket", `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`, o.minTitles ? `${fmt(o.minTitles)} titres` : undefined],
+      ],
     };
   }
   if (o.kind === "BTA") {
@@ -118,6 +125,12 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Ticket min.", `${fmt(o.nominal)} FCFA`],
         ["Commission", com],
       ],
+      ledger: [
+        ["Rendement", y != null ? fmtPct(y, 2) : "—", o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
+        ["Clôture", dl(o.deadlineAt)],
+        ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
+        ["Ticket", `${fmt(o.nominal)} FCFA`, "1 bon"],
+      ],
     };
   }
   if (o.kind === "ACTIONS") {
@@ -139,8 +152,14 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       secondary: { label: "Question", intent: "info" },
       facts: [
         ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
-        ["Minimum", `${o.minShares ?? 1} actions`],
-        ["Commission", com],
+        ["Ticket min.", `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`],
+        ["Actions offertes", o.sharesOffered ? fmt(o.sharesOffered) : "—"],
+      ],
+      ledger: [
+        ["Prix", fmt(o.pricePerShare ?? 0), "FCFA par action"],
+        ["Clôture", dl(o.deadlineAt)],
+        ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", y != null ? `${fmtPct(y, 2)} au prix` : undefined],
+        ["Ticket", `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`, `${o.minShares ?? 1} action${(o.minShares ?? 1) > 1 ? "s" : ""}`],
       ],
     };
   }
@@ -165,6 +184,12 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ["Volume", o.sizeLabel ?? "—"],
         ["Commission", com],
+      ],
+      ledger: [
+        ["Prix", "100 %", "du nominal, au pair"],
+        ["Clôture", dl(o.deadlineAt)],
+        ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
+        ["Volume", o.sizeLabel ?? "—"],
       ],
     };
   }
@@ -192,6 +217,12 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Depuis l'origine", `${f.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(f.perfSinceInceptionPct, 1)}`],
         [open ? "Droits d'entrée" : "Minimum", open ? fmtPct(f.entryFeePct, 2) : "sur demande"],
       ],
+      ledger: [
+        ["VL", fmt(f.nav), `FCFA · ${fmtDate(f.navDate, false)}`],
+        ["Variation", v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)}` : "—"],
+        ["Depuis l'origine", `${f.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(f.perfSinceInceptionPct, 1)}`],
+        ["Ticket", open ? `${fmt(f.minAmount)} FCFA` : "sur demande"],
+      ],
     };
   }
   // MARCHE
@@ -215,8 +246,14 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     secondary: st === "quoted" ? { label: "Vendre", intent: "vente" } : { label: "Question", intent: "info" },
     facts: [
       [isBond ? "Coupon" : "Rendement du dividende", isBond ? fmtPct(o.couponRate ?? 0, 2) : y != null ? fmtPct(y, 2) : "—"],
-      ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${isBond ? fmtPrice(o.bid) : fmt(o.bid)} / ${isBond ? fmtPrice(o.ask) : fmt(o.ask)}` : "—"],
-      ["Commission", com],
+      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—"] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
+    ],
+    ledger: [
+      ["Cours", o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", `${isBond ? "du nominal" : "FCFA"}${o.lastPriceOn ? ` · ${fmtDate(o.lastPriceOn, false)}` : ""}`],
+      isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2)] : ["Dividende", y != null ? fmtPct(y, 2) : "—", "rendement au cours"],
+      isBond ? ["Échéance", maturityText(o), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      ["Ticket", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—", `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""}`],
     ],
   };
 }

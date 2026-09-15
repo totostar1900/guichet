@@ -313,8 +313,8 @@
 }
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px 16px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  gap: 8px 20px;
   padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -340,25 +340,54 @@
 .rowMain {
   min-width: 0;
 }
-.rowHero {
-  text-align: right;
-}
-.rowHero .hero {
-  font-size: 1.05rem;
-}
-.rowSub {
-  grid-column: 1 / -1;
+.rowStatus {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+  margin-top: 8px;
   color: var(--ink-3);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
+}
+.ledger {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+  min-width: 0;
+}
+.ledger dt {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.ledger dd {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+.ledger dd small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--ink-3);
 }
 .rowAct {
-  margin-left: auto;
-  color: var(--ink);
-  font-weight: 700;
+  align-self: center;
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+@media (max-width: 820px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rowAct {
+    justify-self: end;
+  }
 }
 
 /* ---------- cards ---------- */
