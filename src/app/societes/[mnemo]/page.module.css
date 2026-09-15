@@ -50,7 +50,7 @@
 .kpi {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 12px 14px;
 }
 .kpi > span {
@@ -91,7 +91,7 @@
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 16px 18px;
   margin-bottom: 16px;
   min-width: 0;
@@ -114,12 +114,12 @@
 .periods {
   display: inline-flex;
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 3px;
 }
 .periods a {
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 4px;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--ink-2);

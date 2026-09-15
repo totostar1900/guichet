@@ -324,7 +324,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         </Link>
         <div className={styles.head}>
           <div className={`eyebrow ${styles.eyebrow}`}>
-            <span className="cc">{o.country.toUpperCase()}</span> {SEGMENT_LABEL[FAMILY_SEGMENT[offerFamily(o)]]} · {FAMILY_SHORT[offerFamily(o)]}{o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OPERATION_LABEL[o.operation]}` : ""} <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
+            <span className="cc">{o.country.toUpperCase()}</span> {SEGMENT_LABEL[FAMILY_SEGMENT[offerFamily(o)]]} · <span className={`fam fam-${offerFamily(o)}`}>{FAMILY_SHORT[offerFamily(o)]}</span>{o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OPERATION_LABEL[o.operation]}` : ""} <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
             {o.isExample && <span className="tag-ex">exemple</span>}
           </div>
           <h1 className="display">{o.title}</h1>

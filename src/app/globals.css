@@ -29,7 +29,24 @@
   --neutral-soft: #e8ebf0;
   --chart-out: #0b2545;
   --chart-in: #c9962b;
-  --radius: 10px;
+  --radius: 6px;
+  /* One hue per instrument family — badge text / soft background. Same in every view. */
+  --fam-OTA: #0b2545;
+  --fam-OTA-soft: #e3e9f3;
+  --fam-BTA: #0f6e6a;
+  --fam-BTA-soft: #d8efec;
+  --fam-APE: #6d3b8f;
+  --fam-APE-soft: #ece2f4;
+  --fam-IPO: #b0426a;
+  --fam-IPO-soft: #f7e1ea;
+  --fam-RACHAT: #5b6b82;
+  --fam-RACHAT-soft: #e6eaf0;
+  --fam-ACTION_COTEE: #2f7d4f;
+  --fam-ACTION_COTEE-soft: #dff1e6;
+  --fam-OBLIGATION_COTEE: #2a5db0;
+  --fam-OBLIGATION_COTEE-soft: #e1eaf8;
+  --fam-OPCVM: #8a6408;
+  --fam-OPCVM-soft: #fbf1da;
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
   /* Legacy aliases — every face is the same family now. */
@@ -64,9 +81,41 @@
     --chart-out: #7fa8ee;
     --chart-in: #e0b65a;
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --fam-OTA: #9db6e0;
+    --fam-OTA-soft: #1c2c48;
+    --fam-BTA: #6fcdc6;
+    --fam-BTA-soft: #143734;
+    --fam-APE: #c9a3e6;
+    --fam-APE-soft: #32224a;
+    --fam-IPO: #ee9bbb;
+    --fam-IPO-soft: #45202f;
+    --fam-RACHAT: #a9b6c9;
+    --fam-RACHAT-soft: #27334a;
+    --fam-ACTION_COTEE: #7fd3a1;
+    --fam-ACTION_COTEE-soft: #17352a;
+    --fam-OBLIGATION_COTEE: #8fb4f2;
+    --fam-OBLIGATION_COTEE-soft: #1b2e4f;
+    --fam-OPCVM: #e0b65a;
+    --fam-OPCVM-soft: #332c18;
   }
 }
 :root[data-theme="dark"] {
+  --fam-OTA: #9db6e0;
+  --fam-OTA-soft: #1c2c48;
+  --fam-BTA: #6fcdc6;
+  --fam-BTA-soft: #143734;
+  --fam-APE: #c9a3e6;
+  --fam-APE-soft: #32224a;
+  --fam-IPO: #ee9bbb;
+  --fam-IPO-soft: #45202f;
+  --fam-RACHAT: #a9b6c9;
+  --fam-RACHAT-soft: #27334a;
+  --fam-ACTION_COTEE: #7fd3a1;
+  --fam-ACTION_COTEE-soft: #17352a;
+  --fam-OBLIGATION_COTEE: #8fb4f2;
+  --fam-OBLIGATION_COTEE-soft: #1b2e4f;
+  --fam-OPCVM: #e0b65a;
+  --fam-OPCVM-soft: #332c18;
   --paper: #0e1928;
   --surface: #16233a;
   --surface-2: #1d2d48;
@@ -103,6 +152,7 @@ html {
 }
 body {
   margin: 0;
+  overflow-x: clip; /* wide tables scroll inside their own container, never the page */
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-ui);
@@ -161,10 +211,10 @@ h3 {
 .btn {
   border: 1px solid var(--line-2);
   background: var(--surface);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 7px 14px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
   white-space: nowrap;
   text-decoration: none;
@@ -198,9 +248,9 @@ h3 {
 
 .pill {
   font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
   letter-spacing: 0;
   white-space: nowrap;
   display: inline-flex;
@@ -243,9 +293,31 @@ h3 {
   background: var(--neutral-soft);
   color: var(--ink-2);
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: 4px;
   letter-spacing: 0.04em;
 }
+/* Instrument family badge: same colour in the table, the list, the cards and the fiche. */
+.fam {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--fam-c, var(--ink-3));
+  background: var(--fam-s, var(--surface-2));
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.fam-OTA { --fam-c: var(--fam-OTA); --fam-s: var(--fam-OTA-soft); }
+.fam-BTA { --fam-c: var(--fam-BTA); --fam-s: var(--fam-BTA-soft); }
+.fam-APE { --fam-c: var(--fam-APE); --fam-s: var(--fam-APE-soft); }
+.fam-IPO { --fam-c: var(--fam-IPO); --fam-s: var(--fam-IPO-soft); }
+.fam-RACHAT { --fam-c: var(--fam-RACHAT); --fam-s: var(--fam-RACHAT-soft); }
+.fam-ACTION_COTEE { --fam-c: var(--fam-ACTION_COTEE); --fam-s: var(--fam-ACTION_COTEE-soft); }
+.fam-OBLIGATION_COTEE { --fam-c: var(--fam-OBLIGATION_COTEE); --fam-s: var(--fam-OBLIGATION_COTEE-soft); }
+.fam-OPCVM { --fam-c: var(--fam-OPCVM); --fam-s: var(--fam-OPCVM-soft); }
 .tag-ex {
   font-size: 0.65rem;
   color: var(--ink-3);

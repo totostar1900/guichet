@@ -129,27 +129,30 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           )}
         </div>
-        <div className={styles.row}>
-          <label className="field">
-            Me joindre par
-            <select name="channel" value={channel} onChange={(e) => setChannel(e.target.value as typeof channel)}>
-              <option>WhatsApp</option>
-              <option>Appel</option>
-              <option>E-mail</option>
-            </select>
-          </label>
-          {channel === "E-mail" ? (
+        <fieldset className={styles.contact}>
+          <legend>Me joindre par</legend>
+          <div className={styles.channels}>
+            {(["WhatsApp", "Appel", "E-mail"] as const).map((c) => (
+              <label key={c}>
+                <input type="radio" name="channel" value={c} checked={channel === c} onChange={() => setChannel(c)} />
+                {c}
+              </label>
+            ))}
+          </div>
+          <div className={styles.row}>
             <label className="field">
-              Adresse e-mail
-              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required />
+              <span>
+                {channel === "Appel" ? "Téléphone" : "Téléphone (WhatsApp)"}
+                {channel !== "E-mail" && <em className={styles.req}> · requis</em>}
+              </span>
+              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={phone} required={channel !== "E-mail"} />
             </label>
-          ) : (
             <label className="field">
-              {channel === "WhatsApp" ? "Numéro WhatsApp" : "Numéro de téléphone"}
-              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={phone} required />
+              <span>E-mail{channel === "E-mail" && <em className={styles.req}> · requis</em>}</span>
+              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required={channel === "E-mail"} />
             </label>
-          )}
-        </div>
+          </div>
+        </fieldset>
         {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
           <div className={styles.tierNote}>

@@ -24,7 +24,7 @@
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 16px;
 }
@@ -93,7 +93,7 @@
 .howto > div {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 12px 14px;
   font-size: 0.82rem;
   color: var(--ink-2);

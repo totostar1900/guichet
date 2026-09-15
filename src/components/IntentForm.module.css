@@ -3,7 +3,12 @@
   border: 1px solid var(--line);
   border-top: 2px solid var(--gold);
   border-radius: var(--radius);
-  padding: 16px 20px 18px;
+  padding: 16px 18px 18px;
+  container-type: inline-size;
+  min-width: 0;
+}
+.wrap form {
+  min-width: 0;
 }
 .wrap h3 {
   font-size: 1.05rem;
@@ -54,9 +59,58 @@
 }
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   margin-bottom: 10px;
+}
+@container (max-width: 400px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.contact {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px 2px;
+  margin: 0 0 10px;
+  min-width: 0;
+}
+.contact legend {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  padding: 0 4px;
+}
+.channels {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.channels label {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  position: relative;
+}
+.channels label:has(input:checked) {
+  background: var(--fill);
+  color: var(--fill-ink);
+  border-color: var(--fill);
+}
+.channels input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.req {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--gold-ink);
+  font-size: 0.72rem;
 }
 .estimate {
   font-size: 0.8rem;

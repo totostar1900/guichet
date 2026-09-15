@@ -7,12 +7,13 @@ import styles from "./OfferCard.module.css";
 export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
   const href = `/offres/${o.id}`;
   return (
-    <article className={`${styles.card} ${s.past ? styles.past : ""}`}>
+    <article className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ borderTopColor: `var(--fam-${s.family})` }}>
       <div className={styles.head}>
         <div className={styles.title}>
           <Link href={href}>{s.title}</Link>
           <small>
-            <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span> {s.kind} · {s.subtitle.split(" · ")[0]}
+            <span className={`fam fam-${s.family}`}>{s.kind}</span>
+            <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span> {s.subtitle.split(" · ")[0]}
           </small>
         </div>
         <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : s.status}</span>
@@ -31,7 +32,7 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
       </div>
       <div className={styles.act}>
         {s.primary ? (
-          <Link className={`btn sm ${s.primary.intent === "info" ? "" : "primary"}`} href={`${href}?intent=${s.primary.intent}`}>
+          <Link className="btn sm" href={`${href}?intent=${s.primary.intent}`}>
             {s.primary.label}
           </Link>
         ) : (

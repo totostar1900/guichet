@@ -18,7 +18,7 @@
   min-width: 200px;
   max-width: 420px;
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 7px 14px;
   background: var(--surface);
   color: var(--ink-3);
@@ -42,7 +42,7 @@
   align-items: center;
   gap: 6px;
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 7px 12px;
   background: var(--surface);
   font-size: 0.84rem;
@@ -62,7 +62,7 @@
 }
 .ddBtn b {
   background: rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
+  border-radius: 4px;
   padding: 0 7px;
   font-size: 0.72rem;
   font-weight: 800;
@@ -75,7 +75,7 @@
   min-width: 200px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 6px;
   display: grid;
@@ -121,14 +121,14 @@
   margin-left: auto;
   display: inline-flex;
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 3px;
   background: var(--surface);
 }
 .seg button {
   border: none;
   background: transparent;
-  border-radius: 999px;
+  border-radius: 4px;
   padding: 5px 12px;
   font-size: 0.82rem;
   font-weight: 700;
@@ -167,7 +167,7 @@
 .dirBtn {
   border: 1px solid var(--line-2);
   background: var(--surface);
-  border-radius: 999px;
+  border-radius: var(--radius);
   width: 26px;
   height: 26px;
   font-size: 0.8rem;
@@ -175,36 +175,17 @@
 }
 
 /* ---------- shared bits ---------- */
-.kind {
-  display: inline-block;
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: var(--surface-2);
-  vertical-align: 1px;
-}
-.seg_primaire {
-  color: var(--navy);
-  background: color-mix(in srgb, var(--navy) 10%, transparent);
-}
-.seg_secondaire {
-  color: var(--info);
-  background: color-mix(in srgb, var(--info) 12%, transparent);
-}
-.seg_fonds {
-  color: var(--gold-ink);
-  background: var(--gold-soft);
-}
 .segments {
   display: flex;
   gap: 4px;
   margin-bottom: 10px;
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.segments::-webkit-scrollbar {
+  display: none;
 }
 .segments button {
   appearance: none;
@@ -214,17 +195,17 @@
   padding: 8px 12px;
   font: inherit;
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   cursor: pointer;
   white-space: nowrap;
-  margin-bottom: -1px;
+  flex: none;
 }
 .segments button b {
   font-weight: 700;
   color: var(--ink-3);
   background: var(--surface-2);
-  border-radius: 999px;
+  border-radius: 4px;
   padding: 1px 7px;
   font-size: 0.72rem;
   margin-left: 4px;
@@ -270,7 +251,7 @@
 .tableWrap {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   overflow-x: auto;
 }
 .table {
@@ -285,7 +266,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-3);
-  padding: 10px 12px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
   background: var(--surface);
@@ -311,7 +292,7 @@
   color: var(--ink);
 }
 .table td {
-  padding: 11px 12px;
+  padding: 10px 10px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
   white-space: nowrap;
@@ -331,7 +312,8 @@
   white-space: nowrap;
 }
 .line {
-  max-width: 380px;
+  max-width: min(380px, 28vw);
+  white-space: nowrap;
 }
 .line a {
   font-weight: 700;
@@ -351,17 +333,18 @@
 /* ---------- list ---------- */
 .list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px 16px;
   padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-left: 4px solid var(--line-2);
-  border-radius: 12px;
+  border-radius: var(--radius);
+  min-width: 0;
   text-decoration: none;
   align-items: center;
   box-shadow: 0 1px 2px rgba(10, 20, 40, 0.04);
@@ -371,15 +354,6 @@
   background: var(--surface-2);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px -10px rgba(10, 20, 40, 0.3);
-}
-.row.band_primaire {
-  border-left-color: var(--navy);
-}
-.row.band_secondaire {
-  border-left-color: var(--info);
-}
-.row.band_fonds {
-  border-left-color: var(--gold);
 }
 .rowMain small,
 .rowHero small {
@@ -415,8 +389,13 @@
 /* ---------- cards ---------- */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 14px;
+}
+@media (max-width: 1180px) {
+  .hideMd {
+    display: none;
+  }
 }
 
 @media (max-width: 820px) {

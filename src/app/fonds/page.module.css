@@ -90,7 +90,7 @@
   display: inline-block;
   font-size: 0.7rem;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--good-soft);
   color: var(--good);
   white-space: nowrap;
@@ -99,7 +99,7 @@
   display: inline-block;
   font-size: 0.7rem;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 4px;
   background: var(--neutral-soft);
   color: var(--ink-2);
   white-space: nowrap;

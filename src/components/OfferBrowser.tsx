@@ -107,10 +107,10 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
 }
 
 /* ---------- table ---------- */
-function Th({ k, label, sort, dir, onSort, right, term }: { k: SortKey; label: string; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; right?: boolean; term?: TermKey }) {
+function Th({ k, label, sort, dir, onSort, right, term, className = "" }: { k: SortKey; label: string; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; right?: boolean; term?: TermKey; className?: string }) {
   const on = sort === k;
   return (
-    <th className={`${right ? styles.r : ""} ${on ? styles.sorted : ""}`} aria-sort={on ? (dir === "asc" ? "ascending" : "descending") : "none"}>
+    <th className={`${right ? styles.r : ""} ${on ? styles.sorted : ""} ${className}`} aria-sort={on ? (dir === "asc" ? "ascending" : "descending") : "none"}>
       <button type="button" onClick={() => onSort(k)}>
         {label}
         <span aria-hidden="true">{on ? (dir === "asc" ? "↑" : "↓") : ""}</span>
@@ -129,14 +129,13 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
         <thead>
           <tr>
             <Th k="title" label="Ligne" sort={sort} dir={dir} onSort={onSort} />
-            <th>Pays</th>
             <th>Statut</th>
             <Th k="deadline" label="Clôture" sort={sort} dir={dir} onSort={onSort} right />
             <Th k="yield" label="Rendement · cours" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
-            <Th k="coupon" label="Coupon" sort={sort} dir={dir} onSort={onSort} right term="coupon" />
-            <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right />
+            <Th k="coupon" label="Coupon" sort={sort} dir={dir} onSort={onSort} right term="coupon" className={styles.hideMd} />
+            <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
             <Th k="minimum" label="Minimum" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right term="commission" />
+            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right term="commission" className={styles.hideMd} />
             <th></th>
           </tr>
         </thead>
@@ -145,12 +144,9 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
             <tr key={o.id} className={s.past ? styles.past : ""}>
               <td className={styles.line}>
                 <Link href={`/offres/${o.id}`}>
-                  <span className={`${styles.kind} ${styles[`seg_${s.segment}`]}`}>{s.kind}</span> · {s.title}
+                  <span className={`fam fam-${s.family}`}>{s.kind}</span> <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span> {s.title}
                 </Link>
                 <small>{s.subtitle}</small>
-              </td>
-              <td>
-                <span className="cc" title={o.countryName}>{COUNTRY_CODE[o.country]}</span>
               </td>
               <td>
                 <StatusPill s={s} />
@@ -160,13 +156,13 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
                 <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
                 <small>{s.heroSub}</small>
               </td>
-              <td className={`${styles.r} num`}>{s.coupon}</td>
-              <td className={`${styles.r} num`}>{s.tenor}</td>
+              <td className={`${styles.r} ${styles.hideMd} num`}>{s.coupon}</td>
+              <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
               <td className={`${styles.r} num`}>{s.minimum}</td>
-              <td className={`${styles.r} num`}>{s.commission}</td>
+              <td className={`${styles.r} ${styles.hideMd} num`}>{s.commission}</td>
               <td className={styles.r}>
                 {s.primary ? (
-                  <Link className={`btn sm ${s.primary.intent === "info" ? "" : "primary"}`} href={`/offres/${o.id}?intent=${s.primary.intent}`}>
+                  <Link className="btn sm" href={`/offres/${o.id}?intent=${s.primary.intent}`}>
                     {s.primary.label}
                   </Link>
                 ) : (
@@ -188,10 +184,10 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
   return (
     <div className={styles.list}>
       {rows.map(({ o, s }) => (
-        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${styles[`band_${s.segment}`]} ${s.past ? styles.past : ""}`}>
+        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family})` }}>
           <div className={styles.rowMain}>
             <div className={styles.rowTitle}>
-              <span className={`${styles.kind} ${styles[`seg_${s.segment}`]}`}>{s.kind}</span> · {s.title}
+              <span className={`fam fam-${s.family}`}>{s.kind}</span> {s.title}
             </div>
             <small>{s.subtitle}</small>
           </div>

@@ -1,5 +1,5 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
-import { countdown, displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, KIND_LABEL, type MarketSegment, offerFamily, statusLabel } from "./status";
+import { countdown, displayStatus, FAMILY_SEGMENT, FAMILY_SHORT, headlineYield, isPast, KIND_LABEL, type MarketSegment, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime } from "../format";
 
@@ -12,6 +12,7 @@ export interface OfferSummary {
   status: string; // pill text
   statusClass: string; // pill modifier
   kind: string; // "OTA", "Action", "Obligation", "OPCVM"
+  family: OfferFamily;
   segment: MarketSegment; // primaire · secondaire · fonds
   title: string;
   subtitle: string; // issuer · code · operation
@@ -45,6 +46,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     status: statusLabel(o, st),
     statusClass: st,
     kind: FAMILY_SHORT[offerFamily(o)],
+    family: offerFamily(o),
     segment: FAMILY_SEGMENT[offerFamily(o)],
     title: o.title,
     subtitle: `${o.issuer} · ${o.isin}${o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OP[o.operation]}` : ""}`,
