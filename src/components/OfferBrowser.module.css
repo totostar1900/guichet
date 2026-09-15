@@ -290,6 +290,12 @@
 .wrapCell {
   max-width: 150px;
 }
+.approx {
+  color: var(--ink-3);
+  font-size: 0.7rem;
+  margin-left: 3px;
+  vertical-align: 1px;
+}
 .wrapCell small {
   white-space: normal;
   line-height: 1.3;

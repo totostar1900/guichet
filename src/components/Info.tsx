@@ -10,7 +10,7 @@ import styles from "./Info.module.css";
  * rendered at the end of <body> in fixed position, so no scrolling table or
  * sticky header can clip it; it flips under the button when there is no room above.
  */
-export function Info({ term, text, label }: { term?: TermKey; text?: string; label?: string }) {
+export function Info({ term, text, label, subtle }: { term?: TermKey; text?: string; label?: string; subtle?: boolean }) {
   const t = term ? GLOSSARY[term] : undefined;
   const body = text ?? t?.text ?? "";
   const title = label ?? (t ? ("long" in t && t.long ? `${t.short} — ${t.long}` : t.short) : "");
@@ -60,7 +60,7 @@ export function Info({ term, text, label }: { term?: TermKey; text?: string; lab
       <button
         ref={btn}
         type="button"
-        className={`${styles.btn} ${open ? styles.on : ""}`}
+        className={`${styles.btn} ${subtle ? styles.subtle : ""} ${open ? styles.on : ""}`}
         aria-label={`Explication : ${title || "ce terme"}`}
         aria-expanded={open}
         onMouseEnter={() => setOpen(true)}

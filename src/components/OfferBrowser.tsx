@@ -157,19 +157,19 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
                 {s.deadlineParts ? s.deadlineParts[0] : s.deadline}
                 {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
               </td>
-              <td className={`${styles.r} ${styles.wrapCell}`}>
+              <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroUnit ? s.heroSub : undefined}>
                 <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
-                <small>{s.heroSub}</small>
+                <small>{s.heroUnit ?? s.heroSub}</small>
               </td>
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.coupon}</td>
-              <td className={`${styles.r} ${styles.hideMd} num`}>
+              <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
                 {s.maturity}
-                {s.maturityNote && <small>{s.maturityNote}</small>}
+                {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
               </td>
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
-              <td className={`${styles.r} ${styles.wrapCell} num`}>
+              <td className={`${styles.r} num`}>
                 {s.minimum}
-                <small>{s.minimumSub}</small>
+                {s.minimum !== "—" && <Info text={s.minimumSub} label="Ce ticket représente" subtle />}
               </td>
               <td className={`${styles.r} ${styles.hideLg} num`}>{s.commission}</td>
               <td className={styles.r}>

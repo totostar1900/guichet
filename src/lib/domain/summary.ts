@@ -18,6 +18,7 @@ export interface OfferSummary {
   subtitle: string; // issuer · code · operation
   hero: string; // the one number
   heroSub: string; // its condition
+  heroUnit?: string; // table: the unit alone ("du nominal", "FCFA"); the condition stays in a hover
   gold: boolean; // hero is a yield the client can act on
   yieldPct: number | null;
   deadline: string; // "Auj. 12 h 00", "continue", "mercredi 12 h"
@@ -201,6 +202,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     subtitle: `${o.market} · ${o.isin} · cotation continue`,
     hero: o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—",
     heroSub: `${isBond ? "du nominal" : "FCFA"}${o.lastPriceOn ? ` · clôture ${fmtDate(o.lastPriceOn, false)}` : ""}${o.priceSource === "desk" ? " · saisi par le desk" : ""}`,
+    heroUnit: isBond ? "du nominal" : "FCFA",
     gold: false,
     deadline: "continue",
     coupon: isBond ? fmtPct(o.couponRate ?? 0, 2) : y != null ? `${fmtPct(y, 2)} div.` : "—",
