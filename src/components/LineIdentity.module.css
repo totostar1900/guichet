@@ -33,7 +33,7 @@
   font-size: 0.8rem;
 }
 .xl .isin {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
 }
 .meta {
   display: flex;
@@ -51,8 +51,13 @@
 }
 .isin {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.03em;
   color: var(--ink-3);
   opacity: 0.85;
+  white-space: nowrap;
+}
+.issuer::before {
+  content: "· ";
+  color: var(--line-2);
 }

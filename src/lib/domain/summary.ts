@@ -281,5 +281,5 @@ export function summarize(o: Offer, now: Date): OfferSummary {
 
 export const KIND_FILTER_LABEL = KIND_LABEL;
 
-/** Two-letter chip for the country column (ISO where it exists, RCA as the market says it). */
-export const COUNTRY_CODE: Record<Offer["country"], string> = { RCA: "RCA", Congo: "CG", Cameroun: "CM", Gabon: "GA", Tchad: "TD", "Guinée éq.": "GQ" };
+/** Two-letter ISO 3166 chip for the country column (CF = République centrafricaine). */
+export const COUNTRY_CODE: Record<Offer["country"], string> = { RCA: "CF", Congo: "CG", Cameroun: "CM", Gabon: "GA", Tchad: "TD", "Guinée éq.": "GQ" };

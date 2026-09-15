@@ -18,9 +18,9 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: 
         <span className="cc" title={o.countryName}>
           {COUNTRY_CODE[o.country]}
         </span>
+        <span className={styles.isin}>{o.isin}</span>
         <span className={styles.issuer}>{s.subtitle}</span>
       </div>
-      <div className={styles.isin}>{o.isin}</div>
     </div>
   );
 }

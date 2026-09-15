@@ -7,7 +7,7 @@
   margin-bottom: 16px;
 }
 .head h1 {
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   margin: 0 0 4px;
 }
 .lead {
@@ -46,7 +46,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ink-3);
-  font-weight: 700;
+  font-weight: 600;
 }
 .tbl tbody tr:hover td {
   background: var(--surface-2);
@@ -59,7 +59,7 @@
   font-variant-numeric: tabular-nums;
 }
 .name a {
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
 }
 .name a:hover {

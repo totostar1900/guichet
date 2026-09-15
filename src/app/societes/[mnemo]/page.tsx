@@ -59,7 +59,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
         </div>
         <div className={styles.actions}>
           {listedLine && (
-            <Link className="btn primary" href={`/offres/${listedLine.id}?intent=achat`}>
+            <Link className="btn" href={`/offres/${listedLine.id}?intent=achat`}>
               Acheter l&apos;action
             </Link>
           )}
