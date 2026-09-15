@@ -13,12 +13,12 @@ export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string })
   const [hover, setHover] = useState<number | null>(null);
   const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: "Souscription" }, ...r.flows];
   const W = 560;
-  const H = 230;
+  const H = 276;
   const padL = 16;
   const padR = 16;
-  const base = 118; // the zero line
-  const upRoom = 86; // above the axis: bars + value label
-  const downRoom = 52; // below: the outlay bar, its label sits under it
+  const base = 142; // the zero line
+  const upRoom = 104; // above the axis: bars + value label
+  const downRoom = 62; // below: the outlay bar, its label sits under it
   const maxPos = Math.max(...pts.filter((p) => p.amount > 0).map((p) => p.amount), 1);
   const maxNeg = Math.max(...pts.filter((p) => p.amount < 0).map((p) => -p.amount), 1);
   const scale = Math.min(upRoom / maxPos, downRoom / maxNeg);
@@ -31,7 +31,7 @@ export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string })
   const h = hover != null ? pts[hover] : null;
 
   return (
-    <div style={{ position: "relative", maxWidth: 640, margin: "8px auto 0" }}>
+    <div style={{ position: "relative", width: "100%", maxWidth: 768, margin: "8px auto 0" }}>
       <svg className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Flux de trésorerie" onMouseLeave={() => setHover(null)}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
