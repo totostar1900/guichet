@@ -153,15 +153,21 @@ function Table({ rows, sort, dir, onSort }: { rows: { o: Offer; s: OfferSummary 
               <td>
                 <StatusPill s={s} />
               </td>
-              <td className={`${styles.r} num`}>{s.deadline}</td>
-              <td className={styles.r}>
+              <td className={`${styles.r} num`}>
+                {s.deadlineParts ? s.deadlineParts[0] : s.deadline}
+                {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
+              </td>
+              <td className={`${styles.r} ${styles.wrapCell}`}>
                 <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
                 <small>{s.heroSub}</small>
               </td>
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.coupon}</td>
-              <td className={`${styles.r} ${styles.hideMd} num`}>{s.maturity}</td>
+              <td className={`${styles.r} ${styles.hideMd} num`}>
+                {s.maturity}
+                {s.maturityNote && <small>{s.maturityNote}</small>}
+              </td>
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
-              <td className={`${styles.r} num`}>
+              <td className={`${styles.r} ${styles.wrapCell} num`}>
                 {s.minimum}
                 <small>{s.minimumSub}</small>
               </td>
