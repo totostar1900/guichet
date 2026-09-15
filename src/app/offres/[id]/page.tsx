@@ -98,9 +98,7 @@ function Reference({ o }: { o: Offer }) {
           <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
           <div className="tot">Décaissement le {fmtDate(o.settleOn, false)}</div>
           <div>{fmt(r.outlay)} FCFA</div>
-          <div>Commission {fmtPct(o.commissionPct, 2)}</div>
-          <div>{fmt(r.commission)}</div>
-          <div>Gain net hors commission, jusqu&apos;au terme</div>
+          <div>Gain brut jusqu&apos;au terme</div>
           <div>{fmt(r.gain)}</div>
           <div className="hl">Rendement actuariel brut</div>
           <div>{fmtPct(r.irr, 2)}</div>
@@ -173,8 +171,6 @@ function Reference({ o }: { o: Offer }) {
             <div>{fmt(r.accrued)}</div>
             <div className="tot">Décaissement (règlement T+{o.settlementDays ?? 3})</div>
             <div>{fmt(r.outlay)} FCFA</div>
-            <div>Commission {fmtPct(o.commissionPct, 2)}</div>
-            <div>{fmt(r.commission)}</div>
             <div className="hl">Rendement actuariel brut à ce cours</div>
             <div>{fmtPct(r.irr, 2)}</div>
           </div>
@@ -198,8 +194,6 @@ function Reference({ o }: { o: Offer }) {
           <div>{fmt(ref)} FCFA</div>
           <div className="tot">Montant</div>
           <div>{fmt(n * ref)} FCFA</div>
-          <div>Commission {fmtPct(o.commissionPct, 2)}</div>
-          <div>{fmt((n * ref * o.commissionPct) / 100)}</div>
           {o.dividendPerShare ? (
             <>
               <div>Dividende annuel attendu</div>
@@ -207,7 +201,7 @@ function Reference({ o }: { o: Offer }) {
             </>
           ) : null}
           <div className="hl">Total à décaisser</div>
-          <div>{fmt(n * ref * (1 + o.commissionPct / 100))} FCFA</div>
+          <div>{fmt(n * ref)} FCFA</div>
         </div>
       </>
     );
@@ -248,10 +242,8 @@ function Reference({ o }: { o: Offer }) {
         <div>{fmt(proceeds)} FCFA</div>
         <div>Coupon couru</div>
         <div>réglé par le Trésor</div>
-        <div>Commission {fmtPct(o.commissionPct, 2)}</div>
-        <div>{fmt((proceeds * o.commissionPct) / 100)}</div>
         <div className="hl">Encaissement le {fmtDate(o.settleOn, false)}</div>
-        <div>{fmt(proceeds * (1 - o.commissionPct / 100))}</div>
+        <div>{fmt(proceeds)}</div>
       </div>
     </>
   );

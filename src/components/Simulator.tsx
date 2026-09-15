@@ -72,7 +72,7 @@ export function Simulator() {
       {valid && kind === "OTA" && (() => {
         const nominal = 10_000;
         const lastOk = last && parseDate(last) < parseDate(settle) ? last : null;
-        const r = bondCalc({ nominal, couponRate: coupon, settleOn: settle, maturityOn: maturity, lastCouponOn: lastOk, commissionPct: 0.5 }, amt, price);
+        const r = bondCalc({ nominal, couponRate: coupon, settleOn: settle, maturityOn: maturity, lastCouponOn: lastOk }, amt, price);
         // At par a bond earns its nominal rate; the actuarial yield only differs by day-count convention.
         const atPar = Math.abs(price - 100) <= 0.05;
         return (
@@ -100,7 +100,7 @@ export function Simulator() {
               <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
               <div className="tot">Décaissement le {fmtDate(settle, false)}</div>
               <div>{fmt(r.outlay)} FCFA</div>
-              <div>Gain brut hors commission, jusqu&apos;au terme</div>
+              <div>Gain brut jusqu&apos;au terme</div>
               <div>{fmt(r.gain)}</div>
               <div className="hl">{atPar ? "Taux nominal (au pair)" : "Rendement actuariel brut"}</div>
               <div>{fmtPct(atPar ? coupon : r.irr, 2)}</div>

@@ -51,7 +51,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
         rows={[
           [`Prix des ${p.unitWord} (${fmt(p.units)} × ${fmt(p.principal / Math.max(p.units, 1))})`, fmt(p.principal)],
           ...(isBond ? ([[`Coupon couru${p.accruedDays ? ` du ${offer.lastCouponOn ? fmtDate(offer.lastCouponOn, false) : "—"} au ${fmtDate(offer.settleOn, false)} (${p.accruedDays} jours)` : " (ligne nouvelle)"}`, p.accruedDays ? fmt(p.accrued) : "néant"]] as [string, string][]) : []),
-          [`Commission d'intermédiation ${fmtPct(offer.commissionPct, 2)}`, fmt(p.commission)],
+          ...(offer.commissionPct > 0 ? ([[`Commission d'intermédiation ${fmtPct(offer.commissionPct, 2)}`, fmt(p.commission)]] as [string, string][]) : []),
         ]}
         total={market ? [sell ? `Produit net estimé, règlement T+${offer.settlementDays ?? 3}` : `Montant total estimé, règlement T+${offer.settlementDays ?? 3}`, `${fmt(Math.abs(p.total))} FCFA`] : [`Montant total à régler, valeur ${fmtDate(offer.settleOn)}`, `${fmt(p.total)} FCFA`]}
       />
@@ -151,7 +151,7 @@ export function AvisResultat({ number, intent, offer, position: p, now, allocati
           rows={[
             [`${servedPos.unitWord.charAt(0).toUpperCase() + servedPos.unitWord.slice(1)} alloués`, fmt(servedPos.units)],
             ["Prix servi", servedPos.priceLabel],
-            ["Montant définitif (titres + coupon couru + commission)", `${fmt(servedPos.total)} FCFA`],
+            [`Montant définitif (titres + coupon couru${offer.commissionPct > 0 ? " + commission" : ""})`, `${fmt(servedPos.total)} FCFA`],
             ["Fonds reçus", `${fmt(p.total)} FCFA`],
           ]}
           total={["Solde à restituer / à compléter", `${fmt(p.total - servedPos.total)} FCFA`]}

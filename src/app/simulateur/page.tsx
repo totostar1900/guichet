@@ -12,7 +12,7 @@ export default function SimulateurPage() {
       <div className={styles.card}>
         <h2>Simulateur d&apos;obligation</h2>
         <p className={styles.lead}>Un outil pour comprendre comment le prix, le coupon et la durée fabriquent le rendement. Il ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet.</p>
-        <div className={styles.warn}>Outil pédagogique — résultats bruts, hors commission et fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.</div>
+        <div className={styles.warn}>Outil pédagogique — résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.</div>
         <Simulator />
       </div>
       <div className={styles.card}>

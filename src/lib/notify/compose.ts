@@ -36,7 +36,7 @@ export function offerPublished(o: Offer, firstName?: string): Message {
           : o.kind === "MARCHE"
             ? `${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"} · achat / vente au marché, règlement T+${o.settlementDays ?? 3}`
             : "rachat au pair (100 % du nominal)";
-  const text = `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · nouvelle offre\n${o.title} — ${o.issuer}\n${headline}\nCommission ${fmtPct(o.commissionPct, 2)}. Titres inscrits à votre nom.\nDépôt des offres : ${fmtDateTime(o.deadlineAt)}.\n\nVoir la fiche et répondre : ${link(o)}\n\n${DISCLAIMER}`;
+  const text = `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · nouvelle offre\n${o.title} — ${o.issuer}\n${headline}\nTitres inscrits à votre nom.\nDépôt des offres : ${fmtDateTime(o.deadlineAt)}.\n\nVoir la fiche et répondre : ${link(o)}\n\n${DISCLAIMER}`;
   return {
     subject: `${COMPANY.name} — ${o.title} · ${headline.split(" · ")[0]}`,
     text,

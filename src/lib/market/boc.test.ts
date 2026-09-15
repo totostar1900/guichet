@@ -37,7 +37,7 @@ describe("offerFromQuote", () => {
     expect(o.maturityOn).toBe("2029-05-27"); // exact date from the fiche signalétique, not the BOC year
     expect(o.lastPrice).toBe(100);
     expect(o.priceSource).toBe("boc");
-    expect(o.commissionPct).toBe(0.5);
+    expect(o.commissionPct).toBe(0); // no commission shown for now
   });
   it("refreshes an existing line without losing the desk's settings", () => {
     const q = equityQuote(parsed.equities.find((e) => e.isin === "GA0000010074")!, parsed);

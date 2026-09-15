@@ -43,7 +43,8 @@ export function bocUrl(sessionDate: string): string {
 }
 
 /** Default commission applied to lines created from the bulletin; the desk can change it per line. */
-export const MARKET_DEFAULT_COMMISSION: Record<Quote["instrument"], number> = { action: 1, obligation: 0.5 };
+/** No commission is shown or charged for now — the desk communicates its terms to clients who reach out. */
+export const MARKET_DEFAULT_COMMISSION: Record<Quote["instrument"], number> = { action: 0, obligation: 0 };
 
 const COUNTRY_BY_ISIN: Record<string, { country: Country; name: string }> = {
   CM: { country: "Cameroun", name: "Cameroun · BVMAC" },

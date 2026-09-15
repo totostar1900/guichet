@@ -135,7 +135,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       facts: [
         ["Remboursé", o.maturityOn ? `${fmtDate(o.maturityOn)} · ${tenor}` : "—"],
         ["Ticket min.", `${fmt(o.nominal)} FCFA`],
-        ["Commission", com],
+        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
       ],
       ledger: [
         ["Rendement actuariel", yTxt, o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
@@ -196,7 +196,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       facts: [
         ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ["Volume", o.sizeLabel ?? "—"],
-        ["Commission", com],
+        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
       ],
       ledger: [
         ["Prix", "100 %", "du nominal, au pair"],

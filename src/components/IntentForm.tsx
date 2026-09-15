@@ -31,8 +31,7 @@ function marketEstimate(o: Offer, qty: number, type: IntentType): string {
   const unit = isBond ? (o.nominal * ref) / 100 : ref;
   if (o.lotSize && qty < o.lotSize) return `Quantité minimale : ${o.lotSize}.`;
   const gross = qty * unit;
-  const com = gross * (o.commissionPct / 100);
-  return `${fmt(qty)} ${isBond ? "titres" : "actions"} × ${isBond ? `${ref} %` : `${fmt(ref)} FCFA`} = ${fmt(gross)} FCFA · commission ${fmt(com)} · ${type === "vente" ? "net encaissé" : "total"} ≈ ${fmt(type === "vente" ? gross - com : gross + com)} FCFA · prix d'exécution selon le marché`;
+  return `${fmt(qty)} ${isBond ? "titres" : "actions"} × ${isBond ? `${ref} %` : `${fmt(ref)} FCFA`} = ${fmt(gross)} FCFA ${type === "vente" ? "encaissés" : "à décaisser"} · prix d'exécution selon le marché`;
 }
 
 /** Fund redemption: the amount field is a number of units. */

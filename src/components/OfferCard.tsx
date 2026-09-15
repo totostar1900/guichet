@@ -41,7 +41,7 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           </Link>
         )}
         <span className={styles.when}>
-          {s.deadline === "continue" ? "cotation continue" : s.deadline} · com. {s.commission}
+          {s.deadline === "continue" ? "cotation continue" : s.deadline}
         </span>
       </div>
     </article>

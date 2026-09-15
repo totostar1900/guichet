@@ -60,7 +60,7 @@ export function estimate(o: Offer, amount: number): Estimate {
   }
   if (o.kind === "RACHAT") {
     const proceeds = amount * o.nominal;
-    return { ok: true, titles: amount, outlay: -proceeds, text: `${fmt(amount)} titres · produit de cession ${fmt(proceeds)} FCFA à 100 %, commission déduite ${fmt(proceeds * (1 - o.commissionPct / 100))}` };
+    return { ok: true, titles: amount, outlay: -proceeds, text: `${fmt(amount)} titres · produit de cession ${fmt(proceeds)} FCFA à 100 %` };
   }
   return { ok: false, text: "" };
 }

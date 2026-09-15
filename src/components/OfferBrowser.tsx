@@ -41,10 +41,10 @@ const YIELDS: [string, string][] = [
   ["7", "≥ 7 %"],
   ["9", "≥ 9 %"],
 ];
-export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "commission" | "title" | "recent";
+export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "recent";
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
-const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", commission: "commission", title: "nom", recent: "plus récent" };
+const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", recent: "plus récent" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
 const normStatus = (s: DisplayStatus): string => (s === "closing" ? "open" : s === "closed" ? "results" : s === "on_request" ? "quoted" : s);
@@ -176,13 +176,12 @@ function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKe
             <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
             <th className={`${styles.r} ${styles.hideMd}`}>Durée</th>
             <Th k="minimum" label="Ticket minimum" sort={sort} dir={dir} onSort={onSort} right term="ticket" />
-            <Th k="commission" label="Com." sort={sort} dir={dir} onSort={onSort} right term="commission" className={styles.hideLg} />
             <th></th>
           </tr>
         </thead>
         <tbody>
           {groups.flatMap((g) => [
-            ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={9} />] : []),
+            ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
             ...g.rows.map(({ o, s }) => (
             <tr key={o.id} className={s.past ? styles.past : ""}>
               <td className={styles.line}>
@@ -208,7 +207,6 @@ function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKe
                 {s.minimum}
                 {s.minimum !== "—" && <Info text={s.minimumSub} label="Ce ticket représente" subtle />}
               </td>
-              <td className={`${styles.r} ${styles.hideLg} num`}>{s.commission}</td>
               <td className={styles.r}>
                 {s.primary ? (
                   <Link className="btn sm" href={`/offres/${o.id}?intent=${s.primary.intent}`}>
@@ -242,7 +240,6 @@ function List({ rows, grouped }: { rows: Row[]; grouped: boolean }) {
             <LineIdentity o={o} s={s} size="lg" />
             <div className={styles.rowStatus}>
               <StatusPill s={s} />
-              <span>com. {s.commission}</span>
             </div>
           </div>
           <dl className={styles.ledger}>
@@ -368,8 +365,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           return (a.o.maturityOn ?? "9999").localeCompare(b.o.maturityOn ?? "9999");
         case "minimum":
           return parseNum(a.s.minimum) - parseNum(b.s.minimum);
-        case "commission":
-          return a.o.commissionPct - b.o.commissionPct;
         case "title":
           return a.s.title.localeCompare(b.s.title, "fr");
         default:
