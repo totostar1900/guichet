@@ -139,14 +139,22 @@ function Reference({ o }: { o: Offer }) {
       <>
         <h3>Pour {fmt(amount)} FCFA à la dernière VL</h3>
         <div className="out">
-          <div>Droits d&apos;entrée {fmtPct(f.entryFeePct, 2)}</div>
-          <div>{fmt(amount - net)}</div>
+          {f.entryFeePct > 0 && (
+            <>
+              <div>Frais du fonds à l&apos;entrée {fmtPct(f.entryFeePct, 2)}</div>
+              <div>{fmt(amount - net)}</div>
+            </>
+          )}
           <div>Investi dans le fonds</div>
           <div>{fmt(net)}</div>
           <div className="tot">Parts (VL {fmt(f.nav)} du {fmtDate(f.navDate, false)})</div>
           <div>≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</div>
-          <div>Droits de sortie</div>
-          <div>{fmtPct(f.exitFeePct, 2)}</div>
+          {f.exitFeePct > 0 && (
+            <>
+              <div>Frais du fonds à la sortie</div>
+              <div>{fmtPct(f.exitFeePct, 2)}</div>
+            </>
+          )}
         </div>
       </>
     );
@@ -307,7 +315,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       ? [
           ["Valeur liquidative inconnue à l'ordre.", "Une souscription ou un rachat s'exécute à la prochaine VL calculée par la société de gestion, pas à celle affichée ; le nombre de parts n'est connu qu'après centralisation."],
           ["Performance non garantie.", "Les performances passées ne préjugent pas des performances futures ; la VL peut baisser, y compris pour un fonds monétaire ou obligataire."],
-          ["Frais et liquidité.", "Droits d'entrée et de sortie, frais de gestion prélevés dans la VL ; un rachat est réglé après la VL de rachat, selon la périodicité du fonds. Les parts sont inscrites à votre nom chez le dépositaire ; Purpose Capital n'est que distributeur."],
+          ["Frais et liquidité.", "Les frais du fonds (entrée, sortie, gestion prélevée dans la VL) figurent dans son prospectus ; un rachat est réglé après la VL de rachat, selon la périodicité du fonds. Les parts sont inscrites à votre nom chez le dépositaire ; Purpose Capital n'est que distributeur."],
         ]
       : o.kind === "MARCHE"
       ? [

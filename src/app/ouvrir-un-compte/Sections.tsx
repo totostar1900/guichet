@@ -380,7 +380,7 @@ export function ConsentSection({ file, editable }: P) {
           <li>Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.</li>
           <li>Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d&apos;un compte à votre nom.</li>
           <li>Une intention n&apos;est pas un ordre : un ordre naît d&apos;une confirmation et d&apos;un bulletin accepté.</li>
-          <li>Tarifs : commission d&apos;intermédiation par opération (annexe), droits de garde annuels, aucun frais d&apos;ouverture.</li>
+          <li>Tarifs : selon l&apos;annexe tarifaire remise par votre conseiller ; aucun frais d&apos;ouverture.</li>
           <li>Vous recevez un avis d&apos;opéré par opération et un relevé de position ; réclamations et médiation COSUMAF décrites en annexe.</li>
           <li>Données : conservées 10 ans après la fin de la relation (obligation LBC/FT), utilisées pour la relation et le reporting réglementaire.</li>
         </ul>

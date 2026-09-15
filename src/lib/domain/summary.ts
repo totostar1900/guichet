@@ -224,13 +224,13 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       maturity: "—",
       minimum: open ? `${fmt(f.minAmount)} FCFA` : "—",
       minimumSub: open ? `≈ ${(f.minAmount / f.nav).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} parts à la dernière VL` : "sur demande",
-      commission: open ? `${fmtPct(f.entryFeePct, 2)} entrée` : "—",
+      commission: open && f.entryFeePct > 0 ? `${fmtPct(f.entryFeePct, 2)} frais du fonds` : "—",
       primary: open ? { label: "Souscrire", intent: "souscription" } : { label: "Sur demande", intent: "info" },
       secondary: open ? { label: "Racheter", intent: "rachat" } : undefined,
       facts: [
         ["Variation", v != null ? `${v > 0 ? "+" : ""}${fmtPct(v, 2)}` : "—"],
         ["Depuis l'origine", `${f.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(f.perfSinceInceptionPct, 1)}`],
-        [open ? "Droits d'entrée" : "Minimum", open ? fmtPct(f.entryFeePct, 2) : "sur demande"],
+        [open && f.entryFeePct > 0 ? "Frais du fonds à l'entrée" : "Ticket min.", open && f.entryFeePct > 0 ? fmtPct(f.entryFeePct, 2) : open ? `${fmt(f.minAmount)} FCFA` : "sur demande"],
       ],
       ledger: [
         ["Performance", f.perf1yPct != null ? signed(f.perf1yPct) : annual != null ? signed(annual) : "—", f.perf1yPct != null ? `sur 12 mois · ${signed(f.perfSinceInceptionPct, 1)} depuis l'origine` : annual != null ? `par an · ${signed(f.perfSinceInceptionPct, 1)} depuis l'origine` : "moins de six mois d'historique"],

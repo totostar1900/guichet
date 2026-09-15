@@ -29,7 +29,7 @@ export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, 
       <KV
         rows={[
           ["Montant de la souscription", `${fmt(intent.amount ?? 0)} FCFA`],
-          [`Droits d'entrée ${fmtPct(f.entryFeePct, 2)} (acquis au fonds / à la société de gestion)`, fmt(p.commission)],
+          ...(f.entryFeePct > 0 ? ([[`Frais du fonds à l'entrée ${fmtPct(f.entryFeePct, 2)} (acquis au fonds / à la société de gestion)`, fmt(p.commission)]] as [string, string][]) : []),
           ["Montant net investi", fmt(p.principal)],
           [`Parts estimées à la dernière VL (${fmt(f.nav)} FCFA)`, `≈ ${units3(p.units)}`],
         ]}
@@ -85,7 +85,7 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
         rows={[
           ["Parts à racheter", units3(p.units)],
           [`Valeur estimée à la dernière VL (${fmt(f.nav)} FCFA)`, fmt(p.principal)],
-          [`Droits de sortie ${fmtPct(f.exitFeePct, 2)}`, fmt(p.commission)],
+          ...(f.exitFeePct > 0 ? ([[`Frais du fonds à la sortie ${fmtPct(f.exitFeePct, 2)}`, fmt(p.commission)]] as [string, string][]) : []),
           ["Compte de règlement du porteur (virement du produit)", payoutLine(payout)],
         ]}
         total={["Produit net estimé", `${fmt(Math.abs(p.total))} FCFA`]}
