@@ -39,7 +39,7 @@ export interface Repository {
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
   /** Client-side updates to reachability (phone, e-mail) — the desk keeps the last one given. */
-  updateContact(id: string, patch: Partial<Pick<Contact, "phone" | "email">>): Promise<void>;
+  updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
 
   /** Outbound messages, whatever the channel. */
   listNotifications(limit?: number): Promise<Notification[]>;

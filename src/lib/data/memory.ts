@@ -213,6 +213,7 @@ export const memoryRepository: Repository = {
   async updateContact(id, patch) {
     const c = store().contacts.find((x) => x.id === id);
     if (!c) return;
+    if (patch.name) c.name = patch.name;
     if (patch.phone) c.phone = patch.phone;
     if (patch.email) c.email = patch.email;
   },

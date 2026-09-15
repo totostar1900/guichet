@@ -187,49 +187,6 @@
 }
 
 /* ---------- shared bits ---------- */
-.segments {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--line);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-.segments::-webkit-scrollbar {
-  display: none;
-}
-.segments button {
-  appearance: none;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  padding: 8px 12px;
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--ink-3);
-  cursor: pointer;
-  white-space: nowrap;
-  flex: none;
-}
-.segments button b {
-  font-weight: 700;
-  color: var(--ink-3);
-  background: var(--surface-2);
-  border-radius: 4px;
-  padding: 1px 7px;
-  font-size: 0.72rem;
-  margin-left: 4px;
-}
-.segments button[aria-selected="true"] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
-}
-.segments button[aria-selected="true"] b {
-  background: var(--ink);
-  color: var(--surface);
-}
 .segHint {
   margin: -2px 0 10px;
   font-size: 0.8rem;

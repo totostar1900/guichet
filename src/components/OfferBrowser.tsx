@@ -8,6 +8,7 @@ import { displayStatus, FAMILIES, FAMILY_LABEL, FAMILY_SEGMENT, headlineYield, i
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
+import { MarketTabs } from "./MarketTabs";
 import { Info } from "./Info";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
@@ -18,7 +19,7 @@ import styles from "./OfferBrowser.module.css";
  * view can be shared on WhatsApp and comes back the same.
  */
 
-const SEGMENTS: MarketSegment[] = ["primaire", "secondaire", "fonds"];
+const SEGMENTS: MarketSegment[] = ["primaire", "secondaire"];
 const COUNTRIES = ["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."];
 const STATUSES: [string, string][] = [
   ["open", "Ouvertes"],
@@ -209,7 +210,7 @@ function List({ rows }: { rows: { o: Offer; s: OfferSummary }[] }) {
 }
 
 /* ---------- browser ---------- */
-export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: string }) {
+export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; nowIso: string; fundsCount: number }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const router = useRouter();
   const pathname = usePathname();
@@ -329,16 +330,11 @@ export function OfferBrowser({ offers, nowIso }: { offers: Offer[]; nowIso: stri
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <div className={styles.top} ref={top}>
-        <div className={styles.segments} role="tablist" aria-label="Marché">
-          <button type="button" role="tab" aria-selected={!segment} onClick={() => update({ marche: undefined, instrument: undefined })}>
-            Tout <b>{offers.length}</b>
-          </button>
-          {SEGMENTS.filter((sg) => segCount[sg] > 0 || segment === sg).map((sg) => (
-            <button key={sg} type="button" role="tab" aria-selected={segment === sg} title={SEGMENT_HINT[sg]} onClick={() => update({ marche: sg, instrument: undefined })}>
-              {SEGMENT_LABEL[sg]} <b>{segCount[sg]}</b>
-            </button>
-          ))}
-        </div>
+        <MarketTabs
+          active={segment === "primaire" || segment === "secondaire" ? segment : "all"}
+          counts={{ all: offers.length, primaire: segCount.primaire, secondaire: segCount.secondaire, fonds: fundsCount }}
+          onSelect={(k) => update({ marche: k === "all" ? undefined : k, instrument: undefined })}
+        />
         {segment && <p className={styles.segHint}>{SEGMENT_HINT[segment]}</p>}
         <div className={styles.toolbar}>
           <label className={styles.search}>

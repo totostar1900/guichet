@@ -44,7 +44,10 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · droits de sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "" }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "" }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string }) {
+  // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
+  const nameParts = name.trim().split(/\s+/).filter(Boolean);
+  const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
@@ -138,14 +141,20 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           )}
         </div>
         <fieldset className={styles.contact}>
-          <legend>Me joindre par</legend>
-          <div className={styles.channels}>
-            {(["WhatsApp", "Appel", "E-mail"] as const).map((c) => (
-              <label key={c}>
-                <input type="radio" name="channel" value={c} checked={channel === c} onChange={() => setChannel(c)} />
-                {c}
-              </label>
-            ))}
+          <legend>Vos coordonnées</legend>
+          <div className={styles.row}>
+            <label className="field">
+              <span>
+                Prénom <em className={styles.req}>· requis</em>
+              </span>
+              <input name="firstName" autoComplete="given-name" placeholder="Prénom" defaultValue={firstName} required minLength={2} />
+            </label>
+            <label className="field">
+              <span>
+                Nom <em className={styles.req}>· requis</em>
+              </span>
+              <input name="lastName" autoComplete="family-name" placeholder="Nom" defaultValue={lastName} required minLength={2} />
+            </label>
           </div>
           <div className={styles.row}>
             <label className="field">
@@ -161,8 +170,17 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required />
             </label>
           </div>
+          <div className={styles.channelLbl}>Me joindre par</div>
+          <div className={styles.channels}>
+            {(["WhatsApp", "Appel", "E-mail"] as const).map((c) => (
+              <label key={c}>
+                <input type="radio" name="channel" value={c} checked={channel === c} onChange={() => setChannel(c)} />
+                {c}
+              </label>
+            ))}
+          </div>
           <p className={styles.procedure}>
-            Les deux sont vérifiés à l&apos;envoi : vous recevez aussitôt un accusé de réception sur WhatsApp et par e-mail, un conseiller vous confirme {BY[channel]}, puis le bulletin à signer arrive par e-mail. En donnant ce numéro, vous acceptez d&apos;être contacté sur WhatsApp pour cette opération.
+            Prénom et nom tels que sur votre pièce d&apos;identité (ils figurent sur le bulletin). Téléphone et e-mail sont vérifiés à l&apos;envoi : accusé de réception immédiat sur WhatsApp et par e-mail, confirmation d&apos;un conseiller {BY[channel]}, bulletin à signer par e-mail. En donnant ce numéro, vous acceptez d&apos;être contacté sur WhatsApp pour cette opération.
           </p>
         </fieldset>
         {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}

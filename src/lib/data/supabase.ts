@@ -536,6 +536,7 @@ export const supabaseRepository: Repository = {
   },
   async updateContact(id, patch) {
     const row: Record<string, string> = {};
+    if (patch.name) row.display_name = patch.name;
     if (patch.phone) row.phone = patch.phone;
     if (patch.email) row.email = patch.email;
     if (!Object.keys(row).length) return;

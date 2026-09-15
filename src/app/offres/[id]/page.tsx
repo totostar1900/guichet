@@ -421,7 +421,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
 
       <aside className={styles.side}>
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             Durée réelle <b>{tenorText(o.settleOn, o.maturityOn)}</b> · règlement le {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

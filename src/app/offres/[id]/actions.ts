@@ -19,6 +19,8 @@ const schema = z.object({
   limitPrice: z.string().optional(),
   amount: z.string().optional(),
   channel: z.enum(["WhatsApp", "Appel", "E-mail"]),
+  firstName: z.string().max(60).optional(),
+  lastName: z.string().max(60).optional(),
   contactPhone: z.string().max(30).optional(),
   contactEmail: z.string().max(120).optional(),
   message: z.string().max(1000).optional(),
@@ -39,6 +41,10 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { ok: false, error: "Formulaire incomplet — vérifiez le type et le canal." };
   const { offerId, type, amount, channel, message, limitPrice } = parsed.data;
+  const firstName = (parsed.data.firstName ?? "").trim().replace(/\s+/g, " ");
+  const lastName = (parsed.data.lastName ?? "").trim().replace(/\s+/g, " ");
+  if (firstName.length < 2 || lastName.length < 2) return { ok: false, error: "Indiquez votre prénom et votre nom tels qu'ils figurent sur votre pièce d'identité." };
+  const clientName = `${firstName} ${lastName}`;
   const contactPhone = normalizePhone(parsed.data.contactPhone);
   const contactEmail = (parsed.data.contactEmail ?? "").trim().toLowerCase();
   // Both are required: the acknowledgement goes out on WhatsApp and by e-mail, the bulletin to sign by e-mail.
@@ -81,11 +87,11 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     contactEmail: contactEmail || undefined,
     message: needsAccount ? `[compte-titres à ouvrir] ${message ?? ""}`.trim() : message,
     clientId: session.userId,
-    clientName: session.name,
+    clientName,
     clientSegment: session.segment,
   });
   // Keep the profile reachable with what the client just typed (the desk calls from there).
-  await r.updateContact(session.userId, { phone: contactPhone || undefined, email: contactEmail || undefined });
+  await r.updateContact(session.userId, { name: clientName, phone: contactPhone || undefined, email: contactEmail || undefined });
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} — <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
   const sent = (await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined)).map((n) => ({ channel: n.channel, status: n.status }));
   revalidatePath("/desk");

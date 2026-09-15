@@ -3,6 +3,8 @@ import { repo } from "@/lib/data";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
 import type { Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { MarketTabs } from "@/components/MarketTabs";
+import { FAMILY_SEGMENT, offerFamily } from "@/lib/domain/status";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -22,12 +24,14 @@ export default async function FondsPage() {
   const [offers, bulletins] = await Promise.all([r.listOffers(), r.listBulletins(1)]);
   const funds = offers.filter((o): o is Offer & { fund: NonNullable<Offer["fund"]> } => o.kind === "FONDS" && Boolean(o.fund));
   const last = bulletins[0];
+  const others = offers.filter((o) => !o.hidden && o.kind !== "FONDS");
   const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`);
   const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
   const open = funds.filter((o) => o.fund.distributed && !o.hidden).length;
 
   return (
     <>
+      <MarketTabs active="fonds" counts={{ all: others.length, primaire: others.filter((o) => FAMILY_SEGMENT[offerFamily(o)] === "primaire").length, secondaire: others.filter((o) => FAMILY_SEGMENT[offerFamily(o)] === "secondaire").length, fonds: funds.length }} />
       <div className={styles.head}>
         <div>
           <h1 className="display">Fonds communs de placement</h1>
