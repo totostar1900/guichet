@@ -54,3 +54,12 @@ Tout ce qui suit demande vos identifiants (Supabase, Vercel, Meta, Resend) : c'e
 ## Mises à jour
 
 Chaque `git push` sur `master` redéploie. Les migrations SQL nouvelles (`supabase/migrations/00NN_*.sql`) sont à exécuter à la main dans Supabase avant le déploiement qui les utilise — le fichier README et le message de commit le signalent.
+
+
+## État au 16 septembre 2026
+
+- Projet Vercel , production sur https://guichet-seven.vercel.app (déploiement depuis  ; chaque  sur master redéploie une fois l'intégration GitHub activée dans le tableau de bord Vercel).
+- Variables d'environnement de production : celles de  +  (généré).  est déclarée en valeur publique (clé navigateur, protégée par les RLS).
+- Protection de déploiement limitée aux prévisualisations ; la production est publique.
+- Crons enregistrés : BOC 18:30 lun–ven, coupons 07:00, émetteurs lundi 06:00 — appelés par Vercel avec .
+- Domaine personnalisé :  puis l'enregistrement DNS indiqué.
