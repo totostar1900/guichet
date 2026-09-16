@@ -415,7 +415,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
+  margin-left: 16px;
   font-size: 0.8rem;
   color: var(--ink-2);
   cursor: pointer;
@@ -502,5 +502,19 @@
 @media (max-width: 820px) {
   .table th {
     position: static;
+  }
+}
+.compareLink {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.compareLink:hover {
+  text-decoration: underline;
+}
+@media (max-width: 640px) {
+  .compareLink {
+    margin-left: 0;
   }
 }

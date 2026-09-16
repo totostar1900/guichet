@@ -351,9 +351,14 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <LineIdentity o={o} s={summary} size="xl" as="h1" />
             <div className={styles.headActions}>
               <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
-              <a className="btn sm" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
-                Fiche PDF
-              </a>
+              <div className={styles.headBtns}>
+                <a className="btn sm" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
+                  Fiche PDF
+                </a>
+                <Link className="btn sm ghost" href={`/comparer?a=${o.id}`}>
+                  Comparer
+                </Link>
+              </div>
             </div>
           </div>
         </div>

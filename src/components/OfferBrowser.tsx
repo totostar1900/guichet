@@ -425,6 +425,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           <b>{rows.length}</b> ligne{rows.length > 1 ? "s" : ""}
           {filterCount > 0 || q ? " correspondant aux filtres" : ""} · {live} ouverte{live > 1 ? "s" : ""} ou cotée{live > 1 ? "s" : ""}
         </span>
+        <Link className={styles.compareLink} href="/comparer">
+          Comparer deux lignes
+        </Link>
         <label className={styles.groupToggle}>
           <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
           Grouper par émetteur
