@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { backfill, catchUp } from "@/lib/market/boc";
+import { alertDesk } from "@/lib/health";
 
 // Six bulletins to catch up after a holiday week take ~1 min; Vercel Fluid compute allows up to 300 s.
 export const maxDuration = 300;
@@ -17,7 +18,10 @@ export async function GET(req: NextRequest) {
   const ok = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
   const from = ok(sp.get("from"));
   const results = from ? await backfill("cron", from, ok(sp.get("to")) ?? new Date().toISOString().slice(0, 10)) : await catchUp("cron");
+  // The daily run doubles as the health check that warns the desk.
+  const health = from ? undefined : await alertDesk();
   return NextResponse.json({
+    health,
     tried: results.length,
     ingested: results.filter((r) => r.found && r.bulletin).map((r) => ({ sessionDate: r.sessionDate, number: r.bulletin?.number, status: r.bulletin?.status, created: r.created.length, refreshed: r.refreshed.length, anomalies: r.bulletin?.anomalies.length ?? 0 })),
     missing: results.filter((r) => !r.found).map((r) => r.sessionDate),

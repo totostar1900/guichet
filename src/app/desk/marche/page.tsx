@@ -42,6 +42,7 @@ export default async function MarketPage() {
         </Link>
         <Link href="/desk/robot">Robot</Link>
         <Link href="/desk/reporting">Reporting</Link>
+      <Link href="/desk/sante">Santé</Link>
       </nav>
 
       <div className="panel">

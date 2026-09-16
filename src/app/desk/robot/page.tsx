@@ -22,6 +22,7 @@ export default async function RobotPage() {
           Robot
         </Link>
       <Link href="/desk/reporting">Reporting</Link>
+      <Link href="/desk/sante">Santé</Link>
       </nav>
       <div className="panel">
         <div className="panel-h">

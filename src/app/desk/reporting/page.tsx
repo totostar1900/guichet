@@ -37,6 +37,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         <Link href="/desk/reporting" aria-current="page">
           Reporting
         </Link>
+        <Link href="/desk/sante">Santé</Link>
       </nav>
 
       <form className={styles.period} method="get">
