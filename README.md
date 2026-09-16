@@ -157,3 +157,8 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 ### Échéanciers des obligations cotées
 
 `src/data/bond-terms.ts` porte, par ISIN, la date d'échéance exacte, la périodicité et le différé d'amortissement lus sur les fiches signalétiques publiées par la BVMAC (Espace émetteurs › Émetteurs obligations, images JPG). Le rendement actuariel d'une ligne cotée se calcule alors sur son vrai échéancier (`amortCalc`) ; sans fiche, il reste calculé in fine au 31 décembre de l'année imprimée au BOC et signalé « ≈ ». À mettre à jour à chaque nouvelle fiche (l'État du Congo — EOCG 2021-2026 — manque encore).
+
+### Messages automatiques
+
+- 06:30 lun–ven `/api/cron/point` : point du matin du desk (clôtures du jour et du lendemain, intentions reçues, en attente, dernier bulletin, santé) — e-mail à `DESK_EMAILS` quand Resend est configuré, journal et notifications sinon.
+- 07:15 `/api/cron/suivi` : lignes suivies — un message WhatsApp + e-mail au client quand le rendement, le cours, le prix ou le statut d'une ligne qu'il suit a changé (table `watchlist`, migration 0014 ; valeurs d'énumération `watch` / `digest`, migration 0015).

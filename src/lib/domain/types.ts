@@ -281,7 +281,7 @@ export interface Contact {
 
 export type NotifyChannel = "whatsapp" | "email";
 export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
-export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch";
+export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest";
 
 /** A line a client follows; the snapshot is what they were last told. */
 export interface Watch {
