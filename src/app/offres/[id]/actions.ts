@@ -97,3 +97,23 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   revalidatePath("/desk");
   return { ok: true, ref: intent.ref, type, channel, needsAccount, phone: contactPhone, email: contactEmail, sent };
 }
+
+/** Follow / unfollow a line from its fiche; the daily alert takes it from there. */
+export async function toggleWatch(offerId: string, on: boolean): Promise<{ ok: boolean; watching: boolean }> {
+  const session = await getSession();
+  if (!session) return { ok: false, watching: false };
+  const r = repo();
+  const offer = await r.getOffer(offerId);
+  if (!offer) return { ok: false, watching: false };
+  try {
+    if (on) {
+      const { watchSnapshot } = await import("@/lib/watch");
+      await r.addWatch(session.userId, offerId, watchSnapshot(offer));
+    } else await r.removeWatch(session.userId, offerId);
+  } catch {
+    return { ok: false, watching: false }; // table missing (migration 0014) — the button stays off
+  }
+  revalidatePath(`/offres/${offerId}`);
+  revalidatePath("/moi");
+  return { ok: true, watching: on };
+}

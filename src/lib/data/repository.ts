@@ -1,4 +1,4 @@
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
@@ -38,6 +38,11 @@ export interface Repository {
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
+  /** Lines followed by clients (all of them for the daily alert, one client's for their page). */
+  listWatches(userId?: string): Promise<Watch[]>;
+  addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }): Promise<Watch>;
+  removeWatch(userId: string, offerId: string): Promise<void>;
+  updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt">>): Promise<void>;
   /** Client-side updates to reachability (phone, e-mail) — the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
 

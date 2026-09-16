@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -237,6 +237,8 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
 
 type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean };
 const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in });
+type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
+const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
 type NotifRow = {
   id: string; kind: Notification["kind"]; channel: Notification["channel"]; to_address: string; contact_name: string | null; subject: string | null; body: string;
   document_id: string | null; intent_id: string | null; offer_id: string | null; status: Notification["status"]; provider_id: string | null; error: string | null; created_at: string; sent_at: string | null;
@@ -533,6 +535,33 @@ export const supabaseRepository: Repository = {
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
     if (error) fail("setContactOptIn", error);
+  },
+  async listWatches(userId) {
+    let q = db().from("watchlist").select("*").order("created_at", { ascending: false });
+    if (userId) q = q.eq("user_id", userId);
+    const { data, error } = await q;
+    if (error) {
+      if (/watchlist/.test(error.message)) return []; // migration 0014 not applied yet
+      fail("listWatches", error);
+    }
+    return (data as WatchRow[]).map(toWatch);
+  },
+  async addWatch(userId, offerId, snapshot) {
+    const { data, error } = await db().from("watchlist").upsert({ user_id: userId, offer_id: offerId, last_hero: snapshot.hero, last_status: snapshot.status }, { onConflict: "user_id,offer_id" }).select("*").single();
+    if (error) fail("addWatch", error);
+    return toWatch(data as WatchRow);
+  },
+  async removeWatch(userId, offerId) {
+    const { error } = await db().from("watchlist").delete().eq("user_id", userId).eq("offer_id", offerId);
+    if (error) fail("removeWatch", error);
+  },
+  async updateWatch(id, patch) {
+    const row: Record<string, unknown> = {};
+    if (patch.lastHero !== undefined) row.last_hero = patch.lastHero;
+    if (patch.lastStatus !== undefined) row.last_status = patch.lastStatus;
+    if (patch.alertedAt !== undefined) row.alerted_at = patch.alertedAt;
+    const { error } = await db().from("watchlist").update(row).eq("id", id);
+    if (error) fail("updateWatch", error);
   },
   async updateContact(id, patch) {
     const row: Record<string, string> = {};

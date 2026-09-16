@@ -7,6 +7,9 @@ import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { ContactForm } from "./ContactForm";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
+import { LineIdentity } from "@/components/LineIdentity";
+import { WatchButton } from "@/components/WatchButton";
+import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +22,9 @@ export default async function MyPage() {
   const [intents, offers, docs] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments()]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
-  const [myFile, contact] = await Promise.all([r.getClientFileByUser(s.userId), r.getContact(s.userId)]);
+  const [myFile, contact, watches] = await Promise.all([r.getClientFileByUser(s.userId), r.getContact(s.userId), r.listWatches(s.userId)]);
+  const followed = watches.map((w) => byOffer.get(w.offerId)).filter((o): o is NonNullable<typeof o> => Boolean(o));
+  const now = new Date();
   const positions = positionsFrom(mine, offers);
   const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
 
@@ -68,6 +73,31 @@ export default async function MyPage() {
           {(!contact?.phone || !contact?.email) && <span className="pill closing">à compléter</span>}
         </div>
         <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
+      </div>
+
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Lignes suivies</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>{followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut."}</span>
+        </div>
+        {followed.length > 0 && (
+          <div className={styles.watchList}>
+            {followed.map((o) => {
+              const sm = summarize(o, now);
+              return (
+                <div key={o.id} className={styles.watchRow}>
+                  <LineIdentity o={o} s={sm} href={`/offres/${o.id}`} />
+                  <div className={styles.watchHero}>
+                    <b className={sm.gold ? styles.gold : undefined}>{sm.hero}</b>
+                    <small>{sm.heroUnit ?? sm.heroSub}</small>
+                  </div>
+                  <span className={`pill ${sm.statusClass}`}>{sm.status}</span>
+                  <WatchButton offerId={o.id} initial signedIn />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {positions.length > 0 && (

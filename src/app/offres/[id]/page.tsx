@@ -8,6 +8,7 @@ import { companyByIsin } from "@/data/companies";
 import { issuerByIsin } from "@/data/issuers";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
+import { WatchButton } from "@/components/WatchButton";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -261,6 +262,7 @@ function Reference({ o }: { o: Offer }) {
 export default async function OfferPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
+  const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
   if (!o) notFound();
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
   const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 60) : [];
@@ -358,6 +360,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
                 <Link className="btn sm ghost" href={`/comparer?a=${o.id}`}>
                   Comparer
                 </Link>
+                <WatchButton offerId={o.id} initial={watching} signedIn={Boolean(session)} />
               </div>
             </div>
           </div>

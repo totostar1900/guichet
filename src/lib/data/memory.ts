@@ -1,5 +1,5 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -19,6 +19,7 @@ interface Store {
   documents: GeneratedDocument[];
   contacts: Contact[];
   notifications: Notification[];
+  watches: Watch[];
   clientFiles: ClientFile[];
   bulletins: MarketBulletin[];
   quotes: Quote[];
@@ -44,6 +45,7 @@ function store(): Store {
       documents: [],
       contacts: structuredClone(SEED_CONTACTS),
       notifications: [],
+      watches: [],
       clientFiles: [],
       bulletins: [],
       quotes: [],
@@ -209,6 +211,23 @@ export const memoryRepository: Repository = {
     if (c) c.whatsappOptIn = optIn;
     const f = store().clientFiles.find((x) => x.userId === id);
     if (f) f.consents.whatsappAt = optIn ? (f.consents.whatsappAt ?? nowIso()) : undefined;
+  },
+  async listWatches(userId) {
+    return structuredClone(store().watches.filter((w) => !userId || w.userId === userId));
+  },
+  async addWatch(userId, offerId, snapshot) {
+    const existing = store().watches.find((w) => w.userId === userId && w.offerId === offerId);
+    if (existing) return structuredClone(existing);
+    const w: Watch = { id: uid(), userId, offerId, lastHero: snapshot.hero, lastStatus: snapshot.status, createdAt: nowIso() };
+    store().watches.push(w);
+    return structuredClone(w);
+  },
+  async removeWatch(userId, offerId) {
+    store().watches = store().watches.filter((w) => !(w.userId === userId && w.offerId === offerId));
+  },
+  async updateWatch(id, patch) {
+    const w = store().watches.find((x) => x.id === id);
+    if (w) Object.assign(w, patch);
   },
   async updateContact(id, patch) {
     let c = store().contacts.find((x) => x.id === id);

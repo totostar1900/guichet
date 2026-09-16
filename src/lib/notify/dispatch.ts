@@ -124,3 +124,10 @@ export async function notifyDocument(d: GeneratedDocument, channel: NotifyChanne
   const bytes = await readSource(d.fileKey);
   return deliver("document", t, m, { intentId: i.id, offerId: o?.id, documentId: d.id, pdf: { bytes, filename: `${d.number}.pdf` } });
 }
+
+/** A plain message to one contact on every channel they have (used by the followed-lines alerts). */
+export async function notifyRaw(kind: NotifyKind, c: Contact, m: { subject: string; text: string }, refs: { offerId?: string } = {}): Promise<Notification[]> {
+  const out: Notification[] = [];
+  for (const t of targets(c, ["whatsapp", "email"])) out.push(await deliver(kind, t, { subject: m.subject, text: m.text }, refs));
+  return out;
+}
