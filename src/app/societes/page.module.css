@@ -108,3 +108,59 @@
     display: none;
   }
 }
+
+.issuersH {
+  padding: 14px 16px 6px;
+}
+.issuersH h2 {
+  font-size: 1rem;
+  margin: 0 0 4px;
+}
+.issuersH p {
+  margin: 0;
+  font-size: 0.82rem;
+  max-width: 80ch;
+}
+.issuers {
+  display: grid;
+  gap: 8px;
+  padding: 8px 16px 16px;
+}
+.issuer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+}
+.issuer:hover {
+  background: var(--surface-2);
+}
+.issuer b {
+  font-weight: 600;
+}
+.issuer small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.74rem;
+}
+.issuerFig span {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+.issuerFig b {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .issuer {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

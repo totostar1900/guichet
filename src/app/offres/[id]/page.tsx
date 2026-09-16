@@ -5,6 +5,7 @@ import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { companyByIsin } from "@/data/companies";
+import { issuerByIsin } from "@/data/issuers";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
@@ -382,6 +383,15 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <p className={styles.note}>
               {companyByIsin(o.isin)!.activity}{" "}
               <Link href={`/societes/${companyByIsin(o.isin)!.mnemo.toLowerCase()}`}>Analyse complète : comptes certifiés, ratios, dividendes, rapport PDF →</Link>
+            </p>
+          </section>
+        )}
+        {o.kind === "MARCHE" && o.instrument === "obligation" && issuerByIsin(o.isin) && (
+          <section className={styles.sec}>
+            <h3>L&apos;émetteur</h3>
+            <p className={styles.note}>
+              {issuerByIsin(o.isin)!.activity}{" "}
+              <Link href={`/emetteurs/${issuerByIsin(o.isin)!.slug}`}>Profil de l&apos;émetteur : comptes publiés, actionnariat, autres emprunts →</Link>
             </p>
           </section>
         )}

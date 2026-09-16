@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { COMPANIES } from "@/data/companies";
+import { ISSUERS } from "@/data/issuers";
 import { repo } from "@/lib/data";
 import { analyse } from "@/lib/companies/analysis";
 import { COUNTRY_CODE } from "@/lib/domain/summary";
@@ -103,6 +104,34 @@ export default async function SocietesPage() {
               })}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className={styles.panel}>
+        <div className={styles.issuersH}>
+          <h2>Émetteurs obligataires</h2>
+          <p className="muted">Les entreprises qui empruntent sur la BVMAC sans y être cotées en actions : ce qu&apos;elles font, leurs comptes publiés et les lignes qu&apos;elles remboursent. Les États (Cameroun, Gabon, Congo, Tchad) et la BDEAC ont leurs échéanciers directement sur chaque ligne.</p>
+        </div>
+        <div className={styles.issuers}>
+          {ISSUERS.map((i) => {
+            const last = i.figures[i.figures.length - 1];
+            return (
+              <Link key={i.slug} href={`/emetteurs/${i.slug}`} className={styles.issuer}>
+                <div>
+                  <span className="cc" title={i.country}>{COUNTRY_CODE[i.country]}</span> <b>{i.shortName}</b>
+                  <small>{i.sector} · {i.isins.length} emprunt{i.isins.length > 1 ? "s" : ""} coté{i.isins.length > 1 ? "s" : ""}</small>
+                </div>
+                <div className={styles.issuerFig}>
+                  <span>{last.revenueLabel} {last.year}</span>
+                  <b>{fmtUnits(last.revenue * i.unit, true)}</b>
+                </div>
+                <div className={styles.issuerFig}>
+                  <span>Résultat net {last.year}</span>
+                  <b>{fmtUnits(last.netIncome * i.unit, true)}</b>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
