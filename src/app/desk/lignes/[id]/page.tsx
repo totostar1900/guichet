@@ -7,6 +7,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { summarize } from "@/lib/domain/summary";
 import { fmtDateTime } from "@/lib/format";
+import { LifecycleForm } from "./LifecycleForm";
 import { RestoreForm } from "./RestoreForm";
 import styles from "./page.module.css";
 
@@ -46,6 +47,17 @@ export default async function LigneHistoriquePage({ params }: Props) {
           <Link className="btn sm" href="/desk/journal">
             Journal complet
           </Link>
+        </div>
+      </div>
+
+      <div className={`panel ${styles.life}`}>
+        <div className="panel-h">
+          <h2>Cycle de vie</h2>
+          <span className="muted">brouillon → en revue → publié → clôturé / résultats → en vie → échu · retiré à tout moment, jamais supprimé</span>
+        </div>
+        <div className={styles.lifeBody}>
+          <span className={`pill ${o.status === "withdrawn" ? "annulee" : "confirmee"}`}>{o.status === "withdrawn" ? "Retirée du Guichet" : `Statut : ${o.status}`}</span>
+          <LifecycleForm offerId={o.id} current={o.version} withdrawn={o.status === "withdrawn"} />
         </div>
       </div>
 

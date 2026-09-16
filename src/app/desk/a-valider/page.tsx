@@ -14,6 +14,7 @@ export const metadata = { title: "À valider" };
 const SOURCE_LABEL: Record<IntakeItem["source"], string> = { mail: "E-mail", pdf: "PDF", photo: "Photo", texte: "Texte" };
 const STATE_LABEL: Record<IntakeItem["state"], [string, string]> = {
   a_valider: ["new", "À valider"],
+  en_revue: ["review", "En revue"],
   publie: ["ok", "Publié"],
   bloque: ["blocked", "À compléter"],
   rejete: ["off", "Rejeté"],
@@ -23,7 +24,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const r = repo();
   const queue = await r.listIntake();
-  const todo = queue.filter((q) => q.state === "a_valider" || q.state === "bloque");
+  const todo = queue.filter((q) => q.state === "a_valider" || q.state === "en_revue" || q.state === "bloque");
   const selectedId = sp.item ?? todo[0]?.id;
   const selected = selectedId ? queue.find((q) => q.id === selectedId) : undefined;
   const offer = selected?.offerId ? await r.getOffer(selected.offerId) : undefined;

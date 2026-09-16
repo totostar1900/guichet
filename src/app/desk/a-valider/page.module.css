@@ -376,3 +376,33 @@
   align-items: center;
   gap: 6px;
 }
+
+.st_review {
+  background: var(--gold-soft);
+  color: var(--navy);
+}
+
+.reviewNote {
+  margin: 0 18px 10px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--gold);
+  background: var(--surface-2);
+  font-size: 0.8rem;
+}
+.reviewNote .eyebrow {
+  margin-right: 6px;
+}
+.reviewBox {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.reviewBox input {
+  width: 220px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  background: var(--surface);
+  color: var(--ink);
+}

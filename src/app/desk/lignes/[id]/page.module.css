@@ -125,3 +125,18 @@
     align-items: flex-start;
   }
 }
+
+.life {
+  margin-bottom: 16px;
+}
+.lifeBody {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px 16px 14px;
+}
+.lifeBody form {
+  flex: 1 1 420px;
+  margin-top: 0;
+}

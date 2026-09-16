@@ -8,7 +8,7 @@ import { enabledTypes, kindForEngine, legacyTypeKey, typeByKey } from "@/lib/reg
 import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
-import { publishAction, rejectAction, saveDraftAction, type IntakeResult } from "./actions";
+import { publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import styles from "./page.module.css";
 
 type Snap = Record<string, string>;
@@ -70,6 +70,9 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
   const [snap, setSnap] = useState<Snap>({});
   const [saveState, saveAct, saving] = useActionState<IntakeResult | null, FormData>(saveDraftAction, null);
   const [pubState, pubAct, publishing] = useActionState<IntakeResult | null, FormData>(publishAction, null);
+  const [revState, revAct, reviewing] = useActionState<IntakeResult | null, FormData>(requestReviewAction, null);
+  const [backState, backAct, sendingBack] = useActionState<IntakeResult | null, FormData>(sendBackAction, null);
+  const inReview = item.state === "en_revue";
 
   const v = (k: string, fallback?: unknown) => snap[k] ?? (fallback == null ? "" : String(fallback));
   // The product type (registry) decides the storage kind, the free fields and the checklist.
@@ -279,7 +282,14 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
           </div>
         </div>
 
-        {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>)}
+        {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>) || (revState && !revState.ok && <div className={styles.error}>{revState.error}</div>) || (backState && !backState.ok && <div className={styles.error}>{backState.error}</div>)}
+        {item.notes && (
+          <div className={styles.reviewNote}>
+            <span className="eyebrow">{inReview ? "En revue" : "Dernière note"}</span> {item.notes}
+          </div>
+        )}
+        {revState?.ok && <div className={styles.okMsg}>Relecture demandée — le brouillon passe « en revue ».</div>}
+        {backState?.ok && <div className={styles.okMsg}>Renvoyé en correction.</div>}
         {saveState?.ok && <div className={styles.okMsg}>Brouillon enregistré.</div>}
         {pubState?.ok && pubState.pending && <div className={styles.okMsg}>Proposition transmise à un responsable — {pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).</div>}
         {pubState?.ok && !pubState.pending && (
@@ -304,6 +314,20 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
           <button className="btn ghost sm" type="submit" formAction={rejectAction} formNoValidate>
             Rejeter
           </button>
+          {!published && (
+            <span className={styles.reviewBox}>
+              <input name="reviewNote" placeholder={inReview ? "Ce qui reste à corriger…" : "À vérifier par le relecteur…"} aria-label="Note de revue" maxLength={300} />
+              {inReview ? (
+                <button className="btn sm" type="submit" formAction={backAct} disabled={sendingBack} formNoValidate>
+                  {sendingBack ? "…" : "Renvoyer en correction"}
+                </button>
+              ) : (
+                <button className="btn sm" type="submit" formAction={revAct} disabled={reviewing || !official} formNoValidate>
+                  {reviewing ? "…" : "Demander une relecture"}
+                </button>
+              )}
+            </span>
+          )}
           <button className="btn" type="submit" formAction={saveAct} disabled={saving}>
             {saving ? "Enregistrement…" : "Enregistrer le brouillon"}
           </button>

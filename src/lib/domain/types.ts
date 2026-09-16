@@ -191,7 +191,7 @@ export interface NewIntentInput {
 /* ---------------- Intake (À valider) ---------------- */
 
 export type IntakeSource = "mail" | "pdf" | "photo" | "texte";
-export type IntakeState = "a_valider" | "publie" | "bloque" | "rejete";
+export type IntakeState = "a_valider" | "en_revue" | "publie" | "bloque" | "rejete";
 export type Confidence = "sure" | "check" | "missing";
 
 /** Structured fields read from a communiqué, before the desk prices it. */

@@ -10,6 +10,7 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
+import { isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus, displayYield, familySegment, isPast, marketAmortInput, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
@@ -264,6 +265,21 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
+  if (o.status === "withdrawn" && !isDesk(session)) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.main}>
+          <Link href="/" className={styles.back}>
+            ← Toutes les offres
+          </Link>
+          <h1 className="display" style={{ marginTop: 12 }}>
+            {o.title}
+          </h1>
+          <p className="muted">Cette ligne a été retirée du Guichet. Pour toute question, contactez le desk.</p>
+        </div>
+      </div>
+    );
+  }
   const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
   const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;

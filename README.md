@@ -139,6 +139,19 @@ Ce que l’application sait sans qu’on touche au code, édité dans l’app pa
 
 Le registre est chargé une fois par requête (`loadRegistry()` dans `src/lib/reference.ts`), installé côté serveur et envoyé au navigateur par `RegistryProvider` ; les actions serveur et les crons l’appellent avant de lire un type. À la publication, `offers.type_key` mémorise le type et `offers.extra` les champs libres ; la liste de contrôle du type et ses champs obligatoires bloquent « Publier ».
 
+## Cycle de vie d'une ligne (jamais de suppression)
+
+```
+source reçue ──► à valider ──► (en revue) ──► publié ──► clôturé / résultats ──► en vie ──► échu
+                   │                             │
+                   └─► rejeté (rouvrable)        └─► retiré (remise en ligne possible)
+```
+
+- **À valider → en revue** : l'opérateur demande une relecture avec une note ; le relecteur publie ou **renvoie en correction** (note). La personne qui a demandé la relecture ne peut pas publier ce brouillon.
+- **Publier** exige : source officielle jointe, champs obligatoires, liste de contrôle du type cochée, champs libres requis, et la fenêtre déléguée (sinon approbation).
+- **Retirer** (desk › ligne › Historique) : statut `withdrawn`, ligne masquée, fiche client remplacée par un avis ; intentions, versions et audit conservés. **Remettre en ligne** suit la règle des quatre yeux. Rien n'est jamais supprimé — ni source, ni ligne, ni intention.
+- États dérivés (clôturé, résultats, en vie, échu) viennent des dates et des résultats saisis, pas d'une action manuelle.
+
 ## Contrôle : audit, versions, verrou, quatre yeux
 
 - **Piste d'audit** (`audit`, desk › Journal) : une ligne par action métier — qui (session), quoi (`offer.publish`, `offer.quote`, `intent.transition`, `reference.upsert`, `staff.role`, `approval.*`…), l'enregistrement avant / après, le motif, l'adresse IP et le navigateur. Chaînée par empreinte SHA-256 (`prev_hash` → `hash`) ; un déclencheur refuse toute modification ou suppression, clé service comprise. Le journal affiche « chaîne intègre / rompue ». Distinct du flux `events` (lisible, à destination du desk).

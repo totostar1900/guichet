@@ -155,7 +155,7 @@ export async function saveDraftAction(_prev: IntakeResult | null, form: FormData
   if (!item) return { ok: false, error: "Source introuvable." };
   try {
     const draft = draftFromForm(form, item.draft);
-    await repo().updateIntake(id, { draft, state: draft.official ? (item.state === "bloque" ? "a_valider" : item.state) : "bloque" });
+    await repo().updateIntake(id, { draft, state: draft.official ? (item.state === "bloque" || item.state === "rejete" ? "a_valider" : item.state) : "bloque" });
     revalidatePath("/desk/a-valider");
     return { ok: true };
   } catch (e) {
@@ -192,6 +192,8 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   // Save the desk's field edits first, so what is published is what is on screen.
   const draft = draftFromForm(form, item.draft);
   if (!draft.official) return { ok: false, error: "Source non officielle : joignez le communiqué (ou cochez « source officielle jointe ») avant de publier." };
+  if (item.state === "en_revue" && reviewRequester(item.notes) === desk.name) return { ok: false, error: "Ce brouillon est en revue : c'est au relecteur de publier (ou de le renvoyer), pas à la personne qui a demandé la relecture." };
+  if (item.state === "rejete") return { ok: false, error: "Source rejetée : rouvrez-la d'abord (Enregistrer le brouillon)." };
   if (draft.kind === "BTA" && decision.precountRate == null) return { ok: false, error: "Indiquez le taux précompté indicatif." };
   if ((draft.kind === "OTA" || draft.kind === "APE") && decision.pricePct == null) return { ok: false, error: "Indiquez le prix Purpose." };
   // The product type's checklist and required free fields gate publication.
@@ -240,9 +242,51 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   return { ok: true };
 }
 
+const REVIEW_RE = /^Revue demandée par (.+?) —/;
+const reviewRequester = (notes?: string): string | undefined => notes?.match(REVIEW_RE)?.[1];
+
+/** An opérateur asks a colleague to re-read the draft before publication (draft → en revue). */
+export async function requestReviewAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
+  const desk = await requireDesk("/desk/a-valider");
+  await loadRegistry();
+  const id = String(form.get("itemId") ?? "");
+  const note = String(form.get("reviewNote") ?? "").trim();
+  const item = await repo().getIntake(id);
+  if (!item) return { ok: false, error: "Source introuvable." };
+  if (!note) return { ok: false, error: "Dites au relecteur quoi vérifier (une phrase)." };
+  try {
+    const draft = draftFromForm(form, item.draft);
+    const notes = `Revue demandée par ${desk.name} — ${note}`;
+    await repo().updateIntake(id, { draft, state: "en_revue", notes });
+    await audit("intake.review", "intake", id, { before: { state: item.state }, after: { state: "en_revue" }, reason: note });
+    await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : relecture demandée par ${desk.name} — ${note}` });
+    revalidatePath("/desk/a-valider");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Saisie invalide." };
+  }
+}
+
+/** The reviewer sends the draft back with what to fix (en revue → à valider). */
+export async function sendBackAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
+  const desk = await requireDesk("/desk/a-valider");
+  const id = String(form.get("itemId") ?? "");
+  const note = String(form.get("reviewNote") ?? "").trim();
+  const item = await repo().getIntake(id);
+  if (!item) return { ok: false, error: "Source introuvable." };
+  if (!note) return { ok: false, error: "Indiquez ce qui doit être corrigé." };
+  await repo().updateIntake(id, { state: "a_valider", notes: `Renvoyé par ${desk.name} — ${note}` });
+  await audit("intake.send_back", "intake", id, { before: { state: item.state }, after: { state: "a_valider" }, reason: note });
+  await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : renvoyé en correction par ${desk.name} — ${note}` });
+  revalidatePath("/desk/a-valider");
+  return { ok: true };
+}
+
 export async function rejectAction(form: FormData): Promise<void> {
   await requireDesk("/desk/a-valider");
   const id = String(form.get("itemId") ?? "");
+  const item = await repo().getIntake(id);
   await repo().updateIntake(id, { state: "rejete" });
+  await audit("intake.reject", "intake", id, { before: { state: item?.state }, after: { state: "rejete" } });
   revalidatePath("/desk/a-valider");
 }
