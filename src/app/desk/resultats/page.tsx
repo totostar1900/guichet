@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { positionFor } from "@/lib/documents/position";
 import { displayStatus } from "@/lib/domain/status";
@@ -7,7 +7,6 @@ import { parseDate } from "@/lib/finance";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { positionsFrom, upcomingFlows } from "@/lib/positions";
 import { ResultsForm, SettlementForm } from "./Forms";
-import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -39,19 +38,7 @@ export default async function ResultsPage() {
 
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-        <Link href="/desk/resultats" aria-current="page">
-          Résultats & positions
-        </Link>
-      <Link href="/desk/marche">Marché</Link>
-      <Link href="/desk/robot">Robot</Link>
-      <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/resultats" />
 
       {auctions.length === 0 && <div className="empty">Aucune adjudication close en attente de résultats ou de règlement.</div>}
 

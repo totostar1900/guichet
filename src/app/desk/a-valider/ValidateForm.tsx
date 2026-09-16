@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import type { Confidence, IntakeItem, Offer, OfferDraft } from "@/lib/domain/types";
-import { KIND_LABEL, OPERATION_LABEL } from "@/lib/domain/status";
+import { OPERATION_LABEL } from "@/lib/domain/status";
+import { enabledTypes, kindForEngine, legacyTypeKey, typeByKey } from "@/lib/registry";
 import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
@@ -71,7 +72,11 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
   const [pubState, pubAct, publishing] = useActionState<IntakeResult | null, FormData>(publishAction, null);
 
   const v = (k: string, fallback?: unknown) => snap[k] ?? (fallback == null ? "" : String(fallback));
-  const kind = (v("kind", d.kind) || "OTA") as Offer["kind"];
+  // The product type (registry) decides the storage kind, the free fields and the checklist.
+  const types = enabledTypes().filter((t) => t.segment === "primaire");
+  const typeKey = v("typeKey", d.typeKey ?? (d.kind ? legacyTypeKey({ kind: d.kind, instrument: undefined }) : "OTA"));
+  const type = typeByKey(typeKey) ?? types[0];
+  const kind = (type ? kindForEngine(type.engine, type.segment).kind : d.kind || "OTA") as Offer["kind"];
   const official = snap.official !== undefined ? snap.official === "on" : d.official;
   const checks = Object.values(d.confidence).filter((c) => c === "check").length;
   const missing = missingFields({ ...d, ...Object.fromEntries(Object.entries(snap).filter(([, val]) => val !== "")) } as OfferDraft);
@@ -151,7 +156,18 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
           <div>
             <h3>Champs extraits — corriger si besoin</h3>
             <div className={styles.fields}>
-              <Field k="kind" draft={d} options={(Object.keys(KIND_LABEL) as Offer["kind"][]).map((k) => [k, KIND_LABEL[k]])} />
+              <label className={`${styles.fld} ${d.kind ? "" : styles.missing}`}>
+                <span>Type de produit</span>
+                <select name="typeKey" defaultValue={typeKey}>
+                  {types.map((t) => (
+                    <option key={t.key} value={t.key}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                <i className={`${styles.conf} ${styles[`conf_${d.kind ? "sure" : "missing"}`]}`} title="Type choisi par le desk" />
+              </label>
+              <input type="hidden" name="kind" value={kind} />
               <Field k="operation" draft={d} options={(Object.keys(OPERATION_LABEL) as Offer["operation"][]).map((k) => [k, OPERATION_LABEL[k]])} />
               <Field k="country" draft={d} options={["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."].map((c) => [c, c])} />
               <Field k="countryName" draft={d} />
@@ -180,6 +196,16 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
               <Field k="settleOn" draft={d} type="date" />
               <Field k="sizeLabel" draft={d} />
               <Field k="blurb" draft={d} type="textarea" />
+              {type?.fields.map((fld) => (
+                <label key={fld.key} className={`${styles.fld} ${!d.extra?.[fld.key] && fld.required ? styles.missing : ""}`}>
+                  <span>
+                    {fld.label}
+                    {fld.required ? " *" : ""}
+                  </span>
+                  <input name={`extra.${fld.key}`} defaultValue={d.extra?.[fld.key] ?? ""} />
+                  <i className={`${styles.conf} ${styles[`conf_${d.extra?.[fld.key] ? "sure" : "missing"}`]}`} title={`Champ libre du type ${type.short}`} />
+                </label>
+              ))}
               <label className={styles.official}>
                 <input type="checkbox" name="official" defaultChecked={d.official} /> Source officielle jointe (communiqué, note d&apos;opération)
               </label>
@@ -206,10 +232,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
                 <input name="pricePct" type="number" step="0.5" defaultValue={offer?.pricePct && !offer.priceNote ? offer.pricePct : 95} />
               </label>
             )}
-            <label className="field">
-              Commission (%)
-              <input name="commissionPct" type="number" step="0.05" defaultValue={offer?.commissionPct ?? (kind === "BTA" || kind === "RACHAT" ? 0.25 : 0.5)} />
-            </label>
+            <input type="hidden" name="commissionPct" value="0" />
             <label className="field">
               Ticket minimum (titres)
               <input name="minTitles" type="number" defaultValue={offer?.minTitles ?? (kind === "BTA" ? 1 : kind === "ACTIONS" ? 10 : 100)} />
@@ -228,6 +251,16 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             <span className="eyebrow">Aperçu client</span>
             <div>{preview || "Complétez les dates et le taux pour voir l'aperçu."}</div>
           </div>
+          {type && type.checklist.length > 0 && (
+            <div className={styles.checklist}>
+              <span className="eyebrow">Liste de contrôle · {type.short}</span>
+              {type.checklist.map((c) => (
+                <label key={c}>
+                  <input type="checkbox" name="check" value={c} defaultChecked={Boolean(offer)} /> {c}
+                </label>
+              ))}
+            </div>
+          )}
           <div className={styles.channels}>
             {["Guichet web", "WhatsApp", "E-mail"].map((c) => (
               <label key={c}>

@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import type { ClientFile } from "@/lib/domain/kyc";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
-import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -25,19 +25,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients" aria-current="page">
-          Clients {todo > 0 && <span className={styles.badge}>{todo}</span>}
-        </Link>
-        <Link href="/desk/documents">Documents</Link>
-      <Link href="/desk/resultats">Résultats & positions</Link>
-      <Link href="/desk/marche">Marché</Link>
-      <Link href="/desk/robot">Robot</Link>
-      <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/clients" badges={{ "/desk/clients": todo }} />
 
       <div className={styles.layout}>
         <aside className={styles.queue}>

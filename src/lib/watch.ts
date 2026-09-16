@@ -1,4 +1,5 @@
 import "server-only";
+import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { displayStatus, statusLabel } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
@@ -27,6 +28,7 @@ export function watchMessage(o: Offer, prev: Watch, next: { hero: string; status
 
 /** Daily pass: compare each watch with today's snapshot and message the client on change. */
 export async function runWatchAlerts(now = new Date()): Promise<{ watches: number; alerted: number }> {
+  await loadRegistry();
   const r = repo();
   const [watches, offers, contacts] = await Promise.all([r.listWatches(), r.listOffers(), r.listContacts()]);
   const byId = new Map(offers.map((o) => [o.id, o]));

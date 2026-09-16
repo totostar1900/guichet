@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { healthChecks } from "@/lib/health";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
-import nav from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -15,19 +15,7 @@ export default async function SantePage() {
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   return (
     <>
-      <nav className={nav.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-        <Link href="/desk/resultats">Résultats & positions</Link>
-        <Link href="/desk/marche">Marché</Link>
-        <Link href="/desk/robot">Robot</Link>
-        <Link href="/desk/reporting">Reporting</Link>
-        <Link href="/desk/sante" aria-current="page">
-          Santé
-        </Link>
-      </nav>
+      <DeskNav current="/desk/sante" />
 
       <div className={styles.head}>
         <div>

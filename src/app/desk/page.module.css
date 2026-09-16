@@ -119,3 +119,19 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.sub {
+  flex-wrap: wrap;
+}
+.navBadge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 9px;
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 0.72rem;
+  font-weight: 700;
+}

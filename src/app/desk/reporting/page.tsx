@@ -1,9 +1,8 @@
-import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
 import { activity, clientRegister, defaultPeriod, orderJournal, type Period } from "@/lib/reporting";
 import { positionsFrom } from "@/lib/positions";
-import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -26,19 +25,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-        <Link href="/desk/resultats">Résultats & positions</Link>
-        <Link href="/desk/marche">Marché</Link>
-        <Link href="/desk/robot">Robot</Link>
-        <Link href="/desk/reporting" aria-current="page">
-          Reporting
-        </Link>
-        <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/reporting" />
 
       <form className={styles.period} method="get">
         <span className="eyebrow">Période</span>

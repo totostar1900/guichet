@@ -1,5 +1,6 @@
 "use server";
 
+import { loadRegistry } from "@/lib/reference";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
@@ -36,6 +37,7 @@ export type IntentResult =
  * the signed-in client. Anonymous visitors are sent to the login page by the form.
  */
 export async function submitIntent(_prev: IntentResult | null, form: FormData): Promise<IntentResult> {
+  await loadRegistry();
   const session = await getSession();
   if (!session) return { ok: false, error: "Connectez-vous pour envoyer une intention." };
   const parsed = schema.safeParse(Object.fromEntries(form));

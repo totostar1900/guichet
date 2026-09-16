@@ -1,4 +1,5 @@
 import "server-only";
+import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { healthChecks } from "@/lib/health";
 import { displayStatus, statusLabel } from "@/lib/domain/status";
@@ -20,6 +21,7 @@ export interface Digest {
 }
 
 export async function buildDigest(now = new Date()): Promise<Digest> {
+  await loadRegistry();
   const r = repo();
   const [offers, intents, bulletins, checks] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(2), healthChecks(now)]);
   const today = localIso(now);

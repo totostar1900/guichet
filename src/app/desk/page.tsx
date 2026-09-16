@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
 import { countdown, displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
@@ -43,18 +44,7 @@ export default async function DeskPage() {
   return (
     <>
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
-      <nav className={styles.sub} aria-label="Desk">
-        <Link href="/desk" aria-current="page">
-          Carnet du jour
-        </Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-      <Link href="/desk/resultats">Résultats & positions</Link>
-      <Link href="/desk/robot">Robot</Link>
-      <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk" />
 
       <div className={styles.kpis}>
         <div className={`${styles.kpi} ${styles.hot}`}>

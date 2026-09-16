@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { loadRegistry } from "@/lib/reference";
 import { COMPANY } from "@/lib/config";
 import { repo } from "@/lib/data";
 import type { Contact, NotifyChannel } from "@/lib/domain/types";
@@ -12,6 +13,7 @@ import { positionsFrom, upcomingFlows } from "@/lib/positions";
  * Idempotent: one notification per (intent, flow date, horizon), keyed on `subject`.
  */
 export async function GET(req: NextRequest) {
+  await loadRegistry();
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) return new NextResponse("Unauthorized", { status: 401 });
 

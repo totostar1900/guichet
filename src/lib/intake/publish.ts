@@ -5,6 +5,7 @@ export interface DeskDecision {
   pricePct?: number; // OTA / APE / RACHAT
   precountRate?: number; // BTA
   commissionPct: number;
+  checked?: string[]; // checklist items ticked by the desk
   minTitles?: number;
   segment: string;
   channels: string[];
@@ -59,6 +60,8 @@ export function buildOffer(item: IntakeItem, decision: DeskDecision, existing: O
     precountRate: d.kind === "BTA" ? decision.precountRate : undefined,
     pricePct: d.kind === "BTA" ? undefined : d.kind === "RACHAT" ? 100 : decision.pricePct,
     commissionPct: decision.commissionPct,
+    typeKey: d.typeKey ?? existing?.typeKey,
+    extra: d.extra ?? existing?.extra,
     minTitles: decision.minTitles ?? existing?.minTitles,
     sizeLabel: d.sizeLabel ?? existing?.sizeLabel,
     pricePerShare: d.pricePerShare ?? existing?.pricePerShare,

@@ -128,6 +128,17 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 - Journal des ordres sur une période avec l'horodatage de chaque étape (reçu, confirmé, transmis, exécuté, réglé), registre des clients (statut, risque, revue, contrôle sanctions), positions en conservation, statistiques d'activité (intentions, montants, règlements par instrument et par segment, comptes ouverts, documents, diffusion).
 - Exports CSV (`/desk/reporting/export?type=ordres|clients|positions`) au format Excel français (BOM, point-virgule). Tout est recalculé depuis les lignes : reproductible, jamais saisi à la main.
 
+## Référentiel (desk › Référentiel)
+
+Ce que l’application sait sans qu’on touche au code, édité dans l’app par le desk et stocké dans la table `reference` (`kind`, `key`, `data` jsonb, `updated_by`). Chaque entrée part d’une valeur par défaut livrée dans le code (`src/lib/registry.ts`, `src/data/bond-terms.ts`, `src/lib/glossary.ts`, `src/data/companies.ts`, `src/data/issuers.ts`) ; une ligne enregistrée par le desk prend le dessus, « revenir aux valeurs par défaut » la supprime, « importer les valeurs par défaut » copie les valeurs manquantes dans la table pour les éditer.
+
+- **Types de produits** : clé, libellé, badge, marché (primaire / secondaire / fonds), moteur de calcul (obligation in fine, amortissable, bon précompté, action, part de fonds, rachat au pair, information seule), couleurs, « à garder en tête » de la fiche, liste de contrôle avant publication, intentions ouvertes au client, champs libres affichés sur la fiche. Un nouveau produit = un type de plus, sans code, tant qu’un moteur existant convient ; seul un nouveau moteur demande du développement.
+- **Échéanciers** : date exacte, périodicité et différé des obligations cotées (le bulletin ne donne que l’année).
+- **Glossaire** : les bulles « i ».
+- **Sociétés cotées / émetteurs** : fiches complètes (chiffres, actionnariat, documents, lecture), éditées en JSON et vérifiées champ par champ à l’enregistrement.
+
+Le registre est chargé une fois par requête (`loadRegistry()` dans `src/lib/reference.ts`), installé côté serveur et envoyé au navigateur par `RegistryProvider` ; les actions serveur et les crons l’appellent avant de lire un type. À la publication, `offers.type_key` mémorise le type et `offers.extra` les champs libres ; la liste de contrôle du type et ses champs obligatoires bloquent « Publier ».
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
@@ -140,7 +151,7 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 
 - **Une offre se lit, ne se simule pas.** Le prix Purpose est fixé par le desk et versionné ; la fiche montre un bloc de référence au prix publié. Le simulateur est une page séparée, sans lien avec les offres en cours.
 - **Une intention est une ligne**, quel que soit le canal. Son cycle : `recue → confirmee → transmise → servie | non_servie → reglee`. Chaque transition est journalisée dans `events`.
-- **Le desk ne saisit que trois choses** : prix / commission / ticket minimum à la publication, le montant confirmé, des notes. Tout le reste est dérivé.
+- **Le desk ne saisit que trois choses** : prix / ticket minimum à la publication (aucune commission affichée au client pour l’instant), le montant confirmé, des notes. Tout le reste est dérivé — et ce qui décrit un produit (type, échéancier, glossaire, fiches) se maintient dans le Référentiel, pas dans le code.
 
 ## Prochaines étapes
 

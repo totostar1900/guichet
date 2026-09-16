@@ -219,6 +219,10 @@ export interface OfferDraft {
   sharesOffered?: number;
   dividendPerShare?: number;
   blurb?: string;
+  /** Product type from the registry (drives kind, checklist, cautions, free fields). */
+  typeKey?: string;
+  /** Free fields declared by the product type, as typed by the desk. */
+  extra?: Record<string, string>;
   /** Per-field confidence from the extractor; missing = not found. */
   confidence: Partial<Record<keyof Omit<OfferDraft, "confidence" | "official" | "remarks">, Confidence>>;
   /** True when the source is an official communiqué (not a photo/forward). */

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { auctionLines } from "@/lib/documents/generate";
 import { DOC_LABEL, docsAvailable } from "@/lib/documents/registry";
@@ -9,7 +9,6 @@ import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions } from "@/lib/format";
 import { BordereauButton, GenerateButton } from "./Buttons";
 import { markDocumentAction } from "./actions";
-import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -59,19 +58,7 @@ export default async function DocumentsPage() {
 
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents" aria-current="page">
-          Documents
-        </Link>
-      <Link href="/desk/resultats">Résultats & positions</Link>
-      <Link href="/desk/marche">Marché</Link>
-      <Link href="/desk/robot">Robot</Link>
-      <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/documents" />
 
       <div className="panel">
         <div className="panel-h">

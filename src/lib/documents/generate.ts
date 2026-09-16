@@ -1,4 +1,5 @@
 import "server-only";
+import { companyByMnemo, loadRegistry } from "@/lib/reference";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
 import { repo } from "@/lib/data";
@@ -50,6 +51,7 @@ export interface GenerateOpts {
 }
 
 export async function generateForIntent(type: IntentDocumentType, intentId: string, opts: GenerateOpts = {}): Promise<GeneratedDocument> {
+  await loadRegistry();
   const r = repo();
   const intents = await r.listIntents();
   const intent = intents.find((i) => i.id === intentId);
@@ -84,6 +86,7 @@ export async function auctionLines(country: string, deadlineAt: string): Promise
 }
 
 export async function generateBordereau(country: string, deadlineAt: string, opts: GenerateOpts = {}): Promise<GeneratedDocument> {
+  await loadRegistry();
   const { offers, lines } = await auctionLines(country, deadlineAt);
   if (!lines.length) throw new Error("Aucun ordre confirmé sur cette adjudication.");
   const files = await repo().listClientFiles();
@@ -185,7 +188,7 @@ export async function renderActivityReport(period: Period): Promise<{ pdf: Buffe
 }
 
 /* ---------------- Rapport sur une société cotée ---------------- */
-import { companyByMnemo } from "@/lib/reference";
+
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
 import { RapportSociete } from "./pdf/company-templates";
 import { FicheOffre } from "./pdf/offer-templates";
@@ -211,6 +214,7 @@ export async function renderCompanyReport(mnemo: string, p: string): Promise<{ p
 
 /** Fiche PDF of one Guichet line — the page's content, laid out to be sent. */
 export async function renderOfferSheet(id: string): Promise<{ pdf: Buffer; number: string } | undefined> {
+  await loadRegistry();
   const o = await repo().getOffer(id);
   if (!o) return undefined;
   const now = new Date();

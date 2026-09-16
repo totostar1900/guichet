@@ -1,4 +1,5 @@
 import "server-only";
+import { loadRegistry } from "@/lib/reference";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
@@ -44,13 +45,13 @@ function offerFacts(o: Offer): string {
   const base = `- id=${o.id} · ${o.title} · ${o.issuer} · ${o.isin} · statut ${displayStatus(o)} · dépôt des offres ${fmtDateTime(o.deadlineAt)} · règlement ${fmtDate(o.settleOn)} · lien ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/offres/${o.id}`;
   if (o.kind === "OTA" || o.kind === "APE") {
     const r = o.couponRate != null && o.maturityOn ? bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, 10_000_000, o.pricePct ?? 100) : undefined;
-    return `${base}\n  coupon ${fmtPct(o.couponRate ?? 0, 2)} · prix Purpose ${fmtPrice(o.pricePct ?? 100)}${o.priceNote ? " (indicatif)" : ""} · rendement actuariel brut ${y != null ? fmtPct(y, 2) : "—"} · durée réelle ${o.maturityOn ? tenorText(o.settleOn, o.maturityOn) : "—"} · nominal ${fmt(o.nominal)} · commission ${fmtPct(o.commissionPct, 2)} · ticket minimum ${o.minTitles ?? 1} titres${r ? ` · pour 10 000 000 de nominal : décaissement ${fmt(r.outlay)} dont coupon couru ${fmt(r.accrued)} (${r.accruedDays} j)` : ""}`;
+    return `${base}\n  coupon ${fmtPct(o.couponRate ?? 0, 2)} · prix Purpose ${fmtPrice(o.pricePct ?? 100)}${o.priceNote ? " (indicatif)" : ""} · rendement actuariel brut ${y != null ? fmtPct(y, 2) : "—"} · durée réelle ${o.maturityOn ? tenorText(o.settleOn, o.maturityOn) : "—"} · nominal ${fmt(o.nominal)} · ticket minimum ${o.minTitles ?? 1} titres${r ? ` · pour 10 000 000 de nominal : décaissement ${fmt(r.outlay)} dont coupon couru ${fmt(r.accrued)} (${r.accruedDays} j)` : ""}`;
   }
-  if (o.kind === "BTA") return `${base}\n  bon à intérêts précomptés · taux ${fmtPct(o.precountRate ?? 0, 2)}${o.rateNote ? " (indicatif)" : ""} · rendement actuariel ${y != null ? fmtPct(y, 2) : "—"} · nominal ${fmt(o.nominal)} · commission ${fmtPct(o.commissionPct, 2)}`;
+  if (o.kind === "BTA") return `${base}\n  bon à intérêts précomptés · taux ${fmtPct(o.precountRate ?? 0, 2)}${o.rateNote ? " (indicatif)" : ""} · rendement actuariel ${y != null ? fmtPct(y, 2) : "—"} · nominal ${fmt(o.nominal)}`;
   if (o.kind === "ACTIONS") return `${base}\n  prix ${fmt(o.pricePerShare ?? 0)} FCFA/action · minimum ${o.minShares} actions · dividende ${fmt(o.dividendPerShare ?? 0)} (${y != null ? fmtPct(y, 2) : "—"}) · dernier cours ${o.lastPrice ? fmt(o.lastPrice) : "—"} · souscription du ${fmtDate(o.opensAt)} au ${fmtDate(o.deadlineAt)}`;
   if (o.kind === "FONDS" && o.fund) return `${base}\n  OPCVM ${FUND_CATEGORY_LABEL[o.fund.category].toLowerCase()} géré par ${o.fund.manager}, dépositaire ${o.fund.depositary} · VL ${fmt(o.fund.nav)} FCFA au ${fmtDate(o.fund.navDate)} · depuis l'origine ${fmtPct(o.fund.perfSinceInceptionPct, 2)} · ${o.fund.distributed ? `souscription ouverte : minimum ${fmt(o.fund.minAmount)} FCFA, droits d'entrée ${fmtPct(o.fund.entryFeePct, 2)}, sortie ${fmtPct(o.fund.exitFeePct, 2)}, exécution à la prochaine VL` : "présenté à titre d'information, souscription sur demande (pas encore de convention de distribution)"} · parts au nom du client chez le dépositaire`;
-  if (o.kind === "MARCHE") return `${base}\n  ${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}${o.lastPriceOn ? ` au ${fmtDate(o.lastPriceOn)}` : ""} · acheteur ${o.bid ?? "—"} / vendeur ${o.ask ?? "—"} · quantité min ${o.lotSize ?? 1} · commission ${fmtPct(o.commissionPct, 2)} · règlement T+${o.settlementDays ?? 3} · ordres d'achat / vente au marché ou à cours limité (le prix d'exécution dépend du marché)`;
-  return `${base}\n  rachat par l'émetteur à 100 % du nominal · commission ${fmtPct(o.commissionPct, 2)}`;
+  if (o.kind === "MARCHE") return `${base}\n  ${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}${o.lastPriceOn ? ` au ${fmtDate(o.lastPriceOn)}` : ""} · acheteur ${o.bid ?? "—"} / vendeur ${o.ask ?? "—"} · quantité min ${o.lotSize ?? 1} · règlement T+${o.settlementDays ?? 3} · ordres d'achat / vente au marché ou à cours limité (le prix d'exécution dépend du marché)`;
+  return `${base}\n  rachat par l'émetteur à 100 % du nominal`;
 }
 
 const GLOSSARY = `Rendement actuariel : ce que rapporte réellement le placement, prix d'achat et coupon couru compris ; seule mesure comparable d'une ligne à l'autre.
@@ -63,6 +64,7 @@ OPCVM / FCP : fonds commun de placement géré par une société de gestion agr�
 Niveaux de relation : 1 = identifié (appétit, question) ; 2 = compte-titres ouvert (prise ferme, cession). Ouverture du compte : ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/ouvrir-un-compte (10 minutes, pièces en photo).`;
 
 export async function answerInbound(from: string, text: string, opts: { dryRun?: boolean } = {}): Promise<{ answer: BotAnswer; contact?: Contact; createdRef?: string }> {
+  await loadRegistry();
   const r = repo();
   const phone = `+${from.replace(/[^\d]/g, "")}`;
   const contacts = await r.listContacts();
@@ -75,7 +77,7 @@ export async function answerInbound(from: string, text: string, opts: { dryRun?:
 
   const system = `Tu es l'assistant WhatsApp de ${COMPANY.name} (${COMPANY.licence}), société de bourse en zone CEMAC. Tu réponds en français, brièvement, sans markdown.
 CE QUE TU FAIS : expliquer les termes (glossaire ci-dessous), donner les caractéristiques exactes des offres publiées (chiffres fournis, ne jamais en inventer), chiffrer un montant à partir des références fournies (règle de trois sur le décaissement pour 10 000 000), rappeler les dates, dire où en est une intention ou un document du client, indiquer les prochaines étapes, enregistrer un appétit, une demande d'information ou de rappel.
-CE QUE TU NE FAIS JAMAIS : recommander une ligne plutôt qu'une autre ou dire si « c'est un bon placement » (réponds que le desk ne donne pas de conseil personnalisé par ce canal et propose un rappel), promettre une allocation ou un rendement (toujours « si servi au prix publié », « brut, hors commission et fiscalité »), parler d'autres clients, inventer un prix ou une date, traiter une réclamation.
+CE QUE TU NE FAIS JAMAIS : recommander une ligne plutôt qu'une autre ou dire si « c'est un bon placement » (réponds que le desk ne donne pas de conseil personnalisé par ce canal et propose un rappel), promettre une allocation ou un rendement (toujours « si servi au prix publié », « brut, avant fiscalité »), parler d'autres clients, inventer un prix ou une date, traiter une réclamation.
 PRISE FERME OU CESSION : tu enregistres un appétit avec le montant, tu expliques qu'un conseiller confirme et envoie le bulletin, et tu demandes un rappel (handoff=true). Si le client n'a pas de compte-titres ouvert (niveau < 2), rappelle qu'il faut l'ouvrir (lien) — l'intention est gardée.
 Termine par une phrase concrète. Mentionne « ${COMPANY.phone} » si le client veut parler à quelqu'un.
 

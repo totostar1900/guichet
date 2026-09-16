@@ -2,7 +2,8 @@
 
 - Lire README.md pour l'architecture. Langue de l'UI : français ; code et commentaires : anglais court, français pour les libellés métier.
 - `src/lib/finance.ts` est la référence pour tout calcul ; ne pas recalculer ailleurs. Tests : `npm test`.
-- Les offres sont en lecture seule côté client ; seul le desk fixe prix / commission / ticket minimum (voir `publishOffer`).
+- Les offres sont en lecture seule côté client ; seul le desk fixe prix / ticket minimum (voir `publishOffer`). Aucune commission n’est affichée au client.
+- Types de produits, échéanciers, glossaire, sociétés, émetteurs : valeurs par défaut en code, surchargées par la table `reference` (desk › Référentiel). Le domaine lit `src/lib/registry.ts` (synchrone) ; toute entrée serveur hors rendu de page appelle `await loadRegistry()` d’abord.
 - Le modèle de données vit dans `src/lib/domain/types.ts` ET `supabase/migrations/*.sql` — modifier les deux ensemble, régénérer `supabase/seed.sql` avec `npm run seed:sql`.
 - Sans `.env.local`, le repository mémoire est utilisé (données de `src/data/seed.ts`).
 - Avant de conclure : `npm run typecheck && npm run lint && npm test`.

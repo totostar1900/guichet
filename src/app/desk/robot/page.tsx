@@ -1,8 +1,7 @@
-import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { botAvailable } from "@/lib/bot/reply";
 import { repo } from "@/lib/data";
 import { BotBench } from "./BotBench";
-import deskStyles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Robot WhatsApp" };
@@ -11,19 +10,7 @@ export default async function RobotPage() {
   const contacts = (await repo().listContacts()).filter((c) => c.phone);
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-        <Link href="/desk/resultats">Résultats & positions</Link>
-        <Link href="/desk/marche">Marché</Link>
-        <Link href="/desk/robot" aria-current="page">
-          Robot
-        </Link>
-      <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/robot" />
       <div className="panel">
         <div className="panel-h">
           <h2>Robot WhatsApp — banc d&apos;essai</h2>

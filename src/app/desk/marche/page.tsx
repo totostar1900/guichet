@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { positionFor } from "@/lib/documents/position";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
@@ -6,7 +7,6 @@ import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl } from "@/lib/market/boc";
 import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
-import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -31,19 +31,7 @@ export default async function MarketPage() {
 
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider">À valider</Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-        <Link href="/desk/resultats">Résultats & positions</Link>
-        <Link href="/desk/marche" aria-current="page">
-          Marché
-        </Link>
-        <Link href="/desk/robot">Robot</Link>
-        <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/marche" />
 
       <div className="panel">
         <div className="panel-h">

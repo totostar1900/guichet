@@ -18,6 +18,8 @@ import { amortCalc } from "@/lib/finance";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
+import { typeOf } from "@/lib/registry";
+import { offerRisks } from "@/lib/domain/sheet";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./page.module.css";
 
@@ -314,30 +316,8 @@ export default async function OfferPage({ params, searchParams }: Props) {
           [o.kind === "BTA" ? "Remboursement" : o.kind === "RACHAT" ? "Échéance initiale" : "Premier coupon", firstCoupon ? fmtDate(firstCoupon.toISOString().slice(0, 10)) : o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ];
 
-  const risks =
-    o.kind === "FONDS"
-      ? [
-          ["Valeur liquidative inconnue à l'ordre.", "Une souscription ou un rachat s'exécute à la prochaine VL calculée par la société de gestion, pas à celle affichée ; le nombre de parts n'est connu qu'après centralisation."],
-          ["Performance non garantie.", "Les performances passées ne préjugent pas des performances futures ; la VL peut baisser, y compris pour un fonds monétaire ou obligataire."],
-          ["Frais et liquidité.", "Les frais du fonds (entrée, sortie, gestion prélevée dans la VL) figurent dans son prospectus ; un rachat est réglé après la VL de rachat, selon la périodicité du fonds. Les parts sont inscrites à votre nom chez le dépositaire ; Purpose Capital n'est que distributeur."],
-        ]
-      : o.kind === "MARCHE"
-      ? [
-          ["Prix d'exécution.", "Le cours indiqué est le dernier connu ; votre ordre s'exécute au prix du marché ou à votre limite, en tout ou partie, selon la contrepartie disponible."],
-          ["Liquidité.", "Le marché secondaire régional est étroit : un ordre peut rester non exécuté plusieurs séances."],
-          ["Perte en capital.", "La valeur des titres varie ; céder avant l'échéance peut dégager une perte."],
-        ]
-      : o.kind === "ACTIONS"
-      ? [
-          ["Volatilité et liquidité.", "Le cours dépend de l'offre et de la demande sur un compartiment actions encore étroit ; la BVMAC borne les variations quotidiennes."],
-          ["Perte en capital.", "Comme tout actionnaire, l'investisseur peut perdre tout ou partie de sa mise."],
-          ["Dividende non garanti.", "Le dividende dépend des résultats et de la décision de l'assemblée."],
-        ]
-      : [
-          ["Crédit.", "L'émetteur est un État de la CEMAC ; coupons et capital dépendent de sa capacité à honorer sa dette."],
-          ["Allocation.", "Prix et volumes servis sont arrêtés par le Trésor : une soumission peut être servie à un autre prix, en partie, ou pas du tout."],
-          ["Liquidité.", "Conservé jusqu'au terme, le titre délivre le rendement calculé ; cédé avant, il se négocie au prix d'un secondaire encore étroit."],
-        ];
+  // « À garder en tête » comes from the product type (desk-editable in the référentiel).
+  const risks = offerRisks(o);
 
   return (
     <div className={styles.page}>
@@ -417,6 +397,23 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </section>
         )}
 
+        {(() => {
+          // Free facts declared by the product type and filled by the desk.
+          const extras = typeOf(o).fields.filter((f) => o.extra?.[f.key]);
+          return extras.length > 0 ? (
+            <section className={styles.sec}>
+              <h3>Caractéristiques</h3>
+              <div className={styles.tl}>
+                {extras.map((f) => (
+                  <div key={f.key}>
+                    <span>{f.label}</span>
+                    <b>{o.extra![f.key]}</b>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null;
+        })()}
         <section className={styles.sec}>
           <h3>Calendrier</h3>
           <div className={styles.tl}>

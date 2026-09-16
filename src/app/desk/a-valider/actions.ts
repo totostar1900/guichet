@@ -1,8 +1,10 @@
 "use server";
 
+import { loadRegistry } from "@/lib/reference";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { kindForEngine, typeByKey } from "@/lib/registry";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import type { Confidence, IntakeSource, OfferDraft } from "@/lib/domain/types";
@@ -113,6 +115,7 @@ const draftSchema = z.object({
   sharesOffered: z.coerce.number().optional(),
   dividendPerShare: z.coerce.number().optional(),
   official: z.string().optional(),
+  typeKey: z.string().optional(),
 });
 
 function draftFromForm(form: FormData, prev: OfferDraft): OfferDraft {
@@ -121,7 +124,16 @@ function draftFromForm(form: FormData, prev: OfferDraft): OfferDraft {
     if (typeof v === "string" && v.trim() !== "") raw[k] = v.trim();
   });
   const p = draftSchema.parse(raw);
-  const next: OfferDraft = { ...prev, ...p, official: p.official === "on" || (p.official === undefined && prev.official), lastCouponOn: p.lastCouponOn ?? null };
+  // The product type decides the storage kind; its free fields arrive as extra.<key>.
+  const type = p.typeKey ? typeByKey(p.typeKey) : undefined;
+  if (type) p.kind = kindForEngine(type.engine, type.segment).kind as typeof p.kind;
+  const extra: Record<string, string> = { ...prev.extra };
+  for (const f of type?.fields ?? []) {
+    const v = raw[`extra.${f.key}`];
+    if (v) extra[f.key] = v;
+    else delete extra[f.key];
+  }
+  const next: OfferDraft = { ...prev, ...p, extra, official: p.official === "on" || (p.official === undefined && prev.official), lastCouponOn: p.lastCouponOn ?? null };
   // A field the desk edited is no longer "à vérifier".
   const conf: OfferDraft["confidence"] = { ...prev.confidence };
   (Object.keys(p) as (keyof typeof p)[]).forEach((k) => {
@@ -132,6 +144,7 @@ function draftFromForm(form: FormData, prev: OfferDraft): OfferDraft {
 }
 
 export async function saveDraftAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
+  await loadRegistry();
   await requireDesk("/desk/a-valider");
   const id = String(form.get("itemId") ?? "");
   const item = await repo().getIntake(id);
@@ -152,19 +165,20 @@ const decisionSchema = z.object({
   itemId: z.string().min(1),
   pricePct: z.coerce.number().min(50).max(120).optional(),
   precountRate: z.coerce.number().min(0).max(30).optional(),
-  commissionPct: z.coerce.number().min(0).max(5),
+  commissionPct: z.coerce.number().min(0).max(5).default(0),
   minTitles: z.coerce.number().int().min(1).optional(),
   segment: z.string().default("Tous les clients"),
 });
 
 export async function publishAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
+  await loadRegistry();
   const desk = await requireDesk("/desk/a-valider");
   const raw: Record<string, string> = {};
   form.forEach((v, k) => {
     if (typeof v === "string" && v.trim() !== "") raw[k] = v.trim();
   });
   const parsed = decisionSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, error: "Décision incomplète : prix (ou taux), commission et ticket minimum." };
+  if (!parsed.success) return { ok: false, error: "Décision incomplète : prix (ou taux) et ticket minimum." };
   const { itemId, ...decision } = parsed.data;
   const channels = form.getAll("channel").map(String);
 
@@ -176,6 +190,15 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   if (!draft.official) return { ok: false, error: "Source non officielle : joignez le communiqué (ou cochez « source officielle jointe ») avant de publier." };
   if (draft.kind === "BTA" && decision.precountRate == null) return { ok: false, error: "Indiquez le taux précompté indicatif." };
   if ((draft.kind === "OTA" || draft.kind === "APE") && decision.pricePct == null) return { ok: false, error: "Indiquez le prix Purpose." };
+  // The product type's checklist and required free fields gate publication.
+  const type = draft.typeKey ? typeByKey(draft.typeKey) : undefined;
+  if (type) {
+    const ticked = new Set(form.getAll("check").map(String));
+    const left = type.checklist.filter((c) => !ticked.has(c));
+    if (left.length) return { ok: false, error: `Liste de contrôle : ${left.join(" · ")}` };
+    const req = type.fields.filter((f) => f.required && !draft.extra?.[f.key]);
+    if (req.length) return { ok: false, error: `Champs requis par le type ${type.short} : ${req.map((f) => f.label).join(", ")}` };
+  }
 
   try {
     const existing = item.offerId ? await r.getOffer(item.offerId) : undefined;
@@ -186,7 +209,7 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
     await r.logEvent({
       kind: "desk",
       offerId: offer.id,
-      html: `<b>${offer.title}</b> publié par ${desk.name} (v${offer.version}, ${priceTxt}, com. ${fmtPct(offer.commissionPct, 2)}) — diffusion ${channels.length ? channels.join(", ") : "Guichet"} · ${decision.segment}`,
+      html: `<b>${offer.title}</b> publié par ${desk.name} (v${offer.version}, ${priceTxt}) — diffusion ${channels.length ? channels.join(", ") : "Guichet"} · ${decision.segment}`,
     });
     await notifyOfferPublished(offer, channels, decision.segment);
   } catch (e) {

@@ -250,7 +250,7 @@
 }
 .decGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -355,4 +355,24 @@
   .newGrid {
     grid-template-columns: 1fr;
   }
+}
+
+.checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-2);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+.checklist .eyebrow {
+  width: 100%;
+}
+.checklist label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }

@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import type { IntakeItem } from "@/lib/domain/types";
 import { extractionAvailable } from "@/lib/intake/extract";
 import { fmtDateTime } from "@/lib/format";
 import { NewSourceForm } from "./NewSourceForm";
 import { ValidateForm } from "./ValidateForm";
-import deskStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -31,19 +31,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <nav className={deskStyles.sub} aria-label="Desk">
-        <Link href="/desk">Carnet du jour</Link>
-        <Link href="/desk/a-valider" aria-current="page">
-          À valider {todo.length > 0 && <span className={styles.badge}>{todo.length}</span>}
-        </Link>
-        <Link href="/desk/clients">Clients</Link>
-        <Link href="/desk/documents">Documents</Link>
-      <Link href="/desk/resultats">Résultats & positions</Link>
-      <Link href="/desk/marche">Marché</Link>
-      <Link href="/desk/robot">Robot</Link>
-      <Link href="/desk/reporting">Reporting</Link>
-      <Link href="/desk/sante">Santé</Link>
-      </nav>
+      <DeskNav current="/desk/a-valider" badges={{ "/desk/a-valider": todo.length }} />
 
       <div className={styles.intake}>
         <aside className={styles.queue} aria-label="File d'entrée">
