@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer, Watch } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer, StaffMember, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -241,6 +241,9 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
 
 type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean };
 const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in });
+type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
+const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
+const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
 type NotifRow = {
@@ -539,6 +542,28 @@ export const supabaseRepository: Repository = {
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
     if (error) fail("setContactOptIn", error);
+  },
+  async listStaff() {
+    const { data, error } = await db().from("profiles").select(STAFF_COLS).in("role", ["desk", "responsable"]).order("display_name");
+    if (error) fail("listStaff", error);
+    return (data as StaffRow[]).map(toStaff);
+  },
+  async findProfileByEmail(email) {
+    const { data, error } = await db().from("profiles").select(STAFF_COLS).ilike("email", email).maybeSingle();
+    if (error) fail("findProfileByEmail", error);
+    if (data) return toStaff(data as StaffRow);
+    // The profile row is filled from auth.users on first login; look there for someone who never signed in.
+    const { data: users } = await db().auth.admin.listUsers({ perPage: 1000 });
+    const hit = users?.users.find((x) => x.email?.toLowerCase() === email.toLowerCase());
+    return hit ? { id: hit.id, name: hit.email ?? hit.id, email: hit.email ?? undefined, role: "desk" } : undefined;
+  },
+  async setRole(userId, role, by) {
+    const { error } = await db().from("profiles").upsert({ id: userId, role, role_set_by: by, role_set_at: new Date().toISOString() }, { onConflict: "id" });
+    if (error) fail("setRole", error);
+  },
+  async markMfaEnrolled(userId) {
+    const { error } = await db().from("profiles").update({ mfa_enrolled_at: new Date().toISOString() }).eq("id", userId);
+    if (error) fail("markMfaEnrolled", error);
   },
   async listReference(kind) {
     const { data, error } = await db().from("reference").select("*").eq("kind", kind).order("key");

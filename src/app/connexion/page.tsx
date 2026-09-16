@@ -52,12 +52,18 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </button>
               </form>
               <form action={devLogin} className={styles.devForm}>
-                <input type="hidden" name="role" value="desk" />
                 <input type="hidden" name="next" value={next.startsWith("/desk") ? next : "/desk"} />
                 <h2>Desk</h2>
                 <label className="field">
                   Conseiller
                   <input name="name" defaultValue="Georges" required minLength={2} />
+                </label>
+                <label className="field">
+                  Niveau
+                  <select name="role" defaultValue="responsable">
+                    <option value="desk">Opérateur desk</option>
+                    <option value="responsable">Responsable</option>
+                  </select>
                 </label>
                 <p className={styles.hint}>Accès au carnet, aux intentions et à la publication des prix.</p>
                 <button className="btn" type="submit">

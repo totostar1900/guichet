@@ -1,4 +1,5 @@
 import "server-only";
+import { deskRecipients } from "@/lib/notify/recipients";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { healthChecks } from "@/lib/health";
@@ -11,7 +12,7 @@ import { emailConfigured } from "@/lib/notify/providers";
 /**
  * The desk's morning brief: what closes today and tomorrow, what came in
  * overnight, what is waiting at each step, what moved on the bulletin, what
- * the health checks say. E-mailed to DESK_EMAILS when e-mail is configured;
+ * the health checks say. E-mailed to the desk team (profiles + DESK_EMAILS) when e-mail is configured;
  * always kept in the event log and the notification journal.
  */
 export interface Digest {
@@ -60,7 +61,7 @@ export async function sendDigest(now = new Date()): Promise<{ mailed: number; su
   const d = await buildDigest(now);
   const r = repo();
   await r.logEvent({ kind: "system", html: `<b>Point du matin</b> — ${d.subject.replace(/^Guichet — /, "")}` });
-  const to = (process.env.DESK_EMAILS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const to = await deskRecipients();
   let mailed = 0;
   for (const addr of to) {
     const row = await r.createNotification({ kind: "digest", channel: "email", to: addr, contactName: "Desk", subject: d.subject, body: d.text, status: "queued" });

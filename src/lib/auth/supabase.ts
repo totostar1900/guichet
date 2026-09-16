@@ -29,7 +29,7 @@ const deskEmails = () =>
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
 
-type ProfileRow = { role: Role; display_name: string | null; segment: string | null; tier: number | null; phone: string | null };
+type ProfileRow = { role: Role; display_name: string | null; segment: string | null; tier: number | null; phone: string | null; mfa_enrolled_at: string | null };
 
 export async function readSupabaseSession(): Promise<Session | null> {
   const sb = await supabaseAuthClient();
@@ -38,11 +38,32 @@ export async function readSupabaseSession(): Promise<Session | null> {
   } = await sb.auth.getUser();
   if (!user) return null;
 
-  const { data } = await sb.from("profiles").select("role, display_name, segment, tier, phone").eq("id", user.id).maybeSingle();
+  const { data } = await sb.from("profiles").select("role, display_name, segment, tier, phone, mfa_enrolled_at").eq("id", user.id).maybeSingle();
   const p = (data ?? null) as ProfileRow | null;
   const email = user.email?.toLowerCase();
-  const role: Role = p?.role === "desk" || (email && deskEmails().includes(email)) ? "desk" : "client";
+  let role: Role = p?.role === "desk" || p?.role === "responsable" ? p.role : "client";
+  // DESK_EMAILS only bootstraps: the first login of a listed address becomes responsable, persisted, then the team page rules.
+  if (role === "client" && email && deskEmails().includes(email)) {
+    role = "responsable";
+    try {
+      const { repo } = await import("@/lib/data");
+      await repo().setRole(user.id, "responsable", "DESK_EMAILS");
+      await repo().logEvent({ kind: "system", html: `<b>${email}</b> promu responsable à la première connexion (DESK_EMAILS)` });
+    } catch {
+      // Without the service key the promotion stays in memory for this request; the next login retries.
+    }
+  }
+  // Second factor: verified TOTP factor on the account, and the current session's assurance level.
+  let mfaEnrolled = false;
+  let mfaVerified = false;
+  if (role !== "client") {
+    const [{ data: factors }, { data: aal }] = await Promise.all([sb.auth.mfa.listFactors(), sb.auth.mfa.getAuthenticatorAssuranceLevel()]);
+    mfaEnrolled = (factors?.totp ?? []).some((f) => f.status === "verified");
+    mfaVerified = aal?.currentLevel === "aal2";
+  }
   return {
+    mfaEnrolled,
+    mfaVerified,
     userId: user.id,
     role,
     name: p?.display_name || email?.split("@")[0] || "Client",

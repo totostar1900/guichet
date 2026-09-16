@@ -1,3 +1,4 @@
+import { isDesk } from "@/lib/auth/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -10,7 +11,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ fileId: st
   const { fileId, kind } = await ctx.params;
   const f = await repo().getClientFile(fileId);
   if (!f) return new NextResponse("Dossier introuvable", { status: 404 });
-  if (s.role !== "desk" && f.userId !== s.userId) return new NextResponse("Accès refusé", { status: 403 });
+  if (!isDesk(s) && f.userId !== s.userId) return new NextResponse("Accès refusé", { status: 403 });
   const d = f.documents.find((x) => x.kind === kind);
   if (!d) return new NextResponse("Pièce introuvable", { status: 404 });
   const bytes = await readSource(d.fileKey);

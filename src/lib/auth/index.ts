@@ -2,7 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { readDevSession } from "./dev";
-import type { Session } from "./types";
+import { isDesk, isResponsable, type Session } from "./types";
 
 export const authMode = (): "supabase" | "dev" => (process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "dev");
 
@@ -35,9 +35,23 @@ export async function requireSession(next = "/"): Promise<Session> {
   return s;
 }
 
-/** Desk-only areas and actions. */
+/** Second factor is mandatory for the desk unless DESK_MFA=off (documented escape hatch for the very first login). */
+export const mfaRequired = (): boolean => process.env.DESK_MFA !== "off";
+
+/** Desk-only areas and actions (opérateur or responsable), behind the second factor. */
 export async function requireDesk(next = "/desk"): Promise<Session> {
   const s = await requireSession(next);
-  if (s.role !== "desk") redirect("/?acces=desk");
+  if (!isDesk(s)) redirect("/?acces=desk");
+  if (s.provider === "supabase" && mfaRequired()) {
+    if (!s.mfaEnrolled) redirect(`/connexion/mfa?enrol=1&next=${encodeURIComponent(next)}`);
+    if (!s.mfaVerified) redirect(`/connexion/mfa?next=${encodeURIComponent(next)}`);
+  }
+  return s;
+}
+
+/** Responsable-only: team, approvals. */
+export async function requireResponsable(next = "/desk"): Promise<Session> {
+  const s = await requireDesk(next);
+  if (!isResponsable(s)) redirect("/desk?acces=responsable");
   return s;
 }

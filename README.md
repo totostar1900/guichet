@@ -144,7 +144,10 @@ Le registre est chargé une fois par requête (`loadRegistry()` dans `src/lib/re
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.
 - `/desk/*` est protégé par `src/proxy.ts` (anonyme → /connexion) et par `src/app/desk/layout.tsx` (rôle desk). Les actions serveur revérifient.
 - Une intention porte `client_id` = utilisateur connecté ; sans session, le formulaire renvoie vers /connexion puis revient sur la fiche.
-- Rôle : `profiles.role` ; amorçage par `DESK_EMAILS`. Niveaux 0/1/2 (visiteur, identifié, compte ouvert) dans `profiles.tier` — la prise ferme exigera le niveau 2 après l'onboarding.
+- Rôles : `profiles.role` = `client` | `desk` (opérateur) | `responsable` (opérateur + équipe + approbations). `requireDesk()` accepte les deux niveaux desk, `requireResponsable()` le second. Le système (crons, robot) n'est pas un utilisateur : `CRON_SECRET` et la clé service.
+- **Équipe** (desk › Équipe, responsable seulement) : donner / changer / retirer l'accès desk d'un compte existant, jamais le sien, jamais le dernier responsable ; chaque changement est journalisé dans `events`. `DESK_EMAILS` ne sert qu'à l'amorçage : une adresse listée devient responsable à sa première connexion (persisté), puis la variable peut être vidée.
+- **Second facteur** obligatoire pour le desk (TOTP via Supabase Auth, aucun service tiers) : première entrée sur /desk → `/connexion/mfa?enrol=1` (QR à scanner, code de confirmation), ensuite un code à 6 chiffres à chaque connexion (`aal2`). `DESK_MFA=off` désactive la contrainte (amorçage, incident) — à ne pas laisser en production.
+- Niveaux 0/1/2 (visiteur, identifié, compte ouvert) dans `profiles.tier` — la prise ferme exigera le niveau 2 après l'onboarding.
 - Connexion par téléphone (SMS ou WhatsApp via le fournisseur configuré dans Supabase) : `PHONE_OTP_ENABLED=1`, `PHONE_OTP_CHANNEL=sms|whatsapp`.
 
 ## Principes

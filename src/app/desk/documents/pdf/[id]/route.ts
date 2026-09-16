@@ -1,3 +1,4 @@
+import { isDesk } from "@/lib/auth/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -9,7 +10,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   if (!s) return new NextResponse("Connexion requise", { status: 401 });
   const doc = await repo().getDocument((await ctx.params).id);
   if (!doc) return new NextResponse("Document introuvable", { status: 404 });
-  if (s.role !== "desk") {
+  if (!isDesk(s)) {
     if (doc.type === "dossier_svt" || doc.type === "bordereau") return new NextResponse("Accès refusé", { status: 403 });
     let mine = false;
     if (doc.intentId) mine = (await repo().listIntents()).some((i) => i.id === doc.intentId && i.clientId === s.userId);

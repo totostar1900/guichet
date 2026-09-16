@@ -8,8 +8,8 @@ import type { Session } from "@/lib/auth/types";
  * generated and attached to the intent. Guards every push.
  */
 
-const client: Session = { userId: "u-test", role: "client", name: "Test Client", email: "client@example.com", phone: "+237600000000", segment: "Personne physique · Douala", tier: 1, provider: "dev" };
-const desk: Session = { userId: "u-desk", role: "desk", name: "Desk Test", email: "desk@example.com", segment: "Desk", tier: 2, provider: "dev" };
+const client: Session = { userId: "u-test", role: "client", name: "Test Client", email: "client@example.com", phone: "+237600000000", segment: "Personne physique · Douala", tier: 1, provider: "dev", mfaEnrolled: true, mfaVerified: true };
+const desk: Session = { userId: "u-desk", role: "desk", name: "Desk Test", email: "desk@example.com", segment: "Desk", tier: 2, provider: "dev", mfaEnrolled: true, mfaVerified: true };
 let current: Session = client;
 
 vi.mock("@/lib/auth", () => ({

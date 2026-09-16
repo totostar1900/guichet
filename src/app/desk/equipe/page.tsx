@@ -1,0 +1,101 @@
+import { DeskNav } from "@/components/DeskNav";
+import { mfaRequired, requireResponsable } from "@/lib/auth";
+import { ROLE_LABEL } from "@/lib/auth/types";
+import { repo } from "@/lib/data";
+import { fmtDateTime } from "@/lib/format";
+import { AddStaffForm, RoleForm } from "./Forms";
+import styles from "./page.module.css";
+
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Équipe" };
+
+/** Who can act for the company, at which level, with or without a second factor. Responsable only. */
+export default async function EquipePage() {
+  const me = await requireResponsable("/desk/equipe");
+  const staff = await repo().listStaff();
+  const bootstrap = (process.env.DESK_EMAILS ?? "").trim();
+  return (
+    <>
+      <DeskNav current="/desk/equipe" />
+      <div className={styles.head}>
+        <h1>Équipe</h1>
+        <p className="muted">
+          Trois niveaux. <b>Client</b> : lit et déclare des intentions. <b>Opérateur desk</b> : valide, publie, traite les intentions, tient le référentiel. <b>Responsable</b> : opérateur + gestion de l&apos;équipe et approbations. Le système (crons, robot) n&apos;est pas un utilisateur. Tout changement de niveau est journalisé.
+        </p>
+      </div>
+
+      <div className={styles.cols}>
+        <div className="panel">
+          <div className="panel-h">
+            <h2>Accès desk ({staff.length})</h2>
+            <span className="muted">{mfaRequired() ? "Second facteur obligatoire" : "Second facteur désactivé (DESK_MFA=off)"}</span>
+          </div>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Personne</th>
+                <th>Niveau</th>
+                <th>Second facteur</th>
+                <th>Depuis</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {staff.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    <b>{s.name}</b>
+                    <br />
+                    <small className="muted">{s.email ?? s.phone ?? s.id}</small>
+                  </td>
+                  <td>
+                    <span className={`${styles.role} ${styles[s.role]}`}>{ROLE_LABEL[s.role]}</span>
+                  </td>
+                  <td>{s.mfaEnrolledAt ? <span className={styles.okTag}>activé {fmtDateTime(s.mfaEnrolledAt)}</span> : <span className={styles.warnTag}>à activer à la prochaine connexion</span>}</td>
+                  <td>
+                    {s.roleSetAt ? fmtDateTime(s.roleSetAt) : "—"}
+                    {s.roleSetBy && <small className="muted"> · par {s.roleSetBy}</small>}
+                  </td>
+                  <td className="r">
+                    <RoleForm userId={s.id} role={s.role} self={s.id === me.userId} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div className="panel">
+            <div className="panel-h">
+              <h2>Donner l&apos;accès</h2>
+            </div>
+            <AddStaffForm />
+            <p className={styles.note}>La personne se connecte d&apos;abord une fois au Guichet avec son adresse (code e-mail) ; vous lui donnez ensuite l&apos;accès ici. À sa connexion suivante, elle active son second facteur (application d&apos;authentification), puis entre sur le desk.</p>
+          </div>
+          <div className="panel">
+            <div className="panel-h">
+              <h2>Règles</h2>
+            </div>
+            <ul className={styles.rules}>
+              <li>Personne ne modifie son propre niveau ; il reste toujours au moins un responsable.</li>
+              <li>Retirer l&apos;accès ne supprime rien : le compte redevient client, l&apos;historique de ses actions reste dans le journal.</li>
+              <li>Téléphone perdu : un responsable retire l&apos;accès puis le redonne ; la personne réactive son second facteur.</li>
+              <li>
+                {bootstrap ? (
+                  <>
+                    Amorçage : <code className="mono">DESK_EMAILS</code> est encore renseigné ({bootstrap.split(",").length} adresse{bootstrap.includes(",") ? "s" : ""}). Chaque adresse devient responsable à sa première connexion ; une fois l&apos;équipe en place, videz la variable sur Vercel.
+                  </>
+                ) : (
+                  <>
+                    Amorçage terminé : <code className="mono">DESK_EMAILS</code> est vide, seule cette page donne l&apos;accès.
+                  </>
+                )}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

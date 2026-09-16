@@ -1,3 +1,4 @@
+import { isDesk } from "@/lib/auth/types";
 import Link from "next/link";
 import { logout } from "@/app/connexion/actions";
 import type { Session } from "@/lib/auth/types";
@@ -18,11 +19,11 @@ export function UserMenu({ session }: { session: Session | null }) {
     .toUpperCase();
   return (
     <div className={styles.menu}>
-      <Link href={session.role === "desk" ? "/desk" : "/moi"} className={styles.who}>
+      <Link href={isDesk(session) ? "/desk" : "/moi"} className={styles.who}>
         <b>{session.name}</b>
-        <span>{session.role === "desk" ? "Desk" : session.segment}</span>
+        <span>{isDesk(session) ? "Desk" : session.segment}</span>
       </Link>
-      <div className={`${styles.avatar} ${session.role === "desk" ? styles.desk : ""}`} title={session.email ?? session.segment}>
+      <div className={`${styles.avatar} ${isDesk(session) ? styles.desk : ""}`} title={session.email ?? session.segment}>
         {initials}
       </div>
       {session.role === "client" && session.tier < 2 && (

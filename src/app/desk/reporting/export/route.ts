@@ -1,3 +1,4 @@
+import { isDesk } from "@/lib/auth/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -7,7 +8,7 @@ import { clientRegister, defaultPeriod, orderJournal, toCsv, type Period } from 
 /** CSV exports for the regulator and the auditors — desk only. */
 export async function GET(req: NextRequest) {
   const s = await getSession();
-  if (!s || s.role !== "desk") return new NextResponse("Accès desk requis", { status: 403 });
+  if (!s || !isDesk(s)) return new NextResponse("Accès desk requis", { status: 403 });
   const sp = req.nextUrl.searchParams;
   const type = sp.get("type") ?? "ordres";
   const d = defaultPeriod();

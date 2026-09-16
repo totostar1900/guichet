@@ -1,4 +1,5 @@
 import "server-only";
+import { deskRecipients } from "@/lib/notify/recipients";
 import { repo } from "@/lib/data";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
@@ -128,7 +129,7 @@ export async function alertDesk(now = new Date()): Promise<{ level: HealthCheck[
     html: `<b>Santé</b> — ${level === "ok" ? "tout est vert" : [...crit, ...warn].map((c) => `${c.level === "crit" ? "🔴" : "🟠"} ${c.label} : ${c.value}`).join(" · ")}`,
   });
   if (!crit.length) return { level, mailed: false };
-  const to = (process.env.DESK_EMAILS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const to = await deskRecipients();
   if (!to.length || !emailConfigured()) return { level, mailed: false };
   const { sendEmail } = await import("@/lib/notify/providers");
   const text = crit.map((c) => `${c.label}\n${c.value}${c.detail ? `\n${c.detail}` : ""}`).join("\n\n");

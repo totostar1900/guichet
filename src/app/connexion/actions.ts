@@ -69,7 +69,7 @@ export async function verifyPhoneCode(_prev: LoginState, form: FormData): Promis
 /* ---------- Dev : session signée, sans service externe ---------- */
 
 const devSchema = z.object({
-  role: z.enum(["client", "desk"]),
+  role: z.enum(["client", "desk", "responsable"]),
   name: z.string().trim().min(2).max(60),
   segment: z.string().trim().max(80).optional(),
   next: z.string().optional(),
@@ -84,9 +84,11 @@ export async function devLogin(form: FormData): Promise<void> {
     userId: `dev-${role}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     role,
     name,
-    segment: role === "desk" ? "Desk Purpose Capital" : segment || "Personne physique",
-    tier: role === "desk" ? 2 : 1,
+    segment: role !== "client" ? "Desk Purpose Capital" : segment || "Personne physique",
+    tier: role !== "client" ? 2 : 1,
     provider: "dev",
+    mfaEnrolled: true,
+    mfaVerified: true,
   };
   await writeDevSession(s);
   redirect(safeNext(next));

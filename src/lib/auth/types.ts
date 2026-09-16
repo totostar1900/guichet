@@ -1,4 +1,10 @@
-export type Role = "client" | "desk";
+/**
+ * client — a prospect or account holder.
+ * desk — opérateur : validates, publishes, treats intents, edits the référentiel.
+ * responsable — desk + team management, approvals, four-eyes on money terms.
+ * (The « système » actor is not a user: crons and the robot hold CRON_SECRET / the service key.)
+ */
+export type Role = "client" | "desk" | "responsable";
 
 /** Level of relationship — see onboarding notes. 0 visitor, 1 identified, 2 account open. */
 export type Tier = 0 | 1 | 2;
@@ -15,6 +21,11 @@ export interface Session {
   kycStatus?: string;
   /** Which auth backed this session — useful in the header and for debugging. */
   provider: "supabase" | "dev";
+  /** Second factor: a verified TOTP factor exists, and this session entered its code (aal2). */
+  mfaEnrolled: boolean;
+  mfaVerified: boolean;
 }
 
-export const isDesk = (s: Session | null): s is Session => !!s && s.role === "desk";
+export const isDesk = (s: Session | null): boolean => !!s && (s.role === "desk" || s.role === "responsable");
+export const isResponsable = (s: Session | null): boolean => !!s && s.role === "responsable";
+export const ROLE_LABEL: Record<Role, string> = { client: "Client", desk: "Opérateur desk", responsable: "Responsable" };

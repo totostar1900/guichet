@@ -1,4 +1,4 @@
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer, ReferenceRow, Watch } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer, ReferenceRow, StaffMember, StaffRole, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
@@ -38,6 +38,11 @@ export interface Repository {
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
+  /** Desk team: who has desk access, at which level, with MFA or not. */
+  listStaff(): Promise<StaffMember[]>;
+  findProfileByEmail(email: string): Promise<StaffMember | undefined>;
+  setRole(userId: string, role: StaffRole | "client", by: string): Promise<void>;
+  markMfaEnrolled(userId: string): Promise<void>;
   /** Reference data the desk edits in the app (product types, bond terms, companies, issuers, glossary). */
   listReference(kind: string): Promise<ReferenceRow[]>;
   upsertReference(kind: string, key: string, data: unknown, by?: string): Promise<void>;

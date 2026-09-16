@@ -1,5 +1,5 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer, ReferenceRow, Watch } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer, ReferenceRow, StaffMember, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -21,6 +21,7 @@ interface Store {
   notifications: Notification[];
   watches: Watch[];
   reference: ReferenceRow[];
+  staff: StaffMember[];
   clientFiles: ClientFile[];
   bulletins: MarketBulletin[];
   quotes: Quote[];
@@ -48,6 +49,10 @@ function store(): Store {
       notifications: [],
       watches: [],
       reference: [],
+      staff: [
+        { id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" },
+        { id: "desk-aline", name: "Aline", email: "aline@purposecapital.africa", role: "desk" },
+      ],
       clientFiles: [],
       bulletins: [],
       quotes: [],
@@ -62,6 +67,8 @@ function store(): Store {
   if (!g.__guichetStore.contacts) g.__guichetStore.contacts = structuredClone(SEED_CONTACTS);
   if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
   if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = [];
+  if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
+  if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
   if (!g.__guichetStore.bulletins) g.__guichetStore.bulletins = [];
   if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
@@ -213,6 +220,31 @@ export const memoryRepository: Repository = {
     if (c) c.whatsappOptIn = optIn;
     const f = store().clientFiles.find((x) => x.userId === id);
     if (f) f.consents.whatsappAt = optIn ? (f.consents.whatsappAt ?? nowIso()) : undefined;
+  },
+  async listStaff() {
+    return structuredClone(store().staff);
+  },
+  async findProfileByEmail(email) {
+    const s = store().staff.find((x) => x.email?.toLowerCase() === email.toLowerCase());
+    if (s) return structuredClone(s);
+    const c = store().contacts.find((x) => x.email?.toLowerCase() === email.toLowerCase());
+    return c ? { id: c.id, name: c.name, email: c.email, phone: c.phone, role: "desk" } : undefined;
+  },
+  async setRole(userId, role, by) {
+    const st = store();
+    const i = st.staff.findIndex((x) => x.id === userId);
+    if (role === "client") {
+      if (i >= 0) st.staff.splice(i, 1);
+      return;
+    }
+    const base = i >= 0 ? st.staff[i] : { id: userId, name: st.contacts.find((c) => c.id === userId)?.name ?? userId, email: st.contacts.find((c) => c.id === userId)?.email };
+    const row: StaffMember = { ...base, role, roleSetBy: by, roleSetAt: nowIso() };
+    if (i >= 0) st.staff[i] = row;
+    else st.staff.push(row);
+  },
+  async markMfaEnrolled(userId) {
+    const s = store().staff.find((x) => x.id === userId);
+    if (s) s.mfaEnrolledAt = nowIso();
   },
   async listReference(kind) {
     return structuredClone(store().reference.filter((r) => r.kind === kind));

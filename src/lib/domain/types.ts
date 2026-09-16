@@ -287,6 +287,19 @@ export interface Contact {
   whatsappOptIn: boolean;
 }
 
+/** Desk team member as the responsable manages them (desk › Équipe). */
+export type StaffRole = "desk" | "responsable";
+export interface StaffMember {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  role: StaffRole;
+  mfaEnrolledAt?: string;
+  roleSetBy?: string;
+  roleSetAt?: string;
+}
+
 export type NotifyChannel = "whatsapp" | "email";
 export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
 export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest";
