@@ -124,14 +124,20 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         )}
         {!official && <span className={`${styles.st} ${styles.st_blocked}`}>Source non officielle</span>}
         {published && offer && (
-          <Link href={`/offres/${offer.id}`} className="btn sm" style={{ marginLeft: "auto" }}>
-            Voir la fiche publiée (v{offer.version})
-          </Link>
+          <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
+            <Link href={`/offres/${offer.id}`} className="btn sm">
+              Voir la fiche publiée (v{offer.version})
+            </Link>
+            <Link href={`/desk/lignes/${offer.id}`} className="btn sm ghost">
+              Historique
+            </Link>
+          </span>
         )}
       </div>
 
       <form onChange={onChange} className={styles.form}>
         <input type="hidden" name="itemId" value={item.id} />
+        {offer && <input type="hidden" name="version" value={offer.version} />}
         <div className={styles.vCols}>
           <div>
             <h3>Source (original conservé)</h3>
@@ -275,7 +281,8 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
 
         {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>)}
         {saveState?.ok && <div className={styles.okMsg}>Brouillon enregistré.</div>}
-        {pubState?.ok && (
+        {pubState?.ok && pubState.pending && <div className={styles.okMsg}>Proposition transmise à un responsable — {pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).</div>}
+        {pubState?.ok && !pubState.pending && (
           <div className={styles.okMsg}>
             Publié — la fiche est en ligne.{" "}
             <Link href={`/desk/a-valider?item=${item.id}`} style={{ color: "inherit" }}>

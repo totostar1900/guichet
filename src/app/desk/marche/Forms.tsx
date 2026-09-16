@@ -9,11 +9,12 @@ function Msg({ state }: { state: MarketResult | null }) {
   return <small className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</small>;
 }
 
-export function QuoteForm({ offerId, last, bid, ask, step }: { offerId: string; last?: number; bid?: number; ask?: number; step: string }) {
+export function QuoteForm({ offerId, last, bid, ask, step, version }: { offerId: string; last?: number; bid?: number; ask?: number; step: string; version?: number }) {
   const [state, action, pending] = useActionState<MarketResult | null, FormData>(updateQuoteAction, null);
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="offerId" value={offerId} />
+      {version != null && <input type="hidden" name="version" value={version} />}
       <input name="lastPrice" type="number" step={step} defaultValue={last} placeholder="dernier" aria-label="Dernier cours" className={styles.num} required />
       <input name="bid" type="number" step={step} defaultValue={bid} placeholder="acheteur" aria-label="Acheteur" className={styles.num} />
       <input name="ask" type="number" step={step} defaultValue={ask} placeholder="vendeur" aria-label="Vendeur" className={styles.num} />

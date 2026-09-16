@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -70,7 +71,9 @@ export async function saveTypeAction(_p: RefResult | null, form: FormData): Prom
   }
   const builtin = BUILTIN_TYPES.some((t) => t.key === d.key);
   const t: ProductType = { key: d.key, label: d.label, short: d.short, segment: d.segment, engine: d.engine, color: d.color.toLowerCase(), colorSoft: d.colorSoft.toLowerCase(), cautions, checklist: lines(d.checklist), intentsOpen, fields, enabled: d.enabled === "on", sort: d.sort, builtin };
+  const beforeT = (await repo().listReference(REF.types)).find((r) => r.key === t.key)?.data;
   await repo().upsertReference(REF.types, t.key, t, desk.name);
+  await audit("reference.upsert", "reference", `${REF.types}/${t.key}`, { before: beforeT, after: t });
   await log(`Type de produit <b>${t.key}</b> ${builtin ? "modifié" : "enregistré"} (${t.label})`, desk.name);
   revalidateAll();
   return { ok: true, message: `Type ${t.key} enregistré.` };
@@ -92,7 +95,9 @@ export async function saveTermAction(_p: RefResult | null, form: FormData): Prom
   if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
   const { isin, maturityOn, periodsPerYear, graceUntil, source } = p.data;
   const data = { isin, maturityOn, periodsPerYear: periodsPerYear as 1 | 2 | 4, ...(graceUntil ? { graceUntil } : {}), source };
+  const beforeB = (await repo().listReference(REF.bondTerms)).find((r) => r.key === isin)?.data;
   await repo().upsertReference(REF.bondTerms, isin, data, desk.name);
+  await audit("reference.upsert", "reference", `${REF.bondTerms}/${isin}`, { before: beforeB, after: data });
   await log(`Échéancier <b>${isin}</b> enregistré (échéance ${maturityOn}, ${periodsPerYear}/an)`, desk.name);
   revalidateAll();
   return { ok: true, message: `Échéancier ${isin} enregistré.` };
@@ -112,7 +117,9 @@ export async function saveGlossaryAction(_p: RefResult | null, form: FormData): 
   const p = termGlossSchema.safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
   const { key, short, long, text } = p.data;
+  const beforeG = (await repo().listReference(REF.glossary)).find((r) => r.key === key)?.data;
   await repo().upsertReference(REF.glossary, key, { short, ...(long ? { long } : {}), text }, desk.name);
+  await audit("reference.upsert", "reference", `${REF.glossary}/${key}`, { before: beforeG, after: { short, long, text } });
   await log(`Terme du glossaire <b>${short}</b> enregistré`, desk.name);
   revalidateAll();
   return { ok: true, message: `Terme « ${short} » enregistré.` };
@@ -180,7 +187,9 @@ export async function saveJsonAction(_p: RefResult | null, form: FormData): Prom
     return { ok: false, error: `Fiche incomplète : ${i?.path.join(".") || "racine"} — ${i?.message}.` };
   }
   const key = kind === REF.companies ? (p.data as { mnemo: string }).mnemo : (p.data as { slug: string }).slug;
+  const beforeJ = (await repo().listReference(kind)).find((r) => r.key === key)?.data;
   await repo().upsertReference(kind, key, p.data, desk.name);
+  await audit("reference.upsert", "reference", `${kind}/${key}`, { before: beforeJ, after: p.data });
   await log(`Fiche ${KIND_LABEL[kind]} <b>${key}</b> enregistrée`, desk.name);
   revalidateAll();
   return { ok: true, message: `Fiche ${key} enregistrée.` };
@@ -194,7 +203,9 @@ export async function resetReferenceAction(form: FormData): Promise<void> {
   const kind = String(form.get("kind") ?? "");
   const key = String(form.get("key") ?? "");
   if (!KINDS.includes(kind) || !key) return;
+  const beforeD = (await repo().listReference(kind)).find((r) => r.key === key)?.data;
   await repo().deleteReference(kind, key);
+  await audit("reference.delete", "reference", `${kind}/${key}`, { before: beforeD });
   await log(`${KIND_LABEL[kind] ?? kind} <b>${key}</b> : retour aux valeurs par défaut (ou suppression)`, desk.name);
   revalidateAll();
 }

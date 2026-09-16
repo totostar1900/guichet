@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { audit } from "@/lib/audit";
 import { authMode, getSession } from "@/lib/auth";
 import { supabaseAuthClient } from "@/lib/auth/supabase";
 import { repo } from "@/lib/data";
@@ -35,6 +36,7 @@ export async function verifyEnrol(prev: MfaState, form: FormData): Promise<MfaSt
   const s = await getSession();
   if (s) {
     await repo().markMfaEnrolled(s.userId);
+    await audit("mfa.enrol", "profile", s.userId, { after: { mfa: "totp" } });
     await repo().logEvent({ kind: "system", html: `Second facteur activé par <b>${s.name}</b>` });
   }
   redirect(safeNext(form.get("next")));

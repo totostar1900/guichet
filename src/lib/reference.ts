@@ -13,7 +13,7 @@ import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/l
  * `reference` table — so an empty table changes nothing, and « Importer les
  * valeurs par défaut » on the desk copies the defaults into the table to edit.
  */
-export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary" } as const;
+export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy" } as const;
 
 const rows = cache(async <T,>(kind: string): Promise<Map<string, T>> => {
   const list = await repo().listReference(kind);
@@ -78,7 +78,9 @@ export async function importDefaults(kind: string, by: string): Promise<number> 
           ? COMPANIES.map((c) => [c.mnemo, c])
           : kind === REF.issuers
             ? ISSUERS.map((i) => [i.slug, i])
-            : Object.entries(GLOSSARY_DEFAULTS);
+            : kind === REF.glossary
+              ? Object.entries(GLOSSARY_DEFAULTS)
+              : [];
   let n = 0;
   for (const [key, data] of entries) {
     if (have.has(key)) continue;

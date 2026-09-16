@@ -287,6 +287,59 @@ export interface Contact {
   whatsappOptIn: boolean;
 }
 
+/** One line of the audit trail: who did what to which record, before/after, why, from where. Hash-chained, never edited. */
+export interface AuditEntry {
+  id: string;
+  at: string;
+  actor: string;
+  actorId?: string;
+  action: string; // "offer.publish", "offer.quote", "intent.transition", "reference.upsert", "staff.role", "approval.decide"…
+  entity: string; // "offer" | "intent" | "reference" | "profile" | "approval"
+  entityId: string;
+  before?: unknown;
+  after?: unknown;
+  reason?: string;
+  ip?: string;
+  userAgent?: string;
+  prevHash?: string;
+  hash: string;
+}
+export type NewAuditEntry = Omit<AuditEntry, "id" | "at" | "hash" | "prevHash">;
+
+/** A published version of an offer, kept in full for diffs and rollback. */
+export interface OfferVersion {
+  offerId: string;
+  version: number;
+  publishedAt: string;
+  publishedBy?: string;
+  note?: string;
+  snapshot?: Offer;
+}
+
+/** Thrown when a record changed between the screen and the save (optimistic locking). */
+export class ConflictError extends Error {
+  constructor(public entity: string, public id: string, public expected: number, public actual: number) {
+    super(`Modifié entre-temps (version ${actual}, vous aviez la ${expected}) : rechargez la page avant d'enregistrer.`);
+    this.name = "ConflictError";
+  }
+}
+
+/** A change an opérateur proposed outside the delegated window, waiting for a responsable. */
+export interface Approval {
+  id: string;
+  kind: "offer_publish" | "offer_quote";
+  entityId: string;
+  title: string;
+  payload: Offer;
+  reason: string;
+  requestedBy: string;
+  requestedAt: string;
+  decidedBy?: string;
+  decidedAt?: string;
+  decision?: "approuve" | "refuse";
+  note?: string;
+}
+
 /** Desk team member as the responsable manages them (desk › Équipe). */
 export type StaffRole = "desk" | "responsable";
 export interface StaffMember {

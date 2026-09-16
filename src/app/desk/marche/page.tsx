@@ -170,10 +170,13 @@ export default async function MarketPage() {
                       <small className="muted">{o.pricedAt ? fmtDateTime(o.pricedAt) : ""}</small>
                     </td>
                     <td>
-                      <QuoteForm offerId={o.id} last={o.lastPrice} bid={o.bid} ask={o.ask} step={isBond ? "0.001" : "1"} />
+                      <QuoteForm offerId={o.id} last={o.lastPrice} bid={o.bid} ask={o.ask} step={isBond ? "0.001" : "1"} version={o.version} />
                     </td>
                     <td className={styles.right}>
                       <HideButton offerId={o.id} hidden={Boolean(o.hidden)} />
+                      <Link className="btn sm ghost" href={`/desk/lignes/${o.id}`} title="Versions et piste d’audit">
+                        v{o.version}
+                      </Link>
                     </td>
                   </tr>
                 );

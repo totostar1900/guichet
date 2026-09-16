@@ -1,6 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { approvalReason, loadPolicy } from "@/lib/policy";
+import { ConflictError } from "@/lib/domain/types";
+import { isResponsable } from "@/lib/auth/types";
+import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -18,6 +22,7 @@ const quoteSchema = z.object({
   bid: z.coerce.number().positive().optional(),
   ask: z.coerce.number().positive().optional(),
   lastPriceOn: z.string().optional(),
+  version: z.coerce.number().int().optional(),
 });
 
 /** The desk updates a line's quote (last, bid, ask). Timestamped; the fiche shows the stamp. */
@@ -33,7 +38,22 @@ export async function updateQuoteAction(_p: MarketResult | null, form: FormData)
   const o = await r.getOffer(p.data.offerId);
   if (!o || o.kind !== "MARCHE") return { ok: false, error: "Ligne introuvable." };
   const now = new Date();
-  await r.upsertOffer({ ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: p.data.lastPriceOn || now.toISOString().slice(0, 10), pricedAt: now.toISOString(), priceSource: "desk", priceNote: `Cours saisi par le desk (${desk.name}).`, version: o.version + 1 });
+  if (p.data.version != null && p.data.version !== o.version) return { ok: false, error: new ConflictError("offer", o.id, p.data.version, o.version).message };
+  const next: typeof o = { ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: p.data.lastPriceOn || now.toISOString().slice(0, 10), pricedAt: now.toISOString(), priceSource: "desk", priceNote: `Cours saisi par le desk (${desk.name}).`, version: o.version + 1 };
+  const reason = approvalReason(next, o, await loadPolicy());
+  if (reason && !isResponsable(desk)) {
+    const a = await r.createApproval({ kind: "offer_quote", entityId: o.id, title: o.title, payload: next, reason, requestedBy: desk.name });
+    await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason }, reason });
+    await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> proposé par ${desk.name}, en attente d'un responsable — ${reason}` });
+    revalidatePath("/desk/approbations");
+    return { ok: true, message: `Proposition transmise à un responsable : ${reason}.` };
+  }
+  try {
+    await r.upsertOffer(next, { expectedVersion: o.version, by: desk.name, note: "Cours saisi" });
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
+  }
+  await audit("offer.quote", "offer", o.id, { before: { lastPrice: o.lastPrice, bid: o.bid, ask: o.ask, lastPriceOn: o.lastPriceOn }, after: { lastPrice: next.lastPrice, bid: next.bid, ask: next.ask, lastPriceOn: next.lastPriceOn } });
   await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> : ${o.instrument === "obligation" ? fmtPrice(p.data.lastPrice) : fmt(p.data.lastPrice) + " FCFA"}${p.data.bid ? ` · acheteur ${p.data.bid}` : ""}${p.data.ask ? ` · vendeur ${p.data.ask}` : ""} · par ${desk.name}` });
   revalidatePath("/");
   revalidatePath("/desk/marche");
@@ -126,7 +146,20 @@ export async function updateFundTermsAction(_p: MarketResult | null, form: FormD
   const distributed = p.data.distributed === "on";
   if (distributed && !p.data.agreementRef) return { ok: false, error: "Indiquez la référence de la convention de distribution avant d'activer la souscription." };
   const fund = { ...o.fund, distributed, entryFeePct: p.data.entryFeePct, exitFeePct: p.data.exitFeePct, minAmount: p.data.minAmount, cutoff: p.data.cutoff, agreementRef: p.data.agreementRef, settlementDays: p.data.settlementDays };
-  await r.upsertOffer({ ...o, fund, hidden: !distributed, commissionPct: fund.entryFeePct, pricedAt: new Date().toISOString(), version: o.version + 1 });
+  const next: typeof o = { ...o, fund, hidden: !distributed, commissionPct: fund.entryFeePct, pricedAt: new Date().toISOString(), version: o.version + 1 };
+  const reason = approvalReason(next, o, await loadPolicy());
+  if (reason && !isResponsable(desk)) {
+    const a = await r.createApproval({ kind: "offer_publish", entityId: o.id, title: o.title, payload: next, reason, requestedBy: desk.name });
+    await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason }, reason });
+    revalidatePath("/desk/approbations");
+    return { ok: true, message: `Proposition transmise à un responsable : ${reason}.` };
+  }
+  try {
+    await r.upsertOffer(next, { expectedVersion: o.version, by: desk.name, note: "Conditions du fonds" });
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
+  }
+  await audit("offer.fund_terms", "offer", o.id, { before: { fund: o.fund, hidden: o.hidden }, after: { fund, hidden: !distributed } });
   await r.logEvent({ kind: "desk", offerId: o.id, html: `OPCVM <b>${o.title}</b> ${distributed ? "ouvert à la souscription" : "retiré de la souscription"} · droits d'entrée ${fund.entryFeePct} % · sortie ${fund.exitFeePct} % · minimum ${fmt(fund.minAmount)} FCFA${fund.agreementRef ? ` · convention ${fund.agreementRef}` : ""} · par ${desk.name}` });
   revalidatePath("/");
   revalidatePath("/fonds");
@@ -198,7 +231,8 @@ export async function toggleHiddenAction(form: FormData): Promise<void> {
   const r = repo();
   const o = await r.getOffer(id);
   if (!o || o.kind !== "MARCHE") return;
-  await r.upsertOffer({ ...o, hidden: !o.hidden, version: o.version + 1 });
+  await r.upsertOffer({ ...o, hidden: !o.hidden, version: o.version + 1 }, { expectedVersion: o.version, by: desk.name, note: o.hidden ? "Affichée" : "Masquée" });
+  await audit("offer.visibility", "offer", o.id, { before: { hidden: Boolean(o.hidden) }, after: { hidden: !o.hidden } });
   await r.logEvent({ kind: "desk", offerId: o.id, html: `Ligne <b>${o.title}</b> ${o.hidden ? "affichée au" : "masquée du"} Guichet · par ${desk.name}` });
   revalidatePath("/");
   revalidatePath("/desk/marche");

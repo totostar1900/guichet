@@ -1,5 +1,6 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer, ReferenceRow, StaffMember, Watch } from "@/lib/domain/types";
+import { createHash } from "node:crypto";
+import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type ReferenceRow, type StaffMember, type Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -22,6 +23,9 @@ interface Store {
   watches: Watch[];
   reference: ReferenceRow[];
   staff: StaffMember[];
+  versions: OfferVersion[];
+  audit: AuditEntry[];
+  approvals: Approval[];
   clientFiles: ClientFile[];
   bulletins: MarketBulletin[];
   quotes: Quote[];
@@ -49,6 +53,9 @@ function store(): Store {
       notifications: [],
       watches: [],
       reference: [],
+      versions: [],
+      audit: [],
+      approvals: [],
       staff: [
         { id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" },
         { id: "desk-aline", name: "Aline", email: "aline@purposecapital.africa", role: "desk" },
@@ -69,6 +76,9 @@ function store(): Store {
   if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = [];
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
+  if (!g.__guichetStore.versions) g.__guichetStore.versions = [];
+  if (!g.__guichetStore.audit) g.__guichetStore.audit = [];
+  if (!g.__guichetStore.approvals) g.__guichetStore.approvals = [];
   if (!g.__guichetStore.bulletins) g.__guichetStore.bulletins = [];
   if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
@@ -180,12 +190,47 @@ export const memoryRepository: Repository = {
     s.intake[i] = { ...s.intake[i], ...patch };
     return structuredClone(s.intake[i]);
   },
-  async upsertOffer(offer) {
+  async upsertOffer(offer, opts = {}) {
     const s = store();
     const i = s.offers.findIndex((x) => x.id === offer.id);
+    if (opts.expectedVersion != null && i >= 0 && s.offers[i].version !== opts.expectedVersion) throw new ConflictError("offer", offer.id, opts.expectedVersion, s.offers[i].version);
     if (i < 0) s.offers.push(structuredClone(offer));
     else s.offers[i] = structuredClone(offer);
+    const v: OfferVersion = { offerId: offer.id, version: offer.version, publishedAt: nowIso(), publishedBy: opts.by, note: opts.note, snapshot: structuredClone(offer) };
+    const j = s.versions.findIndex((x) => x.offerId === offer.id && x.version === offer.version);
+    if (j >= 0) s.versions[j] = v;
+    else s.versions.push(v);
     return structuredClone(offer);
+  },
+  async listOfferVersions(offerId) {
+    return structuredClone(store().versions.filter((v) => v.offerId === offerId).sort((a, b) => b.version - a.version));
+  },
+  async logAudit(e) {
+    const s = store();
+    const prev = s.audit[s.audit.length - 1];
+    const at = nowIso();
+    const hash = createHash("sha256").update((prev?.hash ?? "") + JSON.stringify({ at, ...e })).digest("hex");
+    const row: AuditEntry = { id: String(++s.seq), at, ...e, prevHash: prev?.hash, hash };
+    s.audit.push(row);
+    return structuredClone(row);
+  },
+  async listAudit(filter = {}) {
+    const rows = store().audit.filter((a) => (!filter.entity || a.entity === filter.entity) && (!filter.entityId || a.entityId === filter.entityId));
+    return structuredClone(rows.slice(-(filter.limit ?? 100)).reverse());
+  },
+  async listApprovals(open = true) {
+    return structuredClone(store().approvals.filter((a) => (open ? !a.decidedAt : Boolean(a.decidedAt))).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)));
+  },
+  async createApproval(a) {
+    const row: Approval = { ...structuredClone(a), id: `ap-${++store().seq}`, requestedAt: nowIso() };
+    store().approvals.push(row);
+    return structuredClone(row);
+  },
+  async decideApproval(id, decision, by, note) {
+    const a = store().approvals.find((x) => x.id === id);
+    if (!a) throw new Error("Approbation introuvable.");
+    Object.assign(a, { decision, decidedBy: by, decidedAt: nowIso(), note });
+    return structuredClone(a);
   },
 
   async listDocuments() {

@@ -1,4 +1,4 @@
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer, ReferenceRow, StaffMember, StaffRole, Watch } from "@/lib/domain/types";
+import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ReferenceRow, StaffMember, StaffRole, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
@@ -26,7 +26,16 @@ export interface Repository {
   createIntake(item: Omit<IntakeItem, "id">): Promise<IntakeItem>;
   updateIntake(id: string, patch: Partial<IntakeItem>): Promise<IntakeItem>;
   /** Create or replace a whole offer (publication from a draft). */
-  upsertOffer(offer: Offer): Promise<Offer>;
+  /** Writes the offer; with expectedVersion, refuses (ConflictError) when the stored version moved. Keeps a full snapshot per version. */
+  upsertOffer(offer: Offer, opts?: { expectedVersion?: number; by?: string; note?: string }): Promise<Offer>;
+  listOfferVersions(offerId: string): Promise<OfferVersion[]>;
+  /** Audit trail (append-only, hash-chained). */
+  logAudit(e: NewAuditEntry): Promise<AuditEntry>;
+  listAudit(filter?: { entity?: string; entityId?: string; limit?: number }): Promise<AuditEntry[]>;
+  /** Four-eyes: proposals waiting for a responsable. */
+  listApprovals(open?: boolean): Promise<Approval[]>;
+  createApproval(a: Omit<Approval, "id" | "requestedAt">): Promise<Approval>;
+  decideApproval(id: string, decision: "approuve" | "refuse", by: string, note?: string): Promise<Approval>;
 
   /** Generated documents (PDFs on the letterhead). */
   listDocuments(): Promise<GeneratedDocument[]>;

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -25,6 +26,7 @@ export async function transitionIntent(form: FormData): Promise<void> {
   const it = intents.find((x) => x.id === intentId);
   if (!it || !nextStates(it.state, it.type).includes(state)) return;
   const updated = await r.setIntentState(intentId, state);
+  await audit("intent.transition", "intent", intentId, { before: { state: it.state }, after: { state }, reason: `${it.ref} · ${it.clientName}` });
   const offer = await r.getOffer(updated.offerId);
   await r.logEvent({
     kind: "desk",

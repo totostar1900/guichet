@@ -11,7 +11,9 @@ export const DESK_TABS: [string, string][] = [
   ["/desk/marche", "Marché"],
   ["/desk/robot", "Robot"],
   ["/desk/reporting", "Reporting"],
+  ["/desk/approbations", "Approbations"],
   ["/desk/referentiel", "Référentiel"],
+  ["/desk/journal", "Journal"],
   ["/desk/equipe", "Équipe"],
   ["/desk/sante", "Santé"],
 ];

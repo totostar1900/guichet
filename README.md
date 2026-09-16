@@ -139,6 +139,13 @@ Ce que l’application sait sans qu’on touche au code, édité dans l’app pa
 
 Le registre est chargé une fois par requête (`loadRegistry()` dans `src/lib/reference.ts`), installé côté serveur et envoyé au navigateur par `RegistryProvider` ; les actions serveur et les crons l’appellent avant de lire un type. À la publication, `offers.type_key` mémorise le type et `offers.extra` les champs libres ; la liste de contrôle du type et ses champs obligatoires bloquent « Publier ».
 
+## Contrôle : audit, versions, verrou, quatre yeux
+
+- **Piste d'audit** (`audit`, desk › Journal) : une ligne par action métier — qui (session), quoi (`offer.publish`, `offer.quote`, `intent.transition`, `reference.upsert`, `staff.role`, `approval.*`…), l'enregistrement avant / après, le motif, l'adresse IP et le navigateur. Chaînée par empreinte SHA-256 (`prev_hash` → `hash`) ; un déclencheur refuse toute modification ou suppression, clé service comprise. Le journal affiche « chaîne intègre / rompue ». Distinct du flux `events` (lisible, à destination du desk).
+- **Versions** (`offer_versions.snapshot`, desk › ligne › Historique) : chaque publication ou saisie garde la fiche complète ; la page montre les différences champ par champ entre versions et permet de **restaurer** une version (nouvelle version, motif obligatoire, jamais d'effacement).
+- **Verrou optimiste** : les formulaires portent la version affichée ; `upsertOffer(offer, { expectedVersion })` refuse (`ConflictError`) si quelqu'un a enregistré entre-temps — message « rechargez la page ».
+- **Quatre yeux sans goulot** (desk › Approbations) : le responsable délègue une fenêtre (prix OTA/APE, taux BTA, écart de cours, frais de fonds — table `reference`, kind `policy`). Dedans, l'opérateur publie seul ; dehors, sa proposition va dans `approvals` avec l'avant / après, et un **autre** responsable l'approuve (écrit la version, notifie) ou la refuse avec une note. Le responsable publie directement. Une restauration suit la même règle.
+
 ## Authentification et rôles
 
 - `src/lib/auth` expose `getSession()`, `requireSession()`, `requireDesk()` ; un seul contrat pour Supabase Auth (e-mail OTP / lien magique) et la session de démonstration.

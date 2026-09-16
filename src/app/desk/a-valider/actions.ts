@@ -1,6 +1,10 @@
 "use server";
 
 import { loadRegistry } from "@/lib/reference";
+import { approvalReason, loadPolicy } from "@/lib/policy";
+import { ConflictError } from "@/lib/domain/types";
+import { isResponsable } from "@/lib/auth/types";
+import { audit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -17,7 +21,7 @@ import { notifyOfferPublished } from "@/lib/notify/dispatch";
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 const MAX_BYTES = 20 * 1024 * 1024;
 
-export type IntakeResult = { ok: true } | { ok: false; error: string };
+export type IntakeResult = { ok: true; pending?: string } | { ok: false; error: string };
 
 /* ---------- Nouvelle source : fichier ou texte collé ---------- */
 
@@ -202,8 +206,23 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
 
   try {
     const existing = item.offerId ? await r.getOffer(item.offerId) : undefined;
+    // Optimistic locking: the screen was built on a given version of the published line.
+    const seen = Number(form.get("version") ?? NaN);
+    if (existing && Number.isFinite(seen) && seen !== existing.version) throw new ConflictError("offer", existing.id, seen, existing.version);
     const offer = buildOffer({ ...item, draft }, { ...decision, channels }, existing);
-    await r.upsertOffer(offer);
+    // Four-eyes: outside the delegated window, an opérateur's publication waits for a responsable.
+    const reason = approvalReason(offer, existing, await loadPolicy());
+    if (reason && !isResponsable(desk)) {
+      const a = await r.createApproval({ kind: "offer_publish", entityId: offer.id, title: offer.title, payload: offer, reason: `${reason} · diffusion ${channels.join(", ") || "Guichet"} · ${decision.segment}`, requestedBy: desk.name });
+      await r.updateIntake(itemId, { draft });
+      await audit("approval.request", "approval", a.id, { after: { offerId: offer.id, reason }, reason });
+      await r.logEvent({ kind: "desk", offerId: existing?.id, html: `<b>${offer.title}</b> : publication proposée par ${desk.name}, en attente d'un responsable — ${reason}` });
+      revalidatePath("/desk/a-valider");
+      revalidatePath("/desk/approbations");
+      return { ok: true, pending: reason };
+    }
+    await r.upsertOffer(offer, { expectedVersion: existing?.version, by: desk.name, note: existing ? "Republication" : "Publication" });
+    await audit("offer.publish", "offer", offer.id, { before: existing, after: offer, reason: reason ?? undefined });
     await r.updateIntake(itemId, { draft, state: "publie", offerId: offer.id, publishedAt: offer.pricedAt });
     const priceTxt = offer.kind === "BTA" ? `taux ${fmtPct(offer.precountRate ?? 0, 2)}` : offer.kind === "RACHAT" ? "au pair" : `prix ${fmtPct(offer.pricePct ?? 0, 0)}`;
     await r.logEvent({

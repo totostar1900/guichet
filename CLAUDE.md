@@ -6,6 +6,7 @@
 - Types de produits, échéanciers, glossaire, sociétés, émetteurs : valeurs par défaut en code, surchargées par la table `reference` (desk › Référentiel). Le domaine lit `src/lib/registry.ts` (synchrone) ; toute entrée serveur hors rendu de page appelle `await loadRegistry()` d’abord.
 - Le modèle de données vit dans `src/lib/domain/types.ts` ET `supabase/migrations/*.sql` — modifier les deux ensemble, régénérer `supabase/seed.sql` avec `npm run seed:sql`.
 - Sans `.env.local`, le repository mémoire est utilisé (données de `src/data/seed.ts`).
+- Toute écriture métier passe par `audit()` (src/lib/audit.ts) avec avant / après ; les écritures d'offres passent `expectedVersion` ; les termes financiers passent par `approvalReason()` (src/lib/policy.ts) avant d'écrire.
 - Avant de conclure : `npm run typecheck && npm run lint && npm test`.
 
 <!-- BEGIN:nextjs-agent-rules -->

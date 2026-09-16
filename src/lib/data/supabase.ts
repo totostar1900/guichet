@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, Notification, Offer, StaffMember, Watch } from "@/lib/domain/types";
+import { createHash } from "node:crypto";
+import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type StaffMember, type Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -244,6 +245,10 @@ const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name 
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
 const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
+type AuditRow = { id: number; at: string; actor: string; actor_id: string | null; action: string; entity: string; entity_id: string; before: unknown; after: unknown; reason: string | null; ip: string | null; user_agent: string | null; prev_hash: string | null; hash: string };
+const toAudit = (r: AuditRow): AuditEntry => ({ id: String(r.id), at: r.at, actor: r.actor, actorId: u(r.actor_id), action: r.action, entity: r.entity, entityId: r.entity_id, before: r.before ?? undefined, after: r.after ?? undefined, reason: u(r.reason), ip: u(r.ip), userAgent: u(r.user_agent), prevHash: u(r.prev_hash), hash: r.hash });
+type ApprovalRow = { id: string; kind: Approval["kind"]; entity_id: string; title: string; payload: Offer; reason: string; requested_by: string; requested_at: string; decided_by: string | null; decided_at: string | null; decision: Approval["decision"] | null; note: string | null };
+const toApproval = (r: ApprovalRow): Approval => ({ id: r.id, kind: r.kind, entityId: r.entity_id, title: r.title, payload: r.payload, reason: r.reason, requestedBy: r.requested_by, requestedAt: r.requested_at, decidedBy: u(r.decided_by), decidedAt: u(r.decided_at), decision: u(r.decision), note: u(r.note) });
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
 type NotifRow = {
@@ -501,11 +506,71 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateIntake", error);
     return toIntake(data as IntakeRow);
   },
-  async upsertOffer(offer) {
-    const { data, error } = await db().from("offers").upsert(fromOffer(offer)).select("*").single();
-    if (error) fail("upsertOffer", error);
-    await db().from("offer_versions").upsert({ offer_id: offer.id, version: offer.version, price_pct: offer.pricePct ?? null, precount_rate: offer.precountRate ?? null, commission_pct: offer.commissionPct, min_titles: offer.minTitles ?? null }, { onConflict: "offer_id,version" });
-    return toOffer(data as OfferRow);
+  async upsertOffer(offer, opts = {}) {
+    let row: OfferRow;
+    if (opts.expectedVersion != null) {
+      // Optimistic locking: the update only lands if nobody moved the version meanwhile.
+      const { data, error } = await db().from("offers").update(fromOffer(offer)).eq("id", offer.id).eq("version", opts.expectedVersion).select("*").maybeSingle();
+      if (error) fail("upsertOffer", error);
+      if (!data) {
+        const { data: cur } = await db().from("offers").select("version").eq("id", offer.id).maybeSingle();
+        if (cur) throw new ConflictError("offer", offer.id, opts.expectedVersion, (cur as { version: number }).version);
+        const ins = await db().from("offers").insert(fromOffer(offer)).select("*").single();
+        if (ins.error) fail("upsertOffer", ins.error);
+        row = ins.data as OfferRow;
+      } else row = data as OfferRow;
+    } else {
+      const { data, error } = await db().from("offers").upsert(fromOffer(offer)).select("*").single();
+      if (error) fail("upsertOffer", error);
+      row = data as OfferRow;
+    }
+    const base = { offer_id: offer.id, version: offer.version, price_pct: offer.pricePct ?? null, precount_rate: offer.precountRate ?? null, commission_pct: offer.commissionPct, min_titles: offer.minTitles ?? null };
+    const { error: vErr } = await db().from("offer_versions").upsert({ ...base, snapshot: offer, published_by_name: opts.by ?? null, note: opts.note ?? null }, { onConflict: "offer_id,version" });
+    // Before migration 0019 the snapshot columns do not exist: keep the old shape.
+    if (vErr) await db().from("offer_versions").upsert(base, { onConflict: "offer_id,version" });
+    return toOffer(row);
+  },
+  async listOfferVersions(offerId) {
+    const { data, error } = await db().from("offer_versions").select("offer_id, version, published_at, published_by_name, note, snapshot").eq("offer_id", offerId).order("version", { ascending: false });
+    if (error) return [];
+    return (data as { offer_id: string; version: number; published_at: string; published_by_name: string | null; note: string | null; snapshot: Offer | null }[]).map((r) => ({ offerId: r.offer_id, version: r.version, publishedAt: r.published_at, publishedBy: u(r.published_by_name), note: u(r.note), snapshot: u(r.snapshot) }));
+  },
+  async logAudit(e) {
+    const { data: last } = await db().from("audit").select("hash").order("id", { ascending: false }).limit(1).maybeSingle();
+    const prevHash = (last as { hash: string } | null)?.hash;
+    const at = new Date().toISOString();
+    const hash = createHash("sha256").update((prevHash ?? "") + JSON.stringify({ at, ...e })).digest("hex");
+    const { data, error } = await db()
+      .from("audit")
+      .insert({ at, actor: e.actor, actor_id: e.actorId ?? null, action: e.action, entity: e.entity, entity_id: e.entityId, before: e.before ?? null, after: e.after ?? null, reason: e.reason ?? null, ip: e.ip ?? null, user_agent: e.userAgent ?? null, prev_hash: prevHash ?? null, hash })
+      .select("id")
+      .single();
+    if (error) fail("logAudit", error);
+    return { id: String((data as { id: number }).id), at, ...e, prevHash, hash };
+  },
+  async listAudit(filter = {}) {
+    let q = db().from("audit").select("*").order("id", { ascending: false }).limit(filter.limit ?? 100);
+    if (filter.entity) q = q.eq("entity", filter.entity);
+    if (filter.entityId) q = q.eq("entity_id", filter.entityId);
+    const { data, error } = await q;
+    if (error) return [];
+    return (data as AuditRow[]).map(toAudit);
+  },
+  async listApprovals(open = true) {
+    const q = db().from("approvals").select("*").order("requested_at", { ascending: false });
+    const { data, error } = open ? await q.is("decided_at", null) : await q.not("decided_at", "is", null).limit(100);
+    if (error) return [];
+    return (data as ApprovalRow[]).map(toApproval);
+  },
+  async createApproval(a) {
+    const { data, error } = await db().from("approvals").insert({ kind: a.kind, entity_id: a.entityId, title: a.title, payload: a.payload, reason: a.reason, requested_by: a.requestedBy }).select("*").single();
+    if (error) fail("createApproval", error);
+    return toApproval(data as ApprovalRow);
+  },
+  async decideApproval(id, decision, by, note) {
+    const { data, error } = await db().from("approvals").update({ decision, decided_by: by, decided_at: new Date().toISOString(), note: note ?? null }).eq("id", id).select("*").single();
+    if (error) fail("decideApproval", error);
+    return toApproval(data as ApprovalRow);
   },
 
   async listDocuments() {
