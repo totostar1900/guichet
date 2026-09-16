@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { BarChart, ShareBar } from "@/components/Charts";
 import { Info } from "@/components/Info";
 import { LineIdentity } from "@/components/LineIdentity";
-import { bondTerms } from "@/data/bond-terms";
-import { issuerBySlug, ISSUERS } from "@/data/issuers";
+import { bondTerms } from "@/lib/domain/status";
+import { issuerBySlug, loadIssuers } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { displayYield } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
@@ -16,13 +16,13 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
-  const i = issuerBySlug((await params).slug);
+  const i = await issuerBySlug((await params).slug);
   return { title: i ? `${i.shortName} — émetteur` : "Émetteur" };
 }
 
 export default async function EmetteurPage({ params }: Props) {
   const { slug } = await params;
-  const i = issuerBySlug(slug);
+  const i = await issuerBySlug(slug);
   if (!i) notFound();
   const now = new Date();
   const offers = (await repo().listOffers()).filter((o) => i.isins.includes(o.isin));
@@ -34,7 +34,7 @@ export default async function EmetteurPage({ params }: Props) {
   const growth = figs.length > 1 ? (latest.revenue / figs[figs.length - 2].revenue - 1) * 100 : null;
   const margin = latest.revenue ? (latest.netIncome / latest.revenue) * 100 : null;
   const revenueTerm = latest.revenueLabel.startsWith("Produit") ? "pnb" : "chiffre_affaires";
-  const others = ISSUERS.filter((x) => x.slug !== i.slug);
+  const others = (await loadIssuers()).filter((x) => x.slug !== i.slug);
   const alive = lines.filter((o) => displayYield(o).pct != null).length;
 
   return (

@@ -4,7 +4,7 @@ import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/d
 import type { Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { MarketTabs } from "@/components/MarketTabs";
-import { FAMILY_SEGMENT, offerFamily } from "@/lib/domain/status";
+import { familySegment, offerFamily } from "@/lib/domain/status";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export default async function FondsPage() {
 
   return (
     <>
-      <MarketTabs active="fonds" counts={{ all: others.length, primaire: others.filter((o) => FAMILY_SEGMENT[offerFamily(o)] === "primaire").length, secondaire: others.filter((o) => FAMILY_SEGMENT[offerFamily(o)] === "secondaire").length, fonds: funds.length }} />
+      <MarketTabs active="fonds" counts={{ all: others.length, primaire: others.filter((o) => familySegment(offerFamily(o)) === "primaire").length, secondaire: others.filter((o) => familySegment(offerFamily(o)) === "secondaire").length, fonds: funds.length }} />
       <div className={styles.head}>
         <div>
           <h1 className="display">Fonds communs de placement</h1>

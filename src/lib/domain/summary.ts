@@ -1,5 +1,6 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
-import { countdown, displayStatus, displayYield, FAMILY_SEGMENT, FAMILY_SHORT, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
+import { countdown, displayStatus, displayYield, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
+import { typeOf } from "@/lib/registry";
 import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
@@ -68,9 +69,9 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     st,
     status: statusLabel(o, st),
     statusClass: st,
-    kind: FAMILY_SHORT[offerFamily(o)],
+    kind: typeOf(o).short,
     family: offerFamily(o),
-    segment: FAMILY_SEGMENT[offerFamily(o)],
+    segment: typeOf(o).segment,
     title: o.title,
     subtitle: `${o.issuer}${o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · ${OP[o.operation]}` : ""}`,
     yieldPct: y,

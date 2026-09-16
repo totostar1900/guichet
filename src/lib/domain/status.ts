@@ -1,7 +1,11 @@
 import type { DisplayStatus, Offer } from "./types";
 import { amortCalc, type AmortInput, bondCalc, type BondInput, btaCalc, parseDate, yearsBetween } from "../finance";
 import { localIso } from "../format";
-import { bondTerms } from "@/data/bond-terms";
+import { enabledTypes, getRegistry, typeOf, type MarketSegment, type ProductType } from "@/lib/registry";
+export type { MarketSegment } from "@/lib/registry";
+
+/** Bond schedule on file for an ISIN (desk-editable reference data). */
+export const bondTerms = (isin: string) => getRegistry().bondTerms.get(isin);
 
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
   quoted: "Cotée",
@@ -168,45 +172,19 @@ export const KIND_LABEL: Record<Offer["kind"], string> = {
  * bond are both MARCHE offers but read very differently. Each family belongs to
  * one market segment — primary (new paper), secondary (already listed) or funds.
  */
-export type OfferFamily = "OTA" | "BTA" | "APE" | "IPO" | "RACHAT" | "ACTION_COTEE" | "OBLIGATION_COTEE" | "OPCVM";
-export type MarketSegment = "primaire" | "secondaire" | "fonds";
-
-export function offerFamily(o: Pick<Offer, "kind" | "instrument">): OfferFamily {
-  switch (o.kind) {
-    case "OTA":
-    case "BTA":
-    case "APE":
-    case "RACHAT":
-      return o.kind;
-    case "ACTIONS":
-      return "IPO";
-    case "FONDS":
-      return "OPCVM";
-    default:
-      return o.instrument === "obligation" ? "OBLIGATION_COTEE" : "ACTION_COTEE";
-  }
-}
-
-export const FAMILY_LABEL: Record<OfferFamily, string> = {
-  OTA: "OTA — Obligations du Trésor",
-  BTA: "BTA — Bons du Trésor",
-  APE: "Emprunts obligataires (APE)",
-  IPO: "Introductions en bourse",
-  RACHAT: "Rachats par le Trésor",
-  ACTION_COTEE: "Actions cotées",
-  OBLIGATION_COTEE: "Obligations cotées",
-  OPCVM: "Fonds (OPCVM)",
-};
-/** Short badge for a row. */
-export const FAMILY_SHORT: Record<OfferFamily, string> = { OTA: "OTA", BTA: "BTA", APE: "APE", IPO: "IPO", RACHAT: "Rachat", ACTION_COTEE: "Action", OBLIGATION_COTEE: "Obligation", OPCVM: "OPCVM" };
-export const FAMILY_SEGMENT: Record<OfferFamily, MarketSegment> = { OTA: "primaire", BTA: "primaire", APE: "primaire", IPO: "primaire", RACHAT: "primaire", ACTION_COTEE: "secondaire", OBLIGATION_COTEE: "secondaire", OPCVM: "fonds" };
+export type OfferFamily = string; // a product-type key
+export const offerFamily = (o: Pick<Offer, "kind" | "instrument" | "typeKey">): OfferFamily => typeOf(o).key;
+export const familyType = (key: string): ProductType => typeOf({ kind: "OTA", typeKey: key });
+export const familyLabel = (key: string): string => familyType(key).label;
+export const familyShort = (key: string): string => familyType(key).short;
+export const familySegment = (key: string): MarketSegment => familyType(key).segment;
+export const FAMILIES = (): string[] => enabledTypes().map((x) => x.key);
 export const SEGMENT_LABEL: Record<MarketSegment, string> = { primaire: "Marché primaire", secondaire: "Marché secondaire", fonds: "Gestion collective" };
 export const SEGMENT_HINT: Record<MarketSegment, string> = {
   primaire: "Titres neufs : vous souscrivez auprès de l'émetteur (Trésor, entreprise) pendant une fenêtre, à un prix fixé par adjudication ou par le desk.",
   secondaire: "Titres déjà cotés à la BVMAC : vous achetez ou vendez à un autre investisseur, au cours du jour, en séance.",
   fonds: "Parts de fonds communs de placement : vous souscrivez ou rachetez à la prochaine valeur liquidative.",
 };
-export const FAMILIES: OfferFamily[] = ["OTA", "BTA", "APE", "IPO", "RACHAT", "ACTION_COTEE", "OBLIGATION_COTEE", "OPCVM"];
 
 export const OPERATION_LABEL: Record<Offer["operation"], string> = {
   nouvelle_ligne: "Nouvelle ligne",

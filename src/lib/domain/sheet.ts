@@ -1,5 +1,6 @@
 import type { Offer } from "./types";
 import { displayYield, marketAmortInput, marketBondInput } from "./status";
+import { typeOf } from "@/lib/registry";
 import { amortCalc, bondCalc, type BondResult, btaCalc, btaAmountForBonds } from "../finance";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "../format";
 
@@ -113,27 +114,5 @@ export function offerReference(o: Offer, now = new Date()): OfferReference | und
 }
 
 export function offerRisks(o: Offer): [string, string][] {
-  if (o.kind === "FONDS")
-    return [
-      ["Valeur liquidative inconnue à l'ordre.", "Une souscription ou un rachat s'exécute à la prochaine VL calculée par la société de gestion, pas à celle affichée ; le nombre de parts n'est connu qu'après centralisation."],
-      ["Performance non garantie.", "Les performances passées ne préjugent pas des performances futures ; la VL peut baisser, y compris pour un fonds monétaire ou obligataire."],
-      ["Frais et liquidité.", "Les frais du fonds (entrée, sortie, gestion prélevée dans la VL) figurent dans son prospectus ; un rachat est réglé après la VL de rachat, selon la périodicité du fonds. Les parts sont inscrites à votre nom chez le dépositaire ; Purpose Capital n'est que distributeur."],
-    ];
-  if (o.kind === "MARCHE")
-    return [
-      ["Prix d'exécution.", "Le cours indiqué est le dernier connu ; votre ordre s'exécute au prix du marché ou à votre limite, en tout ou partie, selon la contrepartie disponible."],
-      ["Liquidité.", "Le marché secondaire régional est étroit : un ordre peut rester non exécuté plusieurs séances."],
-      ["Perte en capital.", "La valeur des titres varie ; céder avant l'échéance peut dégager une perte."],
-    ];
-  if (o.kind === "ACTIONS")
-    return [
-      ["Volatilité et liquidité.", "Le cours dépend de l'offre et de la demande sur un compartiment actions encore étroit ; la BVMAC borne les variations quotidiennes."],
-      ["Perte en capital.", "Comme tout actionnaire, l'investisseur peut perdre tout ou partie de sa mise."],
-      ["Dividende non garanti.", "Le dividende dépend des résultats et de la décision de l'assemblée."],
-    ];
-  return [
-    ["Crédit.", "L'émetteur est un État de la CEMAC ; coupons et capital dépendent de sa capacité à honorer sa dette."],
-    ["Allocation.", "Prix et volumes servis sont arrêtés par le Trésor : une soumission peut être servie à un autre prix, en partie, ou pas du tout."],
-    ["Liquidité.", "Conservé jusqu'au terme, le titre délivre le rendement calculé ; cédé avant, il se négocie au prix d'un secondaire encore étroit."],
-  ];
+  return typeOf(o).cautions;
 }

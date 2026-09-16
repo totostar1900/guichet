@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
 import { COUNTRY_CODE, type OfferSummary } from "@/lib/domain/summary";
+import { famVars } from "@/lib/registry";
 import styles from "./LineIdentity.module.css";
 
 /**
@@ -14,7 +15,9 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: 
     <div className={`${styles.id} ${size === "lg" ? styles.lg : size === "xl" ? styles.xl : ""}`}>
       <Tag className={styles.title}>{title}</Tag>
       <div className={styles.meta}>
-        <span className={`fam fam-${s.family}`}>{s.kind}</span>
+        <span className={`fam fam-${s.family}`} style={famVars(s.family) as React.CSSProperties}>
+          {s.kind}
+        </span>
         <span className="cc" title={o.countryName}>
           {COUNTRY_CODE[o.country]}
         </span>

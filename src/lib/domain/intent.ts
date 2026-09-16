@@ -1,4 +1,5 @@
 import type { DisplayStatus, IntentState, IntentType, Offer } from "./types";
+import { typeOf } from "@/lib/registry";
 import { isPast } from "./status";
 
 export const INTENT_LABEL: Record<IntentType, string> = {
@@ -32,6 +33,9 @@ export const INTENT_STATE_LABEL: Record<IntentState, string> = {
 
 /** Which intents make sense for an offer in a given state. First = default. */
 export function allowedIntents(o: Offer, s: DisplayStatus): IntentType[] {
+  // A desk-created type says what a client may do while the line is open; built-ins keep the rules below.
+  const t = typeOf(o);
+  if (!t.builtin) return (o.kind === "MARCHE" || o.kind === "FONDS" ? s === "quoted" : !isPast(s) && s !== "upcoming") ? [...new Set([...t.intentsOpen, "info" as const])] : ["info"];
   if (o.kind === "MARCHE") return s === "quoted" ? ["achat", "vente", "info"] : ["info"];
   if (o.kind === "FONDS") return s === "quoted" ? ["souscription", "rachat", "info"] : s === "on_request" ? ["info", "rappel"] : ["info"];
   if (o.kind === "RACHAT") return isPast(s) ? ["info"] : ["cession", "info"];

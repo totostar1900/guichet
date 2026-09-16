@@ -1,5 +1,6 @@
 import { Simulator } from "@/components/Simulator";
-import { GLOSSARY, type TermKey } from "@/lib/glossary";
+import { getRegistry } from "@/lib/registry";
+import type { TermKey } from "@/lib/glossary";
 import styles from "./page.module.css";
 
 export const metadata = { title: "Simulateur & repères" };
@@ -19,12 +20,15 @@ export default function SimulateurPage() {
         <h2>Repères</h2>
         <p className={styles.lead}>Les mots qui reviennent dans chaque offre, expliqués une fois pour toutes.</p>
         <div className={styles.gloss}>
-          {REPERES.map((k) => (
-            <div key={k}>
-              <b>{"long" in GLOSSARY[k] && GLOSSARY[k].long ? `${GLOSSARY[k].short} — ${GLOSSARY[k].long}` : GLOSSARY[k].short}</b>
-              {GLOSSARY[k].text}
-            </div>
-          ))}
+          {(() => {
+            const G = getRegistry().glossary;
+            return REPERES.map((k) => (
+              <div key={k}>
+                <b>{"long" in G[k] && G[k].long ? `${G[k].short} — ${G[k].long}` : G[k].short}</b>
+                {G[k].text}
+              </div>
+            ));
+          })()}
         </div>
       </div>
     </div>

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
-import { displayStatus, FAMILIES, FAMILY_LABEL, FAMILY_SEGMENT, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
+import { displayStatus, FAMILIES, familyLabel, familySegment, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketTabs } from "./MarketTabs";
 import { LineIdentity } from "./LineIdentity";
+import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
@@ -235,7 +236,7 @@ function List({ rows, grouped }: { rows: Row[]; grouped: boolean }) {
       {groups.flatMap((g) => [
         ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
         ...g.rows.map(({ o, s }) => (
-        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family})` }}>
+        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <div className={styles.rowMain}>
             <LineIdentity o={o} s={s} size="lg" />
             <div className={styles.rowStatus}>
@@ -319,7 +320,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const filterCount = kind.size + country.size + status.size + tenor.size + minYield.size + (segment ? 1 : 0);
   const segCount = useMemo(() => {
     const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
-    for (const o of offers) c[FAMILY_SEGMENT[offerFamily(o)]]++;
+    for (const o of offers) c[familySegment(offerFamily(o))]++;
     return c;
   }, [offers]);
 
@@ -330,7 +331,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       .filter((o) => {
         const st = displayStatus(o, now);
         const fam = offerFamily(o);
-        if (segment && FAMILY_SEGMENT[fam] !== segment) return false;
+        if (segment && familySegment(fam) !== segment) return false;
         if (kind.size && !kind.has(fam)) return false;
         if (country.size && !country.has(o.country)) return false;
         if (status.size && !status.has(normStatus(st))) return false;
@@ -344,7 +345,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           if (y == null || y < min) return false;
         }
         if (ql) {
-          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], FAMILY_LABEL[fam], o.fund?.manager ?? ""].join(" ").toLowerCase();
+          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ").toLowerCase();
           if (!hay.includes(ql)) return false;
         }
         return true;
@@ -397,7 +398,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           </label>
           <Dropdown
             label="Instrument"
-            items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES.filter((f) => FAMILY_SEGMENT[f] === sg).map((f) => [f, FAMILY_LABEL[f]] as [string, string])])}
+            items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyLabel(f)] as [string, string])])}
             selected={kind}
             onChange={setFilter("instrument")}
           />

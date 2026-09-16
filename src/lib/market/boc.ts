@@ -7,13 +7,14 @@ import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { prettyName } from "./names";
-import { companyByIsin } from "@/data/companies";
-import { bondTerms } from "@/data/bond-terms";
+import type { Company } from "@/data/companies";
+import { loadCompanies, loadRegistry } from "@/lib/reference";
+import { bondTerms } from "@/lib/domain/status";
 
 const COMPANY_DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
 /** The issuer's own filings at the BVMAC, newest first, for the fiche of a listed share. */
-function companyDocuments(isin: string): Offer["documents"] {
-  const c = companyByIsin(isin);
+function companyDocuments(isin: string, companies: Company[]): Offer["documents"] {
+  const c = companies.find((x) => x.isin === isin);
   if (!c) return [];
   return [...c.documents]
     .sort((a, b) => b.year - a.year)
@@ -157,7 +158,7 @@ const couponFromDesignation = (d: string): number | undefined => {
 };
 const maturityYear = (d: string): string | undefined => d.match(/\b(\d{4})\s*-\s*(\d{4})\b/)?.[2];
 
-export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): Offer {
+export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, companies: Company[] = []): Offer {
   const geo = isinCountry(q.isin);
   const isBond = q.instrument === "obligation";
   const source = `Cours du Bulletin Officiel de la Cote n° ${bulletinNo} du ${fmtDate(q.sessionDate)} (BVMAC).`;
@@ -192,7 +193,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer): 
   return {
     ...base,
     isin: q.isin,
-    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(q.sessionDate)} · PDF`, url: bocUrl(q.sessionDate) }, ...companyDocuments(q.isin), ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote" && !d.meta.startsWith("bvm-ac.org"))],
+    documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(q.sessionDate)} · PDF`, url: bocUrl(q.sessionDate) }, ...companyDocuments(q.isin, companies), ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote" && !d.meta.startsWith("bvm-ac.org"))],
     lastPrice: q.close,
     lastPriceOn: q.sessionDate,
     dividendPerShare: q.lastDividend ?? base.dividendPerShare,
@@ -313,6 +314,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     return { found: true, bulletin, created: [], refreshed: [], error: "En-tête non reconnu" };
   }
 
+  const [companies] = await Promise.all([loadCompanies(), loadRegistry()]); // exact bond schedules + issuer documents from the desk's reference data
   const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((o) => bondQuote(o, parsed))];
   // A NAV dated years away from the session, or absurd, is a mis-read line: keep it out of the history.
   const plausible = (n: FundNav): boolean => {
@@ -340,7 +342,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   for (const q of quotes) {
     const existing = byIsin.get(q.isin);
     if (existing && existing.lastPriceOn && existing.lastPriceOn > q.sessionDate && existing.priceSource === "boc") continue; // newer bulletin already applied
-    const next = offerFromQuote(q, parsed.bulletinNo, existing);
+    const next = offerFromQuote(q, parsed.bulletinNo, existing, companies);
     await r.upsertOffer(next);
     (existing ? refreshed : created).push(next.id);
   }

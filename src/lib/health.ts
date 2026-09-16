@@ -2,7 +2,7 @@ import "server-only";
 import { repo } from "@/lib/data";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
-import { bondTerms } from "@/data/bond-terms";
+import { bondTerms } from "@/lib/domain/status";
 
 /**
  * One glance at whether the machine is running: last bulletin, freshness of

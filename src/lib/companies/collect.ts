@@ -1,5 +1,6 @@
 import "server-only";
-import { COMPANIES, type DocKind } from "@/data/companies";
+import type { DocKind } from "@/data/companies";
+import { loadCompanies } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import type { IssuerDocument } from "@/lib/domain/market";
 import { saveSource } from "@/lib/intake/storage";
@@ -60,7 +61,7 @@ export async function collectIssuerDocuments(opts: { fetchFiles?: boolean } = {}
   if (!res.ok) throw new Error(`BVMAC a répondu ${res.status}`);
   const links = extractLinks(await res.text());
   const known = new Set((await r.listIssuerDocuments()).map((d) => d.sourceUrl));
-  const registry = new Set(COMPANIES.flatMap((c) => c.documents.map((d) => d.url)));
+  const registry = new Set((await loadCompanies()).flatMap((c) => c.documents.map((d) => d.url)));
   const added: IssuerDocument[] = [];
   const errors: string[] = [];
   let skipped = 0;

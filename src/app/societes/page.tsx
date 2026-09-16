@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { COMPANIES } from "@/data/companies";
-import { ISSUERS } from "@/data/issuers";
+import { loadCompanies, loadIssuers } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { analyse } from "@/lib/companies/analysis";
 import { COUNTRY_CODE } from "@/lib/domain/summary";
 import { Info } from "@/components/Info";
-import { GLOSSARY } from "@/lib/glossary";
+import { getRegistry } from "@/lib/registry";
 import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
 
@@ -17,6 +16,7 @@ export default async function SocietesPage() {
   const r = repo();
   const [latest, bulletins] = await Promise.all([r.latestQuotes(), r.listBulletins(1)]);
   const quotes = new Map(latest.filter((q) => q.instrument === "action").map((q) => [q.isin, q]));
+  const [COMPANIES, ISSUERS] = await Promise.all([loadCompanies(), loadIssuers()]);
   const rows = COMPANIES.map((c) => analyse(c, quotes.get(c.isin))).sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
   const totalCap = rows.reduce((s, a) => s + (a.marketCap ?? 0), 0);
   const signed = (v?: number | null, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
@@ -136,12 +136,15 @@ export default async function SocietesPage() {
       </div>
 
       <div className={styles.howto}>
-        {(["per", "rendement_dividende", "capitalisation", "ytd"] as const).map((k) => (
-          <div key={k}>
-            <b>{"long" in GLOSSARY[k] ? `${GLOSSARY[k].short} — ${GLOSSARY[k].long}` : GLOSSARY[k].short}</b>
-            {GLOSSARY[k].text}
-          </div>
-        ))}
+        {(() => {
+          const G = getRegistry().glossary;
+          return (["per", "rendement_dividende", "capitalisation", "ytd"] as const).map((k) => (
+            <div key={k}>
+              <b>{"long" in G[k] && G[k].long ? `${G[k].short} — ${G[k].long}` : G[k].short}</b>
+              {G[k].text}
+            </div>
+          ));
+        })()}
       </div>
       <p className={styles.note}>
         Les cours viennent du Bulletin Officiel de la Cote de la BVMAC ; les comptes des états financiers certifiés et des fiches signalétiques déposés par les sociétés sur bvm-ac.org. Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.

@@ -2,7 +2,7 @@ import { View } from "@react-pdf/renderer";
 import type { Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
 import type { BondResult } from "@/lib/finance";
-import { FAMILY_LABEL, type OfferFamily } from "@/lib/domain/status";
+import { familyLabel, type OfferFamily } from "@/lib/domain/status";
 import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { KV, Letter, Table, Text } from "./primitives";
 
@@ -31,7 +31,7 @@ const H2 = { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: NAVY, marginBo
 export function FicheOffre({ number, offer: o, summary: sm, family, status, reference, flows, settleOn, risks, now }: OfferSheetCtx) {
   return (
     <Letter heading={`Fiche · ${number}`}>
-      <Text style={{ fontSize: 8, color: "#6b7280", letterSpacing: 0.6 }}>{`${FAMILY_LABEL[family].toUpperCase()} · ${o.countryName.toUpperCase()} · ${status.toUpperCase()}`}</Text>
+      <Text style={{ fontSize: 8, color: "#6b7280", letterSpacing: 0.6 }}>{`${familyLabel(family).toUpperCase()} · ${o.countryName.toUpperCase()} · ${status.toUpperCase()}`}</Text>
       <Text style={{ fontSize: 17, fontFamily: "Helvetica-Bold", color: NAVY, marginTop: 3 }}>{o.title}</Text>
       <Text style={{ fontSize: 9, color: "#4b5563", marginTop: 2 }}>{`${sm.subtitle} · ISIN ${o.isin}`}</Text>
       <Text style={{ fontSize: 9, marginTop: 8, lineHeight: 1.4 }}>{o.blurb}</Text>

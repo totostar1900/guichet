@@ -1,5 +1,5 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer, Watch } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, Notification, Offer, ReferenceRow, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -20,6 +20,7 @@ interface Store {
   contacts: Contact[];
   notifications: Notification[];
   watches: Watch[];
+  reference: ReferenceRow[];
   clientFiles: ClientFile[];
   bulletins: MarketBulletin[];
   quotes: Quote[];
@@ -46,6 +47,7 @@ function store(): Store {
       contacts: structuredClone(SEED_CONTACTS),
       notifications: [],
       watches: [],
+      reference: [],
       clientFiles: [],
       bulletins: [],
       quotes: [],
@@ -211,6 +213,19 @@ export const memoryRepository: Repository = {
     if (c) c.whatsappOptIn = optIn;
     const f = store().clientFiles.find((x) => x.userId === id);
     if (f) f.consents.whatsappAt = optIn ? (f.consents.whatsappAt ?? nowIso()) : undefined;
+  },
+  async listReference(kind) {
+    return structuredClone(store().reference.filter((r) => r.kind === kind));
+  },
+  async upsertReference(kind, key, data, by) {
+    const rows = store().reference;
+    const i = rows.findIndex((r) => r.kind === kind && r.key === key);
+    const row: ReferenceRow = { kind, key, data: structuredClone(data), updatedAt: nowIso(), updatedBy: by };
+    if (i >= 0) rows[i] = row;
+    else rows.push(row);
+  },
+  async deleteReference(kind, key) {
+    store().reference = store().reference.filter((r) => !(r.kind === kind && r.key === key));
   },
   async listWatches(userId) {
     return structuredClone(store().watches.filter((w) => !userId || w.userId === userId));

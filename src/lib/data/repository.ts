@@ -1,4 +1,4 @@
-import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer, Watch } from "@/lib/domain/types";
+import type { Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewIntentInput, Notification, Offer, ReferenceRow, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
@@ -38,6 +38,10 @@ export interface Repository {
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
+  /** Reference data the desk edits in the app (product types, bond terms, companies, issuers, glossary). */
+  listReference(kind: string): Promise<ReferenceRow[]>;
+  upsertReference(kind: string, key: string, data: unknown, by?: string): Promise<void>;
+  deleteReference(kind: string, key: string): Promise<void>;
   /** Lines followed by clients (all of them for the daily alert, one client's for their page). */
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }): Promise<Watch>;

@@ -185,7 +185,7 @@ export async function renderActivityReport(period: Period): Promise<{ pdf: Buffe
 }
 
 /* ---------------- Rapport sur une société cotée ---------------- */
-import { companyByMnemo } from "@/data/companies";
+import { companyByMnemo } from "@/lib/reference";
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
 import { RapportSociete } from "./pdf/company-templates";
 import { FicheOffre } from "./pdf/offer-templates";
@@ -195,7 +195,7 @@ import { displayStatus, offerFamily, statusLabel } from "@/lib/domain/status";
 
 /** Company report over a chart period — same analysis as the page, rendered on demand. */
 export async function renderCompanyReport(mnemo: string, p: string): Promise<{ pdf: Buffer; number: string } | undefined> {
-  const c = companyByMnemo(mnemo);
+  const c = await companyByMnemo(mnemo);
   if (!c) return undefined;
   const history = (await repo().listQuotes(c.isin, 2000)).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
   const quote = history[history.length - 1];

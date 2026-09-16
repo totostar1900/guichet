@@ -4,8 +4,7 @@ import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
-import { companyByIsin } from "@/data/companies";
-import { issuerByIsin } from "@/data/issuers";
+import { companyByIsin, issuerByIsin } from "@/lib/reference";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
@@ -13,8 +12,8 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus, displayYield, FAMILY_SEGMENT, isPast, marketAmortInput, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
-import { bondTerms } from "@/data/bond-terms";
+import { displayStatus, displayYield, familySegment, isPast, marketAmortInput, marketBondInput, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { bondTerms } from "@/lib/domain/status";
 import { amortCalc } from "@/lib/finance";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
@@ -262,8 +261,10 @@ function Reference({ o }: { o: Offer }) {
 export default async function OfferPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
-  const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
   if (!o) notFound();
+  const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
+  const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
+  const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
   const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 60) : [];
   const st = displayStatus(o);
@@ -346,7 +347,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         </Link>
         <div className={styles.head}>
           <div className={styles.crumb}>
-            {SEGMENT_LABEL[FAMILY_SEGMENT[offerFamily(o)]]}
+            {SEGMENT_LABEL[familySegment(offerFamily(o))]}
             {o.isExample && <span className="tag-ex">exemple</span>}
           </div>
           <div className={styles.headRow}>
@@ -390,21 +391,21 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <p className={styles.note}>VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement. {o.fund?.distributed ? "" : "Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore — dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion."}</p>
           </section>
         )}
-        {o.kind === "MARCHE" && o.instrument === "action" && companyByIsin(o.isin) && (
+        {company && (
           <section className={styles.sec}>
             <h3>La société</h3>
             <p className={styles.note}>
-              {companyByIsin(o.isin)!.activity}{" "}
-              <Link href={`/societes/${companyByIsin(o.isin)!.mnemo.toLowerCase()}`}>Analyse complète : comptes certifiés, ratios, dividendes, rapport PDF →</Link>
+              {company.activity}{" "}
+              <Link href={`/societes/${company.mnemo.toLowerCase()}`}>Analyse complète : comptes certifiés, ratios, dividendes, rapport PDF →</Link>
             </p>
           </section>
         )}
-        {o.kind === "MARCHE" && o.instrument === "obligation" && issuerByIsin(o.isin) && (
+        {issuer && (
           <section className={styles.sec}>
             <h3>L&apos;émetteur</h3>
             <p className={styles.note}>
-              {issuerByIsin(o.isin)!.activity}{" "}
-              <Link href={`/emetteurs/${issuerByIsin(o.isin)!.slug}`}>Profil de l&apos;émetteur : comptes publiés, actionnariat, autres emprunts →</Link>
+              {issuer.activity}{" "}
+              <Link href={`/emetteurs/${issuer.slug}`}>Profil de l&apos;émetteur : comptes publiés, actionnariat, autres emprunts →</Link>
             </p>
           </section>
         )}

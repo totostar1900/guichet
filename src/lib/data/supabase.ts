@@ -56,6 +56,8 @@ type OfferRow = {
   price_source: Offer["priceSource"] | null;
   hidden: boolean;
   fund: Offer["fund"] | null;
+  type_key: string | null;
+  extra: Record<string, string> | null;
   version: number;
   priced_at: string | null;
   result_line: string | null;
@@ -133,6 +135,8 @@ function toOffer(r: OfferRow): Offer {
     priceSource: u(r.price_source),
     hidden: r.hidden || undefined,
     fund: u(r.fund),
+    typeKey: u(r.type_key),
+    extra: u(r.extra),
     version: r.version,
     pricedAt: u(r.priced_at),
     resultLine: u(r.result_line),
@@ -200,7 +204,7 @@ function fromOffer(o: Offer): OfferRow {
     price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
     min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
     shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
-    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, type_key: o.typeKey ?? null, extra: o.extra ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
   };
 }
 
@@ -535,6 +539,22 @@ export const supabaseRepository: Repository = {
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
     if (error) fail("setContactOptIn", error);
+  },
+  async listReference(kind) {
+    const { data, error } = await db().from("reference").select("*").eq("kind", kind).order("key");
+    if (error) {
+      if (/reference/.test(error.message)) return []; // migration 0016 not applied yet
+      fail("listReference", error);
+    }
+    return (data as { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null }[]).map((r) => ({ kind: r.kind, key: r.key, data: r.data, updatedAt: r.updated_at, updatedBy: u(r.updated_by) }));
+  },
+  async upsertReference(kind, key, data, by) {
+    const { error } = await db().from("reference").upsert({ kind, key, data, updated_at: new Date().toISOString(), updated_by: by ?? null }, { onConflict: "kind,key" });
+    if (error) fail("upsertReference", error);
+  },
+  async deleteReference(kind, key) {
+    const { error } = await db().from("reference").delete().eq("kind", kind).eq("key", key);
+    if (error) fail("deleteReference", error);
   },
   async listWatches(userId) {
     let q = db().from("watchlist").select("*").order("created_at", { ascending: false });

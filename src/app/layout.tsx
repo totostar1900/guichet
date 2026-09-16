@@ -8,6 +8,8 @@ import { NavTabs } from "@/components/NavTabs";
 import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
+import { RegistryProvider } from "@/components/RegistryProvider";
+import { loadRegistry } from "@/lib/reference";
 
 // One family for everything — display, text and figures — with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
@@ -19,10 +21,11 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const session = await getSession();
+  const [session, registry] = await Promise.all([getSession(), loadRegistry()]);
   return (
     <html lang="fr" className={ui.variable}>
       <body>
+        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary}>
         <header className={styles.top}>
           <div className={styles.topIn}>
             <Link className={styles.brand} href="/">
@@ -43,6 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <main className={styles.main}>{children}</main>
+        </RegistryProvider>
         <footer className={styles.footer}>
           <p>
             <b>{COMPANY.legalName}</b>, {COMPANY.licence}. {COMPANY.address} · {COMPANY.phone} · {COMPANY.email}

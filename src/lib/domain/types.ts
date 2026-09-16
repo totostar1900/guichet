@@ -73,6 +73,10 @@ export interface OfferDocument {
 export interface Offer {
   id: string;
   kind: OfferKind;
+  /** Product type configured by the desk (registry key); the built-in family of kind when absent. */
+  typeKey?: string;
+  /** Free facts declared by the product type (e.g. "Garantie", "Notation"). */
+  extra?: Record<string, string>;
   operation: OfferOperation;
   country: Country;
   countryName: string;
@@ -310,4 +314,13 @@ export interface Notification {
   error?: string;
   createdAt: string;
   sentAt?: string;
+}
+
+/** A desk-editable reference record (product type, bond schedule, company, issuer, glossary term). */
+export interface ReferenceRow<T = unknown> {
+  kind: string;
+  key: string;
+  data: T;
+  updatedAt: string;
+  updatedBy?: string;
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { GLOSSARY, type TermKey } from "@/lib/glossary";
+import type { TermKey } from "@/lib/glossary";
+import { getRegistry } from "@/lib/registry";
 import styles from "./Info.module.css";
 
 /**
@@ -11,7 +12,7 @@ import styles from "./Info.module.css";
  * sticky header can clip it; it flips under the button when there is no room above.
  */
 export function Info({ term, text, label, subtle }: { term?: TermKey; text?: string; label?: string; subtle?: boolean }) {
-  const t = term ? GLOSSARY[term] : undefined;
+  const t = term ? getRegistry().glossary[term] : undefined;
   const body = text ?? t?.text ?? "";
   const title = label ?? (t ? ("long" in t && t.long ? `${t.short} — ${t.long}` : t.short) : "");
   const btn = useRef<HTMLButtonElement>(null);
@@ -92,7 +93,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
 export function Term({ term, children }: { term: TermKey; children?: React.ReactNode }) {
   return (
     <span className={styles.term}>
-      {children ?? GLOSSARY[term].short}
+      {children ?? getRegistry().glossary[term]?.short}
       <Info term={term} />
     </span>
   );

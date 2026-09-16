@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BarChart, LineChart, ShareBar } from "@/components/Charts";
-import { companyByMnemo } from "@/data/companies";
+import { companyByMnemo } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
 import { COUNTRY_CODE } from "@/lib/domain/summary";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ mnemo: string }>; searchParams: Promise<{ p?: string }> };
 
 export async function generateMetadata({ params }: Props) {
-  const c = companyByMnemo((await params).mnemo);
+  const c = await companyByMnemo((await params).mnemo);
   return { title: c ? `${c.shortName} — analyse` : "Société" };
 }
 
@@ -24,7 +24,7 @@ const DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_
 
 export default async function SocietePage({ params, searchParams }: Props) {
   const [{ mnemo }, sp] = await Promise.all([params, searchParams]);
-  const c = companyByMnemo(mnemo);
+  const c = await companyByMnemo(mnemo);
   if (!c) notFound();
   const p = PERIODS.some(([k]) => k === sp.p) ? (sp.p as string) : "ytd";
   const r = repo();
