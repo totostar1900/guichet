@@ -349,7 +349,12 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </div>
           <div className={styles.headRow}>
             <LineIdentity o={o} s={summary} size="xl" as="h1" />
-            <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
+            <div className={styles.headActions}>
+              <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
+              <a className="btn sm" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
+                Fiche PDF
+              </a>
+            </div>
           </div>
         </div>
 

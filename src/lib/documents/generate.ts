@@ -188,6 +188,10 @@ export async function renderActivityReport(period: Period): Promise<{ pdf: Buffe
 import { companyByMnemo } from "@/data/companies";
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
 import { RapportSociete } from "./pdf/company-templates";
+import { FicheOffre } from "./pdf/offer-templates";
+import { offerReference, offerRisks } from "@/lib/domain/sheet";
+import { summarize } from "@/lib/domain/summary";
+import { displayStatus, offerFamily, statusLabel } from "@/lib/domain/status";
 
 /** Company report over a chart period — same analysis as the page, rendered on demand. */
 export async function renderCompanyReport(mnemo: string, p: string): Promise<{ pdf: Buffer; number: string } | undefined> {
@@ -202,5 +206,18 @@ export async function renderCompanyReport(mnemo: string, p: string): Promise<{ p
   const now = new Date();
   const number = `PC-SOC-${c.mnemo}-${now.toISOString().slice(0, 10).replace(/-/g, "")}`;
   const pdf = await renderToBuffer(el(createElement(RapportSociete, { number, company: c, analysis: a, quotes: slice, period, periodLabel: PERIODS.find(([k]) => k === key)?.[1] ?? key, periodText: period ? periodComment(period, c) : undefined, now })));
+  return { pdf, number };
+}
+
+/** Fiche PDF of one Guichet line — the page's content, laid out to be sent. */
+export async function renderOfferSheet(id: string): Promise<{ pdf: Buffer; number: string } | undefined> {
+  const o = await repo().getOffer(id);
+  if (!o) return undefined;
+  const now = new Date();
+  const st = displayStatus(o, now);
+  const sm = summarize(o, now);
+  const ref = offerReference(o, now);
+  const number = `PC-FICHE-${o.id.toUpperCase().slice(0, 24)}-${now.toISOString().slice(0, 10).replace(/-/g, "")}`;
+  const pdf = await renderToBuffer(el(createElement(FicheOffre, { number, offer: o, summary: sm, family: offerFamily(o), status: statusLabel(o, st), reference: ref ? { title: ref.title, rows: ref.rows } : undefined, flows: ref?.flows, settleOn: ref?.settleOn, risks: offerRisks(o), now })));
   return { pdf, number };
 }
