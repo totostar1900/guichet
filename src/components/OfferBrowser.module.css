@@ -13,6 +13,26 @@
   margin: -18px -20px 0;
   padding: 14px 20px 10px;
   border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.wrap > * {
+  min-width: 0;
+}
+@media (max-width: 820px) {
+  .top {
+    position: static;
+    margin: -14px -14px 0;
+    padding: 10px 14px 8px;
+  }
+  .table th {
+    position: static;
+  }
+  .tableWrap {
+    overflow-x: auto;
+  }
+  .line {
+    min-width: 220px;
+  }
 }
 
 /* ---------- toolbar ---------- */
@@ -462,5 +482,25 @@
   }
   .line {
     max-width: 240px;
+  }
+}
+@media (max-width: 640px) {
+  .meta {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .meta > span:first-child {
+    flex: 1 1 100%;
+  }
+  .groupToggle {
+    margin-left: 0;
+  }
+  .sortSel {
+    margin-left: auto;
+  }
+}
+@media (max-width: 820px) {
+  .table th {
+    position: static;
   }
 }

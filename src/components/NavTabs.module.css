@@ -20,9 +20,23 @@
 }
 @media (max-width: 640px) {
   .tabs {
-    margin-left: 0;
+    order: 10;
+    flex: 1 0 100%;
+    margin-left: -14px;
+    margin-right: -14px;
+    padding: 0 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
   .tab {
-    padding: 12px 10px;
+    padding: 10px 8px;
+    white-space: nowrap;
+    flex: none;
+    font-size: 0.86rem;
   }
 }

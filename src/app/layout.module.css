@@ -70,7 +70,21 @@
 }
 @media (max-width: 640px) {
   .topIn {
-    gap: 10px;
+    gap: 0 10px;
     flex-wrap: wrap;
+    padding: 0 14px;
+    min-height: 0;
+  }
+  .brand {
+    padding: 10px 0 6px;
+  }
+  .brand span {
+    display: none;
+  }
+  .right {
+    padding: 8px 0 6px;
+  }
+  .main {
+    padding: 14px 14px 48px;
   }
 }
