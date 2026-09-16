@@ -20,7 +20,7 @@ const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];
 
 export default async function DeskPage() {
   const r = repo();
-  const [offers, intents, events, notifications] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20)]);
+  const [offers, intents, events, notifications, approvals] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20), r.listApprovals(true)]);
   const now = new Date();
   const byId = new Map(offers.map((o) => [o.id, o]));
 
@@ -44,7 +44,7 @@ export default async function DeskPage() {
   return (
     <>
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
-      <DeskNav current="/desk" />
+      <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
 
       <div className={styles.kpis}>
         <div className={`${styles.kpi} ${styles.hot}`}>
