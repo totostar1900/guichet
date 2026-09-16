@@ -22,6 +22,7 @@ const TCHAD = "Fiche signalétique État du Tchad, 25/08/2026";
 const ALIOS = "Fiche signalétique Alios Finance Cameroun, 17/08/2026";
 const ACEP = "Fiche signalétique ACEP Cameroun, 25/08/2026";
 const SNPC = "Fiche signalétique SNPC, 31/12/2025";
+const BDEAC = "États financiers IFRS 2025 de la BDEAC, note 19 (emprunts), mai 2026";
 
 export const BOND_TERMS: BondTerms[] = [
   // État du Gabon
@@ -58,6 +59,13 @@ export const BOND_TERMS: BondTerms[] = [
   { isin: "CM0000020628", maturityOn: "2030-08-07", periodsPerYear: 4, source: ALIOS }, // ALIOS-06 7 % BRUT 2025-2030
   // SNPC
   { isin: "CG0000020584", maturityOn: "2029-12-31", periodsPerYear: 1, source: SNPC }, // SNPC 6,5 % NET 2024-2029
+  // BDEAC — two-year grace then equal annual instalments; the nominal restant printed in the BOC confirms it
+  { isin: "CG0000020220", maturityOn: "2027-12-31", periodsPerYear: 1, source: BDEAC }, // BDEAC 5,45 % NET 2020-2027
+  { isin: "CG0000020261", maturityOn: "2028-12-08", periodsPerYear: 1, source: BDEAC }, // BDEAC 5,6 % NET 2021-2028
+  { isin: "CG0000020329", maturityOn: "2029-12-30", periodsPerYear: 1, source: BDEAC }, // BDEAC 6 % NET 2022-2029
+  { isin: "CG0000020444", maturityOn: "2027-03-24", periodsPerYear: 1, source: BDEAC }, // BDEAC 4,70 % NET 2024-2027
+  { isin: "CG0000020436", maturityOn: "2029-03-24", periodsPerYear: 1, graceUntil: "2026-03-24", source: BDEAC }, // BDEAC 5,95 % NET 2024-2029
+  { isin: "CG0000020469", maturityOn: "2031-03-24", periodsPerYear: 1, graceUntil: "2026-03-24", source: BDEAC }, // BDEAC 6,20 % NET 2024-2031
 ];
 
 const BY_ISIN = new Map(BOND_TERMS.map((t) => [t.isin, t]));

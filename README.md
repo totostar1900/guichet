@@ -156,4 +156,4 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 
 ### Échéanciers des obligations cotées
 
-`src/data/bond-terms.ts` porte, par ISIN, la date d'échéance exacte, la périodicité et le différé d'amortissement lus sur les fiches signalétiques publiées par la BVMAC (Espace émetteurs › Émetteurs obligations, images JPG). Le rendement actuariel d'une ligne cotée se calcule alors sur son vrai échéancier (`amortCalc`) ; sans fiche, il reste calculé in fine au 31 décembre de l'année imprimée au BOC et signalé « ≈ ». À mettre à jour à chaque nouvelle fiche (BDEAC et État du Congo manquent encore).
+`src/data/bond-terms.ts` porte, par ISIN, la date d'échéance exacte, la périodicité et le différé d'amortissement lus sur les fiches signalétiques publiées par la BVMAC (Espace émetteurs › Émetteurs obligations, images JPG). Le rendement actuariel d'une ligne cotée se calcule alors sur son vrai échéancier (`amortCalc`) ; sans fiche, il reste calculé in fine au 31 décembre de l'année imprimée au BOC et signalé « ≈ ». À mettre à jour à chaque nouvelle fiche (l'État du Congo — EOCG 2021-2026 — manque encore).
