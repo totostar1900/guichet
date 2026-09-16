@@ -211,10 +211,17 @@ export const memoryRepository: Repository = {
     if (f) f.consents.whatsappAt = optIn ? (f.consents.whatsappAt ?? nowIso()) : undefined;
   },
   async updateContact(id, patch) {
-    const c = store().contacts.find((x) => x.id === id);
-    if (!c) return;
+    let c = store().contacts.find((x) => x.id === id);
+    if (!c) {
+      // First contact from this client: create the record (Supabase has a profile row from sign-up).
+      c = { id, name: patch.name ?? id, segment: "", whatsappOptIn: false };
+      store().contacts.push(c);
+    }
     if (patch.name) c.name = patch.name;
-    if (patch.phone) c.phone = patch.phone;
+    if (patch.phone) {
+      c.phone = patch.phone;
+      c.whatsappOptIn = true; // giving the number on the form is the consent
+    }
     if (patch.email) c.email = patch.email;
   },
   async listNotifications(limit = 50) {
