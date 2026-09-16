@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { repo } from "@/lib/data";
 import { answerInbound, botAvailable } from "@/lib/bot/reply";
-import { sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
+import { fetchWhatsAppMedia, sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
+import { audit } from "@/lib/audit";
+import { ingestSource, trustedSender } from "@/lib/intake/ingest";
 
 /**
  * Meta WhatsApp Cloud API webhook.
@@ -17,7 +19,8 @@ export async function GET(req: NextRequest) {
   return new NextResponse("Forbidden", { status: 403 });
 }
 
-type Inbound = { entry?: { changes?: { value?: { messages?: { from: string; type: string; text?: { body: string }; button?: { text: string }; interactive?: { button_reply?: { title: string }; list_reply?: { title: string } } }[]; statuses?: { id: string; status: string; errors?: { title: string }[] }[] } }[] }[] };
+type Media = { id: string; mime_type?: string; filename?: string; caption?: string };
+type Inbound = { entry?: { changes?: { value?: { messages?: { from: string; type: string; text?: { body: string }; button?: { text: string }; interactive?: { button_reply?: { title: string }; list_reply?: { title: string } }; document?: Media; image?: Media }[]; statuses?: { id: string; status: string; errors?: { title: string }[] }[] } }[] }[] };
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as Inbound;
@@ -26,6 +29,12 @@ export async function POST(req: NextRequest) {
     for (const change of entry.changes ?? []) {
       const v = change.value;
       for (const m of v?.messages ?? []) {
+        // A document or a photo: from a staff phone it is a source for the desk queue; from a client, a piece the desk is told about.
+        const media = m.document ?? m.image;
+        if (media && (m.type === "document" || m.type === "image")) {
+          await handleMedia(m.from, media, m.type);
+          continue;
+        }
         const text = m.text?.body ?? m.button?.text ?? m.interactive?.button_reply?.title ?? m.interactive?.list_reply?.title ?? `(${m.type})`;
         await r.logEvent({ kind: "intent", html: `<b>WhatsApp entrant</b> de +${m.from} : « ${text.slice(0, 200).replace(/</g, "&lt;")} »` });
         const reply = await handleInbound(m.from, text);
@@ -44,6 +53,31 @@ export async function POST(req: NextRequest) {
     }
   }
   return NextResponse.json({ ok: true });
+}
+
+/** Staff numbers (profiles with desk access) and INTAKE_TRUSTED_SENDERS feed the queue; anyone else is only logged. */
+async function handleMedia(from: string, media: Media, type: "document" | "image"): Promise<void> {
+  const r = repo();
+  const digits = from.replace(/[^\d]/g, "");
+  const staff = (await r.listStaff()).find((s) => s.phone && s.phone.replace(/[^\d]/g, "") === digits);
+  const trusted = Boolean(staff) || trustedSender(`+${digits}`);
+  const label = `${staff ? staff.name : `+${from}`} · WhatsApp`;
+  if (!trusted) {
+    await r.logEvent({ kind: "intent", html: `<b>WhatsApp entrant</b> de +${from} : ${type === "image" ? "une photo" : `un document${media.filename ? ` (${media.filename})` : ""}`}${media.caption ? ` — « ${media.caption.slice(0, 120).replace(/</g, "&lt;")} »` : ""} — non repris (numéro hors équipe)` });
+    return;
+  }
+  if (!whatsappConfigured()) {
+    await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} non téléchargée (WHATSAPP_TOKEN absent)` });
+    return;
+  }
+  try {
+    const { bytes, mimeType } = await fetchWhatsAppMedia(media.id);
+    const res = await ingestSource({ title: media.caption || media.filename, fromLabel: label, hint: media.caption, file: { bytes, mimeType: media.mime_type ?? mimeType, name: media.filename ?? `whatsapp.${type === "image" ? "jpg" : "pdf"}` }, trusted: true });
+    if (res.ok) await audit("intake.create", "intake", res.item.id, { after: { from: label, channel: "whatsapp", file: media.filename }, actor: staff?.email ?? label });
+    else await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} refusée — ${res.error}` });
+  } catch (e) {
+    await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} non reprise — ${e instanceof Error ? e.message : "erreur"}` });
+  }
 }
 
 /** Keywords first (opt-out / opt-in), then the robot when it is enabled. */

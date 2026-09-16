@@ -1,0 +1,95 @@
+# Guichet — cahier d'exploitation
+
+Ce que l'équipe fait au quotidien, ce qui tourne tout seul, et quoi faire quand ça coince. Aucune de ces opérations ne demande de code. Les identifiants (Supabase, Vercel, Meta, Resend) restent entre vos mains.
+
+## 1. Qui fait quoi
+
+| Niveau | Peut | Ne peut pas |
+| --- | --- | --- |
+| **Client** | lire le Guichet, déclarer des intentions, suivre des lignes, ouvrir un compte | voir le desk |
+| **Opérateur desk** | valider et publier (dans la fenêtre déléguée), traiter les intentions, tenir le référentiel, saisir des cours, générer des documents | approuver hors fenêtre, gérer l'équipe, modifier la fenêtre |
+| **Responsable** | tout ce qui précède + approuver / refuser (desk › Approbations), gérer l'équipe (desk › Équipe), régler la fenêtre déléguée | approuver sa propre proposition, modifier son propre niveau |
+| **Système** | crons (bulletin, coupons, suivi, point du matin, émetteurs), robot WhatsApp, courriel entrant | — (jeton `CRON_SECRET` / clé service, pas un utilisateur) |
+
+Second facteur : obligatoire pour tout accès desk. Première entrée → QR à scanner avec une application d'authentification ; ensuite un code à 6 chiffres à chaque connexion.
+
+## 2. La journée type
+
+| Heure (Yaoundé) | Quoi | Qui |
+| --- | --- | --- |
+| 07:30 | **Point du matin** arrive par e-mail (clôtures du jour, intentions de la nuit, en attente, bulletin, santé) | système → desk |
+| 08:00 | desk › **Carnet du jour** : confirmer les intentions reçues, rappeler les appétits | opérateur |
+| 08:15 | desk › **À valider** : sources arrivées par courriel / WhatsApp, extraction déjà faite ; corriger, cocher la liste de contrôle, publier | opérateur (relecture par un collègue si demandé) |
+| dans la journée | desk › **Approbations** : décider ce qui est hors fenêtre | responsable |
+| 19:30 | **Bulletin BVMAC** ingéré automatiquement (cours, VL) ; alerte e-mail si un contrôle passe au rouge | système |
+| 08:15 (lendemain) | desk › **Santé** si le point du matin signale un point orange / rouge | opérateur |
+
+## 3. Publier une ligne, pas à pas
+
+1. La source arrive seule (courriel à la boîte d'entrée, document WhatsApp d'un membre de l'équipe) ou vous la déposez (À valider › + Nouvelle source).
+2. L'extraction propose un brouillon ; les champs en orange sont à vérifier, en rouge absents.
+3. Choisissez le **type de produit** (il fixe les points d'attention, la liste de contrôle et les champs libres).
+4. Besoin d'un second regard ? **Demander une relecture** avec une note : le brouillon passe « en revue », un collègue publie ou renvoie.
+5. Fixez prix / taux et ticket minimum ; cochez la liste de contrôle ; **Publier et diffuser**.
+6. Hors fenêtre déléguée : la publication part en **Approbations** ; un responsable (autre que vous) l'approuve → publication et diffusion.
+7. Erreur après coup ? desk › ligne › **Historique** : comparer les versions, **restaurer** une version (motif), ou **retirer** la ligne. Rien n'est jamais supprimé.
+
+## 4. Ce que chaque page contrôle
+
+- **Référentiel** : types de produits, échéanciers, glossaire, sociétés, émetteurs. « Valeur par défaut » = livré avec l'application ; « modifié par le desk » = votre version prend le dessus ; « revenir aux valeurs par défaut » l'efface.
+- **Journal** : la piste d'audit — qui, quoi, avant / après, motif, adresse. « Chaîne intègre » doit toujours être vert ; sinon, prévenez le responsable et gardez une capture.
+- **Équipe** : donner / retirer l'accès. La personne doit s'être connectée une fois au Guichet avant. `DESK_EMAILS` ne sert qu'au tout premier responsable.
+- **Approbations** : file des propositions hors fenêtre et réglage de la fenêtre (prix OTA/APE, taux BTA, écart de cours, frais de fonds).
+
+## 5. Brancher la boîte d'entrée (courriels → À valider)
+
+Le point d'entrée est `POST https://<domaine>/api/inbound/email` avec `Authorization: Bearer <INBOUND_SECRET>`. Il accepte un message brut (`Content-Type: message/rfc822`) ou un JSON `{ from, subject, text, attachments:[{ filename, contentType, contentBase64 }] }`. Chaque PDF / image devient une source ; un expéditeur de `INTAKE_TRUSTED_SENDERS` (domaines, adresses, numéros) arrive « officiel ».
+
+Option gratuite, sans serveur à gérer — **Cloudflare Email Routing** sur votre domaine :
+
+1. Cloudflare › Email › Email Routing : activer, créer l'adresse `intake@<domaine>`.
+2. Workers › créer un Worker avec ce code, variables `GUICHET_URL` et `INBOUND_SECRET` :
+
+```js
+export default {
+  async email(message, env) {
+    const raw = await new Response(message.raw).arrayBuffer();
+    const r = await fetch(`${env.GUICHET_URL}/api/inbound/email`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${env.INBOUND_SECRET}`, "content-type": "message/rfc822" },
+      body: raw,
+    });
+    if (!r.ok) message.setReject(`Guichet a refusé le message (${r.status})`);
+  },
+};
+```
+
+3. Email Routing › Routes : `intake@<domaine>` → *Send to a Worker* → ce Worker.
+4. Vercel : ajouter `INBOUND_SECRET` (même valeur) et `INTAKE_TRUSTED_SENDERS`, redéployer.
+5. Test : envoyez un PDF de communiqué à `intake@<domaine>` ; il apparaît dans À valider en moins d'une minute.
+
+WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un document ou une photo envoyés au numéro de la société **par un membre de l'équipe** (numéro renseigné dans son profil) devient une source ; d'un client, il est seulement signalé dans le flux.
+
+## 6. Mettre à jour l'application sans casser la production
+
+- Chaque `git push` sur `master` déploie la production. Toute autre branche déploie une **prévisualisation** (URL `guichet-git-<branche>-….vercel.app`, protégée par connexion Vercel) : c'est là qu'on regarde avant de fusionner.
+- Règle : une modification = une branche = une prévisualisation regardée par un responsable = fusion sur `master`. Sur GitHub, *Settings › Branches › Add rule* sur `master` : « Require a pull request before merging » (1 relecteur) rend la règle obligatoire.
+- Les migrations SQL nouvelles (`supabase/migrations/00NN_*.sql`) se jouent à la main dans Supabase › SQL Editor **avant** de fusionner le code qui les utilise. Une valeur d'enum (`alter type … add value`) se joue seule, dans son propre run.
+- Retour arrière : Vercel › Deployments › déploiement précédent › *Promote to Production* (30 secondes). Les données ne sont pas touchées.
+
+## 7. Quand ça coince
+
+| Symptôme | Quoi faire |
+| --- | --- |
+| « Modifié entre-temps (version n) » à l'enregistrement | Quelqu'un a enregistré avant vous : rechargez, relisez, recommencez. Rien n'a été écrasé. |
+| Point du matin absent | desk › Santé (le cron a-t-il tourné ?), puis Vercel › Cron Jobs › `point` › Run. E-mail non configuré : le point est quand même dans le flux du desk. |
+| Bulletin non ingéré | desk › Marché › Ingérer le bulletin (date du jour). Le site BVMAC peut être en retard : réessayer plus tard, ou déposer le PDF. |
+| Un membre a perdu son téléphone | Équipe › retirer l'accès, puis le redonner : il réactive son second facteur à la connexion suivante. |
+| Chaîne d'audit « rompue » | Ne rien modifier ; prévenir le responsable ; comparer avec Supabase › Table `audit` (la table refuse toute modification, un écart signale une intervention directe en base). |
+| Publication bloquée « hors fenêtre » | Normal : un responsable décide dans Approbations. Si la fenêtre est trop étroite, le responsable l'élargit (Approbations › Fenêtre déléguée). |
+| Vercel : build rouge après un push | Déploiement précédent reste en ligne. Ouvrir le log de build, corriger, repousser ; ou *Promote* le précédent. |
+| Supabase en pause (plan gratuit, inactivité) | Dashboard › *Restore project*. Les crons quotidiens l'empêchent normalement. |
+
+## 8. Variables d'environnement (Vercel › Settings › Environment Variables)
+
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`, `DESK_EMAILS` (amorçage seulement), `DESK_MFA` (vide = obligatoire), `INBOUND_SECRET`, `INTAKE_TRUSTED_SENDERS`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY` + `EMAIL_FROM`, `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` + `WHATSAPP_VERIFY_TOKEN`, `BOT_ENABLED`, `SETTLEMENT_BANK` + `SETTLEMENT_IBAN`. Voir `.env.example` pour le rôle de chacune. Après un changement : *Redeploy*.

@@ -11,86 +11,31 @@ import { z } from "zod";
 import { kindForEngine, typeByKey } from "@/lib/registry";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import type { Confidence, IntakeSource, OfferDraft } from "@/lib/domain/types";
+import type { Confidence, OfferDraft } from "@/lib/domain/types";
 import { fmtPct } from "@/lib/format";
-import { emptyDraft, extractionAvailable, extractOffer, type ExtractionInput } from "@/lib/intake/extract";
 import { buildOffer } from "@/lib/intake/publish";
-import { saveSource } from "@/lib/intake/storage";
+import { ingestSource } from "@/lib/intake/ingest";
 import { notifyOfferPublished } from "@/lib/notify/dispatch";
-
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
-const MAX_BYTES = 20 * 1024 * 1024;
 
 export type IntakeResult = { ok: true; pending?: string } | { ok: false; error: string };
 
 /* ---------- Nouvelle source : fichier ou texte collé ---------- */
 
 export async function createIntakeAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
-  await requireDesk("/desk/a-valider");
-  const title = String(form.get("title") ?? "").trim();
-  const fromLabel = String(form.get("from") ?? "").trim();
-  const hint = String(form.get("hint") ?? "").trim() || undefined;
-  const text = String(form.get("text") ?? "").trim();
+  const desk = await requireDesk("/desk/a-valider");
   const file = form.get("file");
   const hasFile = file instanceof File && file.size > 0;
-  if (!hasFile && !text) return { ok: false, error: "Déposez un fichier (PDF, photo) ou collez le texte du message." };
-
-  let source: IntakeSource = "texte";
-  let fileName: string | undefined;
-  let mimeType: string | undefined;
-  let input: ExtractionInput | undefined;
-  const key = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-
-  if (hasFile) {
-    if (file.size > MAX_BYTES) return { ok: false, error: "Fichier trop lourd (max 20 Mo)." };
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    mimeType = file.type || "application/octet-stream";
-    const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
-    fileName = `${key}.${ext}`;
-    await saveSource(fileName, bytes, mimeType);
-    const b64 = Buffer.from(bytes).toString("base64");
-    if (mimeType === "application/pdf") {
-      source = "pdf";
-      input = { kind: "pdf", base64: b64, hint };
-    } else if ((IMAGE_TYPES as readonly string[]).includes(mimeType)) {
-      source = "photo";
-      input = { kind: "image", base64: b64, mediaType: mimeType as (typeof IMAGE_TYPES)[number], hint };
-    } else {
-      return { ok: false, error: "Format non pris en charge : PDF, JPEG, PNG ou WebP." };
-    }
-  } else {
-    source = text.includes("@") || /objet\s*:/i.test(text) ? "mail" : "texte";
-    input = { kind: "text", text, hint };
-  }
-
-  let draft: OfferDraft = emptyDraft(source === "pdf" || source === "mail");
-  let extractedIn: number | undefined;
-  if (extractionAvailable() && input) {
-    try {
-      const r = await extractOffer(input);
-      draft = r.draft;
-      extractedIn = r.seconds;
-    } catch (e) {
-      draft = emptyDraft(false);
-      draft.remarks = [`Extraction échouée : ${e instanceof Error ? e.message : "erreur inconnue"}. Renseignez les champs à la main.`];
-    }
-  }
-
-  const item = await repo().createIntake({
-    source,
-    title: title || draft.title || (hasFile ? file.name : "Message collé"),
-    fromLabel: fromLabel || "Déposé par le desk",
-    receivedAt: new Date().toISOString(),
-    state: draft.official ? "a_valider" : "bloque",
-    fileName,
-    mimeType,
-    rawText: hasFile ? undefined : text,
-    draft,
-    extractedIn,
+  const res = await ingestSource({
+    title: String(form.get("title") ?? ""),
+    fromLabel: String(form.get("from") ?? "").trim() || `Déposé par ${desk.name}`,
+    hint: String(form.get("hint") ?? "").trim() || undefined,
+    text: String(form.get("text") ?? ""),
+    file: hasFile ? { bytes: new Uint8Array(await file.arrayBuffer()), mimeType: file.type, name: file.name } : undefined,
   });
-  await repo().logEvent({ kind: "system", html: `Nouvelle source déposée : <b>${item.title}</b>${extractedIn != null ? ` — extraite en ${extractedIn} s` : ""}` });
+  if (!res.ok) return res;
+  await audit("intake.create", "intake", res.item.id, { after: { title: res.item.title, source: res.item.source, from: res.item.fromLabel } });
   revalidatePath("/desk/a-valider");
-  redirect(`/desk/a-valider?item=${item.id}`);
+  redirect(`/desk/a-valider?item=${res.item.id}`);
 }
 
 /* ---------- Enregistrer les corrections du desk ---------- */

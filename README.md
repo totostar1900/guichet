@@ -44,6 +44,13 @@ src/
 supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS, realtime)
 ```
 
+## Boîte d’entrée : courriel et WhatsApp
+
+- `src/lib/intake/ingest.ts` : une seule porte d’entrée (`ingestSource`) pour un dépôt manuel, un courriel ou un document WhatsApp — original conservé, extraction, item dans « À valider » (ou « À compléter » si la source n’est pas officielle). Expéditeurs de confiance : `INTAKE_TRUSTED_SENDERS`.
+- `POST /api/inbound/email` (`INBOUND_SECRET`) : message brut MIME (`postal-mime`) ou JSON ; une source par pièce jointe PDF / image. Branchement Cloudflare Email Routing dans OPERATIONS.md.
+- Webhook WhatsApp : un document ou une image envoyés par un numéro de l’équipe deviennent une source (téléchargement via l’API Graph) ; d’un client, ils sont signalés dans le flux.
+- L’extracteur reçoit les types de produits du référentiel (clé, moteur, champs libres) et remplit `typeKey` / `extra` du brouillon.
+
 ## Intake « À valider » (desk)
 
 - Une source (PDF, photo, e-mail collé) est déposée depuis **/desk/a-valider → Nouvelle source**. L'original est conservé (`.uploads/` en démo, bucket privé `sources` sur Supabase).

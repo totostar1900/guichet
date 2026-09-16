@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { OfferDraft } from "@/lib/domain/types";
+import { enabledTypes, kindForEngine } from "@/lib/registry";
 
 /**
  * Reads a market-operation notice (Trésor communiqué, arrangeur teaser, a
@@ -38,6 +39,8 @@ const Extraction = z.object({
   dividendPerShare: z.number().nullable(),
   title: z.string().nullable().describe("Titre court pour la fiche, ex. « OTA 6,00 % · 31 mars 2028 » ou « BTA 52 semaines · 16 sept. 2027 »"),
   blurb: z.string().nullable().describe("Deux phrases neutres décrivant la ligne pour un client, sans prix ni recommandation"),
+  typeKey: z.string().nullable().describe("Clé du type de produit parmi la liste fournie dans la consigne (ex. OTA, BTA, APE, IPO, RACHAT ou un type ajouté par le desk) ; null si aucun ne convient"),
+  extra: z.array(z.object({ key: z.string(), value: z.string() })).describe("Champs libres du type choisi (liste fournie dans la consigne), uniquement ceux lus dans la source"),
   official: z.boolean().describe("true si la source est un communiqué ou une note officielle (en-tête, numéro, signature) ; false pour une photo d'écran, un message transféré, une capture"),
   confidence: z.object({
     kind: Conf, operation: Conf, country: Conf, issuer: Conf, isin: Conf, nominal: Conf, couponRate: Conf, precountRate: Conf,
@@ -70,7 +73,10 @@ export function emptyDraft(official = false): OfferDraft {
 export async function extractOffer(input: ExtractionInput): Promise<{ draft: OfferDraft; seconds: number }> {
   const t0 = Date.now();
   const client = new Anthropic();
-  const instruction = `Extrais l'opération décrite dans ce document.${input.hint ? ` Consigne du desk : ${input.hint}` : ""}`;
+  // The desk's product types (registry) drive the type choice and its free fields.
+  const types = enabledTypes().filter((t) => t.segment === "primaire");
+  const catalogue = types.map((t) => `- ${t.key} : ${t.label} (moteur ${t.engine})${t.fields.length ? ` ; champs libres : ${t.fields.map((f) => `${f.key} = ${f.label}`).join(", ")}` : ""}`).join("\n");
+  const instruction = `Extrais l'opération décrite dans ce document.${input.hint ? ` Consigne du desk : ${input.hint}` : ""}\n\nTypes de produits possibles (typeKey) :\n${catalogue}`;
   const content: Anthropic.ContentBlockParam[] =
     input.kind === "text"
       ? [{ type: "text", text: `<document>\n${input.text}\n</document>\n\n${instruction}` }]
@@ -120,5 +126,15 @@ export async function extractOffer(input: ExtractionInput): Promise<{ draft: Off
     official: out.official,
     remarks: out.remarks,
   };
+  // Type chosen by the model → storage kind and free fields, when the type exists.
+  const chosen = out.typeKey ? types.find((t) => t.key === out.typeKey) : undefined;
+  if (chosen) {
+    draft.typeKey = chosen.key;
+    draft.kind = kindForEngine(chosen.engine, chosen.segment).kind as OfferDraft["kind"];
+    const allowed = new Set(chosen.fields.map((f) => f.key));
+    const extra: Record<string, string> = {};
+    for (const e of out.extra) if (allowed.has(e.key) && e.value.trim()) extra[e.key] = e.value.trim();
+    if (Object.keys(extra).length) draft.extra = extra;
+  }
   return { draft, seconds: Math.round((Date.now() - t0) / 1000) };
 }

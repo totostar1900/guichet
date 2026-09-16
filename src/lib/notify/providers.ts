@@ -55,6 +55,17 @@ export async function sendWhatsAppDocument(to: string, pdf: Uint8Array, filename
   return r.id;
 }
 
+/** Downloads an inbound media (document, image) by its id: the Graph API gives a short-lived URL, then the bytes. */
+export async function fetchWhatsAppMedia(mediaId: string): Promise<{ bytes: Uint8Array; mimeType: string }> {
+  const { token } = wa();
+  const meta = await fetch(`${GRAPH}/${mediaId}`, { headers: { authorization: `Bearer ${token}` } });
+  const m = (await meta.json()) as { url?: string; mime_type?: string; error?: { message: string } };
+  if (!meta.ok || !m.url) throw new Error(m.error?.message ?? `WhatsApp media HTTP ${meta.status}`);
+  const file = await fetch(m.url, { headers: { authorization: `Bearer ${token}` } });
+  if (!file.ok) throw new Error(`WhatsApp media download HTTP ${file.status}`);
+  return { bytes: new Uint8Array(await file.arrayBuffer()), mimeType: m.mime_type ?? file.headers.get("content-type") ?? "application/octet-stream" };
+}
+
 /* ---------- E-mail (Resend) ---------- */
 
 export const emailConfigured = (): boolean => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
