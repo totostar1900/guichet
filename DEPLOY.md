@@ -58,7 +58,7 @@ Chaque `git push` sur `master` redéploie. Les migrations SQL nouvelles (`supaba
 
 ## État au 16 septembre 2026
 
-- Projet Vercel `purpose-capital/guichet`, production sur https://guichet-seven.vercel.app (déployé avec `vercel deploy --prod` ; pour que chaque `git push` sur master redéploie, activer l'intégration GitHub du projet dans le tableau de bord Vercel).
+- Projet Vercel `purpose-capital/guichet`, production sur https://guichet-seven.vercel.app (intégration GitHub active : chaque `git push` sur `master` redéploie la production ; `vercel deploy --prod` reste possible).
 - Variables d'environnement de production : celles de `.env.local` + `CRON_SECRET` (généré, aussi copié dans `.env.local`). `NEXT_PUBLIC_SUPABASE_ANON_KEY` est déclarée en valeur publique (clé navigateur, protégée par les RLS).
 - Protection de déploiement limitée aux prévisualisations ; la production est publique. Cadre `nextjs` forcé sur le projet.
 - Crons enregistrés : BOC 18:30 lun–ven, coupons 07:00, émetteurs lundi 06:00 — appelés par Vercel avec `Authorization: Bearer <CRON_SECRET>`.
