@@ -10,8 +10,8 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { FichePanes, FicheSegments, StickyAction } from "@/components/mobile/FichePanes";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
-import { Info } from "@/components/Info";
-import type { TermKey } from "@/lib/glossary";
+import { KpiCard } from "@/components/KpiCard";
+import { explainKpis } from "@/lib/domain/explain";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
@@ -77,18 +77,12 @@ function Kpis({ o }: { o: Offer }) {
               ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—", false],
               ["Volume racheté", o.sizeLabel ?? "—", false],
             ];
-  // The hero figure carries a bubble that explains it and points to the matching lesson.
-  const heroTerm: TermKey = o.kind === "BTA" ? "precompte" : o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action") ? "rendement_dividende" : o.kind === "FONDS" ? "vl" : o.kind === "RACHAT" ? "pair" : dy.atPar ? "pair" : "rendement_actuariel";
+  // Every card opens on tap: the number decomposed with this line's own figures.
+  const explains = explainKpis(o);
   return (
     <div className={styles.kpis}>
-      {items.map(([k, v, gold]) => (
-        <div key={k} className={`${styles.kpi} ${gold ? styles.gold : ""}`} data-coach={gold ? "hero" : undefined}>
-          <span>
-            {k}
-            {gold && <Info term={heroTerm} subtle />}
-          </span>
-          <b className="num">{v}</b>
-        </div>
+      {items.map(([k, v, gold], i) => (
+        <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`/comparer?a=${o.id}`} coach={gold ? "hero" : undefined} />
       ))}
     </div>
   );
