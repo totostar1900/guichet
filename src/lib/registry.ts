@@ -2,6 +2,7 @@ import type { IntentType, Offer, OfferKind } from "@/lib/domain/types";
 import type { BondTerms } from "@/data/bond-terms";
 import { BOND_TERMS } from "@/data/bond-terms";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
+import { LESSONS, type Lesson } from "@/data/lessons";
 
 /**
  * What the desk configures without code: the product types (how a line is
@@ -96,9 +97,10 @@ export interface Registry {
   types: ProductType[];
   bondTerms: Map<string, BondTerms>;
   glossary: Record<string, Term>;
+  lessons: Lesson[];
 }
 
-let REG: Registry = { types: BUILTIN_TYPES, bondTerms: new Map(BOND_TERMS.map((b) => [b.isin, b])), glossary: GLOSSARY_DEFAULTS };
+let REG: Registry = { types: BUILTIN_TYPES, bondTerms: new Map(BOND_TERMS.map((b) => [b.isin, b])), glossary: GLOSSARY_DEFAULTS, lessons: LESSONS };
 
 export const getRegistry = (): Registry => REG;
 export function setRegistry(r: Partial<Registry>): void {
@@ -127,6 +129,9 @@ export function typeOf(o: Pick<Offer, "kind" | "instrument" | "typeKey">): Produ
   const key = o.typeKey ?? legacyTypeKey(o);
   return typeByKey(key) ?? typeByKey(legacyTypeKey(o)) ?? BUILTIN_TYPES[0];
 }
+export const lessons = (): Lesson[] => [...REG.lessons].sort((a, b) => a.order - b.order);
+/** The lesson a glossary term points to, if any. */
+export const lessonForTerm = (term: string): Lesson | undefined => REG.lessons.find((l) => l.terms.includes(term));
 export const enabledTypes = (): ProductType[] => [...REG.types].filter((x) => x.enabled).sort((a, b) => a.sort - b.sort);
 
 /** Inline colour variables for a family badge / edge (desk-created types have no CSS class). */

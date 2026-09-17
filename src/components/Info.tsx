@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { TermKey } from "@/lib/glossary";
-import { getRegistry } from "@/lib/registry";
+import { getRegistry, lessonForTerm } from "@/lib/registry";
 import styles from "./Info.module.css";
 
 /**
@@ -15,6 +15,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
   const t = term ? getRegistry().glossary[term] : undefined;
   const body = text ?? t?.text ?? "";
   const title = label ?? (t ? ("long" in t && t.long ? `${t.short} — ${t.long}` : t.short) : "");
+  const lesson = term ? lessonForTerm(term) : undefined;
   const btn = useRef<HTMLButtonElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
@@ -45,7 +46,8 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
   useEffect(() => {
     if (!open) return;
     const off = (e: PointerEvent) => {
-      if (btn.current && !btn.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (btn.current && !btn.current.contains(t) && !bubble.current?.contains(t)) setOpen(false);
     };
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("pointerdown", off);
@@ -82,6 +84,11 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
           <span ref={bubble} role="tooltip" className={`${styles.bubble} ${pos.below ? styles.below : ""}`} style={{ top: pos.top, left: pos.left, ["--arrow" as string]: `${pos.arrow}px` }}>
             {title && <b>{title}</b>}
             {body}
+            {lesson && (
+              <a className={styles.more} href={`/apprendre/${lesson.key}`}>
+                En savoir plus : {lesson.title} →
+              </a>
+            )}
           </span>,
           document.body,
         )}

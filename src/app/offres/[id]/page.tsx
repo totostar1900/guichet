@@ -9,6 +9,9 @@ import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { FichePanes, FicheSegments, StickyAction } from "@/components/mobile/FichePanes";
+import { CoachMarks } from "@/components/mobile/CoachMarks";
+import { Info } from "@/components/Info";
+import type { TermKey } from "@/lib/glossary";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
@@ -74,11 +77,16 @@ function Kpis({ o }: { o: Offer }) {
               ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—", false],
               ["Volume racheté", o.sizeLabel ?? "—", false],
             ];
+  // The hero figure carries a bubble that explains it and points to the matching lesson.
+  const heroTerm: TermKey = o.kind === "BTA" ? "precompte" : o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action") ? "rendement_dividende" : o.kind === "FONDS" ? "vl" : o.kind === "RACHAT" ? "pair" : dy.atPar ? "pair" : "rendement_actuariel";
   return (
     <div className={styles.kpis}>
       {items.map(([k, v, gold]) => (
-        <div key={k} className={`${styles.kpi} ${gold ? styles.gold : ""}`}>
-          <span>{k}</span>
+        <div key={k} className={`${styles.kpi} ${gold ? styles.gold : ""}`} data-coach={gold ? "hero" : undefined}>
+          <span>
+            {k}
+            {gold && <Info term={heroTerm} subtle />}
+          </span>
           <b className="num">{v}</b>
         </div>
       ))}
@@ -335,6 +343,24 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
   // « À garder en tête » comes from the product type (desk-editable in the référentiel).
   const risks = offerRisks(o);
+  // The walk-through speaks about this line, with its own numbers.
+  const dyc = displayYield(o);
+  const coachStops = [
+    {
+      target: "hero",
+      title: "Le chiffre qui compte",
+      text:
+        o.kind === "FONDS"
+          ? `${summary.hero} ${summary.heroUnit ?? ""}: la dernière valeur liquidative connue. Une souscription s'exécute à la prochaine, pas à celle-ci.`
+          : o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action")
+            ? `${summary.hero} : ce que le dividende rapporte au prix du jour, s'il est maintenu. Le cours, lui, peut monter ou descendre.`
+            : dyc.atPar
+              ? `${summary.hero} : le taux nominal, parce que la ligne est au pair. Brut, avant impôt, si vous gardez le titre jusqu'à l'échéance.`
+              : `${summary.hero} : ce que rapporte la ligne chaque année si vous êtes servi au prix affiché et gardez le titre jusqu'à l'échéance. Brut, avant impôt.`,
+    },
+    { target: "status", title: "Où en est la ligne", text: summary.countdown ? `Clôture dans ${summary.countdown} : après cette limite, plus de soumission possible. Une intention se déclare avant.` : `${summary.status}. Le statut dit ce que vous pouvez faire : souscrire, passer un ordre, ou seulement poser une question.` },
+    { target: "action", title: "Agir en trois étapes", text: "Montant, coordonnées, récapitulatif. Le desk vous rappelle avant de transmettre : rien n'est débité sans votre confirmation." },
+  ];
 
   return (
     <div className={styles.page}>
@@ -350,7 +376,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <div className={styles.headRow}>
             <LineIdentity o={o} s={summary} size="xl" as="h1" />
             <div className={styles.headActions}>
-              <span className={`pill ${st}`}>{statusLabel(o, st)}</span>
+              <span className={`pill ${st}`} data-coach="status">{statusLabel(o, st)}</span>
               <div className={styles.headBtns}>
                 <a className="btn sm" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
                   Fiche PDF
@@ -359,6 +385,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
                   Comparer
                 </Link>
                 <WatchButton offerId={o.id} initial={watching} signedIn={Boolean(session)} />
+                <CoachMarks id="fiche" replayLabel="Comment lire cette fiche ?" stops={coachStops} />
               </div>
             </div>
           </div>
@@ -478,7 +505,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         </section>
       </FichePanes>
 
-      <aside className={styles.side} id="intention">
+      <aside className={styles.side} id="intention" data-coach="action">
         <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>

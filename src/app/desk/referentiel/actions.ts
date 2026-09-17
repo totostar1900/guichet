@@ -11,10 +11,11 @@ import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
 
 const KINDS = Object.values(REF) as string[];
-const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme" };
+const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme", lesson: "leçon", policy: "règle" };
 
 function revalidateAll() {
-  for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/simulateur", "/comparer"]) revalidatePath(p);
+  for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/simulateur", "/comparer", "/apprendre"]) revalidatePath(p);
+  revalidatePath("/apprendre/[key]", "page");
   revalidatePath("/offres/[id]", "page");
   revalidatePath("/societes/[mnemo]", "page");
   revalidatePath("/emetteurs/[slug]", "page");
@@ -123,6 +124,49 @@ export async function saveGlossaryAction(_p: RefResult | null, form: FormData): 
   await log(`Terme du glossaire <b>${short}</b> enregistré`, desk.name);
   revalidateAll();
   return { ok: true, message: `Terme « ${short} » enregistré.` };
+}
+
+/* ---------- Leçons (Apprendre) ---------- */
+
+const lessonSchema = z.object({
+  key: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,40}$/, "Clé : minuscules, chiffres et tirets."),
+  order: z.coerce.number().int().min(1).max(99),
+  minutes: z.coerce.number().int().min(1).max(30).default(2),
+  title: z.string().trim().min(4, "Titre requis."),
+  intro: z.string().trim().min(10, "Une phrase d'introduction est requise."),
+  body: z.string().trim().min(20, "Le corps de la leçon est requis (paragraphes séparés par une ligne vide)."),
+  widget: z.enum(["bond_price", "bta_rate", "tenor", "equity", "fund", "auction", "risks", "read_ota"]),
+  q: z.string().trim().min(5, "La question est requise."),
+  o1: z.string().trim().min(1, "Trois réponses sont requises."),
+  o2: z.string().trim().min(1, "Trois réponses sont requises."),
+  o3: z.string().trim().min(1, "Trois réponses sont requises."),
+  answer: z.coerce.number().int().min(0).max(2),
+  why: z.string().trim().min(5, "Expliquez la bonne réponse en une phrase."),
+  terms: z.string().default(""),
+});
+
+export async function saveLessonAction(_p: RefResult | null, form: FormData): Promise<RefResult> {
+  const desk = await requireDesk("/desk/referentiel");
+  const p = lessonSchema.safeParse(Object.fromEntries(form));
+  if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
+  const d = p.data;
+  const data = {
+    key: d.key,
+    order: d.order,
+    minutes: d.minutes,
+    title: d.title,
+    intro: d.intro,
+    body: d.body.split(/\n\s*\n/).map((x) => x.replace(/\s+/g, " ").trim()).filter(Boolean),
+    widget: d.widget,
+    quiz: { q: d.q, options: [d.o1, d.o2, d.o3], answer: d.answer, why: d.why },
+    terms: d.terms.split(/[,\s]+/).map((x) => x.trim().toLowerCase()).filter(Boolean),
+  };
+  const before = (await repo().listReference(REF.lessons)).find((r) => r.key === d.key)?.data;
+  await repo().upsertReference(REF.lessons, d.key, data, desk.name);
+  await audit("reference.upsert", "reference", `${REF.lessons}/${d.key}`, { before, after: data });
+  await log(`Leçon <b>${d.title}</b> enregistrée`, desk.name);
+  revalidateAll();
+  return { ok: true, message: `Leçon « ${d.title} » enregistrée.` };
 }
 
 /* ---------- Sociétés et émetteurs (fiches complètes, éditées en JSON) ---------- */

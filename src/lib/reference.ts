@@ -5,6 +5,7 @@ import { BOND_TERMS, type BondTerms } from "@/data/bond-terms";
 import { COMPANIES, type Company } from "@/data/companies";
 import { ISSUERS, type BondIssuer } from "@/data/issuers";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
+import { LESSONS, type Lesson } from "@/data/lessons";
 import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/lib/registry";
 
 /**
@@ -13,7 +14,7 @@ import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/l
  * `reference` table — so an empty table changes nothing, and « Importer les
  * valeurs par défaut » on the desk copies the defaults into the table to edit.
  */
-export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy" } as const;
+export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson" } as const;
 
 const rows = cache(async <T,>(kind: string): Promise<Map<string, T>> => {
   const list = await repo().listReference(kind);
@@ -39,6 +40,13 @@ export const loadGlossary = cache(async (): Promise<Record<string, Term>> => {
   return out;
 });
 
+export const loadLessons = cache(async (): Promise<Lesson[]> => {
+  const db = await rows<Lesson>(REF.lessons);
+  const merged = LESSONS.map((l) => db.get(l.key) ?? l);
+  for (const [key, l] of db) if (!merged.some((m) => m.key === key)) merged.push({ ...l, key });
+  return merged.sort((a, b) => a.order - b.order);
+});
+
 export const loadCompanies = cache(async (): Promise<Company[]> => {
   const db = await rows<Company>(REF.companies);
   const merged = COMPANIES.map((c) => db.get(c.mnemo) ?? c);
@@ -59,8 +67,8 @@ export const issuerByIsin = async (isin: string) => (await loadIssuers()).find((
 
 /** Everything the domain layer reads synchronously, loaded once per request and installed. */
 export const loadRegistry = cache(async (): Promise<Registry> => {
-  const [types, bondTerms, glossary] = await Promise.all([loadTypes(), loadBondTerms(), loadGlossary()]);
-  const reg = { types, bondTerms, glossary };
+  const [types, bondTerms, glossary, lessons] = await Promise.all([loadTypes(), loadBondTerms(), loadGlossary(), loadLessons()]);
+  const reg = { types, bondTerms, glossary, lessons };
   setRegistry(reg);
   return reg;
 });
@@ -80,7 +88,9 @@ export async function importDefaults(kind: string, by: string): Promise<number> 
             ? ISSUERS.map((i) => [i.slug, i])
             : kind === REF.glossary
               ? Object.entries(GLOSSARY_DEFAULTS)
-              : [];
+              : kind === REF.lessons
+                ? LESSONS.map((l) => [l.key, l])
+                : [];
   let n = 0;
   for (const [key, data] of entries) {
     if (have.has(key)) continue;

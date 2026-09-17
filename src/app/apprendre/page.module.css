@@ -76,3 +76,61 @@
   margin: 0;
   color: var(--ink-2);
 }
+
+.lessons {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.lessonsHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.lessonsHead h2 {
+  margin: 0;
+}
+.lesson {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.lesson:hover {
+  border-color: var(--gold);
+}
+.lesson i {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-weight: 800;
+}
+.lesson b {
+  display: block;
+  font-size: 0.92rem;
+}
+.lesson small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.lesson em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}

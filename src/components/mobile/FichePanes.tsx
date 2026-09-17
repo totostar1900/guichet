@@ -61,7 +61,7 @@ export function StickyAction({ label, targetId, secondaryHref, secondaryLabel }:
     setTimeout(() => first?.focus({ preventScroll: true }), 400);
   };
   return (
-    <div ref={ref} className={`${styles.cta} ${hidden ? styles.ctaHidden : ""}`}>
+    <div ref={ref} className={`${styles.cta} ${hidden ? styles.ctaHidden : ""}`} data-coach="action">
       {secondaryHref && (
         <a className="btn sm ghost" href={secondaryHref}>
           {secondaryLabel}

@@ -6,7 +6,8 @@ import type { Term } from "@/lib/glossary";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { ENGINE_LABEL, type Engine, type ProductType } from "@/lib/registry";
-import { saveGlossaryAction, saveJsonAction, saveTermAction, saveTypeAction, type RefResult } from "./actions";
+import type { Lesson } from "@/data/lessons";
+import { saveGlossaryAction, saveJsonAction, saveLessonAction, saveTermAction, saveTypeAction, type RefResult } from "./actions";
 import styles from "./page.module.css";
 
 function Msg({ state }: { state: RefResult | null }) {
@@ -185,6 +186,88 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
       <div className={styles.actions}>
         <button className="btn sm primary" type="submit" disabled={pending}>
           {pending ? "…" : "Enregistrer"}
+        </button>
+      </div>
+      <Msg state={state} />
+    </form>
+  );
+}
+
+const WIDGET_LABEL: Record<Lesson["widget"], string> = { read_ota: "Lire une OTA (cinq chiffres)", bond_price: "Prix → rendement (curseur)", bta_rate: "Taux précompté → prix et rendement", tenor: "Deux durées, même décote", equity: "Cours, dividende, PER", fund: "Montant → parts à la VL", auction: "Part servie à l'adjudication", risks: "Les quatre risques (cases)" };
+
+export function LessonForm({ l }: { l?: Lesson }) {
+  const [state, action, pending] = useActionState<RefResult | null, FormData>(saveLessonAction, null);
+  return (
+    <form action={action} className={styles.form}>
+      <div className={styles.row3}>
+        <label>
+          <span>Clé (adresse de la page, ne change plus)</span>
+          <input name="key" defaultValue={l?.key} readOnly={Boolean(l)} className="mono" placeholder="ex. lire-un-bta" required />
+        </label>
+        <label>
+          <span>Ordre</span>
+          <input name="order" type="number" min={1} max={99} defaultValue={l?.order ?? 9} required />
+        </label>
+        <label>
+          <span>Durée annoncée (min)</span>
+          <input name="minutes" type="number" min={1} max={30} defaultValue={l?.minutes ?? 2} />
+        </label>
+      </div>
+      <label>
+        <span>Titre</span>
+        <input name="title" defaultValue={l?.title} required />
+      </label>
+      <label>
+        <span>Une phrase d&apos;introduction</span>
+        <input name="intro" defaultValue={l?.intro} required />
+      </label>
+      <label>
+        <span>Corps — un paragraphe par bloc, séparés par une ligne vide (trois à quatre paragraphes courts)</span>
+        <textarea name="body" rows={9} defaultValue={l?.body.join("\n\n")} required />
+      </label>
+      <label>
+        <span>Bloc interactif (illustré avec une vraie ligne du Guichet)</span>
+        <select name="widget" defaultValue={l?.widget ?? "read_ota"}>
+          {(Object.keys(WIDGET_LABEL) as Lesson["widget"][]).map((k) => (
+            <option key={k} value={k}>
+              {WIDGET_LABEL[k]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>Question de fin</span>
+        <input name="q" defaultValue={l?.quiz.q} required />
+      </label>
+      <div className={styles.row3}>
+        {[0, 1, 2].map((i) => (
+          <label key={i}>
+            <span>Réponse {i + 1}</span>
+            <input name={`o${i + 1}`} defaultValue={l?.quiz.options[i]} required />
+          </label>
+        ))}
+      </div>
+      <div className={styles.row3}>
+        <label>
+          <span>Bonne réponse</span>
+          <select name="answer" defaultValue={String(l?.quiz.answer ?? 0)}>
+            <option value="0">Réponse 1</option>
+            <option value="1">Réponse 2</option>
+            <option value="2">Réponse 3</option>
+          </select>
+        </label>
+        <label className={styles.span2}>
+          <span>Pourquoi (une phrase, affichée après la réponse)</span>
+          <input name="why" defaultValue={l?.quiz.why} required />
+        </label>
+      </div>
+      <label>
+        <span>Termes du glossaire dont la bulle « i » renvoie à cette leçon (clés, séparées par des virgules)</span>
+        <input name="terms" className="mono" defaultValue={l?.terms.join(", ")} placeholder="ota, nominal, coupon" />
+      </label>
+      <div className={styles.actions}>
+        <button className="btn sm primary" type="submit" disabled={pending}>
+          {pending ? "…" : "Enregistrer la leçon"}
         </button>
       </div>
       <Msg state={state} />

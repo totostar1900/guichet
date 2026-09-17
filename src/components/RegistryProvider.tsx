@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { BondTerms } from "@/data/bond-terms";
 import type { Term } from "@/lib/glossary";
+import type { Lesson } from "@/data/lessons";
 import { setRegistry, type ProductType } from "@/lib/registry";
 
 /**
@@ -10,7 +11,7 @@ import { setRegistry, type ProductType } from "@/lib/registry";
  * component renders, so summaries, badges and bubbles read the same product
  * types, bond schedules and glossary as the server.
  */
-export function RegistryProvider({ types, bondTerms, glossary, children }: { types: ProductType[]; bondTerms: BondTerms[]; glossary: Record<string, Term>; children: React.ReactNode }) {
-  useMemo(() => setRegistry({ types, bondTerms: new Map(bondTerms.map((b) => [b.isin, b])), glossary }), [types, bondTerms, glossary]);
+export function RegistryProvider({ types, bondTerms, glossary, lessons, children }: { types: ProductType[]; bondTerms: BondTerms[]; glossary: Record<string, Term>; lessons: Lesson[]; children: React.ReactNode }) {
+  useMemo(() => setRegistry({ types, bondTerms: new Map(bondTerms.map((b) => [b.isin, b])), glossary, lessons }), [types, bondTerms, glossary, lessons]);
   return <>{children}</>;
 }

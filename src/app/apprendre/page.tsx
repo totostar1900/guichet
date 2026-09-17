@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { loadLessons } from "@/lib/reference";
 import { getRegistry } from "@/lib/registry";
+import { DoneMark } from "./[key]/Quiz";
+import { ReplayOnboarding } from "@/components/mobile/Onboarding";
 import styles from "./page.module.css";
 
 export const metadata = { title: "Apprendre" };
@@ -9,8 +12,9 @@ export const metadata = { title: "Apprendre" };
  * already exists (simulator, glossary, companies, issuers, comparer); the
  * lessons and the guided tour arrive in the next step.
  */
-export default function ApprendrePage() {
+export default async function ApprendrePage() {
   const G = getRegistry().glossary;
+  const lessons = await loadLessons();
   const keys = Object.keys(G).sort((a, b) => G[a].short.localeCompare(G[b].short, "fr"));
   return (
     <div className={styles.wrap}>
@@ -20,6 +24,26 @@ export default function ApprendrePage() {
         <p className="muted">Ce qu&apos;il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques — expliqués une fois pour toutes, sans jargon inutile.</p>
       </div>
 
+      <div className={styles.lessons}>
+        <div className={styles.lessonsHead}>
+          <h2 className={styles.h2}>Huit leçons courtes</h2>
+          <ReplayOnboarding />
+        </div>
+        {lessons.map((l) => (
+          <Link key={l.key} href={`/apprendre/${l.key}`} className={styles.lesson}>
+            <i>{l.order}</i>
+            <span>
+              <b>{l.title}</b>
+              <small>{l.intro}</small>
+            </span>
+            <em>
+              <DoneMark lessonKey={l.key} /> {l.minutes} min
+            </em>
+          </Link>
+        ))}
+      </div>
+
+      <h2 className={styles.h2}>Outils et repères</h2>
       <div className={styles.grid}>
         <Link href="/simulateur" className={styles.tile}>
           <span className={styles.k}>Outil</span>
@@ -35,11 +59,6 @@ export default function ApprendrePage() {
           <span className={styles.k}>Repères</span>
           <b>Sociétés cotées et émetteurs</b>
           <span>Comptes, dividendes, actionnariat, documents publiés à la BVMAC.</span>
-        </Link>
-        <Link href="/#apprendre" className={`${styles.tile} ${styles.soon}`} aria-disabled="true" tabIndex={-1}>
-          <span className={styles.k}>Bientôt</span>
-          <b>Huit leçons courtes</b>
-          <span>Coupon ≠ rendement, adjudication, bons précomptés, actions, fonds, risques — avec les vraies lignes du Guichet.</span>
         </Link>
       </div>
 

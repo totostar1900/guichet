@@ -7,20 +7,22 @@ import { repo } from "@/lib/data";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
-import { loadBondTerms, loadCompanies, loadGlossary, loadIssuers, loadTypes, REF } from "@/lib/reference";
+import { loadBondTerms, loadCompanies, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
 import { ENGINE_LABEL, type ProductType } from "@/lib/registry";
 import { importDefaultsAction, resetReferenceAction } from "./actions";
-import { GlossaryForm, JsonForm, TermForm, TypeForm } from "./Forms";
+import { GlossaryForm, JsonForm, LessonForm, TermForm, TypeForm } from "./Forms";
+import { LESSONS, type Lesson } from "@/data/lessons";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Référentiel" };
 
-type Tab = "types" | "echeanciers" | "glossaire" | "societes" | "emetteurs";
+type Tab = "types" | "echeanciers" | "glossaire" | "lecons" | "societes" | "emetteurs";
 const TABS: [Tab, string, string][] = [
   ["types", "Types de produits", REF.types],
   ["echeanciers", "Échéanciers", REF.bondTerms],
   ["glossaire", "Glossaire", REF.glossary],
+  ["lecons", "Leçons", REF.lessons],
   ["societes", "Sociétés cotées", REF.companies],
   ["emetteurs", "Émetteurs", REF.issuers],
 ];
@@ -82,6 +84,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       {tab === "types" && <Types types={await loadTypes()} inDb={inDb} open={open} />}
       {tab === "echeanciers" && <Terms terms={[...(await loadBondTerms()).values()]} inDb={inDb} open={open} />}
       {tab === "glossaire" && <Glossary glossary={await loadGlossary()} inDb={inDb} open={open} />}
+      {tab === "lecons" && <Lessons list={await loadLessons()} inDb={inDb} open={open} />}
       {tab === "societes" && <Companies list={await loadCompanies()} inDb={inDb} open={open} />}
       {tab === "emetteurs" && <Issuers list={await loadIssuers()} inDb={inDb} open={open} />}
     </>
@@ -266,6 +269,62 @@ function Glossary({ glossary, inDb, open }: { glossary: Record<string, Term>; in
           {cur && inDb.has(cur) && <ResetButton kind={REF.glossary} k={cur} builtin={cur in GLOSSARY_DEFAULTS} />}
         </div>
         <GlossaryForm key={cur || "new"} k={cur || undefined} t={cur ? glossary[cur] : undefined} />
+      </div>
+    </>
+  );
+}
+
+function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: string }) {
+  const defaults = new Set(LESSONS.map((l) => l.key));
+  const cur = list.find((l) => l.key === open);
+  return (
+    <>
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Leçons ({list.length})</h2>
+          <span className="muted">L&apos;onglet Apprendre : une idée par leçon, une vraie ligne, une question.</span>
+        </div>
+        <table className={`tbl ${styles.tbl}`}>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Leçon</th>
+              <th>Bloc</th>
+              <th>Termes liés</th>
+              <th>Origine</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((l) => (
+              <tr key={l.key}>
+                <td className="r num">{l.order}</td>
+                <td>
+                  <b>{l.title}</b>
+                  <br />
+                  <small className="mono muted">{l.key}</small>
+                </td>
+                <td className="mono">{l.widget}</td>
+                <td className={styles.wrap}>{l.terms.join(", ") || "—"}</td>
+                <td>
+                  <Origin inDb={inDb.has(l.key)} builtin={defaults.has(l.key)} />
+                </td>
+                <td className="r">
+                  <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
+                    Modifier
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="panel" id="edit">
+        <div className="panel-h">
+          <h2>{cur ? `Modifier « ${cur.title} »` : "Nouvelle leçon"}</h2>
+          {cur && inDb.has(cur.key) && <ResetButton kind={REF.lessons} k={cur.key} builtin={defaults.has(cur.key)} />}
+        </div>
+        <LessonForm key={cur?.key ?? "new"} l={cur} />
       </div>
     </>
   );

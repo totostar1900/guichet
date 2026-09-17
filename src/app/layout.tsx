@@ -9,6 +9,7 @@ import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
 import { MobileShell } from "@/components/mobile/MobileShell";
+import { Onboarding } from "@/components/mobile/Onboarding";
 import { isDesk } from "@/lib/auth/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
 import { loadRegistry } from "@/lib/reference";
@@ -37,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="fr" className={ui.variable}>
       <body>
-        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary}>
+        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
         <header className={styles.top}>
           <div className={styles.topIn}>
             <Link className={styles.brand} href="/">
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <MobileShell signedIn={Boolean(session)} name={session?.name} desk={isDesk(session)} />
+        <Onboarding />
         <main className={styles.main}>{children}</main>
         </RegistryProvider>
         <footer className={styles.footer}>
