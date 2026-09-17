@@ -35,6 +35,8 @@ export interface OfferSummary {
   commission: string;
   primary: { label: string; intent: IntentType } | null;
   secondary?: { label: string; intent: IntentType };
+  /** Automatic and desk badges: « Sélection du desk », « Nouveau », « Clôture imminente ». */
+  badges: Badge[];
   facts: [string, string][]; // three facts for the card
   ledger: [string, string, string?][]; // four labelled figures for the list: label, value, note
   past: boolean;
@@ -57,6 +59,26 @@ const fundAnnualPct = (f: NonNullable<Offer["fund"]>, now: Date): number | null 
 };
 const signed = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
 
+export interface Badge {
+  key: "selection" | "nouveau" | "cloture";
+  label: string;
+  note?: string;
+}
+
+/** Badges are facts, not opinions: a desk selection carries its reason; the two others come from dates alone. */
+export function badgesFor(o: Offer, st: DisplayStatus, now: Date): Badge[] {
+  const out: Badge[] = [];
+  const iso = now.toISOString();
+  if (o.featured && o.featured.until >= iso.slice(0, 10)) out.push({ key: "selection", label: "Sélection du desk", note: o.featured.reason });
+  const h = (a: string) => (now.getTime() - parseDate(a).getTime()) / 3_600_000;
+  if (o.kind !== "MARCHE" && o.kind !== "FONDS" && o.version <= 1 && o.pricedAt && h(o.pricedAt) >= 0 && h(o.pricedAt) < 72 && !isPast(st)) out.push({ key: "nouveau", label: "Nouveau" });
+  if ((st === "open" || st === "closing") && o.deadlineAt) {
+    const left = (parseDate(o.deadlineAt).getTime() - now.getTime()) / 3_600_000;
+    if (left > 0 && left < 48) out.push({ key: "cloture", label: "Clôture imminente", note: countdown(o.deadlineAt, now) });
+  }
+  return out;
+}
+
 export function summarize(o: Offer, now: Date): OfferSummary {
   const st = displayStatus(o, now);
   const past = isPast(st);
@@ -69,6 +91,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     st,
     status: statusLabel(o, st),
     statusClass: st,
+    badges: badgesFor(o, st, now),
     kind: typeOf(o).short,
     family: offerFamily(o),
     segment: typeOf(o).segment,

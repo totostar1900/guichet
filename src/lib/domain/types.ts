@@ -77,6 +77,8 @@ export interface Offer {
   typeKey?: string;
   /** Free facts declared by the product type (e.g. "Garantie", "Notation"). */
   extra?: Record<string, string>;
+  /** « Sélection du desk » : a neutral reason and an expiry — never a recommendation. */
+  featured?: { reason: string; until: string; by: string; at: string };
   operation: OfferOperation;
   country: Country;
   countryName: string;
@@ -353,9 +355,20 @@ export interface StaffMember {
   roleSetAt?: string;
 }
 
-export type NotifyChannel = "whatsapp" | "email";
+export type NotifyChannel = "whatsapp" | "email" | "push";
+
+/** A browser that accepted notifications, tied to a signed-in user. */
+export interface PushSubscription {
+  id: string;
+  userId: string;
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  userAgent?: string;
+  createdAt: string;
+  failures: number;
+}
 export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
-export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest";
+export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest" | "opportunity";
 
 /** A line a client follows; the snapshot is what they were last told. */
 export interface Watch {

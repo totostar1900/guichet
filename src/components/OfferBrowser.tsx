@@ -430,6 +430,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
     const cmp = (a: { o: Offer; s: OfferSummary }, b: { o: Offer; s: OfferSummary }): number => {
       switch (sort) {
         case "deadline": {
+          const fa = a.s.badges.some((x) => x.key === "selection") ? 0 : 1;
+          const fb = b.s.badges.some((x) => x.key === "selection") ? 0 : 1;
+          if (fa !== fb) return fa - fb;
           const d = ORDER[a.s.st] - ORDER[b.s.st];
           if (d) return d;
           return (a.s.deadlineAt ? parseDate(a.s.deadlineAt).getTime() : Infinity) - (b.s.deadlineAt ? parseDate(b.s.deadlineAt).getTime() : Infinity);

@@ -8,6 +8,7 @@ import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/format";
 import { transitionIntent } from "./actions";
 import { DeskLive } from "@/components/DeskLive";
+import { FeaturePanel } from "./featured/FeaturePanel";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
@@ -39,12 +40,20 @@ export default async function DeskPage() {
   const totalA = rows.reduce((s, x) => s + x.sA, 0);
   const todo = intents.filter((i) => i.state === "recue").length;
 
+  // À la une: what is featured now, and which lines could be (open or quoted, not hidden).
+  const today = now.toISOString().slice(0, 10);
+  const featRow = (o: Offer) => ({ id: o.id, title: o.title, hero: summarize(o, now).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
+  const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map(featRow);
+  const featCandidates = offers.filter((o) => !o.hidden && !(o.featured && o.featured.until >= today) && isActionable(displayStatus(o, now))).map(featRow);
+
   const notifStatus: Record<string, [string, string]> = { sent: ["confirmee", "Envoyé"], skipped: ["recue", "Préparé"], failed: ["annulee", "Échec"], queued: ["info", "En file"] };
 
   return (
     <>
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
       <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
+
+      <FeaturePanel active={featActive} candidates={featCandidates} />
 
       <div className={styles.kpis}>
         <div className={`${styles.kpi} ${styles.hot}`}>

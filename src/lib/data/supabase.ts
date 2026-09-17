@@ -59,6 +59,7 @@ type OfferRow = {
   fund: Offer["fund"] | null;
   type_key: string | null;
   extra: Record<string, string> | null;
+  featured: Offer["featured"] | null;
   version: number;
   priced_at: string | null;
   result_line: string | null;
@@ -138,6 +139,7 @@ function toOffer(r: OfferRow): Offer {
     fund: u(r.fund),
     typeKey: u(r.type_key),
     extra: u(r.extra),
+    featured: u(r.featured),
     version: r.version,
     pricedAt: u(r.priced_at),
     resultLine: u(r.result_line),
@@ -205,7 +207,7 @@ function fromOffer(o: Offer): OfferRow {
     price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
     min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
     shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
-    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, type_key: o.typeKey ?? null, extra: o.extra ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, type_key: o.typeKey ?? null, extra: o.extra ?? null, featured: o.featured ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
   };
 }
 
@@ -245,6 +247,7 @@ const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name 
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
 const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
+type PushRow = { id: string; user_id: string; endpoint: string; keys: { p256dh: string; auth: string }; user_agent: string | null; created_at: string; failures: number };
 type AuditRow = { id: number; at: string; actor: string; actor_id: string | null; action: string; entity: string; entity_id: string; before: unknown; after: unknown; reason: string | null; ip: string | null; user_agent: string | null; prev_hash: string | null; hash: string };
 const toAudit = (r: AuditRow): AuditEntry => ({ id: String(r.id), at: r.at, actor: r.actor, actorId: u(r.actor_id), action: r.action, entity: r.entity, entityId: r.entity_id, before: r.before ?? undefined, after: r.after ?? undefined, reason: u(r.reason), ip: u(r.ip), userAgent: u(r.user_agent), prevHash: u(r.prev_hash), hash: r.hash });
 type ApprovalRow = { id: string; kind: Approval["kind"]; entity_id: string; title: string; payload: Offer; reason: string; requested_by: string; requested_at: string; decided_by: string | null; decided_at: string | null; decision: Approval["decision"] | null; note: string | null };
@@ -555,6 +558,30 @@ export const supabaseRepository: Repository = {
     const { data, error } = await q;
     if (error) return [];
     return (data as AuditRow[]).map(toAudit);
+  },
+  async listPushSubscriptions(userIds) {
+    let q = db().from("push_subscriptions").select("*");
+    if (userIds) q = q.in("user_id", userIds);
+    const { data, error } = await q;
+    if (error) return [];
+    return (data as PushRow[]).map((r) => ({ id: r.id, userId: r.user_id, endpoint: r.endpoint, keys: r.keys, userAgent: u(r.user_agent), createdAt: r.created_at, failures: r.failures }));
+  },
+  async savePushSubscription(s) {
+    const { error } = await db().from("push_subscriptions").upsert({ user_id: s.userId, endpoint: s.endpoint, keys: s.keys, user_agent: s.userAgent ?? null, failures: 0 }, { onConflict: "endpoint" });
+    if (error) fail("savePushSubscription", error);
+  },
+  async removePushSubscription(endpoint) {
+    await db().from("push_subscriptions").delete().eq("endpoint", endpoint);
+  },
+  async markPushFailure(endpoint, gone) {
+    if (gone) {
+      await db().from("push_subscriptions").delete().eq("endpoint", endpoint);
+      return;
+    }
+    const { data } = await db().from("push_subscriptions").select("failures").eq("endpoint", endpoint).maybeSingle();
+    const n = ((data as { failures: number } | null)?.failures ?? 0) + 1;
+    if (n >= 5) await db().from("push_subscriptions").delete().eq("endpoint", endpoint);
+    else await db().from("push_subscriptions").update({ failures: n }).eq("endpoint", endpoint);
   },
   async listApprovals(open = true) {
     const q = db().from("approvals").select("*").order("requested_at", { ascending: false });

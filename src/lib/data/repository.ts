@@ -1,4 +1,4 @@
-import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ReferenceRow, StaffMember, StaffRole, Watch } from "@/lib/domain/types";
+import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PushSubscription, ReferenceRow, StaffMember, StaffRole, Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
@@ -64,6 +64,11 @@ export interface Repository {
   /** Client-side updates to reachability (phone, e-mail) — the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
 
+  /** Browsers that accepted push notifications. */
+  listPushSubscriptions(userIds?: string[]): Promise<PushSubscription[]>;
+  savePushSubscription(s: Omit<PushSubscription, "id" | "createdAt" | "failures">): Promise<void>;
+  removePushSubscription(endpoint: string): Promise<void>;
+  markPushFailure(endpoint: string, gone: boolean): Promise<void>;
   /** Outbound messages, whatever the channel. */
   listNotifications(limit?: number): Promise<Notification[]>;
   createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;

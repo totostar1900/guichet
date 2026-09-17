@@ -6,6 +6,7 @@ import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { ContactForm } from "./ContactForm";
+import { PushToggle } from "@/components/PushToggle";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
 import { LineIdentity } from "@/components/LineIdentity";
@@ -137,6 +138,10 @@ export default async function MyPage() {
           {(!contact?.phone || !contact?.email) && <span className="pill closing">à compléter</span>}
         </div>
         <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
+        <div className={styles.push}>
+          <b>Alertes sur cet appareil</b>
+          <PushToggle vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
+        </div>
       </div>
 
       <div className="panel">

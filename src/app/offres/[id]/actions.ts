@@ -1,5 +1,6 @@
 "use server";
 
+import type { NotifyChannel } from "@/lib/domain/types";
 import { loadRegistry } from "@/lib/reference";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -29,7 +30,7 @@ const schema = z.object({
 
 
 export type IntentResult =
-  | { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean; phone: string; email: string; sent: { channel: "whatsapp" | "email"; status: string }[] }
+  | { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean; phone: string; email: string; sent: { channel: NotifyChannel; status: string }[] }
   | { ok: false; error: string };
 
 /**

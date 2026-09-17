@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { FeaturedStrip } from "@/components/FeaturedStrip";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { repo } from "@/lib/data";
 
@@ -9,9 +10,13 @@ export default async function GuichetPage() {
   // Funds live on their own page (every OPCVM with a published NAV, distributed or not).
   const offers = all.filter((o) => !o.hidden && o.kind !== "FONDS");
   const fundsCount = all.filter((o) => o.kind === "FONDS").length;
+  const nowIso = new Date().toISOString();
   return (
-    <Suspense>
-      <OfferBrowser offers={offers} nowIso={new Date().toISOString()} fundsCount={fundsCount} />
-    </Suspense>
+    <>
+      <FeaturedStrip offers={all} nowIso={nowIso} />
+      <Suspense>
+        <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
+      </Suspense>
+    </>
   );
 }

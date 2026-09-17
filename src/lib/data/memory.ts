@@ -1,6 +1,6 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type ReferenceRow, type StaffMember, type Watch } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -26,6 +26,7 @@ interface Store {
   versions: OfferVersion[];
   audit: AuditEntry[];
   approvals: Approval[];
+  push: PushSubscription[];
   clientFiles: ClientFile[];
   bulletins: MarketBulletin[];
   quotes: Quote[];
@@ -56,6 +57,7 @@ function store(): Store {
       versions: [],
       audit: [],
       approvals: [],
+      push: [],
       staff: [
         { id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" },
         { id: "desk-aline", name: "Aline", email: "aline@purposecapital.africa", role: "desk" },
@@ -79,6 +81,7 @@ function store(): Store {
   if (!g.__guichetStore.versions) g.__guichetStore.versions = [];
   if (!g.__guichetStore.audit) g.__guichetStore.audit = [];
   if (!g.__guichetStore.approvals) g.__guichetStore.approvals = [];
+  if (!g.__guichetStore.push) g.__guichetStore.push = [];
   if (!g.__guichetStore.bulletins) g.__guichetStore.bulletins = [];
   if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
@@ -217,6 +220,24 @@ export const memoryRepository: Repository = {
   async listAudit(filter = {}) {
     const rows = store().audit.filter((a) => (!filter.entity || a.entity === filter.entity) && (!filter.entityId || a.entityId === filter.entityId));
     return structuredClone(rows.slice(-(filter.limit ?? 100)).reverse());
+  },
+  async listPushSubscriptions(userIds) {
+    return structuredClone(store().push.filter((p) => !userIds || userIds.includes(p.userId)));
+  },
+  async savePushSubscription(s) {
+    const list = store().push;
+    const i = list.findIndex((p) => p.endpoint === s.endpoint);
+    const row: PushSubscription = { ...s, id: i >= 0 ? list[i].id : `ps-${++store().seq}`, createdAt: i >= 0 ? list[i].createdAt : nowIso(), failures: 0 };
+    if (i >= 0) list[i] = row;
+    else list.push(row);
+  },
+  async removePushSubscription(endpoint) {
+    store().push = store().push.filter((p) => p.endpoint !== endpoint);
+  },
+  async markPushFailure(endpoint, gone) {
+    const p = store().push.find((x) => x.endpoint === endpoint);
+    if (!p) return;
+    if (gone || ++p.failures >= 5) store().push = store().push.filter((x) => x.endpoint !== endpoint);
   },
   async listApprovals(open = true) {
     return structuredClone(store().approvals.filter((a) => (open ? !a.decidedAt : Boolean(a.decidedAt))).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)));

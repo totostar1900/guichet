@@ -6,6 +6,7 @@ import type { Contact, NotifyChannel } from "@/lib/domain/types";
 import { fmt, fmtDate } from "@/lib/format";
 import { emailConfigured, sendEmail, sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
 import { positionsFrom, upcomingFlows } from "@/lib/positions";
+import { flushQueuedOpportunities } from "@/lib/notify/broadcast";
 
 /**
  * Coupon and redemption notices — J-3 and the day itself.
@@ -49,5 +50,6 @@ export async function GET(req: NextRequest) {
     created += 1;
   }
   if (created) await r.logEvent({ kind: "system", html: `Avis de coupon : ${created} message${created > 1 ? "s" : ""} préparé${created > 1 ? "s" : ""} (${due.length} flux à J-3 / J)` });
-  return NextResponse.json({ positions: positions.length, due: due.length, created });
+  const released = await flushQueuedOpportunities();
+  return NextResponse.json({ positions: positions.length, due: due.length, created, released });
 }
