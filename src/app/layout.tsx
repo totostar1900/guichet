@@ -8,6 +8,8 @@ import { NavTabs } from "@/components/NavTabs";
 import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
+import { MobileShell } from "@/components/mobile/MobileShell";
+import { isDesk } from "@/lib/auth/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
 import { loadRegistry } from "@/lib/reference";
 
@@ -45,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
+        <MobileShell signedIn={Boolean(session)} name={session?.name} desk={isDesk(session)} />
         <main className={styles.main}>{children}</main>
         </RegistryProvider>
         <footer className={styles.footer}>

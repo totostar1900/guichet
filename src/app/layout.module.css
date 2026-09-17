@@ -68,6 +68,17 @@
   max-width: 110ch;
   margin: 4px 0;
 }
+@media (max-width: 760px) {
+  .top {
+    display: none;
+  }
+  .main {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+  .footer {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+}
 @media (max-width: 640px) {
   .topIn {
     gap: 0 10px;
@@ -85,6 +96,6 @@
     padding: 8px 0 6px;
   }
   .main {
-    padding: 14px 14px 48px;
+    padding: 14px 14px calc(76px + env(safe-area-inset-bottom, 0px));
   }
 }

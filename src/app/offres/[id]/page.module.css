@@ -202,3 +202,32 @@
   display: flex;
   gap: 6px;
 }
+
+@media (max-width: 760px) {
+  .back {
+    display: none;
+  }
+  .main {
+    padding: 4px 14px 8px;
+  }
+  .headRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .headActions {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .headBtns {
+    margin-left: auto;
+  }
+  .sec {
+    padding: 14px 0;
+  }
+  .side {
+    scroll-margin-top: 64px;
+  }
+}

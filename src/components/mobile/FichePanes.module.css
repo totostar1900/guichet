@@ -1,0 +1,67 @@
+.seg,
+.cta {
+  display: none;
+}
+@media (max-width: 760px) {
+  .seg {
+    position: sticky;
+    top: 52px;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 3px;
+    margin: 12px 0 4px;
+  }
+  .seg button {
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    padding: 8px 0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .seg .on {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+  /* One pane at a time: a section whose data-pane differs from data-show is hidden. */
+  .panes[data-show="essentiel"] [data-pane]:not([data-pane="essentiel"]),
+  .panes[data-show="chiffres"] [data-pane]:not([data-pane="chiffres"]),
+  .panes[data-show="docs"] [data-pane]:not([data-pane="docs"]),
+  .panes[data-show="risques"] [data-pane]:not([data-pane="risques"]) {
+    display: none;
+  }
+  .cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    z-index: 39;
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px 10px;
+    background: linear-gradient(to top, var(--paper) 72%, transparent);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .ctaHidden {
+    transform: translateY(12px);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ctaMain {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: none;
+  }
+}

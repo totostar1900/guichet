@@ -1,0 +1,78 @@
+.wrap {
+  max-width: 980px;
+}
+.head {
+  margin-bottom: 18px;
+}
+.head h1 {
+  margin: 4px 0 8px;
+}
+.head p {
+  max-width: 68ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--ink);
+  min-height: 118px;
+}
+.tile:hover {
+  border-color: var(--gold);
+}
+.tile b {
+  font-size: 0.98rem;
+}
+.tile > span:last-child {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.k {
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold-ink);
+  font-weight: 700;
+}
+.soon {
+  opacity: 0.65;
+  border-style: dashed;
+  pointer-events: none;
+}
+.h2 {
+  font-size: 1.05rem;
+  margin: 0 0 10px;
+}
+.gloss {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: 10px 18px;
+}
+.gloss > div {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+.gloss b {
+  display: block;
+  margin-bottom: 2px;
+}
+.gloss p {
+  margin: 0;
+  color: var(--ink-2);
+}

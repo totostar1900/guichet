@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
-import { displayStatus, FAMILIES, familyLabel, familySegment, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
+import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
@@ -12,6 +12,7 @@ import { MarketTabs } from "./MarketTabs";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
+import { LAST_LIST_KEY } from "./mobile/MobileShell";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
 
@@ -262,6 +263,52 @@ function List({ rows, grouped }: { rows: Row[]; grouped: boolean }) {
   );
 }
 
+/* ---------- phone: filters in a bottom sheet ---------- */
+type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
+function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+  return (
+    <>
+      <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
+      <div className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label="Filtrer" aria-hidden={!open}>
+        <div className={styles.grab} />
+        <div className={styles.sheetHead}>
+          <b>Filtrer</b>
+          <button type="button" onClick={onClear}>
+            Effacer
+          </button>
+        </div>
+        <div className={styles.sheetBody}>
+          {groups.map((g) => (
+            <div key={g.key} className={styles.fg}>
+              <span>{g.label}</span>
+              <div className={styles.chipRow}>
+                {g.items.map(([v, l]) => (
+                  <button key={v} type="button" className={`${styles.chipBtn} ${g.selected.has(v) ? styles.chipOn : ""}`} aria-pressed={g.selected.has(v)} onClick={() => onToggle(g.key, v, g.single)}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <button type="button" className={`btn primary ${styles.sheetApply}`} onClick={onClose}>
+          Voir {count} ligne{count > 1 ? "s" : ""}
+        </button>
+      </div>
+    </>
+  );
+}
+
 /* ---------- browser ---------- */
 export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; nowIso: string; fundsCount: number }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
@@ -282,13 +329,21 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
   const [autoView, setAutoView] = useState<View>("table");
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 820px)");
-    const apply = () => setAutoView(mq.matches ? "list" : "table");
+    const mq = window.matchMedia("(max-width: 760px)");
+    const apply = () => setAutoView(mq.matches ? "cards" : "table");
     apply();
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
   }, []);
   const view = (sp.get("vue") as View) || autoView;
+  const [sheet, setSheet] = useState(false);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(LAST_LIST_KEY, `${pathname}${sp.toString() ? `?${sp}` : ""}`);
+    } catch {
+      // storage unavailable
+    }
+  }, [pathname, sp]);
   // The market tabs and the toolbar stay frozen under the site header; the table
   // header then sticks right under them, whatever height the toolbar wraps to.
   const top = useRef<HTMLDivElement>(null);
@@ -318,6 +373,27 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   };
   const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, rendement: undefined, q: undefined });
   const filterCount = kind.size + country.size + status.size + tenor.size + minYield.size + (segment ? 1 : 0);
+  const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
+  const groups: Group[] = [
+    { key: "instrument", label: "Instrument", items: famItems, selected: kind },
+    { key: "pays", label: "Pays", items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
+    { key: "statut", label: "Statut", items: STATUSES, selected: status },
+    { key: "duree", label: "Durée", items: TENORS, selected: tenor },
+    { key: "rendement", label: "Rendement minimum", items: YIELDS, selected: minYield, single: true },
+  ];
+  const toggle = (key: string, value: string, single?: boolean) => {
+    const cur = setOf(key);
+    if (single) {
+      if (cur.has(value)) cur.clear();
+      else {
+        cur.clear();
+        cur.add(value);
+      }
+    } else if (cur.has(value)) cur.delete(value);
+    else cur.add(value);
+    update({ [key]: [...cur].join(",") || undefined });
+  };
+  const activeChips = groups.flatMap((g) => g.items.filter(([v]) => g.selected.has(v)).map(([v, l]) => ({ key: g.key, value: v, label: g.key === "rendement" ? `Rendement ${l}` : l, single: g.single })));
   const segCount = useMemo(() => {
     const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
     for (const o of offers) c[familySegment(offerFamily(o))]++;
@@ -396,6 +472,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
             </svg>
             <input type="search" placeholder="Rechercher une ligne, un émetteur, un ISIN" aria-label="Rechercher" defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
           </label>
+          <button type="button" className={styles.sheetBtn} onClick={() => setSheet(true)} aria-haspopup="dialog">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            Filtrer{filterCount > 0 ? ` · ${filterCount}` : ""}
+          </button>
+          <div className={styles.filters}>
           <Dropdown
             label="Instrument"
             items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyLabel(f)] as [string, string])])}
@@ -418,8 +501,22 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
               </button>
             ))}
           </div>
+          </div>
         </div>
+        {activeChips.length > 0 && (
+          <div className={styles.activeRow}>
+            {activeChips.map((c) => (
+              <button key={c.key + c.value} type="button" className={`${styles.chipBtn} ${styles.chipOn}`} onClick={() => toggle(c.key, c.value, c.single)} aria-label={`Retirer le filtre ${c.label}`}>
+                {c.label} <span aria-hidden="true">×</span>
+              </button>
+            ))}
+            <button type="button" className={styles.chipBtn} onClick={reset}>
+              Tout effacer
+            </button>
+          </div>
+        )}
       </div>
+      <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} />
 
       <div className={styles.meta}>
         <span>

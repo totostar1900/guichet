@@ -518,3 +518,173 @@
     margin-left: 0;
   }
 }
+
+/* ---------- phone: filter button, active chips, bottom sheet ---------- */
+.sheetBtn,
+.activeRow,
+.scrim,
+.sheet {
+  display: none;
+}
+.chipBtn {
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface);
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+}
+.chipOn {
+  background: var(--navy);
+  color: var(--on-navy);
+  border-color: var(--navy);
+}
+@media (max-width: 760px) {
+  .filters {
+    display: none;
+  }
+  .toolbar {
+    flex-wrap: nowrap;
+  }
+  .search {
+    flex: 1 1 auto;
+    flex-basis: auto;
+    min-width: 0;
+  }
+  .sheetBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    border: 1px solid var(--gold);
+    background: var(--gold-soft);
+    color: var(--gold-ink);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .activeRow {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0 2px;
+    scrollbar-width: none;
+  }
+  .activeRow::-webkit-scrollbar {
+    display: none;
+  }
+  .activeRow .chipBtn {
+    flex: none;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 37, 69, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 50;
+  }
+  .scrimOpen {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sheet {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 82vh;
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    padding: 8px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.25);
+    z-index: 51;
+    transform: translateY(105%);
+    transition: transform 0.28s ease;
+  }
+  .sheetOpen {
+    transform: none;
+  }
+  .grab {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-2);
+    margin: 0 auto 10px;
+    flex: none;
+  }
+  .sheetHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex: none;
+  }
+  .sheetHead b {
+    font-size: 1rem;
+  }
+  .sheetHead button {
+    border: 0;
+    background: none;
+    color: var(--gold-ink);
+    font-weight: 600;
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .sheetBody {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .fg {
+    margin-bottom: 12px;
+  }
+  .fg > span {
+    display: block;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .chipRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .sheetApply {
+    flex: none;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .compareLink,
+  .groupToggle {
+    display: none;
+  }
+  .meta > span:first-child {
+    flex: 1 1 auto;
+  }
+  .sortSel {
+    margin-left: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .scrim {
+    transition: none;
+  }
+}

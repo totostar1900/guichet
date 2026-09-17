@@ -8,6 +8,7 @@ import { companyByIsin, issuerByIsin } from "@/lib/reference";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
+import { FichePanes, FicheSegments, StickyAction } from "@/components/mobile/FichePanes";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
@@ -337,7 +338,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
   return (
     <div className={styles.page}>
-      <div className={styles.main}>
+      <FichePanes className={styles.main}>
         <Link href="/" className={styles.back}>
           ← Toutes les offres
         </Link>
@@ -363,7 +364,8 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </div>
         </div>
 
-        <section className={styles.sec}>
+        <FicheSegments />
+        <section className={styles.sec} data-pane="essentiel">
           <div style={{ marginBottom: 10 }}>
             <span className={`stamp ${stampPending ? "pending" : ""}`}>{stamp}</span>
           </div>
@@ -372,7 +374,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
         </section>
 
-        <section className={styles.sec}>
+        <section className={styles.sec} data-pane="chiffres">
           <Reference o={o} />
           <p className={styles.note}>
             Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact. Pour explorer d&apos;autres prix ou durées, utilisez le{" "}
@@ -381,14 +383,14 @@ export default async function OfferPage({ params, searchParams }: Props) {
         </section>
 
         {navs.length > 0 && (
-          <section className={styles.sec}>
+          <section className={styles.sec} data-pane="chiffres">
             <h3>Valeurs liquidatives publiées</h3>
             <NavHistory navs={navs} />
             <p className={styles.note}>VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement. {o.fund?.distributed ? "" : "Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore — dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion."}</p>
           </section>
         )}
         {company && (
-          <section className={styles.sec}>
+          <section className={styles.sec} data-pane="docs">
             <h3>La société</h3>
             <p className={styles.note}>
               {company.activity}{" "}
@@ -397,7 +399,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </section>
         )}
         {issuer && (
-          <section className={styles.sec}>
+          <section className={styles.sec} data-pane="docs">
             <h3>L&apos;émetteur</h3>
             <p className={styles.note}>
               {issuer.activity}{" "}
@@ -406,7 +408,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </section>
         )}
         {quotes.length > 0 && (
-          <section className={styles.sec}>
+          <section className={styles.sec} data-pane="chiffres">
             <h3>Au bulletin de la BVMAC</h3>
             <QuoteHistory quotes={quotes} />
             <p className={styles.note}>Cours de clôture publiés par la Bourse des Valeurs Mobilières de l&apos;Afrique Centrale, repris chaque jour de bourse sans retraitement. Ils ne préjugent pas du prix auquel votre ordre sera exécuté.</p>
@@ -417,7 +419,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           // Free facts declared by the product type and filled by the desk.
           const extras = typeOf(o).fields.filter((f) => o.extra?.[f.key]);
           return extras.length > 0 ? (
-            <section className={styles.sec}>
+            <section className={styles.sec} data-pane="essentiel">
               <h3>Caractéristiques</h3>
               <div className={styles.tl}>
                 {extras.map((f) => (
@@ -430,7 +432,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
             </section>
           ) : null;
         })()}
-        <section className={styles.sec}>
+        <section className={styles.sec} data-pane="essentiel">
           <h3>Calendrier</h3>
           <div className={styles.tl}>
             {timeline.map(([k, v]) => (
@@ -442,7 +444,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </div>
         </section>
 
-        <section className={styles.sec}>
+        <section className={styles.sec} data-pane="docs">
           <h3>Documents</h3>
           <div className={styles.docs}>
             {o.documents.length === 0 && <span className="muted" style={{ fontSize: ".82rem" }}>Documents archivés.</span>}
@@ -464,7 +466,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </div>
         </section>
 
-        <section className={styles.sec}>
+        <section className={styles.sec} data-pane="risques">
           <h3>À garder en tête</h3>
           <ul className={styles.risks}>
             {risks.map(([t, d]) => (
@@ -474,9 +476,9 @@ export default async function OfferPage({ params, searchParams }: Props) {
             ))}
           </ul>
         </section>
-      </div>
+      </FichePanes>
 
-      <aside className={styles.side}>
+      <aside className={styles.side} id="intention">
         <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
@@ -484,6 +486,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </div>
         )}
       </aside>
+      {!past && <StickyAction label={o.kind === "FONDS" ? "Souscrire ou racheter" : o.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention"} targetId="intention" secondaryHref={`/comparer?a=${o.id}`} secondaryLabel="Comparer" />}
     </div>
   );
 }

@@ -25,6 +25,14 @@ Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (m
 
 `npm run seed:sql` régénère `supabase/seed.sql` depuis `src/data/seed.ts`.
 
+## Téléphone
+
+- Sous 760 px, `src/components/mobile/MobileShell.tsx` remplace l'en-tête : barre du haut (flèche retour + titre de la page, lu dans `<title>`) et barre du bas à quatre onglets — Guichet, Fonds, Mon espace, Apprendre (+ Desk pour l'équipe). Le bureau garde l'en-tête et les onglets actuels.
+- **Retour** : historique du navigateur quand la page précédente est à nous (Next restaure le défilement), sinon la dernière liste vue (`sessionStorage`, clé `guichet:lastList`, écrite par `OfferBrowser` à chaque changement de filtre) — un lien ouvert depuis WhatsApp revient donc sur la liste filtrée.
+- **Liste** : cartes par défaut sur téléphone ; les cinq menus déroulants deviennent une feuille « Filtrer · n » (`FilterSheet`) et les filtres actifs des pastilles qu'on retire d'un tap. Les filtres restent dans l'URL.
+- **Fiche** : quatre compartiments (Essentiel, Chiffres, Documents, Risques) via `data-pane` sur les sections et `FichePanes` / `FicheSegments` (CSS seul sous 760 px, tout visible au-dessus) ; `StickyAction` colle l'action au-dessus de la barre et s'efface quand le formulaire est à l'écran.
+- `/apprendre` : la destination de l'onglet — simulateur, comparateur, sociétés et le glossaire du référentiel ; les leçons et le guide viennent à l'étape suivante.
+
 ## Le Guichet (page d'accueil)
 
 - Une barre de filtres (Instrument, Pays, Statut, Durée, Rendement ≥ — menus à cases avec compteur) et une recherche plein texte ; trois vues des mêmes lignes : **Tableau** (défaut sur ordinateur, plat, triable par en-tête), **Liste** (défaut sur mobile) et **Cartes**. Filtres, tri, sens et vue vivent dans l'URL (`?instrument=OTA,MARCHE&statut=open&tri=yield&sens=desc&vue=table`), donc une vue filtrée se partage sur WhatsApp.
