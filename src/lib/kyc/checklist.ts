@@ -67,25 +67,35 @@ export const RISK_LABEL: Record<RiskRating, string> = { faible: "Faible", moyen:
 /** Review cadence by risk rating (years). */
 export const REVIEW_YEARS: Record<RiskRating, number> = { faible: 5, moyen: 3, eleve: 1 };
 
-/** What is still missing to submit. */
+/**
+ * What blocks the submission — deliberately short: who you are, how to reach
+ * you, where the money comes from, your profile, your consent. Pieces and the
+ * rest are collected by the desk afterwards (see missingForApproval).
+ */
 export function missingForSubmission(f: ClientFile): string[] {
   const out: string[] = [];
   if (!f.identity.name) out.push("nom");
   if (!f.identity.phone && !f.identity.email) out.push("téléphone ou e-mail");
+  if (isIndivision(f) && declaredAmountFloor(f.funds.expectedAmount) > INDIVISION_CEILING) out.push("association déclarée requise au-delà de 25 M FCFA (montant envisagé trop élevé pour une indivision)");
+  if (!f.funds.source) out.push("origine des fonds");
+  if (!f.profile.objectives || !f.profile.horizon || !f.profile.riskTolerance) out.push("questionnaire investisseur");
+  if (!f.consents.dataAt) out.push("consentement données");
+  if (!f.consents.conventionAt) out.push("acceptation de la convention");
+  return out;
+}
+
+/** Everything the desk still needs before approving: identity details, representatives, every required piece. */
+export function missingForApproval(f: ClientFile): string[] {
+  const out: string[] = [...missingForSubmission(f)];
   if (f.kind === "physique" && !f.identity.birthDate) out.push("date de naissance");
   if (f.kind === "physique" && !f.identity.idNumber) out.push("numéro de pièce d'identité");
   if ((f.kind === "morale" || f.kind === "institutionnel") && !f.identity.registration) out.push("RCCM / immatriculation");
   if (f.kind === "groupement" && !f.identity.legalForm) out.push("forme du groupement");
-  if (isIndivision(f) && declaredAmountFloor(f.funds.expectedAmount) > INDIVISION_CEILING) out.push("association déclarée requise au-delà de 25 M FCFA (montant envisagé trop élevé pour une indivision)");
   if (f.kind !== "physique" && f.persons.length === 0) out.push("au moins un représentant ou mandataire");
-  if (!f.funds.source) out.push("origine des fonds");
-  if (!f.profile.objectives || !f.profile.horizon || !f.profile.riskTolerance) out.push("questionnaire investisseur");
   const have = new Set(f.documents.map((d) => d.kind));
   requiredDocs(f.kind, f.identity.residentAbroad).forEach((k) => {
     if (!have.has(k)) out.push(DOC_LABEL[k].toLowerCase());
   });
-  if (!f.consents.dataAt) out.push("consentement données");
-  if (!f.consents.conventionAt) out.push("acceptation de la convention");
   return out;
 }
 

@@ -27,20 +27,9 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
         ))}
       </div>
       <div className={styles.act}>
-        {s.primary ? (
-          <Link className="btn sm" href={`${href}?intent=${s.primary.intent}`}>
-            {s.primary.label}
-          </Link>
-        ) : (
-          <Link className="btn sm" href={href}>
-            Voir la fiche
-          </Link>
-        )}
-        {s.secondary && (
-          <Link className={styles.link} href={`${href}?intent=${s.secondary.intent}`}>
-            {s.secondary.label}
-          </Link>
-        )}
+        <Link className="btn sm" href={href}>
+          Voir la fiche
+        </Link>
         <span className={styles.when}>
           {s.deadline === "continue" ? "cotation continue" : s.deadline}
         </span>

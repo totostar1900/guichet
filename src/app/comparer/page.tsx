@@ -121,8 +121,8 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
             {cols.map((o, i) => (
               <div key={o.id} className={`${styles.cell} ${styles.actions}`}>
                 {data[i].s.primary ? (
-                  <Link className="btn sm" href={`/offres/${o.id}?intent=${data[i].s.primary.intent}`}>
-                    {data[i].s.primary.label}
+                  <Link className="btn sm" href={`/offres/${o.id}`}>
+                    Voir la fiche
                   </Link>
                 ) : (
                   <Link className="btn sm" href={`/offres/${o.id}`}>

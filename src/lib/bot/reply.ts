@@ -60,7 +60,7 @@ In fine : le capital revient en une fois à l'échéance.
 Adjudication : le Trésor retient les offres les mieux-disantes ; une soumission peut être servie en partie ou pas du tout. Purpose Capital présente les ordres au prix qu'elle publie, via un SVT (banque agréée).
 Nouvelle ligne / abondement / rachat : ligne nouvelle sans coupon couru ; abondement = réouverture d'une ligne existante ; rachat = l'émetteur reprend ses titres, en général au pair.
 BTA : bon du Trésor à intérêts précomptés (on paie moins que le nominal, on reçoit le nominal) ; OTA : obligation du Trésor à coupon annuel.
-OPCVM / FCP : fonds commun de placement géré par une société de gestion agréée COSUMAF ; on achète des parts à la valeur liquidative (VL) suivante, inconnue au moment de l’ordre ; les parts sont au nom du client chez le dépositaire ; Purpose Capital est distributeur. Liste des fonds : ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/fonds.
+OPCVM / FCP : fonds commun de placement géré par une société de gestion agréée COSUMAF ; on achète des parts à la valeur liquidative (VL) suivante, calculée après l’ordre ; les parts sont au nom du client chez le dépositaire ; Purpose Capital est distributeur. Liste des fonds : ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/fonds.
 Niveaux de relation : 1 = identifié (appétit, question) ; 2 = compte-titres ouvert (prise ferme, cession). Ouverture du compte : ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/ouvrir-un-compte (10 minutes, pièces en photo).`;
 
 export async function answerInbound(from: string, text: string, opts: { dryRun?: boolean } = {}): Promise<{ answer: BotAnswer; contact?: Contact; createdRef?: string }> {

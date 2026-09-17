@@ -210,15 +210,9 @@ function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKe
                 {s.minimum !== "—" && <Info text={s.minimumSub} label="Ce ticket représente" subtle />}
               </td>
               <td className={styles.r}>
-                {s.primary ? (
-                  <Link className="btn sm" href={`/offres/${o.id}?intent=${s.primary.intent}`}>
-                    {s.primary.label}
-                  </Link>
-                ) : (
-                  <Link className="btn sm ghost" href={`/offres/${o.id}`}>
-                    Fiche
-                  </Link>
-                )}
+                <Link className="btn sm ghost" href={`/offres/${o.id}`}>
+                  Voir la fiche
+                </Link>
               </td>
             </tr>
             )),
@@ -255,7 +249,7 @@ function List({ rows, grouped }: { rows: Row[]; grouped: boolean }) {
               </div>
             ))}
           </dl>
-          <div className={styles.rowAct}>{s.primary ? `${s.primary.label} →` : "Fiche →"}</div>
+          <div className={styles.rowAct}>Voir la fiche →</div>
         </Link>
         )),
       ])}

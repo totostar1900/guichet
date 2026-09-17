@@ -175,3 +175,98 @@
     gap: 4px;
   }
 }
+
+/* ---------- filters and sort ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.search {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.search input {
+  width: 100%;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  font-size: 0.84rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip {
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+}
+.chipOn {
+  background: var(--navy);
+  color: var(--on-navy);
+  border-color: var(--navy);
+}
+.sel,
+.sort select {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 100%;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  margin-left: auto;
+}
+.dir {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.clear {
+  border: 0;
+  background: none;
+  color: var(--gold-ink);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.count {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  margin: 0 0 10px;
+}
+@media (max-width: 760px) {
+  .sort {
+    margin-left: 0;
+  }
+}

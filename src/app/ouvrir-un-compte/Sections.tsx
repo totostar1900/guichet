@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
+import { shrinkPhoto } from "@/lib/image-client";
 import type { ClientFile, KycDocKind } from "@/lib/domain/kyc";
 import { DOC_LABEL, requiredDocs } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
@@ -213,8 +214,20 @@ function DocRow({ kind, file, editable }: { kind: KycDocKind; file: ClientFile; 
   const [state, action, pending] = useActionState<StepResult | null, FormData>(uploadDocAction, null);
   const have = file.documents.find((d) => d.kind === kind);
   const photoish = kind === "selfie" || kind.startsWith("piece_identite");
+  // The photo is shrunk on the phone before the upload, then handed to the server action.
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const f = fd.get("file");
+    const go = (file: File | null) => {
+      if (file) fd.set("file", file);
+      startTransition(() => action(fd));
+    };
+    if (f instanceof File && f.size > 0) shrinkPhoto(f).then(go, () => go(null));
+    else go(null);
+  };
   return (
-    <form action={action} className={`${styles.docRow} ${have ? styles.docHave : ""}`}>
+    <form onSubmit={onSubmit} className={`${styles.docRow} ${have ? styles.docHave : ""}`}>
       <input type="hidden" name="kind" value={kind} />
       <div className={styles.docLabel}>
         <b>{DOC_LABEL[kind]}</b>
@@ -243,7 +256,7 @@ export function DocsSection({ file, editable }: P) {
   return (
     <section className={styles.sec}>
       <h2 className="display">3 · Pièces justificatives</h2>
-      <p className={styles.hint}>Photographiez chaque pièce avec votre téléphone. Les originaux sont conservés de façon chiffrée et ne servent qu&apos;à la vérification de votre identité.</p>
+      <p className={styles.hint}>Photographiez chaque pièce avec votre téléphone — une photo nette suffit, elle est réduite avant l&apos;envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu&apos;à la vérification de votre identité.</p>
       <div className={styles.docs}>
         {req.map((k) => (
           <DocRow key={k} kind={k} file={file} editable={editable} />

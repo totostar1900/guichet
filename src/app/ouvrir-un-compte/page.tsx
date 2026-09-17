@@ -25,7 +25,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const steps: [string, boolean][] = [
     ["Type de client", true],
     ["Identité", Boolean(file.identity.name && (file.identity.phone || file.identity.email) && (file.kind !== "physique" || file.identity.idNumber))],
-    ["Pièces", !missing.some((m) => m.includes("pièce") || m.includes("selfie") || m.includes("justificatif") || m.includes("rib") || m.includes("niu") || m.includes("rccm") || m.includes("statuts") || m.includes("pv") || m.includes("récépissé") || m.includes("liste") || m.includes("matrice") || m.includes("déclaration"))],
+    ["Pièces", file.documents.length > 0],
     ["Fonds & profil", Boolean(file.funds.source && file.profile.objectives)],
     ["Convention", Boolean(file.consents.conventionAt)],
   ];

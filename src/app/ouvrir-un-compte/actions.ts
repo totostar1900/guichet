@@ -92,7 +92,7 @@ export async function removePersonAction(form: FormData): Promise<void> {
 
 /* ---------- 3. Pièces ---------- */
 const DOC_KINDS = Object.keys(DOC_LABEL) as KycDocKind[];
-const ACCEPTED = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+const ACCEPTED = ["application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
 export async function uploadDocAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file, userId } = await myFile();
@@ -103,7 +103,7 @@ export async function uploadDocAction(_p: StepResult | null, form: FormData): Pr
   if (!(f instanceof File) || f.size === 0) return { ok: false, error: "Choisissez un fichier (photo ou PDF)." };
   if (f.size > 15 * 1024 * 1024) return { ok: false, error: "Fichier trop lourd (15 Mo max)." };
   const mime = f.type || "application/octet-stream";
-  if (!ACCEPTED.includes(mime)) return { ok: false, error: "Formats acceptés : photo (JPEG, PNG, WebP) ou PDF." };
+  if (!ACCEPTED.includes(mime)) return { ok: false, error: "Formats acceptés : photo (JPEG, PNG, WebP, HEIC) ou PDF." };
   const ext = f.name.split(".").pop()?.toLowerCase() ?? "bin";
   const fileKey = `kyc/${userId}/${kind}-${Date.now().toString(36)}.${ext}`;
   await saveSource(fileKey, new Uint8Array(await f.arrayBuffer()), mime);

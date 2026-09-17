@@ -82,3 +82,22 @@
 .muted {
   color: var(--ink-3);
 }
+
+.point {
+  fill: var(--surface);
+  stroke: var(--chart-out);
+  stroke-width: 1.2;
+}
+.guide {
+  stroke: var(--line-2);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.tick {
+  font-size: 8px;
+  fill: var(--ink-3);
+  font-family: var(--font-ui);
+}
+.chart svg {
+  height: auto;
+}

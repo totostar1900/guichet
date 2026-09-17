@@ -48,7 +48,7 @@ describe("sélection du desk et diffusion", () => {
     for (const id of ["mkt-bhc", "mkt-ecmr-2031"]) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
     const fourth = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
     expect(fourth.ok).toBe(false);
-    expect(fourth.error).toMatch(/Trois lignes/);
+    expect(!fourth.ok && fourth.error).toMatch(/Trois lignes/);
   });
 
   it("counts before sending, journals every send, and never alerts a client twice a day", async () => {
@@ -58,7 +58,7 @@ describe("sélection du desk et diffusion", () => {
     const before = (await r.listNotifications(500)).length;
     const preview = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients" }));
     expect(preview.ok).toBe(false);
-    expect(preview.error).toMatch(/client/);
+    expect(!preview.ok && preview.error).toMatch(/client/);
     expect((await r.listNotifications(500)).length).toBe(before); // nothing sent on preview
     const sent = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients", confirm: "1" }));
     expect(sent.ok).toBe(true);
@@ -68,7 +68,7 @@ describe("sélection du desk et diffusion", () => {
     expect(rows.every((n) => n.status === "skipped" || n.status === "queued")).toBe(true);
     const again = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients", confirm: "1" }));
     expect(again.ok).toBe(false);
-    expect(again.error).toMatch(/Personne à prévenir|déjà alerté/);
+    expect(!again.ok && again.error).toMatch(/Personne à prévenir|déjà alerté/);
     current = resp;
   });
 });

@@ -119,7 +119,7 @@ export const LESSONS: Lesson[] = [
     intro: "Vous n'achetez pas un titre mais une part d'un panier, à un prix connu après coup.",
     body: [
       "La valeur liquidative (VL) est le prix d'une part : actifs du fonds moins ses dettes, divisé par le nombre de parts. Elle est calculée à intervalle régulier par la société de gestion.",
-      "Une souscription s'exécute à la prochaine VL, inconnue au moment de l'ordre. Vous connaissez votre montant, pas encore votre nombre de parts.",
+      "Une souscription s'exécute à la prochaine VL calculée après votre ordre. Vous connaissez votre montant, pas encore votre nombre de parts.",
       "Les frais d'entrée, de sortie et de gestion (prélevés dans la VL) sont dans le prospectus du fonds ; les performances passées ne préjugent pas des performances futures.",
     ],
     widget: "fund",

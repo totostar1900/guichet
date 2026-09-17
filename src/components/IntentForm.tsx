@@ -264,7 +264,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           </div>
         )}
         <div className={styles.foot}>
-          <small>{offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative, inconnue au moment de l'ordre ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation."}</small>
+          <small>{offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation."}</small>
           <button className="btn primary" type="submit" disabled={pending || !signedIn}>
             {pending ? "Envoi…" : "Envoyer au desk"}
           </button>
