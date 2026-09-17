@@ -3,7 +3,8 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
-import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
+import type { Intent } from "@/lib/domain/types";
 import { ContactForm } from "./ContactForm";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
@@ -47,6 +48,15 @@ export default async function MyPage() {
     annulee: "Annulée.",
   };
 
+  // The five stops every order goes through; a card shows where each intention stands.
+  const STOPS: Intent["state"][] = ["recue", "confirmee", "transmise", "servie", "reglee"];
+  const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : STOPS.indexOf(st));
+  const open = mine.filter((i) => i.state === "recue" || i.state === "confirmee" || i.state === "transmise").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const closed = mine.filter((i) => !open.includes(i)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const valued = positions.reduce((t, p) => t + (p.marketValue ?? p.nominalAmount ?? 0), 0);
+  const nextFlow = positions.map((p) => p.nextFlow).filter((x): x is NonNullable<typeof x> => Boolean(x)).sort((a, b) => a.date.localeCompare(b.date))[0];
+  const amountText = (i: Intent, kind?: string) => (i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${kind === "RACHAT" ? "titres" : "FCFA"}`) : "");
+
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
@@ -65,6 +75,60 @@ export default async function MyPage() {
         <Link href="/" className="btn">
           Voir les offres
         </Link>
+      </div>
+
+      <div className={styles.kpis}>
+        <div>
+          <span>Positions valorisées</span>
+          <b>{positions.length ? fmtMillions(valued) : "—"}</b>
+          <small>{positions.length ? `${positions.length} ligne${positions.length > 1 ? "s" : ""} à votre nom` : "aucun titre inscrit encore"}</small>
+        </div>
+        <div>
+          <span>Prochain flux</span>
+          <b>{nextFlow ? fmtDate(nextFlow.date, false) : "—"}</b>
+          <small>{nextFlow ? `${fmt(nextFlow.amount)} FCFA · ${nextFlow.label}` : "coupons et remboursements à venir"}</small>
+        </div>
+        <div>
+          <span>En cours</span>
+          <b>{open.length}</b>
+          <small>{open.length ? "intention" + (open.length > 1 ? "s" : "") + " suivie" + (open.length > 1 ? "s" : "") + " par le desk" : "aucune intention en cours"}</small>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Intentions en cours</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>reçue → confirmée → transmise → servie → réglée</span>
+        </div>
+        {open.length === 0 && <div className="empty">Aucune intention en cours — choisissez une ligne dans le Guichet.</div>}
+        {open.length > 0 && (
+          <div className={styles.cards}>
+            {open.map((i) => {
+              const o = byOffer.get(i.offerId);
+              const k = stopIndex(i.state);
+              return (
+                <div key={i.id} className={styles.card}>
+                  <div className={styles.cardTop}>
+                    <div>
+                      <b>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</b>
+                      <small>
+                        {INTENT_LABEL[i.type]}
+                        {i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · réf. {i.ref}
+                      </small>
+                    </div>
+                    <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
+                  </div>
+                  <div className={styles.next}>{(o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state]}</div>
+                  <div className={styles.track} aria-label={`Étape ${k + 1} sur 5`}>
+                    {STOPS.map((st, n) => (
+                      <i key={st} className={n <= k ? styles.done : undefined} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="panel">
@@ -162,10 +226,11 @@ export default async function MyPage() {
         </div>
       )}
 
-      <div className="panel">
-        <div className="panel-h">
-          <h2>Mes intentions</h2>
-        </div>
+      <details className={`panel ${styles.history}`}>
+        <summary className="panel-h">
+          <h2>Historique ({closed.length})</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>intentions servies, réglées, non servies ou annulées</span>
+        </summary>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
@@ -179,7 +244,7 @@ export default async function MyPage() {
               </tr>
             </thead>
             <tbody>
-              {mine.map((i) => {
+              {closed.map((i) => {
                 const o = byOffer.get(i.offerId);
                 return (
                   <tr key={i.id}>
@@ -198,17 +263,17 @@ export default async function MyPage() {
                   </tr>
                 );
               })}
-              {mine.length === 0 && (
+              {closed.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
-                    Aucune intention pour l&apos;instant — choisissez une offre dans le Guichet.
+                    Rien encore.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </details>
 
       <div className="panel">
         <div className="panel-h">

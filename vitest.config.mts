@@ -12,5 +12,6 @@ export default defineConfig({
       "server-only": path.resolve(here, "src/test/server-only.ts"),
     },
   },
-  test: { include: ["src/**/*.test.ts"] },
+  // Generous timeouts: the e2e tests render PDFs and run next to a dev server on the same machine.
+  test: { include: ["src/**/*.test.ts"], testTimeout: 30_000 },
 });

@@ -240,3 +240,83 @@
   font: inherit;
   text-decoration: underline;
 }
+
+/* ---------- phone: three steps ---------- */
+.stepBar,
+.stepTitle,
+.stepNav,
+.recap {
+  display: none;
+}
+@media (max-width: 760px) {
+  .stepBar {
+    display: flex;
+    gap: 6px;
+    margin: 4px 0 8px;
+  }
+  .stepBar i {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-2);
+  }
+  .stepBar .stepDone {
+    background: var(--gold);
+  }
+  .stepTitle {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .form[data-at="1"] [data-step]:not([data-step="1"]),
+  .form[data-at="2"] [data-step]:not([data-step="2"]),
+  .form[data-at="3"] [data-step]:not([data-step="3"]) {
+    display: none;
+  }
+  .recap {
+    display: grid;
+    gap: 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 4px 12px;
+    margin-bottom: 12px;
+    font-size: 0.82rem;
+  }
+  .recap > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .recap > div:last-child {
+    border-bottom: 0;
+  }
+  .recap span {
+    color: var(--ink-3);
+    flex: none;
+  }
+  .recap b {
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .stepNav {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .stepNav .btn {
+    min-width: 40%;
+  }
+  .foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

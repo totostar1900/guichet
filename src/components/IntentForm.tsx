@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
 import { estimate } from "@/lib/domain/estimate";
@@ -52,6 +52,28 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
+  const [who, setWho] = useState({ firstName, lastName, phone, email });
+  // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
+  const [step, setStep] = useState(1);
+  const formRef = useRef<HTMLFormElement>(null);
+  const goTo = (n: number) => {
+    if (n > step && formRef.current) {
+      // Every field of the current step must be valid before moving on.
+      const fields = formRef.current.querySelectorAll<HTMLInputElement>(`[data-step="${step}"] input, [data-step="${step}"] textarea`);
+      for (const el of fields) {
+        if (!el.checkValidity()) {
+          el.reportValidity();
+          return;
+        }
+      }
+      if (step === 1 && needsAmount && !parse(amount)) {
+        formRef.current.querySelector<HTMLInputElement>('input[name="amount"]')?.focus();
+        return;
+      }
+    }
+    setStep(n);
+    formRef.current?.closest("aside")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
   const est = estimate(offer, parse(amount));
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
@@ -98,8 +120,15 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     <div className={styles.wrap}>
       <h3 className="display">{past ? "Une question sur cette ligne ?" : "Votre intention sur cette ligne"}</h3>
       {!past && <div className={styles.priceLine}>{priceText}</div>}
-      <form action={action}>
+      <form action={action} ref={formRef} data-at={step} className={styles.form}>
         <input type="hidden" name="offerId" value={offer.id} />
+        <div className={styles.stepBar} aria-hidden="true">
+          {[1, 2, 3].map((n) => (
+            <i key={n} className={n <= step ? styles.stepDone : undefined} />
+          ))}
+        </div>
+        <div className={styles.stepTitle}>{step === 1 ? "1 · Votre demande" : step === 2 ? "2 · Vos coordonnées" : "3 · Récapitulatif"}</div>
+        <div data-step="1">
         <div className={styles.radio}>
           {types.map((t) => (
             <label key={t}>
@@ -139,6 +168,21 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           )}
         </div>
+        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
+        {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
+          <div className={styles.tierNote}>
+            Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis{" "}
+            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>complétez votre dossier</Link> (10 min).
+          </div>
+        )}
+        {signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && (
+          <div className={styles.tierNote}>
+            Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
+            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>ouvrez votre compte</Link> (10 min).
+          </div>
+        )}
+        </div>
+        <div data-step="2">
         <fieldset className={styles.contact}>
           <legend>Vos coordonnées</legend>
           <div className={styles.row}>
@@ -146,13 +190,13 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span>
                 Prénom <em className={styles.req}>· requis</em>
               </span>
-              <input name="firstName" autoComplete="given-name" placeholder="Prénom" defaultValue={firstName} required minLength={2} />
+              <input name="firstName" autoComplete="given-name" placeholder="Prénom" value={who.firstName} onChange={(e) => setWho({ ...who, firstName: e.target.value })} required minLength={2} />
             </label>
             <label className="field">
               <span>
                 Nom <em className={styles.req}>· requis</em>
               </span>
-              <input name="lastName" autoComplete="family-name" placeholder="Nom" defaultValue={lastName} required minLength={2} />
+              <input name="lastName" autoComplete="family-name" placeholder="Nom" value={who.lastName} onChange={(e) => setWho({ ...who, lastName: e.target.value })} required minLength={2} />
             </label>
           </div>
           <div className={styles.row}>
@@ -160,13 +204,13 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span>
                 Téléphone (WhatsApp) <em className={styles.req}>· requis</em>
               </span>
-              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={phone} required pattern="[+0-9 ().-]{8,}" title="Numéro avec indicatif, ex. +237 6 87 67 67 67" />
+              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 ().-]{8,}" title="Numéro avec indicatif, ex. +237 6 87 67 67 67" />
             </label>
             <label className="field">
               <span>
                 E-mail <em className={styles.req}>· requis</em>
               </span>
-              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" defaultValue={email} required />
+              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} required />
             </label>
           </div>
           <div className={styles.channelLbl}>Me joindre par</div>
@@ -182,23 +226,34 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             Prénom et nom tels que sur votre pièce d&apos;identité (ils figurent sur le bulletin). Téléphone et e-mail sont vérifiés à l&apos;envoi : accusé de réception immédiat sur WhatsApp et par e-mail, confirmation d&apos;un conseiller {BY[channel]}, bulletin à signer par e-mail. En donnant ce numéro, vous acceptez d&apos;être contacté sur WhatsApp pour cette opération.
           </p>
         </fieldset>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
-        {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
-          <div className={styles.tierNote}>
-            Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis{" "}
-            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>complétez votre dossier</Link> (10 min).
-          </div>
-        )}
-        {signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && (
-          <div className={styles.tierNote}>
-            Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
-            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>ouvrez votre compte</Link> (10 min).
-          </div>
-        )}
         <label className="field" style={{ marginBottom: 10 }}>
           Message (facultatif)
           <textarea name="message" rows={2} placeholder={offer.kind === "RACHAT" ? "Titres détenus chez… / date de disponibilité" : "Ex. : plutôt la ligne la plus courte ; contrainte de trésorerie le 16."} />
         </label>
+        </div>
+        <div data-step="3">
+        <div className={styles.recap}>
+          <div>
+            <span>Ligne</span>
+            <b>{offer.title}</b>
+          </div>
+          <div>
+            <span>Demande</span>
+            <b>{INTENT_LABEL[type]}</b>
+          </div>
+          {needsAmount && (
+            <div>
+              <span>{amtLabel}</span>
+              <b>{parse(amount) ? (type === "rachat" ? fmtUnits(parse(amount)) : fmt(parse(amount))) : "—"}</b>
+            </div>
+          )}
+          <div>
+            <span>Contact</span>
+            <b>
+              {who.firstName} {who.lastName} · {channel} · {channel === "E-mail" ? who.email : who.phone}
+            </b>
+          </div>
+        </div>
         {state && !state.ok && <div className={styles.error}>{state.error}</div>}
         {!signedIn && (
           <div className={styles.login}>
@@ -213,6 +268,21 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           <button className="btn primary" type="submit" disabled={pending || !signedIn}>
             {pending ? "Envoi…" : "Envoyer au desk"}
           </button>
+        </div>
+        </div>
+        <div className={styles.stepNav}>
+          {step > 1 ? (
+            <button type="button" className="btn ghost" onClick={() => goTo(step - 1)}>
+              Retour
+            </button>
+          ) : (
+            <span />
+          )}
+          {step < 3 && (
+            <button type="button" className="btn primary" onClick={() => goTo(step + 1)}>
+              Continuer
+            </button>
+          )}
         </div>
       </form>
     </div>

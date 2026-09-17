@@ -52,7 +52,7 @@ describe("locking, versions, audit, four-eyes", () => {
     expect(a.actor).toBe("op@example.com");
   });
 
-  it("sends an out-of-window quote to approval, which the proposer cannot decide", { timeout: 20_000 }, async () => {
+  it("sends an out-of-window quote to approval, which the proposer cannot decide", async () => {
     const { updateQuoteAction } = await import("@/app/desk/marche/actions");
     const { decideApprovalAction } = await import("@/app/desk/approbations/actions");
     const { repo } = await import("@/lib/data");

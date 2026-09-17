@@ -31,6 +31,9 @@ Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (m
 - **Retour** : historique du navigateur quand la page précédente est à nous (Next restaure le défilement), sinon la dernière liste vue (`sessionStorage`, clé `guichet:lastList`, écrite par `OfferBrowser` à chaque changement de filtre) — un lien ouvert depuis WhatsApp revient donc sur la liste filtrée.
 - **Liste** : cartes par défaut sur téléphone ; les cinq menus déroulants deviennent une feuille « Filtrer · n » (`FilterSheet`) et les filtres actifs des pastilles qu'on retire d'un tap. Les filtres restent dans l'URL.
 - **Fiche** : quatre compartiments (Essentiel, Chiffres, Documents, Risques) via `data-pane` sur les sections et `FichePanes` / `FicheSegments` (CSS seul sous 760 px, tout visible au-dessus) ; `StickyAction` colle l'action au-dessus de la barre et s'efface quand le formulaire est à l'écran.
+- **Intention en trois étapes** sur téléphone (`IntentForm`, attribut `data-at` sur le formulaire, `data-step` sur les blocs) : demande et montant avec l'estimation, coordonnées (contrôlées, pré-remplies), récapitulatif puis envoi ; « Continuer » vérifie les champs de l'étape ; le bureau affiche tout d'un bloc. Même parcours pour souscription et rachat de fonds.
+- **Mon espace** : trois tuiles (positions valorisées, prochain flux, en cours), les intentions en cours en cartes avec la prochaine étape en clair et la jauge des cinq arrêts (reçue → confirmée → transmise → servie → réglée), l'historique replié ; coordonnées, lignes suivies, positions et documents inchangés.
+- **Écran d'accueil** : `src/app/manifest.ts` (nom, icônes `public/icons`, plein écran, couleurs) et `viewport` avec `viewportFit: cover` ; les barres du téléphone respectent les zones sûres.
 - `/apprendre` : la destination de l'onglet — simulateur, comparateur, sociétés et le glossaire du référentiel ; les leçons et le guide viennent à l'étape suivante.
 
 ## Le Guichet (page d'accueil)

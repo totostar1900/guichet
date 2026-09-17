@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Manrope } from "next/font/google";
 import "./globals.css";
@@ -19,6 +19,16 @@ const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "8
 export const metadata: Metadata = {
   title: { default: `${PRODUCT.name} · ${COMPANY.name}`, template: `%s · ${PRODUCT.name}` },
   description: "Opportunités et instruments financiers en CEMAC — titres publics, BVMAC, opérations de marché.",
+  applicationName: "Guichet",
+  appleWebApp: { capable: true, title: "Guichet", statusBarStyle: "black-translucent" },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b2545",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
