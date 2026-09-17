@@ -8,9 +8,8 @@ import styles from "./page.module.css";
 export const metadata = { title: "Apprendre" };
 
 /**
- * The learning tab: where a first-time investor starts. Today it gathers what
- * already exists (simulator, glossary, companies, issuers, comparer); the
- * lessons and the guided tour arrive in the next step.
+ * The learning tab: where a first-time investor starts — eight short lessons
+ * (référentiel), the tools, and the glossary; « Premiers pas » replayable here.
  */
 export default async function ApprendrePage() {
   const G = getRegistry().glossary;
