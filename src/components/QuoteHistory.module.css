@@ -110,6 +110,9 @@
 .navChart svg {
   touch-action: pan-y;
 }
+.navChart .tick {
+  font-size: 6.4px; /* axis labels 20 % smaller than the quote chart */
+}
 .cursor {
   stroke: var(--ink-3);
   stroke-width: 0.8;
