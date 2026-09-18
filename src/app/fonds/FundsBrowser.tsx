@@ -56,7 +56,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const [cat, setCat] = useState<FundNav["category"] | "">("");
   const [manager, setManager] = useState("");
   const [freq, setFreq] = useState<FundNav["frequency"] | "">("");
-  const [openOnly, setOpenOnly] = useState(false);
   const [sort, setSort] = useState<SortKey>("categorie");
   const [desc, setDesc] = useState(true);
 
@@ -65,7 +64,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
-    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!freq || r.frequency === freq) && (!openOnly || r.open) && (!ql || `${r.title} ${r.manager} ${r.depositary}`.toLowerCase().includes(ql)));
+    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!freq || r.frequency === freq) && (!ql || `${r.title} ${r.manager} ${r.depositary}`.toLowerCase().includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":
@@ -86,10 +85,10 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     };
     const dir = sort === "categorie" || sort === "nom" ? 1 : desc ? -1 : 1;
     return [...list].sort((a, b) => dir * cmp(a, b));
-  }, [rows, q, cat, manager, freq, openOnly, sort, desc]);
+  }, [rows, q, cat, manager, freq, sort, desc]);
 
   const groups = sort === "categorie" ? CATS.filter((c) => filtered.some((r) => r.category === c)).map((c) => ({ c, rows: filtered.filter((r) => r.category === c) })) : [{ c: null, rows: filtered }];
-  const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq)) + Number(openOnly);
+  const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq));
 
   return (
     <>
@@ -109,9 +108,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
         <Select value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
         <Select value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
-        <label className={styles.toggle}>
-          <input type="checkbox" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} /> {t("Ouverts à la souscription")}
-        </label>
         <label className={styles.sort}>
           {t("Tri")}
           <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
@@ -130,7 +126,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               setCat("");
               setManager("");
               setFreq("");
-              setOpenOnly(false);
             }}
           >
             {t("Effacer")}

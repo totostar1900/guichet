@@ -66,6 +66,15 @@
 .search input::placeholder {
   color: var(--ink-3);
 }
+/* The dropdowns, the clear link and the view switch: one row, wrapping only when the window is narrow. */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
 .dd {
   position: relative;
 }

@@ -13,6 +13,7 @@ import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
 import { Select } from "./ui/Select";
+import { parseYieldRange, YieldDropdown, YieldGauge, yieldRangeLabel, yieldRangeParam } from "./YieldRange";
 import { LAST_LIST_KEY } from "./mobile/MobileShell";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
@@ -41,11 +42,6 @@ const TENORS: [string, string][] = [
   ["1-3", "1 à 3 ans"],
   ["gt3", "Plus de 3 ans"],
   ["eq", "Actions et fonds"],
-];
-const YIELDS: [string, string][] = [
-  ["5", "≥ 5 %"],
-  ["7", "≥ 7 %"],
-  ["9", "≥ 9 %"],
 ];
 export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "recent";
 type Dir = "asc" | "desc";
@@ -205,7 +201,7 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
                 <StatusPill s={s} />
               </td>
               <td className={`${styles.r} num`}>
-                {s.deadlineParts ? s.deadlineParts[0] : s.deadline}
+                {s.deadlineParts ? s.deadlineParts[0] : t(s.deadline)}
                 {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
               </td>
               <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
@@ -273,7 +269,7 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
 
 /* ---------- phone: filters in a bottom sheet ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
-function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number }) {
+function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number; gauge: React.ReactNode }) {
   const t = useT();
   useEffect(() => {
     if (!open) return;
@@ -309,6 +305,10 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open
               </div>
             </div>
           ))}
+          <div className={styles.fg}>
+            <span>{t("Rendement")}</span>
+            {gauge}
+          </div>
         </div>
         <button type="button" className={`btn primary ${styles.sheetApply}`} onClick={onClose}>
           {t("Voir")} {count} {t(count > 1 ? "lignes" : "ligne")}
@@ -333,7 +333,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const country = setOf("pays");
   const status = setOf("statut");
   const tenor = setOf("duree");
-  const minYield = setOf("rendement");
+  const yr = parseYieldRange(sp.get("rendement"));
   const q = sp.get("q") ?? "";
   const sort = (sp.get("tri") as SortKey) || "deadline";
   const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
@@ -382,16 +382,16 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
     else update({ tri: k, sens: undefined });
   };
   const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, rendement: undefined, q: undefined });
-  const filterCount = kind.size + country.size + status.size + tenor.size + minYield.size + (segment ? 1 : 0);
+  const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (segment ? 1 : 0);
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
     { key: "instrument", label: "Instrument", items: famItems, selected: kind },
     { key: "pays", label: "Pays", items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
     { key: "statut", label: "Statut", items: STATUSES, selected: status },
     { key: "duree", label: "Durée", items: TENORS, selected: tenor },
-    { key: "rendement", label: "Rendement minimum", items: YIELDS, selected: minYield, single: true },
   ];
   const toggle = (key: string, value: string, single?: boolean) => {
+    if (key === "rendement") return update({ rendement: undefined });
     const cur = setOf(key);
     if (single) {
       if (cur.has(value)) cur.clear();
@@ -403,7 +403,12 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
     else cur.add(value);
     update({ [key]: [...cur].join(",") || undefined });
   };
-  const activeChips = groups.flatMap((g) => g.items.filter(([v]) => g.selected.has(v)).map(([v, l]) => ({ key: g.key, value: v, label: g.key === "rendement" ? `${t("Rendement")} ${l}` : t(l), single: g.single })));
+  const activeChips = [
+    ...groups.flatMap((g) => g.items.filter(([v]) => g.selected.has(v)).map(([v, l]) => ({ key: g.key, value: v, label: t(l), single: g.single }))),
+    ...(yr.min != null || yr.max != null ? [{ key: "rendement", value: "*", label: `${t("Rendement")} ${yieldRangeLabel(yr)}`, single: true }] : []),
+  ];
+  const setYield = (min?: number, max?: number) => update({ rendement: yieldRangeParam(min, max) });
+  const yields = useMemo(() => offers.map((o) => headlineYield(o)).filter((y): y is number => y != null), [offers]);
   const segCount = useMemo(() => {
     const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
     for (const o of offers) c[familySegment(offerFamily(o))]++;
@@ -412,7 +417,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
   const rows = useMemo(() => {
     const ql = q.trim().toLowerCase();
-    const min = minYield.size ? Number([...minYield][0]) : 0;
     const out = offers
       .filter((o) => {
         const st = displayStatus(o, now);
@@ -430,9 +434,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           const k = o.kind === "ACTIONS" || o.kind === "FONDS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
           if (!tenor.has(k)) return false;
         }
-        if (min) {
+        if (yr.min != null || yr.max != null) {
           const y = headlineYield(o);
-          if (y == null || y < min) return false;
+          if (y == null || (yr.min != null && y < yr.min) || (yr.max != null && y > yr.max)) return false;
         }
         if (ql) {
           const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ").toLowerCase();
@@ -525,7 +529,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           <Dropdown label="Pays" items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
           <Dropdown label="Statut" items={STATUSES} selected={status} onChange={setFilter("statut")} />
           <Dropdown label="Durée" items={TENORS} selected={tenor} onChange={setFilter("duree")} />
-          <Dropdown label="Rendement" items={YIELDS} selected={minYield} onChange={setFilter("rendement")} single />
+          <YieldDropdown values={yields} min={yr.min} max={yr.max} onChange={setYield} />
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>
               {t("Effacer")}
@@ -553,7 +557,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           </div>
         )}
       </div>
-      <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} />
+      <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} gauge={<YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} />} />
 
       {picks.length > 0 && (
         <section className={styles.featured} aria-label={t("À la une")}>
