@@ -140,6 +140,10 @@ export const EN_NEWS: Record<string, string> = {
   "La page répond {n}.": "The page answers {n}.",
   "La page ne répond pas (9 s).": "The page does not answer (9 s).",
 
+  /* first steps */
+  "Ce qui bouge, expliqué en trois lignes": "What is moving, explained in three lines",
+  "Communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse : le desk retient ce qui compte pour vos lignes et dit pourquoi, en deux lignes. L'article reste chez son éditeur, à un clic.": "Treasury notices, BVMAC bulletins, COSUMAF decisions, the press: the desk keeps what matters for your lines and says why, in two lines. The article stays with its publisher, one click away.",
+
   /* tour */
   "Liens reçus": "Links received",
   "La veille de nuit, un lien envoyé au robot WhatsApp depuis un téléphone du desk ou un e-mail déposent ici ce qui mérite un regard. « Préparer » ouvre le formulaire pré-rempli ; « Écarter » classe sans publier.": "The nightly watch, a link sent to the WhatsApp robot from a desk phone or an e-mail drop here what deserves a look. « Prepare » opens the pre-filled form; « Discard » files it without publishing.",

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import styles from "./Onboarding.module.css";
 
 /**
- * « Premiers pas » — four screens, one idea each, shown once per device on the
+ * « Premiers pas » — five screens, one idea each, shown once per device on the
  * first visit (never on the desk or the login page), replayable from Info.
  * SVG + CSS only: nothing to host, nothing to load.
  */
@@ -93,6 +93,41 @@ const SLIDES = [
         <text x="100" y="125" textAnchor="middle" fontSize="9" fill="#b9c6da">
           intention → appel → ordre transmis
         </text>
+      </svg>
+    ),
+  },
+  {
+    title: "Ce qui bouge, expliqué en trois lignes",
+    text: "Communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse : le desk retient ce qui compte pour vos lignes et dit pourquoi, en deux lignes. L'article reste chez son éditeur, à un clic.",
+    art: (
+      <svg viewBox="0 0 200 170" aria-hidden="true">
+        <g className={styles.a1}>
+          <rect x="16" y="28" width="168" height="52" rx="8" fill="#fbf1da" stroke="#b8860b" strokeWidth="1.5" />
+          <text x="26" y="42" fontSize="7" fontWeight="800" fill="#8a6408" letterSpacing="1">
+            À LA UNE
+          </text>
+          <rect x="26" y="48" width="120" height="6" rx="3" fill="#0b2545" />
+          <rect x="26" y="58" width="96" height="6" rx="3" fill="#0b2545" />
+          <rect x="26" y="69" width="36" height="5" rx="2" fill="#b8860b" />
+          <rect x="66" y="69" width="70" height="5" rx="2" fill="#c9d3e3" />
+          <text x="174" y="43" textAnchor="end" fontSize="9" fontWeight="800" fill="#0b2545">
+            ↗
+          </text>
+        </g>
+        <g className={styles.a2}>
+          <rect x="16" y="90" width="168" height="34" rx="8" fill="#fff" opacity=".9" />
+          <rect x="26" y="99" width="18" height="6" rx="3" fill="#2a5db0" />
+          <rect x="50" y="99" width="90" height="6" rx="3" fill="#0b2545" />
+          <rect x="26" y="111" width="30" height="5" rx="2" fill="#b8860b" />
+          <rect x="60" y="111" width="80" height="5" rx="2" fill="#c9d3e3" />
+        </g>
+        <g className={styles.a3}>
+          <rect x="16" y="132" width="168" height="34" rx="8" fill="#fff" opacity=".7" />
+          <rect x="26" y="141" width="18" height="6" rx="3" fill="#b4600a" />
+          <rect x="50" y="141" width="70" height="6" rx="3" fill="#0b2545" />
+          <rect x="26" y="153" width="30" height="5" rx="2" fill="#b8860b" />
+          <rect x="60" y="153" width="60" height="5" rx="2" fill="#c9d3e3" />
+        </g>
       </svg>
     ),
   },
