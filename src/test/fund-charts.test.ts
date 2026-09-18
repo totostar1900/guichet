@@ -48,3 +48,18 @@ describe("fund chart readings", () => {
     expect(dd[dd.length - 1].y).toBe(0);
   });
 });
+
+describe("x axis", () => {
+  it("shows every date when few, six over a short span, five with the year over a long one", async () => {
+    const { axisLabel } = await import("@/components/NavChart");
+    const s = weekly().map((p) => p.date);
+    expect(axisLabel(s.slice(0, 5)).ticks).toEqual([0, 1, 2, 3, 4]);
+    const short = axisLabel(s.slice(0, 30));
+    expect(short.ticks).toEqual([0, 6, 12, 17, 23, 29]);
+    expect(short.label(s[0])).not.toMatch(/2024/);
+    const long = axisLabel(s);
+    expect(long.ticks).toHaveLength(5);
+    expect(long.ticks[4]).toBe(s.length - 1);
+    expect(long.label(s[0])).toMatch(/2024/);
+  });
+});

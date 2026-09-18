@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
 import { useT } from "@/i18n/client";
@@ -13,6 +14,14 @@ export interface NavPoint {
   perfSinceInceptionPct: number;
   bulletinNo: number;
 }
+
+/** Dates under the axis: every point when there are few, otherwise six evenly spaced ones (first and last included). */
+export const axisTicks = (n: number, count = 6): number[] => (n <= 8 ? Array.from({ length: n }, (_, i) => i) : Array.from({ length: count }, (_, k) => Math.round((k * (n - 1)) / (count - 1))));
+/** Over more than a year the year matters and the labels get longer: five of them, with the year. */
+export const axisLabel = (dates: string[]) => {
+  const long = dates.length > 1 && daysBetween(dates[0], dates[dates.length - 1]) > 366;
+  return { ticks: axisTicks(dates.length, long ? 5 : 6), label: (d: string) => fmtDate(d, long) };
+};
 
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 
@@ -35,7 +44,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
   const iMax = values.indexOf(max);
   const iMin = values.indexOf(min);
   const last = series.length - 1;
-  const ticks = series.length <= 8 ? series.map((_, i) => i) : [0, Math.round(series.length / 3), Math.round((2 * series.length) / 3), last];
+  const axis = axisLabel(series.map((p) => p.date));
 
   // The nearest point to the pointer, in viewBox units.
   const pick = (clientX: number) => {
@@ -80,9 +89,9 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
             <title>{`${fmtDate(n.date)} · ${fmt(n.nav)} FCFA`}</title>
           </circle>
         ))}
-        {ticks.map((i) => (
+        {axis.ticks.map((i) => (
           <text key={i} x={x(i)} y={H + 11} className={styles.tick} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
-            {fmtDate(series[i].date, false)}
+            {axis.label(series[i].date)}
           </text>
         ))}
       </svg>

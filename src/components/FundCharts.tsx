@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { NavPoint } from "./NavChart";
+import { axisLabel, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
@@ -93,7 +93,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
   const fmtY = (v: number) => (mode === "placement" ? fmt(v) : `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`);
   const line = series.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const zero = y(Math.max(min, Math.min(max, 0)));
-  const ticks = n <= 8 ? series.map((_, i) => i) : [0, Math.round(n / 3), Math.round((2 * n) / 3), n - 1];
+  const axis = axisLabel(series.map((p) => p.date));
   const last = n - 1;
 
   const pick = (clientX: number) => {
@@ -147,9 +147,9 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
         )}
         {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad} y2={H - pad} className={styles.cursor} />}
         {hover != null && mode !== "variations" && <circle cx={x(hover)} cy={y(series[hover].y)} r={4} className={styles.dot} />}
-        {ticks.map((i) => (
+        {axis.ticks.map((i) => (
           <text key={i} x={x(i)} y={H + 11} className={styles.tick} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
-            {fmtDate(series[i].date, false)}
+            {axis.label(series[i].date)}
           </text>
         ))}
       </svg>
