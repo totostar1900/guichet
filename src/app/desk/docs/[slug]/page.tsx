@@ -43,6 +43,8 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
               {d.slug === doc.slug && <ChapterLinks chapters={chapters} />}
             </div>
           ))}
+          <span className={styles.group}>{t("Notes")}</span>
+          <Link href="/desk/docs/notes">{t("Notes de travail de l'assistant")}</Link>
           <span className={styles.group}>{t("Pages du desk")}</span>
           <Link href="/desk/guide">{t("Guide, champ par champ")}</Link>
         </nav>

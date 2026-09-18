@@ -96,6 +96,16 @@ export default async function DocsIndex({ searchParams }: { searchParams: Promis
               </span>
             </Link>
           ))}
+          <Link href="/desk/docs/notes" className={styles.card}>
+            <h2>{t("Notes de travail de l'assistant")}</h2>
+            <p>{t("État du projet, décisions, conventions, migrations, ce qui reste à faire — en anglais, copiées du dossier docs/notes du dépôt.")}</p>
+            <span className={styles.foot}>
+              <span>
+                <span className={`${styles.chip} ${styles.tech}`} style={{ marginRight: 4 }}>{AUDIENCE_LABEL.tech[lang]}</span>
+                <span className={`${styles.chip} ${styles.admin}`}>{AUDIENCE_LABEL.admin[lang]}</span>
+              </span>
+            </span>
+          </Link>
           <Link href="/desk/guide" className={styles.card}>
             <h2>{t("Guide des pages du desk")}</h2>
             <p>{t("Chaque page du desk, champ par champ, avec une capture d'écran et la visite guidée en {n} étapes.", { n: TOUR.length })}</p>
