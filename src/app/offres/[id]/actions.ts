@@ -13,6 +13,7 @@ import { estimate } from "@/lib/domain/estimate";
 import { notifyIntentReceived } from "@/lib/notify/dispatch";
 import { INDIVISION_CEILING, isIndivision } from "@/lib/kyc/checklist";
 import { positionsFrom } from "@/lib/positions";
+import { blocking, orderChecks } from "@/lib/domain/checks";
 import { fmt } from "@/lib/format";
 
 const schema = z.object({
@@ -64,11 +65,13 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if ((type === "achat" || type === "vente" || type === "rachat") && !amt) return { ok: false, error: "Indiquez une quantité." };
   if (type === "souscription" && (!amt || (offer.fund && amt < offer.fund.minAmount))) return { ok: false, error: `Indiquez un montant (minimum ${fmt(offer.fund?.minAmount ?? 0)} FCFA).` };
   const limit = limitPrice ? Number(String(limitPrice).replace(",", ".")) : null;
+  let held: number | undefined;
   if (type === "vente" || type === "rachat") {
     const [allIntents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
-    const held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), offers).filter((p) => p.offer.isin === offer.isin).reduce((s, p) => s + p.units, 0);
-    if (amt > held) return { ok: false, error: `Vous détenez ${fmt(held)} unité(s) de cette ligne chez nous : la vente ne peut pas dépasser ce nombre.` };
+    held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), offers).filter((p) => p.offer.isin === offer.isin).reduce((s, p) => s + p.units, 0);
   }
+  const stop = blocking(orderChecks(offer, type, amt, limit && !isNaN(limit) ? limit : null, { held }));
+  if (stop) return { ok: false, error: `${stop.text} ${stop.why}` };
 
   if (type === "ferme" && amt) {
     const file = await r.getClientFileByUser(session.userId);

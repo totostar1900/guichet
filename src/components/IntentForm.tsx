@@ -5,6 +5,8 @@ import { useActionState, useRef, useState } from "react";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
 import { estimate } from "@/lib/domain/estimate";
+import { orderChecks } from "@/lib/domain/checks";
+import { Info } from "./Info";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { fmt, parseAmount, parseUnits } from "@/lib/format";
@@ -51,6 +53,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
+  const [limit, setLimit] = useState("");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
   const [who, setWho] = useState({ firstName, lastName, phone, email });
   // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
@@ -66,7 +69,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           return;
         }
       }
-      if (step === 1 && needsAmount && !parse(amount)) {
+      if (step === 1 && needsAmount && (!parse(amount) || blocked)) {
         formRef.current.querySelector<HTMLInputElement>('input[name="amount"]')?.focus();
         return;
       }
@@ -78,6 +81,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const est = estimate(offer, parse(amount));
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
   const market = offer.kind === "MARCHE";
+  // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
+  const limitNum = limit ? Number(limit.replace(",", ".")) : null;
+  const checks = needsAmount && parse(amount) ? orderChecks(offer, type, parse(amount), limitNum && !isNaN(limitNum) ? limitNum : null, { held: (type === "vente" || type === "rachat") && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
+  const blocked = checks.some((c) => c.level === "block");
 
   if (state?.ok) {
     return (
@@ -164,11 +171,20 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           {market && (type === "achat" || type === "vente") && (
             <label className="field">
               Prix limite (facultatif — {offer.instrument === "obligation" ? "% du nominal" : "FCFA par action"})
-              <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={offer.instrument === "obligation" ? String(offer.lastPrice ?? "") : String(offer.lastPrice ?? "")} />
+              <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String(offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
             </label>
           )}
         </div>
         {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
+        {checks.length > 0 && (
+          <ul className={styles.checks} aria-live="polite">
+            {checks.map((c) => (
+              <li key={c.key} className={c.level === "block" ? styles.checkBlock : styles.checkWarn}>
+                <span>{c.text}</span> <Info text={c.why} label={c.level === "block" ? "Pourquoi l'ordre ne passe pas" : "Pourquoi ce message"} subtle />
+              </li>
+            ))}
+          </ul>
+        )}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
           <div className={styles.tierNote}>
             Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis{" "}
