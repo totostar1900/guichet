@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Toolbar } from "@/components/ui/Toolbar";
+import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { getLang, getT } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -32,6 +33,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
   const featured = !q && !rubric && !archive ? shown.find((n) => n.featured) : undefined;
   const rest = shown.filter((n) => n !== featured);
   const byDay = new Map<string, NewsItem[]>();
+  const firstDay = rest[0]?.publishedAt.slice(0, 10);
   for (const n of rest) {
     const day = n.publishedAt.slice(0, 10);
     byDay.set(day, [...(byDay.get(day) ?? []), n]);
@@ -67,12 +69,14 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           <p>{t("Chaque jour, le desk retient les publications qui comptent pour vos lignes — communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique — et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.")}</p>
         </div>
 
-        <Suspense>
-          <Toolbar placeholder={t("Une ligne, un émetteur, un mot")} chipKey="rubrique" chips={[{ value: "", label: t("Tout") }, ...RUBRICS.map((r) => ({ value: r, label: t(RUBRIC_LABEL[r]), count: all.filter((n) => n.rubric === r).length || undefined }))]} />
-        </Suspense>
+        <div data-coach="filters">
+          <Suspense>
+            <Toolbar placeholder={t("Une ligne, un émetteur, un mot")} chipKey="rubrique" chips={[{ value: "", label: t("Tout") }, ...RUBRICS.map((r) => ({ value: r, label: t(RUBRIC_LABEL[r]), count: all.filter((n) => n.rubric === r).length || undefined }))]} />
+          </Suspense>
+        </div>
 
         {featured && (
-          <article className={styles.featured}>
+          <article className={styles.featured} data-coach="featured">
             <div className={styles.when}>
               <b>{t("À LA UNE")}</b>
               <span>{fmtDate(featured.publishedAt, false)}</span>
@@ -99,8 +103,8 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           {[...byDay.entries()].map(([day, items]) => (
             <div key={day}>
               <div className={styles.day}>{fmtDay(`${day}T12:00:00`)}</div>
-              {items.map((n) => (
-                <article key={n.id} className={styles.item}>
+              {items.map((n, k) => (
+                <article key={n.id} className={styles.item} data-coach={k === 0 && day === firstDay ? "item" : undefined}>
                   <div className={styles.when}>
                     <b>{fmtTime(n.publishedAt)}</b>
                     <span className={`${styles.src} ${styles[n.rubric] ?? ""}`}>{n.source}</span>
@@ -135,6 +139,16 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           <span>{t(thisWeek > 1 ? "{n} publications cette semaine · {m} en tout" : "{n} publication cette semaine · {m} en tout", { n: thisWeek, m: all.length })}</span>
           {archive ? <Link href="/actualites">{t("Retour au mois en cours")} →</Link> : <Link href="/actualites?archive=1">{t("Semaines précédentes")} →</Link>}
         </div>
+        <CoachMarks
+          id="actualites"
+          replayLabel={t("Comment lire cette page ?")}
+          stops={[
+            ...(featured ? [{ target: "featured", title: t("À la une"), text: t("Une seule publication en tête, choisie par le desk : celle qui change quelque chose pour le plus de lignes aujourd'hui. Le titre ouvre l'original chez son éditeur.") }] : []),
+            ...(rest.length ? [{ target: "item", title: t("Pourquoi ça compte"), text: t("Sous chaque titre, deux lignes du desk : ce que la publication change pour vos lignes, sans recommandation. Les puces mènent à la ligne, à la société ou au terme concerné.") }] : []),
+            { target: "filters", title: t("Par rubrique ou par mot"), text: t("Trésors, BVMAC, Sociétés, Fonds, Réglementation — ou une recherche : une ligne, un émetteur, un mot. Les publications restent visibles trente jours, puis dans « Semaines précédentes ».") },
+            { target: "digest", title: t("Le vendredi, un résumé"), text: t("Les liens de la semaine, par WhatsApp ou e-mail, aux clients qui acceptent nos messages. Rien d'autre, et STOP l'arrête.") },
+          ]}
+        />
         <p className={styles.legal}>{t("Les articles et communiqués appartiennent à leurs éditeurs ; le Guichet n'en reproduit ni le texte ni les images. La sélection et les deux lignes de lecture sont rédigées par le desk de Purpose Capital et n'ont pas valeur de conseil.")}</p>
       </div>
 
@@ -157,7 +171,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
             <small>{t("D'après vos ordres et positions.")}</small>
           </div>
         )}
-        <div className={styles.card}>
+        <div className={styles.card} data-coach="digest">
           <span className="eyebrow">{t("Être prévenu")}</span>
           <p>{t("Un résumé le vendredi, par WhatsApp ou e-mail, avec les liens de la semaine. Rien d'autre.")}</p>
           <small>{session ? t("Envoyé à tous les clients qui acceptent nos messages ; répondez STOP pour l'arrêter.") : t("Réservé aux clients : ouvrez un compte ou connectez-vous.")}</small>

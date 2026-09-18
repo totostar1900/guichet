@@ -154,6 +154,19 @@ export const EN_NEWS: Record<string, string> = {
   "Les publications, par état : à la une, publiée, brouillon, expirée, écartée. Côté client, la page Actualités montre la une dans son cadre doré puis le fil par jour ; chaque fiche de ligne, de société ou d'émetteur reprend ses actualités liées.": "The publications, by state: front page, published, draft, expired, discarded. On the client side, the News page shows the front-page item in its gold frame then the feed by day; every line, company or issuer page repeats its related news.",
   "Voir la page Actualités": "See the News page",
 
+  /* client walk-through */
+  "Comment lire cette page ?": "How to read this page?",
+  "À la une": "Front page",
+  "Une seule publication en tête, choisie par le desk : celle qui change quelque chose pour le plus de lignes aujourd'hui. Le titre ouvre l'original chez son éditeur.": "One publication at the top, chosen by the desk: the one that changes something for the most lines today. The title opens the original at its publisher.",
+  "Pourquoi ça compte": "Why it matters",
+  "Sous chaque titre, deux lignes du desk : ce que la publication change pour vos lignes, sans recommandation. Les puces mènent à la ligne, à la société ou au terme concerné.": "Under each title, two lines from the desk: what the publication changes for your lines, with no recommendation. The chips lead to the line, company or term concerned.",
+  "Par rubrique ou par mot": "By section or by word",
+  "Trésors, BVMAC, Sociétés, Fonds, Réglementation — ou une recherche : une ligne, un émetteur, un mot. Les publications restent visibles trente jours, puis dans « Semaines précédentes ».": "Treasuries, BVMAC, Companies, Funds, Regulation — or a search: a line, an issuer, a word. Publications stay visible for thirty days, then under « Previous weeks ».",
+  "Le vendredi, un résumé": "On Friday, a summary",
+  "Les liens de la semaine, par WhatsApp ou e-mail, aux clients qui acceptent nos messages. Rien d'autre, et STOP l'arrête.": "The week's links, by WhatsApp or e-mail, to clients who accept our messages. Nothing else, and STOP ends it.",
+  "Ce qui s'est dit sur cette ligne": "What was said about this line",
+  "Communiqués, bulletins, avis : le desk relie ici les publications qui concernent cette ligne, avec deux lignes sur ce que cela change. L'original est à un clic.": "Notices, bulletins, decisions: the desk links here the publications that concern this line, with two lines on what it changes. The original is one click away.",
+
   /* guide */
   "Publier des liens vers ce que d'autres publient (Trésors, BVMAC, COSUMAF, presse, sociétés, sociétés de gestion) avec deux lignes sur ce que cela change pour les lignes du Guichet. Jamais l'article : le lecteur va à l'original.":
     "Publish links to what others publish (Treasuries, BVMAC, COSUMAF, press, companies, fund managers) with two lines on what it changes for the Guichet's lines. Never the article: the reader goes to the original.",

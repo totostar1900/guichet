@@ -11,7 +11,7 @@ export async function RelatedNews({ kind, keyOf, heading = "h3", className = "" 
   if (items.length === 0) return null;
   const H = heading;
   return (
-    <div className={`${styles.box} ${className}`}>
+    <div className={`${styles.box} ${className}`} data-coach="news">
       <H>
         {t("Actualités liées")} <small>({items.length})</small>
       </H>

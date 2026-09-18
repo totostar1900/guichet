@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RelatedNews } from "@/components/RelatedNews";
+import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
@@ -343,6 +344,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const risks = offerRisks(o);
   // The walk-through speaks about this line, with its own numbers.
   const dyc = displayYield(o);
+  const relatedNews = (await newsFor("offer", o.id)).length;
   const coachStops = [
     {
       target: "hero",
@@ -357,6 +359,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               : `${summary.hero} : ce que rapporte la ligne chaque année si vous êtes servi au prix affiché et gardez le titre jusqu'à l'échéance. Brut, avant impôt.`,
     },
     { target: "status", title: "Où en est la ligne", text: summary.countdown ? `Clôture dans ${summary.countdown} : après cette limite, plus de soumission possible. Une intention se déclare avant.` : `${summary.status}. Le statut dit ce que vous pouvez faire : souscrire, passer un ordre, ou seulement poser une question.` },
+    ...(relatedNews > 0 ? [{ target: "news", title: "Ce qui s'est dit sur cette ligne", text: "Communiqués, bulletins, avis : le desk relie ici les publications qui concernent cette ligne, avec deux lignes sur ce que cela change. L'original est à un clic." }] : []),
     { target: "action", title: "Agir en trois étapes", text: "Montant, coordonnées, récapitulatif. Le desk vous rappelle avant de transmettre : rien n'est débité sans votre confirmation." },
   ];
 
