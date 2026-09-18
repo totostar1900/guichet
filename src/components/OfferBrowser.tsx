@@ -12,6 +12,7 @@ import { MarketTabs } from "./MarketTabs";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
+import { Select } from "./ui/Select";
 import { LAST_LIST_KEY } from "./mobile/MobileShell";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
@@ -566,13 +567,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         </label>
         <label className={styles.sortSel}>
           Tri
-          <select value={sort} onChange={(e) => update({ tri: e.target.value, sens: undefined })} aria-label="Trier">
-            {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
-              <option key={k} value={k}>
-                {SORT_LABEL[k]}
-              </option>
-            ))}
-          </select>
+          <Select compact value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: SORT_LABEL[k] }))} />
           <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={dir === "asc" ? "Ordre croissant" : "Ordre décroissant"} title="Inverser l'ordre">
             {dir === "asc" ? "↑" : "↓"}
           </button>

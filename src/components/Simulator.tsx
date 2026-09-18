@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "./ui/Select";
 import { useState } from "react";
 import { FlowsChart } from "./FlowsChart";
 import { bondCalc, btaCalc, parseDate } from "@/lib/finance";
@@ -25,10 +26,7 @@ export function Simulator() {
       <div className={styles.calc}>
         <label className="field">
           Type
-          <select value={kind} onChange={(e) => setKind(e.target.value as "OTA" | "BTA")}>
-            <option value="OTA">Obligation à coupon annuel (OTA, APE)</option>
-            <option value="BTA">Bon à intérêts précomptés (BTA)</option>
-          </select>
+          <Select block value={kind} onChange={(v) => setKind(v as "OTA" | "BTA")} options={[{ value: "OTA", label: "Obligation à coupon annuel (OTA, APE)" }, { value: "BTA", label: "Bon à intérêts précomptés (BTA)" }]} />
         </label>
         <label className="field">
           Montant nominal (FCFA)

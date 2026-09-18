@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
+import { Select } from "@/components/ui/Select";
 import { repo } from "@/lib/data";
 import { displayYield } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
@@ -45,14 +46,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
         {(["a", "b"] as const).map((k) => (
           <label key={k} className="field">
             Ligne {k.toUpperCase()}
-            <select name={k} defaultValue={sp[k] ?? ""}>
-              <option value="">choisir une ligne</option>
-              {all.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.title}
-                </option>
-              ))}
-            </select>
+            <Select block name={k} value={sp[k] ?? ""} options={[{ value: "", label: "choisir une ligne" }, ...all.map((o) => ({ value: o.id, label: o.title }))]} />
           </label>
         ))}
         <button className="btn" type="submit">

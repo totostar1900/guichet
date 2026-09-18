@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import type { ClientFile, RiskRating } from "@/lib/domain/kyc";
 import { DOC_LABEL } from "@/lib/kyc/checklist";
@@ -60,12 +61,7 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
         </label>
         <label className="field">
           Résultat
-          <select name="screeningOutcome" defaultValue={sc?.outcome ?? ""} disabled={closed}>
-            <option value="">— à renseigner —</option>
-            <option value="aucun">Aucune correspondance</option>
-            <option value="faux_positif">Correspondance écartée (faux positif documenté)</option>
-            <option value="confirme">Correspondance confirmée — diligence renforcée</option>
-          </select>
+          <Select block name="screeningOutcome" value={sc?.outcome ?? ""} disabled={closed} options={[{ value: "", label: "— à renseigner —" }, { value: "aucun", label: "Aucune correspondance" }, { value: "faux_positif", label: "Correspondance écartée (faux positif documenté)" }, { value: "confirme", label: "Correspondance confirmée — diligence renforcée" }]} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           Notes du contrôle (homonymie écartée, sources, date de naissance comparée…)
@@ -107,11 +103,7 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
       <div className={styles.grid}>
         <label className="field">
           Notation de risque {file.review.risk ? "" : `(suggérée : ${riskLabels[suggested]})`}
-          <select name="risk" defaultValue={file.review.risk ?? suggested} disabled={closed}>
-            <option value="faible">Faible — revue tous les 5 ans</option>
-            <option value="moyen">Moyen — revue tous les 3 ans</option>
-            <option value="eleve">Élevé — revue annuelle, diligence renforcée</option>
-          </select>
+          <Select block name="risk" value={file.review.risk ?? suggested} disabled={closed} options={[{ value: "faible", label: "Faible — revue tous les 5 ans" }, { value: "moyen", label: "Moyen — revue tous les 3 ans" }, { value: "eleve", label: "Élevé — revue annuelle, diligence renforcée" }]} />
         </label>
         <label className="field">
           N° de sous-compte nominatif (si déjà attribué par le SVT)

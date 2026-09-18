@@ -224,3 +224,14 @@
   margin: 0;
   padding: 8px 14px;
 }
+.selBlock {
+  display: block;
+  width: 100%;
+}
+.selBlock .selBtn {
+  width: 100%;
+  justify-content: space-between;
+}
+.selBlock .selValue {
+  flex: 1;
+}

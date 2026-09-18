@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Info } from "@/components/Info";
+import { Select } from "@/components/ui/Select";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
@@ -104,34 +105,14 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             </button>
           ))}
         </div>
-        <select value={manager} onChange={(e) => setManager(e.target.value)} aria-label="Société de gestion" className={styles.sel}>
-          <option value="">Toutes les sociétés de gestion</option>
-          {managers.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
-        <select value={freq} onChange={(e) => setFreq(e.target.value as FundNav["frequency"] | "")} aria-label="Périodicité" className={styles.sel}>
-          <option value="">Toute périodicité</option>
-          {freqs.map((f) => (
-            <option key={f} value={f}>
-              {FUND_FREQUENCY_LABEL[f]}
-            </option>
-          ))}
-        </select>
+        <Select value={manager} onChange={setManager} label="Gestion" options={[{ value: "", label: "toutes les sociétés" }, ...managers.map((m) => ({ value: m, label: m }))]} />
+        <Select value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label="VL" options={[{ value: "", label: "toute périodicité" }, ...freqs.map((f) => ({ value: f, label: FUND_FREQUENCY_LABEL[f] }))]} />
         <label className={styles.toggle}>
           <input type="checkbox" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} /> Ouverts à la souscription
         </label>
         <label className={styles.sort}>
           Tri
-          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Trier">
-            {SORT.map(([k, l]) => (
-              <option key={k} value={k}>
-                {l}
-              </option>
-            ))}
-          </select>
+          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: l }))} />
           {sort !== "categorie" && sort !== "nom" && (
             <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={desc ? "Ordre décroissant" : "Ordre croissant"} title="Inverser l'ordre">
               {desc ? "↓" : "↑"}

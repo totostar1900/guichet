@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { testBotAction, type BotTest } from "./actions";
 
@@ -9,14 +10,7 @@ export function BotBench({ contacts }: { contacts: { name: string; phone: string
     <form action={action} style={{ padding: "12px 16px", display: "grid", gridTemplateColumns: "260px 1fr", gap: 12, alignItems: "start" }}>
       <label className="field">
         Numéro de l&apos;expéditeur
-        <select name="phone" defaultValue={contacts[0]?.phone ?? ""}>
-          {contacts.map((c) => (
-            <option key={c.phone} value={c.phone}>
-              {c.name} · {c.phone}
-            </option>
-          ))}
-          <option value="+237600000000">Numéro inconnu · +237600000000</option>
-        </select>
+        <Select block name="phone" value={contacts[0]?.phone ?? ""} options={[...contacts.map((c) => ({ value: c.phone ?? "", label: `${c.name} · ${c.phone}` })), { value: "+237600000000", label: "Numéro inconnu · +237600000000" }]} />
       </label>
       <label className="field">
         Message reçu

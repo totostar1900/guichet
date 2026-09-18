@@ -16,7 +16,7 @@ export interface SelectOption {
   group?: boolean;
 }
 
-export function Select({ value, options, onChange, label, name, placeholder, compact, className = "", disabled }: { value: string; options: SelectOption[]; onChange?: (v: string) => void; label?: string; name?: string; placeholder?: string; compact?: boolean; className?: string; disabled?: boolean }) {
+export function Select({ value, options, onChange, label, name, placeholder, compact, block, className = "", disabled, required }: { value: string; options: SelectOption[]; onChange?: (v: string) => void; label?: string; name?: string; placeholder?: string; compact?: boolean; block?: boolean; className?: string; disabled?: boolean; required?: boolean }) {
   const [open, setOpen] = useState(false);
   const [inner, setInner] = useState(value);
   const cur = onChange ? value : inner;
@@ -75,8 +75,8 @@ export function Select({ value, options, onChange, label, name, placeholder, com
   };
 
   return (
-    <div className={`${styles.sel} ${compact ? styles.selCompact : ""} ${className}`} ref={ref}>
-      {name && <input type="hidden" name={name} value={cur} />}
+    <div className={`${styles.sel} ${compact ? styles.selCompact : ""} ${block ? styles.selBlock : ""} ${className}`} ref={ref}>
+      {name && <input type="hidden" name={name} value={cur} required={required} />}
       <button
         type="button"
         className={`${styles.selBtn} ${cur ? styles.selHas : ""}`}

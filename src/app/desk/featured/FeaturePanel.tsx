@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
 import { FEATURE_REASONS } from "@/lib/domain/featured";
 import { broadcastOpportunityAction, featureOfferAction, unfeatureOfferAction, type FeatureResult } from "./actions";
@@ -53,13 +54,7 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
         <form action={action} className={styles.form}>
           <label>
             <span>Ligne</span>
-            <select name="offerId" value={pick} onChange={(e) => setPick(e.target.value)}>
-              {candidates.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title} · {c.hero}
-                </option>
-              ))}
-            </select>
+            <Select block name="offerId" value={pick} onChange={setPick} options={candidates.map((c) => ({ value: c.id, label: c.title, hint: c.hero }))} />
           </label>
           <label>
             <span>Raison (factuelle)</span>
@@ -90,11 +85,7 @@ function BroadcastForm({ offerId }: { offerId: string }) {
   return (
     <form action={action} className={styles.bc}>
       <input type="hidden" name="offerId" value={offerId} />
-      <select name="segment" aria-label="Segment" defaultValue="Tous les clients">
-        <option>Tous les clients</option>
-        <option>Institutionnels + entreprises</option>
-        <option>Personnes physiques + groupements</option>
-      </select>
+      <Select compact name="segment" label="Segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
       <label className={styles.confirm}>
         <input type="checkbox" name="confirm" value="1" /> Confirmer
       </label>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import type { Confidence, IntakeItem, Offer, OfferDraft } from "@/lib/domain/types";
@@ -39,7 +40,7 @@ const FIELD_LABEL: Partial<Record<keyof OfferDraft, string>> = {
   dividendPerShare: "Dividende par action",
 };
 
-function Field({ k, draft, type = "text", options, snapShot }: { k: keyof OfferDraft; draft: OfferDraft; type?: string; options?: [string, string][]; snapShot?: Snap }) {
+function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: keyof OfferDraft; draft: OfferDraft; type?: string; options?: [string, string][]; snapShot?: Snap; onSelect?: (k: string, v: string) => void }) {
   const conf: Confidence = draft.confidence[k as keyof OfferDraft["confidence"]] ?? (draft[k] == null || draft[k] === "" ? "missing" : "sure");
   const value = snapShot?.[k] ?? (draft[k] == null ? "" : String(draft[k]));
   const cls = conf === "sure" ? "" : conf === "check" ? styles.check : styles.missing;
@@ -47,14 +48,7 @@ function Field({ k, draft, type = "text", options, snapShot }: { k: keyof OfferD
     <label className={`${styles.fld} ${cls}`}>
       <span>{FIELD_LABEL[k]}</span>
       {options ? (
-        <select name={k} defaultValue={value}>
-          <option value="">—</option>
-          {options.map(([v, l]) => (
-            <option key={v} value={v}>
-              {l}
-            </option>
-          ))}
-        </select>
+        <Select block name={k} value={value} onChange={(v) => onSelect?.(k, v)} options={[{ value: "", label: "—" }, ...options.map(([v, l]) => ({ value: v, label: l }))]} />
       ) : type === "textarea" ? (
         <textarea name={k} defaultValue={value} rows={2} />
       ) : (
@@ -102,6 +96,8 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
   }
   if (kind === "ACTIONS") preview = `${fmt(Number(v("pricePerShare", d.pricePerShare ?? 0)))} FCFA par action · minimum ${v("minShares", d.minShares ?? 1)} actions`;
 
+  // The app's selects do not bubble a native change: they report their value here.
+  const onSelect = (k: string, val: string) => setSnap((s) => ({ ...s, [k]: val }));
   const onChange = (e: React.FormEvent<HTMLFormElement>) => {
     const fd = new FormData(e.currentTarget);
     const next: Snap = {};
@@ -167,18 +163,12 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             <div className={styles.fields}>
               <label className={`${styles.fld} ${d.kind ? "" : styles.missing}`}>
                 <span>Type de produit</span>
-                <select name="typeKey" defaultValue={typeKey}>
-                  {types.map((t) => (
-                    <option key={t.key} value={t.key}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                <Select block name="typeKey" value={typeKey} onChange={(v) => onSelect("typeKey", v)} options={types.map((t) => ({ value: t.key, label: t.label }))} />
                 <i className={`${styles.conf} ${styles[`conf_${d.kind ? "sure" : "missing"}`]}`} title="Type choisi par le desk" />
               </label>
               <input type="hidden" name="kind" value={kind} />
-              <Field k="operation" draft={d} options={(Object.keys(OPERATION_LABEL) as Offer["operation"][]).map((k) => [k, OPERATION_LABEL[k]])} />
-              <Field k="country" draft={d} options={["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."].map((c) => [c, c])} />
+              <Field k="operation" draft={d} snapShot={snap} onSelect={onSelect} options={(Object.keys(OPERATION_LABEL) as Offer["operation"][]).map((k) => [k, OPERATION_LABEL[k]])} />
+              <Field k="country" draft={d} snapShot={snap} onSelect={onSelect} options={["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."].map((c) => [c, c])} />
               <Field k="countryName" draft={d} />
               <Field k="issuer" draft={d} />
               <Field k="isin" draft={d} />
@@ -248,12 +238,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             </label>
             <label className="field">
               Segments
-              <select name="segment" defaultValue="Tous les clients">
-                <option>Tous les clients</option>
-                <option>Institutionnels + entreprises</option>
-                <option>Personnes physiques + groupements</option>
-                <option>Porteurs de la ligne</option>
-              </select>
+              <Select block name="segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements", "Porteurs de la ligne"].map((v) => ({ value: v, label: v }))} />
             </label>
           </div>
           <div className={styles.preview}>

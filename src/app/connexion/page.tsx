@@ -3,6 +3,7 @@ import { authMode, getSession } from "@/lib/auth";
 import { COMPANY } from "@/lib/config";
 import { EmailOtpForm } from "./EmailOtpForm";
 import { devLogin } from "./actions";
+import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 
 export const metadata = { title: "Connexion" };
@@ -38,14 +39,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </label>
                 <label className="field">
                   Segment
-                  <select name="segment" defaultValue="Personne physique · Yaoundé">
-                    <option>Personne physique · Yaoundé</option>
-                    <option>Personne physique · Douala</option>
-                    <option>Diaspora · Paris</option>
-                    <option>Groupement · Yaoundé</option>
-                    <option>Entreprise · Bangui</option>
-                    <option>Institutionnel · Libreville</option>
-                  </select>
+                  <Select block name="segment" value="Personne physique · Yaoundé" options={["Personne physique · Yaoundé", "Personne physique · Douala", "Diaspora · Paris", "Groupement · Yaoundé", "Entreprise · Bangui", "Institutionnel · Libreville"].map((v) => ({ value: v, label: v }))} />
                 </label>
                 <button className="btn primary" type="submit">
                   Entrer comme client
@@ -60,10 +54,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </label>
                 <label className="field">
                   Niveau
-                  <select name="role" defaultValue="responsable">
-                    <option value="desk">Opérateur desk</option>
-                    <option value="responsable">Responsable</option>
-                  </select>
+                  <Select block name="role" value="responsable" options={[{ value: "desk", label: "Opérateur desk" }, { value: "responsable", label: "Responsable" }]} />
                 </label>
                 <p className={styles.hint}>Accès au carnet, aux intentions et à la publication des prix.</p>
                 <button className="btn" type="submit">

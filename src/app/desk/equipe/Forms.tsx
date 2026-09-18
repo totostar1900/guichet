@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { addStaffAction, setRoleAction, type TeamResult } from "./actions";
 import styles from "./page.module.css";
@@ -19,10 +20,7 @@ export function AddStaffForm() {
       </label>
       <label>
         <span>Niveau</span>
-        <select name="role" defaultValue="desk">
-          <option value="desk">Opérateur desk</option>
-          <option value="responsable">Responsable</option>
-        </select>
+        <Select block name="role" value="desk" options={[{ value: "desk", label: "Opérateur desk" }, { value: "responsable", label: "Responsable" }]} />
       </label>
       <button className="btn sm primary" type="submit" disabled={pending}>
         {pending ? "…" : "Donner l'accès"}
@@ -38,11 +36,7 @@ export function RoleForm({ userId, role, self }: { userId: string; role: "desk" 
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="userId" value={userId} />
-      <select name="role" defaultValue={role} aria-label="Niveau">
-        <option value="desk">Opérateur desk</option>
-        <option value="responsable">Responsable</option>
-        <option value="client">— retirer l&apos;accès</option>
-      </select>
+      <Select compact name="role" value={role} label="Niveau" options={[{ value: "desk", label: "Opérateur desk" }, { value: "responsable", label: "Responsable" }, { value: "client", label: "— retirer l'accès" }]} />
       <button className="btn sm" type="submit" disabled={pending}>
         {pending ? "…" : "Appliquer"}
       </button>

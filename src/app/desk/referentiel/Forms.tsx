@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
 import type { BondTerms } from "@/data/bond-terms";
 import type { Term } from "@/lib/glossary";
@@ -45,23 +46,11 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
       <div className={styles.row3}>
         <label>
           <span>Marché</span>
-          <select name="segment" defaultValue={t?.segment ?? "primaire"}>
-            {(Object.keys(SEGMENT_LABEL) as (keyof typeof SEGMENT_LABEL)[]).map((k) => (
-              <option key={k} value={k}>
-                {SEGMENT_LABEL[k]}
-              </option>
-            ))}
-          </select>
+          <Select block name="segment" value={t?.segment ?? "primaire"} options={(Object.keys(SEGMENT_LABEL) as (keyof typeof SEGMENT_LABEL)[]).map((k) => ({ value: k, label: SEGMENT_LABEL[k] }))} />
         </label>
         <label className={styles.span2}>
           <span>Moteur de calcul (la seule chose qui demande du code)</span>
-          <select name="engine" defaultValue={t?.engine ?? "bullet_bond"}>
-            {(Object.keys(ENGINE_LABEL) as Engine[]).map((k) => (
-              <option key={k} value={k}>
-                {ENGINE_LABEL[k]}
-              </option>
-            ))}
-          </select>
+          <Select block name="engine" value={t?.engine ?? "bullet_bond"} options={(Object.keys(ENGINE_LABEL) as Engine[]).map((k) => ({ value: k, label: ENGINE_LABEL[k] }))} />
         </label>
       </div>
       <div className={styles.row3}>
@@ -134,11 +123,7 @@ export function TermForm({ t }: { t?: BondTerms }) {
         </label>
         <label>
           <span>Paiements par an</span>
-          <select name="periodsPerYear" defaultValue={String(t?.periodsPerYear ?? 1)}>
-            <option value="1">1 — annuel</option>
-            <option value="2">2 — semestriel</option>
-            <option value="4">4 — trimestriel</option>
-          </select>
+          <Select block name="periodsPerYear" value={String(t?.periodsPerYear ?? 1)} options={[{ value: "1", label: "1 — annuel" }, { value: "2", label: "2 — semestriel" }, { value: "4", label: "4 — trimestriel" }]} />
         </label>
       </div>
       <div className={styles.row3}>
@@ -227,13 +212,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
       </label>
       <label>
         <span>Bloc interactif (illustré avec une vraie ligne du Guichet)</span>
-        <select name="widget" defaultValue={l?.widget ?? "read_ota"}>
-          {(Object.keys(WIDGET_LABEL) as Lesson["widget"][]).map((k) => (
-            <option key={k} value={k}>
-              {WIDGET_LABEL[k]}
-            </option>
-          ))}
-        </select>
+        <Select block name="widget" value={l?.widget ?? "read_ota"} options={(Object.keys(WIDGET_LABEL) as Lesson["widget"][]).map((k) => ({ value: k, label: WIDGET_LABEL[k] }))} />
       </label>
       <label>
         <span>Question de fin</span>
@@ -250,11 +229,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
       <div className={styles.row3}>
         <label>
           <span>Bonne réponse</span>
-          <select name="answer" defaultValue={String(l?.quiz.answer ?? 0)}>
-            <option value="0">Réponse 1</option>
-            <option value="1">Réponse 2</option>
-            <option value="2">Réponse 3</option>
-          </select>
+          <Select block name="answer" value={String(l?.quiz.answer ?? 0)} options={[{ value: "0", label: "Réponse 1" }, { value: "1", label: "Réponse 2" }, { value: "2", label: "Réponse 3" }]} />
         </label>
         <label className={styles.span2}>
           <span>Pourquoi (une phrase, affichée après la réponse)</span>
