@@ -8,11 +8,13 @@ import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { positionsFrom, upcomingFlows } from "@/lib/positions";
 import { ResultsForm, SettlementForm } from "./Forms";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Résultats & positions" };
 
 export default async function ResultsPage() {
+  const t = await getT();
   const r = repo();
   const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
   const now = new Date();
@@ -40,7 +42,7 @@ export default async function ResultsPage() {
     <>
       <DeskNav current="/desk/resultats" />
 
-      {auctions.length === 0 && <div className="empty">Aucune adjudication close en attente de résultats ou de règlement.</div>}
+      {auctions.length === 0 && <div className="empty">{t("Aucune adjudication close en attente de résultats ou de règlement.")}</div>}
 
       {auctions.map((a) => (
         <div className="panel" key={`${a.country}|${a.deadlineAt}`}>
@@ -72,7 +74,7 @@ export default async function ResultsPage() {
           {a.toSettle > 0 && (
             <div className={styles.settle}>
               <div>
-                <b>Règlement-livraison</b>
+                <b>{t("Règlement-livraison")}</b>
                 <div className="muted" style={{ fontSize: ".8rem" }}>
                   {a.lines
                     .filter((l) => l.served.length > 0)
@@ -98,7 +100,7 @@ export default async function ResultsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Positions clients</h2>
+          <h2>{t("Positions clients")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {positions.length} position{positions.length > 1 ? "s" : ""} · dérivées des ordres réglés
           </span>
@@ -107,13 +109,13 @@ export default async function ResultsPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Ligne</th>
-                <th className="r">Quantité</th>
-                <th className="r">Nominal</th>
-                <th className="r">Coût</th>
-                <th>Prochain flux</th>
-                <th>Échéance</th>
+                <th>{t("Client")}</th>
+                <th>{t("Ligne")}</th>
+                <th className="r">{t("Quantité")}</th>
+                <th className="r">{t("Nominal")}</th>
+                <th className="r">{t("Coût")}</th>
+                <th>{t("Prochain flux")}</th>
+                <th>{t("Échéance")}</th>
               </tr>
             </thead>
             <tbody>
@@ -151,7 +153,7 @@ export default async function ResultsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Flux des 30 prochains jours</h2>
+          <h2>{t("Flux des 30 prochains jours")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             Les avis de coupon partent à J-3 et le jour même (tâche planifiée /api/cron/coupons)
           </span>
@@ -160,11 +162,11 @@ export default async function ResultsPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Client</th>
-                <th>Ligne</th>
-                <th>Nature</th>
-                <th className="r">Montant brut</th>
+                <th>{t("Date")}</th>
+                <th>{t("Client")}</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Nature")}</th>
+                <th className="r">{t("Montant brut")}</th>
               </tr>
             </thead>
             <tbody>
@@ -182,7 +184,7 @@ export default async function ResultsPage() {
               {upcoming.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    Aucun coupon ni remboursement dans les 30 jours.
+                    {t("Aucun coupon ni remboursement dans les 30 jours.")}
                   </td>
                 </tr>
               )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useCallback, useEffect, useState } from "react";
 import styles from "./CoachMarks.module.css";
 
@@ -19,6 +20,7 @@ const seenKey = (id: string) => `guichet:coach:${id}`;
 export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string; stops: CoachStop[]; auto?: boolean; replayLabel?: string }) {
   const [n, setN] = useState<number | null>(null);
   const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const t = useT();
 
   const start = useCallback(() => setN(0), []);
   useEffect(() => {
@@ -92,7 +94,7 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
   const below = box ? box.y + box.h + 12 : 80;
   const tipTop = box && below + 150 > vh ? Math.max(12, box.y - 160) : below;
   return (
-    <div className={styles.layer} role="dialog" aria-modal="true" aria-label="Repères">
+    <div className={styles.layer} role="dialog" aria-modal="true" aria-label={t("Repères")}>
       <div className={styles.dim} style={box ? { clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${box.y}px, ${box.x}px ${box.y}px, ${box.x}px ${box.y + box.h}px, ${box.x + box.w}px ${box.y + box.h}px, ${box.x + box.w}px ${box.y}px, 0 ${box.y}px)` } : undefined} onClick={finish} />
       {box && <div className={styles.ring} style={{ left: box.x, top: box.y, width: box.w, height: box.h }} />}
       <div className={styles.tip} style={{ top: tipTop }}>
@@ -104,10 +106,10 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
           </small>
           <span className={styles.btns}>
             <button type="button" className="btn sm ghost" onClick={finish}>
-              Fermer
+              {t("Fermer")}
             </button>
             <button type="button" className="btn sm primary" onClick={() => (n < stops.length - 1 ? setN(n + 1) : finish())}>
-              {n < stops.length - 1 ? "Suivant" : "Compris"}
+              {t(n < stops.length - 1 ? "Suivant" : "Compris")}
             </button>
           </span>
         </div>

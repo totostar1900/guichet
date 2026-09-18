@@ -8,11 +8,13 @@ import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/for
 import { bocUrl } from "@/lib/market/boc";
 import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marché secondaire" };
 
 export default async function MarketPage() {
+  const t = await getT();
   const r = repo();
   const [offers, intents, bulletins] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10)]);
   const lines = offers.filter((o) => o.kind === "MARCHE").sort((a, b) => (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.title.localeCompare(b.title));
@@ -35,39 +37,39 @@ export default async function MarketPage() {
 
       <div className="panel" data-coach="import">
         <div className="panel-h">
-          <h2>Bulletin Officiel de la Cote — BVMAC</h2>
+          <h2>{t("Bulletin Officiel de la Cote — BVMAC")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Téléchargé chaque jour de bourse à 18 h 30 UTC, lu automatiquement, cours et VL versés dans le Guichet · le PDF est conservé
+            {t("Téléchargé chaque jour de bourse à 18 h 30 UTC, lu automatiquement, cours et VL versés dans le Guichet · le PDF est conservé")}
           </span>
         </div>
         {last ? (
           <div className={styles.bulletin}>
             <div>
-              <span>Dernier bulletin</span>
+              <span>{t("Dernier bulletin")}</span>
               <b>n° {last.number || "—"}</b>
               <small>
                 séance du {fmtDate(last.sessionDate)} · {last.ingestedBy === "cron" ? "automatique" : "desk"} · {fmtDateTime(last.ingestedAt)}
               </small>
             </div>
             <div>
-              <span>BVMAC All Share</span>
+              <span>{t("BVMAC All Share")}</span>
               <b>{last.indexValue != null ? fmt(last.indexValue) : "—"}</b>
               <small>{last.indexVariationPct != null ? `${signed(last.indexVariationPct)} sur la séance` : ""}</small>
             </div>
             <div>
-              <span>Lignes lues</span>
+              <span>{t("Lignes lues")}</span>
               <b>
                 {last.counts.equities} · {last.counts.bonds} · {last.counts.funds}
               </b>
-              <small>actions · obligations · OPCVM</small>
+              <small>{t("actions · obligations · OPCVM")}</small>
             </div>
             <div>
-              <span>État</span>
+              <span>{t("État")}</span>
               <b>{last.status === "ok" ? "Complet" : last.status === "partiel" ? "À vérifier" : "Échec"}</b>
               <small>
                 {last.sourceUrl?.startsWith("http") ? (
                   <a href={last.sourceUrl} target="_blank" rel="noreferrer">
-                    PDF source
+                    {t("PDF source")}
                   </a>
                 ) : (
                   last.sourceUrl ?? ""
@@ -104,7 +106,7 @@ export default async function MarketPage() {
             <IngestForm defaultDate={today} />
           </div>
           <div>
-            <span>Secours : le PDF reçu par e-mail</span>
+            <span>{t("Secours : le PDF reçu par e-mail")}</span>
             <UploadForm />
           </div>
         </div>
@@ -117,7 +119,7 @@ export default async function MarketPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Cotations</h2>
+          <h2>{t("Cotations")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             Dernier cours = clôture du bulletin ; acheteur / vendeur = fourchette indicative du desk. La saisie manuelle n&apos;est qu&apos;un secours et se voit sur la fiche.
           </span>
@@ -126,12 +128,12 @@ export default async function MarketPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Ligne</th>
-                <th>Source</th>
-                <th className="r">Dernier</th>
-                <th className="r">Acheteur</th>
-                <th className="r">Vendeur</th>
-                <th>Mis à jour</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Source")}</th>
+                <th className="r">{t("Dernier")}</th>
+                <th className="r">{t("Acheteur")}</th>
+                <th className="r">{t("Vendeur")}</th>
+                <th>{t("Mis à jour")}</th>
                 <th>Secours (saisie)</th>
                 <th></th>
               </tr>
@@ -157,7 +159,7 @@ export default async function MarketPage() {
                       {o.hidden && (
                         <>
                           <br />
-                          <small className="muted">masquée du Guichet</small>
+                          <small className="muted">{t("masquée du Guichet")}</small>
                         </>
                       )}
                     </td>
@@ -174,7 +176,7 @@ export default async function MarketPage() {
                     </td>
                     <td className={styles.right}>
                       <HideButton offerId={o.id} hidden={Boolean(o.hidden)} />
-                      <Link className="btn sm ghost" href={`/desk/lignes/${o.id}`} title="Versions et piste d’audit">
+                      <Link className="btn sm ghost" href={`/desk/lignes/${o.id}`} title={t("Versions et piste d’audit")}>
                         v{o.version}
                       </Link>
                     </td>
@@ -184,7 +186,7 @@ export default async function MarketPage() {
               {lines.length === 0 && (
                 <tr>
                   <td colSpan={8} className="muted">
-                    Aucune ligne cotée : ingérez un bulletin, les lignes se créent toutes seules.
+                    {t("Aucune ligne cotée : ingérez un bulletin, les lignes se créent toutes seules.")}
                   </td>
                 </tr>
               )}
@@ -211,12 +213,12 @@ export default async function MarketPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Fonds</th>
-                <th>Société de gestion · dépositaire</th>
-                <th>Catégorie</th>
+                <th>{t("Fonds")}</th>
+                <th>{t("Société de gestion · dépositaire")}</th>
+                <th>{t("Catégorie")}</th>
                 <th className="r">VL</th>
-                <th className="r">Var. · origine</th>
-                <th>Conditions de distribution</th>
+                <th className="r">{t("Var. · origine")}</th>
+                <th>{t("Conditions de distribution")}</th>
               </tr>
             </thead>
             <tbody>
@@ -262,7 +264,7 @@ export default async function MarketPage() {
               {funds.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
-                    Aucun fonds : ils arrivent avec le premier bulletin ingéré.
+                    {t("Aucun fonds : ils arrivent avec le premier bulletin ingéré.")}
                   </td>
                 </tr>
               )}
@@ -282,14 +284,14 @@ export default async function MarketPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Réf.</th>
-                <th>Client</th>
-                <th>Ligne</th>
-                <th>Sens</th>
-                <th className="r">Quantité</th>
-                <th className="r">Limite</th>
-                <th className="r">Estimation</th>
-                <th>État</th>
+                <th>{t("Réf.")}</th>
+                <th>{t("Client")}</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Sens")}</th>
+                <th className="r">{t("Quantité")}</th>
+                <th className="r">{t("Limite")}</th>
+                <th className="r">{t("Estimation")}</th>
+                <th>{t("État")}</th>
                 <th></th>
               </tr>
             </thead>

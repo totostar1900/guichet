@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useActionState, useState } from "react";
 import { sendCode, sendPhoneCode, verifyCode, verifyPhoneCode, type LoginState } from "./actions";
 import styles from "./page.module.css";
@@ -13,6 +14,7 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
     if (prev.step === "phone-code") return verifyPhoneCode(prev, form);
     return form.get("mode") === "phone" ? sendPhoneCode(prev, form) : sendCode(prev, form);
   }, { step: "email" });
+  const t = useT();
 
   if (state.step === "code" || state.step === "phone-code") {
     const to = state.step === "code" ? state.email : state.phone;
@@ -22,19 +24,19 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="mode" value={mode} />
         <p className={styles.hint}>
-          Message envoyé à <b>{to}</b>{state.step === "code" ? " : saisissez le code qu'il contient, ou cliquez simplement sur son lien de connexion." : ". Le code est valable quelques minutes."}
+          {t("Message envoyé à")} <b>{to}</b>{t(state.step === "code" ? " : saisissez le code qu'il contient, ou cliquez simplement sur son lien de connexion." : ". Le code est valable quelques minutes.")}
         </p>
         <label className="field">
-          Code à 6 chiffres
+          {t("Code à 6 chiffres")}
           <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus required />
         </label>
         {state.error && <div className={styles.error}>{state.error}</div>}
         <div className={styles.row}>
           <button className="btn primary" type="submit" disabled={pending}>
-            {pending ? "Vérification…" : "Se connecter"}
+            {t(pending ? "Vérification…" : "Se connecter")}
           </button>
           <button className="btn ghost" type="submit" name="restart" value="1" formNoValidate>
-            Changer {state.step === "code" ? "d'adresse" : "de numéro"}
+            {t(state.step === "code" ? "Changer d'adresse" : "Changer de numéro")}
           </button>
         </div>
       </form>
@@ -47,27 +49,27 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
       {phoneEnabled && (
         <div className={styles.row}>
           <button type="button" className={`btn sm ${mode === "email" ? "primary" : ""}`} onClick={() => setMode("email")}>
-            Par e-mail
+            {t("Par e-mail")}
           </button>
           <button type="button" className={`btn sm ${mode === "phone" ? "primary" : ""}`} onClick={() => setMode("phone")}>
-            Par WhatsApp / SMS
+            {t("Par WhatsApp / SMS")}
           </button>
         </div>
       )}
       {mode === "email" ? (
         <label className="field">
-          Adresse e-mail
+          {t("Adresse e-mail")}
           <input name="email" type="email" autoComplete="email" placeholder="vous@exemple.com" autoFocus required />
         </label>
       ) : (
         <label className="field">
-          Numéro de téléphone (international)
+          {t("Numéro de téléphone (international)")}
           <input name="phone" type="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" autoFocus required />
         </label>
       )}
       {state.error && <div className={styles.error}>{state.error}</div>}
       <button className="btn primary" type="submit" disabled={pending}>
-        {pending ? "Envoi…" : "Recevoir un code"}
+        {t(pending ? "Envoi…" : "Recevoir un code")}
       </button>
     </form>
   );

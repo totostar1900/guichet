@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./DeskNav.module.css";
+import { getT } from "@/i18n/server";
 
 /**
  * The desk's navigation: four groups instead of thirteen tabs. Badges count
@@ -43,16 +44,17 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
 ];
 export const DESK_TABS: [string, string][] = DESK_GROUPS.flatMap((g) => g.tabs);
 
-export function DeskNav({ current, badges = {} }: { current: string; badges?: Record<string, number> }) {
+export async function DeskNav({ current, badges = {} }: { current: string; badges?: Record<string, number> }) {
+  const t = await getT();
   return (
     <nav className={styles.nav} aria-label="Desk" data-coach="nav">
       {DESK_GROUPS.map((g) => (
         <div key={g.label} className={styles.group}>
-          <span className={styles.label}>{g.label}</span>
+          <span className={styles.label}>{t(g.label)}</span>
           <div className={styles.tabs}>
             {g.tabs.map(([href, label]) => (
               <Link key={href} href={href} aria-current={href === current ? "page" : undefined}>
-                {label}
+                {t(label)}
                 {badges[href] ? <span className={styles.badge}>{badges[href]}</span> : null}
               </Link>
             ))}
@@ -64,7 +66,7 @@ export function DeskNav({ current, badges = {} }: { current: string; badges?: Re
           <circle cx="12" cy="12" r="9" />
           <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5V14M12 17h.01" />
         </svg>
-        Guide
+        {t("Guide")}
       </Link>
     </nav>
   );

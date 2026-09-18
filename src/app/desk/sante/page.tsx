@@ -4,6 +4,7 @@ import { healthChecks } from "@/lib/health";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Santé du système" };
@@ -11,6 +12,7 @@ export const metadata = { title: "Santé du système" };
 const LEVEL: Record<string, string> = { ok: "OK", warn: "À surveiller", crit: "Action requise" };
 
 export default async function SantePage() {
+  const t = await getT();
   const [checks, bulletins, notifications] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40)]);
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   return (
@@ -19,7 +21,7 @@ export default async function SantePage() {
 
       <div className={styles.head}>
         <div>
-          <h1>Santé du système</h1>
+          <h1>{t("Santé du système")}</h1>
           <p className="muted">Ce que la machine fait toute seule — et ce qui attend le desk. Vérifié à chaque passage du cron du soir ; un e-mail part au desk quand un point passe en rouge.</p>
         </div>
         <span className={`${styles.badge} ${styles[worst]}`}>{LEVEL[worst]}</span>
@@ -38,21 +40,21 @@ export default async function SantePage() {
       <div className={styles.cols}>
         <div className="panel">
           <div className="panel-h">
-            <h2>Derniers bulletins</h2>
+            <h2>{t("Derniers bulletins")}</h2>
             <Link className="btn sm" href="/desk/marche">
-              Marché
+              {t("Marché")}
             </Link>
           </div>
           <table className="tbl">
             <thead>
               <tr>
-                <th>Séance</th>
+                <th>{t("Séance")}</th>
                 <th>N°</th>
-                <th>État</th>
-                <th className="r">Actions</th>
-                <th className="r">Oblig.</th>
-                <th className="r">OPCVM</th>
-                <th>Ingéré</th>
+                <th>{t("État")}</th>
+                <th className="r">{t("Actions")}</th>
+                <th className="r">{t("Oblig.")}</th>
+                <th className="r">{t("OPCVM")}</th>
+                <th>{t("Ingéré")}</th>
               </tr>
             </thead>
             <tbody>
@@ -76,16 +78,16 @@ export default async function SantePage() {
         </div>
         <div className="panel">
           <div className="panel-h">
-            <h2>Derniers messages</h2>
+            <h2>{t("Derniers messages")}</h2>
           </div>
           <table className="tbl">
             <thead>
               <tr>
-                <th>Quand</th>
-                <th>Canal</th>
+                <th>{t("Quand")}</th>
+                <th>{t("Canal")}</th>
                 <th>À</th>
-                <th>Objet</th>
-                <th>État</th>
+                <th>{t("Objet")}</th>
+                <th>{t("État")}</th>
               </tr>
             </thead>
             <tbody>

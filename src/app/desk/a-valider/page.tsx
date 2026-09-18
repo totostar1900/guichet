@@ -7,6 +7,7 @@ import { fmtDateTime } from "@/lib/format";
 import { NewSourceForm } from "./NewSourceForm";
 import { ValidateForm } from "./ValidateForm";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "À valider" };
@@ -21,6 +22,7 @@ const STATE_LABEL: Record<IntakeItem["state"], [string, string]> = {
 };
 
 export default async function IntakePage({ searchParams }: { searchParams: Promise<{ item?: string; nouveau?: string }> }) {
+  const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const queue = await r.listIntake();
@@ -35,11 +37,11 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
       <DeskNav current="/desk/a-valider" badges={{ "/desk/a-valider": todo.length }} />
 
       <div className={styles.intake}>
-        <aside className={styles.queue} aria-label="File d'entrée">
+        <aside className={styles.queue} aria-label={t("File d'entrée")}>
           <Link href="/desk/a-valider?nouveau=1" className={`btn ${styles.newBtn}`}>
-            + Nouvelle source
+            {t("+ Nouvelle source")}
           </Link>
-          {!extractionAvailable() && <div className={styles.noApi}>Extraction automatique désactivée — ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.</div>}
+          {!extractionAvailable() && <div className={styles.noApi}>{t("Extraction automatique désactivée — ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.")}</div>}
           {queue.map((q) => {
             const [cls, label] = STATE_LABEL[q.state];
             return (
@@ -59,7 +61,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
         </aside>
 
         <div className={styles.main}>
-          {showNew ? <NewSourceForm extraction={extractionAvailable()} /> : selected ? <ValidateForm item={selected} offer={offer} /> : <div className="empty">Sélectionnez une source ou déposez-en une nouvelle.</div>}
+          {showNew ? <NewSourceForm extraction={extractionAvailable()} /> : selected ? <ValidateForm item={selected} offer={offer} /> : <div className="empty">{t("Sélectionnez une source ou déposez-en une nouvelle.")}</div>}
         </div>
       </div>
     </>

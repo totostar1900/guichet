@@ -5,6 +5,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Journal d'audit" };
@@ -36,6 +37,7 @@ const short = (v: unknown): string => (v == null ? "—" : typeof v === "object"
 
 /** The structured audit trail: every business action with who / what / before → after / why / from where. */
 export default async function JournalPage({ searchParams }: { searchParams: Promise<{ entite?: string }> }) {
+  const t = await getT();
   await requireDesk("/desk/journal");
   const { entite = "" } = await searchParams;
   const rows = await repo().listAudit({ entity: entite || undefined, limit: 200 });
@@ -52,7 +54,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         </div>
         <span className={`${styles.chain} ${broken ? styles.bad : styles.good}`}>{broken ? "Chaîne rompue — à signaler" : "Chaîne intègre"}</span>
       </div>
-      <nav className={styles.tabs} aria-label="Filtre">
+      <nav className={styles.tabs} aria-label={t("Filtre")}>
         {ENTITIES.map(([k, label]) => (
           <Link key={k} href={k ? `/desk/journal?entite=${k}` : "/desk/journal"} aria-current={k === entite ? "page" : undefined}>
             {label}
@@ -63,12 +65,12 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
-              <th>Quand</th>
-              <th>Qui</th>
-              <th>Action</th>
-              <th>Objet</th>
-              <th>Changements</th>
-              <th>Origine</th>
+              <th>{t("Quand")}</th>
+              <th>{t("Qui")}</th>
+              <th>{t("Action")}</th>
+              <th>{t("Objet")}</th>
+              <th>{t("Changements")}</th>
+              <th>{t("Origine")}</th>
             </tr>
           </thead>
           <tbody>
@@ -105,7 +107,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
             {rows.length === 0 && (
               <tr>
                 <td colSpan={6} className="muted">
-                  Aucune action tracée.
+                  {t("Aucune action tracée.")}
                 </td>
               </tr>
             )}

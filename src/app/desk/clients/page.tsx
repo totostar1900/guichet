@@ -6,6 +6,7 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Clients" };
@@ -14,6 +15,7 @@ const ROLE = { representant: "Représentant", mandataire: "Mandataire", benefici
 const ORDER: Record<ClientFile["status"], number> = { soumis: 0, en_revue: 1, complements: 2, brouillon: 3, approuve: 4, refuse: 5 };
 
 export default async function ClientsPage({ searchParams }: { searchParams: Promise<{ file?: string }> }) {
+  const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const files = (await r.listClientFiles()).sort((a, b) => ORDER[a.status] - ORDER[b.status] || b.updatedAt.localeCompare(a.updatedAt));
@@ -41,7 +43,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               </span>
             </Link>
           ))}
-          {files.length === 0 && <div className="empty">Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte ».</div>}
+          {files.length === 0 && <div className="empty">{t("Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte ».")}</div>}
         </aside>
 
         {selected && (
@@ -60,29 +62,29 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
 
             <div className={styles.cols}>
               <div>
-                <h3>Identité</h3>
+                <h3>{t("Identité")}</h3>
                 <dl className={styles.dl}>
                   {selected.kind === "physique" ? (
                     <>
-                      <dt>Naissance</dt>
+                      <dt>{t("Naissance")}</dt>
                       <dd>{selected.identity.birthDate ? fmtDate(selected.identity.birthDate) : "—"} · {selected.identity.nationality ?? "—"}</dd>
-                      <dt>Pièce</dt>
+                      <dt>{t("Pièce")}</dt>
                       <dd>
                         {selected.identity.idType ?? "—"} n° {selected.identity.idNumber ?? "—"}
                         {selected.identity.idExpiresOn ? `, expire le ${fmtDate(selected.identity.idExpiresOn)}` : ""}
                       </dd>
-                      <dt>Profession</dt>
+                      <dt>{t("Profession")}</dt>
                       <dd>{selected.identity.profession ?? "—"}</dd>
                     </>
                   ) : (
                     <>
-                      <dt>Immatriculation</dt>
+                      <dt>{t("Immatriculation")}</dt>
                       <dd>{selected.identity.registration ?? "—"}</dd>
-                      <dt>Forme</dt>
+                      <dt>{t("Forme")}</dt>
                       <dd>{selected.identity.legalForm ?? "—"}</dd>
                       {selected.identity.decisionRule && (
                         <>
-                          <dt>Règle de décision</dt>
+                          <dt>{t("Règle de décision")}</dt>
                           <dd>{selected.identity.decisionRule}</dd>
                         </>
                       )}
@@ -90,28 +92,28 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   )}
                   <dt>NIU</dt>
                   <dd>{selected.identity.taxId ?? "—"}</dd>
-                  <dt>Adresse</dt>
+                  <dt>{t("Adresse")}</dt>
                   <dd>{[selected.identity.address, selected.identity.city, selected.identity.country].filter(Boolean).join(", ") || "—"}</dd>
-                  <dt>Résident hors CEMAC</dt>
+                  <dt>{t("Résident hors CEMAC")}</dt>
                   <dd>{selected.identity.residentAbroad ? "oui" : "non"}</dd>
-                  <dt>Origine des fonds</dt>
+                  <dt>{t("Origine des fonds")}</dt>
                   <dd>
                     {selected.funds.source ?? "—"}
                     {selected.funds.expectedAmount ? ` · ${selected.funds.expectedAmount}` : ""}
                     {selected.funds.bankName ? ` · banque ${selected.funds.bankName}` : ""}
                   </dd>
-                  <dt>Compte de règlement</dt>
+                  <dt>{t("Compte de règlement")}</dt>
                   <dd className="mono">{selected.funds.bankAccount ? `${selected.funds.bankAccount}${selected.funds.bankHolder ? ` · ${selected.funds.bankHolder}` : ""}` : "RIB manquant"}</dd>
                   <dt>PPE</dt>
                   <dd>{selected.funds.pep ? `oui — ${selected.funds.pepDetails ?? ""}` : "non"}</dd>
-                  <dt>Profil</dt>
+                  <dt>{t("Profil")}</dt>
                   <dd>{[selected.profile.objectives, selected.profile.horizon, selected.profile.riskTolerance].filter(Boolean).join(" · ") || "—"}</dd>
-                  <dt>Convention</dt>
+                  <dt>{t("Convention")}</dt>
                   <dd>{selected.consents.conventionAt ? `acceptée le ${fmtDateTime(selected.consents.conventionAt)} (${selected.consents.conventionMethod})` : "non acceptée"}</dd>
                 </dl>
                 {selected.persons.length > 0 && (
                   <>
-                    <h3>Personnes</h3>
+                    <h3>{t("Personnes")}</h3>
                     <table className="tbl">
                       <tbody>
                         {selected.persons.map((p, i) => (
@@ -131,7 +133,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                 )}
               </div>
               <div>
-                <h3>Contrôles</h3>
+                <h3>{t("Contrôles")}</h3>
                 <ul className={styles.checks}>
                   {autoChecks(selected, now).map((c) => (
                     <li key={c.label} className={c.ok === true ? styles.ok : c.ok === false ? styles.ko : styles.manual}>
@@ -139,7 +141,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     </li>
                   ))}
                 </ul>
-                <h3>Pièces</h3>
+                <h3>{t("Pièces")}</h3>
                 <ul className={styles.pieces}>
                   {requiredDocs(selected.kind, selected.identity.residentAbroad).map((k) => {
                     const d = selected.documents.find((x) => x.kind === k);
@@ -152,14 +154,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                         ) : (
                           <span>{DOC_LABEL[k]} — manquante</span>
                         )}
-                        {d?.verified && <small className={styles.okText}> vérifiée</small>}
+                        {d?.verified && <small className={styles.okText}> {t("vérifiée")}</small>}
                       </li>
                     );
                   })}
                 </ul>
                 {kycDocs.length > 0 && (
                   <>
-                    <h3>Documents émis</h3>
+                    <h3>{t("Documents émis")}</h3>
                     <ul className={styles.pieces}>
                       {kycDocs.map((d) => (
                         <li key={d.id}>

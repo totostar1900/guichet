@@ -1,4 +1,7 @@
-import { EN } from "./en";
+import { EN as EN_BASE } from "./en";
+import { EN_MORE } from "./en-desk";
+
+const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE };
 
 /**
  * Two languages, one source: French is written in the code, English is a

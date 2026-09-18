@@ -15,6 +15,7 @@ import { missingForApproval, RISK_LABEL, STATUS_LABEL } from "@/lib/kyc/checklis
 import { positionsFrom } from "@/lib/positions";
 import { transitionIntent } from "../../actions";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Intention" };
@@ -28,6 +29,7 @@ const MARKET_TYPES = new Set(["achat", "vente", "souscription", "rachat"]);
  * messages — and the decision, without leaving the screen.
  */
 export default async function IntentionPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getT();
   await loadRegistry();
   const { id } = await params;
   const r = repo();
@@ -68,7 +70,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
     <>
       <DeskNav current="/desk" />
       <div className={styles.crumbs}>
-        <Link href="/desk">← Carnet du jour</Link>
+        <Link href="/desk">{t("← Carnet du jour")}</Link>
         <span>
           {it.ref} · reçue le {fmtDateTime(it.createdAt)} · {it.channel}
         </span>
@@ -92,12 +94,12 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                   <small>{s.heroSub}</small>
                 </div>
                 <div>
-                  <span>Statut</span>
+                  <span>{t("Statut")}</span>
                   <b>{s.countdown ? `Clôture ${s.countdown}` : s.status}</b>
                   <small>{s.deadline}</small>
                 </div>
                 <div>
-                  <span>Ticket minimum</span>
+                  <span>{t("Ticket minimum")}</span>
                   <b>{s.minimum}</b>
                   <small>{s.minimumSub}</small>
                 </div>
@@ -106,17 +108,17 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             <dl className={styles.dl}>
               {est && !checks.some((c) => c.level === "ok") && (
                 <>
-                  <dt>Au prix publié</dt>
+                  <dt>{t("Au prix publié")}</dt>
                   <dd>{est.text}</dd>
                 </>
               )}
               {it.limitPrice != null && (
                 <>
-                  <dt>Prix limite du client</dt>
+                  <dt>{t("Prix limite du client")}</dt>
                   <dd>{o.instrument === "obligation" ? `${it.limitPrice} % du nominal` : `${fmt(it.limitPrice)} FCFA`}</dd>
                 </>
               )}
-              <dt>Contrôles</dt>
+              <dt>{t("Contrôles")}</dt>
               <dd>
                 <ul className={styles.checks}>
                   {checks.map((c) => (
@@ -125,23 +127,23 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     </li>
                   ))}
                   {file && file.status !== "approuve" && <li className={styles.warn}>Dossier client {STATUS_LABEL[file.status].toLowerCase()} — à approuver avant le règlement.</li>}
-                  {!file && <li className={styles.warn}>Aucun dossier client : ouvrir le compte avant le règlement.</li>}
-                  {checks.length === 0 && file?.status === "approuve" && <li className={styles.ok}>Rien à signaler.</li>}
+                  {!file && <li className={styles.warn}>{t("Aucun dossier client : ouvrir le compte avant le règlement.")}</li>}
+                  {checks.length === 0 && file?.status === "approuve" && <li className={styles.ok}>{t("Rien à signaler.")}</li>}
                 </ul>
               </dd>
               {it.message && (
                 <>
-                  <dt>Message du client</dt>
+                  <dt>{t("Message du client")}</dt>
                   <dd>« {it.message} »</dd>
                 </>
               )}
-              <dt>Contact pour cet ordre</dt>
+              <dt>{t("Contact pour cet ordre")}</dt>
               <dd>
                 {[it.contactPhone, it.contactEmail].filter(Boolean).join(" · ") || "—"}
               </dd>
               {(it.allocationPct != null || it.servedUnits != null || it.executedPrice != null) && (
                 <>
-                  <dt>Résultat</dt>
+                  <dt>{t("Résultat")}</dt>
                   <dd>
                     {it.allocationPct != null ? `servi à ${it.allocationPct} %` : ""}
                     {it.servedUnits != null ? ` · ${fmt(it.servedUnits)} unités` : ""}
@@ -149,7 +151,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                   </dd>
                 </>
               )}
-              <dt>Étape</dt>
+              <dt>{t("Étape")}</dt>
               <dd>
                 <div className={styles.track} aria-label={`Étape ${Math.max(step, 0) + 1} sur ${TRACK.length}`}>
                   {TRACK.map((st, i) => (
@@ -163,9 +165,9 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
 
           <div className="panel">
             <div className="panel-h">
-              <h2>Décision</h2>
+              <h2>{t("Décision")}</h2>
               <span className="muted" style={{ fontSize: ".8rem" }}>
-                chaque passage est journalisé et produit ses documents
+                {t("chaque passage est journalisé et produit ses documents")}
               </span>
             </div>
             <div className={styles.actions}>
@@ -185,13 +187,13 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     </button>
                   </form>
                 ))}
-              {next.length === 0 && <span className="muted">Intention terminée — plus aucun passage possible.</span>}
+              {next.length === 0 && <span className="muted">{t("Intention terminée — plus aucun passage possible.")}</span>}
               <Link className="btn ghost" href={`/offres/${o.id}`}>
-                Voir la fiche
+                {t("Voir la fiche")}
               </Link>
               {wa && (
                 <a className="btn ghost" href={wa} target="_blank" rel="noreferrer">
-                  Répondre sur WhatsApp
+                  {t("Répondre sur WhatsApp")}
                 </a>
               )}
             </div>
@@ -199,7 +201,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
 
           <div className="panel">
             <div className="panel-h">
-              <h2>Messages</h2>
+              <h2>{t("Messages")}</h2>
               <span className="muted" style={{ fontSize: ".8rem" }}>
                 sortants (WhatsApp, e-mail) et événements reçus sur les intentions de ce client
               </span>
@@ -228,26 +230,26 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          <h4>Dossier client</h4>
+          <h4>{t("Dossier client")}</h4>
           {file ? (
             <dl className={styles.kv}>
-              <dt>Statut</dt>
+              <dt>{t("Statut")}</dt>
               <dd>
                 <span className={`st ${file.status === "approuve" ? "confirmee" : file.status === "refuse" ? "annulee" : "recue"}`}>{STATUS_LABEL[file.status]}</span>
               </dd>
-              <dt>Risque</dt>
+              <dt>{t("Risque")}</dt>
               <dd>{file.review.risk ? `${RISK_LABEL[file.review.risk]}${file.review.nextReviewOn ? ` · revue ${file.review.nextReviewOn.slice(0, 4)}` : ""}` : "non évalué"}</dd>
-              <dt>Compte-titres</dt>
+              <dt>{t("Compte-titres")}</dt>
               <dd>{file.review.custodianAccount ?? "à ouvrir"}</dd>
-              <dt>Pièces</dt>
+              <dt>{t("Pièces")}</dt>
               <dd>
                 {file.documents.length} reçue{file.documents.length > 1 ? "s" : ""}
               </dd>
-              <dt>Sanctions / PPE</dt>
+              <dt>{t("Sanctions / PPE")}</dt>
               <dd>{file.screening?.outcome ? `${file.screening.outcome === "aucun" ? "aucune correspondance" : file.screening.outcome === "faux_positif" ? "faux positif écarté" : "correspondance confirmée"}${file.screening.attestedAt ? ` (${fmtDateTime(file.screening.attestedAt)})` : ""}` : "non attesté"}</dd>
               {missing.length > 0 && (
                 <>
-                  <dt>Manque</dt>
+                  <dt>{t("Manque")}</dt>
                   <dd className={styles.warnText}>{missing.join(" · ")}</dd>
                 </>
               )}
@@ -260,32 +262,32 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
           <div className={styles.sideBtns}>
             {file && (
               <Link className="btn sm" href={`/desk/clients?file=${file.id}`}>
-                Ouvrir le dossier KYC
+                {t("Ouvrir le dossier KYC")}
               </Link>
             )}
             {it.clientId && (
               <Link className="btn sm ghost" href={`/desk/resultats?client=${it.clientId}`}>
-                Positions et relevés
+                {t("Positions et relevés")}
               </Link>
             )}
           </div>
 
-          <h4>Positions</h4>
+          <h4>{t("Positions")}</h4>
           {positions.length > 0 ? (
             <dl className={styles.kv}>
-              <dt>Valorisées</dt>
+              <dt>{t("Valorisées")}</dt>
               <dd>{fmtMillions(valued)}</dd>
-              <dt>Lignes</dt>
+              <dt>{t("Lignes")}</dt>
               <dd>{positions.length}</dd>
               {held > 0 && (
                 <>
-                  <dt>Sur cette ligne</dt>
+                  <dt>{t("Sur cette ligne")}</dt>
                   <dd>{fmt(held)} unité(s)</dd>
                 </>
               )}
               {nextFlow && (
                 <>
-                  <dt>Prochain flux</dt>
+                  <dt>{t("Prochain flux")}</dt>
                   <dd>
                     {fmt(nextFlow.amount)} FCFA le {nextFlow.date}
                   </dd>
@@ -294,11 +296,11 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             </dl>
           ) : (
             <p className="muted" style={{ fontSize: ".82rem" }}>
-              Aucune position réglée chez nous.
+              {t("Aucune position réglée chez nous.")}
             </p>
           )}
 
-          <h4>Historique</h4>
+          <h4>{t("Historique")}</h4>
           <ul className={styles.hist}>
             {history.slice(0, 12).map((x) => {
               const ox = offers.find((z) => z.id === x.offerId);
@@ -312,7 +314,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 </li>
               );
             })}
-            {history.length === 0 && <li className="muted">Première intention de ce client.</li>}
+            {history.length === 0 && <li className="muted">{t("Première intention de ce client.")}</li>}
           </ul>
         </aside>
       </div>

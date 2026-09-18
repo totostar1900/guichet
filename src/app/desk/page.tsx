@@ -15,6 +15,7 @@ import { FeaturePanel } from "./featured/FeaturePanel";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Desk" };
@@ -23,6 +24,7 @@ const FIRM = (i: Intent) => i.type === "ferme" || i.type === "cession";
 const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];
 
 export default async function DeskPage({ searchParams }: { searchParams: Promise<{ etat?: string; q?: string; ligne?: string; tri?: string }> }) {
+  const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const [offers, intents, events, notifications, approvals] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20), r.listApprovals(true)]);
@@ -69,22 +71,22 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
       <div className={styles.kpis} data-coach="kpis">
         <div className={`${styles.kpi} ${styles.hot}`}>
-          <span>Prochaine clôture dans</span>
+          <span>{t("Prochaine clôture dans")}</span>
           <b className="num">{nextDeadline ? countdown(nextDeadline, now) : "—"}</b>
           <small>{nextDeadline ? fmtDateTime(nextDeadline) : "aucune offre ouverte"}</small>
         </div>
         <div className={styles.kpi}>
-          <span>Prises fermes</span>
+          <span>{t("Prises fermes")}</span>
           <b className="num">{fmtMillions(totalF)}</b>
           <small>{rows.reduce((s, x) => s + x.nF, 0)} ordres à confirmer ou transmettre</small>
         </div>
         <div className={styles.kpi}>
-          <span>Appétits à convertir</span>
+          <span>{t("Appétits à convertir")}</span>
           <b className="num">{fmtMillions(totalA)}</b>
           <small>{rows.reduce((s, x) => s + x.nA, 0)} clients à rappeler</small>
         </div>
         <div className={styles.kpi}>
-          <span>Intentions non traitées</span>
+          <span>{t("Intentions non traitées")}</span>
           <b className="num">{todo}</b>
           <small>sur {intents.length} reçues</small>
         </div>
@@ -92,9 +94,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
       <div className="panel" data-coach="feed">
         <div className="panel-h">
-          <h2>Flux en direct</h2>
+          <h2>{t("Flux en direct")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Chaque intention client apparaît ici dès son enregistrement
+            {t("Chaque intention client apparaît ici dès son enregistrement")}
           </span>
         </div>
         <div className={styles.feed}>
@@ -109,7 +111,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Diffusion</h2>
+          <h2>{t("Diffusion")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             Messages sortants (WhatsApp, e-mail) — « préparé » tant que le canal n&apos;est pas configuré
           </span>
@@ -118,11 +120,11 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
           <table className="tbl">
             <thead>
               <tr>
-                <th>Quand</th>
-                <th>Canal</th>
-                <th>Destinataire</th>
-                <th>Message</th>
-                <th>État</th>
+                <th>{t("Quand")}</th>
+                <th>{t("Canal")}</th>
+                <th>{t("Destinataire")}</th>
+                <th>{t("Message")}</th>
+                <th>{t("État")}</th>
               </tr>
             </thead>
             <tbody>
@@ -159,20 +161,20 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <div className="panel-h">
           <h2>Carnet d&apos;appétits — offres ouvertes</h2>
           <span className="muted right" style={{ fontSize: ".8rem" }}>
-            prises fermes en navy, appétits en or
+            {t("prises fermes en navy, appétits en or")}
           </span>
         </div>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Ligne</th>
-                <th>Prix Purpose</th>
-                <th className="r">Prises fermes</th>
-                <th className="r">Appétits</th>
-                <th>Volume</th>
-                <th className="r">Rendement publié</th>
-                <th className="r">Clôture</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Prix Purpose")}</th>
+                <th className="r">{t("Prises fermes")}</th>
+                <th className="r">{t("Appétits")}</th>
+                <th>{t("Volume")}</th>
+                <th className="r">{t("Rendement publié")}</th>
+                <th className="r">{t("Clôture")}</th>
               </tr>
             </thead>
             <tbody>
@@ -203,7 +205,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="muted">
-                    Aucune offre ouverte.
+                    {t("Aucune offre ouverte.")}
                   </td>
                 </tr>
               )}
@@ -214,7 +216,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
       <div className="panel" data-coach="intents">
         <div className="panel-h">
-          <h2>Intentions reçues</h2>
+          <h2>{t("Intentions reçues")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {intents.length} au total · {todo} à traiter{shown.length !== intents.length ? ` · ${shown.length} affichée${shown.length > 1 ? "s" : ""}` : ""}
           </span>
@@ -222,7 +224,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <Suspense>
           <Toolbar
             inset
-            placeholder="Réf., client, ligne, téléphone…"
+            placeholder={t("Réf., client, ligne, téléphone…")}
             chipKey="etat"
             chips={[
               { value: "", label: "Toutes", count: intents.length },
@@ -240,14 +242,14 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
           <table className="tbl">
             <thead>
               <tr>
-                <th>Réf.</th>
-                <th>Client</th>
-                <th>Ligne</th>
-                <th>Type</th>
-                <th className="r">Montant</th>
-                <th>Canal</th>
-                <th>Reçue</th>
-                <th>État</th>
+                <th>{t("Réf.")}</th>
+                <th>{t("Client")}</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Type")}</th>
+                <th className="r">{t("Montant")}</th>
+                <th>{t("Canal")}</th>
+                <th>{t("Reçue")}</th>
+                <th>{t("État")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -295,7 +297,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                     <td>
                       <div className={styles.rowbtns}>
                         <Link className="btn sm" href={`/desk/intentions/${i.id}`}>
-                          Ouvrir
+                          {t("Ouvrir")}
                         </Link>
                         {(i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise" ? (
                           <Link className="btn sm primary" href="/desk/marche">
@@ -321,7 +323,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {shown.length === 0 && (
                 <tr>
                   <td colSpan={9} className="muted">
-                    Aucune intention ne correspond à ces filtres.
+                    {t("Aucune intention ne correspond à ces filtres.")}
                   </td>
                 </tr>
               )}

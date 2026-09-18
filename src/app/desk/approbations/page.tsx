@@ -8,6 +8,7 @@ import { fmtDateTime } from "@/lib/format";
 import { loadPolicy } from "@/lib/policy";
 import { DecideForm, PolicyForm } from "./Forms";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Approbations" };
@@ -16,6 +17,7 @@ const short = (v: unknown): string => (v == null ? "—" : typeof v === "object"
 
 /** Four-eyes queue: what an opérateur proposed outside the delegated window, and the window itself. */
 export default async function ApprobationsPage() {
+  const t = await getT();
   const me = await requireDesk("/desk/approbations");
   const r = repo();
   const [open, done, policy] = await Promise.all([r.listApprovals(true), r.listApprovals(false), loadPolicy()]);
@@ -25,7 +27,7 @@ export default async function ApprobationsPage() {
     <>
       <DeskNav current="/desk/approbations" badges={{ "/desk/approbations": open.length }} />
       <div className={styles.head}>
-        <h1>Approbations</h1>
+        <h1>{t("Approbations")}</h1>
         <p className="muted">
           Quatre yeux sans goulot d&apos;étranglement : à l&apos;intérieur de la fenêtre déléguée, un opérateur publie seul ; en dehors, sa proposition attend un responsable, qui la voit ici avec l&apos;avant / après et l&apos;approuve ou la refuse avec une note. La personne qui propose ne peut jamais approuver.
         </p>
@@ -34,9 +36,9 @@ export default async function ApprobationsPage() {
       <div className="panel">
         <div className="panel-h">
           <h2>En attente ({open.length})</h2>
-          {!resp && <span className="muted">Seul un responsable décide.</span>}
+          {!resp && <span className="muted">{t("Seul un responsable décide.")}</span>}
         </div>
-        {open.length === 0 && <div className="empty">Rien à approuver.</div>}
+        {open.length === 0 && <div className="empty">{t("Rien à approuver.")}</div>}
         {open.map((a) => {
           const cur = offers.get(a.entityId);
           const diffs = diffRecords(cur, a.payload).slice(0, 12);
@@ -48,7 +50,7 @@ export default async function ApprobationsPage() {
                   <br />
                   <small className="muted">
                     {a.kind === "offer_quote" ? "Cours" : "Publication"} · proposé par {a.requestedBy} le {fmtDateTime(a.requestedAt)} ·{" "}
-                    <Link href={`/desk/lignes/${a.entityId}`}>historique</Link>
+                    <Link href={`/desk/lignes/${a.entityId}`}>{t("historique")}</Link>
                   </small>
                 </div>
                 <span className={styles.reason}>{a.reason}</span>
@@ -80,7 +82,7 @@ export default async function ApprobationsPage() {
       <div className={styles.cols}>
         <div className="panel" data-coach="window">
           <div className="panel-h">
-            <h2>Fenêtre déléguée</h2>
+            <h2>{t("Fenêtre déléguée")}</h2>
             <span className="muted">{policy.enabled ? "active" : "désactivée"}</span>
           </div>
           {resp ? (
@@ -100,15 +102,15 @@ export default async function ApprobationsPage() {
         </div>
         <div className="panel">
           <div className="panel-h">
-            <h2>Décidées récemment</h2>
+            <h2>{t("Décidées récemment")}</h2>
           </div>
           <table className="tbl">
             <thead>
               <tr>
-                <th>Quand</th>
-                <th>Ligne</th>
-                <th>Proposé par</th>
-                <th>Décision</th>
+                <th>{t("Quand")}</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Proposé par")}</th>
+                <th>{t("Décision")}</th>
               </tr>
             </thead>
             <tbody>
@@ -134,7 +136,7 @@ export default async function ApprobationsPage() {
               {done.length === 0 && (
                 <tr>
                   <td colSpan={4} className="muted">
-                    Aucune décision encore.
+                    {t("Aucune décision encore.")}
                   </td>
                 </tr>
               )}

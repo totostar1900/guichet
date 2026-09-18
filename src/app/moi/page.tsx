@@ -13,6 +13,7 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mon espace" };
@@ -58,50 +59,51 @@ export default async function MyPage() {
   const nextFlow = positions.map((p) => p.nextFlow).filter((x): x is NonNullable<typeof x> => Boolean(x)).sort((a, b) => a.date.localeCompare(b.date))[0];
   const amountText = (i: Intent, kind?: string) => (i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${kind === "RACHAT" ? "titres" : "FCFA"}`) : "");
 
+  const t = await getT();
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
         <div>
-          <div className="eyebrow">Mon espace</div>
+          <div className="eyebrow">{t("Mon espace")}</div>
           <h1 className="display">{s.name}</h1>
           <div className="muted" style={{ fontSize: ".85rem" }}>
-            {s.segment} · niveau {s.tier} {s.tier < 2 ? "— compte-titres à ouvrir pour les prises fermes" : "— compte-titres actif"}
+            {t(s.segment)} · {t("niveau")} {s.tier} {t(s.tier < 2 ? "— compte-titres à ouvrir pour les prises fermes" : "— compte-titres actif")}
           </div>
         </div>
         {s.tier < 2 && (
           <Link href="/ouvrir-un-compte" className="btn primary">
-            {s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte"}
+            {t(s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte")}
           </Link>
         )}
         <Link href="/" className="btn">
-          Voir les offres
+          {t("Voir les offres")}
         </Link>
       </div>
 
       <div className={styles.kpis}>
         <div>
-          <span>Positions valorisées</span>
+          <span>{t("Positions valorisées")}</span>
           <b>{positions.length ? fmtMillions(valued) : "—"}</b>
-          <small>{positions.length ? `${positions.length} ligne${positions.length > 1 ? "s" : ""} à votre nom` : "aucun titre inscrit encore"}</small>
+          <small>{positions.length ? `${positions.length} ${t(positions.length > 1 ? "lignes à votre nom" : "ligne à votre nom")}` : t("aucun titre inscrit encore")}</small>
         </div>
         <div>
-          <span>Prochain flux</span>
+          <span>{t("Prochain flux")}</span>
           <b>{nextFlow ? fmtDate(nextFlow.date, false) : "—"}</b>
-          <small>{nextFlow ? `${fmt(nextFlow.amount)} FCFA · ${nextFlow.label}` : "coupons et remboursements à venir"}</small>
+          <small>{nextFlow ? `${fmt(nextFlow.amount)} FCFA · ${t(nextFlow.label)}` : t("coupons et remboursements à venir")}</small>
         </div>
         <div>
-          <span>En cours</span>
+          <span>{t("En cours")}</span>
           <b>{open.length}</b>
-          <small>{open.length ? "intention" + (open.length > 1 ? "s" : "") + " suivie" + (open.length > 1 ? "s" : "") + " par le desk" : "aucune intention en cours"}</small>
+          <small>{open.length ? t(open.length > 1 ? "intentions suivies par le desk" : "intention suivie par le desk") : t("aucune intention en cours")}</small>
         </div>
       </div>
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Intentions en cours</h2>
-          <span className="muted" style={{ fontSize: ".8rem" }}>reçue → confirmée → transmise → servie → réglée</span>
+          <h2>{t("Intentions en cours")}</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>{t("reçue → confirmée → transmise → servie → réglée")}</span>
         </div>
-        {open.length === 0 && <div className="empty">Aucune intention en cours — choisissez une ligne dans le Guichet.</div>}
+        {open.length === 0 && <div className="empty">{t("Aucune intention en cours — choisissez une ligne dans le Guichet.")}</div>}
         {open.length > 0 && (
           <div className={styles.cards}>
             {open.map((i) => {
@@ -113,14 +115,14 @@ export default async function MyPage() {
                     <div>
                       <b>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</b>
                       <small>
-                        {INTENT_LABEL[i.type]}
-                        {i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · réf. {i.ref}
+                        {t(INTENT_LABEL[i.type])}
+                        {i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · {t("réf.")} {i.ref}
                       </small>
                     </div>
-                    <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
+                    <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                   </div>
-                  <div className={styles.next}>{(o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state]}</div>
-                  <div className={styles.track} aria-label={`Étape ${k + 1} sur 5`}>
+                  <div className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</div>
+                  <div className={styles.track} aria-label={t("Étape {n} sur 5", { n: k + 1 })}>
                     {STOPS.map((st, n) => (
                       <i key={st} className={n <= k ? styles.done : undefined} />
                     ))}
@@ -134,20 +136,20 @@ export default async function MyPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Mes coordonnées</h2>
-          {(!contact?.phone || !contact?.email) && <span className="pill closing">à compléter</span>}
+          <h2>{t("Mes coordonnées")}</h2>
+          {(!contact?.phone || !contact?.email) && <span className="pill closing">{t("à compléter")}</span>}
         </div>
         <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
         <div className={styles.push}>
-          <b>Alertes sur cet appareil</b>
+          <b>{t("Alertes sur cet appareil")}</b>
           <PushToggle vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
         </div>
       </div>
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Lignes suivies</h2>
-          <span className="muted" style={{ fontSize: ".8rem" }}>{followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut."}</span>
+          <h2>{t("Lignes suivies")}</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>{t(followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut.")}</span>
         </div>
         {followed.length > 0 && (
           <div className={styles.watchList}>
@@ -158,9 +160,9 @@ export default async function MyPage() {
                   <LineIdentity o={o} s={sm} href={`/offres/${o.id}`} />
                   <div className={styles.watchHero}>
                     <b className={sm.gold ? styles.gold : undefined}>{sm.hero}</b>
-                    <small>{sm.heroUnit ?? sm.heroSub}</small>
+                    <small>{t(sm.heroUnit ?? sm.heroSub)}</small>
                   </div>
-                  <span className={`pill ${sm.statusClass}`}>{sm.status}</span>
+                  <span className={`pill ${sm.statusClass}`}>{t(sm.status)}</span>
                   <WatchButton offerId={o.id} initial signedIn />
                 </div>
               );
@@ -172,9 +174,9 @@ export default async function MyPage() {
       {positions.length > 0 && (
         <div className="panel">
           <div className="panel-h">
-            <h2>Mes positions</h2>
+            <h2>{t("Mes positions")}</h2>
             <span className="muted" style={{ fontSize: ".8rem" }}>
-              titres inscrits à votre nom · flux à venir
+              {t("titres inscrits à votre nom · flux à venir")}
             </span>
             <div className="right">
               <StatementButtons />
@@ -184,11 +186,11 @@ export default async function MyPage() {
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>Ligne</th>
-                  <th className="r">Quantité</th>
-                  <th className="r">Nominal · valeur</th>
-                  <th>Prochain flux</th>
-                  <th>Échéance</th>
+                  <th>{t("Ligne")}</th>
+                  <th className="r">{t("Quantité")}</th>
+                  <th className="r">{t("Nominal · valeur")}</th>
+                  <th>{t("Prochain flux")}</th>
+                  <th>{t("Échéance")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -201,7 +203,7 @@ export default async function MyPage() {
                       <span className="mono muted">{p.offer.isin}</span>
                     </td>
                     <td className="r num">
-                      {p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} {p.unitWord}
+                      {p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} {t(p.unitWord)}
                     </td>
                     <td className="r num">
                       {p.offer.kind === "FONDS" ? "" : `${fmt(p.nominalAmount)} FCFA`}
@@ -209,17 +211,17 @@ export default async function MyPage() {
                         <>
                           {p.offer.kind === "FONDS" ? "" : <br />}
                           <span className={p.offer.kind === "FONDS" ? "" : "muted"}>
-                            {fmt(p.marketValue)} FCFA{p.valuedOn ? ` ${p.offer.kind === "FONDS" ? "à la VL" : "au cours"} du ${fmtDate(p.valuedOn, false)}` : ""}
+                            {fmt(p.marketValue)} FCFA{p.valuedOn ? ` ${t(p.offer.kind === "FONDS" ? "à la VL du" : "au cours du")} ${fmtDate(p.valuedOn, false)}` : ""}
                           </span>
                         </>
                       )}
                     </td>
-                    <td>{p.nextFlow ? `${fmtDate(p.nextFlow.date)} · ${fmt(p.nextFlow.amount)} FCFA · ${p.nextFlow.label}` : "—"}</td>
+                    <td>{p.nextFlow ? `${fmtDate(p.nextFlow.date)} · ${fmt(p.nextFlow.amount)} FCFA · ${t(p.nextFlow.label)}` : "—"}</td>
                     <td>{p.maturityOn ? fmtDate(p.maturityOn) : "—"}</td>
                     <td className="r">
                       {p.exit && (
                         <Link className="btn sm" href={`/offres/${p.exit.offerId}?intent=${p.exit.intent}&qty=${p.units}`}>
-                          {p.exit.intent === "rachat" ? "Racheter" : "Vendre"}
+                          {t(p.exit.intent === "rachat" ? "Racheter" : "Vendre")}
                         </Link>
                       )}
                     </td>
@@ -233,19 +235,19 @@ export default async function MyPage() {
 
       <details className={`panel ${styles.history}`}>
         <summary className="panel-h">
-          <h2>Historique ({closed.length})</h2>
-          <span className="muted" style={{ fontSize: ".8rem" }}>intentions servies, réglées, non servies ou annulées</span>
+          <h2>{t("Historique")} ({closed.length})</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>{t("intentions servies, réglées, non servies ou annulées")}</span>
         </summary>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Réf.</th>
-                <th>Ligne</th>
-                <th>Type</th>
-                <th className="r">Montant</th>
-                <th>État</th>
-                <th>Et maintenant</th>
+                <th>{t("Réf.")}</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Type")}</th>
+                <th className="r">{t("Montant")}</th>
+                <th>{t("État")}</th>
+                <th>{t("Et maintenant")}</th>
               </tr>
             </thead>
             <tbody>
@@ -256,14 +258,14 @@ export default async function MyPage() {
                     <td className="mono">{i.ref}</td>
                     <td>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</td>
                     <td>
-                      <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
+                      <span className={`st ${i.type}`}>{t(INTENT_LABEL[i.type])}</span>
                     </td>
-                    <td className="r num">{i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${o?.kind === "RACHAT" ? "titres" : "FCFA"}`) : "—"}</td>
+                    <td className="r num">{i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} ${t("parts")}` : `${fmt(i.amount)} ${o?.kind === "RACHAT" ? t("titres") : "FCFA"}`) : "—"}</td>
                     <td>
-                      <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
+                      <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                     </td>
                     <td className="muted" style={{ fontSize: ".8rem" }}>
-                      {(o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state]}
+                      {t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}
                     </td>
                   </tr>
                 );
@@ -271,7 +273,7 @@ export default async function MyPage() {
               {closed.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
-                    Rien encore.
+                    {t("Rien encore.")}
                   </td>
                 </tr>
               )}
@@ -282,16 +284,16 @@ export default async function MyPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Mes documents</h2>
+          <h2>{t("Mes documents")}</h2>
         </div>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
-                <th>N°</th>
-                <th>Document</th>
-                <th>Émis le</th>
-                <th>État</th>
+                <th>{t("N°")}</th>
+                <th>{t("Document")}</th>
+                <th>{t("Émis le")}</th>
+                <th>{t("État")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -299,12 +301,12 @@ export default async function MyPage() {
               {myDocs.map((d) => (
                 <tr key={d.id}>
                   <td className="mono">{d.number}</td>
-                  <td>{DOC_LABEL[d.type]}</td>
+                  <td>{t(DOC_LABEL[d.type])}</td>
                   <td className="num">{fmtDateTime(d.createdAt)}</td>
-                  <td>{d.status === "signe" ? "Signé" : d.status === "envoye" ? "Envoyé" : "Disponible"}</td>
+                  <td>{t(d.status === "signe" ? "Signé" : d.status === "envoye" ? "Envoyé" : "Disponible")}</td>
                   <td>
                     <a className="btn sm" href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer">
-                      Ouvrir le PDF
+                      {t("Ouvrir le PDF")}
                     </a>
                   </td>
                 </tr>
@@ -312,7 +314,7 @@ export default async function MyPage() {
               {myDocs.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    Vos bulletins, appels de fonds et avis apparaîtront ici.
+                    {t("Vos bulletins, appels de fonds et avis apparaîtront ici.")}
                   </td>
                 </tr>
               )}

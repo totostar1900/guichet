@@ -5,12 +5,14 @@ import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import { AddStaffForm, RoleForm } from "./Forms";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Équipe" };
 
 /** Who can act for the company, at which level, with or without a second factor. Responsable only. */
 export default async function EquipePage() {
+  const t = await getT();
   const me = await requireResponsable("/desk/equipe");
   const staff = await repo().listStaff();
   const bootstrap = (process.env.DESK_EMAILS ?? "").trim();
@@ -18,9 +20,9 @@ export default async function EquipePage() {
     <>
       <DeskNav current="/desk/equipe" />
       <div className={styles.head} data-coach="roles">
-        <h1>Équipe</h1>
+        <h1>{t("Équipe")}</h1>
         <p className="muted">
-          Trois niveaux. <b>Client</b> : lit et déclare des intentions. <b>Opérateur desk</b> : valide, publie, traite les intentions, tient le référentiel. <b>Responsable</b> : opérateur + gestion de l&apos;équipe et approbations. Le système (crons, robot) n&apos;est pas un utilisateur. Tout changement de niveau est journalisé.
+          {t("Trois niveaux.")} <b>{t("Client")}</b> {t(": lit et déclare des intentions.")} <b>{t("Opérateur desk")}</b> {t(": valide, publie, traite les intentions, tient le référentiel.")} <b>{t("Responsable")}</b> : opérateur + gestion de l&apos;équipe et approbations. Le système (crons, robot) n&apos;est pas un utilisateur. Tout changement de niveau est journalisé.
         </p>
       </div>
 
@@ -33,10 +35,10 @@ export default async function EquipePage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Personne</th>
-                <th>Niveau</th>
-                <th>Second facteur</th>
-                <th>Depuis</th>
+                <th>{t("Personne")}</th>
+                <th>{t("Niveau")}</th>
+                <th>{t("Second facteur")}</th>
+                <th>{t("Depuis")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -51,7 +53,7 @@ export default async function EquipePage() {
                   <td>
                     <span className={`${styles.role} ${styles[s.role]}`}>{ROLE_LABEL[s.role]}</span>
                   </td>
-                  <td>{s.mfaEnrolledAt ? <span className={styles.okTag}>activé {fmtDateTime(s.mfaEnrolledAt)}</span> : <span className={styles.warnTag}>à activer à la prochaine connexion</span>}</td>
+                  <td>{s.mfaEnrolledAt ? <span className={styles.okTag}>activé {fmtDateTime(s.mfaEnrolledAt)}</span> : <span className={styles.warnTag}>{t("à activer à la prochaine connexion")}</span>}</td>
                   <td>
                     {s.roleSetAt ? fmtDateTime(s.roleSetAt) : "—"}
                     {s.roleSetBy && <small className="muted"> · par {s.roleSetBy}</small>}
@@ -75,7 +77,7 @@ export default async function EquipePage() {
           </div>
           <div className="panel">
             <div className="panel-h">
-              <h2>Règles</h2>
+              <h2>{t("Règles")}</h2>
             </div>
             <ul className={styles.rules}>
               <li>Personne ne modifie son propre niveau ; il reste toujours au moins un responsable.</li>
@@ -84,11 +86,11 @@ export default async function EquipePage() {
               <li>
                 {bootstrap ? (
                   <>
-                    Amorçage : <code className="mono">DESK_EMAILS</code> est encore renseigné ({bootstrap.split(",").length} adresse{bootstrap.includes(",") ? "s" : ""}). Chaque adresse devient responsable à sa première connexion ; une fois l&apos;équipe en place, videz la variable sur Vercel.
+                    {t("Amorçage :")} <code className="mono">{t("DESK_EMAILS")}</code> est encore renseigné ({bootstrap.split(",").length} adresse{bootstrap.includes(",") ? "s" : ""}). Chaque adresse devient responsable à sa première connexion ; une fois l&apos;équipe en place, videz la variable sur Vercel.
                   </>
                 ) : (
                   <>
-                    Amorçage terminé : <code className="mono">DESK_EMAILS</code> est vide, seule cette page donne l&apos;accès.
+                    {t("Amorçage terminé :")} <code className="mono">{t("DESK_EMAILS")}</code> est vide, seule cette page donne l&apos;accès.
                   </>
                 )}
               </li>

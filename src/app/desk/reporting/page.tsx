@@ -4,6 +4,7 @@ import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
 import { activity, clientRegister, defaultPeriod, orderJournal, type Period } from "@/lib/reporting";
 import { positionsFrom } from "@/lib/positions";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Reporting" };
@@ -11,6 +12,7 @@ export const metadata = { title: "Reporting" };
 const DOC_FR: Record<string, string> = { bulletin: "bulletins", fonds: "appels de fonds", cession: "ordres de cession", bordereau: "bordereaux SVT", allocation: "avis d'allocation", non_allocation: "avis de non-allocation", opere: "avis d'opéré", convention: "conventions", dossier_svt: "dossiers SVT", releve: "relevés", attestation: "attestations" };
 
 export default async function ReportingPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string }> }) {
+  const t = await getT();
   const sp = await searchParams;
   const d = defaultPeriod();
   const p: Period = { from: sp.from && /^\d{4}-\d{2}-\d{2}$/.test(sp.from) ? sp.from : d.from, to: sp.to && /^\d{4}-\d{2}-\d{2}$/.test(sp.to) ? sp.to : d.to };
@@ -28,7 +30,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
       <DeskNav current="/desk/reporting" />
 
       <form className={styles.period} method="get">
-        <span className="eyebrow">Période</span>
+        <span className="eyebrow">{t("Période")}</span>
         <label className="field">
           Du
           <input type="date" name="from" defaultValue={p.from} />
@@ -38,7 +40,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
           <input type="date" name="to" defaultValue={p.to} />
         </label>
         <button className="btn" type="submit">
-          Appliquer
+          {t("Appliquer")}
         </button>
         <a className="btn primary" href={`/desk/reporting/pdf?${q}`} target="_blank" rel="noreferrer">
           Rapport d&apos;activité PDF
@@ -50,24 +52,24 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
 
       <div className={styles.kpis}>
         <div className={styles.kpi}>
-          <span>Intentions reçues</span>
+          <span>{t("Intentions reçues")}</span>
           <b>{Object.values(act.intents).reduce((s, n) => s + n, 0)}</b>
           <small>{Object.entries(act.intents).map(([k, n]) => `${n} ${k.toLowerCase()}`).join(" · ") || "—"}</small>
         </div>
         <div className={styles.kpi}>
-          <span>Ordres fermes reçus</span>
+          <span>{t("Ordres fermes reçus")}</span>
           <b>{fmtMillions(act.firmAmount)}</b>
-          <small>montants estimés à la réception</small>
+          <small>{t("montants estimés à la réception")}</small>
         </div>
         <div className={styles.kpi}>
-          <span>Exécutés · réglés</span>
+          <span>{t("Exécutés · réglés")}</span>
           <b>
             {act.executedCount} · {act.settledCount}
           </b>
           <small>{Object.entries(act.settledByInstrument).map(([k, v]) => `${k} ${fmtMillions(v)}`).join(" · ") || "aucun règlement"}</small>
         </div>
         <div className={styles.kpi}>
-          <span>Comptes ouverts · encours</span>
+          <span>{t("Comptes ouverts · encours")}</span>
           <b>
             {act.newAccounts} · {fmtMillions(act.positionsNominal)}
           </b>
@@ -77,32 +79,32 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Journal des ordres</h2>
+          <h2>{t("Journal des ordres")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {journal.length} ordre{journal.length > 1 ? "s" : ""} du {fmtDate(p.from)} au {fmtDate(p.to)} — horodatage de chaque étape
           </span>
           <a className="btn sm right" href={`/desk/reporting/export?type=ordres&${q}`}>
-            Exporter CSV
+            {t("Exporter CSV")}
           </a>
         </div>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Réf.</th>
-                <th>Reçu</th>
-                <th>Client</th>
-                <th>Instrument · ligne</th>
-                <th>Sens</th>
-                <th className="r">Quantité</th>
-                <th className="r">Montant</th>
-                <th>Prix</th>
-                <th>Canal</th>
-                <th>État</th>
-                <th>Confirmé</th>
-                <th>Transmis</th>
-                <th>Exécuté</th>
-                <th>Réglé</th>
+                <th>{t("Réf.")}</th>
+                <th>{t("Reçu")}</th>
+                <th>{t("Client")}</th>
+                <th>{t("Instrument · ligne")}</th>
+                <th>{t("Sens")}</th>
+                <th className="r">{t("Quantité")}</th>
+                <th className="r">{t("Montant")}</th>
+                <th>{t("Prix")}</th>
+                <th>{t("Canal")}</th>
+                <th>{t("État")}</th>
+                <th>{t("Confirmé")}</th>
+                <th>{t("Transmis")}</th>
+                <th>{t("Exécuté")}</th>
+                <th>{t("Réglé")}</th>
               </tr>
             </thead>
             <tbody>
@@ -134,7 +136,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
               {journal.length === 0 && (
                 <tr>
                   <td colSpan={14} className="muted">
-                    Aucun ordre ferme sur la période.
+                    {t("Aucun ordre ferme sur la période.")}
                   </td>
                 </tr>
               )}
@@ -146,7 +148,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
       <div className={styles.two}>
         <div className="panel">
           <div className="panel-h">
-            <h2>Activité par segment</h2>
+            <h2>{t("Activité par segment")}</h2>
           </div>
           <table className="tbl">
             <tbody>
@@ -158,7 +160,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
               ))}
               {Object.keys(act.settledBySegment).length === 0 && (
                 <tr>
-                  <td className="muted">Aucun règlement sur la période.</td>
+                  <td className="muted">{t("Aucun règlement sur la période.")}</td>
                 </tr>
               )}
             </tbody>
@@ -166,7 +168,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         </div>
         <div className="panel">
           <div className="panel-h">
-            <h2>Documents et diffusion</h2>
+            <h2>{t("Documents et diffusion")}</h2>
           </div>
           <table className="tbl">
             <tbody>
@@ -184,7 +186,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
               ))}
               {Object.keys(act.documents).length + Object.keys(act.notifications).length === 0 && (
                 <tr>
-                  <td className="muted">Rien sur la période.</td>
+                  <td className="muted">{t("Rien sur la période.")}</td>
                 </tr>
               )}
             </tbody>
@@ -194,26 +196,26 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Registre des clients</h2>
+          <h2>{t("Registre des clients")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {clients.length} dossier{clients.length > 1 ? "s" : ""} · statut, risque, revue, contrôle sanctions
           </span>
           <a className="btn sm right" href={`/desk/reporting/export?type=clients`}>
-            Exporter CSV
+            {t("Exporter CSV")}
           </a>
         </div>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Type</th>
-                <th>Statut</th>
-                <th>Risque</th>
-                <th>Approuvé</th>
-                <th>Prochaine revue</th>
-                <th>Sous-compte</th>
-                <th>Sanctions / PPE</th>
+                <th>{t("Client")}</th>
+                <th>{t("Type")}</th>
+                <th>{t("Statut")}</th>
+                <th>{t("Risque")}</th>
+                <th>{t("Approuvé")}</th>
+                <th>{t("Prochaine revue")}</th>
+                <th>{t("Sous-compte")}</th>
+                <th>{t("Sanctions / PPE")}</th>
               </tr>
             </thead>
             <tbody>
@@ -236,7 +238,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
               {clients.length === 0 && (
                 <tr>
                   <td colSpan={8} className="muted">
-                    Aucun dossier client.
+                    {t("Aucun dossier client.")}
                   </td>
                 </tr>
               )}
@@ -247,12 +249,12 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Positions en conservation</h2>
+          <h2>{t("Positions en conservation")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {positions.length} position{positions.length > 1 ? "s" : ""} · à la date du jour
           </span>
           <a className="btn sm right" href={`/desk/reporting/export?type=positions`}>
-            Exporter CSV
+            {t("Exporter CSV")}
           </a>
         </div>
       </div>

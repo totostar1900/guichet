@@ -9,6 +9,7 @@ import { textMatch } from "@/lib/text";
 import { handledAction } from "./actions";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Messages" };
@@ -22,6 +23,7 @@ type Thread = { key: string; channel: "whatsapp" | "email"; name?: string; clien
  * (every outbound notification). Reply from here; mark a thread handled.
  */
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ avec?: string; q?: string; etat?: string; canal?: string }> }) {
+  const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const [inbound, notifications, contacts, intents] = await Promise.all([r.listInbound(1000), r.listNotifications(1000), r.listContacts(), r.listIntents()]);
@@ -63,7 +65,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       <DeskNav current="/desk/messages" badges={{ "/desk/messages": unread }} />
       <Suspense>
         <Toolbar
-          placeholder="Nom, numéro, adresse, texte…"
+          placeholder={t("Nom, numéro, adresse, texte…")}
           chipKey="etat"
           chips={[
             { value: "", label: "Toutes", count: all.length },
@@ -110,14 +112,14 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
               <div className={styles.threadBtns}>
                 {open.clientId && (
                   <Link className="btn sm ghost" href={`/desk/clients`}>
-                    Dossier
+                    {t("Dossier")}
                   </Link>
                 )}
                 {open.unread > 0 && (
                   <form action={handledAction}>
                     <input type="hidden" name="to" value={open.key} />
                     <button className="btn sm" type="submit">
-                      Marquer comme traité
+                      {t("Marquer comme traité")}
                     </button>
                   </form>
                 )}
@@ -136,7 +138,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     {m.intentId && (
                       <>
                         {" · "}
-                        <Link href={`/desk/intentions/${m.intentId}`}>intention</Link>
+                        <Link href={`/desk/intentions/${m.intentId}`}>{t("intention")}</Link>
                       </>
                     )}
                   </small>
@@ -147,7 +149,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
           </div>
         ) : (
           <div className={styles.thread}>
-            <div className="empty">Choisissez une conversation.</div>
+            <div className="empty">{t("Choisissez une conversation.")}</div>
           </div>
         )}
       </div>

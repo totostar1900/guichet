@@ -11,6 +11,7 @@ import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { fmt, parseAmount, parseUnits } from "@/lib/format";
 import styles from "./IntentForm.module.css";
+import { useT } from "@/i18n/client";
 
 const DONE: Record<IntentType, (by: string) => string> = {
   ferme: (by) => `Votre prise ferme est dans le carnet. Un conseiller vous confirme ${by} avant la clôture et vous envoie le bulletin à signer.`,
@@ -50,6 +51,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
+  const t = useT();
   const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
@@ -90,30 +92,30 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     return (
       <div className={styles.wrap}>
         <div className={styles.done}>
-          <b>Reçu — réf. {state.ref}</b>
-          {DONE[state.type](BY[state.channel])}
+          <b>{t("Reçu — réf.")} {state.ref}</b>
+          {t(DONE[state.type]("{by}"), { by: t(BY[state.channel]) })}
           <ul className={styles.steps}>
             <li>
-              Accusé de réception envoyé sur WhatsApp au <b>{state.phone}</b> et par e-mail à <b>{state.email}</b>
-              {state.sent.some((x) => x.status === "skipped") ? " (envoi automatique en cours d'activation : le desk vous écrit à la main)" : state.sent.some((x) => x.status === "failed") ? " — un envoi a échoué, le desk vous recontacte" : ""}.
+              {t("Accusé de réception envoyé sur WhatsApp au")} <b>{state.phone}</b> {t("et par e-mail à")} <b>{state.email}</b>
+              {state.sent.some((x) => x.status === "skipped") ? t(" (envoi automatique en cours d'activation : le desk vous écrit à la main)") : state.sent.some((x) => x.status === "failed") ? t(" — un envoi a échoué, le desk vous recontacte") : ""}.
             </li>
-            <li>Un conseiller vous confirme {BY[state.channel]} — vérifiez que ce numéro reçoit bien les appels et WhatsApp.</li>
-            <li>Le bulletin à signer et l&apos;appel de fonds arrivent par e-mail ; l&apos;exécution vous est confirmée sur les deux canaux.</li>
+            <li>{t("Un conseiller vous confirme {by} — vérifiez que ce numéro reçoit bien les appels et WhatsApp.", { by: t(BY[state.channel]) })}</li>
+            <li>{t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
           </ul>
           {state.needsAccount && (
             <div className={styles.needAccount}>
-              Pour transmettre cet ordre, votre compte-titres doit être ouvert : dix minutes sur votre téléphone.{" "}
+              {t("Pour transmettre cet ordre, votre compte-titres doit être ouvert : dix minutes sur votre téléphone.")}{" "}
               <Link className="btn primary sm" href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>
-                Ouvrir mon compte
+                {t("Ouvrir mon compte")}
               </Link>
             </div>
           )}
           <div className={styles.doneActions}>
             <Link className="btn sm" href={`/offres/${offer.id}`}>
-              Autre intention
+              {t("Autre intention")}
             </Link>
             <Link className="btn sm ghost" href="/desk">
-              Voir dans le desk
+              {t("Voir dans le desk")}
             </Link>
           </div>
         </div>
@@ -121,11 +123,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     );
   }
 
-  const amtLabel = market ? `Quantité (${offer.instrument === "obligation" ? "titres" : "actions"})` : offer.kind === "FONDS" ? (type === "rachat" ? "Parts à racheter" : "Montant (FCFA)") : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)";
+  const amtLabel = t(market ? (offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)") : offer.kind === "FONDS" ? (type === "rachat" ? "Parts à racheter" : "Montant (FCFA)") : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)");
 
   return (
     <div className={styles.wrap}>
-      <h3 className="display">{past ? "Une question sur cette ligne ?" : "Votre intention sur cette ligne"}</h3>
+      <h3 className="display">{t(past ? "Une question sur cette ligne ?" : "Votre intention sur cette ligne")}</h3>
       {!past && <div className={styles.priceLine}>{priceText}</div>}
       <form action={action} ref={formRef} data-at={step} className={styles.form}>
         <input type="hidden" name="offerId" value={offer.id} />
@@ -134,13 +136,13 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             <i key={n} className={n <= step ? styles.stepDone : undefined} />
           ))}
         </div>
-        <div className={styles.stepTitle}>{step === 1 ? "1 · Votre demande" : step === 2 ? "2 · Vos coordonnées" : "3 · Récapitulatif"}</div>
+        <div className={styles.stepTitle}>{t(step === 1 ? "1 · Votre demande" : step === 2 ? "2 · Vos coordonnées" : "3 · Récapitulatif")}</div>
         <div data-step="1">
         <div className={styles.radio}>
-          {types.map((t) => (
-            <label key={t}>
-              <input type="radio" name="type" value={t} checked={type === t} onChange={() => setType(t)} />
-              {INTENT_LABEL[t]}
+          {types.map((it) => (
+            <label key={it}>
+              <input type="radio" name="type" value={it} checked={type === it} onChange={() => setType(it)} />
+              {t(INTENT_LABEL[it])}
             </label>
           ))}
         </div>
@@ -158,9 +160,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               />
               {held > 0 && (type === "vente" || type === "rachat") && (
                 <small className={styles.held}>
-                  Vous détenez {fmtUnits(held)} {offer.kind === "FONDS" ? "parts" : offer.instrument === "obligation" ? "titres" : "actions"} ·{" "}
+                  {t("Vous détenez")} {fmtUnits(held)} {t(offer.kind === "FONDS" ? "parts" : offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
                   <button type="button" className={styles.linkBtn} onClick={() => setAmount(fmtUnits(held))}>
-                    tout {type === "rachat" ? "racheter" : "vendre"}
+                    {t(type === "rachat" ? "tout racheter" : "tout vendre")}
                   </button>
                 </small>
               )}
@@ -170,7 +172,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           )}
           {market && (type === "achat" || type === "vente") && (
             <label className="field">
-              Prix limite (facultatif — {offer.instrument === "obligation" ? "% du nominal" : "FCFA par action"})
+              {t("Prix limite (facultatif)")} — {t(offer.instrument === "obligation" ? "% du nominal" : "FCFA par action")}
               <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String(offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
             </label>
           )}
@@ -180,82 +182,82 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           <ul className={styles.checks} aria-live="polite">
             {checks.map((c) => (
               <li key={c.key} className={c.level === "block" ? styles.checkBlock : styles.checkWarn}>
-                <span>{c.text}</span> <Info text={c.why} label={c.level === "block" ? "Pourquoi l'ordre ne passe pas" : "Pourquoi ce message"} subtle />
+                <span>{t(c.text)}</span> <Info text={t(c.why)} label={t(c.level === "block" ? "Pourquoi l'ordre ne passe pas" : "Pourquoi ce message")} subtle />
               </li>
             ))}
           </ul>
         )}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
           <div className={styles.tierNote}>
-            Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis{" "}
-            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>complétez votre dossier</Link> (10 min).
+            {t("Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis")}{" "}
+            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>{t("complétez votre dossier")}</Link> (10 min).
           </div>
         )}
         {signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && (
           <div className={styles.tierNote}>
-            Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis{" "}
-            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>ouvrez votre compte</Link> (10 min).
+            {t("Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis")}{" "}
+            <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>{t("ouvrez votre compte")}</Link> (10 min).
           </div>
         )}
         </div>
         <div data-step="2">
         <fieldset className={styles.contact}>
-          <legend>Vos coordonnées</legend>
+          <legend>{t("Vos coordonnées")}</legend>
           <div className={styles.row}>
             <label className="field">
               <span>
-                Prénom <em className={styles.req}>· requis</em>
+                {t("Prénom")} <em className={styles.req}>· {t("requis")}</em>
               </span>
-              <input name="firstName" autoComplete="given-name" placeholder="Prénom" value={who.firstName} onChange={(e) => setWho({ ...who, firstName: e.target.value })} required minLength={2} />
+              <input name="firstName" autoComplete="given-name" placeholder={t("Prénom")} value={who.firstName} onChange={(e) => setWho({ ...who, firstName: e.target.value })} required minLength={2} />
             </label>
             <label className="field">
               <span>
-                Nom <em className={styles.req}>· requis</em>
+                {t("Nom")} <em className={styles.req}>· {t("requis")}</em>
               </span>
-              <input name="lastName" autoComplete="family-name" placeholder="Nom" value={who.lastName} onChange={(e) => setWho({ ...who, lastName: e.target.value })} required minLength={2} />
+              <input name="lastName" autoComplete="family-name" placeholder={t("Nom")} value={who.lastName} onChange={(e) => setWho({ ...who, lastName: e.target.value })} required minLength={2} />
             </label>
           </div>
           <div className={styles.row}>
             <label className="field">
               <span>
-                Téléphone (WhatsApp) <em className={styles.req}>· requis</em>
+                {t("Téléphone (WhatsApp)")} <em className={styles.req}>· {t("requis")}</em>
               </span>
-              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 ().-]{8,}" title="Numéro avec indicatif, ex. +237 6 87 67 67 67" />
+              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 ().-]{8,}" title={t("Numéro avec indicatif, ex. +237 6 87 67 67 67")} />
             </label>
             <label className="field">
               <span>
-                E-mail <em className={styles.req}>· requis</em>
+                E-mail <em className={styles.req}>· {t("requis")}</em>
               </span>
               <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} required />
             </label>
           </div>
-          <div className={styles.channelLbl}>Me joindre par</div>
+          <div className={styles.channelLbl}>{t("Me joindre par")}</div>
           <div className={styles.channels}>
             {(["WhatsApp", "Appel", "E-mail"] as const).map((c) => (
               <label key={c}>
                 <input type="radio" name="channel" value={c} checked={channel === c} onChange={() => setChannel(c)} />
-                {c}
+                {t(c)}
               </label>
             ))}
           </div>
           <p className={styles.procedure}>
-            Prénom et nom tels que sur votre pièce d&apos;identité (ils figurent sur le bulletin). Téléphone et e-mail sont vérifiés à l&apos;envoi : accusé de réception immédiat sur WhatsApp et par e-mail, confirmation d&apos;un conseiller {BY[channel]}, bulletin à signer par e-mail. En donnant ce numéro, vous acceptez d&apos;être contacté sur WhatsApp pour cette opération.
+            {t("Prénom et nom tels que sur votre pièce d'identité (ils figurent sur le bulletin). Téléphone et e-mail sont vérifiés à l'envoi : accusé de réception immédiat sur WhatsApp et par e-mail, confirmation d'un conseiller {by}, bulletin à signer par e-mail. En donnant ce numéro, vous acceptez d'être contacté sur WhatsApp pour cette opération.", { by: t(BY[channel]) })}
           </p>
         </fieldset>
         <label className="field" style={{ marginBottom: 10 }}>
-          Message (facultatif)
-          <textarea name="message" rows={2} placeholder={offer.kind === "RACHAT" ? "Titres détenus chez… / date de disponibilité" : "Ex. : plutôt la ligne la plus courte ; contrainte de trésorerie le 16."} />
+          {t("Message (facultatif)")}
+          <textarea name="message" rows={2} placeholder={t(offer.kind === "RACHAT" ? "Titres détenus chez… / date de disponibilité" : "Ex. : plutôt la ligne la plus courte ; contrainte de trésorerie le 16.")} />
         </label>
         </div>
         <div data-step="3">
         <div className={styles.recap}>
           <div>
-            <span>Ligne</span>
+            <span>{t("Ligne")}</span>
             <b>{offer.title}</b>
           </div>
           <div>
-            <span>Demande</span>
-            <b>{INTENT_LABEL[type]}</b>
+            <span>{t("Demande")}</span>
+            <b>{t(INTENT_LABEL[type])}</b>
           </div>
           {needsAmount && (
             <div>
@@ -264,39 +266,39 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </div>
           )}
           <div>
-            <span>Contact</span>
+            <span>{t("Contact")}</span>
             <b>
-              {who.firstName} {who.lastName} · {channel} · {channel === "E-mail" ? who.email : who.phone}
+              {who.firstName} {who.lastName} · {t(channel)} · {channel === "E-mail" ? who.email : who.phone}
             </b>
           </div>
         </div>
         {state && !state.ok && <div className={styles.error}>{state.error}</div>}
         {!signedIn && (
           <div className={styles.login}>
-            Identifiez-vous pour envoyer votre intention — un code par e-mail suffit, aucun compte à créer d&apos;avance.
+            {t("Identifiez-vous pour envoyer votre intention — un code par e-mail suffit, aucun compte à créer d'avance.")}
             <Link className="btn primary sm" href={`/connexion?next=${encodeURIComponent(`/offres/${offer.id}?intent=${type}`)}`}>
-              Se connecter
+              {t("Se connecter")}
             </Link>
           </div>
         )}
         <div className={styles.foot}>
-          <small>{offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation."}</small>
+          <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation.")}</small>
           <button className="btn primary" type="submit" disabled={pending || !signedIn}>
-            {pending ? "Envoi…" : "Envoyer au desk"}
+            {t(pending ? "Envoi…" : "Envoyer au desk")}
           </button>
         </div>
         </div>
         <div className={styles.stepNav}>
           {step > 1 ? (
             <button type="button" className="btn ghost" onClick={() => goTo(step - 1)}>
-              Retour
+              {t("Retour")}
             </button>
           ) : (
             <span />
           )}
           {step < 3 && (
             <button type="button" className="btn primary" onClick={() => goTo(step + 1)}>
-              Continuer
+              {t("Continuer")}
             </button>
           )}
         </div>

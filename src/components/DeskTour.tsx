@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TOUR } from "@/data/desk-guide";
 import styles from "./mobile/CoachMarks.module.css";
+import { useT } from "@/i18n/client";
 
 /**
  * The desk's guided tour: the same spotlight as the fiche, but across pages.
@@ -27,6 +28,7 @@ export function DeskTour() {
   const router = useRouter();
   const [n, setN] = useState<number | null>(null);
   const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const t = useT();
 
   // Read the stop from storage on every navigation.
   useEffect(() => {
@@ -103,27 +105,27 @@ export function DeskTour() {
   const below = box ? box.y + box.h + 12 : 80;
   const tipTop = box && below + 150 > vh ? Math.max(12, box.y - 160) : below;
   return (
-    <div className={styles.layer} role="dialog" aria-modal="true" aria-label="Visite guidée du desk">
+    <div className={styles.layer} role="dialog" aria-modal="true" aria-label={t("Visite guidée du desk")}>
       <div className={styles.dim} style={box ? { clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${box.y}px, ${box.x}px ${box.y}px, ${box.x}px ${box.y + box.h}px, ${box.x + box.w}px ${box.y + box.h}px, ${box.x + box.w}px ${box.y}px, 0 ${box.y}px)` } : undefined} onClick={finish} />
       {box && <div className={styles.ring} style={{ left: box.x, top: box.y, width: box.w, height: box.h }} />}
       <div className={styles.tip} style={{ top: tipTop }}>
-        <b>{stop.title}</b>
-        <span>{stop.text}</span>
+        <b>{t(stop.title)}</b>
+        <span>{t(stop.text)}</span>
         <div className={styles.foot}>
           <small>
             {n + 1} / {TOUR.length}
           </small>
           <span className={styles.btns}>
             <button type="button" className="btn sm ghost" onClick={finish}>
-              Quitter
+              {t("Quitter")}
             </button>
             {n > 0 && (
               <button type="button" className="btn sm ghost" onClick={() => go(n - 1)}>
-                Précédent
+                {t("Précédent")}
               </button>
             )}
             <button type="button" className="btn sm primary" onClick={() => go(n + 1)}>
-              {n < TOUR.length - 1 ? "Suivant" : "Terminer"}
+              {t(n < TOUR.length - 1 ? "Suivant" : "Terminer")}
             </button>
           </span>
         </div>
@@ -135,9 +137,10 @@ export function DeskTour() {
 /** The button that starts the tour. */
 export function StartTour({ label = "Démarrer la visite guidée", className = "btn primary" }: { label?: string; className?: string }) {
   const router = useRouter();
+  const t = useT();
   return (
     <button type="button" className={className} onClick={() => startDeskTour(router)}>
-      {label}
+      {t(label)}
     </button>
   );
 }

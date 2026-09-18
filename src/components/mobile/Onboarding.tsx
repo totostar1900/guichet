@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./Onboarding.module.css";
@@ -139,27 +140,28 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
     setOpen(false);
     onClose?.();
   };
+  const t = useT();
   if (!open) return null;
   const s = SLIDES[i];
   const last = i === SLIDES.length - 1;
   return (
-    <div className={styles.ob} role="dialog" aria-modal="true" aria-label="Premiers pas">
+    <div className={styles.ob} role="dialog" aria-modal="true" aria-label={t("Premiers pas")}>
       <div className={styles.card}>
         <button type="button" className={styles.skip} onClick={close}>
-          Passer
+          {t("Passer")}
         </button>
         <div className={styles.art} key={i}>
           {s.art}
         </div>
-        <h2>{s.title}</h2>
-        <p>{s.text}</p>
+        <h2>{t(s.title)}</h2>
+        <p>{t(s.text)}</p>
         <div className={styles.dots} aria-hidden="true">
           {SLIDES.map((_, k) => (
             <i key={k} className={k === i ? styles.on : undefined} />
           ))}
         </div>
         <button type="button" className={`btn ${styles.next}`} onClick={() => (last ? close() : setI(i + 1))}>
-          {last ? "Ouvrir le Guichet" : "Continuer"}
+          {t(last ? "Ouvrir le Guichet" : "Continuer")}
         </button>
       </div>
     </div>
@@ -170,10 +172,11 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
 export function ReplayOnboarding() {
   const router = useRouter();
   const [show, setShow] = useState(false);
+  const t = useT();
   return (
     <>
       <button type="button" className="btn sm" onClick={() => setShow(true)}>
-        Revoir les premiers pas
+        {t("Revoir les premiers pas")}
       </button>
       {show && (
         <Onboarding

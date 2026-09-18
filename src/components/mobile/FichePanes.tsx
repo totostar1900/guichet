@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import styles from "./FichePanes.module.css";
 
@@ -10,7 +11,7 @@ import styles from "./FichePanes.module.css";
  * desktop page is untouched and the HTML is the same for both).
  */
 export const PANES: [string, string][] = [
-  ["essentiel", "Essentiel"],
+  ["essentiel", "Essentiel"], // translated at render
   ["chiffres", "Chiffres"],
   ["docs", "Documents"],
   ["risques", "Risques"],
@@ -32,11 +33,12 @@ export function FichePanes({ children, className }: { children: React.ReactNode;
 /** The segmented control, placed where the page wants it (under the identity block). */
 export function FicheSegments() {
   const { pane, setPane } = useContext(PaneCtx);
+  const t = useT();
   return (
-    <div className={styles.seg} role="tablist" aria-label="Sections de la fiche">
+    <div className={styles.seg} role="tablist" aria-label={t("Sections de la fiche")}>
       {PANES.map(([k, label]) => (
         <button key={k} type="button" role="tab" aria-selected={pane === k} className={pane === k ? styles.on : undefined} onClick={() => setPane(k)}>
-          {label}
+          {t(label)}
         </button>
       ))}
     </div>

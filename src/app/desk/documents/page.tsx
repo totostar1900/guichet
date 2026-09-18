@@ -10,6 +10,7 @@ import { fmt, fmtDateTime, fmtMillions } from "@/lib/format";
 import { BordereauButton, GenerateButton } from "./Buttons";
 import { markDocumentAction } from "./actions";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Documents" };
@@ -28,6 +29,7 @@ const CHAIN: [string, string, string, string][] = [
 ];
 
 export default async function DocumentsPage() {
+  const t = await getT();
   const r = repo();
   const [offers, intents, docs] = await Promise.all([r.listOffers(), r.listIntents(), r.listDocuments()]);
   const now = new Date();
@@ -62,7 +64,7 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Soumissions SVT — par adjudication</h2>
+          <h2>{t("Soumissions SVT — par adjudication")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             Le bordereau regroupe les ordres confirmés de toutes les lignes d&apos;une adjudication et les passe en « transmise »
           </span>
@@ -71,12 +73,12 @@ export default async function DocumentsPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Émetteur</th>
-                <th>Dépôt des offres</th>
-                <th className="r">Lignes</th>
-                <th className="r">Ordres fermes</th>
-                <th className="r">Montant</th>
-                <th>Bordereaux émis</th>
+                <th>{t("Émetteur")}</th>
+                <th>{t("Dépôt des offres")}</th>
+                <th className="r">{t("Lignes")}</th>
+                <th className="r">{t("Ordres fermes")}</th>
+                <th className="r">{t("Montant")}</th>
+                <th>{t("Bordereaux émis")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -109,7 +111,7 @@ export default async function DocumentsPage() {
               {auctionRows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="muted">
-                    Aucune adjudication en cours.
+                    {t("Aucune adjudication en cours.")}
                   </td>
                 </tr>
               )}
@@ -120,7 +122,7 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Documents clients — générer</h2>
+          <h2>{t("Documents clients — générer")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             Les transitions du carnet génèrent automatiquement ; ici on régénère ou on émet à la main
           </span>
@@ -129,13 +131,13 @@ export default async function DocumentsPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Réf.</th>
-                <th>Client</th>
-                <th>Ligne</th>
-                <th>Type</th>
-                <th>État</th>
-                <th className="r">Montant</th>
-                <th>Documents disponibles</th>
+                <th>{t("Réf.")}</th>
+                <th>{t("Client")}</th>
+                <th>{t("Ligne")}</th>
+                <th>{t("Type")}</th>
+                <th>{t("État")}</th>
+                <th className="r">{t("Montant")}</th>
+                <th>{t("Documents disponibles")}</th>
               </tr>
             </thead>
             <tbody>
@@ -169,7 +171,7 @@ export default async function DocumentsPage() {
               {candidates.length === 0 && (
                 <tr>
                   <td colSpan={7} className="muted">
-                    Aucune intention confirmée : confirmez une prise ferme dans le carnet pour produire son bulletin.
+                    {t("Aucune intention confirmée : confirmez une prise ferme dans le carnet pour produire son bulletin.")}
                   </td>
                 </tr>
               )}
@@ -180,7 +182,7 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Documents émis</h2>
+          <h2>{t("Documents émis")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {docs.length} document{docs.length > 1 ? "s" : ""} · originaux conservés
           </span>
@@ -190,10 +192,10 @@ export default async function DocumentsPage() {
             <thead>
               <tr>
                 <th>N°</th>
-                <th>Document</th>
-                <th>Client</th>
-                <th>Généré</th>
-                <th>État</th>
+                <th>{t("Document")}</th>
+                <th>{t("Client")}</th>
+                <th>{t("Généré")}</th>
+                <th>{t("État")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -220,7 +222,7 @@ export default async function DocumentsPage() {
                     <td>
                       <div className={styles.right}>
                         <a className="btn sm" href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer">
-                          Ouvrir
+                          {t("Ouvrir")}
                         </a>
                         {d.type !== "bordereau" &&
                           ["WhatsApp", "E-mail"].map((c) => (
@@ -237,7 +239,7 @@ export default async function DocumentsPage() {
                             <input type="hidden" name="docId" value={d.id} />
                             <input type="hidden" name="mark" value="signe" />
                             <button className="btn sm" type="submit">
-                              Signé reçu
+                              {t("Signé reçu")}
                             </button>
                           </form>
                         )}
@@ -249,7 +251,7 @@ export default async function DocumentsPage() {
               {docs.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
-                    Aucun document encore émis.
+                    {t("Aucun document encore émis.")}
                   </td>
                 </tr>
               )}
@@ -260,7 +262,7 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Chaîne documentaire</h2>
+          <h2>{t("Chaîne documentaire")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             Chaque document est une vue des mêmes lignes, produite au moment où l&apos;étape se produit
           </span>
@@ -269,10 +271,10 @@ export default async function DocumentsPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Étape</th>
-                <th>Document</th>
-                <th>Destinataire</th>
-                <th>Déclencheur</th>
+                <th>{t("Étape")}</th>
+                <th>{t("Document")}</th>
+                <th>{t("Destinataire")}</th>
+                <th>{t("Déclencheur")}</th>
               </tr>
             </thead>
             <tbody>
