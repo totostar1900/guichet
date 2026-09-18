@@ -46,7 +46,7 @@ export default async function NotesPage() {
           <Link href="/desk/guide">{t("Guide, champ par champ")}</Link>
         </nav>
 
-        <article className={styles.doc}>
+        <article className={styles.doc} data-coach="notes-page">
           <h1>{t("Notes de travail de l'assistant")}</h1>
           <p className={styles.summary}>{t("Ce que l'assistant garde entre ses sessions : état du projet, décisions, conventions, migrations appliquées, ce qui reste à faire. En anglais, écrites pour lui ; copiées dans le dépôt (docs/notes) pour que l'équipe les lise. Elles disent pourquoi les choses sont faites ainsi ; pour l'exploitation au quotidien, lisez les autres pages.")}</p>
           <div className={styles.audiences}>

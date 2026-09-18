@@ -16,6 +16,8 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "Les notes de travail": "The working notes",
+  "Ce que l'assistant garde entre ses sessions : l'état du projet, les décisions et leur raison, les conventions, les migrations appliquées, ce qui reste à faire. En anglais, lues depuis le dépôt (docs/notes) à chaque visite : un push les met à jour. Pour le quotidien, les autres pages ; pour comprendre pourquoi, celle-ci.": "What the assistant keeps between sessions: project state, decisions and their reasons, conventions, applied migrations, what is left. In English, read from the repository (docs/notes) at each visit: a push updates them. For the daily work, the other pages; to understand why, this one.",
   "Notes": "Notes",
   "Notes de travail de l'assistant": "The assistant's working notes",
   "À propos de ces notes": "About these notes",
