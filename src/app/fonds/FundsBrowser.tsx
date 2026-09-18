@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Info } from "@/components/Info";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
@@ -46,6 +46,30 @@ const BLURB: Record<FundNav["category"], string> = {
   D: "Un panachage d'obligations, d'actions et de trésorerie, arbitré par la société de gestion.",
   A: "Exposés aux actions cotées à la BVMAC et à la région : le potentiel et la volatilité les plus élevés.",
   "?": "Catégorie non précisée au bulletin.",
+};
+
+const FAMILIES_KEY = "guichet:fonds:familles"; // "0" once the reader folded the explanation
+let familiesListeners: (() => void)[] = [];
+const readFamilies = () => {
+  try {
+    return localStorage.getItem(FAMILIES_KEY) !== "0";
+  } catch {
+    return true;
+  }
+};
+const subscribeFamilies = (cb: () => void) => {
+  familiesListeners.push(cb);
+  return () => {
+    familiesListeners = familiesListeners.filter((x) => x !== cb);
+  };
+};
+const setFamilies = (open: boolean) => {
+  try {
+    localStorage.setItem(FAMILIES_KEY, open ? "1" : "0");
+  } catch {
+    // storage unavailable
+  }
+  familiesListeners.forEach((cb) => cb());
 };
 
 const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`);
@@ -107,12 +131,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     return [...list].sort((a, b) => dir * cmp(a, b));
   }, [rows, q, cat, manager, freq, sort, desc]);
 
-  const groups = sort === "categorie" ? CATS.filter((c) => filtered.some((r) => r.category === c)).map((c) => ({ c, rows: filtered.filter((r) => r.category === c) })) : [{ c: null, rows: filtered }];
+  const rowsShown = sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered;
+  const familiesOpen = useSyncExternalStore(subscribeFamilies, readFamilies, () => true);
   const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq));
 
   // Remember this list (URL + order shown) so a fund's page can bring the reader back and step to the next fund.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
-  const orderKey = groups.flatMap((g) => g.rows.map((r) => r.id)).join(",");
+  const orderKey = rowsShown.map((r) => r.id).join(",");
   useEffect(() => {
     rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Tous les fonds" });
   }, [listUrl, orderKey]);
@@ -120,6 +145,29 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   return (
     <>
+      <section className={`${styles.families} ${familiesOpen ? "" : styles.familiesClosed}`} aria-label={t("Les quatre catégories de fonds")}>
+        <div className={styles.familiesHead}>
+          <h2>{t("Quatre catégories, quatre façons de placer")}</h2>
+          <span>
+            <Link href="/info/fonds-vl">{t("Leçon : la VL et les frais")} →</Link>
+            <button type="button" onClick={() => setFamilies(!familiesOpen)} aria-expanded={familiesOpen}>
+              {t(familiesOpen ? "Replier" : "Déplier")}
+            </button>
+          </span>
+        </div>
+        {familiesOpen && (
+          <div className={styles.familiesGrid}>
+            {CATS.filter((c) => c !== "?").map((c) => (
+              <button key={c} type="button" className={`${styles.family} ${cat === c ? styles.familyOn : ""}`} aria-pressed={cat === c} onClick={() => setCat(cat === c ? "" : c)}>
+                <b>
+                  {t(FUND_CATEGORY_LABEL[c])} · {rows.filter((r) => r.category === c).length}
+                </b>
+                <span>{t(BLURB[c])}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
       <div className={styles.sticky}>
         <div className={styles.toolbar}>
           <label className={styles.search}>
@@ -146,31 +194,21 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               </button>
             )}
           </label>
+        </div>
+        <div className={styles.count}>
+          <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
+          {active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
+          {cat && <span className={styles.countHint}> — {t(BLURB[cat])}</span>}
           {(active > 0 || q) && (
-            <button
-              type="button"
-              className={styles.clear}
-              onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}
-            >
+            <button type="button" className={styles.clear} onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}>
               {t("Effacer")}
             </button>
           )}
         </div>
-        <div className={styles.count}>
-          <b>{filtered.length}</b> {t("fonds")}{active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
-        </div>
       </div>
 
-      {groups.map(({ c, rows: g }) => (
-        <section key={c ?? "all"} className={styles.group}>
-          {c && (
-            <div className={styles.groupH}>
-              <h2 className="display">
-                {t(`${t(FUND_CATEGORY_LABEL[c])}s`)} · {g.length}
-              </h2>
-              <p>{t(BLURB[c])}</p>
-            </div>
-          )}
+      {rowsShown.length > 0 && (
+        <section className={styles.group}>
           <div className="scroll-x">
             <table className={styles.tbl}>
               <thead>
@@ -189,7 +227,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                 </tr>
               </thead>
               <tbody>
-                {g.map((r) => (
+                {rowsShown.map((r) => (
                   <tr key={r.id}>
                     <td className={styles.name}>
                       <Link href={`/offres/${r.id}`}>{r.title}</Link>
@@ -230,7 +268,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             </table>
           </div>
         </section>
-      ))}
+      )}
       {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
     </>
   );

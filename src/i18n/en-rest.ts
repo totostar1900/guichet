@@ -687,4 +687,9 @@ export const EN_REST: Record<string, string> = {
   "À gauche, les sections de cette page — la recherche, les leçons, le simulateur, les outils, le glossaire — et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.": "On the left, the sections of this page — search, lessons, simulator, tools, glossary — and, below, the help, the comparer, the companies and the news. It stays at hand while you read.",
   "Un titre, un émetteur, un pays…": "A security, an issuer, a country…",
   "Aucune ligne ne correspond.": "No line matches.",
+  "Les quatre catégories de fonds": "The four fund categories",
+  "Quatre catégories, quatre façons de placer": "Four categories, four ways to invest",
+  "Leçon : la VL et les frais": "Lesson: NAV and fees",
+  "Replier": "Fold",
+  "Déplier": "Unfold",
 };

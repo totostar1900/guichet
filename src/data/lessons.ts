@@ -115,11 +115,12 @@ export const LESSONS: Lesson[] = [
     key: "fonds-vl",
     order: 7,
     title: "Fonds : la VL et les frais",
-    minutes: 2,
+    minutes: 3,
     intro: "Vous n'achetez pas un titre mais une part d'un panier, à un prix connu après coup.",
     body: [
       "La valeur liquidative (VL) est le prix d'une part : actifs du fonds moins ses dettes, divisé par le nombre de parts. Elle est calculée à intervalle régulier par la société de gestion.",
       "Une souscription s'exécute à la prochaine VL calculée après votre ordre. Vous connaissez votre montant, pas encore votre nombre de parts.",
+      "Quatre catégories, du plus calme au plus mobile : monétaire (titres courts, VL très régulière, argent disponible sous quelques jours), obligataire (obligations d'États et d'entreprises, rendement porté par les coupons, sensible aux taux), diversifié (un panachage d'obligations, d'actions et de trésorerie arbitré par la société de gestion), actions (exposé aux actions cotées : le potentiel et la volatilité les plus élevés). La catégorie est écrite sur chaque fiche et dans le tableau des fonds.",
       "Les frais d'entrée, de sortie et de gestion (prélevés dans la VL) sont dans le prospectus du fonds ; les performances passées ne préjugent pas des performances futures.",
     ],
     widget: "fund",

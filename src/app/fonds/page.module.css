@@ -177,6 +177,86 @@
 }
 
 /* ---------- filters and sort ---------- */
+/* The four categories explained once, above the filters; foldable, the choice kept on the device. */
+.families {
+  margin: 0 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 14px 12px;
+}
+.familiesClosed {
+  padding-bottom: 10px;
+}
+.familiesHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.familiesHead h2 {
+  font-size: 0.9rem;
+  margin: 0;
+}
+.familiesHead span {
+  display: inline-flex;
+  gap: 14px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.familiesHead a {
+  color: var(--navy);
+  font-weight: 700;
+  text-decoration: none;
+}
+.familiesHead button {
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+}
+.familiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.family {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: var(--paper);
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.family:hover {
+  border-color: var(--navy);
+}
+.family b {
+  font-size: 0.84rem;
+}
+.family span {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.familyOn {
+  border-color: var(--navy);
+  box-shadow: inset 3px 0 0 var(--gold);
+  background: var(--surface);
+}
+.countHint {
+  color: var(--ink-2);
+}
 /* The selector band stays under the site header while the tables scroll (same treatment as the Guichet). */
 .sticky {
   position: sticky;
@@ -281,6 +361,7 @@
   font-family: inherit;
 }
 .clear {
+  margin-left: 10px;
   border: 0;
   background: none;
   color: var(--gold-ink);
@@ -295,6 +376,11 @@
   margin: 0 0 10px;
 }
 @media (max-width: 760px) {
+  .sticky {
+    top: 52px; /* the phone shell header */
+    margin: 0 -12px;
+    padding: 8px 12px 0;
+  }
   .search,
   .fixed,
   .fixedSm {

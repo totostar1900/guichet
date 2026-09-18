@@ -139,4 +139,5 @@ export const EN_LESSONS: Record<string, string> = {
   "Coupon nominal": "Coupon rate",
   "Part servie": "Share served",
   "Allocation": "Allocation",
+  "Quatre catégories, du plus calme au plus mobile : monétaire (titres courts, VL très régulière, argent disponible sous quelques jours), obligataire (obligations d'États et d'entreprises, rendement porté par les coupons, sensible aux taux), diversifié (un panachage d'obligations, d'actions et de trésorerie arbitré par la société de gestion), actions (exposé aux actions cotées : le potentiel et la volatilité les plus élevés). La catégorie est écrite sur chaque fiche et dans le tableau des fonds.": "Four categories, from the calmest to the most mobile: money market (short paper, very steady NAV, cash available within days), bond (government and corporate bonds, return carried by the coupons, sensitive to rates), diversified (a mix of bonds, equities and cash arbitrated by the manager), equity (exposed to listed shares: the highest potential and volatility). The category is written on every page and in the funds table.",
 };
