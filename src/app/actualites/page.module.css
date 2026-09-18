@@ -6,7 +6,7 @@
 }
 @media (max-width: 960px) {
   .page {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .main {
@@ -249,7 +249,7 @@
 @media (max-width: 640px) {
   .item,
   .featured {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
   .meta {

@@ -78,7 +78,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
             {t("Cours")} <Info term="cours" />
           </span>
           <b>{quote ? fmt(quote.close) : "—"}</b>
-          <small>FCFA · {quote ? `clôture ${fmtDate(quote.sessionDate)}` : "pas de cours"}{quote?.variationPct ? ` · ${signed(quote.variationPct)}` : ""}</small>
+          <small>FCFA · {quote ? `${t("clôture")} ${fmtDate(quote.sessionDate)}` : t("pas de cours")}{quote?.variationPct ? ` · ${signed(quote.variationPct)}` : ""}</small>
         </div>
         <div className={styles.kpi}>
           <span>
@@ -92,7 +92,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
             {t("Capitalisation")} <Info term="capitalisation" />
           </span>
           <b>{a.marketCap != null ? fmtUnits(a.marketCap) : "—"}</b>
-          <small>FCFA · {fmtUnits(c.sharesTotal)} actions · flottant {fmtPct(c.freeFloatPct, 1)}</small>
+          <small>FCFA · {fmtUnits(c.sharesTotal)} {t("actions")} · {t("flottant")} {fmtPct(c.freeFloatPct, 1)}</small>
         </div>
         <div className={styles.kpi}>
           <span>

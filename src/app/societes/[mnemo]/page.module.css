@@ -116,6 +116,8 @@
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
   padding: 3px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 .periods a {
   padding: 4px 10px;
@@ -266,7 +268,7 @@
 }
 @media (max-width: 900px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .lineCard {
