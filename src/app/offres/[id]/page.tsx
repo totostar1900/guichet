@@ -481,13 +481,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
               d.url ? (
                 <a key={d.name} className={`${styles.doc} ${styles.docLink}`} href={d.url} target="_blank" rel="noreferrer">
                   <span className="mono">{/\.(png|jpe?g)$/i.test(d.url) ? "IMG" : "PDF"}</span>
-                  {d.name}
+                  {t(d.name)}
                   <span className={styles.docMeta}>{d.meta} ↗</span>
                 </a>
               ) : (
                 <div key={d.name} className={styles.doc} title={t("Sur demande au desk")}>
                   <span className="mono">PDF</span>
-                  {d.name}
+                  {t(d.name)}
                   <span className={styles.docMeta}>{d.meta} · {t("sur demande")}</span>
                 </div>
               ),

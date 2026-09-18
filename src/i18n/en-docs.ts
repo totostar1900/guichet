@@ -16,6 +16,7 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "Lignes et notions liées": "Related lines and notions",
   "Aide : le chapitre « Comment Guichet est entretenu », la note d'entretien écrite pour les clients": "Help: the 'How Guichet is looked after' chapter, the maintenance note written for clients",
   "Ce que le client lit sur l'entretien de l'application": "What the client reads about the app's upkeep",
   "Comment Guichet est entretenu": "How Guichet is looked after",

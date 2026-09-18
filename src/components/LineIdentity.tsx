@@ -14,7 +14,7 @@ import styles from "./LineIdentity.module.css";
  */
 export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" | "xl"; as?: "div" | "h1" }) {
   const t = useT();
-  const title = href ? <Link href={href}>{s.title}</Link> : s.title;
+  const title = href ? <Link href={href}>{t(s.title)}</Link> : t(s.title);
   return (
     <div className={`${styles.id} ${size === "lg" ? styles.lg : size === "xl" ? styles.xl : ""}`}>
       <Tag className={styles.title}>{title}</Tag>
