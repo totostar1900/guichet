@@ -72,7 +72,7 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
   return (
     <span className={styles.wrap}>
       <button type="button" className={`btn sm ${state === "on" ? "" : "primary"}`} disabled={state === "busy"} onClick={state === "on" ? disable : enable}>
-        {state === "busy" ? "…" : state === "on" ? "Alertes activées · désactiver" : "Recevoir les alertes sur cet appareil"}
+        {state === "busy" ? "…" : tr(state === "on" ? "Alertes activées · désactiver" : "Recevoir les alertes sur cet appareil")}
       </button>
       {err && <small className={styles.err}>{err}</small>}
       {!compact && state === "off" && <small className={styles.note}>{tr("Une opportunité du moment, une clôture qui approche, un ordre servi : une notification, pas plus d'une par jour.")}</small>}

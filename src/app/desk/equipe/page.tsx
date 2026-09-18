@@ -56,7 +56,7 @@ export default async function EquipePage() {
                   <td>{s.mfaEnrolledAt ? <span className={styles.okTag}>{t("activé")} {fmtDateTime(s.mfaEnrolledAt)}</span> : <span className={styles.warnTag}>{t("à activer à la prochaine connexion")}</span>}</td>
                   <td>
                     {s.roleSetAt ? fmtDateTime(s.roleSetAt) : "—"}
-                    {s.roleSetBy && <small className="muted"> · par {s.roleSetBy}</small>}
+                    {s.roleSetBy && <small className="muted">{t(`· par ${s.roleSetBy}`)}</small>}
                   </td>
                   <td className="r">
                     <RoleForm userId={s.id} role={s.role} self={s.id === me.userId} />
@@ -86,7 +86,7 @@ export default async function EquipePage() {
               <li>
                 {bootstrap ? (
                   <>
-                    {t("Amorçage :")} <code className="mono">{t("DESK_EMAILS")}</code> est encore renseigné ({bootstrap.split(",").length} adresse{bootstrap.includes(",") ? "s" : ""}). Chaque adresse devient responsable à sa première connexion ; une fois l&apos;équipe en place, videz la variable sur Vercel.
+                    {t("Amorçage :")} <code className="mono">DESK_EMAILS</code> {t(bootstrap.includes(",") ? "est encore renseigné ({n} adresses). Chaque adresse devient responsable à sa première connexion ; une fois l'équipe en place, videz la variable sur Vercel." : "est encore renseigné ({n} adresse). Chaque adresse devient responsable à sa première connexion ; une fois l'équipe en place, videz la variable sur Vercel.", { n: bootstrap.split(",").length })}
                   </>
                 ) : (
                   <>

@@ -83,7 +83,7 @@ export function Simulator() {
                 <b>{fmtPct(atPar ? coupon : r.irr, 2)}</b>
               </div>
               <div>
-                <span>Décaissement le {fmtDate(settle, false)}</span>
+                <span>{t(`Décaissement le ${fmtDate(settle, false)}`)}</span>
                 <b>{fmt(r.outlay)} FCFA</b>
               </div>
               <div>
@@ -98,7 +98,7 @@ export function Simulator() {
               <div>{fmt(r.titles * r.pricePerTitle)}</div>
               <div>Coupon couru ({r.accruedDays} jours)</div>
               <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
-              <div className="tot">Décaissement le {fmtDate(settle, false)}</div>
+              <div className="tot">{t(`Décaissement le ${fmtDate(settle, false)}`)}</div>
               <div>{fmt(r.outlay)} FCFA</div>
               <div>{t("Gain brut jusqu'au terme")}</div>
               <div>{fmt(r.gain)}</div>
@@ -126,7 +126,7 @@ export function Simulator() {
               <b>{fmtPct(r.yieldPct, 2)}</b>
             </div>
             <div>
-              <span>Décaissement le {fmtDate(settle, false)}</span>
+              <span>{t(`Décaissement le ${fmtDate(settle, false)}`)}</span>
               <b>{fmt(r.outlay)} FCFA</b>
             </div>
             <div>
@@ -139,9 +139,9 @@ export function Simulator() {
             <div>{fmt(r.n)}</div>
             <div>{t("Prix d'achat par bon")}</div>
             <div>{fmt(r.pricePerBond)}</div>
-            <div className="tot">Décaissement le {fmtDate(settle, false)}</div>
+            <div className="tot">{t(`Décaissement le ${fmtDate(settle, false)}`)}</div>
             <div>{fmt(r.outlay)} FCFA</div>
-            <div>Remboursé le {fmtDate(maturity, false)}</div>
+            <div>{t(`Remboursé le ${fmtDate(maturity, false)}`)}</div>
             <div>{fmt(r.redemption)}</div>
             <div>{t("Intérêt (précompté)")}</div>
             <div>{fmt(r.gain)}</div>

@@ -78,17 +78,17 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <div className={styles.kpi}>
           <span>{t("Prises fermes")}</span>
           <b className="num">{fmtMillions(totalF)}</b>
-          <small>{rows.reduce((s, x) => s + x.nF, 0)} ordres à confirmer ou transmettre</small>
+          <small>{t("{n} ordres à confirmer ou transmettre", { n: rows.reduce((s, x) => s + x.nF, 0) })}</small>
         </div>
         <div className={styles.kpi}>
           <span>{t("Appétits à convertir")}</span>
           <b className="num">{fmtMillions(totalA)}</b>
-          <small>{rows.reduce((s, x) => s + x.nA, 0)} clients à rappeler</small>
+          <small>{t("{n} clients à rappeler", { n: rows.reduce((s, x) => s + x.nA, 0) })}</small>
         </div>
         <div className={styles.kpi}>
           <span>{t("Intentions non traitées")}</span>
           <b className="num">{todo}</b>
-          <small>sur {intents.length} reçues</small>
+          <small>{t(`sur ${intents.length} reçues`)}</small>
         </div>
       </div>
 
@@ -218,7 +218,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <div className="panel-h">
           <h2>{t("Intentions reçues")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {intents.length} au total · {todo} à traiter{shown.length !== intents.length ? ` · ${shown.length} affichée${shown.length > 1 ? "s" : ""}` : ""}
+            {t("{n} au total · {m} à traiter", { n: intents.length, m: todo })}{shown.length !== intents.length ? ` · ${t(shown.length > 1 ? "{k} affichées" : "{k} affichée", { k: shown.length })}` : ""}
           </span>
         </div>
         <Suspense>
@@ -234,7 +234,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               { value: "finie", label: t("Servies · réglées"), count: counts.finie },
               { value: "annulee", label: t("Annulées"), count: counts.annulee },
             ]}
-            selects={[{ key: "ligne", label: t("Ligne"), all: "toutes les lignes", options: lines }]}
+            selects={[{ key: "ligne", label: t("Ligne"), all: t("toutes les lignes"), options: lines }]}
             sort={{ key: "tri", label: t("Tri"), options: [{ value: "recent", label: t("plus récent") }, { value: "ancien", label: t("plus ancien") }, { value: "montant", label: t("montant") }, { value: "client", label: t("client") }] }}
           />
         </Suspense>

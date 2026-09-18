@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import styles from "./Charts.module.css";
+import { useT } from "@/i18n/client";
 
 /**
  * Small SVG charts with a tracker: move over the chart and the nearest point or
@@ -42,6 +43,7 @@ function svgX(e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElemen
 
 /** Closing prices over time; flat segments stay flat (the BVMAC prints the last price every session). */
 export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { points: { date: string; value: number; extra?: string }[]; unit?: string; height?: number; ariaLabel: string }) {
+  const tr = useT();
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
   const W = 720;
@@ -50,7 +52,7 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
   const padR = 12;
   const padT = 14;
   const padB = 28;
-  if (points.length === 0) return <div className={styles.empty}>Pas encore de cours sur cette période.</div>;
+  if (points.length === 0) return <div className={styles.empty}>{tr("Pas encore de cours sur cette période.")}</div>;
   const vals = points.map((p) => p.value);
   let min = Math.min(...vals);
   let max = Math.max(...vals);
@@ -219,9 +221,10 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
 
 /** Horizontal share of capital. */
 export function ShareBar({ parts }: { parts: { name: string; pct: number }[] }) {
+  const tr = useT();
   const total = parts.reduce((s, p) => s + p.pct, 0);
   const rest = Math.max(0, 100 - total);
-  const all = rest > 0.05 ? [...parts, { name: "Flottant et autres", pct: rest }] : parts;
+  const all = rest > 0.05 ? [...parts, { name: tr("Flottant et autres"), pct: rest }] : parts;
   return (
     <div className={styles.shareWrap}>
       <div className={styles.shareBar} role="img" aria-label={all.map((p) => `${p.name} ${p.pct} %`).join(", ")}>

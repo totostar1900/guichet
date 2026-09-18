@@ -193,7 +193,7 @@ function Equity({ live }: { live: Live }) {
         <div>
           <span>PER</span>
           <b>{(price / eps).toFixed(1).replace(".", ",")}×</b>
-          <small>{fmt(eps)} de bénéfice par action</small>
+          <small>{t(`${fmt(eps)} de bénéfice par action`)}</small>
         </div>
       </div>
       <p className={styles.reading}>{t("Quand le cours monte, le même dividende rapporte moins et vous payez plus d'années de bénéfice.")}</p>
@@ -220,7 +220,7 @@ function Fund({ live }: { live: Live }) {
         <div>
           <span>{t("Dernière VL connue")}</span>
           <b>{fmt(nav)} FCFA</b>
-          <small>{fee ? `frais d'entrée ${pct(fee)}` : "sans frais d'entrée"}</small>
+          <small>{fee ? `${t("frais d'entrée")} ${pct(fee)}` : t("sans frais d'entrée")}</small>
         </div>
         <div>
           <span>{t("≈ parts si la VL ne bouge pas")}</span>

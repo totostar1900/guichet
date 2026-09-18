@@ -27,7 +27,7 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
     <div className="panel">
       <div className="panel-h">
         <h2>{t("À la une")}</h2>
-        <span className="muted">Sélection du desk · {active.length}/3 · une raison factuelle, une date de fin, jamais un conseil</span>
+        <span className="muted">{t(`Sélection du desk · ${active.length}/3 · une raison factuelle, une date de fin, jamais un conseil`)}</span>
       </div>
       {active.length > 0 && (
         <ul className={styles.list}>

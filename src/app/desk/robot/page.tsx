@@ -31,7 +31,7 @@ export default async function RobotPage() {
             <b>{t("Seul :")}</b> {t("définitions (rendement actuariel, coupon couru, in fine, adjudication…), caractéristiques exactes des offres publiées, chiffrage d'un montant, dates, état des intentions et documents du client, ouverture de compte, enregistrement d'un appétit, d'une question ou d'un rappel. STOP / START gèrent l'opt-in.")}
           </p>
           <p>
-            <b>{t("Jamais :")}</b> conseiller une ligne, promettre une allocation ou un rendement, parler d&apos;un autre client, inventer un chiffre, traiter une réclamation. Prise ferme et cession = appétit enregistré + rappel d&apos;un conseiller (événement dans le flux du desk).
+            <b>{t("Jamais :")}</b> {t("conseiller une ligne, promettre une allocation ou un rendement, parler d'un autre client, inventer un chiffre, traiter une réclamation. Prise ferme et cession = appétit enregistré + rappel d'un conseiller (événement dans le flux du desk).")}
           </p>
           <p>{t("Chaque échange est journalisé (message entrant, réponse, intention créée). Le robot ne répond qu'aux messages entrants : hors fenêtre de 24 h, seuls les modèles approuvés partent.")}</p>
         </div>

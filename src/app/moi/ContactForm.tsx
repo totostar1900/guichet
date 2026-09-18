@@ -12,7 +12,7 @@ export function ContactForm({ phone, email }: { phone?: string; email?: string }
   return (
     <form action={action} className={styles.contact}>
       <label className="field">
-        Téléphone (WhatsApp)
+        {t("Téléphone (WhatsApp)")}
         <input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" defaultValue={state?.ok ? state.phone : phone} required />
       </label>
       <label className="field">

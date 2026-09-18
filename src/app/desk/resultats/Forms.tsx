@@ -74,7 +74,7 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
       ))}
       {state && (state.ok ? <div className={styles.ok}>{state.message}</div> : <div className={styles.err}>{state.error}</div>)}
       <div className={styles.foot}>
-        <small className="muted">0 % = non servi. Les avis de résultat sont générés et envoyés à la validation.</small>
+        <small className="muted">{t("0 % = non servi. Les avis de résultat sont générés et envoyés à la validation.")}</small>
         <button className="btn primary" type="submit" disabled={pending}>
           {t(pending ? "Application…" : "Appliquer les résultats")}
         </button>

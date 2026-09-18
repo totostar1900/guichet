@@ -177,7 +177,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           )}
         </div>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text}</div>}
+        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>}
         {checks.length > 0 && (
           <ul className={styles.checks} aria-live="polite">
             {checks.map((c) => (

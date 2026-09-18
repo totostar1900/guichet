@@ -1,8 +1,17 @@
 import { parseDate } from "./finance";
 
 const nf = new Intl.NumberFormat("fr-FR");
-const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
-const DAYS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+const MONTHS_FR = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const DAYS_FR = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+/** Dates follow the viewer's language (numbers keep the FCFA convention); set by the language provider. */
+let formatLang: "fr" | "en" = "fr";
+export const setFormatLang = (l: "fr" | "en"): void => {
+  formatLang = l;
+};
+const MONTHS = new Proxy([] as string[], { get: (_t, i) => (formatLang === "en" ? MONTHS_EN : MONTHS_FR)[i as unknown as number] });
+const DAYS = new Proxy([] as string[], { get: (_t, i) => (formatLang === "en" ? DAYS_EN : DAYS_FR)[i as unknown as number] });
 
 export const fmt = (n: number): string => nf.format(Math.round(n));
 
@@ -19,7 +28,8 @@ export const fmtDate = (iso: string, withYear = true): string => {
 
 export const fmtDateTime = (iso: string): string => {
   const d = parseDate(iso);
-  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${String(d.getHours()).padStart(2, "0")} h ${String(d.getMinutes()).padStart(2, "0")}`;
+  const hm = formatLang === "en" ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : `${String(d.getHours()).padStart(2, "0")} h ${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${hm}`;
 };
 
 export const fmtTime = (iso: string): string => {

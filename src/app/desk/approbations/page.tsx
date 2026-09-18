@@ -95,7 +95,7 @@ export default async function ApprobationsPage() {
               <li>
                 Taux précompté BTA : {policy.precountRate.min}–{policy.precountRate.max} %
               </li>
-              <li>Cours saisi : au plus ±{policy.quoteMovePct} % du dernier cours</li>
+              <li>{t(`Cours saisi : au plus ±${policy.quoteMovePct} % du dernier cours`)}</li>
               <li>Fonds : droits d&apos;entrée ≤ {policy.fundEntryFeeMax} %</li>
             </ul>
           )}

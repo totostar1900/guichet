@@ -1,7 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./Onboarding.module.css";
 
@@ -171,8 +171,15 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
 /** « Revoir les premiers pas » on the Info page. */
 export function ReplayOnboarding() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [show, setShow] = useState(false);
   const t = useT();
+  // The help search links here with ?premiers-pas=1.
+  useEffect(() => {
+    if (sp.get("premiers-pas") !== "1") return;
+    const id = setTimeout(() => setShow(true), 0);
+    return () => clearTimeout(id);
+  }, [sp]);
   return (
     <>
       <button type="button" className="btn sm" onClick={() => setShow(true)}>

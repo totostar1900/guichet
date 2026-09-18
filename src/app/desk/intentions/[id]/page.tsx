@@ -72,7 +72,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
       <div className={styles.crumbs}>
         <Link href="/desk">{t("← Carnet du jour")}</Link>
         <span>
-          {it.ref} · reçue le {fmtDateTime(it.createdAt)} · {it.channel}
+          {it.ref} · {t("reçue le {d} · {c}", { d: fmtDateTime(it.createdAt), c: it.channel })}
         </span>
       </div>
 
@@ -91,11 +91,11 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 <div>
                   <span>{t(s.gold ? "Rendement" : "Repère")}</span>
                   <b className={s.gold ? styles.gold : undefined}>{s.hero}</b>
-                  <small>{s.heroSub}</small>
+                  <small>{t(s.heroSub)}</small>
                 </div>
                 <div>
                   <span>{t("Statut")}</span>
-                  <b>{s.countdown ? `Clôture ${s.countdown}` : s.status}</b>
+                  <b>{s.countdown ? `${t("Clôture")} ${t(s.countdown)}` : t(s.status)}</b>
                   <small>{s.deadline}</small>
                 </div>
                 <div>
@@ -109,7 +109,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               {est && !checks.some((c) => c.level === "ok") && (
                 <>
                   <dt>{t("Au prix publié")}</dt>
-                  <dd>{est.text}</dd>
+                  <dd>{t(est.text)}</dd>
                 </>
               )}
               {it.limitPrice != null && (
@@ -123,10 +123,10 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 <ul className={styles.checks}>
                   {checks.map((c) => (
                     <li key={c.key} className={c.level === "block" ? styles.block : c.level === "warn" ? styles.warn : styles.ok}>
-                      {c.text} <Info text={c.why} label={t("Règle")} subtle />
+                      {t(c.text)} <Info text={t(c.why)} label={t("Règle")} subtle />
                     </li>
                   ))}
-                  {file && file.status !== "approuve" && <li className={styles.warn}>Dossier client {STATUS_LABEL[file.status].toLowerCase()} — à approuver avant le règlement.</li>}
+                  {file && file.status !== "approuve" && <li className={styles.warn}>{t(`Dossier client ${STATUS_LABEL[file.status].toLowerCase()} — à approuver avant le règlement.`)}</li>}
                   {!file && <li className={styles.warn}>{t("Aucun dossier client : ouvrir le compte avant le règlement.")}</li>}
                   {checks.length === 0 && file?.status === "approuve" && <li className={styles.ok}>{t("Rien à signaler.")}</li>}
                 </ul>
@@ -158,7 +158,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     <i key={st} className={i <= step ? styles.done : undefined} title={t(INTENT_STATE_LABEL[st])} />
                   ))}
                 </div>
-                <small className="muted">{TRACK.map((st) => INTENT_STATE_LABEL[st].toLowerCase()).join(" → ")}</small>
+                <small className="muted">{TRACK.map((st) => t(INTENT_STATE_LABEL[st]).toLowerCase()).join(" → ")}</small>
               </dd>
             </dl>
           </div>
@@ -238,19 +238,19 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 <span className={`st ${file.status === "approuve" ? "confirmee" : file.status === "refuse" ? "annulee" : "recue"}`}>{t(STATUS_LABEL[file.status])}</span>
               </dd>
               <dt>{t("Risque")}</dt>
-              <dd>{file.review.risk ? `${t(RISK_LABEL[file.review.risk])}${file.review.nextReviewOn ? ` · revue ${file.review.nextReviewOn.slice(0, 4)}` : ""}` : "non évalué"}</dd>
+              <dd>{file.review.risk ? `${t(RISK_LABEL[file.review.risk])}${file.review.nextReviewOn ? ` · ${t("revue")} ${file.review.nextReviewOn.slice(0, 4)}` : ""}` : t("non évalué")}</dd>
               <dt>{t("Compte-titres")}</dt>
-              <dd>{file.review.custodianAccount ?? "à ouvrir"}</dd>
+              <dd>{file.review.custodianAccount ?? t("à ouvrir")}</dd>
               <dt>{t("Pièces")}</dt>
               <dd>
-                {file.documents.length} reçue{file.documents.length > 1 ? "s" : ""}
+                {t(file.documents.length > 1 ? "{n} reçues" : "{n} reçue", { n: file.documents.length })}
               </dd>
               <dt>{t("Sanctions / PPE")}</dt>
-              <dd>{file.screening?.outcome ? `${file.screening.outcome === "aucun" ? "aucune correspondance" : file.screening.outcome === "faux_positif" ? "faux positif écarté" : "correspondance confirmée"}${file.screening.attestedAt ? ` (${fmtDateTime(file.screening.attestedAt)})` : ""}` : "non attesté"}</dd>
+              <dd>{file.screening?.outcome ? `${t(file.screening.outcome === "aucun" ? "aucune correspondance" : file.screening.outcome === "faux_positif" ? "faux positif écarté" : "correspondance confirmée")}${file.screening.attestedAt ? ` (${fmtDateTime(file.screening.attestedAt)})` : ""}` : t("non attesté")}</dd>
               {missing.length > 0 && (
                 <>
                   <dt>{t("Manque")}</dt>
-                  <dd className={styles.warnText}>{missing.join(" · ")}</dd>
+                  <dd className={styles.warnText}>{missing.map((m) => t(m)).join(" · ")}</dd>
                 </>
               )}
             </dl>

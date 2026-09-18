@@ -94,7 +94,7 @@ export default async function MyPage() {
         <div>
           <span>{t("En cours")}</span>
           <b>{open.length}</b>
-          <small>{open.length ? open.length > 1 ? "intentions suivies par le desk" : "intention suivie par le desk" : t("aucune intention en cours")}</small>
+          <small>{open.length ? t(open.length > 1 ? "intentions suivies par le desk" : "intention suivie par le desk") : t("aucune intention en cours")}</small>
         </div>
       </div>
 

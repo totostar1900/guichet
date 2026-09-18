@@ -79,7 +79,7 @@ export default async function MarketPage() {
           </div>
         ) : (
           <p className="muted" style={{ padding: "12px 16px", fontSize: ".84rem" }}>
-            Aucun bulletin ingéré pour l&apos;instant. Lancez l&apos;ingestion d&apos;une séance ci-dessous (l&apos;adresse du jour est {bocUrl(today)}).
+            {t("Aucun bulletin ingéré pour l'instant. Lancez l'ingestion d'une séance ci-dessous (l'adresse du jour est {url}).", { url: bocUrl(today) })}
           </p>
         )}
         {last && (last.anomalies.length > 0 || last.warnings.length > 0) && (
@@ -121,7 +121,7 @@ export default async function MarketPage() {
         <div className="panel-h">
           <h2>{t("Cotations")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Dernier cours = clôture du bulletin ; acheteur / vendeur = fourchette indicative du desk. La saisie manuelle n&apos;est qu&apos;un secours et se voit sur la fiche.
+            {t("Dernier cours = clôture du bulletin ; acheteur / vendeur = fourchette indicative du desk. La saisie manuelle n'est qu'un secours et se voit sur la fiche.")}
           </span>
         </div>
         <div className="scroll-x">
@@ -197,7 +197,7 @@ export default async function MarketPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>OPCVM — {funds.length} fonds lus au bulletin, {funds.filter((o) => o.fund?.distributed).length} ouvert{funds.filter((o) => o.fund?.distributed).length > 1 ? "s" : ""} à la souscription</h2>
+          <h2>OPCVM — {t("{n} fonds lus au bulletin, {m} ouvert(s) à la souscription", { n: funds.length, m: funds.filter((o) => o.fund?.distributed).length })}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t("VL publiées par les sociétés de gestion agréées COSUMAF. Un fonds n'est proposé à la souscription qu'avec une convention de distribution : cochez « distribué », renseignez la référence, les droits et le minimum.")}
           </span>

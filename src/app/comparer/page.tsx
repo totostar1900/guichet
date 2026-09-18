@@ -31,7 +31,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
     const s = summarize(o, now);
     const map = new Map<string, string>();
     // The first figure is the return, whatever it is called on that line (taux nominal at par, actuariel, dividende…): one row.
-    s.ledger.forEach(([k, v, note], i) => map.set(i === 0 ? "Rendement" : k, i === 0 ? `${v} · ${k.toLowerCase()}${note ? ` · ${note}` : ""}` : note ? `${v} · ${note}` : v));
+    s.ledger.forEach(([k, v, note], i) => map.set(i === 0 ? "Rendement" : k, i === 0 ? `${v} · ${t(k).toLowerCase()}${note ? ` · ${t(note)}` : ""}` : note ? `${v} · ${t(note)}` : v));
     return { s, dy: displayYield(o), ref: offerReference(o, now), map };
   });
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
@@ -84,7 +84,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
             <div className={styles.label}>{t("Statut")}</div>
             {data.map((d, i) => (
               <div key={i} className={styles.cell}>
-                <span className={`pill ${d.s.statusClass}`}>{d.s.status}</span>
+                <span className={`pill ${d.s.statusClass}`}>{t(d.s.status)}</span>
               </div>
             ))}
           </div>
@@ -95,12 +95,12 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
               <div key={i} className={styles.cell}>
                 {d.ref ? (
                   <>
-                    <b className={styles.refTitle}>{d.ref.title}</b>
+                    <b className={styles.refTitle}>{t(d.ref.title)}</b>
                     <dl className={styles.ref}>
                       {d.ref.rows.map(([k, v]) => (
                         <div key={k}>
-                          <dt>{k}</dt>
-                          <dd>{v}</dd>
+                          <dt>{t(k)}</dt>
+                          <dd>{t(v)}</dd>
                         </div>
                       ))}
                     </dl>

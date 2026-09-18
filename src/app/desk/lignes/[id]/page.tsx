@@ -39,7 +39,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
       <DeskNav current="/desk" />
       <div className={styles.head}>
         <div>
-          <div className="eyebrow">Historique et contrôle · v{o.version}</div>
+          <div className="eyebrow">{t(`Historique et contrôle · v${o.version}`)}</div>
           <LineIdentity o={o} s={s} size="lg" as="h1" />
         </div>
         <div className={styles.headBtns}>
@@ -78,7 +78,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
                 <div className={styles.vHead}>
                   <b>v{v.version}</b>
                   <span>{fmtDateTime(v.publishedAt)}</span>
-                  {v.publishedBy && <span>par {v.publishedBy}</span>}
+                  {v.publishedBy && <span>{t(`par ${v.publishedBy}`)}</span>}
                   {v.note && <span className={styles.note}>{v.note}</span>}
                   {v.version === o.version && <span className={styles.tag}>{t("en ligne")}</span>}
                 </div>

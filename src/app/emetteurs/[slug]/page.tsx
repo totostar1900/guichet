@@ -50,7 +50,7 @@ export default async function EmetteurPage({ params }: Props) {
             <span className="cc">{COUNTRY_CODE[i.country]}</span> {i.sector} · émetteur obligataire BVMAC · {i.mnemo}
           </div>
           <h1 className="display">{i.name}</h1>
-          <p className={styles.activity}>{i.activity}</p>
+          <p className={styles.activity}>{tr(i.activity)}</p>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export default async function EmetteurPage({ params }: Props) {
           <div className={styles.panel}>
             <h2>{tr("Chiffres clés publiés")}</h2>
             <div className={styles.unitNote}>
-              en {scale.label} · {i.unitNote}
+              {tr("en")} {tr(scale.label)} · {tr(i.unitNote)}
             </div>
             <div className="scroll-x">
               <table className={styles.tbl}>
@@ -167,7 +167,7 @@ export default async function EmetteurPage({ params }: Props) {
                 </tbody>
               </table>
             </div>
-            <div className={styles.source}>Source : {i.documents.map((d) => d.title).join(" · ")}.</div>
+            <div className={styles.source}>{tr("Source")} : {i.documents.map((d) => tr(d.title)).join(" · ")}.</div>
           </div>
         </div>
 
@@ -175,8 +175,8 @@ export default async function EmetteurPage({ params }: Props) {
           <div className={styles.panel}>
             <h2>{tr("Ce que disent les chiffres")}</h2>
             <ul className={styles.comments}>
-              {i.reading.map((t, k) => (
-                <li key={k}>{t}</li>
+              {i.reading.map((r0, k) => (
+                <li key={k}>{tr(r0)}</li>
               ))}
             </ul>
           </div>
@@ -190,7 +190,7 @@ export default async function EmetteurPage({ params }: Props) {
               {i.chair && (
                 <>
                   <dt>{tr("Présidence")}</dt>
-                  <dd>{i.chair}</dd>
+                  <dd>{tr(i.chair)}</dd>
                 </>
               )}
               {i.ceo && (
@@ -225,8 +225,8 @@ export default async function EmetteurPage({ params }: Props) {
             <div className={styles.docs}>
               {i.documents.map((d) => (
                 <a key={d.url} href={d.url} target="_blank" rel="noreferrer">
-                  <span>{d.title}</span>
-                  <small>bvm-ac.org · image · {d.year}</small>
+                  <span>{tr(d.title)}</span>
+                  <small>bvm-ac.org · {tr("image")} · {d.year}</small>
                 </a>
               ))}
             </div>

@@ -24,7 +24,7 @@
   padding: 0;
   display: inline-grid;
   place-items: center;
-  cursor: help;
+  cursor: pointer;
   text-transform: none;
   letter-spacing: 0;
 }
@@ -61,7 +61,7 @@
   padding: 10px 12px;
   border-radius: 6px;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
+  pointer-events: auto;
 }
 .bubble b {
   display: block;

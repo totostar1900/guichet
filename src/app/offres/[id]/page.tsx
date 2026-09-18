@@ -97,7 +97,7 @@ async function Reference({ o }: { o: Offer }) {
     const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, 10_000_000, price);
     return (
       <>
-        <h3>Pour 10 000 000 FCFA de nominal, au prix {t(o.servedPricePct ? "servi" : "Purpose")}</h3>
+        <h3>{t(o.servedPricePct ? "Pour 10 000 000 FCFA de nominal, au prix servi" : "Pour 10 000 000 FCFA de nominal, au prix Purpose")}</h3>
         <div className="out">
           <div>Titres (nominal {fmt(o.nominal)})</div>
           <div>{fmt(r.titles)}</div>
@@ -105,7 +105,7 @@ async function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.titles * r.pricePerTitle)}</div>
           <div>Coupon couru ({r.accruedDays} jours)</div>
           <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
-          <div className="tot">Décaissement le {fmtDate(o.settleOn, false)}</div>
+          <div className="tot">{t(`Décaissement le ${fmtDate(o.settleOn, false)}`)}</div>
           <div>{fmt(r.outlay)} FCFA</div>
           <div>{t("Gain brut jusqu'au terme")}</div>
           <div>{fmt(r.gain)}</div>
@@ -121,15 +121,15 @@ async function Reference({ o }: { o: Offer }) {
     const r = btaCalc(b, btaAmountForBonds(b, 10, o.precountRate), o.precountRate);
     return (
       <>
-        <h3>Pour 10 bons de {fmt(o.nominal)} FCFA</h3>
+        <h3>{t(`Pour 10 bons de ${fmt(o.nominal)} FCFA`)}</h3>
         <div className="out">
           <div>{t("Bons")}</div>
           <div>{fmt(r.n)}</div>
           <div>{t("Prix d'achat par bon")}</div>
           <div>{fmt(r.pricePerBond)}</div>
-          <div className="tot">Décaissement le {fmtDate(o.settleOn, false)}</div>
+          <div className="tot">{t(`Décaissement le ${fmtDate(o.settleOn, false)}`)}</div>
           <div>{fmt(r.outlay)} FCFA</div>
-          <div>Remboursé le {fmtDate(o.maturityOn, false)}</div>
+          <div>{t(`Remboursé le ${fmtDate(o.maturityOn, false)}`)}</div>
           <div>{fmt(r.redemption)}</div>
           <div>{t("Intérêt (précompté)")}</div>
           <div>{fmt(r.gain)}</div>
@@ -146,7 +146,7 @@ async function Reference({ o }: { o: Offer }) {
     const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
     return (
       <>
-        <h3>Pour {fmt(amount)} FCFA à la dernière VL</h3>
+        <h3>{t(`Pour ${fmt(amount)} FCFA à la dernière VL`)}</h3>
         <div className="out">
           {f.entryFeePct > 0 && (
             <>
@@ -156,7 +156,7 @@ async function Reference({ o }: { o: Offer }) {
           )}
           <div>{t("Investi dans le fonds")}</div>
           <div>{fmt(net)}</div>
-          <div className="tot">Parts (VL {fmt(f.nav)} du {fmtDate(f.navDate, false)})</div>
+          <div className="tot">{t(`Parts (VL ${fmt(f.nav)} du ${fmtDate(f.navDate, false)})`)}</div>
           <div>≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</div>
           {f.exitFeePct > 0 && (
             <>
@@ -180,13 +180,13 @@ async function Reference({ o }: { o: Offer }) {
       const settleOn = ai && ai.maturityOn > ai.settleOn ? ai.settleOn : bi!.settleOn;
       return (
         <>
-          <h3>Pour {fmt(n)} titres au cours vendeur</h3>
+          <h3>{t(`Pour ${fmt(n)} titres au cours vendeur`)}</h3>
           <div className="out">
             <div>Prix {fmtPrice(ref)}</div>
             <div>{fmt(r.titles * r.pricePerTitle)}</div>
             <div>Coupon couru ({r.accruedDays} jours)</div>
             <div>{fmt(r.accrued)}</div>
-            <div className="tot">Décaissement (règlement T+{o.settlementDays ?? 3})</div>
+            <div className="tot">{t("Décaissement (règlement T+{n})", { n: o.settlementDays ?? 3 })}</div>
             <div>{fmt(r.outlay)} FCFA</div>
             <div className="hl">{t("Rendement actuariel brut à ce cours")}</div>
             <div>{fmtPct(r.irr, 2)}</div>
@@ -205,7 +205,7 @@ async function Reference({ o }: { o: Offer }) {
     }
     return (
       <>
-        <h3>Pour {n} actions au cours vendeur</h3>
+        <h3>{t(`Pour ${n} actions au cours vendeur`)}</h3>
         <div className="out">
           <div>{t("Cours vendeur")}</div>
           <div>{fmt(ref)} FCFA</div>
@@ -227,7 +227,7 @@ async function Reference({ o }: { o: Offer }) {
     const n = 100;
     return (
       <>
-        <h3>Pour {n} actions</h3>
+        <h3>{t(`Pour ${n} actions`)}</h3>
         <div className="out">
           <div>{t("Actions")}</div>
           <div>{n}</div>
@@ -237,9 +237,9 @@ async function Reference({ o }: { o: Offer }) {
           <div>{fmt(n * (o.dividendPerShare ?? 0))}</div>
           {o.lastPrice && (
             <>
-              <div>Valeur au dernier cours ({fmt(o.lastPrice)})</div>
+              <div>{t(`Valeur au dernier cours (${fmt(o.lastPrice)})`)}</div>
               <div>{fmt(n * o.lastPrice)}</div>
-              <div className="hl">Plus-value latente au cours du {o.lastPriceOn ? fmtDate(o.lastPriceOn, false) : "—"}</div>
+              <div className="hl">{t("Plus-value latente au cours du {d}", { d: o.lastPriceOn ? fmtDate(o.lastPriceOn, false) : "—" })}</div>
               <div>+{fmt(n * (o.lastPrice - o.pricePerShare))}</div>
             </>
           )}
@@ -251,7 +251,7 @@ async function Reference({ o }: { o: Offer }) {
   const proceeds = n * o.nominal;
   return (
     <>
-      <h3>Pour {n} titres cédés</h3>
+      <h3>{t(`Pour ${n} titres cédés`)}</h3>
       <div className="out">
         <div>{t("Titres cédés")}</div>
         <div>{n}</div>
@@ -259,7 +259,7 @@ async function Reference({ o }: { o: Offer }) {
         <div>{fmt(proceeds)} FCFA</div>
         <div>{t("Coupon couru")}</div>
         <div>{t("réglé par le Trésor")}</div>
-        <div className="hl">Encaissement le {fmtDate(o.settleOn, false)}</div>
+        <div className="hl">{t(`Encaissement le ${fmtDate(o.settleOn, false)}`)}</div>
         <div>{fmt(proceeds)}</div>
       </div>
     </>
@@ -394,7 +394,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
           </div>
           <Kpis o={o} />
-          <p className={styles.blurb}>{o.blurb}</p>
+          <p className={styles.blurb}>{t(o.blurb)}</p>
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
         </section>
 
@@ -417,7 +417,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <section className={styles.sec} data-pane="docs">
             <h3>{t("La société")}</h3>
             <p className={styles.note}>
-              {company.activity}{" "}
+              {t(company.activity)}{" "}
               <Link href={`/societes/${company.mnemo.toLowerCase()}`}>{t("Analyse complète : comptes certifiés, ratios, dividendes, rapport PDF")} →</Link>
             </p>
           </section>
@@ -426,7 +426,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <section className={styles.sec} data-pane="docs">
             <h3>{t("L'émetteur")}</h3>
             <p className={styles.note}>
-              {issuer.activity}{" "}
+              {t(issuer.activity)}{" "}
               <Link href={`/emetteurs/${issuer.slug}`}>{t("Profil de l'émetteur : comptes publiés, actionnariat, autres emprunts")} →</Link>
             </p>
           </section>

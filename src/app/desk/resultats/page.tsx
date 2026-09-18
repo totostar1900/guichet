@@ -48,10 +48,10 @@ export default async function ResultsPage() {
         <div className="panel" key={`${a.country}|${a.deadlineAt}`}>
           <div className="panel-h">
             <h2>
-              {a.issuer} — adjudication du {fmtDate(a.deadlineAt)}
+              {t(a.issuer)} — {t("adjudication du {d}", { d: fmtDate(a.deadlineAt) })}
             </h2>
             <span className="muted" style={{ fontSize: ".8rem" }}>
-              {t(parseDate(a.deadlineAt) > now ? "clôture à venir · " : "")}{a.toResult} ordre{a.toResult > 1 ? "s" : ""} en attente de résultats · {a.toSettle} servi{a.toSettle > 1 ? "s" : ""} à régler · règlement le {fmtDate(a.offers[0].settleOn)}
+              {t(parseDate(a.deadlineAt) > now ? "clôture à venir · " : "")}{t(a.toResult > 1 ? "{n} ordres en attente de résultats" : "{n} ordre en attente de résultats", { n: a.toResult })} · {t(a.toSettle > 1 ? "{n} servis à régler" : "{n} servi à régler", { n: a.toSettle })} · {t("règlement le")} {fmtDate(a.offers[0].settleOn)}
             </span>
           </div>
 
@@ -102,7 +102,7 @@ export default async function ResultsPage() {
         <div className="panel-h">
           <h2>{t("Positions clients")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {positions.length} position{positions.length > 1 ? "s" : ""} · dérivées des ordres réglés
+            {t(positions.length > 1 ? "{n} positions · dérivées des ordres réglés" : "{n} position · dérivées des ordres réglés", { n: positions.length })}
           </span>
         </div>
         <div className="scroll-x">

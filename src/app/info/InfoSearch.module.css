@@ -1,0 +1,118 @@
+.wrap {
+  position: relative;
+  margin: 18px 0 26px;
+}
+.field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 10px 14px;
+  color: var(--ink-3);
+  box-shadow: var(--shadow);
+}
+.field input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--ink);
+  min-width: 0;
+}
+.field input::placeholder {
+  color: var(--ink-3);
+}
+.results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+}
+.item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.item.on,
+.item:hover {
+  background: var(--surface-2);
+}
+.kind {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 3px 6px;
+  text-align: center;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+.terme {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.lecon {
+  background: var(--info-soft, #e1eaf8);
+  color: var(--info, #2a5db0);
+}
+.outil {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.body b {
+  font-size: 0.9rem;
+}
+.body small {
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arrow {
+  color: var(--ink-3);
+}
+.empty {
+  padding: 12px;
+  font-size: 0.84rem;
+  color: var(--ink-2);
+}
+@media (max-width: 760px) {
+  .item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .kind {
+    display: none;
+  }
+  .body small {
+    white-space: normal;
+  }
+}

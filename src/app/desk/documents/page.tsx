@@ -86,13 +86,13 @@ export default async function DocumentsPage() {
               {auctionRows.map((a) => (
                 <tr key={`${a.country}|${a.deadlineAt}`}>
                   <td>
-                    <b>{a.issuer}</b>
+                    <b>{t(a.issuer)}</b>
                   </td>
                   <td>{fmtDateTime(a.deadlineAt)}</td>
                   <td className="r">{a.n}</td>
                   <td className="r">
                     {a.orders}
-                    {a.pending ? <span className="muted"> · {a.pending} à transmettre</span> : null}
+                    {a.pending ? <span className="muted">{t(`· ${a.pending} à transmettre`)}</span> : null}
                   </td>
                   <td className="r num">{fmtMillions(a.amount)}</td>
                   <td>
@@ -104,7 +104,7 @@ export default async function DocumentsPage() {
                     {!a.existing.length && <span className="muted">—</span>}
                   </td>
                   <td className={styles.right}>
-                    <BordereauButton country={a.country} deadlineAt={a.deadlineAt} disabled={a.orders === 0} label={a.pending ? `Préparer la soumission (${a.pending})` : "Régénérer le bordereau"} />
+                    <BordereauButton country={a.country} deadlineAt={a.deadlineAt} disabled={a.orders === 0} label={a.pending ? t("Préparer la soumission ({n})", { n: a.pending }) : t("Régénérer le bordereau")} />
                   </td>
                 </tr>
               ))}
@@ -281,11 +281,11 @@ export default async function DocumentsPage() {
               {CHAIN.map((row) => (
                 <tr key={row[0]}>
                   <td>
-                    <b>{row[0]}</b>
+                    <b>{t(row[0])}</b>
                   </td>
-                  <td>{row[1]}</td>
-                  <td>{row[2]}</td>
-                  <td className="muted">{row[3]}</td>
+                  <td>{t(row[1])}</td>
+                  <td>{t(row[2])}</td>
+                  <td className="muted">{t(row[3])}</td>
                 </tr>
               ))}
             </tbody>

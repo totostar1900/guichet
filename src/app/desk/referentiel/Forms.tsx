@@ -52,7 +52,7 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
         </label>
         <label className={styles.span2}>
           <span>{tr("Moteur de calcul (la seule chose qui demande du code)")}</span>
-          <Select block name="engine" value={t?.engine ?? "bullet_bond"} options={(Object.keys(ENGINE_LABEL) as Engine[]).map((k) => ({ value: k, label: ENGINE_LABEL[k] }))} />
+          <Select block name="engine" value={t?.engine ?? "bullet_bond"} options={(Object.keys(ENGINE_LABEL) as Engine[]).map((k) => ({ value: k, label: tr(ENGINE_LABEL[k]) }))} />
         </label>
       </div>
       <div className={styles.row3}>
@@ -102,7 +102,7 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
           <input type="checkbox" name="enabled" defaultChecked={t?.enabled ?? true} /> {tr("Proposé dans le Guichet et le desk")}
         </label>
         <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : isNew ? "Créer le type" : "Enregistrer"}
+          {pending ? "…" : isNew ? tr("Créer le type") : tr("Enregistrer")}
         </button>
       </div>
       <Msg state={state} />

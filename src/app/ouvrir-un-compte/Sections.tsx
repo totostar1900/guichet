@@ -150,7 +150,7 @@ export function PersonsSection({ file, editable }: P) {
                 <td>{roleLabel[p.role]}</td>
                 <td>
                   <b>{p.name}</b>
-                  {p.idNumber && <small className="muted"> · pièce {p.idNumber}</small>}
+                  {p.idNumber && <small className="muted">{t(`· pièce ${p.idNumber}`)}</small>}
                 </td>
                 <td className="r">{p.share ? `${p.share} %` : ""}</td>
                 <td>{p.pep ? <span className="st recue">PPE</span> : null}</td>
@@ -356,7 +356,7 @@ export function ConsentSection({ file, editable }: P) {
       </div>
       {accepted ? (
         <div className={styles.ok}>
-          Convention acceptée le {fmtDateTime(c.conventionAt!)} par {c.conventionMethod}. {t(c.whatsappAt ? "Notifications WhatsApp activées." : "Notifications par e-mail.")}
+          {t(`Convention acceptée le ${fmtDateTime(c.conventionAt!)} par ${c.conventionMethod}.`)} {t(c.whatsappAt ? "Notifications WhatsApp activées." : "Notifications par e-mail.")}
         </div>
       ) : (
         <>

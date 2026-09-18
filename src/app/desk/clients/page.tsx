@@ -98,18 +98,18 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   <dd>{t(selected.identity.residentAbroad ? "oui" : "non")}</dd>
                   <dt>{t("Origine des fonds")}</dt>
                   <dd>
-                    {selected.funds.source ?? "—"}
-                    {selected.funds.expectedAmount ? ` · ${selected.funds.expectedAmount}` : ""}
-                    {selected.funds.bankName ? ` · banque ${selected.funds.bankName}` : ""}
+                    {selected.funds.source ? t(selected.funds.source) : "—"}
+                    {selected.funds.expectedAmount ? ` · ${t(selected.funds.expectedAmount)}` : ""}
+                    {selected.funds.bankName ? ` · ${t("banque")} ${selected.funds.bankName}` : ""}
                   </dd>
                   <dt>{t("Compte de règlement")}</dt>
-                  <dd className="mono">{selected.funds.bankAccount ? `${selected.funds.bankAccount}${selected.funds.bankHolder ? ` · ${selected.funds.bankHolder}` : ""}` : "RIB manquant"}</dd>
+                  <dd className="mono">{selected.funds.bankAccount ? `${selected.funds.bankAccount}${selected.funds.bankHolder ? ` · ${selected.funds.bankHolder}` : ""}` : t("RIB manquant")}</dd>
                   <dt>PPE</dt>
-                  <dd>{selected.funds.pep ? `oui — ${selected.funds.pepDetails ?? ""}` : "non"}</dd>
+                  <dd>{selected.funds.pep ? `${t("oui")} — ${selected.funds.pepDetails ?? ""}` : t("non")}</dd>
                   <dt>{t("Profil")}</dt>
-                  <dd>{[selected.profile.objectives, selected.profile.horizon, selected.profile.riskTolerance].filter(Boolean).join(" · ") || "—"}</dd>
+                  <dd>{[selected.profile.objectives, selected.profile.horizon, selected.profile.riskTolerance].filter(Boolean).map((x) => t(x as string)).join(" · ") || "—"}</dd>
                   <dt>{t("Convention")}</dt>
-                  <dd>{selected.consents.conventionAt ? `acceptée le ${fmtDateTime(selected.consents.conventionAt)} (${selected.consents.conventionMethod})` : "non acceptée"}</dd>
+                  <dd>{selected.consents.conventionAt ? t("acceptée le {d} ({m})", { d: fmtDateTime(selected.consents.conventionAt), m: t(selected.consents.conventionMethod ?? "") }) : t("non acceptée")}</dd>
                 </dl>
                 {selected.persons.length > 0 && (
                   <>

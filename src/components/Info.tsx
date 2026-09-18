@@ -8,7 +8,8 @@ import { getRegistry, lessonForTerm } from "@/lib/registry";
 import styles from "./Info.module.css";
 
 /**
- * A small « i » that opens a bubble on hover, focus or tap. The bubble is
+ * A small « i » that opens a bubble on click (or Enter); it closes on a click
+ * anywhere else or Escape — never on a mouse move, so its link stays reachable. The bubble is
  * rendered at the end of <body> in fixed position, so no scrolling table or
  * sticky header can clip it; it flips under the button when there is no room above.
  */
@@ -16,7 +17,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
   const tr = useT();
   const t = term ? getRegistry().glossary[term] : undefined;
   const body = tr(text ?? t?.text ?? "");
-  const title = tr(label ?? (t ? ("long" in t && t.long ? `${t.short} — ${t.long}` : t.short) : ""));
+  const title = label ? tr(label) : t ? ("long" in t && t.long ? `${tr(t.short)} — ${tr(t.long)}` : tr(t.short)) : "";
   const lesson = term ? lessonForTerm(term) : undefined;
   const btn = useRef<HTMLButtonElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
@@ -66,12 +67,8 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
         ref={btn}
         type="button"
         className={`${styles.btn} ${subtle ? styles.subtle : ""} ${open ? styles.on : ""}`}
-        aria-label={`Explication : ${title || "ce terme"}`}
+        aria-label={`${tr("Explication")} : ${title || tr("ce terme")}`}
         aria-expanded={open}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -88,7 +85,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
             {body}
             {lesson && (
               <a className={styles.more} href={`/info/${lesson.key}`}>
-                En savoir plus : {lesson.title} →
+                {tr("En savoir plus")} : {tr(lesson.title)} →
               </a>
             )}
           </span>,

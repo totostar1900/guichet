@@ -55,9 +55,9 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         <span className={`${styles.chain} ${broken ? styles.bad : styles.good}`}>{t(broken ? "Chaîne rompue — à signaler" : "Chaîne intègre")}</span>
       </div>
       <nav className={styles.tabs} aria-label={t("Filtre")}>
-        {ENTITIES.map(([k, label]) => (
+        {ENTITIES.map(([k, label0]) => (
           <Link key={k} href={k ? `/desk/journal?entite=${k}` : "/desk/journal"} aria-current={k === entite ? "page" : undefined}>
-            {label}
+            {t(label0)}
           </Link>
         ))}
       </nav>

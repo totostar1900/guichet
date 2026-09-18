@@ -156,7 +156,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             {d.remarks.length > 0 && (
               <ul className={styles.remarks}>
                 {d.remarks.map((r, i) => (
-                  <li key={i}>{r}</li>
+                  <li key={i}>{tr(r)}</li>
                 ))}
               </ul>
             )}
@@ -166,7 +166,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             <div className={styles.fields}>
               <label className={`${styles.fld} ${d.kind ? "" : styles.missing}`}>
                 <span>{tr("Type de produit")}</span>
-                <Select block name="typeKey" value={typeKey} onChange={(v) => onSelect("typeKey", v)} options={types.map((t) => ({ value: t.key, label: t.label }))} />
+                <Select block name="typeKey" value={typeKey} onChange={(v) => onSelect("typeKey", v)} options={types.map((t) => ({ value: t.key, label: tr(t.label) }))} />
                 <i className={`${styles.conf} ${styles[`conf_${d.kind ? "sure" : "missing"}`]}`} title={tr("Type choisi par le desk")} />
               </label>
               <input type="hidden" name="kind" value={kind} />
@@ -241,19 +241,19 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             </label>
             <label className="field">
               {tr("Segments")}
-              <Select block name="segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements", "Porteurs de la ligne"].map((v) => ({ value: v, label: v }))} />
+              <Select block name="segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements", "Porteurs de la ligne"].map((v) => ({ value: v, label: tr(v) }))} />
             </label>
           </div>
           <div className={styles.preview}>
             <span className="eyebrow">{tr("Aperçu client")}</span>
-            <div>{preview || "Complétez les dates et le taux pour voir l'aperçu."}</div>
+            <div>{preview ? tr(preview) : tr("Complétez les dates et le taux pour voir l'aperçu.")}</div>
           </div>
           {type && type.checklist.length > 0 && (
             <div className={styles.checklist}>
-              <span className="eyebrow">Liste de contrôle · {type.short}</span>
+              <span className="eyebrow">{tr(`Liste de contrôle · ${type.short}`)}</span>
               {type.checklist.map((c) => (
                 <label key={c}>
-                  <input type="checkbox" name="check" value={c} defaultChecked={Boolean(offer)} /> {c}
+                  <input type="checkbox" name="check" value={c} defaultChecked={Boolean(offer)} /> {tr(c)}
                 </label>
               ))}
             </div>
@@ -279,7 +279,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         {revState?.ok && <div className={styles.okMsg}>{tr("Relecture demandée — le brouillon passe « en revue ».")}</div>}
         {backState?.ok && <div className={styles.okMsg}>{tr("Renvoyé en correction.")}</div>}
         {saveState?.ok && <div className={styles.okMsg}>{tr("Brouillon enregistré.")}</div>}
-        {pubState?.ok && pubState.pending && <div className={styles.okMsg}>Proposition transmise à un responsable — {pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).</div>}
+        {pubState?.ok && pubState.pending && <div className={styles.okMsg}>{tr(`Proposition transmise à un responsable — ${pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).`)}</div>}
         {pubState?.ok && !pubState.pending && (
           <div className={styles.okMsg}>
             Publié — la fiche est en ligne.{" "}
@@ -294,10 +294,10 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             {!official
               ? "Publication bloquée tant que la source officielle n'est pas jointe. Enregistrez le brouillon en attendant."
               : missing.length
-                ? `Champs manquants pour publier : ${missing.map((m) => FIELD_LABEL[m as keyof OfferDraft] ?? m).join(", ")}.`
+                ? `${tr("Champs manquants pour publier")} : ${missing.map((m) => tr(FIELD_LABEL[m as keyof OfferDraft] ?? m)).join(", ")}.`
                 : published
-                  ? `Déjà publié le ${item.publishedAt ? fmtDateTime(item.publishedAt) : "—"}. Publier à nouveau crée la version ${(offer?.version ?? 0) + 1} et renotifie les clients.`
-                  : "Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées."}
+                  ? tr("Déjà publié le {d}. Publier à nouveau crée la version {v} et renotifie les clients.", { d: item.publishedAt ? fmtDateTime(item.publishedAt) : "—", v: (offer?.version ?? 0) + 1 })
+                  : tr("Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées.")}
           </small>
           <button className="btn ghost sm" type="submit" formAction={rejectAction} formNoValidate>
             {tr("Rejeter")}

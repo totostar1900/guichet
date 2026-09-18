@@ -26,9 +26,9 @@ export default async function FondsPage() {
         <div>
           <h1 className="display">{t("Fonds communs de placement")}</h1>
           <p className={styles.lead}>
-            Les {funds.length} OPCVM agréés par la COSUMAF dont la valeur liquidative est publiée au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.{" "}
-            {open > 0 ? `${open} ${t(open > 1 ? "sont ouverts" : "est ouvert")} à la souscription chez Purpose Capital ; ` : ""}
-            pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion. Les parts sont toujours inscrites à votre nom chez le dépositaire.
+            {t("Les {n} OPCVM agréés par la COSUMAF dont la valeur liquidative est publiée au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.", { n: funds.length })}{" "}
+            {open > 0 ? t(open > 1 ? "{n} sont ouverts à la souscription chez Purpose Capital ; " : "{n} est ouvert à la souscription chez Purpose Capital ; ", { n: open }) : ""}
+            {t("pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion. Les parts sont toujours inscrites à votre nom chez le dépositaire.")}
           </p>
         </div>
         {last && (

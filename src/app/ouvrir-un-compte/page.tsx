@@ -46,7 +46,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           <span className={`${styles.pill} ${styles[`st_${file.status}`]}`}>{t(STATUS_LABEL[file.status])}</span>
           {file.submittedAt && <small className="muted">{t("soumis le")} {fmtDateTime(file.submittedAt)}</small>}
           {file.status === "complements" && file.review.requestedItems && <div className={styles.request}>{t("Compléments demandés")} : {file.review.requestedItems}</div>}
-          {file.status === "approuve" && file.review.custodianAccount && <small className="muted">sous-compte n° {file.review.custodianAccount}</small>}
+          {file.status === "approuve" && file.review.custodianAccount && <small className="muted">{t(`sous-compte n° ${file.review.custodianAccount}`)}</small>}
           {file.status === "approuve" && (
             <Link href={sp.next && sp.next.startsWith("/") ? sp.next : "/"} className="btn primary sm">
               {t("Aller au Guichet")}

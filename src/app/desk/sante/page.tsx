@@ -30,9 +30,9 @@ export default async function SantePage() {
       <div className={styles.grid}>
         {checks.map((c) => (
           <div key={c.key} className={`${styles.check} ${styles[c.level]}`}>
-            <span className={styles.label}>{c.label}</span>
-            <b>{c.value}</b>
-            {c.detail && <small>{c.detail}</small>}
+            <span className={styles.label}>{t(c.label)}</span>
+            <b>{t(c.value)}</b>
+            {c.detail && <small>{t(c.detail)}</small>}
           </div>
         ))}
       </div>
@@ -63,7 +63,7 @@ export default async function SantePage() {
                   <td className="mono">{b.sessionDate}</td>
                   <td className="mono">{b.number}</td>
                   <td>
-                    <span className={`st ${b.status === "ok" ? "confirmee" : b.status === "partiel" ? "recue" : "annulee"}`}>{b.status}</span>
+                    <span className={`st ${b.status === "ok" ? "confirmee" : b.status === "partiel" ? "recue" : "annulee"}`}>{t(b.status)}</span>
                   </td>
                   <td className="r num">{b.counts.equities}</td>
                   <td className="r num">{b.counts.bonds}</td>

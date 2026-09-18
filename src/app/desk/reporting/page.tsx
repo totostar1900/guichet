@@ -66,7 +66,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
           <b>
             {act.executedCount} · {act.settledCount}
           </b>
-          <small>{Object.entries(act.settledByInstrument).map(([k, v]) => `${k} ${fmtMillions(v)}`).join(" · ") || "aucun règlement"}</small>
+          <small>{Object.entries(act.settledByInstrument).map(([k, v]) => `${k} ${fmtMillions(v)}`).join(" · ") || t("aucun règlement")}</small>
         </div>
         <div className={styles.kpi}>
           <span>{t("Comptes ouverts · encours")}</span>
@@ -81,7 +81,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         <div className="panel-h">
           <h2>{t("Journal des ordres")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {journal.length} ordre{journal.length > 1 ? "s" : ""} du {fmtDate(p.from)} au {fmtDate(p.to)} — horodatage de chaque étape
+            {t(journal.length > 1 ? "{n} ordres du {a} au {b} — horodatage de chaque étape" : "{n} ordre du {a} au {b} — horodatage de chaque étape", { n: journal.length, a: fmtDate(p.from), b: fmtDate(p.to) })}
           </span>
           <a className="btn sm right" href={`/desk/reporting/export?type=ordres&${q}`}>
             {t("Exporter CSV")}
@@ -124,7 +124,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
                   <td>{o.sens}</td>
                   <td className="r num">{fmt(o.quantity)}</td>
                   <td className="r num">{fmt(o.amount)}</td>
-                  <td className="num">{o.price}</td>
+                  <td className="num">{t(o.price)}</td>
                   <td>{o.channel}</td>
                   <td>{o.state}</td>
                   <td className="num">{fmtT(o.confirmedAt)}</td>
@@ -226,13 +226,13 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
                     <br />
                     <small className="muted">{[c.city, c.country].filter(Boolean).join(", ")}</small>
                   </td>
-                  <td>{c.kind}</td>
-                  <td>{c.status}</td>
-                  <td>{c.risk || "—"}</td>
+                  <td>{t(c.kind)}</td>
+                  <td>{t(c.status)}</td>
+                  <td>{c.risk ? t(c.risk) : "—"}</td>
                   <td className="num">{c.approvedAt ? fmtDate(c.approvedAt) : "—"}</td>
                   <td className="num">{c.nextReviewOn ? fmtDate(c.nextReviewOn) : "—"}</td>
                   <td className="mono">{c.custodianAccount ?? "—"}</td>
-                  <td>{c.screening}</td>
+                  <td>{t(c.screening)}</td>
                 </tr>
               ))}
               {clients.length === 0 && (
@@ -251,7 +251,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         <div className="panel-h">
           <h2>{t("Positions en conservation")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {positions.length} position{positions.length > 1 ? "s" : ""} · à la date du jour
+            {t(positions.length > 1 ? "{n} positions · à la date du jour" : "{n} position · à la date du jour", { n: positions.length })}
           </span>
           <a className="btn sm right" href={`/desk/reporting/export?type=positions`}>
             {t("Exporter CSV")}
