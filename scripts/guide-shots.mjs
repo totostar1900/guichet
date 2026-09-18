@@ -38,9 +38,10 @@ const SHOTS = [
   ["docs-support", "/desk/docs/support"],
   ["docs-administration", "/desk/docs/administration"],
   ["docs-technique", "/desk/docs/technique"],
-  ["docs-aide", "/desk/docs/aide"],
+  ["docs-aide", "/desk/docs/aide", { maxHeight: 4200 }],
   ["docs-notes", "/desk/docs/notes"],
-  ["aide-client", "/info/aide"],
+  ["aide-client", "/info/aide", { maxHeight: 4200 }],
+  ["aide-entretien", "/info/aide", { prep: "localStorage.setItem('guichet:coach:aide','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 2500, then: "document.querySelectorAll('article section').forEach(sec => { if (!sec.querySelector('#entretien')) sec.remove(); }); 'ok'" }],
   // The client's Info page, and the « Premiers pas » screen about Info and help (phone width, fifth screen).
   ["info-client", "/info", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
   ["onboarding-info", "/info", { width: 390, height: 780, prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
@@ -124,7 +125,7 @@ for (const [key, path, opts = {}] of SHOTS) {
   if (opts.then) await evaluate(`(async () => { ${opts.then} })()`);
   // Let images and fonts settle, then a full-height capture, capped.
   const measured = Number(await evaluate("document.documentElement.scrollHeight"));
-  const height = opts.height ?? Math.min(1800, Number.isFinite(measured) && measured > 0 ? measured : 900);
+  const height = opts.height ?? Math.min(opts.maxHeight ?? 1800, Number.isFinite(measured) && measured > 0 ? measured : 900);
   await send("Emulation.setDeviceMetricsOverride", { width: W, height, deviceScaleFactor: 1, mobile: W < 760 });
   await sleep(400);
   const { data } = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: W, height, scale: 1 } });

@@ -16,6 +16,8 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "Aide : le chapitre « Comment Guichet est entretenu », la note d'entretien écrite pour les clients": "Help: the 'How Guichet is looked after' chapter, the maintenance note written for clients",
+  "Ce que le client lit sur l'entretien de l'application": "What the client reads about the app's upkeep",
   "Comment Guichet est entretenu": "How Guichet is looked after",
   "Qui écrit ce que vous lisez, d'où viennent les cours, ce qui se passe en cas de panne, où sont vos données : en clair, sans jargon. Un doute sur un chiffre ? Dites-le-nous, il est corrigé pour tout le monde.": "Who writes what you read, where prices come from, what happens if something breaks, where your data is: plainly, without jargon. A doubt about a figure? Tell us, it is fixed for everyone.",
   "Notes de travail de l'assistant, lues depuis docs/notes": "The assistant's working notes, read from docs/notes",
