@@ -17,7 +17,7 @@ export interface NavPoint {
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 
 /** The NAV curve, one dot per bulletin, with a bubble on hover or touch showing that NAV. */
-export function NavChart({ series }: { series: NavPoint[] }) {
+export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStart?: boolean }) {
   const t = useT();
   const ref = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -100,6 +100,11 @@ export function NavChart({ series }: { series: NavPoint[] }) {
             {t("Variation")} {signed(h.variationPct ?? (prev ? (h.nav / prev.nav - 1) * 100 : undefined))}
             {prev ? ` ${t("depuis le")} ${fmtDate(prev.date, false)}` : ""}
           </span>
+          {sinceStart && hover > 0 && (
+            <span>
+              {t("Depuis le début de la période")} {signed(series[0].nav > 0 ? (h.nav / series[0].nav - 1) * 100 : undefined)}
+            </span>
+          )}
           <span>
             {t("Depuis l'origine")} {signed(h.perfSinceInceptionPct)}
           </span>

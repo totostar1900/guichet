@@ -1,6 +1,7 @@
 import type { FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
-import { NavChart } from "./NavChart";
+import { Suspense } from "react";
+import { NavPeriod } from "./NavPeriod";
 import styles from "./QuoteHistory.module.css";
 import { getT } from "@/i18n/server";
 
@@ -9,27 +10,14 @@ export async function NavHistory({ navs }: { navs: FundNav[] }) {
   const t = await getT();
   if (navs.length === 0) return null;
   const latest = navs[0];
-  const series = [...navs].reverse().slice(-60);
-  const values = series.map((n) => n.nav);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const first = series[0].nav;
-  const change = first > 0 ? (latest.nav / first - 1) * 100 : 0;
+  const series = [...navs].reverse(); // oldest → newest, the whole history: the reader picks the window
   const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 
   return (
     <div className={styles.wrap}>
-      <div className={`${styles.chart} ${styles.navBlock}`}>
-        <NavChart series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} />
-        <div className={styles.legend}>
-          <span>
-            {t("{n} valeurs liquidatives publiées au bulletin, du {a} au {b} · plus haut {hi}, plus bas {lo}", { n: series.length, a: fmtDate(series[0].navDate), b: fmtDate(latest.navDate), hi: fmt(max), lo: fmt(min) })}
-          </span>
-          <b className={change < 0 ? styles.down : styles.up} title={t("Variation de la VL entre la première et la dernière date affichées")}>
-            {signed(change)}
-          </b>
-        </div>
-      </div>
+      <Suspense>
+        <NavPeriod series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} />
+      </Suspense>
       <dl className={styles.frame}>
         <div>
           <dt>{t("Dernière VL")}</dt>

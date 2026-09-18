@@ -171,3 +171,128 @@
     width: 100%;
   }
 }
+
+/* ---------- the window of the NAV chart ---------- */
+.period {
+  display: grid;
+  gap: 12px;
+}
+.periodBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+.durations {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.durations > button {
+  appearance: none;
+  border: 0;
+  border-radius: 4px;
+  min-width: 62px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-3);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.durations > button.on {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+.durations > button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.periodOr {
+  font-size: 0.76rem;
+}
+.dateField {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-3);
+}
+.dateField input {
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--ink);
+  background: var(--surface);
+}
+.periodCount {
+  margin-left: auto;
+  font-size: 0.76rem;
+}
+.periodGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+.periodGrid .navChart {
+  width: 100%;
+}
+.periodStats {
+  display: grid;
+  gap: 8px;
+}
+.periodDl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.periodDl dt {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.periodDl dd {
+  margin: 2px 0 0;
+  font-weight: 700;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+}
+.periodNote {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+@media (max-width: 900px) {
+  .periodGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .periodCount {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+  .durations {
+    width: 100%;
+  }
+  .durations > button {
+    min-width: 0;
+    padding: 5px 4px;
+  }
+}
