@@ -1,0 +1,20 @@
+---
+name: guichet-docs-and-guides
+description: "How Guichet's documentation, desk guide, tours and onboarding are built and kept in sync (desk/docs, /info/aide, guide screenshots, TOUR, CoachMarks) — and the audience-separation rule"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 8ecfdc15-a97a-41f6-a140-c3c9f48a4903
+  modified: 2026-09-18T17:25:59.623Z
+---
+
+Documentation lives **in the app, not in static docs** (user's decision 2026-09-18: "pages in the app with filter and research, a guide on each side, like Claude's docs"). One Claude doc remains from that day (the platforms/costs recap, superseded by the in-app page but kept as a shareable link); the half-filled "Comment fonctionne Guichet" doc was deleted at the user's request.
+
+- Content: `src/data/docs/*.ts` (`fonctionnement`, `plateformes`, `support`, `administration`, `technique`, `aide`), every text as `l(fr, en)`; blocks p/lead/list/steps/table/flow/note/link; rendered by `src/components/docs/DocBlocks.tsx`. Each page has `checkedOn` + `owner` ("vérifié le" shown in the outline).
+- Desk side `/desk/docs` (Pilotage › Documentation): index with chapter search + audience chips; `/desk/docs/[slug]` = nav tree · page · "Sur cette page" outline (scroll-spy, `Outline.tsx`).
+- **Audience rule** (user insisted): `visibility: "desk" | "public"`. Only `public` pages render to clients, on `/info/aide`; a public page must be `audience: ["client"]` and `src/test/docs.test.ts` fails the build if it contains internal words (/desk, Supabase, Vercel, Resend, keys, SQL, webhook, cron, SVT, fraud, repo paths, project id). Today the only public page is `aide`. Audience chips are labels, not permissions — the route is the permission.
+- Desk guide `/desk/guide`: `src/data/desk-guide.ts` (GUIDE sections; a section may carry `shots: [{key, caption}]` gallery; TOUR stops may carry `link` and `image`). Screenshots: `npm run guide:shots` against `npm run dev:memory` → `public/guide/*.png`; the script forces `guichet_lang=fr`, and entries accept `{width, height, prep, settle, then}` (prep runs before a `setTimeout(reload)`, then settle, then `then`). Tour step count is computed (`TOUR.length`), never hard-coded.
+- Client tours: `CoachMarks` walk-throughs on the fiche (`id="fiche"`), `/actualites` (`actualites`), `/info` (`info`), `/info/aide` (`aide`); onboarding `Onboarding.tsx` has six screens, screen 5 shows real phone captures `onboarding-info.png` + `onboarding-aide.png`.
+- The desk tour cannot leave `/desk`: client pages enter it as stops with a `link` (+ preview image) on the desk page that feeds them (Référentiel → Info; Documentation → Aide).
+
+**Why:** a fintech's docs must sit where people work and carry a review date; clients must never reach internal procedures. **How to apply:** a screen change ⇒ update its doc page text + `checkedOn`, its guide section, regenerate shots, and keep new client-facing pages `visibility: "public"` only after the sensitivity test passes. See [[guichet-project]].

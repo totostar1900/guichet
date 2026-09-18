@@ -1,0 +1,17 @@
+---
+name: guichet-supabase-migrations
+description: "How Guichet SQL migrations get applied — through the user's Chrome Supabase SQL editor, using window.monaco to set the text; enum values run alone"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 8ecfdc15-a97a-41f6-a140-c3c9f48a4903
+  modified: 2026-09-16T17:37:55.110Z
+---
+
+Guichet migrations (supabase/migrations/*.sql) are applied by hand in the Supabase SQL editor of project sernniidkjkwqromvmqu, driven through Claude in Chrome (the user's own logged-in session). There is no SUPABASE_DB_URL locally and no CLI link.
+
+**Why:** the user prefers that I run the SQL rather than paste it; typing long SQL through the editor with `computer.type` is unreliable (Monaco auto-closes brackets/quotes → syntax errors, and CDP typing times out on long text).
+
+**How to apply:** in the SQL tab, `javascript_tool` → `window.monaco.editor.getModels()[0].setValue(sql)` (comment-free, one line), click in the editor, ctrl+Return, then confirm the "Potential issue detected" dialog if the statement contains `drop` or `delete` (it also silently swallows the run otherwise — "Success. No rows returned" can mean the dialog was never confirmed). Verify with a Node supabase-js probe using the service key from .env.local (never print keys). `alter type … add value` must run alone before any statement using the value (0017 then 0018). Applied so far: 0001–0025 (2026-09-18: 0023 funds visible+distributed, 0024 inbox columns, 0025 news table with RLS).
+
+Related: [[guichet-project]], [[guichet-push-after-each-step]]

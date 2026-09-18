@@ -1,0 +1,24 @@
+---
+name: guichet-project
+description: "Guichet (Purpose Capital brokerage app) — state of the build, decisions taken, what is left; repo at C:\\dev\\guichet, pushed to github.com/totostar1900/guichet, live on Vercel"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 8ecfdc15-a97a-41f6-a140-c3c9f48a4903
+  modified: 2026-09-16T18:16:02.077Z
+---
+
+Guichet = Purpose Capital's client-facing repertory of CEMAC opportunities (OTA/BTA auctions, BVMAC IPOs, buybacks, secondary market, OPCVM) with intents flowing to a desk; WhatsApp as key channel. Code lives in **C:\dev\guichet** (outside OneDrive), Next.js 16 + Supabase (project sernniidkjkwqromvmqu), pushed to https://github.com/totostar1900/guichet.git (origin master) → auto-deploys to https://guichet-seven.vercel.app (Vercel project purpose-capital/guichet; crons boc/coupons/emetteurs/suivi/point).
+
+Decisions (user's): offers are read-only; **no commission shown to clients** (communicated on contact; commissionPct stored 0); nominative sub-accounts at the SVT; groupements allowed; light screening; nothing manual for BVMAC market data (daily BOC ingestion); funds only under a distribution agreement; yield is the hero figure with the par rule; no tax view for now.
+
+Governance (2026-09-16, user asked for "product types, reference data and your solutions, non-stop"): product types + reference data editable in-app (desk › Référentiel, table `reference`, defaults in code); roles client / desk (opérateur) / responsable with mandatory TOTP MFA (`DESK_MFA=off` escape), desk › Équipe, `DESK_EMAILS` = bootstrap only; hash-chained immutable `audit` table (desk › Journal), full snapshots in `offer_versions` with restore (desk › lignes/[id]), optimistic locking (`expectedVersion`), four-eyes via delegated window + `approvals` (desk › Approbations); lifecycle with « en revue » intake state, withdraw / relist, never delete; inbound e-mail (`/api/inbound/email`, INBOUND_SECRET, postal-mime) and WhatsApp media from staff → À valider; OPERATIONS.md runbook. Migrations applied through 0025 (0025 = news table).
+
+Desk & i18n (2026-09-18): desk nav in 4 groups (DeskNav.tsx), app-wide ui/Select + ui/Toolbar (no native <select> left), /desk/intentions/[id] (client 360 + order checks src/lib/domain/checks.ts), /desk/messages inbox (inbound_messages table, migration 0024), /desk/guide (src/data/desk-guide.ts, screenshots public/guide via `npm run guide:shots` against `npm run dev:memory`), DeskTour cross-page walkthrough. Bilingual FR/EN: dictionary keyed by the French text (src/i18n/en*.ts), `getT()` server / `useT()` client, cookie guichet_lang + LangSwitch; every page is covered (en.ts, en-desk.ts, en-content.ts, en-lessons.ts, en-rest.ts, en-prose.ts); an untranslated string just stays French. Convention: wrap new JSX text in t("…") (tr when a component already has a `t` prop) and add the English line to the fitting en-*.ts file. Dates/numbers keep the fr-FR format in both languages. Apprendre merged into /info (redirects kept). Funds arrive distributed+visible (migration 0023). "À la une" lives inside OfferBrowser under the toolbar; yield filter is a histogram range gauge (YieldRange.tsx, URL rendement=min-max).
+
+Actualités (2026-09-18): src/lib/news/* — items live in their own `news` table (migration 0025; RLS: anon reads only status=publiee, desk everything; repo listNews/upsertNews/deleteNews), public /actualites + /desk/actualites (Marché group), links in via form / WhatsApp from a staff phone / trusted e-mail, crons /api/cron/actualites (04:00, feed watch BVMAC + NEWS_FEEDS env + link check) and /api/cron/actualites-hebdo (Fri 16:00, notifyRaw kind digest); i18n dictionary en-news.ts; the desk writes titleEn/whyEn by hand or English readers see the French. Sites behind Cloudflare (cosumaf.org) answer 403 to bots: treated as alive. Robot/e-mail link intake (src/lib/news/intake.ts); crons 04:00 daily + Fri 16:00; 7 crons total ⇒ Vercel Pro needed. Documentation/guides/tours: see [[guichet-docs-and-guides]]. OPERATIONS.md updated 2026-09-18 with news, docs, guide, cron list, env vars.
+
+Still on the user's side: login on the live site (first desk login now enrols MFA), Resend + WhatsApp keys, Cloudflare Email Routing for the intake mailbox, custom domain name, GitHub branch-protection rule if they want PR gating (would change the direct-push workflow), distribution agreements, COSUMAF/BVMAC agreements.
+
+**Why:** the user works from the OneDrive folder but the app must stay in C:\dev\guichet; the memory saves re-deriving the architecture each session.
+**How to apply:** continue in C:\dev\guichet; run `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint src`, `npx next build` before each commit; see [[guichet-push-after-each-step]] and [[guichet-supabase-migrations]].
