@@ -9,7 +9,7 @@ Ce que l'équipe fait au quotidien, ce qui tourne tout seul, et quoi faire quand
 | **Client** | lire le Guichet, déclarer des intentions, suivre des lignes, ouvrir un compte | voir le desk |
 | **Opérateur desk** | valider et publier (dans la fenêtre déléguée), traiter les intentions, tenir le référentiel, saisir des cours, générer des documents | approuver hors fenêtre, gérer l'équipe, modifier la fenêtre |
 | **Responsable** | tout ce qui précède + approuver / refuser (desk › Approbations), gérer l'équipe (desk › Équipe), régler la fenêtre déléguée | approuver sa propre proposition, modifier son propre niveau |
-| **Système** | crons (bulletin, coupons, suivi, point du matin, émetteurs), robot WhatsApp, courriel entrant | — (jeton `CRON_SECRET` / clé service, pas un utilisateur) |
+| **Système** | crons (bulletin, coupons, suivi, point du matin, émetteurs, veille des actualités, résumé du vendredi), robot WhatsApp, courriel entrant | — (jeton `CRON_SECRET` / clé service, pas un utilisateur) |
 
 Second facteur : obligatoire pour tout accès desk. Première entrée → QR à scanner avec une application d'authentification ; ensuite un code à 6 chiffres à chaque connexion.
 
@@ -21,6 +21,8 @@ Second facteur : obligatoire pour tout accès desk. Première entrée → QR à 
 | 08:00 | desk › **Carnet du jour** : confirmer les intentions reçues, rappeler les appétits | opérateur |
 | 08:15 | desk › **À valider** : sources arrivées par courriel / WhatsApp, extraction déjà faite ; corriger, cocher la liste de contrôle, publier | opérateur (relecture par un collègue si demandé) |
 | dans la journée | desk › **Approbations** : décider ce qui est hors fenêtre | responsable |
+| 08:30 | desk › **Actualités** : trier les liens reçus (veille de nuit, WhatsApp d'un membre, courriel), écrire les deux lignes, publier ; « À la une » si la publication concerne le plus de lignes | opérateur |
+| vendredi 17:00 | **Résumé des actualités** de la semaine envoyé aux clients qui acceptent nos messages | système |
 | 19:30 | **Bulletin BVMAC** ingéré automatiquement (cours, VL) ; alerte e-mail si un contrôle passe au rouge | système |
 | 08:15 (lendemain) | desk › **Santé** si le point du matin signale un point orange / rouge | opérateur |
 
@@ -40,6 +42,9 @@ Second facteur : obligatoire pour tout accès desk. Première entrée → QR à 
 - **Journal** : la piste d'audit — qui, quoi, avant / après, motif, adresse. « Chaîne intègre » doit toujours être vert ; sinon, prévenez le responsable et gardez une capture.
 - **Équipe** : donner / retirer l'accès. La personne doit s'être connectée une fois au Guichet avant. `DESK_EMAILS` ne sert qu'au tout premier responsable.
 - **Approbations** : file des propositions hors fenêtre et réglage de la fenêtre (prix OTA/APE, taux BTA, écart de cours, frais de fonds).
+- **Actualités** (Marché) : des liens vers ce que d'autres publient (Trésors, BVMAC, COSUMAF, presse, sociétés, sociétés de gestion), jamais l'article. Une publication = lien + titre reformulé + « Pourquoi ça compte » en deux lignes sans recommandation (les mots « achetez », « garanti », « à ne pas manquer » sont refusés) + lignes et notions liées (elle s'affiche alors sur leur fiche) + visibilité (30 jours par défaut). Une seule « à la une ». Trois entrées : le formulaire (« Lire la page » remplit titre, source, date), un lien envoyé au numéro WhatsApp depuis un téléphone de l'équipe, un courriel d'un expéditeur de confiance. Chaque version est journalisée (entité Actualités du Journal) ; un lien mort est signalé sur Santé. Table `news` (migration 0025) : seules les publications sont lisibles hors du desk.
+- **Documentation** (Pilotage, `/desk/docs`) : cinq pages FR/EN (comment fonctionne Guichet, plateformes et coûts, aider un client, administrer, aperçu technique) avec recherche par chapitre, filtres par public et plan de page. Le texte vit dans `src/data/docs/*.ts` ; chaque page porte « vérifié le » et son responsable : un écran qui change fait relire sa page dans le même envoi. Une seule page est publique (`visibility: "public"`) : l'**Aide** des clients sur `/info/aide`, écrite pour eux seuls ; un test refuse tout détail interne (services, clés, /desk, procédures) dans une page publique.
+- **Guide** (`/desk/guide`) : chaque page du desk champ par champ, des captures (`npm run guide:shots` sur `npm run dev:memory`, fichiers `public/guide/*.png`, une galerie possible par section) et la visite guidée (19 étapes, `TOUR` dans `src/data/desk-guide.ts` ; une étape peut porter un lien et un aperçu). Côté client : « Premiers pas » (six écrans, rejouable depuis Info), et des repères sur la fiche, Info, Actualités et Aide.
 
 ## 5. Brancher la boîte d'entrée (courriels → À valider)
 
@@ -76,6 +81,7 @@ WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un 
 - Règle : une modification = une branche = une prévisualisation regardée par un responsable = fusion sur `master`. Sur GitHub, *Settings › Branches › Add rule* sur `master` : « Require a pull request before merging » (1 relecteur) rend la règle obligatoire.
 - Les migrations SQL nouvelles (`supabase/migrations/00NN_*.sql`) se jouent à la main dans Supabase › SQL Editor **avant** de fusionner le code qui les utilise. Une valeur d'enum (`alter type … add value`) se joue seule, dans son propre run.
 - Retour arrière : Vercel › Deployments › déploiement précédent › *Promote to Production* (30 secondes). Les données ne sont pas touchées.
+- Tâches planifiées (`vercel.json`, jeton `CRON_SECRET`, UTC) : `boc` 18:30 lun–ven (bulletin BVMAC), `coupons` 07:00, `suivi` 07:15 (lignes suivies, point du matin), `point` 06:30 lun–ven (opportunités en file), `emetteurs` lundi 06:00 (documents des sociétés), `actualites` 04:00 (veille des flux, vérification des liens), `actualites-hebdo` vendredi 16:00 (résumé aux clients). Sur Vercel, le plan Pro est nécessaire (sept tâches, fonctions jusqu'à 5 min, usage commercial).
 
 ## 7. Quand ça coince
 
@@ -89,7 +95,10 @@ WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un 
 | Publication bloquée « hors fenêtre » | Normal : un responsable décide dans Approbations. Si la fenêtre est trop étroite, le responsable l'élargit (Approbations › Fenêtre déléguée). |
 | Vercel : build rouge après un push | Déploiement précédent reste en ligne. Ouvrir le log de build, corriger, repousser ; ou *Promote* le précédent. |
 | Supabase en pause (plan gratuit, inactivité) | Dashboard › *Restore project*. Les crons quotidiens l'empêchent normalement. |
+| « Le site refuse les robots » sur Lire la page | Le site (COSUMAF…) bloque les robots : remplissez titre et date à la main ; le lien reste considéré vivant par la vérification de nuit. |
+| Lien mort signalé sur Santé | desk › Actualités › la publication : corriger le lien ou la retirer. Les liens reçus non triés depuis plus de 7 jours y apparaissent aussi. |
+| Un texte de la documentation ou du guide est faux | Il se corrige dans le code (`src/data/docs`, `src/data/desk-guide.ts`), pas dans une base ; mettre à jour la date « vérifié le » et régénérer les captures si l'écran a changé. |
 
 ## 8. Variables d'environnement (Vercel › Settings › Environment Variables)
 
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`, `DESK_EMAILS` (amorçage seulement), `DESK_MFA` (vide = obligatoire), `INBOUND_SECRET`, `INTAKE_TRUSTED_SENDERS`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY` + `EMAIL_FROM`, `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` + `WHATSAPP_VERIFY_TOKEN`, `BOT_ENABLED`, `SETTLEMENT_BANK` + `SETTLEMENT_IBAN`. Voir `.env.example` pour le rôle de chacune. Après un changement : *Redeploy*.
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`, `DESK_EMAILS` (amorçage seulement), `DESK_MFA` (vide = obligatoire), `INBOUND_SECRET`, `INTAKE_TRUSTED_SENDERS`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY` + `EMAIL_FROM`, `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` + `WHATSAPP_VERIFY_TOKEN`, `BOT_ENABLED`, `SETTLEMENT_BANK` + `SETTLEMENT_IBAN`, `NEWS_FEEDS` (flux RSS/Atom suivis en plus de celui de la BVMAC, séparés par des virgules), `VAPID_*` (notifications), `PHONE_OTP_*` (code par téléphone, facultatif), `OPENSANCTIONS_API_KEY` (facultatif). Voir `.env.example` pour le rôle de chacune. Le détail des services, des titulaires de compte et des coûts est dans desk › Documentation › « Plateformes, services et coûts ». Après un changement : *Redeploy*.
