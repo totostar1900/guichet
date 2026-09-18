@@ -252,6 +252,10 @@ export const GUIDE: GuideSection[] = [
       { name: "Leçons", what: "L'onglet Info : titre, texte, question." },
       { name: "Sociétés et émetteurs", what: "Fiches, documents publiés, contacts." },
     ],
+    shots: [
+      { key: "info-client", caption: "La page Info du client : le glossaire et les leçons de ces onglets, tels que le client les lit" },
+      { key: "aide-client", caption: "La page Aide du client, reliée depuis Info" },
+    ],
   },
   {
     key: "journal",

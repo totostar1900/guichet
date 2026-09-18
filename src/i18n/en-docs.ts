@@ -16,6 +16,8 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "La page Info du client : le glossaire et les leçons de ces onglets, tels que le client les lit": "The client's Info page: the glossary and lessons of these tabs, as the client reads them",
+  "La page Aide du client, reliée depuis Info": "The client's Help page, linked from Info",
   "Ce que le client apprend": "What the client learns",
   "Le glossaire et les huit leçons de ces onglets sont la page Info du client : les bulles « i » des fiches, les leçons de deux minutes, la recherche, le simulateur, et la page Aide. Corriger un terme ici le corrige partout, sans code.": "The glossary and the eight lessons in these tabs are the client's Info page: the 'i' bubbles on the pages, the two-minute lessons, the search, the simulator, and the Help page. Fixing a term here fixes it everywhere, without code.",
   "Voir la page Info": "See the Info page",
