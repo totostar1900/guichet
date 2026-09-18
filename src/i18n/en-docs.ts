@@ -16,6 +16,8 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "Chaque chiffre s'explique": "Every figure explains itself",
+  "Touchez une carte : d'où vient le chiffre, ligne par ligne, avec la leçon de deux minutes qui va avec. Les bulles « i » de la page font pareil pour chaque mot ; tout est réuni sous Info, avec un simulateur et la page Aide.": "Tap a card: where the figure comes from, line by line, with the two-minute lesson that goes with it. The 'i' bubbles on the page do the same for every word; everything is gathered under Info, with a simulator and the Help page.",
   "La page Info du client : le glossaire et les leçons de ces onglets, tels que le client les lit": "The client's Info page: the glossary and lessons of these tabs, as the client reads them",
   "La page Aide du client, reliée depuis Info": "The client's Help page, linked from Info",
   "Ce que le client apprend": "What the client learns",

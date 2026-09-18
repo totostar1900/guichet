@@ -83,7 +83,7 @@ function Kpis({ o }: { o: Offer }) {
   // Every card opens on tap: the number decomposed with this line's own figures.
   const explains = explainKpis(o);
   return (
-    <div className={styles.kpis}>
+    <div className={styles.kpis} data-coach="kpis">
       {items.map(([k, v, gold], i) => (
         <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`/comparer?a=${o.id}`} coach={gold ? "hero" : undefined} />
       ))}
@@ -358,6 +358,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               ? `${summary.hero} : le taux nominal, parce que la ligne est au pair. Brut, avant impôt, si vous gardez le titre jusqu'à l'échéance.`
               : `${summary.hero} : ce que rapporte la ligne chaque année si vous êtes servi au prix affiché et gardez le titre jusqu'à l'échéance. Brut, avant impôt.`,
     },
+    { target: "kpis", title: "Chaque chiffre s'explique", text: "Touchez une carte : d'où vient le chiffre, ligne par ligne, avec la leçon de deux minutes qui va avec. Les bulles « i » de la page font pareil pour chaque mot ; tout est réuni sous Info, avec un simulateur et la page Aide." },
     { target: "status", title: "Où en est la ligne", text: summary.countdown ? `Clôture dans ${summary.countdown} : après cette limite, plus de soumission possible. Une intention se déclare avant.` : `${summary.status}. Le statut dit ce que vous pouvez faire : souscrire, passer un ordre, ou seulement poser une question.` },
     ...(relatedNews > 0 ? [{ target: "news", title: "Ce qui s'est dit sur cette ligne", text: "Communiqués, bulletins, avis : le desk relie ici les publications qui concernent cette ligne, avec deux lignes sur ce que cela change. L'original est à un clic." }] : []),
     { target: "action", title: "Agir en trois étapes", text: "Montant, coordonnées, récapitulatif. Le desk vous rappelle avant de transmettre : rien n'est débité sans votre confirmation." },
