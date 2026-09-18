@@ -112,7 +112,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
 
   const t = useT();
   const tabs: Tab[] = [
-    { href: "/", label: t("Guichet"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") || p.startsWith("/actualites") },
+    { href: "/", label: t("Titres"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") || p.startsWith("/actualites") },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: (p) => p.startsWith("/fonds") },
     { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
     { href: "/info", label: t("Guide"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },

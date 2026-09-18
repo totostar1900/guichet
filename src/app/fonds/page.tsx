@@ -2,8 +2,6 @@ import { repo } from "@/lib/data";
 import { FundsBrowser } from "./FundsBrowser";
 import type { Offer } from "@/lib/domain/types";
 import { fmtDate } from "@/lib/format";
-import { MarketTabs } from "@/components/MarketTabs";
-import { familySegment, offerFamily } from "@/lib/domain/status";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -16,12 +14,10 @@ export default async function FondsPage() {
   const [offers, bulletins] = await Promise.all([r.listOffers(), r.listBulletins(1)]);
   const funds = offers.filter((o): o is Offer & { fund: NonNullable<Offer["fund"]> } => o.kind === "FONDS" && Boolean(o.fund));
   const last = bulletins[0];
-  const others = offers.filter((o) => !o.hidden && o.kind !== "FONDS");
   const open = funds.filter((o) => o.fund.distributed && !o.hidden).length;
 
   return (
     <>
-      <MarketTabs active="fonds" counts={{ all: others.length, primaire: others.filter((o) => familySegment(offerFamily(o)) === "primaire").length, secondaire: others.filter((o) => familySegment(offerFamily(o)) === "secondaire").length, fonds: funds.length }} />
       <div className={styles.head}>
         <div>
           <h1 className="display">{t("Fonds communs de placement")}</h1>

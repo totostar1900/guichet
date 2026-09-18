@@ -318,52 +318,69 @@ h3 {
   border-radius: 4px;
   letter-spacing: 0.04em;
 }
-/* Market tabs — Guichet (in-page filters) and Fonds (its own page) share the strip. */
-.mtabs {
+/* Head of the Titres page: the two market switches (both on by default) and the bridge to the funds. */
+.mtoggles {
+  margin-bottom: 10px;
+}
+.mtogglesHead {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.mtogglesHead h1 {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+}
+.mtogglesFunds {
+  white-space: nowrap;
+}
+.mtogglesRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mtogglesGroup {
+  display: inline-flex;
   gap: 4px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--line);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
+  padding: 3px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
 }
-.mtabs::-webkit-scrollbar {
-  display: none;
-}
-.mtabs > a,
-.mtabs > button {
+.mtogglesGroup > button {
   appearance: none;
   border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  padding: 8px 12px;
+  border-radius: 999px;
+  padding: 6px 14px;
   font: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--ink-3);
-  cursor: pointer;
-  white-space: nowrap;
-  flex: none;
-  text-decoration: none;
-}
-.mtabs > a b,
-.mtabs > button b {
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--ink-3);
-  background: var(--surface-2);
-  border-radius: 4px;
-  padding: 1px 7px;
-  font-size: 0.72rem;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mtogglesGroup > button b {
+  font-weight: 700;
   margin-left: 4px;
+  opacity: 0.8;
 }
-.mtabs > [aria-selected="true"] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
+.mtogglesGroup > button.on {
+  background: var(--navy);
+  color: var(--on-navy);
 }
-.mtabs > [aria-selected="true"] b {
-  background: var(--ink);
-  color: var(--surface);
+.mtogglesHint {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+@media (max-width: 760px) {
+  .mtogglesHead h1 {
+    font-size: 1.05rem;
+  }
 }
 /* Instrument family badge: same colour in the table, the list, the cards and the fiche. */
 .fam {

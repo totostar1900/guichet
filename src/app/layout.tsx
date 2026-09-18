@@ -5,6 +5,7 @@ import "./globals.css";
 import styles from "./layout.module.css";
 import { COMPANY, DISCLAIMER, PRODUCT } from "@/lib/config";
 import { NavTabs } from "@/components/NavTabs";
+import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
@@ -36,9 +37,19 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+/** The two figures in the menu: listed lines and funds. Never fails the page. */
+async function countOffers(): Promise<{ titres: number; fonds: number } | undefined> {
+  try {
+    const all = await repo().listOffers();
+    return { titres: all.filter((o) => !o.hidden && o.kind !== "FONDS").length, fonds: all.filter((o) => o.kind === "FONDS").length };
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const [session, registry, lang, t] = await Promise.all([getSession(), loadRegistry(), getLang(), getT()]);
+  const [session, registry, lang, t, navCounts] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers()]);
   return (
     <html lang={lang} className={ui.variable}>
       <body>
@@ -52,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <em>{PRODUCT.name}</em> · {PRODUCT.tagline}
               </span>
             </Link>
-            <NavTabs />
+            <NavTabs counts={navCounts} />
             <div className={styles.right}>
               {backend === "memory" && (
                 <span className={styles.backend} title={t("Aucun backend configuré : données de démonstration en mémoire")}>

@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
-import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_HINT, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
+import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
-import { MarketTabs } from "./MarketTabs";
+import { MarketToggles, TitresHead } from "./MarketToggles";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
@@ -506,13 +506,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
+      <TitresHead fundsCount={fundsCount} />
       <div className={styles.top} ref={top}>
-        <MarketTabs
-          active={segment === "primaire" || segment === "secondaire" ? segment : "all"}
-          counts={{ all: offers.length, primaire: segCount.primaire, secondaire: segCount.secondaire, fonds: fundsCount }}
-          onSelect={(k) => update({ marche: k === "all" ? undefined : k, instrument: undefined })}
-        />
-        {segment && <p className={styles.segHint}>{t(SEGMENT_HINT[segment])}</p>}
+        <MarketToggles selected={segment === "primaire" || segment === "secondaire" ? segment : undefined} counts={{ primaire: segCount.primaire, secondaire: segCount.secondaire }} onChange={(k) => update({ marche: k, instrument: undefined })} />
         <div className={styles.toolbar}>
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

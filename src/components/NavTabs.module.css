@@ -15,6 +15,16 @@
   color: #fff;
   border-bottom-color: #e0b65a;
 }
+.count {
+  margin-left: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  vertical-align: 1px;
+}
 .tab:hover {
   color: #fff;
 }
