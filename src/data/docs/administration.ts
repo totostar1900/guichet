@@ -5,6 +5,7 @@ export const ADMINISTRATION: DocPage = {
   slug: "administration",
   title: l("Administrer Guichet : le guide du responsable", "Administering Guichet: the manager's guide"),
   summary: l("Équipe et rôles, second facteur, approbations, référentiel, journal, reporting, santé, et les gestes d'urgence.", "Team and roles, second factor, approvals, reference data, audit log, reporting, health, and the emergency moves."),
+  visibility: "desk",
   audience: ["admin"],
   order: 4,
   checkedOn: "2026-09-18",

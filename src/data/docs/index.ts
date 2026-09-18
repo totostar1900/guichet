@@ -1,4 +1,5 @@
 import { ADMINISTRATION } from "./administration";
+import { AIDE } from "./aide";
 import { FONCTIONNEMENT } from "./fonctionnement";
 import { PLATEFORMES } from "./plateformes";
 import { SUPPORT } from "./support";
@@ -8,7 +9,10 @@ import type { Audience, DocBlock, DocPage, L } from "./types";
 export * from "./types";
 
 /** Every documentation page, in reading order. */
-export const DOCS: DocPage[] = [FONCTIONNEMENT, PLATEFORMES, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
+export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, PLATEFORMES, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
+
+/** What a client may read: public pages only. Everything else stays behind the desk. */
+export const PUBLIC_DOCS: DocPage[] = DOCS.filter((d) => d.visibility === "public");
 
 export const docBySlug = (slug: string): DocPage | undefined => DOCS.find((d) => d.slug === slug);
 
@@ -43,8 +47,8 @@ export interface SearchEntry {
 }
 
 /** One entry per chapter, in the reader's language. */
-export function searchEntries(lang: "fr" | "en"): SearchEntry[] {
-  return DOCS.flatMap((d) =>
+export function searchEntries(lang: "fr" | "en", pages: DocPage[] = DOCS): SearchEntry[] {
+  return pages.flatMap((d) =>
     d.chapters.map((c) => ({
       slug: d.slug,
       chapter: c.id,

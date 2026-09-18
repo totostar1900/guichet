@@ -5,6 +5,7 @@ export const TECHNIQUE: DocPage = {
   slug: "technique",
   title: l("Aperçu technique et exploitation", "Technical and operations overview"),
   summary: l("Comment l'application est construite, où sont les données, qui peut voir quoi, comment on la met à jour, la sauvegarde, la surveille et la répare.", "How the app is built, where the data is, who can see what, how it is updated, backed up, monitored and repaired."),
+  visibility: "desk",
   audience: ["tech", "admin"],
   order: 5,
   checkedOn: "2026-09-18",

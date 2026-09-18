@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeskNav } from "@/components/DeskNav";
-import { AUDIENCE_LABEL, DOCS, docBySlug, type DocBlock } from "@/data/docs";
+import { AUDIENCE_LABEL, DOCS, docBySlug } from "@/data/docs";
+import { DocBlocks } from "@/components/docs/DocBlocks";
 import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { ChapterLinks, Outline } from "../Outline";
@@ -27,80 +28,6 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   const prev = DOCS[i - 1];
   const next = DOCS[i + 1];
   const chapters = doc.chapters.map((c) => ({ id: c.id, title: c.title[lang] }));
-  const L = (x: { fr: string; en: string }) => x[lang];
-
-  const block = (b: DocBlock, k: number) => {
-    switch (b.type) {
-      case "lead":
-        return (
-          <p key={k} className={styles.lead}>
-            {L(b.text)}
-          </p>
-        );
-      case "p":
-        return <p key={k}>{L(b.text)}</p>;
-      case "list":
-        return (
-          <ul key={k}>
-            {b.items.map((x, j) => (
-              <li key={j}>{L(x)}</li>
-            ))}
-          </ul>
-        );
-      case "steps":
-        return (
-          <ol key={k}>
-            {b.items.map((x, j) => (
-              <li key={j}>{L(x)}</li>
-            ))}
-          </ol>
-        );
-      case "flow":
-        return (
-          <ol key={k} className={styles.flow}>
-            {b.steps.map((x, j) => (
-              <li key={j}>{L(x)}</li>
-            ))}
-          </ol>
-        );
-      case "table":
-        return (
-          <div key={k} className={styles.tableWrap}>
-            <table>
-              <thead>
-                <tr>
-                  {b.head.map((h, j) => (
-                    <th key={j}>{L(h)}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {b.rows.map((r, j) => (
-                  <tr key={j}>
-                    {r.map((c, m) => (
-                      <td key={m}>{L(c)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      case "note":
-        return (
-          <div key={k} className={`${styles.note} ${styles[b.kind] ?? ""}`}>
-            {L(b.text)}
-          </div>
-        );
-      case "link":
-        return (
-          <Link key={k} href={b.href} className={styles.link}>
-            {L(b.label)} →{b.hint && <small>{L(b.hint)}</small>}
-          </Link>
-        );
-    }
-  };
-
   return (
     <>
       <DeskNav current="/desk/docs" />
@@ -124,18 +51,14 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
           <h1>{doc.title[lang]}</h1>
           <p className={styles.summary}>{doc.summary[lang]}</p>
           <div className={styles.audiences}>
+            {doc.visibility === "public" && <span className={`${styles.chip} ${styles.client}`}>{t("visible par les clients")} · /info/aide</span>}
             {doc.audience.map((a) => (
               <span key={a} className={`${styles.chip} ${styles[a] ?? ""}`}>
                 {AUDIENCE_LABEL[a][lang]}
               </span>
             ))}
           </div>
-          {doc.chapters.map((c) => (
-            <section key={c.id}>
-              <h2 id={c.id}>{c.title[lang]}</h2>
-              {c.blocks.map(block)}
-            </section>
-          ))}
+          <DocBlocks chapters={doc.chapters} lang={lang} />
           <div className={styles.pager}>
             {prev ? <Link href={`/desk/docs/${prev.slug}`}>← {prev.title[lang]}</Link> : <span />}
             {next ? <Link href={`/desk/docs/${next.slug}`}>{next.title[lang]} →</Link> : <span />}

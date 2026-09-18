@@ -5,6 +5,7 @@ export const PLATEFORMES: DocPage = {
   slug: "plateformes",
   title: l("Plateformes, services et coûts", "Platforms, services and costs"),
   summary: l("Les huit services externes : rôle, titulaire du compte, abonnement nécessaire, coût mensuel ; comment on se connecte, où sont les clés.", "The eight external services: role, account holder, plan needed, monthly cost; how sign-in works, where the keys are."),
+  visibility: "desk",
   audience: ["admin", "tech"],
   order: 2,
   checkedOn: "2026-09-18",

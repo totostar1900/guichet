@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DOCS, blockText, searchEntries } from "@/data/docs";
+import { DOCS, PUBLIC_DOCS, blockText, searchEntries } from "@/data/docs";
 
 describe("documentation", () => {
   it("has unique slugs and chapter ids, and both languages everywhere", () => {
@@ -23,5 +23,40 @@ describe("documentation", () => {
     expect(searchEntries("fr")).toHaveLength(n);
     expect(searchEntries("en")).toHaveLength(n);
     expect(searchEntries("en").some((e) => /second factor/i.test(e.text))).toBe(true);
+  });
+});
+
+describe("documentation — separation by audience", () => {
+  const INTERNAL = [
+    /\/desk\b/i,
+    /\bsupabase\b/i,
+    /\bvercel\b/i,
+    /\bResend\b/,
+    /\bcloudflare\b/i,
+    /\btwilio\b/i,
+    /\bopensanctions\b/i,
+    /\banthropic\b|\bclaude\b/i,
+    /\bmeta\b.*\bwhatsapp\b|cloud api/i,
+    /[A-Z][A-Z0-9_]*_(KEY|SECRET|TOKEN|ID)\b/,
+    /\bDESK_[A-Z_]+\b/,
+    /\bSQL\b|\bRLS\b|row level|webhook|cron\b|migration/i,
+    /\bSVT\b/,
+    /\bfraude\b|\bfraud\b/i,
+    /\bgithub\b|src\/|\.ts\b/i,
+    /sernniidkjkwqromvmqu/,
+  ];
+  it("keeps every internal page on the desk and every public page free of internal details", () => {
+    for (const d of DOCS) {
+      if (d.visibility === "public") {
+        expect(d.audience).toEqual(["client"]);
+        for (const c of d.chapters) {
+          const text = `${c.title.fr} ${c.title.en} ${c.blocks.map((b) => `${blockText(b, "fr")} ${blockText(b, "en")}`).join(" ")}`;
+          for (const re of INTERNAL) expect({ page: d.slug, chapter: c.id, hit: text.match(re)?.[0] ?? null }).toEqual({ page: d.slug, chapter: c.id, hit: null });
+        }
+      } else {
+        expect(d.visibility).toBe("desk");
+      }
+    }
+    expect(PUBLIC_DOCS.map((d) => d.slug)).toEqual(["aide"]);
   });
 });

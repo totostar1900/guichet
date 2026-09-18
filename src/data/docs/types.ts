@@ -34,8 +34,16 @@ export interface DocChapter {
   blocks: DocBlock[];
 }
 
+/**
+ * Who may open the page. `desk` never leaves /desk (role + second factor).
+ * `public` is rendered to clients on /info/aide — allowed only for a page
+ * written for clients alone, and a test refuses any internal detail in it.
+ */
+export type Visibility = "desk" | "public";
+
 export interface DocPage {
   slug: string;
+  visibility: Visibility;
   title: L;
   summary: L;
   audience: Audience[];
