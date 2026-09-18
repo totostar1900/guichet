@@ -180,7 +180,7 @@ export const familyLabel = (key: string): string => familyType(key).label;
 export const familyShort = (key: string): string => familyType(key).short;
 export const familySegment = (key: string): MarketSegment => familyType(key).segment;
 export const FAMILIES = (): string[] => enabledTypes().map((x) => x.key);
-export const SEGMENT_LABEL: Record<MarketSegment, string> = { primaire: "Marché primaire", secondaire: "Marché secondaire", fonds: "Gestion collective" };
+export const SEGMENT_LABEL: Record<MarketSegment, string> = { primaire: "Marché primaire", secondaire: "Marché secondaire", fonds: "OPCVM" };
 export const SEGMENT_HINT: Record<MarketSegment, string> = {
   primaire: "Titres neufs : vous souscrivez auprès de l'émetteur (Trésor, entreprise) pendant une fenêtre, à un prix fixé par adjudication ou par le desk.",
   secondaire: "Titres déjà cotés à la BVMAC : vous achetez ou vendez à un autre investisseur, au cours du jour, en séance.",

@@ -33,7 +33,7 @@ export default async function FondsPage() {
         </div>
         {last && (
           <div className={styles.stamp}>
-            VL lues au BOC n° {last.number} du {fmtDate(last.sessionDate)}
+            {t("VL lues au BOC n° {n} du {d}", { n: last.number, d: fmtDate(last.sessionDate) })}
             <br />
             {t("source : sociétés de gestion agréées COSUMAF")}
           </div>

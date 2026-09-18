@@ -300,7 +300,7 @@ export const EN_CONTENT: Record<string, string> = {
   "Glossaire": "Glossary",
   "Les bulles « i » de toute l'application.": "The “i” bubbles of the whole application.",
   "Leçons": "Lessons",
-  "L'onglet Info : titre, texte, question.": "The Info tab: title, text, question.",
+  "L'onglet Guide : titre, texte, question.": "The Guide tab: title, text, question.",
   "Sociétés et émetteurs": "Companies and issuers",
   "Fiches, documents publiés, contacts.": "Pages, published documents, contacts.",
   "Filtres": "Filters",

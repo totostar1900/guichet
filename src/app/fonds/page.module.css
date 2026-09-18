@@ -177,6 +177,16 @@
 }
 
 /* ---------- filters and sort ---------- */
+/* The selector band stays under the site header while the tables scroll (same treatment as the Guichet). */
+.sticky {
+  position: sticky;
+  top: 60px;
+  z-index: 20;
+  background: var(--paper);
+  margin: 0 -20px;
+  padding: 10px 20px 0;
+  border-bottom: 1px solid var(--line);
+}
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -185,8 +195,27 @@
   margin-bottom: 8px;
 }
 .search {
-  flex: 1 1 240px;
+  flex: 0 1 300px;
   min-width: 0;
+}
+/* The selectors keep a fixed width whatever value they show: only the table below moves when a filter changes. */
+.fixed {
+  width: 260px;
+  max-width: 100%;
+}
+.fixedSm {
+  width: 190px;
+  max-width: 100%;
+}
+.fixed > button,
+.fixedSm > button {
+  width: 100%;
+  justify-content: space-between;
+}
+.fixed > button > span:nth-child(2),
+.fixedSm > button > span:nth-child(2) {
+  flex: 1;
+  text-align: left;
 }
 .search input {
   width: 100%;
@@ -266,6 +295,12 @@
   margin: 0 0 10px;
 }
 @media (max-width: 760px) {
+  .search,
+  .fixed,
+  .fixedSm {
+    width: 100%;
+    flex-basis: 100%;
+  }
   .sort {
     margin-left: 0;
   }

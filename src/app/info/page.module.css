@@ -1,5 +1,14 @@
 .wrap {
   max-width: 980px;
+  min-width: 0;
+}
+.anchor {
+  scroll-margin-top: 80px; /* under the sticky header */
+}
+.gloss .anchor {
+  padding-left: 8px;
+  margin-left: -8px;
+  border-radius: 6px;
 }
 .head {
   margin-bottom: 18px;

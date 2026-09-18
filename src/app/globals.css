@@ -149,6 +149,29 @@
 }
 html {
   font-size: 15px;
+  scroll-padding-top: 76px; /* anchors land under the sticky header, not behind it */
+}
+/* The spot a link or a search result brought the reader to lights up for a moment. */
+:target,
+.flash {
+  animation: target-flash 2.6s ease-out;
+}
+@keyframes target-flash {
+  0%,
+  40% {
+    box-shadow: 0 0 0 6px var(--gold-soft), inset 4px 0 0 var(--gold);
+    background-color: var(--gold-soft);
+  }
+  100% {
+    box-shadow: 0 0 0 6px transparent, inset 4px 0 0 transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :target,
+  .flash {
+    animation: none;
+    box-shadow: inset 4px 0 0 var(--gold);
+  }
 }
 body {
   margin: 0;

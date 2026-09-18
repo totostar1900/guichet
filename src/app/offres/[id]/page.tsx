@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RelatedNews } from "@/components/RelatedNews";
+import { ListNav } from "@/components/ListNav";
 import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { FlowsChart } from "@/components/FlowsChart";
@@ -277,9 +278,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
     return (
       <div className={styles.page}>
         <div className={styles.main}>
-          <Link href="/" className={styles.back}>
-            {t("← Toutes les offres")}
-          </Link>
+          <ListNav id={o.id} fallbackHref="/" fallbackLabel="Toutes les offres" />
           <h1 className="display" style={{ marginTop: 12 }}>
             {o.title}
           </h1>
@@ -367,9 +366,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
   return (
     <div className={styles.page}>
       <FichePanes className={styles.main}>
-        <Link href="/" className={styles.back}>
-          ← {t("Toutes les offres")}
-        </Link>
+        <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
         <div className={styles.head}>
           <div className={styles.crumb}>
             {t(SEGMENT_LABEL[familySegment(offerFamily(o))])}

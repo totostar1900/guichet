@@ -7,13 +7,15 @@ import { ReplayOnboarding } from "@/components/mobile/Onboarding";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
+import { InfoNav } from "./InfoNav";
 import styles from "./page.module.css";
+import docs from "@/app/desk/docs/docs.module.css";
 import { getT } from "@/i18n/server";
 
-export const metadata = { title: "Info" };
+export const metadata = { title: "Guide" };
 
 /**
- * The Info tab: where a first-time investor starts — eight short lessons
+ * The Guide tab (/info): where a first-time investor starts — eight short lessons
  * (référentiel), the bond simulator, the comparison tool, the glossary;
  * « Premiers pas » replayable here. The former « Simulateur & repères » lives here.
  */
@@ -37,82 +39,97 @@ export default async function InfoPage() {
     { kind: "page" as const, title: t("Aide : vos questions, nos réponses"), text: t("Se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre."), href: "/info/aide", extra: "aide FAQ questions support code connexion réclamation données" },
     { kind: "page" as const, title: t("Se connecter"), text: t("Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir."), href: "/connexion", extra: "connexion code mot de passe identifiant" },
   ];
+  const sections = [
+    { id: "recherche", title: t("Recherche") },
+    { id: "lecons", title: t("Huit leçons courtes") },
+    { id: "simulateur", title: t("Simulateur d'obligation") },
+    { id: "outils", title: t("Outils et repères") },
+    { id: "glossaire", title: t("Les mots du Guichet") },
+  ];
   return (
-    <div className={styles.wrap}>
-      <div className={styles.head}>
-        <div className="eyebrow">Info</div>
-        <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
-        <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques — expliqués une fois pour toutes, sans jargon inutile.")}</p>
-      </div>
-      <div data-coach="info-search">
-        <InfoSearch entries={entries} />
-      </div>
-
-      <div className={styles.lessons} data-coach="info-lessons">
-        <div className={styles.lessonsHead}>
-          <h2 className={styles.h2}>{t("Huit leçons courtes")}</h2>
-          <Suspense>
-            <Link className="btn sm" href="/info/aide" data-coach="info-aide">
-              {t("Aide : vos questions, nos réponses")} →
-            </Link>
-            <ReplayOnboarding />
-          </Suspense>
+    <div className={`${docs.reader} ${docs.readerTwo}`}>
+      <InfoNav sections={sections} />
+      <div className={styles.wrap}>
+        <div className={styles.head}>
+          <div className="eyebrow">Guide</div>
+          <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
+          <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques — expliqués une fois pour toutes, sans jargon inutile.")}</p>
         </div>
-        {lessons.map((l) => (
-          <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
-            <i>{l.order}</i>
-            <span>
-              <b>{t(l.title)}</b>
-              <small>{t(l.intro)}</small>
-            </span>
-            <em>
-              <DoneMark lessonKey={l.key} /> {l.minutes} min
-            </em>
-          </Link>
-        ))}
-      </div>
+        <div data-coach="info-search" id="recherche" className={styles.anchor}>
+          <InfoSearch entries={entries} />
+        </div>
 
-      <h2 className={styles.h2} id="simulateur">
-        {t("Simulateur d'obligation")}
-      </h2>
-      <div className={styles.sim} data-coach="info-sim">
-        <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
-        <div className={styles.warn}>{t("Outil pédagogique — résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
-        <Simulator />
-      </div>
-
-      <h2 className={styles.h2}>{t("Outils et repères")}</h2>
-      <div className={styles.grid}>
-        <Link href="/comparer" className={styles.tile}>
-          <span className={styles.k}>{t("Outil")}</span>
-          <b>{t("Comparer deux lignes")}</b>
-          <span>{t("Deux offres côte à côte : rendement, durée, ticket, calendrier.")}</span>
-        </Link>
-        <Link href="/societes" className={styles.tile}>
-          <span className={styles.k}>{t("Repères")}</span>
-          <b>{t("Sociétés cotées et émetteurs")}</b>
-          <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
-        </Link>
-      </div>
-
-      <CoachMarks
-        id="info"
-        replayLabel={t("Comment utiliser Info ?")}
-        stops={[
-          { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, une leçon, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
-          { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
-          { target: "info-lessons", title: t("Huit leçons de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque leçon se lit en deux minutes et se coche une fois lue.") },
-          { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
-        ]}
-      />
-      <h2 className={styles.h2}>{t("Les mots du Guichet")}</h2>
-      <div className={styles.gloss}>
-        {keys.map((k) => (
-          <div key={k} id={`terme-${k}`}>
-            <b>{G[k].long ? `${t(G[k].short)} — ${t(G[k].long)}` : t(G[k].short)}</b>
-            <p>{t(G[k].text)}</p>
+        <div className={`${styles.lessons} ${styles.anchor}`} data-coach="info-lessons" id="lecons">
+          <div className={styles.lessonsHead}>
+            <h2 className={styles.h2}>{t("Huit leçons courtes")}</h2>
+            <Suspense>
+              <Link className="btn sm" href="/info/aide" data-coach="info-aide">
+                {t("Aide : vos questions, nos réponses")} →
+              </Link>
+              <ReplayOnboarding />
+            </Suspense>
           </div>
-        ))}
+          {lessons.map((l) => (
+            <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
+              <i>{l.order}</i>
+              <span>
+                <b>{t(l.title)}</b>
+                <small>{t(l.intro)}</small>
+              </span>
+              <em>
+                <DoneMark lessonKey={l.key} /> {l.minutes} min
+              </em>
+            </Link>
+          ))}
+        </div>
+
+        <h2 className={`${styles.h2} ${styles.anchor}`} id="simulateur">
+          {t("Simulateur d'obligation")}
+        </h2>
+        <div className={styles.sim} data-coach="info-sim">
+          <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
+          <div className={styles.warn}>{t("Outil pédagogique — résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
+          <Simulator />
+        </div>
+
+        <h2 className={`${styles.h2} ${styles.anchor}`} id="outils">
+          {t("Outils et repères")}
+        </h2>
+        <div className={styles.grid}>
+          <Link href="/comparer" className={styles.tile}>
+            <span className={styles.k}>{t("Outil")}</span>
+            <b>{t("Comparer deux lignes")}</b>
+            <span>{t("Deux offres côte à côte : rendement, durée, ticket, calendrier.")}</span>
+          </Link>
+          <Link href="/societes" className={styles.tile}>
+            <span className={styles.k}>{t("Repères")}</span>
+            <b>{t("Sociétés cotées et émetteurs")}</b>
+            <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
+          </Link>
+        </div>
+
+        <CoachMarks
+          id="info"
+          replayLabel={t("Comment utiliser le Guide ?")}
+          stops={[
+            { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, une leçon, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
+            { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page — la recherche, les leçons, le simulateur, les outils, le glossaire — et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
+            { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
+            { target: "info-lessons", title: t("Huit leçons de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque leçon se lit en deux minutes et se coche une fois lue.") },
+            { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
+          ]}
+        />
+        <h2 className={`${styles.h2} ${styles.anchor}`} id="glossaire">
+          {t("Les mots du Guichet")}
+        </h2>
+        <div className={styles.gloss}>
+          {keys.map((k) => (
+            <div key={k} id={`terme-${k}`} className={styles.anchor}>
+              <b>{G[k].long ? `${t(G[k].short)} — ${t(G[k].long)}` : t(G[k].short)}</b>
+              <p>{t(G[k].text)}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

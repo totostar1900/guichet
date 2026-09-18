@@ -96,9 +96,185 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+/* ---------- the line pickers ---------- */
+.picker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.pickLabel {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.pickBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 7px 10px 7px 12px;
+  background: var(--surface);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.pickBtn:hover,
+.pickerOpen .pickBtn {
+  border-color: var(--navy);
+}
+.pickBtn svg {
+  flex: none;
+  color: var(--ink-3);
+}
+.pickCur {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.pickCur b {
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pickCur small,
+.pickEmpty {
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+.panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pickSearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  color: var(--ink-3);
+}
+.pickSearch input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--ink);
+  min-width: 0;
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip {
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface);
+  cursor: pointer;
+}
+.chipSm {
+  font-size: 0.7rem;
+  padding: 3px 9px;
+}
+.chipOn {
+  background: var(--navy);
+  color: var(--on-navy);
+  border-color: var(--navy);
+}
+.list {
+  max-height: 300px;
+  overflow: auto;
+  display: grid;
+  gap: 2px;
+}
+.opt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.optOn,
+.opt:hover {
+  background: var(--surface-2);
+}
+.optCur {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.optBody {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.optBody b {
+  font-size: 0.86rem;
+}
+.optBody small {
+  color: var(--ink-3);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.optYield {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+.optEmpty {
+  padding: 12px;
+  font-size: 0.84rem;
+  color: var(--ink-3);
+}
+.panelFoot {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  text-align: right;
+}
 @media (max-width: 720px) {
   .pick {
     grid-template-columns: 1fr;
+  }
+  .panel {
+    position: fixed;
+    inset: auto 8px 8px;
+    top: 15vh;
+    max-height: 80vh;
+    overflow: auto;
   }
   .grid {
     grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr);
@@ -107,4 +283,8 @@
   .colHead {
     padding: 8px 8px;
   }
+}
+.head > a,
+.head > button {
+  margin-bottom: 10px;
 }

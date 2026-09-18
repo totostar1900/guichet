@@ -287,7 +287,7 @@ async function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open:
       <div className="panel">
         <div className="panel-h">
           <h2>{tr("Leçons")} ({list.length})</h2>
-          <span className="muted">{tr("L'onglet Info : une idée par leçon, une vraie ligne, une question.")}</span>
+          <span className="muted">{tr("L'onglet Guide : une idée par leçon, une vraie ligne, une question.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>

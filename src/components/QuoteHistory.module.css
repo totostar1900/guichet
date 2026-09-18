@@ -101,3 +101,70 @@
 .chart svg {
   height: auto;
 }
+/* Fund NAV chart: drawn at 80 % of the column (labels shrink with it), a bubble follows the pointer. */
+.navChart {
+  position: relative;
+  width: 80%;
+  max-width: 100%;
+}
+.navChart svg {
+  touch-action: pan-y;
+}
+.cursor {
+  stroke: var(--ink-3);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+.navBlock .legend {
+  margin-top: 8px;
+}
+.navBlock {
+  margin-bottom: 14px; /* twice the grid gap between the chart and the figures underneath */
+}
+.tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 12px));
+  display: grid;
+  gap: 2px;
+  min-width: 170px;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.74rem;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+/* Near the top the bubble goes under the point; near an edge it hangs inwards. */
+.tipBelow {
+  transform: translate(-50%, 14px);
+}
+.tipLeft {
+  transform: translate(calc(-100% + 12px), calc(-100% - 12px));
+}
+.tipLeft.tipBelow {
+  transform: translate(calc(-100% + 12px), 14px);
+}
+.tipRight {
+  transform: translate(-12px, calc(-100% - 12px));
+}
+.tipRight.tipBelow {
+  transform: translate(-12px, 14px);
+}
+.tip b {
+  color: var(--surface);
+  font-weight: 800;
+  font-size: 0.86rem;
+}
+.tip span {
+  opacity: 0.9;
+}
+@media (max-width: 760px) {
+  .navChart {
+    width: 100%;
+  }
+}

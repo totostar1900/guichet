@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
-import { Select } from "@/components/ui/Select";
+import { BackButton } from "@/components/BackButton";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
-import { displayYield } from "@/lib/domain/status";
+import { displayStatus, displayYield, familyLabel, familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { fmtPct } from "@/lib/format";
+import { LinePicker, type PickLine } from "./LinePicker";
 import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
 import type { Offer } from "@/lib/domain/types";
@@ -35,21 +37,25 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
     return { s, dy: displayYield(o), ref: offerReference(o, now), map };
   });
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
+  // Every line the picker can narrow down: family, market, issuer, country, the headline figure.
+  const lines: PickLine[] = all.map((o) => {
+    const fam = offerFamily(o);
+    const dy = displayYield(o);
+    return { id: o.id, title: o.title, family: familyLabel(fam), segment: familySegment(fam), issuer: o.issuer, country: o.countryName, yieldText: dy.pct == null ? "—" : `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}`, status: statusLabel(o, displayStatus(o, now)) };
+  });
   const better = (i: number) => data.length === 2 && data[0].dy.pct != null && data[1].dy.pct != null && (data[0].dy.pct > data[1].dy.pct ? 0 : 1) === i;
 
   return (
     <>
       <div className={styles.head}>
+        <BackButton fallbackHref="/" fallbackLabel={t("Retour au Guichet")} />
         <h1>{t("Comparer deux lignes")}</h1>
         <p className="muted">{t("Choisissez deux lignes du Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}</p>
       </div>
 
       <form className={styles.pick} method="get">
         {(["a", "b"] as const).map((k) => (
-          <label key={k} className="field">
-            {t("Ligne")} {k.toUpperCase()}
-            <Select block name={k} value={sp[k] ?? ""} options={[{ value: "", label: t("choisir une ligne") }, ...all.map((o) => ({ value: o.id, label: o.title }))]} />
-          </label>
+          <LinePicker key={k} name={k} lines={lines} value={sp[k] ?? ""} label={`${t("Ligne")} ${k.toUpperCase()}`} segments={SEGMENT_LABEL} />
         ))}
         <button className="btn" type="submit">
           {t("Comparer")}

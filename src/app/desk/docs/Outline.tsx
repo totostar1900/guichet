@@ -41,7 +41,7 @@ function useActiveChapter(ids: string[]): string | null {
     const els = ids.map((id) => document.getElementById(id)).filter((e): e is HTMLElement => Boolean(e));
     if (els.length === 0) return;
     const pick = () => {
-      const line = 120;
+      const line = Math.max(120, window.innerHeight * 0.3); // the chapter whose heading crossed the upper third is the one being read
       let cur = els[0].id;
       for (const el of els) if (el.getBoundingClientRect().top <= line) cur = el.id;
       setActive(cur);

@@ -1,5 +1,6 @@
 import type { FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { NavChart } from "./NavChart";
 import styles from "./QuoteHistory.module.css";
 import { getT } from "@/i18n/server";
 
@@ -12,50 +13,17 @@ export async function NavHistory({ navs }: { navs: FundNav[] }) {
   const values = series.map((n) => n.nav);
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const W = 320;
-  const H = 96;
-  const pad = 6;
-  const padX = 34; // room for the two value labels on the left
-  const x = (i: number) => (series.length === 1 ? W / 2 : padX + (i * (W - padX - pad)) / (series.length - 1));
-  const y = (v: number) => (max === min ? H / 2 : H - pad - ((v - min) * (H - 2 * pad)) / (max - min));
-  const path = series.map((n, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(n.nav).toFixed(1)}`).join(" ");
-  const area = `${path} L${x(series.length - 1).toFixed(1)} ${H - pad} L${x(0).toFixed(1)} ${H - pad} Z`;
   const first = series[0].nav;
   const change = first > 0 ? (latest.nav / first - 1) * 100 : 0;
   const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
-  // Guides: the highest and lowest NAV of the window, the last point labelled, one dot per published NAV.
-  const iMax = values.indexOf(max);
-  const iMin = values.indexOf(min);
-  const ticks = series.length <= 8 ? series.map((_, i) => i) : [0, Math.round(series.length / 3), Math.round((2 * series.length) / 3), series.length - 1];
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.chart}>
-        <svg viewBox={`0 0 ${W} ${H + 14}`} role="img" aria-label={`${series.length} valeurs liquidatives publiées, de ${fmt(first)} à ${fmt(latest.nav)} FCFA`}>
-          <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
-          <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
-          <text x={padX - 4} y={y(max) + 3} className={styles.tick} textAnchor="end">
-            {fmt(max)}
-          </text>
-          {max !== min && (
-            <text x={padX - 4} y={y(min) + 3} className={styles.tick} textAnchor="end">
-              {fmt(min)}
-            </text>
-          )}
-          <path d={area} className={styles.area} />
-          <path d={path} className={styles.line} />
-          {series.map((n, i) => (
-            <circle key={n.navDate} cx={x(i)} cy={y(n.nav)} r={i === series.length - 1 ? 3.5 : i === iMax || i === iMin ? 2.6 : 1.6} className={i === series.length - 1 ? styles.dot : styles.point} aria-label={`${fmtDate(n.navDate)} · ${fmt(n.nav)} FCFA`} />
-          ))}
-          {ticks.map((i) => (
-            <text key={i} x={x(i)} y={H + 11} className={styles.tick} textAnchor={i === 0 ? "start" : i === series.length - 1 ? "end" : "middle"}>
-              {fmtDate(series[i].navDate, false)}
-            </text>
-          ))}
-        </svg>
+      <div className={`${styles.chart} ${styles.navBlock}`}>
+        <NavChart series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} />
         <div className={styles.legend}>
           <span>
-            {series.length} valeurs liquidatives publiées au bulletin, du {fmtDate(series[0].navDate)} au {fmtDate(latest.navDate)} · plus haut {fmt(max)}, plus bas {fmt(min)}
+            {t("{n} valeurs liquidatives publiées au bulletin, du {a} au {b} · plus haut {hi}, plus bas {lo}", { n: series.length, a: fmtDate(series[0].navDate), b: fmtDate(latest.navDate), hi: fmt(max), lo: fmt(min) })}
           </span>
           <b className={change < 0 ? styles.down : styles.up} title={t("Variation de la VL entre la première et la dernière date affichées")}>
             {signed(change)}

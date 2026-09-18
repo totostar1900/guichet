@@ -15,6 +15,7 @@ import { Info } from "./Info";
 import { Select } from "./ui/Select";
 import { parseYieldRange, YieldDropdown, YieldGauge, yieldRangeLabel, yieldRangeParam } from "./YieldRange";
 import { LAST_LIST_KEY } from "./mobile/MobileShell";
+import { rememberList, useListScroll } from "./ListNav";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
 import { useT } from "@/i18n/client";
@@ -480,6 +481,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const picks = rows.filter(({ o }) => o.featured && o.featured.until >= today).slice(0, 3);
   const pickIds = new Set(picks.map(({ o }) => o.id));
   const rest = pickIds.size ? rows.filter(({ o }) => !pickIds.has(o.id)) : rows;
+  // The line pages step through this exact order and come back to this exact list.
+  const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
+  const orderKey = [...picks, ...rest].map(({ o }) => o.id).join(",");
+  useEffect(() => {
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres" });
+  }, [listUrl, orderKey]);
+  useListScroll(listUrl);
   const render = (list: Row[], featured: boolean) =>
     view === "table" ? (
       <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} />

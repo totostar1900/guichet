@@ -7,7 +7,7 @@ import styles from "./Onboarding.module.css";
 
 /**
  * « Premiers pas » — six screens, one idea each, shown once per device on the
- * first visit (never on the desk or the login page), replayable from Info.
+ * first visit (never on the desk or the login page), replayable from the Guide.
  * SVG + CSS only: nothing to host, nothing to load.
  */
 const SEEN = "guichet:onboarded";
@@ -133,7 +133,7 @@ const SLIDES = [
   },
   {
     title: "Comprendre, et trouver de l'aide",
-    text: "Info explique chaque mot en une phrase, propose huit leçons de deux minutes et un simulateur. La page Aide répond à vos questions : se connecter, ouvrir un compte, lire une ligne, régler, nous joindre.",
+    text: "Le Guide explique chaque mot en une phrase, propose huit leçons de deux minutes et un simulateur. La page Aide répond à vos questions : se connecter, ouvrir un compte, lire une ligne, régler, nous joindre.",
     art: (
       <div className={styles.shotPair}>
         <div className={styles.shotFrame}>
@@ -219,7 +219,7 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
   );
 }
 
-/** « Revoir les premiers pas » on the Info page. */
+/** « Revoir les premiers pas » on the Guide page. */
 export function ReplayOnboarding() {
   const router = useRouter();
   const sp = useSearchParams();

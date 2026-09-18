@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { Info } from "@/components/Info";
+import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
@@ -52,12 +54,30 @@ const num = (v?: number) => (v == null ? -Infinity : v);
 
 export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const t = useT();
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState<FundNav["category"] | "">("");
-  const [manager, setManager] = useState("");
-  const [freq, setFreq] = useState<FundNav["frequency"] | "">("");
-  const [sort, setSort] = useState<SortKey>("categorie");
-  const [desc, setDesc] = useState(true);
+  // The filters and sort live in the URL, so the list comes back exactly as it was left (and the link can be shared).
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+  const q = sp.get("q") ?? "";
+  const cat = (sp.get("cat") ?? "") as FundNav["category"] | "";
+  const manager = sp.get("gestion") ?? "";
+  const freq = (sp.get("vl") ?? "") as FundNav["frequency"] | "";
+  const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
+  const desc = sp.get("sens") !== "asc";
+  const update = (patch: Record<string, string | undefined>) => {
+    const next = new URLSearchParams(sp.toString());
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) next.set(k, v);
+      else next.delete(k);
+    }
+    router.replace(`${pathname}${next.toString() ? `?${next}` : ""}`, { scroll: false });
+  };
+  const setQ = (v: string) => update({ q: v || undefined });
+  const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
+  const setManager = (v: string) => update({ gestion: v || undefined });
+  const setFreq = (v: FundNav["frequency"] | "") => update({ vl: v || undefined });
+  const setSort = (v: SortKey) => update({ tri: v === "categorie" ? undefined : v });
+  const setDesc = (v: boolean) => update({ sens: v ? undefined : "asc" });
 
   const managers = useMemo(() => [...new Set(rows.map((r) => r.manager))].sort((a, b) => a.localeCompare(b, "fr")), [rows]);
   const freqs = useMemo(() => [...new Set(rows.map((r) => r.frequency))].filter((f) => f !== "?"), [rows]);
@@ -90,50 +110,55 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const groups = sort === "categorie" ? CATS.filter((c) => filtered.some((r) => r.category === c)).map((c) => ({ c, rows: filtered.filter((r) => r.category === c) })) : [{ c: null, rows: filtered }];
   const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq));
 
+  // Remember this list (URL + order shown) so a fund's page can bring the reader back and step to the next fund.
+  const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
+  const orderKey = groups.flatMap((g) => g.rows.map((r) => r.id)).join(",");
+  useEffect(() => {
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Tous les fonds" });
+  }, [listUrl, orderKey]);
+  useListScroll(listUrl);
+
   return (
     <>
-      <div className={styles.toolbar}>
-        <label className={styles.search}>
-          <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
-        </label>
-        <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
-          <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
-            {t("Toutes")}
-          </button>
-          {CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => (
-            <button key={c} type="button" className={`${styles.chip} ${cat === c ? styles.chipOn : ""}`} onClick={() => setCat(cat === c ? "" : c)} aria-pressed={cat === c}>
-              {t(FUND_CATEGORY_LABEL[c])}
+      <div className={styles.sticky}>
+        <div className={styles.toolbar}>
+          <label className={styles.search}>
+            <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
+          </label>
+          <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
+            <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
+              {t("Toutes")}
             </button>
-          ))}
-        </div>
-        <Select value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
-        <Select value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
-        <label className={styles.sort}>
-          {t("Tri")}
-          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
-          {sort !== "categorie" && sort !== "nom" && (
-            <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
-              {desc ? "↓" : "↑"}
+            {CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => (
+              <button key={c} type="button" className={`${styles.chip} ${cat === c ? styles.chipOn : ""}`} onClick={() => setCat(cat === c ? "" : c)} aria-pressed={cat === c}>
+                {t(FUND_CATEGORY_LABEL[c])}
+              </button>
+            ))}
+          </div>
+          <Select className={styles.fixed} value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
+          <Select className={styles.fixedSm} value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
+          <label className={styles.sort}>
+            {t("Tri")}
+            <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
+            {sort !== "categorie" && sort !== "nom" && (
+              <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
+                {desc ? "↓" : "↑"}
+              </button>
+            )}
+          </label>
+          {(active > 0 || q) && (
+            <button
+              type="button"
+              className={styles.clear}
+              onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}
+            >
+              {t("Effacer")}
             </button>
           )}
-        </label>
-        {(active > 0 || q) && (
-          <button
-            type="button"
-            className={styles.clear}
-            onClick={() => {
-              setQ("");
-              setCat("");
-              setManager("");
-              setFreq("");
-            }}
-          >
-            {t("Effacer")}
-          </button>
-        )}
-      </div>
-      <div className={styles.count}>
-        <b>{filtered.length}</b> {t("fonds")}{active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
+        </div>
+        <div className={styles.count}>
+          <b>{filtered.length}</b> {t("fonds")}{active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
+        </div>
       </div>
 
       {groups.map(({ c, rows: g }) => (
@@ -152,7 +177,9 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                 <tr>
                   <th>{t("Fonds")}</th>
                   <th className={styles.hideSm}>{t("Société de gestion · dépositaire")}</th>
-                  <th className={styles.r}>{t("VL (FCFA)")}</th>
+                  <th className={styles.r}>
+                    {t("VL (FCFA)")} <Info term="vl" subtle />
+                  </th>
                   <th className={styles.r}>
                     {t("Var.")} <Info term="variation_vl" subtle />
                   </th>

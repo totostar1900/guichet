@@ -1,0 +1,27 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.back {
+  font-weight: 700;
+}
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pos {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: center;
+}
+.off {
+  opacity: 0.4;
+  pointer-events: none;
+}

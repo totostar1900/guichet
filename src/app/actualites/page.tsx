@@ -204,7 +204,7 @@ async function Chips({ n }: { n: NewsItem }) {
     <div className={styles.chips}>
       {n.links.map((l) => (
         <Link key={`${l.kind}-${l.key}`} href={linkHref(l)}>
-          {l.kind === "term" ? `${t("Info")} · ${t(l.label)}` : t(l.label)}
+          {l.kind === "term" ? `${t("Guide")} · ${t(l.label)}` : t(l.label)}
         </Link>
       ))}
     </div>
