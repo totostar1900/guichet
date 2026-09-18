@@ -49,6 +49,9 @@ export default async function InfoPage() {
         <div className={styles.lessonsHead}>
           <h2 className={styles.h2}>{t("Huit leçons courtes")}</h2>
           <Suspense>
+            <Link className="btn sm" href="/info/aide">
+              {t("Aide : vos questions, nos réponses")} →
+            </Link>
             <ReplayOnboarding />
           </Suspense>
         </div>

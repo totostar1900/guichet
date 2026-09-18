@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DocBlocks } from "@/components/docs/DocBlocks";
 import { Outline } from "@/app/desk/docs/Outline";
+import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { PUBLIC_DOCS } from "@/data/docs";
 import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
@@ -19,7 +20,7 @@ export default async function AidePage() {
   const chapters = doc.chapters.map((c) => ({ id: c.id, title: c.title[lang] }));
   return (
     <div className={styles.reader}>
-      <nav className={styles.nav} aria-label={t("Aide")}>
+      <nav className={styles.nav} aria-label={t("Aide")} data-coach="aide-nav">
         <Link href="/info">← {t("Info")}</Link>
         <span className={styles.group}>{t("Aide")}</span>
         <div>
@@ -39,10 +40,19 @@ export default async function AidePage() {
         <Link href="/info#simulateur">{t("Simulateur")}</Link>
         <Link href="/comparer">{t("Comparer deux lignes")}</Link>
       </nav>
-      <article className={styles.doc}>
+      <article className={styles.doc} data-coach="aide-page">
         <h1>{doc.title[lang]}</h1>
         <p className={styles.summary}>{doc.summary[lang]}</p>
         <DocBlocks chapters={doc.chapters} lang={lang} />
+        <CoachMarks
+          id="aide"
+          replayLabel={t("Comment utiliser cette aide ?")}
+          stops={[
+            { target: "aide-page", title: t("Des réponses, pas des procédures"), text: t("Chaque chapitre répond aux questions que vous nous posez le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir vos documents, nous joindre. Tout est écrit pour vous, en clair.") },
+            { target: "aide-nav", title: t("Trouver vite"), text: t("À gauche, les chapitres de cette page ; en dessous, le glossaire, les leçons, le simulateur et le comparateur. La recherche de la page Info trouve aussi chaque question de cette aide.") },
+            { target: "aide-contact", title: t("Quand ça ne suffit pas"), text: t("Le bouton « Information » de chaque fiche ouvre WhatsApp ; un robot répond aux questions simples, un conseiller prend le relais. Pour une réclamation, écrivez-nous avec la référence concernée.") },
+          ]}
+        />
       </article>
       <Outline
         chapters={chapters}
