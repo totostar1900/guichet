@@ -141,7 +141,7 @@ export const EN: Record<string, string> = {
   "prochaine VL": "next NAV",
   "sur 12 mois": "over 12 months",
   "sur la période": "over the period",
-  "par an depuis l'origine": "a year since inception",
+  "par an depuis l'origine": "per year since inception",
   "moins de six mois d'historique": "less than six months of history",
   "si servi": "if served",
   "taux facial": "coupon rate",

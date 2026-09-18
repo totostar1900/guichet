@@ -545,4 +545,10 @@ export const EN_TEMPLATES: Record<string, string> = {
   "millions de FCFA": "millions of FCFA",
   "milliers de FCFA": "thousands of FCFA",
   "Fiche signalétique {who} (mise à jour {y})": "{who} term sheet (updated {y})",
+  "{n} titres": "{n} securities",
+  "1 bon": "1 bill",
+  "Prix d'achat par bon ({r} précompté sur {n} jours)": "Purchase price per bill ({r} discounted over {n} days)",
+  "Pour {n} titres cédés au Trésor": "For {n} securities sold to the Treasury",
+  "{n} Mds FCFA rachetés": "{n} bn FCFA bought back",
+  "créé le {d} · {age}": "launched on {d} · {age}",
 };

@@ -564,16 +564,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       </div>
       <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} gauge={<YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} />} />
 
-      {picks.length > 0 && (
-        <section className={styles.featured} aria-label={t("À la une")}>
-          <div className={styles.featuredHead}>
-            <span className="eyebrow">{t("À la une · sélection du desk")}</span>
-            <small>{t("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.")}</small>
-          </div>
-          {render(picks, true)}
-        </section>
-      )}
-
       <div className={styles.meta}>
         <span>
           <b>{rows.length}</b> {t(rows.length > 1 ? "lignes" : "ligne")}
@@ -594,6 +584,16 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           </button>
         </label>
       </div>
+
+      {picks.length > 0 && (
+        <section className={styles.featured} aria-label={t("À la une")}>
+          <div className={styles.featuredHead}>
+            <span className="eyebrow">{t("À la une · sélection du desk")}</span>
+            <small>{t("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.")}</small>
+          </div>
+          {render(picks, true)}
+        </section>
+      )}
 
       {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
       {rest.length > 0 && render(rest, false)}

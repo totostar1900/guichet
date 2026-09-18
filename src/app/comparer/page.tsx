@@ -5,7 +5,8 @@ import { BackButton } from "@/components/BackButton";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { displayStatus, displayYield, familyLabel, familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
-import { fmtPct } from "@/lib/format";
+import { fmtDate, fmtPct, localIso } from "@/lib/format";
+import { tenorText, yearsBetween } from "@/lib/finance";
 import { LinePicker, type PickLine } from "./LinePicker";
 import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
@@ -20,6 +21,8 @@ export const metadata = { title: "Comparer deux lignes" };
  * returns, when the money comes back, what it costs to get in, what can go
  * wrong. Picks are carried in the URL so a comparison can be shared.
  */
+const sg = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
+
 export default async function ComparerPage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
   const sp = await searchParams;
   const t = await getT();
@@ -34,9 +37,23 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
     const map = new Map<string, string>();
     // The first figure is the return, whatever it is called on that line (taux nominal at par, actuariel, dividende…): one row.
     s.ledger.forEach(([k, v, note], i) => map.set(i === 0 ? "Rendement" : k, i === 0 ? `${v} · ${t(k).toLowerCase()}${note ? ` · ${t(note)}` : ""}` : note ? `${v} · ${t(note)}` : v));
+    // A fund's return is two figures: the recent one stays on the « Rendement » row, the one since inception gets its own row with the fund's age.
+    if (o.kind === "FONDS" && o.fund) {
+      const f = o.fund;
+      const recent = f.perf1yPct != null ? `${sg(f.perf1yPct)} · ${t("sur 12 mois")}` : f.perfSinceInceptionPct != null && yearsBetween(f.inceptionDate, localIso(now)) > 0.5 ? `${sg((Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / yearsBetween(f.inceptionDate, localIso(now))) - 1) * 100)} · ${t("par an depuis l'origine")}` : `— · ${t("moins de six mois d'historique")}`;
+      const rows: [string, string][] = [
+        ["Rendement", recent],
+        ["Depuis l'origine", `${sg(f.perfSinceInceptionPct, 1)} · ${t("créé le {d} · {age}", { d: fmtDate(f.inceptionDate), age: t(tenorText(f.inceptionDate, localIso(now))) })}`],
+        ...[...map.entries()].filter(([k]) => k !== "Rendement"),
+      ];
+      map.clear();
+      rows.forEach(([k, v]) => map.set(k, v));
+    }
     return { s, dy: displayYield(o), ref: offerReference(o, now), map };
   });
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
+  // The since-inception figure sits right under the return, whichever side brought it.
+  if (labels.includes("Depuis l'origine")) labels.splice(1, 0, ...labels.splice(labels.indexOf("Depuis l'origine"), 1));
   // Every line the picker can narrow down: family, market, issuer, country, the headline figure.
   const lines: PickLine[] = all.map((o) => {
     const fam = offerFamily(o);
@@ -76,7 +93,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
             <div key={label} className={styles.row}>
               <div className={styles.label}>
                 {t(label)}
-                {label === "Rendement" ? <Info term="rendement_cours" /> : label === "Ticket" ? <Info term="ticket" /> : null}
+                {label === "Rendement" ? <Info term="rendement_cours" /> : label === "Ticket" ? <Info term="ticket" /> : label === "VL" ? <Info term="vl" /> : label === "Variation" ? <Info term="variation_vl" /> : label === "Depuis l'origine" ? <Info term="perf_origine" /> : null}
               </div>
               {data.map((d, i) => (
                 <div key={i} className={styles.cell}>
@@ -124,11 +141,11 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
               <div key={o.id} className={`${styles.cell} ${styles.actions}`}>
                 {data[i].s.primary ? (
                   <Link className="btn sm" href={`/offres/${o.id}`}>
-                    Voir la fiche
+                    {t("Voir la fiche")}
                   </Link>
                 ) : (
                   <Link className="btn sm" href={`/offres/${o.id}`}>
-                    Fiche
+                    {t("Fiche")}
                   </Link>
                 )}
                 <a className="btn sm ghost" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">

@@ -314,4 +314,6 @@ export const EN_CONTENT: Record<string, string> = {
   "Le mois ou l'intervalle du rapport.": "The month or interval of the report.",
   "Crons": "Crons",
   "Coupons 07 h 00 · point du matin 06 h 30 · suivi 07 h 15 · bulletin 18 h 30 (jours de bourse) · émetteurs lundi 06 h 00.": "Coupons 7:00 · morning brief 6:30 · follow-ups 7:15 · bulletin 18:30 (trading days) · issuers Monday 6:00.",
+  "Fiche": "Details",
+  "La hausse ou la baisse de la VL depuis la première VL du fonds, en cumulé et sans annualisation : un fonds plus ancien a eu plus de temps pour la construire. Regardez-la avec l'âge du fonds, indiqué à côté.": "The rise or fall of the NAV since the fund's first NAV, cumulative and not annualised: an older fund has had more time to build it. Read it together with the fund's age, shown next to it.",
 };
