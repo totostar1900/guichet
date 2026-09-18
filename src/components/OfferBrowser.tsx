@@ -178,13 +178,13 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
       <table className={styles.table}>
         <thead>
           <tr>
-            <Th k="title" label="Ligne" sort={sort} dir={dir} onSort={onSort} />
+            <Th k="title" label={t("Ligne")} sort={sort} dir={dir} onSort={onSort} />
             <th>{t("Statut")}</th>
-            <Th k="deadline" label="Clôture" sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="yield" label="Rendement" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
-            <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
+            <Th k="deadline" label={t("Clôture")} sort={sort} dir={dir} onSort={onSort} right />
+            <Th k="yield" label={t("Rendement")} sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
+            <Th k="tenor" label={t("Échéance")} sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
             <th className={`${styles.r} ${styles.hideMd}`}>{t("Durée")}</th>
-            <Th k="minimum" label="Ticket minimum" sort={sort} dir={dir} onSort={onSort} right term="ticket" />
+            <Th k="minimum" label={t("Ticket minimum")} sort={sort} dir={dir} onSort={onSort} right term="ticket" />
             <th></th>
           </tr>
         </thead>
@@ -521,14 +521,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           </button>
           <div className={styles.filters}>
           <Dropdown
-            label="Instrument"
+            label={t("Instrument")}
             items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyLabel(f)] as [string, string])])}
             selected={kind}
             onChange={setFilter("instrument")}
           />
-          <Dropdown label="Pays" items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
-          <Dropdown label="Statut" items={STATUSES} selected={status} onChange={setFilter("statut")} />
-          <Dropdown label="Durée" items={TENORS} selected={tenor} onChange={setFilter("duree")} />
+          <Dropdown label={t("Pays")} items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
+          <Dropdown label={t("Statut")} items={STATUSES} selected={status} onChange={setFilter("statut")} />
+          <Dropdown label={t("Durée")} items={TENORS} selected={tenor} onChange={setFilter("duree")} />
           <YieldDropdown values={yields} min={yr.min} max={yr.max} onChange={setYield} />
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>

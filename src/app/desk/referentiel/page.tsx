@@ -388,7 +388,7 @@ async function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; op
           <h2>{cur ? `Fiche ${cur.shortName}` : "Nouvelle société"}</h2>
           {cur && inDb.has(cur.mnemo) && <ResetButton kind={REF.companies} k={cur.mnemo} builtin={defaults.has(cur.mnemo)} />}
         </div>
-        <JsonForm key={cur?.mnemo ?? "new"} kind={REF.companies} data={cur} label="Société cotée" />
+        <JsonForm key={cur?.mnemo ?? "new"} kind={REF.companies} data={cur} label={tr("Société cotée")} />
       </div>
     </>
   );
@@ -447,7 +447,7 @@ async function Issuers({ list, inDb, open }: { list: BondIssuer[]; inDb: Rows; o
           <h2>{cur ? `Fiche ${cur.shortName}` : "Nouvel émetteur"}</h2>
           {cur && inDb.has(cur.slug) && <ResetButton kind={REF.issuers} k={cur.slug} builtin={defaults.has(cur.slug)} />}
         </div>
-        <JsonForm key={cur?.slug ?? "new"} kind={REF.issuers} data={cur} label="Émetteur" />
+        <JsonForm key={cur?.slug ?? "new"} kind={REF.issuers} data={cur} label={tr("Émetteur")} />
       </div>
     </>
   );

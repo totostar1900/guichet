@@ -88,7 +88,7 @@ function BroadcastForm({ offerId }: { offerId: string }) {
   return (
     <form action={action} className={styles.bc}>
       <input type="hidden" name="offerId" value={offerId} />
-      <Select compact name="segment" label="Segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
+      <Select compact name="segment" label={t("Segment")} value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
       <label className={styles.confirm}>
         <input type="checkbox" name="confirm" value="1" /> {t("Confirmer")}
       </label>

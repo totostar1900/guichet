@@ -193,7 +193,7 @@ export function PersonsSection({ file, editable }: P) {
         </fieldset>
         <Msg state={state} />
         <div className={styles.actions}>
-          <Save pending={pending} editable={editable} label="Ajouter" />
+          <Save pending={pending} editable={editable} label={t("Ajouter")} />
         </div>
       </form>
     </section>
@@ -376,7 +376,7 @@ export function ConsentSection({ file, editable }: P) {
               </div>
             )}
             <div className={styles.actions}>
-              <Save pending={sending} editable={editable} label="Recevoir mon code d'acceptation" />
+              <Save pending={sending} editable={editable} label={t("Recevoir mon code d'acceptation")} />
             </div>
           </form>
           <form action={verAct} className={styles.form}>

@@ -123,7 +123,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 <ul className={styles.checks}>
                   {checks.map((c) => (
                     <li key={c.key} className={c.level === "block" ? styles.block : c.level === "warn" ? styles.warn : styles.ok}>
-                      {c.text} <Info text={c.why} label="Règle" subtle />
+                      {c.text} <Info text={c.why} label={t("Règle")} subtle />
                     </li>
                   ))}
                   {file && file.status !== "approuve" && <li className={styles.warn}>Dossier client {STATUS_LABEL[file.status].toLowerCase()} — à approuver avant le règlement.</li>}

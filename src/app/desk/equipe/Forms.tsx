@@ -39,7 +39,7 @@ export function RoleForm({ userId, role, self }: { userId: string; role: "desk" 
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="userId" value={userId} />
-      <Select compact name="role" value={role} label="Niveau" options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable") }, { value: "client", label: t("— retirer l'accès") }]} />
+      <Select compact name="role" value={role} label={t("Niveau")} options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable") }, { value: "client", label: t("— retirer l'accès") }]} />
       <button className="btn sm" type="submit" disabled={pending}>
         {t(pending ? "…" : "Appliquer")}
       </button>
