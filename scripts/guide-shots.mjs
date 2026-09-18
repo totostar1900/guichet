@@ -41,8 +41,9 @@ const SHOTS = [
   ["docs-aide", "/desk/docs/aide"],
   ["aide-client", "/info/aide"],
   // The client's Info page, and the « Premiers pas » screen about Info and help (phone width, fifth screen).
-  ["info-client", "/info", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); location.reload(); await new Promise(r=>setTimeout(r,2500)); 'ok'" }],
-  ["premiers-pas", "/info?premiers-pas=1", { width: 390, height: 844, prep: "localStorage.setItem('guichet:onboarded','1'); location.reload(); await new Promise(r=>setTimeout(r,2500)); const d=[...document.querySelectorAll('[role=dialog]')].pop(); for (let k=0;k<4;k++){ [...d.querySelectorAll('button')].find(b=>/Continuer|Continue/.test(b.textContent))?.click(); await new Promise(r=>setTimeout(r,450)); } 'ok'" }],
+  ["info-client", "/info", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
+  ["onboarding-info", "/info", { width: 390, height: 780, prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
+  ["premiers-pas", "/info?premiers-pas=1", { width: 390, height: 844, prep: "localStorage.setItem('guichet:onboarded','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000, then: "const d=[...document.querySelectorAll('[role=dialog]')].pop(); for (let k=0;k<4;k++){ [...d.querySelectorAll('button')].find(b=>/Continuer|Continue/.test(b.textContent))?.click(); await new Promise(r=>setTimeout(r,450)); } await new Promise(r=>setTimeout(r,600)); 'ok'" }],
   ["robot", "/desk/robot"],
   ["approbations", "/desk/approbations"],
   ["referentiel", "/desk/referentiel"],
@@ -117,6 +118,8 @@ for (const [key, path, opts = {}] of SHOTS) {
   await sleep(2800);
   // A page may need a gesture first (dismiss the onboarding, open a screen…).
   if (opts.prep) await evaluate(`(async () => { ${opts.prep} })()`);
+  if (opts.settle) await sleep(opts.settle);
+  if (opts.then) await evaluate(`(async () => { ${opts.then} })()`);
   // Let images and fonts settle, then a full-height capture, capped.
   const height = opts.height ?? Math.min(1800, await evaluate("document.documentElement.scrollHeight"));
   await send("Emulation.setDeviceMetricsOverride", { width: W, height, deviceScaleFactor: 1, mobile: W < 760 });

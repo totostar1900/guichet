@@ -143,3 +143,20 @@
     animation: none;
   }
 }
+
+/* a real capture of a page, framed like a phone, in place of the drawn art */
+.shotFrame {
+  width: 200px;
+  height: 300px;
+  margin: 0 auto;
+  border-radius: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.shotFrame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
