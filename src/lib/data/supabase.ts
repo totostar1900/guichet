@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
@@ -834,4 +835,102 @@ export const supabaseRepository: Repository = {
     if (error) fail("upsertIssuerDocument", error);
     return toIssuerDoc(data as IssuerDocRow);
   },
+  async listNews() {
+    const { data, error } = await db().from("news").select("*").order("published_at", { ascending: false });
+    if (error) {
+      if (/news/.test(error.message)) return []; // migration 0025 not applied yet
+      fail("listNews", error);
+    }
+    return (data as NewsRow[]).map(toNews);
+  },
+  async upsertNews(n) {
+    const { error } = await db().from("news").upsert(fromNews(n), { onConflict: "id" });
+    if (error) fail("upsertNews", error);
+  },
+  async deleteNews(id) {
+    const { error } = await db().from("news").delete().eq("id", id);
+    if (error) fail("deleteNews", error);
+  },
 };
+
+type NewsRow = {
+  id: string;
+  url: string;
+  domain: string;
+  title: string;
+  title_en: string | null;
+  why: string;
+  why_en: string | null;
+  source: string;
+  format: string | null;
+  published_at: string;
+  rubric: string;
+  links: NewsItem["links"];
+  featured: boolean;
+  status: string;
+  visible_until: string | null;
+  received_from: string | null;
+  note: string | null;
+  page_title: string | null;
+  link_ok: boolean | null;
+  link_checked_at: string | null;
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+  published_by: string | null;
+  version: number;
+};
+const toNews = (r: NewsRow): NewsItem => ({
+  id: r.id,
+  url: r.url,
+  domain: r.domain,
+  title: r.title,
+  titleEn: u(r.title_en),
+  why: r.why,
+  whyEn: u(r.why_en),
+  source: r.source,
+  format: u(r.format),
+  publishedAt: r.published_at,
+  rubric: r.rubric as NewsItem["rubric"],
+  links: r.links ?? [],
+  featured: r.featured,
+  status: r.status as NewsItem["status"],
+  visibleUntil: u(r.visible_until),
+  receivedFrom: u(r.received_from),
+  note: u(r.note),
+  pageTitle: u(r.page_title),
+  linkOk: r.link_ok ?? undefined,
+  linkCheckedAt: u(r.link_checked_at),
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+  updatedBy: u(r.updated_by),
+  publishedBy: u(r.published_by),
+  version: r.version,
+});
+const fromNews = (n: NewsItem): NewsRow => ({
+  id: n.id,
+  url: n.url,
+  domain: n.domain,
+  title: n.title,
+  title_en: n.titleEn ?? null,
+  why: n.why,
+  why_en: n.whyEn ?? null,
+  source: n.source,
+  format: n.format ?? null,
+  published_at: n.publishedAt,
+  rubric: n.rubric,
+  links: n.links,
+  featured: n.featured,
+  status: n.status,
+  visible_until: n.visibleUntil ?? null,
+  received_from: n.receivedFrom ?? null,
+  note: n.note ?? null,
+  page_title: n.pageTitle ?? null,
+  link_ok: n.linkOk ?? null,
+  link_checked_at: n.linkCheckedAt ?? null,
+  created_at: n.createdAt,
+  updated_at: n.updatedAt,
+  updated_by: n.updatedBy ?? null,
+  published_by: n.publishedBy ?? null,
+  version: n.version,
+});

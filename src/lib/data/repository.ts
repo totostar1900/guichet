@@ -1,6 +1,7 @@
 import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PushSubscription, ReferenceRow, StaffMember, StaffRole, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { NewsItem } from "@/lib/news/model";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -105,6 +106,11 @@ export interface Repository {
   /** Documents published by listed companies (collected from the BVMAC site). */
   listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;
   upsertIssuerDocument(d: IssuerDocument): Promise<IssuerDocument>;
+
+  // Actualités — its own table: only published items are readable by everyone.
+  listNews(): Promise<NewsItem[]>;
+  upsertNews(n: NewsItem): Promise<void>;
+  deleteNews(id: string): Promise<void>;
 }
 
 export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {

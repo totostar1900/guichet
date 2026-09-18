@@ -1,5 +1,6 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { SEED_NEWS } from "@/data/news-seed";
+import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
@@ -89,6 +90,7 @@ interface Store {
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
+  news: NewsItem[];
   seq: number;
 }
 
@@ -111,7 +113,8 @@ function store(): Store {
       notifications: [],
       inbound: seedInbound(),
       watches: [],
-      reference: SEED_NEWS.map((n) => ({ kind: "news", key: n.id, data: structuredClone(n), updatedAt: n.updatedAt, updatedBy: n.updatedBy })),
+      reference: [],
+      news: structuredClone(SEED_NEWS),
       versions: [],
       audit: [],
       approvals: [],
@@ -145,6 +148,7 @@ function store(): Store {
   if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
+  if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
   return g.__guichetStore;
 }
 
@@ -547,5 +551,17 @@ export const memoryRepository: Repository = {
     if (i >= 0) s.issuerDocs[i] = row;
     else s.issuerDocs.push(row);
     return structuredClone(row);
+  },
+  async listNews() {
+    return structuredClone(store().news);
+  },
+  async upsertNews(n) {
+    const s = store();
+    const i = s.news.findIndex((x) => x.id === n.id);
+    if (i >= 0) s.news[i] = structuredClone(n);
+    else s.news.push(structuredClone(n));
+  },
+  async deleteNews(id) {
+    store().news = store().news.filter((n) => n.id !== id);
   },
 };

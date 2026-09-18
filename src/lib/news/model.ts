@@ -2,9 +2,11 @@
  * Actualités — links to what others publish (Treasuries, the BVMAC, the
  * COSUMAF, the press, listed companies, fund managers), with two lines from
  * the desk on why it matters. Never the article itself: the reader is sent to
- * the original. Stored as reference rows of kind `news`, one per item.
+ * the original. Its own table `news` (migration 0025): only published items are
+ * readable by everyone; drafts, received links and discarded items stay with the desk.
  */
 
+/** Audit entity name for news records. */
 export const NEWS_KIND = "news";
 
 export type NewsRubric = "tresors" | "bvmac" | "societes" | "fonds" | "reglementation";

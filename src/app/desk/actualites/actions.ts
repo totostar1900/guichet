@@ -6,7 +6,7 @@ import { getT } from "@/i18n/server";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { getNews, loadNews, saveNews } from "@/lib/news";
+import { deleteNews, getNews, loadNews, saveNews } from "@/lib/news";
 import { readLink, type LinkMeta } from "@/lib/news/fetch";
 import { resolveLinks } from "@/lib/news/links";
 import { domainOf, newsId, RUBRICS, whyProblem, type NewsItem, type NewsRubric, type NewsStatus } from "@/lib/news/model";
@@ -121,7 +121,7 @@ export async function newsStateAction(form: FormData): Promise<void> {
   if (!before) return;
   const now = new Date().toISOString();
   if (what === "supprimer") {
-    await repo().deleteReference(NEWS_KIND, id);
+    await deleteNews(id);
     await audit("news.delete", NEWS_KIND, id, { before, actor: desk.email ?? desk.name });
   } else {
     const status: NewsStatus = what === "ecarter" ? "ecartee" : what === "retirer" ? "brouillon" : what === "republier" ? "publiee" : before.status;

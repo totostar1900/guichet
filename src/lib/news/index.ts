@@ -1,15 +1,14 @@
 import "server-only";
 import { cache } from "react";
 import { repo } from "@/lib/data";
-import { NEWS_KIND, type NewsItem, isVisible } from "./model";
+import { type NewsItem, isVisible } from "./model";
 
 export * from "./model";
 
 /** Every news record the desk holds, newest first. */
 export const loadNews = cache(async (): Promise<NewsItem[]> => {
-  const rows = await repo().listReference(NEWS_KIND);
+  const rows = await repo().listNews();
   return rows
-    .map((r) => r.data as NewsItem)
     .filter((n) => n && n.id)
     .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "") || (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
 });
@@ -31,5 +30,9 @@ export async function getNews(id: string): Promise<NewsItem | undefined> {
 }
 
 export async function saveNews(item: NewsItem, by?: string): Promise<void> {
-  await repo().upsertReference(NEWS_KIND, item.id, item, by);
+  await repo().upsertNews(by ? { ...item, updatedBy: item.updatedBy ?? by } : item);
+}
+
+export async function deleteNews(id: string): Promise<void> {
+  await repo().deleteNews(id);
 }
