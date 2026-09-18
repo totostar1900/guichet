@@ -238,3 +238,7 @@
     gap: 2px;
   }
 }
+.msgs li.muted,
+.hist li.muted {
+  display: block;
+}

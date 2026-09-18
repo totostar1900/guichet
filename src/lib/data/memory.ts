@@ -1,11 +1,66 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
-import type { ClientFile } from "@/lib/domain/kyc";
+import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeRef, type Repository } from "./repository";
+
+/** A few inbound messages so the desk inbox has something to answer in demo mode. */
+function seedInbound(): InboundMessage[] {
+  const ago = (min: number) => new Date(Date.now() - min * 60e3).toISOString();
+  return [
+    { id: "in-1", channel: "whatsapp", from: "+237600000017", name: "J.-P. O.", body: "Bonjour, ma prise ferme de 10 M sur l'OTA 6,25 % est bien enregistrée ? Je peux régler le 16 au plus tôt.", receivedAt: ago(35) },
+    { id: "in-2", channel: "whatsapp", from: "+237600000012", name: "Tontine Espoir", body: "Est-ce que le groupement peut aller jusqu'à 30 M sur la ligne de septembre ?", receivedAt: ago(140) },
+    { id: "in-3", channel: "email", from: "tresorerie@avc.example.com", name: "Assur-Vie Centrale", subject: "Appétit 200 M — OTA 6,50 %", body: "Bonjour,\nMerci de nous confirmer le prix retenu et la date de règlement pour notre appétit de 200 M FCFA.\nCordialement,\nLa trésorerie", receivedAt: ago(400), handledAt: ago(300), handledBy: "Georges" },
+  ];
+}
+
+/** Two example files so the desk's client review is not empty in demo mode: one submitted, one approved. */
+function seedClientFiles(): ClientFile[] {
+  const day = (d: number) => new Date(Date.now() - d * 86400e3).toISOString();
+  const jpo = emptyClientFile("c-jpo", "physique", "J.-P. Onana", { phone: "+237600000017", email: "jp.onana@example.cm" });
+  const am = emptyClientFile("c-am", "physique", "A. M.", { phone: "+237600000011", email: "a.m@example.com" });
+  return [
+    {
+      ...jpo,
+      id: "kyc-jpo",
+      status: "soumis",
+      identity: { ...jpo.identity, city: "Yaoundé", birthDate: "1984-03-12", nationality: "Camerounaise", profession: "Ingénieur", idType: "CNI", idNumber: "123456789", idExpiresOn: "2029-06-30", address: "Bastos, Yaoundé" },
+      documents: [
+        { kind: "piece_identite_recto", fileKey: "demo/jpo-cni-recto.jpg", fileName: "cni-recto.jpg", mimeType: "image/jpeg", uploadedAt: day(2) },
+        { kind: "piece_identite_verso", fileKey: "demo/jpo-cni-verso.jpg", fileName: "cni-verso.jpg", mimeType: "image/jpeg", uploadedAt: day(2) },
+        { kind: "selfie", fileKey: "demo/jpo-selfie.jpg", fileName: "selfie.jpg", mimeType: "image/jpeg", uploadedAt: day(2) },
+      ],
+      funds: { pep: false, source: "Salaire", expectedAmount: "10 à 50 M FCFA", bankName: "Afriland First Bank", bankAccount: "CM21 10005 00001 12345678901 23", bankHolder: "Jean-Paul Onana" },
+      profile: { category: "non_professionnel", objectives: "Épargne à moyen terme", horizon: "3 à 5 ans", experience: "Quelques placements", riskTolerance: "faible", lossCapacity: "moins de 10 %" },
+      consents: { dataAt: day(2), whatsappAt: day(2), conventionAt: day(2), conventionMethod: "code WhatsApp" },
+      submittedAt: day(2),
+      createdAt: day(3),
+      updatedAt: day(2),
+    },
+    {
+      ...am,
+      id: "kyc-am",
+      status: "approuve",
+      identity: { ...am.identity, city: "Douala", birthDate: "1979-11-02", nationality: "Camerounaise", profession: "Commerçante", idType: "Passeport", idNumber: "P0456789", idExpiresOn: "2030-01-15", taxId: "M017900001234A" },
+      documents: [
+        { kind: "piece_identite_recto", fileKey: "demo/am-passeport.jpg", fileName: "passeport.jpg", mimeType: "image/jpeg", uploadedAt: day(40), verified: true },
+        { kind: "selfie", fileKey: "demo/am-selfie.jpg", fileName: "selfie.jpg", mimeType: "image/jpeg", uploadedAt: day(40), verified: true },
+        { kind: "justificatif_domicile", fileKey: "demo/am-domicile.pdf", fileName: "facture-eneo.pdf", mimeType: "application/pdf", uploadedAt: day(40), verified: true },
+      ],
+      funds: { pep: false, source: "Revenus d'activité", expectedAmount: "50 à 100 M FCFA", bankName: "SGC", bankAccount: "CM21 10003 00002 98765432109 87", bankHolder: "A. M." },
+      profile: { category: "non_professionnel", objectives: "Revenus réguliers", horizon: "plus de 5 ans", experience: "Habituée des OTA", riskTolerance: "moyenne", lossCapacity: "10 à 20 %" },
+      consents: { dataAt: day(41), whatsappAt: day(41), conventionAt: day(40), conventionMethod: "code WhatsApp" },
+      review: { risk: "faible", notes: "Dossier complet, pièces vérifiées.", reviewedBy: "Georges", reviewedAt: day(38), nextReviewOn: new Date(Date.now() + 5 * 365 * 86400e3).toISOString().slice(0, 10), custodianAccount: "ECB-CT-2026-00087" },
+      screening: { attestedBy: "Georges", attestedAt: day(38), lists: "ONU, UE, OFAC ; PPE : recherche presse", outcome: "aucun" },
+      submittedAt: day(40),
+      createdAt: day(41),
+      updatedAt: day(38),
+    },
+  ] as ClientFile[];
+}
 
 /**
  * In-memory repository backed by the seed. Survives hot reloads via globalThis
@@ -53,7 +108,7 @@ function store(): Store {
       documents: [],
       contacts: structuredClone(SEED_CONTACTS),
       notifications: [],
-      inbound: [],
+      inbound: seedInbound(),
       watches: [],
       reference: [],
       versions: [],
@@ -64,7 +119,7 @@ function store(): Store {
         { id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" },
         { id: "desk-aline", name: "Aline", email: "aline@purposecapital.africa", role: "desk" },
       ],
-      clientFiles: [],
+      clientFiles: seedClientFiles(),
       bulletins: [],
       quotes: [],
       fundNavs: [],
@@ -76,8 +131,9 @@ function store(): Store {
   if (!g.__guichetStore.intake) g.__guichetStore.intake = structuredClone(SEED_INTAKE);
   if (!g.__guichetStore.documents) g.__guichetStore.documents = [];
   if (!g.__guichetStore.contacts) g.__guichetStore.contacts = structuredClone(SEED_CONTACTS);
+  if (!g.__guichetStore.inbound) g.__guichetStore.inbound = seedInbound();
   if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
-  if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = [];
+  if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = seedClientFiles();
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
   if (!g.__guichetStore.versions) g.__guichetStore.versions = [];

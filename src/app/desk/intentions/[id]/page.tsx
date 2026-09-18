@@ -104,7 +104,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               </div>
             </div>
             <dl className={styles.dl}>
-              {est && (
+              {est && !checks.some((c) => c.level === "ok") && (
                 <>
                   <dt>Au prix publié</dt>
                   <dd>{est.text}</dd>
@@ -137,7 +137,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               )}
               <dt>Contact pour cet ordre</dt>
               <dd>
-                {it.contactPhone ?? "—"} · {it.contactEmail ?? "—"}
+                {[it.contactPhone, it.contactEmail].filter(Boolean).join(" · ") || "—"}
               </dd>
               {(it.allocationPct != null || it.servedUnits != null || it.executedPrice != null) && (
                 <>

@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "seed:sql": "node scripts/seed-sql.ts",
-    "extract:test": "node --conditions=react-server scripts/extract-test.ts"
+    "extract:test": "node --conditions=react-server scripts/extract-test.ts",
+    "dev:memory": "node scripts/dev-memory.mjs",
+    "guide:shots": "node scripts/guide-shots.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

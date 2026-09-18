@@ -99,6 +99,7 @@
   margin: 0;
   padding: 14px;
   display: grid;
+  align-content: start;
   gap: 10px;
   max-height: calc(100vh - 360px);
   overflow: auto;
