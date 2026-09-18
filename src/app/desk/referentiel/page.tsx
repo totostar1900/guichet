@@ -68,7 +68,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
         <small className="muted">{lastEdit ? `${tr("Dernière modification")} ${fmtDateTime(lastEdit)}` : tr("Aucune modification du desk sur cet onglet")}</small>
       </div>
 
-      <nav className={styles.tabs} aria-label={tr("Référentiel")}>
+      <nav className={styles.tabs} aria-label={tr("Référentiel")} data-coach="ref-tabs">
         {TABS.map(([t, label]) => (
           <Link key={t} href={`/desk/referentiel?onglet=${t}`} aria-current={t === tab ? "page" : undefined}>
             {tr(label)}
