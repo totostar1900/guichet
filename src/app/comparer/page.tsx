@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
 import { Select } from "@/components/ui/Select";
+import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { displayYield } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
@@ -19,6 +20,7 @@ export const metadata = { title: "Comparer deux lignes" };
  */
 export default async function ComparerPage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
   const sp = await searchParams;
+  const t = await getT();
   const r = repo();
   const all = (await r.listOffers()).filter((o) => !o.hidden);
   const now = new Date();
@@ -38,19 +40,19 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <div className={styles.head}>
-        <h1>Comparer deux lignes</h1>
-        <p className="muted">Choisissez deux lignes du Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.</p>
+        <h1>{t("Comparer deux lignes")}</h1>
+        <p className="muted">{t("Choisissez deux lignes du Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}</p>
       </div>
 
       <form className={styles.pick} method="get">
         {(["a", "b"] as const).map((k) => (
           <label key={k} className="field">
-            Ligne {k.toUpperCase()}
-            <Select block name={k} value={sp[k] ?? ""} options={[{ value: "", label: "choisir une ligne" }, ...all.map((o) => ({ value: o.id, label: o.title }))]} />
+            {t("Ligne")} {k.toUpperCase()}
+            <Select block name={k} value={sp[k] ?? ""} options={[{ value: "", label: t("choisir une ligne") }, ...all.map((o) => ({ value: o.id, label: o.title }))]} />
           </label>
         ))}
         <button className="btn" type="submit">
-          Comparer
+          {t("Comparer")}
         </button>
       </form>
 
@@ -60,14 +62,14 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
           {cols.map((o, i) => (
             <div key={o.id} className={`${styles.colHead} ${better(i) ? styles.best : ""}`}>
               <LineIdentity o={o} s={data[i].s} href={`/offres/${o.id}`} size="lg" />
-              {better(i) && <span className={styles.tag}>rendement le plus élevé</span>}
+              {better(i) && <span className={styles.tag}>{t("rendement le plus élevé")}</span>}
             </div>
           ))}
 
           {labels.map((label) => (
             <div key={label} className={styles.row}>
               <div className={styles.label}>
-                {label}
+                {t(label)}
                 {label === "Rendement" ? <Info term="rendement_cours" /> : label === "Ticket" ? <Info term="ticket" /> : null}
               </div>
               {data.map((d, i) => (
@@ -79,7 +81,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
           ))}
 
           <div className={styles.row}>
-            <div className={styles.label}>Statut</div>
+            <div className={styles.label}>{t("Statut")}</div>
             {data.map((d, i) => (
               <div key={i} className={styles.cell}>
                 <span className={`pill ${d.s.statusClass}`}>{d.s.status}</span>
@@ -88,7 +90,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div className={styles.row}>
-            <div className={styles.label}>Calcul de référence</div>
+            <div className={styles.label}>{t("Calcul de référence")}</div>
             {data.map((d, i) => (
               <div key={i} className={styles.cell}>
                 {d.ref ? (
@@ -111,7 +113,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div className={styles.row}>
-            <div className={styles.label}>Agir</div>
+            <div className={styles.label}>{t("Agir")}</div>
             {cols.map((o, i) => (
               <div key={o.id} className={`${styles.cell} ${styles.actions}`}>
                 {data[i].s.primary ? (
@@ -131,7 +133,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
           </div>
         </div>
       )}
-      {cols.length === 1 && <p className="muted">Choisissez une seconde ligne pour comparer.</p>}
+      {cols.length === 1 && <p className="muted">{t("Choisissez une seconde ligne pour comparer.")}</p>}
     </>
   );
 }

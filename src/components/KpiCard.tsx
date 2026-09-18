@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -35,6 +36,7 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
     };
   }, [open]);
 
+  const t = useT();
   const term = explain?.term ? getRegistry().glossary[explain.term] : undefined;
   const lesson = explain?.term ? lessonForTerm(explain.term) : undefined;
 
@@ -42,7 +44,7 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
     <>
       <button ref={btn} type="button" className={`${styles.card} ${gold ? styles.gold : ""}`} onClick={() => explain && setOpen(true)} aria-haspopup={explain ? "dialog" : undefined} data-coach={coach} disabled={!explain}>
         <span className={styles.label}>
-          {label}
+          {t(label)}
           {explain && <i aria-hidden="true">?</i>}
         </span>
         <b className="num">{value}</b>
@@ -53,11 +55,11 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
         createPortal(
           <>
             <div className={styles.scrim} onClick={() => setOpen(false)} aria-hidden="true" />
-            <div className={styles.sheet} role="dialog" aria-modal="true" aria-label={explain.title} style={pos ? ({ ["--top" as string]: `${pos.top}px`, ["--left" as string]: `${pos.left}px` } as React.CSSProperties) : undefined}>
+            <div className={styles.sheet} role="dialog" aria-modal="true" aria-label={t(explain.title)} style={pos ? ({ ["--top" as string]: `${pos.top}px`, ["--left" as string]: `${pos.left}px` } as React.CSSProperties) : undefined}>
               <div className={styles.grab} aria-hidden="true" />
               <div className={styles.head}>
-                <b>{explain.title}</b>
-                <button type="button" className={styles.close} onClick={() => setOpen(false)} aria-label="Fermer">
+                <b>{t(explain.title)}</b>
+                <button type="button" className={styles.close} onClick={() => setOpen(false)} aria-label={t("Fermer")}>
                   ✕
                 </button>
               </div>
@@ -65,30 +67,30 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
               <dl className={styles.lines}>
                 {explain.lines.map(([k, v], i) => (
                   <div key={i} className={i === explain.lines.length - 1 ? styles.last : undefined}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
+                    <dt>{t(k)}</dt>
+                    <dd>{t(v)}</dd>
                   </div>
                 ))}
               </dl>
               {term && (
                 <p className={styles.def}>
-                  <b>{term.long ? `${term.short} — ${term.long}` : term.short}.</b> {term.text}
+                  <b>{term.long ? `${t(term.short)} — ${t(term.long)}` : t(term.short)}.</b> {t(term.text)}
                 </p>
               )}
               <ul className={styles.caveats}>
                 {explain.caveats.map((c, i) => (
-                  <li key={i}>{c}</li>
+                  <li key={i}>{t(c)}</li>
                 ))}
               </ul>
               <div className={styles.foot}>
                 {lesson && (
                   <Link className="btn sm primary" href={`/info/${lesson.key}`}>
-                    Leçon : {lesson.title}
+                    {t("Leçon :")} {t(lesson.title)}
                   </Link>
                 )}
                 {compareHref && (
                   <Link className="btn sm ghost" href={compareHref}>
-                    Comparer
+                    {t("Comparer")}
                   </Link>
                 )}
               </div>

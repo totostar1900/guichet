@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { TermKey } from "@/lib/glossary";
@@ -12,9 +13,10 @@ import styles from "./Info.module.css";
  * sticky header can clip it; it flips under the button when there is no room above.
  */
 export function Info({ term, text, label, subtle }: { term?: TermKey; text?: string; label?: string; subtle?: boolean }) {
+  const tr = useT();
   const t = term ? getRegistry().glossary[term] : undefined;
-  const body = text ?? t?.text ?? "";
-  const title = label ?? (t ? ("long" in t && t.long ? `${t.short} — ${t.long}` : t.short) : "");
+  const body = tr(text ?? t?.text ?? "");
+  const title = tr(label ?? (t ? ("long" in t && t.long ? `${t.short} — ${t.long}` : t.short) : ""));
   const lesson = term ? lessonForTerm(term) : undefined;
   const btn = useRef<HTMLButtonElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
