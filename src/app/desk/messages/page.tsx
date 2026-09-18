@@ -68,11 +68,11 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
           placeholder={t("Nom, numéro, adresse, texte…")}
           chipKey="etat"
           chips={[
-            { value: "", label: "Toutes", count: all.length },
-            { value: "a_traiter", label: "À traiter", count: all.filter((t) => t.unread > 0).length },
-            { value: "traites", label: "Traitées" },
+            { value: "", label: t("Toutes"), count: all.length },
+            { value: "a_traiter", label: t("À traiter"), count: all.filter((t) => t.unread > 0).length },
+            { value: "traites", label: t("Traitées") },
           ]}
-          selects={[{ key: "canal", label: "Canal", all: "tous", options: [{ value: "whatsapp", label: "WhatsApp" }, { value: "email", label: "E-mail" }] }]}
+          selects={[{ key: "canal", label: t("Canal"), all: "tous", options: [{ value: "whatsapp", label: t("WhatsApp") }, { value: "email", label: t("E-mail") }] }]}
         />
       </Suspense>
 

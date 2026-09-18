@@ -22,7 +22,7 @@ export function QuoteForm({ offerId, last, bid, ask, step, version }: { offerId:
       <input name="ask" type="number" step={step} defaultValue={ask} placeholder={t("vendeur")} aria-label={t("Vendeur")} className={styles.num} />
       <input name="lastPriceOn" type="date" aria-label={t("Date du cours")} className={styles.date} />
       <button className="btn sm" type="submit" disabled={pending}>
-        {pending ? "…" : "Mettre à jour"}
+        {t(pending ? "…" : "Mettre à jour")}
       </button>
       <Msg state={state} />
     </form>
@@ -38,7 +38,7 @@ export function ExecuteForm({ intentId, units, refPrice, step, unitStep = "1" }:
       <input name="executedPrice" type="number" step={step} defaultValue={refPrice} aria-label={t("Prix exécuté")} className={styles.num} required />
       <input name="executedUnits" type="number" step={unitStep} min={unitStep} max={unitStep === "1" ? units : undefined} defaultValue={units} aria-label={t("Quantité exécutée")} className={styles.num} required />
       <button className="btn sm primary" type="submit" disabled={pending}>
-        {pending ? "…" : "Exécuté"}
+        {t(pending ? "…" : "Exécuté")}
       </button>
       <Msg state={state} />
     </form>
@@ -65,7 +65,7 @@ export function IngestForm({ defaultDate }: { defaultDate: string }) {
     <form action={action} className={styles.inline}>
       <input name="sessionDate" type="date" defaultValue={defaultDate} aria-label={t("Séance")} className={styles.date} required />
       <button className="btn sm primary" type="submit" disabled={pending}>
-        {pending ? "Téléchargement et lecture…" : "Ingérer le bulletin"}
+        {t(pending ? "Téléchargement et lecture…" : "Ingérer le bulletin")}
       </button>
       <Msg state={state} />
     </form>
@@ -79,7 +79,7 @@ export function UploadForm() {
     <form action={action} className={styles.inline}>
       <input name="file" type="file" accept="application/pdf" aria-label={t("PDF du bulletin")} className={styles.date} required />
       <button className="btn sm" type="submit" disabled={pending}>
-        {pending ? "Lecture…" : "Lire ce PDF"}
+        {t(pending ? "Lecture…" : "Lire ce PDF")}
       </button>
       <Msg state={state} />
     </form>
@@ -87,11 +87,12 @@ export function UploadForm() {
 }
 
 export function HideButton({ offerId, hidden }: { offerId: string; hidden: boolean }) {
+  const t = useT();
   return (
     <form action={toggleHiddenAction} className={styles.inline}>
       <input type="hidden" name="offerId" value={offerId} />
-      <button className="btn sm" type="submit" title={hidden ? "Réafficher cette ligne dans le Guichet" : "Masquer cette ligne du Guichet (elle reste cotée ici)"}>
-        {hidden ? "Afficher" : "Masquer"}
+      <button className="btn sm" type="submit" title={t(hidden ? "Réafficher cette ligne dans le Guichet" : "Masquer cette ligne du Guichet (elle reste cotée ici)")}>
+        {t(hidden ? "Afficher" : "Masquer")}
       </button>
     </form>
   );
@@ -112,7 +113,7 @@ export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { dist
       <input name="minAmount" type="number" step={1000} min={0} defaultValue={fund.minAmount} placeholder={t("minimum")} aria-label={t("Souscription minimale (FCFA)")} className={styles.num} />
       <input name="cutoff" defaultValue={fund.cutoff ?? ""} placeholder={t("centralisation (ex. mardi 12 h)")} aria-label={t("Centralisation")} className={styles.wide} />
       <button className="btn sm" type="submit" disabled={pending}>
-        {pending ? "…" : "Enregistrer"}
+        {t(pending ? "…" : "Enregistrer")}
       </button>
       <Msg state={state} />
     </form>

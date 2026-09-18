@@ -97,7 +97,7 @@ async function Reference({ o }: { o: Offer }) {
     const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, 10_000_000, price);
     return (
       <>
-        <h3>Pour 10 000 000 FCFA de nominal, au prix {o.servedPricePct ? "servi" : "Purpose"}</h3>
+        <h3>Pour 10 000 000 FCFA de nominal, au prix {t(o.servedPricePct ? "servi" : "Purpose")}</h3>
         <div className="out">
           <div>Titres (nominal {fmt(o.nominal)})</div>
           <div>{fmt(r.titles)}</div>

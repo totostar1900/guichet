@@ -78,7 +78,7 @@ export async function NavHistory({ navs }: { navs: FundNav[] }) {
           </dd>
         </div>
         <div>
-          <dt>Depuis l&apos;origine</dt>
+          <dt>{t("Depuis l'origine")}</dt>
           <dd>
             {signed(latest.perfSinceInceptionPct)} <small className={styles.muted}>(VL d&apos;origine {fmt(latest.navOrigin)}, {fmtDate(latest.inceptionDate)})</small>
           </dd>

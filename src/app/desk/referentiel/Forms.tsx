@@ -37,7 +37,7 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
           <input name="short" defaultValue={t?.short} maxLength={14} required />
         </label>
         <label>
-          <span>Ordre d&apos;affichage</span>
+          <span>{tr("Ordre d'affichage")}</span>
           <input name="sort" type="number" min={0} max={999} defaultValue={t?.sort ?? 500} />
         </label>
       </div>
@@ -95,7 +95,7 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
       </label>
       <label>
         <span>{tr("Champs libres affichés sur la fiche — une ligne par champ : cle|Libellé|oui (obligatoire) ou non")}</span>
-        <textarea name="fields" rows={3} defaultValue={t?.fields.map((f) => `${f.key}|${f.label}|${f.required ? "oui" : "non"}`).join("\n")} placeholder={"garantie|Garantie|non\nagent_payeur|Agent payeur|oui"} />
+        <textarea name="fields" rows={3} defaultValue={t?.fields.map((f) => `${f.key}|${f.label}|${tr(f.required ? "oui" : "non")}`).join("\n")} placeholder={"garantie|Garantie|non\nagent_payeur|Agent payeur|oui"} />
       </label>
       <div className={styles.actions}>
         <label className={styles.inlineCheck}>
@@ -126,7 +126,7 @@ export function TermForm({ t }: { t?: BondTerms }) {
         </label>
         <label>
           <span>{tr("Paiements par an")}</span>
-          <Select block name="periodsPerYear" value={String(t?.periodsPerYear ?? 1)} options={[{ value: "1", label: "1 — annuel" }, { value: "2", label: "2 — semestriel" }, { value: "4", label: "4 — trimestriel" }]} />
+          <Select block name="periodsPerYear" value={String(t?.periodsPerYear ?? 1)} options={[{ value: "1", label: tr("1 — annuel") }, { value: "2", label: tr("2 — semestriel") }, { value: "4", label: tr("4 — trimestriel") }]} />
         </label>
       </div>
       <div className={styles.row3}>
@@ -141,7 +141,7 @@ export function TermForm({ t }: { t?: BondTerms }) {
       </div>
       <div className={styles.actions}>
         <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : "Enregistrer"}
+          {tr(pending ? "…" : "Enregistrer")}
         </button>
       </div>
       <Msg state={state} />
@@ -174,7 +174,7 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
       </label>
       <div className={styles.actions}>
         <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : "Enregistrer"}
+          {tr(pending ? "…" : "Enregistrer")}
         </button>
       </div>
       <Msg state={state} />
@@ -234,7 +234,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
       <div className={styles.row3}>
         <label>
           <span>{tr("Bonne réponse")}</span>
-          <Select block name="answer" value={String(l?.quiz.answer ?? 0)} options={[{ value: "0", label: "Réponse 1" }, { value: "1", label: "Réponse 2" }, { value: "2", label: "Réponse 3" }]} />
+          <Select block name="answer" value={String(l?.quiz.answer ?? 0)} options={[{ value: "0", label: tr("Réponse 1") }, { value: "1", label: tr("Réponse 2") }, { value: "2", label: tr("Réponse 3") }]} />
         </label>
         <label className={styles.span2}>
           <span>{tr("Pourquoi (une phrase, affichée après la réponse)")}</span>
@@ -247,7 +247,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
       </label>
       <div className={styles.actions}>
         <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : "Enregistrer la leçon"}
+          {tr(pending ? "…" : "Enregistrer la leçon")}
         </button>
       </div>
       <Msg state={state} />

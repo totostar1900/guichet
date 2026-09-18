@@ -62,7 +62,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
         <div className={styles.actions}>
           {listedLine && (
             <Link className="btn" href={`/offres/${listedLine.id}?intent=achat`}>
-              Acheter l&apos;action
+              {t("Acheter l'action")}
             </Link>
           )}
           <a className="btn" href={`/societes/${c.mnemo.toLowerCase()}/rapport?p=${p}`} target="_blank" rel="noreferrer">
@@ -114,7 +114,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
           <div className={styles.panel}>
             <div className={styles.panelH}>
               <h2>
-                Cours de l&apos;action <Info term="cours" />
+                {t("Cours de l'action")} <Info term="cours" />
               </h2>
               <nav className={styles.periods} aria-label={t("Période")}>
                 {PERIODS.map(([k, l]) => (
@@ -274,7 +274,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
           </div>
 
           <div className={styles.panel}>
-            <h2>Documents publiés ({c.documents.length})</h2>
+            <h2>{t("Documents publiés")} ({c.documents.length})</h2>
             <div className={styles.docs}>
               {[...c.documents]
                 .sort((x, y) => y.year - x.year)

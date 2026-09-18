@@ -66,7 +66,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
       <div className={styles.cols}>
         <div className="panel">
           <div className="panel-h">
-            <h2>Versions ({versions.length})</h2>
+            <h2>{t("Versions")} ({versions.length})</h2>
             <span className="muted">{t("Chaque publication garde la fiche complète ; restaurer crée une nouvelle version, jamais un effacement.")}</span>
           </div>
           {versions.length === 0 && <div className="empty">{t("Aucune version enregistrée (ligne antérieure à l'historique ou reprise du bulletin).")}</div>}
@@ -111,7 +111,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
 
         <div className="panel">
           <div className="panel-h">
-            <h2>Piste d&apos;audit ({trail.length})</h2>
+            <h2>{t("Piste d'audit")} ({trail.length})</h2>
             <span className="muted">{t("Qui, quoi, quand, d'où — chaîné, jamais modifié.")}</span>
           </div>
           {trail.length === 0 && <div className="empty">{t("Aucune action tracée sur cette ligne.")}</div>}

@@ -13,7 +13,7 @@ export function NewSourceForm({ extraction }: { extraction: boolean }) {
       <div className={styles.vHead}>
         <h2 className="display">{t("Nouvelle source")}</h2>
         <span className="muted" style={{ fontSize: ".8rem" }}>
-          Communiqué, teaser, e-mail transféré, photo d&apos;écran… {extraction ? "Les champs sont extraits automatiquement, puis vérifiés par vous." : "Les champs seront à renseigner à la main."}
+          Communiqué, teaser, e-mail transféré, photo d&apos;écran… {t(extraction ? "Les champs sont extraits automatiquement, puis vérifiés par vous." : "Les champs seront à renseigner à la main.")}
         </span>
       </div>
       <form action={action} className={styles.newForm}>

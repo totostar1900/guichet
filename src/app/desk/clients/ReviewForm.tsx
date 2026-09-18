@@ -27,7 +27,7 @@ function AccountForm({ file }: { file: ClientFile }) {
       {state && (state.ok ? <div className={styles.okMsg}>{state.message}</div> : <div className={styles.errMsg}>{state.error}</div>)}
       <div className={styles.actions}>
         <button className="btn primary" type="submit" disabled={pending}>
-          {pending ? "…" : "Enregistrer et activer le compte"}
+          {t(pending ? "…" : "Enregistrer et activer le compte")}
         </button>
       </div>
     </form>
@@ -147,7 +147,7 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
             {t("Enregistrer la revue")}
           </button>
           <button className="btn primary" type="submit" name="decision" value="approuve" disabled={pending}>
-            {pending ? "…" : "Approuver et ouvrir le compte"}
+            {t(pending ? "…" : "Approuver et ouvrir le compte")}
           </button>
         </div>
       )}

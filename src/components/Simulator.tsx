@@ -28,7 +28,7 @@ export function Simulator() {
       <div className={styles.calc}>
         <label className="field">
           {t("Type")}
-          <Select block value={kind} onChange={(v) => setKind(v as "OTA" | "BTA")} options={[{ value: "OTA", label: "Obligation à coupon annuel (OTA, APE)" }, { value: "BTA", label: "Bon à intérêts précomptés (BTA)" }]} />
+          <Select block value={kind} onChange={(v) => setKind(v as "OTA" | "BTA")} options={[{ value: "OTA", label: t("Obligation à coupon annuel (OTA, APE)") }, { value: "BTA", label: t("Bon à intérêts précomptés (BTA)") }]} />
         </label>
         <label className="field">
           {t("Montant nominal (FCFA)")}
@@ -102,7 +102,7 @@ export function Simulator() {
               <div>{fmt(r.outlay)} FCFA</div>
               <div>{t("Gain brut jusqu'au terme")}</div>
               <div>{fmt(r.gain)}</div>
-              <div className="hl">{atPar ? "Taux nominal (au pair)" : "Rendement actuariel brut"}</div>
+              <div className="hl">{t(atPar ? "Taux nominal (au pair)" : "Rendement actuariel brut")}</div>
               <div>{fmtPct(atPar ? coupon : r.irr, 2)}</div>
               {atPar && (
                 <>

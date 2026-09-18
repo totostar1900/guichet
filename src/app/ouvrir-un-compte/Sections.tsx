@@ -80,8 +80,8 @@ export function IdentitySection({ file, editable }: P) {
                 <input name="taxId" defaultValue={id.taxId} />
               </label>
               <label className="field">
-                Pièce d&apos;identité
-                <Select block name="idType" value={id.idType ?? "CNI"} options={[{ value: "CNI", label: "CNI" }, { value: "Passeport", label: "Passeport" }, { value: "Carte de séjour", label: "Carte de séjour" }]} />
+                {t("Pièce d'identité")}
+                <Select block name="idType" value={id.idType ?? "CNI"} options={[{ value: "CNI", label: "CNI" }, { value: "Passeport", label: t("Passeport") }, { value: "Carte de séjour", label: t("Carte de séjour") }]} />
               </label>
               <label className="field">
                 {t("Numéro de la pièce")}
@@ -101,7 +101,7 @@ export function IdentitySection({ file, editable }: P) {
               <label className="field">
                 {file.kind === "groupement" ? "Forme du groupement" : "Forme juridique"}
                 {file.kind === "groupement" ? (
-                  <Select block name="legalForm" value={id.legalForm ?? ""} options={[{ value: "", label: "—" }, { value: "association déclarée", label: "Association déclarée (compte au nom de l'association)" }, { value: "indivision de mandataires", label: "Groupe informel — compte en indivision au nom des mandataires (jusqu'à 25 M FCFA)" }, { value: "coopérative / GIC", label: "Coopérative ou GIC" }]} />
+                  <Select block name="legalForm" value={id.legalForm ?? ""} options={[{ value: "", label: "—" }, { value: "association déclarée", label: t("Association déclarée (compte au nom de l'association)") }, { value: "indivision de mandataires", label: t("Groupe informel — compte en indivision au nom des mandataires (jusqu'à 25 M FCFA)") }, { value: "coopérative / GIC", label: t("Coopérative ou GIC") }]} />
                 ) : (
                   <input name="legalForm" defaultValue={id.legalForm} placeholder={t("SARL, SA, SAS…")} />
                 )}
@@ -173,7 +173,7 @@ export function PersonsSection({ file, editable }: P) {
         <fieldset disabled={!editable} className={styles.grid}>
           <label className="field">
             {t("Rôle")}
-            <Select block name="role" value={file.kind === "groupement" ? "mandataire" : "representant"} options={[{ value: "representant", label: "Représentant légal / signataire" }, { value: "mandataire", label: "Mandataire" }, { value: "beneficiaire_effectif", label: "Bénéficiaire effectif (> 25 %)" }]} />
+            <Select block name="role" value={file.kind === "groupement" ? "mandataire" : "representant"} options={[{ value: "representant", label: t("Représentant légal / signataire") }, { value: "mandataire", label: t("Mandataire") }, { value: "beneficiaire_effectif", label: t("Bénéficiaire effectif (> 25 %)") }]} />
           </label>
           <label className="field">
             Nom et prénom(s)
@@ -275,11 +275,11 @@ export function FundsSection({ file, editable }: P) {
         <fieldset disabled={!editable} className={styles.grid}>
           <label className="field">
             {t("Origine des fonds investis")}
-            <Select block name="source" value={f.source ?? ""} options={[{ value: "", label: "—" }, { value: "Revenus professionnels / salaires", label: "Revenus professionnels / salaires" }, { value: "Épargne accumulée", label: "Épargne accumulée" }, { value: "Revenus d'activité de l'entreprise", label: "Revenus d'activité de l'entreprise" }, { value: "Cotisations des membres", label: "Cotisations des membres" }, { value: "Cession d'actifs / héritage", label: "Cession d'actifs / héritage" }, { value: "Autre (préciser dans le message au desk)", label: "Autre (préciser dans le message au desk)" }]} />
+            <Select block name="source" value={f.source ?? ""} options={[{ value: "", label: "—" }, { value: "Revenus professionnels / salaires", label: t("Revenus professionnels / salaires") }, { value: "Épargne accumulée", label: t("Épargne accumulée") }, { value: "Revenus d'activité de l'entreprise", label: t("Revenus d'activité de l'entreprise") }, { value: "Cotisations des membres", label: t("Cotisations des membres") }, { value: "Cession d'actifs / héritage", label: t("Cession d'actifs / héritage") }, { value: "Autre (préciser dans le message au desk)", label: t("Autre (préciser dans le message au desk)") }]} />
           </label>
           <label className="field">
             {t("Montant envisagé sur 12 mois (FCFA)")}
-            <Select block name="expectedAmount" value={f.expectedAmount ?? ""} options={[{ value: "", label: "—" }, { value: "Moins de 5 millions", label: "Moins de 5 millions" }, { value: "5 à 25 millions", label: "5 à 25 millions" }, { value: "25 à 100 millions", label: "25 à 100 millions" }, { value: "Plus de 100 millions", label: "Plus de 100 millions" }]} />
+            <Select block name="expectedAmount" value={f.expectedAmount ?? ""} options={[{ value: "", label: "—" }, { value: "Moins de 5 millions", label: t("Moins de 5 millions") }, { value: "5 à 25 millions", label: t("5 à 25 millions") }, { value: "25 à 100 millions", label: t("25 à 100 millions") }, { value: "Plus de 100 millions", label: t("Plus de 100 millions") }]} />
           </label>
           <label className="field">
             {t("Banque du compte de règlement (au nom du client)")}
@@ -302,23 +302,23 @@ export function FundsSection({ file, editable }: P) {
           </label>
           <label className="field">
             {t("Objectif principal")}
-            <Select block name="objectives" value={p.objectives ?? ""} options={[{ value: "", label: "—" }, { value: "Revenus réguliers (coupons)", label: "Revenus réguliers (coupons)" }, { value: "Préserver le capital", label: "Préserver le capital" }, { value: "Faire croître le capital", label: "Faire croître le capital" }, { value: "Placer une trésorerie", label: "Placer une trésorerie" }]} />
+            <Select block name="objectives" value={p.objectives ?? ""} options={[{ value: "", label: "—" }, { value: "Revenus réguliers (coupons)", label: t("Revenus réguliers (coupons)") }, { value: "Préserver le capital", label: t("Préserver le capital") }, { value: "Faire croître le capital", label: t("Faire croître le capital") }, { value: "Placer une trésorerie", label: t("Placer une trésorerie") }]} />
           </label>
           <label className="field">
             {t("Horizon")}
-            <Select block name="horizon" value={p.horizon ?? ""} options={[{ value: "", label: "—" }, { value: "Moins d'un an", label: "Moins d'un an" }, { value: "1 à 3 ans", label: "1 à 3 ans" }, { value: "3 à 5 ans", label: "3 à 5 ans" }, { value: "Plus de 5 ans", label: "Plus de 5 ans" }]} />
+            <Select block name="horizon" value={p.horizon ?? ""} options={[{ value: "", label: "—" }, { value: "Moins d'un an", label: t("Moins d'un an") }, { value: "1 à 3 ans", label: t("1 à 3 ans") }, { value: "3 à 5 ans", label: t("3 à 5 ans") }, { value: "Plus de 5 ans", label: t("Plus de 5 ans") }]} />
           </label>
           <label className="field">
             {t("Expérience des titres")}
-            <Select block name="experience" value={p.experience ?? ""} options={[{ value: "", label: "—" }, { value: "Aucune", label: "Aucune" }, { value: "Bons ou obligations du Trésor déjà détenus", label: "Bons ou obligations du Trésor déjà détenus" }, { value: "Actions cotées déjà détenues", label: "Actions cotées déjà détenues" }, { value: "Professionnel de la finance", label: "Professionnel de la finance" }]} />
+            <Select block name="experience" value={p.experience ?? ""} options={[{ value: "", label: "—" }, { value: "Aucune", label: t("Aucune") }, { value: "Bons ou obligations du Trésor déjà détenus", label: t("Bons ou obligations du Trésor déjà détenus") }, { value: "Actions cotées déjà détenues", label: t("Actions cotées déjà détenues") }, { value: "Professionnel de la finance", label: t("Professionnel de la finance") }]} />
           </label>
           <label className="field">
             {t("Tolérance au risque")}
-            <Select block name="riskTolerance" value={p.riskTolerance ?? ""} options={[{ value: "", label: "—" }, { value: "Aucune perte acceptable", label: "Aucune perte acceptable" }, { value: "Petites fluctuations acceptables", label: "Petites fluctuations acceptables" }, { value: "Pertes temporaires acceptables pour un meilleur rendement", label: "Pertes temporaires acceptables pour un meilleur rendement" }]} />
+            <Select block name="riskTolerance" value={p.riskTolerance ?? ""} options={[{ value: "", label: "—" }, { value: "Aucune perte acceptable", label: t("Aucune perte acceptable") }, { value: "Petites fluctuations acceptables", label: t("Petites fluctuations acceptables") }, { value: "Pertes temporaires acceptables pour un meilleur rendement", label: t("Pertes temporaires acceptables pour un meilleur rendement") }]} />
           </label>
           <label className="field">
             {t("Capacité à supporter une perte")}
-            <Select block name="lossCapacity" value={p.lossCapacity ?? ""} options={[{ value: "", label: "—" }, { value: "Faible — ces fonds sont nécessaires à court terme", label: "Faible — ces fonds sont nécessaires à court terme" }, { value: "Moyenne", label: "Moyenne" }, { value: "Élevée — épargne de long terme", label: "Élevée — épargne de long terme" }]} />
+            <Select block name="lossCapacity" value={p.lossCapacity ?? ""} options={[{ value: "", label: "—" }, { value: "Faible — ces fonds sont nécessaires à court terme", label: t("Faible — ces fonds sont nécessaires à court terme") }, { value: "Moyenne", label: t("Moyenne") }, { value: "Élevée — épargne de long terme", label: t("Élevée — épargne de long terme") }]} />
           </label>
         </fieldset>
         <Msg state={state} />
@@ -356,7 +356,7 @@ export function ConsentSection({ file, editable }: P) {
       </div>
       {accepted ? (
         <div className={styles.ok}>
-          Convention acceptée le {fmtDateTime(c.conventionAt!)} par {c.conventionMethod}. {c.whatsappAt ? "Notifications WhatsApp activées." : "Notifications par e-mail."}
+          Convention acceptée le {fmtDateTime(c.conventionAt!)} par {c.conventionMethod}. {t(c.whatsappAt ? "Notifications WhatsApp activées." : "Notifications par e-mail.")}
         </div>
       ) : (
         <>
@@ -386,7 +386,7 @@ export function ConsentSection({ file, editable }: P) {
                 <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} />
               </label>
               <button className="btn primary" type="submit" disabled={verifying}>
-                {verifying ? "…" : "J'accepte la convention"}
+                {t(verifying ? "…" : "J'accepte la convention")}
               </button>
             </fieldset>
             <Msg state={verState} />

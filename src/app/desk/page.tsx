@@ -227,15 +227,15 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
             placeholder={t("Réf., client, ligne, téléphone…")}
             chipKey="etat"
             chips={[
-              { value: "", label: "Toutes", count: intents.length },
-              { value: "recue", label: "À traiter", count: counts.recue },
-              { value: "confirmee", label: "Confirmées", count: counts.confirmee },
-              { value: "transmise", label: "Transmises", count: counts.transmise },
-              { value: "finie", label: "Servies · réglées", count: counts.finie },
-              { value: "annulee", label: "Annulées", count: counts.annulee },
+              { value: "", label: t("Toutes"), count: intents.length },
+              { value: "recue", label: t("À traiter"), count: counts.recue },
+              { value: "confirmee", label: t("Confirmées"), count: counts.confirmee },
+              { value: "transmise", label: t("Transmises"), count: counts.transmise },
+              { value: "finie", label: t("Servies · réglées"), count: counts.finie },
+              { value: "annulee", label: t("Annulées"), count: counts.annulee },
             ]}
-            selects={[{ key: "ligne", label: "Ligne", all: "toutes les lignes", options: lines }]}
-            sort={{ key: "tri", label: "Tri", options: [{ value: "recent", label: "plus récent" }, { value: "ancien", label: "plus ancien" }, { value: "montant", label: "montant" }, { value: "client", label: "client" }] }}
+            selects={[{ key: "ligne", label: t("Ligne"), all: "toutes les lignes", options: lines }]}
+            sort={{ key: "tri", label: t("Tri"), options: [{ value: "recent", label: t("plus récent") }, { value: "ancien", label: t("plus ancien") }, { value: "montant", label: t("montant") }, { value: "client", label: t("client") }] }}
           />
         </Suspense>
         <div className="scroll-x">

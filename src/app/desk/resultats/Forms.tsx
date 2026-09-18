@@ -76,7 +76,7 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
       <div className={styles.foot}>
         <small className="muted">0 % = non servi. Les avis de résultat sont générés et envoyés à la validation.</small>
         <button className="btn primary" type="submit" disabled={pending}>
-          {pending ? "Application…" : "Appliquer les résultats"}
+          {t(pending ? "Application…" : "Appliquer les résultats")}
         </button>
       </div>
     </form>

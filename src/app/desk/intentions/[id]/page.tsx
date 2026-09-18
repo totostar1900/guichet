@@ -89,7 +89,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               <LineIdentity o={o} s={s} href={`/offres/${o.id}`} size="lg" />
               <div className={styles.lineFacts}>
                 <div>
-                  <span>{s.gold ? "Rendement" : "Repère"}</span>
+                  <span>{t(s.gold ? "Rendement" : "Repère")}</span>
                   <b className={s.gold ? styles.gold : undefined}>{s.hero}</b>
                   <small>{s.heroSub}</small>
                 </div>

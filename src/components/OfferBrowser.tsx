@@ -311,7 +311,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge }:
           </div>
         </div>
         <button type="button" className={`btn primary ${styles.sheetApply}`} onClick={onClose}>
-          {t("Voir")} {count} {t(count > 1 ? "lignes" : "ligne")}
+          {t("Voir")} {count} {count > 1 ? "lignes" : "ligne"}
         </button>
       </div>
     </>
@@ -385,10 +385,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (segment ? 1 : 0);
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
-    { key: "instrument", label: "Instrument", items: famItems, selected: kind },
-    { key: "pays", label: "Pays", items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
-    { key: "statut", label: "Statut", items: STATUSES, selected: status },
-    { key: "duree", label: "Durée", items: TENORS, selected: tenor },
+    { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
+    { key: "pays", label: t("Pays"), items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
+    { key: "statut", label: t("Statut"), items: STATUSES, selected: status },
+    { key: "duree", label: t("Durée"), items: TENORS, selected: tenor },
   ];
   const toggle = (key: string, value: string, single?: boolean) => {
     if (key === "rendement") return update({ rendement: undefined });

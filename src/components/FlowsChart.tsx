@@ -13,7 +13,7 @@ import { fmt, fmtDate, fmtUnits } from "@/lib/format";
 export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string }) {
   const t = useT();
   const [hover, setHover] = useState<number | null>(null);
-  const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: "Souscription" }, ...r.flows];
+  const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: t("Souscription") }, ...r.flows];
   const W = 560;
   const H = 276;
   const padL = 16;

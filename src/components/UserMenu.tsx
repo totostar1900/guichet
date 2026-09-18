@@ -21,7 +21,7 @@ export async function UserMenu({ session }: { session: Session | null }) {
     .toUpperCase();
   return (
     <div className={styles.menu}>
-      <Link href={isDesk(session) ? "/desk" : "/moi"} className={styles.who}>
+      <Link href={t(isDesk(session) ? "/desk" : "/moi")} className={styles.who}>
         <b>{session.name}</b>
         <span>{isDesk(session) ? "Desk" : t(session.segment)}</span>
       </Link>

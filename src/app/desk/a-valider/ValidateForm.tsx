@@ -273,7 +273,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>) || (revState && !revState.ok && <div className={styles.error}>{revState.error}</div>) || (backState && !backState.ok && <div className={styles.error}>{backState.error}</div>)}
         {item.notes && (
           <div className={styles.reviewNote}>
-            <span className="eyebrow">{inReview ? "En revue" : "Dernière note"}</span> {item.notes}
+            <span className="eyebrow">{tr(inReview ? "En revue" : "Dernière note")}</span> {item.notes}
           </div>
         )}
         {revState?.ok && <div className={styles.okMsg}>{tr("Relecture demandée — le brouillon passe « en revue ».")}</div>}
@@ -304,20 +304,20 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
           </button>
           {!published && (
             <span className={styles.reviewBox}>
-              <input name="reviewNote" placeholder={inReview ? "Ce qui reste à corriger…" : "À vérifier par le relecteur…"} aria-label={tr("Note de revue")} maxLength={300} />
+              <input name="reviewNote" placeholder={tr(inReview ? "Ce qui reste à corriger…" : "À vérifier par le relecteur…")} aria-label={tr("Note de revue")} maxLength={300} />
               {inReview ? (
                 <button className="btn sm" type="submit" formAction={backAct} disabled={sendingBack} formNoValidate>
-                  {sendingBack ? "…" : "Renvoyer en correction"}
+                  {tr(sendingBack ? "…" : "Renvoyer en correction")}
                 </button>
               ) : (
                 <button className="btn sm" type="submit" formAction={revAct} disabled={reviewing || !official} formNoValidate>
-                  {reviewing ? "…" : "Demander une relecture"}
+                  {tr(reviewing ? "…" : "Demander une relecture")}
                 </button>
               )}
             </span>
           )}
           <button className="btn" type="submit" formAction={saveAct} disabled={saving}>
-            {saving ? "Enregistrement…" : "Enregistrer le brouillon"}
+            {tr(saving ? "Enregistrement…" : "Enregistrer le brouillon")}
           </button>
           <button className="btn primary" type="submit" formAction={pubAct} disabled={publishing || !official || missing.length > 0}>
             {publishing ? "Publication…" : published ? `Publier la version ${(offer?.version ?? 0) + 1}` : "Publier et diffuser"}

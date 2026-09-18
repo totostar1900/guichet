@@ -68,11 +68,11 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
             </datalist>
           </label>
           <label>
-            <span>Jusqu&apos;au</span>
+            <span>{t("Jusqu'au")}</span>
             <input name="until" type="date" key={pick} defaultValue={chosen?.deadline ?? today} min={today} required />
           </label>
           <button className="btn sm primary" type="submit" disabled={pending}>
-            {pending ? "…" : "Mettre à la une"}
+            {t(pending ? "…" : "Mettre à la une")}
           </button>
           {state && <small className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</small>}
         </form>
@@ -93,7 +93,7 @@ function BroadcastForm({ offerId }: { offerId: string }) {
         <input type="checkbox" name="confirm" value="1" /> {t("Confirmer")}
       </label>
       <button className="btn sm primary" type="submit" disabled={pending}>
-        {pending ? "…" : "Diffuser comme opportunité du moment"}
+        {t(pending ? "…" : "Diffuser comme opportunité du moment")}
       </button>
       {state && <small className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</small>}
     </form>

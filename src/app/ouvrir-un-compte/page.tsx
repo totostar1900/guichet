@@ -55,7 +55,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         </div>
       </div>
 
-      {sp.soumis === "1" && file.status === "soumis" && <div className={styles.okBanner}>Dossier reçu. Nous vous prévenons {file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail"} dès la décision — en général sous 24 h ouvrées.</div>}
+      {sp.soumis === "1" && file.status === "soumis" && <div className={styles.okBanner}>Dossier reçu. Nous vous prévenons {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} dès la décision — en général sous 24 h ouvrées.</div>}
 
       <ol className={styles.rail}>
         {steps.map(([label, done], i) => (

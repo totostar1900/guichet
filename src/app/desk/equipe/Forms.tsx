@@ -22,10 +22,10 @@ export function AddStaffForm() {
       </label>
       <label>
         <span>{t("Niveau")}</span>
-        <Select block name="role" value="desk" options={[{ value: "desk", label: "Opérateur desk" }, { value: "responsable", label: "Responsable" }]} />
+        <Select block name="role" value="desk" options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable") }]} />
       </label>
       <button className="btn sm primary" type="submit" disabled={pending}>
-        {pending ? "…" : "Donner l'accès"}
+        {t(pending ? "…" : "Donner l'accès")}
       </button>
       <Msg state={state} />
     </form>
@@ -39,9 +39,9 @@ export function RoleForm({ userId, role, self }: { userId: string; role: "desk" 
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="userId" value={userId} />
-      <Select compact name="role" value={role} label="Niveau" options={[{ value: "desk", label: "Opérateur desk" }, { value: "responsable", label: "Responsable" }, { value: "client", label: "— retirer l'accès" }]} />
+      <Select compact name="role" value={role} label="Niveau" options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable") }, { value: "client", label: t("— retirer l'accès") }]} />
       <button className="btn sm" type="submit" disabled={pending}>
-        {pending ? "…" : "Appliquer"}
+        {t(pending ? "…" : "Appliquer")}
       </button>
       <Msg state={state} />
     </form>

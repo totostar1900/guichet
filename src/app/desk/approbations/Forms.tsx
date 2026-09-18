@@ -19,7 +19,7 @@ export function DecideForm({ id }: { id: string }) {
       <input type="hidden" name="id" value={id} />
       <input name="note" placeholder={t("Note (obligatoire pour refuser)")} aria-label={t("Note")} maxLength={500} />
       <button className="btn sm primary" type="submit" name="decision" value="approuve" disabled={pending}>
-        {pending ? "…" : "Approuver et publier"}
+        {t(pending ? "…" : "Approuver et publier")}
       </button>
       <button className="btn sm ghost" type="submit" name="decision" value="refuse" disabled={pending}>
         {t("Refuser")}
@@ -65,7 +65,7 @@ export function PolicyForm({ p }: { p: ApprovalPolicy }) {
       </div>
       <div className={styles.row}>
         <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : "Enregistrer la fenêtre"}
+          {t(pending ? "…" : "Enregistrer la fenêtre")}
         </button>
         <Msg state={state} />
       </div>

@@ -22,7 +22,7 @@ export function ContactForm({ phone, email }: { phone?: string; email?: string }
       <div className={styles.contactFoot}>
         <small className="muted">{t("Accusés de réception sur WhatsApp et par e-mail ; bulletins et appels de fonds par e-mail ; rappels d'un conseiller par téléphone.")}</small>
         <button className="btn" type="submit" disabled={pending}>
-          {pending ? "Enregistrement…" : "Enregistrer"}
+          {t(pending ? "Enregistrement…" : "Enregistrer")}
         </button>
       </div>
       {state && !state.ok && <div className={styles.contactErr}>{state.error}</div>}

@@ -51,7 +51,7 @@ export default async function ResultsPage() {
               {a.issuer} — adjudication du {fmtDate(a.deadlineAt)}
             </h2>
             <span className="muted" style={{ fontSize: ".8rem" }}>
-              {parseDate(a.deadlineAt) > now ? "clôture à venir · " : ""}{a.toResult} ordre{a.toResult > 1 ? "s" : ""} en attente de résultats · {a.toSettle} servi{a.toSettle > 1 ? "s" : ""} à régler · règlement le {fmtDate(a.offers[0].settleOn)}
+              {t(parseDate(a.deadlineAt) > now ? "clôture à venir · " : "")}{a.toResult} ordre{a.toResult > 1 ? "s" : ""} en attente de résultats · {a.toSettle} servi{a.toSettle > 1 ? "s" : ""} à régler · règlement le {fmtDate(a.offers[0].settleOn)}
             </span>
           </div>
 

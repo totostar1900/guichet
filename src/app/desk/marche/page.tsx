@@ -152,7 +152,7 @@ export default async function MarketPage() {
                       </b>
                       <br />
                       <span className="mono muted">{o.isin}</span>
-                      <small className="muted"> · {isBond ? "obligation · % du nominal" : "action · FCFA"}</small>
+                      <small className="muted"> · {t(isBond ? "obligation · % du nominal" : "action · FCFA")}</small>
                     </td>
                     <td>
                       <span className={styles.src}>{o.priceSource === "boc" ? "Bulletin BVMAC" : o.priceSource === "desk" ? "Saisie desk" : "Amorce"}</span>

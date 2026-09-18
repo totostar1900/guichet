@@ -95,7 +95,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   <dt>{t("Adresse")}</dt>
                   <dd>{[selected.identity.address, selected.identity.city, selected.identity.country].filter(Boolean).join(", ") || "—"}</dd>
                   <dt>{t("Résident hors CEMAC")}</dt>
-                  <dd>{selected.identity.residentAbroad ? "oui" : "non"}</dd>
+                  <dd>{t(selected.identity.residentAbroad ? "oui" : "non")}</dd>
                   <dt>{t("Origine des fonds")}</dt>
                   <dd>
                     {selected.funds.source ?? "—"}

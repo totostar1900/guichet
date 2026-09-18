@@ -98,7 +98,7 @@ export default async function EmetteurPage({ params }: Props) {
                     <LineIdentity o={o} s={s} />
                     <div className={styles.lineFacts}>
                       <div>
-                        <span>{dy.atPar ? "Taux nominal" : "Rendement"}</span>
+                        <span>{tr(dy.atPar ? "Taux nominal" : "Rendement")}</span>
                         <b className={dy.pct != null ? styles.goldTxt : undefined}>{s.hero}</b>
                         <small>{s.heroUnit ?? s.heroSub}</small>
                       </div>
@@ -221,7 +221,7 @@ export default async function EmetteurPage({ params }: Props) {
           </div>
 
           <div className={styles.panel}>
-            <h2>Documents publiés ({i.documents.length})</h2>
+            <h2>{tr("Documents publiés")} ({i.documents.length})</h2>
             <div className={styles.docs}>
               {i.documents.map((d) => (
                 <a key={d.url} href={d.url} target="_blank" rel="noreferrer">

@@ -12,7 +12,7 @@ export function BotBench({ contacts }: { contacts: { name: string; phone: string
     <form action={action} style={{ padding: "12px 16px", display: "grid", gridTemplateColumns: "260px 1fr", gap: 12, alignItems: "start" }}>
       <label className="field">
         {t("Numéro de l'expéditeur")}
-        <Select block name="phone" value={contacts[0]?.phone ?? ""} options={[...contacts.map((c) => ({ value: c.phone ?? "", label: `${c.name} · ${c.phone}` })), { value: "+237600000000", label: "Numéro inconnu · +237600000000" }]} />
+        <Select block name="phone" value={contacts[0]?.phone ?? ""} options={[...contacts.map((c) => ({ value: c.phone ?? "", label: `${c.name} · ${c.phone}` })), { value: "+237600000000", label: t("Numéro inconnu · +237600000000") }]} />
       </label>
       <label className="field">
         {t("Message reçu")}
@@ -23,7 +23,7 @@ export function BotBench({ contacts }: { contacts: { name: string; phone: string
       </label>
       <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
         <button className="btn primary" type="submit" disabled={pending}>
-          {pending ? "Le robot réfléchit…" : "Tester"}
+          {t(pending ? "Le robot réfléchit…" : "Tester")}
         </button>
       </div>
       {state && (

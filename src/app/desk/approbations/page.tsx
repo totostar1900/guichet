@@ -35,7 +35,7 @@ export default async function ApprobationsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>En attente ({open.length})</h2>
+          <h2>{t("En attente")} ({open.length})</h2>
           {!resp && <span className="muted">{t("Seul un responsable décide.")}</span>}
         </div>
         {open.length === 0 && <div className="empty">{t("Rien à approuver.")}</div>}
@@ -73,7 +73,7 @@ export default async function ApprobationsPage() {
                   )}
                 </tbody>
               </table>
-              {resp && a.requestedBy !== me.name ? <DecideForm id={a.id} /> : <small className="muted">{a.requestedBy === me.name ? "Votre proposition : un autre responsable doit décider." : ""}</small>}
+              {resp && a.requestedBy !== me.name ? <DecideForm id={a.id} /> : <small className="muted">{t(a.requestedBy === me.name ? "Votre proposition : un autre responsable doit décider." : "")}</small>}
             </div>
           );
         })}
@@ -83,7 +83,7 @@ export default async function ApprobationsPage() {
         <div className="panel" data-coach="window">
           <div className="panel-h">
             <h2>{t("Fenêtre déléguée")}</h2>
-            <span className="muted">{policy.enabled ? "active" : "désactivée"}</span>
+            <span className="muted">{t(policy.enabled ? "active" : "désactivée")}</span>
           </div>
           {resp ? (
             <PolicyForm p={policy} />

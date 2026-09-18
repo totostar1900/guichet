@@ -22,15 +22,15 @@ export default async function EquipePage() {
       <div className={styles.head} data-coach="roles">
         <h1>{t("Équipe")}</h1>
         <p className="muted">
-          {t("Trois niveaux.")} <b>{t("Client")}</b> {t(": lit et déclare des intentions.")} <b>{t("Opérateur desk")}</b> {t(": valide, publie, traite les intentions, tient le référentiel.")} <b>{t("Responsable")}</b> : opérateur + gestion de l&apos;équipe et approbations. Le système (crons, robot) n&apos;est pas un utilisateur. Tout changement de niveau est journalisé.
+          {t("Trois niveaux.")} <b>{t("Client")}</b> {t(": lit et déclare des intentions.")} <b>{t("Opérateur desk")}</b> {t(": valide, publie, traite les intentions, tient le référentiel.")} <b>{t("Responsable")}</b> {t(": opérateur + gestion de l'équipe et approbations. Le système (crons, robot) n'est pas un utilisateur. Tout changement de niveau est journalisé.")}
         </p>
       </div>
 
       <div className={styles.cols}>
         <div className="panel">
           <div className="panel-h">
-            <h2>Accès desk ({staff.length})</h2>
-            <span className="muted">{mfaRequired() ? "Second facteur obligatoire" : "Second facteur désactivé (DESK_MFA=off)"}</span>
+            <h2>{t("Accès desk")} ({staff.length})</h2>
+            <span className="muted">{t(mfaRequired() ? "Second facteur obligatoire" : "Second facteur désactivé (DESK_MFA=off)")}</span>
           </div>
           <table className="tbl">
             <thead>
@@ -51,9 +51,9 @@ export default async function EquipePage() {
                     <small className="muted">{s.email ?? s.phone ?? s.id}</small>
                   </td>
                   <td>
-                    <span className={`${styles.role} ${styles[s.role]}`}>{ROLE_LABEL[s.role]}</span>
+                    <span className={`${styles.role} ${styles[s.role]}`}>{t(ROLE_LABEL[s.role])}</span>
                   </td>
-                  <td>{s.mfaEnrolledAt ? <span className={styles.okTag}>activé {fmtDateTime(s.mfaEnrolledAt)}</span> : <span className={styles.warnTag}>{t("à activer à la prochaine connexion")}</span>}</td>
+                  <td>{s.mfaEnrolledAt ? <span className={styles.okTag}>{t("activé")} {fmtDateTime(s.mfaEnrolledAt)}</span> : <span className={styles.warnTag}>{t("à activer à la prochaine connexion")}</span>}</td>
                   <td>
                     {s.roleSetAt ? fmtDateTime(s.roleSetAt) : "—"}
                     {s.roleSetBy && <small className="muted"> · par {s.roleSetBy}</small>}
@@ -70,7 +70,7 @@ export default async function EquipePage() {
         <div>
           <div className="panel">
             <div className="panel-h">
-              <h2>Donner l&apos;accès</h2>
+              <h2>{t("Donner l'accès")}</h2>
             </div>
             <AddStaffForm />
             <p className={styles.note}>{t("La personne se connecte d'abord une fois au Guichet avec son adresse (code e-mail) ; vous lui donnez ensuite l'accès ici. À sa connexion suivante, elle active son second facteur (application d'authentification), puis entre sur le desk.")}</p>
