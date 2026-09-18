@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Info } from "@/components/Info";
+import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
@@ -145,7 +146,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   return (
     <>
-      <section className={`${styles.families} ${familiesOpen ? "" : styles.familiesClosed}`} aria-label={t("Les quatre catégories de fonds")}>
+      <section className={`${styles.families} ${familiesOpen ? "" : styles.familiesClosed}`} aria-label={t("Les quatre catégories de fonds")} data-coach="fonds-familles">
         <div className={styles.familiesHead}>
           <h2>{t("Quatre catégories, quatre façons de placer")}</h2>
           <span>
@@ -168,7 +169,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </div>
         )}
       </section>
-      <div className={styles.sticky}>
+      <div className={styles.sticky} data-coach="fonds-filtres">
         <div className={styles.toolbar}>
           <label className={styles.search}>
             <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -208,7 +209,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </div>
 
       {rowsShown.length > 0 && (
-        <section className={styles.group}>
+        <section className={styles.group} data-coach="fonds-table">
           <div className="scroll-x">
             <table className={styles.tbl}>
               <thead>
@@ -270,6 +271,15 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </section>
       )}
       {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
+      <CoachMarks
+        id="fonds"
+        replayLabel={t("Comment lire cette page ?")}
+        stops={[
+          { target: "fonds-familles", title: t("Quatre catégories"), text: t("Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. Chaque carte explique la catégorie en une phrase et filtre le tableau ; repliez le bandeau quand vous le connaissez.") },
+          { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. La bande reste visible pendant que le tableau défile.") },
+          { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription.") },
+        ]}
+      />
     </>
   );
 }

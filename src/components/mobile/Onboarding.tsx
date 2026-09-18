@@ -47,7 +47,7 @@ const SLIDES = [
   },
   {
     title: "Trois marchés, trois façons d'acheter",
-    text: "Au primaire vous souscrivez auprès de l'émetteur pendant une fenêtre. Au secondaire vous achetez à un autre investisseur au cours du jour. Un fonds se souscrit à la prochaine valeur liquidative.",
+    text: "Titres réunit le marché primaire (vous souscrivez auprès de l'émetteur pendant une fenêtre) et le marché secondaire (vous achetez à un autre investisseur au cours du jour) : deux interrupteurs en haut de la page. Les fonds, souscrits à la prochaine valeur liquidative, ont leur propre page.",
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
         <rect x="10" y="60" width="55" height="50" rx="8" fill="#fff" />

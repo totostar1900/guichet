@@ -126,10 +126,15 @@
 }
 @media (max-width: 760px) {
   .item {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .arrow {
+    display: none;
   }
   .kind {
-    display: none;
+    justify-self: start;
+    padding: 2px 6px;
   }
   .body small {
     white-space: normal;

@@ -27,8 +27,13 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
     if (!auto) return;
     try {
       if (!localStorage.getItem(seenKey(id))) {
-        const t = setTimeout(start, 700);
-        return () => clearTimeout(t);
+        // Wait for another walk-through (the first-visit screens) to close before starting this one.
+        const t = setInterval(() => {
+          if (document.querySelector("[role=dialog][aria-modal=true]:not([aria-hidden=true])")) return;
+          clearInterval(t);
+          start();
+        }, 700);
+        return () => clearInterval(t);
       }
     } catch {
       // storage unavailable

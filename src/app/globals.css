@@ -344,18 +344,21 @@ h3 {
   flex-wrap: wrap;
 }
 .mtogglesGroup {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
   padding: 3px;
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--surface);
 }
 .mtogglesGroup > button {
   appearance: none;
   border: 0;
-  border-radius: 999px;
-  padding: 6px 14px;
+  border-radius: 4px;
+  min-width: 190px;
+  text-align: center;
+  padding: 7px 14px;
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
@@ -380,6 +383,12 @@ h3 {
 @media (max-width: 760px) {
   .mtogglesHead h1 {
     font-size: 1.05rem;
+  }
+  .mtogglesGroup {
+    width: 100%;
+  }
+  .mtogglesGroup > button {
+    min-width: 0;
   }
 }
 /* Instrument family badge: same colour in the table, the list, the cards and the fiche. */

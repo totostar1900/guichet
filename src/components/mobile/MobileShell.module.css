@@ -71,6 +71,21 @@
     align-items: center;
     justify-content: flex-end;
   }
+  .deskLink {
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-right: 6px;
+  }
+  .deskOn {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--navy);
+  }
   .news {
     width: 34px;
     height: 34px;

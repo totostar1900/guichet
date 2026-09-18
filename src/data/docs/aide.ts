@@ -12,7 +12,7 @@ export const AIDE: DocPage = {
   visibility: "public",
   audience: ["client"],
   order: 0,
-  checkedOn: "2026-09-18",
+  checkedOn: "2026-09-19",
   owner: "Desk",
   chapters: [
     {
@@ -41,7 +41,7 @@ export const AIDE: DocPage = {
             [l("Où est mon mot de passe ?", "Where is my password?"), l("Il n'y en a pas. À chaque connexion, vous recevez un code à six chiffres par e-mail ; il vaut dix minutes. Le dernier code reçu est toujours le bon.", "There is none. At each sign-in you receive a six-digit code by e-mail; it is valid ten minutes. The latest code received is always the right one.")],
             [l("Je n'ai pas reçu le code", "I did not get the code"), l("Vérifiez le dossier indésirable, puis demandez un nouveau code. Si rien n'arrive en quelques minutes, écrivez-nous sur WhatsApp : nous vérifions l'adresse enregistrée.", "Check the junk folder, then ask for a new code. If nothing comes within a few minutes, write to us on WhatsApp: we check the registered address.")],
             [l("J'ai changé d'adresse e-mail ou de numéro", "I changed my e-mail address or number"), l("Dites-le-nous sur WhatsApp ou par téléphone ; après vérification de votre identité, nous mettons votre profil à jour.", "Tell us on WhatsApp or by phone; after verifying your identity, we update your profile.")],
-            [l("Puis-je utiliser Guichet sur mon téléphone ?", "Can I use Guichet on my phone?"), l("Oui, dans le navigateur, sans rien installer. La barre du bas donne Guichet, Fonds, Mon espace, Info ; l'icône journal ouvre les actualités. Le bouton FR · EN change la langue.", "Yes, in the browser, nothing to install. The bottom bar gives Guichet, Funds, My space, Info; the newspaper icon opens the news. The FR · EN button changes the language.")],
+            [l("Puis-je utiliser Guichet sur mon téléphone ?", "Can I use Guichet on my phone?"), l("Oui, dans le navigateur, sans rien installer. La barre du bas donne Titres, Fonds, Actualités, Mon espace, Guide. Le bouton FR · EN change la langue.", "Yes, in the browser, nothing to install. The bottom bar gives Securities, Funds, News, My space, Guide. The FR · EN button changes the language.")],
           ],
         },
       ],
@@ -74,6 +74,7 @@ export const AIDE: DocPage = {
             [l("Que veut dire « si servi à 93 % » ?", "What does \"if served at 93%\" mean?"), l("À une adjudication du Trésor, nous présentons vos ordres au prix que nous publions ; le Trésor sert les meilleures offres, en partie ou pas du tout. Le rendement affiché suppose que vous êtes servi à ce prix.", "At a Treasury auction we present your orders at the price we publish; the Treasury serves the best bids, in part or not at all. The yield shown assumes you are served at that price.")],
             [l("Le cours d'une société a baissé d'un coup", "A company's price dropped suddenly"), l("Regardez les actualités et la fiche : souvent c'est le dividende qui sort du cours, ou une cotation suspendue en attente d'un communiqué.", "Look at the news and the page: often it is the dividend leaving the price, or a quotation suspended pending a notice.")],
             [l("Un fonds s'achète à quel prix ?", "At what price is a fund bought?"), l("À la prochaine valeur liquidative, pas à celle affichée. La fiche dit si elle est calculée chaque jour ou chaque semaine.", "At the next net asset value, not the one shown. The page says whether it is computed daily or weekly.")],
+            [l("Comment ne voir que le marché primaire, ou que le secondaire ?", "How do I see only the primary market, or only the secondary?"), l("En haut de Titres, deux interrupteurs : Marché primaire et Marché secondaire, tous deux allumés. Éteignez-en un pour ne garder que l'autre ; éteindre le dernier rallume les deux. Les fonds ont leur propre page, « Fonds ».", "At the top of Securities, two switches: Primary market and Secondary market, both on. Switch one off to keep only the other; switching the last one off turns both back on. Funds have their own page, \"Funds\".")],
             [l("Que signifie le bouton « i » ?", "What does the \"i\" button mean?"), l("Une explication d'une phrase du terme, et un lien vers la leçon de deux minutes qui va avec.", "A one-sentence explanation of the term, and a link to the two-minute lesson that goes with it.")],
           ],
         },

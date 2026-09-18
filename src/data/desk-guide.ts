@@ -174,6 +174,10 @@ export const GUIDE: GuideSection[] = [
       { name: "OPCVM", what: "Convention, droits d'entrée et de sortie, minimum, heure limite, délai de règlement.", how: "Les fonds arrivent ouverts à la souscription ; fermer un fonds ici si besoin." },
       { name: "Ordres de bourse et d'OPCVM", what: "Les ordres transmis à exécuter : prix d'exécution, quantité servie, VL retenue." },
     ],
+    shots: [
+      { key: "titres-client", caption: "Ce que le client voit : la page Titres, ses deux interrupteurs de marché (primaire, secondaire) et le lien vers les fonds" },
+      { key: "fonds-client", caption: "La page Fonds du client : un seul tableau, les quatre catégories expliquées au-dessus" },
+    ],
   },
   {
     key: "actualites",
@@ -312,6 +316,7 @@ export const TOUR: TourStop[] = [
   { path: "/desk/clients", target: "review", title: "La décision KYC", text: "Refuser, demander des compléments, enregistrer la revue, approuver et ouvrir le compte. Seule l'approbation exige l'attestation sanctions / PPE." },
   { path: "/desk/messages", target: "inbox", title: "Messages", text: "Une conversation par numéro ou adresse. Répondez ici ; WhatsApp accepte une réponse libre dans les 24 h suivant le dernier message du client." },
   { path: "/desk/marche", target: "import", title: "Le bulletin de la BVMAC", text: "Importé seul chaque soir de bourse par le cron. Les cours et les VL sont historisés, jamais écrasés ; les anomalies s'affichent en dessous." },
+  { path: "/desk/marche", target: "import", title: "Ce que le client en voit", text: "Les cours nourrissent la page Titres — deux interrupteurs, Marché primaire et Marché secondaire, tous deux allumés par défaut — et les VL nourrissent la page Fonds, un seul tableau avec les quatre catégories expliquées au-dessus.", link: { href: "/", label: "Voir la page Titres" }, image: "/guide/titres-client.png" },
   { path: "/desk/actualites", target: "news-inbox", title: "Liens reçus", text: "La veille de nuit, un lien envoyé au robot WhatsApp depuis un téléphone du desk ou un e-mail déposent ici ce qui mérite un regard. « Préparer » ouvre le formulaire pré-rempli ; « Écarter » classe sans publier." },
   { path: "/desk/actualites", target: "news-form", title: "Deux lignes, jamais l'article", text: "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée." },
   { path: "/desk/actualites", target: "news-list", title: "Ce que voit le client", text: "Les publications, par état : à la une, publiée, brouillon, expirée, écartée. Côté client, la page Actualités montre la une dans son cadre doré puis le fil par jour ; chaque fiche de ligne, de société ou d'émetteur reprend ses actualités liées.", link: { href: "/actualites", label: "Voir la page Actualités" } },

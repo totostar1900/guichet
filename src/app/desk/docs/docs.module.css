@@ -31,17 +31,6 @@
     display: none;
   }
 }
-@media (max-width: 760px) {
-  .reader,
-  .reader.readerTwo {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .nav {
-    position: static;
-    max-height: none;
-    overflow: visible;
-  }
-}
 /* Both columns stay put under the site header (60 px, itself sticky) while the page scrolls. */
 .nav,
 .outline {
@@ -454,4 +443,63 @@
 .doc h4 {
   font-size: 0.9rem;
   margin: 14px 0 6px;
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .reader,
+  .reader.readerTwo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* On a phone the pane becomes one row of chapter chips, stuck under the phone header; the rest of the tree is reachable from the tab bar. */
+  .nav {
+    position: sticky;
+    top: 52px;
+    z-index: 5;
+    max-height: none;
+    overflow: visible;
+    flex-direction: row;
+    gap: 0;
+    margin: 0 -12px 8px;
+    padding: 6px 12px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav .group,
+  .nav > a,
+  .nav > div > a,
+  .nav .navMeta {
+    display: none;
+  }
+  .nav > div {
+    min-width: 0;
+    flex: 1;
+  }
+  .nav .chapters {
+    flex-direction: row;
+    gap: 6px;
+    border-left: 0;
+    margin: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .nav .chapters::-webkit-scrollbar {
+    display: none;
+  }
+  .nav .chapters a {
+    flex: none;
+    white-space: nowrap;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-size: 0.76rem;
+    background: var(--surface);
+  }
+  .nav .chapters a[aria-current="true"] {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+    box-shadow: none;
+  }
 }

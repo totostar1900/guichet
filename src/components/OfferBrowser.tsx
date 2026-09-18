@@ -9,6 +9,7 @@ import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
+import { CoachMarks } from "./mobile/CoachMarks";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
@@ -509,7 +510,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       <TitresHead fundsCount={fundsCount} />
       <div className={styles.top} ref={top}>
         <MarketToggles selected={segment === "primaire" || segment === "secondaire" ? segment : undefined} counts={{ primaire: segCount.primaire, secondaire: segCount.secondaire }} onChange={(k) => update({ marche: k, instrument: undefined })} />
-        <div className={styles.toolbar}>
+        <div className={styles.toolbar} data-coach="titres-filtres">
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
@@ -539,7 +540,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
               {t("Effacer")}
             </button>
           )}
-          <div className={styles.seg} role="group" aria-label={t("Affichage")}>
+          <div className={styles.seg} role="group" aria-label={t("Affichage")} data-coach="titres-vues">
             {(["table", "list", "cards"] as View[]).map((v) => (
               <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
                 {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
@@ -596,6 +597,16 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
       {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
       {rest.length > 0 && render(rest, false)}
+      <CoachMarks
+        id="titres"
+        replayLabel={t("Comment lire cette page ?")}
+        stops={[
+          { target: "titres-marches", title: t("Deux marchés, deux interrupteurs"), text: t("Marché primaire : vous souscrivez auprès de l'émetteur pendant une fenêtre. Marché secondaire : vous achetez à un autre investisseur au cours du jour. Les deux sont affichés ; éteignez-en un pour ne voir que l'autre.") },
+          { target: "titres-fonds", title: t("Les fonds ont leur page"), text: t("Les parts de fonds (OPCVM) se souscrivent à la prochaine valeur liquidative : elles ont leur propre tableau, avec leurs catégories et leur société de gestion.") },
+          { target: "titres-filtres", title: t("Filtrer, puis trier"), text: t("Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres. Le tri et les filtres restent dans l'adresse de la page — revenez d'une fiche, la liste est telle que vous l'aviez laissée.") },
+          { target: "titres-vues", title: t("Tableau, liste ou cartes"), text: t("Le tableau compare les chiffres, la liste se lit d'un trait, les cartes conviennent au téléphone. Le rendement est toujours le premier chiffre.") },
+        ]}
+      />
     </div>
   );
 }

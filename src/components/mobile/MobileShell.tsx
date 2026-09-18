@@ -43,6 +43,12 @@ const I = {
       <path d="M20 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z" />
     </svg>
   ),
+  actualites: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5h13v14H6a2 2 0 0 1-2-2z" />
+      <path d="M17 9h3v8a2 2 0 0 1-2 2M7 9h6M7 13h6M7 17h4" />
+    </svg>
+  ),
   desk: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -112,12 +118,12 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
 
   const t = useT();
   const tabs: Tab[] = [
-    { href: "/", label: t("Titres"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") || p.startsWith("/actualites") },
+    { href: "/", label: t("Titres"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: (p) => p.startsWith("/fonds") },
+    { href: "/actualites", label: t("Actualités"), icon: I.actualites, match: (p) => p.startsWith("/actualites") },
     { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
     { href: "/info", label: t("Guide"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
   ];
-  if (desk) tabs.push({ href: "/desk", label: t("Desk"), icon: I.desk, match: (p) => p.startsWith("/desk") });
 
   return (
     <>
@@ -138,12 +144,11 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
           </>
         )}
         <div className={styles.right}>
-          <Link href="/actualites" className={styles.news} aria-label={t("Actualités")} aria-current={path.startsWith("/actualites") ? "page" : undefined}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 5h13v14H6a2 2 0 0 1-2-2z" />
-              <path d="M17 9h3v8a2 2 0 0 1-2 2M7 9h6M7 13h6M7 17h4" />
-            </svg>
-          </Link>
+          {desk && (
+            <Link href="/desk" className={`${styles.deskLink} ${path.startsWith("/desk") ? styles.deskOn : ""}`}>
+              {t("Desk")}
+            </Link>
+          )}
           {signedIn ? (
             <Link href={desk ? "/desk" : "/moi"} className={styles.avatar} aria-label={t("Mon compte")} title={name}>
               {(name ?? "?").trim().charAt(0).toUpperCase()}

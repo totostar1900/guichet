@@ -8,7 +8,7 @@ export const FONCTIONNEMENT: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 1,
-  checkedOn: "2026-09-18",
+  checkedOn: "2026-09-19",
   owner: "Georges",
   chapters: [
     {
@@ -37,8 +37,8 @@ export const FONCTIONNEMENT: DocPage = {
           type: "table",
           head: [l("Section", "Section"), l("Ce qu'on y trouve", "What is there")],
           rows: [
-            [l("Guichet (accueil)", "Guichet (home)"), l("Toutes les lignes ouvertes ou à venir : emprunts des Trésors (OTA, BTA), introductions en bourse, rachats, marché secondaire de la BVMAC. Chaque ligne montre son chiffre-clé (le rendement), sa date limite, son minimum. Filtres par pays, type, rendement ; « À la une » = la sélection du desk.", "Every open or upcoming line: Treasury issues (OTA, BTA), IPOs, buybacks, the BVMAC secondary market. Each line shows its key figure (the yield), its deadline, its minimum. Filters by country, type, yield; \"À la une\" = the desk's picks.")],
-            [l("Fonds", "Funds"), l("Les OPCVM avec leur dernière valeur liquidative ; « Souscrire » n'apparaît que sous convention de distribution.", "Funds with their latest NAV; \"Subscribe\" appears only under a distribution agreement.")],
+            [l("Titres (accueil)", "Securities (home)"), l("Toutes les lignes ouvertes ou à venir : emprunts des Trésors (OTA, BTA), introductions en bourse, rachats, marché secondaire de la BVMAC ; deux interrupteurs Marché primaire / Marché secondaire, tous deux allumés par défaut. Chaque ligne montre son chiffre-clé (le rendement), sa date limite, son minimum. Filtres par pays, type, rendement ; « À la une » = la sélection du desk.", "Every open or upcoming line: Treasury issues (OTA, BTA), IPOs, buybacks, the BVMAC secondary market; two switches, Primary market / Secondary market, both on by default. Each line shows its key figure (the yield), its deadline, its minimum. Filters by country, type, yield; \"À la une\" = the desk's picks.")],
+            [l("Fonds", "Funds"), l("Un seul tableau des OPCVM avec leur dernière valeur liquidative, les quatre catégories expliquées dans un bandeau repliable ; « Souscrire » n'apparaît que sous convention de distribution.", "One table of the funds with their latest NAV, the four categories explained in a foldable band; \"Subscribe\" appears only under a distribution agreement.")],
             [l("Sociétés", "Companies"), l("Les sept sociétés cotées et les émetteurs obligataires : activité, comptes certifiés, cours, ratios expliqués, documents publiés, rapport PDF.", "The seven listed companies and the bond issuers: activity, audited accounts, prices, explained ratios, published documents, PDF report.")],
             [l("Actualités", "News"), l("Ce que publient les Trésors, la BVMAC, la COSUMAF, la presse, avec deux lignes du desk sur ce que cela change ; l'article reste chez son éditeur.", "What Treasuries, the BVMAC, the COSUMAF and the press publish, with two lines from the desk on what it changes; the article stays with its publisher.")],
             [l("Guide", "Guide"), l("Le glossaire, huit leçons de deux minutes, le simulateur d'obligation, le comparateur, une recherche ; « Premiers pas » rejouable.", "The glossary, eight two-minute lessons, the bond simulator, the comparer, a search; replayable first steps.")],

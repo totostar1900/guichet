@@ -20,7 +20,7 @@ export function TitresHead({ fundsCount }: { fundsCount: number }) {
         <span className="eyebrow">{t("Titres")}</span>
         <h1 className="display">{t("Obligations, bons du Trésor et actions de la zone CEMAC")}</h1>
       </div>
-      <Link href="/fonds" className="btn sm ghost mtogglesFunds">
+      <Link href="/fonds" className="btn sm ghost mtogglesFunds" data-coach="titres-fonds">
         {t("Voir les {n} fonds (OPCVM)", { n: fundsCount })} →
       </Link>
     </div>
@@ -38,7 +38,7 @@ export function MarketToggles({ selected, counts, onChange }: { selected?: Marke
   return (
     <div className="mtoggles">
       <div className="mtogglesRow">
-        <div className="mtogglesGroup" role="group" aria-label={t("Marché")}>
+        <div className="mtogglesGroup" role="group" aria-label={t("Marché")} data-coach="titres-marches">
           {segs.map((s) => {
             const on = !selected || selected === s;
             return (
