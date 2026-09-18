@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { Toolbar } from "@/components/ui/Toolbar";
+import { textMatch } from "@/lib/text";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
@@ -19,7 +22,8 @@ export const metadata = { title: "Desk" };
 const FIRM = (i: Intent) => i.type === "ferme" || i.type === "cession";
 const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];
 
-export default async function DeskPage() {
+export default async function DeskPage({ searchParams }: { searchParams: Promise<{ etat?: string; q?: string; ligne?: string; tri?: string }> }) {
+  const sp = await searchParams;
   const r = repo();
   const [offers, intents, events, notifications, approvals] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20), r.listApprovals(true)]);
   const now = new Date();
@@ -39,6 +43,14 @@ export default async function DeskPage() {
   const totalF = rows.reduce((s, x) => s + x.sF, 0);
   const totalA = rows.reduce((s, x) => s + x.sA, 0);
   const todo = intents.filter((i) => i.state === "recue").length;
+  // The intentions table follows the toolbar: state, search, line, sort.
+  const stateOf = (i: Intent) => (i.state === "recue" ? "recue" : i.state === "confirmee" ? "confirmee" : i.state === "transmise" ? "transmise" : i.state === "annulee" ? "annulee" : "finie");
+  const counts = { recue: 0, confirmee: 0, transmise: 0, finie: 0, annulee: 0 } as Record<string, number>;
+  for (const i of intents) counts[stateOf(i)]++;
+  const shown = intents
+    .filter((i) => (!sp.etat || stateOf(i) === sp.etat) && (!sp.ligne || i.offerId === sp.ligne) && textMatch(sp.q, i.ref, i.clientName, i.clientSegment, byId.get(i.offerId)?.title, i.contactPhone, i.contactEmail, i.message))
+    .sort((a, b) => (sp.tri === "ancien" ? a.createdAt.localeCompare(b.createdAt) : sp.tri === "montant" ? (b.amount ?? 0) - (a.amount ?? 0) : sp.tri === "client" ? a.clientName.localeCompare(b.clientName, "fr") : b.createdAt.localeCompare(a.createdAt)));
+  const lines = [...new Set(intents.map((i) => i.offerId))].map((id) => ({ value: id, label: byId.get(id)?.title ?? id })).sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
   // À la une: what is featured now, and which lines could be (open or quoted, not hidden).
   const today = now.toISOString().slice(0, 10);
@@ -55,7 +67,7 @@ export default async function DeskPage() {
 
       <FeaturePanel active={featActive} candidates={featCandidates} />
 
-      <div className={styles.kpis}>
+      <div className={styles.kpis} data-coach="kpis">
         <div className={`${styles.kpi} ${styles.hot}`}>
           <span>Prochaine clôture dans</span>
           <b className="num">{nextDeadline ? countdown(nextDeadline, now) : "—"}</b>
@@ -78,7 +90,7 @@ export default async function DeskPage() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" data-coach="feed">
         <div className="panel-h">
           <h2>Flux en direct</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
@@ -200,13 +212,30 @@ export default async function DeskPage() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" data-coach="intents">
         <div className="panel-h">
           <h2>Intentions reçues</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {intents.length} au total · {todo} à traiter
+            {intents.length} au total · {todo} à traiter{shown.length !== intents.length ? ` · ${shown.length} affichée${shown.length > 1 ? "s" : ""}` : ""}
           </span>
         </div>
+        <Suspense>
+          <Toolbar
+            inset
+            placeholder="Réf., client, ligne, téléphone…"
+            chipKey="etat"
+            chips={[
+              { value: "", label: "Toutes", count: intents.length },
+              { value: "recue", label: "À traiter", count: counts.recue },
+              { value: "confirmee", label: "Confirmées", count: counts.confirmee },
+              { value: "transmise", label: "Transmises", count: counts.transmise },
+              { value: "finie", label: "Servies · réglées", count: counts.finie },
+              { value: "annulee", label: "Annulées", count: counts.annulee },
+            ]}
+            selects={[{ key: "ligne", label: "Ligne", all: "toutes les lignes", options: lines }]}
+            sort={{ key: "tri", label: "Tri", options: [{ value: "recent", label: "plus récent" }, { value: "ancien", label: "plus ancien" }, { value: "montant", label: "montant" }, { value: "client", label: "client" }] }}
+          />
+        </Suspense>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
@@ -223,12 +252,16 @@ export default async function DeskPage() {
               </tr>
             </thead>
             <tbody>
-              {intents.map((i) => {
+              {shown.map((i) => {
                 const o = byId.get(i.offerId) as Offer | undefined;
                 const next = nextStates(i.state, i.type);
                 return (
                   <tr key={i.id}>
-                    <td className="mono">{i.ref}</td>
+                    <td className="mono">
+                      <Link href={`/desk/intentions/${i.id}`} className={styles.refLink}>
+                        {i.ref}
+                      </Link>
+                    </td>
                     <td className="who">
                       {i.clientName}
                       <small>{i.clientSegment}</small>
@@ -261,6 +294,9 @@ export default async function DeskPage() {
                     </td>
                     <td>
                       <div className={styles.rowbtns}>
+                        <Link className="btn sm" href={`/desk/intentions/${i.id}`}>
+                          Ouvrir
+                        </Link>
                         {(i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise" ? (
                           <Link className="btn sm primary" href="/desk/marche">
                             Exécuter (Marché)
@@ -282,6 +318,13 @@ export default async function DeskPage() {
                   </tr>
                 );
               })}
+              {shown.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="muted">
+                    Aucune intention ne correspond à ces filtres.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

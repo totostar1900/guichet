@@ -135,3 +135,14 @@
   font-size: 0.72rem;
   font-weight: 700;
 }
+
+.refLink {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+.refLink:hover {
+  text-decoration-color: var(--gold);
+}

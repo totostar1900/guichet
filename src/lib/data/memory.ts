@@ -1,6 +1,6 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -20,6 +20,7 @@ interface Store {
   documents: GeneratedDocument[];
   contacts: Contact[];
   notifications: Notification[];
+  inbound: InboundMessage[];
   watches: Watch[];
   reference: ReferenceRow[];
   staff: StaffMember[];
@@ -52,6 +53,7 @@ function store(): Store {
       documents: [],
       contacts: structuredClone(SEED_CONTACTS),
       notifications: [],
+      inbound: [],
       watches: [],
       reference: [],
       versions: [],
@@ -363,6 +365,21 @@ export const memoryRepository: Repository = {
     const row: Notification = { id: uid(), createdAt: nowIso(), ...n };
     store().notifications.unshift(row);
     return structuredClone(row);
+  },
+  async listInbound(limit = 200) {
+    return structuredClone(store().inbound.slice(0, limit));
+  },
+  async createInbound(m) {
+    const row: InboundMessage = { id: uid(), ...m, receivedAt: m.receivedAt ?? nowIso() };
+    store().inbound.unshift(row);
+    return structuredClone(row);
+  },
+  async markInboundHandled(id, by) {
+    const m = store().inbound.find((x) => x.id === id);
+    if (m) {
+      m.handledAt = nowIso();
+      m.handledBy = by;
+    }
   },
   async updateNotification(id, patch) {
     const s = store();

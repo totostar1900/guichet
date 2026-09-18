@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 }
 
 type Media = { id: string; mime_type?: string; filename?: string; caption?: string };
-type Inbound = { entry?: { changes?: { value?: { messages?: { from: string; type: string; text?: { body: string }; button?: { text: string }; interactive?: { button_reply?: { title: string }; list_reply?: { title: string } }; document?: Media; image?: Media }[]; statuses?: { id: string; status: string; errors?: { title: string }[] }[] } }[] }[] };
+type Inbound = { entry?: { changes?: { value?: { contacts?: { profile?: { name?: string } }[]; messages?: { from: string; type: string; text?: { body: string }; button?: { text: string }; interactive?: { button_reply?: { title: string }; list_reply?: { title: string } }; document?: Media; image?: Media }[]; statuses?: { id: string; status: string; errors?: { title: string }[] }[] } }[] }[] };
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as Inbound;
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
         }
         const text = m.text?.body ?? m.button?.text ?? m.interactive?.button_reply?.title ?? m.interactive?.list_reply?.title ?? `(${m.type})`;
         await r.logEvent({ kind: "intent", html: `<b>WhatsApp entrant</b> de +${m.from} : « ${text.slice(0, 200).replace(/</g, "&lt;")} »` });
+        await r.createInbound({ channel: "whatsapp", from: `+${m.from}`, name: v?.contacts?.[0]?.profile?.name, body: text });
         const reply = await handleInbound(m.from, text);
         if (reply && whatsappConfigured()) {
           try {

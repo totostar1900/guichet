@@ -17,7 +17,7 @@ export default async function EquipePage() {
   return (
     <>
       <DeskNav current="/desk/equipe" />
-      <div className={styles.head}>
+      <div className={styles.head} data-coach="roles">
         <h1>Équipe</h1>
         <p className="muted">
           Trois niveaux. <b>Client</b> : lit et déclare des intentions. <b>Opérateur desk</b> : valide, publie, traite les intentions, tient le référentiel. <b>Responsable</b> : opérateur + gestion de l&apos;équipe et approbations. Le système (crons, robot) n&apos;est pas un utilisateur. Tout changement de niveau est journalisé.

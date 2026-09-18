@@ -1,4 +1,4 @@
-import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PushSubscription, ReferenceRow, StaffMember, StaffRole, Watch } from "@/lib/domain/types";
+import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PushSubscription, ReferenceRow, StaffMember, StaffRole, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 
@@ -71,6 +71,9 @@ export interface Repository {
   markPushFailure(endpoint: string, gone: boolean): Promise<void>;
   /** Outbound messages, whatever the channel. */
   listNotifications(limit?: number): Promise<Notification[]>;
+  listInbound(limit?: number): Promise<InboundMessage[]>;
+  createInbound(m: Omit<InboundMessage, "id" | "receivedAt"> & { receivedAt?: string }): Promise<InboundMessage>;
+  markInboundHandled(id: string, by: string): Promise<void>;
   createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;
   updateNotification(id: string, patch: Partial<Notification>): Promise<Notification>;
 

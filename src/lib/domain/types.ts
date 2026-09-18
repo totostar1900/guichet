@@ -370,6 +370,19 @@ export interface PushSubscription {
 export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
 export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest" | "opportunity";
 
+/** A message a client (or anyone) sent us on WhatsApp or by e-mail — the desk inbox. */
+export interface InboundMessage {
+  id: string;
+  channel: NotifyChannel;
+  from: string; // phone (E.164) or e-mail
+  name?: string;
+  subject?: string;
+  body: string;
+  receivedAt: string;
+  handledAt?: string;
+  handledBy?: string;
+}
+
 /** A line a client follows; the snapshot is what they were last told. */
 export interface Watch {
   id: string;

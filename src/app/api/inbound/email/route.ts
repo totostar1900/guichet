@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
 
   const trusted = trustedSender(mail.from);
   const fromLabel = `${mail.from} · e-mail`;
+  // Every e-mail is also a message in the desk inbox (a client's question is not a source to ingest).
+  await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text.slice(0, 4000) });
+  if (!trusted && mail.attachments.length === 0) return NextResponse.json({ ok: true, created: [], errors: [] });
   const hint = mail.subject ? `Objet du courriel : ${mail.subject}` : undefined;
   const created: string[] = [];
   const errors: string[] = [];

@@ -33,7 +33,7 @@ export default async function MarketPage() {
     <>
       <DeskNav current="/desk/marche" />
 
-      <div className="panel">
+      <div className="panel" data-coach="import">
         <div className="panel-h">
           <h2>Bulletin Officiel de la Cote — BVMAC</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>

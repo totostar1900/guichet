@@ -78,7 +78,7 @@ export default async function ApprobationsPage() {
       </div>
 
       <div className={styles.cols}>
-        <div className="panel">
+        <div className="panel" data-coach="window">
           <div className="panel-h">
             <h2>Fenêtre déléguée</h2>
             <span className="muted">{policy.enabled ? "active" : "désactivée"}</span>

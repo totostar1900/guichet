@@ -28,7 +28,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       <DeskNav current="/desk/clients" badges={{ "/desk/clients": todo }} />
 
       <div className={styles.layout}>
-        <aside className={styles.queue}>
+        <aside className={styles.queue} data-coach="queue">
           {files.map((f) => (
             <Link key={f.id} href={`/desk/clients?file=${f.id}`} className={styles.qitem} aria-current={f.id === selected?.id ? "true" : undefined}>
               <div className={styles.meta}>
@@ -175,7 +175,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               </div>
             </div>
 
-            <ReviewForm file={selected} suggested={suggestedRisk(selected)} riskLabels={RISK_LABEL} />
+            <div data-coach="review">
+              <ReviewForm file={selected} suggested={suggestedRisk(selected)} riskLabels={RISK_LABEL} />
+            </div>
           </div>
         )}
       </div>
