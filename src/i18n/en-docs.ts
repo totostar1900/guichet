@@ -16,6 +16,8 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "Comment Guichet est entretenu": "How Guichet is looked after",
+  "Qui écrit ce que vous lisez, d'où viennent les cours, ce qui se passe en cas de panne, où sont vos données : en clair, sans jargon. Un doute sur un chiffre ? Dites-le-nous, il est corrigé pour tout le monde.": "Who writes what you read, where prices come from, what happens if something breaks, where your data is: plainly, without jargon. A doubt about a figure? Tell us, it is fixed for everyone.",
   "Notes de travail de l'assistant, lues depuis docs/notes": "The assistant's working notes, read from docs/notes",
   "Les notes de travail": "The working notes",
   "Ce que l'assistant garde entre ses sessions : l'état du projet, les décisions et leur raison, les conventions, les migrations appliquées, ce qui reste à faire. En anglais, lues depuis le dépôt (docs/notes) à chaque visite : un push les met à jour. Pour le quotidien, les autres pages ; pour comprendre pourquoi, celle-ci.": "What the assistant keeps between sessions: project state, decisions and their reasons, conventions, applied migrations, what is left. In English, read from the repository (docs/notes) at each visit: a push updates them. For the daily work, the other pages; to understand why, this one.",

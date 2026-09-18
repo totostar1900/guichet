@@ -51,6 +51,7 @@ export default async function AidePage() {
             { target: "aide-page", title: t("Des réponses, pas des procédures"), text: t("Chaque chapitre répond aux questions que vous nous posez le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir vos documents, nous joindre. Tout est écrit pour vous, en clair.") },
             { target: "aide-nav", title: t("Trouver vite"), text: t("À gauche, les chapitres de cette page ; en dessous, le glossaire, les leçons, le simulateur et le comparateur. La recherche de la page Info trouve aussi chaque question de cette aide.") },
             { target: "aide-contact", title: t("Quand ça ne suffit pas"), text: t("Le bouton « Information » de chaque fiche ouvre WhatsApp ; un robot répond aux questions simples, un conseiller prend le relais. Pour une réclamation, écrivez-nous avec la référence concernée.") },
+            { target: "aide-entretien", title: t("Comment Guichet est entretenu"), text: t("Qui écrit ce que vous lisez, d'où viennent les cours, ce qui se passe en cas de panne, où sont vos données : en clair, sans jargon. Un doute sur un chiffre ? Dites-le-nous, il est corrigé pour tout le monde.") },
           ]}
         />
       </article>

@@ -128,5 +128,24 @@ export const AIDE: DocPage = {
         },
       ],
     },
+    {
+      id: "entretien",
+      title: l("Comment Guichet est entretenu", "How Guichet is looked after"),
+      blocks: [
+        { type: "lead", text: l("Guichet est mis à jour souvent, par petites touches, sans interruption de service. Ce que vous voyez est relu par une personne avant d'être publié ; ce qui tourne tout seul est surveillé chaque matin.", "Guichet is updated often, in small steps, with no service interruption. What you see is read by a person before it is published; what runs by itself is checked every morning.") },
+        {
+          type: "table",
+          head: [l("Question", "Question"), l("Réponse", "Answer")],
+          rows: [
+            [l("Qui écrit ce que je lis ?", "Who writes what I read?"), l("Chaque ligne, chaque actualité et chaque chiffre publié passe par un membre du desk qui le vérifie et le signe ; l'explication des termes et les leçons sont tenues à jour par la même équipe. Rien n'est publié par une machine seule.", "Every line, every news item and every published figure goes through a desk member who checks and signs it; the explanation of terms and the lessons are kept up to date by the same team. Nothing is published by a machine on its own.")],
+            [l("D'où viennent les cours et les valeurs liquidatives ?", "Where do prices and net asset values come from?"), l("Du bulletin officiel de la BVMAC, lu chaque soir de bourse, et des sociétés de gestion pour les fonds. Un cours saisi à la main est signalé comme tel sur la fiche.", "From the BVMAC official bulletin, read every trading evening, and from the fund managers for funds. A manually entered price is flagged as such on the page.")],
+            [l("À quelle fréquence l'application change-t-elle ?", "How often does the app change?"), l("Plusieurs fois par semaine, par petites améliorations ; votre adresse, vos identifiants et vos documents ne changent pas. Quand un écran change, son guide et son aide changent avec lui.", "Several times a week, in small improvements; your address, your sign-in and your documents do not change. When a screen changes, its guide and its help change with it.")],
+            [l("Que se passe-t-il en cas de panne ?", "What happens if something breaks?"), l("L'équipe est prévenue automatiquement et revient à la version précédente en quelques minutes. Vos intentions, ordres et documents sont conservés et sauvegardés chaque jour ; aucun paiement ne passe par l'application, donc aucun paiement ne peut être perdu.", "The team is alerted automatically and returns to the previous version within minutes. Your intentions, orders and documents are kept and backed up every day; no payment goes through the app, so no payment can be lost.")],
+            [l("Un chiffre ou un texte vous semble faux ?", "A figure or a text looks wrong?"), l("Dites-le-nous sur WhatsApp ou par e-mail, en indiquant la page. Une erreur signalée est corrigée à la source, pour tout le monde, et la correction est tracée.", "Tell us on WhatsApp or by e-mail, naming the page. A reported error is fixed at the source, for everyone, and the fix is traced.")],
+            [l("Mes données sont-elles en sécurité ?", "Is my data safe?"), l("Vos données sont stockées chiffrées, en Europe, chez un hébergeur spécialisé ; chacun ne voit que ce qui le concerne ; le desk y accède avec un second facteur. Elles ne sont ni vendues ni partagées hors du cadre réglementaire.", "Your data is stored encrypted, in Europe, with a specialised host; everyone sees only what concerns them; the desk reaches it with a second factor. It is neither sold nor shared beyond the regulatory framework.")],
+          ],
+        },
+      ],
+    },
   ],
 };
