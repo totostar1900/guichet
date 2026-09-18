@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
 import { FEATURE_REASONS } from "@/lib/domain/featured";
@@ -16,6 +17,7 @@ export interface FeatureRow {
 
 /** Desk › carnet : what is « à la une » now, and the form to add one (max three, factual reason, expiry). */
 export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; candidates: FeatureRow[] }) {
+  const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(featureOfferAction, null);
   const [pick, setPick] = useState(candidates[0]?.id ?? "");
   const [reason, setReason] = useState<string>(FEATURE_REASONS[0]);
@@ -24,7 +26,7 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
   return (
     <div className="panel">
       <div className="panel-h">
-        <h2>À la une</h2>
+        <h2>{t("À la une")}</h2>
         <span className="muted">Sélection du desk · {active.length}/3 · une raison factuelle, une date de fin, jamais un conseil</span>
       </div>
       {active.length > 0 && (
@@ -42,7 +44,7 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
                 <form action={unfeatureOfferAction}>
                   <input type="hidden" name="offerId" value={a.id} />
                   <button className="btn sm ghost" type="submit">
-                    Retirer
+                    {t("Retirer")}
                   </button>
                 </form>
               </div>
@@ -53,11 +55,11 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
       {active.length < 3 && candidates.length > 0 && (
         <form action={action} className={styles.form}>
           <label>
-            <span>Ligne</span>
+            <span>{t("Ligne")}</span>
             <Select block name="offerId" value={pick} onChange={setPick} options={candidates.map((c) => ({ value: c.id, label: c.title, hint: c.hero }))} />
           </label>
           <label>
-            <span>Raison (factuelle)</span>
+            <span>{t("Raison (factuelle)")}</span>
             <input name="reason" list="feature-reasons" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={90} required />
             <datalist id="feature-reasons">
               {FEATURE_REASONS.map((r) => (
@@ -81,13 +83,14 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
 
 /** One line: pick the segment, get the count, confirm, send — every send is journalled in Diffusion. */
 function BroadcastForm({ offerId }: { offerId: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(broadcastOpportunityAction, null);
   return (
     <form action={action} className={styles.bc}>
       <input type="hidden" name="offerId" value={offerId} />
       <Select compact name="segment" label="Segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
       <label className={styles.confirm}>
-        <input type="checkbox" name="confirm" value="1" /> Confirmer
+        <input type="checkbox" name="confirm" value="1" /> {t("Confirmer")}
       </label>
       <button className="btn sm primary" type="submit" disabled={pending}>
         {pending ? "…" : "Diffuser comme opportunité du moment"}

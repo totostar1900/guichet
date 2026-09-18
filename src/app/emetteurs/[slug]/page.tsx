@@ -10,6 +10,7 @@ import { displayYield } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
 import { fmt, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/format";
 import styles from "../../societes/[mnemo]/page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function EmetteurPage({ params }: Props) {
+  const tr = await getT();
   const { slug } = await params;
   const i = await issuerBySlug(slug);
   if (!i) notFound();
@@ -40,7 +42,7 @@ export default async function EmetteurPage({ params }: Props) {
   return (
     <>
       <Link href="/societes" className={styles.back}>
-        ← Sociétés cotées et émetteurs
+        {tr("← Sociétés cotées et émetteurs")}
       </Link>
       <div className={styles.head}>
         <div>
@@ -54,7 +56,7 @@ export default async function EmetteurPage({ params }: Props) {
 
       <div className={styles.kpis}>
         <div className={`${styles.kpi} ${styles.gold}`}>
-          <span>Emprunts cotés</span>
+          <span>{tr("Emprunts cotés")}</span>
           <b>{lines.length}</b>
           <small>{alive} en vie · détail ci-dessous</small>
         </div>
@@ -84,7 +86,7 @@ export default async function EmetteurPage({ params }: Props) {
       <div className={styles.grid}>
         <div>
           <div className={styles.panel}>
-            <h2>Emprunts cotés à la BVMAC</h2>
+            <h2>{tr("Emprunts cotés à la BVMAC")}</h2>
             {lines.length === 0 && <p className={styles.source}>Aucune ligne de cet émetteur n&apos;est actuellement reprise du bulletin.</p>}
             <div className={styles.docs}>
               {lines.map((o) => {
@@ -101,12 +103,12 @@ export default async function EmetteurPage({ params }: Props) {
                         <small>{s.heroUnit ?? s.heroSub}</small>
                       </div>
                       <div>
-                        <span>Échéance</span>
+                        <span>{tr("Échéance")}</span>
                         <b>{s.maturity}</b>
                         <small>{s.tenor}</small>
                       </div>
                       <div>
-                        <span>Remboursement</span>
+                        <span>{tr("Remboursement")}</span>
                         <b>{t ? (t.periodsPerYear === 1 ? "annuel" : t.periodsPerYear === 2 ? "semestriel" : "trimestriel") : "—"}</b>
                         <small>{t ? `nominal restant ${fmt(o.nominal)} / titre` : "échéancier à préciser"}</small>
                       </div>
@@ -119,17 +121,17 @@ export default async function EmetteurPage({ params }: Props) {
 
           <div className={styles.panel}>
             <h2>
-              {latest.revenueLabel} <Info term={revenueTerm} /> et résultat net <Info term="resultat_net" /> · {figs[0].year}–{latest.year}
+              {latest.revenueLabel} <Info term={revenueTerm} /> {tr("et résultat net")} <Info term="resultat_net" /> · {figs[0].year}–{latest.year}
             </h2>
-            <div className={styles.unitNote}>en FCFA · survolez les barres pour les montants exacts</div>
+            <div className={styles.unitNote}>{tr("en FCFA · survolez les barres pour les montants exacts")}</div>
             <BarChart groups={figs.map((f) => String(f.year))} series={[{ name: latest.revenueLabel, values: scaled.map((f) => f.revenue) }, { name: "Résultat net", values: scaled.map((f) => f.netIncome), accent: true }]} ariaLabel={`${latest.revenueLabel} et résultat net par année`} />
             <div className={styles.reading}>
-              <b>Comment lire.</b> Pour un prêteur, l&apos;essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu&apos;une forte croissance.
+              <b>{tr("Comment lire.")}</b> Pour un prêteur, l&apos;essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu&apos;une forte croissance.
             </div>
           </div>
 
           <div className={styles.panel}>
-            <h2>Chiffres clés publiés</h2>
+            <h2>{tr("Chiffres clés publiés")}</h2>
             <div className={styles.unitNote}>
               en {scale.label} · {i.unitNote}
             </div>
@@ -171,7 +173,7 @@ export default async function EmetteurPage({ params }: Props) {
 
         <div>
           <div className={styles.panel}>
-            <h2>Ce que disent les chiffres</h2>
+            <h2>{tr("Ce que disent les chiffres")}</h2>
             <ul className={styles.comments}>
               {i.reading.map((t, k) => (
                 <li key={k}>{t}</li>
@@ -180,28 +182,28 @@ export default async function EmetteurPage({ params }: Props) {
           </div>
 
           <div className={styles.panel}>
-            <h2>Actionnariat</h2>
+            <h2>{tr("Actionnariat")}</h2>
             <ShareBar parts={i.shareholders} />
             <dl className={styles.facts} style={{ marginTop: 12 }}>
-              <dt>Capital social</dt>
+              <dt>{tr("Capital social")}</dt>
               <dd>{fmtUnits(i.shareCapital, true)}</dd>
               {i.chair && (
                 <>
-                  <dt>Présidence</dt>
+                  <dt>{tr("Présidence")}</dt>
                   <dd>{i.chair}</dd>
                 </>
               )}
               {i.ceo && (
                 <>
-                  <dt>Direction générale</dt>
+                  <dt>{tr("Direction générale")}</dt>
                   <dd>{i.ceo}</dd>
                 </>
               )}
-              <dt>Siège</dt>
+              <dt>{tr("Siège")}</dt>
               <dd>{i.city}</dd>
               {i.website && (
                 <>
-                  <dt>Site</dt>
+                  <dt>{tr("Site")}</dt>
                   <dd>
                     <a href={i.website} target="_blank" rel="noreferrer">
                       {i.website.replace(/^https?:\/\/(www\.)?/, "")}
@@ -211,7 +213,7 @@ export default async function EmetteurPage({ params }: Props) {
               )}
               {i.contact && (
                 <>
-                  <dt>Contact</dt>
+                  <dt>{tr("Contact")}</dt>
                   <dd>{i.contact}</dd>
                 </>
               )}
@@ -231,7 +233,7 @@ export default async function EmetteurPage({ params }: Props) {
           </div>
 
           <div className={styles.panel}>
-            <h2>Autres émetteurs</h2>
+            <h2>{tr("Autres émetteurs")}</h2>
             <div className={styles.docs}>
               {others.map((x) => (
                 <Link key={x.slug} href={`/emetteurs/${x.slug}`}>

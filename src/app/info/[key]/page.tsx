@@ -7,6 +7,7 @@ import { loadCompanies, loadLessons } from "@/lib/reference";
 import { LessonWidget, type Live } from "./LessonWidget";
 import { Quiz } from "./Quiz";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,8 @@ export default async function LessonPage({ params }: Props) {
     live = { title: "Les quatre risques" };
   }
 
+  const t = await getT();
+  if (live.title.startsWith("Exemple") || live.title === "Les quatre risques") live = { ...live, title: t(live.title) };
   return (
     <div className={styles.wrap}>
       <Link href="/info" className={styles.back}>
@@ -64,23 +67,23 @@ export default async function LessonPage({ params }: Props) {
       </Link>
       <div className={styles.head}>
         <div className="eyebrow">
-          Leçon {l.order} sur {lessons.length} · {l.minutes} min
+          {t("Leçon {n} sur {total}", { n: l.order, total: lessons.length })} · {l.minutes} min
         </div>
-        <h1 className="display">{l.title}</h1>
-        <p className={styles.intro}>{l.intro}</p>
+        <h1 className="display">{t(l.title)}</h1>
+        <p className={styles.intro}>{t(l.intro)}</p>
       </div>
       <div className={styles.body}>
         {l.body.map((p, k) => (
-          <p key={k}>{p}</p>
+          <p key={k}>{t(p)}</p>
         ))}
       </div>
       <div className={styles.widget}>
         <LessonWidget kind={l.widget} live={live} />
       </div>
-      <Quiz lessonKey={l.key} q={l.quiz.q} options={l.quiz.options} answer={l.quiz.answer} why={l.quiz.why} nextHref={next ? `/info/${next.key}` : undefined} nextTitle={next?.title} />
+      <Quiz lessonKey={l.key} q={t(l.quiz.q)} options={l.quiz.options.map((o) => t(o))} answer={l.quiz.answer} why={t(l.quiz.why)} nextHref={next ? `/info/${next.key}` : undefined} nextTitle={next ? t(next.title) : undefined} />
       <nav className={styles.pager}>
-        {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {lessons[i - 1].title}</Link> : <span />}
-        {next && <Link href={`/info/${next.key}`}>{next.title} →</Link>}
+        {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {t(lessons[i - 1].title)}</Link> : <span />}
+        {next && <Link href={`/info/${next.key}`}>{t(next.title)} →</Link>}
       </nav>
     </div>
   );

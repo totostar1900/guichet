@@ -13,6 +13,7 @@ import { importDefaultsAction, resetReferenceAction } from "./actions";
 import { GlossaryForm, JsonForm, LessonForm, TermForm, TypeForm } from "./Forms";
 import { LESSONS, type Lesson } from "@/data/lessons";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Référentiel" };
@@ -27,10 +28,11 @@ const TABS: [Tab, string, string][] = [
   ["emetteurs", "Émetteurs", REF.issuers],
 ];
 
-function Origin({ inDb, builtin }: { inDb: boolean; builtin: boolean }) {
-  if (inDb && builtin) return <span className={`${styles.tag} ${styles.tagEdit}`}>modifié par le desk</span>;
-  if (inDb) return <span className={`${styles.tag} ${styles.tagNew}`}>créé par le desk</span>;
-  return <span className={styles.tag}>valeur par défaut</span>;
+async function Origin({ inDb, builtin }: { inDb: boolean; builtin: boolean }) {
+  const tr = await getT();
+  if (inDb && builtin) return <span className={`${styles.tag} ${styles.tagEdit}`}>{tr("modifié par le desk")}</span>;
+  if (inDb) return <span className={`${styles.tag} ${styles.tagNew}`}>{tr("créé par le desk")}</span>;
+  return <span className={styles.tag}>{tr("valeur par défaut")}</span>;
 }
 
 function ResetButton({ kind, k, builtin }: { kind: string; k: string; builtin: boolean }) {
@@ -46,6 +48,7 @@ function ResetButton({ kind, k, builtin }: { kind: string; k: string; builtin: b
 }
 
 export default async function ReferentielPage({ searchParams }: { searchParams: Promise<{ onglet?: string; cle?: string }> }) {
+  const tr = await getT();
   const sp = await searchParams;
   const tab: Tab = (TABS.find(([t]) => t === sp.onglet)?.[0] ?? "types") as Tab;
   const open = sp.cle ?? "";
@@ -59,7 +62,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       <DeskNav current="/desk/referentiel" />
       <div className={styles.head}>
         <div>
-          <h1>Référentiel</h1>
+          <h1>{tr("Référentiel")}</h1>
           <p className="muted">
             Ce que le Guichet sait sans qu&apos;on touche au code : les types de produits (nom, couleur, points d&apos;attention, liste de contrôle, intentions), les échéanciers exacts des obligations, le glossaire, les fiches des sociétés et des émetteurs. Chaque entrée part d&apos;une valeur par défaut livrée avec l&apos;application ; ce que le desk enregistre ici prend le dessus, et « revenir aux valeurs par défaut » l&apos;efface.
           </p>
@@ -67,7 +70,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
         <small className="muted">{lastEdit ? `Dernière modification ${fmtDateTime(lastEdit)}` : "Aucune modification du desk sur cet onglet"}</small>
       </div>
 
-      <nav className={styles.tabs} aria-label="Référentiel">
+      <nav className={styles.tabs} aria-label={tr("Référentiel")}>
         {TABS.map(([t, label]) => (
           <Link key={t} href={`/desk/referentiel?onglet=${t}`} aria-current={t === tab ? "page" : undefined}>
             {label}
@@ -75,8 +78,8 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
         ))}
         <form action={importDefaultsAction} className={styles.importForm}>
           <input type="hidden" name="kind" value={kind} />
-          <button className="btn sm" type="submit" title="Copie les valeurs par défaut manquantes dans la table pour les modifier ligne par ligne">
-            Importer les valeurs par défaut
+          <button className="btn sm" type="submit" title={tr("Copie les valeurs par défaut manquantes dans la table pour les modifier ligne par ligne")}>
+            {tr("Importer les valeurs par défaut")}
           </button>
         </form>
       </nav>
@@ -93,7 +96,8 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
 
 type Rows = Map<string, { updatedAt: string; updatedBy?: string }>;
 
-function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: string }) {
+async function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: string }) {
+  const tr = await getT();
   return (
     <>
       <div className="panel">
@@ -104,12 +108,12 @@ function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: 
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
-              <th>Badge</th>
-              <th>Libellé</th>
-              <th>Marché</th>
-              <th>Moteur</th>
-              <th>Intentions</th>
-              <th>Origine</th>
+              <th>{tr("Badge")}</th>
+              <th>{tr("Libellé")}</th>
+              <th>{tr("Marché")}</th>
+              <th>{tr("Moteur")}</th>
+              <th>{tr("Intentions")}</th>
+              <th>{tr("Origine")}</th>
               <th></th>
             </tr>
           </thead>
@@ -125,9 +129,9 @@ function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: 
                   {t.label}
                   <br />
                   <small className="mono muted">{t.key}</small>
-                  {!t.enabled && <small className={styles.offTag}>désactivé</small>}
+                  {!t.enabled && <small className={styles.offTag}>{tr("désactivé")}</small>}
                 </td>
-                <td>{SEGMENT_LABEL[t.segment]}</td>
+                <td>{tr(SEGMENT_LABEL[t.segment])}</td>
                 <td className={styles.wrap}>{ENGINE_LABEL[t.engine].split(" (")[0]}</td>
                 <td className={styles.wrap}>{t.intentsOpen.join(", ") || "—"}</td>
                 <td>
@@ -135,7 +139,7 @@ function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: 
                 </td>
                 <td className="r">
                   <Link className="btn sm" href={`/desk/referentiel?onglet=types&cle=${t.key}#edit`}>
-                    Modifier
+                    {tr("Modifier")}
                   </Link>
                 </td>
               </tr>
@@ -154,7 +158,7 @@ function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: 
       ) : (
         <div className="panel" id="edit">
           <div className="panel-h">
-            <h2>Nouveau type de produit</h2>
+            <h2>{tr("Nouveau type de produit")}</h2>
           </div>
           <TypeForm key="new" isNew />
         </div>
@@ -163,7 +167,8 @@ function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; open: 
   );
 }
 
-function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; open: string }) {
+async function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; open: string }) {
+  const tr = await getT();
   const defaults = new Set(BOND_TERMS.map((b) => b.isin));
   const cur = terms.find((t) => t.isin === open);
   return (
@@ -176,12 +181,12 @@ function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; open: st
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
-              <th>ISIN</th>
-              <th>Échéance</th>
-              <th>Paiements / an</th>
+              <th>{tr("ISIN")}</th>
+              <th>{tr("Échéance")}</th>
+              <th>{tr("Paiements / an")}</th>
               <th>Différé jusqu&apos;au</th>
-              <th>Source</th>
-              <th>Origine</th>
+              <th>{tr("Source")}</th>
+              <th>{tr("Origine")}</th>
               <th></th>
             </tr>
           </thead>
@@ -202,7 +207,7 @@ function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; open: st
                   </td>
                   <td className="r">
                     <Link className="btn sm" href={`/desk/referentiel?onglet=echeanciers&cle=${t.isin}#edit`}>
-                      Modifier
+                      {tr("Modifier")}
                     </Link>
                   </td>
                 </tr>
@@ -221,7 +226,8 @@ function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; open: st
   );
 }
 
-function Glossary({ glossary, inDb, open }: { glossary: Record<string, Term>; inDb: Rows; open: string }) {
+async function Glossary({ glossary, inDb, open }: { glossary: Record<string, Term>; inDb: Rows; open: string }) {
+  const tr = await getT();
   const keys = Object.keys(glossary).sort((a, b) => glossary[a].short.localeCompare(glossary[b].short, "fr"));
   const cur = open && glossary[open] ? open : "";
   return (
@@ -229,14 +235,14 @@ function Glossary({ glossary, inDb, open }: { glossary: Record<string, Term>; in
       <div className="panel">
         <div className="panel-h">
           <h2>Glossaire ({keys.length})</h2>
-          <span className="muted">Les bulles « i » des fiches, du simulateur et des tableaux.</span>
+          <span className="muted">{tr("Les bulles « i » des fiches, du simulateur et des tableaux.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
-              <th>Terme</th>
-              <th>Explication</th>
-              <th>Origine</th>
+              <th>{tr("Terme")}</th>
+              <th>{tr("Explication")}</th>
+              <th>{tr("Origine")}</th>
               <th></th>
             </tr>
           </thead>
@@ -255,7 +261,7 @@ function Glossary({ glossary, inDb, open }: { glossary: Record<string, Term>; in
                 </td>
                 <td className="r">
                   <Link className="btn sm" href={`/desk/referentiel?onglet=glossaire&cle=${k}#edit`}>
-                    Modifier
+                    {tr("Modifier")}
                   </Link>
                 </td>
               </tr>
@@ -274,7 +280,8 @@ function Glossary({ glossary, inDb, open }: { glossary: Record<string, Term>; in
   );
 }
 
-function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: string }) {
+async function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: string }) {
+  const tr = await getT();
   const defaults = new Set(LESSONS.map((l) => l.key));
   const cur = list.find((l) => l.key === open);
   return (
@@ -288,10 +295,10 @@ function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: strin
           <thead>
             <tr>
               <th>N°</th>
-              <th>Leçon</th>
-              <th>Bloc</th>
-              <th>Termes liés</th>
-              <th>Origine</th>
+              <th>{tr("Leçon")}</th>
+              <th>{tr("Bloc")}</th>
+              <th>{tr("Termes liés")}</th>
+              <th>{tr("Origine")}</th>
               <th></th>
             </tr>
           </thead>
@@ -311,7 +318,7 @@ function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: strin
                 </td>
                 <td className="r">
                   <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
-                    Modifier
+                    {tr("Modifier")}
                   </Link>
                 </td>
               </tr>
@@ -330,7 +337,8 @@ function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: strin
   );
 }
 
-function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; open: string }) {
+async function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; open: string }) {
+  const tr = await getT();
   const defaults = new Set(COMPANIES.map((c) => c.mnemo));
   const cur = list.find((c) => c.mnemo === open);
   return (
@@ -338,16 +346,16 @@ function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; open: st
       <div className="panel">
         <div className="panel-h">
           <h2>Sociétés cotées ({list.length})</h2>
-          <span className="muted">Chiffres clés, actionnariat, documents et lecture : la page /societes.</span>
+          <span className="muted">{tr("Chiffres clés, actionnariat, documents et lecture : la page /societes.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
-              <th>Mnémo</th>
-              <th>Société</th>
-              <th>Exercices</th>
-              <th>Documents</th>
-              <th>Origine</th>
+              <th>{tr("Mnémo")}</th>
+              <th>{tr("Société")}</th>
+              <th>{tr("Exercices")}</th>
+              <th>{tr("Documents")}</th>
+              <th>{tr("Origine")}</th>
               <th></th>
             </tr>
           </thead>
@@ -369,7 +377,7 @@ function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; open: st
                 </td>
                 <td className="r">
                   <Link className="btn sm" href={`/desk/referentiel?onglet=societes&cle=${c.mnemo}#edit`}>
-                    Modifier
+                    {tr("Modifier")}
                   </Link>
                 </td>
               </tr>
@@ -388,7 +396,8 @@ function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; open: st
   );
 }
 
-function Issuers({ list, inDb, open }: { list: BondIssuer[]; inDb: Rows; open: string }) {
+async function Issuers({ list, inDb, open }: { list: BondIssuer[]; inDb: Rows; open: string }) {
+  const tr = await getT();
   const defaults = new Set(ISSUERS.map((i) => i.slug));
   const cur = list.find((i) => i.slug === open);
   return (
@@ -396,16 +405,16 @@ function Issuers({ list, inDb, open }: { list: BondIssuer[]; inDb: Rows; open: s
       <div className="panel">
         <div className="panel-h">
           <h2>Émetteurs obligataires ({list.length})</h2>
-          <span className="muted">Les pages /emetteurs : lignes rattachées par ISIN, chiffres clés, documents.</span>
+          <span className="muted">{tr("Les pages /emetteurs : lignes rattachées par ISIN, chiffres clés, documents.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
-              <th>Slug</th>
-              <th>Émetteur</th>
-              <th>Lignes (ISIN)</th>
-              <th>Exercices</th>
-              <th>Origine</th>
+              <th>{tr("Slug")}</th>
+              <th>{tr("Émetteur")}</th>
+              <th>{tr("Lignes (ISIN)")}</th>
+              <th>{tr("Exercices")}</th>
+              <th>{tr("Origine")}</th>
               <th></th>
             </tr>
           </thead>
@@ -427,7 +436,7 @@ function Issuers({ list, inDb, open }: { list: BondIssuer[]; inDb: Rows; open: s
                 </td>
                 <td className="r">
                   <Link className="btn sm" href={`/desk/referentiel?onglet=emetteurs&cle=${i.slug}#edit`}>
-                    Modifier
+                    {tr("Modifier")}
                   </Link>
                 </td>
               </tr>

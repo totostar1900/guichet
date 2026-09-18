@@ -141,7 +141,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           {c && (
             <div className={styles.groupH}>
               <h2 className="display">
-                {t(`${FUND_CATEGORY_LABEL[c]}s`)} · {g.length}
+                {t(`${t(FUND_CATEGORY_LABEL[c])}s`)} · {g.length}
               </h2>
               <p>{t(BLURB[c])}</p>
             </div>

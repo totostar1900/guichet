@@ -1,9 +1,11 @@
 import type { FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
+import { getT } from "@/i18n/server";
 
 /** NAV series of a fund as read in the bulletins, oldest to newest. Same look as the quote history. */
-export function NavHistory({ navs }: { navs: FundNav[] }) {
+export async function NavHistory({ navs }: { navs: FundNav[] }) {
+  const t = await getT();
   if (navs.length === 0) return null;
   const latest = navs[0];
   const series = [...navs].reverse().slice(-60);
@@ -55,22 +57,22 @@ export function NavHistory({ navs }: { navs: FundNav[] }) {
           <span>
             {series.length} valeurs liquidatives publiées au bulletin, du {fmtDate(series[0].navDate)} au {fmtDate(latest.navDate)} · plus haut {fmt(max)}, plus bas {fmt(min)}
           </span>
-          <b className={change < 0 ? styles.down : styles.up} title="Variation de la VL entre la première et la dernière date affichées">
+          <b className={change < 0 ? styles.down : styles.up} title={t("Variation de la VL entre la première et la dernière date affichées")}>
             {signed(change)}
           </b>
         </div>
       </div>
       <dl className={styles.frame}>
         <div>
-          <dt>Dernière VL</dt>
+          <dt>{t("Dernière VL")}</dt>
           <dd>{fmt(latest.nav)} FCFA</dd>
         </div>
         <div>
-          <dt>Variation</dt>
+          <dt>{t("Variation")}</dt>
           <dd className={(latest.variationPct ?? 0) < 0 ? styles.down : (latest.variationPct ?? 0) > 0 ? styles.up : undefined}>{signed(latest.variationPct)}</dd>
         </div>
         <div>
-          <dt>Sur un mois · un trimestre</dt>
+          <dt>{t("Sur un mois · un trimestre")}</dt>
           <dd>
             {signed(latest.variationMonthlyPct)} · {signed(latest.variationQuarterlyPct)}
           </dd>
@@ -85,10 +87,10 @@ export function NavHistory({ navs }: { navs: FundNav[] }) {
       <table className={styles.tbl}>
         <thead>
           <tr>
-            <th>Date de VL</th>
-            <th className={styles.r}>VL (FCFA)</th>
-            <th className={styles.r}>Var.</th>
-            <th>Bulletin</th>
+            <th>{t("Date de VL")}</th>
+            <th className={styles.r}>{t("VL (FCFA)")}</th>
+            <th className={styles.r}>{t("Var.")}</th>
+            <th>{t("Bulletin")}</th>
           </tr>
         </thead>
         <tbody>

@@ -90,7 +90,8 @@ function Kpis({ o }: { o: Offer }) {
 }
 
 /** Read-only reference block at the published price. */
-function Reference({ o }: { o: Offer }) {
+async function Reference({ o }: { o: Offer }) {
+  const t = await getT();
   if ((o.kind === "OTA" || o.kind === "APE") && o.couponRate != null && o.maturityOn) {
     const price = o.servedPricePct ?? o.pricePct ?? 100;
     const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, 10_000_000, price);
@@ -108,7 +109,7 @@ function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.outlay)} FCFA</div>
           <div>Gain brut jusqu&apos;au terme</div>
           <div>{fmt(r.gain)}</div>
-          <div className="hl">Rendement actuariel brut</div>
+          <div className="hl">{t("Rendement actuariel brut")}</div>
           <div>{fmtPct(r.irr, 2)}</div>
         </div>
         <FlowsChart r={r} settleOn={o.settleOn} />
@@ -122,7 +123,7 @@ function Reference({ o }: { o: Offer }) {
       <>
         <h3>Pour 10 bons de {fmt(o.nominal)} FCFA</h3>
         <div className="out">
-          <div>Bons</div>
+          <div>{t("Bons")}</div>
           <div>{fmt(r.n)}</div>
           <div>Prix d&apos;achat par bon</div>
           <div>{fmt(r.pricePerBond)}</div>
@@ -130,9 +131,9 @@ function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.outlay)} FCFA</div>
           <div>Remboursé le {fmtDate(o.maturityOn, false)}</div>
           <div>{fmt(r.redemption)}</div>
-          <div>Intérêt (précompté)</div>
+          <div>{t("Intérêt (précompté)")}</div>
           <div>{fmt(r.gain)}</div>
-          <div className="hl">Rendement actuariel</div>
+          <div className="hl">{t("Rendement actuariel")}</div>
           <div>{fmtPct(r.yieldPct, 2)}</div>
         </div>
       </>
@@ -153,13 +154,13 @@ function Reference({ o }: { o: Offer }) {
               <div>{fmt(amount - net)}</div>
             </>
           )}
-          <div>Investi dans le fonds</div>
+          <div>{t("Investi dans le fonds")}</div>
           <div>{fmt(net)}</div>
           <div className="tot">Parts (VL {fmt(f.nav)} du {fmtDate(f.navDate, false)})</div>
           <div>≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</div>
           {f.exitFeePct > 0 && (
             <>
-              <div>Frais du fonds à la sortie</div>
+              <div>{t("Frais du fonds à la sortie")}</div>
               <div>{fmtPct(f.exitFeePct, 2)}</div>
             </>
           )}
@@ -187,7 +188,7 @@ function Reference({ o }: { o: Offer }) {
             <div>{fmt(r.accrued)}</div>
             <div className="tot">Décaissement (règlement T+{o.settlementDays ?? 3})</div>
             <div>{fmt(r.outlay)} FCFA</div>
-            <div className="hl">Rendement actuariel brut à ce cours</div>
+            <div className="hl">{t("Rendement actuariel brut à ce cours")}</div>
             <div>{fmtPct(r.irr, 2)}</div>
           </div>
           <FlowsChart r={r} settleOn={settleOn} />
@@ -206,17 +207,17 @@ function Reference({ o }: { o: Offer }) {
       <>
         <h3>Pour {n} actions au cours vendeur</h3>
         <div className="out">
-          <div>Cours vendeur</div>
+          <div>{t("Cours vendeur")}</div>
           <div>{fmt(ref)} FCFA</div>
-          <div className="tot">Montant</div>
+          <div className="tot">{t("Montant")}</div>
           <div>{fmt(n * ref)} FCFA</div>
           {o.dividendPerShare ? (
             <>
-              <div>Dividende annuel attendu</div>
+              <div>{t("Dividende annuel attendu")}</div>
               <div>{fmt(n * o.dividendPerShare)}</div>
             </>
           ) : null}
-          <div className="hl">Total à décaisser</div>
+          <div className="hl">{t("Total à décaisser")}</div>
           <div>{fmt(n * ref)} FCFA</div>
         </div>
       </>
@@ -228,9 +229,9 @@ function Reference({ o }: { o: Offer }) {
       <>
         <h3>Pour {n} actions</h3>
         <div className="out">
-          <div>Actions</div>
+          <div>{t("Actions")}</div>
           <div>{n}</div>
-          <div className="tot">Montant à libérer</div>
+          <div className="tot">{t("Montant à libérer")}</div>
           <div>{fmt(n * o.pricePerShare)} FCFA</div>
           <div>Dividende attendu ({fmt(o.dividendPerShare ?? 0)} / action)</div>
           <div>{fmt(n * (o.dividendPerShare ?? 0))}</div>
@@ -252,12 +253,12 @@ function Reference({ o }: { o: Offer }) {
     <>
       <h3>Pour {n} titres cédés</h3>
       <div className="out">
-        <div>Titres cédés</div>
+        <div>{t("Titres cédés")}</div>
         <div>{n}</div>
-        <div className="tot">Produit de cession à 100 %</div>
+        <div className="tot">{t("Produit de cession à 100 %")}</div>
         <div>{fmt(proceeds)} FCFA</div>
-        <div>Coupon couru</div>
-        <div>réglé par le Trésor</div>
+        <div>{t("Coupon couru")}</div>
+        <div>{t("réglé par le Trésor")}</div>
         <div className="hl">Encaissement le {fmtDate(o.settleOn, false)}</div>
         <div>{fmt(proceeds)}</div>
       </div>
@@ -266,7 +267,8 @@ function Reference({ o }: { o: Offer }) {
 }
 
 export default async function OfferPage({ params, searchParams }: Props) {
-  const [{ id }, sp] = await Promise.all([params, searchParams]);
+    const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const t = await getT();
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
   if (o.status === "withdrawn" && !isDesk(session)) {
@@ -274,12 +276,12 @@ export default async function OfferPage({ params, searchParams }: Props) {
       <div className={styles.page}>
         <div className={styles.main}>
           <Link href="/" className={styles.back}>
-            ← Toutes les offres
+            {t("← Toutes les offres")}
           </Link>
           <h1 className="display" style={{ marginTop: 12 }}>
             {o.title}
           </h1>
-          <p className="muted">Cette ligne a été retirée du Guichet. Pour toute question, contactez le desk.</p>
+          <p className="muted">{t("Cette ligne a été retirée du Guichet. Pour toute question, contactez le desk.")}</p>
         </div>
       </div>
     );
@@ -301,7 +303,6 @@ export default async function OfferPage({ params, searchParams }: Props) {
     held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
   }
   const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
-  const t = await getT();
 
   const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif — prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;

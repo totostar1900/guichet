@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useEffect, useState } from "react";
 import styles from "./PushToggle.module.css";
 
@@ -17,6 +18,7 @@ const b64ToBytes = (b64: string) => {
 };
 
 export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; compact?: boolean }) {
+  const tr = useT();
   const [state, setState] = useState<State>("busy");
   const [err, setErr] = useState("");
 
@@ -64,9 +66,9 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
     setState("off");
   };
 
-  if (state === "unsupported") return compact ? null : <small className={styles.note}>Ce navigateur ne prend pas en charge les alertes.</small>;
+  if (state === "unsupported") return compact ? null : <small className={styles.note}>{tr("Ce navigateur ne prend pas en charge les alertes.")}</small>;
   if (state === "needs-install") return <small className={styles.note}>Sur iPhone : ajoutez le Guichet à l&apos;écran d&apos;accueil (Partager → « Sur l&apos;écran d&apos;accueil »), puis ouvrez-le de là pour activer les alertes.</small>;
-  if (state === "denied") return <small className={styles.note}>Alertes bloquées dans les réglages du navigateur : autorisez les notifications pour ce site pour les recevoir.</small>;
+  if (state === "denied") return <small className={styles.note}>{tr("Alertes bloquées dans les réglages du navigateur : autorisez les notifications pour ce site pour les recevoir.")}</small>;
   return (
     <span className={styles.wrap}>
       <button type="button" className={`btn sm ${state === "on" ? "" : "primary"}`} disabled={state === "busy"} onClick={state === "on" ? disable : enable}>

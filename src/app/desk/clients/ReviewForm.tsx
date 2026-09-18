@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import type { ClientFile, RiskRating } from "@/lib/domain/kyc";
@@ -8,18 +9,19 @@ import { autoScreenAction, reviewAction, setCustodianAccountAction, type ReviewR
 import styles from "./page.module.css";
 
 function AccountForm({ file }: { file: ClientFile }) {
+  const t = useT();
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(setCustodianAccountAction, null);
   return (
     <form action={action} className={styles.review}>
       <input type="hidden" name="fileId" value={file.id} />
-      <h3>Sous-compte nominatif chez le SVT</h3>
+      <h3>{t("Sous-compte nominatif chez le SVT")}</h3>
       <p className="muted" style={{ fontSize: ".82rem", margin: 0 }}>
         Dossier approuvé et dossier d&apos;ouverture transmis. Le compte devient actif (prises fermes possibles) dès que le SVT communique le numéro de sous-compte ouvert au nom du client.
       </p>
       <div className={styles.grid}>
         <label className="field">
-          N° de sous-compte attribué
-          <input name="custodianAccount" placeholder="ex. ECB-CT-2026-00087" required />
+          {t("N° de sous-compte attribué")}
+          <input name="custodianAccount" placeholder={t("ex. ECB-CT-2026-00087")} required />
         </label>
       </div>
       {state && (state.ok ? <div className={styles.okMsg}>{state.message}</div> : <div className={styles.errMsg}>{state.error}</div>)}
@@ -33,10 +35,11 @@ function AccountForm({ file }: { file: ClientFile }) {
 }
 
 function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean }) {
+  const t = useT();
   const sc = file.screening;
   return (
     <div className={styles.screening}>
-      <span className="eyebrow">Contrôle sanctions / PPE</span>
+      <span className="eyebrow">{t("Contrôle sanctions / PPE")}</span>
       {sc?.auto && (
         <div className={styles.autoHits}>
           Pré-contrôle {sc.auto.provider} du {new Date(sc.auto.checkedAt).toLocaleString("fr-FR")} — {sc.auto.queries.length} nom(s) — {sc.auto.hits.length} correspondance(s){sc.auto.error ? ` · erreur : ${sc.auto.error}` : ""}
@@ -56,12 +59,12 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
       )}
       <div className={styles.grid}>
         <label className="field">
-          Listes consultées
+          {t("Listes consultées")}
           <input name="screeningLists" defaultValue={sc?.lists ?? "ONU, UE, OFAC (OpenSanctions) ; PPE : recherche presse"} disabled={closed} />
         </label>
         <label className="field">
-          Résultat
-          <Select block name="screeningOutcome" value={sc?.outcome ?? ""} disabled={closed} options={[{ value: "", label: "— à renseigner —" }, { value: "aucun", label: "Aucune correspondance" }, { value: "faux_positif", label: "Correspondance écartée (faux positif documenté)" }, { value: "confirme", label: "Correspondance confirmée — diligence renforcée" }]} />
+          {t("Résultat")}
+          <Select block name="screeningOutcome" value={sc?.outcome ?? ""} disabled={closed} options={[{ value: "", label: t("— à renseigner —") }, { value: "aucun", label: t("Aucune correspondance") }, { value: "faux_positif", label: t("Correspondance écartée (faux positif documenté)") }, { value: "confirme", label: t("Correspondance confirmée — diligence renforcée") }]} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           Notes du contrôle (homonymie écartée, sources, date de naissance comparée…)
@@ -78,12 +81,13 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
 }
 
 function AutoScreenButton({ file }: { file: ClientFile }) {
+  const t = useT();
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(autoScreenAction, null);
   return (
     <form action={action} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
       <input type="hidden" name="fileId" value={file.id} />
       <button className="btn sm" type="submit" disabled={pending}>
-        {pending ? "Contrôle…" : "Lancer le pré-contrôle automatique"}
+        {t(pending ? "Contrôle…" : "Lancer le pré-contrôle automatique")}
       </button>
       {state && <small style={{ color: state.ok ? "var(--good)" : "var(--warn)", fontSize: ".76rem" }}>{state.ok ? state.message : state.error}</small>}
     </form>
@@ -91,6 +95,7 @@ function AutoScreenButton({ file }: { file: ClientFile }) {
 }
 
 export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; suggested: RiskRating; riskLabels: Record<RiskRating, string> }) {
+  const t = useT();
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(reviewAction, null);
   const closed = file.status === "approuve" || file.status === "refuse";
   if (file.status === "approuve" && !file.review.custodianAccount) return <AccountForm file={file} />;
@@ -99,32 +104,32 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
     {!closed && <AutoScreenButton file={file} />}
     <form action={action} className={styles.reviewInner}>
       <input type="hidden" name="fileId" value={file.id} />
-      <h3>Décision de conformité</h3>
+      <h3>{t("Décision de conformité")}</h3>
       <div className={styles.grid}>
         <label className="field">
-          Notation de risque {file.review.risk ? "" : `(suggérée : ${riskLabels[suggested]})`}
-          <Select block name="risk" value={file.review.risk ?? suggested} disabled={closed} options={[{ value: "faible", label: "Faible — revue tous les 5 ans" }, { value: "moyen", label: "Moyen — revue tous les 3 ans" }, { value: "eleve", label: "Élevé — revue annuelle, diligence renforcée" }]} />
+          {t("Notation de risque")} {file.review.risk ? "" : `(${t("suggérée")} : ${t(riskLabels[suggested])})`}
+          <Select block name="risk" value={file.review.risk ?? suggested} disabled={closed} options={[{ value: "faible", label: t("Faible — revue tous les 5 ans") }, { value: "moyen", label: t("Moyen — revue tous les 3 ans") }, { value: "eleve", label: t("Élevé — revue annuelle, diligence renforcée") }]} />
         </label>
         <label className="field">
-          N° de sous-compte nominatif (si déjà attribué par le SVT)
-          <input name="custodianAccount" defaultValue={file.review.custodianAccount} disabled={closed} placeholder="sinon, à renseigner après l'approbation" />
+          {t("N° de sous-compte nominatif (si déjà attribué par le SVT)")}
+          <input name="custodianAccount" defaultValue={file.review.custodianAccount} disabled={closed} placeholder={t("sinon, à renseigner après l'approbation")} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
-          Notes internes
+          {t("Notes internes")}
           <textarea name="notes" rows={2} defaultValue={file.review.notes} disabled={closed} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           Compléments à demander (si la décision est « compléments »)
-          <input name="requestedItems" defaultValue={file.review.requestedItems} disabled={closed} placeholder="Ex. justificatif de domicile lisible, pièce du second mandataire" />
+          <input name="requestedItems" defaultValue={file.review.requestedItems} disabled={closed} placeholder={t("Ex. justificatif de domicile lisible, pièce du second mandataire")} />
         </label>
       </div>
       <ScreeningBlock file={file} closed={closed} />
       {file.documents.length > 0 && (
         <div className={styles.verify}>
-          <span className="eyebrow">Pièces vérifiées visuellement</span>
+          <span className="eyebrow">{t("Pièces vérifiées visuellement")}</span>
           {file.documents.map((d) => (
             <label key={d.kind}>
-              <input type="checkbox" name="verified" value={d.kind} defaultChecked={d.verified} disabled={closed} /> {DOC_LABEL[d.kind]}
+              <input type="checkbox" name="verified" value={d.kind} defaultChecked={d.verified} disabled={closed} /> {t(DOC_LABEL[d.kind])}
             </label>
           ))}
         </div>
@@ -133,13 +138,13 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
       {!closed && (
         <div className={styles.actions}>
           <button className="btn ghost sm" type="submit" name="decision" value="refuse" disabled={pending}>
-            Refuser
+            {t("Refuser")}
           </button>
           <button className="btn" type="submit" name="decision" value="complements" disabled={pending}>
-            Demander des compléments
+            {t("Demander des compléments")}
           </button>
           <button className="btn" type="submit" name="decision" value="en_revue" disabled={pending}>
-            Enregistrer la revue
+            {t("Enregistrer la revue")}
           </button>
           <button className="btn primary" type="submit" name="decision" value="approuve" disabled={pending}>
             {pending ? "…" : "Approuver et ouvrir le compte"}

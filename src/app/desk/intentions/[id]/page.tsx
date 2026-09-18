@@ -81,9 +81,9 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
           <div className="panel">
             <div className="panel-h">
               <h2>
-                {INTENT_LABEL[it.type]} · {amountText}
+                {t(INTENT_LABEL[it.type])} · {amountText}
               </h2>
-              <span className={`st ${it.state}`}>{INTENT_STATE_LABEL[it.state]}</span>
+              <span className={`st ${it.state}`}>{t(INTENT_STATE_LABEL[it.state])}</span>
             </div>
             <div className={styles.line}>
               <LineIdentity o={o} s={s} href={`/offres/${o.id}`} size="lg" />
@@ -155,7 +155,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               <dd>
                 <div className={styles.track} aria-label={`Étape ${Math.max(step, 0) + 1} sur ${TRACK.length}`}>
                   {TRACK.map((st, i) => (
-                    <i key={st} className={i <= step ? styles.done : undefined} title={INTENT_STATE_LABEL[st]} />
+                    <i key={st} className={i <= step ? styles.done : undefined} title={t(INTENT_STATE_LABEL[st])} />
                   ))}
                 </div>
                 <small className="muted">{TRACK.map((st) => INTENT_STATE_LABEL[st].toLowerCase()).join(" → ")}</small>
@@ -235,10 +235,10 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             <dl className={styles.kv}>
               <dt>{t("Statut")}</dt>
               <dd>
-                <span className={`st ${file.status === "approuve" ? "confirmee" : file.status === "refuse" ? "annulee" : "recue"}`}>{STATUS_LABEL[file.status]}</span>
+                <span className={`st ${file.status === "approuve" ? "confirmee" : file.status === "refuse" ? "annulee" : "recue"}`}>{t(STATUS_LABEL[file.status])}</span>
               </dd>
               <dt>{t("Risque")}</dt>
-              <dd>{file.review.risk ? `${RISK_LABEL[file.review.risk]}${file.review.nextReviewOn ? ` · revue ${file.review.nextReviewOn.slice(0, 4)}` : ""}` : "non évalué"}</dd>
+              <dd>{file.review.risk ? `${t(RISK_LABEL[file.review.risk])}${file.review.nextReviewOn ? ` · revue ${file.review.nextReviewOn.slice(0, 4)}` : ""}` : "non évalué"}</dd>
               <dt>{t("Compte-titres")}</dt>
               <dd>{file.review.custodianAccount ?? "à ouvrir"}</dd>
               <dt>{t("Pièces")}</dt>
@@ -308,7 +308,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 <li key={x.id}>
                   <span>{fmtDateTime(x.createdAt).split(" ")[0]}</span>
                   <Link href={`/desk/intentions/${x.id}`}>
-                    <b>{INTENT_STATE_LABEL[x.state]}</b> {INTENT_LABEL[x.type].toLowerCase()} · {ox?.title ?? x.offerId}
+                    <b>{t(INTENT_STATE_LABEL[x.state])}</b> {INTENT_LABEL[x.type].toLowerCase()} · {ox?.title ?? x.offerId}
                     {x.amount ? ` — ${fmt(x.amount)}` : ""}
                   </Link>
                 </li>

@@ -43,7 +43,8 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
           </Link>
           {!extractionAvailable() && <div className={styles.noApi}>{t("Extraction automatique désactivée — ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.")}</div>}
           {queue.map((q) => {
-            const [cls, label] = STATE_LABEL[q.state];
+            const [cls, label0] = STATE_LABEL[q.state];
+            const label = t(label0);
             return (
               <Link key={q.id} href={`/desk/a-valider?item=${q.id}`} className={styles.qitem} aria-current={q.id === selected?.id && !showNew ? "true" : undefined}>
                 <div className={styles.meta}>

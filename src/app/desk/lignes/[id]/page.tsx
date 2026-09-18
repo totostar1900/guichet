@@ -10,6 +10,7 @@ import { fmtDateTime } from "@/lib/format";
 import { LifecycleForm } from "./LifecycleForm";
 import { RestoreForm } from "./RestoreForm";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ const short = (v: unknown): string => (v == null ? "—" : typeof v === "object"
 
 /** Every published version of a line, what changed between them, who touched it and why; rollback by restoring a snapshot. */
 export default async function LigneHistoriquePage({ params }: Props) {
+  const t = await getT();
   await requireDesk("/desk");
   const { id } = await params;
   const r = repo();
@@ -42,18 +44,18 @@ export default async function LigneHistoriquePage({ params }: Props) {
         </div>
         <div className={styles.headBtns}>
           <Link className="btn sm" href={`/offres/${o.id}`}>
-            Fiche client
+            {t("Fiche client")}
           </Link>
           <Link className="btn sm" href="/desk/journal">
-            Journal complet
+            {t("Journal complet")}
           </Link>
         </div>
       </div>
 
       <div className={`panel ${styles.life}`}>
         <div className="panel-h">
-          <h2>Cycle de vie</h2>
-          <span className="muted">brouillon → en revue → publié → clôturé / résultats → en vie → échu · retiré à tout moment, jamais supprimé</span>
+          <h2>{t("Cycle de vie")}</h2>
+          <span className="muted">{t("brouillon → en revue → publié → clôturé / résultats → en vie → échu · retiré à tout moment, jamais supprimé")}</span>
         </div>
         <div className={styles.lifeBody}>
           <span className={`pill ${o.status === "withdrawn" ? "annulee" : "confirmee"}`}>{o.status === "withdrawn" ? "Retirée du Guichet" : `Statut : ${o.status}`}</span>
@@ -78,7 +80,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
                   <span>{fmtDateTime(v.publishedAt)}</span>
                   {v.publishedBy && <span>par {v.publishedBy}</span>}
                   {v.note && <span className={styles.note}>{v.note}</span>}
-                  {v.version === o.version && <span className={styles.tag}>en ligne</span>}
+                  {v.version === o.version && <span className={styles.tag}>{t("en ligne")}</span>}
                 </div>
                 {diffs.length > 0 && (
                   <table className={styles.diff}>
@@ -100,7 +102,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
                     </tbody>
                   </table>
                 )}
-                {!prev && v.snapshot && <small className="muted">Première version enregistrée.</small>}
+                {!prev && v.snapshot && <small className="muted">{t("Première version enregistrée.")}</small>}
                 {v.version !== o.version && v.snapshot && <RestoreForm offerId={o.id} version={v.version} current={o.version} />}
               </div>
             );
@@ -112,7 +114,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
             <h2>Piste d&apos;audit ({trail.length})</h2>
             <span className="muted">Qui, quoi, quand, d&apos;où — chaîné, jamais modifié.</span>
           </div>
-          {trail.length === 0 && <div className="empty">Aucune action tracée sur cette ligne.</div>}
+          {trail.length === 0 && <div className="empty">{t("Aucune action tracée sur cette ligne.")}</div>}
           <ul className={styles.trail}>
             {trail.map((a) => (
               <li key={a.id}>

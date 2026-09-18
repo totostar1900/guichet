@@ -155,7 +155,7 @@ export default async function ResultsPage() {
         <div className="panel-h">
           <h2>{t("Flux des 30 prochains jours")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Les avis de coupon partent à J-3 et le jour même (tâche planifiée /api/cron/coupons)
+            {t("Les avis de coupon partent à J-3 et le jour même (tâche planifiée /api/cron/coupons)")}
           </span>
         </div>
         <div className="scroll-x">

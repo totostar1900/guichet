@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useState } from "react";
 import type { BondResult } from "@/lib/finance";
 import { fmt, fmtDate, fmtUnits } from "@/lib/format";
@@ -10,6 +11,7 @@ import { fmt, fmtDate, fmtUnits } from "@/lib/format";
  * running total (what has come back so far against what went out).
  */
 export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string }) {
+  const t = useT();
   const [hover, setHover] = useState<number | null>(null);
   const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: "Souscription" }, ...r.flows];
   const W = 560;
@@ -32,7 +34,7 @@ export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string })
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: 768, margin: "8px auto 0" }}>
-      <svg className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Flux de trésorerie" onMouseLeave={() => setHover(null)}>
+      <svg className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} onMouseLeave={() => setHover(null)}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
           const x = padL + slot * i + slot / 2 - bw / 2;

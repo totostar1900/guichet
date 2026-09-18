@@ -34,12 +34,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           {files.map((f) => (
             <Link key={f.id} href={`/desk/clients?file=${f.id}`} className={styles.qitem} aria-current={f.id === selected?.id ? "true" : undefined}>
               <div className={styles.meta}>
-                <span className={`${styles.st} ${styles[`st_${f.status}`]}`}>{STATUS_LABEL[f.status]}</span>
-                <span>{KIND_LABEL[f.kind]}</span>
+                <span className={`${styles.st} ${styles[`st_${f.status}`]}`}>{t(STATUS_LABEL[f.status])}</span>
+                <span>{t(KIND_LABEL[f.kind])}</span>
               </div>
               <b>{f.identity.name || "(sans nom)"}</b>
               <span className={styles.meta}>
-                {f.identity.city ?? ""} · mis à jour {fmtDateTime(f.updatedAt)}
+                {f.identity.city ?? ""} · {t("mis à jour")} {fmtDateTime(f.updatedAt)}
               </span>
             </Link>
           ))}
@@ -50,14 +50,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           <div className={styles.detail}>
             <div className={styles.dHead}>
               <div>
-                <div className="eyebrow">{KIND_LABEL[selected.kind]}</div>
+                <div className="eyebrow">{t(KIND_LABEL[selected.kind])}</div>
                 <h2 className="display">{selected.identity.name || "(sans nom)"}</h2>
                 <div className="muted" style={{ fontSize: ".8rem" }}>
                   {[selected.identity.phone, selected.identity.email, selected.identity.city, selected.identity.country].filter(Boolean).join(" · ")}
-                  {selected.submittedAt ? ` · soumis le ${fmtDateTime(selected.submittedAt)}` : ""}
+                  {selected.submittedAt ? ` · ${t("soumis le")} ${fmtDateTime(selected.submittedAt)}` : ""}
                 </div>
               </div>
-              <span className={`${styles.st} ${styles[`st_${selected.status}`]}`}>{STATUS_LABEL[selected.status]}</span>
+              <span className={`${styles.st} ${styles[`st_${selected.status}`]}`}>{t(STATUS_LABEL[selected.status])}</span>
             </div>
 
             <div className={styles.cols}>
@@ -118,7 +118,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                       <tbody>
                         {selected.persons.map((p, i) => (
                           <tr key={i}>
-                            <td>{ROLE[p.role]}</td>
+                            <td>{t(ROLE[p.role])}</td>
                             <td>
                               <b>{p.name}</b>
                               {p.idNumber ? <small className="muted"> · {p.idNumber}</small> : null}
@@ -137,7 +137,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                 <ul className={styles.checks}>
                   {autoChecks(selected, now).map((c) => (
                     <li key={c.label} className={c.ok === true ? styles.ok : c.ok === false ? styles.ko : styles.manual}>
-                      <b>{c.label}</b> <span>{c.detail}</span>
+                      <b>{t(c.label)}</b> <span>{c.detail ? t(c.detail) : ""}</span>
                     </li>
                   ))}
                 </ul>
@@ -149,10 +149,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                       <li key={k} className={d ? "" : styles.missing}>
                         {d ? (
                           <a href={`/desk/clients/piece/${selected.id}/${k}`} target="_blank" rel="noreferrer">
-                            {DOC_LABEL[k]}
+                            {t(DOC_LABEL[k])}
                           </a>
                         ) : (
-                          <span>{DOC_LABEL[k]} — manquante</span>
+                          <span>{t(DOC_LABEL[k])} — {t("manquante")}</span>
                         )}
                         {d?.verified && <small className={styles.okText}> {t("vérifiée")}</small>}
                       </li>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { addStaffAction, setRoleAction, type TeamResult } from "./actions";
@@ -11,15 +12,16 @@ function Msg({ state }: { state: TeamResult | null }) {
 }
 
 export function AddStaffForm() {
+  const t = useT();
   const [state, action, pending] = useActionState<TeamResult | null, FormData>(addStaffAction, null);
   return (
     <form action={action} className={styles.add}>
       <label>
-        <span>Adresse e-mail du compte</span>
-        <input name="email" type="email" placeholder="prenom@purposecapital.africa" required />
+        <span>{t("Adresse e-mail du compte")}</span>
+        <input name="email" type="email" placeholder={t("prenom@purposecapital.africa")} required />
       </label>
       <label>
-        <span>Niveau</span>
+        <span>{t("Niveau")}</span>
         <Select block name="role" value="desk" options={[{ value: "desk", label: "Opérateur desk" }, { value: "responsable", label: "Responsable" }]} />
       </label>
       <button className="btn sm primary" type="submit" disabled={pending}>
@@ -31,8 +33,9 @@ export function AddStaffForm() {
 }
 
 export function RoleForm({ userId, role, self }: { userId: string; role: "desk" | "responsable"; self: boolean }) {
+  const t = useT();
   const [state, action, pending] = useActionState<TeamResult | null, FormData>(setRoleAction, null);
-  if (self) return <small className="muted">vous</small>;
+  if (self) return <small className="muted">{t("vous")}</small>;
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="userId" value={userId} />

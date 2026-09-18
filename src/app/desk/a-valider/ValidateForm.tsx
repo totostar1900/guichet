@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState } from "react";
@@ -41,12 +42,13 @@ const FIELD_LABEL: Partial<Record<keyof OfferDraft, string>> = {
 };
 
 function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: keyof OfferDraft; draft: OfferDraft; type?: string; options?: [string, string][]; snapShot?: Snap; onSelect?: (k: string, v: string) => void }) {
+  const tr = useT();
   const conf: Confidence = draft.confidence[k as keyof OfferDraft["confidence"]] ?? (draft[k] == null || draft[k] === "" ? "missing" : "sure");
   const value = snapShot?.[k] ?? (draft[k] == null ? "" : String(draft[k]));
   const cls = conf === "sure" ? "" : conf === "check" ? styles.check : styles.missing;
   return (
     <label className={`${styles.fld} ${cls}`}>
-      <span>{FIELD_LABEL[k]}</span>
+      <span>{tr(FIELD_LABEL[k] ?? String(k))}</span>
       {options ? (
         <Select block name={k} value={value} onChange={(v) => onSelect?.(k, v)} options={[{ value: "", label: "—" }, ...options.map(([v, l]) => ({ value: v, label: l }))]} />
       ) : type === "textarea" ? (
@@ -54,12 +56,13 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
       ) : (
         <input name={k} type={type} defaultValue={value} step={type === "number" ? "any" : undefined} />
       )}
-      <i className={`${styles.conf} ${styles[`conf_${conf}`]}`} title={conf === "sure" ? "Lu dans la source" : conf === "check" ? "Déduit ou ambigu — à vérifier" : "Absent de la source"} />
+      <i className={`${styles.conf} ${styles[`conf_${conf}`]}`} title={tr(conf === "sure" ? "Lu dans la source" : conf === "check" ? "Déduit ou ambigu — à vérifier" : "Absent de la source")} />
     </label>
   );
 }
 
 export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer }) {
+  const tr = useT();
   const d = item.draft;
   const [snap, setSnap] = useState<Snap>({});
   const [saveState, saveAct, saving] = useActionState<IntakeResult | null, FormData>(saveDraftAction, null);
@@ -115,20 +118,20 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         <span className={`${styles.src} ${styles[`src_${item.source}`]}`}>{SOURCE_LABEL[item.source]}</span>
         {item.extractedIn != null && (
           <span className="muted" style={{ fontSize: ".78rem" }}>
-            Extraction automatique en {item.extractedIn} s ·{" "}
+            {tr("Extraction automatique en")} {item.extractedIn} s ·{" "}
             <b style={{ color: checks ? "var(--warn)" : "var(--good)" }}>
-              {checks} champ{checks > 1 ? "s" : ""} à vérifier
+              {checks} {tr(checks > 1 ? "champs à vérifier" : "champ à vérifier")}
             </b>
           </span>
         )}
-        {!official && <span className={`${styles.st} ${styles.st_blocked}`}>Source non officielle</span>}
+        {!official && <span className={`${styles.st} ${styles.st_blocked}`}>{tr("Source non officielle")}</span>}
         {published && offer && (
           <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
             <Link href={`/offres/${offer.id}`} className="btn sm">
               Voir la fiche publiée (v{offer.version})
             </Link>
             <Link href={`/desk/lignes/${offer.id}`} className="btn sm ghost">
-              Historique
+              {tr("Historique")}
             </Link>
           </span>
         )}
@@ -139,10 +142,10 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         {offer && <input type="hidden" name="version" value={offer.version} />}
         <div className={styles.vCols}>
           <div>
-            <h3>Source (original conservé)</h3>
+            <h3>{tr("Source (original conservé)")}</h3>
             {item.fileName ? (
               item.mimeType === "application/pdf" ? (
-                <iframe className={styles.frame} src={`/desk/a-valider/source/${item.id}`} title="Source PDF" />
+                <iframe className={styles.frame} src={`/desk/a-valider/source/${item.id}`} title={tr("Source PDF")} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className={styles.photo} src={`/desk/a-valider/source/${item.id}`} alt="Source" />
@@ -159,12 +162,12 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             )}
           </div>
           <div>
-            <h3>Champs extraits — corriger si besoin</h3>
+            <h3>{tr("Champs extraits — corriger si besoin")}</h3>
             <div className={styles.fields}>
               <label className={`${styles.fld} ${d.kind ? "" : styles.missing}`}>
-                <span>Type de produit</span>
+                <span>{tr("Type de produit")}</span>
                 <Select block name="typeKey" value={typeKey} onChange={(v) => onSelect("typeKey", v)} options={types.map((t) => ({ value: t.key, label: t.label }))} />
-                <i className={`${styles.conf} ${styles[`conf_${d.kind ? "sure" : "missing"}`]}`} title="Type choisi par le desk" />
+                <i className={`${styles.conf} ${styles[`conf_${d.kind ? "sure" : "missing"}`]}`} title={tr("Type choisi par le desk")} />
               </label>
               <input type="hidden" name="kind" value={kind} />
               <Field k="operation" draft={d} snapShot={snap} onSelect={onSelect} options={(Object.keys(OPERATION_LABEL) as Offer["operation"][]).map((k) => [k, OPERATION_LABEL[k]])} />
@@ -213,36 +216,36 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         </div>
 
         <div className={styles.decision}>
-          <h3>Décision du desk — les seuls champs que nous fixons</h3>
+          <h3>{tr("Décision du desk — les seuls champs que nous fixons")}</h3>
           <div className={styles.decGrid}>
             {kind === "BTA" ? (
               <label className="field">
-                Taux précompté indicatif (%)
+                {tr("Taux précompté indicatif (%)")}
                 <input name="precountRate" type="number" step="0.05" defaultValue={offer?.precountRate ?? 5.5} />
               </label>
             ) : kind === "ACTIONS" || kind === "RACHAT" ? (
               <label className="field">
-                Prix
+                {tr("Prix")}
                 <input value={kind === "RACHAT" ? "100 % (au pair)" : "prix d'émission"} readOnly />
               </label>
             ) : (
               <label className="field">
-                Prix Purpose (% du nominal)
+                {tr("Prix Purpose (% du nominal)")}
                 <input name="pricePct" type="number" step="0.5" defaultValue={offer?.pricePct && !offer.priceNote ? offer.pricePct : 95} />
               </label>
             )}
             <input type="hidden" name="commissionPct" value="0" />
             <label className="field">
-              Ticket minimum (titres)
+              {tr("Ticket minimum (titres)")}
               <input name="minTitles" type="number" defaultValue={offer?.minTitles ?? (kind === "BTA" ? 1 : kind === "ACTIONS" ? 10 : 100)} />
             </label>
             <label className="field">
-              Segments
+              {tr("Segments")}
               <Select block name="segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements", "Porteurs de la ligne"].map((v) => ({ value: v, label: v }))} />
             </label>
           </div>
           <div className={styles.preview}>
-            <span className="eyebrow">Aperçu client</span>
+            <span className="eyebrow">{tr("Aperçu client")}</span>
             <div>{preview || "Complétez les dates et le taux pour voir l'aperçu."}</div>
           </div>
           {type && type.checklist.length > 0 && (
@@ -273,15 +276,15 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             <span className="eyebrow">{inReview ? "En revue" : "Dernière note"}</span> {item.notes}
           </div>
         )}
-        {revState?.ok && <div className={styles.okMsg}>Relecture demandée — le brouillon passe « en revue ».</div>}
-        {backState?.ok && <div className={styles.okMsg}>Renvoyé en correction.</div>}
-        {saveState?.ok && <div className={styles.okMsg}>Brouillon enregistré.</div>}
+        {revState?.ok && <div className={styles.okMsg}>{tr("Relecture demandée — le brouillon passe « en revue ».")}</div>}
+        {backState?.ok && <div className={styles.okMsg}>{tr("Renvoyé en correction.")}</div>}
+        {saveState?.ok && <div className={styles.okMsg}>{tr("Brouillon enregistré.")}</div>}
         {pubState?.ok && pubState.pending && <div className={styles.okMsg}>Proposition transmise à un responsable — {pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).</div>}
         {pubState?.ok && !pubState.pending && (
           <div className={styles.okMsg}>
             Publié — la fiche est en ligne.{" "}
             <Link href={`/desk/a-valider?item=${item.id}`} style={{ color: "inherit" }}>
-              Recharger
+              {tr("Recharger")}
             </Link>
           </div>
         )}
@@ -297,11 +300,11 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
                   : "Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées."}
           </small>
           <button className="btn ghost sm" type="submit" formAction={rejectAction} formNoValidate>
-            Rejeter
+            {tr("Rejeter")}
           </button>
           {!published && (
             <span className={styles.reviewBox}>
-              <input name="reviewNote" placeholder={inReview ? "Ce qui reste à corriger…" : "À vérifier par le relecteur…"} aria-label="Note de revue" maxLength={300} />
+              <input name="reviewNote" placeholder={inReview ? "Ce qui reste à corriger…" : "À vérifier par le relecteur…"} aria-label={tr("Note de revue")} maxLength={300} />
               {inReview ? (
                 <button className="btn sm" type="submit" formAction={backAct} disabled={sendingBack} formNoValidate>
                   {sendingBack ? "…" : "Renvoyer en correction"}

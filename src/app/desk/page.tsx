@@ -278,7 +278,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                       )}
                     </td>
                     <td>
-                      <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
+                      <span className={`st ${i.type}`}>{t(INTENT_LABEL[i.type])}</span>
                     </td>
                     <td className="r num">{i.amount ? (o?.kind === "RACHAT" ? `${fmt(i.amount)} titres` : i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : fmt(i.amount)) : "—"}</td>
                     <td>
@@ -292,7 +292,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                     </td>
                     <td className="num">{fmtTime(i.createdAt)}</td>
                     <td>
-                      <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
+                      <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                     </td>
                     <td>
                       <div className={styles.rowbtns}>
@@ -301,7 +301,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                         </Link>
                         {(i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise" ? (
                           <Link className="btn sm primary" href="/desk/marche">
-                            Exécuter (Marché)
+                            {t("Exécuter (Marché)")}
                           </Link>
                         ) : null}
                         {next
@@ -311,7 +311,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                               <input type="hidden" name="intentId" value={i.id} />
                               <input type="hidden" name="state" value={s} />
                               <button className={`btn sm ${s === "transmise" ? "primary" : ""}`} type="submit">
-                                {STATE_ACTION_LABEL[s]}
+                                {t(STATE_ACTION_LABEL[s] ?? "")}
                               </button>
                             </form>
                           ))}

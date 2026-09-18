@@ -1,23 +1,25 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useActionState } from "react";
 import { generateBordereauAction, generateDocumentAction, type DocResult } from "./actions";
 import styles from "./page.module.css";
 
 /** Generates one client document; opens the PDF in a new tab when done. */
 export function GenerateButton({ type, intentId, label, withAllocation }: { type: string; intentId: string; label: string; withAllocation?: boolean }) {
+  const t = useT();
   const [state, action, pending] = useActionState<DocResult | null, FormData>(generateDocumentAction, null);
   return (
     <form action={action} className={styles.genForm}>
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="intentId" value={intentId} />
-      {withAllocation && <input name="allocation" type="number" min={0} max={100} defaultValue={100} className={styles.alloc} title="Allocation (%)" aria-label="Allocation en %" />}
+      {withAllocation && <input name="allocation" type="number" min={0} max={100} defaultValue={100} className={styles.alloc} title={t("Allocation (%)")} aria-label={t("Allocation en %")} />}
       <button className="btn sm" type="submit" disabled={pending}>
         {pending ? "…" : label}
       </button>
       {state?.ok && (
         <a className="btn sm primary" href={`/desk/documents/pdf/${state.id}`} target="_blank" rel="noreferrer">
-          Ouvrir
+          {t("Ouvrir")}
         </a>
       )}
       {state && !state.ok && <span className={styles.err}>{state.error}</span>}
@@ -26,6 +28,7 @@ export function GenerateButton({ type, intentId, label, withAllocation }: { type
 }
 
 export function BordereauButton({ country, deadlineAt, disabled, label }: { country: string; deadlineAt: string; disabled?: boolean; label: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState<DocResult | null, FormData>(generateBordereauAction, null);
   return (
     <form action={action} className={styles.genForm}>
@@ -36,7 +39,7 @@ export function BordereauButton({ country, deadlineAt, disabled, label }: { coun
       </button>
       {state?.ok && (
         <a className="btn sm" href={`/desk/documents/pdf/${state.id}`} target="_blank" rel="noreferrer">
-          Ouvrir
+          {t("Ouvrir")}
         </a>
       )}
       {state && !state.ok && <span className={styles.err}>{state.error}</span>}

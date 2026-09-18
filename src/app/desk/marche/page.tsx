@@ -102,7 +102,7 @@ export default async function MarketPage() {
         )}
         <div className={styles.tools}>
           <div>
-            <span>Ingérer une séance (ou relancer celle du jour)</span>
+            <span>{t("Ingérer une séance (ou relancer celle du jour)")}</span>
             <IngestForm defaultDate={today} />
           </div>
           <div>
@@ -134,7 +134,7 @@ export default async function MarketPage() {
                 <th className="r">{t("Acheteur")}</th>
                 <th className="r">{t("Vendeur")}</th>
                 <th>{t("Mis à jour")}</th>
-                <th>Secours (saisie)</th>
+                <th>{t("Secours (saisie)")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -241,9 +241,9 @@ export default async function MarketPage() {
                       <small className="muted">{f.depositary}</small>
                     </td>
                     <td>
-                      {FUND_CATEGORY_LABEL[f.category]}
+                      {t(FUND_CATEGORY_LABEL[f.category])}
                       <br />
-                      <small className="muted">{FUND_FREQUENCY_LABEL[f.frequency]}</small>
+                      <small className="muted">{t(FUND_FREQUENCY_LABEL[f.frequency])}</small>
                     </td>
                     <td className="r num">
                       {fmt(f.nav)}
@@ -277,7 +277,7 @@ export default async function MarketPage() {
         <div className="panel-h">
           <h2>Ordres de bourse et d&apos;OPCVM</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            reçu → confirmé (ordre signé, appel de fonds) → placé / centralisé → exécuté (cours ou VL, quantité) → réglé
+            {t("reçu → confirmé (ordre signé, appel de fonds) → placé / centralisé → exécuté (cours ou VL, quantité) → réglé")}
           </span>
         </div>
         <div className="scroll-x">
@@ -312,7 +312,7 @@ export default async function MarketPage() {
                     </td>
                     <td>{o.title}</td>
                     <td>
-                      <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
+                      <span className={`st ${i.type}`}>{t(INTENT_LABEL[i.type])}</span>
                     </td>
                     <td className="r num">
                       {qty(p.units)}
@@ -325,7 +325,7 @@ export default async function MarketPage() {
                       {i.executedPrice != null ? <small className="muted"> @ {isBond ? fmtPrice(i.executedPrice) : fmt(i.executedPrice)}</small> : null}
                     </td>
                     <td>
-                      <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
+                      <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                     </td>
                     <td className={styles.right}>
                       {i.state === "transmise" && <ExecuteForm intentId={i.id} units={p.units} refPrice={isFund ? (o.fund?.nav ?? 0) : (i.limitPrice ?? (i.type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0)))} step={isBond ? "0.001" : isFund ? "0.01" : "1"} unitStep={isFund ? "0.001" : "1"} />}

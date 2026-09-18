@@ -1,8 +1,10 @@
 import { EN as EN_BASE } from "./en";
 import { EN_MORE } from "./en-desk";
 import { EN_CONTENT } from "./en-content";
+import { EN_LESSONS } from "./en-lessons";
+import { EN_REST } from "./en-rest";
 
-const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT };
+const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT, ...EN_LESSONS, ...EN_REST };
 
 /**
  * Two languages, one source: French is written in the code, English is a

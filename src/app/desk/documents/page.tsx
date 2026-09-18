@@ -152,10 +152,10 @@ export default async function DocumentsPage() {
                     </td>
                     <td>{o?.title ?? i.offerId}</td>
                     <td>
-                      <span className={`st ${i.type}`}>{INTENT_LABEL[i.type]}</span>
+                      <span className={`st ${i.type}`}>{t(INTENT_LABEL[i.type])}</span>
                     </td>
                     <td>
-                      <span className={`st ${i.state}`}>{INTENT_STATE_LABEL[i.state]}</span>
+                      <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                     </td>
                     <td className="r num">{i.amount ? fmt(i.amount) : "—"}</td>
                     <td>
@@ -209,7 +209,7 @@ export default async function DocumentsPage() {
                         {d.number}
                       </a>
                     </td>
-                    <td>{DOC_LABEL[d.type]}</td>
+                    <td>{t(DOC_LABEL[d.type])}</td>
                     <td>{d.clientName ?? <span className="muted">SVT</span>}</td>
                     <td className="num">
                       {fmtDateTime(d.createdAt)}

@@ -1,13 +1,15 @@
 import type { Quote } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
+import { getT } from "@/i18n/server";
 
 /**
  * What the bulletin says about a listed line: closing history (sparkline),
  * the last sessions, and the day's frame (thresholds, volumes, accrued coupon).
  * Server-rendered; the data is the ingested BOC, never typed by the desk.
  */
-export function QuoteHistory({ quotes }: { quotes: Quote[] }) {
+export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
+  const t = await getT();
   if (quotes.length === 0) return null;
   const latest = quotes[0];
   const isBond = latest.instrument === "obligation";
@@ -45,15 +47,15 @@ export function QuoteHistory({ quotes }: { quotes: Quote[] }) {
 
       <dl className={styles.frame}>
         <div>
-          <dt>Clôture</dt>
+          <dt>{t("Clôture")}</dt>
           <dd>{price(latest.close)}</dd>
         </div>
         <div>
-          <dt>Variation</dt>
+          <dt>{t("Variation")}</dt>
           <dd className={latest.variationPct < 0 ? styles.down : latest.variationPct > 0 ? styles.up : undefined}>{signed(latest.variationPct)}</dd>
         </div>
         <div>
-          <dt>Seuils de séance</dt>
+          <dt>{t("Seuils de séance")}</dt>
           <dd>
             {price(latest.thresholdLow)} – {price(latest.thresholdHigh)}
           </dd>
@@ -61,32 +63,32 @@ export function QuoteHistory({ quotes }: { quotes: Quote[] }) {
         {isBond ? (
           <>
             <div>
-              <dt>Coupon couru (J+3)</dt>
+              <dt>{t("Coupon couru (J+3)")}</dt>
               <dd>{latest.accruedCoupon != null ? `${fmt(latest.accruedCoupon)} FCFA / titre` : "—"}</dd>
             </div>
             <div>
-              <dt>Nominal restant dû</dt>
+              <dt>{t("Nominal restant dû")}</dt>
               <dd>{latest.nominalRemaining != null ? `${fmt(latest.nominalRemaining)} FCFA` : "—"}</dd>
             </div>
             <div>
-              <dt>Référence prochaine séance</dt>
+              <dt>{t("Référence prochaine séance")}</dt>
               <dd>{fmt(latest.referenceNext)} FCFA</dd>
             </div>
           </>
         ) : (
           <>
             <div>
-              <dt>Volume échangé</dt>
+              <dt>{t("Volume échangé")}</dt>
               <dd>
                 {fmt(latest.volumeTraded)} titre{latest.volumeTraded > 1 ? "s" : ""} · {fmt(latest.valueTraded)} FCFA
               </dd>
             </div>
             <div>
-              <dt>Depuis le 1er janvier</dt>
+              <dt>{t("Depuis le 1er janvier")}</dt>
               <dd>{latest.ytdVariationPct != null ? signed(latest.ytdVariationPct) : "—"}</dd>
             </div>
             <div>
-              <dt>Référence prochaine séance</dt>
+              <dt>{t("Référence prochaine séance")}</dt>
               <dd>{fmt(latest.referenceNext)} FCFA</dd>
             </div>
           </>
@@ -96,11 +98,11 @@ export function QuoteHistory({ quotes }: { quotes: Quote[] }) {
       <table className={styles.tbl}>
         <thead>
           <tr>
-            <th>Séance</th>
-            <th className={styles.r}>Clôture</th>
-            <th className={styles.r}>Var.</th>
-            {!isBond && <th className={styles.r}>Volume</th>}
-            <th>Bulletin</th>
+            <th>{t("Séance")}</th>
+            <th className={styles.r}>{t("Clôture")}</th>
+            <th className={styles.r}>{t("Var.")}</th>
+            {!isBond && <th className={styles.r}>{t("Volume")}</th>}
+            <th>{t("Bulletin")}</th>
           </tr>
         </thead>
         <tbody>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useActionState } from "react";
 import { fmt } from "@/lib/format";
 import { applyResultsAction, applySettlementAction, type ResultsOutcome } from "./actions";
@@ -16,6 +17,7 @@ interface Line {
 
 /** Served price per line and allocation per transmitted order — one submit applies the auction. */
 export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Line[] }) {
+  const t = useT();
   const [state, action, pending] = useActionState<ResultsOutcome | null, FormData>(applyResultsAction, null);
   return (
     <form action={action} className={styles.results}>
@@ -30,16 +32,16 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
             </div>
             {l.kind === "BTA" ? (
               <label className="field">
-                Taux servi (% précompté)
+                {t("Taux servi (% précompté)")}
                 <input name={`rate_${l.offerId}`} type="number" step="0.01" defaultValue={l.proposed} />
               </label>
             ) : l.kind === "RACHAT" ? (
               <span className="muted" style={{ fontSize: ".8rem" }}>
-                Rachat au pair
+                {t("Rachat au pair")}
               </span>
             ) : (
               <label className="field">
-                Prix servi (% du nominal, 3 déc.)
+                {t("Prix servi (% du nominal, 3 déc.)")}
                 <input name={`price_${l.offerId}`} type="number" step="0.001" defaultValue={l.proposed} />
               </label>
             )}
@@ -47,10 +49,10 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
           <table className="tbl">
             <thead>
               <tr>
-                <th>Ordre</th>
-                <th>Client</th>
-                <th className="r">Demandé</th>
-                <th className="r">Allocation (%)</th>
+                <th>{t("Ordre")}</th>
+                <th>{t("Client")}</th>
+                <th className="r">{t("Demandé")}</th>
+                <th className="r">{t("Allocation (%)")}</th>
               </tr>
             </thead>
             <tbody>

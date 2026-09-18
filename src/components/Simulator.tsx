@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { Select } from "./ui/Select";
 import { useState } from "react";
 import { FlowsChart } from "./FlowsChart";
@@ -9,6 +10,7 @@ import styles from "./Simulator.module.css";
 
 /** Free-form bond / bill simulator — deliberately separate from any live offer. */
 export function Simulator() {
+  const t = useT();
   const [kind, setKind] = useState<"OTA" | "BTA">("OTA");
   const [amount, setAmount] = useState("10 000 000");
   const [coupon, setCoupon] = useState(6.5);
@@ -25,41 +27,41 @@ export function Simulator() {
     <>
       <div className={styles.calc}>
         <label className="field">
-          Type
+          {t("Type")}
           <Select block value={kind} onChange={(v) => setKind(v as "OTA" | "BTA")} options={[{ value: "OTA", label: "Obligation à coupon annuel (OTA, APE)" }, { value: "BTA", label: "Bon à intérêts précomptés (BTA)" }]} />
         </label>
         <label className="field">
-          Montant nominal (FCFA)
+          {t("Montant nominal (FCFA)")}
           <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} onBlur={() => setAmount(fmt(amt))} />
         </label>
         {kind === "OTA" ? (
           <>
             <label className="field">
-              Coupon annuel (%)
+              {t("Coupon annuel (%)")}
               <input type="number" step="0.05" value={coupon} onChange={(e) => setCoupon(+e.target.value)} />
             </label>
             <label className="field">
-              Prix (% du nominal)
+              {t("Prix (% du nominal)")}
               <input type="number" step="0.5" value={price} onChange={(e) => setPrice(+e.target.value)} />
             </label>
           </>
         ) : (
           <label className="field">
-            Taux précompté (%)
+            {t("Taux précompté (%)")}
             <input type="number" step="0.05" value={rate} onChange={(e) => setRate(+e.target.value)} />
           </label>
         )}
         <label className="field">
-          Date de règlement
+          {t("Date de règlement")}
           <input type="date" value={settle} onChange={(e) => setSettle(e.target.value)} />
         </label>
         <label className="field">
-          Échéance
+          {t("Échéance")}
           <input type="date" value={maturity} onChange={(e) => setMaturity(e.target.value)} />
         </label>
         {kind === "OTA" && (
           <label className="field">
-            Dernier coupon versé (vide si ligne nouvelle)
+            {t("Dernier coupon versé (vide si ligne nouvelle)")}
             <input type="date" value={last} onChange={(e) => setLast(e.target.value)} />
           </label>
         )}
@@ -104,7 +106,7 @@ export function Simulator() {
               <div>{fmtPct(atPar ? coupon : r.irr, 2)}</div>
               {atPar && (
                 <>
-                  <div className="muted">Rendement actuariel, convention Exact/Exact</div>
+                  <div className="muted">{t("Rendement actuariel, convention Exact/Exact")}</div>
                   <div className="muted">{fmtPct(r.irr, 2)}</div>
                 </>
               )}
@@ -120,7 +122,7 @@ export function Simulator() {
           <>
           <div className={styles.tiles}>
             <div className={styles.gold}>
-              <span>Rendement actuariel brut</span>
+              <span>{t("Rendement actuariel brut")}</span>
               <b>{fmtPct(r.yieldPct, 2)}</b>
             </div>
             <div>
@@ -128,12 +130,12 @@ export function Simulator() {
               <b>{fmt(r.outlay)} FCFA</b>
             </div>
             <div>
-              <span>Intérêt précompté</span>
+              <span>{t("Intérêt précompté")}</span>
               <b>{fmt(r.gain)} FCFA</b>
             </div>
           </div>
           <div className="out" style={{ marginTop: 12 }}>
-            <div>Bons (nominal 1 000 000)</div>
+            <div>{t("Bons (nominal 1 000 000)")}</div>
             <div>{fmt(r.n)}</div>
             <div>Prix d&apos;achat par bon</div>
             <div>{fmt(r.pricePerBond)}</div>
@@ -141,7 +143,7 @@ export function Simulator() {
             <div>{fmt(r.outlay)} FCFA</div>
             <div>Remboursé le {fmtDate(maturity, false)}</div>
             <div>{fmt(r.redemption)}</div>
-            <div>Intérêt (précompté)</div>
+            <div>{t("Intérêt (précompté)")}</div>
             <div>{fmt(r.gain)}</div>
             <div className="hl">Rendement actuariel ({r.days} jours)</div>
             <div>{fmtPct(r.yieldPct, 2)}</div>

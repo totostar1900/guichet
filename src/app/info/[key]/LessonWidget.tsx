@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useState } from "react";
 import type { LessonWidget as Kind } from "@/data/lessons";
 import { bondCalc, btaCalc } from "@/lib/finance";
@@ -29,9 +30,10 @@ export interface Live {
 const pct = (n: number) => fmtPct(n, 2);
 
 function LiveLine({ live }: { live: Live }) {
+  const t = useT();
   return (
     <div className={styles.live}>
-      <b>Sur une vraie ligne du Guichet</b>
+      <b>{t("Sur une vraie ligne du Guichet")}</b>
       {live.href ? <a href={live.href}>{live.title}</a> : live.title}
       {live.exampleNote && <small> · {live.exampleNote}</small>}
     </div>
@@ -39,6 +41,7 @@ function LiveLine({ live }: { live: Live }) {
 }
 
 function BondPrice({ live }: { live: Live }) {
+  const t = useT();
   const [price, setPrice] = useState(live.pricePct ?? 96);
   const input = { nominal: live.nominal ?? 10_000, couponRate: live.couponRate ?? 6, settleOn: live.settleOn ?? "2026-09-17", maturityOn: live.maturityOn ?? "2028-03-31", lastCouponOn: live.lastCouponOn ?? null };
   const r = bondCalc(input, 10_000_000, price);
@@ -48,22 +51,22 @@ function BondPrice({ live }: { live: Live }) {
       <LiveLine live={live} />
       <label className={styles.slider}>
         <span>
-          Prix payé <b>{price.toFixed(1).replace(".", ",")} %</b> du nominal
+          {t("Prix payé")} <b>{price.toFixed(1).replace(".", ",")} %</b> {t("du nominal")}
         </span>
-        <input type="range" min={90} max={106} step={0.5} value={price} onChange={(e) => setPrice(Number(e.target.value))} aria-label="Prix en pourcentage du nominal" />
+        <input type="range" min={90} max={106} step={0.5} value={price} onChange={(e) => setPrice(Number(e.target.value))} aria-label={t("Prix en pourcentage du nominal")} />
         <span className={styles.ends}>
           <i>90 %</i>
-          <i>au pair · 100 %</i>
+          <i>{t("au pair · 100 %")}</i>
           <i>106 %</i>
         </span>
       </label>
       <div className={styles.pair}>
         <div>
-          <span>Coupon nominal</span>
+          <span>{t("Coupon nominal")}</span>
           <b>{pct(input.couponRate)}</b>
         </div>
         <div>
-          <span>Rendement actuariel</span>
+          <span>{t("Rendement actuariel")}</span>
           <b className={styles.gold}>{pct(r.irr)}</b>
         </div>
       </div>
@@ -101,6 +104,7 @@ function ReadOta({ live }: { live: Live }) {
 }
 
 function BtaRate({ live }: { live: Live }) {
+  const t = useT();
   const [rate, setRate] = useState(live.precountRate ?? 5.5);
   const input = { nominal: live.nominal ?? 1_000_000, settleOn: live.settleOn ?? "2026-09-17", maturityOn: live.maturityOn ?? "2027-09-16" };
   const r = btaCalc(input, 1_000_000, rate);
@@ -109,9 +113,9 @@ function BtaRate({ live }: { live: Live }) {
       <LiveLine live={live} />
       <label className={styles.slider}>
         <span>
-          Taux précompté <b>{pct(rate)}</b>
+          {t("Taux précompté")} <b>{pct(rate)}</b>
         </span>
-        <input type="range" min={3} max={8} step={0.05} value={rate} onChange={(e) => setRate(Number(e.target.value))} aria-label="Taux précompté" />
+        <input type="range" min={3} max={8} step={0.05} value={rate} onChange={(e) => setRate(Number(e.target.value))} aria-label={t("Taux précompté")} />
         <span className={styles.ends}>
           <i>3 %</i>
           <i>8 %</i>
@@ -123,7 +127,7 @@ function BtaRate({ live }: { live: Live }) {
           <b>{fmt(Math.round(r.pricePerBond))}</b>
         </div>
         <div>
-          <span>Rendement actuariel</span>
+          <span>{t("Rendement actuariel")}</span>
           <b className={styles.gold}>{pct(r.yieldPct)}</b>
         </div>
       </div>
@@ -135,6 +139,7 @@ function BtaRate({ live }: { live: Live }) {
 }
 
 function Tenor({ live }: { live: Live }) {
+  const t = useT();
   const settle = live.settleOn ?? "2026-09-17";
   const y = Number(settle.slice(0, 4));
   const base = { nominal: 10_000, couponRate: live.couponRate ?? 6, settleOn: settle, lastCouponOn: null as string | null };
@@ -149,14 +154,14 @@ function Tenor({ live }: { live: Live }) {
       </p>
       <div className={styles.pair}>
         <div>
-          <span>Échéance dans 1 an</span>
+          <span>{t("Échéance dans 1 an")}</span>
           <b className={styles.gold}>{pct(short.irr)}</b>
-          <small>la décote pèse sur une seule année</small>
+          <small>{t("la décote pèse sur une seule année")}</small>
         </div>
         <div>
-          <span>Échéance dans 5 ans</span>
+          <span>{t("Échéance dans 5 ans")}</span>
           <b className={styles.gold}>{pct(long.irr)}</b>
-          <small>la même décote, étalée sur cinq</small>
+          <small>{t("la même décote, étalée sur cinq")}</small>
         </div>
       </div>
     </>
@@ -164,6 +169,7 @@ function Tenor({ live }: { live: Live }) {
 }
 
 function Equity({ live }: { live: Live }) {
+  const t = useT();
   const [price, setPrice] = useState(live.pricePerShare ?? 45_000);
   const div = live.dividendPerShare ?? 2_500;
   const eps = live.eps ?? 5_000;
@@ -172,13 +178,13 @@ function Equity({ live }: { live: Live }) {
       <LiveLine live={live} />
       <label className={styles.slider}>
         <span>
-          Cours <b>{fmt(price)} FCFA</b>
+          {t("Cours")} <b>{fmt(price)} FCFA</b>
         </span>
-        <input type="range" min={Math.round((live.pricePerShare ?? 45_000) * 0.6)} max={Math.round((live.pricePerShare ?? 45_000) * 1.6)} step={100} value={price} onChange={(e) => setPrice(Number(e.target.value))} aria-label="Cours" />
+        <input type="range" min={Math.round((live.pricePerShare ?? 45_000) * 0.6)} max={Math.round((live.pricePerShare ?? 45_000) * 1.6)} step={100} value={price} onChange={(e) => setPrice(Number(e.target.value))} aria-label={t("Cours")} />
       </label>
       <div className={styles.pair}>
         <div>
-          <span>Rendement du dividende</span>
+          <span>{t("Rendement du dividende")}</span>
           <b className={styles.gold}>{pct((div / price) * 100)}</b>
           <small>
             {fmt(div)} / {fmt(price)}
@@ -196,6 +202,7 @@ function Equity({ live }: { live: Live }) {
 }
 
 function Fund({ live }: { live: Live }) {
+  const t = useT();
   const [amount, setAmount] = useState(1_000_000);
   const nav = live.nav ?? 13_262;
   const fee = live.entryFeePct ?? 0;
@@ -205,20 +212,20 @@ function Fund({ live }: { live: Live }) {
       <LiveLine live={live} />
       <label className={styles.slider}>
         <span>
-          Montant souscrit <b>{fmt(amount)} FCFA</b>
+          {t("Montant souscrit")} <b>{fmt(amount)} FCFA</b>
         </span>
-        <input type="range" min={100_000} max={10_000_000} step={100_000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} aria-label="Montant" />
+        <input type="range" min={100_000} max={10_000_000} step={100_000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} aria-label={t("Montant")} />
       </label>
       <div className={styles.pair}>
         <div>
-          <span>Dernière VL connue</span>
+          <span>{t("Dernière VL connue")}</span>
           <b>{fmt(nav)} FCFA</b>
           <small>{fee ? `frais d'entrée ${pct(fee)}` : "sans frais d'entrée"}</small>
         </div>
         <div>
-          <span>≈ parts si la VL ne bouge pas</span>
+          <span>{t("≈ parts si la VL ne bouge pas")}</span>
           <b className={styles.gold}>{(net / nav).toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</b>
-          <small>le nombre exact dépend de la prochaine VL</small>
+          <small>{t("le nombre exact dépend de la prochaine VL")}</small>
         </div>
       </div>
     </>
@@ -226,6 +233,7 @@ function Fund({ live }: { live: Live }) {
 }
 
 function Auction({ live }: { live: Live }) {
+  const t = useT();
   const [served, setServed] = useState(60);
   const asked = 10_000_000;
   return (
@@ -233,23 +241,23 @@ function Auction({ live }: { live: Live }) {
       <LiveLine live={live} />
       <label className={styles.slider}>
         <span>
-          Part servie par le Trésor à votre prix <b>{served} %</b>
+          {t("Part servie par le Trésor à votre prix")} <b>{served} %</b>
         </span>
-        <input type="range" min={0} max={100} step={10} value={served} onChange={(e) => setServed(Number(e.target.value))} aria-label="Part servie" />
+        <input type="range" min={0} max={100} step={10} value={served} onChange={(e) => setServed(Number(e.target.value))} aria-label={t("Part servie")} />
         <span className={styles.ends}>
-          <i>non servi</i>
-          <i>servi en totalité</i>
+          <i>{t("non servi")}</i>
+          <i>{t("servi en totalité")}</i>
         </span>
       </label>
       <div className={styles.pair}>
         <div>
-          <span>Demandé</span>
+          <span>{t("Demandé")}</span>
           <b>{fmt(asked)}</b>
         </div>
         <div>
-          <span>Obtenu</span>
+          <span>{t("Obtenu")}</span>
           <b className={styles.gold}>{fmt((asked * served) / 100)}</b>
-          <small>{served < 100 ? `${fmt(asked - (asked * served) / 100)} restitués sous deux jours` : "allocation totale"}</small>
+          <small>{served < 100 ? `${fmt(asked - (asked * served) / 100)} ${t("restitués sous deux jours")}` : t("allocation totale")}</small>
         </div>
       </div>
     </>

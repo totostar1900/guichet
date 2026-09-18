@@ -7,12 +7,14 @@ import { Info } from "@/components/Info";
 import { getRegistry } from "@/lib/registry";
 import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Sociétés cotées — BVMAC" };
 
 
 export default async function SocietesPage() {
+  const t = await getT();
   const r = repo();
   const [latest, bulletins] = await Promise.all([r.latestQuotes(), r.listBulletins(1)]);
   const quotes = new Map(latest.filter((q) => q.instrument === "action").map((q) => [q.isin, q]));
@@ -26,7 +28,7 @@ export default async function SocietesPage() {
     <>
       <div className={styles.head}>
         <div>
-          <h1 className="display">Les sociétés cotées</h1>
+          <h1 className="display">{t("Les sociétés cotées")}</h1>
           <p className={styles.lead}>
             Les {COMPANIES.length} entreprises dont les actions s&apos;échangent à la BVMAC, ensemble {fmtUnits(totalCap, true)} de capitalisation. Pour chacune : ce qu&apos;elle fait, ses comptes certifiés des dernières années, ce que vaut l&apos;action aujourd&apos;hui et comment lire ces chiffres — puis un rapport PDF sur la période de votre choix.
           </p>
@@ -35,7 +37,7 @@ export default async function SocietesPage() {
           <div className={styles.stamp}>
             Cours du BOC n° {bulletins[0].number} du {fmtDate(bulletins[0].sessionDate)}
             <br />
-            comptes : fiches signalétiques et états financiers publiés sur bvm-ac.org
+            {t("comptes : fiches signalétiques et états financiers publiés sur bvm-ac.org")}
           </div>
         )}
       </div>
@@ -45,27 +47,27 @@ export default async function SocietesPage() {
           <table className={styles.tbl}>
             <thead>
               <tr>
-                <th>Société</th>
+                <th>{t("Société")}</th>
                 <th className={styles.r}>
-                  Cours <Info term="cours" />
+                  {t("Cours")} <Info term="cours" />
                 </th>
-                <th className={`${styles.r} ${styles.hideSm}`}>Var. jour</th>
+                <th className={`${styles.r} ${styles.hideSm}`}>{t("Var. jour")}</th>
                 <th className={styles.r}>
-                  Depuis le 1er janv. <Info term="ytd" />
+                  {t("Depuis le 1er janv.")} <Info term="ytd" />
                 </th>
                 <th className={styles.r}>
-                  Capitalisation <Info term="capitalisation" />
+                  {t("Capitalisation")} <Info term="capitalisation" />
                 </th>
                 <th className={styles.r}>
                   PER <Info term="per" />
                 </th>
                 <th className={styles.r}>
-                  Rendement <Info term="rendement_dividende" />
+                  {t("Rendement")} <Info term="rendement_dividende" />
                 </th>
                 <th className={`${styles.r} ${styles.hideSm}`}>
-                  Dernier dividende <Info term="dividende" />
+                  {t("Dernier dividende")} <Info term="dividende" />
                 </th>
-                <th className={styles.hideSm}>Secteur</th>
+                <th className={styles.hideSm}>{t("Secteur")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -96,7 +98,7 @@ export default async function SocietesPage() {
                     <td className={styles.hideSm}>{c.sector}</td>
                     <td className={styles.r}>
                       <Link className="btn sm" href={`/societes/${c.mnemo.toLowerCase()}`}>
-                        Analyse
+                        {t("Analyse")}
                       </Link>
                     </td>
                   </tr>
@@ -109,7 +111,7 @@ export default async function SocietesPage() {
 
       <div className={styles.panel}>
         <div className={styles.issuersH}>
-          <h2>Émetteurs obligataires</h2>
+          <h2>{t("Émetteurs obligataires")}</h2>
           <p className="muted">Les entreprises qui empruntent sur la BVMAC sans y être cotées en actions : ce qu&apos;elles font, leurs comptes publiés et les lignes qu&apos;elles remboursent. Les États (Cameroun, Gabon, Congo, Tchad) et la BDEAC ont leurs échéanciers directement sur chaque ligne.</p>
         </div>
         <div className={styles.issuers}>
