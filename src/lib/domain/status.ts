@@ -14,7 +14,7 @@ export const STATUS_LABEL: Record<DisplayStatus, string> = {
   open: "Ouverte",
   closing: "Clôture imminente",
   closed: "Clôturée",
-  results: "Résultats",
+  results: "Résultats publiés",
   live: "En vie",
   matured: "Échue",
 };
@@ -22,6 +22,7 @@ export const STATUS_LABEL: Record<DisplayStatus, string> = {
 /** Pill text: a distributed fund is « ouvert à la souscription », not « coté ». */
 export function statusLabel(o: Offer, s: DisplayStatus): string {
   if (o.kind === "FONDS" && s === "quoted") return "Souscription ouverte";
+  if (s === "results" && !o.resultLine && !o.servedPricePct) return "Clôturée";
   return STATUS_LABEL[s];
 }
 

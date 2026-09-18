@@ -25,6 +25,7 @@ import styles from "./OfferBrowser.module.css";
 const SEGMENTS: MarketSegment[] = ["primaire", "secondaire"];
 const COUNTRIES = ["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."];
 const STATUSES: [string, string][] = [
+  ["selection", "Sélection du desk"],
   ["open", "Ouvertes"],
   ["quoted", "Cotées · souscription"],
   ["upcoming", "À venir"],
@@ -404,7 +405,11 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         if (segment && familySegment(fam) !== segment) return false;
         if (kind.size && !kind.has(fam)) return false;
         if (country.size && !country.has(o.country)) return false;
-        if (status.size && !status.has(normStatus(st))) return false;
+        if (status.size) {
+          const sel = status.has("selection") && summarize(o, now).badges.some((b) => b.key === "selection");
+          const rest = new Set([...status].filter((x) => x !== "selection"));
+          if (!sel && (rest.size === 0 || !rest.has(normStatus(st)))) return false;
+        }
         if (tenor.size) {
           const t = tenorYears(o);
           const k = o.kind === "ACTIONS" || o.kind === "FONDS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";

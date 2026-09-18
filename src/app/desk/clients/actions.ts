@@ -26,8 +26,10 @@ const schema = z.object({
 /** The compliance decision on a file. Approval opens the account: tier 2, convention + custodian file generated, client told. */
 export async function reviewAction(_p: ReviewResult | null, form: FormData): Promise<ReviewResult> {
   const desk = await requireDesk("/desk/clients");
-  const p = schema.safeParse(Object.fromEntries(form));
-  if (!p.success) return { ok: false, error: "Décision invalide." };
+  // Empty selects and inputs mean « not given », not an invalid value.
+  const raw = Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string" && v.trim() !== ""));
+  const p = schema.safeParse(raw);
+  if (!p.success) return { ok: false, error: `Saisie invalide : ${p.error.issues[0]?.path.join(".") ?? ""} — ${p.error.issues[0]?.message ?? ""}` };
   const { fileId, decision, risk, custodianAccount, notes, requestedItems, screeningLists, screeningOutcome, screeningNotes } = p.data;
   const r = repo();
   const f = await r.getClientFile(fileId);
@@ -60,7 +62,7 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
     return { ok: true, message: custodianAccount ? "Compte actif : convention et dossier d'ouverture générés, client prévenu." : "Dossier approuvé : convention et demande d'ouverture de sous-compte générées. Saisissez le numéro de sous-compte dès retour du SVT." };
   }
   if (decision === "complements") {
-    if (!requestedItems) return { ok: false, error: "Indiquez les compléments demandés." };
+    if (!requestedItems) return { ok: false, error: "Indiquez les compléments demandés dans le champ « Compléments à demander » (ex. justificatif de domicile lisible), puis cliquez à nouveau." };
     const updated = await r.updateClientFile(fileId, { status: "complements", documents, screening, review: { ...f.review, notes, requestedItems, reviewedBy: desk.name, reviewedAt: now.toISOString() } });
     await r.logEvent({ kind: "desk", html: `Dossier ${updated.identity.name} — <b>compléments demandés</b> : ${requestedItems} · ${desk.name}` });
     await notifyKycDecision(updated, "complements", requestedItems);
