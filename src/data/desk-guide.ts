@@ -212,6 +212,8 @@ export const GUIDE: GuideSection[] = [
       { key: "docs-technique", caption: "Aperçu technique et exploitation" },
       { key: "docs-aide", caption: "Aide : vos questions, nos réponses (côté desk)" },
       { key: "aide-client", caption: "La même aide, telle que le client la voit sur /info/aide" },
+      { key: "info-client", caption: "La page Info du client : recherche, aide, leçons, simulateur, glossaire" },
+      { key: "premiers-pas", caption: "Premiers pas : l'écran « Comprendre, et trouver de l'aide » (téléphone)" },
     ],
   },
   {

@@ -40,6 +40,9 @@ const SHOTS = [
   ["docs-technique", "/desk/docs/technique"],
   ["docs-aide", "/desk/docs/aide"],
   ["aide-client", "/info/aide"],
+  // The client's Info page, and the « Premiers pas » screen about Info and help (phone width, fifth screen).
+  ["info-client", "/info", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); location.reload(); await new Promise(r=>setTimeout(r,2500)); 'ok'" }],
+  ["premiers-pas", "/info?premiers-pas=1", { width: 390, height: 844, prep: "localStorage.setItem('guichet:onboarded','1'); location.reload(); await new Promise(r=>setTimeout(r,2500)); const d=[...document.querySelectorAll('[role=dialog]')].pop(); for (let k=0;k<4;k++){ [...d.querySelectorAll('button')].find(b=>/Continuer|Continue/.test(b.textContent))?.click(); await new Promise(r=>setTimeout(r,450)); } 'ok'" }],
   ["robot", "/desk/robot"],
   ["approbations", "/desk/approbations"],
   ["referentiel", "/desk/referentiel"],
@@ -98,8 +101,9 @@ async function evaluate(expression) {
   return r.result?.value;
 }
 
-for (const [key, path] of SHOTS) {
+for (const [key, path, opts = {}] of SHOTS) {
   let url = `${BASE}${path}`;
+  const W = opts.width ?? 1366;
   if (path === "/desk?first-intent") {
     // The intention page: the first row of the carnet.
     await send("Page.navigate", { url: `${BASE}/desk` });
@@ -108,13 +112,16 @@ for (const [key, path] of SHOTS) {
     if (!href) continue;
     url = `${BASE}${href}`;
   }
+  if (opts.width) await send("Emulation.setDeviceMetricsOverride", { width: W, height: opts.height ?? 900, deviceScaleFactor: 1, mobile: W < 760 });
   await send("Page.navigate", { url });
   await sleep(2800);
+  // A page may need a gesture first (dismiss the onboarding, open a screen…).
+  if (opts.prep) await evaluate(`(async () => { ${opts.prep} })()`);
   // Let images and fonts settle, then a full-height capture, capped.
-  const height = Math.min(1800, await evaluate("document.documentElement.scrollHeight"));
-  await send("Emulation.setDeviceMetricsOverride", { width: 1366, height, deviceScaleFactor: 1, mobile: false });
+  const height = opts.height ?? Math.min(1800, await evaluate("document.documentElement.scrollHeight"));
+  await send("Emulation.setDeviceMetricsOverride", { width: W, height, deviceScaleFactor: 1, mobile: W < 760 });
   await sleep(400);
-  const { data } = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: 1366, height, scale: 1 } });
+  const { data } = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: W, height, scale: 1 } });
   writeFileSync(`${OUT}${key}.png`, Buffer.from(data, "base64"));
   await send("Emulation.setDeviceMetricsOverride", { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false });
   console.log(`${key}.png (${height}px)`);

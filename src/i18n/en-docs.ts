@@ -16,6 +16,8 @@ export const EN_DOCS: Record<string, string> = {
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",
+  "La page Info du client : recherche, aide, leçons, simulateur, glossaire": "The client's Info page: search, help, lessons, simulator, glossary",
+  "Premiers pas : l'écran « Comprendre, et trouver de l'aide » (téléphone)": "First steps: the 'Understanding, and finding help' screen (phone)",
   "Comment utiliser Info ?": "How to use Info?",
   "Cherchez un mot, une notion": "Search a word, a notion",
   "Un terme du glossaire, une leçon, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.": "A glossary term, a lesson, a tool, a page, a help question: type the word, open the result. It is the Guichet's self-service support.",
