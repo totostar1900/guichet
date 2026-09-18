@@ -1,0 +1,238 @@
+.wrap {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+.wrap h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.head b {
+  font-size: 0.95rem;
+}
+.head span {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.how {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  padding: 8px 12px;
+  border-left: 3px solid var(--gold);
+  background: var(--paper);
+  border-radius: 0 6px 6px 0;
+}
+.how b {
+  color: var(--ink);
+}
+.how i {
+  font-style: normal;
+}
+.keys {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.keys i {
+  font-style: normal;
+}
+.keys small {
+  color: var(--ink-3);
+}
+
+/* the two line colours, used on text, bars and strokes alike */
+.a {
+  color: var(--navy);
+}
+.b {
+  color: #2a8a9a;
+}
+.bench {
+  color: var(--gold-ink);
+}
+svg .a {
+  stroke: var(--navy);
+}
+svg .b {
+  stroke: #2a8a9a;
+}
+.line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.end {
+  fill: var(--surface);
+  stroke-width: 2;
+}
+svg .end.a {
+  fill: var(--navy);
+  stroke: var(--surface);
+}
+svg .end.b {
+  fill: #2a8a9a;
+  stroke: var(--surface);
+}
+.areaA {
+  fill: var(--navy);
+  fill-opacity: 0.1;
+}
+.areaB {
+  fill: #2a8a9a;
+  fill-opacity: 0.1;
+}
+.tick {
+  font-size: 11px;
+  fill: var(--ink-3);
+  font-family: var(--font-ui);
+}
+.dual {
+  position: relative;
+}
+.dual svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  touch-action: pan-y;
+}
+
+/* the return bars */
+.bars {
+  display: grid;
+  gap: 8px;
+}
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) minmax(160px, auto);
+  gap: 12px;
+  align-items: center;
+  font-size: 0.82rem;
+}
+.barLabel {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.barTrack {
+  height: 14px;
+  background: var(--paper);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  border-radius: 4px;
+  background: currentColor;
+}
+.bar.bench {
+  height: 8px;
+  margin-top: 3px;
+}
+.none {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  padding-left: 6px;
+}
+.barValue {
+  font-variant-numeric: tabular-nums;
+}
+.barValue small {
+  color: var(--ink-3);
+}
+
+/* the calendar */
+.calWrap {
+  position: relative;
+}
+.cal {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.calBase {
+  stroke: var(--line-2);
+  stroke-width: 1;
+}
+.calLabel {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+}
+svg .calLabel.a {
+  fill: var(--navy);
+  stroke: none;
+}
+svg .calLabel.b {
+  fill: #2a8a9a;
+  stroke: none;
+}
+.calTick {
+  font-size: 11px;
+  fill: var(--ink-3);
+  font-family: var(--font-ui);
+}
+.out {
+  fill: var(--crit);
+}
+.calAmt {
+  font-size: 10.5px;
+  fill: var(--ink-2);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.inFill {
+  fill: currentColor;
+}
+svg .inFill.a {
+  fill: var(--navy);
+  stroke: none;
+}
+svg .inFill.b {
+  fill: #2a8a9a;
+  stroke: none;
+}
+.maybe {
+  fill: var(--gold);
+  fill-opacity: 0.55;
+}
+.calOn {
+  opacity: 0.6;
+}
+.outKey {
+  color: var(--crit);
+  font-style: normal;
+}
+.maybeKey {
+  color: var(--gold);
+  font-style: normal;
+}
+.calTip {
+  transform: translate(-50%, calc(-100% - 10px));
+}
+@media (max-width: 760px) {
+  .barRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

@@ -8,6 +8,9 @@ import { displayStatus, displayYield, familyLabel, familySegment, offerFamily, S
 import { fmtDate, fmtPct, localIso } from "@/lib/format";
 import { tenorText, yearsBetween } from "@/lib/finance";
 import { LinePicker, type PickLine } from "./LinePicker";
+import { CompareCharts } from "@/components/CompareCharts";
+import { compareLine } from "@/lib/domain/compare";
+import { daysBetween } from "@/lib/finance";
 import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
 import type { Offer } from "@/lib/domain/types";
@@ -51,6 +54,11 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
     }
     return { s, dy: displayYield(o), ref: offerReference(o, now), map };
   });
+  // The graphs need the funds' NAV history and the latest BTA as a reference rate.
+  const chartLines = cols.length === 2 ? await Promise.all(cols.map(async (o) => compareLine(o, o.kind === "FONDS" && o.fund ? await r.listFundNavs(o.fund.key, 2000) : [], now))) : [];
+  const bta = all.filter((x) => x.kind === "BTA" && x.precountRate != null && x.maturityOn && x.settleOn).sort((p, q) => (q.pricedAt ?? "").localeCompare(p.pricedAt ?? ""))[0];
+  const btaY = bta ? displayYield(bta).pct : null;
+  const benchmark = bta && btaY != null ? { label: `BTA ${Math.round(daysBetween(bta.settleOn, bta.maturityOn!) / 7)} sem.`, pct: btaY } : undefined;
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
   // The since-inception figure sits right under the return, whichever side brought it.
   if (labels.includes("Depuis l'origine")) labels.splice(1, 0, ...labels.splice(labels.indexOf("Depuis l'origine"), 1));
@@ -156,6 +164,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
           </div>
         </div>
       )}
+      {cols.length === 2 && <CompareCharts lines={chartLines} benchmark={benchmark} />}
       {cols.length === 1 && <p className="muted">{t("Choisissez une seconde ligne pour comparer.")}</p>}
     </>
   );

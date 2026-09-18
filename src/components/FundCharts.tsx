@@ -76,7 +76,6 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
   const W = 320;
   const H = 96;
   const pad = 6;
-  const padX = 40;
   const n = series.length;
   const ys = series.map((p) => p.y);
   // Reference line for the two « gain » charts: the benchmark rate, or the same amount growing at that rate.
@@ -88,9 +87,10 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
     max += 1;
     min -= 1;
   }
+  const fmtY = (v: number) => (mode === "placement" ? fmt(v) : `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`);
+  const padX = Math.max(fmtY(max).length, fmtY(min).length) * 3.6 + 8; // the left margin follows the width of the two labels
   const x = (i: number) => (n === 1 ? W / 2 : padX + (i * (W - padX - pad)) / (n - 1));
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
-  const fmtY = (v: number) => (mode === "placement" ? fmt(v) : `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`);
   const line = series.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const zero = y(Math.max(min, Math.min(max, 0)));
   const axis = axisLabel(series.map((p) => p.date));
@@ -121,11 +121,6 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
         </text>
         {min < 0 && max > 0 && <line x1={padX} x2={W - pad} y1={zero} y2={zero} className={styles.zero} />}
         {bench && <path d={series.map((_, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(bench[i]).toFixed(1)}`).join(" ")} className={styles.bench} />}
-        {bench && benchmark && (
-          <text x={W - pad} y={y(bench[last]) < 16 ? y(bench[last]) + 10 : y(bench[last]) - 4} className={`${styles.tick} ${styles.benchLabel}`} textAnchor="end">
-            {benchmark.label} · {fmtPct(benchmark.pct, 2)}
-          </text>
-        )}
         {mode === "variations" ? (
           series.map((p, i) => {
             const w = Math.max(1.2, Math.min(6, ((W - padX - pad) / n) * 0.7));
@@ -153,6 +148,16 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
           </text>
         ))}
       </svg>
+      {bench && benchmark && (
+        <div className={styles.keys}>
+          <span>
+            <i className={styles.keyLine}>—</i> {t("ce fonds")}
+          </span>
+          <span>
+            <i className={styles.keyBench}>┄</i> {benchmark.label} · {fmtPct(benchmark.pct, 2)} {t(mode === "rendement" ? "par an" : "par an, le même montant placé au même taux")}
+          </span>
+        </div>
+      )}
       {h && hover != null && (
         <div className={`${styles.tip} ${y(h.y) < H * 0.45 ? styles.tipBelow : ""} ${x(hover) > W * 0.72 ? styles.tipLeft : x(hover) < W * 0.28 ? styles.tipRight : ""}`} style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.y) / (H + 14)) * 100}%` }} role="status">
           {mode === "rendement" && (

@@ -36,7 +36,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
   const W = 320;
   const H = 96;
   const pad = 6;
-  const padX = 34; // room for the two value labels on the left
+  const padX = Math.max(fmt(max).length, fmt(min).length) * 3.6 + 8; // room for the two value labels on the left
   const x = (i: number) => (series.length === 1 ? W / 2 : padX + (i * (W - padX - pad)) / (series.length - 1));
   const y = (v: number) => (max === min ? H / 2 : H - pad - ((v - min) * (H - 2 * pad)) / (max - min));
   const path = series.map((n, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(n.nav).toFixed(1)}`).join(" ");
