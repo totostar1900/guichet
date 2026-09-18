@@ -111,6 +111,10 @@ export function DeskTour() {
       <div className={styles.tip} style={{ top: tipTop }}>
         <b>{t(stop.title)}</b>
         <span>{t(stop.text)}</span>
+        {stop.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={stop.image} alt="" style={{ display: "block", width: "100%", maxHeight: 150, objectFit: "cover", objectPosition: "top", borderRadius: 6, border: "1px solid var(--line)", marginTop: 8 }} loading="lazy" />
+        )}
         {stop.link && (
           <a className="btn sm" style={{ display: "inline-flex", marginTop: 8 }} href={stop.link.href} target="_blank" rel="noreferrer">
             {t(stop.link.label)} ↗

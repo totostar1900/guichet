@@ -27,6 +27,8 @@ export interface TourStop {
   text: string;
   /** A page to open beside the tour (new tab), e.g. what the client sees. */
   link?: { href: string; label: string };
+  /** A small preview shown in the bubble (public/guide/<file>), e.g. the client's page this desk page feeds. */
+  image?: string;
 }
 
 export const ROLES = {
@@ -311,10 +313,10 @@ export const TOUR: TourStop[] = [
   { path: "/desk/actualites", target: "news-form", title: "Deux lignes, jamais l'article", text: "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée." },
   { path: "/desk/actualites", target: "news-list", title: "Ce que voit le client", text: "Les publications, par état : à la une, publiée, brouillon, expirée, écartée. Côté client, la page Actualités montre la une dans son cadre doré puis le fil par jour ; chaque fiche de ligne, de société ou d'émetteur reprend ses actualités liées.", link: { href: "/actualites", label: "Voir la page Actualités" } },
   { path: "/desk/approbations", target: "window", title: "Fenêtre déléguée", text: "Ce qu'un opérateur publie seul. Hors bornes, la demande attend un responsable : quatre yeux sans goulot." },
-  { path: "/desk/referentiel", target: "ref-tabs", title: "Ce que le client apprend", text: "Le glossaire et les huit leçons de ces onglets sont la page Info du client : les bulles « i » des fiches, les leçons de deux minutes, la recherche, le simulateur, et la page Aide. Corriger un terme ici le corrige partout, sans code.", link: { href: "/info", label: "Voir la page Info" } },
+  { path: "/desk/referentiel", target: "ref-tabs", title: "Ce que le client apprend", text: "Le glossaire et les huit leçons de ces onglets sont la page Info du client : les bulles « i » des fiches, les leçons de deux minutes, la recherche, le simulateur, et la page Aide. Corriger un terme ici le corrige partout, sans code.", link: { href: "/info", label: "Voir la page Info" }, image: "/guide/info-client.png" },
   { path: "/desk/equipe", target: "roles", title: "Deux niveaux", text: "Opérateur desk : le quotidien. Responsable : opérateur + approbations, fenêtre déléguée, équipe. Tout changement de niveau est journalisé." },
   { path: "/desk/docs", target: "docs-search", title: "La documentation", text: "Cinq pages en français et en anglais : comment l'application fonctionne, ce qu'elle coûte, comment aider un client, comment l'administrer, comment la maintenir. Un mot dans la recherche trouve chaque chapitre ; les filtres disent pour qui la page est écrite." },
-  { path: "/desk/docs", target: "docs-aide", title: "Ce que lit le client", text: "La seule page publique : l'aide, des réponses sans procédure ni détail interne. Un test refuse tout mot interne dans une page publique ; tout le reste ne sort jamais du desk. Le support s'y réfère pour savoir ce que le client a déjà lu.", link: { href: "/info/aide", label: "Voir l'aide client" } },
+  { path: "/desk/docs", target: "docs-aide", title: "Ce que lit le client", text: "La seule page publique : l'aide, des réponses sans procédure ni détail interne. Un test refuse tout mot interne dans une page publique ; tout le reste ne sort jamais du desk. Le support s'y réfère pour savoir ce que le client a déjà lu.", link: { href: "/info/aide", label: "Voir l'aide client" }, image: "/guide/aide-client.png" },
   { path: "/desk/docs/fonctionnement", target: "docs-tree", title: "Les pages, les chapitres", text: "À gauche, toutes les pages de la documentation ; sous la page ouverte, ses chapitres. Le lien du bas renvoie au guide des pages du desk, champ par champ." },
   { path: "/desk/docs/fonctionnement", target: "docs-page", title: "Une page se lit de haut en bas", text: "Un résumé, les publics visés, puis les chapitres : phrases courtes, tableaux, étapes numérotées. Le texte suit la langue choisie (FR · EN) ; il vit dans le code et change avec l'application." },
   { path: "/desk/docs/fonctionnement", target: "docs-outline", title: "Sur cette page", text: "Le plan de la page suit votre défilement. En dessous : la date à laquelle elle a été relue face à l'application et son responsable. Une page dont la date recule après un changement d'écran est une page à relire." },
