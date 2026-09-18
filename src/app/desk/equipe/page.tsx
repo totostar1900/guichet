@@ -73,16 +73,16 @@ export default async function EquipePage() {
               <h2>Donner l&apos;accès</h2>
             </div>
             <AddStaffForm />
-            <p className={styles.note}>La personne se connecte d&apos;abord une fois au Guichet avec son adresse (code e-mail) ; vous lui donnez ensuite l&apos;accès ici. À sa connexion suivante, elle active son second facteur (application d&apos;authentification), puis entre sur le desk.</p>
+            <p className={styles.note}>{t("La personne se connecte d'abord une fois au Guichet avec son adresse (code e-mail) ; vous lui donnez ensuite l'accès ici. À sa connexion suivante, elle active son second facteur (application d'authentification), puis entre sur le desk.")}</p>
           </div>
           <div className="panel">
             <div className="panel-h">
               <h2>{t("Règles")}</h2>
             </div>
             <ul className={styles.rules}>
-              <li>Personne ne modifie son propre niveau ; il reste toujours au moins un responsable.</li>
-              <li>Retirer l&apos;accès ne supprime rien : le compte redevient client, l&apos;historique de ses actions reste dans le journal.</li>
-              <li>Téléphone perdu : un responsable retire l&apos;accès puis le redonne ; la personne réactive son second facteur.</li>
+              <li>{t("Personne ne modifie son propre niveau ; il reste toujours au moins un responsable.")}</li>
+              <li>{t("Retirer l'accès ne supprime rien : le compte redevient client, l'historique de ses actions reste dans le journal.")}</li>
+              <li>{t("Téléphone perdu : un responsable retire l'accès puis le redonne ; la personne réactive son second facteur.")}</li>
               <li>
                 {bootstrap ? (
                   <>
@@ -90,7 +90,7 @@ export default async function EquipePage() {
                   </>
                 ) : (
                   <>
-                    {t("Amorçage terminé :")} <code className="mono">{t("DESK_EMAILS")}</code> est vide, seule cette page donne l&apos;accès.
+                    {t("Amorçage terminé :")} <code className="mono">{t("DESK_EMAILS")}</code> {t("est vide, seule cette page donne l'accès.")}
                   </>
                 )}
               </li>

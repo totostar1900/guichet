@@ -112,7 +112,7 @@ export function IdentitySection({ file, editable }: P) {
               </label>
               {file.kind === "groupement" && (
                 <p className={styles.hint} style={{ gridColumn: "1 / -1", margin: 0 }}>
-                  Un groupe informel peut investir jusqu&apos;à <b>{t("25 M FCFA")}</b> {t("de nominal sur un compte en indivision au nom de ses mandataires (2 ou 3 membres, PV et règle de décision). Au-delà, le groupe doit être une")} <b>{t("association déclarée")}</b> {t(": le compte est alors ouvert à son nom et lui appartient quels que soient ses membres.")}
+                  {t("Un groupe informel peut investir jusqu'à")} <b>{t("25 M FCFA")}</b> {t("de nominal sur un compte en indivision au nom de ses mandataires (2 ou 3 membres, PV et règle de décision). Au-delà, le groupe doit être une")} <b>{t("association déclarée")}</b> {t(": le compte est alors ouvert à son nom et lui appartient quels que soient ses membres.")}
                 </p>
               )}
               {file.kind === "groupement" && (
@@ -180,7 +180,7 @@ export function PersonsSection({ file, editable }: P) {
             <input name="name" required minLength={2} />
           </label>
           <label className="field">
-            N° de pièce d&apos;identité
+            {t("N° de pièce d'identité")}
             <input name="idNumber" />
           </label>
           <label className="field">
@@ -249,7 +249,7 @@ export function DocsSection({ file, editable }: P) {
   return (
     <section className={styles.sec}>
       <h2 className="display">{t("3 · Pièces justificatives")}</h2>
-      <p className={styles.hint}>Photographiez chaque pièce avec votre téléphone — une photo nette suffit, elle est réduite avant l&apos;envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu&apos;à la vérification de votre identité.</p>
+      <p className={styles.hint}>{t("Photographiez chaque pièce avec votre téléphone — une photo nette suffit, elle est réduite avant l'envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu'à la vérification de votre identité.")}</p>
       <div className={styles.docs}>
         {req.map((k) => (
           <DocRow key={k} kind={k} file={file} editable={editable} />
@@ -341,13 +341,13 @@ export function ConsentSection({ file, editable }: P) {
     <section className={styles.sec}>
       <h2 className="display">{t("5 · Convention et consentements")}</h2>
       <div className={styles.convention}>
-        <b>Convention d&apos;ouverture de compte-titres — l&apos;essentiel</b>
+        <b>{t("Convention d'ouverture de compte-titres — l'essentiel")}</b>
         <ul>
-          <li>Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.</li>
-          <li>Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d&apos;un compte à votre nom.</li>
-          <li>Une intention n&apos;est pas un ordre : un ordre naît d&apos;une confirmation et d&apos;un bulletin accepté.</li>
-          <li>Tarifs : selon l&apos;annexe tarifaire remise par votre conseiller ; aucun frais d&apos;ouverture.</li>
-          <li>Vous recevez un avis d&apos;opéré par opération et un relevé de position ; réclamations et médiation COSUMAF décrites en annexe.</li>
+          <li>{t("Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.")}</li>
+          <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom.")}</li>
+          <li>{t("Une intention n'est pas un ordre : un ordre naît d'une confirmation et d'un bulletin accepté.")}</li>
+          <li>{t("Tarifs : selon l'annexe tarifaire remise par votre conseiller ; aucun frais d'ouverture.")}</li>
+          <li>{t("Vous recevez un avis d'opéré par opération et un relevé de position ; réclamations et médiation COSUMAF décrites en annexe.")}</li>
           <li>{t("Données : conservées 10 ans après la fin de la relation (obligation LBC/FT), utilisées pour la relation et le reporting réglementaire.")}</li>
         </ul>
         <a className="btn sm" href="/desk/documents/convention-modele" target="_blank" rel="noreferrer">
@@ -363,10 +363,10 @@ export function ConsentSection({ file, editable }: P) {
           <form action={sendAct} className={styles.form}>
             <fieldset disabled={!editable} className={styles.consents}>
               <label className={styles.check}>
-                <input type="checkbox" name="data" defaultChecked={Boolean(c.dataAt)} required /> J&apos;accepte le traitement de mes données pour l&apos;ouverture et la tenue de mon compte (obligatoire).
+                <input type="checkbox" name="data" defaultChecked={Boolean(c.dataAt)} required /> {t("J'accepte le traitement de mes données pour l'ouverture et la tenue de mon compte (obligatoire).")}
               </label>
               <label className={styles.check}>
-                <input type="checkbox" name="whatsapp" defaultChecked={Boolean(c.whatsappAt)} /> J&apos;accepte de recevoir les offres et avis sur WhatsApp (STOP à tout moment).
+                <input type="checkbox" name="whatsapp" defaultChecked={Boolean(c.whatsappAt)} /> {t("J'accepte de recevoir les offres et avis sur WhatsApp (STOP à tout moment).")}
               </label>
             </fieldset>
             <Msg state={sendState} />
@@ -410,7 +410,7 @@ export function SubmitSection({ file, editable, missing }: P & { missing: string
           {t("Encore à compléter :")} <b>{missing.join(", ")}</b>.
         </p>
       ) : (
-        <p className={styles.hint}>Tout y est. Un conseiller vérifie votre dossier et vous prévient dès l&apos;ouverture du compte.</p>
+        <p className={styles.hint}>{t("Tout y est. Un conseiller vérifie votre dossier et vous prévient dès l'ouverture du compte.")}</p>
       )}
       <form action={action}>
         <Msg state={state} />

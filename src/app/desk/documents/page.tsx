@@ -66,7 +66,7 @@ export default async function DocumentsPage() {
         <div className="panel-h">
           <h2>{t("Soumissions SVT — par adjudication")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Le bordereau regroupe les ordres confirmés de toutes les lignes d&apos;une adjudication et les passe en « transmise »
+            {t("Le bordereau regroupe les ordres confirmés de toutes les lignes d'une adjudication et les passe en « transmise »")}
           </span>
         </div>
         <div className="scroll-x">
@@ -124,7 +124,7 @@ export default async function DocumentsPage() {
         <div className="panel-h">
           <h2>{t("Documents clients — générer")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Les transitions du carnet génèrent automatiquement ; ici on régénère ou on émet à la main
+            {t("Les transitions du carnet génèrent automatiquement ; ici on régénère ou on émet à la main")}
           </span>
         </div>
         <div className="scroll-x">
@@ -264,7 +264,7 @@ export default async function DocumentsPage() {
         <div className="panel-h">
           <h2>{t("Chaîne documentaire")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Chaque document est une vue des mêmes lignes, produite au moment où l&apos;étape se produit
+            {t("Chaque document est une vue des mêmes lignes, produite au moment où l'étape se produit")}
           </span>
         </div>
         <div className="scroll-x">

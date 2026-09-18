@@ -29,7 +29,7 @@ export default async function ApprobationsPage() {
       <div className={styles.head}>
         <h1>{t("Approbations")}</h1>
         <p className="muted">
-          Quatre yeux sans goulot d&apos;étranglement : à l&apos;intérieur de la fenêtre déléguée, un opérateur publie seul ; en dehors, sa proposition attend un responsable, qui la voit ici avec l&apos;avant / après et l&apos;approuve ou la refuse avec une note. La personne qui propose ne peut jamais approuver.
+          {t("Quatre yeux sans goulot d'étranglement : à l'intérieur de la fenêtre déléguée, un opérateur publie seul ; en dehors, sa proposition attend un responsable, qui la voit ici avec l'avant / après et l'approuve ou la refuse avec une note. La personne qui propose ne peut jamais approuver.")}
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default async function ApprobationsPage() {
                   {diffs.length === 0 && (
                     <tr>
                       <td colSpan={3} className="muted">
-                        Nouvelle ligne (aucune version publiée à comparer).
+                        {t("Nouvelle ligne (aucune version publiée à comparer).")}
                       </td>
                     </tr>
                   )}

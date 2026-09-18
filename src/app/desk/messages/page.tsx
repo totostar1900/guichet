@@ -97,7 +97,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
               </Link>
             );
           })}
-          {list.length === 0 && <div className="empty">Aucune conversation. Les messages WhatsApp arrivent par le webhook Meta, les e-mails par la boîte d&apos;entrée configurée.</div>}
+          {list.length === 0 && <div className="empty">{t("Aucune conversation. Les messages WhatsApp arrivent par le webhook Meta, les e-mails par la boîte d'entrée configurée.")}</div>}
         </aside>
 
         {open ? (

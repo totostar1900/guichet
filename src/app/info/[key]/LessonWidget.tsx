@@ -196,7 +196,7 @@ function Equity({ live }: { live: Live }) {
           <small>{fmt(eps)} de bénéfice par action</small>
         </div>
       </div>
-      <p className={styles.reading}>Quand le cours monte, le même dividende rapporte moins et vous payez plus d&apos;années de bénéfice.</p>
+      <p className={styles.reading}>{t("Quand le cours monte, le même dividende rapporte moins et vous payez plus d'années de bénéfice.")}</p>
     </>
   );
 }

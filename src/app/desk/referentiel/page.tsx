@@ -63,17 +63,15 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       <div className={styles.head}>
         <div>
           <h1>{tr("Référentiel")}</h1>
-          <p className="muted">
-            Ce que le Guichet sait sans qu&apos;on touche au code : les types de produits (nom, couleur, points d&apos;attention, liste de contrôle, intentions), les échéanciers exacts des obligations, le glossaire, les fiches des sociétés et des émetteurs. Chaque entrée part d&apos;une valeur par défaut livrée avec l&apos;application ; ce que le desk enregistre ici prend le dessus, et « revenir aux valeurs par défaut » l&apos;efface.
-          </p>
+          <p className="muted">{tr("Ce que le Guichet sait sans qu'on touche au code : les types de produits (nom, couleur, points d'attention, liste de contrôle, intentions), les échéanciers exacts des obligations, le glossaire, les fiches des sociétés et des émetteurs. Chaque entrée part d'une valeur par défaut livrée avec l'application ; ce que le desk enregistre ici prend le dessus, et « revenir aux valeurs par défaut » l'efface.")}</p>
         </div>
-        <small className="muted">{lastEdit ? `Dernière modification ${fmtDateTime(lastEdit)}` : "Aucune modification du desk sur cet onglet"}</small>
+        <small className="muted">{lastEdit ? `${tr("Dernière modification")} ${fmtDateTime(lastEdit)}` : tr("Aucune modification du desk sur cet onglet")}</small>
       </div>
 
       <nav className={styles.tabs} aria-label={tr("Référentiel")}>
         {TABS.map(([t, label]) => (
           <Link key={t} href={`/desk/referentiel?onglet=${t}`} aria-current={t === tab ? "page" : undefined}>
-            {label}
+            {tr(label)}
           </Link>
         ))}
         <form action={importDefaultsAction} className={styles.importForm}>
@@ -102,8 +100,8 @@ async function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; 
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>Types de produits ({types.length})</h2>
-          <span className="muted">Un nouveau type réutilise un moteur de calcul existant ; tout le reste est à vous.</span>
+          <h2>{tr("Types de produits")} ({types.length})</h2>
+          <span className="muted">{tr("Un nouveau type réutilise un moteur de calcul existant ; tout le reste est à vous.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
@@ -126,13 +124,13 @@ async function Types({ types, inDb, open }: { types: ProductType[]; inDb: Rows; 
                   </b>
                 </td>
                 <td>
-                  {t.label}
+                  {tr(t.label)}
                   <br />
                   <small className="mono muted">{t.key}</small>
                   {!t.enabled && <small className={styles.offTag}>{tr("désactivé")}</small>}
                 </td>
                 <td>{tr(SEGMENT_LABEL[t.segment])}</td>
-                <td className={styles.wrap}>{ENGINE_LABEL[t.engine].split(" (")[0]}</td>
+                <td className={styles.wrap}>{tr(ENGINE_LABEL[t.engine].split(" (")[0])}</td>
                 <td className={styles.wrap}>{t.intentsOpen.join(", ") || "—"}</td>
                 <td>
                   <Origin inDb={inDb.has(t.key)} builtin={t.builtin} />
@@ -175,8 +173,8 @@ async function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; op
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>Échéanciers des obligations ({terms.length})</h2>
-          <span className="muted">Le bulletin ne donne que l&apos;année : ici la date exacte, la périodicité et le différé, d&apos;après la fiche signalétique.</span>
+          <h2>{tr("Échéanciers des obligations")} ({terms.length})</h2>
+          <span className="muted">{tr("Le bulletin ne donne que l'année : ici la date exacte, la périodicité et le différé, d'après la fiche signalétique.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
@@ -184,7 +182,7 @@ async function Terms({ terms, inDb, open }: { terms: BondTerms[]; inDb: Rows; op
               <th>{tr("ISIN")}</th>
               <th>{tr("Échéance")}</th>
               <th>{tr("Paiements / an")}</th>
-              <th>Différé jusqu&apos;au</th>
+              <th>{tr("Différé jusqu'au")}</th>
               <th>{tr("Source")}</th>
               <th>{tr("Origine")}</th>
               <th></th>
@@ -234,7 +232,7 @@ async function Glossary({ glossary, inDb, open }: { glossary: Record<string, Ter
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>Glossaire ({keys.length})</h2>
+          <h2>{tr("Glossaire")} ({keys.length})</h2>
           <span className="muted">{tr("Les bulles « i » des fiches, du simulateur et des tableaux.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
@@ -288,8 +286,8 @@ async function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open:
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>Leçons ({list.length})</h2>
-          <span className="muted">L&apos;onglet Info : une idée par leçon, une vraie ligne, une question.</span>
+          <h2>{tr("Leçons")} ({list.length})</h2>
+          <span className="muted">{tr("L'onglet Info : une idée par leçon, une vraie ligne, une question.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
@@ -345,7 +343,7 @@ async function Companies({ list, inDb, open }: { list: Company[]; inDb: Rows; op
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>Sociétés cotées ({list.length})</h2>
+          <h2>{tr("Sociétés cotées")} ({list.length})</h2>
           <span className="muted">{tr("Chiffres clés, actionnariat, documents et lecture : la page /societes.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
@@ -404,7 +402,7 @@ async function Issuers({ list, inDb, open }: { list: BondIssuer[]; inDb: Rows; o
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>Émetteurs obligataires ({list.length})</h2>
+          <h2>{tr("Émetteurs obligataires")} ({list.length})</h2>
           <span className="muted">{tr("Les pages /emetteurs : lignes rattachées par ISIN, chiffres clés, documents.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>

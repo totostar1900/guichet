@@ -107,7 +107,7 @@ async function Reference({ o }: { o: Offer }) {
           <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
           <div className="tot">Décaissement le {fmtDate(o.settleOn, false)}</div>
           <div>{fmt(r.outlay)} FCFA</div>
-          <div>Gain brut jusqu&apos;au terme</div>
+          <div>{t("Gain brut jusqu'au terme")}</div>
           <div>{fmt(r.gain)}</div>
           <div className="hl">{t("Rendement actuariel brut")}</div>
           <div>{fmtPct(r.irr, 2)}</div>
@@ -125,7 +125,7 @@ async function Reference({ o }: { o: Offer }) {
         <div className="out">
           <div>{t("Bons")}</div>
           <div>{fmt(r.n)}</div>
-          <div>Prix d&apos;achat par bon</div>
+          <div>{t("Prix d'achat par bon")}</div>
           <div>{fmt(r.pricePerBond)}</div>
           <div className="tot">Décaissement le {fmtDate(o.settleOn, false)}</div>
           <div>{fmt(r.outlay)} FCFA</div>
@@ -198,7 +198,7 @@ async function Reference({ o }: { o: Offer }) {
               {terms.graceUntil ? `, intérêts seuls jusqu'au ${fmtDate(terms.graceUntil)}` : ""}, sur le nominal restant de {fmt(o.nominal)} FCFA par titre. Source : {terms.source}.
             </p>
           ) : (
-            <p className={styles.note}>Seule l&apos;année de l&apos;échéance figure au bulletin : rendement calculé sur un remboursement in fine au 31 décembre, à confirmer avec la note d&apos;information.</p>
+            <p className={styles.note}>{t("Seule l'année de l'échéance figure au bulletin : rendement calculé sur un remboursement in fine au 31 décembre, à confirmer avec la note d'information.")}</p>
           )}
         </>
       );

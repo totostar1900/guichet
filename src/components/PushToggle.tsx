@@ -67,7 +67,7 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
   };
 
   if (state === "unsupported") return compact ? null : <small className={styles.note}>{tr("Ce navigateur ne prend pas en charge les alertes.")}</small>;
-  if (state === "needs-install") return <small className={styles.note}>Sur iPhone : ajoutez le Guichet à l&apos;écran d&apos;accueil (Partager → « Sur l&apos;écran d&apos;accueil »), puis ouvrez-le de là pour activer les alertes.</small>;
+  if (state === "needs-install") return <small className={styles.note}>{tr("Sur iPhone : ajoutez le Guichet à l'écran d'accueil (Partager → « Sur l'écran d'accueil »), puis ouvrez-le de là pour activer les alertes.")}</small>;
   if (state === "denied") return <small className={styles.note}>{tr("Alertes bloquées dans les réglages du navigateur : autorisez les notifications pour ce site pour les recevoir.")}</small>;
   return (
     <span className={styles.wrap}>
@@ -75,7 +75,7 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
         {state === "busy" ? "…" : state === "on" ? "Alertes activées · désactiver" : "Recevoir les alertes sur cet appareil"}
       </button>
       {err && <small className={styles.err}>{err}</small>}
-      {!compact && state === "off" && <small className={styles.note}>Une opportunité du moment, une clôture qui approche, un ordre servi : une notification, pas plus d&apos;une par jour.</small>}
+      {!compact && state === "off" && <small className={styles.note}>{tr("Une opportunité du moment, une clôture qui approche, un ordre servi : une notification, pas plus d'une par jour.")}</small>}
     </span>
   );
 }

@@ -20,7 +20,7 @@ export function ContactForm({ phone, email }: { phone?: string; email?: string }
         <input name="email" type="email" inputMode="email" autoComplete="email" placeholder={t("vous@exemple.com")} defaultValue={state?.ok ? state.email : email} required />
       </label>
       <div className={styles.contactFoot}>
-        <small className="muted">Accusés de réception sur WhatsApp et par e-mail ; bulletins et appels de fonds par e-mail ; rappels d&apos;un conseiller par téléphone.</small>
+        <small className="muted">{t("Accusés de réception sur WhatsApp et par e-mail ; bulletins et appels de fonds par e-mail ; rappels d'un conseiller par téléphone.")}</small>
         <button className="btn" type="submit" disabled={pending}>
           {pending ? "Enregistrement…" : "Enregistrer"}
         </button>

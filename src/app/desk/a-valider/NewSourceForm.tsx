@@ -19,7 +19,7 @@ export function NewSourceForm({ extraction }: { extraction: boolean }) {
       <form action={action} className={styles.newForm}>
         <div className={styles.newGrid}>
           <label className="field">
-            Fichier (PDF, JPEG, PNG, WebP — 20 Mo max)
+            {t("Fichier (PDF, JPEG, PNG, WebP — 20 Mo max)")}
             <input type="file" name="file" accept="application/pdf,image/jpeg,image/png,image/webp" />
           </label>
           <label className="field">
@@ -31,17 +31,17 @@ export function NewSourceForm({ extraction }: { extraction: boolean }) {
             <input name="from" placeholder={t("Ex. dgtcfm@minfi.gov.cm · lun. 14 sept. 10:15")} />
           </label>
           <label className="field">
-            Consigne pour l&apos;extraction (facultatif)
+            {t("Consigne pour l'extraction (facultatif)")}
             <input name="hint" placeholder={t("Ex. « ligne 3 ans uniquement » ou « c'est un rachat »")} />
           </label>
         </div>
         <label className="field">
-          … ou collez le texte du message / de l&apos;e-mail
+          {t("… ou collez le texte du message / de l'e-mail")}
           <textarea name="text" rows={10} placeholder={t("Collez ici le corps du communiqué ou de l'e-mail reçu.")} />
         </label>
         {state && !state.ok && <div className={styles.error}>{state.error}</div>}
         <div className={styles.vFoot}>
-          <small>L&apos;original est conservé tel quel : c&apos;est la pièce justificative de l&apos;offre.</small>
+          <small>{t("L'original est conservé tel quel : c'est la pièce justificative de l'offre.")}</small>
           <button className="btn primary" type="submit" disabled={pending}>
             {pending ? (extraction ? "Extraction en cours…" : "Enregistrement…") : "Déposer et extraire"}
           </button>

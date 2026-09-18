@@ -67,9 +67,9 @@ export default async function LigneHistoriquePage({ params }: Props) {
         <div className="panel">
           <div className="panel-h">
             <h2>Versions ({versions.length})</h2>
-            <span className="muted">Chaque publication garde la fiche complète ; restaurer crée une nouvelle version, jamais un effacement.</span>
+            <span className="muted">{t("Chaque publication garde la fiche complète ; restaurer crée une nouvelle version, jamais un effacement.")}</span>
           </div>
-          {versions.length === 0 && <div className="empty">Aucune version enregistrée (ligne antérieure à l&apos;historique ou reprise du bulletin).</div>}
+          {versions.length === 0 && <div className="empty">{t("Aucune version enregistrée (ligne antérieure à l'historique ou reprise du bulletin).")}</div>}
           {versions.map((v, i) => {
             const prev = versions[i + 1];
             const diffs = prev?.snapshot && v.snapshot ? diffRecords(prev.snapshot, v.snapshot) : [];
@@ -112,7 +112,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
         <div className="panel">
           <div className="panel-h">
             <h2>Piste d&apos;audit ({trail.length})</h2>
-            <span className="muted">Qui, quoi, quand, d&apos;où — chaîné, jamais modifié.</span>
+            <span className="muted">{t("Qui, quoi, quand, d'où — chaîné, jamais modifié.")}</span>
           </div>
           {trail.length === 0 && <div className="empty">{t("Aucune action tracée sur cette ligne.")}</div>}
           <ul className={styles.trail}>

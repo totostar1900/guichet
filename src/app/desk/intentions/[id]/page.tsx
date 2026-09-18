@@ -203,7 +203,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             <div className="panel-h">
               <h2>{t("Messages")}</h2>
               <span className="muted" style={{ fontSize: ".8rem" }}>
-                sortants (WhatsApp, e-mail) et événements reçus sur les intentions de ce client
+                {t("sortants (WhatsApp, e-mail) et événements reçus sur les intentions de ce client")}
               </span>
             </div>
             <ul className={styles.msgs}>
@@ -215,7 +215,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                   {m.status && <small className="muted">{m.status}</small>}
                 </li>
               ))}
-              {messages.length === 0 && <li className="muted">Aucun message pour l&apos;instant.</li>}
+              {messages.length === 0 && <li className="muted">{t("Aucun message pour l'instant.")}</li>}
             </ul>
           </div>
         </div>
@@ -256,7 +256,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             </dl>
           ) : (
             <p className="muted" style={{ fontSize: ".82rem" }}>
-              Pas de dossier : le client n&apos;a pas commencé « Ouvrir un compte ».
+              {t("Pas de dossier : le client n'a pas commencé « Ouvrir un compte ».")}
             </p>
           )}
           <div className={styles.sideBtns}>

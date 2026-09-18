@@ -22,7 +22,7 @@ export default async function SantePage() {
       <div className={styles.head}>
         <div>
           <h1>{t("Santé du système")}</h1>
-          <p className="muted">Ce que la machine fait toute seule — et ce qui attend le desk. Vérifié à chaque passage du cron du soir ; un e-mail part au desk quand un point passe en rouge.</p>
+          <p className="muted">{t("Ce que la machine fait toute seule — et ce qui attend le desk. Vérifié à chaque passage du cron du soir ; un e-mail part au desk quand un point passe en rouge.")}</p>
         </div>
         <span className={`${styles.badge} ${styles[worst]}`}>{LEVEL[worst]}</span>
       </div>
@@ -106,7 +106,7 @@ export default async function SantePage() {
               {notifications.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    Aucun message préparé pour l&apos;instant.
+                    {t("Aucun message préparé pour l'instant.")}
                   </td>
                 </tr>
               )}

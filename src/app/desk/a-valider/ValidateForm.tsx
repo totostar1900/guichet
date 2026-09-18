@@ -209,7 +209,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
                 </label>
               ))}
               <label className={styles.official}>
-                <input type="checkbox" name="official" defaultChecked={d.official} /> Source officielle jointe (communiqué, note d&apos;opération)
+                <input type="checkbox" name="official" defaultChecked={d.official} /> {tr("Source officielle jointe (communiqué, note d'opération)")}
               </label>
             </div>
           </div>
@@ -265,7 +265,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
               </label>
             ))}
             <span className="muted" style={{ fontSize: ".74rem" }}>
-              La diffusion WhatsApp / e-mail est journalisée aujourd&apos;hui, envoyée à l&apos;étape suivante.
+              {tr("La diffusion WhatsApp / e-mail est journalisée aujourd'hui, envoyée à l'étape suivante.")}
             </span>
           </div>
         </div>

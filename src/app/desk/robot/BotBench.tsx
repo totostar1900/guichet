@@ -11,7 +11,7 @@ export function BotBench({ contacts }: { contacts: { name: string; phone: string
   return (
     <form action={action} style={{ padding: "12px 16px", display: "grid", gridTemplateColumns: "260px 1fr", gap: 12, alignItems: "start" }}>
       <label className="field">
-        Numéro de l&apos;expéditeur
+        {t("Numéro de l'expéditeur")}
         <Select block name="phone" value={contacts[0]?.phone ?? ""} options={[...contacts.map((c) => ({ value: c.phone ?? "", label: `${c.name} · ${c.phone}` })), { value: "+237600000000", label: "Numéro inconnu · +237600000000" }]} />
       </label>
       <label className="field">

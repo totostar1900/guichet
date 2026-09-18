@@ -113,7 +113,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <div className="panel-h">
           <h2>{t("Diffusion")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            Messages sortants (WhatsApp, e-mail) — « préparé » tant que le canal n&apos;est pas configuré
+            {t("Messages sortants (WhatsApp, e-mail) — « préparé » tant que le canal n'est pas configuré")}
           </span>
         </div>
         <div className="scroll-x">
@@ -148,7 +148,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {notifications.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    Aucun message sortant pour l&apos;instant.
+                    {t("Aucun message sortant pour l'instant.")}
                   </td>
                 </tr>
               )}
@@ -159,7 +159,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Carnet d&apos;appétits — offres ouvertes</h2>
+          <h2>{t("Carnet d'appétits — offres ouvertes")}</h2>
           <span className="muted right" style={{ fontSize: ".8rem" }}>
             {t("prises fermes en navy, appétits en or")}
           </span>

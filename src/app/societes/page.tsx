@@ -112,7 +112,7 @@ export default async function SocietesPage() {
       <div className={styles.panel}>
         <div className={styles.issuersH}>
           <h2>{t("Émetteurs obligataires")}</h2>
-          <p className="muted">Les entreprises qui empruntent sur la BVMAC sans y être cotées en actions : ce qu&apos;elles font, leurs comptes publiés et les lignes qu&apos;elles remboursent. Les États (Cameroun, Gabon, Congo, Tchad) et la BDEAC ont leurs échéanciers directement sur chaque ligne.</p>
+          <p className="muted">{t("Les entreprises qui empruntent sur la BVMAC sans y être cotées en actions : ce qu'elles font, leurs comptes publiés et les lignes qu'elles remboursent. Les États (Cameroun, Gabon, Congo, Tchad) et la BDEAC ont leurs échéanciers directement sur chaque ligne.")}</p>
         </div>
         <div className={styles.issuers}>
           {ISSUERS.map((i) => {
@@ -149,7 +149,7 @@ export default async function SocietesPage() {
         })()}
       </div>
       <p className={styles.note}>
-        Les cours viennent du Bulletin Officiel de la Cote de la BVMAC ; les comptes des états financiers certifiés et des fiches signalétiques déposés par les sociétés sur bvm-ac.org. Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.
+        {t("Les cours viennent du Bulletin Officiel de la Cote de la BVMAC ; les comptes des états financiers certifiés et des fiches signalétiques déposés par les sociétés sur bvm-ac.org. Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.")}
       </p>
     </>
   );

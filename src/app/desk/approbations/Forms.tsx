@@ -59,7 +59,7 @@ export function PolicyForm({ p }: { p: ApprovalPolicy }) {
           <input name="quoteMovePct" type="number" step="0.5" defaultValue={p.quoteMovePct} />
         </label>
         <label>
-          <span>Fonds : droits d&apos;entrée maximum (%)</span>
+          <span>{t("Fonds : droits d'entrée maximum (%)")}</span>
           <input name="fundEntryFeeMax" type="number" step="0.1" defaultValue={p.fundEntryFeeMax} />
         </label>
       </div>

@@ -142,7 +142,7 @@ export default async function ResultsPage() {
               {positions.length === 0 && (
                 <tr>
                   <td colSpan={7} className="muted">
-                    Aucune position réglée pour l&apos;instant.
+                    {t("Aucune position réglée pour l'instant.")}
                   </td>
                 </tr>
               )}

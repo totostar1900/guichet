@@ -84,7 +84,7 @@ export default async function MarketPage() {
         )}
         {last && (last.anomalies.length > 0 || last.warnings.length > 0) && (
           <div className={styles.alerts}>
-            <b>À vérifier avant de s&apos;appuyer sur ces cours</b>
+            <b>{t("À vérifier avant de s'appuyer sur ces cours")}</b>
             <ul>
               {last.anomalies.map((a) => (
                 <li key={a}>{a}</li>
@@ -199,7 +199,7 @@ export default async function MarketPage() {
         <div className="panel-h">
           <h2>OPCVM — {funds.length} fonds lus au bulletin, {funds.filter((o) => o.fund?.distributed).length} ouvert{funds.filter((o) => o.fund?.distributed).length > 1 ? "s" : ""} à la souscription</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            VL publiées par les sociétés de gestion agréées COSUMAF. Un fonds n&apos;est proposé à la souscription qu&apos;avec une convention de distribution : cochez « distribué », renseignez la référence, les droits et le minimum.
+            {t("VL publiées par les sociétés de gestion agréées COSUMAF. Un fonds n'est proposé à la souscription qu'avec une convention de distribution : cochez « distribué », renseignez la référence, les droits et le minimum.")}
           </span>
         </div>
         {pendingByManager.size > 0 && (
@@ -275,7 +275,7 @@ export default async function MarketPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>Ordres de bourse et d&apos;OPCVM</h2>
+          <h2>{t("Ordres de bourse et d'OPCVM")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t("reçu → confirmé (ordre signé, appel de fonds) → placé / centralisé → exécuté (cours ou VL, quantité) → réglé")}
           </span>
@@ -342,7 +342,7 @@ export default async function MarketPage() {
               {orders.length === 0 && (
                 <tr>
                   <td colSpan={9} className="muted">
-                    Aucun ordre de bourse pour l&apos;instant.
+                    {t("Aucun ordre de bourse pour l'instant.")}
                   </td>
                 </tr>
               )}

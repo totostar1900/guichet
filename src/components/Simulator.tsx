@@ -67,7 +67,7 @@ export function Simulator() {
         )}
       </div>
 
-      {!valid && <div className="muted" style={{ fontSize: ".85rem", marginTop: 10 }}>L&apos;échéance doit être postérieure au règlement.</div>}
+      {!valid && <div className="muted" style={{ fontSize: ".85rem", marginTop: 10 }}>{t("L'échéance doit être postérieure au règlement.")}</div>}
 
       {valid && kind === "OTA" && (() => {
         const nominal = 10_000;
@@ -87,7 +87,7 @@ export function Simulator() {
                 <b>{fmt(r.outlay)} FCFA</b>
               </div>
               <div>
-                <span>Gain brut jusqu&apos;au terme</span>
+                <span>{t("Gain brut jusqu'au terme")}</span>
                 <b>{fmt(r.gain)} FCFA</b>
               </div>
             </div>
@@ -100,7 +100,7 @@ export function Simulator() {
               <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
               <div className="tot">Décaissement le {fmtDate(settle, false)}</div>
               <div>{fmt(r.outlay)} FCFA</div>
-              <div>Gain brut jusqu&apos;au terme</div>
+              <div>{t("Gain brut jusqu'au terme")}</div>
               <div>{fmt(r.gain)}</div>
               <div className="hl">{atPar ? "Taux nominal (au pair)" : "Rendement actuariel brut"}</div>
               <div>{fmtPct(atPar ? coupon : r.irr, 2)}</div>
@@ -137,7 +137,7 @@ export function Simulator() {
           <div className="out" style={{ marginTop: 12 }}>
             <div>{t("Bons (nominal 1 000 000)")}</div>
             <div>{fmt(r.n)}</div>
-            <div>Prix d&apos;achat par bon</div>
+            <div>{t("Prix d'achat par bon")}</div>
             <div>{fmt(r.pricePerBond)}</div>
             <div className="tot">Décaissement le {fmtDate(settle, false)}</div>
             <div>{fmt(r.outlay)} FCFA</div>

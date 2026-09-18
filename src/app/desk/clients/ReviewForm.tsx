@@ -16,7 +16,7 @@ function AccountForm({ file }: { file: ClientFile }) {
       <input type="hidden" name="fileId" value={file.id} />
       <h3>{t("Sous-compte nominatif chez le SVT")}</h3>
       <p className="muted" style={{ fontSize: ".82rem", margin: 0 }}>
-        Dossier approuvé et dossier d&apos;ouverture transmis. Le compte devient actif (prises fermes possibles) dès que le SVT communique le numéro de sous-compte ouvert au nom du client.
+        {t("Dossier approuvé et dossier d'ouverture transmis. Le compte devient actif (prises fermes possibles) dès que le SVT communique le numéro de sous-compte ouvert au nom du client.")}
       </p>
       <div className={styles.grid}>
         <label className="field">
@@ -67,7 +67,7 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
           <Select block name="screeningOutcome" value={sc?.outcome ?? ""} disabled={closed} options={[{ value: "", label: t("— à renseigner —") }, { value: "aucun", label: t("Aucune correspondance") }, { value: "faux_positif", label: t("Correspondance écartée (faux positif documenté)") }, { value: "confirme", label: t("Correspondance confirmée — diligence renforcée") }]} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
-          Notes du contrôle (homonymie écartée, sources, date de naissance comparée…)
+          {t("Notes du contrôle (homonymie écartée, sources, date de naissance comparée…)")}
           <input name="screeningNotes" defaultValue={sc?.notes} disabled={closed} />
         </label>
       </div>
@@ -119,7 +119,7 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
           <textarea name="notes" rows={2} defaultValue={file.review.notes} disabled={closed} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
-          Compléments à demander (si la décision est « compléments »)
+          {t("Compléments à demander (si la décision est « compléments »)")}
           <input name="requestedItems" defaultValue={file.review.requestedItems} disabled={closed} placeholder={t("Ex. justificatif de domicile lisible, pièce du second mandataire")} />
         </label>
       </div>

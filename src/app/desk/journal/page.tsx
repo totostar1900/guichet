@@ -49,7 +49,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         <div>
           <h1>Journal d&apos;audit</h1>
           <p className="muted">
-            Chaque action métier laisse une ligne immuable : qui, quoi, l&apos;enregistrement avant et après, le motif, l&apos;adresse d&apos;origine. Les lignes sont chaînées par empreinte : une ligne modifiée ou retirée casserait la chaîne.
+            {t("Chaque action métier laisse une ligne immuable : qui, quoi, l'enregistrement avant et après, le motif, l'adresse d'origine. Les lignes sont chaînées par empreinte : une ligne modifiée ou retirée casserait la chaîne.")}
           </p>
         </div>
         <span className={`${styles.chain} ${broken ? styles.bad : styles.good}`}>{broken ? "Chaîne rompue — à signaler" : "Chaîne intègre"}</span>

@@ -130,7 +130,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
                 <b>{t("Comment lire.")}</b> {periodComment(period, c)}
               </div>
             ) : (
-              <div className={styles.reading}>Aucun cours ingéré sur cette période — l&apos;historique se remplit à partir des bulletins de la BVMAC.</div>
+              <div className={styles.reading}>{t("Aucun cours ingéré sur cette période — l'historique se remplit à partir des bulletins de la BVMAC.")}</div>
             )}
           </div>
 
@@ -138,7 +138,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
             <h2>
               {a.latest.revenueLabel} <Info term={revenueTerm} /> {t("et bénéfice net")} <Info term="resultat_net" /> · {figs[0].year}–{a.latest.year}
             </h2>
-            <div className={styles.unitNote}>en FCFA · survolez les barres pour les montants exacts et la variation d&apos;une année sur l&apos;autre</div>
+            <div className={styles.unitNote}>{t("en FCFA · survolez les barres pour les montants exacts et la variation d'une année sur l'autre")}</div>
             <BarChart groups={years} series={[{ name: a.latest.revenueLabel, values: figs.map((f) => f.revenue) }, { name: "Bénéfice net", values: figs.map((f) => f.netIncome), accent: true }]} ariaLabel={`${a.latest.revenueLabel} et bénéfice net par année`} />
             <div className={styles.reading}>
               <b>{t("Comment lire.")}</b> Les barres bleues mesurent l&apos;activité ({a.latest.revenueLabel.toLowerCase()}), les barres dorées ce qu&apos;il en reste une fois tout payé. Un bénéfice qui suit les revenus est le signe d&apos;une entreprise dont les marges tiennent ; un bénéfice qui décroche alors que les revenus montent signale des coûts ou des provisions en hausse.
@@ -287,7 +287,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
                   </a>
                 ))}
             </div>
-            <div className={styles.source}>Documents déposés par la société auprès de la BVMAC ; le desk en garde copie et met ces chiffres à jour à chaque nouvelle publication.</div>
+            <div className={styles.source}>{t("Documents déposés par la société auprès de la BVMAC ; le desk en garde copie et met ces chiffres à jour à chaque nouvelle publication.")}</div>
           </div>
         </div>
       </div>

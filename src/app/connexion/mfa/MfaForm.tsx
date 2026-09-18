@@ -15,7 +15,7 @@ export function MfaForm({ initial, next }: { initial: MfaState; next: string }) 
       {state.step === "enrol" && (
         <>
           <p className={styles.hint}>
-            Ouvrez une application d&apos;authentification (Google Authenticator, Microsoft Authenticator, Authy…), scannez ce code, puis saisissez le nombre à 6 chiffres qu&apos;elle affiche. À faire une seule fois ; le téléphone devient votre clé.
+            {t("Ouvrez une application d'authentification (Google Authenticator, Microsoft Authenticator, Authy…), scannez ce code, puis saisissez le nombre à 6 chiffres qu'elle affiche. À faire une seule fois ; le téléphone devient votre clé.")}
           </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={state.qr} alt="QR code à scanner" width={180} height={180} style={{ background: "#fff", borderRadius: 8, padding: 6, alignSelf: "flex-start" }} />
@@ -24,7 +24,7 @@ export function MfaForm({ initial, next }: { initial: MfaState; next: string }) 
           </p>
         </>
       )}
-      {state.step === "verify" && <p className={styles.hint}>Saisissez le code à 6 chiffres affiché par votre application d&apos;authentification.</p>}
+      {state.step === "verify" && <p className={styles.hint}>{t("Saisissez le code à 6 chiffres affiché par votre application d'authentification.")}</p>}
       <label className="field">
         {t("Code à 6 chiffres")}
         <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={7} autoFocus required />

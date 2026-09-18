@@ -131,11 +131,11 @@ export function TermForm({ t }: { t?: BondTerms }) {
       </div>
       <div className={styles.row3}>
         <label>
-          <span>Différé : intérêts seuls jusqu&apos;au</span>
+          <span>{tr("Différé : intérêts seuls jusqu'au")}</span>
           <input name="graceUntil" type="date" defaultValue={t?.graceUntil} />
         </label>
         <label className={styles.span2}>
-          <span>Source (fiche signalétique, note d&apos;information, date)</span>
+          <span>{tr("Source (fiche signalétique, note d'information, date)")}</span>
           <input name="source" defaultValue={t?.source} required />
         </label>
       </div>
@@ -208,7 +208,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
         <input name="title" defaultValue={l?.title} required />
       </label>
       <label>
-        <span>Une phrase d&apos;introduction</span>
+        <span>{tr("Une phrase d'introduction")}</span>
         <input name="intro" defaultValue={l?.intro} required />
       </label>
       <label>

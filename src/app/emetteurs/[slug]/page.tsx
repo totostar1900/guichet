@@ -87,7 +87,7 @@ export default async function EmetteurPage({ params }: Props) {
         <div>
           <div className={styles.panel}>
             <h2>{tr("Emprunts cotés à la BVMAC")}</h2>
-            {lines.length === 0 && <p className={styles.source}>Aucune ligne de cet émetteur n&apos;est actuellement reprise du bulletin.</p>}
+            {lines.length === 0 && <p className={styles.source}>{tr("Aucune ligne de cet émetteur n'est actuellement reprise du bulletin.")}</p>}
             <div className={styles.docs}>
               {lines.map((o) => {
                 const s = summarize(o, now);
@@ -126,7 +126,7 @@ export default async function EmetteurPage({ params }: Props) {
             <div className={styles.unitNote}>{tr("en FCFA · survolez les barres pour les montants exacts")}</div>
             <BarChart groups={figs.map((f) => String(f.year))} series={[{ name: latest.revenueLabel, values: scaled.map((f) => f.revenue) }, { name: "Résultat net", values: scaled.map((f) => f.netIncome), accent: true }]} ariaLabel={`${latest.revenueLabel} et résultat net par année`} />
             <div className={styles.reading}>
-              <b>{tr("Comment lire.")}</b> Pour un prêteur, l&apos;essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu&apos;une forte croissance.
+              <b>{tr("Comment lire.")}</b> {tr("Pour un prêteur, l'essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu'une forte croissance.")}
             </div>
           </div>
 
