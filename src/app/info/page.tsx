@@ -4,6 +4,7 @@ import { loadLessons } from "@/lib/reference";
 import { getRegistry } from "@/lib/registry";
 import { DoneMark } from "./[key]/Quiz";
 import { ReplayOnboarding } from "@/components/mobile/Onboarding";
+import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
 import styles from "./page.module.css";
@@ -43,13 +44,15 @@ export default async function InfoPage() {
         <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
         <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques — expliqués une fois pour toutes, sans jargon inutile.")}</p>
       </div>
-      <InfoSearch entries={entries} />
+      <div data-coach="info-search">
+        <InfoSearch entries={entries} />
+      </div>
 
-      <div className={styles.lessons}>
+      <div className={styles.lessons} data-coach="info-lessons">
         <div className={styles.lessonsHead}>
           <h2 className={styles.h2}>{t("Huit leçons courtes")}</h2>
           <Suspense>
-            <Link className="btn sm" href="/info/aide">
+            <Link className="btn sm" href="/info/aide" data-coach="info-aide">
               {t("Aide : vos questions, nos réponses")} →
             </Link>
             <ReplayOnboarding />
@@ -72,7 +75,7 @@ export default async function InfoPage() {
       <h2 className={styles.h2} id="simulateur">
         {t("Simulateur d'obligation")}
       </h2>
-      <div className={styles.sim}>
+      <div className={styles.sim} data-coach="info-sim">
         <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
         <div className={styles.warn}>{t("Outil pédagogique — résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
         <Simulator />
@@ -92,6 +95,16 @@ export default async function InfoPage() {
         </Link>
       </div>
 
+      <CoachMarks
+        id="info"
+        replayLabel={t("Comment utiliser Info ?")}
+        stops={[
+          { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, une leçon, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
+          { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
+          { target: "info-lessons", title: t("Huit leçons de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque leçon se lit en deux minutes et se coche une fois lue.") },
+          { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
+        ]}
+      />
       <h2 className={styles.h2}>{t("Les mots du Guichet")}</h2>
       <div className={styles.gloss}>
         {keys.map((k) => (

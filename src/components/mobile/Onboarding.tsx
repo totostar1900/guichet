@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import styles from "./Onboarding.module.css";
 
 /**
- * « Premiers pas » — five screens, one idea each, shown once per device on the
+ * « Premiers pas » — six screens, one idea each, shown once per device on the
  * first visit (never on the desk or the login page), replayable from Info.
  * SVG + CSS only: nothing to host, nothing to load.
  */
@@ -127,6 +127,42 @@ const SLIDES = [
           <rect x="50" y="141" width="70" height="6" rx="3" fill="#0b2545" />
           <rect x="26" y="153" width="30" height="5" rx="2" fill="#b8860b" />
           <rect x="60" y="153" width="60" height="5" rx="2" fill="#c9d3e3" />
+        </g>
+      </svg>
+    ),
+  },
+  {
+    title: "Comprendre, et trouver de l'aide",
+    text: "Info explique chaque mot en une phrase, propose huit leçons de deux minutes et un simulateur. La page Aide répond à vos questions : se connecter, ouvrir un compte, lire une ligne, régler, nous joindre.",
+    art: (
+      <svg viewBox="0 0 200 170" aria-hidden="true">
+        <g className={styles.a1}>
+          <rect x="24" y="30" width="152" height="30" rx="15" fill="#fff" />
+          <circle cx="44" cy="45" r="6" fill="none" stroke="#0b2545" strokeWidth="2" />
+          <path d="M48 49l4 4" stroke="#0b2545" strokeWidth="2" strokeLinecap="round" />
+          <rect x="60" y="41" width="70" height="8" rx="4" fill="#c9d3e3" />
+        </g>
+        <g className={styles.a2}>
+          <rect x="24" y="72" width="72" height="40" rx="8" fill="#fff" opacity=".9" />
+          <text x="34" y="88" fontSize="8" fontWeight="800" fill="#8a6408">
+            LEÇON
+          </text>
+          <rect x="34" y="94" width="50" height="5" rx="2" fill="#0b2545" />
+          <rect x="34" y="102" width="34" height="4" rx="2" fill="#c9d3e3" />
+          <rect x="104" y="72" width="72" height="40" rx="8" fill="#fff" opacity=".9" />
+          <text x="114" y="88" fontSize="8" fontWeight="800" fill="#8a6408">
+            AIDE
+          </text>
+          <rect x="114" y="94" width="50" height="5" rx="2" fill="#0b2545" />
+          <rect x="114" y="102" width="40" height="4" rx="2" fill="#c9d3e3" />
+        </g>
+        <g className={styles.a3}>
+          <rect x="24" y="122" width="152" height="30" rx="8" fill="#fff" opacity=".75" />
+          <circle cx="42" cy="137" r="8" fill="#0b2545" />
+          <text x="42" y="140" textAnchor="middle" fontSize="9" fontWeight="800" fill="#fff">
+            i
+          </text>
+          <rect x="58" y="133" width="90" height="6" rx="3" fill="#0b2545" />
         </g>
       </svg>
     ),
