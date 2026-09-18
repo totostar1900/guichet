@@ -39,6 +39,7 @@ const SHOTS = [
   ["docs-administration", "/desk/docs/administration"],
   ["docs-technique", "/desk/docs/technique"],
   ["docs-aide", "/desk/docs/aide"],
+  ["docs-notes", "/desk/docs/notes"],
   ["aide-client", "/info/aide"],
   // The client's Info page, and the « Premiers pas » screen about Info and help (phone width, fifth screen).
   ["info-client", "/info", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
