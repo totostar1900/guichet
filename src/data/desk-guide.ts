@@ -17,6 +17,8 @@ export interface GuideSection {
   when: string; // when in the day / the flow
   fields: GuideField[];
   tips?: string[];
+  /** Extra screenshots (public/guide/<key>.png) with a caption, for a page that has sub-pages. */
+  shots?: { key: string; caption: string }[];
 }
 export interface TourStop {
   path: string;
@@ -200,6 +202,16 @@ export const GUIDE: GuideSection[] = [
       { name: "Recherche", what: "Un mot, une question : chaque chapitre qui le contient, avec un extrait.", how: "Les filtres restreignent aux pages écrites pour les clients, le desk, l'administration ou la technique." },
       { name: "Navigation", what: "À gauche, les pages et les chapitres de la page ouverte ; à droite, « Sur cette page » suit le défilement.", how: "Le lien « Guide, champ par champ » renvoie à ce guide." },
       { name: "Vérifié le", what: "La date à laquelle la page a été relue face à l'application, et son responsable.", how: "Un texte se corrige dans src/data/docs ; la date se met à jour dans le même envoi." },
+      { name: "Visibilité", what: "Desk : la page ne sort jamais du desk. Public : la page est rendue aux clients sur /info/aide, écrite pour eux seuls ; un test refuse tout détail interne.", how: "Une seule page publique aujourd'hui : l'aide." },
+    ],
+    shots: [
+      { key: "docs-fonctionnement", caption: "Comment fonctionne Guichet" },
+      { key: "docs-plateformes", caption: "Plateformes, services et coûts" },
+      { key: "docs-support", caption: "Aider un client : le guide du support" },
+      { key: "docs-administration", caption: "Administrer Guichet : le guide du responsable" },
+      { key: "docs-technique", caption: "Aperçu technique et exploitation" },
+      { key: "docs-aide", caption: "Aide : vos questions, nos réponses (côté desk)" },
+      { key: "aide-client", caption: "La même aide, telle que le client la voit sur /info/aide" },
     ],
   },
   {

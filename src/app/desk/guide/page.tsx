@@ -88,6 +88,22 @@ export default async function GuidePage() {
                   <figcaption>{t(s.title)}</figcaption>
                 </figure>
               )}
+              {s.shots && s.shots.some((x) => shot(x.key)) && (
+                <div className={styles.gallery}>
+                  {s.shots.map((x) => {
+                    const src = shot(x.key);
+                    return (
+                      src && (
+                        <figure key={x.key} className={styles.shot}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt={`${t("Capture d'écran")} — ${t(x.caption)}`} loading="lazy" />
+                          <figcaption>{t(x.caption)}</figcaption>
+                        </figure>
+                      )
+                    );
+                  })}
+                </div>
+              )}
               <dl className={styles.fields}>
                 {s.fields.map((f) => (
                   <div key={f.name}>

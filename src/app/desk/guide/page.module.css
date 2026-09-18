@@ -150,3 +150,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* several screenshots under one section (the documentation's pages) */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.gallery .shot img {
+  max-height: 260px;
+  object-fit: cover;
+  object-position: top;
+}
