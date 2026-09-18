@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { DeskNav } from "@/components/DeskNav";
 import { StartTour } from "@/components/DeskTour";
-import { GUIDE, ROLES } from "@/data/desk-guide";
+import { GUIDE, ROLES, TOUR } from "@/data/desk-guide";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -24,7 +24,7 @@ export default async function GuidePage() {
         <div>
           <div className="eyebrow">{t("Guide du desk")}</div>
           <h1 className="display">{t("Le mode d'emploi, page par page")}</h1>
-          <p className="muted">{t("Une visite guidée de dix étapes qui vous promène dans l'application, puis le détail de chaque page et de chaque champ. Le guide suit l'application : quand une page change, cette page change.")}</p>
+          <p className="muted">{t("Une visite guidée de {n} étapes qui vous promène dans l'application, puis le détail de chaque page et de chaque champ. Le guide suit l'application : quand une page change, cette page change.", { n: TOUR.length })}</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <Link className="btn sm" href="/desk/docs">

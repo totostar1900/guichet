@@ -423,7 +423,7 @@ export const EN_MORE: Record<string, string> = {
   /* ---------- desk: guide ---------- */
   "Guide du desk": "Desk guide",
   "Le mode d'emploi, page par page": "The manual, page by page",
-  "Une visite guidée de dix étapes qui vous promène dans l'application, puis le détail de chaque page et de chaque champ. Le guide suit l'application : quand une page change, cette page change.": "A ten-step guided tour that walks you through the application, then the detail of every page and every field. The guide follows the application: when a page changes, this page changes.",
+  "Une visite guidée de {n} étapes qui vous promène dans l'application, puis le détail de chaque page et de chaque champ. Le guide suit l'application : quand une page change, cette page change.": "A {n}-step guided tour that walks you through the application, then the detail of every page and every field. The guide follows the application: when a page changes, this page changes.",
   "Démarrer la visite guidée": "Start the guided tour",
   "Ne peut pas": "Cannot",
   "Sommaire": "Contents",

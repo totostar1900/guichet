@@ -75,7 +75,7 @@ export const FONCTIONNEMENT: DocPage = {
           ],
         },
         { type: "p", text: l("Deux rôles. L'opérateur fait tout le quotidien dans une fenêtre déléguée (prix dans les bornes, diffusion limitée) ; le responsable approuve ce qui en sort, gère l'équipe et le référentiel. Tout changement de niveau et toute approbation sont journalisés : quatre yeux, sans goulot.", "Two roles. The operator does all the daily work within a delegated window (prices within bounds, limited broadcast); the manager approves what falls outside it and manages the team and reference data. Every role change and approval is logged: four eyes, no bottleneck.") },
-        { type: "link", href: "/desk/guide", label: l("Guide des pages du desk, champ par champ", "Desk pages guide, field by field"), hint: l("avec la visite guidée en treize étapes", "with the thirteen-step tour") },
+        { type: "link", href: "/desk/guide", label: l("Guide des pages du desk, champ par champ", "Desk pages guide, field by field"), hint: l("avec la visite guidée", "with the guided tour") },
       ],
     },
     {

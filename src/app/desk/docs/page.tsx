@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { DeskNav } from "@/components/DeskNav";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { AUDIENCE_LABEL, DOCS, searchEntries, type Audience } from "@/data/docs";
+import { TOUR } from "@/data/desk-guide";
 import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import styles from "./docs.module.css";
@@ -57,9 +58,11 @@ export default async function DocsIndex({ searchParams }: { searchParams: Promis
         </Link>
       </div>
 
-      <Suspense>
-        <Toolbar placeholder={t("Un mot, une question, une page")} chipKey="pour" chips={[{ value: "", label: t("Tout") }, ...AUDIENCES.map((a) => ({ value: a, label: AUDIENCE_LABEL[a][lang], count: DOCS.filter((d) => d.audience.includes(a)).length }))]} />
-      </Suspense>
+      <div data-coach="docs-search">
+        <Suspense>
+          <Toolbar placeholder={t("Un mot, une question, une page")} chipKey="pour" chips={[{ value: "", label: t("Tout") }, ...AUDIENCES.map((a) => ({ value: a, label: AUDIENCE_LABEL[a][lang], count: DOCS.filter((d) => d.audience.includes(a)).length }))]} />
+        </Suspense>
+      </div>
 
       {q ? (
         <div className={styles.results}>
@@ -75,7 +78,7 @@ export default async function DocsIndex({ searchParams }: { searchParams: Promis
       ) : (
         <div className={styles.cards}>
           {pages.map((d) => (
-            <Link key={d.slug} href={`/desk/docs/${d.slug}`} className={styles.card}>
+            <Link key={d.slug} href={`/desk/docs/${d.slug}`} className={styles.card} data-coach={d.visibility === "public" ? "docs-aide" : undefined}>
               <h2>{d.title[lang]}</h2>
               <p>{d.summary[lang]}</p>
               <span className={styles.chapters}>{d.chapters.map((c) => c.title[lang]).join(" · ")}</span>
@@ -95,7 +98,7 @@ export default async function DocsIndex({ searchParams }: { searchParams: Promis
           ))}
           <Link href="/desk/guide" className={styles.card}>
             <h2>{t("Guide des pages du desk")}</h2>
-            <p>{t("Chaque page du desk, champ par champ, avec une capture d'écran et la visite guidée en treize étapes.")}</p>
+            <p>{t("Chaque page du desk, champ par champ, avec une capture d'écran et la visite guidée en {n} étapes.", { n: TOUR.length })}</p>
             <span className={styles.foot}>
               <span className={`${styles.chip}`}>{AUDIENCE_LABEL.desk[lang]}</span>
             </span>
