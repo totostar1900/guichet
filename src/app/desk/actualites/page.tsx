@@ -121,7 +121,7 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
             ))}
           </div>
 
-          <div className="panel">
+          <div className="panel" data-coach="news-list">
             <div className="panel-h">
               <h2>{t("Publications")}</h2>
               <nav className={`${styles.filters} right`} aria-label={t("État")}>

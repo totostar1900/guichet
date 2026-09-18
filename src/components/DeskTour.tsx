@@ -111,6 +111,11 @@ export function DeskTour() {
       <div className={styles.tip} style={{ top: tipTop }}>
         <b>{t(stop.title)}</b>
         <span>{t(stop.text)}</span>
+        {stop.link && (
+          <a className="btn sm" style={{ display: "inline-flex", marginTop: 8 }} href={stop.link.href} target="_blank" rel="noreferrer">
+            {t(stop.link.label)} ↗
+          </a>
+        )}
         <div className={styles.foot}>
           <small>
             {n + 1} / {TOUR.length}

@@ -23,6 +23,8 @@ export interface TourStop {
   target: string;
   title: string;
   text: string;
+  /** A page to open beside the tour (new tab), e.g. what the client sees. */
+  link?: { href: string; label: string };
 }
 
 export const ROLES = {
@@ -276,6 +278,7 @@ export const TOUR: TourStop[] = [
   { path: "/desk/marche", target: "import", title: "Le bulletin de la BVMAC", text: "Importé seul chaque soir de bourse par le cron. Les cours et les VL sont historisés, jamais écrasés ; les anomalies s'affichent en dessous." },
   { path: "/desk/actualites", target: "news-inbox", title: "Liens reçus", text: "La veille de nuit, un lien envoyé au robot WhatsApp depuis un téléphone du desk ou un e-mail déposent ici ce qui mérite un regard. « Préparer » ouvre le formulaire pré-rempli ; « Écarter » classe sans publier." },
   { path: "/desk/actualites", target: "news-form", title: "Deux lignes, jamais l'article", text: "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée." },
+  { path: "/desk/actualites", target: "news-list", title: "Ce que voit le client", text: "Les publications, par état : à la une, publiée, brouillon, expirée, écartée. Côté client, la page Actualités montre la une dans son cadre doré puis le fil par jour ; chaque fiche de ligne, de société ou d'émetteur reprend ses actualités liées.", link: { href: "/actualites", label: "Voir la page Actualités" } },
   { path: "/desk/approbations", target: "window", title: "Fenêtre déléguée", text: "Ce qu'un opérateur publie seul. Hors bornes, la demande attend un responsable : quatre yeux sans goulot." },
   { path: "/desk/equipe", target: "roles", title: "Deux niveaux", text: "Opérateur desk : le quotidien. Responsable : opérateur + approbations, fenêtre déléguée, équipe. Tout changement de niveau est journalisé." },
 ];

@@ -150,6 +150,10 @@ export const EN_NEWS: Record<string, string> = {
   "Deux lignes, jamais l'article": "Two lines, never the article",
   "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée.": "The title rephrased for the client, « Why it matters » in two lines with no recommendation, the related lines and notions. Publishing puts the link on the News page and on the pages concerned; every version is logged.",
 
+  "Ce que voit le client": "What the client sees",
+  "Les publications, par état : à la une, publiée, brouillon, expirée, écartée. Côté client, la page Actualités montre la une dans son cadre doré puis le fil par jour ; chaque fiche de ligne, de société ou d'émetteur reprend ses actualités liées.": "The publications, by state: front page, published, draft, expired, discarded. On the client side, the News page shows the front-page item in its gold frame then the feed by day; every line, company or issuer page repeats its related news.",
+  "Voir la page Actualités": "See the News page",
+
   /* guide */
   "Publier des liens vers ce que d'autres publient (Trésors, BVMAC, COSUMAF, presse, sociétés, sociétés de gestion) avec deux lignes sur ce que cela change pour les lignes du Guichet. Jamais l'article : le lecteur va à l'original.":
     "Publish links to what others publish (Treasuries, BVMAC, COSUMAF, press, companies, fund managers) with two lines on what it changes for the Guichet's lines. Never the article: the reader goes to the original.",
