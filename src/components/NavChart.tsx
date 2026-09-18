@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { labelMetrics, useOutsideTap, usePhone } from "./chart-utils";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
@@ -30,13 +31,16 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
   const t = useT();
   const ref = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
+  const phone = usePhone();
+  const metrics = labelMetrics(phone);
+  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
   const values = series.map((n) => n.nav);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const W = 320;
   const H = 96;
   const pad = 6;
-  const padX = Math.max(fmt(max).length, fmt(min).length) * 3.6 + 8; // room for the two value labels on the left
+  const padX = Math.max(fmt(max).length, fmt(min).length) * metrics.perChar + 8; // room for the two value labels on the left
   const x = (i: number) => (series.length === 1 ? W / 2 : padX + (i * (W - padX - pad)) / (series.length - 1));
   const y = (v: number) => (max === min ? H / 2 : H - pad - ((v - min) * (H - 2 * pad)) / (max - min));
   const path = series.map((n, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(n.nav).toFixed(1)}`).join(" ");
@@ -73,11 +77,11 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
       >
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
-        <text x={padX - 4} y={y(max) + 3} className={styles.tick} textAnchor="end">
+        <text x={padX - 4} y={y(max) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
           {fmt(max)}
         </text>
         {max !== min && (
-          <text x={padX - 4} y={y(min) + 3} className={styles.tick} textAnchor="end">
+          <text x={padX - 4} y={y(min) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
             {fmt(min)}
           </text>
         )}
@@ -90,7 +94,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
           </circle>
         ))}
         {axis.ticks.map((i) => (
-          <text key={i} x={x(i)} y={H + 11} className={styles.tick} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
+          <text key={i} x={x(i)} y={H + 11} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
             {axis.label(series[i].date)}
           </text>
         ))}

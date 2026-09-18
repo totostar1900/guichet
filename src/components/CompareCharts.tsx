@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useOutsideTap, usePhone } from "./chart-utils";
 import type { CompareLine, FlowItem } from "@/lib/domain/compare";
 import { drawdown, invested, REF_AMOUNT, rollingAnnualised, type SeriesPoint } from "./FundCharts";
 import { axisLabel } from "./NavChart";
@@ -49,7 +50,7 @@ const NATURE: Record<CompareLine["ret"]["nature"], string> = {
 };
 function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benchmark }) {
   const t = useT();
-  const rows = [...lines.map((l, i) => ({ label: l.title, pct: l.ret.pct, note: l.ret.note, nature: l.ret.nature, cls: COLORS[i] })), ...(benchmark ? [{ label: benchmark.label, pct: benchmark.pct, note: t("le dernier bon du Trésor publié"), nature: "promesse" as const, cls: styles.bench }] : [])];
+  const rows = [...lines.map((l, i) => ({ label: t(l.title), pct: l.ret.pct, note: l.ret.note, nature: l.ret.nature, cls: COLORS[i] })), ...(benchmark ? [{ label: benchmark.label, pct: benchmark.pct, note: t("le dernier bon du Trésor publié"), nature: "promesse" as const, cls: styles.bench }] : [])];
   const max = Math.max(1, ...rows.map((r) => r.pct ?? 0));
   return (
     <div className={styles.card}>
@@ -75,10 +76,14 @@ function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Be
         {lines.map((l, i) => (
           <span key={l.id}>
             {i > 0 ? " · " : ""}
-            <i className={COLORS[i]}>■</i> {l.title} : {t(NATURE[l.ret.nature])}
+            <i className={COLORS[i]}>■</i> {t(l.title)} : {t(NATURE[l.ret.nature])}
           </span>
         ))}
-        . {t("Un rendement « si servi » suppose que votre ordre est servi au prix indiqué ; un rendement passé ne dit rien de l'année qui vient.")}
+.{" "}
+        {lines.some((l) => l.ret.nature === "promesse") && t("Un rendement « si servi » ou « au pair » suppose que votre ordre est servi au prix indiqué et que l'émetteur paie jusqu'au terme.") + " "}
+        {lines.some((l) => l.ret.nature === "passe") && t("Un rendement passé ne dit rien de l'année qui vient : il se lit avec le repli et les variations.") + " "}
+        {lines.some((l) => l.ret.nature === "cours") && t("Un rendement de dividende dépend d'une décision annuelle des actionnaires et bouge avec le cours.") + " "}
+        {lines.some((l) => l.ret.nature === "aucune") && t("Une ligne sans rendement (un rachat, une action sans dividende connu) se lit dans le calendrier des flux, pas ici.")}
       </p>
     </div>
   );
@@ -93,16 +98,19 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
   // The common period: from the younger fund's first NAV to the last date both have.
   const from = navs.map((s) => s[0].date).sort().pop()!;
   const to = navs.map((s) => s[s.length - 1].date).sort()[0];
+  // The look-back both funds can carry: 12 months when they have it, else 6, 3, or one month.
+  const shortest = Math.min(...navs.map((s) => daysBetween(s[0].date, s[s.length - 1].date)));
+  const windowDays = [365, 183, 92, 31].find((d) => shortest >= d * 1.2) ?? 31;
   const series = useMemo(
     () =>
       navs.map((all) => {
         const win = all.filter((p) => p.date >= from && p.date <= to);
         if (reading === "placement") return invested(win);
         if (reading === "repli") return drawdown(win);
-        return rollingAnnualised(all, 365).filter((p) => p.date >= from && p.date <= to);
+        return rollingAnnualised(all, windowDays).filter((p) => p.date >= from && p.date <= to);
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lines, reading, from, to],
+    [lines, reading, from, to, windowDays],
   );
   const bench = benchmark && reading !== "repli" ? { label: benchmark.label, at: (date: string) => (reading === "rendement" ? benchmark.pct : REF_AMOUNT * (1 + (benchmark.pct / 100) * (daysBetween(from, date) / 365))) } : undefined;
   const fmtY = reading === "placement" ? (v: number) => fmt(v) : (v: number) => `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
@@ -118,15 +126,15 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
       <div className={q.modes} role="group" aria-label={t("Lecture")}>
         {(["placement", "rendement", "repli"] as Reading[]).map((r) => (
           <button key={r} type="button" className={reading === r ? q.on : ""} aria-pressed={reading === r} onClick={() => setReading(r)}>
-            {t(r === "placement" ? "1 000 000 FCFA placés" : r === "rendement" ? "Rendement annualisé (12 mois)" : "Repli")}
+            {r === "placement" ? t("1 000 000 FCFA placés") : r === "rendement" ? t("Rendement annualisé ({n} mois)", { n: Math.round(windowDays / 30) }) : t("Repli")}
           </button>
         ))}
       </div>
-      {series.some((s) => s.length >= 2) ? <DualChart series={series} labels={lines.map((l) => l.title)} bench={bench} fmtY={fmtY} zero={reading !== "placement"} area={reading === "repli" ? "down" : "up"} /> : <div className="empty">{t("Pas assez d'historique commun : les deux fonds n'ont pas encore deux VL publiées aux mêmes dates.")}</div>}
+      {series.some((s) => s.length >= 2) ? <DualChart series={series} labels={lines.map((l) => t(l.title))} bench={bench} fmtY={fmtY} zero={reading !== "placement"} area={reading === "repli" ? "down" : "up"} /> : <div className="empty">{t("Pas assez d'historique commun : les deux fonds n'ont pas encore deux VL publiées aux mêmes dates.")}</div>}
       <div className={styles.keys}>
         {lines.map((l, i) => (
           <span key={l.id}>
-            <i className={COLORS[i]}>■</i> {l.title}
+            <i className={COLORS[i]}>■</i> {t(l.title)}
             {ends[i] ? <b> · {reading === "placement" ? `${fmt(ends[i].y)} FCFA` : signed(ends[i].y)}</b> : null}
           </span>
         ))}
@@ -139,7 +147,8 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
       <p className={styles.how}>
         <b>{t("Comment lire")}</b> —{" "}
         {reading === "placement" && t("Le même million placé le même jour dans chaque fonds, brut, avant frais d'entrée et de sortie ; la ligne pointillée est ce que le dernier bon du Trésor aurait donné. Une courbe plus haute a gagné plus, pas forcément avec le même calme : regardez « Repli ».")}
-        {reading === "rendement" && t("À chaque date, le rendement annualisé des douze mois qui précèdent, pour chaque fonds. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.")}
+        {reading === "rendement" && t("À chaque date, le rendement annualisé des {n} mois qui précèdent, pour chaque fonds — la fenêtre la plus longue que les deux historiques permettent. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.", { n: Math.round(windowDays / 30) })}
+        {reading === "rendement" && series.some((s) => s.length === 0) && " " + t("Un des deux fonds n'a pas encore assez de VL pour cette fenêtre : sa courbe viendra avec les prochains bulletins.")}
         {reading === "repli" && t("À chaque date, de combien chaque fonds était sous son plus haut : zéro = au sommet. Plus la zone rouge est profonde et longue, plus il a fallu de patience. C'est le prix du gain de l'autre lecture.")}
       </p>
     </div>
@@ -182,13 +191,13 @@ function FundVsDebt({ fund, debt }: { fund: CompareLine; debt: CompareLine }) {
           {t("même montant, même durée")} : {Math.round(horizon / 30)} {t("mois")}
         </span>
       </div>
-      <DualChart series={[a, b]} labels={[fund.title, debt.title]} fmtY={(v) => fmt(v)} xDays={horizon} zero={false} area="up" stepSecond />
+      <DualChart series={[a, b]} labels={[t(fund.title), t(debt.title)]} fmtY={(v) => fmt(v)} xDays={horizon} zero={false} area="up" stepSecond />
       <div className={styles.keys}>
         <span>
-          <i className={styles.a}>■</i> {fund.title} · {past.length ? `${fmt(past[past.length - 1].y)} FCFA` : "—"} <small>({t("passé")}, {fmtDate(win[0]?.date ?? last, false)} → {fmtDate(last, false)})</small>
+          <i className={styles.a}>■</i> {t(fund.title)} · {past.length ? `${fmt(past[past.length - 1].y)} FCFA` : "—"} <small>({t("passé")}, {fmtDate(win[0]?.date ?? last, false)} → {fmtDate(last, false)})</small>
         </span>
         <span>
-          <i className={styles.b}>■</i> {debt.title} · {fmt(cum)} FCFA <small>({t("promesse")}, {fmtDate(start, false)} → {fmtDate(end, false)})</small>
+          <i className={styles.b}>■</i> {t(debt.title)} · {fmt(cum)} FCFA <small>({t("promesse")}, {fmtDate(start, false)} → {fmtDate(end, false)})</small>
         </span>
       </div>
       <p className={styles.how}>
@@ -203,15 +212,18 @@ const KIND: Record<FlowItem["kind"], string> = { sortie: "Décaissement", coupon
 function Calendar({ lines }: { lines: CompareLine[] }) {
   const t = useT();
   const [hover, setHover] = useState<{ l: number; i: number } | null>(null);
+  const phone = usePhone();
+  const calRef = useRef<SVGSVGElement>(null);
+  useOutsideTap(calRef, hover != null, useCallback(() => setHover(null), []));
   const all = lines.flatMap((l) => l.flows!.items);
   const from = all.map((f) => f.date).sort()[0];
   const to = all.map((f) => f.date).sort().pop()!;
   const span = Math.max(30, daysBetween(from, to));
   const maxAbs = Math.max(...all.map((f) => Math.abs(f.amount)));
-  const W = 1000;
-  const laneH = 84;
+  const W = phone ? 380 : 1000;
+  const laneH = phone ? 76 : 84;
   const H = laneH * lines.length + 24;
-  const padL = 24;
+  const padL = phone ? 12 : 24;
   const x = (d: string) => padL + ((W - padL - 24) * daysBetween(from, d)) / span;
   const ticks = useMemo(() => {
     const out: string[] = [];
@@ -233,23 +245,23 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
         <span>{lines.map((l) => t(l.flows!.title)).join(" · ")}</span>
       </div>
       <div className={styles.calWrap}>
-        <svg viewBox={`0 0 ${W} ${H}`} className={styles.cal} role="img" aria-label={t("Le calendrier des flux")}>
+        <svg ref={calRef} viewBox={`0 0 ${W} ${H}`} className={styles.cal} role="img" aria-label={t("Le calendrier des flux")}>
           {lines.map((l, li) => {
             const base = li * laneH + laneH / 2 + 4;
             return (
               <g key={l.id}>
                 <line x1={padL} x2={W - 8} y1={base} y2={base} className={styles.calBase} />
                 <text x={padL} y={li * laneH + 14} className={`${styles.calLabel} ${COLORS[li]}`}>
-                  {l.title}
+                  {t(l.title)}
                 </text>
                 {l.flows!.items.map((f, i) => {
                   const hgt = Math.max(3, (Math.abs(f.amount) / maxAbs) * (laneH / 2 - 16));
                   const on = hover?.l === li && hover.i === i;
                   return (
                     <g key={i} onMouseEnter={() => setHover({ l: li, i })} onMouseLeave={() => setHover(null)} onTouchStart={() => setHover({ l: li, i })}>
-                      <rect x={x(f.date) - 5} y={f.amount < 0 ? base : base - hgt} width={10} height={hgt} className={`${f.amount < 0 ? styles.out : f.sure ? COLORS[li] + " " + styles.inFill : styles.maybe} ${on ? styles.calOn : ""}`} />
+                      <rect x={x(f.date) - (phone ? 3 : 5)} y={f.amount < 0 ? base : base - hgt} width={phone ? 6 : 10} height={hgt} className={`${f.amount < 0 ? styles.out : f.sure ? COLORS[li] + " " + styles.inFill : styles.maybe} ${on ? styles.calOn : ""}`} />
                       <rect x={x(f.date) - 12} y={li * laneH + 16} width={24} height={laneH - 16} fill="transparent" />
-                      {Math.abs(f.amount) >= maxAbs * 0.25 && (
+                      {!phone && Math.abs(f.amount) >= maxAbs * 0.25 && (
                         <text x={x(f.date)} y={f.amount < 0 ? base + hgt + 12 : base - hgt - 5} className={styles.calAmt} textAnchor={x(f.date) < padL + 40 ? "start" : x(f.date) > W - 60 ? "end" : "middle"}>
                           {f.amount < 0 ? "−" : "+"}
                           {(Math.abs(f.amount) / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M
@@ -309,9 +321,12 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   const t = useT();
   const ref = useRef<SVGSVGElement>(null);
   const [hx, setHx] = useState<number | null>(null);
-  const W = 1000;
-  const H = 220;
+  const phone = usePhone();
+  useOutsideTap(ref, hx != null, useCallback(() => setHx(null), []));
+  const W = phone ? 380 : 1000;
+  const H = phone ? 170 : 220;
   const pad = 10;
+  const fontPx = 11; // the frame is drawn at about 1:1 on a phone and 1:1.3 on a desktop, so one size reads on both
   const dates = [...new Set(series.flat().map((p) => p.date))].sort();
   const first = dates[0];
   const lastD = dates[dates.length - 1];
@@ -326,7 +341,7 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
     max += 1;
     min -= 1;
   }
-  const labelW = Math.max(fmtY(max).length, fmtY(min).length) * 6.4 + 10;
+  const labelW = Math.max(fmtY(max).length, fmtY(min).length) * fontPx * 0.58 + 10;
   const padX = labelW;
   const x = (d: number) => padX + ((W - padX - pad) * d) / span;
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
@@ -349,10 +364,10 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
       <svg ref={ref} viewBox={`0 0 ${W} ${H + 18}`} onMouseMove={(e) => pick(e.clientX)} onMouseLeave={() => setHx(null)} onTouchStart={(e) => pick(e.touches[0].clientX)} onTouchMove={(e) => pick(e.touches[0].clientX)} role="img" aria-label={labels.join(" / ")}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={q.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={q.guide} />
-        <text x={padX - 5} y={y(max) + 4} className={styles.tick} textAnchor="end">
+        <text x={padX - 5} y={y(max) + 4} className={styles.tick} style={{ fontSize: fontPx }} textAnchor="end">
           {fmtY(max)}
         </text>
-        <text x={padX - 5} y={y(min) + 4} className={styles.tick} textAnchor="end">
+        <text x={padX - 5} y={y(min) + 4} className={styles.tick} style={{ fontSize: fontPx }} textAnchor="end">
           {fmtY(min)}
         </text>
         {zero && min < 0 && max > 0 && <line x1={padX} x2={W - pad} y1={y(0)} y2={y(0)} className={q.zero} />}
@@ -372,7 +387,7 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
           ? [0, 0.25, 0.5, 0.75, 1].map((k) => ({ d: k * span, label: `${Math.round((k * span) / 30)} ${t("mois")}` }))
           : axis.ticks.map((i) => ({ d: daysBetween(first, dates[i]), label: axis.label(dates[i]) }))
         ).map((tk, i, arr) => (
-          <text key={i} x={x(tk.d)} y={H + 14} className={styles.tick} textAnchor={i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle"}>
+          <text key={i} x={x(tk.d)} y={H + 14} className={styles.tick} style={{ fontSize: fontPx }} textAnchor={i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle"}>
             {tk.label}
           </text>
         ))}

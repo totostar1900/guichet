@@ -316,4 +316,16 @@ export const EN_CONTENT: Record<string, string> = {
   "Coupons 07 h 00 · point du matin 06 h 30 · suivi 07 h 15 · bulletin 18 h 30 (jours de bourse) · émetteurs lundi 06 h 00.": "Coupons 7:00 · morning brief 6:30 · follow-ups 7:15 · bulletin 18:30 (trading days) · issuers Monday 6:00.",
   "Fiche": "Details",
   "La hausse ou la baisse de la VL depuis la première VL du fonds, en cumulé et sans annualisation : un fonds plus ancien a eu plus de temps pour la construire. Regardez-la avec l'âge du fonds, indiqué à côté.": "The rise or fall of the NAV since the fund's first NAV, cumulative and not annualised: an older fund has had more time to build it. Read it together with the fund's age, shown next to it.",
+  // the states of a line (glossary, 2026-09-19)
+  "état d'une ligne": "state of a line",
+  "La ligne est annoncée, la fenêtre de souscription n'est pas encore ouverte : vous pouvez déjà vous réserver (un appétit), l'ordre partira à l'ouverture.": "The line is announced, the subscription window is not open yet: you can already reserve (an appetite), the order will go at the opening.",
+  "La fenêtre de souscription est en cours : vous pouvez déclarer une intention (appétit ou prise ferme) jusqu'à la clôture.": "The subscription window is running: you can declare an intention (appetite or firm order) until the closing.",
+  "Moins de six heures avant la clôture : dernier moment pour déclarer ou modifier une intention.": "Less than six hours before the closing: the last moment to declare or change an intention.",
+  "La fenêtre est fermée ; les ordres sont chez le SVT, les résultats de l'adjudication ou de l'opération sont attendus.": "The window is closed; the orders are with the SVT, the results of the auction or the operation are awaited.",
+  "Le prix servi et les quantités sont connus : chaque intention est servie, partiellement servie ou non servie, et l'appel de fonds part pour ce qui l'est.": "The served price and quantities are known: each intention is served, partly served or not served, and the call for funds goes out for what is.",
+  "Le titre est émis et court jusqu'à son échéance : les coupons tombent aux dates prévues, il peut se revendre sur le marché secondaire.": "The security is issued and runs until its maturity: coupons fall on the set dates, it can be sold on the secondary market.",
+  "L'échéance est passée : le capital a été remboursé, la ligne ne se négocie plus.": "The maturity has passed: the capital was repaid, the line no longer trades.",
+  "Le titre s'échange à la BVMAC en séance, au cours du jour : vous achetez à un autre investisseur, ou lui vendez.": "The security trades on the BVMAC during the session, at the day's price: you buy from another investor, or sell to one.",
+  "Le fonds est distribué par Purpose Capital : vous souscrivez ou rachetez des parts à la prochaine valeur liquidative calculée après votre ordre.": "The fund is distributed by Purpose Capital: you subscribe or redeem units at the next net asset value computed after your order.",
+  "Le fonds n'est pas encore sous convention de distribution : dites-nous votre intérêt, nous organisons la relation avec la société de gestion.": "The fund is not yet under a distribution agreement: tell us your interest, we set up the relationship with the manager.",
 };

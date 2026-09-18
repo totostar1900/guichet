@@ -39,7 +39,7 @@ export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
         </svg>
         <div className={styles.legend}>
           <span>
-            {series.length} séance{series.length > 1 ? "s" : ""} · du {fmtDate(series[0].sessionDate)} au {fmtDate(latest.sessionDate)}
+            {t(series.length > 1 ? "{n} séances · du {a} au {b}" : "1 séance · du {a} au {b}", { n: series.length, a: fmtDate(series[0].sessionDate), b: fmtDate(latest.sessionDate) })}
           </span>
           <b className={change < 0 ? styles.down : styles.up}>{signed(change)}</b>
         </div>

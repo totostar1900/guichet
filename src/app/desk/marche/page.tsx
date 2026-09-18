@@ -48,13 +48,13 @@ export default async function MarketPage() {
               <span>{t("Dernier bulletin")}</span>
               <b>n° {last.number || "—"}</b>
               <small>
-                séance du {fmtDate(last.sessionDate)} · {last.ingestedBy === "cron" ? "automatique" : "desk"} · {fmtDateTime(last.ingestedAt)}
+                {t(last.ingestedBy === "cron" ? "séance du {d} · automatique · {t}" : "séance du {d} · desk · {t}", { d: fmtDate(last.sessionDate), t: fmtDateTime(last.ingestedAt) })}
               </small>
             </div>
             <div>
               <span>{t("BVMAC All Share")}</span>
               <b>{last.indexValue != null ? fmt(last.indexValue) : "—"}</b>
-              <small>{last.indexVariationPct != null ? `${signed(last.indexVariationPct)} sur la séance` : ""}</small>
+              <small>{last.indexVariationPct != null ? t("{v} sur la séance", { v: signed(last.indexVariationPct) }) : ""}</small>
             </div>
             <div>
               <span>{t("Lignes lues")}</span>

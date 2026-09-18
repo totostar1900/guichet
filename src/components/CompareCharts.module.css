@@ -236,3 +236,13 @@ svg .inFill.b {
     gap: 4px;
   }
 }
+
+/* phone frame: the SVG is drawn at about its rendered size, so the sizes below are real pixels */
+@media (max-width: 760px) {
+  .calLabel {
+    font-size: 11px;
+  }
+  .calTick {
+    font-size: 10px;
+  }
+}

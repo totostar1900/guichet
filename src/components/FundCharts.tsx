@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { labelMetrics, useOutsideTap, usePhone } from "./chart-utils";
 import { axisLabel, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
@@ -73,6 +74,9 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
   const t = useT();
   const ref = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
+  const phone = usePhone();
+  const metrics = labelMetrics(phone);
+  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
   const W = 320;
   const H = 96;
   const pad = 6;
@@ -88,7 +92,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
     min -= 1;
   }
   const fmtY = (v: number) => (mode === "placement" ? fmt(v) : `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`);
-  const padX = Math.max(fmtY(max).length, fmtY(min).length) * 3.6 + 8; // the left margin follows the width of the two labels
+  const padX = Math.max(fmtY(max).length, fmtY(min).length) * metrics.perChar + 8; // the left margin follows the width of the two labels
   const x = (i: number) => (n === 1 ? W / 2 : padX + (i * (W - padX - pad)) / (n - 1));
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
   const line = series.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
@@ -113,10 +117,10 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
       <svg ref={ref} viewBox={`0 0 ${W} ${H + 14}`} role="img" aria-label={t(MODE_LABEL[mode])} onMouseMove={(e) => pick(e.clientX)} onMouseLeave={() => setHover(null)} onTouchStart={(e) => pick(e.touches[0].clientX)} onTouchMove={(e) => pick(e.touches[0].clientX)}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
-        <text x={padX - 4} y={y(max) + 3} className={styles.tick} textAnchor="end">
+        <text x={padX - 4} y={y(max) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
           {fmtY(max)}
         </text>
-        <text x={padX - 4} y={y(min) + 3} className={styles.tick} textAnchor="end">
+        <text x={padX - 4} y={y(min) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
           {fmtY(min)}
         </text>
         {min < 0 && max > 0 && <line x1={padX} x2={W - pad} y1={zero} y2={zero} className={styles.zero} />}
@@ -143,7 +147,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
         {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad} y2={H - pad} className={styles.cursor} />}
         {hover != null && mode !== "variations" && <circle cx={x(hover)} cy={y(series[hover].y)} r={4} className={styles.dot} />}
         {axis.ticks.map((i) => (
-          <text key={i} x={x(i)} y={H + 11} className={styles.tick} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
+          <text key={i} x={x(i)} y={H + 11} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
             {axis.label(series[i].date)}
           </text>
         ))}

@@ -392,10 +392,15 @@
     padding: 6px 4px;
   }
   .sticky {
-    position: static; /* on a phone the band would freeze half the screen: it scrolls with the page */
-    margin: 0;
-    padding: 0;
-    border-bottom: 0;
+    top: 52px; /* under the phone header */
+    margin: 0 -12px;
+    padding: 6px 12px 0;
+  }
+  .toolbar {
+    gap: 6px;
+  }
+  .count {
+    margin-bottom: 6px;
   }
   .search,
   .fixed,

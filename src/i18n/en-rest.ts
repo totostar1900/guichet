@@ -783,4 +783,11 @@ export const EN_REST: Record<string, string> = {
   "dividende {d} au cours de {p}": "dividend {d} at a price of {p}",
   "au cours de {p}": "at a price of {p}",
   "Pas assez d'historique commun : les deux fonds n'ont pas encore deux VL publiées aux mêmes dates.": "Not enough common history: the two funds do not yet have two NAVs published on the same dates.",
+  "Un rendement « si servi » ou « au pair » suppose que votre ordre est servi au prix indiqué et que l'émetteur paie jusqu'au terme.": "An \"if served\" or \"at par\" return assumes your order is served at the stated price and that the issuer pays to the end.",
+  "Un rendement passé ne dit rien de l'année qui vient : il se lit avec le repli et les variations.": "A past return says nothing about the year to come: read it with the drawdown and the changes.",
+  "Un rendement de dividende dépend d'une décision annuelle des actionnaires et bouge avec le cours.": "A dividend yield depends on a yearly decision of the shareholders and moves with the price.",
+  "Une ligne sans rendement (un rachat, une action sans dividende connu) se lit dans le calendrier des flux, pas ici.": "A line without a return (a buyback, a share with no known dividend) is read in the cash-flow calendar, not here.",
+  "Rendement annualisé ({n} mois)": "Annualised return ({n} months)",
+  "À chaque date, le rendement annualisé des {n} mois qui précèdent, pour chaque fonds — la fenêtre la plus longue que les deux historiques permettent. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.": "At each date, the annualised return of the {n} months before it, for each fund — the longest window both histories allow. A steady curve is a regular fund; two curves that cross often are worth the same over time.",
+  "Un des deux fonds n'a pas encore assez de VL pour cette fenêtre : sa courbe viendra avec les prochains bulletins.": "One of the two funds does not yet have enough NAVs for this window: its curve will come with the next bulletins.",
 };
