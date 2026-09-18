@@ -135,9 +135,15 @@ const SLIDES = [
     title: "Comprendre, et trouver de l'aide",
     text: "Info explique chaque mot en une phrase, propose huit leçons de deux minutes et un simulateur. La page Aide répond à vos questions : se connecter, ouvrir un compte, lire une ligne, régler, nous joindre.",
     art: (
-      <div className={styles.shotFrame}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/guide/onboarding-info.png" alt="" loading="lazy" />
+      <div className={styles.shotPair}>
+        <div className={styles.shotFrame}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/guide/onboarding-info.png" alt="" loading="lazy" />
+        </div>
+        <div className={`${styles.shotFrame} ${styles.shotBack}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/guide/onboarding-aide.png" alt="" loading="lazy" />
+        </div>
       </div>
     ),
   },
