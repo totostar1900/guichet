@@ -31,6 +31,7 @@ const SHOTS = [
   ["clients", "/desk/clients"],
   ["messages", "/desk/messages"],
   ["marche", "/desk/marche"],
+  ["actualites", "/desk/actualites?cle=n-20260918-veille-scgre"],
   ["robot", "/desk/robot"],
   ["approbations", "/desk/approbations"],
   ["referentiel", "/desk/referentiel"],
@@ -79,6 +80,8 @@ const send = (method, params = {}) =>
 await send("Emulation.setDeviceMetricsOverride", { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false });
 await send("Network.enable");
 await send("Network.setCookie", { name: "guichet_dev_session", value: cookie, url: BASE, path: "/" });
+// The guide is written in French; the profile may remember another language from earlier runs.
+await send("Network.setCookie", { name: "guichet_lang", value: process.env.LANG_COOKIE ?? "fr", url: BASE, path: "/" });
 await send("Page.enable");
 mkdirSync(OUT, { recursive: true });
 

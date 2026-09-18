@@ -17,7 +17,7 @@
 }
 .grid {
   display: grid;
-  grid-template-columns: 480px minmax(0, 1fr);
+  grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
   gap: 22px;
   align-items: start;
 }
@@ -170,8 +170,10 @@
   justify-content: flex-end;
 }
 .rowBtns {
-  display: inline-flex;
+  display: flex;
   gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
 }
 .status {
   font-weight: 700;
@@ -218,12 +220,9 @@
 }
 .table th:nth-child(3),
 .table td:nth-child(3) {
-  min-width: 300px;
-  width: 42%;
+  min-width: 220px;
+  width: 40%;
 }
 .table td:nth-child(5) {
-  min-width: 140px;
-}
-.table td:last-child {
-  white-space: nowrap;
+  min-width: 120px;
 }

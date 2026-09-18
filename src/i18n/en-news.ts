@@ -140,6 +140,12 @@ export const EN_NEWS: Record<string, string> = {
   "La page répond {n}.": "The page answers {n}.",
   "La page ne répond pas (9 s).": "The page does not answer (9 s).",
 
+  /* tour */
+  "Liens reçus": "Links received",
+  "La veille de nuit, un lien envoyé au robot WhatsApp depuis un téléphone du desk ou un e-mail déposent ici ce qui mérite un regard. « Préparer » ouvre le formulaire pré-rempli ; « Écarter » classe sans publier.": "The nightly watch, a link sent to the WhatsApp robot from a desk phone or an e-mail drop here what deserves a look. « Prepare » opens the pre-filled form; « Discard » files it without publishing.",
+  "Deux lignes, jamais l'article": "Two lines, never the article",
+  "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée.": "The title rephrased for the client, « Why it matters » in two lines with no recommendation, the related lines and notions. Publishing puts the link on the News page and on the pages concerned; every version is logged.",
+
   /* guide */
   "Publier des liens vers ce que d'autres publient (Trésors, BVMAC, COSUMAF, presse, sociétés, sociétés de gestion) avec deux lignes sur ce que cela change pour les lignes du Guichet. Jamais l'article : le lecteur va à l'original.":
     "Publish links to what others publish (Treasuries, BVMAC, COSUMAF, press, companies, fund managers) with two lines on what it changes for the Guichet's lines. Never the article: the reader goes to the original.",

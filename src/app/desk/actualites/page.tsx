@@ -79,7 +79,7 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <div className={styles.grid}>
-        <div className="panel">
+        <div className="panel" data-coach="news-form">
           <NewsForm key={editing?.id ?? "new"} item={editing} candidates={candidates} featuredTitle={featured?.title} />
           {editing && (
             <div style={{ padding: "0 16px 14px" }}>
@@ -91,7 +91,7 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
         </div>
 
         <div>
-          <div className="panel">
+          <div className="panel" data-coach="news-inbox">
             <div className="panel-h">
               <div>
                 <h2>{t("Liens reçus · à trier")}</h2>
@@ -142,13 +142,12 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
                     <th>{t("Rubrique")}</th>
                     <th>{t("Liens")}</th>
                     <th>{t("État")}</th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="muted">
+                      <td colSpan={6} className="muted">
                         {t("Aucune publication dans cet état.")}
                       </td>
                     </tr>
@@ -178,8 +177,6 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
                         <td className="muted">{n.links.map((l) => l.label).join(" · ") || "—"}</td>
                         <td>
                           <span className={`${styles.status} ${s.cls}`}>{s.label}</span>
-                        </td>
-                        <td>
                           <span className={styles.rowBtns}>
                             {n.status === "publiee" && <StateButton id={n.id} what="retirer" label={t("Retirer")} ghost />}
                             {(n.status === "brouillon" || n.status === "ecartee") && n.why && <StateButton id={n.id} what="republier" label={t("Publier")} ghost />}

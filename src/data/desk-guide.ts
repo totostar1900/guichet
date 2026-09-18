@@ -274,6 +274,8 @@ export const TOUR: TourStop[] = [
   { path: "/desk/clients", target: "review", title: "La décision KYC", text: "Refuser, demander des compléments, enregistrer la revue, approuver et ouvrir le compte. Seule l'approbation exige l'attestation sanctions / PPE." },
   { path: "/desk/messages", target: "inbox", title: "Messages", text: "Une conversation par numéro ou adresse. Répondez ici ; WhatsApp accepte une réponse libre dans les 24 h suivant le dernier message du client." },
   { path: "/desk/marche", target: "import", title: "Le bulletin de la BVMAC", text: "Importé seul chaque soir de bourse par le cron. Les cours et les VL sont historisés, jamais écrasés ; les anomalies s'affichent en dessous." },
+  { path: "/desk/actualites", target: "news-inbox", title: "Liens reçus", text: "La veille de nuit, un lien envoyé au robot WhatsApp depuis un téléphone du desk ou un e-mail déposent ici ce qui mérite un regard. « Préparer » ouvre le formulaire pré-rempli ; « Écarter » classe sans publier." },
+  { path: "/desk/actualites", target: "news-form", title: "Deux lignes, jamais l'article", text: "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée." },
   { path: "/desk/approbations", target: "window", title: "Fenêtre déléguée", text: "Ce qu'un opérateur publie seul. Hors bornes, la demande attend un responsable : quatre yeux sans goulot." },
   { path: "/desk/equipe", target: "roles", title: "Deux niveaux", text: "Opérateur desk : le quotidien. Responsable : opérateur + approbations, fenêtre déléguée, équipe. Tout changement de niveau est journalisé." },
 ];
