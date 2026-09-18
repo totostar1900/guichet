@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -108,6 +109,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
     else router.push(fallbackFor(path));
   };
 
+  const t = useT();
   const tabs: Tab[] = [
     { href: "/", label: "Guichet", icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") },
     { href: "/fonds", label: "Fonds", icon: I.fonds, match: (p) => p.startsWith("/fonds") },
@@ -126,7 +128,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
           </Link>
         ) : (
           <>
-            <button type="button" className={styles.back} onClick={back} aria-label="Retour">
+            <button type="button" className={styles.back} onClick={back} aria-label={t("Retour")}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 5l-7 7 7 7" />
               </svg>
@@ -136,13 +138,13 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
         )}
         <div className={styles.right}>
           {signedIn ? (
-            <Link href={desk ? "/desk" : "/moi"} className={styles.avatar} aria-label="Mon compte" title={name}>
+            <Link href={desk ? "/desk" : "/moi"} className={styles.avatar} aria-label={t("Mon compte")} title={name}>
               {(name ?? "?").trim().charAt(0).toUpperCase()}
             </Link>
           ) : (
             !path.startsWith("/connexion") && (
               <Link href={`/connexion?next=${encodeURIComponent(path)}`} className={styles.signin}>
-                Se connecter
+                {t("Se connecter")}
               </Link>
             )
           )}
@@ -150,13 +152,13 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
       </div>
 
       <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
-        {tabs.map((t) => (
-          <Link key={t.href} href={t.href} aria-current={t.match(path) ? "page" : undefined}>
+        {tabs.map((tab) => (
+          <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
             <span className={styles.icon}>
-              {t.icon}
-              {t.badge ? <em>{t.badge}</em> : null}
+              {tab.icon}
+              {tab.badge ? <em>{tab.badge}</em> : null}
             </span>
-            {t.label}
+            {t(tab.label)}
           </Link>
         ))}
       </nav>

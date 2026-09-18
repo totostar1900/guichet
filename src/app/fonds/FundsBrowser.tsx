@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
+import { useT } from "@/i18n/client";
 
 /** One fund as the browser needs it — flat, serialisable, computed on the server. */
 export interface FundRow {
@@ -50,6 +51,7 @@ const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : sty
 const num = (v?: number) => (v == null ? -Infinity : v);
 
 export function FundsBrowser({ rows }: { rows: FundRow[] }) {
+  const t = useT();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<FundNav["category"] | "">("");
   const [manager, setManager] = useState("");
@@ -93,28 +95,28 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     <>
       <div className={styles.toolbar}>
         <label className={styles.search}>
-          <input type="search" placeholder="Un fonds, une société de gestion, un dépositaire" aria-label="Rechercher" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
-        <div className={styles.chips} role="group" aria-label="Catégorie">
+        <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
           <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
-            Toutes
+            {t("Toutes")}
           </button>
           {CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => (
             <button key={c} type="button" className={`${styles.chip} ${cat === c ? styles.chipOn : ""}`} onClick={() => setCat(cat === c ? "" : c)} aria-pressed={cat === c}>
-              {FUND_CATEGORY_LABEL[c]}
+              {t(FUND_CATEGORY_LABEL[c])}
             </button>
           ))}
         </div>
-        <Select value={manager} onChange={setManager} label="Gestion" options={[{ value: "", label: "toutes les sociétés" }, ...managers.map((m) => ({ value: m, label: m }))]} />
-        <Select value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label="VL" options={[{ value: "", label: "toute périodicité" }, ...freqs.map((f) => ({ value: f, label: FUND_FREQUENCY_LABEL[f] }))]} />
+        <Select value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
+        <Select value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
         <label className={styles.toggle}>
-          <input type="checkbox" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} /> Ouverts à la souscription
+          <input type="checkbox" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} /> {t("Ouverts à la souscription")}
         </label>
         <label className={styles.sort}>
-          Tri
-          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: l }))} />
+          {t("Tri")}
+          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
           {sort !== "categorie" && sort !== "nom" && (
-            <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={desc ? "Ordre décroissant" : "Ordre croissant"} title="Inverser l'ordre">
+            <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
               {desc ? "↓" : "↑"}
             </button>
           )}
@@ -131,12 +133,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               setOpenOnly(false);
             }}
           >
-            Effacer
+            {t("Effacer")}
           </button>
         )}
       </div>
       <div className={styles.count}>
-        <b>{filtered.length}</b> fonds{active > 0 || q ? " correspondant aux filtres" : ""}
+        <b>{filtered.length}</b> {t("fonds")}{active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
       </div>
 
       {groups.map(({ c, rows: g }) => (
@@ -144,23 +146,23 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           {c && (
             <div className={styles.groupH}>
               <h2 className="display">
-                {FUND_CATEGORY_LABEL[c]}s · {g.length}
+                {t(`${FUND_CATEGORY_LABEL[c]}s`)} · {g.length}
               </h2>
-              <p>{BLURB[c]}</p>
+              <p>{t(BLURB[c])}</p>
             </div>
           )}
           <div className="scroll-x">
             <table className={styles.tbl}>
               <thead>
                 <tr>
-                  <th>Fonds</th>
-                  <th className={styles.hideSm}>Société de gestion · dépositaire</th>
-                  <th className={styles.r}>VL (FCFA)</th>
+                  <th>{t("Fonds")}</th>
+                  <th className={styles.hideSm}>{t("Société de gestion · dépositaire")}</th>
+                  <th className={styles.r}>{t("VL (FCFA)")}</th>
                   <th className={styles.r}>
-                    Var. <Info term="variation_vl" subtle />
+                    {t("Var.")} <Info term="variation_vl" subtle />
                   </th>
-                  <th className={styles.r}>12 mois</th>
-                  <th className={`${styles.r} ${styles.hideSm}`}>Depuis l&apos;origine</th>
+                  <th className={styles.r}>{t("12 mois")}</th>
+                  <th className={`${styles.r} ${styles.hideSm}`}>{t("Depuis l'origine")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -170,8 +172,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                     <td className={styles.name}>
                       <Link href={`/offres/${r.id}`}>{r.title}</Link>
                       <small>
-                        {FUND_CATEGORY_LABEL[r.category]} · {FUND_FREQUENCY_LABEL[r.frequency]}
-                        {r.open ? " · souscription ouverte" : ""}
+                        {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
+                        {r.open ? ` · ${t("souscription ouverte")}` : ""}
                       </small>
                     </td>
                     <td className={styles.hideSm}>
@@ -191,13 +193,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                       {r.inceptionDate && (
                         <>
                           <br />
-                          <small className="muted">depuis le {fmtDate(r.inceptionDate)}</small>
+                          <small className="muted">{t("depuis le")} {fmtDate(r.inceptionDate)}</small>
                         </>
                       )}
                     </td>
                     <td className={styles.r}>
                       <Link className="btn sm ghost" href={`/offres/${r.id}`}>
-                        Voir la fiche
+                        {t("Voir la fiche")}
                       </Link>
                     </td>
                   </tr>
@@ -207,7 +209,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </div>
         </section>
       ))}
-      {filtered.length === 0 && <div className="empty">Aucun fonds ne correspond à ces filtres.</div>}
+      {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
     </>
   );
 }

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { SEGMENT_HINT, SEGMENT_LABEL } from "@/lib/domain/status";
+import { useT } from "@/i18n/client";
 
 /**
  * The one strip that ties the Guichet and the Fonds page together: the three
@@ -8,23 +11,24 @@ import { SEGMENT_HINT, SEGMENT_LABEL } from "@/lib/domain/status";
  * wider than what the desk distributes.
  */
 export function MarketTabs({ active, counts, onSelect }: { active: "all" | "primaire" | "secondaire" | "fonds"; counts: { all: number; primaire: number; secondaire: number; fonds: number }; onSelect?: (k: "all" | "primaire" | "secondaire") => void }) {
+  const t = useT();
   const tab = (key: "all" | "primaire" | "secondaire", label: string, href: string, hint?: string) =>
     onSelect ? (
-      <button key={key} type="button" role="tab" aria-selected={active === key} title={hint} onClick={() => onSelect(key)}>
-        {label} <b>{counts[key]}</b>
+      <button key={key} type="button" role="tab" aria-selected={active === key} title={hint && t(hint)} onClick={() => onSelect(key)}>
+        {t(label)} <b>{counts[key]}</b>
       </button>
     ) : (
-      <Link key={key} href={href} role="tab" aria-selected={active === key} title={hint}>
-        {label} <b>{counts[key]}</b>
+      <Link key={key} href={href} role="tab" aria-selected={active === key} title={hint && t(hint)}>
+        {t(label)} <b>{counts[key]}</b>
       </Link>
     );
   return (
-    <div className="mtabs" role="tablist" aria-label="Marché">
+    <div className="mtabs" role="tablist" aria-label={t("Marché")}>
       {tab("all", "Tout", "/")}
       {tab("primaire", SEGMENT_LABEL.primaire, "/?marche=primaire", SEGMENT_HINT.primaire)}
       {tab("secondaire", SEGMENT_LABEL.secondaire, "/?marche=secondaire", SEGMENT_HINT.secondaire)}
-      <Link href="/fonds" role="tab" aria-selected={active === "fonds"} title={SEGMENT_HINT.fonds}>
-        {SEGMENT_LABEL.fonds} <b>{counts.fonds}</b>
+      <Link href="/fonds" role="tab" aria-selected={active === "fonds"} title={t(SEGMENT_HINT.fonds)}>
+        {t(SEGMENT_LABEL.fonds)} <b>{counts.fonds}</b>
       </Link>
     </div>
   );

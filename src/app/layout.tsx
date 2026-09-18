@@ -13,6 +13,10 @@ import { Onboarding } from "@/components/mobile/Onboarding";
 import { isDesk } from "@/lib/auth/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
 import { loadRegistry } from "@/lib/reference";
+import { LangProvider } from "@/i18n/client";
+import { getLang, getT } from "@/i18n/server";
+import { LangSwitch } from "@/components/LangSwitch";
+import { Suspense } from "react";
 
 // One family for everything — display, text and figures — with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
@@ -34,10 +38,11 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const [session, registry] = await Promise.all([getSession(), loadRegistry()]);
+  const [session, registry, lang, t] = await Promise.all([getSession(), loadRegistry(), getLang(), getT()]);
   return (
-    <html lang="fr" className={ui.variable}>
+    <html lang={lang} className={ui.variable}>
       <body>
+        <LangProvider lang={lang}>
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
         <header className={styles.top}>
           <div className={styles.topIn}>
@@ -50,10 +55,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <NavTabs />
             <div className={styles.right}>
               {backend === "memory" && (
-                <span className={styles.backend} title="Aucun backend configuré : données de démonstration en mémoire">
-                  démo · mémoire
+                <span className={styles.backend} title={t("Aucun backend configuré : données de démonstration en mémoire")}>
+                  {t("démo · mémoire")}
                 </span>
               )}
+              <Suspense>
+                <LangSwitch />
+              </Suspense>
               <UserMenu session={session} />
             </div>
           </div>
@@ -64,10 +72,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </RegistryProvider>
         <footer className={styles.footer}>
           <p>
-            <b>{COMPANY.legalName}</b>, {COMPANY.licence}. {COMPANY.address} · {COMPANY.phone} · {COMPANY.email}
+            <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}. {COMPANY.address} · {COMPANY.phone} · {COMPANY.email}
           </p>
-          <p>{DISCLAIMER}</p>
+          <p>{t(DISCLAIMER)}</p>
         </footer>
+        </LangProvider>
       </body>
     </html>
   );

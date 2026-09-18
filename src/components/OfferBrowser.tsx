@@ -16,6 +16,8 @@ import { Select } from "./ui/Select";
 import { LAST_LIST_KEY } from "./mobile/MobileShell";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
+import { useT } from "@/i18n/client";
+import type { T } from "@/i18n/core";
 
 /**
  * The Guichet listing: one toolbar of filters, three ways to read the same rows
@@ -56,6 +58,7 @@ const parseNum = (s: string) => Number(s.replace(/[^\d,.-]/g, "").replace(",", "
 
 /* ---------- dropdown of checkboxes ---------- */
 function Dropdown({ label, items, selected, onChange, single }: { label: string; items: [string, string][]; selected: Set<string>; onChange: (s: Set<string>) => void; single?: boolean }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -81,8 +84,8 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
   return (
     <div className={styles.dd} ref={ref}>
       <button type="button" className={`${styles.ddBtn} ${active ? styles.ddOn : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}>
-        {label}
-        {active && <b>{single ? items.find(([v]) => selected.has(v))?.[1] : selected.size}</b>}
+        {t(label)}
+        {active && <b>{single ? t(items.find(([v]) => selected.has(v))?.[1] ?? "") : selected.size}</b>}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <path d="m6 9 6 6 6-6" />
         </svg>
@@ -92,18 +95,18 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
           {items.map(([v, l]) =>
             v.startsWith("#") ? (
               <div key={v} className={styles.ddGroup}>
-                {l}
+                {t(l)}
               </div>
             ) : (
               <label key={v} className={styles.ddItem}>
                 <input type={single ? "radio" : "checkbox"} checked={selected.has(v)} onChange={() => toggle(v)} />
-                {l}
+                {t(l)}
               </label>
             ),
           )}
           {active && (
             <button type="button" className={styles.ddClear} onClick={() => onChange(new Set())}>
-              Effacer
+              {t("Effacer")}
             </button>
           )}
         </div>
@@ -129,6 +132,7 @@ function groupByIssuer(rows: Row[]): { issuer: string; country: Offer["country"]
   return out;
 }
 function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]; colSpan?: number }) {
+  const t = useT();
   const fams = [...new Set(g.rows.map((r) => r.s.kind))];
   const inner = (
     <>
@@ -137,7 +141,7 @@ function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]
       </span>
       <b>{g.issuer}</b>
       <span className={styles.groupMeta}>
-        {g.rows.length} ligne{g.rows.length > 1 ? "s" : ""} · {fams.join(" · ")}
+        {g.rows.length} {t(g.rows.length > 1 ? "lignes" : "ligne")} · {fams.join(" · ")}
       </span>
     </>
   );
@@ -153,10 +157,11 @@ function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]
 /* ---------- table ---------- */
 function Th({ k, label, sort, dir, onSort, right, term, className = "" }: { k: SortKey; label: string; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; right?: boolean; term?: TermKey; className?: string }) {
   const on = sort === k;
+  const t = useT();
   return (
     <th className={`${right ? styles.r : ""} ${on ? styles.sorted : ""} ${className}`} aria-sort={on ? (dir === "asc" ? "ascending" : "descending") : "none"}>
       <button type="button" onClick={() => onSort(k)}>
-        {label}
+        {t(label)}
         <span aria-hidden="true">{on ? (dir === "asc" ? "↑" : "↓") : ""}</span>
       </button>
       {term && <Info term={term} />}
@@ -164,21 +169,25 @@ function Th({ k, label, sort, dir, onSort, right, term, className = "" }: { k: S
   );
 }
 
-const StatusPill = ({ s }: { s: OfferSummary }) => <span className={`pill ${s.statusClass}`}>{s.countdown ? `Clôture ${s.countdown}` : s.status}</span>;
+const StatusPill = ({ s }: { s: OfferSummary }) => {
+  const t = useT();
+  return <span className={`pill ${s.statusClass}`}>{s.countdown ? `${t("Clôture")} ${s.countdown}` : t(s.status)}</span>;
+};
 
 function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean }) {
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
+  const t = useT();
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <thead>
           <tr>
             <Th k="title" label="Ligne" sort={sort} dir={dir} onSort={onSort} />
-            <th>Statut</th>
+            <th>{t("Statut")}</th>
             <Th k="deadline" label="Clôture" sort={sort} dir={dir} onSort={onSort} right />
             <Th k="yield" label="Rendement" sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
             <Th k="tenor" label="Échéance" sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
-            <th className={`${styles.r} ${styles.hideMd}`}>Durée</th>
+            <th className={`${styles.r} ${styles.hideMd}`}>{t("Durée")}</th>
             <Th k="minimum" label="Ticket minimum" sort={sort} dir={dir} onSort={onSort} right term="ticket" />
             <th></th>
           </tr>
@@ -201,7 +210,7 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
               </td>
               <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
                 <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
-                <small>{s.heroUnit ?? s.heroSub}</small>
+                <small>{t(s.heroUnit ?? s.heroSub)}</small>
               </td>
               <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
                 {s.maturity}
@@ -210,11 +219,11 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
               <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
               <td className={`${styles.r} num`}>
                 {s.minimum}
-                {s.minimum !== "—" && <Info text={s.minimumSub} label="Ce ticket représente" subtle />}
+                {s.minimum !== "—" && <Info text={s.minimumSub} label={t("Ce ticket représente")} subtle />}
               </td>
               <td className={styles.r}>
                 <Link className="btn sm ghost" href={`/offres/${o.id}`}>
-                  Voir la fiche
+                  {t("Voir la fiche")}
                 </Link>
               </td>
             </tr>
@@ -228,6 +237,7 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
 
 /* ---------- list ---------- */
 function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; featured?: boolean }) {
+  const t = useT();
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.list}>
@@ -245,15 +255,15 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
           <dl className={styles.ledger}>
             {s.ledger.map(([k, v, note], i) => (
               <div key={k}>
-                <dt>{k}</dt>
+                <dt>{t(k)}</dt>
                 <dd className={i === 0 && s.gold ? styles.gold : undefined}>
                   {v}
-                  {note && <small>{note}</small>}
+                  {note && <small>{t(note)}</small>}
                 </dd>
               </div>
             ))}
           </dl>
-          <div className={styles.rowAct}>Voir la fiche →</div>
+          <div className={styles.rowAct}>{t("Voir la fiche")} →</div>
         </Link>
         )),
       ])}
@@ -264,6 +274,7 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
 /* ---------- phone: filters in a bottom sheet ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
 function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number }) {
+  const t = useT();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -277,22 +288,22 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open
   return (
     <>
       <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
-      <div className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label="Filtrer" aria-hidden={!open}>
+      <div className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={t("Filtrer")} aria-hidden={!open}>
         <div className={styles.grab} />
         <div className={styles.sheetHead}>
-          <b>Filtrer</b>
+          <b>{t("Filtrer")}</b>
           <button type="button" onClick={onClear}>
-            Effacer
+            {t("Effacer")}
           </button>
         </div>
         <div className={styles.sheetBody}>
           {groups.map((g) => (
             <div key={g.key} className={styles.fg}>
-              <span>{g.label}</span>
+              <span>{t(g.label)}</span>
               <div className={styles.chipRow}>
                 {g.items.map(([v, l]) => (
                   <button key={v} type="button" className={`${styles.chipBtn} ${g.selected.has(v) ? styles.chipOn : ""}`} aria-pressed={g.selected.has(v)} onClick={() => onToggle(g.key, v, g.single)}>
-                    {l}
+                    {t(l)}
                   </button>
                 ))}
               </div>
@@ -300,7 +311,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open
           ))}
         </div>
         <button type="button" className={`btn primary ${styles.sheetApply}`} onClick={onClose}>
-          Voir {count} ligne{count > 1 ? "s" : ""}
+          {t("Voir")} {count} {t(count > 1 ? "lignes" : "ligne")}
         </button>
       </div>
     </>
@@ -310,6 +321,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count }: { open
 /* ---------- browser ---------- */
 export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; nowIso: string; fundsCount: number }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
+  const t: T = useT();
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -391,7 +403,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
     else cur.add(value);
     update({ [key]: [...cur].join(",") || undefined });
   };
-  const activeChips = groups.flatMap((g) => g.items.filter(([v]) => g.selected.has(v)).map(([v, l]) => ({ key: g.key, value: v, label: g.key === "rendement" ? `Rendement ${l}` : l, single: g.single })));
+  const activeChips = groups.flatMap((g) => g.items.filter(([v]) => g.selected.has(v)).map(([v, l]) => ({ key: g.key, value: v, label: g.key === "rendement" ? `${t("Rendement")} ${l}` : t(l), single: g.single })));
   const segCount = useMemo(() => {
     const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
     for (const o of offers) c[familySegment(offerFamily(o))]++;
@@ -488,20 +500,20 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           counts={{ all: offers.length, primaire: segCount.primaire, secondaire: segCount.secondaire, fonds: fundsCount }}
           onSelect={(k) => update({ marche: k === "all" ? undefined : k, instrument: undefined })}
         />
-        {segment && <p className={styles.segHint}>{SEGMENT_HINT[segment]}</p>}
+        {segment && <p className={styles.segHint}>{t(SEGMENT_HINT[segment])}</p>}
         <div className={styles.toolbar}>
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
             </svg>
-            <input type="search" placeholder="Rechercher une ligne, un émetteur, un ISIN" aria-label="Rechercher" defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
+            <input type="search" placeholder={t("Rechercher une ligne, un émetteur, un ISIN")} aria-label={t("Rechercher")} defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
           </label>
           <button type="button" className={styles.sheetBtn} onClick={() => setSheet(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>
-            Filtrer{filterCount > 0 ? ` · ${filterCount}` : ""}
+            {t("Filtrer")}{filterCount > 0 ? ` · ${filterCount}` : ""}
           </button>
           <div className={styles.filters}>
           <Dropdown
@@ -516,13 +528,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           <Dropdown label="Rendement" items={YIELDS} selected={minYield} onChange={setFilter("rendement")} single />
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>
-              Effacer
+              {t("Effacer")}
             </button>
           )}
-          <div className={styles.seg} role="group" aria-label="Affichage">
+          <div className={styles.seg} role="group" aria-label={t("Affichage")}>
             {(["table", "list", "cards"] as View[]).map((v) => (
               <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
-                {v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes"}
+                {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
               </button>
             ))}
           </div>
@@ -531,12 +543,12 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         {activeChips.length > 0 && (
           <div className={styles.activeRow}>
             {activeChips.map((c) => (
-              <button key={c.key + c.value} type="button" className={`${styles.chipBtn} ${styles.chipOn}`} onClick={() => toggle(c.key, c.value, c.single)} aria-label={`Retirer le filtre ${c.label}`}>
+              <button key={c.key + c.value} type="button" className={`${styles.chipBtn} ${styles.chipOn}`} onClick={() => toggle(c.key, c.value, c.single)} aria-label={`${t("Retirer le filtre")} ${c.label}`}>
                 {c.label} <span aria-hidden="true">×</span>
               </button>
             ))}
             <button type="button" className={styles.chipBtn} onClick={reset}>
-              Tout effacer
+              {t("Tout effacer")}
             </button>
           </div>
         )}
@@ -544,10 +556,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} />
 
       {picks.length > 0 && (
-        <section className={styles.featured} aria-label="À la une">
+        <section className={styles.featured} aria-label={t("À la une")}>
           <div className={styles.featuredHead}>
-            <span className="eyebrow">À la une · sélection du desk</span>
-            <small>Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.</small>
+            <span className="eyebrow">{t("À la une · sélection du desk")}</span>
+            <small>{t("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.")}</small>
           </div>
           {render(picks, true)}
         </section>
@@ -555,26 +567,26 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
       <div className={styles.meta}>
         <span>
-          <b>{rows.length}</b> ligne{rows.length > 1 ? "s" : ""}
-          {filterCount > 0 || q ? " correspondant aux filtres" : ""} · {live} ouverte{live > 1 ? "s" : ""} ou cotée{live > 1 ? "s" : ""}
+          <b>{rows.length}</b> {t(rows.length > 1 ? "lignes" : "ligne")}
+          {filterCount > 0 || q ? ` ${t("correspondant aux filtres")}` : ""} · {live} {t(live > 1 ? "ouvertes ou cotées" : "ouverte ou cotée")}
         </span>
         <Link className={styles.compareLink} href="/comparer">
-          Comparer deux lignes
+          {t("Comparer deux lignes")}
         </Link>
         <label className={styles.groupToggle}>
           <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
-          Grouper par émetteur
+          {t("Grouper par émetteur")}
         </label>
         <label className={styles.sortSel}>
-          Tri
-          <Select compact value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: SORT_LABEL[k] }))} />
-          <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={dir === "asc" ? "Ordre croissant" : "Ordre décroissant"} title="Inverser l'ordre">
+          {t("Tri")}
+          <Select compact value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
+          <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={t(dir === "asc" ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
             {dir === "asc" ? "↑" : "↓"}
           </button>
         </label>
       </div>
 
-      {rows.length === 0 && <div className="empty">Aucune ligne ne correspond à ces filtres.</div>}
+      {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
       {rest.length > 0 && render(rest, false)}
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./NavTabs.module.css";
+import { useT } from "@/i18n/client";
 
 const TABS = [
   { href: "/", label: "Guichet", match: (p: string) => p === "/" || p.startsWith("/offres") },
@@ -14,11 +15,12 @@ const TABS = [
 
 export function NavTabs() {
   const path = usePathname();
+  const t = useT();
   return (
     <nav className={styles.tabs} aria-label="Sections">
-      {TABS.map((t) => (
-        <Link key={t.href} href={t.href} className={styles.tab} aria-current={t.match(path) ? "page" : undefined}>
-          {t.label}
+      {TABS.map((tab) => (
+        <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
+          {t(tab.label)}
         </Link>
       ))}
     </nav>
