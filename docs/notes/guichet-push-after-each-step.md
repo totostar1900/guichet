@@ -12,3 +12,5 @@ For C:\dev\guichet, after each completed step: commit, then `git push` to `origi
 
 **Why:** the user said "yes, push automatically after each step" (2026-09-14); the repo is their backup since the code lives outside OneDrive.
 **How to apply:** end every work step with commit + push; mention the pushed commit hash in the summary. Credentials are already stored on the machine (push worked without prompting). See [[guichet-project]].
+
+The memory notes are also copied into the repo at `docs/notes/*.md` (user asked 2026-09-18 so the team can read them): after updating a memory file, copy it there and commit with the next push.
