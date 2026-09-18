@@ -26,7 +26,12 @@ export default async function GuidePage() {
           <h1 className="display">{t("Le mode d'emploi, page par page")}</h1>
           <p className="muted">{t("Une visite guidée de dix étapes qui vous promène dans l'application, puis le détail de chaque page et de chaque champ. Le guide suit l'application : quand une page change, cette page change.")}</p>
         </div>
-        <StartTour />
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <Link className="btn sm" href="/desk/docs">
+            {t("Documentation")} →
+          </Link>
+          <StartTour />
+        </div>
       </div>
 
       <div className={styles.roles}>

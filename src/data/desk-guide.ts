@@ -190,6 +190,19 @@ export const GUIDE: GuideSection[] = [
     tips: ["Chaque changement est versionné dans le journal, comme une offre.", "Un lien mort est détecté la nuit et signalé sur Santé.", "Le vendredi à 16 h, les liens de la semaine partent aux clients qui acceptent nos messages."],
   },
   {
+    key: "docs",
+    path: "/desk/docs",
+    title: "Documentation",
+    role: "operateur",
+    purpose: "Comprendre l'application et la faire vivre : comment elle fonctionne, ce qu'elle coûte, comment aider un client, comment l'administrer, comment la maintenir. Cinq pages en français et en anglais, en mots simples.",
+    when: "À l'arrivée d'une recrue ; avant de répondre à un client sur un cas nouveau ; à chaque changement d'écran (la page concernée est relue et sa date « vérifié le » mise à jour).",
+    fields: [
+      { name: "Recherche", what: "Un mot, une question : chaque chapitre qui le contient, avec un extrait.", how: "Les filtres restreignent aux pages écrites pour les clients, le desk, l'administration ou la technique." },
+      { name: "Navigation", what: "À gauche, les pages et les chapitres de la page ouverte ; à droite, « Sur cette page » suit le défilement.", how: "Le lien « Guide, champ par champ » renvoie à ce guide." },
+      { name: "Vérifié le", what: "La date à laquelle la page a été relue face à l'application, et son responsable.", how: "Un texte se corrige dans src/data/docs ; la date se met à jour dans le même envoi." },
+    ],
+  },
+  {
     key: "robot",
     path: "/desk/robot",
     title: "Robot WhatsApp",

@@ -32,6 +32,7 @@ const SHOTS = [
   ["messages", "/desk/messages"],
   ["marche", "/desk/marche"],
   ["actualites", "/desk/actualites?cle=n-20260918-veille-scgre"],
+  ["docs", "/desk/docs/fonctionnement"],
   ["robot", "/desk/robot"],
   ["approbations", "/desk/approbations"],
   ["referentiel", "/desk/referentiel"],

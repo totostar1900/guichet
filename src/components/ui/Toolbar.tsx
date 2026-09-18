@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./ui.module.css";
 import { Select, type SelectOption } from "./Select";
+import { useT } from "@/i18n/client";
 
 /**
  * One filter row for a list: search · chips · selects · (right) sort, all on a
@@ -23,6 +24,7 @@ export interface ToolbarSelect {
 }
 
 export function Toolbar({ searchKey = "q", placeholder = "Rechercher", chipKey, chips, selects = [], sort, sticky, inset, children }: { searchKey?: string | null; placeholder?: string; chipKey?: string; chips?: ToolbarChip[]; selects?: ToolbarSelect[]; sort?: ToolbarSelect; sticky?: boolean; inset?: boolean; children?: React.ReactNode }) {
+  const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -64,13 +66,13 @@ export function Toolbar({ searchKey = "q", placeholder = "Rechercher", chipKey, 
       )}
       {selects.length > 0 && <span className={styles.sep} />}
       {selects.map((s) => (
-        <Select key={s.key} compact label={s.label} value={sp.get(s.key) ?? ""} options={[{ value: "", label: s.all ?? "toutes" }, ...s.options]} onChange={(v) => update({ [s.key]: v || undefined })} />
+        <Select key={s.key} compact label={s.label} value={sp.get(s.key) ?? ""} options={[{ value: "", label: t(s.all ?? "toutes") }, ...s.options]} onChange={(v) => update({ [s.key]: v || undefined })} />
       ))}
       {children}
       <div className={styles.right}>
         {active > 0 && (
           <button type="button" className={styles.clear} onClick={() => update(Object.fromEntries(keys.map((k) => [k, undefined])))}>
-            Effacer
+            {t("Effacer")}
           </button>
         )}
         {sort && <Select compact label={sort.label} value={sp.get(sort.key) ?? sort.options[0]?.value ?? ""} options={sort.options} onChange={(v) => update({ [sort.key]: v })} />}

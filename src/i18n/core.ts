@@ -7,8 +7,9 @@ import { EN_PROSE } from "./en-prose";
 import { EN_TEMPLATES } from "./en-templates";
 import { EN_DATA } from "./en-data";
 import { EN_NEWS } from "./en-news";
+import { EN_DOCS } from "./en-docs";
 
-const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT, ...EN_LESSONS, ...EN_REST, ...EN_PROSE, ...EN_TEMPLATES, ...EN_DATA, ...EN_NEWS };
+const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT, ...EN_LESSONS, ...EN_REST, ...EN_PROSE, ...EN_TEMPLATES, ...EN_DATA, ...EN_NEWS, ...EN_DOCS };
 
 /**
  * Two languages, one source: French is written in the code, English is a

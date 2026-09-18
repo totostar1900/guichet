@@ -40,6 +40,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/equipe", "Équipe"],
       ["/desk/reporting", "Reporting"],
       ["/desk/sante", "Santé"],
+      ["/desk/docs", "Documentation"],
     ],
   },
 ];
