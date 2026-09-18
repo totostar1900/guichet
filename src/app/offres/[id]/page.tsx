@@ -269,6 +269,16 @@ async function Reference({ o }: { o: Offer }) {
   );
 }
 
+async function latestBta(): Promise<{ label: string; pct: number } | undefined> {
+  const all = (await repo().listOffers()).filter((x) => x.kind === "BTA" && !x.hidden && x.precountRate != null && x.maturityOn && x.settleOn);
+  const last = all.sort((p, q) => (q.pricedAt ?? "").localeCompare(p.pricedAt ?? ""))[0];
+  if (!last) return undefined;
+  const y = displayYield(last).pct;
+  if (y == null) return undefined;
+  const weeks = Math.round(daysBetween(last.settleOn!, last.maturityOn!) / 7);
+  return { label: `BTA ${weeks} sem.`, pct: y };
+}
+
 export default async function OfferPage({ params, searchParams }: Props) {
     const [{ id }, sp] = await Promise.all([params, searchParams]);
   const t = await getT();
@@ -291,7 +301,9 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
   const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
-  const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 60) : [];
+  const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 2000) : [];
+  // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
+  const btaBenchmark = o.kind === "FONDS" ? await latestBta() : undefined;
   const st = displayStatus(o);
   const past = isPast(st);
   const summary = summarize(o, new Date());
@@ -411,7 +423,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         {navs.length > 0 && (
           <section className={styles.sec} data-pane="chiffres">
             <h3>{t("Valeurs liquidatives publiées")}</h3>
-            <NavHistory navs={navs} />
+            <NavHistory navs={navs} benchmark={btaBenchmark} />
             <p className={styles.note}>{t("VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement.")} {o.fund?.distributed ? "" : t("Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore — dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion.")}</p>
           </section>
         )}

@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { NavChart, type NavPoint } from "./NavChart";
+import { type Benchmark, type ChartMode, changes, drawdown, FundChart, invested, MODE_LABEL, REF_AMOUNT, rollingAnnualised } from "./FundCharts";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
@@ -23,7 +24,13 @@ const DURATIONS: [Duration, string, number][] = [
   ["3a", "3 ans", 1096],
   ["origine", "Origine", Infinity],
 ];
-const REF = 1_000_000;
+const REF = REF_AMOUNT;
+const MODES: ChartMode[] = ["vl", "rendement", "placement", "variations", "repli"];
+const WINDOWS: [string, number][] = [
+  ["3 mois", 92],
+  ["6 mois", 183],
+  ["12 mois", 365],
+];
 
 const signed = (v?: number, d = 2) => (v == null || !Number.isFinite(v) ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 const cls = (v?: number) => (v == null || v === 0 ? undefined : v > 0 ? styles.up : styles.down);
@@ -36,7 +43,7 @@ const shift = (iso: string, days: number) => {
 /** The published date closest to the one asked for. */
 const nearest = (dates: string[], iso: string) => dates.reduce((best, d) => (Math.abs(daysBetween(d, iso)) < Math.abs(daysBetween(best, iso)) ? d : best), dates[0]);
 
-export function NavPeriod({ series }: { series: NavPoint[] }) {
+export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark?: Benchmark }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -58,6 +65,20 @@ export function NavPeriod({ series }: { series: NavPoint[] }) {
   const to = custom ? nearest(dates, au ?? last) : last;
   const [a, b] = from <= to ? [from, to] : [to, from];
   const window_ = useMemo(() => series.filter((p) => p.date >= a && p.date <= b), [series, a, b]);
+
+  // Which reading of the window, and, for the rolling return, how long each look-back is.
+  const modeAsked = sp.get("graphe") as ChartMode | null;
+  const mode: ChartMode = modeAsked && MODES.includes(modeAsked) ? modeAsked : "vl";
+  const winAsked = Number(sp.get("fenetre"));
+  const winOk = (d: number) => span >= d * 1.2; // the rolling return needs the window plus some room
+  const windowDays = WINDOWS.some(([, d]) => d === winAsked) && winOk(winAsked) ? winAsked : winOk(365) ? 365 : winOk(183) ? 183 : 92;
+  const plotted = useMemo(() => {
+    if (mode === "rendement") return rollingAnnualised(series, windowDays).filter((p) => p.date >= a && p.date <= b);
+    if (mode === "placement") return invested(window_);
+    if (mode === "variations") return changes(window_);
+    if (mode === "repli") return drawdown(window_);
+    return [];
+  }, [mode, series, window_, windowDays, a, b]);
 
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
@@ -85,8 +106,42 @@ export function NavPeriod({ series }: { series: NavPoint[] }) {
     return { f, l, days, perf, annual, hi, lo, avg, down: down.length, moves: moves.length, worst, placed: f.nav > 0 ? (REF * l.nav) / f.nav : undefined };
   }, [window_]);
 
+  // One line under the chart that says what the reading shows.
+  const headline = (() => {
+    if (plotted.length === 0) return null;
+    const l = plotted[plotted.length - 1];
+    if (mode === "rendement") return { text: t("Aujourd'hui : {r} par an sur les {n} derniers jours", { r: signed(l.y), n: String(windowDays) }), v: l.y };
+    if (mode === "placement") return { text: t("{a} FCFA placés le {d} valent {b} FCFA", { a: fmt(REF), d: fmtDate(plotted[0].date), b: fmt(l.y) }), v: l.y - REF };
+    if (mode === "variations") {
+      const down = plotted.filter((p) => p.y < 0);
+      const worst = plotted.reduce((m, p) => (p.y < m.y ? p : m), plotted[0]);
+      return { text: t("{d} baisses sur {n} VL · plus forte {w} ({date})", { d: String(down.length), n: String(plotted.length), w: signed(worst.y), date: fmtDate(worst.date, false) }), v: -down.length };
+    }
+    const worst = plotted.reduce((m, p) => (p.y < m.y ? p : m), plotted[0]);
+    if (worst.y === 0) return { text: t("Jamais sous son plus haut sur la période"), v: 0 };
+    const after = plotted.slice(plotted.indexOf(worst)).find((p) => p.y === 0);
+    return { text: after ? t("Pire repli {w} le {d}, comblé le {r}", { w: signed(worst.y), d: fmtDate(worst.date, false), r: fmtDate(after.date, false) }) : t("Pire repli {w} le {d}, pas encore comblé", { w: signed(worst.y), d: fmtDate(worst.date, false) }), v: worst.y };
+  })();
+
   return (
     <div className={styles.period}>
+      <div className={styles.modes} role="group" aria-label={t("Graphique")} data-coach="fund-modes">
+        {MODES.map((m) => (
+          <button key={m} type="button" className={mode === m ? styles.on : ""} aria-pressed={mode === m} onClick={() => update({ graphe: m === "vl" ? undefined : m })}>
+            {t(MODE_LABEL[m])}
+          </button>
+        ))}
+        {mode === "rendement" && (
+          <span className={styles.windowPick}>
+            {t("fenêtre")}
+            {WINDOWS.map(([label, d]) => (
+              <button key={d} type="button" className={windowDays === d ? styles.on : ""} aria-pressed={windowDays === d} disabled={!winOk(d)} onClick={() => update({ fenetre: d === 365 ? undefined : String(d) })}>
+                {t(label)}
+              </button>
+            ))}
+          </span>
+        )}
+      </div>
       <div className={styles.periodBar}>
         <div className={styles.durations} role="group" aria-label={t("Durée")}>
           {DURATIONS.map(([k, label]) => (
@@ -113,8 +168,14 @@ export function NavPeriod({ series }: { series: NavPoint[] }) {
         <div className={`${styles.chart} ${styles.navBlock}`}>
           {window_.length > 0 ? (
             <>
-              <NavChart series={window_} sinceStart />
-              {s && (
+              {mode === "vl" ? <NavChart series={window_} sinceStart /> : <FundChart mode={mode} series={plotted} benchmark={benchmark} windowDays={windowDays} />}
+              {mode !== "vl" && headline && (
+                <div className={styles.legend}>
+                  <span>{MODE_HINT[mode] ? t(MODE_HINT[mode]) : null}</span>
+                  <b className={cls(headline.v)}>{headline.text}</b>
+                </div>
+              )}
+              {mode === "vl" && s && (
                 <div className={styles.legend}>
                   <span>
                     {t("{n} VL sur la période · plus haut {hi} ({a}) · plus bas {lo} ({b})", { n: window_.length, hi: fmt(s.hi.nav), a: fmtDate(s.hi.date), lo: fmt(s.lo.nav), b: fmtDate(s.lo.date) })}
@@ -179,3 +240,11 @@ export function NavPeriod({ series }: { series: NavPoint[] }) {
     </div>
   );
 }
+
+const MODE_HINT: Record<ChartMode, string> = {
+  vl: "",
+  rendement: "À chaque date, le rendement annualisé de la fenêtre qui précède.",
+  placement: "Ce que serait devenu le montant placé à la première VL de la période, brut, avant frais.",
+  variations: "L'écart entre chaque VL et la précédente.",
+  repli: "À chaque date, l'écart entre la VL et le plus haut atteint avant elle sur la période.",
+};
