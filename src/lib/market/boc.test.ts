@@ -75,9 +75,9 @@ describe("ingestBoc (memory repository, real PDF when present)", () => {
     expect(again.refreshed.length).toBe(39 + 41);
     const fund = (await memoryRepository.listOffers()).find((o) => o.id === "fund-fcp-sogefirst")!;
     expect(fund.kind).toBe("FONDS");
-    expect(fund.hidden).toBe(true);
+    expect(fund.hidden).toBe(false); // funds arrive ready for subscription
     expect(fund.fund?.nav).toBe(11184);
-    expect(fund.fund?.distributed).toBe(false);
+    expect(fund.fund?.distributed).toBe(true);
     const bhc = await memoryRepository.listQuotes("GA0000010074");
     expect(bhc.length).toBe(1);
     expect(bhc[0].close).toBe(90_000);
