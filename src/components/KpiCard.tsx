@@ -82,7 +82,7 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
               </ul>
               <div className={styles.foot}>
                 {lesson && (
-                  <Link className="btn sm primary" href={`/apprendre/${lesson.key}`}>
+                  <Link className="btn sm primary" href={`/info/${lesson.key}`}>
                     Leçon : {lesson.title}
                   </Link>
                 )}

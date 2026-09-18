@@ -14,7 +14,7 @@ import styles from "./MobileShell.module.css";
  */
 export const LAST_LIST_KEY = "guichet:lastList";
 
-const ROOTS = ["/", "/fonds", "/moi", "/apprendre", "/desk", "/connexion"];
+const ROOTS = ["/", "/fonds", "/moi", "/info", "/desk", "/connexion"];
 
 type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number };
 
@@ -64,7 +64,7 @@ function fallbackFor(path: string): string {
   if (path.startsWith("/societes") || path.startsWith("/emetteurs")) return "/societes";
   if (path.startsWith("/desk")) return "/desk";
   if (path.startsWith("/moi") || path.startsWith("/ouvrir-un-compte")) return "/moi";
-  if (path.startsWith("/apprendre") || path.startsWith("/simulateur") || path.startsWith("/comparer")) return "/apprendre";
+  if (path.startsWith("/info") || path.startsWith("/comparer")) return "/info";
   return "/";
 }
 
@@ -112,7 +112,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
     { href: "/", label: "Guichet", icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") },
     { href: "/fonds", label: "Fonds", icon: I.fonds, match: (p) => p.startsWith("/fonds") },
     { href: "/moi", label: "Mon espace", icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
-    { href: "/apprendre", label: "Apprendre", icon: I.apprendre, match: (p) => p.startsWith("/apprendre") || p.startsWith("/simulateur") || p.startsWith("/comparer") },
+    { href: "/info", label: "Info", icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
   ];
   if (desk) tabs.push({ href: "/desk", label: "Desk", icon: I.desk, match: (p) => p.startsWith("/desk") });
 

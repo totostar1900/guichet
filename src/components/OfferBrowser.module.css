@@ -688,3 +688,45 @@
     transition: none;
   }
 }
+
+/* ---------- « À la une » : same rows, framed and tinted ---------- */
+.featured {
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--gold-soft), var(--surface) 80%);
+  padding: 12px 12px 12px;
+  margin: 14px 0 6px;
+}
+.featuredHead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.featuredHead small {
+  color: var(--ink-3);
+  font-size: 0.74rem;
+}
+.featured .tableWrap,
+.featured .row,
+.pickCard > article {
+  border-color: var(--gold);
+}
+.pick {
+  background: color-mix(in srgb, var(--gold-soft) 45%, var(--surface));
+}
+.reason {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--gold-ink);
+  font-weight: 600;
+}
+.pickCard {
+  display: grid;
+  gap: 6px;
+}
+.pickCard .reason {
+  margin: 0 2px;
+}

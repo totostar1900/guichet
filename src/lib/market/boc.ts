@@ -231,7 +231,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, y
     title: n.name.replace(/^(FCPE|FCP|SICAV)\s+(.*)$/, (_, k: string, rest: string) => `${k} ${prettyName(rest)}`),
     isin: n.fundKey,
     status: "published",
-    hidden: true,
+    hidden: false,
     blurb: `${n.name} — fonds ${FUND_WORD[n.category] ?? ""} géré par ${prettyName(n.manager)}, dépositaire ${prettyName(n.depositary)}. Valeur liquidative ${FREQ_WORD[n.frequency] ?? ""} publiée au Bulletin Officiel de la Cote (source : sociétés de gestion agréées COSUMAF).`,
     documents: [],
     opensAt: `${n.inceptionDate}T09:00:00`,
@@ -258,7 +258,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, y
       variationPct: n.variationPct,
       perf1yPct: yearAgo?.pct ?? prior?.perf1yPct,
       perf1yFrom: yearAgo?.from ?? prior?.perf1yFrom,
-      distributed: prior?.distributed ?? false,
+      distributed: prior?.distributed ?? true,
       agreementRef: prior?.agreementRef,
       entryFeePct: prior?.entryFeePct ?? 0,
       exitFeePct: prior?.exitFeePct ?? 0,
@@ -347,7 +347,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     (existing ? refreshed : created).push(next.id);
   }
 
-  // OPCVM lines: NAV refreshed, terms kept; new funds arrive hidden (information only until an agreement exists).
+  // OPCVM lines: NAV refreshed, terms kept; new funds arrive visible and open to subscription.
   const byKey = new Map(offers.filter((o) => o.kind === "FONDS" && o.fund).map((o) => [o.fund!.key, o]));
   for (const n of navs) {
     const existing = byKey.get(n.fundKey);

@@ -8,7 +8,7 @@ const TABS = [
   { href: "/", label: "Guichet", match: (p: string) => p === "/" || p.startsWith("/offres") },
   { href: "/fonds", label: "Fonds", match: (p: string) => p.startsWith("/fonds") },
   { href: "/societes", label: "Sociétés", match: (p: string) => p.startsWith("/societes") },
-  { href: "/apprendre", label: "Apprendre", match: (p: string) => p.startsWith("/apprendre") || p.startsWith("/simulateur") || p.startsWith("/comparer") },
+  { href: "/info", label: "Info", match: (p: string) => p.startsWith("/info") || p.startsWith("/comparer") },
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk") },
 ];
 

@@ -134,3 +134,26 @@
   color: var(--ink-3);
   white-space: nowrap;
 }
+
+/* ---------- simulator, inline ---------- */
+.sim {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 26px;
+}
+.sim > p {
+  margin: 0 0 10px;
+  max-width: 70ch;
+  font-size: 0.86rem;
+}
+.warn {
+  background: var(--paper);
+  color: var(--ink-2);
+  border-left: 3px solid var(--gold);
+  font-size: 0.76rem;
+  padding: 8px 12px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-bottom: 14px;
+}

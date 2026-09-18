@@ -21,7 +21,8 @@ export interface FundRow {
   perf1yPct?: number;
   perfSinceInceptionPct: number;
   inceptionDate?: string;
-  open: boolean; // distributed by Purpose Capital
+  open: boolean; // open to subscription (the desk can close one)
+  featured?: string; // the desk's reason when the fund is « À la une »
 }
 
 type SortKey = "categorie" | "nom" | "vl" | "var" | "an" | "origine" | "date";
@@ -214,7 +215,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                       )}
                     </td>
                     <td className={styles.r}>
-                      <Link className={`btn sm ${r.open ? "" : "ghost"}`} href={`/offres/${r.id}`}>
+                      <Link className="btn sm ghost" href={`/offres/${r.id}`}>
                         Voir la fiche
                       </Link>
                     </td>

@@ -14,8 +14,8 @@ const KINDS = Object.values(REF) as string[];
 const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme", lesson: "leçon", policy: "règle" };
 
 function revalidateAll() {
-  for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/simulateur", "/comparer", "/apprendre"]) revalidatePath(p);
-  revalidatePath("/apprendre/[key]", "page");
+  for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/comparer", "/info"]) revalidatePath(p);
+  revalidatePath("/info/[key]", "page");
   revalidatePath("/offres/[id]", "page");
   revalidatePath("/societes/[mnemo]", "page");
   revalidatePath("/emetteurs/[slug]", "page");
@@ -126,7 +126,7 @@ export async function saveGlossaryAction(_p: RefResult | null, form: FormData): 
   return { ok: true, message: `Terme « ${short} » enregistré.` };
 }
 
-/* ---------- Leçons (Apprendre) ---------- */
+/* ---------- Leçons (Info) ---------- */
 
 const lessonSchema = z.object({
   key: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,40}$/, "Clé : minuscules, chiffres et tirets."),

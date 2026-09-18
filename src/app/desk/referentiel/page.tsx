@@ -282,7 +282,7 @@ function Lessons({ list, inDb, open }: { list: Lesson[]; inDb: Rows; open: strin
       <div className="panel">
         <div className="panel-h">
           <h2>Leçons ({list.length})</h2>
-          <span className="muted">L&apos;onglet Apprendre : une idée par leçon, une vraie ligne, une question.</span>
+          <span className="muted">L&apos;onglet Info : une idée par leçon, une vraie ligne, une question.</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>

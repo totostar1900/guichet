@@ -6,7 +6,7 @@ import styles from "./Onboarding.module.css";
 
 /**
  * « Premiers pas » — four screens, one idea each, shown once per device on the
- * first visit (never on the desk or the login page), replayable from Apprendre.
+ * first visit (never on the desk or the login page), replayable from Info.
  * SVG + CSS only: nothing to host, nothing to load.
  */
 const SEEN = "guichet:onboarded";
@@ -166,7 +166,7 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
   );
 }
 
-/** « Revoir les premiers pas » on the Apprendre page. */
+/** « Revoir les premiers pas » on the Info page. */
 export function ReplayOnboarding() {
   const router = useRouter();
   const [show, setShow] = useState(false);

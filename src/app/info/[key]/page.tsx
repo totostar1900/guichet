@@ -59,8 +59,8 @@ export default async function LessonPage({ params }: Props) {
 
   return (
     <div className={styles.wrap}>
-      <Link href="/apprendre" className={styles.back}>
-        ← Apprendre
+      <Link href="/info" className={styles.back}>
+        ← Info
       </Link>
       <div className={styles.head}>
         <div className="eyebrow">
@@ -77,10 +77,10 @@ export default async function LessonPage({ params }: Props) {
       <div className={styles.widget}>
         <LessonWidget kind={l.widget} live={live} />
       </div>
-      <Quiz lessonKey={l.key} q={l.quiz.q} options={l.quiz.options} answer={l.quiz.answer} why={l.quiz.why} nextHref={next ? `/apprendre/${next.key}` : undefined} nextTitle={next?.title} />
+      <Quiz lessonKey={l.key} q={l.quiz.q} options={l.quiz.options} answer={l.quiz.answer} why={l.quiz.why} nextHref={next ? `/info/${next.key}` : undefined} nextTitle={next?.title} />
       <nav className={styles.pager}>
-        {i > 0 ? <Link href={`/apprendre/${lessons[i - 1].key}`}>← {lessons[i - 1].title}</Link> : <span />}
-        {next && <Link href={`/apprendre/${next.key}`}>{next.title} →</Link>}
+        {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {lessons[i - 1].title}</Link> : <span />}
+        {next && <Link href={`/info/${next.key}`}>{next.title} →</Link>}
       </nav>
     </div>
   );

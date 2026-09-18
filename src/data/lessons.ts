@@ -1,5 +1,5 @@
 /**
- * Apprendre — eight short lessons, one idea each, illustrated with a real line
+ * Info — eight short lessons, one idea each, illustrated with a real line
  * of the Guichet and closed by one question. These are the code defaults; the
  * desk edits them in the référentiel (kind « lesson ») without touching code.
  */

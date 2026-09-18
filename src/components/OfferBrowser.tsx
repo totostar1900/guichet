@@ -165,7 +165,7 @@ function Th({ k, label, sort, dir, onSort, right, term, className = "" }: { k: S
 
 const StatusPill = ({ s }: { s: OfferSummary }) => <span className={`pill ${s.statusClass}`}>{s.countdown ? `Clôture ${s.countdown}` : s.status}</span>;
 
-function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean }) {
+function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean }) {
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.tableWrap}>
@@ -186,9 +186,10 @@ function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKe
           {groups.flatMap((g) => [
             ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
             ...g.rows.map(({ o, s }) => (
-            <tr key={o.id} className={s.past ? styles.past : ""}>
+            <tr key={o.id} className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
               <td className={styles.line}>
                 <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
+                {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
               </td>
               <td>
                 <StatusPill s={s} />
@@ -225,16 +226,17 @@ function Table({ rows, sort, dir, onSort, grouped }: { rows: Row[]; sort: SortKe
 }
 
 /* ---------- list ---------- */
-function List({ rows, grouped }: { rows: Row[]; grouped: boolean }) {
+function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; featured?: boolean }) {
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.list}>
       {groups.flatMap((g) => [
         ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
         ...g.rows.map(({ o, s }) => (
-        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <div className={styles.rowMain}>
             <LineIdentity o={o} s={s} size="lg" />
+            {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
             <div className={styles.rowStatus}>
               <StatusPill s={s} />
             </div>
@@ -456,6 +458,26 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   }, [offers, now, sp, sort, dir]);
 
   const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
+  // « À la une » : the desk's picks, in their own frame under the toolbar, in the same view as the list.
+  const today = nowIso.slice(0, 10);
+  const picks = rows.filter(({ o }) => o.featured && o.featured.until >= today).slice(0, 3);
+  const pickIds = new Set(picks.map(({ o }) => o.id));
+  const rest = pickIds.size ? rows.filter(({ o }) => !pickIds.has(o.id)) : rows;
+  const render = (list: Row[], featured: boolean) =>
+    view === "table" ? (
+      <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} />
+    ) : view === "list" ? (
+      <List rows={list} grouped={grouped && !featured} featured={featured} />
+    ) : (
+      <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`}>
+        {list.map(({ o, s }) => (
+          <div key={o.id} className={featured ? styles.pickCard : undefined}>
+            <OfferCard o={o} s={s} />
+            {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+          </div>
+        ))}
+      </div>
+    );
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
@@ -520,6 +542,16 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       </div>
       <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} />
 
+      {picks.length > 0 && (
+        <section className={styles.featured} aria-label="À la une">
+          <div className={styles.featuredHead}>
+            <span className="eyebrow">À la une · sélection du desk</span>
+            <small>Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.</small>
+          </div>
+          {render(picks, true)}
+        </section>
+      )}
+
       <div className={styles.meta}>
         <span>
           <b>{rows.length}</b> ligne{rows.length > 1 ? "s" : ""}
@@ -548,15 +580,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       </div>
 
       {rows.length === 0 && <div className="empty">Aucune ligne ne correspond à ces filtres.</div>}
-      {rows.length > 0 && view === "table" && <Table rows={rows} sort={sort} dir={dir} onSort={onSort} grouped={grouped} />}
-      {rows.length > 0 && view === "list" && <List rows={rows} grouped={grouped} />}
-      {rows.length > 0 && view === "cards" && (
-        <div className={styles.cards}>
-          {rows.map(({ o, s }) => (
-            <OfferCard key={o.id} o={o} s={s} />
-          ))}
-        </div>
-      )}
+      {rest.length > 0 && render(rest, false)}
     </div>
   );
 }

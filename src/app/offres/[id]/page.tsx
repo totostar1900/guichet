@@ -399,7 +399,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <Reference o={o} />
           <p className={styles.note}>
             Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact. Pour explorer d&apos;autres prix ou durées, utilisez le{" "}
-            <Link href="/simulateur">simulateur</Link>.
+            <Link href="/info#simulateur">simulateur</Link>.
           </p>
         </section>
 

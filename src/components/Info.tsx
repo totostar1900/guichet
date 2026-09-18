@@ -85,7 +85,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
             {title && <b>{title}</b>}
             {body}
             {lesson && (
-              <a className={styles.more} href={`/apprendre/${lesson.key}`}>
+              <a className={styles.more} href={`/info/${lesson.key}`}>
                 En savoir plus : {lesson.title} →
               </a>
             )}

@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { FeaturedStrip } from "@/components/FeaturedStrip";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { repo } from "@/lib/data";
 
@@ -13,7 +12,6 @@ export default async function GuichetPage() {
   const nowIso = new Date().toISOString();
   return (
     <>
-      <FeaturedStrip offers={all} nowIso={nowIso} />
       <Suspense>
         <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
       </Suspense>

@@ -3,22 +3,24 @@ import { loadLessons } from "@/lib/reference";
 import { getRegistry } from "@/lib/registry";
 import { DoneMark } from "./[key]/Quiz";
 import { ReplayOnboarding } from "@/components/mobile/Onboarding";
+import { Simulator } from "@/components/Simulator";
 import styles from "./page.module.css";
 
-export const metadata = { title: "Apprendre" };
+export const metadata = { title: "Info" };
 
 /**
- * The learning tab: where a first-time investor starts — eight short lessons
- * (référentiel), the tools, and the glossary; « Premiers pas » replayable here.
+ * The Info tab: where a first-time investor starts — eight short lessons
+ * (référentiel), the bond simulator, the comparison tool, the glossary;
+ * « Premiers pas » replayable here. The former « Simulateur & repères » lives here.
  */
-export default async function ApprendrePage() {
+export default async function InfoPage() {
   const G = getRegistry().glossary;
   const lessons = await loadLessons();
   const keys = Object.keys(G).sort((a, b) => G[a].short.localeCompare(G[b].short, "fr"));
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
-        <div className="eyebrow">Apprendre</div>
+        <div className="eyebrow">Info</div>
         <h1 className="display">Lire une ligne en trente secondes</h1>
         <p className="muted">Ce qu&apos;il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques — expliqués une fois pour toutes, sans jargon inutile.</p>
       </div>
@@ -42,13 +44,17 @@ export default async function ApprendrePage() {
         ))}
       </div>
 
+      <h2 className={styles.h2} id="simulateur">
+        Simulateur d&apos;obligation
+      </h2>
+      <div className={styles.sim}>
+        <p className="muted">Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L&apos;outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet.</p>
+        <div className={styles.warn}>Outil pédagogique — résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.</div>
+        <Simulator />
+      </div>
+
       <h2 className={styles.h2}>Outils et repères</h2>
       <div className={styles.grid}>
-        <Link href="/simulateur" className={styles.tile}>
-          <span className={styles.k}>Outil</span>
-          <b>Simulateur d&apos;obligation</b>
-          <span>Comment le prix, le coupon et la durée fabriquent le rendement. Faites varier, regardez.</span>
-        </Link>
         <Link href="/comparer" className={styles.tile}>
           <span className={styles.k}>Outil</span>
           <b>Comparer deux lignes</b>
