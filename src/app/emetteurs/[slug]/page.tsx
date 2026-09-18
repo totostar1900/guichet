@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RelatedNews } from "@/components/RelatedNews";
 import { notFound } from "next/navigation";
 import { BarChart, ShareBar } from "@/components/Charts";
 import { Info } from "@/components/Info";
@@ -219,6 +220,8 @@ export default async function EmetteurPage({ params }: Props) {
               )}
             </dl>
           </div>
+
+          <RelatedNews kind="issuer" keyOf={i.slug} heading="h2" className={styles.panel} />
 
           <div className={styles.panel}>
             <h2>{tr("Documents publiés")} ({i.documents.length})</h2>

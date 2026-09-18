@@ -27,6 +27,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     label: "Marché",
     tabs: [
       ["/desk/marche", "Cotes & VL"],
+      ["/desk/actualites", "Actualités"],
       ["/desk/robot", "Robot"],
     ],
   },

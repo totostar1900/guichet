@@ -19,6 +19,14 @@
     {
       "path": "/api/cron/point",
       "schedule": "30 6 * * 1-5"
+    },
+    {
+      "path": "/api/cron/actualites",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/actualites-hebdo",
+      "schedule": "0 16 * * 5"
     }
   ]
 }

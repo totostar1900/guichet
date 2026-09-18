@@ -15,7 +15,7 @@ import styles from "./MobileShell.module.css";
  */
 export const LAST_LIST_KEY = "guichet:lastList";
 
-const ROOTS = ["/", "/fonds", "/moi", "/info", "/desk", "/connexion"];
+const ROOTS = ["/", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites"];
 
 type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number };
 
@@ -64,6 +64,7 @@ function fallbackFor(path: string): string {
   if (path.startsWith("/fonds")) return "/fonds";
   if (path.startsWith("/societes") || path.startsWith("/emetteurs")) return "/societes";
   if (path.startsWith("/desk")) return "/desk";
+  if (path.startsWith("/actualites")) return "/actualites";
   if (path.startsWith("/moi") || path.startsWith("/ouvrir-un-compte")) return "/moi";
   if (path.startsWith("/info") || path.startsWith("/comparer")) return "/info";
   return "/";
@@ -111,7 +112,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
 
   const t = useT();
   const tabs: Tab[] = [
-    { href: "/", label: t("Guichet"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") },
+    { href: "/", label: t("Guichet"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") || p.startsWith("/actualites") },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: (p) => p.startsWith("/fonds") },
     { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
     { href: "/info", label: t("Info"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
@@ -137,6 +138,12 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
           </>
         )}
         <div className={styles.right}>
+          <Link href="/actualites" className={styles.news} aria-label={t("Actualités")} aria-current={path.startsWith("/actualites") ? "page" : undefined}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5h13v14H6a2 2 0 0 1-2-2z" />
+              <path d="M17 9h3v8a2 2 0 0 1-2 2M7 9h6M7 13h6M7 17h4" />
+            </svg>
+          </Link>
           {signedIn ? (
             <Link href={desk ? "/desk" : "/moi"} className={styles.avatar} aria-label={t("Mon compte")} title={name}>
               {(name ?? "?").trim().charAt(0).toUpperCase()}

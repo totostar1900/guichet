@@ -4,6 +4,8 @@ import { answerInbound, botAvailable } from "@/lib/bot/reply";
 import { fetchWhatsAppMedia, sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
 import { audit } from "@/lib/audit";
 import { ingestSource, trustedSender } from "@/lib/intake/ingest";
+import { receiveLinks } from "@/lib/news/intake";
+import { urlsIn } from "@/lib/news/model";
 
 /**
  * Meta WhatsApp Cloud API webhook.
@@ -96,6 +98,14 @@ async function handleInbound(from: string, text: string): Promise<string | undef
   if (["start", "oui", "ok", "reprendre"].includes(t)) {
     if (contact) await r.setContactOptIn(contact.id, true);
     return "Merci ! Vous recevrez à nouveau nos offres et avis sur WhatsApp. Répondez STOP à tout moment pour arrêter.";
+  }
+  // A link from a desk phone is a news candidate, not a question for the robot.
+  if (urlsIn(text).length) {
+    const staff = (await r.listStaff()).find((s) => s.phone && s.phone.replace(/[^d]/g, "") === digits);
+    if (staff || trustedSender(`+${digits}`)) {
+      const got = await receiveLinks(text, `WhatsApp · ${staff?.name ?? `+${from}`}`);
+      return got.length ? `Lien reçu pour les actualités (${got.map((n) => n.domain).join(", ")}) : à préparer sur le desk, rubrique Actualités.` : "Ce lien est déjà dans les actualités du desk.";
+    }
   }
   if (!botAvailable()) return undefined;
   try {

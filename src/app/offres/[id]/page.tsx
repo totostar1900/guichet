@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RelatedNews } from "@/components/RelatedNews";
 import { notFound } from "next/navigation";
 import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
@@ -489,6 +490,8 @@ export default async function OfferPage({ params, searchParams }: Props) {
             )}
           </div>
         </section>
+
+        <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
 
         <section className={styles.sec} data-pane="risques">
           <h3>{t("À garder en tête")}</h3>

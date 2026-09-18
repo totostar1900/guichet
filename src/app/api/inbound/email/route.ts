@@ -3,6 +3,8 @@ import PostalMime from "postal-mime";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import { ingestSource, trustedSender } from "@/lib/intake/ingest";
+import { receiveLinks } from "@/lib/news/intake";
+import { urlsIn } from "@/lib/news/model";
 
 /**
  * Inbound e-mail → « À valider ». Point a mailbox at this endpoint:
@@ -49,6 +51,12 @@ export async function POST(req: NextRequest) {
   // Every e-mail is also a message in the desk inbox (a client's question is not a source to ingest).
   await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text.slice(0, 4000) });
   if (!trusted && mail.attachments.length === 0) return NextResponse.json({ ok: true, created: [], errors: [] });
+  // A trusted sender mailing links (no attachment): news candidates for the desk, not a source to ingest.
+  if (trusted && mail.attachments.length === 0 && urlsIn(mail.text).length) {
+    const got = await receiveLinks(`${mail.subject}
+${mail.text}`, `E-mail · ${mail.from}`);
+    if (got.length) return NextResponse.json({ ok: true, created: [], news: got.map((n) => n.id), errors: [] });
+  }
   const hint = mail.subject ? `Objet du courriel : ${mail.subject}` : undefined;
   const created: string[] = [];
   const errors: string[] = [];

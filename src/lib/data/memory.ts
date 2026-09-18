@@ -1,4 +1,5 @@
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
+import { SEED_NEWS } from "@/data/news-seed";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
@@ -110,7 +111,7 @@ function store(): Store {
       notifications: [],
       inbound: seedInbound(),
       watches: [],
-      reference: [],
+      reference: SEED_NEWS.map((n) => ({ kind: "news", key: n.id, data: structuredClone(n), updatedAt: n.updatedAt, updatedBy: n.updatedBy })),
       versions: [],
       audit: [],
       approvals: [],

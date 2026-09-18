@@ -30,6 +30,7 @@ const ENTITIES: [string, string][] = [
   ["offer", "Lignes"],
   ["intent", "Intentions"],
   ["reference", "Référentiel"],
+  ["news", "Actualités"],
   ["profile", "Équipe"],
   ["approval", "Approbations"],
 ];

@@ -1,4 +1,6 @@
 import "server-only";
+import { loadNews } from "@/lib/news";
+import { isVisible } from "@/lib/news/model";
 import { deskRecipients } from "@/lib/notify/recipients";
 import { repo } from "@/lib/data";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
@@ -109,6 +111,18 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     level: pending.length ? "warn" : "ok",
     value: `${pending.length}`,
     detail: pending.map((o) => o.title).join(" · ") || "—",
+  });
+
+  // 8. Actualités: dead links on the page, and received links nobody has sorted for a week.
+  const news = await loadNews();
+  const dead = news.filter((n) => n.status === "publiee" && isVisible(n, now) && n.linkOk === false);
+  const unsorted = news.filter((n) => n.status === "recu" && now.getTime() - new Date(n.createdAt).getTime() > 7 * 86_400_000);
+  out.push({
+    key: "news",
+    label: "Actualités : liens morts / liens reçus non triés (> 7 jours)",
+    level: dead.length ? "warn" : "ok",
+    value: `${dead.length} / ${unsorted.length}`,
+    detail: [...dead.map((n) => `mort : ${n.title.slice(0, 60)}`), ...unsorted.map((n) => `à trier : ${n.domain}`)].slice(0, 4).join(" · ") || "tout est en ordre",
   });
 
   return out;

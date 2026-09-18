@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RelatedNews } from "@/components/RelatedNews";
 import { notFound } from "next/navigation";
 import { BarChart, LineChart, ShareBar } from "@/components/Charts";
 import { companyByMnemo } from "@/lib/reference";
@@ -241,7 +242,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
             <ShareBar parts={c.coreShareholders} />
             <dl className={styles.facts} style={{ marginTop: 12 }}>
               <dt>{t("Introduite en bourse")}</dt>
-              <dd>{fmtDate(c.listedOn)}{c.ipoPrice ? ` à ${fmt(c.ipoPrice)} FCFA` : ""}</dd>
+              <dd>{fmtDate(c.listedOn)}{c.ipoPrice ? ` ${t("à")} ${fmt(c.ipoPrice)} FCFA` : ""}</dd>
               <dt>{t("Capital social")}</dt>
               <dd>{fmtUnits(c.shareCapital, true)}</dd>
               <dt>{t("Actions")}</dt>
@@ -272,6 +273,8 @@ export default async function SocietePage({ params, searchParams }: Props) {
               )}
             </dl>
           </div>
+
+          <RelatedNews kind="company" keyOf={c.mnemo} heading="h2" className={styles.panel} />
 
           <div className={styles.panel}>
             <h2>{t("Documents publiés")} ({c.documents.length})</h2>

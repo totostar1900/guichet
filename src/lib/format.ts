@@ -32,6 +32,12 @@ export const fmtDateTime = (iso: string): string => {
   return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${hm}`;
 };
 
+/** Weekday, day, month and year — the heading of a day in a feed. */
+export const fmtDay = (iso: string): string => {
+  const d = parseDate(iso);
+  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+};
+
 export const fmtTime = (iso: string): string => {
   const d = parseDate(iso);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
