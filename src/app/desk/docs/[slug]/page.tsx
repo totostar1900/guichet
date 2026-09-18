@@ -32,7 +32,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
     <>
       <DeskNav current="/desk/docs" />
       <div className={styles.reader}>
-        <nav className={styles.nav} aria-label={t("Documentation")}>
+        <nav className={styles.nav} aria-label={t("Documentation")} data-coach="docs-tree">
           <Link href="/desk/docs">← {t("Toutes les pages")}</Link>
           <span className={styles.group}>{t("Documentation")}</span>
           {DOCS.map((d) => (
@@ -47,7 +47,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
           <Link href="/desk/guide">{t("Guide, champ par champ")}</Link>
         </nav>
 
-        <article className={styles.doc}>
+        <article className={styles.doc} data-coach="docs-page">
           <h1>{doc.title[lang]}</h1>
           <p className={styles.summary}>{doc.summary[lang]}</p>
           <div className={styles.audiences}>

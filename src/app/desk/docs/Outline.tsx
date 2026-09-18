@@ -10,7 +10,7 @@ import styles from "./docs.module.css";
 export function Outline({ chapters, label, meta }: { chapters: { id: string; title: string }[]; label: string; meta: React.ReactNode }) {
   const active = useActiveChapter(chapters.map((c) => c.id));
   return (
-    <nav className={styles.outline} aria-label={label}>
+    <nav className={styles.outline} aria-label={label} data-coach="docs-outline">
       <span className={styles.label}>{label}</span>
       {chapters.map((c) => (
         <a key={c.id} href={`#${c.id}`} aria-current={c.id === active ? "true" : undefined}>
