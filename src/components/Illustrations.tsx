@@ -188,7 +188,7 @@ export function ActorGlyph({ kind, x, y, scale = 0.6, dim }: { kind: ActorKind; 
 }
 
 /** The shape of a section of the parcours. */
-export function SectionShape({ shape, color, size = 22 }: { shape: "circle" | "squares" | "triangle" | "arrow" | "hexagon"; color: string; size?: number }) {
+export function SectionShape({ shape, color, size = 22 }: { shape: "circle" | "squares" | "triangle" | "arrow" | "hexagon" | "diamond"; color: string; size?: number }) {
   const c = color;
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flex: "none" }}>
@@ -224,6 +224,12 @@ export function SectionShape({ shape, color, size = 22 }: { shape: "circle" | "s
         <>
           <path d="M12 2.5 L20.5 7.25 L20.5 16.75 L12 21.5 L3.5 16.75 L3.5 7.25 Z" fill="none" stroke={c} strokeWidth="2" strokeLinejoin="round" />
           <path d="M8.5 12 L15.5 12 M12 8.5 L12 15.5" stroke={c} strokeWidth="2" strokeLinecap="round" />
+        </>
+      )}
+      {shape === "diamond" && (
+        <>
+          <path d="M12 2.5 L21.5 12 L12 21.5 L2.5 12 Z" fill="none" stroke={c} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M7 14 L10 10.5 L13 13 L17 8.5" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </>
       )}
     </svg>

@@ -5,7 +5,7 @@
  * through its `section` key. Sections are code: their shapes and colours are
  * the app's, not the desk's.
  */
-export type SectionKey = "acteurs" | "instruments" | "risques" | "ordre" | "cadre";
+export type SectionKey = "acteurs" | "instruments" | "risques" | "ordre" | "cadre" | "economie";
 
 export interface Section {
   key: SectionKey;
@@ -13,7 +13,7 @@ export interface Section {
   title: string;
   blurb: string; // what the section teaches, one sentence
   keywords: string; // the words shown on the folded row
-  shape: "circle" | "squares" | "triangle" | "arrow" | "hexagon";
+  shape: "circle" | "squares" | "triangle" | "arrow" | "hexagon" | "diamond";
   color: string; // a CSS variable name
 }
 
@@ -23,6 +23,7 @@ export const SECTIONS: Section[] = [
   { key: "risques", order: 3, title: "Les risques, et ce qu'on peut faire", blurb: "Ce qui peut mal tourner, ligne par ligne, et le geste qui protège.", keywords: "crédit · liquidité · prix et taux · allocation et change", shape: "triangle", color: "#c2410c" },
   { key: "ordre", order: 4, title: "Passer un ordre, du Guichet au règlement", blurb: "Où en est votre argent à chaque étape, et ce que vous recevez.", keywords: "intention · adjudication · appel de fonds · relevé", shape: "arrow", color: "#a16207" },
   { key: "cadre", order: 5, title: "Fiscalité, frais et documents", blurb: "Ce qui reste une fois tout payé, et les papiers qui le prouvent.", keywords: "retenue à la source · frais du fonds · relevés et avis", shape: "hexagon", color: "#0e7490" },
+  { key: "economie", order: 6, title: "Taux, monnaie et économie : aller plus loin", blurb: "Les mécanismes derrière les chiffres : la parité du CFA, le taux de la BEAC, la courbe des taux, la duration, l'inflation, la signature des États, le marché secondaire, les marchés voisins.", keywords: "franc CFA · TIAO · courbe des taux · duration · taux réel · spread · UMOA-Titres · eurobonds", shape: "diamond", color: "#be185d" },
 ];
 
 export const SECTION_TITLE: Record<SectionKey, string> = Object.fromEntries(SECTIONS.map((s) => [s.key, s.title])) as Record<SectionKey, string>;

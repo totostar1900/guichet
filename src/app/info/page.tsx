@@ -30,7 +30,7 @@ export default async function InfoPage() {
   // The search index: glossary, lessons, tools and pages : in the viewer's language.
   const entries: SearchEntry[] = [
     ...keys.map((k) => ({ kind: "terme" as const, title: G[k].long ? `${t(G[k].short)} : ${t(G[k].long)}` : t(G[k].short), text: t(G[k].text), href: `/info#terme-${k}`, extra: k.replace(/_/g, " ") })),
-    { kind: "lecon" as const, title: t("Comprendre le marché CEMAC"), text: t("Cinq sections, vingt leçons : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais."), href: "/info/parcours", extra: "parcours cours marché BEAC COSUMAF BVMAC acteurs instruments risques" },
+    { kind: "lecon" as const, title: t("Comprendre le marché CEMAC"), text: t("Six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie."), href: "/info/parcours", extra: "parcours cours marché BEAC COSUMAF BVMAC acteurs instruments risques" },
     ...(await loadLessons()).filter((l) => l.section).map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
     ...lessons.map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
     { kind: "outil" as const, title: t("Simulateur d'obligation"), text: t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet."), href: "/info#simulateur", extra: "simulation rendement prix coupon" },
@@ -100,7 +100,7 @@ export default async function InfoPage() {
           <span className={styles.parcoursText}>
             <span className="eyebrow">{t("Parcours")}</span>
             <b>{t("Comprendre le marché CEMAC")}</b>
-            <small>{t("{n} leçons en cinq sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais.", { n: parcoursCount })}</small>
+            <small>{t("{n} leçons en six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie.", { n: parcoursCount })}</small>
           </span>
           <span className={styles.parcoursGo}>{t("Commencer")} →</span>
         </Link>

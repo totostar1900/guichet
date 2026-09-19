@@ -5,6 +5,7 @@
  */
 import type { SectionKey } from "./parcours";
 import { PARCOURS_LESSONS } from "./lessons-parcours";
+import { ECONOMIE_LESSONS } from "./lessons-economie";
 
 export type LessonWidget = "bond_price" | "bta_rate" | "tenor" | "equity" | "fund" | "auction" | "risks" | "read_ota" | "carte" | "chemin" | "vie" | "categories";
 
@@ -153,4 +154,4 @@ export const FIRST_COURSE: Lesson[] = [
 ];
 
 /** Every lesson: the first course, then the parcours. */
-export const LESSONS: Lesson[] = [...FIRST_COURSE, ...PARCOURS_LESSONS];
+export const LESSONS: Lesson[] = [...FIRST_COURSE, ...PARCOURS_LESSONS, ...ECONOMIE_LESSONS];
