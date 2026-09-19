@@ -1,3 +1,4 @@
+import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type Contact, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
@@ -86,6 +87,7 @@ type IntentRow = {
   limit_price: number | null;
   executed_price: number | null;
   phone_verified?: boolean | null;
+  profile_flag?: string | null;
   email_verified?: boolean | null;
   created_at: string;
   updated_at: string;
@@ -166,6 +168,7 @@ function toIntent(r: IntentRow): Intent {
     message: u(r.message),
     state: r.state,
     phoneVerified: r.phone_verified ?? undefined,
+    profileFlag: u(r.profile_flag),
     emailVerified: r.email_verified ?? undefined,
     allocationPct: r.allocation_pct === null ? undefined : Number(r.allocation_pct),
     servedUnits: r.served_units === null ? undefined : Number(r.served_units),
@@ -448,8 +451,14 @@ export const supabaseRepository: Repository = {
       state: "recue",
       phone_verified: input.phoneVerified ?? null,
       email_verified: input.emailVerified ?? null,
+      profile_flag: input.profileFlag ?? null,
     };
     let { data, error } = await db().from("intents").insert(row).select("*").single();
+    if (error && /profile_flag/.test(error.message)) {
+      // Migration 0028 not applied yet: the intent still leaves, the flag stays in the message.
+      delete row.profile_flag;
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
     if (error && /(phone|email)_verified/.test(error.message)) {
       // Migration 0026 not applied yet: the intent still leaves, the proof marks wait for the migration.
       delete row.phone_verified;
@@ -718,6 +727,16 @@ export const supabaseRepository: Repository = {
     if (patch.alertedAt !== undefined) row.alerted_at = patch.alertedAt;
     const { error } = await db().from("watchlist").update(row).eq("id", id);
     if (error) fail("updateWatch", error);
+  },
+  async getFinancialProfile(userId) {
+    const { data, error } = await db().from("profiles").select("financial_profile").eq("id", userId).maybeSingle();
+    if (error) fail("getFinancialProfile", error);
+    const r = (data ?? {}) as { financial_profile?: FinancialProfile | null };
+    return r.financial_profile ?? undefined;
+  },
+  async setFinancialProfile(userId, p) {
+    const { error } = await db().from("profiles").upsert({ id: userId, financial_profile: p }, { onConflict: "id" });
+    if (error) fail("setFinancialProfile", error);
   },
   async getConsent(userId) {
     const { data, error } = await db().from("profiles").select("terms_version, terms_accepted_at").eq("id", userId).maybeSingle();

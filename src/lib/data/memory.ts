@@ -1,3 +1,4 @@
+import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
@@ -78,6 +79,7 @@ interface Store {
   contacts: Contact[];
   channels: Map<string, ChannelStatus>;
   consents: Map<string, { version: string; at: string }>;
+  profiles: Map<string, FinancialProfile>;
   codes: ChannelCode[];
   devices: TrustedDevice[];
   notifications: Notification[];
@@ -116,6 +118,7 @@ function store(): Store {
       contacts: structuredClone(SEED_CONTACTS),
       channels: new Map(),
       consents: new Map(),
+      profiles: new Map(),
       codes: [],
       devices: [],
       notifications: [],
@@ -209,6 +212,7 @@ export const memoryRepository: Repository = {
       state: "recue",
       phoneVerified: input.phoneVerified,
       emailVerified: input.emailVerified,
+      profileFlag: input.profileFlag,
       createdAt: at,
       updatedAt: at,
     };
@@ -414,6 +418,12 @@ export const memoryRepository: Repository = {
   async updateWatch(id, patch) {
     const w = store().watches.find((x) => x.id === id);
     if (w) Object.assign(w, patch);
+  },
+  async getFinancialProfile(userId) {
+    return (store().profiles ??= new Map()).get(userId); // a store kept alive across a code reload may predate the map
+  },
+  async setFinancialProfile(userId, p) {
+    (store().profiles ??= new Map()).set(userId, p);
   },
   async getConsent(userId) {
     return store().consents.get(userId) ?? {};

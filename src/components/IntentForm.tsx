@@ -50,7 +50,7 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels, bridge }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string } }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels, bridge, profileFlag }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -70,7 +70,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const phoneOk = Boolean(provenPhone && normalizePhone(who.phone) === provenPhone);
   // A session without e-mail (the dev backend) proves nothing: any well-formed e-mail passes there.
   const emailOk = signedIn && !email ? who.email.includes("@") : Boolean(provenEmail && who.email.trim().toLowerCase() === provenEmail);
-  const ready = signedIn && (phoneOk || phonePending) && emailOk;
+  // The intention leaves the client's profile: they say so before it goes, and the desk reads it.
+  const [profileOk, setProfileOk] = useState(false);
+  const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk);
   // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
   const [step, setStep] = useState(1);
   const formRef = useRef<HTMLFormElement>(null);
@@ -301,6 +303,15 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               {t("Aller à l'étape 2")}
             </button>
           </div>
+        )}
+        {profileFlag && (
+          <label className={styles.profileBox}>
+            <input type="checkbox" checked={profileOk} onChange={(e) => setProfileOk(e.target.checked)} />
+            <span>
+              <b>{t("Cette ligne est {flag}.", { flag: profileFlag })}</b> {t("Je le sais et je confirme mon intention ; un conseiller en parlera avec moi.")}
+            </span>
+            <input type="hidden" name="profileFlag" value={profileOk ? profileFlag : ""} />
+          </label>
         )}
         <div className={styles.foot}>
           <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation.")}</small>

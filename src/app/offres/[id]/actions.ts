@@ -29,6 +29,7 @@ const schema = z.object({
   contactPhone: z.string().max(30).optional(),
   contactEmail: z.string().max(120).optional(),
   message: z.string().max(1000).optional(),
+  profileFlag: z.string().max(160).optional(),
 });
 
 
@@ -118,6 +119,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     clientName,
     clientSegment: session.segment,
     phoneVerified: phoneOk,
+    profileFlag: parsed.data.profileFlag?.trim() || undefined,
     emailVerified: true,
   });
   // Keep the profile reachable with what the client just typed (the desk calls from there).

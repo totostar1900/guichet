@@ -32,7 +32,7 @@ import { typeOf } from "@/lib/registry";
 import { offerRisks } from "@/lib/domain/sheet";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./page.module.css";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 import { COMPANY, PRODUCT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -289,7 +289,7 @@ async function latestBta(): Promise<{ label: string; pct: number } | undefined> 
 
 export default async function OfferPage({ params, searchParams }: Props) {
     const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const t = await getT();
+  const [t, lang] = await Promise.all([getT(), getLang()]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
   if (o.status === "withdrawn" && !isDesk(session)) {
@@ -311,6 +311,12 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const { readLineLink } = await import("@/lib/channels");
   const bridgedPhone = readLineLink(sp.de);
   const bridge = bridgedPhone && sp.de ? { phone: bridgedPhone, token: sp.de } : undefined;
+  // The client's financial profile against this line: a word by the status, a confirmation before an intention that leaves it.
+  const { profileFlag } = await import("@/data/profile");
+  const fin = session ? await repo().getFinancialProfile(session.userId).catch(() => undefined) : undefined;
+  const tenorYears = o.maturityOn ? Math.max(0, (new Date(o.maturityOn).getTime() - new Date().getTime()) / (365.25 * 864e5)) : undefined;
+  const equity = o.kind === "ACTIONS" || o.instrument === "action" || (o.kind === "FONDS" && o.fund?.category === "A");
+  const mark = profileFlag(fin, { tenorYears, equity });
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
   const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
@@ -402,6 +408,11 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <LineIdentity o={o} s={summary} size="xl" as="h1" />
             <div className={styles.headActions}>
               <span className={`pill ${st}`} data-coach="status">{t(statusLabel(o, st))}</span>
+              {mark && (
+                <Link href="/moi/profil" className={`${styles.profileMark} ${mark.level === "warn" ? styles.profileWarn : ""}`} title={t("Votre profil financier")}>
+                  {mark[lang]}
+                </Link>
+              )}
               <div className={styles.headBtns}>
                 <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
                   {t("Fiche PDF")}
@@ -535,7 +546,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

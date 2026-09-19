@@ -76,6 +76,9 @@ export default async function MyPage() {
             {t(s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte")}
           </Link>
         )}
+        <Link href="/moi/profil" className="btn">
+          {t("Mon profil")}
+        </Link>
         <Link href="/moi/securite" className="btn">
           {t("Sécurité")}
         </Link>

@@ -159,6 +159,8 @@ export interface Intent {
   state: IntentState;
   phoneVerified?: boolean;
   emailVerified?: boolean;
+  /** The intention left the client's financial profile (horizon, tolerance): the words the client confirmed. */
+  profileFlag?: string;
   /** Results: share of the order served (0..100) and the units actually allocated. */
   allocationPct?: number;
   servedUnits?: number;
@@ -193,6 +195,7 @@ export interface NewIntentInput {
   /** Both channels proven when the intent left (the rule); kept with the intent for the desk. */
   phoneVerified?: boolean;
   emailVerified?: boolean;
+  profileFlag?: string;
 }
 
 /* ---------------- Intake (À valider) ---------------- */

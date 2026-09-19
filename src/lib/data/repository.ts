@@ -1,3 +1,4 @@
+import type { FinancialProfile } from "@/data/profile";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, Contact, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
@@ -67,6 +68,9 @@ export interface Repository {
   /** Proven channels of a client, and the proof itself (a code, six digits, ten minutes, five tries). */
   /** The legal text the client accepted: its version (a date) and when. */
   getConsent(userId: string): Promise<{ version?: string; at?: string }>;
+  /** The client's financial profile, as computed from their answers. */
+  getFinancialProfile(userId: string): Promise<FinancialProfile | undefined>;
+  setFinancialProfile(userId: string, p: FinancialProfile): Promise<void>;
   setConsent(userId: string, version: string): Promise<void>;
   getChannelStatus(userId: string): Promise<ChannelStatus>;
   markChannelVerified(userId: string, channel: "phone" | "email", target: string): Promise<void>;

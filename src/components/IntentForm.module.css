@@ -362,3 +362,25 @@
   color: var(--ink-3);
   font-size: 0.78rem;
 }
+
+/* an intention outside the client's profile: said, ticked, sent */
+.profileBox {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.profileBox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 1px;
+  accent-color: var(--navy);
+}

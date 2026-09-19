@@ -140,6 +140,11 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               <dt>{t("Contact pour cet ordre")}</dt>
               <dd>
                 {[it.contactPhone, it.contactEmail].filter(Boolean).join(" · ") || "—"}
+                {it.profileFlag && (
+                  <small style={{ display: "block", color: "var(--warn-ink, #9a5b00)", fontWeight: 700 }}>
+                    {t("Hors profil, confirmé par le client :")} {it.profileFlag}
+                  </small>
+                )}
                 {(it.phoneVerified || it.emailVerified) && (
                   <small className="muted" style={{ display: "block" }}>
                     {t(it.phoneVerified && it.emailVerified ? "WhatsApp et e-mail prouvés par code à l'envoi." : it.phoneVerified ? "WhatsApp prouvé par code ; e-mail non prouvé." : "E-mail prouvé ; WhatsApp non prouvé.")}
