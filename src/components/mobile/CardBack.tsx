@@ -119,10 +119,15 @@ function Spark({ curve }: { curve: LineCurve }) {
   const ly = y(pts[pts.length - 1].y);
   const label = fmtY(pts[pts.length - 1].y, curve.unit);
   const labelW = label.length * 5.6 + 6;
-  // The value sits left of the dot (the dot is at the right edge), above the line when the line is low, below when it is high.
-  const above = ly > (H - PAD_B) / 2 + PAD_T / 2;
+  // The value sits left of the dot, in whichever band the line leaves free over its last third: above its highest
+  // point there when there is more room above, under its lowest point otherwise; never on the line, never on the dates.
+  const tail = pts.filter((_, i) => x(i) >= lx - labelW - 10).map((p) => y(p.y));
+  const topY = Math.min(...tail);
+  const botY = Math.max(...tail);
+  const roomAbove = topY - PAD_T;
+  const roomBelow = H - PAD_B - botY;
   const tx = Math.max(PAD_L + labelW, lx - 8);
-  const ty = above ? ly - 7 : ly + 12;
+  const ty = roomAbove >= roomBelow ? Math.max(PAD_T + 8, topY - 5) : Math.min(H - PAD_B - 2, botY + 12);
   return (
     <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${curve.label} : ${label}`}>
       <path d={d} fill="none" stroke="var(--navy)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />

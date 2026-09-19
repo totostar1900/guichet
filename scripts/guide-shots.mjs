@@ -3,6 +3,9 @@
 // responsable through the dev cookie. Headless Chrome over CDP : no dependency.
 //   npm run guide:shots            (server on http://localhost:3000)
 //   BASE=http://localhost:3001 npm run guide:shots
+//   GROUP=desk | GROUP=client      (the desk needs the seed and the dev cookie; the client pages
+//                                   look better on real data: run them against `npm run dev`)
+//   ONLY=titres-phone,carte-dos    (a few keys)
 import { spawn } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
@@ -21,6 +24,11 @@ const secret = process.env.AUTH_SECRET ?? fromEnvFile ?? "guichet-dev-secret-cha
 const session = { userId: "dev-responsable-guide", role: "responsable", name: "Guide", segment: "Desk Purpose Capital", tier: 2, provider: "dev", mfaEnrolled: true, mfaVerified: true };
 const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
 const cookie = `${payload}.${createHmac("sha256", secret).update(payload).digest("base64url")}`;
+
+// The phone: onboarding and coaches marked seen, the cards detailed, the distinction « alternée », then a reload.
+const PHONE_PREP = (extra = "") => `localStorage.setItem('guichet:onboarded','1'); ['titres','fonds','fiche','info','aide','parcours'].forEach(k => localStorage.setItem('guichet:coach:'+k,'1')); localStorage.setItem('guichet:hint:swipe:fiche','1'); localStorage.setItem('guichet:cartes','detail'); localStorage.setItem('guichet:cartes:sep','zebra'); ${extra} setTimeout(() => location.reload(), 0); 'ok'`;
+// A finger on the n-th card: a pull to the left (actions) or to the right (the back), synthetic touches.
+const PULL = (dir, nth = 1, wait = 3500) => `await new Promise(r => setTimeout(r, 800)); const card = document.querySelectorAll('article')[${nth}]; card.scrollIntoView({ block: 'start' }); window.scrollBy(0, -70); await new Promise(r => setTimeout(r, 400)); const target = card.querySelector('b') || card; const mk = (type, x, y) => { const t = new Touch({ identifier: 1, target, clientX: x, clientY: y }); return new TouchEvent(type, { touches: type === 'touchend' ? [] : [t], changedTouches: [t], bubbles: true, cancelable: true }); }; const x0 = ${dir} < 0 ? 300 : 60; target.dispatchEvent(mk('touchstart', x0, 300)); for (const k of [20, 80, 150, 220]) { await new Promise(r => setTimeout(r, 25)); target.dispatchEvent(mk('touchmove', x0 + ${dir} * k, 302)); } await new Promise(r => setTimeout(r, 30)); target.dispatchEvent(mk('touchend', x0 + ${dir} * 220, 302)); await new Promise(r => setTimeout(r, ${wait})); 'ok'`;
 
 const SHOTS = [
   ["carnet", "/desk"],
@@ -51,6 +59,16 @@ const SHOTS = [
   ["onboarding-info", "/info", { width: 390, height: 780, prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
   ["onboarding-aide", "/info/aide", { width: 390, height: 780, prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:aide','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
   ["premiers-pas", "/info?premiers-pas=1", { width: 390, height: 844, prep: "localStorage.setItem('guichet:onboarded','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 5000, then: "await new Promise(r=>setTimeout(r,800)); const d=[...document.querySelectorAll('[role=dialog]')].pop(); for (let k=0;k<4;k++){ [...d.querySelectorAll('button')].find(b=>/Continuer|Continue/.test(b.textContent))?.click(); await new Promise(r=>setTimeout(r,450)); } await new Promise(r=>setTimeout(r,600)); 'ok'" }],
+  // The phone: the cards, their two densities, a card pulled left (Déclarer · Me rappeler) and turned over (calendar or curve, then the reference), the « ··· » sheet, the card settings.
+  ["titres-phone", "/?vue=cards", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, then: "window.scrollTo(0, 430); await new Promise(r => setTimeout(r, 400)); 'ok'" }],
+  ["titres-compact", "/?vue=cards", { width: 390, height: 844, prep: PHONE_PREP("localStorage.setItem('guichet:cartes','compact'); localStorage.setItem('guichet:cartes:sep','zebrahalf');"), settle: 4000, then: "window.scrollTo(0, 430); await new Promise(r => setTimeout(r, 400)); 'ok'" }],
+  ["carte-actions", "/?vue=cards", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, then: PULL(-1, 1, 800) }],
+  ["carte-dos", "/?vue=cards&marche=secondaire", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, then: PULL(1, 2, 5000) }],
+  ["fonds-phone", "/fonds", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, then: "window.scrollTo(0, 980); await new Promise(r => setTimeout(r, 400)); 'ok'" }],
+  ["fonds-dos", "/fonds", { width: 390, height: 844, prep: PHONE_PREP("localStorage.setItem('guichet:cartes','compact');"), settle: 4000, then: PULL(1, 1, 5000) }],
+  ["menu-ligne", "/?vue=cards", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, then: "window.scrollTo(0, 430); await new Promise(r => setTimeout(r, 400)); document.querySelectorAll('[aria-label=\"Plus d\'actions\"]')[0]?.click(); await new Promise(r => setTimeout(r, 700)); 'ok'" }],
+  ["affichage-cartes", "/?vue=cards", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, then: "document.querySelector('[aria-label=\"Affichage des cartes\"]')?.click(); await new Promise(r => setTimeout(r, 700)); 'ok'" }],
+  ["fiche-phone", "/?vue=cards", { width: 390, height: 844, prep: PHONE_PREP(), settle: 4000, follow: "article a[href^=\"/offres/\"]", then: "window.scrollTo(0, 120); await new Promise(r => setTimeout(r, 400)); 'ok'" }],
   ["robot", "/desk/robot"],
   ["approbations", "/desk/approbations"],
   ["referentiel", "/desk/referentiel"],
@@ -109,7 +127,12 @@ async function evaluate(expression) {
   return r.result?.value;
 }
 
+const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(",")) : null;
+const GROUP = process.env.GROUP; // desk | client
 for (const [key, path, opts = {}] of SHOTS) {
+  if (ONLY && !ONLY.has(key)) continue;
+  if (GROUP === "desk" && !path.startsWith("/desk")) continue;
+  if (GROUP === "client" && path.startsWith("/desk")) continue;
   let url = `${BASE}${path}`;
   const W = opts.width ?? 1366;
   if (path === "/desk?first-intent") {
@@ -126,13 +149,22 @@ for (const [key, path, opts = {}] of SHOTS) {
   // A page may need a gesture first (dismiss the onboarding, open a screen…).
   if (opts.prep) await evaluate(`(async () => { ${opts.prep} })()`);
   if (opts.settle) await sleep(opts.settle);
+  // A shot of the page behind a link of this one (the first card's fiche).
+  if (opts.follow) {
+    const href = await evaluate(`document.querySelector('${opts.follow}')?.getAttribute('href') ?? ''`);
+    if (!href) continue;
+    await send("Page.navigate", { url: `${BASE}${href}` });
+    await sleep(4500);
+  }
   if (opts.then) await evaluate(`(async () => { ${opts.then} })()`);
   // Let images and fonts settle, then a full-height capture, capped.
   const measured = Number(await evaluate("document.documentElement.scrollHeight"));
   const height = opts.height ?? Math.min(opts.maxHeight ?? 1800, Number.isFinite(measured) && measured > 0 ? measured : 900);
+  // A phone shot keeps its viewport (the page is scrolled to the part that matters) : captured as seen, not beyond.
+  const asSeen = Boolean(opts.height);
   await send("Emulation.setDeviceMetricsOverride", { width: W, height, deviceScaleFactor: 1, mobile: W < 760 });
   await sleep(400);
-  const { data } = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: W, height, scale: 1 } });
+  const { data } = asSeen ? await send("Page.captureScreenshot", { format: "png" }) : await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: W, height, scale: 1 } });
   writeFileSync(`${OUT}${key}.png`, Buffer.from(data, "base64"));
   await send("Emulation.setDeviceMetricsOverride", { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false });
   console.log(`${key}.png (${height}px)`);
