@@ -50,7 +50,8 @@ export function SwipeActions({ id, onMore, children }: { id: string; onMore: () 
     };
     const onStart = (e: TouchEvent) => {
       if (!window.matchMedia("(max-width: 760px)").matches) return;
-      if ((e.target as HTMLElement).closest("button, a, input, select")) return;
+      // A control starts no pull, unless the card is already open: then a slide back from anywhere closes it (a tap still acts).
+      if (openX.current === 0 && (e.target as HTMLElement).closest("button, a, input, select")) return;
       d = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, lock: null, from: openX.current, cur: openX.current };
       c.classList.remove(styles.anim);
     };
@@ -62,7 +63,11 @@ export function SwipeActions({ id, onMore, children }: { id: string; onMore: () 
         if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return;
         d.lock = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
       }
-      if (d.lock !== "h") return;
+      if (d.lock !== "h") {
+        // Scrolling away from an open card closes it.
+        if (d.from < 0) close();
+        return;
+      }
       if (e.cancelable) e.preventDefault();
       let x = Math.min(0, d.from + dx);
       if (x < -REVEAL) x = -REVEAL + (x + REVEAL) * 0.35; // a rubber band past the actions
@@ -89,7 +94,8 @@ export function SwipeActions({ id, onMore, children }: { id: string; onMore: () 
         }, 220);
         return;
       }
-      openX.current = done.cur < -REVEAL * 0.4 ? -REVEAL : 0;
+      // From an open card any slide back of 40 px closes; from a closed one, 40 % of the actions opens.
+      openX.current = done.from < 0 ? (done.cur > -REVEAL + 40 ? 0 : -REVEAL) : done.cur < -REVEAL * 0.4 ? -REVEAL : 0;
       set(openX.current, true);
     };
     // A tap anywhere else closes an open card.
