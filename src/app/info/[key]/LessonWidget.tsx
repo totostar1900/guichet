@@ -67,7 +67,7 @@ function BondPrice({ live }: { live: Live }) {
           <b>{pct(input.couponRate)}</b>
         </div>
         <div>
-          <span>{t("Rendement actuariel")}</span>
+          <span>{t("Rendement actuariel annuel")}</span>
           <b className={styles.gold}>{pct(r.irr)}</b>
         </div>
       </div>
@@ -129,7 +129,7 @@ function BtaRate({ live }: { live: Live }) {
           <b>{fmt(Math.round(r.pricePerBond))}</b>
         </div>
         <div>
-          <span>{t("Rendement actuariel")}</span>
+          <span>{t("Rendement actuariel annuel")}</span>
           <b className={styles.gold}>{pct(r.yieldPct)}</b>
         </div>
       </div>

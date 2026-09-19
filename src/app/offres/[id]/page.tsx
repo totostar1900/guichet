@@ -68,13 +68,13 @@ function Kpis({ o }: { o: Offer }) {
           ]
       : o.kind === "MARCHE"
         ? [
-            [dy.atPar ? "Taux nominal · au pair" : o.instrument === "obligation" ? "Rendement actuariel brut au cours" : "Rendement du dernier dividende", yTxt, true],
+            [dy.atPar ? "Taux nominal · au pair" : o.instrument === "obligation" ? "Rendement actuariel annuel brut au cours" : "Rendement du dernier dividende", yTxt, true],
             [o.instrument === "obligation" ? "Coupon facial" : "Dernier dividende brut", o.instrument === "obligation" ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
             [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", false],
           ]
       : o.kind === "BTA"
         ? [
-            ["Rendement actuariel", y != null ? fmtPct(y, 2) : "—", true],
+            ["Rendement actuariel annuel", y != null ? fmtPct(y, 2) : "—", true],
             ["Taux précompté", fmtPct(o.precountRate ?? 0, 2), false],
             ["Durée", o.maturityOn ? `${daysBetween(o.settleOn, o.maturityOn)} jours` : "—", false],
           ]
@@ -120,7 +120,7 @@ async function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.outlay)} FCFA</div>
           <div>{t("Gain brut jusqu'au terme")}</div>
           <div>{fmt(r.gain)}</div>
-          <div className="hl">{t("Rendement actuariel brut")}</div>
+          <div className="hl">{t("Rendement actuariel annuel brut")}</div>
           <div>{fmtPct(r.irr, 2)}</div>
         </div>
         <FlowsChart r={r} settleOn={o.settleOn} />
@@ -144,7 +144,7 @@ async function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.redemption)}</div>
           <div>{t("Intérêt (précompté)")}</div>
           <div>{fmt(r.gain)}</div>
-          <div className="hl">{t("Rendement actuariel")}</div>
+          <div className="hl">{t("Rendement actuariel annuel")}</div>
           <div>{fmtPct(r.yieldPct, 2)}</div>
         </div>
       </>
@@ -199,7 +199,7 @@ async function Reference({ o }: { o: Offer }) {
             <div>{fmt(r.accrued)}</div>
             <div className="tot">{t("Décaissement (règlement T+{n})", { n: o.settlementDays ?? 3 })}</div>
             <div>{fmt(r.outlay)} FCFA</div>
-            <div className="hl">{t("Rendement actuariel brut à ce cours")}</div>
+            <div className="hl">{t("Rendement actuariel annuel brut à ce cours")}</div>
             <div>{fmtPct(r.irr, 2)}</div>
           </div>
           <FlowsChart r={r} settleOn={settleOn} />

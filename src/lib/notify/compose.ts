@@ -26,7 +26,7 @@ export function offerPublished(o: Offer, firstName?: string): Message {
   const y = headlineYield(o);
   const headline =
     o.kind === "OTA" || o.kind === "APE"
-      ? `${y != null ? fmtPct(y) : "—"} de rendement actuariel brut si servi à ${fmtPrice(o.pricePct ?? 100)} · coupon ${fmtPct(o.couponRate ?? 0, 2)}${o.maturityOn ? ` · ${tenorText(o.settleOn, o.maturityOn)}` : ""}`
+      ? `${y != null ? fmtPct(y) : "—"} de rendement actuariel annuel brut si servi à ${fmtPrice(o.pricePct ?? 100)} · coupon ${fmtPct(o.couponRate ?? 0, 2)}${o.maturityOn ? ` · ${tenorText(o.settleOn, o.maturityOn)}` : ""}`
       : o.kind === "BTA"
         ? `${y != null ? fmtPct(y) : "—"} de rendement actuariel à ${fmtPct(o.precountRate ?? 0, 2)} précompté · ${o.maturityOn ? tenorText(o.settleOn, o.maturityOn) : ""}`
         : o.kind === "ACTIONS"

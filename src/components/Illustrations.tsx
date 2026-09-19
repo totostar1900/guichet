@@ -19,7 +19,7 @@ export const ACTOR_LABEL: Record<ActorKind, string> = {
   client: "Vous",
 };
 
-const N = "var(--navy)";
+const N = "var(--chart-out)"; // navy on a light ground, pale blue on a dark one: the drawing never sinks into its ground
 const G = "var(--gold)";
 const GD = "var(--gold-ink)";
 const T = "#2a8a9a";

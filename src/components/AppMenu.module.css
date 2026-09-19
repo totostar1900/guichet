@@ -238,3 +238,14 @@ button.item:hover,
     padding: 11px 4px;
   }
 }
+
+/* a control at the right of a row: never wider than the row's half, small words */
+.side {
+  flex: 0 1 46%;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  text-align: right;
+}

@@ -94,9 +94,11 @@
     transform: rotateY(180deg);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    background: var(--info-soft);
+    /* unmistakably the other side: a warm ivory with a gold edge, nothing like the white front */
+    background: var(--back-face, #f4e9cf);
     color: var(--ink);
-    border: 1px solid var(--info);
+    border: 1px solid var(--gold);
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent);
     border-radius: var(--radius);
     padding: 12px 14px 14px;
     overflow: hidden;

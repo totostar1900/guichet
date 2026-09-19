@@ -37,7 +37,7 @@ export const EN_LESSONS: Record<string, string> = {
   "Vous payez 100, récupérez 100 : il ne reste que les coupons, donc le taux nominal.": "You pay 100, get 100 back: only the coupons remain, hence the coupon rate.",
   "Prix → rendement (curseur)": "Price → yield (slider)",
   "Prix en pourcentage du nominal": "Price as a percentage of par",
-  "Rendement actuariel brut": "Gross yield to maturity",
+  "Rendement actuariel annuel brut": "Gross annual yield to maturity",
   "au pair · 100 %": "at par · 100%",
 
   /* lesson 3 */

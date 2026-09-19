@@ -91,7 +91,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
   if (settle && maturity && parseDate(maturity) > parseDate(settle)) {
     if (kind === "OTA" || kind === "APE") {
       const r = bondCalc({ nominal: Number(v("nominal", d.nominal ?? 10000)) || 10000, couponRate: Number(v("couponRate", d.couponRate ?? 0)), settleOn: settle, maturityOn: maturity, lastCouponOn: v("lastCouponOn", d.lastCouponOn) || null }, 10_000_000, price);
-      preview = `${fmtPct(r.irr)} de rendement actuariel brut si servi à ${fmtPct(price, 0)} · coupon ${fmtPct(Number(v("couponRate", d.couponRate ?? 0)), 2)} · ${tenorText(settle, maturity)} · décaissement ${fmt(r.outlay)} pour 10 M de nominal${r.accruedDays ? ` (dont ${fmt(r.accrued)} de coupon couru, ${r.accruedDays} j)` : ""}`;
+      preview = `${fmtPct(r.irr)} de rendement actuariel annuel brut si servi à ${fmtPct(price, 0)} · coupon ${fmtPct(Number(v("couponRate", d.couponRate ?? 0)), 2)} · ${tenorText(settle, maturity)} · décaissement ${fmt(r.outlay)} pour 10 M de nominal${r.accruedDays ? ` (dont ${fmt(r.accrued)} de coupon couru, ${r.accruedDays} j)` : ""}`;
     } else if (kind === "BTA") {
       const r = btaCalc({ nominal: Number(v("nominal", d.nominal ?? 1_000_000)) || 1_000_000, settleOn: settle, maturityOn: maturity }, 1_000_000, rate);
       preview = `${fmtPct(r.yieldPct)} de rendement actuariel à ${fmtPct(rate, 2)} précompté · prix d'achat ${fmt(r.pricePerBond)} par bon · remboursé le ${maturity}`;

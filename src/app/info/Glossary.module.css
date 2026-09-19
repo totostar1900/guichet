@@ -119,18 +119,48 @@
   margin-bottom: 4px;
 }
 @media (max-width: 760px) {
+  /* the phone: the search on its own line, the categories as wrapping chips (nothing scrolls sideways or gets cut), the options under them */
   .bar {
-    max-width: 100%;
-  }
-  .tiles {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
     max-width: 100%;
-    min-width: 0;
-    flex: 1 1 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
   }
   .search {
-    flex-basis: 100%;
+    flex-basis: auto;
+    min-width: 0;
+    width: 100%;
+  }
+  .tiles {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    gap: 6px;
+  }
+  .tiles > button {
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    background: var(--surface);
+    padding: 6px 11px;
+  }
+  .tiles > button.on {
+    border-color: var(--navy);
+  }
+  .opt,
+  .check {
+    justify-content: space-between;
+  }
+  .gloss {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .term {
+    margin-left: 0;
+    padding: 10px 0;
+    border-radius: 0;
   }
 }

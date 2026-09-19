@@ -79,7 +79,7 @@ export function Simulator() {
           <>
             <div className={styles.tiles}>
               <div className={styles.gold}>
-                <span>{atPar ? "Taux nominal · au pair" : price < 100 ? "Rendement actuariel brut · décote" : "Rendement actuariel brut · prime"}</span>
+                <span>{atPar ? "Taux nominal · au pair" : price < 100 ? "Rendement actuariel annuel brut · décote" : "Rendement actuariel annuel brut · prime"}</span>
                 <b>{fmtPct(atPar ? coupon : r.irr, 2)}</b>
               </div>
               <div>
@@ -102,7 +102,7 @@ export function Simulator() {
               <div>{fmt(r.outlay)} FCFA</div>
               <div>{t("Gain brut jusqu'au terme")}</div>
               <div>{fmt(r.gain)}</div>
-              <div className="hl">{t(atPar ? "Taux nominal (au pair)" : "Rendement actuariel brut")}</div>
+              <div className="hl">{t(atPar ? "Taux nominal (au pair)" : "Rendement actuariel annuel brut")}</div>
               <div>{fmtPct(atPar ? coupon : r.irr, 2)}</div>
               {atPar && (
                 <>
@@ -122,7 +122,7 @@ export function Simulator() {
           <>
           <div className={styles.tiles}>
             <div className={styles.gold}>
-              <span>{t("Rendement actuariel brut")}</span>
+              <span>{t("Rendement actuariel annuel brut")}</span>
               <b>{fmtPct(r.yieldPct, 2)}</b>
             </div>
             <div>

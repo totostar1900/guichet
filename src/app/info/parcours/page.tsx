@@ -20,7 +20,7 @@ const STRIP: ActorKind[] = ["tresor", "entreprise", "gestion", "guichet", "svt",
 export default async function ParcoursPage() {
   const t = await getT();
   const lessons = (await loadLessons()).filter((l) => l.section).sort((a, b) => a.order - b.order);
-  const chapters = SECTIONS.map((s) => ({ id: `section-${s.key}`, title: `${s.order} · ${t(s.title)}` }));
+  const chapters = SECTIONS.map((s) => ({ id: `section-${s.key}`, title: `${String.fromCharCode(64 + s.order)} · ${t(s.title)}` }));
   return (
     <div className={`${docs.reader} ${docs.readerTwo}`}>
       <nav className={docs.nav} aria-label={t("Guide")} data-coach="parcours-nav">
@@ -44,7 +44,9 @@ export default async function ParcoursPage() {
           <p className="muted">{t("Cinq sections, vingt leçons de deux minutes. Ouvrez une section, lisez une leçon, répondez à sa question ; le parcours retient où vous en êtes. Les huit leçons « Lire une ligne » restent le premier pas ; ici, on prend du recul.")}</p>
           <div className={styles.strip} aria-hidden="true">
             {STRIP.map((k) => (
-              <Actor key={k} kind={k} size={72} />
+              <span key={k} className={styles.actor}>
+                <Actor kind={k} size={64} />
+              </span>
             ))}
             <span>{t("Les dix acteurs du parcours, dans l'ordre où votre argent les rencontre.")}</span>
           </div>

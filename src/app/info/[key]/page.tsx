@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SwipePager } from "@/components/mobile/SwipePager";
 import { notFound } from "next/navigation";
 import { repo } from "@/lib/data";
 import { displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
@@ -69,7 +70,17 @@ export default async function LessonPage({ params }: Props) {
 
   const t = await getT();
   if (live.title.startsWith("Exemple") || live.title === "Les quatre risques") live = { ...live, title: t(live.title) };
+  // On the phone, a lesson has neighbours under the finger: the previous and the next of its course (the next section's first after the last).
+  const prevL = i > 0 ? lessons[i - 1] : section ? parcours[parcours.findIndex((x) => x.key === key) - 1] : undefined;
+  const nextL = next ?? after;
+  const pos = (n: number) => `${section ? String.fromCharCode(64 + section.order) + " · " : ""}${n} / ${lessons.length}`;
   return (
+    <SwipePager
+      hintKey="lecon"
+      prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title), pos: i > 0 ? pos(i) : t("Section précédente") } : undefined}
+      next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title), pos: next ? pos(i + 2) : t("Section suivante") } : undefined}
+      hints={{ next: "Glissez vers la gauche : la leçon suivante", prev: "Glissez vers la droite : la leçon précédente" }}
+    >
     <div className={styles.wrap}>
       <Link href={section ? "/info/parcours" : "/info"} className={styles.back}>
         ← {section ? t("Comprendre le marché CEMAC") : t("Guide")}
@@ -77,7 +88,7 @@ export default async function LessonPage({ params }: Props) {
       <div className={styles.head}>
         <div className={`eyebrow ${styles.eyebrow}`}>
           {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
-          {section ? `${section.order} · ${t(section.title)} · ` : ""}
+          {section ? `${String.fromCharCode(64 + section.order)} · ${t(section.title)} · ` : ""}
           {t("Leçon {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
         </div>
         <h1 className="display">{t(l.title)}</h1>
@@ -97,5 +108,6 @@ export default async function LessonPage({ params }: Props) {
         {next ? <Link href={`/info/${next.key}`}>{t(next.title)} →</Link> : after ? <Link href={`/info/${after.key}`}>{t(after.title)} →</Link> : null}
       </nav>
     </div>
+    </SwipePager>
   );
 }

@@ -165,7 +165,7 @@ export function backFacts(o: Offer, now: Date): BackFacts {
             [`Prix ${fmtPrice(ref)}`, fmt(r.titles * r.pricePerTitle)],
             [`Coupon couru (${r.accruedDays} jours)`, fmt(r.accrued)],
             [`Décaissement (règlement T+${o.settlementDays ?? 3})`, `${fmt(r.outlay)} FCFA`],
-            ["Rendement actuariel brut à ce cours", fmtPct(r.irr, 2), true],
+            ["Rendement actuariel annuel brut à ce cours", fmtPct(r.irr, 2), true],
           ],
         },
       };

@@ -415,7 +415,7 @@ export const EN_REST: Record<string, string> = {
   "Titres cédés": "Securities sold",
   "Produit de cession à 100 %": "Sale proceeds at 100%",
   "réglé par le Trésor": "paid by the Treasury",
-  "Rendement actuariel brut à ce cours": "Gross yield to maturity at this price",
+  "Rendement actuariel annuel brut à ce cours": "Gross annual yield to maturity at this price",
   "Investi dans le fonds": "Invested in the fund",
   "Frais du fonds à la sortie": "Fund exit fee",
   "Prix (% du nominal)": "Price (% of par)",

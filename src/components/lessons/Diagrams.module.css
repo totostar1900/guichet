@@ -22,7 +22,7 @@
   fill: var(--ink-3);
 }
 .boxTitle {
-  fill: var(--navy);
+  fill: var(--chart-out);
 }
 .boxTitleGold {
   fill: var(--gold-ink);
@@ -32,7 +32,7 @@
 }
 .boxIssuers {
   fill: var(--surface);
-  stroke: var(--navy);
+  stroke: var(--chart-out);
   stroke-width: 1.5;
 }
 .boxMid {
@@ -41,7 +41,7 @@
   stroke-width: 1.5;
 }
 .boxYou {
-  fill: var(--navy);
+  fill: var(--chart-out);
 }
 .clientCard {
   fill: var(--surface);
@@ -147,17 +147,17 @@ a.node:hover .name {
   background: var(--ink-3);
 }
 .you {
-  border-top-color: var(--navy);
+  border-top-color: var(--chart-out);
 }
 .you .num {
-  background: var(--navy);
+  background: var(--chart-out);
 }
 .market {
   border-top-color: var(--gold);
 }
 .market .num {
   background: var(--gold);
-  color: var(--navy);
+  color: var(--chart-out);
 }
 .back {
   border-top-color: var(--good);
@@ -176,7 +176,7 @@ a.node:hover .name {
   font-style: normal;
 }
 .kYou {
-  color: var(--navy);
+  color: var(--chart-out);
 }
 .kMarket {
   color: var(--gold);
@@ -190,7 +190,7 @@ a.node:hover .name {
 .lifeTitleB {
   font-size: 12px;
   font-weight: 700;
-  fill: var(--navy);
+  fill: var(--chart-out);
 }
 .lifeTitleB {
   fill: #2a8a9a;
@@ -203,7 +203,7 @@ a.node:hover .name {
   fill: var(--crit);
 }
 .inA {
-  fill: var(--navy);
+  fill: var(--chart-out);
 }
 .inB {
   fill: #2a8a9a;
@@ -241,8 +241,8 @@ a.node:hover .name {
   background: var(--line-2);
 }
 .cO {
-  fill: var(--navy);
-  background: var(--navy);
+  fill: var(--chart-out);
+  background: var(--chart-out);
 }
 .cD {
   fill: #2a8a9a;

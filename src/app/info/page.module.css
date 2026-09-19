@@ -181,11 +181,26 @@
   align-items: center;
   padding: 14px 18px;
   margin: 0 0 52px;
-  border: 1.5px solid var(--gold);
+  border: 0;
   border-radius: var(--radius);
-  background: linear-gradient(180deg, var(--gold-soft), var(--surface) 90%);
+  background: var(--navy);
   text-decoration: none;
-  color: var(--ink);
+  color: #fff;
+}
+.parcours .eyebrow,
+.parcours small {
+  color: #dfe5ef;
+}
+.parcours b {
+  color: #fff;
+}
+.actorPlate {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 54px;
+  border-radius: 10px;
+  background: var(--surface);
 }
 .parcoursStrip {
   display: flex;
@@ -202,21 +217,25 @@
   font-size: 1.05rem;
 }
 .parcoursText small {
-  color: var(--ink-2);
+  color: #dfe5ef;
   font-size: 0.82rem;
   line-height: 1.45;
 }
 .parcoursGo {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--navy);
+  background: var(--gold);
+  border-radius: 999px;
+  padding: 8px 14px;
   white-space: nowrap;
+  justify-self: start;
 }
 @media (max-width: 760px) {
   .parcours {
     grid-template-columns: minmax(0, 1fr);
   }
   .parcoursStrip svg {
-    width: 44px;
-    height: 33px;
+    width: 40px;
+    height: 30px;
   }
 }

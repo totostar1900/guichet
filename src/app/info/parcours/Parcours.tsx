@@ -10,10 +10,12 @@ import { useT } from "@/i18n/client";
 import styles from "./page.module.css";
 
 /**
- * The five folding sections of the parcours. One section open at a time
- * the last one opened, else the first with an unread lesson. Progress comes
- * from the lessons the reader closed with their question (localStorage).
+ * The five folding sections of the parcours, lettered A to E (their lessons
+ * are numbered). One section open at a time: the last one opened, else the
+ * first with an unread lesson on the first visit; all five fold. Progress
+ * comes from the lessons the reader closed with their question (localStorage).
  */
+export const letter = (order: number) => String.fromCharCode(64 + order);
 const OPEN_KEY = "guichet:parcours:open";
 let listeners: (() => void)[] = [];
 const subscribe = (cb: () => void) => {
@@ -44,11 +46,11 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
   const isDone = (k: string) => done.includes(k);
   const bySection = (s: Section) => lessons.filter((l) => l.section === s.key);
   const firstUnread = sections.find((s) => bySection(s).some((l) => !isDone(l.key)))?.key ?? sections[0].key;
-  const current = open && sections.some((s) => s.key === open) ? open : firstUnread;
+  // "" is a choice too: the reader folded everything; null means never chosen, so the first unread opens.
+  const current = open === "" ? null : open && sections.some((s) => s.key === open) ? open : firstUnread;
   const setOpen = useCallback((k: string | null) => {
     try {
-      if (k) localStorage.setItem(OPEN_KEY, k);
-      else localStorage.removeItem(OPEN_KEY);
+      localStorage.setItem(OPEN_KEY, k ?? "");
     } catch {
       // storage unavailable
     }
@@ -88,12 +90,12 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
           <section key={s.key} id={`section-${s.key}`} className={`${styles.section} ${isOpen ? styles.open : ""}`} data-coach={s.order === 1 ? "parcours-section" : undefined}>
             <button type="button" className={styles.sectionHead} aria-expanded={isOpen} aria-controls={`lessons-${s.key}`} onClick={() => setOpen(isOpen ? null : s.key)}>
               <span className={`${styles.badge} ${doneN === ls.length && ls.length > 0 ? styles.badgeDone : doneN > 0 ? styles.badgeOn : ""}`} style={doneN === ls.length && ls.length > 0 ? { background: shapeColor(s) } : doneN > 0 ? { borderColor: shapeColor(s), color: shapeColor(s) } : undefined}>
-                {doneN === ls.length && ls.length > 0 ? "✓" : s.order}
+                {doneN === ls.length && ls.length > 0 ? "✓" : letter(s.order)}
               </span>
+              <SectionShape shape={s.shape} color={shapeColor(s)} size={24} />
               <span className={styles.headText}>
                 <b>
-                  <SectionShape shape={s.shape} color={shapeColor(s)} />
-                  {s.order} · {t(s.title)}
+                  {letter(s.order)} · {t(s.title)}
                 </b>
                 <small>
                   {t("{n} leçons", { n: ls.length })} · {ls.reduce((x, l) => x + l.minutes, 0)} min{doneN > 0 ? ` · ${doneN === ls.length ? t("lues") : t("{n} lues", { n: doneN })}` : ""}

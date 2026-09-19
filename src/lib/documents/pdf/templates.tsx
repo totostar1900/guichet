@@ -58,7 +58,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
       {p.irr != null && (
         <View style={s.box}>
           <Text>
-            Rendement actuariel brut si l&apos;ordre est servi à {p.priceLabel} : <Text style={s.b}>{fmtPct(p.irr, 2)}</Text>.
+            Rendement actuariel annuel brut si l&apos;ordre est servi à {p.priceLabel} : <Text style={s.b}>{fmtPct(p.irr, 2)}</Text>.
             {p.schedule.length > 0 && ` Premier flux le ${fmtDate(isoDay(p.schedule[0].date))} : ${fmt(p.schedule[0].amount)} FCFA${p.accruedDays ? " (dont récupération du coupon couru)" : ""}.`}
             {offer.maturityOn && ` Remboursement à 100 % le ${fmtDate(offer.maturityOn)}.`}
           </Text>
@@ -159,7 +159,7 @@ export function AvisResultat({ number, intent, offer, position: p, now, allocati
       )}
       {servedPos?.irr != null && (
         <Text style={s.p}>
-          Le règlement-livraison intervient le {fmtDate(offer.settleOn)}. Vous recevrez l&apos;avis d&apos;opéré dès confirmation de l&apos;inscription des titres à votre nom. Rendement actuariel brut sur la base du prix servi : <Text style={s.b}>{fmtPct(servedPos.irr, 2)}</Text>.
+          Le règlement-livraison intervient le {fmtDate(offer.settleOn)}. Vous recevrez l&apos;avis d&apos;opéré dès confirmation de l&apos;inscription des titres à votre nom. Rendement actuariel annuel brut sur la base du prix servi : <Text style={s.b}>{fmtPct(servedPos.irr, 2)}</Text>.
         </Text>
       )}
     </Letter>

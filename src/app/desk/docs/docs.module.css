@@ -447,9 +447,13 @@
 
 /* ---------- phone ---------- */
 @media (max-width: 760px) {
+  /* One column, and no grid: a sticky grid item is caged in its own grid area on Safari, so the chip row would never stick on an iPhone. As a block child, it follows the screen through the whole page. */
   .reader,
   .reader.readerTwo {
-    grid-template-columns: minmax(0, 1fr);
+    display: block;
+  }
+  .reader > * + * {
+    margin-top: 16px;
   }
   /* On a phone the pane becomes one row of chapter chips, stuck under the phone header; the rest of the tree is reachable from the tab bar. */
   .nav {

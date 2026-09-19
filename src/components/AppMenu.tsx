@@ -260,7 +260,9 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
               <span>
                 <b>{t("Alertes sur cet appareil")}</b>
               </span>
-              <PushToggle vapidKey={vapidKey} compact />
+              <span className={styles.side}>
+                <PushToggle vapidKey={vapidKey} compact />
+              </span>
             </div>
           )}
           {signedIn && !desk && (

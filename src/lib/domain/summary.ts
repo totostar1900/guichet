@@ -162,7 +162,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
         ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
       ],
       ledger: [
-        ["Rendement actuariel", yTxt, o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
+        ["Rendement actuariel annuel", yTxt, o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
         ["Clôture", dl(o.deadlineAt)],
         ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket", `${fmt(o.nominal)} FCFA`, "1 bon"],
@@ -276,7 +276,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       y != null
         ? dy.atPar
           ? `taux nominal · au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}`
-          : `${isBond ? "actuariel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
+          : `${isBond ? "actuariel annuel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
         : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? (o.maturityOn && o.maturityOn < localIso(now) ? `remboursée le ${fmtDate(o.maturityOn)}` : "échéance à préciser") : "pas de dividende connu"}`,
     heroUnit: dy.atPar ? "au pair · nominal" : `au cours ${priceTxt}`,
     gold: y != null && st === "quoted",

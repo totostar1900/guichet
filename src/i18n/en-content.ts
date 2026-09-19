@@ -6,7 +6,7 @@ export const EN_CONTENT: Record<string, string> = {
   "Combien d'années de bénéfice vous payez au cours du jour. Entre 5 et 12 est courant sur les marchés africains ; plus haut, le marché paie la croissance attendue ou la rareté du titre.": "How many years of earnings you pay at today's price. Between 5 and 12 is common on African markets; higher, the market is paying for expected growth or for the scarcity of the stock.",
   "Rendement du dividende": "Dividend yield",
   "Le dernier dividende brut divisé par le cours : ce que l'action verse chaque année si le dividende est maintenu, avant retenue à la source (16,5 % au Cameroun).": "The last gross dividend divided by the price: what the share pays each year if the dividend is maintained, before withholding tax (16.5% in Cameroon).",
-  "Rendement actuariel": "Yield to maturity",
+  "Rendement actuariel annuel": "Annual yield to maturity",
   "Ce que rapporte réellement un titre de dette acheté à ce prix et gardé jusqu'à l'échéance, coupons et coupon couru compris (convention Exact/Exact). Seule mesure comparable d'une ligne à l'autre.": "What a debt security really returns when bought at this price and held to maturity, coupons and accrued interest included (Actual/Actual convention). The only measure comparable from one line to another.",
   "Capitalisation": "Market capitalisation",
   "Le cours multiplié par toutes les actions de la société, flottant compris : la valeur que la bourse lui donne. La part réellement échangeable est bien plus petite (3 à 20 %).": "The price multiplied by all the company's shares, free float included: the value the exchange gives it. The part actually tradable is much smaller (3 to 20%).",

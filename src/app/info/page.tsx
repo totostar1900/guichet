@@ -3,8 +3,6 @@ import Link from "next/link";
 import { loadLessons } from "@/lib/reference";
 import { getRegistry } from "@/lib/registry";
 import { DoneMark } from "./[key]/Quiz";
-import { ReplayOnboarding } from "@/components/mobile/Onboarding";
-import { ReplayPresentation } from "@/components/mobile/Presentation";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
 import { Simulator } from "@/components/Simulator";
@@ -75,8 +73,6 @@ export default async function InfoPage() {
               <Link className="btn sm" href="/info/aide" data-coach="info-aide">
                 {t("Aide : vos questions, nos réponses")} →
               </Link>
-              <ReplayOnboarding />
-              <ReplayPresentation fromQuery />
             </Suspense>
           </div>
           {lessons.map((l) => (
@@ -96,7 +92,9 @@ export default async function InfoPage() {
         <Link href="/info/parcours" className={`${styles.parcours} ${styles.anchor}`} id="parcours" data-coach="info-parcours">
           <span className={styles.parcoursStrip} aria-hidden="true">
             {(["beac", "tresor", "guichet", "client"] as const).map((k) => (
-              <Actor key={k} kind={k} size={56} />
+              <span key={k} className={styles.actorPlate}>
+                <Actor kind={k} size={52} />
+              </span>
             ))}
           </span>
           <span className={styles.parcoursText}>
