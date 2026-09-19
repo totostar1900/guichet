@@ -23,6 +23,13 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
   const t = useT();
 
   const start = useCallback(() => setN(0), []);
+  // The app menu (« ⋮ ») replays this walk-through: it finds the label on the replay button below.
+  useEffect(() => {
+    if (!replayLabel) return;
+    const on = () => start();
+    window.addEventListener("guichet:coach:replay", on);
+    return () => window.removeEventListener("guichet:coach:replay", on);
+  }, [replayLabel, start]);
   useEffect(() => {
     if (!auto) return;
     try {
@@ -89,7 +96,7 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
 
   if (n == null) {
     return replayLabel ? (
-      <button type="button" className={`btn sm ghost ${styles.replay}`} onClick={start}>
+      <button type="button" className={`btn sm ghost ${styles.replay}`} data-coach-replay={replayLabel} onClick={start}>
         {replayLabel}
       </button>
     ) : null;

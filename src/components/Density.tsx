@@ -86,10 +86,36 @@ function DensityButtons() {
   );
 }
 
+/** Every card setting in one sheet: density, and how one card is told from the next. */
+export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
+  const sep = useDistinction();
+  return (
+    <Sheet open={open} onClose={onClose} title={t("Affichage des cartes")}>
+      <div className={styles.row}>
+        <span className={styles.label}>{t("Densité")}</span>
+        <span className={`${styles.dens} ${styles.densAll}`} role="group" aria-label={t("Densité des cartes")}>
+          <DensityButtons />
+        </span>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.label}>{t("Distinction entre les cartes")}</span>
+        <div className={styles.chips} role="group" aria-label={t("Distinction entre les cartes")}>
+          {DISTINCTIONS.map(([k, label]) => (
+            <button key={k} type="button" className={`${styles.chip} ${sep === k ? styles.chipOn : ""}`} aria-pressed={sep === k} onClick={() => write(SEP_KEY, k)}>
+              {t(label)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className={styles.hint}>{t("Le choix est gardé sur cet appareil, pour les titres et les fonds.")}</p>
+    </Sheet>
+  );
+}
+
 /** The two density icons, phone only, plus the « affichage » button that opens every card setting. */
 export function DensitySwitch({ className }: { className?: string }) {
   const t = useT();
-  const sep = useDistinction();
   const [open, setOpen] = useState(false);
   return (
     <span className={`${styles.wrap} ${className ?? ""}`}>
@@ -103,25 +129,7 @@ export function DensitySwitch({ className }: { className?: string }) {
           <circle cx="10" cy="17" r="2.2" />
         </svg>
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={t("Affichage des cartes")}>
-        <div className={styles.row}>
-          <span className={styles.label}>{t("Densité")}</span>
-          <span className={`${styles.dens} ${styles.densAll}`} role="group" aria-label={t("Densité des cartes")}>
-            <DensityButtons />
-          </span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.label}>{t("Distinction entre les cartes")}</span>
-          <div className={styles.chips} role="group" aria-label={t("Distinction entre les cartes")}>
-            {DISTINCTIONS.map(([k, label]) => (
-              <button key={k} type="button" className={`${styles.chip} ${sep === k ? styles.chipOn : ""}`} aria-pressed={sep === k} onClick={() => write(SEP_KEY, k)}>
-                {t(label)}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className={styles.hint}>{t("Le choix est gardé sur cet appareil, pour les titres et les fonds.")}</p>
-      </Sheet>
+      <CardDisplaySheet open={open} onClose={() => setOpen(false)} />
     </span>
   );
 }

@@ -76,7 +76,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signedIn: boolean; name?: string; desk: boolean; pendingCount?: number }) {
+export function MobileShell({ signedIn, name, desk, pendingCount = 0, menu }: { signedIn: boolean; name?: string; desk: boolean; pendingCount?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -160,6 +160,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0 }: { signed
               </Link>
             )
           )}
+          {menu}
         </div>
       </div>
 

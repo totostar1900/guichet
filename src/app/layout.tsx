@@ -19,6 +19,7 @@ import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
 import { LangSwitch } from "@/components/LangSwitch";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
+import { AppMenu } from "@/components/AppMenu";
 import { Suspense } from "react";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
@@ -49,9 +50,22 @@ async function countOffers(): Promise<{ titres: number; fonds: number } | undefi
   }
 }
 
+/** What the menu says under « Sécurité » : proven channels and trusted devices. Never fails the page. */
+async function securityLine(userId: string): Promise<{ channels: number; devices: number } | undefined> {
+  try {
+    const [ch, devices] = await Promise.all([repo().getChannelStatus(userId), repo().listDevices(userId)]);
+    return { channels: (ch.phoneVerifiedAt ? 1 : 0) + (ch.emailVerifiedAt || ch.email ? 1 : 0), devices: devices.length };
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
   const [session, registry, lang, t, navCounts] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers()]);
+  const desk = isDesk(session);
+  const security = session && !desk ? await securityLine(session.userId) : undefined;
+  const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={ui.variable}>
       <body>
@@ -77,10 +91,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <LangSwitch />
               </Suspense>
               <UserMenu session={session} />
+              {menu}
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} desk={isDesk(session)} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} desk={desk} menu={menu} />
         <Presentation />
         <Onboarding />
         <main className={styles.main}>{children}</main>

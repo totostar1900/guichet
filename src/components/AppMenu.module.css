@@ -1,0 +1,240 @@
+/* three vertical dots, white on the navy header */
+.dots {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+  padding: 0;
+  position: relative;
+}
+.dots svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+.dots:hover,
+.dots:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+}
+.dotsCoach {
+  z-index: 71;
+  background: var(--navy);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--gold), 0 0 0 14px rgba(200, 160, 74, 0.28);
+}
+
+/* the one-time landmark on the menu, after the two first-visit animations */
+.coach {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+.coachDim {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 37, 69, 0.55);
+}
+.coachTip {
+  position: absolute;
+  top: 66px;
+  right: 14px;
+  width: min(320px, calc(100vw - 28px));
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+  display: grid;
+  gap: 8px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+.coachTip::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 22px;
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  transform: rotate(45deg);
+}
+.coachTip b {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.coachTip > span {
+  color: var(--ink-2);
+}
+.coachEyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 800;
+}
+.coachFoot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* the menu */
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+.group {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 800;
+  padding: 10px 0 4px;
+}
+.group:first-child {
+  padding-top: 2px;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  padding: 10px 4px;
+  min-height: 46px;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0;
+}
+.item:first-of-type,
+.group + .item,
+.group + .tiles {
+  border-top: 0;
+}
+a.item:hover,
+button.item:hover,
+.item:focus-visible {
+  background: var(--surface-2);
+}
+.item > svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.item > svg.gold {
+  stroke: var(--gold-ink);
+}
+.item > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.item b {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.item small {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.good {
+  color: var(--good);
+  font-weight: 700;
+}
+.danger {
+  color: var(--crit);
+}
+.danger > svg {
+  stroke: var(--crit);
+}
+.form {
+  display: contents;
+}
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 2px 0 6px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+.tile:hover,
+.tile:focus-visible {
+  border-color: var(--gold);
+}
+.tile > svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--gold-ink);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tile b {
+  font-size: 0.84rem;
+}
+.tile small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
+  padding-top: 10px;
+  font-size: 0.7rem;
+  color: var(--ink-3);
+}
+.foot a {
+  color: var(--ink-3);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .menu {
+    min-width: 0;
+  }
+  .item {
+    padding: 11px 4px;
+  }
+}

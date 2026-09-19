@@ -105,3 +105,55 @@
     transition: none;
   }
 }
+
+/* a navy head: the sheet is a thing of its own, not a piece of the page */
+.navy .head {
+  background: var(--navy);
+  color: var(--on-navy);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+}
+.navy .close {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--on-navy);
+}
+.navy .grab {
+  background: rgba(255, 255, 255, 0.55);
+}
+.sub {
+  display: block;
+  font-weight: 500;
+  font-size: 0.74rem;
+  color: var(--gold);
+  margin-top: 2px;
+}
+/* a desk: docked under the header's right end, like a menu */
+.dockTopRight {
+  left: auto;
+  right: 14px;
+  top: 58px;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  max-height: calc(100vh - 72px);
+}
+.dockTopRight.sheetOpen {
+  transform: none;
+}
+@media (max-width: 760px) {
+  .navy .head {
+    border-radius: 18px 18px 0 0;
+  }
+  .dockTopRight,
+  .dockTopRight.sheetOpen {
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 88vh;
+  }
+  .dockTopRight {
+    transform: translateY(105%);
+  }
+  .dockTopRight.sheetOpen {
+    transform: none;
+  }
+}

@@ -10,7 +10,7 @@ import styles from "./Sheet.module.css";
  * tapped beside to close), a small dialog in the middle on a desk. The page
  * keeps its scroll position underneath; that is the point of it.
  */
-export function Sheet({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean }) {
+export function Sheet({ open, onClose, title, sub, children, wide, navy, dock }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -52,11 +52,14 @@ export function Sheet({ open, onClose, title, children, wide }: { open: boolean;
   return createPortal(
     <>
       <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
-      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className={styles.head}>
           <div className={styles.grab} />
           <div className={styles.titleRow}>
-            <b>{title}</b>
+            <b>
+              {title}
+              {sub && <small className={styles.sub}>{sub}</small>}
+            </b>
             <button type="button" className={styles.close} onClick={onClose} aria-label={t("Fermer")}>
               ×
             </button>
