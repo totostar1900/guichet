@@ -102,9 +102,15 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
     try {
       const key = `guichet:hint:swipe:${hintKey}`;
       if (!localStorage.getItem(key) && (prevHref || nextHref)) {
-        localStorage.setItem(key, "1");
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const timers = [window.setTimeout(() => setHint(true), 900), window.setTimeout(() => setHint(false), 4200)];
+        // The key is written when the word shows, not before: a cancelled run (a re-render, StrictMode) leaves a second chance.
+        const timers = [
+          window.setTimeout(() => {
+            localStorage.setItem(key, "1");
+            setHint(true);
+          }, 900),
+          window.setTimeout(() => setHint(false), 4200),
+        ];
         if (!reduced) timers.push(window.setTimeout(() => setNudge(true), 800), window.setTimeout(() => setNudge(false), 1900));
         return () => timers.forEach(clearTimeout);
       }
