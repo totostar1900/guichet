@@ -25,3 +25,27 @@
   opacity: 0.4;
   pointer-events: none;
 }
+.pos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.dots {
+  display: none;
+  gap: 4px;
+}
+.dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--line-2);
+}
+.dots .dotOn {
+  background: var(--gold);
+}
+@media (max-width: 760px) {
+  .dots {
+    display: inline-flex;
+  }
+}

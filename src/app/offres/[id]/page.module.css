@@ -235,3 +235,9 @@
     scroll-margin-top: 64px;
   }
 }
+@media (max-width: 760px) {
+  /* the PDF lives in the « ··· » sheet on the phone */
+  .pdfBtn {
+    display: none;
+  }
+}

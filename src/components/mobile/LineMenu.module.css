@@ -1,0 +1,199 @@
+.dots {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+  padding: 0;
+}
+.dots svg {
+  fill: currentColor;
+}
+.dots:hover,
+.dots:focus-visible {
+  color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--line-2);
+}
+.pressing {
+  background: var(--gold-soft) !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 37, 69, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s;
+  z-index: 60;
+}
+.scrimOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sheet {
+  position: fixed;
+  z-index: 61;
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.25);
+  /* a desk: a small dialog in the middle */
+  left: 50%;
+  top: 50%;
+  width: min(420px, calc(100vw - 32px));
+  border-radius: 14px;
+  padding: 10px 10px 10px;
+  transform: translate(-50%, -50%) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s, transform 0.18s;
+}
+.sheetOpen {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+.grab {
+  display: none;
+}
+.title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 4px 8px 2px;
+  line-height: 1.3;
+}
+.sub {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  padding: 0 8px 8px;
+}
+.action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  padding: 12px 8px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+}
+.action:hover,
+.action:focus-visible {
+  background: var(--surface-2);
+}
+.action:disabled {
+  opacity: 0.5;
+}
+.action svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.action small {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  text-align: right;
+  flex: none;
+}
+.cancel {
+  margin-top: 8px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: 10px;
+  padding: 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 64px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 62;
+  pointer-events: none;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+.toastOn {
+  opacity: 1;
+}
+@media (max-width: 760px) {
+  /* the phone: a bottom sheet, pulled down to close */
+  .sheet {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    max-height: 82vh;
+    border-radius: 18px 18px 0 0;
+    padding: 8px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(105%);
+    opacity: 1;
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .sheetOpen {
+    transform: none;
+  }
+  .drag {
+    transition: none;
+  }
+  .grab {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-2);
+    margin: 0 auto 10px;
+    flex: none;
+  }
+  .action {
+    padding: 13px 8px;
+    font-size: 0.94rem;
+  }
+  .toast {
+    top: auto;
+    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .scrim,
+  .toast {
+    transition: none;
+  }
+}

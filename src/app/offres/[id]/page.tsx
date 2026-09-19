@@ -13,6 +13,8 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { FichePanes, FicheSegments, StickyAction } from "@/components/mobile/FichePanes";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
+import { SwipePager } from "@/components/mobile/SwipePager";
+import { LineMenu } from "@/components/mobile/LineMenu";
 import { KpiCard } from "@/components/KpiCard";
 import { explainKpis } from "@/lib/domain/explain";
 import { summarize } from "@/lib/domain/summary";
@@ -377,6 +379,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
   return (
     <div className={styles.page}>
+      <SwipePager id={o.id}>
       <FichePanes className={styles.main}>
         <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
         <div className={styles.head}>
@@ -389,13 +392,14 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <div className={styles.headActions}>
               <span className={`pill ${st}`} data-coach="status">{t(statusLabel(o, st))}</span>
               <div className={styles.headBtns}>
-                <a className="btn sm" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
+                <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
                   {t("Fiche PDF")}
                 </a>
                 <Link className="btn sm ghost" href={`/comparer?a=${o.id}`}>
                   {t("Comparer")}
                 </Link>
                 <WatchButton offerId={o.id} initial={watching} signedIn={Boolean(session)} />
+                <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${summary.subtitle} · ${summary.hero} ${summary.heroUnit ?? ""}`.trim() }} watching={watching} onFiche={false} pdf />
                 <CoachMarks id="fiche" replayLabel={t("Comment lire cette fiche ?")} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />
               </div>
             </div>
@@ -517,6 +521,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </ul>
         </section>
       </FichePanes>
+      </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
         <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} />

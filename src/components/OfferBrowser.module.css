@@ -739,3 +739,22 @@
 .pickCard .reason {
   margin: 0 2px;
 }
+
+/* ---------- the « ··· » of a row ---------- */
+.rowBtns {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.rowWrap {
+  position: relative;
+  min-width: 0;
+}
+.rowWrap .row {
+  padding-right: 44px;
+}
+.rowDots {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}

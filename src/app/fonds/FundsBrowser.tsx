@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
+import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
@@ -16,6 +17,7 @@ import { useT } from "@/i18n/client";
 export interface FundRow {
   id: string;
   title: string;
+  isin: string;
   category: FundNav["category"];
   frequency: FundNav["frequency"];
   manager: string;
@@ -76,6 +78,52 @@ const setFamilies = (open: boolean) => {
 const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`);
 const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
 const num = (v?: number) => (v == null ? -Infinity : v);
+
+/** One row of the table; the « ··· » and a long press on the row open the same sheet. */
+function FundTr({ r }: { r: FundRow }) {
+  const t = useT();
+  const ref = useRef<HTMLTableRowElement>(null);
+  return (
+    <tr ref={ref}>
+      <td className={styles.name}>
+        <Link href={`/offres/${r.id}`}>{r.title}</Link>
+        <small>
+          {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
+          {r.open ? ` · ${t("souscription ouverte")}` : ""}
+        </small>
+      </td>
+      <td className={styles.hideSm}>
+        {r.manager}
+        <br />
+        <small className="muted">{r.depositary}</small>
+      </td>
+      <td className={styles.r}>
+        <b>{fmt(r.nav)}</b>
+        <br />
+        <small className="muted">{fmtDate(r.navDate)}</small>
+      </td>
+      <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
+      <td className={`${styles.r} ${cls(r.perf1yPct)}`}>{signed(r.perf1yPct)}</td>
+      <td className={`${styles.r} ${styles.hideSm} ${cls(r.perfSinceInceptionPct)}`}>
+        {signed(r.perfSinceInceptionPct)}
+        {r.inceptionDate && (
+          <>
+            <br />
+            <small className="muted">{t("depuis le")} {fmtDate(r.inceptionDate)}</small>
+          </>
+        )}
+      </td>
+      <td className={styles.r}>
+        <span className={styles.rowBtns}>
+          <Link className="btn sm ghost" href={`/offres/${r.id}`}>
+            {t("Voir la fiche")}
+          </Link>
+          <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} pressOn={ref} />
+        </span>
+      </td>
+    </tr>
+  );
+}
 
 export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const t = useT();
@@ -140,7 +188,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const orderKey = rowsShown.map((r) => r.id).join(",");
   useEffect(() => {
-    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Tous les fonds" });
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Tous les fonds", titles: rowsShown.map((r) => r.title) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listUrl, orderKey]);
   useListScroll(listUrl);
 
@@ -229,41 +278,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               </thead>
               <tbody>
                 {rowsShown.map((r) => (
-                  <tr key={r.id}>
-                    <td className={styles.name}>
-                      <Link href={`/offres/${r.id}`}>{r.title}</Link>
-                      <small>
-                        {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
-                        {r.open ? ` · ${t("souscription ouverte")}` : ""}
-                      </small>
-                    </td>
-                    <td className={styles.hideSm}>
-                      {r.manager}
-                      <br />
-                      <small className="muted">{r.depositary}</small>
-                    </td>
-                    <td className={styles.r}>
-                      <b>{fmt(r.nav)}</b>
-                      <br />
-                      <small className="muted">{fmtDate(r.navDate)}</small>
-                    </td>
-                    <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
-                    <td className={`${styles.r} ${cls(r.perf1yPct)}`}>{signed(r.perf1yPct)}</td>
-                    <td className={`${styles.r} ${styles.hideSm} ${cls(r.perfSinceInceptionPct)}`}>
-                      {signed(r.perfSinceInceptionPct)}
-                      {r.inceptionDate && (
-                        <>
-                          <br />
-                          <small className="muted">{t("depuis le")} {fmtDate(r.inceptionDate)}</small>
-                        </>
-                      )}
-                    </td>
-                    <td className={styles.r}>
-                      <Link className="btn sm ghost" href={`/offres/${r.id}`}>
-                        {t("Voir la fiche")}
-                      </Link>
-                    </td>
-                  </tr>
+                  <FundTr key={r.id} r={r} />
                 ))}
               </tbody>
             </table>

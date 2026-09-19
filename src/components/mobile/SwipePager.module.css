@@ -1,0 +1,109 @@
+.pager {
+  position: relative;
+  min-width: 0;
+}
+.cur {
+  min-width: 0;
+}
+.peek,
+.hint {
+  display: none;
+}
+@media (max-width: 760px) {
+  .pager {
+    overflow-x: clip;
+  }
+  .dragging {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .cur {
+    will-change: transform;
+  }
+  .anim {
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  /* the neighbour, as a card of the same shape: its place in the list and its title */
+  .peek {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: absolute;
+    inset: 0;
+    padding: 18px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    pointer-events: none;
+    will-change: transform;
+  }
+  .prev {
+    transform: translateX(-100%);
+  }
+  .next {
+    transform: translateX(100%);
+  }
+  .peekPos {
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .peek b {
+    font-size: 1.15rem;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+  .fromRight {
+    animation: fromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .fromLeft {
+    animation: fromLeft 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .hint {
+    display: block;
+    position: fixed;
+    left: 50%;
+    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+    z-index: 40;
+  }
+  .hintOn {
+    opacity: 1;
+  }
+}
+@keyframes fromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes fromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fromRight,
+  .fromLeft {
+    animation: none;
+  }
+  .anim,
+  .hint {
+    transition: none;
+  }
+}

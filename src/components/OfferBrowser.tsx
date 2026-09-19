@@ -10,6 +10,7 @@ import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
+import { LineMenu } from "./mobile/LineMenu";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
@@ -193,43 +194,53 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
         <tbody>
           {groups.flatMap((g) => [
             ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
-            ...g.rows.map(({ o, s }) => (
-            <tr key={o.id} className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
-              <td className={styles.line}>
-                <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
-                {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
-              </td>
-              <td>
-                <StatusPill s={s} />
-              </td>
-              <td className={`${styles.r} num`}>
-                {s.deadlineParts ? s.deadlineParts[0] : t(s.deadline)}
-                {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
-              </td>
-              <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
-                <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
-                <small>{t(s.heroUnit ?? s.heroSub)}</small>
-              </td>
-              <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
-                {s.maturity}
-                {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
-              </td>
-              <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
-              <td className={`${styles.r} num`}>
-                {s.minimum}
-                {s.minimum !== "—" && <Info text={s.minimumSub} label={t("Ce ticket représente")} subtle />}
-              </td>
-              <td className={styles.r}>
-                <Link className="btn sm ghost" href={`/offres/${o.id}`}>
-                  {t("Voir la fiche")}
-                </Link>
-              </td>
-            </tr>
-            )),
+            ...g.rows.map(({ o, s }) => <TableRow key={o.id} o={o} s={s} featured={featured} />),
           ])}
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** One row of the table; a long press on it opens the « ··· » sheet. */
+function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
+  const t = useT();
+  const ref = useRef<HTMLTableRowElement>(null);
+  return (
+        <tr ref={ref} className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
+          <td className={styles.line}>
+            <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
+            {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+          </td>
+          <td>
+            <StatusPill s={s} />
+          </td>
+          <td className={`${styles.r} num`}>
+            {s.deadlineParts ? s.deadlineParts[0] : t(s.deadline)}
+            {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
+          </td>
+          <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
+            <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
+            <small>{t(s.heroUnit ?? s.heroSub)}</small>
+          </td>
+          <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
+            {s.maturity}
+            {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
+          </td>
+          <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
+          <td className={`${styles.r} num`}>
+            {s.minimum}
+            {s.minimum !== "—" && <Info text={s.minimumSub} label={t("Ce ticket représente")} subtle />}
+          </td>
+          <td className={styles.r}>
+            <span className={styles.rowBtns}>
+              <Link className="btn sm ghost" href={`/offres/${o.id}`}>
+                {t("Voir la fiche")}
+              </Link>
+              <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} pressOn={ref} />
+            </span>
+          </td>
+        </tr>
   );
 }
 
@@ -241,33 +252,44 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
     <div className={styles.list}>
       {groups.flatMap((g) => [
         ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
-        ...g.rows.map(({ o, s }) => (
-        <Link key={o.id} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
-          <div className={styles.rowMain}>
-            <LineIdentity o={o} s={s} size="lg" />
-            {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
-            <div className={styles.rowStatus}>
-              <StatusPill s={s} />
-            </div>
-          </div>
-          <dl className={styles.ledger}>
-            {s.ledger.map(([k, v, note], i) => (
-              <div key={k}>
-                <dt>{t(k)}</dt>
-                <dd className={i === 0 && s.gold ? styles.gold : undefined}>
-                  {v}
-                  {note && <small>{t(note)}</small>}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <div className={styles.rowAct}>{t("Voir la fiche")} →</div>
-        </Link>
-        )),
+        ...g.rows.map(({ o, s }) => <ListRow key={o.id} o={o} s={s} featured={featured} />),
       ])}
     </div>
   );
 }
+
+/** One row of the list: the « ··· » sits on the corner of the link (a button cannot live inside it); a long press opens the same sheet. */
+function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
+  const t = useT();
+  const ref = useRef<HTMLAnchorElement>(null);
+  return (
+    <div className={styles.rowWrap}>
+      <Link ref={ref} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+        <div className={styles.rowMain}>
+          <LineIdentity o={o} s={s} size="lg" />
+          {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+          <div className={styles.rowStatus}>
+            <StatusPill s={s} />
+          </div>
+        </div>
+        <dl className={styles.ledger}>
+          {s.ledger.map(([k, v, note], i) => (
+            <div key={k}>
+              <dt>{t(k)}</dt>
+              <dd className={i === 0 && s.gold ? styles.gold : undefined}>
+                {v}
+                {note && <small>{t(note)}</small>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className={styles.rowAct}>{t("Voir la fiche")} →</div>
+      </Link>
+      <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} pressOn={ref} className={styles.rowDots} />
+    </div>
+  );
+}
+
 
 /* ---------- phone: filters in a bottom sheet ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
@@ -486,7 +508,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const orderKey = [...picks, ...rest].map(({ o }) => o.id).join(",");
   useEffect(() => {
-    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres" });
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres", titles: [...picks, ...rest].map(({ o }) => o.title) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listUrl, orderKey]);
   useListScroll(listUrl);
   const render = (list: Row[], featured: boolean) =>

@@ -18,7 +18,9 @@ export interface ListMemory {
   url: string; // pathname + query of the list as it was shown
   ids: string[]; // the lines in the order shown
   label: string; // "Toutes les offres" | "Tous les fonds"
+  titles?: string[]; // same order: what the phone shows of the neighbour while the finger drags
 }
+
 
 export function rememberList(m: ListMemory) {
   try {
@@ -67,6 +69,13 @@ export function ListNav({ id, fallbackHref, fallbackLabel }: { id: string; fallb
             <span className={`btn sm ghost ${styles.off}`}>‹ {t("Précédente")}</span>
           )}
           <span className={styles.pos}>
+            {known.ids.length <= 10 && (
+              <span className={styles.dots} aria-hidden="true">
+                {known.ids.map((k, n) => (
+                  <i key={k} className={n === i ? styles.dotOn : undefined} />
+                ))}
+              </span>
+            )}
             {i + 1} / {known.ids.length}
           </span>
           {next ? (
