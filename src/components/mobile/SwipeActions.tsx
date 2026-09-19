@@ -23,7 +23,7 @@ import styles from "./SwipeActions.module.css";
 const REVEAL = 180;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, children }: { id: string; back?: React.ReactNode; children: React.ReactNode }) {
+export function SwipeActions({ id, back, onTurn, children }: { id: string; back?: React.ReactNode; onTurn?: (turned: boolean) => void; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
@@ -43,11 +43,23 @@ export function SwipeActions({ id, back, children }: { id: string; back?: React.
       f.classList.toggle(styles.anim, anim);
       f.style.transform = `${st.x ? `translateX(${st.x}px)` : ""} ${st.angle ? `rotateY(${st.angle}deg)` : ""}`.trim();
       el.classList.toggle(styles.open, st.x < 0);
-      el.classList.toggle(styles.turned, st.angle > 90);
-      // The wrapper takes the height of the face that shows, so the list flows around it.
-      const h = st.angle > 90 ? backEl.current?.scrollHeight : front.current?.offsetHeight;
-      el.style.height = h ? `${h}px` : "";
+      const turned = st.angle > 90;
+      if (el.classList.contains(styles.turned) !== turned) {
+        el.classList.toggle(styles.turned, turned);
+        onTurn?.(turned);
+      }
+      // The wrapper and the turning box take the height of the face that shows, so the list flows around it
+      // and the back (absolute in the turning box) is never clipped to the front.
+      fit(turned);
     };
+    const fit = (turned: boolean) => {
+      const h = turned ? backEl.current?.scrollHeight : front.current?.offsetHeight;
+      el.style.height = h ? `${h}px` : "";
+      f.style.height = turned && h ? `${h}px` : "";
+    };
+    // The back may grow once its curve arrives: the boxes follow.
+    const ro = backEl.current ? new ResizeObserver(() => { if (st.angle > 90) fit(true); }) : null;
+    if (backEl.current) ro?.observe(backEl.current.firstElementChild ?? backEl.current);
     const close = () => {
       st.x = 0;
       st.angle = 0;
@@ -145,6 +157,7 @@ export function SwipeActions({ id, back, children }: { id: string; back?: React.
       backNode?.removeEventListener("click", onBackTap);
       document.removeEventListener("touchstart", onDoc);
       document.removeEventListener("click", onDoc, true);
+      ro?.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, Boolean(back)]);
@@ -157,9 +170,11 @@ export function SwipeActions({ id, back, children }: { id: string; back?: React.
       flip.current.style.transform = "";
     }
     if (wrap.current) {
+      if (wrap.current.classList.contains(styles.turned)) onTurn?.(false);
       wrap.current.classList.remove(styles.open, styles.turned);
       wrap.current.style.height = "";
     }
+    if (flip.current) flip.current.style.height = "";
     fn?.();
   };
 

@@ -7,8 +7,8 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { allowedIntents } from "@/lib/domain/intent";
-import { displayStatus } from "@/lib/domain/status";
-import { normalizePhone, parseAmount, parseUnits } from "@/lib/format";
+import { displayStatus, displayYield } from "@/lib/domain/status";
+import { localIso, normalizePhone, parseAmount, parseUnits } from "@/lib/format";
 import { estimate } from "@/lib/domain/estimate";
 import { notifyIntentReceived } from "@/lib/notify/dispatch";
 import { INDIVISION_CEILING, isIndivision } from "@/lib/kyc/checklist";
@@ -122,4 +122,45 @@ export async function toggleWatch(offerId: string, on: boolean): Promise<{ ok: b
   revalidatePath(`/offres/${offerId}`);
   revalidatePath("/moi");
   return { ok: true, watching: on };
+}
+
+/**
+ * The curve on the back of a card, when the line has a past: the last sixty
+ * closes of a listed line, the last sixty NAVs of a fund, or, for new paper,
+ * the yields (BTA: the rates) served at the past auctions of the same
+ * Treasury and kind, three at least. Null when there is nothing to draw.
+ */
+export interface LineCurve {
+  label: string;
+  unit: "pct" | "price" | "fcfa" | "nav";
+  points: { x: string; y: number }[]; // ascending dates
+  note?: string; // the last point, said in words
+}
+export async function lineCurve(offerId: string): Promise<LineCurve | null> {
+  await loadRegistry();
+  const r = repo();
+  const o = await r.getOffer(offerId);
+  if (!o) return null;
+  if (o.kind === "MARCHE" && o.priceSource === "boc") {
+    const quotes = (await r.listQuotes(o.isin, 60)).filter((q) => q.close > 0).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+    if (quotes.length < 2) return null;
+    return { label: "Cours de clôture · BVMAC", unit: o.instrument === "obligation" ? "price" : "fcfa", points: quotes.map((q) => ({ x: q.sessionDate, y: q.close })) };
+  }
+  if (o.kind === "FONDS" && o.fund) {
+    const navs = (await r.listFundNavs(o.fund.key, 60)).sort((a, b) => a.navDate.localeCompare(b.navDate));
+    if (navs.length < 2) return null;
+    return { label: "Valeurs liquidatives", unit: "nav", points: navs.map((n) => ({ x: n.navDate, y: n.nav })) };
+  }
+  if (o.kind === "OTA" || o.kind === "APE" || o.kind === "BTA") {
+    const all = await r.listOffers();
+    const past = all
+      .filter((x) => x.kind === o.kind && x.issuer === o.issuer && x.id !== o.id && x.settleOn <= localIso(new Date()))
+      .map((x) => ({ x: x.settleOn, y: o.kind === "BTA" ? x.precountRate ?? null : displayYield(x).pct }))
+      .filter((p): p is { x: string; y: number } => p.y != null)
+      .sort((a, b) => a.x.localeCompare(b.x))
+      .slice(-12);
+    if (past.length < 3) return null;
+    return { label: o.kind === "BTA" ? `Taux précomptés · BTA de ${o.issuer}` : `Rendements servis · adjudications de ${o.issuer}`, unit: "pct", points: past };
+  }
+  return null;
 }

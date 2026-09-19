@@ -34,6 +34,11 @@ export interface FundRow {
   perfSinceInceptionPct: number;
   inceptionDate?: string;
   open: boolean; // open to subscription (the desk can close one)
+  entryFeePct: number;
+  exitFeePct: number;
+  minAmount: number;
+  cutoff?: string;
+  settlementDays?: number;
   featured?: string; // the desk's reason when the fund is « À la une »
 }
 

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
+import { CardBack } from "@/components/mobile/CardBack";
+import { fundBackFacts } from "@/lib/domain/back";
+import { useMemo, useState } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
@@ -25,39 +28,19 @@ export function FundCard({ r }: { r: FundRow }) {
   const t = useT();
   const compact = useDensity() === "compact";
   const href = `/offres/${r.id}`;
+  const [turned, setTurned] = useState(false);
+  const facts = useMemo(() => fundBackFacts(r), [r]);
+  const figures: [string, string, string?][] = [
+    ["Société de gestion", r.manager],
+    ["Dépositaire", r.depositary],
+    ["12 mois", signed(r.perf1yPct)],
+    ["Depuis l'origine", signed(r.perfSinceInceptionPct), r.inceptionDate ? fmtDate(r.inceptionDate) : undefined],
+  ];
   return (
     <SwipeActions
       id={r.id}
-      back={
-        <div className={styles.backGrid}>
-          <div>
-            <span>{t("Société de gestion")}</span>
-            <b>{r.manager}</b>
-          </div>
-          <div>
-            <span>{t("Dépositaire")}</span>
-            <b>{r.depositary}</b>
-          </div>
-          <div>
-            <span>{t("VL")}</span>
-            <b>{t(FUND_FREQUENCY_LABEL[r.frequency])}</b>
-            <em>{t("dernière")} {fmtDate(r.navDate)}</em>
-          </div>
-          <div>
-            <span>{t("Création du fonds")}</span>
-            <b>{r.inceptionDate ? fmtDate(r.inceptionDate) : "—"}</b>
-            {r.inceptionDate && <em>{t("depuis l'origine")} {signed(r.perfSinceInceptionPct)}</em>}
-          </div>
-          <div>
-            <span>ISIN</span>
-            <b className={styles.mono}>{r.isin}</b>
-          </div>
-          <div>
-            <span>{t("Catégorie")}</span>
-            <b>{t(FUND_CATEGORY_LABEL[r.category])}</b>
-          </div>
-        </div>
-      }
+      onTurn={setTurned}
+      back={<CardBack id={r.id} facts={facts} figures={compact ? figures : undefined} turned={turned} />}
     >
       <article className={`${styles.card} ${compact ? styles.compact : ""}`} style={{ ["--card-c" as string]: "var(--info)" }}>
         <div className={styles.head}>

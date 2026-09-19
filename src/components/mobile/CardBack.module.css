@@ -1,0 +1,180 @@
+.back {
+  display: grid;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+.sec {
+  border-top: 1px solid var(--line-2);
+  padding-top: 8px;
+  min-width: 0;
+}
+.sec:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.muted {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.lbl {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin-bottom: 4px;
+}
+.lbl i {
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+/* the four figures of the list (compact only) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+.grid > div {
+  min-width: 0;
+}
+.grid span,
+.calc span {
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.grid b {
+  display: block;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.grid em {
+  display: block;
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+/* the calendar: one column per step, the dots on a rail, each step wraps in its own column so nothing meets */
+.tl {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
+  gap: 0 4px;
+  position: relative;
+  padding-top: 14px;
+}
+.tl::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  height: 2px;
+  background: var(--line-2);
+}
+.tl > div {
+  position: relative;
+  min-width: 0;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  color: var(--ink-3);
+}
+.tl > div::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--line-2);
+  box-sizing: border-box;
+}
+.tl > div.on::before {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.tl > div.done::before {
+  background: var(--ink-3);
+  border-color: var(--ink-3);
+}
+.tl span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.tl b {
+  display: block;
+  color: var(--ink);
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+.tl > div.on b {
+  color: var(--gold-ink);
+}
+/* dated facts of a line without operation */
+.kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.76rem;
+  padding: 2px 0;
+}
+.kv span {
+  color: var(--ink-3);
+  min-width: 0;
+}
+.kv b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+/* the reference: a label that may wrap, a figure that never does */
+.calc > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 2px 0;
+  font-size: 0.76rem;
+}
+.calc > div > span {
+  font-size: 0.76rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-2);
+  font-weight: 500;
+  min-width: 0;
+}
+.calc b {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tot {
+  border-top: 1px solid var(--line-2);
+  margin-top: 2px;
+  padding-top: 4px !important;
+}
+.tot span,
+.tot b {
+  font-weight: 800 !important;
+  color: var(--ink) !important;
+}
+.spark {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 2px;
+}

@@ -7,6 +7,9 @@ import type { OfferSummary } from "@/lib/domain/summary";
 import { LineIdentity } from "./LineIdentity";
 import { LineMenu } from "./mobile/LineMenu";
 import { SwipeActions } from "./mobile/SwipeActions";
+import { CardBack } from "./mobile/CardBack";
+import { backFacts } from "@/lib/domain/back";
+import { useMemo, useState } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import styles from "./OfferCard.module.css";
@@ -24,28 +27,13 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
   const t = useT();
   const compact = useDensity() === "compact";
   const when = s.deadline === "continue" ? t("cotation continue") : t(s.deadline);
+  const [turned, setTurned] = useState(false);
+  const facts = useMemo(() => backFacts(o, new Date()), [o]);
   return (
     <SwipeActions
       id={o.id}
-      back={
-        <div className={styles.backGrid}>
-          {s.ledger.map(([k, v, note]) => (
-            <div key={k}>
-              <span>{t(k)}</span>
-              <b>{v}</b>
-              {note && <em>{t(note)}</em>}
-            </div>
-          ))}
-          <div>
-            <span>ISIN</span>
-            <b className={styles.mono}>{o.isin}</b>
-          </div>
-          <div>
-            <span>{t("Clôture")}</span>
-            <b>{when}</b>
-          </div>
-        </div>
-      }
+      onTurn={setTurned}
+      back={<CardBack id={o.id} facts={facts} figures={compact ? s.ledger : undefined} turned={turned} />}
     >
       <article className={`${styles.card} ${s.past ? styles.past : ""} ${compact ? styles.compact : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
         <div className={styles.head}>
