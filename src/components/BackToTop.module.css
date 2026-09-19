@@ -6,10 +6,10 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--navy);
-  box-shadow: 0 4px 14px rgba(11, 37, 69, 0.18);
+  border: 2px solid var(--gold);
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(11, 37, 69, 0.35);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -27,9 +27,9 @@
 }
 .btn:hover,
 .btn:focus-visible {
-  background: var(--navy);
-  color: var(--on-navy);
-  border-color: var(--navy);
+  background: var(--gold);
+  color: var(--navy);
+  border-color: var(--gold);
 }
 @media (max-width: 760px) {
   .btn {
@@ -37,8 +37,6 @@
     bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
     width: 40px;
     height: 40px;
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: blur(6px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
