@@ -1,0 +1,28 @@
+.wrap {
+  max-width: 720px;
+  display: grid;
+  gap: 8px;
+}
+.wrap h1 {
+  font-size: 1.5rem;
+  margin: 4px 0 0;
+}
+.version {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+.section {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.section h2 {
+  font-size: 1.02rem;
+  margin: 0 0 6px;
+}
+.section p {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}

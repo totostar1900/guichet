@@ -249,3 +249,7 @@ button.item:hover,
   color: var(--ink-3);
   text-align: right;
 }
+.footLinks {
+  display: flex;
+  gap: 10px;
+}

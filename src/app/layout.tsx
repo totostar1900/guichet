@@ -20,6 +20,8 @@ import { getLang, getT } from "@/i18n/server";
 import { LangSwitch } from "@/components/LangSwitch";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
+import { ConsentGate } from "@/components/ConsentGate";
+import { LEGAL_VERSION } from "@/data/legal";
 import { Suspense } from "react";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
@@ -65,6 +67,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [session, registry, lang, t, navCounts] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers()]);
   const desk = isDesk(session);
   const security = session && !desk ? await securityLine(session.userId) : undefined;
+  // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
+  const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
+  const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={ui.variable}>
@@ -96,6 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <MobileShell signedIn={Boolean(session)} name={session?.name} desk={desk} menu={menu} />
+        {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
         <main className={styles.main}>{children}</main>

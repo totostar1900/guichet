@@ -77,6 +77,7 @@ interface Store {
   documents: GeneratedDocument[];
   contacts: Contact[];
   channels: Map<string, ChannelStatus>;
+  consents: Map<string, { version: string; at: string }>;
   codes: ChannelCode[];
   devices: TrustedDevice[];
   notifications: Notification[];
@@ -114,6 +115,7 @@ function store(): Store {
       documents: [],
       contacts: structuredClone(SEED_CONTACTS),
       channels: new Map(),
+      consents: new Map(),
       codes: [],
       devices: [],
       notifications: [],
@@ -412,6 +414,12 @@ export const memoryRepository: Repository = {
   async updateWatch(id, patch) {
     const w = store().watches.find((x) => x.id === id);
     if (w) Object.assign(w, patch);
+  },
+  async getConsent(userId) {
+    return store().consents.get(userId) ?? {};
+  },
+  async setConsent(userId, version) {
+    store().consents.set(userId, { version, at: nowIso() });
   },
   async getChannelStatus(userId) {
     const c = store().contacts.find((x) => x.id === userId);

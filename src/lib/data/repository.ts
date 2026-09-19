@@ -65,6 +65,9 @@ export interface Repository {
   /** Client-side updates to reachability (phone, e-mail) : the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
   /** Proven channels of a client, and the proof itself (a code, six digits, ten minutes, five tries). */
+  /** The legal text the client accepted: its version (a date) and when. */
+  getConsent(userId: string): Promise<{ version?: string; at?: string }>;
+  setConsent(userId: string, version: string): Promise<void>;
   getChannelStatus(userId: string): Promise<ChannelStatus>;
   markChannelVerified(userId: string, channel: "phone" | "email", target: string): Promise<void>;
   createChannelCode(c: Omit<ChannelCode, "id" | "createdAt" | "attempts">): Promise<ChannelCode>;

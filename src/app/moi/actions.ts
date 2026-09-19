@@ -33,3 +33,14 @@ export async function contactAction(_p: ContactResult | null, form: FormData): P
   revalidatePath("/moi");
   return { ok: true, phone, email };
 }
+
+/** The client accepts the legal text, this version of it; the journal keeps the day. */
+export async function acceptTerms(version: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const s = await requireSession("/");
+  const { LEGAL_VERSION } = await import("@/data/legal");
+  if (version !== LEGAL_VERSION) return { ok: false, error: "Le texte a changé entre-temps : rechargez la page." };
+  await repo().setConsent(s.userId, version);
+  await repo().logEvent({ kind: "system", html: `Mentions acceptées (version ${version}) par <b>${s.name}</b>` });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

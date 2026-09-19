@@ -290,10 +290,15 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
             <span>
               {COMPANY.legalName} · {t("agrément COSUMAF")}
             </span>
-            <Link href="/info/aide#entretien" onClick={close}>
-              {t("À propos")}
-              {build ? ` · v${build}` : ""}
-            </Link>
+            <span className={styles.footLinks}>
+              <Link href="/info/mentions" onClick={close}>
+                {t("Mentions")}
+              </Link>
+              <Link href="/info/aide#entretien" onClick={close}>
+                {t("À propos")}
+                {build ? ` · v${build}` : ""}
+              </Link>
+            </span>
           </div>
         </div>
       </Sheet>

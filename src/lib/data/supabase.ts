@@ -719,6 +719,16 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("watchlist").update(row).eq("id", id);
     if (error) fail("updateWatch", error);
   },
+  async getConsent(userId) {
+    const { data, error } = await db().from("profiles").select("terms_version, terms_accepted_at").eq("id", userId).maybeSingle();
+    if (error) fail("getConsent", error);
+    const r = (data ?? {}) as { terms_version?: string | null; terms_accepted_at?: string | null };
+    return { version: u(r.terms_version), at: u(r.terms_accepted_at) };
+  },
+  async setConsent(userId, version) {
+    const { error } = await db().from("profiles").upsert({ id: userId, terms_version: version, terms_accepted_at: new Date().toISOString() }, { onConflict: "id" });
+    if (error) fail("setConsent", error);
+  },
   async getChannelStatus(userId) {
     const { data, error } = await db().from("profiles").select("phone, email, phone_verified_at, email_verified_at").eq("id", userId).maybeSingle();
     if (error) fail("getChannelStatus", error);
