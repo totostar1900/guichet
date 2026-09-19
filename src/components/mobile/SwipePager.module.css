@@ -25,17 +25,24 @@
   }
   /* the neighbour, as a card of the same shape: its place in the list and its title */
   .peek {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: block;
     position: absolute;
     inset: 0;
-    padding: 18px 16px;
+    padding: 0 16px;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     pointer-events: none;
     will-change: transform;
+  }
+  /* the words stay in view wherever the list was scrolled */
+  .peekBody {
+    position: sticky;
+    top: 68px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 0;
   }
   .prev {
     transform: translateX(-100%);

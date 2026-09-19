@@ -3,13 +3,14 @@
   right: 20px;
   bottom: 20px;
   z-index: 38;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2px solid var(--gold);
-  background: var(--navy);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(11, 37, 69, 0.35);
+  border: 1px solid var(--line-2);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--ink-2);
+  box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -27,16 +28,16 @@
 }
 .btn:hover,
 .btn:focus-visible {
-  background: var(--gold);
+  background: var(--surface);
   color: var(--navy);
-  border-color: var(--gold);
+  border-color: var(--navy);
 }
 @media (max-width: 760px) {
   .btn {
     right: 12px;
     bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

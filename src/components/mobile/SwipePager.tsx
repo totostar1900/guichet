@@ -212,16 +212,20 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       </div>
       {ready && prev && (
         <div className={`${styles.peek} ${styles.prev} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
-          <span className={styles.peekPos}>← {prev.pos}</span>
-          <b>{prev.title}</b>
-          <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
+          <div className={styles.peekBody}>
+            <span className={styles.peekPos}>← {prev.pos}</span>
+            <b>{prev.title}</b>
+            <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
+          </div>
         </div>
       )}
       {ready && next && (
         <div className={`${styles.peek} ${styles.next} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
-          <span className={styles.peekPos}>{next.pos} →</span>
-          <b>{next.title}</b>
-          <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
+          <div className={styles.peekBody}>
+            <span className={styles.peekPos}>{next.pos} →</span>
+            <b>{next.title}</b>
+            <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
+          </div>
         </div>
       )}
       <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">

@@ -33,14 +33,20 @@ import { offerRisks } from "@/lib/domain/sheet";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { COMPANY, PRODUCT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string }> };
 
+/** The title and the description a messaging app shows under a shared line, beside the drawn image: the figures, then who we are. */
 export async function generateMetadata({ params }: Props) {
   const o = await repo().getOffer((await params).id);
-  return { title: o ? o.title : "Offre" };
+  if (!o) return { title: "Offre" };
+  const s = summarize(o, new Date());
+  const bits = [`${o.kind === "FONDS" ? "VL " : ""}${s.hero} ${s.heroSub}`, s.deadline && s.deadline !== "continue" ? `clôture ${s.deadline}` : s.deadline === "continue" ? "cotation continue" : "", s.minimum !== "—" ? `ticket ${s.minimum}` : ""].filter(Boolean);
+  const description = `${bits.join(" · ")}. ${COMPANY.name}, ${COMPANY.licence.split(" · ")[0].replace(/^S/, "s")}.`;
+  return { title: o.title, description, openGraph: { title: o.title, description, type: "article", siteName: `${PRODUCT.name} · ${COMPANY.name}` }, twitter: { card: "summary_large_image", title: o.title, description } };
 }
 
 function Kpis({ o }: { o: Offer }) {

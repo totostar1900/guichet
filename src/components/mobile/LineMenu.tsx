@@ -159,8 +159,10 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className }: { l
             <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={close} aria-hidden="true" />
             <div ref={sheet} className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={t("Actions sur cette ligne")} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
               <div className={styles.grab} />
-              <div className={styles.title}>{line.title}</div>
-              {line.sub && <div className={styles.sub}>{line.sub}</div>}
+              <div className={styles.head}>
+                <div className={styles.title}>{line.title}</div>
+                {line.sub && <div className={styles.sub}>{line.sub}</div>}
+              </div>
               {items.map(([k, label, d, small]) => (
                 <button key={k} type="button" className={styles.action} onClick={() => act(k)} disabled={k === "suivre" && pending}>
                   <Icon d={d} />

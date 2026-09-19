@@ -1,7 +1,7 @@
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-top: 3px solid var(--card-c, var(--line-2));
+  border-top: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 14px 16px 14px;
   display: grid;
@@ -104,7 +104,6 @@
 .compact {
   padding: 9px 12px;
   gap: 4px;
-  border-top: 1px solid var(--line);
   border-left: 3px solid var(--card-c, var(--line-2));
   border-radius: 10px;
 }

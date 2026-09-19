@@ -20,6 +20,8 @@ export default async function FondsPage() {
   const titres = offers.filter((o) => !o.hidden && o.kind !== "FONDS").length;
 
   return (
+    <>
+    <BackToTop />
     <SwipePager prev={{ href: "/", title: t("Obligations, bons du Trésor et actions de la zone CEMAC"), pos: `${t("Titres")} · ${titres}` }} hintKey="liste" hints={{ next: "Glissez vers la gauche : les fonds", prev: "Glissez vers la droite : les titres" }}>
       <div className={styles.head}>
         <div>
@@ -44,7 +46,7 @@ export default async function FondsPage() {
       <p className={styles.note}>
         {t("Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds. Purpose Capital agit en distributeur : aucune détention pour compte de tiers, les parts sont au nom du porteur au registre du dépositaire.")}
       </p>
-      <BackToTop />
     </SwipePager>
+    </>
   );
 }
