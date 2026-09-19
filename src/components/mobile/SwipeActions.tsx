@@ -115,8 +115,9 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
     const onStart = (e: TouchEvent) => {
       if (!window.matchMedia("(max-width: 760px)").matches) return;
       const idle = st.x === 0 && st.angle === 0;
-      // A control starts no pull while the card is at rest; once open or turned, a slide from anywhere brings it back (a tap still acts).
-      if (idle && (e.target as HTMLElement).closest("button, a, input, select")) return;
+      // A button or a field starts no pull while the card is at rest; a link (the line's name) does: the pull is the gesture,
+      // the tap stays the link. Once open or turned, a slide from anywhere brings the card back.
+      if (idle && (e.target as HTMLElement).closest("button, input, select, [role=slider]")) return;
       d = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, lock: null, mode: null, fromX: st.x, fromAngle: st.angle, x: st.x, angle: st.angle };
       wake();
       f.classList.remove(styles.anim);
@@ -155,6 +156,9 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
       const done = d;
       d = null;
       if (done.lock !== "h" || !done.mode) return;
+      // The pull was the gesture: the click the browser fires after it must not follow the link under the finger.
+      swallow = true;
+      window.setTimeout(() => (swallow = false), 400);
       const w = el.clientWidth;
       if (done.mode === "actions") {
         if (done.x < -w * 0.7) {
@@ -195,6 +199,14 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
     const onBackTap = (e: Event) => {
       if (st.angle > 0 && (e.target as HTMLElement).closest("[data-recto]")) close();
     };
+    let swallow = false;
+    const onClick = (ev: MouseEvent) => {
+      if (!swallow) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      swallow = false;
+    };
+    el.addEventListener("click", onClick, true);
     el.addEventListener("touchstart", onStart, { passive: true });
     el.addEventListener("touchmove", onMove, { passive: false });
     el.addEventListener("touchend", onEnd);
@@ -205,6 +217,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
     const backNode = backEl.current;
     return () => {
       el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("click", onClick, true);
       el.removeEventListener("touchmove", onMove);
       el.removeEventListener("touchend", onEnd);
       el.removeEventListener("touchcancel", onEnd);
