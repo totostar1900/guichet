@@ -16,9 +16,13 @@ export function BackToTop({ screens = 0.8 }: { screens?: number }) {
   const [on, setOn] = useState(false);
   useEffect(() => {
     let raf = 0;
+    // Hysteresis: shown past the threshold, hidden again only well above it, so a phone's
+    // shrinking address bar or a bounce at the edge does not make it flicker.
     const check = () => {
       raf = 0;
-      setOn(window.scrollY > window.innerHeight * screens);
+      const y = window.scrollY;
+      const h = window.innerHeight;
+      setOn((prev) => (prev ? y > h * 0.3 : y > h * screens));
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(check);

@@ -37,7 +37,7 @@ export interface OfferSummary {
   secondary?: { label: string; intent: IntentType };
   /** Automatic and desk badges: « Sélection du desk », « Nouveau », « Clôture imminente ». */
   badges: Badge[];
-  facts: [string, string][]; // three facts for the card
+  facts: [string, string, string?][]; // three facts for the card: label, value, a note under it (the duration under a date)
   ledger: [string, string, string?][]; // four labelled figures for the list: label, value, note
   past: boolean;
 }
@@ -127,7 +127,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       secondary: past ? { label: "Question", intent: "info" } : { label: "Appétit", intent: "appetit" },
       facts: [
         ["Coupon", fmtPct(o.couponRate ?? 0, 2)],
-        ["Échéance", o.maturityOn ? `${fmtDate(o.maturityOn)} · ${tenor}` : tenor],
+        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket min.", `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`],
       ],
       ledger: [
@@ -157,7 +157,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
       primary: past ? null : st === "upcoming" ? { label: "Me réserver", intent: "appetit" } : { label: "Prise ferme", intent: "ferme" },
       secondary: past ? { label: "Question", intent: "info" } : { label: "Appétit", intent: "appetit" },
       facts: [
-        ["Remboursé", o.maturityOn ? `${fmtDate(o.maturityOn)} · ${tenor}` : "—"],
+        ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket min.", `${fmt(o.nominal)} FCFA`],
         ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
       ],
@@ -291,7 +291,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
     secondary: st === "quoted" ? { label: "Vendre", intent: "vente" } : { label: "Question", intent: "info" },
     facts: [
       [isBond ? "Coupon" : "Dividende", isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
-      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—"] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
     ],
     ledger: [

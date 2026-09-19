@@ -7,8 +7,7 @@
   height: 36px;
   border-radius: 50%;
   border: 1px solid var(--line-2);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(6px);
+  background: var(--surface);
   color: var(--ink-2);
   box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
   display: inline-flex;

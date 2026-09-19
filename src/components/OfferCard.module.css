@@ -24,7 +24,15 @@
   gap: 10px;
   min-width: 0;
 }
-.head > .pill {
+.corner {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin: -4px -8px 0 0;
+}
+.corner > .pill {
   flex: none;
 }
 .big {
@@ -69,6 +77,13 @@
   color: var(--ink-3);
   font-weight: 500;
 }
+.facts em {
+  display: block;
+  font-style: normal;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
 .facts b {
   font-size: 0.84rem;
   font-weight: 500;
@@ -83,24 +98,25 @@
 .link:hover {
   text-decoration: underline;
 }
-.act {
+.foot {
   display: flex;
-  gap: 6px;
+  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 .when {
-  margin-left: auto;
   color: var(--ink-3);
   font-size: 0.74rem;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.whenC {
+  display: none;
 }
 
-/* the facts of a card are read in order: the number first, then the action row */
-.row2 {
-  display: contents;
-}
-/* compact: two lines, the number and the action on the second */
+/* compact: two lines, the title with its status and « ··· », then the number, its condition and the date */
 .compact {
   padding: 9px 12px;
   gap: 4px;
@@ -109,8 +125,11 @@
 }
 .compact .head > :first-child > :not(:first-child),
 .compact .facts,
-.compact .act > a {
+.compact .foot {
   display: none;
+}
+.compact .head {
+  align-items: center;
 }
 .compact .head > :first-child > :first-child {
   white-space: nowrap;
@@ -118,37 +137,35 @@
   text-overflow: ellipsis;
   font-size: 0.88rem;
 }
-.compact .row2 {
-  display: flex;
+.compact .corner {
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 4px;
+  margin: 0 -8px 0 0;
 }
 .compact .big {
-  flex: 1;
-  min-width: 0;
   flex-wrap: nowrap;
   overflow: hidden;
+  align-items: center;
 }
 .compact .big b {
   font-size: 1.05rem;
+  white-space: nowrap;
+  flex: none;
 }
 .compact .big small {
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.compact .act {
+.compact .whenC {
+  display: inline;
   flex: none;
-  flex-wrap: nowrap;
-  gap: 8px;
-}
-.compact .when {
-  margin-left: 0;
   font-size: 0.7rem;
-}
-.compact .when {
-  order: -1;
+  color: var(--ink-3);
+  white-space: nowrap;
 }
 
 /* a fund's card: the same shape, its own identity lines and the sign of a performance */
@@ -178,17 +195,4 @@
 }
 .down {
   color: var(--crit);
-}
-.whenC {
-  display: none;
-}
-.compact .whenC {
-  display: inline;
-}
-.compact .whenD {
-  display: none;
-}
-.compact .big b {
-  white-space: nowrap;
-  flex: none;
 }

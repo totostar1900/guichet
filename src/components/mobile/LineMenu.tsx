@@ -29,7 +29,7 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-export function LineMenu({ line, watching, onFiche = true, pdf, className }: { line: LineRef; watching?: boolean; onFiche?: boolean; pdf?: boolean; className?: string }) {
+export function LineMenu({ line, watching, onFiche = true, pdf, className, openRef }: { line: LineRef; watching?: boolean; onFiche?: boolean; pdf?: boolean; className?: string; openRef?: React.MutableRefObject<(() => void) | null> }) {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -47,6 +47,14 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className }: { l
   );
 
   const close = useCallback(() => setOpen(false), []);
+  // The card's pull-to-reveal « Plus » opens this same sheet.
+  useEffect(() => {
+    if (!openRef) return;
+    openRef.current = () => setOpen(true);
+    return () => {
+      openRef.current = null;
+    };
+  }, [openRef]);
   const say = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(""), 1600);
