@@ -2,17 +2,20 @@
   position: relative;
   min-width: 0;
 }
-.under {
+.under,
+.back {
   display: none;
 }
-.card {
-  position: relative;
+.flip,
+.front {
   min-width: 0;
 }
 @media (max-width: 760px) {
   .wrap {
     border-radius: var(--radius);
     overflow: hidden;
+    perspective: 1400px;
+    transition: height 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .under {
     position: absolute;
@@ -30,7 +33,7 @@
     font: inherit;
     font-size: 0.68rem;
     font-weight: 700;
-    width: 72px;
+    width: 76px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -48,45 +51,61 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
-  .b3 svg {
-    fill: #fff;
-    stroke: none;
+  .handle {
+    width: 28px !important;
+    background: var(--surface-2);
+    color: var(--ink-3) !important;
+    font-size: 1.1rem !important;
+    border-right: 1px solid var(--line) !important;
   }
   .b1 {
-    background: var(--good);
-  }
-  .b2 {
     background: var(--navy);
   }
-  .b3 {
-    background: var(--gold-ink);
+  .b2 {
+    background: var(--warn);
   }
-  .card {
+  .flip {
+    position: relative;
     z-index: 1;
+    transform-style: preserve-3d;
     will-change: transform;
   }
   .anim {
-    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .toast {
-    position: fixed;
-    left: 50%;
-    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
-    background: var(--ink);
-    color: var(--paper);
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 999px;
-    z-index: 62;
+  .front {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  /* the back: navy, the figures the front keeps quiet; shown only once the card is turned, so it never bleeds through */
+  .back {
+    display: block;
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--navy);
+    color: var(--on-navy);
+    border-radius: var(--radius);
+    padding: 12px 14px 28px;
+    overflow: hidden;
+  }
+  /* once turned, the front takes no taps */
+  .turned .front {
     pointer-events: none;
-    max-width: calc(100vw - 32px);
-    text-align: center;
+  }
+  .backHint {
+    position: absolute;
+    left: 14px;
+    bottom: 8px;
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.55);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .anim {
+  .anim,
+  .wrap {
     transition: none;
   }
 }

@@ -2,7 +2,6 @@
 
 import { useT } from "@/i18n/client";
 import Link from "next/link";
-import { useRef } from "react";
 import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
@@ -18,15 +17,48 @@ const cls = (v?: number) => (v == null ? "" : v > 0 ? styles.up : v < 0 ? styles
  * A fund on the phone, the same shape as a security's card: the fund and
  * who runs it, the NAV large with its date, then twelve months · since
  * inception · change; the « ··· » in the corner, « Voir la fiche » at the
- * foot, and the pull to the left. Compact: the fund, the NAV, twelve months.
+ * foot; pulled left it offers « Déclarer » and « Me rappeler », pulled right
+ * it turns over (manager, depositary, NAV rhythm, inception, ISIN). Compact:
+ * the fund, the NAV, twelve months.
  */
 export function FundCard({ r }: { r: FundRow }) {
   const t = useT();
   const compact = useDensity() === "compact";
-  const more = useRef<(() => void) | null>(null);
   const href = `/offres/${r.id}`;
   return (
-    <SwipeActions id={r.id} onMore={() => more.current?.()}>
+    <SwipeActions
+      id={r.id}
+      back={
+        <div className={styles.backGrid}>
+          <div>
+            <span>{t("Société de gestion")}</span>
+            <b>{r.manager}</b>
+          </div>
+          <div>
+            <span>{t("Dépositaire")}</span>
+            <b>{r.depositary}</b>
+          </div>
+          <div>
+            <span>{t("VL")}</span>
+            <b>{t(FUND_FREQUENCY_LABEL[r.frequency])}</b>
+            <em>{t("dernière")} {fmtDate(r.navDate)}</em>
+          </div>
+          <div>
+            <span>{t("Création du fonds")}</span>
+            <b>{r.inceptionDate ? fmtDate(r.inceptionDate) : "—"}</b>
+            {r.inceptionDate && <em>{t("depuis l'origine")} {signed(r.perfSinceInceptionPct)}</em>}
+          </div>
+          <div>
+            <span>ISIN</span>
+            <b className={styles.mono}>{r.isin}</b>
+          </div>
+          <div>
+            <span>{t("Catégorie")}</span>
+            <b>{t(FUND_CATEGORY_LABEL[r.category])}</b>
+          </div>
+        </div>
+      }
+    >
       <article className={`${styles.card} ${compact ? styles.compact : ""}`} style={{ ["--card-c" as string]: "var(--info)" }}>
         <div className={styles.head}>
           <div className={styles.fundId}>
@@ -42,7 +74,7 @@ export function FundCard({ r }: { r: FundRow }) {
           </div>
           <div className={styles.corner}>
             <span className={`pill ${r.open ? "open" : "quoted"}`}>{t(r.open ? "Souscription ouverte" : "Information")}</span>
-            <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} openRef={more} />
+            <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />
           </div>
         </div>
         <div className={styles.big}>

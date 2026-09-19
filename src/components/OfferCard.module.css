@@ -227,3 +227,38 @@
   border-color: transparent;
   box-shadow: 0 1px 2px rgba(11, 37, 69, 0.08), 0 6px 18px rgba(11, 37, 69, 0.1);
 }
+
+/* the back of a card: the figures the front keeps quiet, on navy */
+.backGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  font-size: 0.82rem;
+}
+.backGrid > div {
+  min-width: 0;
+}
+.backGrid span {
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  font-weight: 700;
+}
+.backGrid b {
+  display: block;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  color: var(--on-navy);
+}
+.backGrid em {
+  display: block;
+  font-style: normal;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+.mono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+}
