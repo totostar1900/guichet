@@ -66,7 +66,15 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const emailOk = Boolean(session.email && session.email.toLowerCase() === contactEmail) || (authMode() === "dev" && Boolean(contactEmail));
   if (!emailOk) return { ok: false, error: "L'e-mail doit être celui de votre connexion : changez-le depuis Mon espace › Sécurité." };
   if (!channels.emailVerifiedAt && session.email) await r.markChannelVerified(session.userId, "email", session.email.toLowerCase());
-  const phoneOk = Boolean(channels.phoneVerifiedAt && channels.phone === contactPhone);
+  let phoneOk = Boolean(channels.phoneVerifiedAt && channels.phone === contactPhone);
+  if (!phoneOk) {
+    // The desk's WhatsApp link vouches for the number it was sent to: reaching the fiche through it is the proof.
+    const { readLineLink } = await import("@/lib/channels");
+    if (readLineLink(String(form.get("de") ?? "")) === contactPhone) {
+      await r.markChannelVerified(session.userId, "phone", contactPhone);
+      phoneOk = true;
+    }
+  }
   if (!phoneOk) return { ok: false, error: "Ce numéro WhatsApp n'est pas encore prouvé : saisissez le code reçu avant d'envoyer." };
   if (!allowedIntents(offer, displayStatus(offer)).includes(type)) return { ok: false, error: "Cette intention n'est plus possible sur cette offre." };
 

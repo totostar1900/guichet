@@ -140,6 +140,11 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               <dt>{t("Contact pour cet ordre")}</dt>
               <dd>
                 {[it.contactPhone, it.contactEmail].filter(Boolean).join(" · ") || "—"}
+                {(it.phoneVerified || it.emailVerified) && (
+                  <small className="muted" style={{ display: "block" }}>
+                    {t(it.phoneVerified && it.emailVerified ? "WhatsApp et e-mail prouvés par code à l'envoi." : it.phoneVerified ? "WhatsApp prouvé par code ; e-mail non prouvé." : "E-mail prouvé ; WhatsApp non prouvé.")}
+                  </small>
+                )}
               </dd>
               {(it.allocationPct != null || it.servedUnits != null || it.executedPrice != null) && (
                 <>

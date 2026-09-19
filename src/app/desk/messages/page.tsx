@@ -6,6 +6,7 @@ import { repo } from "@/lib/data";
 import type { InboundMessage, Notification } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/format";
 import { textMatch } from "@/lib/text";
+import { displayStatus, isPast } from "@/lib/domain/status";
 import { handledAction } from "./actions";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./page.module.css";
@@ -26,7 +27,9 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
-  const [inbound, notifications, contacts, intents] = await Promise.all([r.listInbound(1000), r.listNotifications(1000), r.listContacts(), r.listIntents()]);
+  const [inbound, notifications, contacts, intents, offers] = await Promise.all([r.listInbound(1000), r.listNotifications(1000), r.listContacts(), r.listIntents(), r.listOffers()]);
+  const now = new Date();
+  const lines = offers.filter((o) => !isPast(displayStatus(o, now))).map((o) => ({ id: o.id, title: o.title }));
   const threads = new Map<string, Thread>();
   const get = (key: string, channel: "whatsapp" | "email") => {
     let t = threads.get(key);
@@ -145,7 +148,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                 </li>
               ))}
             </ol>
-            <ReplyForm to={open.key} channel={open.channel} name={open.name} />
+            <ReplyForm to={open.key} channel={open.channel} name={open.name} lines={lines} />
           </div>
         ) : (
           <div className={styles.thread}>

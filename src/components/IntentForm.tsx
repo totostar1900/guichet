@@ -50,7 +50,7 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels, bridge }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string } }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -61,9 +61,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
-  const [who, setWho] = useState({ firstName, lastName, phone: phone || channels?.phone || "", email });
+  const [who, setWho] = useState({ firstName, lastName, phone: bridge?.phone || phone || channels?.phone || "", email });
   // The proofs: the phone as proven on the profile (or just now), the e-mail as the session's (or just proven by a guest).
-  const [provenPhone, setProvenPhone] = useState<string | null>(channels?.phoneVerifiedAt && channels.phone ? channels.phone : null);
+  const [provenPhone, setProvenPhone] = useState<string | null>(bridge?.phone ?? (channels?.phoneVerifiedAt && channels.phone ? channels.phone : null));
   const [provenEmail, setProvenEmail] = useState<string | null>(signedIn && email ? email.toLowerCase() : null);
   const phoneOk = Boolean(provenPhone && normalizePhone(who.phone) === provenPhone);
   // A session without e-mail (the dev backend) proves nothing: any well-formed e-mail passes there.
@@ -143,6 +143,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
       {!past && <div className={styles.priceLine}>{priceText}</div>}
       <form action={action} ref={formRef} data-at={step} className={styles.form}>
         <input type="hidden" name="offerId" value={offer.id} />
+        {bridge && <input type="hidden" name="de" value={bridge.token} />}
         <div className={styles.stepBar} aria-hidden="true">
           {[1, 2, 3].map((n) => (
             <i key={n} className={n <= step ? styles.stepDone : undefined} />
@@ -235,7 +236,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 {t("Téléphone (WhatsApp)")} <em className={styles.req}>· {t("requis")}</em>
               </span>
               <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 \(\)\.\-]{8,}" title={t("Numéro avec indicatif, ex. +237 6 87 67 67 67")} />
-              {phoneOk && <em className={styles.proven}>✓ {t("prouvé")}</em>}
+              {phoneOk && <em className={styles.proven}>✓ {t(bridge && normalizePhone(who.phone) === bridge.phone ? "reconnu par le lien WhatsApp du desk" : "prouvé")}</em>}
             </label>
             <label className="field">
               <span>

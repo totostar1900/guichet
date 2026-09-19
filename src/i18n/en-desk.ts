@@ -553,4 +553,12 @@ export const EN_MORE: Record<string, string> = {
   "Un doigt la prochaine fois ?": "A finger next time?",
   "Ajoutez cet appareil : Face ID, empreinte ou un code à 4 chiffres, et plus de code par e-mail à attendre.": "Add this device: Face ID, fingerprint or a 4-digit code, and no more e-mail code to wait for.",
   "Plus tard": "Later",
+  "WhatsApp et e-mail prouvés par code à l'envoi.": "WhatsApp and e-mail proven by code on sending.",
+  "WhatsApp prouvé par code ; e-mail non prouvé.": "WhatsApp proven by code; e-mail not proven.",
+  "E-mail prouvé ; WhatsApp non prouvé.": "E-mail proven; WhatsApp not proven.",
+  "Répondre avec la ligne": "Answer with the line",
+  "aucune": "none",
+  "La fiche, et un lien qui reconnaît ce numéro : l'intention ne demandera que le code e-mail.": "The fiche, and a link that recognises this number: the intention will ask for the e-mail code only.",
+  "La fiche de la ligne, en lien.": "The line's fiche, as a link.",
+  "reconnu par le lien WhatsApp du desk": "recognised by the desk's WhatsApp link",
 };

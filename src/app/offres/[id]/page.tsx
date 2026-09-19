@@ -37,7 +37,7 @@ import { COMPANY, PRODUCT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string; de?: string }> };
 
 /** The title and the description a messaging app shows under a shared line, beside the drawn image: the figures, then who we are. */
 export async function generateMetadata({ params }: Props) {
@@ -307,6 +307,10 @@ export default async function OfferPage({ params, searchParams }: Props) {
   }
   const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
   const channels = session ? await repo().getChannelStatus(session.userId) : undefined;
+  // Came through the desk's WhatsApp link: that number is vouched for, the form asks for the e-mail code only.
+  const { readLineLink } = await import("@/lib/channels");
+  const bridgedPhone = readLineLink(sp.de);
+  const bridge = bridgedPhone && sp.de ? { phone: bridgedPhone, token: sp.de } : undefined;
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
   const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
@@ -531,7 +535,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

@@ -63,3 +63,29 @@ export async function confirmPhoneProof(userId: string | undefined, rawPhone: st
   if (userId) await r.markChannelVerified(userId, "phone", phone);
   return { ok: true };
 }
+
+/* ---------- the bridge from a WhatsApp conversation ---------- */
+
+const LINK_TTL_MS = 30 * 24 * 3600 * 1000;
+const linkSign = (payload: string) => createHmac("sha256", pepper()).update(`line|${payload}`).digest("base64url").slice(0, 27);
+
+/**
+ * A guest who wrote on WhatsApp is answered with the line and a signed link:
+ * opening it counts as the WhatsApp proof for that number (the message reached
+ * them, they came back through it), so the intention asks for the e-mail code
+ * only. Thirty days, bound to the number.
+ */
+export function signLineLink(phone: string): string {
+  const payload = Buffer.from(`${normalizePhone(phone)}|${Date.now() + LINK_TTL_MS}`).toString("base64url");
+  return `${payload}.${linkSign(payload)}`;
+}
+
+/** The phone a link token vouches for, or null when it is forged or stale. */
+export function readLineLink(token: string | undefined): string | null {
+  if (!token) return null;
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig || sig !== linkSign(payload)) return null;
+  const [phone, exp] = Buffer.from(payload, "base64url").toString().split("|");
+  if (!phone || !exp || Number(exp) < Date.now()) return null;
+  return /^\+\d{8,15}$/.test(phone) ? phone : null;
+}
