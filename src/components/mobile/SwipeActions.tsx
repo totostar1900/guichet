@@ -12,8 +12,9 @@ import styles from "./SwipeActions.module.css";
  *   « ··· » leaves out on purpose: « Déclarer » (the intention form of the
  *   fiche) and « Me rappeler » (a reminder before the closing, the same
  *   form with « rappel » chosen); a long pull past 70 % fires « Déclarer »;
- * · pulled to the right, the card turns over: its back (`back`) shows what
- *   the front keeps quiet, the four figures of the list and the ISIN.
+ * · pulled to the right, the card turns over (a 3D turn): its light back
+ *   (`back`) shows what the front keeps quiet, the four figures of the
+ *   list and the ISIN.
  *
  * Leaving is easy: slide back from anywhere (40 px is enough), tap the « ‹ »
  * handle or the back itself, tap elsewhere, or scroll away. The first 8 px
