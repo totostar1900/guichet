@@ -266,7 +266,7 @@ export const EN: Record<string, string> = {
   "Pour 10 000 000 FCFA de nominal, au prix servi": "For 10,000,000 FCFA of nominal, at the price served",
   "T+3 · cotation continue": "T+3 · continuous trading",
   "Me rappeler": "Remind me",
-  "Toucher ou tirer pour retourner": "Tap or pull to turn back",
+  "Recto": "Front",
   "dernière": "latest",
   "Affichage des cartes": "Card display",
   "Densité": "Density",

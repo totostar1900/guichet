@@ -83,7 +83,7 @@
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
-  /* the back: light grey, the figures the front keeps quiet; shown only once the card is turned, so it never bleeds through */
+  /* the back: pale blue, unmistakably the other side; shown only once the card is turned, so it never bleeds through */
   .live .back {
     display: block;
   }
@@ -93,23 +93,31 @@
     transform: rotateY(180deg);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    background: var(--surface-2);
+    background: var(--info-soft);
     color: var(--ink);
-    border: 1px solid var(--line-2);
+    border: 1px solid var(--info);
     border-radius: var(--radius);
-    padding: 12px 14px 28px;
+    padding: 40px 14px 14px;
     overflow: hidden;
+  }
+  /* the one way back by touch: a button, top right, not a tap anywhere */
+  .recto {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: 1px solid var(--info);
+    background: var(--surface);
+    color: var(--info);
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 800;
+    padding: 5px 10px;
+    border-radius: 999px;
+    cursor: pointer;
   }
   /* once turned, the front takes no taps */
   .turned .front {
     pointer-events: none;
-  }
-  .backHint {
-    position: absolute;
-    left: 14px;
-    bottom: 8px;
-    font-size: 0.66rem;
-    color: var(--ink-3);
   }
 }
 @media (prefers-reduced-motion: reduce) {

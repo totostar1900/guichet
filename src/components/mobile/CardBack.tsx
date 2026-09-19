@@ -130,15 +130,15 @@ function Spark({ curve }: { curve: LineCurve }) {
   const ty = roomAbove >= roomBelow ? Math.max(PAD_T + 8, topY - 5) : Math.min(H - PAD_B - 2, botY + 12);
   return (
     <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${curve.label} : ${label}`}>
-      <path d={d} fill="none" stroke="var(--navy)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={lx} cy={ly} r="3.5" fill="var(--gold)" stroke="var(--surface-2)" strokeWidth="1.5" />
+      <path d={d} fill="none" stroke="var(--chart-out)" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={lx} cy={ly} r="3.5" fill="var(--gold)" stroke="var(--info-soft)" strokeWidth="1.5" />
       <text x={tx} y={ty} textAnchor="end" fontSize="9.5" fontWeight="700" fill="var(--gold-ink)" style={{ fontSize: 9.5 }}>
         {label}
       </text>
-      <text x={PAD_L} y={H - 4} fontSize="8.5" fill="var(--ink-3)" style={{ fontSize: 8.5 }}>
+      <text x={PAD_L} y={H - 4} fontSize="8.5" fill="var(--ink-2)" style={{ fontSize: 8.5 }}>
         {fmtDate(pts[0].x, false)}
       </text>
-      <text x={W - PAD_R} y={H - 4} textAnchor="end" fontSize="8.5" fill="var(--ink-3)" style={{ fontSize: 8.5 }}>
+      <text x={W - PAD_R} y={H - 4} textAnchor="end" fontSize="8.5" fill="var(--ink-2)" style={{ fontSize: 8.5 }}>
         {fmtDate(pts[pts.length - 1].x, false)}
       </text>
     </svg>

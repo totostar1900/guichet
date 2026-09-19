@@ -16,10 +16,16 @@ import styles from "./SwipeActions.module.css";
  *   (`back`) shows what the front keeps quiet, the four figures of the
  *   list and the ISIN.
  *
- * Leaving is easy: slide back from anywhere (40 px is enough), tap the « ‹ »
- * handle or the back itself, tap elsewhere, or scroll away. The first 8 px
- * decide between the page's scroll and the card's pull.
+ * Leaving the actions is easy: slide back from anywhere (40 px is enough),
+ * tap the « ‹ » handle, tap elsewhere, or scroll away. A turned card stays
+ * turned: it comes back on its own « Recto » button, on a deliberate pull
+ * to the left (half a turn), or when another card is turned (one back at a
+ * time); scrolling and tapping around it leave it be, since the reader is
+ * reading it. The first 8 px decide between the page's scroll and the
+ * card's pull.
  */
+// One turned card at a time: turning another one puts the previous back on its front.
+let turnedNow: (() => void) | null = null;
 const REVEAL = 180;
 const SLOP = 8;
 
@@ -72,10 +78,11 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
     };
     // The back may grow once its curve arrives: the boxes follow.
     const ro = backEl.current ? new ResizeObserver(() => { if (st.angle > 90) fit(true); }) : null;
-    if (backEl.current) ro?.observe(backEl.current.firstElementChild ?? backEl.current);
+    if (backEl.current) for (const child of Array.from(backEl.current.children)) ro?.observe(child);
     const close = () => {
       st.x = 0;
       st.angle = 0;
+      if (turnedNow === close) turnedNow = null;
       paint(true);
     };
     const onStart = (e: TouchEvent) => {
@@ -97,7 +104,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
         if (d.lock === "h") d.mode = d.fromAngle > 0 ? "flip" : d.fromX < 0 ? "actions" : dx < 0 ? "actions" : back ? "flip" : null;
       }
       if (d.lock !== "h") {
-        if (d.fromX < 0 || d.fromAngle > 0) close(); // scrolling away closes
+        if (d.fromX < 0) close(); // scrolling away closes the actions; a turned card is being read, it stays
         d = null;
         return;
       }
@@ -144,16 +151,21 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
         paint(true);
         return;
       }
-      // The turn: from the front, a quarter turn is enough; from the back, 30 degrees back is enough.
-      st.angle = done.fromAngle > 0 ? (done.angle < 150 ? 0 : 180) : done.angle > 90 ? 180 : 0;
+      // The turn: from the front, a quarter turn is enough; from the back, a deliberate half turn back.
+      st.angle = done.fromAngle > 0 ? (done.angle < 90 ? 0 : 180) : done.angle > 90 ? 180 : 0;
       st.x = 0;
+      if (st.angle === 180) {
+        if (turnedNow && turnedNow !== close) turnedNow();
+        turnedNow = close;
+      }
       paint(true);
     };
+    // A tap elsewhere closes the actions, never the back (the reader is reading it).
     const onDoc = (e: Event) => {
-      if ((st.x < 0 || st.angle > 0) && !el.contains(e.target as Node)) close();
+      if (st.x < 0 && !el.contains(e.target as Node)) close();
     };
-    const onBackTap = () => {
-      if (st.angle > 0) close();
+    const onBackTap = (e: Event) => {
+      if (st.angle > 0 && (e.target as HTMLElement).closest("[data-recto]")) close();
     };
     el.addEventListener("touchstart", onStart, { passive: true });
     el.addEventListener("touchmove", onMove, { passive: false });
@@ -173,6 +185,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       document.removeEventListener("click", onDoc, true);
       ro?.disconnect();
       window.clearTimeout(sleepTimer);
+      if (turnedNow === close) turnedNow = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, Boolean(back)]);
@@ -218,8 +231,10 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
         </div>
         {back && (
           <div ref={backEl} className={styles.back} aria-hidden="true">
+            <button type="button" className={styles.recto} data-recto tabIndex={-1}>
+              ↺ {t("Recto")}
+            </button>
             {back}
-            <span className={styles.backHint}>{t("Toucher ou tirer pour retourner")}</span>
           </div>
         )}
       </div>

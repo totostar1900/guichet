@@ -5,7 +5,7 @@
   color: var(--ink);
 }
 .sec {
-  border-top: 1px solid var(--line-2);
+  border-top: 1px solid color-mix(in srgb, var(--info) 35%, transparent);
   padding-top: 8px;
   min-width: 0;
 }
@@ -81,7 +81,7 @@
   right: 5px;
   top: 5px;
   height: 2px;
-  background: var(--line-2);
+  background: color-mix(in srgb, var(--info) 45%, transparent);
 }
 .tl > div {
   position: relative;
@@ -99,7 +99,7 @@
   height: 10px;
   border-radius: 50%;
   background: var(--surface);
-  border: 2px solid var(--line-2);
+  border: 2px solid var(--info);
   box-sizing: border-box;
 }
 .tl > div.on::before {
@@ -163,7 +163,7 @@
   font-variant-numeric: tabular-nums;
 }
 .tot {
-  border-top: 1px solid var(--line-2);
+  border-top: 1px solid color-mix(in srgb, var(--info) 45%, transparent);
   margin-top: 2px;
   padding-top: 4px !important;
 }
