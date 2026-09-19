@@ -11,11 +11,15 @@
   min-width: 0;
 }
 @media (max-width: 760px) {
+  /* At rest a card is a plain box: no 3D, no back, no compositing layer (fifty of them sank an iPhone).
+     The finger makes it live; it goes plain again once back at rest. */
   .wrap {
     border-radius: var(--radius);
     overflow: hidden;
-    perspective: 1400px;
     transition: height 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .live {
+    perspective: 1400px;
   }
   .under {
     position: absolute;
@@ -67,19 +71,23 @@
   .flip {
     position: relative;
     z-index: 1;
+  }
+  .live .flip {
     transform-style: preserve-3d;
     will-change: transform;
   }
   .anim {
     transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .front {
+  .live .front {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
   /* the back: light grey, the figures the front keeps quiet; shown only once the card is turned, so it never bleeds through */
-  .back {
+  .live .back {
     display: block;
+  }
+  .back {
     position: absolute;
     inset: 0;
     transform: rotateY(180deg);

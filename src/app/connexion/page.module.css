@@ -65,3 +65,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* a word about an expired link, above the form */
+.notice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  border-radius: 0 8px 8px 0;
+}

@@ -39,7 +39,20 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
     if (!el || !f) return;
     const st = state.current;
     let d: { x0: number; y0: number; lock: "h" | "v" | null; mode: "actions" | "flip" | null; fromX: number; fromAngle: number; x: number; angle: number } | null = null;
+    let sleepTimer = 0;
+    // Live while a finger or an animation moves the card; plain again 300 ms after it rests.
+    const wake = () => {
+      window.clearTimeout(sleepTimer);
+      el.classList.add(styles.live);
+    };
+    const rest = () => {
+      window.clearTimeout(sleepTimer);
+      sleepTimer = window.setTimeout(() => {
+        if (st.x === 0 && st.angle === 0) el.classList.remove(styles.live);
+      }, 300);
+    };
     const paint = (anim: boolean) => {
+      if (st.x === 0 && st.angle === 0) rest();
       f.classList.toggle(styles.anim, anim);
       f.style.transform = `${st.x ? `translateX(${st.x}px)` : ""} ${st.angle ? `rotateY(${st.angle}deg)` : ""}`.trim();
       el.classList.toggle(styles.open, st.x < 0);
@@ -71,6 +84,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       // A control starts no pull while the card is at rest; once open or turned, a slide from anywhere brings it back (a tap still acts).
       if (idle && (e.target as HTMLElement).closest("button, a, input, select")) return;
       d = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, lock: null, mode: null, fromX: st.x, fromAngle: st.angle, x: st.x, angle: st.angle };
+      wake();
       f.classList.remove(styles.anim);
     };
     const onMove = (e: TouchEvent) => {
@@ -158,6 +172,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       document.removeEventListener("touchstart", onDoc);
       document.removeEventListener("click", onDoc, true);
       ro?.disconnect();
+      window.clearTimeout(sleepTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, Boolean(back)]);

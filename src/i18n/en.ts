@@ -241,6 +241,7 @@ export const EN: Record<string, string> = {
   "Relâchez pour ouvrir": "Let go to open",
   "Plus": "More",
   "Déclarer": "Declare",
+  "Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau code ci-dessous : il arrive en quelques secondes.": "This sign-in link has expired, or was already used (some mail apps open links before you do). Ask for a new code below: it arrives within seconds.",
   // the back of a card
   "Calendrier": "Calendar",
   "étape en cours": "current step",

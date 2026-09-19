@@ -9,8 +9,8 @@ import { getT } from "@/i18n/server";
 
 export const metadata = { title: "Connexion" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const { next = "/" } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; erreur?: string }> }) {
+  const { next = "/", erreur } = await searchParams;
   if (await getSession()) redirect(next.startsWith("/") ? next : "/");
   const mode = authMode();
   const t = await getT();
@@ -20,6 +20,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className={styles.card}>
         <div className="eyebrow">{COMPANY.name}</div>
         <h1 className="display">{t("Se connecter")}</h1>
+        {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau code ci-dessous : il arrive en quelques secondes.")}</p>}
         {mode === "supabase" ? (
           <>
             <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>

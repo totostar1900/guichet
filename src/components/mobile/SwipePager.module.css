@@ -17,9 +17,6 @@
     -webkit-user-select: none;
     user-select: none;
   }
-  .cur {
-    will-change: transform;
-  }
   .anim {
     transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -33,7 +30,6 @@
     border: 1px solid var(--line);
     border-radius: var(--radius);
     pointer-events: none;
-    will-change: transform;
   }
   /* the words stay in view wherever the list was scrolled */
   .peekBody {

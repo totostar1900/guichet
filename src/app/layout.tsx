@@ -17,6 +17,7 @@ import { loadRegistry } from "@/lib/reference";
 import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
 import { LangSwitch } from "@/components/LangSwitch";
+import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { Suspense } from "react";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
@@ -54,6 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={lang} className={ui.variable}>
       <body>
         <LangProvider lang={lang}>
+        <AuthHashRedirect />
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
         <header className={styles.top}>
           <div className={styles.topIn}>
