@@ -4,6 +4,7 @@ Copie des notes que l'assistant (Claude) garde entre ses sessions sur Guichet : 
 
 - `MEMORY.md` : l'index.
 - `guichet-project.md` : architecture, décisions, ce qui reste côté entreprise.
+- `guichet-phone-ux.md` : le téléphone : gestes, cartes, boutons flottants, image de partage, réglages des cartes.
 - `guichet-docs-and-guides.md` : documentation dans l'application, guide du desk, visites, captures, règle de séparation des publics.
 - `guichet-supabase-migrations.md` : comment les migrations sont appliquées, lesquelles le sont.
 - `guichet-companies-data.md`, `guichet-bond-terms.md` : d'où viennent les données des sociétés et des échéanciers.
