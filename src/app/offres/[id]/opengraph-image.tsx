@@ -76,7 +76,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
           <span style={{ fontSize: 24, color: MUTED, fontFamily: "monospace", marginBottom: 14 }}>{o.isin}</span>
-          <span style={{ fontSize: 26, fontWeight: 800, background: open ? "#e2f1e6" : "#eceef2", color: open ? "#2f7d4f" : "#4a5266", padding: "10px 22px", borderRadius: 999 }}>{`● ${s.status}`}</span>
+          <span style={{ display: "flex", alignItems: "center", fontSize: 26, fontWeight: 800, background: open ? "#e2f1e6" : "#eceef2", color: open ? "#2f7d4f" : "#4a5266", padding: "10px 22px", borderRadius: 999 }}>
+            <span style={{ width: 12, height: 12, borderRadius: 6, background: open ? "#2f7d4f" : "#6b7386", marginRight: 12 }} />
+            {s.status}
+          </span>
         </div>
       </div>
     </div>,

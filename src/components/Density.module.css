@@ -1,10 +1,19 @@
-/* the phone alone has cards to make denser */
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+/* the phone alone has cards to make denser; the settings button shows wherever cards do */
 .dens {
   display: none;
   background: var(--surface-2);
   border-radius: 8px;
   padding: 2px;
   flex: none;
+}
+.densAll {
+  display: inline-flex;
 }
 .dens button {
   border: 0;
@@ -23,6 +32,62 @@
   background: var(--surface);
   color: var(--ink);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.more {
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.more:hover,
+.more:focus-visible {
+  color: var(--navy);
+  border-color: var(--navy);
+}
+.row {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface);
+  cursor: pointer;
+}
+.chipOn {
+  background: var(--navy);
+  color: var(--on-navy);
+  border-color: var(--navy);
+}
+.hint {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  margin: 0;
 }
 @media (max-width: 760px) {
   .dens {

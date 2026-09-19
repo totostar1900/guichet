@@ -718,3 +718,8 @@
 .sheetSort > :first-child {
   flex: 1;
 }
+
+/* the « Ombre » distinction wants more air between cards */
+.cards[data-sep="shadow"] {
+  gap: 14px;
+}

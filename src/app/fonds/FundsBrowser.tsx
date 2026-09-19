@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
-import { DensitySwitch } from "@/components/Density";
+import { DensitySwitch, useDistinction } from "@/components/Density";
 import { Sheet } from "@/components/mobile/Sheet";
 import { FilterFab } from "@/components/FilterFab";
 import { usePhone } from "@/components/chart-utils";
@@ -199,6 +199,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   // The controls are not frozen any more: once they scroll out above, a floating « Filtrer · Trier » brings them back over the list.
   const phone = usePhone();
+  const sep = useDistinction();
   const toolsRef = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState(false);
 
@@ -293,7 +294,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </Sheet>
 
       {rowsShown.length > 0 && phone && (
-        <section className={styles.cards} data-coach="fonds-table">
+        <section className={styles.cards} data-coach="fonds-table" data-sep={sep}>
           {rowsShown.map((r) => (
             <FundCard key={r.id} r={r} />
           ))}

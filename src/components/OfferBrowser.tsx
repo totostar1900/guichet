@@ -10,7 +10,7 @@ import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
-import { DensitySwitch } from "./Density";
+import { DensitySwitch, useDistinction } from "./Density";
 import { LineMenu } from "./mobile/LineMenu";
 import { Sheet } from "./mobile/Sheet";
 import { FilterFab } from "./FilterFab";
@@ -358,6 +358,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   }, []);
   const view = (sp.get("vue") as View) || autoView;
   const [sheet, setSheet] = useState(false);
+  const sep = useDistinction();
   useEffect(() => {
     try {
       sessionStorage.setItem(LAST_LIST_KEY, `${pathname}${sp.toString() ? `?${sp}` : ""}`);
@@ -495,7 +496,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
     ) : view === "list" ? (
       <List rows={list} grouped={grouped && !featured} featured={featured} />
     ) : (
-      <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`}>
+      <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
         {list.map(({ o, s }) => (
           <div key={o.id} className={featured ? styles.pickCard : undefined}>
             <OfferCard o={o} s={s} />

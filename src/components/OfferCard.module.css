@@ -8,6 +8,7 @@
   gap: 12px;
   min-width: 0;
   overflow: hidden;
+  position: relative;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .card:hover {
@@ -120,7 +121,6 @@
 .compact {
   padding: 9px 12px;
   gap: 4px;
-  border-left: 3px solid var(--card-c, var(--line-2));
   border-radius: 10px;
 }
 .compact .head > :first-child > :not(:first-child),
@@ -195,4 +195,35 @@
 }
 .down {
   color: var(--crit);
+}
+
+/* ---------- one card from the next: the reader's choice, as data-sep on the list ---------- */
+[data-sep="zebra"] > :nth-child(even) .card,
+[data-sep="zebrahalf"] > :nth-child(even) .card {
+  background: var(--surface-2);
+}
+[data-sep="half"] .card::before,
+[data-sep="zebrahalf"] .card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 3px;
+  background: var(--card-c, var(--line-2));
+  border-radius: var(--radius) 0 3px 0;
+}
+[data-sep="full"] .card {
+  border-top: 3px solid var(--card-c, var(--line-2));
+}
+[data-sep="left"] .card {
+  border-left: 3px solid var(--card-c, var(--line-2));
+}
+[data-sep="tint"] .card {
+  background: color-mix(in srgb, var(--card-c, var(--line-2)) 6%, var(--surface));
+  border-color: color-mix(in srgb, var(--card-c, var(--line-2)) 22%, var(--line));
+}
+[data-sep="shadow"] .card {
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgba(11, 37, 69, 0.08), 0 6px 18px rgba(11, 37, 69, 0.1);
 }
