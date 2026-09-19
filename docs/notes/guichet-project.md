@@ -32,5 +32,7 @@ Deployed state 2026-09-19 01:00: Vercel production = `4e77145` (everything above
 
 Still on the user's side: login on the live site (first desk login now enrols MFA), Resend + WhatsApp keys, Cloudflare Email Routing for the intake mailbox, custom domain name, GitHub branch-protection rule if they want PR gating (would change the direct-push workflow), distribution agreements, COSUMAF/BVMAC agreements.
 
+Phone gestures (2026-09-19, `ed0c44a`): `src/components/mobile/SwipePager.tsx` wraps the fiche (swipe = previous/next line of the remembered list, peek card from `titles` in the sessionStorage list memory, `guichet:swipeDir` for the enter animation, `guichet:hint:swipe` one-time hint); `src/components/mobile/LineMenu.tsx` is the « ··· » sheet (voir la fiche · suivre · comparer avec · partager · copier l'ISIN, + fiche PDF on the fiche) on cards, table rows (titres, fonds) and the fiche, opened also by a long press via `pressOn` ref. Decisions taken: swipe = instruments, not panes; « Déclarer une intention » never in the menu. Live mockup: https://claude.ai/artifact/5fRfPKJiEGd1G4aGtwF9Hc.
+
 **Why:** the user works from the OneDrive folder but the app must stay in C:\dev\guichet; the memory saves re-deriving the architecture each session.
 **How to apply:** continue in C:\dev\guichet; run `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint src`, `npx next build` before each commit; see [[guichet-push-after-each-step]] and [[guichet-supabase-migrations]].
