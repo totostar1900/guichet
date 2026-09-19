@@ -211,7 +211,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   useEffect(() => {
     const el = toolsRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setFab(!e.isIntersecting && e.boundingClientRect.bottom < 0));
+    // The site header covers the top 60 px: the band counts as gone once it is under it.
+    const io = new IntersectionObserver(([e]) => setFab(!e.isIntersecting && e.boundingClientRect.bottom < 60), { rootMargin: "-60px 0px 0px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, []);
