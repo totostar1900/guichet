@@ -2,37 +2,39 @@
 
 import { useT } from "@/i18n/client";
 import { useEffect, useRef, useState } from "react";
-import { lineCurve, type LineCurve } from "@/app/offres/[id]/actions";
+import { fundCurve, type LineCurve } from "@/app/offres/[id]/actions";
+import { fmt, fmtDate } from "@/lib/format";
 import type { BackFacts } from "@/lib/domain/back";
-import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./CardBack.module.css";
 
 /**
  * The back of a card, the same for every instrument and filled with what
  * exists: the calendar of an operation with its current step (or the dated
- * facts of a line that has none), the curve when the line has a past
- * (fetched the first time the card turns), and the reference calculation
- * of the fiche, always. In compact view the four figures of the list open
- * it, since the front then shows only the title and the yield.
+ * facts of a line that has none), and the reference calculation of the
+ * fiche, always. No curve for securities (over sixty sessions most were
+ * straight lines); a fund keeps its NAV curve.
+ * In compact view the list's figures open it (minus the yield, which the
+ * front already shows), since the front then shows only the title and the
+ * yield. The first section keeps clear of the corner (status, dots, icon).
  */
-export function CardBack({ id, facts, figures, turned }: { id: string; facts: BackFacts; figures?: [string, string, string?][]; turned: boolean }) {
+export function CardBack({ facts, figures, curveId, turned }: { facts: BackFacts; figures?: [string, string, string?][]; curveId?: string; turned?: boolean }) {
   const t = useT();
+  // A fund keeps its NAV curve on the back, fetched the first time the card turns.
   const [curve, setCurve] = useState<LineCurve | null | "loading" | "idle">("idle");
   const asked = useRef(false);
   useEffect(() => {
-    if (!turned || asked.current) return;
+    if (!curveId || !turned || asked.current) return;
     asked.current = true;
-    // The curve is fetched the first time the card turns; the calendar and the reference are there at once.
     const timer = window.setTimeout(() => setCurve((c) => (c === "idle" ? "loading" : c)), 0);
-    lineCurve(id)
+    fundCurve(curveId)
       .then((c) => setCurve(c))
       .catch(() => setCurve(null));
     return () => clearTimeout(timer);
-  }, [turned, id]);
+  }, [curveId, turned]);
   return (
     <div className={styles.back}>
       {figures && (
-        <div className={styles.sec}>
+        <div className={`${styles.sec} ${styles.first}`}>
           <div className={styles.grid}>
             {figures.map(([k, v, note]) => (
               <div key={k}>
@@ -45,7 +47,7 @@ export function CardBack({ id, facts, figures, turned }: { id: string; facts: Ba
         </div>
       )}
       {facts.calendar && (
-        <div className={styles.sec}>
+        <div className={`${styles.sec} ${figures ? "" : styles.first}`}>
           <div className={styles.lbl}>
             {t("Calendrier")}
             {facts.calendar.some((s) => s.state === "on") && <i>{t("étape en cours")}</i>}
@@ -60,18 +62,8 @@ export function CardBack({ id, facts, figures, turned }: { id: string; facts: Ba
           </div>
         </div>
       )}
-      {curve !== "idle" && curve !== "loading" && curve && (
-        <div className={styles.sec}>
-          <div className={styles.lbl}>
-            {t(curve.label)}
-            <i>{curve.points.length} {t(curve.unit === "pct" ? "adjudications" : curve.unit === "nav" ? "VL" : "séances")}</i>
-          </div>
-          <Spark curve={curve} />
-        </div>
-      )}
-      {curve === "loading" && <div className={`${styles.sec} ${styles.muted}`}>{t("Courbe en cours de lecture…")}</div>}
       {facts.lines && (
-        <div className={styles.sec}>
+        <div className={`${styles.sec} ${figures || facts.calendar ? "" : styles.first}`}>
           {facts.lines.map(([k, v]) => (
             <div key={k} className={styles.kv}>
               <span>{t(k)}</span>
@@ -80,6 +72,16 @@ export function CardBack({ id, facts, figures, turned }: { id: string; facts: Ba
           ))}
         </div>
       )}
+      {curve !== "idle" && curve !== "loading" && curve && (
+        <div className={styles.sec}>
+          <div className={styles.lbl}>
+            {t(curve.label)}
+            <i>{curve.points.length} VL</i>
+          </div>
+          <Spark curve={curve} />
+        </div>
+      )}
+      {curve === "loading" && <div className={`${styles.sec} ${styles.muted}`}>{t("Courbe en cours de lecture…")}</div>}
       <div className={styles.sec}>
         <div className={styles.lbl}>{t(facts.reference.title)}</div>
         <div className={styles.calc}>
@@ -102,8 +104,8 @@ const PAD_R = 6;
 const PAD_T = 8;
 const PAD_B = 16; // room for the two dates
 
-function fmtY(v: number, unit: LineCurve["unit"]): string {
-  return unit === "pct" ? fmtPct(v, 2) : unit === "price" ? fmtPrice(v) : fmt(v);
+function fmtY(v: number): string {
+  return fmt(v);
 }
 
 /** A small line: the last point in gold with its value, the first and last dates underneath; the label steps aside from the edges and the line. */
@@ -117,7 +119,7 @@ function Spark({ curve }: { curve: LineCurve }) {
   const d = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const lx = x(pts.length - 1);
   const ly = y(pts[pts.length - 1].y);
-  const label = fmtY(pts[pts.length - 1].y, curve.unit);
+  const label = fmtY(pts[pts.length - 1].y);
   const labelW = label.length * 5.6 + 6;
   // The value sits left of the dot, in whichever band the line leaves free over its last third: above its highest
   // point there when there is more room above, under its lowest point otherwise; never on the line, never on the dates.

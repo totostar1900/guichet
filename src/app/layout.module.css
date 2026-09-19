@@ -99,3 +99,10 @@
     padding: 14px 14px calc(76px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* the version that is live, for whoever checks a deployment from a phone */
+.build {
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.7em;
+}

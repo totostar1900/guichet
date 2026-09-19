@@ -263,27 +263,36 @@
   font-size: 0.78rem;
 }
 
-/* the flip button: under the « ··· », with air between the two so they are never confused; phone only (the card turns there) */
-.flipBtn {
+/* the flip icon: under the « ··· », the same weight, air between the two; phone only (the card turns there).
+   The back carries the same corner (status, dots, icon) so both sit at the same place on both sides. */
+.flipBtn,
+.dotsBack {
   display: none;
-  width: 30px;
-  height: 30px;
-  margin-top: 10px;
-  border-radius: 50%;
-  border: 1px solid var(--info);
-  background: var(--info-soft);
-  color: var(--info);
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0;
 }
+.dotsBack {
+  color: var(--gold);
+}
+.dotsBack svg {
+  fill: currentColor;
+}
+.flipBtn {
+  margin-top: 6px;
+}
 @media (max-width: 760px) {
-  .flipBtn {
+  .flipBtn,
+  .dotsBack {
     display: inline-flex;
   }
   .compact .flipBtn {
     margin-top: 0;
-    margin-left: 6px;
   }
 }

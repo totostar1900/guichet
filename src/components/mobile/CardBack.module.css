@@ -13,6 +13,11 @@
   border-top: 0;
   padding-top: 0;
 }
+/* the first section leaves the corner (status, dots, the flip icon) its column */
+.first {
+  padding-right: 44px;
+  min-height: 92px;
+}
 .muted {
   font-size: 0.74rem;
   color: var(--ink-3);

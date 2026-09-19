@@ -18,7 +18,7 @@ import styles from "./SwipeActions.module.css";
  *
  * Leaving the actions is easy: slide back from anywhere (40 px is enough),
  * tap the « ‹ » handle, tap elsewhere, or scroll away. A turned card stays
- * turned: it comes back on its own « Recto » button, on a deliberate pull
+ * turned: it comes back on its own flip icon (the same corner as the front), on a deliberate pull
  * to the left (half a turn), when another card is turned (one back at a
  * time), or once it scrolls out of sight; tapping around it leaves it be,
  * since the reader is reading it. The first 8 px decide between the page's scroll and the
@@ -29,7 +29,7 @@ let turnedNow: (() => void) | null = null;
 const REVEAL = 180;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, onTurn, onMore, turnRef, children }: { id: string; back?: React.ReactNode; onTurn?: (turned: boolean) => void; onMore?: () => void; turnRef?: React.MutableRefObject<(() => void) | null>; children: React.ReactNode }) {
+export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
@@ -261,20 +261,7 @@ export function SwipeActions({ id, back, onTurn, onMore, turnRef, children }: { 
         </div>
         {back && (
           <div ref={backEl} className={styles.back} aria-hidden="true" style={{ visibility: "hidden" }}>
-            <div className={styles.backHead}>
-              {onMore && (
-                <button type="button" className={styles.backDots} onClick={onMore} tabIndex={-1} aria-label={t("Plus d'actions")}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="5" cy="12" r="2" />
-                    <circle cx="12" cy="12" r="2" />
-                    <circle cx="19" cy="12" r="2" />
-                  </svg>
-                </button>
-              )}
-              <button type="button" className={styles.recto} data-recto tabIndex={-1}>
-                ↺ {t("Recto")}
-              </button>
-            </div>
+            {backHead && <div className={styles.backHead}>{backHead}</div>}
             {back}
           </div>
         )}

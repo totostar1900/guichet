@@ -98,43 +98,14 @@
     color: var(--ink);
     border: 1px solid var(--info);
     border-radius: var(--radius);
-    padding: 40px 14px 14px;
+    padding: 12px 14px 14px;
     overflow: hidden;
   }
-  /* the back's head: the same « ··· » as the front, and the one way back by touch, a button, not a tap anywhere */
+  /* the back's head: the card's own corner (status, « ··· », the flip icon), at the same place as on the front */
   .backHead {
     position: absolute;
-    top: 8px;
+    top: 10px;
     right: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .backDots {
-    width: 34px;
-    height: 34px;
-    border: 0;
-    background: transparent;
-    color: var(--gold);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-  }
-  .backDots svg {
-    fill: currentColor;
-  }
-  .recto {
-    border: 1px solid var(--info);
-    background: var(--surface);
-    color: var(--info);
-    font: inherit;
-    font-size: 0.74rem;
-    font-weight: 800;
-    padding: 5px 10px;
-    border-radius: 999px;
-    cursor: pointer;
   }
   /* once turned, the front takes no taps */
   .turned .front {
