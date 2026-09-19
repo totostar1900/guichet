@@ -9,7 +9,7 @@ import { LineMenu } from "./mobile/LineMenu";
 import { SwipeActions } from "./mobile/SwipeActions";
 import { CardBack } from "./mobile/CardBack";
 import { backFacts } from "@/lib/domain/back";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import styles from "./OfferCard.module.css";
@@ -28,11 +28,15 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
   const compact = useDensity() === "compact";
   const when = s.deadline === "continue" ? t("cotation continue") : t(s.deadline);
   const [turned, setTurned] = useState(false);
+  const more = useRef<(() => void) | null>(null);
+  const turn = useRef<(() => void) | null>(null);
   const facts = useMemo(() => backFacts(o, new Date()), [o]);
   return (
     <SwipeActions
       id={o.id}
       onTurn={setTurned}
+      onMore={() => more.current?.()}
+      turnRef={turn}
       back={<CardBack id={o.id} facts={facts} figures={compact ? s.ledger : undefined} turned={turned} />}
     >
       <article className={`${styles.card} ${s.past ? styles.past : ""} ${compact ? styles.compact : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
@@ -40,7 +44,13 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           <LineIdentity o={o} s={s} href={href} size="lg" />
           <div className={styles.corner}>
             <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
-            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} />
+            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} openRef={more} />
+            <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
+                <path d="M18 3v4h-4M6 21v-4h4" />
+              </svg>
+            </button>
           </div>
         </div>
         <div className={styles.big}>

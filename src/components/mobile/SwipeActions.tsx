@@ -29,7 +29,7 @@ let turnedNow: (() => void) | null = null;
 const REVEAL = 180;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, onTurn, children }: { id: string; back?: React.ReactNode; onTurn?: (turned: boolean) => void; children: React.ReactNode }) {
+export function SwipeActions({ id, back, onTurn, onMore, turnRef, children }: { id: string; back?: React.ReactNode; onTurn?: (turned: boolean) => void; onMore?: () => void; turnRef?: React.MutableRefObject<(() => void) | null>; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
@@ -63,13 +63,16 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       f.style.transform = `${st.x ? `translateX(${st.x}px)` : ""} ${st.angle ? `rotateY(${st.angle}deg)` : ""}`.trim();
       el.classList.toggle(styles.open, st.x < 0);
       const turned = st.angle > 90;
+      // The face that shows is chosen here, not left to backface-visibility (Safari drops it under overflow).
+      if (front.current) front.current.style.visibility = turned ? "hidden" : "";
+      if (backEl.current) backEl.current.style.visibility = turned ? "" : "hidden";
       if (el.classList.contains(styles.turned) !== turned) {
         el.classList.toggle(styles.turned, turned);
         onTurn?.(turned);
+        // The wrapper and the turning box take the height of the face that shows, so the list flows around it
+        // and the back (absolute in the turning box) is never clipped to the front. Measured on a change only.
+        fit(turned);
       }
-      // The wrapper and the turning box take the height of the face that shows, so the list flows around it
-      // and the back (absolute in the turning box) is never clipped to the front.
-      fit(turned);
     };
     const fit = (turned: boolean) => {
       const h = turned ? backEl.current?.scrollHeight : front.current?.offsetHeight;
@@ -98,6 +101,17 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       watcher = null;
       paint(true);
     };
+    const turnByButton = () => {
+      if (st.angle > 0) return;
+      wake();
+      st.x = 0;
+      st.angle = 180;
+      if (turnedNow && turnedNow !== close) turnedNow();
+      turnedNow = close;
+      window.setTimeout(watch, 500);
+      paint(true);
+    };
+    if (turnRef) turnRef.current = turnByButton;
     const onStart = (e: TouchEvent) => {
       if (!window.matchMedia("(max-width: 760px)").matches) return;
       const idle = st.x === 0 && st.angle === 0;
@@ -201,6 +215,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       window.clearTimeout(sleepTimer);
       watcher?.disconnect();
       if (turnedNow === close) turnedNow = null;
+      if (turnRef) turnRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, Boolean(back)]);
@@ -245,10 +260,21 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
           {children}
         </div>
         {back && (
-          <div ref={backEl} className={styles.back} aria-hidden="true">
-            <button type="button" className={styles.recto} data-recto tabIndex={-1}>
-              ↺ {t("Recto")}
-            </button>
+          <div ref={backEl} className={styles.back} aria-hidden="true" style={{ visibility: "hidden" }}>
+            <div className={styles.backHead}>
+              {onMore && (
+                <button type="button" className={styles.backDots} onClick={onMore} tabIndex={-1} aria-label={t("Plus d'actions")}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="5" cy="12" r="2" />
+                    <circle cx="12" cy="12" r="2" />
+                    <circle cx="19" cy="12" r="2" />
+                  </svg>
+                </button>
+              )}
+              <button type="button" className={styles.recto} data-recto tabIndex={-1}>
+                ↺ {t("Recto")}
+              </button>
+            </div>
             {back}
           </div>
         )}

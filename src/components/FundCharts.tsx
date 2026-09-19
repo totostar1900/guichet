@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { labelMetrics, useOutsideTap, usePhone } from "./chart-utils";
-import { axisLabel, type NavPoint } from "./NavChart";
+import { axisLabel, axisRow, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
@@ -97,7 +97,8 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
   const line = series.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const zero = y(Math.max(min, Math.min(max, 0)));
-  const axis = axisLabel(series.map((p) => p.date));
+  const axis = axisLabel(series.map((p) => p.date), phone);
+  const row = axisRow(phone);
   const last = n - 1;
 
   const pick = (clientX: number) => {
@@ -114,7 +115,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
 
   return (
     <div className={styles.navChart}>
-      <svg ref={ref} viewBox={`0 0 ${W} ${H + 14}`} role="img" aria-label={t(MODE_LABEL[mode])} onMouseMove={(e) => pick(e.clientX)} onMouseLeave={() => setHover(null)} onTouchStart={(e) => pick(e.touches[0].clientX)} onTouchMove={(e) => pick(e.touches[0].clientX)}>
+      <svg ref={ref} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={t(MODE_LABEL[mode])} onMouseMove={(e) => pick(e.clientX)} onMouseLeave={() => setHover(null)} onTouchStart={(e) => pick(e.touches[0].clientX)} onTouchMove={(e) => pick(e.touches[0].clientX)}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
         <text x={padX - 4} y={y(max) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
@@ -147,7 +148,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
         {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad} y2={H - pad} className={styles.cursor} />}
         {hover != null && mode !== "variations" && <circle cx={x(hover)} cy={y(series[hover].y)} r={4} className={styles.dot} />}
         {axis.ticks.map((i) => (
-          <text key={i} x={x(i)} y={H + 11} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
+          <text key={i} x={x(i)} y={H + row.y} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
             {axis.label(series[i].date)}
           </text>
         ))}
@@ -163,7 +164,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
         </div>
       )}
       {h && hover != null && (
-        <div className={`${styles.tip} ${y(h.y) < H * 0.45 ? styles.tipBelow : ""} ${x(hover) > W * 0.72 ? styles.tipLeft : x(hover) < W * 0.28 ? styles.tipRight : ""}`} style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.y) / (H + 14)) * 100}%` }} role="status">
+        <div className={`${styles.tip} ${y(h.y) < H * 0.45 ? styles.tipBelow : ""} ${x(hover) > W * 0.72 ? styles.tipLeft : x(hover) < W * 0.28 ? styles.tipRight : ""}`} style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.y) / (H + row.extra)) * 100}%` }} role="status">
           {mode === "rendement" && (
             <>
               <b>{signed(h.y)} {t("par an")}</b>

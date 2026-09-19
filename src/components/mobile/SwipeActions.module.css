@@ -76,8 +76,9 @@
     transform-style: preserve-3d;
     will-change: transform;
   }
+  /* the turn: half a second, easing out, so the eye follows the card around */
   .anim {
-    transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.3, 1);
   }
   .live .front {
     backface-visibility: hidden;
@@ -100,11 +101,31 @@
     padding: 40px 14px 14px;
     overflow: hidden;
   }
-  /* the one way back by touch: a button, top right, not a tap anywhere */
-  .recto {
+  /* the back's head: the same « ··· » as the front, and the one way back by touch, a button, not a tap anywhere */
+  .backHead {
     position: absolute;
     top: 8px;
     right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .backDots {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    background: transparent;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .backDots svg {
+    fill: currentColor;
+  }
+  .recto {
     border: 1px solid var(--info);
     background: var(--surface);
     color: var(--info);

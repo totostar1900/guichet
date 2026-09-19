@@ -297,6 +297,7 @@ export const EN: Record<string, string> = {
   "T+3 · cotation continue": "T+3 · continuous trading",
   "Me rappeler": "Remind me",
   "Recto": "Front",
+  "Retourner la carte": "Turn the card over",
   "dernière": "latest",
   "Affichage des cartes": "Card display",
   "Densité": "Density",

@@ -33,6 +33,11 @@
 }
 .legend b {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.legend > span {
+  min-width: 0;
 }
 .frame {
   display: grid;

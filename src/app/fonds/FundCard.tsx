@@ -7,7 +7,7 @@ import { LineMenu } from "@/components/mobile/LineMenu";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
 import { CardBack } from "@/components/mobile/CardBack";
 import { fundBackFacts } from "@/lib/domain/back";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
@@ -29,6 +29,8 @@ export function FundCard({ r }: { r: FundRow }) {
   const compact = useDensity() === "compact";
   const href = `/offres/${r.id}`;
   const [turned, setTurned] = useState(false);
+  const more = useRef<(() => void) | null>(null);
+  const turn = useRef<(() => void) | null>(null);
   const facts = useMemo(() => fundBackFacts(r), [r]);
   const figures: [string, string, string?][] = [
     ["Société de gestion", r.manager],
@@ -40,6 +42,8 @@ export function FundCard({ r }: { r: FundRow }) {
     <SwipeActions
       id={r.id}
       onTurn={setTurned}
+      onMore={() => more.current?.()}
+      turnRef={turn}
       back={<CardBack id={r.id} facts={facts} figures={compact ? figures : undefined} turned={turned} />}
     >
       <article className={`${styles.card} ${compact ? styles.compact : ""}`} style={{ ["--card-c" as string]: "var(--info)" }}>
@@ -57,7 +61,13 @@ export function FundCard({ r }: { r: FundRow }) {
           </div>
           <div className={styles.corner}>
             <span className={`pill ${r.open ? "open" : "quoted"}`}>{t(r.open ? "Souscription ouverte" : "Information")}</span>
-            <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />
+            <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} openRef={more} />
+            <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
+                <path d="M18 3v4h-4M6 21v-4h4" />
+              </svg>
+            </button>
           </div>
         </div>
         <div className={styles.big}>

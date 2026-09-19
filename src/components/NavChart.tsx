@@ -18,11 +18,16 @@ export interface NavPoint {
 
 /** Dates under the axis: every point when there are few, otherwise six evenly spaced ones (first and last included). */
 export const axisTicks = (n: number, count = 6): number[] => (n <= 8 ? Array.from({ length: n }, (_, i) => i) : Array.from({ length: count }, (_, k) => Math.round((k * (n - 1)) / (count - 1))));
-/** Over more than a year the year matters and the labels get longer: five of them, with the year. */
-export const axisLabel = (dates: string[]) => {
+/**
+ * Over more than a year the year matters and the labels get longer: five of them, with the year.
+ * The phone draws its labels larger, so it gets fewer: four, three with the year.
+ */
+export const axisLabel = (dates: string[], phone = false) => {
   const long = dates.length > 1 && daysBetween(dates[0], dates[dates.length - 1]) > 366;
-  return { ticks: axisTicks(dates.length, long ? 5 : 6), label: (d: string) => fmtDate(d, long) };
+  return { ticks: axisTicks(dates.length, phone ? (long ? 3 : 4) : long ? 5 : 6), label: (d: string) => fmtDate(d, long) };
 };
+/** The date row sits lower on the phone, clear of the lowest value label. */
+export const axisRow = (phone: boolean) => (phone ? { y: 20, extra: 24 } : { y: 11, extra: 14 });
 
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 
@@ -39,6 +44,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
   const max = Math.max(...values);
   const W = 320;
   const H = 96;
+  const row = axisRow(phone);
   const pad = 6;
   const padX = Math.max(fmt(max).length, fmt(min).length) * metrics.perChar + 8; // room for the two value labels on the left
   const x = (i: number) => (series.length === 1 ? W / 2 : padX + (i * (W - padX - pad)) / (series.length - 1));
@@ -48,7 +54,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
   const iMax = values.indexOf(max);
   const iMin = values.indexOf(min);
   const last = series.length - 1;
-  const axis = axisLabel(series.map((p) => p.date));
+  const axis = axisLabel(series.map((p) => p.date), phone);
 
   // The nearest point to the pointer, in viewBox units.
   const pick = (clientX: number) => {
@@ -67,7 +73,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
     <div className={styles.navChart}>
       <svg
         ref={ref}
-        viewBox={`0 0 ${W} ${H + 14}`}
+        viewBox={`0 0 ${W} ${H + row.extra}`}
         role="img"
         aria-label={`${series.length} ${t("valeurs liquidatives publiées")}, ${fmt(series[0].nav)} → ${fmt(series[last].nav)} FCFA`}
         onMouseMove={(e) => pick(e.clientX)}
@@ -94,7 +100,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
           </circle>
         ))}
         {axis.ticks.map((i) => (
-          <text key={i} x={x(i)} y={H + 11} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
+          <text key={i} x={x(i)} y={H + row.y} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
             {axis.label(series[i].date)}
           </text>
         ))}
@@ -102,7 +108,7 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
       {h && hover != null && (
         <div
           className={`${styles.tip} ${y(h.nav) < H * 0.45 ? styles.tipBelow : ""} ${x(hover) > W * 0.72 ? styles.tipLeft : x(hover) < W * 0.28 ? styles.tipRight : ""}`}
-          style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.nav) / (H + 14)) * 100}%` }}
+          style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.nav) / (H + row.extra)) * 100}%` }}
           role="status"
         >
           <b>{fmt(h.nav)} FCFA</b>

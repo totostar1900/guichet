@@ -262,3 +262,28 @@
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.78rem;
 }
+
+/* the flip button: under the « ··· », with air between the two so they are never confused; phone only (the card turns there) */
+.flipBtn {
+  display: none;
+  width: 30px;
+  height: 30px;
+  margin-top: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--info);
+  background: var(--info-soft);
+  color: var(--info);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+@media (max-width: 760px) {
+  .flipBtn {
+    display: inline-flex;
+  }
+  .compact .flipBtn {
+    margin-top: 0;
+    margin-left: 6px;
+  }
+}

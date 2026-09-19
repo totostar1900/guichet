@@ -347,7 +347,7 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
   const path = (s: XY[], step?: boolean) => s.map((p, i) => `${i === 0 ? "M" : step ? "L" : "L"}${x(px(p)).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const baseY = area === "down" ? y(Math.max(min, Math.min(max, 0))) : H - pad;
-  const axis = axisLabel(dates);
+  const axis = axisLabel(dates, phone);
   const pick = (clientX: number) => {
     const el = ref.current;
     if (!el) return;
