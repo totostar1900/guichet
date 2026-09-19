@@ -238,4 +238,5 @@ export const EN: Record<string, string> = {
   "prévenu à chaque changement": "told of every change",
   "Glissez vers la gauche : la ligne suivante": "Swipe left: the next line",
   "Glissez vers la droite : la ligne précédente": "Swipe right: the previous line",
+  "Revenir en haut": "Back to top",
 };

@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
+import { BackToTop } from "@/components/BackToTop";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
@@ -286,6 +287,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </section>
       )}
       {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
+      <BackToTop />
       <CoachMarks
         id="fonds"
         replayLabel={t("Comment lire cette page ?")}

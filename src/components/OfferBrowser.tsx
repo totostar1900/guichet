@@ -10,6 +10,7 @@ import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
+import { BackToTop } from "./BackToTop";
 import { LineMenu } from "./mobile/LineMenu";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
@@ -620,6 +621,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
       {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
       {rest.length > 0 && render(rest, false)}
+      <BackToTop />
       <CoachMarks
         id="titres"
         replayLabel={t("Comment lire cette page ?")}

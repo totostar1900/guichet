@@ -5,6 +5,7 @@ import { getRegistry } from "@/lib/registry";
 import { DoneMark } from "./[key]/Quiz";
 import { ReplayOnboarding } from "@/components/mobile/Onboarding";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
+import { BackToTop } from "@/components/BackToTop";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
 import { InfoNav } from "./InfoNav";
@@ -128,6 +129,7 @@ export default async function InfoPage() {
           </Link>
         </div>
 
+        <BackToTop />
         <CoachMarks
           id="info"
           replayLabel={t("Comment utiliser le Guide ?")}
