@@ -5,6 +5,21 @@ import styles from "@/app/desk/docs/docs.module.css";
 /** Renders a documentation page's chapters in one language : the same on the desk and on the client help page. */
 export function DocBlocks({ chapters, lang }: { chapters: DocChapter[]; lang: "fr" | "en" }) {
   const L = (x: { fr: string; en: string }) => x[lang];
+  return (
+    <>
+      {chapters.map((c) => (
+        <section key={c.id} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
+          <h2 id={c.id}>{L(c.title)}</h2>
+          <DocBlockList blocks={c.blocks} lang={lang} />
+        </section>
+      ))}
+    </>
+  );
+}
+
+/** The blocks alone, for a page that draws its own chapter frames (the client help). */
+export function DocBlockList({ blocks, lang }: { blocks: DocBlock[]; lang: "fr" | "en" }) {
+  const L = (x: { fr: string; en: string }) => x[lang];
   const block = (b: DocBlock, k: number) => {
     switch (b.type) {
       case "lead":
@@ -76,14 +91,5 @@ export function DocBlocks({ chapters, lang }: { chapters: DocChapter[]; lang: "f
         );
     }
   };
-  return (
-    <>
-      {chapters.map((c) => (
-        <section key={c.id} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
-          <h2 id={c.id}>{L(c.title)}</h2>
-          {c.blocks.map(block)}
-        </section>
-      ))}
-    </>
-  );
+  return <>{blocks.map(block)}</>;
 }
