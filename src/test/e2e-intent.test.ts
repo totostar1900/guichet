@@ -32,7 +32,17 @@ describe("intent → desk → documents", () => {
     const { readSource } = await import("@/lib/intake/storage");
     const r = repo();
 
-    // 1. A signed-in client sends a buy order on a listed share.
+    // 0. The WhatsApp number is proven first, by its code (no sender here: the code comes back as a demo).
+    const { sendPhoneProof, checkPhoneProof } = await import("@/app/offres/[id]/actions");
+    const sent = await sendPhoneProof("6 87 67 67 67");
+    expect(sent.ok && sent.demoCode).toBeTruthy();
+    const wrong = await checkPhoneProof("6 87 67 67 67", "000000");
+    expect(wrong.ok).toBe(false);
+    const good = await checkPhoneProof("6 87 67 67 67", sent.ok ? sent.demoCode! : "");
+    expect(good.ok).toBe(true);
+    expect((await r.getChannelStatus(client.userId)).phoneVerifiedAt).toBeTruthy();
+
+    // 1. A signed-in client sends a buy order on a listed share, with the proven number.
     const form = new FormData();
     form.set("offerId", "mkt-bhc");
     form.set("type", "achat");
@@ -57,6 +67,8 @@ describe("intent → desk → documents", () => {
     expect(intent).toBeDefined();
     expect(intent.clientName).toBe("Awa Ndongo");
     expect(intent.contactPhone).toBe("+237687676767");
+    expect(intent.phoneVerified).toBe(true);
+    expect(intent.emailVerified).toBe(true);
     expect(intent.contactEmail).toBe("awa.ndongo@example.com");
     expect(intent.state).toBe("recue");
     expect((await r.getContact("u-test"))?.phone).toBe("+237687676767");
