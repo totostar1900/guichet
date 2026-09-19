@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
@@ -80,12 +80,11 @@ const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct
 const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
 const num = (v?: number) => (v == null ? -Infinity : v);
 
-/** One row of the table; the « ··· » and a long press on the row open the same sheet. */
+/** One row of the table, with its « ··· ». */
 function FundTr({ r }: { r: FundRow }) {
   const t = useT();
-  const ref = useRef<HTMLTableRowElement>(null);
   return (
-    <tr ref={ref}>
+    <tr>
       <td className={styles.name}>
         <Link href={`/offres/${r.id}`}>{r.title}</Link>
         <small>
@@ -119,7 +118,7 @@ function FundTr({ r }: { r: FundRow }) {
           <Link className="btn sm ghost" href={`/offres/${r.id}`}>
             {t("Voir la fiche")}
           </Link>
-          <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} pressOn={ref} />
+          <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />
         </span>
       </td>
     </tr>

@@ -203,12 +203,11 @@ function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; so
   );
 }
 
-/** One row of the table; a long press on it opens the « ··· » sheet. */
+/** One row of the table, with its « ··· ». */
 function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
   const t = useT();
-  const ref = useRef<HTMLTableRowElement>(null);
   return (
-        <tr ref={ref} className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
+        <tr className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
           <td className={styles.line}>
             <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
             {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
@@ -238,7 +237,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
               <Link className="btn sm ghost" href={`/offres/${o.id}`}>
                 {t("Voir la fiche")}
               </Link>
-              <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} pressOn={ref} />
+              <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} />
             </span>
           </td>
         </tr>
@@ -259,13 +258,12 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
   );
 }
 
-/** One row of the list: the « ··· » sits on the corner of the link (a button cannot live inside it); a long press opens the same sheet. */
+/** One row of the list: the « ··· » sits on the corner of the link (a button cannot live inside it). */
 function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
   const t = useT();
-  const ref = useRef<HTMLAnchorElement>(null);
   return (
     <div className={styles.rowWrap}>
-      <Link ref={ref} href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+      <Link href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
         <div className={styles.rowMain}>
           <LineIdentity o={o} s={s} size="lg" />
           {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
@@ -286,7 +284,7 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
         </dl>
         <div className={styles.rowAct}>{t("Voir la fiche")} →</div>
       </Link>
-      <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} pressOn={ref} className={styles.rowDots} />
+      <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} className={styles.rowDots} />
     </div>
   );
 }

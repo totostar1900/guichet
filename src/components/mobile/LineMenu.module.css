@@ -1,10 +1,10 @@
 .dots {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--navy);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -17,15 +17,9 @@
 }
 .dots:hover,
 .dots:focus-visible {
-  color: var(--ink);
-  background: var(--surface-2);
-  border-color: var(--line-2);
-}
-.pressing {
-  background: var(--gold-soft) !important;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
+  color: var(--on-navy);
+  background: var(--navy);
+  border-color: var(--navy);
 }
 .scrim {
   position: fixed;

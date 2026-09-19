@@ -10,7 +10,7 @@ import styles from "./LineMenu.module.css";
 /**
  * The « ··· » of a line: the same five actions wherever the line appears (a
  * card, a row of the table, the fiche itself), in a bottom sheet on the phone
- * and a small dialog on a desk. A long press on the row opens the same sheet.
+ * and a small dialog on a desk.
  * « Déclarer une intention » is deliberately not here: it stays a visible
  * button, never a menu item.
  */
@@ -21,9 +21,6 @@ export interface LineRef {
   sub?: string; // issuer · the number, under the title of the sheet
 }
 
-const PRESS_MS = 480;
-const PRESS_SLOP = 8;
-
 function Icon({ d }: { d: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -32,7 +29,7 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-export function LineMenu({ line, watching, onFiche = true, pdf, pressOn, className }: { line: LineRef; watching?: boolean; onFiche?: boolean; pdf?: boolean; pressOn?: React.RefObject<HTMLElement | null>; className?: string }) {
+export function LineMenu({ line, watching, onFiche = true, pdf, className }: { line: LineRef; watching?: boolean; onFiche?: boolean; pdf?: boolean; className?: string }) {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -54,65 +51,6 @@ export function LineMenu({ line, watching, onFiche = true, pdf, pressOn, classNa
     setToast(msg);
     window.setTimeout(() => setToast(""), 1600);
   };
-
-  // A long press on the row (touch only): the same sheet, and the click that follows the press is swallowed.
-  useEffect(() => {
-    const el = pressOn?.current;
-    if (!el) return;
-    let timer = 0;
-    let fired = false;
-    let x0 = 0;
-    let y0 = 0;
-    const cancel = () => {
-      if (timer) window.clearTimeout(timer);
-      timer = 0;
-      el.classList.remove(styles.pressing);
-    };
-    const onStart = (e: TouchEvent) => {
-      if ((e.target as HTMLElement).closest("button, [data-nopress]")) return;
-      fired = false;
-      x0 = e.touches[0].clientX;
-      y0 = e.touches[0].clientY;
-      el.classList.add(styles.pressing);
-      timer = window.setTimeout(() => {
-        fired = true;
-        cancel();
-        try {
-          navigator.vibrate?.(10);
-        } catch {
-          // no haptics
-        }
-        setOpen(true);
-      }, PRESS_MS);
-    };
-    const onMove = (e: TouchEvent) => {
-      if (Math.abs(e.touches[0].clientX - x0) > PRESS_SLOP || Math.abs(e.touches[0].clientY - y0) > PRESS_SLOP) cancel();
-    };
-    const onClick = (e: MouseEvent) => {
-      if (!fired) return;
-      e.preventDefault();
-      e.stopPropagation();
-      fired = false;
-    };
-    const onMenu = (e: Event) => {
-      if (timer || fired) e.preventDefault();
-    };
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchmove", onMove, { passive: true });
-    el.addEventListener("touchend", cancel);
-    el.addEventListener("touchcancel", cancel);
-    el.addEventListener("click", onClick, true);
-    el.addEventListener("contextmenu", onMenu);
-    return () => {
-      cancel();
-      el.removeEventListener("touchstart", onStart);
-      el.removeEventListener("touchmove", onMove);
-      el.removeEventListener("touchend", cancel);
-      el.removeEventListener("touchcancel", cancel);
-      el.removeEventListener("click", onClick, true);
-      el.removeEventListener("contextmenu", onMenu);
-    };
-  }, [pressOn]);
 
   useEffect(() => {
     if (!open) return;
@@ -208,7 +146,7 @@ export function LineMenu({ line, watching, onFiche = true, pdf, pressOn, classNa
 
   return (
     <>
-      <button type="button" className={`${styles.dots} ${className ?? ""}`} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={t("Plus d'actions")} data-nopress>
+      <button type="button" className={`${styles.dots} ${className ?? ""}`} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={t("Plus d'actions")}>
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="5" cy="12" r="2" />
           <circle cx="12" cy="12" r="2" />
