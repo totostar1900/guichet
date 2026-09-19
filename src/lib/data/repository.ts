@@ -1,4 +1,4 @@
-import type { Approval, AuditEntry, Contact, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PushSubscription, ReferenceRow, StaffMember, StaffRole, Watch, InboundMessage } from "@/lib/domain/types";
+import type { Approval, AuditEntry, ChannelCode, ChannelStatus, Contact, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -64,6 +64,19 @@ export interface Repository {
   updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt">>): Promise<void>;
   /** Client-side updates to reachability (phone, e-mail) : the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
+  /** Proven channels of a client, and the proof itself (a code, six digits, ten minutes, five tries). */
+  getChannelStatus(userId: string): Promise<ChannelStatus>;
+  markChannelVerified(userId: string, channel: "phone" | "email", target: string): Promise<void>;
+  createChannelCode(c: Omit<ChannelCode, "id" | "createdAt" | "attempts">): Promise<ChannelCode>;
+  findChannelCode(channel: ProofChannel, target: string): Promise<ChannelCode | undefined>;
+  updateChannelCode(id: string, patch: Partial<Pick<ChannelCode, "attempts" | "verifiedAt">>): Promise<void>;
+  /** Devices a client trusts for a fast return (passkeys, four-digit codes). */
+  listDevices(userId: string): Promise<TrustedDevice[]>;
+  findDevice(by: { credentialId?: string; id?: string }): Promise<TrustedDevice | undefined>;
+  addDevice(d: Omit<TrustedDevice, "id" | "createdAt" | "failures">): Promise<TrustedDevice>;
+  updateDevice(id: string, patch: Partial<Pick<TrustedDevice, "counter" | "failures" | "lastUsedAt" | "name">>): Promise<void>;
+  removeDevice(id: string, userId?: string): Promise<void>;
+  removeDevices(userId: string, kind?: DeviceKind): Promise<void>;
 
   /** Browsers that accepted push notifications. */
   listPushSubscriptions(userIds?: string[]): Promise<PushSubscription[]>;

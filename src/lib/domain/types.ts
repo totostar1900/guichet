@@ -157,6 +157,8 @@ export interface Intent {
   contactEmail?: string;
   message?: string;
   state: IntentState;
+  phoneVerified?: boolean;
+  emailVerified?: boolean;
   /** Results: share of the order served (0..100) and the units actually allocated. */
   allocationPct?: number;
   servedUnits?: number;
@@ -188,6 +190,9 @@ export interface NewIntentInput {
   clientName: string;
   clientSegment: string;
   clientId?: string;
+  /** Both channels proven when the intent left (the rule); kept with the intent for the desk. */
+  phoneVerified?: boolean;
+  emailVerified?: boolean;
 }
 
 /* ---------------- Intake (À valider) ---------------- */
@@ -381,6 +386,51 @@ export interface InboundMessage {
   receivedAt: string;
   handledAt?: string;
   handledBy?: string;
+}
+
+/**
+ * Reachability, proven: a channel is proven once by a six-digit code; an
+ * intention leaves only with both channels proven. The e-mail is proven by
+ * the sign-in itself (Supabase OTP); the phone (WhatsApp, or SMS) by a code
+ * Guichet sends and checks.
+ */
+export type ProofChannel = "whatsapp" | "sms" | "email";
+export interface ChannelStatus {
+  phone?: string;
+  phoneVerifiedAt?: string;
+  email?: string;
+  emailVerifiedAt?: string;
+}
+export interface ChannelCode {
+  id: string;
+  userId?: string; // a guest has none yet
+  channel: ProofChannel;
+  target: string; // E.164 or e-mail, lower-cased
+  codeHash: string;
+  expiresAt: string;
+  attempts: number;
+  verifiedAt?: string;
+  createdAt: string;
+}
+
+/**
+ * A device the client trusts for a fast return: a passkey (fingerprint, face)
+ * or a four-digit code that unlocks a secret kept by that device. The server
+ * keeps the public key, or the secret's hash, never the code.
+ */
+export type DeviceKind = "passkey" | "pin";
+export interface TrustedDevice {
+  id: string;
+  userId: string;
+  kind: DeviceKind;
+  name: string; // "iPhone de Georges", "Chrome sur Windows"
+  credentialId?: string; // passkey
+  publicKey?: string; // passkey, base64url
+  counter?: number; // passkey
+  secretHash?: string; // pin
+  failures: number; // pin: five and the device must re-prove by code
+  createdAt: string;
+  lastUsedAt?: string;
 }
 
 /** A line a client follows; the snapshot is what they were last told. */

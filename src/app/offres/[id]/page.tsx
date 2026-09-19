@@ -306,6 +306,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
     );
   }
   const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
+  const channels = session ? await repo().getChannelStatus(session.userId) : undefined;
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
   const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
@@ -530,7 +531,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

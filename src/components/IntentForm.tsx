@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { IntentResult } from "@/app/offres/[id]/actions";
-import { submitIntent } from "@/app/offres/[id]/actions";
+import { checkPhoneProof, guestSendEmailCode, guestVerifyEmailCode, sendPhoneProof, submitIntent } from "@/app/offres/[id]/actions";
+import type { ChannelStatus } from "@/lib/domain/types";
+import { normalizePhone } from "@/lib/format";
 import { estimate } from "@/lib/domain/estimate";
 import { orderChecks } from "@/lib/domain/checks";
 import { Info } from "./Info";
@@ -46,7 +49,77 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "" }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string }) {
+/**
+ * The proof of a channel, inline: a six-digit code sent on the channel and
+ * typed here, once. The phone (WhatsApp) is proven by Guichet's own code; a
+ * guest's e-mail by the sign-in code, which also creates the account.
+ */
+function ProofBlock({ kind, target, onProven, demo }: { kind: "phone" | "email"; target: string; onProven: (target: string) => void; demo?: string }) {
+  const t = useT();
+  const router = useRouter();
+  const [sent, setSent] = useState<"idle" | "sent">("idle");
+  const [code, setCode] = useState("");
+  const [msg, setMsg] = useState<{ error?: string; demo?: string } | null>(demo ? { demo } : null);
+  const [pending, start] = useTransition();
+  const send = () =>
+    start(async () => {
+      const r = kind === "phone" ? await sendPhoneProof(target) : await guestSendEmailCode(target);
+      if (!r.ok) {
+        setMsg({ error: r.error });
+        return;
+      }
+      setSent("sent");
+      setMsg("demoCode" in r && r.demoCode ? { demo: r.demoCode } : null);
+    });
+  const check = () =>
+    start(async () => {
+      if (kind === "phone") {
+        const r = await checkPhoneProof(target, code);
+        if (!r.ok) {
+          setMsg({ error: r.error });
+          return;
+        }
+        onProven(normalizePhone(target));
+      } else {
+        const r = await guestVerifyEmailCode(target, code);
+        if (!r.ok) {
+          setMsg({ error: r.error });
+          return;
+        }
+        onProven(target.trim().toLowerCase());
+        router.refresh(); // the session now exists: the page comes back signed in
+      }
+    });
+  return (
+    <div className={styles.proof} aria-live="polite">
+      {sent === "idle" ? (
+        <>
+          <span>{t(kind === "phone" ? "Ce numéro n'est pas encore prouvé : un code arrive sur WhatsApp, une seule fois." : "Un code arrive sur cet e-mail : il vous connecte, et crée votre compte s'il n'existe pas.")}</span>
+          <button type="button" className="btn sm primary" disabled={pending || !target} onClick={send}>
+            {t(pending ? "Envoi…" : kind === "phone" ? "Recevoir le code sur WhatsApp" : "Recevoir le code par e-mail")}
+          </button>
+        </>
+      ) : (
+        <>
+          <span>{t(kind === "phone" ? "Le code à six chiffres reçu sur WhatsApp :" : "Le code à six chiffres reçu par e-mail :")}</span>
+          <div className={styles.proofRow}>
+            <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" aria-label={t("Code à six chiffres")} />
+            <button type="button" className="btn sm primary" disabled={pending || code.length !== 6} onClick={check}>
+              {t(pending ? "Vérification…" : "Valider")}
+            </button>
+          </div>
+          <button type="button" className={styles.linkBtn} disabled={pending} onClick={send}>
+            {t("Renvoyer le code")}
+          </button>
+        </>
+      )}
+      {msg?.error && <em className={styles.proofError}>{msg.error}</em>}
+      {msg?.demo && <em className={styles.proofDemo}>{t("Serveur de démonstration, code :")} {msg.demo}</em>}
+    </div>
+  );
+}
+
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -57,7 +130,14 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
-  const [who, setWho] = useState({ firstName, lastName, phone, email });
+  const [who, setWho] = useState({ firstName, lastName, phone: phone || channels?.phone || "", email });
+  // The proofs: the phone as proven on the profile (or just now), the e-mail as the session's (or just proven by a guest).
+  const [provenPhone, setProvenPhone] = useState<string | null>(channels?.phoneVerifiedAt && channels.phone ? channels.phone : null);
+  const [provenEmail, setProvenEmail] = useState<string | null>(signedIn && email ? email.toLowerCase() : null);
+  const phoneOk = Boolean(provenPhone && normalizePhone(who.phone) === provenPhone);
+  // A session without e-mail (the dev backend) proves nothing: any well-formed e-mail passes there.
+  const emailOk = signedIn && !email ? who.email.includes("@") : Boolean(provenEmail && who.email.trim().toLowerCase() === provenEmail);
+  const ready = signedIn && phoneOk && emailOk;
   // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
   const [step, setStep] = useState(1);
   const formRef = useRef<HTMLFormElement>(null);
@@ -223,14 +303,20 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 {t("Téléphone (WhatsApp)")} <em className={styles.req}>· {t("requis")}</em>
               </span>
               <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 ().-]{8,}" title={t("Numéro avec indicatif, ex. +237 6 87 67 67 67")} />
+              {phoneOk && <em className={styles.proven}>✓ {t("prouvé")}</em>}
             </label>
             <label className="field">
               <span>
                 E-mail <em className={styles.req}>· {t("requis")}</em>
               </span>
-              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} required />
+              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} required readOnly={Boolean(signedIn && provenEmail)} />
+              {emailOk && <em className={styles.proven}>✓ {t("prouvé")}</em>}
             </label>
           </div>
+          {!signedIn && !emailOk && <ProofBlock kind="email" target={who.email} onProven={setProvenEmail} />}
+          {signedIn && Boolean(email) && !emailOk && <em className={styles.proofError}>{t("L'e-mail est celui de votre connexion ; pour en changer, passez par Mon espace › Sécurité.")}</em>}
+          {signedIn && emailOk && !phoneOk && who.phone.replace(/\D/g, "").length >= 8 && <ProofBlock kind="phone" target={who.phone} onProven={setProvenPhone} />}
+          {!signedIn && emailOk && <em className={styles.proofDemo}>{t("Connexion en cours…")}</em>}
           <div className={styles.channelLbl}>{t("Me joindre par")}</div>
           <div className={styles.channels}>
             {(["WhatsApp", "Appel", "E-mail"] as const).map((c) => (
@@ -241,7 +327,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             ))}
           </div>
           <p className={styles.procedure}>
-            {t("Prénom et nom tels que sur votre pièce d'identité (ils figurent sur le bulletin). Téléphone et e-mail sont vérifiés à l'envoi : accusé de réception immédiat sur WhatsApp et par e-mail, confirmation d'un conseiller {by}, bulletin à signer par e-mail. En donnant ce numéro, vous acceptez d'être contacté sur WhatsApp pour cette opération.", { by: t(BY[channel]) })}
+            {t("Prénom et nom tels que sur votre pièce d'identité (ils figurent sur le bulletin). E-mail et WhatsApp sont prouvés par un code, une seule fois : accusé de réception immédiat sur les deux, confirmation d'un conseiller {by}, bulletin à signer par e-mail. En donnant ce numéro, vous acceptez d'être contacté sur WhatsApp pour cette opération.", { by: t(BY[channel]) })}
           </p>
         </fieldset>
         <label className="field" style={{ marginBottom: 10 }}>
@@ -273,17 +359,17 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           </div>
         </div>
         {state && !state.ok && <div className={styles.error}>{state.error}</div>}
-        {!signedIn && (
+        {!ready && (
           <div className={styles.login}>
-            {t("Identifiez-vous pour envoyer votre intention : un code par e-mail suffit, aucun compte à créer d'avance.")}
-            <Link className="btn primary sm" href={`/connexion?next=${encodeURIComponent(`/offres/${offer.id}?intent=${type}`)}`}>
-              {t("Se connecter")}
-            </Link>
+            {t(!signedIn ? "Votre e-mail doit être prouvé par son code (étape 2) : il vous connecte, sans compte à créer d'avance." : !phoneOk ? "Votre numéro WhatsApp doit être prouvé par son code (étape 2), une seule fois." : "L'e-mail doit être celui de votre connexion (étape 2).")}
+            <button type="button" className="btn primary sm" onClick={() => goTo(2)}>
+              {t("Aller à l'étape 2")}
+            </button>
           </div>
         )}
         <div className={styles.foot}>
           <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation.")}</small>
-          <button className="btn primary" type="submit" disabled={pending || !signedIn}>
+          <button className="btn primary" type="submit" disabled={pending || !ready}>
             {t(pending ? "Envoi…" : "Envoyer au desk")}
           </button>
         </div>

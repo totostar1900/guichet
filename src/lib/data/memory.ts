@@ -2,7 +2,7 @@ import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/se
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -76,6 +76,9 @@ interface Store {
   intake: IntakeItem[];
   documents: GeneratedDocument[];
   contacts: Contact[];
+  channels: Map<string, ChannelStatus>;
+  codes: ChannelCode[];
+  devices: TrustedDevice[];
   notifications: Notification[];
   inbound: InboundMessage[];
   watches: Watch[];
@@ -110,6 +113,9 @@ function store(): Store {
       intake: structuredClone(SEED_INTAKE),
       documents: [],
       contacts: structuredClone(SEED_CONTACTS),
+      channels: new Map(),
+      codes: [],
+      devices: [],
       notifications: [],
       inbound: seedInbound(),
       watches: [],
@@ -199,6 +205,8 @@ export const memoryRepository: Repository = {
       contactEmail: input.contactEmail,
       message: input.message?.trim() || undefined,
       state: "recue",
+      phoneVerified: input.phoneVerified,
+      emailVerified: input.emailVerified,
       createdAt: at,
       updatedAt: at,
     };
@@ -404,6 +412,54 @@ export const memoryRepository: Repository = {
   async updateWatch(id, patch) {
     const w = store().watches.find((x) => x.id === id);
     if (w) Object.assign(w, patch);
+  },
+  async getChannelStatus(userId) {
+    const c = store().contacts.find((x) => x.id === userId);
+    const st = store().channels.get(userId) ?? {};
+    return { phone: st.phone ?? c?.phone, phoneVerifiedAt: st.phoneVerifiedAt, email: st.email ?? c?.email, emailVerifiedAt: st.emailVerifiedAt };
+  },
+  async markChannelVerified(userId, channel, target) {
+    const st = store().channels.get(userId) ?? {};
+    if (channel === "phone") Object.assign(st, { phone: target, phoneVerifiedAt: nowIso() });
+    else Object.assign(st, { email: target, emailVerifiedAt: nowIso() });
+    store().channels.set(userId, st);
+    await this.updateContact(userId, channel === "phone" ? { phone: target } : { email: target });
+  },
+  async createChannelCode(c) {
+    const code: ChannelCode = { ...c, id: uid(), attempts: 0, createdAt: nowIso() };
+    store().codes = store().codes.filter((x) => !(x.channel === c.channel && x.target === c.target && !x.verifiedAt));
+    store().codes.push(code);
+    return structuredClone(code);
+  },
+  async findChannelCode(channel, target) {
+    const c = [...store().codes].reverse().find((x) => x.channel === channel && x.target === target && !x.verifiedAt);
+    return c ? structuredClone(c) : undefined;
+  },
+  async updateChannelCode(id, patch) {
+    const c = store().codes.find((x) => x.id === id);
+    if (c) Object.assign(c, patch);
+  },
+  async listDevices(userId) {
+    return structuredClone(store().devices.filter((d) => d.userId === userId));
+  },
+  async findDevice(by) {
+    const d = store().devices.find((x) => (by.id && x.id === by.id) || (by.credentialId && x.credentialId === by.credentialId));
+    return d ? structuredClone(d) : undefined;
+  },
+  async addDevice(d) {
+    const dev: TrustedDevice = { ...d, id: uid(), failures: 0, createdAt: nowIso() };
+    store().devices.push(dev);
+    return structuredClone(dev);
+  },
+  async updateDevice(id, patch) {
+    const d = store().devices.find((x) => x.id === id);
+    if (d) Object.assign(d, patch);
+  },
+  async removeDevice(id, userId) {
+    store().devices = store().devices.filter((d) => !(d.id === id && (!userId || d.userId === userId)));
+  },
+  async removeDevices(userId, kind) {
+    store().devices = store().devices.filter((d) => !(d.userId === userId && (!kind || d.kind === kind)));
   },
   async updateContact(id, patch) {
     let c = store().contacts.find((x) => x.id === id);

@@ -15,6 +15,8 @@ import { INDIVISION_CEILING, isIndivision } from "@/lib/kyc/checklist";
 import { positionsFrom } from "@/lib/positions";
 import { blocking, orderChecks } from "@/lib/domain/checks";
 import { fmt } from "@/lib/format";
+import { confirmPhoneProof, requestPhoneProof, type ProofCheck, type ProofRequest } from "@/lib/channels";
+import { authMode } from "@/lib/auth";
 
 const schema = z.object({
   offerId: z.string().min(1),
@@ -58,6 +60,14 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const r = repo();
   const offer = await r.getOffer(offerId);
   if (!offer) return { ok: false, error: "Offre introuvable." };
+  // The rule: an intention leaves with both channels proven. The e-mail is the one the session signed in with;
+  // the phone must have been proven by code, and be the one typed here.
+  const channels = await r.getChannelStatus(session.userId);
+  const emailOk = Boolean(session.email && session.email.toLowerCase() === contactEmail) || (authMode() === "dev" && Boolean(contactEmail));
+  if (!emailOk) return { ok: false, error: "L'e-mail doit être celui de votre connexion : changez-le depuis Mon espace › Sécurité." };
+  if (!channels.emailVerifiedAt && session.email) await r.markChannelVerified(session.userId, "email", session.email.toLowerCase());
+  const phoneOk = Boolean(channels.phoneVerifiedAt && channels.phone === contactPhone);
+  if (!phoneOk) return { ok: false, error: "Ce numéro WhatsApp n'est pas encore prouvé : saisissez le code reçu avant d'envoyer." };
   if (!allowedIntents(offer, displayStatus(offer)).includes(type)) return { ok: false, error: "Cette intention n'est plus possible sur cette offre." };
 
   const amt = offer.kind === "FONDS" && type === "rachat" ? parseUnits(amount) : parseAmount(amount);
@@ -95,6 +105,8 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     clientId: session.userId,
     clientName,
     clientSegment: session.segment,
+    phoneVerified: true,
+    emailVerified: true,
   });
   // Keep the profile reachable with what the client just typed (the desk calls from there).
   await r.updateContact(session.userId, { name: clientName, phone: contactPhone || undefined, email: contactEmail || undefined });
@@ -137,4 +149,51 @@ export async function fundCurve(offerId: string): Promise<LineCurve | null> {
   const navs = (await repo().listFundNavs(o.fund.key, 60)).sort((a, b) => a.navDate.localeCompare(b.navDate));
   if (navs.length < 2) return null;
   return { label: "Valeurs liquidatives", unit: "nav", points: navs.map((n) => ({ x: n.navDate, y: n.nav })) };
+}
+
+/* ---------- Proving the phone, inline in the intention form ---------- */
+
+export async function sendPhoneProof(rawPhone: string): Promise<ProofRequest> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Connectez-vous d'abord." };
+  return requestPhoneProof(session.userId, rawPhone);
+}
+
+export async function checkPhoneProof(rawPhone: string, code: string): Promise<ProofCheck> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Connectez-vous d'abord." };
+  const res = await confirmPhoneProof(session.userId, rawPhone, code);
+  if (res.ok) {
+    revalidatePath(`/offres`);
+    revalidatePath("/moi");
+  }
+  return res;
+}
+
+/* ---------- A guest declares: the e-mail first (a code signs them in and creates the account), then the phone ---------- */
+
+export type GuestEmail = { ok: true; step: "code" } | { ok: true; step: "in"; email: string } | { ok: false; error: string };
+
+export async function guestSendEmailCode(rawEmail: string): Promise<GuestEmail> {
+  const email = z.string().email().safeParse(rawEmail.trim().toLowerCase());
+  if (!email.success) return { ok: false, error: "Adresse e-mail invalide." };
+  if (authMode() !== "supabase") return { ok: false, error: "Sur ce serveur de démonstration, connectez-vous d'abord (bouton en haut à droite)." };
+  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+  const sb = await supabaseAuthClient();
+  const { error } = await sb.auth.signInWithOtp({ email: email.data, options: { shouldCreateUser: true } });
+  if (error) return { ok: false, error: `Envoi impossible : ${error.message}` };
+  return { ok: true, step: "code" };
+}
+
+export async function guestVerifyEmailCode(rawEmail: string, code: string): Promise<GuestEmail> {
+  const email = rawEmail.trim().toLowerCase();
+  const token = code.replace(/s/g, "");
+  if (!/^d{6,8}$/.test(token)) return { ok: false, error: "Le code comporte 6 chiffres." };
+  if (authMode() !== "supabase") return { ok: false, error: "Sur ce serveur de démonstration, connectez-vous d'abord." };
+  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+  const sb = await supabaseAuthClient();
+  const { data, error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+  if (error || !data.user) return { ok: false, error: "Code incorrect ou expiré." };
+  await repo().markChannelVerified(data.user.id, "email", email);
+  return { ok: true, step: "in", email };
 }

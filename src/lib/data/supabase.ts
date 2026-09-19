@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type StaffMember, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type Contact, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -85,6 +85,8 @@ type IntentRow = {
   served_units: number | null;
   limit_price: number | null;
   executed_price: number | null;
+  phone_verified?: boolean | null;
+  email_verified?: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -163,6 +165,8 @@ function toIntent(r: IntentRow): Intent {
     contactEmail: u(r.contact_email),
     message: u(r.message),
     state: r.state,
+    phoneVerified: r.phone_verified ?? undefined,
+    emailVerified: r.email_verified ?? undefined,
     allocationPct: r.allocation_pct === null ? undefined : Number(r.allocation_pct),
     servedUnits: r.served_units === null ? undefined : Number(r.served_units),
     limitPrice: r.limit_price === null ? null : Number(r.limit_price),
@@ -244,6 +248,10 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
 };
 
 type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean };
+type CodeRow = { id: string; user_id: string | null; channel: ProofChannel; target: string; code_hash: string; expires_at: string; attempts: number; verified_at: string | null; created_at: string };
+const toCode = (r: CodeRow): ChannelCode => ({ id: r.id, userId: u(r.user_id), channel: r.channel, target: r.target, codeHash: r.code_hash, expiresAt: r.expires_at, attempts: r.attempts, verifiedAt: u(r.verified_at), createdAt: r.created_at });
+type DeviceRow = { id: string; user_id: string; kind: DeviceKind; name: string; credential_id: string | null; public_key: string | null; counter: number | null; secret_hash: string | null; failures: number; created_at: string; last_used_at: string | null };
+const toDevice = (r: DeviceRow): TrustedDevice => ({ id: r.id, userId: r.user_id, kind: r.kind, name: r.name, credentialId: u(r.credential_id), publicKey: u(r.public_key), counter: r.counter ?? undefined, secretHash: u(r.secret_hash), failures: r.failures, createdAt: r.created_at, lastUsedAt: u(r.last_used_at) });
 const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in });
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
@@ -438,8 +446,16 @@ export const supabaseRepository: Repository = {
       contact_email: input.contactEmail ?? null,
       message: input.message?.trim() || null,
       state: "recue",
+      phone_verified: input.phoneVerified ?? null,
+      email_verified: input.emailVerified ?? null,
     };
     let { data, error } = await db().from("intents").insert(row).select("*").single();
+    if (error && /(phone|email)_verified/.test(error.message)) {
+      // Migration 0026 not applied yet: the intent still leaves, the proof marks wait for the migration.
+      delete row.phone_verified;
+      delete row.email_verified;
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
     if (error && /contact_(phone|email)/.test(error.message)) {
       // Migration 0013 not applied yet: keep taking orders, the contact stays in the message.
       console.warn("[intents] migration 0013_intent_contact.sql manquante : contact gardé dans le message");
@@ -702,6 +718,73 @@ export const supabaseRepository: Repository = {
     if (patch.alertedAt !== undefined) row.alerted_at = patch.alertedAt;
     const { error } = await db().from("watchlist").update(row).eq("id", id);
     if (error) fail("updateWatch", error);
+  },
+  async getChannelStatus(userId) {
+    const { data, error } = await db().from("profiles").select("phone, email, phone_verified_at, email_verified_at").eq("id", userId).maybeSingle();
+    if (error) fail("getChannelStatus", error);
+    const r = (data ?? {}) as { phone?: string | null; email?: string | null; phone_verified_at?: string | null; email_verified_at?: string | null };
+    return { phone: u(r.phone), email: u(r.email), phoneVerifiedAt: u(r.phone_verified_at), emailVerifiedAt: u(r.email_verified_at) };
+  },
+  async markChannelVerified(userId, channel, target) {
+    const row = channel === "phone" ? { phone: target, phone_verified_at: new Date().toISOString(), whatsapp_opt_in: true, whatsapp_opt_in_at: new Date().toISOString() } : { email: target, email_verified_at: new Date().toISOString() };
+    const { error } = await db().from("profiles").upsert({ id: userId, ...row }, { onConflict: "id" });
+    if (error) fail("markChannelVerified", error);
+  },
+  async createChannelCode(c) {
+    await db().from("channel_codes").delete().eq("channel", c.channel).eq("target", c.target).is("verified_at", null);
+    const { data, error } = await db().from("channel_codes").insert({ user_id: c.userId ?? null, channel: c.channel, target: c.target, code_hash: c.codeHash, expires_at: c.expiresAt }).select("*").single();
+    if (error) fail("createChannelCode", error);
+    return toCode(data as CodeRow);
+  },
+  async findChannelCode(channel, target) {
+    const { data, error } = await db().from("channel_codes").select("*").eq("channel", channel).eq("target", target).is("verified_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (error) fail("findChannelCode", error);
+    return data ? toCode(data as CodeRow) : undefined;
+  },
+  async updateChannelCode(id, patch) {
+    const row: Record<string, unknown> = {};
+    if (patch.attempts !== undefined) row.attempts = patch.attempts;
+    if (patch.verifiedAt !== undefined) row.verified_at = patch.verifiedAt;
+    const { error } = await db().from("channel_codes").update(row).eq("id", id);
+    if (error) fail("updateChannelCode", error);
+  },
+  async listDevices(userId) {
+    const { data, error } = await db().from("trusted_devices").select("*").eq("user_id", userId).order("created_at");
+    if (error) fail("listDevices", error);
+    return (data as DeviceRow[]).map(toDevice);
+  },
+  async findDevice(by) {
+    let q = db().from("trusted_devices").select("*");
+    q = by.id ? q.eq("id", by.id) : q.eq("credential_id", by.credentialId ?? "");
+    const { data, error } = await q.maybeSingle();
+    if (error) fail("findDevice", error);
+    return data ? toDevice(data as DeviceRow) : undefined;
+  },
+  async addDevice(d) {
+    const { data, error } = await db().from("trusted_devices").insert({ user_id: d.userId, kind: d.kind, name: d.name, credential_id: d.credentialId ?? null, public_key: d.publicKey ?? null, counter: d.counter ?? null, secret_hash: d.secretHash ?? null, last_used_at: d.lastUsedAt ?? null }).select("*").single();
+    if (error) fail("addDevice", error);
+    return toDevice(data as DeviceRow);
+  },
+  async updateDevice(id, patch) {
+    const row: Record<string, unknown> = {};
+    if (patch.counter !== undefined) row.counter = patch.counter;
+    if (patch.failures !== undefined) row.failures = patch.failures;
+    if (patch.lastUsedAt !== undefined) row.last_used_at = patch.lastUsedAt;
+    if (patch.name !== undefined) row.name = patch.name;
+    const { error } = await db().from("trusted_devices").update(row).eq("id", id);
+    if (error) fail("updateDevice", error);
+  },
+  async removeDevice(id, userId) {
+    let q = db().from("trusted_devices").delete().eq("id", id);
+    if (userId) q = q.eq("user_id", userId);
+    const { error } = await q;
+    if (error) fail("removeDevice", error);
+  },
+  async removeDevices(userId, kind) {
+    let q = db().from("trusted_devices").delete().eq("user_id", userId);
+    if (kind) q = q.eq("kind", kind);
+    const { error } = await q;
+    if (error) fail("removeDevices", error);
   },
   async updateContact(id, patch) {
     const row: Record<string, string> = {};
