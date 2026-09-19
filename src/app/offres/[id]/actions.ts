@@ -75,7 +75,11 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
       phoneOk = true;
     }
   }
-  if (!phoneOk) return { ok: false, error: "Ce numéro WhatsApp n'est pas encore prouvé : saisissez le code reçu avant d'envoyer." };
+  // No WhatsApp sender on this host (keys not yet on Vercel): the rule cannot be applied, the desk confirms by phone and the intention carries the mark.
+  const { whatsappConfigured } = await import("@/lib/notify/providers");
+  const { proofDemoAllowed } = await import("@/lib/channels");
+  const phoneUnprovable = !whatsappConfigured() && !proofDemoAllowed();
+  if (!phoneOk && !phoneUnprovable) return { ok: false, error: "Ce numéro WhatsApp n'est pas encore prouvé : saisissez le code reçu avant d'envoyer." };
   if (!allowedIntents(offer, displayStatus(offer)).includes(type)) return { ok: false, error: "Cette intention n'est plus possible sur cette offre." };
 
   const amt = offer.kind === "FONDS" && type === "rachat" ? parseUnits(amount) : parseAmount(amount);
@@ -113,7 +117,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     clientId: session.userId,
     clientName,
     clientSegment: session.segment,
-    phoneVerified: true,
+    phoneVerified: phoneOk,
     emailVerified: true,
   });
   // Keep the profile reachable with what the client just typed (the desk calls from there).

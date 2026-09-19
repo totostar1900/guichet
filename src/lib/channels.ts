@@ -21,13 +21,20 @@ const MAX_TRIES = 5;
 const pepper = () => process.env.AUTH_SECRET ?? "guichet-dev-secret-change-me";
 const hash = (channel: ProofChannel, target: string, code: string) => createHmac("sha256", pepper()).update(`${channel}|${target}|${code}`).digest("hex");
 
-export type ProofRequest = { ok: true; demoCode?: string; channel: ProofChannel } | { ok: false; error: string };
+export type ProofRequest = { ok: true; demoCode?: string; channel: ProofChannel } | { ok: false; error: string; unavailable?: boolean };
+
+/** The demo code (printed in the form) only where no real client can read it: never on a production host. */
+export const proofDemoAllowed = (): boolean => process.env.WHATSAPP_DEMO === "1" || (process.env.NODE_ENV !== "production" && !process.env.VERCEL);
 export type ProofCheck = { ok: true } | { ok: false; error: string; left?: number };
 
 /** Sends a code to a phone (WhatsApp; SMS when a provider is wired). */
 export async function requestPhoneProof(userId: string | undefined, rawPhone: string): Promise<ProofRequest> {
   const phone = normalizePhone(rawPhone);
   if (!/^\+\d{8,15}$/.test(phone)) return { ok: false, error: "Numéro au format international, ex. +237 6 87 67 67 67." };
+  if (!whatsappConfigured() && !proofDemoAllowed()) {
+    // No sender on this host and no demo: the desk confirms the number by phone; the intention says so.
+    return { ok: false, error: "Le code WhatsApp n'est pas encore disponible : un conseiller confirme votre numéro par téléphone.", unavailable: true };
+  }
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   const channel: ProofChannel = "whatsapp";
   await repo().createChannelCode({ userId, channel, target: phone, codeHash: hash(channel, phone, code), expiresAt: new Date(Date.now() + TTL_MS).toISOString() });

@@ -65,10 +65,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // The proofs: the phone as proven on the profile (or just now), the e-mail as the session's (or just proven by a guest).
   const [provenPhone, setProvenPhone] = useState<string | null>(bridge?.phone ?? (channels?.phoneVerifiedAt && channels.phone ? channels.phone : null));
   const [provenEmail, setProvenEmail] = useState<string | null>(signedIn && email ? email.toLowerCase() : null);
+  // No WhatsApp sender on this host: the desk confirms by phone, the button opens, the intention is marked unproven.
+  const [phonePending, setPhonePending] = useState(false);
   const phoneOk = Boolean(provenPhone && normalizePhone(who.phone) === provenPhone);
   // A session without e-mail (the dev backend) proves nothing: any well-formed e-mail passes there.
   const emailOk = signedIn && !email ? who.email.includes("@") : Boolean(provenEmail && who.email.trim().toLowerCase() === provenEmail);
-  const ready = signedIn && phoneOk && emailOk;
+  const ready = signedIn && (phoneOk || phonePending) && emailOk;
   // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
   const [step, setStep] = useState(1);
   const formRef = useRef<HTMLFormElement>(null);
@@ -248,7 +250,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           </div>
           {!signedIn && !emailOk && <ProofBlock kind="email" target={who.email} onProven={setProvenEmail} />}
           {signedIn && Boolean(email) && !emailOk && <em className={styles.proofError}>{t("L'e-mail est celui de votre connexion ; pour en changer, passez par Mon espace › Sécurité.")}</em>}
-          {signedIn && emailOk && !phoneOk && who.phone.replace(/\D/g, "").length >= 8 && <ProofBlock kind="phone" target={who.phone} onProven={setProvenPhone} />}
+          {signedIn && emailOk && !phoneOk && who.phone.replace(/\D/g, "").length >= 8 && <ProofBlock kind="phone" target={who.phone} onProven={setProvenPhone} onUnavailable={() => setPhonePending(true)} />}
           {!signedIn && emailOk && <em className={styles.proofDemo}>{t("Connexion en cours…")}</em>}
           <div className={styles.channelLbl}>{t("Me joindre par")}</div>
           <div className={styles.channels}>

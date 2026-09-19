@@ -610,4 +610,5 @@ export const EN_MORE: Record<string, string> = {
   "Section précédente": "Previous section",
   "Glissez vers la gauche : la leçon suivante": "Swipe left: the next lesson",
   "Glissez vers la droite : la leçon précédente": "Swipe right: the previous lesson",
+  "Le code WhatsApp n'est pas encore disponible sur ce serveur : un conseiller confirme votre numéro par téléphone avant tout envoi. Vous pouvez envoyer votre intention.": "The WhatsApp code is not available on this server yet: an adviser confirms your number by phone before anything is sent. You can send your intention.",
 };

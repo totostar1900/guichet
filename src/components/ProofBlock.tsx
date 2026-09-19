@@ -12,10 +12,10 @@ import styles from "./ProofBlock.module.css";
  * typed here, once. The phone (WhatsApp) is proven by Guichet's own code; a
  * guest's e-mail by the sign-in code, which also creates the account.
  */
-export function ProofBlock({ kind, target, onProven, demo }: { kind: "phone" | "email"; target: string; onProven: (target: string) => void; demo?: string }) {
+export function ProofBlock({ kind, target, onProven, onUnavailable, demo }: { kind: "phone" | "email"; target: string; onProven: (target: string) => void; onUnavailable?: () => void; demo?: string }) {
   const t = useT();
   const router = useRouter();
-  const [sent, setSent] = useState<"idle" | "sent">("idle");
+  const [sent, setSent] = useState<"idle" | "sent" | "unavailable">("idle");
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ error?: string; demo?: string } | null>(demo ? { demo } : null);
   const [pending, start] = useTransition();
@@ -23,6 +23,12 @@ export function ProofBlock({ kind, target, onProven, demo }: { kind: "phone" | "
     start(async () => {
       const r = kind === "phone" ? await sendPhoneProof(target) : await guestSendEmailCode(target);
       if (!r.ok) {
+        if ("unavailable" in r && r.unavailable) {
+          setMsg({ demo: undefined, error: undefined });
+          setSent("unavailable");
+          onUnavailable?.();
+          return;
+        }
         setMsg({ error: r.error });
         return;
       }
@@ -50,7 +56,9 @@ export function ProofBlock({ kind, target, onProven, demo }: { kind: "phone" | "
     });
   return (
     <div className={styles.proof} aria-live="polite">
-      {sent === "idle" ? (
+      {sent === "unavailable" ? (
+        <span>{t("Le code WhatsApp n'est pas encore disponible sur ce serveur : un conseiller confirme votre numéro par téléphone avant tout envoi. Vous pouvez envoyer votre intention.")}</span>
+      ) : sent === "idle" ? (
         <>
           <span>{t(kind === "phone" ? "Ce numéro n'est pas encore prouvé : un code arrive sur WhatsApp, une seule fois." : "Un code arrive sur cet e-mail : il vous connecte, et crée votre compte s'il n'existe pas.")}</span>
           <button type="button" className="btn sm primary" disabled={pending || !target} onClick={send}>
