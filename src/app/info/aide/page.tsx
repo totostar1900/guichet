@@ -9,6 +9,7 @@ import { fmtDate } from "@/lib/format";
 import { aideRows } from "@/lib/guide-index";
 import styles from "@/app/desk/docs/docs.module.css";
 import { AideBrowser } from "./AideBrowser";
+import { GuideBar } from "../GuideBar";
 
 export const metadata = { title: "Aide" };
 
@@ -52,6 +53,7 @@ export default async function AidePage() {
       </nav>
       <article className={styles.doc}>
         <AideBrowser chapters={chapters} wa={wa} />
+        <GuideBar pos={{ label: t("Le Guide · aide") }} />
         <CoachMarks
           id="aide"
           replayLabel={t("Comment utiliser cette aide ?")}

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ChapterLinks } from "@/app/desk/docs/Outline";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
+import { GuideBar } from "../GuideBar";
 import { Actor, type ActorKind } from "@/components/Illustrations";
 import { SECTIONS } from "@/data/parcours";
 import { loadLessons } from "@/lib/reference";
@@ -54,7 +55,8 @@ export default async function ParcoursPage() {
         <Suspense>
           <Parcours sections={SECTIONS} lessons={lessons} />
         </Suspense>
-        <BackToTop />
+        <BackToTop lift />
+        <GuideBar pos={{ label: t("Le Guide · parcours") }} />
         <CoachMarks
           id="parcours"
           replayLabel={t("Comment suivre ce parcours ?")}

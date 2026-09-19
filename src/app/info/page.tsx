@@ -5,6 +5,7 @@ import { getRegistry } from "@/lib/registry";
 import { DoneMark } from "./[key]/Quiz";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
+import { GuideBar } from "./GuideBar";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
 import { buildGuideIndex } from "@/lib/guide-index";
@@ -114,7 +115,8 @@ export default async function InfoPage() {
           </Link>
         </div>
 
-        <BackToTop />
+        <BackToTop lift />
+        <GuideBar pos={{ label: t("Le Guide") }} />
         <CoachMarks
           id="info"
           replayLabel={t("Comment utiliser le Guide ?")}

@@ -15,8 +15,8 @@ import { Presentation } from "./mobile/Presentation";
 import { Onboarding } from "./mobile/Onboarding";
 import { startDeskTour } from "./DeskTour";
 import { rankEntries, type SearchEntry } from "@/app/info/InfoSearch";
-import { doneKey } from "@/app/info/[key]/Quiz";
 import { TOP_QUESTIONS, type GuideIndex } from "@/lib/guide-index-shared";
+import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
 import styles from "./AppMenu.module.css";
 
 /**
@@ -38,24 +38,6 @@ export interface AppMenuProps {
 
 const COACH_KEY = "guichet:coach:menu";
 type Tab = "aide" | "contact" | "reglages";
-// The Guide's index, fetched once per page life when the menu first opens (it is the viewer's language).
-let indexCache: GuideIndex | null = null;
-let indexPromise: Promise<GuideIndex> | null = null;
-function loadIndex(): Promise<GuideIndex> {
-  if (indexCache) return Promise.resolve(indexCache);
-  if (!indexPromise)
-    indexPromise = fetch("/api/guide-index")
-      .then((r) => r.json() as Promise<GuideIndex>)
-      .then((i) => (indexCache = i));
-  return indexPromise;
-}
-const readDone = (keys: string[]) => {
-  try {
-    return keys.filter((k) => localStorage.getItem(doneKey(k)) === "1");
-  } catch {
-    return [];
-  }
-};
 const noop = () => () => {};
 const firstTimeSnapshot = () => {
   try {
@@ -65,7 +47,6 @@ const firstTimeSnapshot = () => {
     return "";
   }
 };
-
 function Icon({ d, gold }: { d: string; gold?: boolean }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={gold ? styles.gold : undefined}>
@@ -106,7 +87,7 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
   const [coachGone, setCoachGone] = useState(false);
   const [tab, setTab] = useState<Tab>("aide");
   const [q, setQ] = useState("");
-  const [index, setIndex] = useState<GuideIndex | null>(indexCache);
+  const [index, setIndex] = useState<GuideIndex | null>(cachedGuideIndex());
   const [done, setDone] = useState<string[]>([]);
   const hits = useMemo(() => (index && q.trim().length >= 2 ? rankEntries(index.entries, q, 6).results.map((r) => r.e) : []), [index, q]);
   const first = index?.lessons.filter((l) => !l.section) ?? [];
@@ -133,9 +114,9 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
     setOpen(true);
     setTab("aide");
     setQ("");
-    loadIndex().then((i) => {
+    loadGuideIndex().then((i) => {
       setIndex(i);
-      setDone(readDone(i.lessons.map((l) => l.key)));
+      setDone(readDoneLessons(i.lessons.map((l) => l.key)));
     });
   };
   const close = () => setOpen(false);

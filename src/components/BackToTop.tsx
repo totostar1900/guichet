@@ -11,7 +11,7 @@ import styles from "./BackToTop.module.css";
  * corner of the window. Pages mount it themselves (lists, the Guide), never
  * the fiche, whose corner belongs to the action bar.
  */
-export function BackToTop({ screens = 0.8 }: { screens?: number }) {
+export function BackToTop({ screens = 0.8, lift = false }: { screens?: number; lift?: boolean }) {
   const t = useT();
   const [on, setOn] = useState(false);
   useEffect(() => {
@@ -36,7 +36,7 @@ export function BackToTop({ screens = 0.8 }: { screens?: number }) {
   return (
     <button
       type="button"
-      className={`${styles.btn} ${on ? styles.on : ""}`}
+      className={`${styles.btn} ${on ? styles.on : ""} ${lift ? styles.lift : ""}`}
       onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
       aria-label={t("Revenir en haut")}
       title={t("Revenir en haut")}

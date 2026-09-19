@@ -44,3 +44,10 @@
     transition: none;
   }
 }
+
+/* above the Guide's bar */
+@media (max-width: 760px) {
+  .lift {
+    bottom: calc(56px + 12px + 74px + env(safe-area-inset-bottom, 0px));
+  }
+}

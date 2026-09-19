@@ -2,6 +2,7 @@ import { LEGAL, LEGAL_VERSION } from "@/data/legal";
 import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
+import { GuideBar } from "../GuideBar";
 
 export const metadata = { title: "Mentions et responsabilités" };
 
@@ -21,6 +22,7 @@ export default async function MentionsPage() {
           ))}
         </section>
       ))}
+      <GuideBar pos={{ label: t("Le Guide · mentions") }} />
     </div>
   );
 }
