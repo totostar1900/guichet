@@ -3,7 +3,10 @@
  * of the Guichet and closed by one question. These are the code defaults; the
  * desk edits them in the référentiel (kind « lesson ») without touching code.
  */
-export type LessonWidget = "bond_price" | "bta_rate" | "tenor" | "equity" | "fund" | "auction" | "risks" | "read_ota";
+import type { SectionKey } from "./parcours";
+import { PARCOURS_LESSONS } from "./lessons-parcours";
+
+export type LessonWidget = "bond_price" | "bta_rate" | "tenor" | "equity" | "fund" | "auction" | "risks" | "read_ota" | "carte" | "chemin" | "vie" | "categories";
 
 export interface Lesson {
   key: string;
@@ -16,9 +19,13 @@ export interface Lesson {
   quiz: { q: string; options: string[]; answer: number; why: string };
   /** Glossary keys whose « i » bubble links to this lesson. */
   terms: string[];
+  /** The section of « Comprendre le marché CEMAC » this lesson belongs to; none = the first course, « Lire une ligne ». */
+  section?: SectionKey;
+  /** Actors the « carte » diagram highlights. */
+  focus?: string[];
 }
 
-export const LESSONS: Lesson[] = [
+export const FIRST_COURSE: Lesson[] = [
   {
     key: "lire-une-ota",
     order: 1,
@@ -144,3 +151,6 @@ export const LESSONS: Lesson[] = [
     terms: ["liquidite", "seuils", "ticket"],
   },
 ];
+
+/** Every lesson: the first course, then the parcours. */
+export const LESSONS: Lesson[] = [...FIRST_COURSE, ...PARCOURS_LESSONS];

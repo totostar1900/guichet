@@ -45,6 +45,8 @@ const SHOTS = [
   // The client's Info page, and the « Premiers pas » screen about Info and help (phone width, fifth screen).
   ["titres-client", "/", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:titres','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000, maxHeight: 1100 }],
   ["fonds-client", "/fonds", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:fonds','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000, maxHeight: 1100 }],
+  ["parcours-client", "/info/parcours", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:parcours','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000, maxHeight: 1400 }],
+  ["lecon-carte", "/info/tresors-svt", { prep: "localStorage.setItem('guichet:onboarded','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000, maxHeight: 1500 }],
   ["info-client", "/info", { prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
   ["onboarding-info", "/info", { width: 390, height: 780, prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:info','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],
   ["onboarding-aide", "/info/aide", { width: 390, height: 780, prep: "localStorage.setItem('guichet:onboarded','1'); localStorage.setItem('guichet:coach:aide','1'); setTimeout(() => location.reload(), 0); 'ok'", settle: 3000 }],

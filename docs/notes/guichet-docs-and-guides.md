@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 8ecfdc15-a97a-41f6-a140-c3c9f48a4903
-  modified: 2026-09-18T23:25:21.169Z
+  modified: 2026-09-19T00:40:51.723Z
 ---
 
 Documentation lives **in the app, not in static docs** (user's decision 2026-09-18: "pages in the app with filter and research, a guide on each side, like Claude's docs"). One Claude doc remains from that day (the platforms/costs recap, superseded by the in-app page but kept as a shareable link); the half-filled "Comment fonctionne Guichet" doc was deleted at the user's request.
@@ -19,5 +19,7 @@ Documentation lives **in the app, not in static docs** (user's decision 2026-09-
 - The desk tour cannot leave `/desk`: client pages enter it as stops with a `link` (+ preview image) on the desk page that feeds them (Référentiel → Info; Documentation → Aide). Desk tour = 20 stops; the last one is the notes page. Guide galleries: Documentation (index + 6 pages + aide client + aide-entretien + info client + premiers-pas + docs-notes), Référentiel (info-client, aide-client, aide-entretien). Shots script supports `maxHeight` per entry (Aide pages captured at up to 4200 px so the last chapter shows) and `then` to prune sections before a focused capture. Never add internal pages (notes, technique…) to a client tour — refused once, user agreed.
 
 - 2026-09-19: the Aide gained « Comment ne voir que le marché primaire… », « Que montrent les graphiques d'un fonds ? » and « … du comparateur ? » (Lire une ligne chapter); « Comment fonctionne Guichet » rows for Titres/Fonds/Guide describe the switches, the five fund readings and the comparer's charts; the Marché guide section shows the client's Titres/Fonds captures and a tour stop links to Titres. Rule followed: a client-facing feature ships with its Aide answer, its doc row (checkedOn bumped) and, when a screen changed, regenerated shots (`node scripts/guide-shots.mjs`, 32 files).
+
+- Parcours « Comprendre le marché CEMAC » (2026-09-19, built from the canvas mockup): sections in `src/data/parcours.ts` (key, order, shape, colour), twenty lessons in `src/data/lessons-parcours.ts` merged into `LESSONS` with `section` + optional `focus` (actors highlighted on the map); new widgets carte / chemin / vie / categories rendered by `src/components/lessons/Diagrams.tsx`, actor illustrations in `src/components/Illustrations.tsx` (`Actor`, `ActorGlyph`, `SectionShape`); page `/info/parcours` (server) + `Parcours.tsx` accordion (localStorage `guichet:parcours:open`, progress from the lessons' doneKey); the lesson page scopes prev/next to the course and hands over to the next section; the Guide lists only lessons without `section` and shows a card to the course; desk lesson form has a « Cours » select (schema `section`). EN in `src/i18n/en-parcours.ts`. Glossary: `src/app/info/Glossary.tsx` (search, sort, group; categories by key in GROUP_OF). Coach id `parcours`; guide shots `parcours-client`, `lecon-carte`.
 
 **Why:** a fintech's docs must sit where people work and carry a review date; clients must never reach internal procedures. **How to apply:** a screen change ⇒ update its doc page text + `checkedOn`, its guide section, regenerate shots, and keep new client-facing pages `visibility: "public"` only after the sensitivity test passes. See [[guichet-project]].

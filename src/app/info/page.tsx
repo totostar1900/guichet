@@ -8,6 +8,8 @@ import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
 import { InfoNav } from "./InfoNav";
+import { Actor } from "@/components/Illustrations";
+import { Glossary } from "./Glossary";
 import styles from "./page.module.css";
 import docs from "@/app/desk/docs/docs.module.css";
 import { getT } from "@/i18n/server";
@@ -21,12 +23,15 @@ export const metadata = { title: "Guide" };
  */
 export default async function InfoPage() {
   const G = getRegistry().glossary;
-  const lessons = await loadLessons();
+  const lessons = (await loadLessons()).filter((l) => !l.section).sort((a, b) => a.order - b.order);
+  const parcoursCount = (await loadLessons()).filter((l) => l.section).length;
   const t = await getT();
   const keys = Object.keys(G).sort((a, b) => G[a].short.localeCompare(G[b].short, "fr"));
   // The search index: glossary, lessons, tools and pages — in the viewer's language.
   const entries: SearchEntry[] = [
     ...keys.map((k) => ({ kind: "terme" as const, title: G[k].long ? `${t(G[k].short)} — ${t(G[k].long)}` : t(G[k].short), text: t(G[k].text), href: `/info#terme-${k}`, extra: k.replace(/_/g, " ") })),
+    { kind: "lecon" as const, title: t("Comprendre le marché CEMAC"), text: t("Cinq sections, vingt leçons : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais."), href: "/info/parcours", extra: "parcours cours marché BEAC COSUMAF BVMAC acteurs instruments risques" },
+    ...(await loadLessons()).filter((l) => l.section).map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
     ...lessons.map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
     { kind: "outil" as const, title: t("Simulateur d'obligation"), text: t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet."), href: "/info#simulateur", extra: "simulation rendement prix coupon" },
     { kind: "outil" as const, title: t("Comparer deux lignes"), text: t("Deux offres côte à côte : rendement, durée, ticket, calendrier."), href: "/comparer", extra: "comparaison comparateur" },
@@ -42,6 +47,7 @@ export default async function InfoPage() {
   const sections = [
     { id: "recherche", title: t("Recherche") },
     { id: "lecons", title: t("Huit leçons courtes") },
+    { id: "parcours", title: t("Comprendre le marché CEMAC") },
     { id: "simulateur", title: t("Simulateur d'obligation") },
     { id: "outils", title: t("Outils et repères") },
     { id: "glossaire", title: t("Les mots du Guichet") },
@@ -83,6 +89,20 @@ export default async function InfoPage() {
           ))}
         </div>
 
+        <Link href="/info/parcours" className={`${styles.parcours} ${styles.anchor}`} id="parcours" data-coach="info-parcours">
+          <span className={styles.parcoursStrip} aria-hidden="true">
+            {(["beac", "tresor", "guichet", "client"] as const).map((k) => (
+              <Actor key={k} kind={k} size={56} />
+            ))}
+          </span>
+          <span className={styles.parcoursText}>
+            <span className="eyebrow">{t("Parcours")}</span>
+            <b>{t("Comprendre le marché CEMAC")}</b>
+            <small>{t("{n} leçons en cinq sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais.", { n: parcoursCount })}</small>
+          </span>
+          <span className={styles.parcoursGo}>{t("Commencer")} →</span>
+        </Link>
+
         <h2 className={`${styles.h2} ${styles.anchor}`} id="simulateur">
           {t("Simulateur d'obligation")}
         </h2>
@@ -116,20 +136,14 @@ export default async function InfoPage() {
             { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page — la recherche, les leçons, le simulateur, les outils, le glossaire — et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
             { target: "info-lessons", title: t("Huit leçons de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque leçon se lit en deux minutes et se coche une fois lue.") },
+            { target: "info-glossaire", title: t("Les mots du Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
             { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
           ]}
         />
         <h2 className={`${styles.h2} ${styles.anchor}`} id="glossaire">
           {t("Les mots du Guichet")}
         </h2>
-        <div className={styles.gloss}>
-          {keys.map((k) => (
-            <div key={k} id={`terme-${k}`} className={styles.anchor}>
-              <b>{G[k].long ? `${t(G[k].short)} — ${t(G[k].long)}` : t(G[k].short)}</b>
-              <p>{t(G[k].text)}</p>
-            </div>
-          ))}
-        </div>
+        <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
       </div>
     </div>
   );

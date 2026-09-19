@@ -135,7 +135,8 @@ const lessonSchema = z.object({
   title: z.string().trim().min(4, "Titre requis."),
   intro: z.string().trim().min(10, "Une phrase d'introduction est requise."),
   body: z.string().trim().min(20, "Le corps de la leçon est requis (paragraphes séparés par une ligne vide)."),
-  widget: z.enum(["bond_price", "bta_rate", "tenor", "equity", "fund", "auction", "risks", "read_ota"]),
+  widget: z.enum(["bond_price", "bta_rate", "tenor", "equity", "fund", "auction", "risks", "read_ota", "carte", "chemin", "vie", "categories"]),
+  section: z.enum(["", "acteurs", "instruments", "risques", "ordre", "cadre"]).default(""),
   q: z.string().trim().min(5, "La question est requise."),
   o1: z.string().trim().min(1, "Trois réponses sont requises."),
   o2: z.string().trim().min(1, "Trois réponses sont requises."),
@@ -158,6 +159,7 @@ export async function saveLessonAction(_p: RefResult | null, form: FormData): Pr
     intro: d.intro,
     body: d.body.split(/\n\s*\n/).map((x) => x.replace(/\s+/g, " ").trim()).filter(Boolean),
     widget: d.widget,
+    ...(d.section ? { section: d.section } : {}),
     quiz: { q: d.q, options: [d.o1, d.o2, d.o3], answer: d.answer, why: d.why },
     terms: d.terms.split(/[,\s]+/).map((x) => x.trim().toLowerCase()).filter(Boolean),
   };

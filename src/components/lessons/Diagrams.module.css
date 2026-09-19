@@ -1,0 +1,302 @@
+.wrap {
+  display: grid;
+  gap: 10px;
+}
+.map,
+.life {
+  width: 100%;
+  height: auto;
+  display: block;
+  font-family: var(--font-ui);
+}
+.band {
+  fill: var(--paper);
+}
+.bandTitle,
+.boxTitle,
+.boxTitleGold,
+.boxTitleLight {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  fill: var(--ink-3);
+}
+.boxTitle {
+  fill: var(--navy);
+}
+.boxTitleGold {
+  fill: var(--gold-ink);
+}
+.boxTitleLight {
+  fill: #c9d3e6;
+}
+.boxIssuers {
+  fill: var(--surface);
+  stroke: var(--navy);
+  stroke-width: 1.5;
+}
+.boxMid {
+  fill: var(--gold-soft);
+  stroke: var(--gold);
+  stroke-width: 1.5;
+}
+.boxYou {
+  fill: var(--navy);
+}
+.clientCard {
+  fill: var(--surface);
+}
+.name {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+.sub {
+  font-size: 11px;
+  fill: var(--ink-2);
+}
+.onDark {
+  fill: #fff;
+}
+.sub.onDark {
+  fill: #c9d3e6;
+}
+.node {
+  cursor: pointer;
+}
+a.node:hover .name {
+  text-decoration: underline;
+}
+.arrow {
+  stroke: var(--ink-3);
+  stroke-width: 1.6;
+  fill: none;
+}
+.arrowGold {
+  stroke: var(--gold-ink);
+  stroke-width: 1.6;
+  fill: none;
+}
+.arrowHead {
+  fill: var(--ink-3);
+}
+.arrowLabel {
+  font-size: 10px;
+  fill: var(--ink-3);
+}
+.watch {
+  stroke: var(--line-2);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+  fill: none;
+}
+.bandText {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+.how {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  padding: 8px 12px;
+  border-left: 3px solid var(--gold);
+  background: var(--paper);
+  border-radius: 0 6px 6px 0;
+}
+.how b {
+  color: var(--ink);
+}
+
+/* the order path */
+.path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line-2);
+  font-size: 0.82rem;
+}
+.step small {
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+.num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--ink-3);
+}
+.you {
+  border-top-color: var(--navy);
+}
+.you .num {
+  background: var(--navy);
+}
+.market {
+  border-top-color: var(--gold);
+}
+.market .num {
+  background: var(--gold);
+  color: var(--navy);
+}
+.back {
+  border-top-color: var(--good);
+}
+.back .num {
+  background: var(--good);
+}
+.keys {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+}
+.keys i {
+  font-style: normal;
+}
+.kYou {
+  color: var(--navy);
+}
+.kMarket {
+  color: var(--gold);
+}
+.kBack {
+  color: var(--good);
+}
+
+/* the lifeline */
+.lifeTitle,
+.lifeTitleB {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--navy);
+}
+.lifeTitleB {
+  fill: #2a8a9a;
+}
+.base {
+  stroke: var(--line-2);
+  stroke-width: 2;
+}
+.out {
+  fill: var(--crit);
+}
+.inA {
+  fill: var(--navy);
+}
+.inB {
+  fill: #2a8a9a;
+}
+.amt,
+.amtSmall {
+  font-size: 11px;
+  fill: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.amtSmall {
+  fill: var(--ink-2);
+}
+.when {
+  font-size: 10.5px;
+  fill: var(--ink-3);
+}
+
+/* the four categories */
+.cats {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+.pie {
+  width: 140px;
+  height: 140px;
+}
+.pieHole {
+  fill: var(--surface);
+}
+.cM {
+  fill: var(--line-2);
+  background: var(--line-2);
+}
+.cO {
+  fill: var(--navy);
+  background: var(--navy);
+}
+.cD {
+  fill: #2a8a9a;
+  background: #2a8a9a;
+}
+.cA {
+  fill: var(--gold);
+  background: var(--gold);
+}
+.catList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.catList li {
+  display: grid;
+  grid-template-columns: 14px auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  font-size: 0.84rem;
+}
+.catList i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  transform: translateY(1px);
+}
+.catList span {
+  color: var(--ink-2);
+}
+@media (max-width: 760px) {
+  .path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cats {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .catList li {
+    grid-template-columns: 14px minmax(0, 1fr);
+  }
+  .catList span {
+    grid-column: 2;
+  }
+  .map {
+    min-width: 700px;
+  }
+  .life {
+    min-width: 640px;
+  }
+  .scroll {
+    overflow-x: auto;
+  }
+}

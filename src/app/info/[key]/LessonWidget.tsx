@@ -3,6 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useState } from "react";
 import type { LessonWidget as Kind } from "@/data/lessons";
+import { ActorsMap, FundCategories, Lifeline, OrderPath } from "@/components/lessons/Diagrams";
 import { bondCalc, btaCalc } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
@@ -78,6 +79,7 @@ function BondPrice({ live }: { live: Live }) {
 }
 
 function ReadOta({ live }: { live: Live }) {
+  const t = useT();
   const items: [string, string, string][] = [
     ["1", "Coupon", `${pct(live.couponRate ?? 6)} par an, calculé sur le nominal`],
     ["2", "Nominal", `${fmt(live.nominal ?? 10_000)} FCFA par titre — ce que l'État rembourse`],
@@ -93,8 +95,8 @@ function ReadOta({ live }: { live: Live }) {
           <li key={n}>
             <i>{n}</i>
             <span>
-              <b>{k}</b>
-              {v}
+              <b>{t(k)}</b>
+              {t(v)}
             </span>
           </li>
         ))}
@@ -289,8 +291,16 @@ function Risks() {
   );
 }
 
-export function LessonWidget({ kind, live }: { kind: Kind; live: Live }) {
+export function LessonWidget({ kind, live, focus }: { kind: Kind; live: Live; focus?: string[] }) {
   switch (kind) {
+    case "carte":
+      return <ActorsMap focus={focus} />;
+    case "chemin":
+      return <OrderPath />;
+    case "vie":
+      return <Lifeline />;
+    case "categories":
+      return <FundCategories />;
     case "bond_price":
       return <BondPrice live={live} />;
     case "read_ota":

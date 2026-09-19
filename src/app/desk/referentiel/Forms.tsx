@@ -182,7 +182,8 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
   );
 }
 
-const WIDGET_LABEL: Record<Lesson["widget"], string> = { read_ota: "Lire une OTA (cinq chiffres)", bond_price: "Prix → rendement (curseur)", bta_rate: "Taux précompté → prix et rendement", tenor: "Deux durées, même décote", equity: "Cours, dividende, PER", fund: "Montant → parts à la VL", auction: "Part servie à l'adjudication", risks: "Les quatre risques (cases)" };
+const WIDGET_LABEL: Record<Lesson["widget"], string> = { read_ota: "Lire une OTA (cinq chiffres)", bond_price: "Prix → rendement (curseur)", bta_rate: "Taux précompté → prix et rendement", tenor: "Deux durées, même décote", equity: "Cours, dividende, PER", fund: "Montant → parts à la VL", auction: "Part servie à l'adjudication", risks: "Les quatre risques (cases)", carte: "Schéma : la carte des acteurs", chemin: "Schéma : le chemin d'un ordre", vie: "Schéma : la ligne de vie d'un titre", categories: "Schéma : les quatre catégories de fonds" };
+const SECTION_LABEL: Record<string, string> = { "": "Lire une ligne (les huit premières)", acteurs: "Parcours 1 · Le marché et ses acteurs", instruments: "Parcours 2 · Les instruments", risques: "Parcours 3 · Les risques", ordre: "Parcours 4 · Passer un ordre", cadre: "Parcours 5 · Fiscalité, frais et documents" };
 
 export function LessonForm({ l }: { l?: Lesson }) {
   const tr = useT();
@@ -214,6 +215,10 @@ export function LessonForm({ l }: { l?: Lesson }) {
       <label>
         <span>{tr("Corps — un paragraphe par bloc, séparés par une ligne vide (trois à quatre paragraphes courts)")}</span>
         <textarea name="body" rows={9} defaultValue={l?.body.join("\n\n")} required />
+      </label>
+      <label>
+        <span>{tr("Cours")}</span>
+        <Select block name="section" value={l?.section ?? ""} options={Object.entries(SECTION_LABEL).map(([value, label]) => ({ value, label: tr(label) }))} />
       </label>
       <label>
         <span>{tr("Bloc interactif (illustré avec une vraie ligne du Guichet)")}</span>

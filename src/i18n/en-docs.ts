@@ -121,4 +121,7 @@ export const EN_DOCS: Record<string, string> = {
   "Ce que le client en voit": "What the client sees of it",
   "Les cours nourrissent la page Titres — deux interrupteurs, Marché primaire et Marché secondaire, tous deux allumés par défaut — et les VL nourrissent la page Fonds, un seul tableau avec les quatre catégories expliquées au-dessus.": "Prices feed the Securities page — two switches, Primary market and Secondary market, both on by default — and NAVs feed the Funds page, one table with the four categories explained above it.",
   "Voir la page Titres": "See the Securities page",
+  "Les deux parcours du Guide : « Lire une ligne » (huit leçons) et « Comprendre le marché CEMAC » (vingt leçons en cinq sections, colonne Cours). Titre, texte, schéma ou bloc, question.": "The Guide's two courses: 'Reading a line' (eight lessons) and 'Understanding the CEMAC market' (twenty lessons in five sections, Course column). Title, text, diagram or block, question.",
+  "Le parcours « Comprendre le marché CEMAC » : cinq sections repliables, vingt leçons, la progression du client": "The 'Understanding the CEMAC market' course: five folding sections, twenty lessons, the client's progress",
+  "Une leçon du parcours avec la carte des acteurs : les acteurs concernés en couleur, les autres estompés": "A lesson of the course with the actors map: the actors concerned in colour, the others faded",
 };

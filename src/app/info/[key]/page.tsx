@@ -4,6 +4,8 @@ import { repo } from "@/lib/data";
 import { displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
 import { loadCompanies, loadLessons } from "@/lib/reference";
+import { SECTIONS } from "@/data/parcours";
+import { SectionShape } from "@/components/Illustrations";
 import { LessonWidget, type Live } from "./LessonWidget";
 import { Quiz } from "./Quiz";
 import styles from "./page.module.css";
@@ -28,11 +30,18 @@ function pickLive(offers: Offer[], kinds: Offer["kind"][], instrument?: "action"
 
 export default async function LessonPage({ params }: Props) {
   const { key } = await params;
-  const lessons = await loadLessons();
+  const all = await loadLessons();
+  const me = all.find((x) => x.key === key);
+  if (!me) notFound();
+  // The course this lesson belongs to: its section of the parcours, or the first eight.
+  const section = me.section ? SECTIONS.find((s) => s.key === me.section) : undefined;
+  const lessons = all.filter((x) => (section ? x.section === section.key : !x.section)).sort((a, b) => a.order - b.order);
   const i = lessons.findIndex((x) => x.key === key);
-  if (i < 0) notFound();
   const l = lessons[i];
   const next = lessons[i + 1];
+  // The last lesson of a section hands over to the next section's first.
+  const parcours = all.filter((x) => x.section).sort((a, b) => a.order - b.order);
+  const after = !next && section ? parcours[parcours.findIndex((x) => x.key === key) + 1] : undefined;
   const offers = await repo().listOffers();
 
   let live: Live = { title: "Exemple : OTA 6,00 % · 31 mars 2028", nominal: 10_000, couponRate: 6, settleOn: "2026-09-17", maturityOn: "2028-03-31", lastCouponOn: "2026-03-31", pricePct: 96, exampleNote: "exemple" };
@@ -62,12 +71,14 @@ export default async function LessonPage({ params }: Props) {
   if (live.title.startsWith("Exemple") || live.title === "Les quatre risques") live = { ...live, title: t(live.title) };
   return (
     <div className={styles.wrap}>
-      <Link href="/info" className={styles.back}>
-        ← Info
+      <Link href={section ? "/info/parcours" : "/info"} className={styles.back}>
+        ← {section ? t("Comprendre le marché CEMAC") : t("Guide")}
       </Link>
       <div className={styles.head}>
-        <div className="eyebrow">
-          {t("Leçon {n} sur {total}", { n: l.order, total: lessons.length })} · {l.minutes} min
+        <div className={`eyebrow ${styles.eyebrow}`}>
+          {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
+          {section ? `${section.order} · ${t(section.title)} · ` : ""}
+          {t("Leçon {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
         </div>
         <h1 className="display">{t(l.title)}</h1>
         <p className={styles.intro}>{t(l.intro)}</p>
@@ -78,12 +89,12 @@ export default async function LessonPage({ params }: Props) {
         ))}
       </div>
       <div className={styles.widget}>
-        <LessonWidget kind={l.widget} live={live} />
+        <LessonWidget kind={l.widget} live={live} focus={l.focus} />
       </div>
-      <Quiz lessonKey={l.key} q={t(l.quiz.q)} options={l.quiz.options.map((o) => t(o))} answer={l.quiz.answer} why={t(l.quiz.why)} nextHref={next ? `/info/${next.key}` : undefined} nextTitle={next ? t(next.title) : undefined} />
+      <Quiz lessonKey={l.key} q={t(l.quiz.q)} options={l.quiz.options.map((o) => t(o))} answer={l.quiz.answer} why={t(l.quiz.why)} nextHref={next ? `/info/${next.key}` : after ? `/info/${after.key}` : section ? "/info/parcours" : undefined} nextTitle={next ? t(next.title) : after ? `${t("Section suivante")} : ${t(after.title)}` : section ? t("Retour au parcours") : undefined} />
       <nav className={styles.pager}>
         {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {t(lessons[i - 1].title)}</Link> : <span />}
-        {next && <Link href={`/info/${next.key}`}>{t(next.title)} →</Link>}
+        {next ? <Link href={`/info/${next.key}`}>{t(next.title)} →</Link> : after ? <Link href={`/info/${after.key}`}>{t(after.title)} →</Link> : null}
       </nav>
     </div>
   );

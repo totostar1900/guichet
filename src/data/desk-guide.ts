@@ -257,13 +257,15 @@ export const GUIDE: GuideSection[] = [
       { name: "Types de produits", what: "Libellé, segment, moteur de calcul, couleur, cautions de la fiche, liste de contrôle, intentions ouvertes." },
       { name: "Échéanciers", what: "Dates de coupon et de remboursement par ISIN, pour les calculs de rendement et de flux." },
       { name: "Glossaire", what: "Les bulles « i » de toute l'application." },
-      { name: "Leçons", what: "L'onglet Guide : titre, texte, question." },
+      { name: "Leçons", what: "Les deux parcours du Guide : « Lire une ligne » (huit leçons) et « Comprendre le marché CEMAC » (vingt leçons en cinq sections, colonne Cours). Titre, texte, schéma ou bloc, question." },
       { name: "Sociétés et émetteurs", what: "Fiches, documents publiés, contacts." },
     ],
     shots: [
       { key: "info-client", caption: "La page Guide du client : le glossaire et les leçons de ces onglets, tels que le client les lit" },
       { key: "aide-client", caption: "La page Aide du client, reliée depuis Info" },
       { key: "aide-entretien", caption: "Ce que le client lit sur l'entretien de l'application" },
+      { key: "parcours-client", caption: "Le parcours « Comprendre le marché CEMAC » : cinq sections repliables, vingt leçons, la progression du client" },
+      { key: "lecon-carte", caption: "Une leçon du parcours avec la carte des acteurs : les acteurs concernés en couleur, les autres estompés" },
     ],
   },
   {

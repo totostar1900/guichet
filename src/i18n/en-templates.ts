@@ -561,4 +561,9 @@ export const EN_TEMPLATES: Record<string, string> = {
   "séance du {d} · automatique · {t}": "session of {d} · automatic · {t}",
   "séance du {d} · desk · {t}": "session of {d} · desk · {t}",
   "{v} sur la séance": "{v} over the session",
+  "{r} par an, calculé sur le nominal": "{r} a year, computed on par",
+  "{n} FCFA par titre — ce que l'État rembourse": "{n} FCFA per security — what the State repays",
+  "{p} % du nominal — ce que vous payez": "{p}% of par — what you pay",
+  "{y} brut, si servi à ce prix et gardé jusqu'au bout": "{y} gross, if served at this price and held to the end",
+  "fixé par le desk": "set by the desk",
 };

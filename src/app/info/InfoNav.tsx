@@ -18,6 +18,7 @@ export function InfoNav({ sections }: { sections: { id: string; title: string }[
         <ChapterLinks chapters={sections} />
       </div>
       <span className={styles.group}>{t("Pour aller plus loin")}</span>
+      <Link href="/info/parcours">{t("Comprendre le marché CEMAC")}</Link>
       <Link href="/info/aide">{t("Aide : vos questions, nos réponses")}</Link>
       <Link href="/comparer">{t("Comparer deux lignes")}</Link>
       <Link href="/societes">{t("Sociétés cotées et émetteurs")}</Link>

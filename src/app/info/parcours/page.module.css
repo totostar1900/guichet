@@ -1,0 +1,227 @@
+.wrap {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  max-width: 860px;
+}
+.head h1 {
+  margin: 4px 0 8px;
+}
+.head p {
+  max-width: 68ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin: 0;
+}
+.strip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.strip span {
+  margin-left: auto;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  max-width: 180px;
+  line-height: 1.4;
+}
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+.progress b {
+  color: var(--ink);
+}
+.bar {
+  flex: 0 0 300px;
+  height: 10px;
+  display: flex;
+  gap: 3px;
+}
+.seg {
+  height: 100%;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.segFill {
+  height: 100%;
+}
+.section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.section.open {
+  border-color: var(--navy);
+}
+.sectionHead {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 0;
+  background: var(--surface);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.open .sectionHead {
+  border-bottom: 1px solid var(--line);
+}
+.badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--line-2);
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.badgeDone {
+  border-color: transparent;
+  color: #fff;
+}
+.headText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.headText b {
+  font-size: 0.98rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.headText small {
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+.keywords {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  max-width: 320px;
+  text-align: right;
+}
+.chev {
+  color: var(--ink-3);
+  font-size: 1.3rem;
+  transition: transform 0.15s;
+  flex: none;
+}
+.chevOpen {
+  transform: rotate(90deg);
+}
+.body {
+  padding: 12px 16px 16px;
+  display: grid;
+  gap: 12px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.lesson {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--surface);
+}
+.lesson:hover {
+  border-color: var(--navy);
+}
+.lessonDone {
+  background: var(--paper);
+}
+.lessonNext {
+  border-width: 1.5px;
+  border-color: var(--gold);
+}
+.lesson span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.lesson b {
+  font-size: 0.86rem;
+}
+.lesson small {
+  color: var(--ink-3);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+.lesson em {
+  font-style: normal;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.lessonNext em {
+  color: var(--gold-ink);
+  font-weight: 700;
+}
+.num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--line-2);
+  color: var(--ink-3);
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-style: normal;
+  display: grid;
+  place-items: center;
+}
+.blurb {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--paper);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.blurb b {
+  color: var(--ink);
+}
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .keywords {
+    display: none;
+  }
+  .bar {
+    flex-basis: 100%;
+  }
+  .strip span {
+    max-width: none;
+    margin-left: 0;
+  }
+}

@@ -66,6 +66,13 @@
   font-size: 1.05rem;
   margin: 0 0 10px;
 }
+/* twice the room between the page's sections (leçons · simulateur · outils · glossaire) */
+.h2.anchor {
+  margin-top: 52px;
+}
+.lessons {
+  margin-bottom: 52px;
+}
 .gloss {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
@@ -89,7 +96,6 @@
 .lessons {
   display: grid;
   gap: 8px;
-  margin-bottom: 26px;
 }
 .lessonsHead {
   display: flex;
@@ -165,4 +171,52 @@
   padding: 8px 12px;
   border-radius: 0 var(--radius) var(--radius) 0;
   margin-bottom: 14px;
+}
+
+/* the card to the second course */
+.parcours {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
+  margin: 0 0 52px;
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--gold-soft), var(--surface) 90%);
+  text-decoration: none;
+  color: var(--ink);
+}
+.parcoursStrip {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+.parcoursText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.parcoursText b {
+  font-size: 1.05rem;
+}
+.parcoursText small {
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.parcoursGo {
+  font-weight: 700;
+  color: var(--navy);
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .parcours {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .parcoursStrip svg {
+    width: 44px;
+    height: 33px;
+  }
 }
