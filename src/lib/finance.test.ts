@@ -6,7 +6,7 @@ import { bondCalc, btaCalc, daysBetween, tenorText } from "./finance";
 const settleOn = "2026-09-16";
 
 describe("RCA OTA lines at 95 % (note Purpose Capital)", () => {
-  it("Ligne A — new line, 6,25 %, 16/09/2028 → 9,096 %", () => {
+  it("Ligne A : new line, 6,25 %, 16/09/2028 → 9,096 %", () => {
     const r = bondCalc(
       { nominal: 10_000, couponRate: 6.25, settleOn, maturityOn: "2028-09-16", lastCouponOn: null },
       10_000_000,
@@ -19,7 +19,7 @@ describe("RCA OTA lines at 95 % (note Purpose Capital)", () => {
     expect(r.irr).toBeCloseTo(9.096, 2);
   });
 
-  it("Ligne B — reopening, 6,50 %, 12/08/2029, 35 days accrued → 8,506 %", () => {
+  it("Ligne B : reopening, 6,50 %, 12/08/2029, 35 days accrued → 8,506 %", () => {
     const r = bondCalc(
       { nominal: 10_000, couponRate: 6.5, settleOn, maturityOn: "2029-08-12", lastCouponOn: "2026-08-12" },
       10_000_000,
@@ -32,7 +32,7 @@ describe("RCA OTA lines at 95 % (note Purpose Capital)", () => {
     expect(r.irr).toBeCloseTo(8.506, 2);
   });
 
-  it("Ligne C — reopening, 6,50 %, 14/02/2028, 214 days accrued → 10,422 %", () => {
+  it("Ligne C : reopening, 6,50 %, 14/02/2028, 214 days accrued → 10,422 %", () => {
     const r = bondCalc(
       { nominal: 10_000, couponRate: 6.5, settleOn, maturityOn: "2028-02-14", lastCouponOn: "2026-02-14" },
       10_000_000,

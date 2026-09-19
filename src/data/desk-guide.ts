@@ -1,6 +1,6 @@
 /**
  * The desk guide, as data: one section per page, every field commented, and
- * the stops of the guided tour (which page, which element — `data-coach`).
+ * the stops of the guided tour (which page, which element`data-coach`).
  * The page /desk/guide renders it; the tour drives the same stops across pages.
  */
 export interface GuideField {
@@ -60,7 +60,7 @@ export const GUIDE: GuideSection[] = [
       { name: "Flux en direct", what: "Chaque événement (intention, passage d'étape, message WhatsApp entrant, document) à la seconde où il arrive." },
       { name: "Diffusion", what: "Les messages sortis (WhatsApp, e-mail, push) et leur état : envoyé, préparé (canal non configuré), échec.", how: "Un « échec » se relance depuis l'intention ; un « préparé » signifie que la clé du canal manque sur Vercel." },
       { name: "Carnet d'appétits", what: "Par ligne ouverte : prix Purpose, prises fermes et appétits, volume visuel, rendement publié, clôture." },
-      { name: "Intentions reçues — barre de filtres", what: "Recherche (réf., client, ligne, téléphone), pastilles d'état, ligne, tri.", how: "« À traiter » est le filtre de travail ; le lien sur la référence ou « Ouvrir » ouvre l'intention avec le client à côté." },
+      { name: "Intentions reçues : barre de filtres", what: "Recherche (réf., client, ligne, téléphone), pastilles d'état, ligne, tri.", how: "« À traiter » est le filtre de travail ; le lien sur la référence ou « Ouvrir » ouvre l'intention avec le client à côté." },
       { name: "Boutons d'étape", what: "Confirmer → Transmettre → Servi / Non servi → Réglé, ou Annuler.", how: "Chaque passage est journalisé, produit ses documents (bulletin, appel de fonds, avis) et prévient le client." },
     ],
   },
@@ -73,9 +73,9 @@ export const GUIDE: GuideSection[] = [
     when: "Pour chaque intention « reçue », avant de confirmer.",
     fields: [
       { name: "En-tête", what: "Type d'ordre et montant, état actuel, référence, date et canal de réception." },
-      { name: "La ligne", what: "Identité de la ligne, rendement ou repère, statut et clôture, ticket minimum — exactement ce que le client a lu." },
+      { name: "La ligne", what: "Identité de la ligne, rendement ou repère, statut et clôture, ticket minimum : exactement ce que le client a lu." },
       { name: "Au prix publié", what: "Titres ou parts, décaissement, coupon couru, rendement si servi au prix publié." },
-      { name: "Contrôles", what: "Minimum, titres entiers, quotité, prix limite, position détenue, compte-titres, dossier client. Vert : rien à signaler ; orange : à savoir ; rouge : l'ordre ne peut pas passer tel quel.", how: "Le bouton « i » donne la règle et sa raison — le même texte que le client a vu sous son champ de saisie." },
+      { name: "Contrôles", what: "Minimum, titres entiers, quotité, prix limite, position détenue, compte-titres, dossier client. Vert : rien à signaler ; orange : à savoir ; rouge : l'ordre ne peut pas passer tel quel.", how: "Le bouton « i » donne la règle et sa raison : le même texte que le client a vu sous son champ de saisie." },
       { name: "Message du client", what: "Le texte libre joint à la demande (contrainte de trésorerie, question)." },
       { name: "Étape", what: "reçue → confirmée → transmise → servie → réglée." },
       { name: "Décision", what: "Les passages possibles depuis l'état actuel ; « Exécuter (Marché) » pour un ordre de bourse ou d'OPCVM transmis ; « Répondre sur WhatsApp » ouvre la conversation.", how: "Confirmer = le client est d'accord sur le montant ; Transmettre = l'ordre est chez le SVT / en bourse / chez la société de gestion." },
@@ -88,7 +88,7 @@ export const GUIDE: GuideSection[] = [
   {
     key: "a-valider",
     path: "/desk/a-valider",
-    title: "À valider — sources reçues",
+    title: "À valider : sources reçues",
     role: "operateur",
     purpose: "Transformer un communiqué (e-mail, WhatsApp, PDF, texte collé) en ligne publiée, en vérifiant chaque champ extrait.",
     when: "À chaque source reçue ; le matin pour les adjudications de la semaine.",
@@ -99,7 +99,7 @@ export const GUIDE: GuideSection[] = [
       { name: "Prix Purpose / taux précompté", what: "Le prix auquel nous servons la ligne (% du nominal) ou le taux (BTA).", how: "Dans la fenêtre déléguée, la ligne se publie ; hors fenêtre, elle part en approbation." },
       { name: "Minimum de titres", what: "Le minimum de l'émetteur ; sert aux contrôles de cohérence côté client." },
       { name: "Segment et canaux", what: "À qui annoncer la ligne et par quel canal (WhatsApp, e-mail, push)." },
-      { name: "Liste de contrôle", what: "Les cases du type de produit (communiqué joint, dates vérifiées…) — toutes cochées avant de publier." },
+      { name: "Liste de contrôle", what: "Les cases du type de produit (communiqué joint, dates vérifiées…) : toutes cochées avant de publier." },
     ],
   },
   {
@@ -131,7 +131,7 @@ export const GUIDE: GuideSection[] = [
   {
     key: "clients",
     path: "/desk/clients",
-    title: "Dossiers clients — revue KYC",
+    title: "Dossiers clients : revue KYC",
     role: "operateur",
     purpose: "Revoir un dossier soumis, demander des compléments, attester le criblage sanctions / PPE, approuver et ouvrir le compte.",
     when: "À chaque dossier soumis ; avant tout règlement.",
@@ -140,7 +140,7 @@ export const GUIDE: GuideSection[] = [
       { name: "Identité, personnes, pièces", what: "Ce que le client a saisi et envoyé ; les pièces s'ouvrent en plein écran.", how: "Rien n'est bloquant à la soumission : c'est ici que l'on complète." },
       { name: "Contrôles automatiques", what: "Cohérence des dates, pièce expirée, RIB au nom du client, plafond d'indivision, montant déclaré." },
       { name: "Criblage sanctions / PPE", what: "Listes consultées, résultat (aucun, faux positif, confirmé), notes.", how: "Obligatoire pour approuver ; « à renseigner » ne bloque plus les autres décisions." },
-      { name: "Risque", what: "Faible, moyen, élevé — proposé d'après le dossier ; fixe la prochaine revue (5, 3, 1 an)." },
+      { name: "Risque", what: "Faible, moyen, élevé : proposé d'après le dossier ; fixe la prochaine revue (5, 3, 1 an)." },
       { name: "Compte-titres", what: "La référence chez le teneur de compte, renseignée à l'approbation ou après." },
       { name: "Compléments à demander", what: "La liste envoyée au client (WhatsApp / e-mail) quand on choisit « Demander des compléments »." },
       { name: "Boutons", what: "Refuser · Demander des compléments · Enregistrer la revue (garde les notes, passe « en revue ») · Approuver et ouvrir le compte." },
@@ -163,7 +163,7 @@ export const GUIDE: GuideSection[] = [
   {
     key: "marche",
     path: "/desk/marche",
-    title: "Cotes & VL — Bulletin Officiel de la Cote",
+    title: "Cotes & VL : Bulletin Officiel de la Cote",
     role: "operateur",
     purpose: "Importer le bulletin BVMAC (cours, VL), vérifier les anomalies, régler les conditions des fonds, exécuter les ordres de bourse et d'OPCVM.",
     when: "Chaque jour de bourse à 18 h 30 le cron l'importe seul ; ici pour vérifier ou reprendre à la main.",
@@ -294,7 +294,7 @@ export const GUIDE: GuideSection[] = [
     path: "/desk/reporting",
     title: "Reporting",
     role: "operateur",
-    purpose: "Journal des ordres, activité par segment, documents et diffusion, registre des clients, positions en conservation — et le rapport d'activité PDF.",
+    purpose: "Journal des ordres, activité par segment, documents et diffusion, registre des clients, positions en conservation : et le rapport d'activité PDF.",
     when: "Fin de mois ; à la demande du régulateur.",
     fields: [{ name: "Période", what: "Le mois ou l'intervalle du rapport." }],
   },
@@ -318,7 +318,7 @@ export const TOUR: TourStop[] = [
   { path: "/desk/clients", target: "review", title: "La décision KYC", text: "Refuser, demander des compléments, enregistrer la revue, approuver et ouvrir le compte. Seule l'approbation exige l'attestation sanctions / PPE." },
   { path: "/desk/messages", target: "inbox", title: "Messages", text: "Une conversation par numéro ou adresse. Répondez ici ; WhatsApp accepte une réponse libre dans les 24 h suivant le dernier message du client." },
   { path: "/desk/marche", target: "import", title: "Le bulletin de la BVMAC", text: "Importé seul chaque soir de bourse par le cron. Les cours et les VL sont historisés, jamais écrasés ; les anomalies s'affichent en dessous." },
-  { path: "/desk/marche", target: "import", title: "Ce que le client en voit", text: "Les cours nourrissent la page Titres — deux interrupteurs, Marché primaire et Marché secondaire, tous deux allumés par défaut — et les VL nourrissent la page Fonds, un seul tableau avec les quatre catégories expliquées au-dessus.", link: { href: "/", label: "Voir la page Titres" }, image: "/guide/titres-client.png" },
+  { path: "/desk/marche", target: "import", title: "Ce que le client en voit", text: "Les cours nourrissent la page Titres, deux interrupteurs, Marché primaire et Marché secondaire, tous deux allumés par défaut, et les VL nourrissent la page Fonds, un seul tableau avec les quatre catégories expliquées au-dessus.", link: { href: "/", label: "Voir la page Titres" }, image: "/guide/titres-client.png" },
   { path: "/desk/actualites", target: "news-inbox", title: "Liens reçus", text: "La veille de nuit, un lien envoyé au robot WhatsApp depuis un téléphone du desk ou un e-mail déposent ici ce qui mérite un regard. « Préparer » ouvre le formulaire pré-rempli ; « Écarter » classe sans publier." },
   { path: "/desk/actualites", target: "news-form", title: "Deux lignes, jamais l'article", text: "Le titre reformulé pour le client, « Pourquoi ça compte » en deux lignes sans recommandation, les lignes et notions liées. Publier met le lien sur la page Actualités et sur les fiches concernées ; chaque version est journalisée." },
   { path: "/desk/actualites", target: "news-list", title: "Ce que voit le client", text: "Les publications, par état : à la une, publiée, brouillon, expirée, écartée. Côté client, la page Actualités montre la une dans son cadre doré puis le fil par jour ; chaque fiche de ligne, de société ou d'émetteur reprend ses actualités liées.", link: { href: "/actualites", label: "Voir la page Actualités" } },

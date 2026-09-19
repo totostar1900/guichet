@@ -18,7 +18,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const o = await repo().getOffer((await params).id);
-  return { title: o ? `${o.title} — historique` : "Historique" };
+  return { title: o ? `${o.title} : historique` : "Historique" };
 }
 
 const short = (v: unknown): string => (v == null ? "—" : typeof v === "object" ? JSON.stringify(v).slice(0, 80) : String(v));
@@ -112,7 +112,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
         <div className="panel">
           <div className="panel-h">
             <h2>{t("Piste d'audit")} ({trail.length})</h2>
-            <span className="muted">{t("Qui, quoi, quand, d'où — chaîné, jamais modifié.")}</span>
+            <span className="muted">{t("Qui, quoi, quand, d'où : chaîné, jamais modifié.")}</span>
           </div>
           {trail.length === 0 && <div className="empty">{t("Aucune action tracée sur cette ligne.")}</div>}
           <ul className={styles.trail}>

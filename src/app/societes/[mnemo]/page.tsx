@@ -18,7 +18,7 @@ type Props = { params: Promise<{ mnemo: string }>; searchParams: Promise<{ p?: s
 
 export async function generateMetadata({ params }: Props) {
   const c = await companyByMnemo((await params).mnemo);
-  return { title: c ? `${c.shortName} — analyse` : "Société" };
+  return { title: c ? `${c.shortName} : analyse` : "Société" };
 }
 
 const RATIO_TERM: Record<string, TermKey> = { per: "per", yield: "rendement_dividende", payout: "payout", margin: "marge_nette", roe: "roe", pb: "price_to_book", float: "flottant" };
@@ -131,7 +131,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
                 <b>{t("Comment lire.")}</b> {t(periodComment(period, c))}
               </div>
             ) : (
-              <div className={styles.reading}>{t("Aucun cours ingéré sur cette période — l'historique se remplit à partir des bulletins de la BVMAC.")}</div>
+              <div className={styles.reading}>{t("Aucun cours ingéré sur cette période : l'historique se remplit à partir des bulletins de la BVMAC.")}</div>
             )}
           </div>
 
@@ -208,9 +208,10 @@ export default async function SocietePage({ params, searchParams }: Props) {
             <ul className={styles.comments}>
               {a.comments.map((c0, i) => (
                 <li key={i}>
-                  {c0.includes(" — ") ? (
+                  {/* a short lead (« Activité », « Dernier exercice ») is set in bold; a sentence that merely contains a colon stays whole */}
+                  {c0.includes(" : ") && c0.split(" : ")[0].split(" ").length <= 3 ? (
                     <>
-                      <b>{t(c0.split(" — ")[0])}</b> — {t(c0.split(" — ").slice(1).join(" — "))}
+                      <b>{t(c0.split(" : ")[0])}</b> : {t(c0.split(" : ").slice(1).join(" : "))}
                     </>
                   ) : (
                     t(c0)

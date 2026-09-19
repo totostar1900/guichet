@@ -20,7 +20,7 @@ export interface PushPayload {
   tag?: string;
 }
 
-/** Sends to one subscription; a 404/410 means the browser unsubscribed — the row is dropped. */
+/** Sends to one subscription; a 404/410 means the browser unsubscribed : the row is dropped. */
 export async function sendPush(sub: PushSubscription, payload: PushPayload): Promise<void> {
   setup();
   try {

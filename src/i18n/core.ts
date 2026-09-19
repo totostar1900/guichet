@@ -15,7 +15,7 @@ const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT, ...E
 /**
  * Two languages, one source: French is written in the code, English is a
  * dictionary keyed by the French text. `t("Voir la fiche")` returns the
- * English line when the viewer chose English, the French text otherwise —
+ * English line when the viewer chose English, the French text otherwise
  * a missing entry never breaks anything, it just stays in French.
  * `{name}` placeholders are filled from the params.
  */

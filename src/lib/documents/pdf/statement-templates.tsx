@@ -53,7 +53,7 @@ export function AttestationDetention({ number, contact, positions, now }: { numb
         total={["Total", "", "", fmt(positions.reduce((a, p) => a + p.nominalAmount, 0)), fmt(positions.reduce((a, p) => a + (p.marketValue ?? p.nominalAmount), 0)), ""]}
       />
       <Text style={s.p}>La présente attestation est délivrée à la demande du titulaire pour servir et valoir ce que de droit. Elle ne vaut ni évaluation ni engagement de rachat.</Text>
-      <Sig left={`Pour ${COMPANY.legalName} — signature et cachet`} right="" />
+      <Sig left={`Pour ${COMPANY.legalName} : signature et cachet`} right="" />
     </Letter>
   );
 }

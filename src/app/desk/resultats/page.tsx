@@ -48,7 +48,7 @@ export default async function ResultsPage() {
         <div className="panel" key={`${a.country}|${a.deadlineAt}`}>
           <div className="panel-h">
             <h2>
-              {t(a.issuer)} — {t("adjudication du {d}", { d: fmtDate(a.deadlineAt) })}
+              {t(a.issuer)} : {t("adjudication du {d}", { d: fmtDate(a.deadlineAt) })}
             </h2>
             <span className="muted" style={{ fontSize: ".8rem" }}>
               {t(parseDate(a.deadlineAt) > now ? "clôture à venir · " : "")}{t(a.toResult > 1 ? "{n} ordres en attente de résultats" : "{n} ordre en attente de résultats", { n: a.toResult })} · {t(a.toSettle > 1 ? "{n} servis à régler" : "{n} servi à régler", { n: a.toSettle })} · {t("règlement le")} {fmtDate(a.offers[0].settleOn)}
@@ -90,7 +90,7 @@ export default async function ResultsPage() {
             <div className={styles.doneRow}>
               {a.lines.map((l) => (
                 <span key={l.o.id}>
-                  {l.o.title} — {l.o.resultLine ?? (displayStatus(l.o, now) === "closed" ? "aucun ordre transmis" : "—")}
+                  {l.o.title} : {l.o.resultLine ?? (displayStatus(l.o, now) === "closed" ? "aucun ordre transmis" : "—")}
                 </span>
               ))}
             </div>

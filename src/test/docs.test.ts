@@ -26,7 +26,7 @@ describe("documentation", () => {
   });
 });
 
-describe("documentation — separation by audience", () => {
+describe("documentation : separation by audience", () => {
   const INTERNAL = [
     /\/desk\b/i,
     /\bsupabase\b/i,

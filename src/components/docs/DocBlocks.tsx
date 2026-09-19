@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { DocBlock, DocChapter } from "@/data/docs/types";
 import styles from "@/app/desk/docs/docs.module.css";
 
-/** Renders a documentation page's chapters in one language — the same on the desk and on the client help page. */
+/** Renders a documentation page's chapters in one language : the same on the desk and on the client help page. */
 export function DocBlocks({ chapters, lang }: { chapters: DocChapter[]; lang: "fr" | "en" }) {
   const L = (x: { fr: string; en: string }) => x[lang];
   const block = (b: DocBlock, k: number) => {

@@ -5,7 +5,7 @@ import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { clientRegister, defaultPeriod, orderJournal, toCsv, type Period } from "@/lib/reporting";
 
-/** CSV exports for the regulator and the auditors — desk only. */
+/** CSV exports for the regulator and the auditors : desk only. */
 export async function GET(req: NextRequest) {
   const s = await getSession();
   if (!s || !isDesk(s)) return new NextResponse("Accès desk requis", { status: 403 });

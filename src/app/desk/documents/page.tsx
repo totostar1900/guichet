@@ -25,7 +25,7 @@ const CHAIN: [string, string, string, string][] = [
   ["Soumission", "Bordereau de soumission groupée + annexe par client", "SVT", "Clôture du carnet"],
   ["Résultats", "Avis de résultat et d'allocation / de non-allocation", "Chaque client", "Résultats saisis (servie / non servie)"],
   ["Règlement", "Avis d'opéré", "Le client", "Règlement-livraison confirmé (réglée)"],
-  ["Vie du titre", "Avis de coupon, relevé de position", "Porteurs", "Programmé — étape suivante"],
+  ["Vie du titre", "Avis de coupon, relevé de position", "Porteurs", "Programmé : étape suivante"],
 ];
 
 export default async function DocumentsPage() {
@@ -64,7 +64,7 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>{t("Soumissions SVT — par adjudication")}</h2>
+          <h2>{t("Soumissions SVT : par adjudication")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t("Le bordereau regroupe les ordres confirmés de toutes les lignes d'une adjudication et les passe en « transmise »")}
           </span>
@@ -122,7 +122,7 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>{t("Documents clients — générer")}</h2>
+          <h2>{t("Documents clients : générer")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t("Les transitions du carnet génèrent automatiquement ; ici on régénère ou on émet à la main")}
           </span>

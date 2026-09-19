@@ -15,7 +15,7 @@ function seedInbound(): InboundMessage[] {
   return [
     { id: "in-1", channel: "whatsapp", from: "+237600000017", name: "J.-P. O.", body: "Bonjour, ma prise ferme de 10 M sur l'OTA 6,25 % est bien enregistrée ? Je peux régler le 16 au plus tôt.", receivedAt: ago(35) },
     { id: "in-2", channel: "whatsapp", from: "+237600000012", name: "Tontine Espoir", body: "Est-ce que le groupement peut aller jusqu'à 30 M sur la ligne de septembre ?", receivedAt: ago(140) },
-    { id: "in-3", channel: "email", from: "tresorerie@avc.example.com", name: "Assur-Vie Centrale", subject: "Appétit 200 M — OTA 6,50 %", body: "Bonjour,\nMerci de nous confirmer le prix retenu et la date de règlement pour notre appétit de 200 M FCFA.\nCordialement,\nLa trésorerie", receivedAt: ago(400), handledAt: ago(300), handledBy: "Georges" },
+    { id: "in-3", channel: "email", from: "tresorerie@avc.example.com", name: "Assur-Vie Centrale", subject: "Appétit 200 M : OTA 6,50 %", body: "Bonjour,\nMerci de nous confirmer le prix retenu et la date de règlement pour notre appétit de 200 M FCFA.\nCordialement,\nLa trésorerie", receivedAt: ago(400), handledAt: ago(300), handledBy: "Georges" },
   ];
 }
 
@@ -67,7 +67,7 @@ function seedClientFiles(): ClientFile[] {
 /**
  * In-memory repository backed by the seed. Survives hot reloads via globalThis
  * so the desk sees what the client submitted during a dev session.
- * Not for production — data resets on restart.
+ * Not for production : data resets on restart.
  */
 interface Store {
   offers: Offer[];
@@ -103,7 +103,7 @@ function store(): Store {
       intents: structuredClone(SEED_INTENTS),
       events: [
         { id: "e1", at: "2026-09-14T09:18:00", kind: "intent", html: "<b>Prise ferme</b> reçue de J.-P. O. sur OTA 6,25 % · 16 sept. 2028 · 10 000 000 FCFA · réf. PF-0914-017" },
-        { id: "e2", at: "2026-09-14T09:05:00", kind: "desk", html: "Desk : prix publiés sur les trois lignes RCA (94 / 93 / 92 %) — clients notifiés" },
+        { id: "e2", at: "2026-09-14T09:05:00", kind: "desk", html: "Desk : prix publiés sur les trois lignes RCA (94 / 93 / 92 %) : clients notifiés" },
         { id: "e3", at: "2026-09-14T09:02:00", kind: "intent", html: "<b>Cession</b> reçue de Groupe Mbaïki SARL sur Rachat OTA 3 ans · 300 titres · réf. CS-0914-016" },
         { id: "e4", at: "2026-09-14T08:41:00", kind: "intent", html: "<b>Appétit</b> reçu d'Assur-Vie Centrale sur OTA 6,50 % · 12 août 2029 · 200 000 000 FCFA · réf. AP-0914-014" },
       ],

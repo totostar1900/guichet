@@ -42,7 +42,7 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
       <span className="eyebrow">{t("Contrôle sanctions / PPE")}</span>
       {sc?.auto && (
         <div className={styles.autoHits}>
-          Pré-contrôle {sc.auto.provider} du {new Date(sc.auto.checkedAt).toLocaleString("fr-FR")} — {sc.auto.queries.length} nom(s) — {sc.auto.hits.length} correspondance(s){sc.auto.error ? ` · erreur : ${sc.auto.error}` : ""}
+          Pré-contrôle {sc.auto.provider} du {new Date(sc.auto.checkedAt).toLocaleString("fr-FR")}, {sc.auto.queries.length} nom(s), {sc.auto.hits.length} correspondance(s){sc.auto.error ? ` · erreur : ${sc.auto.error}` : ""}
           {sc.auto.hits.slice(0, 5).map((h, i) => (
             <div key={i}>
               {h.url ? (
@@ -64,7 +64,7 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
         </label>
         <label className="field">
           {t("Résultat")}
-          <Select block name="screeningOutcome" value={sc?.outcome ?? ""} disabled={closed} options={[{ value: "", label: t("— à renseigner —") }, { value: "aucun", label: t("Aucune correspondance") }, { value: "faux_positif", label: t("Correspondance écartée (faux positif documenté)") }, { value: "confirme", label: t("Correspondance confirmée — diligence renforcée") }]} />
+          <Select block name="screeningOutcome" value={sc?.outcome ?? ""} disabled={closed} options={[{ value: "", label: t("à renseigner") }, { value: "aucun", label: t("Aucune correspondance") }, { value: "faux_positif", label: t("Correspondance écartée (faux positif documenté)") }, { value: "confirme", label: t("Correspondance confirmée : diligence renforcée") }]} />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           {t("Notes du contrôle (homonymie écartée, sources, date de naissance comparée…)")}
@@ -108,7 +108,7 @@ export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; 
       <div className={styles.grid}>
         <label className="field">
           {t("Notation de risque")} {file.review.risk ? "" : `(${t("suggérée")} : ${t(riskLabels[suggested])})`}
-          <Select block name="risk" value={file.review.risk ?? suggested} disabled={closed} options={[{ value: "faible", label: t("Faible — revue tous les 5 ans") }, { value: "moyen", label: t("Moyen — revue tous les 3 ans") }, { value: "eleve", label: t("Élevé — revue annuelle, diligence renforcée") }]} />
+          <Select block name="risk" value={file.review.risk ?? suggested} disabled={closed} options={[{ value: "faible", label: t("Faible : revue tous les 5 ans") }, { value: "moyen", label: t("Moyen : revue tous les 3 ans") }, { value: "eleve", label: t("Élevé : revue annuelle, diligence renforcée") }]} />
         </label>
         <label className="field">
           {t("N° de sous-compte nominatif (si déjà attribué par le SVT)")}

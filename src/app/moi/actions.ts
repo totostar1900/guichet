@@ -22,12 +22,12 @@ export async function statementAction(_p: StatementResult | null, form: FormData
 
 export type ContactResult = { ok: true; phone: string; email: string } | { ok: false; error: string };
 
-/** The client keeps their own phone and e-mail current — the desk calls and sends documents from there. */
+/** The client keeps their own phone and e-mail current : the desk calls and sends documents from there. */
 export async function contactAction(_p: ContactResult | null, form: FormData): Promise<ContactResult> {
   const s = await requireSession("/moi");
   const phone = normalizePhone(String(form.get("phone") ?? ""));
   const email = String(form.get("email") ?? "").trim().toLowerCase();
-  if (!/^\+\d{8,15}$/.test(phone)) return { ok: false, error: "Numéro de téléphone incomplet — indicatif compris, ex. +237 6 87 67 67 67." };
+  if (!/^\+\d{8,15}$/.test(phone)) return { ok: false, error: "Numéro de téléphone incomplet : indicatif compris, ex. +237 6 87 67 67 67." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Adresse e-mail invalide." };
   await repo().updateContact(s.userId, { phone, email });
   revalidatePath("/moi");

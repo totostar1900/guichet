@@ -74,7 +74,7 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
               </dl>
               {term && (
                 <p className={styles.def}>
-                  <b>{term.long ? `${t(term.short)} — ${t(term.long)}` : t(term.short)}.</b> {t(term.text)}
+                  <b>{term.long ? `${t(term.short)} : ${t(term.long)}` : t(term.short)}.</b> {t(term.text)}
                 </p>
               )}
               <ul className={styles.caveats}>

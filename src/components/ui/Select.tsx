@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import styles from "./ui.module.css";
 
 /**
- * The app's own select — the same menu on a phone and on a desktop, instead of
+ * The app's own select : the same menu on a phone and on a desktop, instead of
  * the device's picker. Single value, keyboard-driven (arrows, Enter, Escape,
  * type-ahead on the first letter), works as a form field through a hidden input.
  */

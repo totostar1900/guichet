@@ -28,7 +28,7 @@ export async function decideApprovalAction(_p: ApprovalResult | null, form: Form
     if (!p.data.note) return { ok: false, error: "Un refus s'explique : ajoutez une note pour l'opérateur." };
     await r.decideApproval(a.id, "refuse", me.name, p.data.note);
     await audit("approval.decide", "approval", a.id, { before: { decision: null }, after: { decision: "refuse", note: p.data.note }, reason: a.reason });
-    await r.logEvent({ kind: "desk", offerId: a.entityId, html: `<b>${a.title}</b> : proposition de ${a.requestedBy} refusée par ${me.name} — ${p.data.note}` });
+    await r.logEvent({ kind: "desk", offerId: a.entityId, html: `<b>${a.title}</b> : proposition de ${a.requestedBy} refusée par ${me.name} : ${p.data.note}` });
     revalidatePath("/desk/approbations");
     return { ok: true, message: "Proposition refusée ; l'opérateur voit la note dans le journal." };
   }

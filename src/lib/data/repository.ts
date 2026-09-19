@@ -62,7 +62,7 @@ export interface Repository {
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }): Promise<Watch>;
   removeWatch(userId: string, offerId: string): Promise<void>;
   updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt">>): Promise<void>;
-  /** Client-side updates to reachability (phone, e-mail) — the desk keeps the last one given. */
+  /** Client-side updates to reachability (phone, e-mail) : the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
 
   /** Browsers that accepted push notifications. */
@@ -78,7 +78,7 @@ export interface Repository {
   createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;
   updateNotification(id: string, patch: Partial<Notification>): Promise<Notification>;
 
-  /** KYC files — one per user. */
+  /** KYC files : one per user. */
   listClientFiles(): Promise<ClientFile[]>;
   getClientFile(id: string): Promise<ClientFile | undefined>;
   getClientFileByUser(userId: string): Promise<ClientFile | undefined>;
@@ -107,7 +107,7 @@ export interface Repository {
   listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;
   upsertIssuerDocument(d: IssuerDocument): Promise<IssuerDocument>;
 
-  // Actualités — its own table: only published items are readable by everyone.
+  // Actualités : its own table: only published items are readable by everyone.
   listNews(): Promise<NewsItem[]>;
   upsertNews(n: NewsItem): Promise<void>;
   deleteNews(id: string): Promise<void>;
@@ -125,7 +125,7 @@ export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {
   rachat: "RA",
 };
 
-/** PF-0914-018 — prefix, MMDD, running number for the day. */
+/** PF-0914-018 : prefix, MMDD, running number for the day. */
 export function makeRef(type: NewIntentInput["type"], seq: number, now = new Date()): string {
   const mmdd = `${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
   return `${INTENT_PREFIX[type]}-${mmdd}-${String(seq).padStart(3, "0")}`;

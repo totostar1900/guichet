@@ -6,7 +6,7 @@ import { useT } from "@/i18n/client";
 
 /**
  * The head of the Titres page (what it holds, the bridge to the funds) and,
- * in the sticky band, the two market switches. Both are on by default — switching one off
+ * in the sticky band, the two market switches. Both are on by default : switching one off
  * keeps only the other; switching the last one off turns both back on, so the
  * list is never empty and « tout » no longer needs a button of its own.
  */

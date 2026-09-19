@@ -105,7 +105,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   <dt>{t("Compte de règlement")}</dt>
                   <dd className="mono">{selected.funds.bankAccount ? `${selected.funds.bankAccount}${selected.funds.bankHolder ? ` · ${selected.funds.bankHolder}` : ""}` : t("RIB manquant")}</dd>
                   <dt>PPE</dt>
-                  <dd>{selected.funds.pep ? `${t("oui")} — ${selected.funds.pepDetails ?? ""}` : t("non")}</dd>
+                  <dd>{selected.funds.pep ? `${t("oui")} : ${selected.funds.pepDetails ?? ""}` : t("non")}</dd>
                   <dt>{t("Profil")}</dt>
                   <dd>{[selected.profile.objectives, selected.profile.horizon, selected.profile.riskTolerance].filter(Boolean).map((x) => t(x as string)).join(" · ") || "—"}</dd>
                   <dt>{t("Convention")}</dt>
@@ -152,7 +152,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                             {t(DOC_LABEL[k])}
                           </a>
                         ) : (
-                          <span>{t(DOC_LABEL[k])} — {t("manquante")}</span>
+                          <span>{t(DOC_LABEL[k])} : {t("manquante")}</span>
                         )}
                         {d?.verified && <small className={styles.okText}> {t("vérifiée")}</small>}
                       </li>

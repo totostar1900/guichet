@@ -7,7 +7,7 @@ import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
 import { useT } from "@/i18n/client";
 
-/** One published NAV as the chart shows it — the bubble tells the whole story of the point. */
+/** One published NAV as the chart shows it : the bubble tells the whole story of the point. */
 export interface NavPoint {
   date: string;
   nav: number;

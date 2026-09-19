@@ -41,7 +41,7 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
           <Link href="/desk/a-valider?nouveau=1" className={`btn ${styles.newBtn}`}>
             {t("+ Nouvelle source")}
           </Link>
-          {!extractionAvailable() && <div className={styles.noApi}>{t("Extraction automatique désactivée — ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.")}</div>}
+          {!extractionAvailable() && <div className={styles.noApi}>{t("Extraction automatique désactivée : ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.")}</div>}
           {queue.map((q) => {
             const [cls, label0] = STATE_LABEL[q.state];
             const label = t(label0);

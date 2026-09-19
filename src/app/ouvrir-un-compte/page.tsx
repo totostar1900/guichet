@@ -37,7 +37,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       <div className={styles.head}>
         <div>
           <div className="eyebrow">{t("Ouverture de compte-titres")}</div>
-          <h1 className="display">{t(file.status === "approuve" ? (file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé — compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
+          <h1 className="display">{t(file.status === "approuve" ? (file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
           <p className={styles.lead}>
             {t("Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil, puis l'acceptation de la convention par code. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger.")}
           </p>
@@ -55,7 +55,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         </div>
       </div>
 
-      {sp.soumis === "1" && file.status === "soumis" && <div className={styles.okBanner}>Dossier reçu. Nous vous prévenons {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} dès la décision — en général sous 24 h ouvrées.</div>}
+      {sp.soumis === "1" && file.status === "soumis" && <div className={styles.okBanner}>Dossier reçu. Nous vous prévenons {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} dès la décision : en général sous 24 h ouvrées.</div>}
 
       <ol className={styles.rail}>
         {steps.map(([label, done], i) => (

@@ -1,4 +1,4 @@
-/* Phone shell — hidden above 760px, where the site header takes over. */
+/* Phone shell : hidden above 760px, where the site header takes over. */
 .top,
 .tabs {
   display: none;

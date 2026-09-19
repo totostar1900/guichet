@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         ) : (
           <>
             <p className={styles.lead}>
-              <b>{t("Mode démonstration")}</b> — {t("aucun backend configuré. Choisissez un rôle pour parcourir le Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.")}
+              <b>{t("Mode démonstration")}</b> : {t("aucun backend configuré. Choisissez un rôle pour parcourir le Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.")}
             </p>
             <div className={styles.two}>
               <form action={devLogin} className={styles.devForm}>

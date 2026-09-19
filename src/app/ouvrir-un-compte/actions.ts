@@ -162,7 +162,7 @@ export async function submitFileAction(): Promise<StepResult> {
   if (miss.length) return { ok: false, error: `Il manque : ${miss.join(", ")}.` };
   const r = repo();
   await r.updateClientFile(file.id, { status: "soumis", submittedAt: new Date().toISOString() });
-  await r.logEvent({ kind: "system", html: `<b>Dossier client soumis</b> — ${file.identity.name} (${file.kind}) — à revoir dans Desk › Clients` });
+  await r.logEvent({ kind: "system", html: `<b>Dossier client soumis</b>, ${file.identity.name} (${file.kind}), à revoir dans Desk › Clients` });
   revalidatePath(PATH);
   revalidatePath("/desk/clients");
   redirect(`${PATH}?soumis=1`);

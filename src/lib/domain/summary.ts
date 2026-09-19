@@ -5,7 +5,7 @@ import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
 /**
- * What a listing row says about an offer, whatever the instrument — computed once
+ * What a listing row says about an offer, whatever the instrument : computed once
  * and shared by the table, the list and the cards so the three views never disagree.
  */
 export interface OfferSummary {
@@ -27,7 +27,7 @@ export interface OfferSummary {
   deadlineAt?: string; // ISO for sorting
   countdown?: string; // "2 h 10" when closing soon
   coupon: string;
-  tenor: string; // duration as text ("2 ans et 11 mois") — from settlement for new paper, from today for listed bonds
+  tenor: string; // duration as text ("2 ans et 11 mois") : from settlement for new paper, from today for listed bonds
   maturity: string; // exact repayment date when known, the year alone when only the year is printed
   maturityNote?: string; // "année" when only the year is known
   minimum: string; // the smallest ticket in FCFA
@@ -51,7 +51,7 @@ const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" :
 const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
 const maturityNote = (o: Offer): string | undefined => (o.maturityOn && yearOnly(o) ? "année seule au BOC" : undefined);
 
-/** Annualised performance since inception — the only return a fund line can show from the BOC alone. */
+/** Annualised performance since inception : the only return a fund line can show from the BOC alone. */
 const fundAnnualPct = (f: NonNullable<Offer["fund"]>, now: Date): number | null => {
   const years = (parseDate(localIso(now)).getTime() - parseDate(f.inceptionDate).getTime()) / (365.25 * 24 * 3600 * 1000);
   if (!(years > 0.5) || f.perfSinceInceptionPct == null) return null;

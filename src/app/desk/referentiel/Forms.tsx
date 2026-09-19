@@ -86,15 +86,15 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
         </span>
       </label>
       <label>
-        <span>{tr("« À garder en tête » sur la fiche client — une ligne par point : Titre. | texte")}</span>
+        <span>{tr("« À garder en tête » sur la fiche client : une ligne par point : Titre. | texte")}</span>
         <textarea name="cautions" rows={5} defaultValue={t?.cautions.map(([a, b]) => `${a} | ${b}`).join("\n")} placeholder={"Crédit. | L'émetteur est…\nLiquidité. | …"} />
       </label>
       <label>
-        <span>{tr("Liste de contrôle avant publication — une ligne par point")}</span>
+        <span>{tr("Liste de contrôle avant publication : une ligne par point")}</span>
         <textarea name="checklist" rows={4} defaultValue={t?.checklist.join("\n")} placeholder={"Communiqué joint\nCoupon, nominal et échéance saisis"} />
       </label>
       <label>
-        <span>{tr("Champs libres affichés sur la fiche — une ligne par champ : cle|Libellé|oui (obligatoire) ou non")}</span>
+        <span>{tr("Champs libres affichés sur la fiche : une ligne par champ : cle|Libellé|oui (obligatoire) ou non")}</span>
         <textarea name="fields" rows={3} defaultValue={t?.fields.map((f) => `${f.key}|${f.label}|${tr(f.required ? "oui" : "non")}`).join("\n")} placeholder={"garantie|Garantie|non\nagent_payeur|Agent payeur|oui"} />
       </label>
       <div className={styles.actions}>
@@ -126,7 +126,7 @@ export function TermForm({ t }: { t?: BondTerms }) {
         </label>
         <label>
           <span>{tr("Paiements par an")}</span>
-          <Select block name="periodsPerYear" value={String(t?.periodsPerYear ?? 1)} options={[{ value: "1", label: tr("1 — annuel") }, { value: "2", label: tr("2 — semestriel") }, { value: "4", label: tr("4 — trimestriel") }]} />
+          <Select block name="periodsPerYear" value={String(t?.periodsPerYear ?? 1)} options={[{ value: "1", label: tr("1 : annuel") }, { value: "2", label: tr("2 : semestriel") }, { value: "4", label: tr("4 : trimestriel") }]} />
         </label>
       </div>
       <div className={styles.row3}>
@@ -213,7 +213,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
         <input name="intro" defaultValue={l?.intro} required />
       </label>
       <label>
-        <span>{tr("Corps — un paragraphe par bloc, séparés par une ligne vide (trois à quatre paragraphes courts)")}</span>
+        <span>{tr("Corps : un paragraphe par bloc, séparés par une ligne vide (trois à quatre paragraphes courts)")}</span>
         <textarea name="body" rows={9} defaultValue={l?.body.join("\n\n")} required />
       </label>
       <label>
@@ -267,7 +267,7 @@ export function JsonForm({ kind, data, label }: { kind: string; data?: unknown; 
     <form action={action} className={`${styles.form} ${styles.compact}`}>
       <input type="hidden" name="kind" value={kind} />
       <label>
-        <span>{label} — fiche complète (JSON)</span>
+        <span>{label} : fiche complète (JSON)</span>
         <textarea name="json" rows={data ? 22 : 10} className="mono" defaultValue={data ? JSON.stringify(data, null, 2) : ""} spellCheck={false} required />
       </label>
       <div className={styles.actions}>

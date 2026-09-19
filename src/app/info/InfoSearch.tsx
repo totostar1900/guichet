@@ -8,7 +8,7 @@ import styles from "./InfoSearch.module.css";
 /**
  * The support box of the Guide tab: one field, every word, notion, lesson,
  * tool or page of the app behind it. A question works as well as a word
- * (« c'est quoi un coupon », « what is a coupon ») — the filler is dropped,
+ * (« c'est quoi un coupon », « what is a coupon ») : the filler is dropped,
  * plurals and a few everyday synonyms are understood. Results rank title
  * matches first, show the sentence where the word appears, Enter opens the
  * first one, and a result inside this page scrolls to the spot and lights it up.
@@ -28,7 +28,7 @@ const fold = (s: string) =>
     .replace(/[̀-ͯ]/g, "")
     .replace(/[’']/g, "'");
 
-// Words a question is made of, in both languages — never what the reader is looking for.
+// Words a question is made of, in both languages : never what the reader is looking for.
 const STOP = new Set("qu est ce que quoi c un une le la les des du de d l au aux et ou en sur pour dans veut dire signifie definition definir comment fonctionne marche ca what is are a an the does do mean means meaning how work works define explain me my mon ma mes je j on peut puis".split(" "));
 // Everyday words → the words the glossary uses.
 const SYN: Record<string, string[]> = {
@@ -189,7 +189,7 @@ export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
           <div className={styles.resultsHead}>
             {results.length > 0 ? (
               <span>
-                <b>{results.length}</b> {t(results.length > 1 ? "résultats pour" : "résultat pour")} « {words.slice(0, 3).join(" ") || q.trim()} » — {t("Entrée ouvre le premier")}
+                <b>{results.length}</b> {t(results.length > 1 ? "résultats pour" : "résultat pour")} « {words.slice(0, 3).join(" ") || q.trim()} » : {t("Entrée ouvre le premier")}
               </span>
             ) : (
               <span>{t("Aucun résultat")}</span>
@@ -199,7 +199,7 @@ export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
             <button key={e.href + e.title} type="button" role="option" aria-selected={i === active} className={`${styles.item} ${i === active ? styles.on : ""}`} onMouseEnter={() => setActive(i)} onClick={() => go(e.href)}>
               <span className={`${styles.kind} ${styles[e.kind]}`}>{KIND[e.kind]}</span>
               <span className={styles.body}>
-                <b>{e.kind === "terme" && asked ? `${t("Qu'est-ce que")} « ${e.title.split(" — ")[0]} » ?` : e.title}</b>
+                <b>{e.kind === "terme" && asked ? `${t("Qu'est-ce que")} « ${e.title.split(" : ")[0]} » ?` : e.title}</b>
                 <small>{e.kind === "terme" ? snippet(e.text, []) : snippet(e.text, words)}</small>
               </span>
               <span className={styles.arrow} aria-hidden="true">

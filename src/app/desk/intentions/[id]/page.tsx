@@ -26,7 +26,7 @@ const MARKET_TYPES = new Set(["achat", "vente", "souscription", "rachat"]);
 /**
  * One intention, opened: the order as the client sent it, the line as they saw
  * it, the consistency checks, the client's file, history, positions and
- * messages — and the decision, without leaving the screen.
+ * messages : and the decision, without leaving the screen.
  */
 export default async function IntentionPage({ params }: { params: Promise<{ id: string }> }) {
   const t = await getT();
@@ -126,7 +126,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                       {t(c.text)} <Info text={t(c.why)} label={t("Règle")} subtle />
                     </li>
                   ))}
-                  {file && file.status !== "approuve" && <li className={styles.warn}>{t(`Dossier client ${STATUS_LABEL[file.status].toLowerCase()} — à approuver avant le règlement.`)}</li>}
+                  {file && file.status !== "approuve" && <li className={styles.warn}>{t(`Dossier client ${STATUS_LABEL[file.status].toLowerCase()} : à approuver avant le règlement.`)}</li>}
                   {!file && <li className={styles.warn}>{t("Aucun dossier client : ouvrir le compte avant le règlement.")}</li>}
                   {checks.length === 0 && file?.status === "approuve" && <li className={styles.ok}>{t("Rien à signaler.")}</li>}
                 </ul>
@@ -187,7 +187,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     </button>
                   </form>
                 ))}
-              {next.length === 0 && <span className="muted">{t("Intention terminée — plus aucun passage possible.")}</span>}
+              {next.length === 0 && <span className="muted">{t("Intention terminée : plus aucun passage possible.")}</span>}
               <Link className="btn ghost" href={`/offres/${o.id}`}>
                 {t("Voir la fiche")}
               </Link>
@@ -309,7 +309,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                   <span>{fmtDateTime(x.createdAt).split(" ")[0]}</span>
                   <Link href={`/desk/intentions/${x.id}`}>
                     <b>{t(INTENT_STATE_LABEL[x.state])}</b> {INTENT_LABEL[x.type].toLowerCase()} · {ox?.title ?? x.offerId}
-                    {x.amount ? ` — ${fmt(x.amount)}` : ""}
+                    {x.amount ? ` : ${fmt(x.amount)}` : ""}
                   </Link>
                 </li>
               );

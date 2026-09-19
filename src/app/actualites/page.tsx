@@ -66,7 +66,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
         <div className={styles.head}>
           <span className="eyebrow">{t("Actualités")}</span>
           <h1>{t("Ce qui bouge sur le marché, en trois lignes")}</h1>
-          <p>{t("Chaque jour, le desk retient les publications qui comptent pour vos lignes — communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique — et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.")}</p>
+          <p>{t("Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.")}</p>
         </div>
 
         <div data-coach="filters">
@@ -145,7 +145,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           stops={[
             ...(featured ? [{ target: "featured", title: t("À la une"), text: t("Une seule publication en tête, choisie par le desk : celle qui change quelque chose pour le plus de lignes aujourd'hui. Le titre ouvre l'original chez son éditeur.") }] : []),
             ...(rest.length ? [{ target: "item", title: t("Pourquoi ça compte"), text: t("Sous chaque titre, deux lignes du desk : ce que la publication change pour vos lignes, sans recommandation. Les puces mènent à la ligne, à la société ou au terme concerné.") }] : []),
-            { target: "filters", title: t("Par rubrique ou par mot"), text: t("Trésors, BVMAC, Sociétés, Fonds, Réglementation — ou une recherche : une ligne, un émetteur, un mot. Les publications restent visibles trente jours, puis dans « Semaines précédentes ».") },
+            { target: "filters", title: t("Par rubrique ou par mot"), text: t("Trésors, BVMAC, Sociétés, Fonds, Réglementation : ou une recherche : une ligne, un émetteur, un mot. Les publications restent visibles trente jours, puis dans « Semaines précédentes ».") },
             { target: "digest", title: t("Le vendredi, un résumé"), text: t("Les liens de la semaine, par WhatsApp ou e-mail, aux clients qui acceptent nos messages. Rien d'autre, et STOP l'arrête.") },
           ]}
         />
@@ -184,12 +184,12 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
         <div className={styles.card}>
           <span className="eyebrow">{t("Sources suivies")}</span>
           <div className={styles.sources}>
-            <span>{t("BVMAC — bulletins et avis")}</span>
-            <span>{t("Trésors publics — Cameroun, RCA, Congo, Gabon, Tchad, Guinée équatoriale")}</span>
-            <span>{t("COSUMAF — visas et décisions")}</span>
-            <span>{t("BEAC — marché des titres publics")}</span>
-            <span>{t("Sociétés cotées — communiqués, AGO")}</span>
-            <span>{t("Sociétés de gestion — lettres et VL")}</span>
+            <span>{t("BVMAC : bulletins et avis")}</span>
+            <span>{t("Trésors publics : Cameroun, RCA, Congo, Gabon, Tchad, Guinée équatoriale")}</span>
+            <span>{t("COSUMAF : visas et décisions")}</span>
+            <span>{t("BEAC : marché des titres publics")}</span>
+            <span>{t("Sociétés cotées : communiqués, AGO")}</span>
+            <span>{t("Sociétés de gestion : lettres et VL")}</span>
           </div>
         </div>
       </aside>

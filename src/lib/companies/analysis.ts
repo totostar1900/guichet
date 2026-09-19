@@ -22,7 +22,7 @@ export function periodFrom(p: string, now = new Date()): string {
 
 /**
  * Everything the company pages and reports say, computed from the certified
- * figures and the bulletin's quotes — with the plain-language reading of each
+ * figures and the bulletin's quotes : with the plain-language reading of each
  * number, written once here so the site and the PDF tell the same story.
  */
 
@@ -149,7 +149,7 @@ export function analyse(company: Company, quote?: Quote): Analysis {
       label: "Flottant",
       value: `${fmtPct(company.freeFloatPct, 1)} · ${fmt(company.sharesFloat)} actions`,
       raw: company.freeFloatPct,
-      reading: company.freeFloatPct < 10 ? "Moins de 10 % du capital est en bourse : très peu de titres à acheter ou vendre, le cours peut ne pas bouger pendant des semaines puis sauter sur une seule transaction." : "Environ un cinquième du capital est en bourse : c'est la norme à la BVMAC, la liquidité reste limitée — prévoyez des ordres patients.",
+      reading: company.freeFloatPct < 10 ? "Moins de 10 % du capital est en bourse : très peu de titres à acheter ou vendre, le cours peut ne pas bouger pendant des semaines puis sauter sur une seule transaction." : "Environ un cinquième du capital est en bourse : c'est la norme à la BVMAC, la liquidité reste limitée : prévoyez des ordres patients.",
     },
   ];
 
@@ -157,15 +157,15 @@ export function analyse(company: Company, quote?: Quote): Analysis {
   const headline = `${company.shortName} : ${latest.revenueLabel.toLowerCase()} de ${bn(latest.revenue)} FCFA en ${latest.year} (${trend}${revenueGrowthPct != null ? ` ${signed(revenueGrowthPct)}` : ""}), bénéfice net de ${bn(latest.netIncome)}${netIncomeGrowthPct != null ? ` (${signed(netIncomeGrowthPct)})` : ""}${dividendYieldPct != null ? `, dividende rapportant ${fmtPct(dividendYieldPct, 1)} au cours actuel` : ""}.`;
 
   const comments: string[] = [];
-  comments.push(`Activité — ${company.activity}`);
+  comments.push(`Activité : ${company.activity}`);
   if (previous) {
     comments.push(
-      `Dernier exercice — ${latest.revenueLabel} ${signed(revenueGrowthPct ?? 0)} à ${bn(latest.revenue)} FCFA ; bénéfice net ${signed(netIncomeGrowthPct ?? 0)} à ${bn(latest.netIncome)}. ${netIncomeGrowthPct != null && Math.abs(netIncomeGrowthPct) > 25 ? "Une variation de cette ampleur vient rarement des ventes seules : regardez les charges, les provisions ou les éléments exceptionnels dans le rapport." : "Une évolution mesurée, cohérente avec l'activité."}${revenueCagrPct != null ? ` Sur ${years} ans, la croissance moyenne des revenus est de ${signed(revenueCagrPct)} par an.` : ""}`,
+      `Dernier exercice : ${latest.revenueLabel} ${signed(revenueGrowthPct ?? 0)} à ${bn(latest.revenue)} FCFA ; bénéfice net ${signed(netIncomeGrowthPct ?? 0)} à ${bn(latest.netIncome)}. ${netIncomeGrowthPct != null && Math.abs(netIncomeGrowthPct) > 25 ? "Une variation de cette ampleur vient rarement des ventes seules : regardez les charges, les provisions ou les éléments exceptionnels dans le rapport." : "Une évolution mesurée, cohérente avec l'activité."}${revenueCagrPct != null ? ` Sur ${years} ans, la croissance moyenne des revenus est de ${signed(revenueCagrPct)} par an.` : ""}`,
     );
   }
-  comments.push(`Solidité — fonds propres de ${bn(latest.equity)} FCFA pour un bilan de ${bn(latest.totalAssets)} (${fmtPct((latest.equity / latest.totalAssets) * 100, 0)}${isBank ? " — un ratio faible est normal pour une banque, dont le bilan est fait des dépôts des clients" : " du bilan financé par les actionnaires, le reste par les dettes et fournisseurs"}).`);
+  comments.push(`Solidité : fonds propres de ${bn(latest.equity)} FCFA pour un bilan de ${bn(latest.totalAssets)} (${fmtPct((latest.equity / latest.totalAssets) * 100, 0)}${isBank ? ", un ratio faible est normal pour une banque, dont le bilan est fait des dépôts des clients" : " du bilan financé par les actionnaires, le reste par les dettes et fournisseurs"}).`);
   if (price != null) {
-    comments.push(`Valorisation — au cours de ${fmt(price)} FCFA, la société vaut ${bn(marketCap ?? 0)} FCFA en bourse${per != null ? `, soit ${x1(per)} fois son bénéfice ${latest.year}` : ""}${priceToBook != null ? ` et ${x1(priceToBook)} fois ses fonds propres` : ""}. ${dividendYieldPct != null ? `Le dividende rapporte ${fmtPct(dividendYieldPct, 1)} brut.` : "Pas de dividende récent."}`);
+    comments.push(`Valorisation : au cours de ${fmt(price)} FCFA, la société vaut ${bn(marketCap ?? 0)} FCFA en bourse${per != null ? `, soit ${x1(per)} fois son bénéfice ${latest.year}` : ""}${priceToBook != null ? ` et ${x1(priceToBook)} fois ses fonds propres` : ""}. ${dividendYieldPct != null ? `Le dividende rapporte ${fmtPct(dividendYieldPct, 1)} brut.` : "Pas de dividende récent."}`);
   }
   for (const r of company.reading) comments.push(r);
 

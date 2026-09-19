@@ -1,6 +1,6 @@
 // Captures the desk guide's screenshots (public/guide/<key>.png) from a dev
 // server running on the in-memory seed (`npm run dev:memory`), signed in as a
-// responsable through the dev cookie. Headless Chrome over CDP — no dependency.
+// responsable through the dev cookie. Headless Chrome over CDP : no dependency.
 //   npm run guide:shots            (server on http://localhost:3000)
 //   BASE=http://localhost:3001 npm run guide:shots
 import { spawn } from "node:child_process";

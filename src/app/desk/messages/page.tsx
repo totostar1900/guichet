@@ -18,7 +18,7 @@ type Msg = { at: string; dir: "in" | "out"; channel: string; text: string; statu
 type Thread = { key: string; channel: "whatsapp" | "email"; name?: string; clientId?: string; msgs: Msg[]; unread: number; last: string };
 
 /**
- * The desk inbox: one conversation per phone number or e-mail address —
+ * The desk inbox: one conversation per phone number or e-mail address
  * what the client wrote (WhatsApp webhook, inbound mailbox) and what we sent
  * (every outbound notification). Reply from here; mark a thread handled.
  */

@@ -20,8 +20,8 @@ export const KIND_LABEL: Record<ClientKind, string> = {
 };
 
 export const DOC_LABEL: Record<KycDocKind, string> = {
-  piece_identite_recto: "Pièce d'identité — recto",
-  piece_identite_verso: "Pièce d'identité — verso",
+  piece_identite_recto: "Pièce d'identité : recto",
+  piece_identite_verso: "Pièce d'identité : verso",
   selfie: "Selfie (vérification du visage)",
   justificatif_domicile: "Justificatif de domicile (< 3 mois)",
   rib: "RIB d'un compte au nom du client",
@@ -58,7 +58,7 @@ export const STATUS_LABEL: Record<ClientFile["status"], string> = {
   soumis: "Soumis",
   en_revue: "En revue",
   complements: "Compléments demandés",
-  approuve: "Approuvé — compte actif",
+  approuve: "Approuvé : compte actif",
   refuse: "Refusé",
 };
 
@@ -68,7 +68,7 @@ export const RISK_LABEL: Record<RiskRating, string> = { faible: "Faible", moyen:
 export const REVIEW_YEARS: Record<RiskRating, number> = { faible: 5, moyen: 3, eleve: 1 };
 
 /**
- * What blocks the submission — deliberately short: who you are, how to reach
+ * What blocks the submission : deliberately short: who you are, how to reach
  * you, where the money comes from, your profile, your consent. Pieces and the
  * rest are collected by the desk afterwards (see missingForApproval).
  */
@@ -119,20 +119,20 @@ export function autoChecks(f: ClientFile, now = new Date()): Check[] {
   const miss = missingForSubmission(f);
   checks.push({ label: "Dossier complet", ok: miss.length === 0, detail: miss.length ? `manque : ${miss.slice(0, 4).join(", ")}${miss.length > 4 ? "…" : ""}` : "toutes les pièces requises" });
   const pep = f.funds.pep || f.persons.some((p) => p.pep);
-  checks.push({ label: "PPE déclaré", ok: !pep, detail: pep ? "oui — diligence renforcée" : "non" });
-  if (f.kind === "groupement") checks.push({ label: "Forme du groupement", ok: isIndivision(f) ? declaredAmountFloor(f.funds.expectedAmount) <= INDIVISION_CEILING : true, detail: isIndivision(f) ? `indivision de mandataires — plafond ${(INDIVISION_CEILING / 1e6).toFixed(0)} M FCFA de nominal` : (f.identity.legalForm ?? "—") });
-  checks.push({ label: "RIB du compte de règlement", ok: f.funds.bankAccount ? null : false, detail: f.funds.bankAccount ? `${f.funds.bankName ?? ""} ${f.funds.bankAccount} — intitulé « ${f.funds.bankHolder ?? "?"} » : même nom que le client, à vérifier sur la pièce` : "manquant — indispensable pour virer ventes, rachats et coupons" });
+  checks.push({ label: "PPE déclaré", ok: !pep, detail: pep ? "oui : diligence renforcée" : "non" });
+  if (f.kind === "groupement") checks.push({ label: "Forme du groupement", ok: isIndivision(f) ? declaredAmountFloor(f.funds.expectedAmount) <= INDIVISION_CEILING : true, detail: isIndivision(f) ? `indivision de mandataires : plafond ${(INDIVISION_CEILING / 1e6).toFixed(0)} M FCFA de nominal` : (f.identity.legalForm ?? "—") });
+  checks.push({ label: "RIB du compte de règlement", ok: f.funds.bankAccount ? null : false, detail: f.funds.bankAccount ? `${f.funds.bankName ?? ""} ${f.funds.bankAccount} : intitulé « ${f.funds.bankHolder ?? "?"} » : même nom que le client, à vérifier sur la pièce` : "manquant : indispensable pour virer ventes, rachats et coupons" });
   const sc = f.screening;
   checks.push({
     label: "Sanctions / PPE (listes)",
     ok: sc?.attestedAt ? sc.outcome !== "confirme" : null,
-    detail: sc?.attestedAt ? `attesté par ${sc.attestedBy} — ${sc.lists ?? "listes non précisées"} — ${sc.outcome === "aucun" ? "aucune correspondance" : sc.outcome === "faux_positif" ? "faux positif documenté" : "correspondance confirmée"}` : sc?.auto ? `pré-contrôle ${sc.auto.provider} : ${sc.auto.hits.length} correspondance(s) — attestation du desk requise` : "attestation du desk requise avant approbation",
+    detail: sc?.attestedAt ? `attesté par ${sc.attestedBy}, ${sc.lists ?? "listes non précisées"}, ${sc.outcome === "aucun" ? "aucune correspondance" : sc.outcome === "faux_positif" ? "faux positif documenté" : "correspondance confirmée"}` : sc?.auto ? `pré-contrôle ${sc.auto.provider} : ${sc.auto.hits.length} correspondance(s) : attestation du desk requise` : "attestation du desk requise avant approbation",
   });
   if (f.identity.residentAbroad) checks.push({ label: "Résident à l'étranger", ok: null, detail: "appel vidéo + justificatif d'adresse étranger" });
   return checks;
 }
 
-/** Suggested rating from the file — the desk decides. */
+/** Suggested rating from the file : the desk decides. */
 export function suggestedRisk(f: ClientFile): RiskRating {
   if (f.funds.pep || f.persons.some((p) => p.pep)) return "eleve";
   if (f.identity.residentAbroad || f.kind === "groupement" || f.kind === "morale") return "moyen";

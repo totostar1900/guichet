@@ -47,7 +47,7 @@ export async function applyResults(lines: LineResult[], advisor: string): Promis
       const units = Math.floor(p.units * (a.allocationPct / 100));
       const state: Intent["state"] = units > 0 ? "servie" : "non_servie";
       const updated = await r.updateIntent(i.id, { state, allocationPct: a.allocationPct, servedUnits: units });
-      await r.logEvent({ kind: "desk", intentId: i.id, offerId: offer.id, html: `${i.ref} (${i.clientName}) — <b>${state === "servie" ? `servie à ${a.allocationPct} % · ${fmt(units)} ${p.unitWord}` : "non servie"}</b> · ${priced.resultLine} · par ${advisor}` });
+      await r.logEvent({ kind: "desk", intentId: i.id, offerId: offer.id, html: `${i.ref} (${i.clientName}) : <b>${state === "servie" ? `servie à ${a.allocationPct} % · ${fmt(units)} ${p.unitWord}` : "non servie"}</b> · ${priced.resultLine} · par ${advisor}` });
       try {
         await generateForIntent(state === "servie" ? "allocation" : "non_allocation", i.id, { advisor, allocation: a.allocationPct / 100 });
       } catch (e) {
@@ -72,7 +72,7 @@ export async function applySettlement(offerIds: string[], advisor: string): Prom
     for (const i of intents.filter((x) => x.offerId === offerId && x.state === "servie")) {
       const updated = await r.updateIntent(i.id, { state: "reglee" });
       const units = servedUnits(updated, offer);
-      await r.logEvent({ kind: "desk", intentId: i.id, offerId, html: `${i.ref} (${i.clientName}) — <b>réglée</b> · ${fmt(units)} titres inscrits · par ${advisor}` });
+      await r.logEvent({ kind: "desk", intentId: i.id, offerId, html: `${i.ref} (${i.clientName}) : <b>réglée</b> · ${fmt(units)} titres inscrits · par ${advisor}` });
       try {
         await generateForIntent("opere", i.id, { advisor, allocation: (updated.allocationPct ?? 100) / 100 });
       } catch (e) {

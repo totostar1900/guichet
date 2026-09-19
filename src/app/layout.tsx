@@ -19,12 +19,12 @@ import { getLang, getT } from "@/i18n/server";
 import { LangSwitch } from "@/components/LangSwitch";
 import { Suspense } from "react";
 
-// One family for everything — display, text and figures — with tabular numerals; see globals.css.
+// One family for everything, display, text and figures, with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: `${PRODUCT.name} · ${COMPANY.name}`, template: `%s · ${PRODUCT.name}` },
-  description: "Opportunités et instruments financiers en CEMAC — titres publics, BVMAC, opérations de marché.",
+  description: "Opportunités et instruments financiers en CEMAC : titres publics, BVMAC, opérations de marché.",
   applicationName: "Guichet",
   appleWebApp: { capable: true, title: "Guichet", statusBarStyle: "black-translucent" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },

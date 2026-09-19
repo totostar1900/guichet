@@ -14,7 +14,7 @@ export const INTENT_LABEL: Record<IntentType, string> = {
   rachat: "Rachat de parts",
 };
 
-/** "Prise ferme reçue", "Appétit reçu" — agreement with the intent noun. */
+/** "Prise ferme reçue", "Appétit reçu" : agreement with the intent noun. */
 export function receivedLabel(type: IntentType): string {
   const fem = type === "ferme" || type === "cession" || type === "info" || type === "souscription";
   if (type === "achat" || type === "vente" || type === "rachat") return `${INTENT_LABEL[type]} reçu`;

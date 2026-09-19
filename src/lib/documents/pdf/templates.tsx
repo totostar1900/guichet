@@ -17,7 +17,7 @@ export interface ClientDocCtx {
   allocation?: number;
   /** Nominative sub-account number at the SVT, once opened. */
   account?: string;
-  /** Client's settlement account (RIB) — printed where money goes back to the client. */
+  /** Client's settlement account (RIB) : printed where money goes back to the client. */
   payout?: { bank?: string; account?: string; holder?: string };
 }
 export const payoutLine = (p?: ClientDocCtx["payout"]) => (p?.account ? `${p.bank ? `${p.bank} · ` : ""}${p.account}${p.holder ? ` (${p.holder})` : ""}` : "RIB à communiquer au desk");
@@ -33,7 +33,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
   const sell = intent.type === "vente";
   return (
     <Letter heading={`Bulletin d'ordre · ${number}`}>
-      <Text style={s.h1}>{market ? `Ordre de bourse — ${sell ? "vente" : "achat"} · ${offer.market}` : `Ordre de souscription — ${offer.issuer}`}</Text>
+      <Text style={s.h1}>{market ? `Ordre de bourse : ${sell ? "vente" : "achat"} · ${offer.market}` : `Ordre de souscription : ${offer.issuer}`}</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDate(isoDay(now))} · intention {intent.ref} · offre v{offer.version} (prix publié le {offer.pricedAt ? fmtDateTime(offer.pricedAt) : "—"})
       </Text>
@@ -70,7 +70,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
           : `Le donneur d'ordre demande à ${COMPANY.legalName} de présenter cet ordre à l'adjudication du ${fmtDate(offer.deadlineAt)}, au prix ci-dessus.`}
         {market ? "" : " "} L&apos;ordre est irrévocable dès sa transmission au SVT. En cas d&apos;allocation partielle, les montants sont ajustés au prorata ; en cas de non-allocation, les fonds sont restitués sous deux jours ouvrés, sans frais.
       </Text>
-      <Sig left="Le donneur d'ordre — « lu et approuvé », date et signature" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      <Sig left="Le donneur d'ordre : « lu et approuvé », date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
   );
 }
@@ -81,7 +81,7 @@ export function AppelDeFonds({ number, intent, offer, position: p, now }: Client
   dayBefore.setDate(dayBefore.getDate() - 1);
   return (
     <Letter heading={`Appel de fonds · ${number}`}>
-      <Text style={s.h1}>Appel de fonds — instruction de règlement</Text>
+      <Text style={s.h1}>Appel de fonds : instruction de règlement</Text>
       <Text style={s.ref}>
         {number} · émis le {fmtDate(isoDay(now))} · à créditer avant le {fmtDateTime(dayBefore.toISOString())}
       </Text>
@@ -107,7 +107,7 @@ export function AppelDeFonds({ number, intent, offer, position: p, now }: Client
 export function OrdreDeCession({ number, intent, offer, position: p, now, advisor, payout }: ClientDocCtx) {
   return (
     <Letter heading={`Ordre de cession · ${number}`}>
-      <Text style={s.h1}>Ordre de cession — rachat par l&apos;émetteur</Text>
+      <Text style={s.h1}>Ordre de cession : rachat par l&apos;émetteur</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDate(isoDay(now))} · intention {intent.ref}
       </Text>
@@ -119,7 +119,7 @@ export function OrdreDeCession({ number, intent, offer, position: p, now, adviso
       <Text style={s.p}>
         Le coupon couru est réglé par l&apos;émetteur selon les modalités du rachat. Le cédant atteste détenir les titres libres de tout nantissement et autorise leur livraison contre paiement, valeur {fmtDate(offer.settleOn)}. Produit de cession crédité sous un jour ouvré après règlement sur le compte de règlement du cédant : {payoutLine(payout)}.
       </Text>
-      <Sig left="Le cédant — date, signature et cachet" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      <Sig left="Le cédant : date, signature et cachet" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
   );
 }
@@ -176,7 +176,7 @@ export function AvisOpere({ number, intent, offer, position: p, now, allocation 
       <Text style={s.ref}>
         {number} · opération du {fmtDate(offer.settleOn)} · émis le {fmtDateTime(now.toISOString())}
       </Text>
-      <Addr blocks={[["Titulaire", [intent.clientName, intent.clientSegment]], ["Opération", [offer.kind === "MARCHE" ? `${intent.type === "vente" ? "Vente" : "Achat"} sur ${offer.market} — ${offer.issuer}` : `${intent.type === "cession" ? "Cession" : "Achat"} sur le marché primaire — ${offer.issuer}`, `Intermédiaire : ${COMPANY.legalName} via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`]]]} />
+      <Addr blocks={[["Titulaire", [intent.clientName, intent.clientSegment]], ["Opération", [offer.kind === "MARCHE" ? `${intent.type === "vente" ? "Vente" : "Achat"} sur ${offer.market} : ${offer.issuer}` : `${intent.type === "cession" ? "Cession" : "Achat"} sur le marché primaire : ${offer.issuer}`, `Intermédiaire : ${COMPANY.legalName} via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`]]]} />
       <Table
         cols={[{ label: "Titre", flex: 2.4 }, { label: "Code", flex: 1.3, mono: true }, { label: "Quantité", right: true }, { label: "Cours", right: true }, { label: "Brut", flex: 1.2, right: true }, { label: "Coupon couru", flex: 1.1, right: true }, { label: "Commission", right: true }, { label: "Net", flex: 1.2, right: true }]}
         rows={[[offer.title, offer.isin, fmt(pos.units), pos.priceLabel, fmt(pos.principal), fmt(pos.accrued), fmt(pos.commission), fmt(Math.abs(pos.total))]]}
@@ -225,7 +225,7 @@ export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourc
   const net = rows.reduce((a, r) => a + r.settle, 0);
   return (
     <Letter heading={`Bordereau de soumission · ${number}`}>
-      <Text style={s.h1}>Soumission groupée — adjudication du {fmtDate(deadlineAt)}</Text>
+      <Text style={s.h1}>Soumission groupée : adjudication du {fmtDate(deadlineAt)}</Text>
       <Text style={s.ref}>
         {number} · généré le {fmtDateTime(now.toISOString())} · dépôt avant {fmtDateTime(deadlineAt)}
       </Text>
@@ -235,7 +235,7 @@ export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourc
         rows={rows.map((r) => [r.offer.title, r.offer.isin, r.cession ? "Cession (rachat)" : "Souscription", fmt(r.units), r.cession ? "100,000" : r.offer.kind === "BTA" ? `${r.offer.precountRate ?? "—"} %` : (r.offer.pricePct ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 3 }), fmt(r.nominal), r.cession ? "selon émetteur" : fmt(r.accrued), r.cession ? `(${fmt(Math.abs(r.settle))})` : fmt(r.settle)])}
         total={["Net à régler par Purpose Capital", "", "", "", "", fmt(rows.reduce((a, r) => a + (r.cession ? -r.nominal : r.nominal), 0)), "", `${fmt(net)} FCFA`]}
       />
-      <Text style={[s.p, s.b]}>Annexe — ventilation par client final (sous-comptes nominatifs ouverts dans vos livres sous le regroupement Purpose Capital)</Text>
+      <Text style={[s.p, s.b]}>Annexe : ventilation par client final (sous-comptes nominatifs ouverts dans vos livres sous le regroupement Purpose Capital)</Text>
       <Table
         cols={[{ label: "Client", flex: 2 }, { label: "Sous-compte", flex: 1.5, mono: true }, { label: "Ligne", flex: 1.5, mono: true }, { label: "Titres", right: true }, { label: "Réf. ordre", flex: 1.2, mono: true }, { label: "État" }]}
         rows={lines.flatMap(({ offer, intents }) => intents.map(({ intent, position }) => [intent.clientName, (intent.clientId && accounts?.get(intent.clientId)) || "à ouvrir", offer.isin, fmt(position.units), intent.ref, intent.state === "transmise" ? "transmis" : "confirmé"]))}
@@ -243,7 +243,7 @@ export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourc
       <Text style={s.p}>
         Règlement-livraison : débit de notre compte espèces ouvert dans vos livres, valeur {fmtDate(settleOn)} ; livraison des titres sur les sous-comptes nominatifs des clients listés (ouverture préalable pour ceux marqués « à ouvrir », dossiers transmis). Merci de nous confirmer la réception avant l&apos;heure limite et de nous transmettre les résultats dès publication.
       </Text>
-      <Sig left={`Pour ${COMPANY.legalName} — le Directeur Général, signature et cachet`} right={`Réception ${svt.name.split(" — ")[0]} — heure, visa`} />
+      <Sig left={`Pour ${COMPANY.legalName} : le Directeur Général, signature et cachet`} right={`Réception ${svt.name.split(" · ")[0]}, heure, visa`} />
     </Letter>
   );
 }

@@ -81,7 +81,7 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
   );
 }
 
-/** One line: pick the segment, get the count, confirm, send — every send is journalled in Diffusion. */
+/** One line: pick the segment, get the count, confirm, send : every send is journalled in Diffusion. */
 function BroadcastForm({ offerId }: { offerId: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(broadcastOpportunityAction, null);

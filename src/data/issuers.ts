@@ -1,7 +1,7 @@
 import type { Country } from "@/lib/domain/types";
 
 /**
- * Bond issuers of the BVMAC that are not listed companies — what their fiches
+ * Bond issuers of the BVMAC that are not listed companies : what their fiches
  * signalétiques (BVMAC, Espace émetteurs › Émetteurs obligations) say about
  * them. Figures are copied as printed, with the unit the fiche states.
  */
@@ -102,14 +102,14 @@ export const ISSUERS: BondIssuer[] = [
     ],
     documents: [{ title: "Fiche signalétique ACEP Cameroun (mise à jour 2025)", year: 2025, url: `${U}/FICHE-SIGNALETIQUE-ACEP-2025-mis-a-jour_page-0001.jpg` }],
     reading: [
-      "Emprunt ACEP 7 % BRUT 2024-2027 : 5 milliards levés (sursouscrit), 3 milliards restant dus, remboursés par semestre — 1 milliard le 30 décembre 2026, le 30 juin 2027 et le 30 décembre 2027.",
+      "Emprunt ACEP 7 % BRUT 2024-2027 : 5 milliards levés (sursouscrit), 3 milliards restant dus, remboursés par semestre : 1 milliard le 30 décembre 2026, le 30 juin 2027 et le 30 décembre 2027.",
       "Un bilan qui grossit de 31 à 41 milliards en trois ans et un produit net financier de près de 8 milliards : la croissance de l'activité de crédit finance le service de la dette.",
       "Le coupon est « brut » : la retenue à la source s'applique, contrairement aux emprunts d'État cotés « NET ».",
     ],
   },
   {
     slug: "alios",
-    name: "Société Camerounaise de Crédit Automobile (SOCCA) — Alios Finance Cameroun",
+    name: "Société Camerounaise de Crédit Automobile (SOCCA) : Alios Finance Cameroun",
     shortName: "Alios Finance",
     mnemo: "AFC",
     sector: "Crédit-bail",
@@ -140,7 +140,7 @@ export const ISSUERS: BondIssuer[] = [
     ],
     documents: [{ title: "Fiche signalétique Alios Finance Cameroun (mise à jour 2026)", year: 2026, url: `${U}/FICHE-SIGNALETIQUE-ALIOS-FINANCE-CAMEROUN-2025-MAJ_page-0001.jpg` }],
     reading: [
-      "Émetteur récurrent : six emprunts depuis 2018, trois encore en vie (ALIOS 03 à 6,5 % jusqu'en août 2028, ALIOS-05 à 6 % et ALIOS-06 à 7 % jusqu'en 2028 et 2030), remboursés par semestre ou par trimestre — les coupons tombent donc souvent, sur un nominal qui décroît.",
+      "Émetteur récurrent : six emprunts depuis 2018, trois encore en vie (ALIOS 03 à 6,5 % jusqu'en août 2028, ALIOS-05 à 6 % et ALIOS-06 à 7 % jusqu'en 2028 et 2030), remboursés par semestre ou par trimestre : les coupons tombent donc souvent, sur un nominal qui décroît.",
       "Un bilan stable autour de 65-75 milliards et un produit net bancaire en légère progression ; le résultat oscille entre 1 et 1,6 milliard.",
       "Les coupons sont « bruts » : retenue à la source applicable. Le nominal restant par titre est celui imprimé au bulletin de la BVMAC.",
     ],

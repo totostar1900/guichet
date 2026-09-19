@@ -7,7 +7,7 @@ import styles from "./Glossary.module.css";
 /**
  * « Les mots du Guichet »: the glossary with its own search field, a sort
  * (alphabetical, or by category) and a grouping by category. Categories are
- * fixed here, by key — a new term without one lands in « Autres ».
+ * fixed here, by key : a new term without one lands in « Autres ».
  */
 export interface GlossEntry {
   k: string;
@@ -94,7 +94,7 @@ export function Glossary({ entries }: { entries: GlossEntry[] }) {
           <div className={styles.gloss}>
             {items.map((e) => (
               <div key={e.k} id={`terme-${e.k}`} className={styles.term}>
-                <b>{e.long ? `${e.short} — ${e.long}` : e.short}</b>
+                <b>{e.long ? `${e.short} : ${e.long}` : e.short}</b>
                 {!g && !grouped && <small className={styles.tag}>{t(GROUP_LABEL[groupOf(e.k)])}</small>}
                 <p>{e.text}</p>
               </div>

@@ -21,7 +21,7 @@ const inPeriod = (iso: string, p: Period) => iso.slice(0, 10) >= p.from && iso.s
 const FIRM: Intent["type"][] = ["ferme", "cession", "achat", "vente", "souscription", "rachat"];
 const STATE_ORDER: IntentState[] = ["confirmee", "transmise", "servie", "non_servie", "reglee", "annulee"];
 
-/** Transition timestamps recovered from the desk's log lines (« — <b>Confirmée</b> »). */
+/** Transition timestamps recovered from the desk's log lines (« : <b>Confirmée</b> »). */
 function transitions(intentId: string, events: EventLog[]): Partial<Record<IntentState, string>> {
   const out: Partial<Record<IntentState, string>> = {};
   for (const e of events.filter((x) => x.intentId === intentId)) {

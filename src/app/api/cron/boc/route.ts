@@ -6,7 +6,7 @@ import { alertDesk } from "@/lib/health";
 export const maxDuration = 300;
 
 /**
- * Daily BVMAC bulletin ingestion — call after the session (≈ 18:30 UTC) with
+ * Daily BVMAC bulletin ingestion : call after the session (≈ 18:30 UTC) with
  * `Authorization: Bearer <CRON_SECRET>`. Tries today, then the business days of
  * the last week that were never ingested (holidays, late publication). Idempotent.
  */

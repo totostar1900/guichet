@@ -25,7 +25,7 @@ const Extraction = z.object({
   sourceRef: z.string().nullable().describe("Numéro et date du communiqué, ex. « n° 000473/MFBPP du 11 sept. 2026 »"),
   nominal: z.number().nullable().describe("Valeur nominale unitaire en FCFA (10 000 pour une OTA, 1 000 000 pour un BTA, prix par action pour une IPO)"),
   couponRate: z.number().nullable().describe("Taux du coupon annuel en % (OTA / APE)"),
-  precountRate: z.number().nullable().describe("Taux précompté en % si indiqué (BTA) — souvent fixé à l'adjudication, alors null"),
+  precountRate: z.number().nullable().describe("Taux précompté en % si indiqué (BTA) : souvent fixé à l'adjudication, alors null"),
   maturityOn: z.string().nullable().describe("Échéance, ISO YYYY-MM-DD"),
   lastCouponOn: z.string().nullable().describe("Date du dernier coupon versé pour un abondement (échéance moins N années), ISO YYYY-MM-DD ; null pour une ligne nouvelle"),
   opensAt: z.string().nullable().describe("Ouverture de la souscription, ISO datetime local (IPO / APE) ; null pour une adjudication"),
@@ -65,7 +65,7 @@ export type ExtractionInput =
 
 export const extractionAvailable = (): boolean => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 
-/** Empty draft with every field flagged missing — what the desk gets without an API key. */
+/** Empty draft with every field flagged missing : what the desk gets without an API key. */
 export function emptyDraft(official = false): OfferDraft {
   return { confidence: {}, official, remarks: extractionAvailable() ? [] : ["Extraction automatique désactivée (ANTHROPIC_API_KEY absente) : renseignez les champs à la main."] };
 }

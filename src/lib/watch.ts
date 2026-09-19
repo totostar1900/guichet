@@ -9,7 +9,7 @@ import { notifyRaw } from "@/lib/notify/dispatch";
 
 /**
  * Followed lines: what a client is told when the figure or the state of a
- * line moves — a new close, a price set by the desk, a closing tomorrow,
+ * line moves : a new close, a price set by the desk, a closing tomorrow,
  * results published. One message per change, never twice for the same state.
  */
 export function watchSnapshot(o: Offer, now = new Date()): { hero: string; status: string } {
@@ -23,7 +23,7 @@ export function watchMessage(o: Offer, prev: Watch, next: { hero: string; status
   if (prev.lastStatus && prev.lastStatus !== next.status) changes.push(`statut : ${prev.lastStatus} → ${next.status}`);
   if (prev.lastHero && prev.lastHero !== next.hero) changes.push(`${s.kind === "Action" || s.kind === "OPCVM" ? "rendement / cours" : "rendement"} : ${prev.lastHero} → ${next.hero}`);
   const text = `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · ligne suivie\n${o.title}\n${changes.join("\n")}\n\n${s.primary ? `${s.primary.label} : ${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}?intent=${s.primary.intent}` : `Fiche : ${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`}\nPour ne plus suivre cette ligne : votre espace › Lignes suivies.`;
-  return { subject: `${o.title} — ${changes[0] ?? "mise à jour"}`, text };
+  return { subject: `${o.title} : ${changes[0] ?? "mise à jour"}`, text };
 }
 
 /** Daily pass: compare each watch with today's snapshot and message the client on change. */

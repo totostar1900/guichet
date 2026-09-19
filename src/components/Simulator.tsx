@@ -8,7 +8,7 @@ import { bondCalc, btaCalc, parseDate } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct, fmtPrice, parseAmount } from "@/lib/format";
 import styles from "./Simulator.module.css";
 
-/** Free-form bond / bill simulator — deliberately separate from any live offer. */
+/** Free-form bond / bill simulator : deliberately separate from any live offer. */
 export function Simulator() {
   const t = useT();
   const [kind, setKind] = useState<"OTA" | "BTA">("OTA");

@@ -8,7 +8,7 @@ import { KV, Letter, Table, Text, s } from "./primitives";
 
 /**
  * Rapport sur une société cotée : le cours sur la période, les comptes certifiés,
- * les ratios et leur lecture — le même contenu que la page, mis en page pour être envoyé.
+ * les ratios et leur lecture : le même contenu que la page, mis en page pour être envoyé.
  */
 export interface CompanyReportCtx {
   number: string;

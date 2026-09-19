@@ -11,7 +11,7 @@ export const metadata = { title: "Aide" };
 
 /**
  * The client help page. Only pages marked `visibility: "public"` are rendered
- * here — written for clients alone, checked by a test for internal details.
+ * here : written for clients alone, checked by a test for internal details.
  */
 export default async function AidePage() {
   const [t, lang] = await Promise.all([getT(), getLang()]);

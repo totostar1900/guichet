@@ -12,4 +12,4 @@ BVMAC publishes issuer "fiches signalétiques" as JPG images at https://www.bvm-
 
 **Why:** the BOC prints only the maturity year; without the fiche the yield is approximate (shown with ≈).
 
-**How to apply:** when a new fiche appears (only État du Congo — EOCG 2021-2026 — is still missing; BDEAC came from its IFRS 2025 statements, note 19), download the JPG, read it with the image reader, add the ISIN rows to bond-terms.ts and run a one-off update of `offers.maturity_on`. See [[guichet-project]].
+**How to apply:** when a new fiche appears (only État du Congo, EOCG 2021-2026, is still missing; BDEAC came from its IFRS 2025 statements, note 19), download the JPG, read it with the image reader, add the ISIN rows to bond-terms.ts and run a one-off update of `offers.maturity_on`. See [[guichet-project]].

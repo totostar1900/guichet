@@ -442,7 +442,7 @@ export const supabaseRepository: Repository = {
     let { data, error } = await db().from("intents").insert(row).select("*").single();
     if (error && /contact_(phone|email)/.test(error.message)) {
       // Migration 0013 not applied yet: keep taking orders, the contact stays in the message.
-      console.warn("[intents] migration 0013_intent_contact.sql manquante — contact gardé dans le message");
+      console.warn("[intents] migration 0013_intent_contact.sql manquante : contact gardé dans le message");
       delete row.contact_phone;
       delete row.contact_email;
       const contact = [input.contactPhone, input.contactEmail].filter(Boolean).join(" · ");

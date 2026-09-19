@@ -5,7 +5,7 @@ import { localIso } from "@/lib/format";
 
 /**
  * A position is what a settled order became: units of a line held by a client,
- * with the cash flows still to come. Derived, never stored — the intents are
+ * with the cash flows still to come. Derived, never stored : the intents are
  * the ledger.
  */
 export interface Position {
@@ -18,7 +18,7 @@ export interface Position {
   /** Valuation at the last published close (BVMAC) or NAV (OPCVM); undefined for primary lines held to maturity. */
   marketValue?: number;
   valuedOn?: string; // date of that price
-  /** Line the client can trade out of: the same offer (secondary / fund) — where a « Vendre / Racheter » order goes. */
+  /** Line the client can trade out of: the same offer (secondary / fund) : where a « Vendre / Racheter » order goes. */
   exit?: { intent: "vente" | "rachat"; offerId: string };
   flows: { date: string; amount: number; label: string }[]; // future flows only
   nextFlow?: { date: string; amount: number; label: string };

@@ -71,7 +71,7 @@ export function tenorYears(o: Offer): number {
 }
 
 /**
- * A listed bond bought today: settlement T+3, and — the BOC prints clean prices —
+ * A listed bond bought today: settlement T+3, and : the BOC prints clean prices
  * the buyer pays the coupon accrued since the last anniversary of the maturity
  * date. Without this a bond at par would show a yield far above its coupon.
  */
@@ -146,7 +146,7 @@ export function headlineYield(o: Offer): number | null {
         const b = marketBondInput(o);
         if (!b || b.maturityOn <= b.settleOn) return null;
         // Only the year of maturity is printed in the BOC: with less than a year left the
-        // guess (31/12) swings the yield by tens of points — better no figure than a wrong one.
+        // guess (31/12) swings the yield by tens of points : better no figure than a wrong one.
         if (maturityIsGuess(o) && yearsBetween(b.settleOn, b.maturityOn) < 1) return null;
         return bondCalc(b, o.nominal * 1000, o.ask ?? o.lastPrice).irr;
       }
@@ -171,7 +171,7 @@ export const KIND_LABEL: Record<Offer["kind"], string> = {
 /**
  * What the client actually buys, finer than `kind`: a listed share and a listed
  * bond are both MARCHE offers but read very differently. Each family belongs to
- * one market segment — primary (new paper), secondary (already listed) or funds.
+ * one market segment : primary (new paper), secondary (already listed) or funds.
  */
 export type OfferFamily = string; // a product-type key
 export const offerFamily = (o: Pick<Offer, "kind" | "instrument" | "typeKey">): OfferFamily => typeOf(o).key;

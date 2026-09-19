@@ -82,9 +82,9 @@ function ReadOta({ live }: { live: Live }) {
   const t = useT();
   const items: [string, string, string][] = [
     ["1", "Coupon", `${pct(live.couponRate ?? 6)} par an, calculé sur le nominal`],
-    ["2", "Nominal", `${fmt(live.nominal ?? 10_000)} FCFA par titre — ce que l'État rembourse`],
+    ["2", "Nominal", `${fmt(live.nominal ?? 10_000)} FCFA par titre : ce que l'État rembourse`],
     ["3", "Échéance", live.maturityOn ? fmtDate(live.maturityOn) : "—"],
-    ["4", "Prix", live.pricePct != null ? `${live.pricePct} % du nominal — ce que vous payez` : "fixé par le desk"],
+    ["4", "Prix", live.pricePct != null ? `${live.pricePct} % du nominal : ce que vous payez` : "fixé par le desk"],
     ["5", "Rendement", live.yieldPct != null ? `${pct(live.yieldPct)} brut, si servi à ce prix et gardé jusqu'au bout` : "—"],
   ];
   return (

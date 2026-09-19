@@ -45,13 +45,13 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
   const nameOf = (id: string) => offers.find((o) => o.id === id)?.title ?? id;
 
   const sections: [string, string[]][] = [
-    ["Clôtures aujourd'hui et demain", closing.length ? closing.map((o) => `${o.title} — ${fmtDateTime(o.deadlineAt)} · ${statusLabel(o, displayStatus(o, now))} · ${intents.filter((i) => i.offerId === o.id && i.state !== "annulee").length} intention(s)`) : ["aucune"]],
+    ["Clôtures aujourd'hui et demain", closing.length ? closing.map((o) => `${o.title} : ${fmtDateTime(o.deadlineAt)} · ${statusLabel(o, displayStatus(o, now))} · ${intents.filter((i) => i.offerId === o.id && i.state !== "annulee").length} intention(s)`) : ["aucune"]],
     ["Intentions reçues depuis hier", fresh.length ? fresh.map((i) => `${i.ref} · ${i.clientName} · ${INTENT_LABEL[i.type]} sur ${nameOf(i.offerId)}${i.amount ? ` · ${fmt(i.amount)}` : ""} · ${i.channel}${i.contactPhone ? ` ${i.contactPhone}` : ""}`) : ["aucune"]],
     ["En attente du desk", waiting.length ? [...byState.entries()].map(([st, n]) => `${n} ${INTENT_STATE_LABEL[st as keyof typeof INTENT_STATE_LABEL].toLowerCase()}`) : ["rien en attente"]],
     ["Dernier bulletin", last ? [`BOC n° ${last.number} du ${fmtDate(last.sessionDate)} · ${last.status} · ${last.counts.equities} actions, ${last.counts.bonds} obligations, ${last.counts.funds} OPCVM`, ...movers.map(({ o, s }) => `${o.title} : ${s.hero} ${s.heroUnit ?? ""}`.trim())] : ["aucun bulletin ingéré"]],
     ["Santé", bad.length ? bad.map((c) => `${c.level === "crit" ? "ROUGE" : "orange"} · ${c.label} : ${c.value}`) : ["tout est vert"]],
   ];
-  const subject = `Guichet — ${fmtDate(today)} · ${closing.length} clôture(s), ${fresh.length} intention(s) reçue(s), ${waiting.length} en attente`;
+  const subject = `Guichet : ${fmtDate(today)} · ${closing.length} clôture(s), ${fresh.length} intention(s) reçue(s), ${waiting.length} en attente`;
   const text = sections.map(([h, lines]) => `${h.toUpperCase()}\n${lines.map((l) => `- ${l}`).join("\n")}`).join("\n\n") + `\n\n${app}/desk`;
   const html = sections.map(([h, lines]) => `<h3 style="margin:14px 0 4px;font-size:14px">${h}</h3><ul style="margin:0;padding-left:18px">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>`).join("") + `<p><a href="${app}/desk">Ouvrir le desk</a> · <a href="${app}/desk/sante">Santé</a></p>`;
   return { subject, text, html };
@@ -60,7 +60,7 @@ export async function buildDigest(now = new Date()): Promise<Digest> {
 export async function sendDigest(now = new Date()): Promise<{ mailed: number; subject: string }> {
   const d = await buildDigest(now);
   const r = repo();
-  await r.logEvent({ kind: "system", html: `<b>Point du matin</b> — ${d.subject.replace(/^Guichet — /, "")}` });
+  await r.logEvent({ kind: "system", html: `<b>Point du matin</b>, ${d.subject.replace(/^Guichet, /, "")}` });
   const to = await deskRecipients();
   let mailed = 0;
   for (const addr of to) {

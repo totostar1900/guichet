@@ -6,7 +6,7 @@ import { fmt, fmtPct, fmtPrice } from "@/lib/format";
  * Order consistency: the same checks run under the client's amount field (as
  * info bubbles), on the server when the intent is saved (blocking ones only),
  * and on the desk when an intention is opened. Each check says what is wrong,
- * why it matters, and what the client can do — never a bare « invalide ».
+ * why it matters, and what the client can do : never a bare « invalide ».
  */
 export type CheckLevel = "ok" | "warn" | "block";
 export interface OrderCheck {

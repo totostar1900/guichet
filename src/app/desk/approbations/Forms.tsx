@@ -39,19 +39,19 @@ export function PolicyForm({ p }: { p: ApprovalPolicy }) {
       </label>
       <div className={styles.grid}>
         <label>
-          <span>{t("Prix OTA / APE — minimum (%)")}</span>
+          <span>{t("Prix OTA / APE : minimum (%)")}</span>
           <input name="priceMin" type="number" step="0.5" defaultValue={p.pricePct.min} />
         </label>
         <label>
-          <span>{t("Prix OTA / APE — maximum (%)")}</span>
+          <span>{t("Prix OTA / APE : maximum (%)")}</span>
           <input name="priceMax" type="number" step="0.5" defaultValue={p.pricePct.max} />
         </label>
         <label>
-          <span>{t("Taux précompté BTA — minimum (%)")}</span>
+          <span>{t("Taux précompté BTA : minimum (%)")}</span>
           <input name="rateMin" type="number" step="0.05" defaultValue={p.precountRate.min} />
         </label>
         <label>
-          <span>{t("Taux précompté BTA — maximum (%)")}</span>
+          <span>{t("Taux précompté BTA : maximum (%)")}</span>
           <input name="rateMax" type="number" step="0.05" defaultValue={p.precountRate.max} />
         </label>
         <label>

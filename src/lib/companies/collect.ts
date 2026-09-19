@@ -94,7 +94,7 @@ export async function collectIssuerDocuments(opts: { fetchFiles?: boolean } = {}
     }
     const doc = await r.upsertIssuerDocument({ mnemo: c.mnemo, kind: c.kind, year: c.year, title: c.title, sourceUrl: l.url, fileKey, bytes, collectedAt: new Date().toISOString() });
     added.push(doc);
-    if (!registry.has(l.url)) await r.logEvent({ kind: "desk", html: `<b>Nouveau document émetteur</b> ${c.mnemo} : ${c.title} — à lire pour mettre à jour les chiffres clés de la société.` });
+    if (!registry.has(l.url)) await r.logEvent({ kind: "desk", html: `<b>Nouveau document émetteur</b> ${c.mnemo} : ${c.title} : à lire pour mettre à jour les chiffres clés de la société.` });
   }
   return { seen: links.length, added, skipped, errors };
 }

@@ -1,12 +1,12 @@
 # Guichet · Purpose Capital
 
-Répertoire d'opportunités et d'instruments financiers en CEMAC : les offres sont publiées et **tarifées par le desk**, les clients y répondent (appétit, prise ferme, question, cession), le desk traite et transmet au SVT — le tout sur une seule base.
+Répertoire d'opportunités et d'instruments financiers en CEMAC : les offres sont publiées et **tarifées par le desk**, les clients y répondent (appétit, prise ferme, question, cession), le desk traite et transmet au SVT : le tout sur une seule base.
 
 ## Démarrer
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000 — données de démonstration en mémoire
+npm run dev        # http://localhost:3000 : données de démonstration en mémoire
 npm test           # tests de la bibliothèque financière (rendements du 9 sept. 2026)
 npm run typecheck
 npm run lint
@@ -21,33 +21,33 @@ Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (m
 3. Copier `.env.example` en `.env.local` et remplir `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (Project settings → API). La clé service role ne quitte jamais le serveur.
 4. Authentication → Providers → Email : activer, et dans **Email Templates → Magic Link** remplacer le lien par le code `{{ .Token }}` (ou garder les deux : le lien renvoie vers `/auth/callback`). Dans **URL Configuration**, ajouter `http://localhost:3000/auth/callback` et l'URL de production.
 5. Renseigner `DESK_EMAILS` avec les adresses du desk (ou promouvoir via SQL, voir `0002_auth.sql`).
-6. Redémarrer `npm run dev` — la mention « démo · mémoire » disparaît et /connexion envoie un code par e-mail.
+6. Redémarrer `npm run dev` : la mention « démo · mémoire » disparaît et /connexion envoie un code par e-mail.
 
 `npm run seed:sql` régénère `supabase/seed.sql` depuis `src/data/seed.ts`.
 
 ## Téléphone
 
-- Sous 760 px, `src/components/mobile/MobileShell.tsx` remplace l'en-tête : barre du haut (flèche retour + titre de la page, lu dans `<title>`) et barre du bas à quatre onglets — Guichet, Fonds, Mon espace, Apprendre (+ Desk pour l'équipe). Le bureau garde l'en-tête et les onglets actuels.
-- **Retour** : historique du navigateur quand la page précédente est à nous (Next restaure le défilement), sinon la dernière liste vue (`sessionStorage`, clé `guichet:lastList`, écrite par `OfferBrowser` à chaque changement de filtre) — un lien ouvert depuis WhatsApp revient donc sur la liste filtrée.
+- Sous 760 px, `src/components/mobile/MobileShell.tsx` remplace l'en-tête : barre du haut (flèche retour + titre de la page, lu dans `<title>`) et barre du bas à quatre onglets : Guichet, Fonds, Mon espace, Apprendre (+ Desk pour l'équipe). Le bureau garde l'en-tête et les onglets actuels.
+- **Retour** : historique du navigateur quand la page précédente est à nous (Next restaure le défilement), sinon la dernière liste vue (`sessionStorage`, clé `guichet:lastList`, écrite par `OfferBrowser` à chaque changement de filtre) : un lien ouvert depuis WhatsApp revient donc sur la liste filtrée.
 - **Liste** : cartes par défaut sur téléphone ; les cinq menus déroulants deviennent une feuille « Filtrer · n » (`FilterSheet`) et les filtres actifs des pastilles qu'on retire d'un tap. Les filtres restent dans l'URL.
 - **Fiche** : quatre compartiments (Essentiel, Chiffres, Documents, Risques) via `data-pane` sur les sections et `FichePanes` / `FicheSegments` (CSS seul sous 760 px, tout visible au-dessus) ; `StickyAction` colle l'action au-dessus de la barre et s'efface quand le formulaire est à l'écran.
 - **Intention en trois étapes** sur téléphone (`IntentForm`, attribut `data-at` sur le formulaire, `data-step` sur les blocs) : demande et montant avec l'estimation, coordonnées (contrôlées, pré-remplies), récapitulatif puis envoi ; « Continuer » vérifie les champs de l'étape ; le bureau affiche tout d'un bloc. Même parcours pour souscription et rachat de fonds.
 - **Mon espace** : trois tuiles (positions valorisées, prochain flux, en cours), les intentions en cours en cartes avec la prochaine étape en clair et la jauge des cinq arrêts (reçue → confirmée → transmise → servie → réglée), l'historique replié ; coordonnées, lignes suivies, positions et documents inchangés.
 - **Écran d'accueil** : `src/app/manifest.ts` (nom, icônes `public/icons`, plein écran, couleurs) et `viewport` avec `viewportFit: cover` ; les barres du téléphone respectent les zones sûres.
 - **Premiers pas** (`components/mobile/Onboarding.tsx`) : quatre écrans animés (SVG + CSS) à la première visite de l'appareil (`localStorage` `guichet:onboarded`), jamais sur le desk ni la connexion ; « Revoir les premiers pas » sur Apprendre.
-- **Repères** (`components/mobile/CoachMarks.tsx`) : projecteur en trois arrêts sur la fiche — le chiffre en or, le statut, l'action — avec les nombres de la ligne (`data-coach` sur les cibles) ; une fois par appareil (`guichet:coach:fiche`), rejouable par « Comment lire cette fiche ? ».
+- **Repères** (`components/mobile/CoachMarks.tsx`) : projecteur en trois arrêts sur la fiche, le chiffre en or, le statut, l'action, avec les nombres de la ligne (`data-coach` sur les cibles) ; une fois par appareil (`guichet:coach:fiche`), rejouable par « Comment lire cette fiche ? ».
 - **Apprendre** : huit leçons (`src/data/lessons.ts`, surchargées par le référentiel, kind `lesson`, onglet desk › Référentiel › Leçons) ; `/apprendre/[key]` = intro, trois ou quatre paragraphes, un bloc interactif alimenté par une vraie ligne (curseur prix → rendement avec `bondCalc`, taux précompté, deux durées, cours / dividende / PER, montant → parts, part servie, les quatre risques), une question ; acquis marqué sur l'appareil. Les bulles « i » dont le terme est lié à une leçon affichent « En savoir plus → ».
 
 ## Cartes de chiffres, à la une, alertes
 
-- **Cartes cliquables** (`components/KpiCard.tsx`, `lib/domain/explain.ts`) : chaque chiffre de la fiche s'ouvre — feuille du bas sur téléphone, popover sur bureau — avec le nombre décomposé à partir des chiffres de la ligne (moteur réel), ce qu'il ne comprend pas, la définition du glossaire et la leçon liée. Éducatif, jamais un conseil.
+- **Cartes cliquables** (`components/KpiCard.tsx`, `lib/domain/explain.ts`) : chaque chiffre de la fiche s'ouvre, feuille du bas sur téléphone, popover sur bureau, avec le nombre décomposé à partir des chiffres de la ligne (moteur réel), ce qu'il ne comprend pas, la définition du glossaire et la leçon liée. Éducatif, jamais un conseil.
 - **Badges** (`summarize().badges`, affichés par `LineIdentity` partout) : **Sélection du desk** (raison factuelle, date de fin, trois lignes au plus, mots interdits « meilleur / recommandé / garanti… », audité `offer.feature`), **Nouveau** (v1 publiée depuis moins de 72 h), **Clôture imminente** (moins de 48 h). La sélection passe en tête du tri par défaut ; `FeaturedStrip` la montre en bande (bureau) ou en carrousel (téléphone) au-dessus de la liste. Desk › carnet du jour › « À la une ».
 - **Opportunité du moment** (`lib/notify/broadcast.ts`, action `broadcastOpportunityAction`) : sur une ligne à la une, le desk choisit un segment, voit le nombre de destinataires (segment ou suiveurs), confirme, et l'alerte part sur **push** (appareils inscrits), **WhatsApp** (opt-in, modèle `guichet_offre`) et **e-mail**. Une alerte par client et par jour au plus ; entre 21 h et 7 h (Douala) l'envoi est différé et relâché par le cron de 7 h ; au-delà de 50 destinataires, un responsable doit lancer ; tout est journalisé (kind `opportunity`) et audité (`offer.broadcast`).
 - **Push** (`lib/notify/push.ts`, `public/sw.js`, `/api/push`, `components/PushToggle.tsx` dans Mon espace) : web push VAPID, gratuit, sans fournisseur ; iPhone exige l'installation sur l'écran d'accueil. Clés : `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_SUBJECT` (générées, dans .env.local ; à reporter sur Vercel). Migrations 0021 (featured, push_subscriptions) et 0022 (enum) appliquées.
 
 ## Le Guichet (page d'accueil)
 
-- Une barre de filtres (Instrument, Pays, Statut, Durée, Rendement ≥ — menus à cases avec compteur) et une recherche plein texte ; trois vues des mêmes lignes : **Tableau** (défaut sur ordinateur, plat, triable par en-tête), **Liste** (défaut sur mobile) et **Cartes**. Filtres, tri, sens et vue vivent dans l'URL (`?instrument=OTA,MARCHE&statut=open&tri=yield&sens=desc&vue=table`), donc une vue filtrée se partage sur WhatsApp.
+- Une barre de filtres (Instrument, Pays, Statut, Durée, Rendement ≥ : menus à cases avec compteur) et une recherche plein texte ; trois vues des mêmes lignes : **Tableau** (défaut sur ordinateur, plat, triable par en-tête), **Liste** (défaut sur mobile) et **Cartes**. Filtres, tri, sens et vue vivent dans l'URL (`?instrument=OTA,MARCHE&statut=open&tri=yield&sens=desc&vue=table`), donc une vue filtrée se partage sur WhatsApp.
 - Ce que chaque ligne affiche par instrument (chiffre-héros, condition, coupon, échéance, minimum, action) est calculé une fois dans `src/lib/domain/summary.ts` et partagé par les trois vues.
 - Typographie : une seule famille (Manrope, chiffres tabulaires) ; l'or est réservé au rendement actionnable, le navy à la barre et au bouton principal, les couleurs de statut aux pastilles.
 
@@ -57,16 +57,16 @@ Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (m
 src/
   app/                 pages (App Router) : / guichet, /offres/[id] fiche, /simulateur, /desk
   components/          OfferBrowser (filtres, tri), OfferCard, IntentForm, FlowsChart, Simulator
-  lib/finance.ts       arithmétique obligataire (Exact/Exact, BTA précompté, TRI) — testée
+  lib/finance.ts       arithmétique obligataire (Exact/Exact, BTA précompté, TRI) : testée
   lib/domain/          types, statut dérivé, intentions (cycle de vie), estimation
-  lib/data/            Repository : memory (seed) | supabase — choisi par l'env
+  lib/data/            Repository : memory (seed) | supabase : choisi par l'env
   data/seed.ts         offres de septembre 2026 (communiqués RCA, Congo, BHC)
 supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS, realtime)
 ```
 
 ## Boîte d’entrée : courriel et WhatsApp
 
-- `src/lib/intake/ingest.ts` : une seule porte d’entrée (`ingestSource`) pour un dépôt manuel, un courriel ou un document WhatsApp — original conservé, extraction, item dans « À valider » (ou « À compléter » si la source n’est pas officielle). Expéditeurs de confiance : `INTAKE_TRUSTED_SENDERS`.
+- `src/lib/intake/ingest.ts` : une seule porte d’entrée (`ingestSource`) pour un dépôt manuel, un courriel ou un document WhatsApp : original conservé, extraction, item dans « À valider » (ou « À compléter » si la source n’est pas officielle). Expéditeurs de confiance : `INTAKE_TRUSTED_SENDERS`.
 - `POST /api/inbound/email` (`INBOUND_SECRET`) : message brut MIME (`postal-mime`) ou JSON ; une source par pièce jointe PDF / image. Branchement Cloudflare Email Routing dans OPERATIONS.md.
 - Webhook WhatsApp : un document ou une image envoyés par un numéro de l’équipe deviennent une source (téléchargement via l’API Graph) ; d’un client, ils sont signalés dans le flux.
 - L’extracteur reçoit les types de produits du référentiel (clé, moteur, champs libres) et remplit `typeKey` / `extra` du brouillon.
@@ -108,14 +108,14 @@ supabase/migrations/   schéma SQL (offers, offer_versions, intents, events, RLS
 
 - **Résultats** : par adjudication, prix (ou taux) servi par ligne et allocation (%) par ordre transmis ; un seul envoi passe les ordres en servie / non servie, fixe `servedPricePct` sur l'offre, génère les avis et prévient les clients (`src/lib/results/service.ts`).
 - **Règlement** : un clic passe les ordres servis en réglée, l'offre en « en vie », génère les avis d'opéré.
-- **Positions** : dérivées des ordres réglés (jamais stockées) — `src/lib/positions.ts` ; visibles dans *Mon espace* et sur le desk avec les flux à venir. Le segment « Porteurs de la ligne » des diffusions se résout sur ces positions.
+- **Positions** : dérivées des ordres réglés (jamais stockées)`src/lib/positions.ts` ; visibles dans *Mon espace* et sur le desk avec les flux à venir. Le segment « Porteurs de la ligne » des diffusions se résout sur ces positions.
 - **Avis de coupon** : `/api/cron/coupons` (J-3 et jour J, idempotent), planifié dans `vercel.json` ; protégé par `CRON_SECRET`.
 
 ## Robot WhatsApp
 
 - `src/lib/bot/reply.ts` répond aux messages entrants (webhook) avec Claude en sortie structurée : réponse, besoin de rappel, intention détectée. Il connaît le glossaire, les offres publiées (chiffres calculés, jamais inventés), les intentions et positions de l'expéditeur. Il ne conseille pas, ne promet rien, ne parle pas des autres clients ; prise ferme et cession = appétit enregistré + rappel d'un conseiller.
 - STOP / START gèrent l'opt-in WhatsApp. `BOT_ENABLED=0` coupe le robot (les messages restent journalisés).
-- Banc d'essai : **/desk/robot** — tester un message comme un client, sans envoi.
+- Banc d'essai : **/desk/robot** : tester un message comme un client, sans envoi.
 
 ## Déploiement
 
@@ -135,22 +135,22 @@ Pas à pas complet dans [DEPLOY.md](DEPLOY.md).
 
 ## Sociétés cotées (page Sociétés)
 
-- `src/data/companies.ts` : les 7 émetteurs du compartiment actions (identité, actionnariat, dirigeants, documents publiés sur bvm-ac.org) et leurs **chiffres clés certifiés** par exercice (total bilan, fonds propres, chiffre d'affaires / PNB / primes, valeur ajoutée, résultat net, dividende) relevés dans les fiches signalétiques et états financiers — source citée par année.
+- `src/data/companies.ts` : les 7 émetteurs du compartiment actions (identité, actionnariat, dirigeants, documents publiés sur bvm-ac.org) et leurs **chiffres clés certifiés** par exercice (total bilan, fonds propres, chiffre d'affaires / PNB / primes, valeur ajoutée, résultat net, dividende) relevés dans les fiches signalétiques et états financiers : source citée par année.
 - `src/lib/companies/analysis.ts` : ratios (PER, rendement, distribution, marge, ROE, cours / fonds propres, flottant) avec leur lecture en français courant, phrase de synthèse, commentaires ; `pricePeriod` / `periodComment` pour le cours sur une période. Pages `/societes` (tableau comparatif) et `/societes/[mnemo]` (cours sur 1 mois → max, graphiques CA / résultat et bilan / fonds propres, tableau des comptes, ratios, actionnariat, documents) ; rapport PDF `/societes/[mnemo]/rapport?p=`.
-- Le bulletin BVMAC fournit aussi la **capitalisation** (actions flottantes / totales, dernier dividende et sa date, liquidité 3 mois, BNPA) — `quotes` (migration 0012) ; `/api/cron/boc?from=&to=` rejoue l'historique (cours et VL, PDF non archivés) et le parseur lit les mises en page 2026 antérieures (lignes actions et obligataires « denses »).
+- Le bulletin BVMAC fournit aussi la **capitalisation** (actions flottantes / totales, dernier dividende et sa date, liquidité 3 mois, BNPA)`quotes` (migration 0012) ; `/api/cron/boc?from=&to=` rejoue l'historique (cours et VL, PDF non archivés) et le parseur lit les mises en page 2026 antérieures (lignes actions et obligataires « denses »).
 - `src/lib/companies/collect.ts` + `/api/cron/emetteurs` (lundi 6 h UTC) : les documents des sociétés cotées publiés sur bvm-ac.org sont catalogués (`issuer_documents`) et archivés dans `sources/issuers/<MNEMO>/` ; un nouveau document alerte le desk pour mettre à jour `companies.ts`.
 
 ## OPCVM (page Fonds, desk › Marché)
 
-- Les 45 fonds dont la VL paraît au bulletin deviennent des lignes `kind: FONDS` (id `fund-<clé>`, champ `fund` : société de gestion, dépositaire, catégorie, périodicité, VL, origine, performance) — **masquées** tant qu'aucune convention de distribution n'existe. La page publique `/fonds` les présente tous (VL, variation, depuis l'origine, société de gestion) ; un fonds non distribué reçoit des intentions « information / rappel » seulement.
+- Les 45 fonds dont la VL paraît au bulletin deviennent des lignes `kind: FONDS` (id `fund-<clé>`, champ `fund` : société de gestion, dépositaire, catégorie, périodicité, VL, origine, performance) : **masquées** tant qu'aucune convention de distribution n'existe. La page publique `/fonds` les présente tous (VL, variation, depuis l'origine, société de gestion) ; un fonds non distribué reçoit des intentions « information / rappel » seulement.
 - Le desk active un fonds dans *Marché › OPCVM* : case « distribué », référence de la convention (obligatoire), droits d'entrée / de sortie, minimum, heure de centralisation. Le fonds passe alors « Souscription ouverte » dans le Guichet.
-- Intentions `souscription` (montant FCFA, minimum du fonds) et `rachat` (nombre de parts, limité aux parts détenues) — réservées aux dossiers KYC approuvés (les parts sont inscrites au nom du client au registre du dépositaire, pas de sous-compte SVT). Cycle identique aux ordres de bourse : confirmé (bulletin de souscription + appel de fonds, ou demande de rachat) → transmis → **exécuté** à la VL retenue (VL et parts saisies par le desk d'après l'avis de la société de gestion) → **réglé** (avis d'opération). Positions en parts, valorisées à la VL de la dernière exécution.
+- Intentions `souscription` (montant FCFA, minimum du fonds) et `rachat` (nombre de parts, limité aux parts détenues) : réservées aux dossiers KYC approuvés (les parts sont inscrites au nom du client au registre du dépositaire, pas de sous-compte SVT). Cycle identique aux ordres de bourse : confirmé (bulletin de souscription + appel de fonds, ou demande de rachat) → transmis → **exécuté** à la VL retenue (VL et parts saisies par le desk d'après l'avis de la société de gestion) → **réglé** (avis d'opération). Positions en parts, valorisées à la VL de la dernière exécution.
 - **Bordereau de centralisation** par société de gestion (`generateFundBordereau`) : tous les ordres confirmés / transmis de ses fonds, porteurs et références de registre, espèces réglées par Purpose Capital.
 - Modèles PDF dédiés dans `src/lib/documents/pdf/fund-templates.tsx` (aucune mention d'adjudication ni de SVT).
 
 ## Reporting (desk › Reporting)
 
-- **Rapport d'activité périodique (PDF)** : `/desk/reporting/pdf?from&to` — synthèse (intentions, ordres, règlements par instrument et segment, comptes ouverts, encours valorisé), journal des ordres, clientèle et conformité (types, risques, attestations sanctions, revues échues), positions en conservation, bulletins BVMAC utilisés. Rendu à la demande depuis les mêmes lignes que la page, jamais saisi.
+- **Rapport d'activité périodique (PDF)** : `/desk/reporting/pdf?from&to` : synthèse (intentions, ordres, règlements par instrument et segment, comptes ouverts, encours valorisé), journal des ordres, clientèle et conformité (types, risques, attestations sanctions, revues échues), positions en conservation, bulletins BVMAC utilisés. Rendu à la demande depuis les mêmes lignes que la page, jamais saisi.
 
 - Journal des ordres sur une période avec l'horodatage de chaque étape (reçu, confirmé, transmis, exécuté, réglé), registre des clients (statut, risque, revue, contrôle sanctions), positions en conservation, statistiques d'activité (intentions, montants, règlements par instrument et par segment, comptes ouverts, documents, diffusion).
 - Exports CSV (`/desk/reporting/export?type=ordres|clients|positions`) au format Excel français (BOM, point-virgule). Tout est recalculé depuis les lignes : reproductible, jamais saisi à la main.
@@ -176,15 +176,15 @@ source reçue ──► à valider ──► (en revue) ──► publié ──
 
 - **À valider → en revue** : l'opérateur demande une relecture avec une note ; le relecteur publie ou **renvoie en correction** (note). La personne qui a demandé la relecture ne peut pas publier ce brouillon.
 - **Publier** exige : source officielle jointe, champs obligatoires, liste de contrôle du type cochée, champs libres requis, et la fenêtre déléguée (sinon approbation).
-- **Retirer** (desk › ligne › Historique) : statut `withdrawn`, ligne masquée, fiche client remplacée par un avis ; intentions, versions et audit conservés. **Remettre en ligne** suit la règle des quatre yeux. Rien n'est jamais supprimé — ni source, ni ligne, ni intention.
+- **Retirer** (desk › ligne › Historique) : statut `withdrawn`, ligne masquée, fiche client remplacée par un avis ; intentions, versions et audit conservés. **Remettre en ligne** suit la règle des quatre yeux. Rien n'est jamais supprimé : ni source, ni ligne, ni intention.
 - États dérivés (clôturé, résultats, en vie, échu) viennent des dates et des résultats saisis, pas d'une action manuelle.
 
 ## Contrôle : audit, versions, verrou, quatre yeux
 
-- **Piste d'audit** (`audit`, desk › Journal) : une ligne par action métier — qui (session), quoi (`offer.publish`, `offer.quote`, `intent.transition`, `reference.upsert`, `staff.role`, `approval.*`…), l'enregistrement avant / après, le motif, l'adresse IP et le navigateur. Chaînée par empreinte SHA-256 (`prev_hash` → `hash`) ; un déclencheur refuse toute modification ou suppression, clé service comprise. Le journal affiche « chaîne intègre / rompue ». Distinct du flux `events` (lisible, à destination du desk).
+- **Piste d'audit** (`audit`, desk › Journal) : une ligne par action métier : qui (session), quoi (`offer.publish`, `offer.quote`, `intent.transition`, `reference.upsert`, `staff.role`, `approval.*`…), l'enregistrement avant / après, le motif, l'adresse IP et le navigateur. Chaînée par empreinte SHA-256 (`prev_hash` → `hash`) ; un déclencheur refuse toute modification ou suppression, clé service comprise. Le journal affiche « chaîne intègre / rompue ». Distinct du flux `events` (lisible, à destination du desk).
 - **Versions** (`offer_versions.snapshot`, desk › ligne › Historique) : chaque publication ou saisie garde la fiche complète ; la page montre les différences champ par champ entre versions et permet de **restaurer** une version (nouvelle version, motif obligatoire, jamais d'effacement).
-- **Verrou optimiste** : les formulaires portent la version affichée ; `upsertOffer(offer, { expectedVersion })` refuse (`ConflictError`) si quelqu'un a enregistré entre-temps — message « rechargez la page ».
-- **Quatre yeux sans goulot** (desk › Approbations) : le responsable délègue une fenêtre (prix OTA/APE, taux BTA, écart de cours, frais de fonds — table `reference`, kind `policy`). Dedans, l'opérateur publie seul ; dehors, sa proposition va dans `approvals` avec l'avant / après, et un **autre** responsable l'approuve (écrit la version, notifie) ou la refuse avec une note. Le responsable publie directement. Une restauration suit la même règle.
+- **Verrou optimiste** : les formulaires portent la version affichée ; `upsertOffer(offer, { expectedVersion })` refuse (`ConflictError`) si quelqu'un a enregistré entre-temps : message « rechargez la page ».
+- **Quatre yeux sans goulot** (desk › Approbations) : le responsable délègue une fenêtre (prix OTA/APE, taux BTA, écart de cours, frais de fonds : table `reference`, kind `policy`). Dedans, l'opérateur publie seul ; dehors, sa proposition va dans `approvals` avec l'avant / après, et un **autre** responsable l'approuve (écrit la version, notifie) ou la refuse avec une note. Le responsable publie directement. Une restauration suit la même règle.
 
 ## Authentification et rôles
 
@@ -193,15 +193,15 @@ source reçue ──► à valider ──► (en revue) ──► publié ──
 - Une intention porte `client_id` = utilisateur connecté ; sans session, le formulaire renvoie vers /connexion puis revient sur la fiche.
 - Rôles : `profiles.role` = `client` | `desk` (opérateur) | `responsable` (opérateur + équipe + approbations). `requireDesk()` accepte les deux niveaux desk, `requireResponsable()` le second. Le système (crons, robot) n'est pas un utilisateur : `CRON_SECRET` et la clé service.
 - **Équipe** (desk › Équipe, responsable seulement) : donner / changer / retirer l'accès desk d'un compte existant, jamais le sien, jamais le dernier responsable ; chaque changement est journalisé dans `events`. `DESK_EMAILS` ne sert qu'à l'amorçage : une adresse listée devient responsable à sa première connexion (persisté), puis la variable peut être vidée.
-- **Second facteur** obligatoire pour le desk (TOTP via Supabase Auth, aucun service tiers) : première entrée sur /desk → `/connexion/mfa?enrol=1` (QR à scanner, code de confirmation), ensuite un code à 6 chiffres à chaque connexion (`aal2`). `DESK_MFA=off` désactive la contrainte (amorçage, incident) — à ne pas laisser en production.
-- Niveaux 0/1/2 (visiteur, identifié, compte ouvert) dans `profiles.tier` — la prise ferme exigera le niveau 2 après l'onboarding.
+- **Second facteur** obligatoire pour le desk (TOTP via Supabase Auth, aucun service tiers) : première entrée sur /desk → `/connexion/mfa?enrol=1` (QR à scanner, code de confirmation), ensuite un code à 6 chiffres à chaque connexion (`aal2`). `DESK_MFA=off` désactive la contrainte (amorçage, incident) : à ne pas laisser en production.
+- Niveaux 0/1/2 (visiteur, identifié, compte ouvert) dans `profiles.tier` : la prise ferme exigera le niveau 2 après l'onboarding.
 - Connexion par téléphone (SMS ou WhatsApp via le fournisseur configuré dans Supabase) : `PHONE_OTP_ENABLED=1`, `PHONE_OTP_CHANNEL=sms|whatsapp`.
 
 ## Principes
 
 - **Une offre se lit, ne se simule pas.** Le prix Purpose est fixé par le desk et versionné ; la fiche montre un bloc de référence au prix publié. Le simulateur est une page séparée, sans lien avec les offres en cours.
 - **Une intention est une ligne**, quel que soit le canal. Son cycle : `recue → confirmee → transmise → servie | non_servie → reglee`. Chaque transition est journalisée dans `events`.
-- **Le desk ne saisit que trois choses** : prix / ticket minimum à la publication (aucune commission affichée au client pour l’instant), le montant confirmé, des notes. Tout le reste est dérivé — et ce qui décrit un produit (type, échéancier, glossaire, fiches) se maintient dans le Référentiel, pas dans le code.
+- **Le desk ne saisit que trois choses** : prix / ticket minimum à la publication (aucune commission affichée au client pour l’instant), le montant confirmé, des notes. Tout le reste est dérivé : et ce qui décrit un produit (type, échéancier, glossaire, fiches) se maintient dans le Référentiel, pas dans le code.
 
 ## Prochaines étapes
 
@@ -209,7 +209,7 @@ source reçue ──► à valider ──► (en revue) ──► publié ──
 2. Virement automatique des produits de rachat depuis le RIB du dossier (fichier de virement bancaire).
 3. Rapport d'activité périodique en PDF (COSUMAF) à partir du reporting.
 
-### Migration 0013 — contact sur l'intention
+### Migration 0013 : contact sur l'intention
 
 `supabase/migrations/0013_intent_contact.sql` ajoute `contact_phone` / `contact_email` sur `intents` (le numéro ou l'e-mail que le client donne avec son intention). Tant qu'elle n'est pas appliquée, l'app garde le contact dans le message de l'intention et l'indique dans les logs.
 
@@ -217,9 +217,9 @@ source reçue ──► à valider ──► (en revue) ──► publié ──
 
 ### Échéanciers des obligations cotées
 
-`src/data/bond-terms.ts` porte, par ISIN, la date d'échéance exacte, la périodicité et le différé d'amortissement lus sur les fiches signalétiques publiées par la BVMAC (Espace émetteurs › Émetteurs obligations, images JPG). Le rendement actuariel d'une ligne cotée se calcule alors sur son vrai échéancier (`amortCalc`) ; sans fiche, il reste calculé in fine au 31 décembre de l'année imprimée au BOC et signalé « ≈ ». À mettre à jour à chaque nouvelle fiche (l'État du Congo — EOCG 2021-2026 — manque encore).
+`src/data/bond-terms.ts` porte, par ISIN, la date d'échéance exacte, la périodicité et le différé d'amortissement lus sur les fiches signalétiques publiées par la BVMAC (Espace émetteurs › Émetteurs obligations, images JPG). Le rendement actuariel d'une ligne cotée se calcule alors sur son vrai échéancier (`amortCalc`) ; sans fiche, il reste calculé in fine au 31 décembre de l'année imprimée au BOC et signalé « ≈ ». À mettre à jour à chaque nouvelle fiche (l'État du Congo, EOCG 2021-2026, manque encore).
 
 ### Messages automatiques
 
-- 06:30 lun–ven `/api/cron/point` : point du matin du desk (clôtures du jour et du lendemain, intentions reçues, en attente, dernier bulletin, santé) — e-mail à `DESK_EMAILS` quand Resend est configuré, journal et notifications sinon.
-- 07:15 `/api/cron/suivi` : lignes suivies — un message WhatsApp + e-mail au client quand le rendement, le cours, le prix ou le statut d'une ligne qu'il suit a changé (table `watchlist`, migration 0014 ; valeurs d'énumération `watch` / `digest`, migration 0015).
+- 06:30 lun–ven `/api/cron/point` : point du matin du desk (clôtures du jour et du lendemain, intentions reçues, en attente, dernier bulletin, santé) : e-mail à `DESK_EMAILS` quand Resend est configuré, journal et notifications sinon.
+- 07:15 `/api/cron/suivi` : lignes suivies : un message WhatsApp + e-mail au client quand le rendement, le cours, le prix ou le statut d'une ligne qu'il suit a changé (table `watchlist`, migration 0014 ; valeurs d'énumération `watch` / `digest`, migration 0015).

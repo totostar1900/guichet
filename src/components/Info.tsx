@@ -9,7 +9,7 @@ import styles from "./Info.module.css";
 
 /**
  * A small « i » that opens a bubble on click (or Enter); it closes on a click
- * anywhere else or Escape — never on a mouse move, so its link stays reachable. The bubble is
+ * anywhere else or Escape : never on a mouse move, so its link stays reachable. The bubble is
  * rendered at the end of <body> in fixed position, so no scrolling table or
  * sticky header can clip it; it flips under the button when there is no room above.
  */
@@ -17,7 +17,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
   const tr = useT();
   const t = term ? getRegistry().glossary[term] : undefined;
   const body = tr(text ?? t?.text ?? "");
-  const title = label ? tr(label) : t ? ("long" in t && t.long ? `${tr(t.short)} — ${tr(t.long)}` : tr(t.short)) : "";
+  const title = label ? tr(label) : t ? ("long" in t && t.long ? `${tr(t.short)} : ${tr(t.long)}` : tr(t.short)) : "";
   const lesson = term ? lessonForTerm(term) : undefined;
   const btn = useRef<HTMLButtonElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
@@ -95,7 +95,7 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
   );
 }
 
-/** Label followed by its bubble — for table headers, KPI titles, chart titles. */
+/** Label followed by its bubble : for table headers, KPI titles, chart titles. */
 export function Term({ term, children }: { term: TermKey; children?: React.ReactNode }) {
   return (
     <span className={styles.term}>

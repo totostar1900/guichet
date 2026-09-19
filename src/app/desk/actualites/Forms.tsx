@@ -100,7 +100,7 @@ export function NewsForm({ item, candidates, featuredTitle }: { item?: NewsItem;
         )}
       </label>
       <label>
-        <span>{tr("Pourquoi ça compte — deux lignes, pas plus")}</span>
+        <span>{tr("Pourquoi ça compte : deux lignes, pas plus")}</span>
         <textarea name="why" rows={3} value={why} onChange={(e) => setWhy(e.target.value)} maxLength={320} />
         <span className={styles.counter}>
           <span className={problem ? styles.bad : ""}>{problem ? tr(problem) : tr("Pas de recommandation, pas de chiffre non sourcé.")}</span>

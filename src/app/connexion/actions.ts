@@ -19,7 +19,7 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   const { supabaseAuthClient } = await import("@/lib/auth/supabase");
   const sb = await supabaseAuthClient();
   // The e-mail carries a code when the template prints {{ .Token }} (custom SMTP) and always a link:
-  // both work — the link lands on /auth/callback, which exchanges it for a session.
+  // both work : the link lands on /auth/callback, which exchanges it for a session.
   const next = safeNext(form.get("next"));
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const { error } = await sb.auth.signInWithOtp({ email: email.data, options: { shouldCreateUser: true, emailRedirectTo: `${base}/auth/callback?next=${encodeURIComponent(next)}` } });

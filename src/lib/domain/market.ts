@@ -45,7 +45,7 @@ export interface Quote {
   nominalRemaining?: number; // obligations, FCFA per bond at J+3
   accruedCoupon?: number; // obligations, FCFA per bond at J+3
   ytdVariationPct?: number | null;
-  // equities — from the bulletin's capitalisation table
+  // equities : from the bulletin's capitalisation table
   sharesFloat?: number;
   sharesTotal?: number;
   lastDividend?: number; // FCFA gross per share

@@ -11,7 +11,7 @@ import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/l
 /**
  * Reference data as the desk maintains it in the app. Each kind starts from
  * the built-in defaults shipped in code and is overridden row by row from the
- * `reference` table — so an empty table changes nothing, and « Importer les
+ * `reference` table : so an empty table changes nothing, and « Importer les
  * valeurs par défaut » on the desk copies the defaults into the table to edit.
  */
 export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson" } as const;

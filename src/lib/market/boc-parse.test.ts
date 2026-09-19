@@ -92,7 +92,7 @@ describe("BOC n° 2565 du 04/08/2026", () => {
   });
 });
 
-describe("BOC n° 2591 du 09/09/2026 — a session where a bond traded", () => {
+describe("BOC n° 2591 du 09/09/2026 : a session where a bond traded", () => {
   const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260909.txt", import.meta.url), "utf8"));
   it("reads every bond even when the next head is glued to a traded row", () => {
     expect(b.bulletinNo).toBe(2591);
@@ -132,7 +132,7 @@ describe("capitalisation table", () => {
   });
 });
 
-describe("BOC n° 2421 du 05/01/2026 — older dense layout", () => {
+describe("BOC n° 2421 du 05/01/2026 : older dense layout", () => {
   const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260105.txt", import.meta.url), "utf8"));
   it("reads the six equities from glued rows", () => {
     expect(b.equities.length).toBe(6);
@@ -158,7 +158,7 @@ describe("BOC n° 2421 du 05/01/2026 — older dense layout", () => {
   });
 });
 
-describe("BOC n° 2551 du 15/07/2026 — issuer glued to the ISIN, traded dense rows", () => {
+describe("BOC n° 2551 du 15/07/2026 : issuer glued to the ISIN, traded dense rows", () => {
   const b = parseBoc(readFileSync(new URL("./__fixtures__/BOC-20260715.txt", import.meta.url), "utf8"));
   it("reads all seven equities including La Régionale and BHC", () => {
     expect(b.equities.map((e) => e.mnemo).sort()).toEqual(["BANGE", "BHC", "REG", "SAF", "SCGRE", "SEMC", "SOCAP"]);

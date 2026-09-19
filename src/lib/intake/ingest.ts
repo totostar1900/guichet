@@ -6,7 +6,7 @@ import { saveSource } from "@/lib/intake/storage";
 import { loadRegistry } from "@/lib/reference";
 
 /**
- * One way in for every source — a file or text dropped by the desk, an e-mail
+ * One way in for every source : a file or text dropped by the desk, an e-mail
  * forwarded to the intake address, a document sent on WhatsApp by a staff
  * member. The original is kept, the extractor proposes a draft, and the item
  * lands in « À valider » (or « À compléter » when the source is not official).
@@ -87,7 +87,7 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
     draft,
     extractedIn,
   });
-  await repo().logEvent({ kind: "system", html: `Nouvelle source : <b>${item.title}</b> (${input.fromLabel})${extractedIn != null ? ` — extraite en ${extractedIn} s` : ""}` });
+  await repo().logEvent({ kind: "system", html: `Nouvelle source : <b>${item.title}</b> (${input.fromLabel})${extractedIn != null ? ` : extraite en ${extractedIn} s` : ""}` });
   return { ok: true, item };
 }
 

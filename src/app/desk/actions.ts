@@ -32,7 +32,7 @@ export async function transitionIntent(form: FormData): Promise<void> {
     kind: "desk",
     intentId,
     offerId: updated.offerId,
-    html: `${updated.ref} (${updated.clientName}) — <b>${INTENT_STATE_LABEL[state]}</b>${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
+    html: `${updated.ref} (${updated.clientName}) : <b>${INTENT_STATE_LABEL[state]}</b>${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
   });
   // The lifecycle produces its paperwork: bulletin + appel de fonds on confirmation, avis on results, avis d'opéré on settlement.
   for (const type of docsForTransition(updated.type, state)) {

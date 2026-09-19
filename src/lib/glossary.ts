@@ -1,5 +1,5 @@
 /**
- * The words the site uses, explained once — the info bubbles, the ratio
+ * The words the site uses, explained once : the info bubbles, the ratio
  * explanations and the « Repères » page all read from here.
  */
 export interface Term {
@@ -9,18 +9,18 @@ export interface Term {
 }
 
 export const GLOSSARY = {
-  per: { short: "PER", long: "Price Earnings Ratio — cours / bénéfice par action", text: "Combien d'années de bénéfice vous payez au cours du jour. Entre 5 et 12 est courant sur les marchés africains ; plus haut, le marché paie la croissance attendue ou la rareté du titre." },
+  per: { short: "PER", long: "Price Earnings Ratio : cours / bénéfice par action", text: "Combien d'années de bénéfice vous payez au cours du jour. Entre 5 et 12 est courant sur les marchés africains ; plus haut, le marché paie la croissance attendue ou la rareté du titre." },
   rendement_dividende: { short: "Rendement du dividende", text: "Le dernier dividende brut divisé par le cours : ce que l'action verse chaque année si le dividende est maintenu, avant retenue à la source (16,5 % au Cameroun)." },
   rendement_actuariel: { short: "Rendement actuariel", text: "Ce que rapporte réellement un titre de dette acheté à ce prix et gardé jusqu'à l'échéance, coupons et coupon couru compris (convention Exact/Exact). Seule mesure comparable d'une ligne à l'autre." },
   capitalisation: { short: "Capitalisation", text: "Le cours multiplié par toutes les actions de la société, flottant compris : la valeur que la bourse lui donne. La part réellement échangeable est bien plus petite (3 à 20 %)." },
   flottant: { short: "Flottant", text: "La part du capital détenue par le public et effectivement en bourse. Un flottant faible = peu de titres à acheter ou vendre, un cours qui bouge par à-coups." },
-  ytd: { short: "Depuis le 1er janvier", long: "YTD — year to date", text: "La variation du cours depuis la première séance de l'année, telle que la BVMAC la publie ; « — » pour une société introduite dans l'année." },
-  rendement_cours: { short: "Rendement", text: "Ce que la ligne rapporte, brut, au prix du moment — le chiffre à comparer d'une ligne à l'autre. Obligations (à souscrire ou cotées) : au pair, le taux nominal du titre ; avec décote ou prime, le rendement actuariel au prix indiqué ou au dernier cours, coupon couru compris ; « ≈ » quand seule l'année de l'échéance est publiée. Actions et introductions : dernier dividende brut rapporté au cours ou au prix de souscription — un dividende passé, décidé chaque année, jamais garanti. Fonds : performance annualisée depuis la création. Avant impôt : la retenue diffère selon l'instrument et l'État." },
+  ytd: { short: "Depuis le 1er janvier", long: "YTD : year to date", text: "La variation du cours depuis la première séance de l'année, telle que la BVMAC la publie ; « — » pour une société introduite dans l'année." },
+  rendement_cours: { short: "Rendement", text: "Ce que la ligne rapporte, brut, au prix du moment, le chiffre à comparer d'une ligne à l'autre. Obligations (à souscrire ou cotées) : au pair, le taux nominal du titre ; avec décote ou prime, le rendement actuariel au prix indiqué ou au dernier cours, coupon couru compris ; « ≈ » quand seule l'année de l'échéance est publiée. Actions et introductions : dernier dividende brut rapporté au cours ou au prix de souscription, un dividende passé, décidé chaque année, jamais garanti. Fonds : performance annualisée depuis la création. Avant impôt : la retenue diffère selon l'instrument et l'État." },
   cours: { short: "Cours", text: "Le dernier prix auquel le titre s'est échangé à la BVMAC (clôture de la séance). Si rien ne s'est échangé, la bourse republie le cours précédent." },
   bnpa: { short: "BNPA", long: "Bénéfice net par action", text: "Le bénéfice de l'exercice divisé par le nombre d'actions : ce que chaque action a gagné, distribué ou non." },
   payout: { short: "Part du bénéfice distribuée", long: "Taux de distribution (payout)", text: "Dividende par action divisé par le bénéfice par action. 100 % = tout le bénéfice est reversé ; 0 % = tout est conservé dans la société." },
   marge_nette: { short: "Marge nette", text: "Bénéfice net divisé par le chiffre d'affaires : ce qui reste sur 100 FCFA de ventes une fois tout payé. À comparer d'une année sur l'autre plutôt qu'entre secteurs." },
-  roe: { short: "ROE", long: "Return on equity — rentabilité des fonds propres", text: "Bénéfice net divisé par les fonds propres : le rendement de l'argent que les actionnaires ont dans la société. Au-dessus de 10 %, le capital est bien rémunéré." },
+  roe: { short: "ROE", long: "Return on equity : rentabilité des fonds propres", text: "Bénéfice net divisé par les fonds propres : le rendement de l'argent que les actionnaires ont dans la société. Au-dessus de 10 %, le capital est bien rémunéré." },
   price_to_book: { short: "Cours / fonds propres", long: "Price to book", text: "Le cours rapporté à la valeur comptable d'une action (fonds propres ÷ actions). Sous 1, le marché paie moins que ce que la société possède ; au-dessus, il valorise aussi la marque, la position ou la rentabilité." },
   fonds_propres: { short: "Fonds propres", text: "Ce que la société possède moins ce qu'elle doit : la part du bilan qui appartient aux actionnaires. Ils grossissent quand la société garde une partie de ses bénéfices." },
   total_bilan: { short: "Total du bilan", text: "Tout ce que l'entreprise possède (immobilisations, stocks, créances, trésorerie). Pour une banque, il est surtout fait des dépôts des clients : il est normal qu'il soit très supérieur aux fonds propres." },
@@ -43,7 +43,7 @@ export const GLOSSARY = {
   etat_souscription_ouverte: { short: "Souscription ouverte", long: "état d'une ligne", text: "Le fonds est distribué par Purpose Capital : vous souscrivez ou rachetez des parts à la prochaine valeur liquidative calculée après votre ordre." },
   etat_sur_demande: { short: "Sur demande", long: "état d'une ligne", text: "Le fonds n'est pas encore sous convention de distribution : dites-nous votre intérêt, nous organisons la relation avec la société de gestion." },
   perf_origine: { short: "Depuis l'origine", text: "La hausse ou la baisse de la VL depuis la première VL du fonds, en cumulé et sans annualisation : un fonds plus ancien a eu plus de temps pour la construire. Regardez-la avec l'âge du fonds, indiqué à côté." },
-  variation_vl: { short: "Variation", text: "L'écart entre la dernière VL publiée et la précédente : la veille pour un fonds à VL quotidienne, la semaine d'avant pour un hebdomadaire, le mois d'avant pour un mensuel. Ni annualisé ni cumulé — la performance sur 12 mois est dans la colonne voisine." },
+  variation_vl: { short: "Variation", text: "L'écart entre la dernière VL publiée et la précédente : la veille pour un fonds à VL quotidienne, la semaine d'avant pour un hebdomadaire, le mois d'avant pour un mensuel. Ni annualisé ni cumulé : la performance sur 12 mois est dans la colonne voisine." },
   coupon: { short: "Coupon", text: "L'intérêt annuel d'une obligation, en % du nominal. Le coupon couru est la part déjà produite depuis le dernier paiement : l'acheteur l'avance, puis la récupère au coupon suivant." },
   coupon_couru: { short: "Coupon couru", text: "Intérêts déjà produits depuis le dernier versement. Vous les avancez au règlement, puis les récupérez intégralement au coupon suivant." },
   seuils: { short: "Seuils de séance", text: "Les bornes entre lesquelles la BVMAC autorise le cours à bouger pendant une séance (± 10 % environ autour de la référence)." },

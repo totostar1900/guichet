@@ -19,7 +19,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const i = await issuerBySlug((await params).slug);
-  return { title: i ? `${i.shortName} — émetteur` : "Émetteur" };
+  return { title: i ? `${i.shortName} : émetteur` : "Émetteur" };
 }
 
 export default async function EmetteurPage({ params }: Props) {

@@ -12,7 +12,7 @@ export const metadata = { title: "Guide du desk" };
 /**
  * The desk manual: the two roles, the guided tour, then one section per page
  * with every field explained and a screenshot when one has been captured
- * (public/guide/<key>.png — regenerated with `npm run guide:shots`).
+ * (public/guide/<key>.png : regenerated with `npm run guide:shots`).
  */
 export default async function GuidePage() {
   const t = await getT();
@@ -84,7 +84,7 @@ export default async function GuidePage() {
               {img && (
                 <figure className={styles.shot}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img} alt={`${t("Capture d'écran")} — ${t(s.title)}`} loading="lazy" />
+                  <img src={img} alt={`${t("Capture d'écran")} : ${t(s.title)}`} loading="lazy" />
                   <figcaption>{t(s.title)}</figcaption>
                 </figure>
               )}
@@ -96,7 +96,7 @@ export default async function GuidePage() {
                       src && (
                         <figure key={x.key} className={styles.shot}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={src} alt={`${t("Capture d'écran")} — ${t(x.caption)}`} loading="lazy" />
+                          <img src={src} alt={`${t("Capture d'écran")} : ${t(x.caption)}`} loading="lazy" />
                           <figcaption>{t(x.caption)}</figcaption>
                         </figure>
                       )

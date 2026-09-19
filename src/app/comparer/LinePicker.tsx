@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import styles from "./page.module.css";
 
-/** One line as the picker shows it — computed on the server, flat. */
+/** One line as the picker shows it : computed on the server, flat. */
 export interface PickLine {
   id: string;
   title: string;
@@ -12,7 +12,7 @@ export interface PickLine {
   segment: "primaire" | "secondaire" | "fonds";
   issuer: string;
   country: string;
-  yieldText: string; // « 6,25 % » or « — »
+  yieldText: string; // « 6,25 % » or « : »
   status: string;
 }
 

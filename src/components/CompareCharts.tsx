@@ -15,7 +15,7 @@ import { useT } from "@/i18n/client";
  * The graphs under the comparison table. Which ones appear depends on the
  * pair: the return on one bar for every pair; two funds on one frame
  * (amount invested, rolling return, drawdown); two debt securities as a
- * cash-flow calendar; a fund against a debt security — its past against the
+ * cash-flow calendar; a fund against a debt security : its past against the
  * other's promise. Each graph says how to read it.
  */
 export interface Benchmark {
@@ -72,7 +72,7 @@ function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Be
         ))}
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("Les barres se comparent, mais pas leurs natures :")}{" "}
+        <b>{t("Comment lire")}</b> : {t("Les barres se comparent, mais pas leurs natures :")}{" "}
         {lines.map((l, i) => (
           <span key={l.id}>
             {i > 0 ? " · " : ""}
@@ -147,7 +147,7 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
       <p className={styles.how}>
         <b>{t("Comment lire")}</b> —{" "}
         {reading === "placement" && t("Le même million placé le même jour dans chaque fonds, brut, avant frais d'entrée et de sortie ; la ligne pointillée est ce que le dernier bon du Trésor aurait donné. Une courbe plus haute a gagné plus, pas forcément avec le même calme : regardez « Repli ».")}
-        {reading === "rendement" && t("À chaque date, le rendement annualisé des {n} mois qui précèdent, pour chaque fonds — la fenêtre la plus longue que les deux historiques permettent. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.", { n: Math.round(windowDays / 30) })}
+        {reading === "rendement" && t("À chaque date, le rendement annualisé des {n} mois qui précèdent, pour chaque fonds : la fenêtre la plus longue que les deux historiques permettent. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.", { n: Math.round(windowDays / 30) })}
         {reading === "rendement" && series.some((s) => s.length === 0) && " " + t("Un des deux fonds n'a pas encore assez de VL pour cette fenêtre : sa courbe viendra avec les prochains bulletins.")}
         {reading === "repli" && t("À chaque date, de combien chaque fonds était sous son plus haut : zéro = au sommet. Plus la zone rouge est profonde et longue, plus il a fallu de patience. C'est le prix du gain de l'autre lecture.")}
       </p>
@@ -201,7 +201,7 @@ function FundVsDebt({ fund, debt }: { fund: CompareLine; debt: CompareLine }) {
         </span>
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("Le titre de dette n'a pas de courbe : il a des dates. Sa ligne monte en marches à chaque coupon et saute au remboursement ; elle vaut si l'émetteur paie. Le fonds en face montre ce qu'il a fait sur une durée égale, dans le passé : ce n'est pas ce qu'il fera. Aucune des deux lignes n'est une prévision.")}
+        <b>{t("Comment lire")}</b> : {t("Le titre de dette n'a pas de courbe : il a des dates. Sa ligne monte en marches à chaque coupon et saute au remboursement ; elle vaut si l'émetteur paie. Le fonds en face montre ce qu'il a fait sur une durée égale, dans le passé : ce n'est pas ce qu'il fera. Aucune des deux lignes n'est une prévision.")}
       </p>
     </div>
   );
@@ -309,7 +309,7 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
         ))}
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("Une ligne de temps par titre : la barre rouge est ce que vous payez au règlement, les barres de couleur ce qui revient et quand — coupons, puis le capital au terme. La hauteur est proportionnelle au montant. C'est la question « quand l'argent revient » lue sans un seul pourcentage ; les montants sont bruts, pour un nominal de référence, et supposent que l'émetteur paie.")}
+        <b>{t("Comment lire")}</b> : {t("Une ligne de temps par titre : la barre rouge est ce que vous payez au règlement, les barres de couleur ce qui revient et quand : coupons, puis le capital au terme. La hauteur est proportionnelle au montant. C'est la question « quand l'argent revient » lue sans un seul pourcentage ; les montants sont bruts, pour un nominal de référence, et supposent que l'émetteur paie.")}
       </p>
     </div>
   );

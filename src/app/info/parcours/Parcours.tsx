@@ -10,7 +10,7 @@ import { useT } from "@/i18n/client";
 import styles from "./page.module.css";
 
 /**
- * The five folding sections of the parcours. One section open at a time —
+ * The five folding sections of the parcours. One section open at a time
  * the last one opened, else the first with an unread lesson. Progress comes
  * from the lessons the reader closed with their question (localStorage).
  */
@@ -125,7 +125,7 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
                   })}
                 </div>
                 <p className={styles.blurb}>
-                  <b>{t("Ce que cette section vous apprend")}</b> — {t(s.blurb)}
+                  <b>{t("Ce que cette section vous apprend")}</b> : {t(s.blurb)}
                 </p>
               </div>
             )}

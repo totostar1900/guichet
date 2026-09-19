@@ -3,8 +3,8 @@
  * fiches signalétiques published by the exchange (August 2026 editions). The
  * BOC prints only the year of maturity; these give the exact date, how often
  * the line pays, and from when the capital is repaid. Capital is repaid in
- * equal instalments on every payment date after the grace period — the
- * pattern of every schedule on those fiches — on the nominal remaining per
+ * equal instalments on every payment date after the grace period : the
+ * pattern of every schedule on those fiches : on the nominal remaining per
  * title that the BOC already carries.
  */
 export interface BondTerms {
@@ -50,7 +50,7 @@ export const BOND_TERMS: BondTerms[] = [
   { isin: "CM0000020388", maturityOn: "2031-06-23", periodsPerYear: 1, source: CAMEROUN }, // ECMR 7,25 % NET 2023-2031
   // État du Tchad
   { isin: "TD0000020331", maturityOn: "2027-12-30", periodsPerYear: 1, source: TCHAD }, // EOTD 6,5 % NET 2022-2027
-  // ACEP Cameroun — semi-annual
+  // ACEP Cameroun : semi-annual
   { isin: "CM0000020545", maturityOn: "2027-12-30", periodsPerYear: 2, source: ACEP }, // ACEP 7 % BRUT 2024-2027
   // Alios Finance Cameroun
   { isin: "CM0000020404", maturityOn: "2026-08-16", periodsPerYear: 2, source: ALIOS }, // ALIOS 04 6,00 % BRUT 2023-2026 (échue)
@@ -59,7 +59,7 @@ export const BOND_TERMS: BondTerms[] = [
   { isin: "CM0000020628", maturityOn: "2030-08-07", periodsPerYear: 4, source: ALIOS }, // ALIOS-06 7 % BRUT 2025-2030
   // SNPC
   { isin: "CG0000020584", maturityOn: "2029-12-31", periodsPerYear: 1, source: SNPC }, // SNPC 6,5 % NET 2024-2029
-  // BDEAC — two-year grace then equal annual instalments; the nominal restant printed in the BOC confirms it
+  // BDEAC : two-year grace then equal annual instalments; the nominal restant printed in the BOC confirms it
   { isin: "CG0000020220", maturityOn: "2027-12-31", periodsPerYear: 1, source: BDEAC }, // BDEAC 5,45 % NET 2020-2027
   { isin: "CG0000020261", maturityOn: "2028-12-08", periodsPerYear: 1, source: BDEAC }, // BDEAC 5,6 % NET 2021-2028
   { isin: "CG0000020329", maturityOn: "2029-12-30", periodsPerYear: 1, source: BDEAC }, // BDEAC 6 % NET 2022-2029

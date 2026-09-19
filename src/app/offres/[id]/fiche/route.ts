@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { loadRegistry } from "@/lib/reference";
 import { renderOfferSheet } from "@/lib/documents/generate";
 
-/** Fiche PDF d'une ligne — publique, comme la page ; à joindre sur WhatsApp ou par e-mail. */
+/** Fiche PDF d'une ligne : publique, comme la page ; à joindre sur WhatsApp ou par e-mail. */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   await loadRegistry();
   const { id } = await ctx.params;

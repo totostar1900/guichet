@@ -128,7 +128,7 @@ export default async function ApprobationsPage() {
                     <br />
                     <small className="muted">
                       {a.decidedBy}
-                      {a.note ? ` — ${a.note}` : ""}
+                      {a.note ? ` : ${a.note}` : ""}
                     </small>
                   </td>
                 </tr>

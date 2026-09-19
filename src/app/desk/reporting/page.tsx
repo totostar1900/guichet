@@ -81,7 +81,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         <div className="panel-h">
           <h2>{t("Journal des ordres")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {t(journal.length > 1 ? "{n} ordres du {a} au {b} — horodatage de chaque étape" : "{n} ordre du {a} au {b} — horodatage de chaque étape", { n: journal.length, a: fmtDate(p.from), b: fmtDate(p.to) })}
+            {t(journal.length > 1 ? "{n} ordres du {a} au {b} : horodatage de chaque étape" : "{n} ordre du {a} au {b} : horodatage de chaque étape", { n: journal.length, a: fmtDate(p.from), b: fmtDate(p.to) })}
           </span>
           <a className="btn sm right" href={`/desk/reporting/export?type=ordres&${q}`}>
             {t("Exporter CSV")}

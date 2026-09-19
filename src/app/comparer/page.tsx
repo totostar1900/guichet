@@ -43,7 +43,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
     // A fund's return is two figures: the recent one stays on the « Rendement » row, the one since inception gets its own row with the fund's age.
     if (o.kind === "FONDS" && o.fund) {
       const f = o.fund;
-      const recent = f.perf1yPct != null ? `${sg(f.perf1yPct)} · ${t("sur 12 mois")}` : f.perfSinceInceptionPct != null && yearsBetween(f.inceptionDate, localIso(now)) > 0.5 ? `${sg((Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / yearsBetween(f.inceptionDate, localIso(now))) - 1) * 100)} · ${t("par an depuis l'origine")}` : `— · ${t("moins de six mois d'historique")}`;
+      const recent = f.perf1yPct != null ? `${sg(f.perf1yPct)} · ${t("sur 12 mois")}` : f.perfSinceInceptionPct != null && yearsBetween(f.inceptionDate, localIso(now)) > 0.5 ? `${sg((Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / yearsBetween(f.inceptionDate, localIso(now))) - 1) * 100)} · ${t("par an depuis l'origine")}` : `· ${t("moins de six mois d'historique")}`;
       const rows: [string, string][] = [
         ["Rendement", recent],
         ["Depuis l'origine", `${sg(f.perfSinceInceptionPct, 1)} · ${t("créé le {d} · {age}", { d: fmtDate(f.inceptionDate), age: t(tenorText(f.inceptionDate, localIso(now))) })}`],

@@ -5,7 +5,7 @@ import { answerInbound, botAvailable, type BotAnswer } from "@/lib/bot/reply";
 
 export type BotTest = { ok: true; answer: BotAnswer; contactName?: string; createdRef?: string } | { ok: false; error: string };
 
-/** Runs the robot on a message as if it came from `phone` — no WhatsApp send; intents are created only when `live` is checked. */
+/** Runs the robot on a message as if it came from `phone` : no WhatsApp send; intents are created only when `live` is checked. */
 export async function testBotAction(_p: BotTest | null, form: FormData): Promise<BotTest> {
   await requireDesk("/desk/robot");
   if (!botAvailable()) return { ok: false, error: "Robot indisponible : ANTHROPIC_API_KEY absente (ou BOT_ENABLED=0)." };

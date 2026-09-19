@@ -1,4 +1,4 @@
-/** Actualités — the reader's page, the desk's maintenance screen, the guide. */
+/** Actualités : the reader's page, the desk's maintenance screen, the guide. */
 export const EN_NEWS: Record<string, string> = {
   /* navigation */
   "Actualités": "News",
@@ -7,8 +7,8 @@ export const EN_NEWS: Record<string, string> = {
 
   /* reader's page */
   "Ce qui bouge sur le marché, en trois lignes": "What is moving on the market, in three lines",
-  "Chaque jour, le desk retient les publications qui comptent pour vos lignes — communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique — et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.":
-    "Every day the desk picks the publications that matter for your lines — Treasury notices, BVMAC bulletins, COSUMAF decisions, the business press — and says why. Articles stay with their publishers: the Guichet sends you to the original.",
+  "Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.":
+    "Every day the desk picks the publications that matter for your lines, Treasury notices, BVMAC bulletins, COSUMAF decisions, the business press, and says why. Articles stay with their publishers: the Guichet sends you to the original.",
   "Une ligne, un émetteur, un mot": "A line, an issuer, a word",
   "Tout": "All",
   "Trésors": "Treasuries",
@@ -35,12 +35,12 @@ export const EN_NEWS: Record<string, string> = {
   "Envoyé à tous les clients qui acceptent nos messages ; répondez STOP pour l'arrêter.": "Sent to every client who accepts our messages; reply STOP to end it.",
   "Réservé aux clients : ouvrez un compte ou connectez-vous.": "Clients only: open an account or sign in.",
   "Sources suivies": "Sources followed",
-  "BVMAC — bulletins et avis": "BVMAC — bulletins and notices",
-  "Trésors publics — Cameroun, RCA, Congo, Gabon, Tchad, Guinée équatoriale": "Public Treasuries — Cameroon, CAR, Congo, Gabon, Chad, Equatorial Guinea",
-  "COSUMAF — visas et décisions": "COSUMAF — approvals and decisions",
-  "BEAC — marché des titres publics": "BEAC — government securities market",
-  "Sociétés cotées — communiqués, AGO": "Listed companies — notices, AGMs",
-  "Sociétés de gestion — lettres et VL": "Fund managers — letters and NAVs",
+  "BVMAC : bulletins et avis": "BVMAC : bulletins and notices",
+  "Trésors publics : Cameroun, RCA, Congo, Gabon, Tchad, Guinée équatoriale": "Public Treasuries : Cameroon, CAR, Congo, Gabon, Chad, Equatorial Guinea",
+  "COSUMAF : visas et décisions": "COSUMAF : approvals and decisions",
+  "BEAC : marché des titres publics": "BEAC : government securities market",
+  "Sociétés cotées : communiqués, AGO": "Listed companies : notices, AGMs",
+  "Sociétés de gestion : lettres et VL": "Fund managers : letters and NAVs",
   "PDF": "PDF",
   "page": "page",
   "article": "article",
@@ -49,8 +49,8 @@ export const EN_NEWS: Record<string, string> = {
   "PDF · {n} p.": "PDF · {n} p.",
 
   /* desk */
-  "Des liens vers ce que d'autres publient — Trésors, BVMAC, COSUMAF, presse, sociétés cotées, sociétés de gestion — avec deux lignes du desk sur ce que cela change pour les lignes du Guichet. Jamais l'article lui-même : le lecteur est renvoyé à l'original.":
-    "Links to what others publish — Treasuries, BVMAC, COSUMAF, press, listed companies, fund managers — with two lines from the desk on what it changes for the Guichet's lines. Never the article itself: the reader is sent to the original.",
+  "Des liens vers ce que d'autres publient, Trésors, BVMAC, COSUMAF, presse, sociétés cotées, sociétés de gestion, avec deux lignes du desk sur ce que cela change pour les lignes du Guichet. Jamais l'article lui-même : le lecteur est renvoyé à l'original.":
+    "Links to what others publish, Treasuries, BVMAC, COSUMAF, press, listed companies, fund managers, with two lines from the desk on what it changes for the Guichet's lines. Never the article itself: the reader is sent to the original.",
   "Veille": "Watch",
   "flux": "feed(s)",
   "liens vérifiés chaque nuit": "links checked every night",
@@ -65,7 +65,7 @@ export const EN_NEWS: Record<string, string> = {
   "Date de publication": "Publication date",
   "Titre affiché": "Displayed title",
   "Titre lu sur la page": "Title read on the page",
-  "Pourquoi ça compte — deux lignes, pas plus": "Why it matters — two lines, no more",
+  "Pourquoi ça compte : deux lignes, pas plus": "Why it matters : two lines, no more",
   "Pas de recommandation, pas de chiffre non sourcé.": "No recommendation, no unsourced figure.",
   "Rubrique": "Section",
   "Visible jusqu'au": "Visible until",
@@ -161,7 +161,7 @@ export const EN_NEWS: Record<string, string> = {
   "Pourquoi ça compte": "Why it matters",
   "Sous chaque titre, deux lignes du desk : ce que la publication change pour vos lignes, sans recommandation. Les puces mènent à la ligne, à la société ou au terme concerné.": "Under each title, two lines from the desk: what the publication changes for your lines, with no recommendation. The chips lead to the line, company or term concerned.",
   "Par rubrique ou par mot": "By section or by word",
-  "Trésors, BVMAC, Sociétés, Fonds, Réglementation — ou une recherche : une ligne, un émetteur, un mot. Les publications restent visibles trente jours, puis dans « Semaines précédentes ».": "Treasuries, BVMAC, Companies, Funds, Regulation — or a search: a line, an issuer, a word. Publications stay visible for thirty days, then under « Previous weeks ».",
+  "Trésors, BVMAC, Sociétés, Fonds, Réglementation : ou une recherche : une ligne, un émetteur, un mot. Les publications restent visibles trente jours, puis dans « Semaines précédentes ».": "Treasuries, BVMAC, Companies, Funds, Regulation : or a search: a line, an issuer, a word. Publications stay visible for thirty days, then under « Previous weeks ».",
   "Le vendredi, un résumé": "On Friday, a summary",
   "Les liens de la semaine, par WhatsApp ou e-mail, aux clients qui acceptent nos messages. Rien d'autre, et STOP l'arrête.": "The week's links, by WhatsApp or e-mail, to clients who accept our messages. Nothing else, and STOP ends it.",
   "Ce qui s'est dit sur cette ligne": "What was said about this line",

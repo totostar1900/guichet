@@ -71,7 +71,7 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
       <div className={styles.head}>
         <div>
           <h1>{t("Actualités")}</h1>
-          <p className="muted">{t("Des liens vers ce que d'autres publient — Trésors, BVMAC, COSUMAF, presse, sociétés cotées, sociétés de gestion — avec deux lignes du desk sur ce que cela change pour les lignes du Guichet. Jamais l'article lui-même : le lecteur est renvoyé à l'original.")}</p>
+          <p className="muted">{t("Des liens vers ce que d'autres publient, Trésors, BVMAC, COSUMAF, presse, sociétés cotées, sociétés de gestion, avec deux lignes du desk sur ce que cela change pour les lignes du Guichet. Jamais l'article lui-même : le lecteur est renvoyé à l'original.")}</p>
         </div>
         <small className="muted">
           {t("Veille")} : {watchedFeeds().length} {t("flux")} · {t("liens vérifiés chaque nuit")}
@@ -107,7 +107,7 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
                   {fmtDateTime(n.createdAt)}
                 </small>
                 <span>
-                  <b>{n.domain}</b> — {n.title}
+                  <b>{n.domain}</b> : {n.title}
                   {n.note && <span className={styles.note}> « {n.note.slice(0, 120)} »</span>}
                 </span>
                 <small>{t(n.format ?? "page")}</small>

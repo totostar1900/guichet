@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { readSource } from "@/lib/intake/storage";
 
-/** Serves the original source file of an intake item — desk only. */
+/** Serves the original source file of an intake item : desk only. */
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const s = await getSession();
   if (!s || !isDesk(s)) return new NextResponse("Accès desk requis", { status: 403 });

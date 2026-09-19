@@ -34,7 +34,7 @@ export default async function MyPage() {
   const NEXT: Record<string, string> = {
     recue: "Un conseiller vous rappelle avant la clôture.",
     confirmee: "Signez le bulletin et effectuez le virement indiqué sur l'appel de fonds.",
-    transmise: "Ordre transmis au SVT — résultats attendus le jour de l'adjudication.",
+    transmise: "Ordre transmis au SVT : résultats attendus le jour de l'adjudication.",
     servie: "Servi. Règlement à la date indiquée, puis avis d'opéré.",
     non_servie: "Non servi. Fonds restitués sous deux jours ouvrés.",
     reglee: "Titres inscrits à votre nom. Prochain coupon selon l'échéancier de l'avis d'opéré.",
@@ -43,7 +43,7 @@ export default async function MyPage() {
   const NEXT_FUND: Record<string, string> = {
     recue: "Un conseiller vous rappelle pour confirmer.",
     confirmee: "Signez le bulletin de souscription et effectuez le virement indiqué sur l'appel de fonds.",
-    transmise: "Ordre transmis à la société de gestion — exécution à la prochaine valeur liquidative.",
+    transmise: "Ordre transmis à la société de gestion : exécution à la prochaine valeur liquidative.",
     servie: "Exécuté à la VL retenue. Inscription des parts au registre, puis avis d'opération.",
     non_servie: "Non exécuté. Fonds restitués sous deux jours ouvrés.",
     reglee: "Parts inscrites à votre nom au registre du dépositaire ; valeur suivant la VL publiée.",
@@ -67,7 +67,7 @@ export default async function MyPage() {
           <div className="eyebrow">{t("Mon espace")}</div>
           <h1 className="display">{s.name}</h1>
           <div className="muted" style={{ fontSize: ".85rem" }}>
-            {t(s.segment)} · {t("niveau")} {s.tier} {t(s.tier < 2 ? "— compte-titres à ouvrir pour les prises fermes" : "— compte-titres actif")}
+            {t(s.segment)} · {t("niveau")} {s.tier} {t(s.tier < 2 ? "compte-titres à ouvrir pour les prises fermes" : "compte-titres actif")}
           </div>
         </div>
         {s.tier < 2 && (
@@ -103,7 +103,7 @@ export default async function MyPage() {
           <h2>{t("Intentions en cours")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>{t("reçue → confirmée → transmise → servie → réglée")}</span>
         </div>
-        {open.length === 0 && <div className="empty">{t("Aucune intention en cours — choisissez une ligne dans le Guichet.")}</div>}
+        {open.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans le Guichet.")}</div>}
         {open.length > 0 && (
           <div className={styles.cards}>
             {open.map((i) => {

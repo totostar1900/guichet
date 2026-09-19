@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { amortCalc, paymentDates } from "./finance";
 import { localIso } from "./format";
 
-describe("amortCalc — BVMAC fiche schedules", () => {
+describe("amortCalc : BVMAC fiche schedules", () => {
   it("ECMR 6,25 % 2022-2029: three equal instalments on 27/05, interest on the outstanding", () => {
     // Fiche: 141 bn outstanding → 47 bn on 27/05/2027, 2028, 2029; interest 8 812,5 / 5 875 / 2 937,5 M.
     const r = amortCalc({ nominal: 6000, couponRate: 6.25, settleOn: "2026-09-18", maturityOn: "2029-05-27", periodsPerYear: 1 }, 6000 * 1000, 100);

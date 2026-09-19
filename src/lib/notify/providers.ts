@@ -35,7 +35,7 @@ export async function sendWhatsAppTemplate(to: string, template: string, params:
   return r.id;
 }
 
-/** Free-form text — only valid inside the 24 h service window opened by the client. */
+/** Free-form text : only valid inside the 24 h service window opened by the client. */
 export async function sendWhatsAppText(to: string, body: string): Promise<string> {
   const r = await graph("messages", { messaging_product: "whatsapp", to: to.replace(/[^\d]/g, ""), type: "text", text: { body, preview_url: true } });
   return r.id;

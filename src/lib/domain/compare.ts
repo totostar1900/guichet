@@ -50,7 +50,7 @@ export function compareLine(o: Offer, navs: { navDate: string; nav: number; bull
     const price = o.kind === "MARCHE" ? (o.ask ?? o.lastPrice) : (o.servedPricePct ?? o.pricePct);
     const note = o.kind === "BTA" ? (o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer") : dy.atPar ? (o.servedPricePct != null ? "servi au pair" : "si servi au pair") : o.servedPricePct != null ? `servi à ${fmtPrice(o.servedPricePct)}` : price != null ? `${o.kind === "MARCHE" ? "au cours de" : "si servi à"} ${fmtPrice(price)}` : "prix à fixer";
     line.ret = { pct: dy.pct, nature: "promesse", note };
-    // The calendar: what goes out, what comes back, on which date — for a reference nominal.
+    // The calendar: what goes out, what comes back, on which date : for a reference nominal.
     if (o.kind === "BTA" && o.precountRate != null && o.maturityOn) {
       const bta = { nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn };
       const r = btaCalc(bta, btaAmountForBonds(bta, Math.max(1, Math.round(REF_NOMINAL / o.nominal)), o.precountRate), o.precountRate);
@@ -75,7 +75,7 @@ export function compareLine(o: Offer, navs: { navDate: string; nav: number; bull
     line.flows = { title: `Pour ${n} titres cédés au Trésor`, outlay: 0, back: n * o.nominal, items: [{ date: o.settleOn, amount: n * o.nominal, kind: "cession", sure: true }] };
     return line;
   }
-  // Shares: an IPO or a listed share — a price today, a dividend expected, not promised.
+  // Shares: an IPO or a listed share : a price today, a dividend expected, not promised.
   const price = o.kind === "MARCHE" ? (o.ask ?? o.lastPrice) : o.pricePerShare;
   const div = o.dividendPerShare;
   line.ret = { pct: dy.pct, nature: dy.pct != null ? "cours" : "aucune", note: dy.pct != null && price ? `dividende ${div?.toLocaleString("fr-FR") ?? "—"} au cours de ${price.toLocaleString("fr-FR")}` : "pas de dividende connu" };

@@ -1,6 +1,6 @@
 /**
  * Shrinks a phone photo before it leaves the device: 1 600 px on the long side,
- * JPEG 0.85 — a 6 MB selfie becomes ~300 KB, uploads in seconds on 3G and
+ * JPEG 0.85 : a 6 MB selfie becomes ~300 KB, uploads in seconds on 3G and
  * still reads fine for identity checks. PDFs and small images pass untouched;
  * anything the browser cannot decode (some HEIC) is sent as is.
  */

@@ -603,7 +603,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         stops={[
           { target: "titres-marches", title: t("Deux marchés, deux interrupteurs"), text: t("Marché primaire : vous souscrivez auprès de l'émetteur pendant une fenêtre. Marché secondaire : vous achetez à un autre investisseur au cours du jour. Les deux sont affichés ; éteignez-en un pour ne voir que l'autre.") },
           { target: "titres-fonds", title: t("Les fonds ont leur page"), text: t("Les parts de fonds (OPCVM) se souscrivent à la prochaine valeur liquidative : elles ont leur propre tableau, avec leurs catégories et leur société de gestion.") },
-          { target: "titres-filtres", title: t("Filtrer, puis trier"), text: t("Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres. Le tri et les filtres restent dans l'adresse de la page — revenez d'une fiche, la liste est telle que vous l'aviez laissée.") },
+          { target: "titres-filtres", title: t("Filtrer, puis trier"), text: t("Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres. Le tri et les filtres restent dans l'adresse de la page : revenez d'une fiche, la liste est telle que vous l'aviez laissée.") },
           { target: "titres-vues", title: t("Tableau, liste ou cartes"), text: t("Le tableau compare les chiffres, la liste se lit d'un trait, les cartes conviennent au téléphone. Le rendement est toujours le premier chiffre.") },
         ]}
       />

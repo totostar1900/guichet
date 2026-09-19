@@ -16,8 +16,8 @@ export async function replyAction(_prev: { ok: boolean; error?: string } | null,
   if (!p.success) return { ok: false, error: "Écrivez un message." };
   const { to, channel, body, subject, name } = p.data;
   const r = repo();
-  const text = `${body.trim()}\n\n— ${desk.name}, Purpose Capital`;
-  const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject || "Purpose Capital — votre demande" : undefined, body: text, status: "queued" });
+  const text = `${body.trim()}\n\n${desk.name}, Purpose Capital`;
+  const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject || "Purpose Capital : votre demande" : undefined, body: text, status: "queued" });
   const configured = channel === "whatsapp" ? whatsappConfigured() : emailConfigured();
   if (!configured) {
     await r.updateNotification(row.id, { status: "skipped", error: `${channel === "whatsapp" ? "WhatsApp Cloud API" : "E-mail"} non configuré` });
@@ -25,7 +25,7 @@ export async function replyAction(_prev: { ok: boolean; error?: string } | null,
     return { ok: false, error: `Message préparé mais non envoyé : ${channel === "whatsapp" ? "WhatsApp" : "l'e-mail"} n'est pas encore configuré (clés à renseigner sur Vercel).` };
   }
   try {
-    const id = channel === "whatsapp" ? await sendWhatsAppText(to, text) : await sendEmail(to, subject || "Purpose Capital — votre demande", `<p>${text.replace(/\n/g, "<br>")}</p>`, text);
+    const id = channel === "whatsapp" ? await sendWhatsAppText(to, text) : await sendEmail(to, subject || "Purpose Capital : votre demande", `<p>${text.replace(/\n/g, "<br>")}</p>`, text);
     await r.updateNotification(row.id, { status: "sent", providerId: id, sentAt: new Date().toISOString() });
   } catch (e) {
     await r.updateNotification(row.id, { status: "failed", error: e instanceof Error ? e.message : "échec d'envoi" });

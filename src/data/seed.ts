@@ -1,7 +1,7 @@
 import type { Contact, IntakeItem, Intent, Offer } from "@/lib/domain/types";
 
 /**
- * Seed offers — the real September 2026 deal flow, from:
+ * Seed offers : the real September 2026 deal flow, from:
  *  - Communiqué n° 0762/MCFB (RCA, 9 sept. 2026): 3 OTA lines + 2 buybacks
  *  - Communiqués n° 000473 / 000474 MFBPP (Congo, 11 sept. 2026): OTA 6 ans, BTA 52 sem.
  *  - Teaser BHC 2e tranche (août 2026)
@@ -23,7 +23,7 @@ export const SEED_OFFERS: Offer[] = [
       "Ligne la plus courte des trois, donc celle où la décote pèse le plus sur le rendement annuel. Les intérêts courus depuis février (214 jours) sont avancés au règlement et récupérés au coupon du 14 févr. 2027.",
     documents: [
       { name: "Communiqué d'annonce n° 0762/MCFB", meta: "PDF · 2 p." },
-      { name: "Note Purpose Capital — trois lignes RCA", meta: "PDF · 4 p." },
+      { name: "Note Purpose Capital : trois lignes RCA", meta: "PDF · 4 p." },
       { name: "Teaser une page", meta: "PDF · 1 p." },
     ],
     opensAt: "2026-09-09T18:42:00",
@@ -54,7 +54,7 @@ export const SEED_OFFERS: Offer[] = [
     blurb: "Ligne nouvelle : aucun coupon couru, décaissement exactement au prix. Deux coupons pleins puis le capital.",
     documents: [
       { name: "Communiqué d'annonce n° 0762/MCFB", meta: "PDF · 2 p." },
-      { name: "Note Purpose Capital — trois lignes RCA", meta: "PDF · 4 p." },
+      { name: "Note Purpose Capital : trois lignes RCA", meta: "PDF · 4 p." },
     ],
     opensAt: "2026-09-09T18:42:00",
     deadlineAt: "2026-09-14T12:00:00",
@@ -84,7 +84,7 @@ export const SEED_OFFERS: Offer[] = [
     blurb: "La plus longue : trois coupons et le remboursement en août 2029. Coupon couru faible (35 jours).",
     documents: [
       { name: "Communiqué d'annonce n° 0762/MCFB", meta: "PDF · 2 p." },
-      { name: "Note Purpose Capital — trois lignes RCA", meta: "PDF · 4 p." },
+      { name: "Note Purpose Capital : trois lignes RCA", meta: "PDF · 4 p." },
     ],
     opensAt: "2026-09-09T18:42:00",
     deadlineAt: "2026-09-14T12:00:00",
@@ -172,7 +172,7 @@ export const SEED_OFFERS: Offer[] = [
     nominal: 10_000,
     couponRate: 6,
     pricePct: 100,
-    priceNote: "indicatif — prix à fixer par le desk",
+    priceNote: "indicatif : prix à fixer par le desk",
     commissionPct: 0,
     minTitles: 100,
     sizeLabel: "10 Mds FCFA",
@@ -198,7 +198,7 @@ export const SEED_OFFERS: Offer[] = [
     maturityOn: "2027-09-16",
     nominal: 1_000_000,
     precountRate: 5.5,
-    rateNote: "taux indicatif — fixé à l'adjudication",
+    rateNote: "taux indicatif : fixé à l'adjudication",
     commissionPct: 0,
     minTitles: 1,
     sizeLabel: "10 Mds FCFA",
@@ -211,13 +211,13 @@ export const SEED_OFFERS: Offer[] = [
     country: "Gabon",
     countryName: "Gabon · BVMAC",
     issuer: "BGFI Holding Corporation S.A.",
-    title: "BGFI Holding — augmentation de capital (2e tranche)",
+    title: "BGFI Holding : augmentation de capital (2e tranche)",
     isin: "GA0000010074",
     status: "published",
     blurb:
       "1 006 975 actions nouvelles à 80 000 FCFA, pour porter le flottant de 3,86 % à 10 %. Premier dividende 2 500 FCFA/action (3,12 % sur le prix d'introduction). Cours au 26 août : 90 000 FCFA.",
     documents: [
-      { name: "Teaser investisseurs — 2e tranche", meta: "PDF · 19 p." },
+      { name: "Teaser investisseurs : 2e tranche", meta: "PDF · 19 p." },
       { name: "Formulaire de manifestation d'intérêt (BGFI Bourse)", meta: "PDF · 1 p." },
     ],
     opensAt: "2026-09-15T08:00:00",
@@ -242,7 +242,7 @@ export const SEED_OFFERS: Offer[] = [
     country: "Gabon",
     countryName: "Gabon · BVMAC",
     issuer: "BGFI Holding Corporation S.A.",
-    title: "BGFI Holding (BHC) — action cotée",
+    title: "BGFI Holding (BHC) : action cotée",
     isin: "GA0000010074",
     status: "published",
     blurb: "Action BGFI Holding cotée à la BVMAC depuis le 26 août 2026. Premier dividende 2 500 FCFA. Ordres d'achat et de vente exécutés au marché, règlement T+3.",
@@ -271,7 +271,7 @@ export const SEED_OFFERS: Offer[] = [
     country: "Cameroun",
     countryName: "République du Cameroun",
     issuer: "Trésor public de la République du Cameroun",
-    title: "OTA Cameroun 6,25 % · 8 juil. 2031 — secondaire",
+    title: "OTA Cameroun 6,25 % · 8 juil. 2031 : secondaire",
     isin: "CM2Z00000xxx",
     status: "published",
     isExample: true,
@@ -303,7 +303,7 @@ export const SEED_OFFERS: Offer[] = [
     country: "Gabon",
     countryName: "Gabon · BVMAC",
     issuer: "BGFI Holding Corporation S.A.",
-    title: "BGFI Holding — introduction en bourse (1re tranche)",
+    title: "BGFI Holding : introduction en bourse (1re tranche)",
     isin: "GA0000010074",
     status: "live",
     blurb:
@@ -444,21 +444,21 @@ export const SEED_INTENTS: Intent[] = [
   },
 ];
 
-/** Intake queue — sources received this week, as the extractor would leave them. */
+/** Intake queue : sources received this week, as the extractor would leave them. */
 export const SEED_INTAKE: IntakeItem[] = [
   {
     id: "q-cg-ota",
     source: "mail",
-    title: "Communiqué OTA 6 ans Congo — n° 000473/MFBPP",
+    title: "Communiqué OTA 6 ans Congo : n° 000473/MFBPP",
     fromLabel: "dobm@tresor-congo.cg · ven. 11 sept. 16:20",
     receivedAt: "2026-09-11T16:20:00",
     state: "a_valider",
     offerId: "cg-ota-2028",
     extractedIn: 41,
-    rawText: `MINISTÈRE DES FINANCES, DU BUDGET ET DU PORTEFEUILLE PUBLIC — DIRECTION GÉNÉRALE DU TRÉSOR — DOBM
-N° 000473 / MFBPP/DGT/DGAT/DOBM/SOMD — Brazzaville, le 11 sept. 2026
+    rawText: `MINISTÈRE DES FINANCES, DU BUDGET ET DU PORTEFEUILLE PUBLIC, DIRECTION GÉNÉRALE DU TRÉSOR, DOBM
+N° 000473 / MFBPP/DGT/DGAT/DOBM/SOMD : Brazzaville, le 11 sept. 2026
 
-COMMUNIQUÉ D'ANNONCE — ÉMISSION DES OBLIGATIONS DU TRÉSOR
+COMMUNIQUÉ D'ANNONCE : ÉMISSION DES OBLIGATIONS DU TRÉSOR
 
 Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 2026 à l'émission par voie d'adjudication, des Obligations du Trésor assimilables par abondement dont les caractéristiques sont les suivantes :
 • Désignation : Obligations du trésor à 6 ans
@@ -477,7 +477,7 @@ Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 20
 
 Les personnes physiques ou morales souhaitant acquérir ces titres doivent s'adresser aux établissements de crédit suivants : Afriland First Bank, BGFI Bank, CCEI Bank, Commercial Bank of Cameroun, UBA, BSCA Bank Congo, Crédit du Congo, Ecobank, BOA, Orabank, SCB, UBC, Société Générale, Coris Bank, CCA Bank, BANGE…
 
-Pour le Ministre — Le Directeur Général du Trésor, Albert NGONDO`,
+Pour le Ministre : Le Directeur Général du Trésor, Albert NGONDO`,
     draft: {
       kind: "OTA",
       operation: "abondement",
@@ -504,20 +504,20 @@ Pour le Ministre — Le Directeur Général du Trésor, Albert NGONDO`,
   {
     id: "q-cg-bta",
     source: "mail",
-    title: "Communiqué BTA 52 semaines Congo — n° 000474/MFBPP",
+    title: "Communiqué BTA 52 semaines Congo : n° 000474/MFBPP",
     fromLabel: "dobm@tresor-congo.cg · ven. 11 sept. 16:21",
     receivedAt: "2026-09-11T16:21:00",
     state: "a_valider",
     offerId: "cg-bta-52-2027",
     extractedIn: 38,
-    rawText: `N° 000474 / MFBPP/DGT/DGAT/DOBM/SOMD — 11 sept. 2026
-COMMUNIQUÉ D'ANNONCE — ÉMISSION DES BONS DU TRÉSOR
+    rawText: `N° 000474 / MFBPP/DGT/DGAT/DOBM/SOMD : 11 sept. 2026
+COMMUNIQUÉ D'ANNONCE : ÉMISSION DES BONS DU TRÉSOR
 
 Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 2026 à l'émission par voie d'adjudication des bons du Trésor assimilables :
 • Désignation : Bons du trésor à 52 semaines
 • Code Émission : CG1300001472 BTA-52 16 SEPT 2027
 • Échéance : 16 septembre 2027
-• Remboursement : In fine — Titres dématérialisés
+• Remboursement : In fine : Titres dématérialisés
 • Volume (en millions de FCFA) : 10 000
 • Valeur nominale unitaire (en FCFA) : 1 000 000
 • Rendement : les intérêts sont précomptés sur la valeur nominale des Bons
@@ -548,12 +548,12 @@ Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 20
   {
     id: "q-ga-bta",
     source: "photo",
-    title: "Écran « BTA Gabon 26 sem. — adjudication 23 sept. »",
+    title: "Écran « BTA Gabon 26 sem. : adjudication 23 sept. »",
     fromLabel: "Desk BGFI Bourse (WhatsApp) · lun. 14 sept. 08:47",
     receivedAt: "2026-09-14T08:47:00",
     state: "bloque",
     extractedIn: 22,
-    rawText: "[Photo d'écran transférée sur WhatsApp — IMG_20260914_084711.jpg]\n\nADJUDICATION BTA — TRÉSOR GABON\nMercredi 23/09/2026\nBTA 26 semaines · éch. 25/03/2027\nVolume : 15 000 (M FCFA)\nNominal 1 000 000\nCode : GA13000…(flou)\nDépôt avant 12h00 — SVT",
+    rawText: "[Photo d'écran transférée sur WhatsApp, IMG_20260914_084711.jpg]\n\nADJUDICATION BTA, TRÉSOR GABON\nMercredi 23/09/2026\nBTA 26 semaines · éch. 25/03/2027\nVolume : 15 000 (M FCFA)\nNominal 1 000 000\nCode : GA13000…(flou)\nDépôt avant 12h00, SVT",
     draft: {
       kind: "BTA",
       operation: "nouvelle_ligne",
@@ -586,7 +586,7 @@ Le Trésor Public de la République du Congo procèdera le Mardi 15 septembre 20
   {
     id: "q-rca",
     source: "pdf",
-    title: "Communiqué OTA RCA — n° 0762/MCFB (3 lignes + 2 rachats)",
+    title: "Communiqué OTA RCA : n° 0762/MCFB (3 lignes + 2 rachats)",
     fromLabel: "snreetp@minfb-rca.org · mer. 9 sept. 15:10",
     receivedAt: "2026-09-09T15:10:00",
     state: "publie",

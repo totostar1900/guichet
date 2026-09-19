@@ -56,7 +56,7 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
       ) : (
         <input name={k} type={type} defaultValue={value} step={type === "number" ? "any" : undefined} />
       )}
-      <i className={`${styles.conf} ${styles[`conf_${conf}`]}`} title={tr(conf === "sure" ? "Lu dans la source" : conf === "check" ? "Déduit ou ambigu — à vérifier" : "Absent de la source")} />
+      <i className={`${styles.conf} ${styles[`conf_${conf}`]}`} title={tr(conf === "sure" ? "Lu dans la source" : conf === "check" ? "Déduit ou ambigu : à vérifier" : "Absent de la source")} />
     </label>
   );
 }
@@ -162,7 +162,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             )}
           </div>
           <div>
-            <h3>{tr("Champs extraits — corriger si besoin")}</h3>
+            <h3>{tr("Champs extraits : corriger si besoin")}</h3>
             <div className={styles.fields}>
               <label className={`${styles.fld} ${d.kind ? "" : styles.missing}`}>
                 <span>{tr("Type de produit")}</span>
@@ -216,7 +216,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         </div>
 
         <div className={styles.decision}>
-          <h3>{tr("Décision du desk — les seuls champs que nous fixons")}</h3>
+          <h3>{tr("Décision du desk : les seuls champs que nous fixons")}</h3>
           <div className={styles.decGrid}>
             {kind === "BTA" ? (
               <label className="field">
@@ -276,13 +276,13 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             <span className="eyebrow">{tr(inReview ? "En revue" : "Dernière note")}</span> {item.notes}
           </div>
         )}
-        {revState?.ok && <div className={styles.okMsg}>{tr("Relecture demandée — le brouillon passe « en revue ».")}</div>}
+        {revState?.ok && <div className={styles.okMsg}>{tr("Relecture demandée : le brouillon passe « en revue ».")}</div>}
         {backState?.ok && <div className={styles.okMsg}>{tr("Renvoyé en correction.")}</div>}
         {saveState?.ok && <div className={styles.okMsg}>{tr("Brouillon enregistré.")}</div>}
-        {pubState?.ok && pubState.pending && <div className={styles.okMsg}>{tr(`Proposition transmise à un responsable — ${pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).`)}</div>}
+        {pubState?.ok && pubState.pending && <div className={styles.okMsg}>{tr(`Proposition transmise à un responsable : ${pubState.pending}. La fiche sera publiée à son approbation (desk › Approbations).`)}</div>}
         {pubState?.ok && !pubState.pending && (
           <div className={styles.okMsg}>
-            Publié — la fiche est en ligne.{" "}
+            Publié : la fiche est en ligne.{" "}
             <Link href={`/desk/a-valider?item=${item.id}`} style={{ color: "inherit" }}>
               {tr("Recharger")}
             </Link>

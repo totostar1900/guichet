@@ -1,5 +1,5 @@
 /**
- * « Comprendre le marché CEMAC » — the second course of the Guide: five
+ * « Comprendre le marché CEMAC » : the second course of the Guide: five
  * folding sections, twenty two-minute lessons. The lessons themselves live
  * with the others in lessons.ts (desk-editable); a lesson belongs to a section
  * through its `section` key. Sections are code: their shapes and colours are

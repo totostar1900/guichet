@@ -9,7 +9,7 @@ import { emailConfigured, sendEmail, sendWhatsAppDocument, sendWhatsAppTemplate,
 /**
  * Records every outbound message, then sends it when the channel is configured.
  * Without credentials the row is kept as "skipped" so the desk sees exactly what
- * would have gone out — and the audit trail exists from day one.
+ * would have gone out : and the audit trail exists from day one.
  */
 
 interface Target {
@@ -87,7 +87,7 @@ function matchesSegment(c: Contact, segment: string): boolean {
 }
 
 /**
- * Acknowledgement to the client who just raised a hand — on WhatsApp and by
+ * Acknowledgement to the client who just raised a hand : on WhatsApp and by
  * e-mail whenever both are known, so the client sees at once that both work.
  */
 export async function notifyIntentReceived(i: Intent, o: Offer, estimate?: string): Promise<Notification[]> {

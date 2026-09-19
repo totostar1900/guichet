@@ -1,6 +1,6 @@
 import type { IntakeItem, Offer, OfferDraft } from "@/lib/domain/types";
 
-/** What the desk decides at publication — the only human inputs on an offer. */
+/** What the desk decides at publication : the only human inputs on an offer. */
 export interface DeskDecision {
   pricePct?: number; // OTA / APE / RACHAT
   precountRate?: number; // BTA

@@ -35,8 +35,8 @@ export function BotBench({ contacts }: { contacts: { name: string; phone: string
               </div>
               <div style={{ whiteSpace: "pre-line" }}>{state.answer.reply}</div>
               <div className="muted" style={{ marginTop: 8, fontSize: ".78rem" }}>
-                {state.answer.handoff ? `Rappel conseiller demandé — ${state.answer.handoffReason ?? ""}` : "Pas de rappel nécessaire"}
-                {state.answer.intent ? ` · intention détectée : ${state.answer.intent.type} sur ${state.answer.intent.offerId}${state.answer.intent.amount ? ` · ${state.answer.intent.amount.toLocaleString("fr-FR")} FCFA` : ""}${state.createdRef ? ` · créée (${state.createdRef})` : " (non créée — essai)"}` : ""}
+                {state.answer.handoff ? `Rappel conseiller demandé : ${state.answer.handoffReason ?? ""}` : "Pas de rappel nécessaire"}
+                {state.answer.intent ? ` · intention détectée : ${state.answer.intent.type} sur ${state.answer.intent.offerId}${state.answer.intent.amount ? ` · ${state.answer.intent.amount.toLocaleString("fr-FR")} FCFA` : ""}${state.createdRef ? ` · créée (${state.createdRef})` : " (non créée : essai)"}` : ""}
               </div>
             </div>
           ) : (

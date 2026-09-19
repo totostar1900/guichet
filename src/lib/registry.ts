@@ -13,7 +13,7 @@ import { LESSONS, type Lesson } from "@/data/lessons";
  */
 export type MarketSegment = "primaire" | "secondaire" | "fonds";
 
-/** The cash-flow engines — the only thing a new product cannot configure. */
+/** The cash-flow engines : the only thing a new product cannot configure. */
 export type Engine = "bullet_bond" | "amort_bond" | "discount_bill" | "equity" | "fund_unit" | "buyback" | "info";
 export const ENGINE_LABEL: Record<Engine, string> = {
   bullet_bond: "Obligation in fine (coupon annuel, capital à l'échéance)",
@@ -33,7 +33,7 @@ export interface ProductField {
 
 export interface ProductType {
   key: string; // "OTA", "ACTION_COTEE", or a desk-created key
-  label: string; // in filters: "OTA — Obligations du Trésor"
+  label: string; // in filters: "OTA : Obligations du Trésor"
   short: string; // badge: "OTA"
   segment: MarketSegment;
   engine: Engine;
@@ -83,8 +83,8 @@ const CHECK_BOND = ["Communiqué ou note d'information joint", "Coupon, nominal 
 const t = (p: Omit<ProductType, "enabled" | "builtin" | "fields"> & Partial<Pick<ProductType, "fields">>): ProductType => ({ enabled: true, builtin: true, fields: [], ...p });
 
 export const BUILTIN_TYPES: ProductType[] = [
-  t({ key: "OTA", label: "OTA — Obligations du Trésor", short: "OTA", segment: "primaire", engine: "bullet_bond", color: "#0b2545", colorSoft: "#e3e9f3", cautions: SOV, checklist: CHECK_BOND, intentsOpen: ["ferme", "appetit", "info", "rappel"], sort: 10 }),
-  t({ key: "BTA", label: "BTA — Bons du Trésor", short: "BTA", segment: "primaire", engine: "discount_bill", color: "#0f6e6a", colorSoft: "#d8efec", cautions: SOV, checklist: ["Communiqué joint", "Taux précompté et échéance saisis", "Date et heure limite vérifiées"], intentsOpen: ["ferme", "appetit", "info", "rappel"], sort: 20 }),
+  t({ key: "OTA", label: "OTA : Obligations du Trésor", short: "OTA", segment: "primaire", engine: "bullet_bond", color: "#0b2545", colorSoft: "#e3e9f3", cautions: SOV, checklist: CHECK_BOND, intentsOpen: ["ferme", "appetit", "info", "rappel"], sort: 10 }),
+  t({ key: "BTA", label: "BTA : Bons du Trésor", short: "BTA", segment: "primaire", engine: "discount_bill", color: "#0f6e6a", colorSoft: "#d8efec", cautions: SOV, checklist: ["Communiqué joint", "Taux précompté et échéance saisis", "Date et heure limite vérifiées"], intentsOpen: ["ferme", "appetit", "info", "rappel"], sort: 20 }),
   t({ key: "APE", label: "Emprunts obligataires (APE)", short: "APE", segment: "primaire", engine: "bullet_bond", color: "#6d3b8f", colorSoft: "#ece2f4", cautions: [["Crédit.", "L'émetteur est une entreprise ou une institution : coupons et capital dépendent de sa solidité, décrite dans la note d'information visée par la COSUMAF."], SOV[1], SOV[2]], checklist: [...CHECK_BOND, "Visa COSUMAF de la note d'information vérifié"], intentsOpen: ["ferme", "appetit", "info", "rappel"], sort: 30 }),
   t({ key: "IPO", label: "Introductions en bourse", short: "IPO", segment: "primaire", engine: "equity", color: "#b0426a", colorSoft: "#f7e1ea", cautions: [["Volatilité et liquidité.", "Le cours dépend de l'offre et de la demande sur un compartiment actions encore étroit ; la BVMAC borne les variations quotidiennes."], ["Perte en capital.", "Comme tout actionnaire, l'investisseur peut perdre tout ou partie de sa mise."], ["Dividende non garanti.", "Le dividende dépend des résultats et de la décision de l'assemblée."]], checklist: ["Prospectus visé joint", "Prix de souscription et minimum saisis", "Calendrier (ouverture, clôture, cotation) vérifié"], intentsOpen: ["ferme", "info"], sort: 40 }),
   t({ key: "RACHAT", label: "Rachats par le Trésor", short: "Rachat", segment: "primaire", engine: "buyback", color: "#b84a1e", colorSoft: "#f8e3da", cautions: [["Prix.", "Le rachat se fait au pair ; le coupon couru est réglé par le Trésor."], ["Décision.", "Céder maintenant, c'est renoncer aux coupons restants : à comparer avec le rendement d'un réemploi."], ["Volume.", "Le Trésor peut retenir une partie seulement des titres présentés."]], checklist: ["Communiqué joint", "Échéance initiale et volume saisis", "Date limite vérifiée"], intentsOpen: ["cession", "info"], sort: 50 }),

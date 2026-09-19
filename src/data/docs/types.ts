@@ -36,7 +36,7 @@ export interface DocChapter {
 
 /**
  * Who may open the page. `desk` never leaves /desk (role + second factor).
- * `public` is rendered to clients on /info/aide — allowed only for a page
+ * `public` is rendered to clients on /info/aide : allowed only for a page
  * written for clients alone, and a test refuses any internal detail in it.
  */
 export type Visibility = "desk" | "public";

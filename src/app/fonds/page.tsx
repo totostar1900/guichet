@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Fonds — OPCVM de la CEMAC" };
+export const metadata = { title: "Fonds : OPCVM de la CEMAC" };
 
 export default async function FondsPage() {
   const t = await getT();

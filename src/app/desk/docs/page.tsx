@@ -98,7 +98,7 @@ export default async function DocsIndex({ searchParams }: { searchParams: Promis
           ))}
           <Link href="/desk/docs/notes" className={styles.card} data-coach="docs-notes">
             <h2>{t("Notes de travail de l'assistant")}</h2>
-            <p>{t("État du projet, décisions, conventions, migrations, ce qui reste à faire — en anglais, copiées du dossier docs/notes du dépôt.")}</p>
+            <p>{t("État du projet, décisions, conventions, migrations, ce qui reste à faire : en anglais, copiées du dossier docs/notes du dépôt.")}</p>
             <span className={styles.foot}>
               <span>
                 <span className={`${styles.chip} ${styles.tech}`} style={{ marginRight: 4 }}>{AUDIENCE_LABEL.tech[lang]}</span>

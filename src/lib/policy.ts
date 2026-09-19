@@ -15,7 +15,7 @@ export interface ApprovalPolicy {
   pricePct: { min: number; max: number }; // OTA / APE price window, % of nominal
   precountRate: { min: number; max: number }; // BTA, %
   quoteMovePct: number; // listed lines: a desk quote moving more than this vs the last price needs approval
-  fundEntryFeeMax: number; // % — a fund published with higher fees needs approval
+  fundEntryFeeMax: number; // % : a fund published with higher fees needs approval
 }
 
 export const POLICY_DEFAULT: ApprovalPolicy = { enabled: true, pricePct: { min: 90, max: 100.5 }, precountRate: { min: 2, max: 9 }, quoteMovePct: 10, fundEntryFeeMax: 3 };
@@ -31,7 +31,7 @@ export const loadPolicy = cache(async (): Promise<ApprovalPolicy> => {
   }
 });
 
-/** Why this offer, as about to be written, needs a responsable — or null when it is inside the window. */
+/** Why this offer, as about to be written, needs a responsable : or null when it is inside the window. */
 export function approvalReason(next: Offer, prev: Offer | undefined, p: ApprovalPolicy): string | null {
   if (!p.enabled) return null;
   const out = (n: number, w: { min: number; max: number }) => n < w.min || n > w.max;

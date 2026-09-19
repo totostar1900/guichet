@@ -142,7 +142,7 @@ export const COMPANIES: Company[] = [
       { year: 2022, standard: "OHADA", totalAssets: 30_151_841_941, equity: 21_373_900_522, revenue: 23_224_733_981, revenueLabel: "Chiffre d'affaires", valueAdded: 10_961_193_659, netIncome: 2_747_697_994, dividendPerShare: 2_210, source: "Fiche signalétique SAFACAM 2026 (BVMAC)" },
       { year: 2023, standard: "OHADA", totalAssets: 31_708_610_667, equity: 19_241_624_597, revenue: 23_577_227_331, revenueLabel: "Chiffre d'affaires", valueAdded: 9_084_692_605, netIncome: 612_544_286, dividendPerShare: 490, source: "Fiche signalétique SAFACAM 2026 (BVMAC)" },
       { year: 2024, standard: "OHADA", totalAssets: 32_139_531_395, equity: 21_414_462_333, revenue: 29_510_124_866, revenueLabel: "Chiffre d'affaires", valueAdded: 12_325_346_505, netIncome: 2_781_417_736, dividendPerShare: 2_000, source: "Fiche signalétique SAFACAM 2026 (BVMAC)" },
-      { year: 2025, standard: "OHADA", totalAssets: 33_435_932_621, equity: 22_149_885_911, revenue: 28_351_042_176, revenueLabel: "Chiffre d'affaires", valueAdded: 12_984_837_707, netIncome: 3_219_423_726, dividendPerShare: 2_200, source: "Fiche signalétique SAFACAM 2026 (BVMAC) — comptes 2025 certifiés" },
+      { year: 2025, standard: "OHADA", totalAssets: 33_435_932_621, equity: 22_149_885_911, revenue: 28_351_042_176, revenueLabel: "Chiffre d'affaires", valueAdded: 12_984_837_707, netIncome: 3_219_423_726, dividendPerShare: 2_200, source: "Fiche signalétique SAFACAM 2026 (BVMAC) : comptes 2025 certifiés" },
     ],
     documents: [
       { kind: "fiche", year: 2026, title: "Fiche signalétique 2026", url: `${U}/2026/07/FICHE-SIGNALETIQUE-SAFACAM-2026-Rev_page-0001.jpg` },
@@ -195,7 +195,7 @@ export const COMPANIES: Company[] = [
       { year: 2022, standard: "OHADA", totalAssets: 95_255_878_836, equity: 66_264_320_498, revenue: 74_025_856_390, revenueLabel: "Chiffre d'affaires", valueAdded: 33_528_441_628, netIncome: 10_671_602_107, dividendPerShare: 2_250, source: "Fiche signalétique SOCAPALM 2026 (BVMAC)" },
       { year: 2023, standard: "OHADA", totalAssets: 92_057_745_683, equity: 67_900_464_710, revenue: 84_620_196_144, revenueLabel: "Chiffre d'affaires", valueAdded: 34_100_468_185, netIncome: 11_934_489_201, dividendPerShare: 2_600, source: "Fiche signalétique SOCAPALM 2026 (BVMAC)" },
       { year: 2024, standard: "OHADA", totalAssets: 92_372_347_176, equity: 66_410_248_844, revenue: 101_249_387_422, revenueLabel: "Chiffre d'affaires", valueAdded: 37_240_872_283, netIncome: 10_757_514_108, dividendPerShare: 2_500, source: "Fiche signalétique SOCAPALM 2026 (BVMAC)" },
-      { year: 2025, standard: "OHADA", totalAssets: 91_530_797_583, equity: 65_606_093_801, revenue: 91_291_925_835, revenueLabel: "Chiffre d'affaires", valueAdded: 35_599_860_481, netIncome: 10_638_137_196, dividendPerShare: 2_325, source: "Fiche signalétique SOCAPALM 2026 (BVMAC) — comptes 2025 certifiés" },
+      { year: 2025, standard: "OHADA", totalAssets: 91_530_797_583, equity: 65_606_093_801, revenue: 91_291_925_835, revenueLabel: "Chiffre d'affaires", valueAdded: 35_599_860_481, netIncome: 10_638_137_196, dividendPerShare: 2_325, source: "Fiche signalétique SOCAPALM 2026 (BVMAC) : comptes 2025 certifiés" },
     ],
     documents: [
       { kind: "fiche", year: 2026, title: "Fiche signalétique 2026", url: `${U}/2026/07/2026-07-20-Fiche-signaletique-SCP-BVMAC.png` },
@@ -246,7 +246,7 @@ export const COMPANIES: Company[] = [
       { year: 2021, standard: "OHADA", totalAssets: 35_293_587_227, equity: 12_251_765_946, revenue: 5_271_190_748, revenueLabel: "Produit net bancaire", netIncome: 1_112_842_792, dividendPerShare: null, source: "Fiche signalétique La Régionale Bank 2025 (BVMAC)" },
       { year: 2022, standard: "OHADA", totalAssets: 40_005_863_069, equity: 13_472_883_815, revenue: 5_943_912_015, revenueLabel: "Produit net bancaire", netIncome: 1_221_117_869, dividendPerShare: 1_004.5, source: "Fiche signalétique La Régionale Bank 2025 (BVMAC)" },
       { year: 2023, standard: "OHADA", totalAssets: 45_682_771_845, equity: 13_292_712_110, revenue: 5_915_919_627, revenueLabel: "Produit net bancaire", netIncome: 814_020_480, dividendPerShare: 993.334, source: "Fiche signalétique La Régionale Bank 2025 (BVMAC)" },
-      { year: 2024, standard: "OHADA", totalAssets: 64_170_053_150, equity: 12_455_210_665, revenue: 6_024_301_610, revenueLabel: "Produit net bancaire", netIncome: 162_498_555, dividendPerShare: null, source: "Fiche signalétique La Régionale Bank 2025 (BVMAC) — bénéfice réintégré" },
+      { year: 2024, standard: "OHADA", totalAssets: 64_170_053_150, equity: 12_455_210_665, revenue: 6_024_301_610, revenueLabel: "Produit net bancaire", netIncome: 162_498_555, dividendPerShare: null, source: "Fiche signalétique La Régionale Bank 2025 (BVMAC) : bénéfice réintégré" },
     ],
     documents: [
       { kind: "fiche", year: 2025, title: "Fiche signalétique 2025", url: `${U}/2025/07/FICHE-SIGNALETIQUE-LA-REGIONALE-BANK-2025.pdf` },
@@ -379,10 +379,10 @@ export const COMPANIES: Company[] = [
     contact: "eqc@bgfi.com",
     fiscalYearEnd: "31/12",
     figures: [
-      { year: 2022, standard: "IFRS", totalAssets: 332_601_000_000, equity: 212_781_000_000, revenue: 18_485_000_000, revenueLabel: "Chiffre d'affaires", netIncome: 5_602_000_000, dividendPerShare: 15_850, source: "Fiche émetteur BHC 2026 (BVMAC) — comptes sociaux de la holding, en millions" },
+      { year: 2022, standard: "IFRS", totalAssets: 332_601_000_000, equity: 212_781_000_000, revenue: 18_485_000_000, revenueLabel: "Chiffre d'affaires", netIncome: 5_602_000_000, dividendPerShare: 15_850, source: "Fiche émetteur BHC 2026 (BVMAC) : comptes sociaux de la holding, en millions" },
       { year: 2023, standard: "IFRS", totalAssets: 340_696_000_000, equity: 222_728_000_000, revenue: 21_427_000_000, revenueLabel: "Chiffre d'affaires", netIncome: 34_888_000_000, dividendPerShare: 11_000, source: "Fiche émetteur BHC 2026 (BVMAC)" },
       { year: 2024, standard: "IFRS", totalAssets: 354_518_000_000, equity: 226_117_000_000, revenue: 23_540_000_000, revenueLabel: "Chiffre d'affaires", netIncome: 20_698_000_000, dividendPerShare: 12_500, source: "Fiche émetteur BHC 2026 (BVMAC)" },
-      { year: 2025, standard: "IFRS", totalAssets: 371_801_000_000, equity: 265_937_000_000, revenue: 30_334_000_000, revenueLabel: "Chiffre d'affaires", netIncome: 59_489_000_000, dividendPerShare: 2_500, source: "Fiche émetteur BHC 2026 (BVMAC) — dividende 2025 après division du nominal" },
+      { year: 2025, standard: "IFRS", totalAssets: 371_801_000_000, equity: 265_937_000_000, revenue: 30_334_000_000, revenueLabel: "Chiffre d'affaires", netIncome: 59_489_000_000, dividendPerShare: 2_500, source: "Fiche émetteur BHC 2026 (BVMAC) : dividende 2025 après division du nominal" },
     ],
     documents: [{ kind: "fiche", year: 2026, title: "Fiche émetteur 2026", url: `${U}/2026/07/FICHE-EMETTEUR-BHC-Actualise_page-0001.jpg` }],
     reading: [

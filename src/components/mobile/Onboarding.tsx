@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import styles from "./Onboarding.module.css";
 
 /**
- * « Premiers pas » — six screens, one idea each, shown once per device on the
+ * « Premiers pas » : six screens, one idea each, shown once per device on the
  * first visit (never on the desk or the login page), replayable from the Guide.
  * SVG + CSS only: nothing to host, nothing to load.
  */

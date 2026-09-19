@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "./docs.module.css";
 
 /**
- * « Sur cette page » — the open page's chapters, the one in view marked as
+ * « Sur cette page » : the open page's chapters, the one in view marked as
  * you scroll; the same list drives the chapter links of the left navigation.
  */
 export function Outline({ chapters, label, meta }: { chapters: { id: string; title: string }[]; label: string; meta: React.ReactNode }) {

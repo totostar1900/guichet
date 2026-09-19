@@ -16,7 +16,7 @@ import { positionsFrom } from "@/lib/positions";
 
 /**
  * The answering robot behind the WhatsApp number. It knows the published
- * offers, the glossary, and the writer's own intents/positions — and it never
+ * offers, the glossary, and the writer's own intents/positions : and it never
  * advises, never promises an allocation, never speaks about other clients.
  * Anything beyond that is handed to a named advisor.
  */
@@ -78,7 +78,7 @@ export async function answerInbound(from: string, text: string, opts: { dryRun?:
   const system = `Tu es l'assistant WhatsApp de ${COMPANY.name} (${COMPANY.licence}), société de bourse en zone CEMAC. Tu réponds en français, brièvement, sans markdown.
 CE QUE TU FAIS : expliquer les termes (glossaire ci-dessous), donner les caractéristiques exactes des offres publiées (chiffres fournis, ne jamais en inventer), chiffrer un montant à partir des références fournies (règle de trois sur le décaissement pour 10 000 000), rappeler les dates, dire où en est une intention ou un document du client, indiquer les prochaines étapes, enregistrer un appétit, une demande d'information ou de rappel.
 CE QUE TU NE FAIS JAMAIS : recommander une ligne plutôt qu'une autre ou dire si « c'est un bon placement » (réponds que le desk ne donne pas de conseil personnalisé par ce canal et propose un rappel), promettre une allocation ou un rendement (toujours « si servi au prix publié », « brut, avant fiscalité »), parler d'autres clients, inventer un prix ou une date, traiter une réclamation.
-PRISE FERME OU CESSION : tu enregistres un appétit avec le montant, tu expliques qu'un conseiller confirme et envoie le bulletin, et tu demandes un rappel (handoff=true). Si le client n'a pas de compte-titres ouvert (niveau < 2), rappelle qu'il faut l'ouvrir (lien) — l'intention est gardée.
+PRISE FERME OU CESSION : tu enregistres un appétit avec le montant, tu expliques qu'un conseiller confirme et envoie le bulletin, et tu demandes un rappel (handoff=true). Si le client n'a pas de compte-titres ouvert (niveau < 2), rappelle qu'il faut l'ouvrir (lien) : l'intention est gardée.
 Termine par une phrase concrète. Mentionne « ${COMPANY.phone} » si le client veut parler à quelqu'un.
 
 GLOSSAIRE
@@ -89,7 +89,7 @@ ${open.map(offerFacts).join("\n") || "- aucune"}
 
 CLIENT
 ${contact ? `${contact.name} · ${contact.segment} · niveau ${contact.id.startsWith("dev-") || positions.length ? 2 : 1}` : "inconnu (numéro non enregistré) : invite-le à se présenter et à ouvrir un compte ; ne donne aucune information personnelle"}
-${mine.length ? `Ses intentions : ${mine.map((i) => `${i.ref} ${INTENT_LABEL[i.type]} sur ${byId.get(i.offerId)?.title ?? i.offerId}${i.amount ? ` ${fmt(i.amount)}` : ""} — ${INTENT_STATE_LABEL[i.state]}`).join(" ; ")}` : ""}
+${mine.length ? `Ses intentions : ${mine.map((i) => `${i.ref} ${INTENT_LABEL[i.type]} sur ${byId.get(i.offerId)?.title ?? i.offerId}${i.amount ? ` ${fmt(i.amount)}` : ""} : ${INTENT_STATE_LABEL[i.state]}`).join(" ; ")}` : ""}
 ${positions.length ? `Ses positions : ${positions.map((p) => `${fmt(p.units)} ${p.unitWord} ${p.offer.title}${p.nextFlow ? `, prochain flux ${fmtDate(p.nextFlow.date)} ${fmt(p.nextFlow.amount)}` : ""}`).join(" ; ")}` : ""}`;
 
   const client = new Anthropic();
@@ -114,7 +114,7 @@ ${positions.length ? `Ses positions : ${positions.map((p) => `${fmt(p.units)} ${
     if (answer.intent.amount) answer.reply += `\n(Estimation : ${estimate(offer, answer.intent.amount).text})`;
   }
   if (!opts.dryRun && answer.handoff) {
-    await r.logEvent({ kind: "intent", html: `<b>Rappel demandé</b> — ${contact ? contact.name : phone} : ${answer.handoffReason ?? "question hors robot"} — « ${text.slice(0, 140).replace(/</g, "&lt;")} »` });
+    await r.logEvent({ kind: "intent", html: `<b>Rappel demandé</b>, ${contact ? contact.name : phone} : ${answer.handoffReason ?? "question hors robot"}, « ${text.slice(0, 140).replace(/</g, "&lt;")} »` });
   }
   return { answer, contact, createdRef };
 }

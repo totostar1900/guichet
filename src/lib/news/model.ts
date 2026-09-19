@@ -1,5 +1,5 @@
 /**
- * Actualités — links to what others publish (Treasuries, the BVMAC, the
+ * Actualités : links to what others publish (Treasuries, the BVMAC, the
  * COSUMAF, the press, listed companies, fund managers), with two lines from
  * the desk on why it matters. Never the article itself: the reader is sent to
  * the original. Its own table `news` (migration 0025): only published items are
@@ -33,10 +33,10 @@ export interface NewsItem {
   id: string;
   url: string;
   domain: string;
-  /** Title as the reader sees it — rewritten for the client, not the page's own. */
+  /** Title as the reader sees it : rewritten for the client, not the page's own. */
   title: string;
   titleEn?: string;
-  /** « Pourquoi ça compte » — two lines, no recommendation. */
+  /** « Pourquoi ça compte » : two lines, no recommendation. */
   why: string;
   whyEn?: string;
   /** Source label: BVMAC, COSUMAF, DGTCP · RCA, Presse… */
@@ -119,7 +119,7 @@ export function urlsIn(text: string): string[] {
   return [...new Set(out.map((u) => u.replace(/[.,;:!?»]+$/, "")))];
 }
 
-/** Minimal RSS / Atom reader — enough for the sites we follow, no dependency. */
+/** Minimal RSS / Atom reader : enough for the sites we follow, no dependency. */
 export function parseFeed(xml: string): { title: string; url: string; publishedAt?: string; summary?: string }[] {
   const items: { title: string; url: string; publishedAt?: string; summary?: string }[] = [];
   const blocks = xml.match(/<(item|entry)\b[\s\S]*?<\/\1>/gi) ?? [];

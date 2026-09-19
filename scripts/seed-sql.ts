@@ -27,7 +27,7 @@ const intentRows = SEED_INTENTS.map((i) =>
   `(${[q(i.ref), q(i.offerId), q(i.offerVersion), q(i.clientName), q(i.clientSegment), q(i.type), q(i.amount), q(i.channel), q(i.message), q(i.state), q(i.createdAt), q(i.updatedAt)].join(", ")})`,
 );
 
-const sql = `-- Généré par scripts/seed-sql.ts — ne pas éditer à la main.
+const sql = `-- Généré par scripts/seed-sql.ts : ne pas éditer à la main.
 insert into offers (id, kind, operation, country, country_name, issuer, title, isin, status, is_example, blurb, documents,
   opens_at, deadline_at, results_at, settle_on, maturity_on, last_coupon_on,
   nominal, coupon_rate, precount_rate, price_pct, price_note, rate_note, served_price_pct, commission_pct, min_titles, size_label,

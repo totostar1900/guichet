@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { contactAction, type ContactResult } from "./actions";
 import styles from "./page.module.css";
 
-/** Phone and e-mail the desk uses for this client — both required, kept on the profile. */
+/** Phone and e-mail the desk uses for this client : both required, kept on the profile. */
 export function ContactForm({ phone, email }: { phone?: string; email?: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<ContactResult | null, FormData>(contactAction, null);

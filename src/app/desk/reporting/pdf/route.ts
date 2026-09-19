@@ -3,7 +3,7 @@ import { requireDesk } from "@/lib/auth";
 import { renderActivityReport } from "@/lib/documents/generate";
 import { defaultPeriod } from "@/lib/reporting";
 
-/** Rapport d'activité périodique (PDF) — same period selector as the reporting page. */
+/** Rapport d'activité périodique (PDF) : same period selector as the reporting page. */
 export async function GET(req: NextRequest) {
   await requireDesk("/desk/reporting");
   const sp = req.nextUrl.searchParams;

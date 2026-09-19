@@ -9,8 +9,8 @@ import { urlsIn } from "@/lib/news/model";
 
 /**
  * Meta WhatsApp Cloud API webhook.
- *  GET  — verification handshake (hub.challenge) with WHATSAPP_VERIFY_TOKEN.
- *  POST — inbound messages and delivery statuses. Inbound text is logged to
+ *  GET  : verification handshake (hub.challenge) with WHATSAPP_VERIFY_TOKEN.
+ *  POST : inbound messages and delivery statuses. Inbound text is logged to
  *         the desk feed; it also opens the 24 h free-form window for that number.
  */
 export async function GET(req: NextRequest) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         }
       }
       for (const s of v?.statuses ?? []) {
-        if (s.status === "failed") await r.logEvent({ kind: "system", html: `WhatsApp : échec de remise (${s.id}) — ${s.errors?.[0]?.title ?? "erreur"}` });
+        if (s.status === "failed") await r.logEvent({ kind: "system", html: `WhatsApp : échec de remise (${s.id}) : ${s.errors?.[0]?.title ?? "erreur"}` });
       }
     }
   }
@@ -66,7 +66,7 @@ async function handleMedia(from: string, media: Media, type: "document" | "image
   const trusted = Boolean(staff) || trustedSender(`+${digits}`);
   const label = `${staff ? staff.name : `+${from}`} · WhatsApp`;
   if (!trusted) {
-    await r.logEvent({ kind: "intent", html: `<b>WhatsApp entrant</b> de +${from} : ${type === "image" ? "une photo" : `un document${media.filename ? ` (${media.filename})` : ""}`}${media.caption ? ` — « ${media.caption.slice(0, 120).replace(/</g, "&lt;")} »` : ""} — non repris (numéro hors équipe)` });
+    await r.logEvent({ kind: "intent", html: `<b>WhatsApp entrant</b> de +${from} : ${type === "image" ? "une photo" : `un document${media.filename ? ` (${media.filename})` : ""}`}${media.caption ? ` : « ${media.caption.slice(0, 120).replace(/</g, "&lt;")} »` : ""} : non repris (numéro hors équipe)` });
     return;
   }
   if (!whatsappConfigured()) {
@@ -77,9 +77,9 @@ async function handleMedia(from: string, media: Media, type: "document" | "image
     const { bytes, mimeType } = await fetchWhatsAppMedia(media.id);
     const res = await ingestSource({ title: media.caption || media.filename, fromLabel: label, hint: media.caption, file: { bytes, mimeType: media.mime_type ?? mimeType, name: media.filename ?? `whatsapp.${type === "image" ? "jpg" : "pdf"}` }, trusted: true });
     if (res.ok) await audit("intake.create", "intake", res.item.id, { after: { from: label, channel: "whatsapp", file: media.filename }, actor: staff?.email ?? label });
-    else await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} refusée — ${res.error}` });
+    else await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} refusée : ${res.error}` });
   } catch (e) {
-    await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} non reprise — ${e instanceof Error ? e.message : "erreur"}` });
+    await r.logEvent({ kind: "system", html: `WhatsApp : pièce de ${label} non reprise : ${e instanceof Error ? e.message : "erreur"}` });
   }
 }
 
@@ -92,7 +92,7 @@ async function handleInbound(from: string, text: string): Promise<string | undef
   const contact = contacts.find((c) => c.phone && c.phone.replace(/[^\d]/g, "") === digits);
   if (["stop", "arret", "arrêt", "désabonner", "desabonner"].includes(t)) {
     if (contact) await r.setContactOptIn(contact.id, false);
-    await r.logEvent({ kind: "system", html: `STOP reçu de +${from} — diffusion WhatsApp désactivée` });
+    await r.logEvent({ kind: "system", html: `STOP reçu de +${from} : diffusion WhatsApp désactivée` });
     return "C'est noté : vous ne recevrez plus nos offres sur WhatsApp. Répondez START pour les réactiver. Vos documents et avis restent disponibles dans votre espace Guichet.";
   }
   if (["start", "oui", "ok", "reprendre"].includes(t)) {

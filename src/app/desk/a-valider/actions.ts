@@ -163,7 +163,7 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
       const a = await r.createApproval({ kind: "offer_publish", entityId: offer.id, title: offer.title, payload: offer, reason: `${reason} · diffusion ${channels.join(", ") || "Guichet"} · ${decision.segment}`, requestedBy: desk.name });
       await r.updateIntake(itemId, { draft });
       await audit("approval.request", "approval", a.id, { after: { offerId: offer.id, reason }, reason });
-      await r.logEvent({ kind: "desk", offerId: existing?.id, html: `<b>${offer.title}</b> : publication proposée par ${desk.name}, en attente d'un responsable — ${reason}` });
+      await r.logEvent({ kind: "desk", offerId: existing?.id, html: `<b>${offer.title}</b> : publication proposée par ${desk.name}, en attente d'un responsable : ${reason}` });
       revalidatePath("/desk/a-valider");
       revalidatePath("/desk/approbations");
       return { ok: true, pending: reason };
@@ -175,7 +175,7 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
     await r.logEvent({
       kind: "desk",
       offerId: offer.id,
-      html: `<b>${offer.title}</b> publié par ${desk.name} (v${offer.version}, ${priceTxt}) — diffusion ${channels.length ? channels.join(", ") : "Guichet"} · ${decision.segment}`,
+      html: `<b>${offer.title}</b> publié par ${desk.name} (v${offer.version}, ${priceTxt}) : diffusion ${channels.length ? channels.join(", ") : "Guichet"} · ${decision.segment}`,
     });
     await notifyOfferPublished(offer, channels, decision.segment);
   } catch (e) {
@@ -201,10 +201,10 @@ export async function requestReviewAction(_prev: IntakeResult | null, form: Form
   if (!note) return { ok: false, error: "Dites au relecteur quoi vérifier (une phrase)." };
   try {
     const draft = draftFromForm(form, item.draft);
-    const notes = `Revue demandée par ${desk.name} — ${note}`;
+    const notes = `Revue demandée par ${desk.name} : ${note}`;
     await repo().updateIntake(id, { draft, state: "en_revue", notes });
     await audit("intake.review", "intake", id, { before: { state: item.state }, after: { state: "en_revue" }, reason: note });
-    await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : relecture demandée par ${desk.name} — ${note}` });
+    await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : relecture demandée par ${desk.name} : ${note}` });
     revalidatePath("/desk/a-valider");
     return { ok: true };
   } catch (e) {
@@ -220,9 +220,9 @@ export async function sendBackAction(_prev: IntakeResult | null, form: FormData)
   const item = await repo().getIntake(id);
   if (!item) return { ok: false, error: "Source introuvable." };
   if (!note) return { ok: false, error: "Indiquez ce qui doit être corrigé." };
-  await repo().updateIntake(id, { state: "a_valider", notes: `Renvoyé par ${desk.name} — ${note}` });
+  await repo().updateIntake(id, { state: "a_valider", notes: `Renvoyé par ${desk.name} : ${note}` });
   await audit("intake.send_back", "intake", id, { before: { state: item.state }, after: { state: "a_valider" }, reason: note });
-  await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : renvoyé en correction par ${desk.name} — ${note}` });
+  await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : renvoyé en correction par ${desk.name} : ${note}` });
   revalidatePath("/desk/a-valider");
   return { ok: true };
 }

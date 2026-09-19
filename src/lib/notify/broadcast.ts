@@ -8,7 +8,7 @@ import { emailConfigured, sendEmail, sendWhatsAppTemplate, sendWhatsAppText, wha
 import { pushConfigured, sendPush } from "./push";
 
 /**
- * « Opportunité du moment » — one desk action fans out to every channel a
+ * « Opportunité du moment » : one desk action fans out to every channel a
  * client accepted: push (installed phones), WhatsApp (opt-in), e-mail. Rules:
  * segment match or follower, at most one such alert per client per day, none
  * between 21 h and 7 h (queued for the morning cron), every send journalled.
@@ -34,7 +34,7 @@ function matchesSegment(c: Contact, segment: string): boolean {
   return true;
 }
 
-/** Who would receive it, before sending — the desk sees the count (and the four-eyes threshold applies). */
+/** Who would receive it, before sending : the desk sees the count (and the four-eyes threshold applies). */
 export async function planBroadcast(o: Offer, segment: string): Promise<BroadcastPlan> {
   const r = repo();
   const [contacts, watches, notifications] = await Promise.all([r.listContacts(), r.listWatches(), r.listNotifications(500)]);
@@ -63,7 +63,7 @@ function message(o: Offer, reason: string, firstName?: string): Message & { push
   const url = `${base}/offres/${o.id}`;
   const when = s.deadlineAt && o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · clôture ${fmtDateTime(s.deadlineAt)}` : "";
   const hero = s.gold ? `${s.hero} ${s.heroUnit ?? ""}`.trim() : s.hero;
-  const text = `${firstName ? `Bonjour ${firstName}, ` : ""}opportunité du moment au Guichet : ${o.title} — ${hero}${when}. ${reason}. Détails et intention : ${url}\n\nBrut, avant fiscalité, sous réserve du prix servi. Ceci est une information, pas un conseil. STOP pour ne plus recevoir ces messages.`;
+  const text = `${firstName ? `Bonjour ${firstName}, ` : ""}opportunité du moment au Guichet : ${o.title} : ${hero}${when}. ${reason}. Détails et intention : ${url}\n\nBrut, avant fiscalité, sous réserve du prix servi. Ceci est une information, pas un conseil. STOP pour ne plus recevoir ces messages.`;
   return {
     subject: `Opportunité du moment : ${o.title}`,
     text,

@@ -44,7 +44,7 @@ export function bocUrl(sessionDate: string): string {
 }
 
 /** Default commission applied to lines created from the bulletin; the desk can change it per line. */
-/** No commission is shown or charged for now — the desk communicates its terms to clients who reach out. */
+/** No commission is shown or charged for now : the desk communicates its terms to clients who reach out. */
 export const MARKET_DEFAULT_COMMISSION: Record<Quote["instrument"], number> = { action: 0, obligation: 0 };
 
 const COUNTRY_BY_ISIN: Record<string, { country: Country; name: string }> = {
@@ -118,14 +118,14 @@ export function fundNav(f: BocFund, b: BocParsed): FundNav {
 
 /* ---------------- validation ---------------- */
 
-/** What was read but looks wrong — the desk sees these before trusting the day's prices. */
+/** What was read but looks wrong : the desk sees these before trusting the day's prices. */
 export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[]): string[] {
   const out: string[] = [];
   const prevBy = new Map(previous.map((q) => [q.isin, q]));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.sessionDate)) out.push("Date de séance illisible.");
-  if (parsed.equities.length < 5) out.push(`Seulement ${parsed.equities.length} action(s) lue(s) — la section semble incomplète.`);
-  if (parsed.bonds.length < 20) out.push(`Seulement ${parsed.bonds.length} obligation(s) lue(s) — la section semble incomplète.`);
-  if (parsed.funds.length < 20) out.push(`Seulement ${parsed.funds.length} OPCVM lu(s) — la table semble incomplète.`);
+  if (parsed.equities.length < 5) out.push(`Seulement ${parsed.equities.length} action(s) lue(s) : la section semble incomplète.`);
+  if (parsed.bonds.length < 20) out.push(`Seulement ${parsed.bonds.length} obligation(s) lue(s) : la section semble incomplète.`);
+  if (parsed.funds.length < 20) out.push(`Seulement ${parsed.funds.length} OPCVM lu(s) : la table semble incomplète.`);
   for (const q of quotes) {
     const label = `${q.mnemo} (${q.isin})`;
     if (!(q.close > 0)) out.push(`${label} : cours de clôture nul ou illisible.`);
@@ -169,7 +169,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, c
     country: geo.country,
     countryName: geo.name,
     issuer: prettyName(q.issuer),
-    title: isBond ? `${prettyName(q.issuer)} · ${q.designation.replace(/(\d)\.(\d)/, "$1,$2").replace(/%/, " %")}` : `${q.mnemo} — ${prettyName(q.issuer)}`,
+    title: isBond ? `${prettyName(q.issuer)} · ${q.designation.replace(/(\d)\.(\d)/, "$1,$2").replace(/%/, " %")}` : `${q.mnemo} : ${prettyName(q.issuer)}`,
     isin: q.isin,
     status: "published",
     blurb: isBond
@@ -232,7 +232,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, y
     isin: n.fundKey,
     status: "published",
     hidden: false,
-    blurb: `${n.name} — fonds ${FUND_WORD[n.category] ?? ""} géré par ${prettyName(n.manager)}, dépositaire ${prettyName(n.depositary)}. Valeur liquidative ${FREQ_WORD[n.frequency] ?? ""} publiée au Bulletin Officiel de la Cote (source : sociétés de gestion agréées COSUMAF).`,
+    blurb: `${n.name} : fonds ${FUND_WORD[n.category] ?? ""} géré par ${prettyName(n.manager)}, dépositaire ${prettyName(n.depositary)}. Valeur liquidative ${FREQ_WORD[n.frequency] ?? ""} publiée au Bulletin Officiel de la Cote (source : sociétés de gestion agréées COSUMAF).`,
     documents: [],
     opensAt: `${n.inceptionDate}T09:00:00`,
     deadlineAt: "2099-12-31T17:00:00",
@@ -310,7 +310,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   if (!parsed.bulletinNo) {
     const bulletin: MarketBulletin = { id: sessionDate, number: 0, sessionDate, sourceUrl, fileKey, ingestedAt: new Date().toISOString(), ingestedBy: opts.by, status: "echec", counts: { equities: 0, bonds: 0, funds: 0 }, warnings: parsed.warnings, anomalies: ["En-tête du bulletin non reconnu : aucun cours n'a été retenu."], notices: [] };
     await r.upsertBulletin(bulletin);
-    await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC</b> du ${fmtDate(sessionDate)} : lecture impossible — cours non mis à jour, vérifier le PDF dans Marché.` });
+    await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC</b> du ${fmtDate(sessionDate)} : lecture impossible : cours non mis à jour, vérifier le PDF dans Marché.` });
     return { found: true, bulletin, created: [], refreshed: [], error: "En-tête non reconnu" };
   }
 
@@ -378,7 +378,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
 
   if (!already) {
     const idx = parsed.index ? ` · BVMAC All Share ${fmt(parsed.index.value)} (${parsed.index.variationPct >= 0 ? "+" : ""}${parsed.index.variationPct.toFixed(2).replace(".", ",")} %)` : "";
-    const flag = anomalies.length ? ` — <b>${anomalies.length} anomalie${anomalies.length > 1 ? "s" : ""} à vérifier</b>` : "";
+    const flag = anomalies.length ? ` : <b>${anomalies.length} anomalie${anomalies.length > 1 ? "s" : ""} à vérifier</b>` : "";
     const newLines = created.filter((id) => id.startsWith("boc-")).length;
     const newFunds = created.filter((id) => id.startsWith("fund-")).length;
     await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC n° ${parsed.bulletinNo}</b> du ${fmtDate(sessionDate)} ingéré : ${parsed.equities.length} actions, ${parsed.bonds.length} obligations, ${parsed.funds.length} OPCVM${idx}${newLines ? ` · ${newLines} nouvelle(s) ligne(s) cotée(s)` : ""}${newFunds ? ` · ${newFunds} fonds ajouté(s) (sur demande)` : ""}${flag}` });
@@ -395,7 +395,7 @@ export async function catchUp(by: MarketBulletin["ingestedBy"], today = new Date
   return backfill(by, localIso(from), to, true);
 }
 
-/** Every business day of [from, to] not yet ingested, oldest first — history for charts and reports (PDFs kept only when asked). */
+/** Every business day of [from, to] not yet ingested, oldest first : history for charts and reports (PDFs kept only when asked). */
 export async function backfill(by: MarketBulletin["ingestedBy"], from: string, to: string, keepPdf = false): Promise<IngestResult[]> {
   const r = repo();
   const results: IngestResult[] = [];

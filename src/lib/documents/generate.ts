@@ -65,7 +65,7 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   const payout = file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined;
   const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout };
   const pdf = await renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
-  return store({ type, number, title: `${DOC_LABEL[type]} — ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor }, pdf, now);
+  return store({ type, number, title: `${DOC_LABEL[type]} : ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor }, pdf, now);
 }
 
 /** All firm intents on the lines of one auction (same issuer country + deadline). */
@@ -97,7 +97,7 @@ export async function generateBordereau(country: string, deadlineAt: string, opt
   const ctx: BordereauCtx = { number, country, issuer: first.issuer, deadlineAt, settleOn: first.settleOn, sourceRef: first.documents[0]?.name, lines, now, accounts };
   const pdf = await renderToBuffer(el(createElement(Bordereau, ctx)));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
-  return store({ type: "bordereau", number, title: `Bordereau SVT — ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor }, pdf, now);
+  return store({ type: "bordereau", number, title: `Bordereau SVT : ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor }, pdf, now);
 }
 
 /** Confirmed / transmitted OPCVM orders of one manager, grouped for its centralising agent. */
@@ -118,7 +118,7 @@ export async function generateFundBordereau(manager: string, opts: GenerateOpts 
   const number = await nextNumber("bordereau", now);
   const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts, payouts })));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
-  return store({ type: "bordereau", number, title: `Bordereau de centralisation — ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor }, pdf, now);
+  return store({ type: "bordereau", number, title: `Bordereau de centralisation : ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor }, pdf, now);
 }
 
 async function store(meta: Omit<GeneratedDocument, "id" | "fileKey" | "status" | "createdAt">, pdf: Buffer, now: Date): Promise<GeneratedDocument> {
@@ -143,7 +143,7 @@ export async function generateKycDocument(type: "convention" | "dossier_svt", fi
   const number = await nextNumber(type, now);
   const element = type === "convention" ? createElement(Convention, { number, file, now }) : createElement(DossierOuverture, { number, file, now });
   const pdf = await renderToBuffer(el(element));
-  return store({ type, number, title: `${DOC_LABEL[type]} — ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor }, pdf, now);
+  return store({ type, number, title: `${DOC_LABEL[type]} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor }, pdf, now);
 }
 
 /* ---------------- Statements ---------------- */
@@ -160,7 +160,7 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   const number = await nextNumber(type, now);
   const element = type === "releve" ? createElement(RelevePosition, { number, contact, positions, now }) : createElement(AttestationDetention, { number, contact, positions, now });
   const pdf = await renderToBuffer(el(element));
-  return store({ type, number, title: `${DOC_LABEL[type]} — ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor }, pdf, now);
+  return store({ type, number, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor }, pdf, now);
 }
 
 /* ---------------- Rapport d'activité (COSUMAF) ---------------- */
@@ -196,7 +196,7 @@ import { offerReference, offerRisks } from "@/lib/domain/sheet";
 import { summarize } from "@/lib/domain/summary";
 import { displayStatus, offerFamily, statusLabel } from "@/lib/domain/status";
 
-/** Company report over a chart period — same analysis as the page, rendered on demand. */
+/** Company report over a chart period : same analysis as the page, rendered on demand. */
 export async function renderCompanyReport(mnemo: string, p: string): Promise<{ pdf: Buffer; number: string } | undefined> {
   const c = await companyByMnemo(mnemo);
   if (!c) return undefined;
@@ -212,7 +212,7 @@ export async function renderCompanyReport(mnemo: string, p: string): Promise<{ p
   return { pdf, number };
 }
 
-/** Fiche PDF of one Guichet line — the page's content, laid out to be sent. */
+/** Fiche PDF of one Guichet line : the page's content, laid out to be sent. */
 export async function renderOfferSheet(id: string): Promise<{ pdf: Buffer; number: string } | undefined> {
   await loadRegistry();
   const o = await repo().getOffer(id);

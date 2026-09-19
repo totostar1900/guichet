@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { relistOfferAction, withdrawOfferAction, type RestoreResult } from "./actions";
 import styles from "./page.module.css";
 
-/** Retirer / remettre en ligne — with a reason, never a deletion. */
+/** Retirer / remettre en ligne : with a reason, never a deletion. */
 export function LifecycleForm({ offerId, current, withdrawn }: { offerId: string; current: number; withdrawn: boolean }) {
   const t = useT();
   const [state, action, pending] = useActionState<RestoreResult | null, FormData>(withdrawn ? relistOfferAction : withdrawOfferAction, null);

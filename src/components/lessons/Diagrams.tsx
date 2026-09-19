@@ -114,7 +114,7 @@ export function ActorsMap({ focus }: { focus?: string[] }) {
       </svg>
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("de gauche à droite, le chemin d'un titre ; de haut en bas, qui surveille qui. Un acteur estompé n'est pas concerné par cette leçon ; un acteur souligné ouvre son mot du glossaire.")}
+        <b>{t("Comment lire")}</b> : {t("de gauche à droite, le chemin d'un titre ; de haut en bas, qui surveille qui. Un acteur estompé n'est pas concerné par cette leçon ; un acteur souligné ouvre son mot du glossaire.")}
       </p>
     </div>
   );
@@ -158,7 +158,7 @@ export function OrderPath() {
         </span>
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("six étapes, trois couleurs : ce qui dépend de vous, ce qui dépend du marché, ce qui revient. Sur la fiche d'une ligne, la pastille d'état vous dit à quelle étape vous êtes ; dans Mon espace, chaque intention porte la sienne.")}
+        <b>{t("Comment lire")}</b> : {t("six étapes, trois couleurs : ce qui dépend de vous, ce qui dépend du marché, ce qui revient. Sur la fiche d'une ligne, la pastille d'état vous dit à quelle étape vous êtes ; dans Mon espace, chaque intention porte la sienne.")}
       </p>
     </div>
   );
@@ -171,7 +171,7 @@ export function Lifeline() {
       <div className={styles.scroll}>
       <svg viewBox="0 0 900 210" className={styles.life} role="img" aria-label={t("Ligne de vie d'une OTA et d'un BTA")}>
         <text x="0" y="16" className={styles.lifeTitle}>
-          {t("OTA 3 ans · 6,50 % — vous prêtez 10 M, vous touchez 650 000 par an, on vous rend 10 M")}
+          {t("OTA 3 ans · 6,50 % : vous prêtez 10 M, vous touchez 650 000 par an, on vous rend 10 M")}
         </text>
         <path d="M40 60 L860 60" className={styles.base} />
         <rect x="34" y="60" width="12" height="42" className={styles.out} />
@@ -203,7 +203,7 @@ export function Lifeline() {
           {t("an 3 · coupon + capital")}
         </text>
         <text x="0" y="152" className={styles.lifeTitleB}>
-          {t("BTA 52 semaines · 5,50 % précompté — vous payez 9,44 M, on vous rend 10 M : l'intérêt est pris d'avance")}
+          {t("BTA 52 semaines · 5,50 % précompté : vous payez 9,44 M, on vous rend 10 M : l'intérêt est pris d'avance")}
         </text>
         <path d="M40 186 L860 186" className={styles.base} />
         <rect x="34" y="186" width="12" height="12" className={styles.out} />
@@ -217,7 +217,7 @@ export function Lifeline() {
       </svg>
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("rouge, ce que vous payez ; bleu, ce qui revient et quand. C'est le calendrier des flux du comparateur, réduit à un titre : vous retrouverez la même image sur la fiche et dans la comparaison.")}
+        <b>{t("Comment lire")}</b> : {t("rouge, ce que vous payez ; bleu, ce qui revient et quand. C'est le calendrier des flux du comparateur, réduit à un titre : vous retrouverez la même image sur la fiche et dans la comparaison.")}
       </p>
     </div>
   );
@@ -253,7 +253,7 @@ export function FundCategories() {
         </ul>
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> — {t("du plus calme au plus mobile, dans le sens des aiguilles d'une montre. La catégorie est écrite sur chaque fiche de fonds et range le tableau des fonds ; la fréquence de la VL (jour, semaine, mois) dit à quel rythme le prix est connu.")}
+        <b>{t("Comment lire")}</b> : {t("du plus calme au plus mobile, dans le sens des aiguilles d'une montre. La catégorie est écrite sur chaque fiche de fonds et range le tableau des fonds ; la fréquence de la VL (jour, semaine, mois) dit à quel rythme le prix est connu.")}
       </p>
     </div>
   );

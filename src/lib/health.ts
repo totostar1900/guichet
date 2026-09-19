@@ -57,7 +57,7 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     label: "Ingestions à vérifier (30 derniers bulletins)",
     level: bulletins.some((b) => b.status === "echec") ? "crit" : bad.length > 5 ? "warn" : "ok",
     value: `${bad.length} partiel(s) ou échec(s)`,
-    detail: bad.slice(0, 5).map((b) => `${b.sessionDate} ${b.status}${b.anomalies[0] ? ` — ${b.anomalies[0].slice(0, 80)}` : ""}`).join(" · ") || "tout est propre",
+    detail: bad.slice(0, 5).map((b) => `${b.sessionDate} ${b.status}${b.anomalies[0] ? ` : ${b.anomalies[0].slice(0, 80)}` : ""}`).join(" · ") || "tout est propre",
   });
 
   // 3. Listed lines whose price is older than the last bulletin.
@@ -90,7 +90,7 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     label: "Messages clients (7 jours)",
     level: failed ? "crit" : !whatsappConfigured() || !emailConfigured() ? "warn" : "ok",
     value: `${recent.length} préparés · ${recent.filter((n) => n.status === "sent").length} envoyés · ${skipped} non envoyés · ${failed} échecs`,
-    detail: `WhatsApp ${whatsappConfigured() ? "configuré" : "non configuré"} · e-mail ${emailConfigured() ? "configuré" : "non configuré"}${skipped ? " — les accusés de réception sont à envoyer à la main" : ""}`,
+    detail: `WhatsApp ${whatsappConfigured() ? "configuré" : "non configuré"} · e-mail ${emailConfigured() ? "configuré" : "non configuré"}${skipped ? " : les accusés de réception sont à envoyer à la main" : ""}`,
   });
 
   // 6. Bonds priced on a guessed maturity.
@@ -140,7 +140,7 @@ export async function alertDesk(now = new Date()): Promise<{ level: HealthCheck[
   const r = repo();
   await r.logEvent({
     kind: "system",
-    html: `<b>Santé</b> — ${level === "ok" ? "tout est vert" : [...crit, ...warn].map((c) => `${c.level === "crit" ? "🔴" : "🟠"} ${c.label} : ${c.value}`).join(" · ")}`,
+    html: `<b>Santé</b> : ${level === "ok" ? "tout est vert" : [...crit, ...warn].map((c) => `${c.level === "crit" ? "🔴" : "🟠"} ${c.label} : ${c.value}`).join(" · ")}`,
   });
   if (!crit.length) return { level, mailed: false };
   const to = await deskRecipients();
@@ -150,7 +150,7 @@ export async function alertDesk(now = new Date()): Promise<{ level: HealthCheck[
   const html = `<p>Points en rouge après le passage du soir :</p>${crit.map((c) => `<p><b>${c.label}</b><br>${c.value}${c.detail ? `<br><small>${c.detail}</small>` : ""}</p>`).join("")}<p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/desk/sante">Voir la page Santé</a></p>`;
   for (const addr of to) {
     try {
-      await sendEmail(addr, `Guichet — ${crit.length} point(s) à traiter`, html, text);
+      await sendEmail(addr, `Guichet : ${crit.length} point(s) à traiter`, html, text);
     } catch {
       /* the event log already carries the alert */
     }

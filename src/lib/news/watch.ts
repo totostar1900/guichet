@@ -59,7 +59,7 @@ export async function watchSources(now = new Date()): Promise<{ feeds: number; s
         };
         await saveNews(item, "veille");
         known.add(it.url);
-        added.push(`${domain} — ${it.title}`);
+        added.push(`${domain} : ${it.title}`);
       }
     } catch (e) {
       errors.push(`${feed} : ${e instanceof Error ? e.message : "erreur"}`);
@@ -78,7 +78,7 @@ export async function checkLinks(now = new Date()): Promise<{ checked: number; d
     if (!r.ok) dead.push(`${n.title} (${r.status ?? "injoignable"})`);
     await saveNews({ ...n, linkOk: r.ok, linkCheckedAt: now.toISOString() }, "veille");
   }
-  if (dead.length) await repo().logEvent({ kind: "system", html: `Actualités : ${dead.length} lien(s) mort(s) — ${dead.slice(0, 3).join(" · ").replace(/</g, "&lt;")}` });
+  if (dead.length) await repo().logEvent({ kind: "system", html: `Actualités : ${dead.length} lien(s) mort(s) : ${dead.slice(0, 3).join(" · ").replace(/</g, "&lt;")}` });
   return { checked: live.length, dead };
 }
 
@@ -88,8 +88,8 @@ export async function sendWeeklyNews(now = new Date()): Promise<{ items: number;
   const items = (await publishedNews(now)).filter((n) => n.publishedAt >= since).slice(0, 8);
   if (items.length === 0) return { items: 0, sent: 0, skipped: 0 };
   const app = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const lines = items.map((n) => `• ${fmtDate(n.publishedAt, false)} · ${n.source} — ${n.title}\n  ${n.why}\n  ${n.url}`);
-  const text = `Actualités de la semaine — Purpose Capital\n\n${lines.join("\n\n")}\n\nTout retrouver : ${app}/actualites\nRépondez STOP pour ne plus recevoir nos messages.`;
+  const lines = items.map((n) => `• ${fmtDate(n.publishedAt, false)} · ${n.source} : ${n.title}\n  ${n.why}\n  ${n.url}`);
+  const text = `Actualités de la semaine : Purpose Capital\n\n${lines.join("\n\n")}\n\nTout retrouver : ${app}/actualites\nRépondez STOP pour ne plus recevoir nos messages.`;
   const subject = `Actualités de la semaine · ${items.length} publication${items.length > 1 ? "s" : ""}`;
   let sent = 0;
   let skipped = 0;

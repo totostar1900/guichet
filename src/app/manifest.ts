@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Guichet · Purpose Capital",
     short_name: "Guichet",
-    description: "Opportunités et instruments financiers en CEMAC — titres publics, BVMAC, fonds.",
+    description: "Opportunités et instruments financiers en CEMAC : titres publics, BVMAC, fonds.",
     start_url: "/",
     display: "standalone",
     background_color: "#f6f7f9",

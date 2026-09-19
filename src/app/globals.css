@@ -1,4 +1,4 @@
-/* Design tokens — Purpose Capital identity (navy · gold · warm paper). */
+/* Design tokens : Purpose Capital identity (navy · gold · warm paper). */
 :root {
   --navy: #0b2545;
   --navy-2: #13315c;
@@ -30,7 +30,7 @@
   --chart-out: #0b2545;
   --chart-in: #c9962b;
   --radius: 6px;
-  /* One hue per instrument family — badge text / soft background. Same in every view. */
+  /* One hue per instrument family : badge text / soft background. Same in every view. */
   --fam-OTA: #0b2545;
   --fam-OTA-soft: #e3e9f3;
   --fam-BTA: #0f6e6a;
@@ -49,7 +49,7 @@
   --fam-OPCVM-soft: #fbf1da;
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
-  /* Legacy aliases — every face is the same family now. */
+  /* Legacy aliases : every face is the same family now. */
   --font-display: var(--font-ui);
   --font-mono: var(--font-ui);
 }

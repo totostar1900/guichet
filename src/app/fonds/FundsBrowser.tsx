@@ -12,7 +12,7 @@ import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
 import { useT } from "@/i18n/client";
 
-/** One fund as the browser needs it — flat, serialisable, computed on the server. */
+/** One fund as the browser needs it : flat, serialisable, computed on the server. */
 export interface FundRow {
   id: string;
   title: string;
@@ -199,7 +199,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
           {active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
-          {cat && <span className={styles.countHint}> — {t(BLURB[cat])}</span>}
+          {cat && <span className={styles.countHint}> : {t(BLURB[cat])}</span>}
           {(active > 0 || q) && (
             <button type="button" className={styles.clear} onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}>
               {t("Effacer")}

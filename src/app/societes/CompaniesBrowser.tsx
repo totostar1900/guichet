@@ -8,7 +8,7 @@ import { useT } from "@/i18n/client";
 import { fmt, fmtPct, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
 
-/** One listed company as the table needs it — flat, computed on the server. */
+/** One listed company as the table needs it : flat, computed on the server. */
 export interface CompanyRow {
   mnemo: string;
   shortName: string;

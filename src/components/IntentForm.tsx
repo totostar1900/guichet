@@ -92,14 +92,14 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     return (
       <div className={styles.wrap}>
         <div className={styles.done}>
-          <b>{t("Reçu — réf.")} {state.ref}</b>
+          <b>{t("Reçu : réf.")} {state.ref}</b>
           {t(DONE[state.type]("{by}"), { by: t(BY[state.channel]) })}
           <ul className={styles.steps}>
             <li>
               {t("Accusé de réception envoyé sur WhatsApp au")} <b>{state.phone}</b> {t("et par e-mail à")} <b>{state.email}</b>
-              {state.sent.some((x) => x.status === "skipped") ? t(" (envoi automatique en cours d'activation : le desk vous écrit à la main)") : state.sent.some((x) => x.status === "failed") ? t(" — un envoi a échoué, le desk vous recontacte") : ""}.
+              {state.sent.some((x) => x.status === "skipped") ? t(" (envoi automatique en cours d'activation : le desk vous écrit à la main)") : state.sent.some((x) => x.status === "failed") ? t(" : un envoi a échoué, le desk vous recontacte") : ""}.
             </li>
-            <li>{t("Un conseiller vous confirme {by} — vérifiez que ce numéro reçoit bien les appels et WhatsApp.", { by: t(BY[state.channel]) })}</li>
+            <li>{t("Un conseiller vous confirme {by} : vérifiez que ce numéro reçoit bien les appels et WhatsApp.", { by: t(BY[state.channel]) })}</li>
             <li>{t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
           </ul>
           {state.needsAccount && (
@@ -172,7 +172,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           )}
           {market && (type === "achat" || type === "vente") && (
             <label className="field">
-              {t("Prix limite (facultatif)")} — {t(offer.instrument === "obligation" ? "% du nominal" : "FCFA par action")}
+              {t("Prix limite (facultatif)")} : {t(offer.instrument === "obligation" ? "% du nominal" : "FCFA par action")}
               <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String(offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
             </label>
           )}
@@ -189,13 +189,13 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         )}
         {signedIn && tier < 2 && (type === "souscription" || type === "rachat") && (
           <div className={styles.tierNote}>
-            {t("Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention — elle est gardée — puis")}{" "}
+            {t("Souscrire à un fonds demande un dossier client approuvé (les parts sont inscrites à votre nom chez le dépositaire). Envoyez votre intention, elle est gardée, puis")}{" "}
             <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>{t("complétez votre dossier")}</Link> (10 min).
           </div>
         )}
         {signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && (
           <div className={styles.tierNote}>
-            {t("Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention — elle est gardée — puis")}{" "}
+            {t("Prises fermes, cessions et ordres de bourse demandent un compte-titres ouvert. Envoyez quand même votre intention, elle est gardée, puis")}{" "}
             <Link href={`/ouvrir-un-compte?next=${encodeURIComponent(`/offres/${offer.id}`)}`}>{t("ouvrez votre compte")}</Link> (10 min).
           </div>
         )}
@@ -275,7 +275,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         {state && !state.ok && <div className={styles.error}>{state.error}</div>}
         {!signedIn && (
           <div className={styles.login}>
-            {t("Identifiez-vous pour envoyer votre intention — un code par e-mail suffit, aucun compte à créer d'avance.")}
+            {t("Identifiez-vous pour envoyer votre intention : un code par e-mail suffit, aucun compte à créer d'avance.")}
             <Link className="btn primary sm" href={`/connexion?next=${encodeURIComponent(`/offres/${offer.id}?intent=${type}`)}`}>
               {t("Se connecter")}
             </Link>

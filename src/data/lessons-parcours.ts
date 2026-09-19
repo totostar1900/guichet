@@ -33,7 +33,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     intro: "Un État n'emprunte pas à un particulier : il adjuge ses titres à des banques agréées, qui regroupent les ordres.",
     body: [
       "Chaque Trésor public de la zone lance des adjudications selon un calendrier annoncé : des BTA à court terme, des OTA à plus long terme, parfois des rachats de lignes anciennes. Le communiqué dit le montant, la durée, la date.",
-      "Seuls les Spécialistes en Valeurs du Trésor — des banques agréées par le Trésor et la BEAC — déposent des offres. Purpose Capital regroupe les intentions de ses clients et les présente à un SVT avant l'heure limite.",
+      "Seuls les Spécialistes en Valeurs du Trésor, des banques agréées par le Trésor et la BEAC, déposent des offres. Purpose Capital regroupe les intentions de ses clients et les présente à un SVT avant l'heure limite.",
       "Le jour venu, le Trésor retient les offres les mieux-disantes jusqu'au montant voulu. Votre ordre est servi, partiellement servi ou non servi ; le Guichet vous le dit le jour même, et l'appel de fonds suit.",
     ],
     widget: "carte",
@@ -49,7 +49,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     minutes: 2,
     intro: "Un fonds, c'est deux maisons : celle qui gère, celle qui garde.",
     body: [
-      "La société de gestion décide des placements du fonds et calcule sa valeur liquidative à intervalle fixe — chaque jour, chaque semaine ou chaque mois. Elle est agréée par la COSUMAF et publie sa VL au Bulletin de la BVMAC.",
+      "La société de gestion décide des placements du fonds et calcule sa valeur liquidative à intervalle fixe : chaque jour, chaque semaine ou chaque mois. Elle est agréée par la COSUMAF et publie sa VL au Bulletin de la BVMAC.",
       "Le dépositaire est une banque distincte : elle conserve les actifs du fonds et tient le registre des porteurs. Vos parts sont inscrites à votre nom chez lui, pas chez le distributeur.",
       "Cette séparation protège l'épargnant : celui qui gère ne touche pas à la caisse, celui qui garde ne décide pas des placements. Sur la fiche d'un fonds, vous voyez toujours les deux noms.",
     ],
@@ -66,7 +66,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     minutes: 2,
     intro: "Un guichet, pas un coffre : nous portons vos ordres et vous rendons compte, nous ne détenons pas votre argent.",
     body: [
-      "Une société de bourse est l'intermédiaire agréé par la COSUMAF entre vous et le marché : elle reçoit vos intentions, les confirme avec vous, les transmet — à un SVT, à la bourse, à une société de gestion — puis vous adresse les avis et relevés.",
+      "Une société de bourse est l'intermédiaire agréé par la COSUMAF entre vous et le marché : elle reçoit vos intentions, les confirme avec vous, les transmet, à un SVT, à la bourse, à une société de gestion, puis vous adresse les avis et relevés.",
       "Elle ne débite jamais votre compte : un règlement se fait par virement, uniquement sur le compte indiqué dans l'appel de fonds. Vos titres sont inscrits à votre nom au dépositaire, vos parts au registre du fonds.",
       "Elle ne conseille pas non plus : le Guichet explique chaque chiffre, jamais ne recommande. Ce qui est engagé l'est après votre confirmation, avec un conseiller, et se retrouve écrit dans Mon espace.",
     ],
@@ -84,7 +84,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     minutes: 2,
     intro: "Vous payez moins que le nominal aujourd'hui, vous recevez le nominal à l'échéance : l'intérêt est pris d'avance.",
     body: [
-      "Un Bon du Trésor assimilable dure moins de deux ans — souvent 13, 26 ou 52 semaines. Il ne verse pas de coupon : la différence entre ce que vous payez et le nominal remboursé est votre gain.",
+      "Un Bon du Trésor assimilable dure moins de deux ans : souvent 13, 26 ou 52 semaines. Il ne verse pas de coupon : la différence entre ce que vous payez et le nominal remboursé est votre gain.",
       "Le taux précompté est calculé sur 360 jours et s'applique au nominal : à 5,50 % sur 364 jours, un bon de 1 000 000 FCFA se paie 944 389 FCFA. Le rendement réel, rapporté à ce que vous avez vraiment payé, est un peu plus élevé.",
       "C'est l'instrument le plus simple de la zone : une date de sortie, une date de retour, rien entre les deux. Il convient à une trésorerie dont on connaît l'usage à moins d'un an.",
     ],
@@ -100,7 +100,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     minutes: 2,
     intro: "Vous prêtez à un État pour plusieurs années : chaque année un coupon, à la fin le nominal.",
     body: [
-      "Une Obligation du Trésor assimilable dure de deux à dix ans, parfois plus. Le coupon est fixé à l'émission — 6,50 % de 10 000 FCFA, soit 650 FCFA par titre et par an — et tombe à date fixe.",
+      "Une Obligation du Trésor assimilable dure de deux à dix ans, parfois plus. Le coupon est fixé à l'émission, 6,50 % de 10 000 FCFA, soit 650 FCFA par titre et par an, et tombe à date fixe.",
       "« Assimilable » veut dire qu'un Trésor peut rouvrir une ligne existante (un abondement) : mêmes coupon et échéance, durée restante plus courte. Une ligne nouvelle démarre sans coupon couru ; un abondement en porte.",
       "Le prix auquel vous êtes servi fait le rendement : au pair, vous gagnez le coupon ; sous le pair, davantage. C'est la leçon « Rendement et coupon » du premier parcours, appliquée aux titres d'État.",
     ],
@@ -118,7 +118,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Une fois émise, une obligation peut se négocier en bourse. Son cours s'exprime en pourcentage du nominal : 97,25 % veut dire que vous payez 9 725 FCFA un titre qui en rembourse 10 000.",
       "Acheter sous le pair augmente votre rendement (vous touchez le coupon plein sur un prix réduit, plus la décote au remboursement) ; acheter au-dessus le diminue. Plus la durée restante est courte, plus une même décote pèse.",
-      "Vous avancez aussi le coupon couru au vendeur — la part d'intérêt déjà produite depuis le dernier versement — et le récupérez au coupon suivant. Le calcul de référence de la fiche fait tout cela pour 1 000 titres.",
+      "Vous avancez aussi le coupon couru au vendeur, la part d'intérêt déjà produite depuis le dernier versement, et le récupérez au coupon suivant. Le calcul de référence de la fiche fait tout cela pour 1 000 titres.",
     ],
     widget: "bond_price",
     quiz: { q: "Une obligation à 6 % cote 92 % ; il reste deux ans. Son rendement actuariel est…", options: ["6 %", "plus de 6 %", "moins de 6 %"], answer: 1, why: "Sous le pair, vous gagnez le coupon plein sur un prix réduit et la décote au remboursement : le rendement dépasse le coupon." },
@@ -166,7 +166,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Monétaire : des titres courts, une VL qui monte presque en ligne droite, l'argent disponible sous quelques jours. Obligataire : des obligations d'États et d'entreprises, un rendement porté par les coupons, sensible aux taux.",
       "Diversifié : un panachage d'obligations, d'actions et de trésorerie que la société de gestion arbitre. Actions : le potentiel et la volatilité les plus élevés, à réserver à un horizon long.",
-      "Toutes ont une valeur liquidative, calculée par la société de gestion à la fréquence de leur prospectus, et des frais — d'entrée, de sortie, de gestion — écrits dans ce prospectus. Le tableau des fonds les range par catégorie.",
+      "Toutes ont une valeur liquidative, calculée par la société de gestion à la fréquence de leur prospectus, et des frais, d'entrée, de sortie, de gestion, écrits dans ce prospectus. Le tableau des fonds les range par catégorie.",
     ],
     widget: "categories",
     quiz: { q: "Vous avez besoin de cet argent dans trois mois. Quelle catégorie ?", options: ["Actions", "Diversifié", "Monétaire"], answer: 2, why: "Le monétaire est fait pour la trésorerie : VL régulière, sortie sous quelques jours." },
@@ -214,7 +214,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     intro: "Quand les taux montent, les obligations existantes baissent : votre titre à 6 % vaut moins face à des nouveaux à 7 %.",
     body: [
       "Le cours d'une obligation s'ajuste pour que son rendement rejoigne celui des titres neufs. Tant que vous la gardez jusqu'au terme, cela ne change rien à ce que vous touchez ; si vous la vendez avant, cela change le prix.",
-      "Plus la durée restante est longue, plus le cours bouge pour une même variation de taux. Une action bouge pour d'autres raisons — résultats, dividende, flottant — et sans date de remboursement pour la rattraper.",
+      "Plus la durée restante est longue, plus le cours bouge pour une même variation de taux. Une action bouge pour d'autres raisons, résultats, dividende, flottant, et sans date de remboursement pour la rattraper.",
       "Le geste qui protège : connaître son horizon. Un titre gardé jusqu'à l'échéance transforme le risque de prix en simple risque de crédit ; un titre qu'on devra vendre en porte les deux.",
     ],
     widget: "bond_price",
@@ -231,7 +231,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Répartir entre des durées (BTA court, OTA longue), des émetteurs (plusieurs États, plusieurs entreprises) et des natures (dette, actions, fonds) fait qu'un accident sur une ligne ne touche qu'une partie de l'épargne.",
       "Le franc CFA est arrimé à l'euro : pour un épargnant de la zone, il n'y a pas de risque de change sur les titres du Guichet. Pour quelqu'un qui compte en dollars ou en naira, le taux euro/dollar ou euro/naira s'ajoute au reste.",
-      "Le geste qui protège : décider une répartition avant de regarder les rendements — par exemple une part de trésorerie, une part de dette d'État, une part de fonds — et s'y tenir quand une ligne brille plus que les autres.",
+      "Le geste qui protège : décider une répartition avant de regarder les rendements, par exemple une part de trésorerie, une part de dette d'État, une part de fonds, et s'y tenir quand une ligne brille plus que les autres.",
     ],
     widget: "categories",
     quiz: { q: "Votre épargne est entièrement sur trois OTA du même Trésor. Le risque principal est…", options: ["le change", "la concentration sur un seul emprunteur", "les frais"], answer: 1, why: "Trois lignes d'un même État portent le même risque de crédit : c'est une seule idée, pas trois." },
@@ -248,7 +248,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Depuis une fiche, vous déclarez une intention : un appétit (« je serais intéressé pour environ tel montant ») ou une prise ferme (« je souscris ce montant »). Elle est reçue tout de suite, avec une référence, et visible dans Mon espace.",
       "Un conseiller vous rappelle : montant, prix ou taux, date de règlement, ce qu'il faut préparer. La prise ferme confirmée devient un ordre ; vous recevez un bulletin d'ordre à signer.",
-      "Tant que l'ordre n'est pas transmis, vous pouvez le corriger en nous écrivant. Après, il suit le calendrier de la ligne, et son état — Reçue, Confirmée, Transmise, Servie, Réglée — se lit dans Mon espace.",
+      "Tant que l'ordre n'est pas transmis, vous pouvez le corriger en nous écrivant. Après, il suit le calendrier de la ligne, et son état, Reçue, Confirmée, Transmise, Servie, Réglée, se lit dans Mon espace.",
     ],
     widget: "chemin",
     quiz: { q: "Vous avez cliqué « Prise ferme » sur une OTA. À cet instant…", options: ["l'ordre est déjà chez le SVT", "rien n'est engagé : un conseiller vous confirme d'abord", "votre compte est débité"], answer: 1, why: "L'intention précède l'ordre ; la confirmation avec un conseiller est l'étape où l'on s'engage." },
@@ -263,7 +263,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     intro: "Le prix que vous voyez sur la fiche est celui auquel vos ordres sont présentés ; le Trésor décide qui est servi.",
     body: [
       "À l'heure limite, le SVT dépose les ordres regroupés au prix publié par Purpose Capital. Le Trésor classe toutes les offres reçues et sert les mieux-disantes jusqu'au montant qu'il voulait lever.",
-      "Trois issues : servi en totalité, servi en partie (au prorata), non servi. Le rendement « si servi à 94 % » de la fiche devient alors le rendement réel — ou reste théorique si l'ordre n'est pas retenu.",
+      "Trois issues : servi en totalité, servi en partie (au prorata), non servi. Le rendement « si servi à 94 % » de la fiche devient alors le rendement réel : ou reste théorique si l'ordre n'est pas retenu.",
       "Le jour même, la ligne passe en « Résultats publiés », votre intention prend son état, et l'appel de fonds part pour ce qui est servi. L'argent non utilisé n'a jamais quitté votre compte.",
     ],
     widget: "auction",
@@ -295,7 +295,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     minutes: 2,
     intro: "Les chiffres du Guichet sont bruts ; ce qui arrive sur votre compte peut être diminué d'un impôt retenu à la source.",
     body: [
-      "Dans la CEMAC, les revenus de placements — coupons, dividendes, plus-values — peuvent supporter un impôt retenu au moment du versement, dont le taux dépend de votre pays de résidence et de la nature du titre.",
+      "Dans la CEMAC, les revenus de placements, coupons, dividendes, plus-values, peuvent supporter un impôt retenu au moment du versement, dont le taux dépend de votre pays de résidence et de la nature du titre.",
       "Les titres émis par les États sont souvent exonérés ou moins taxés que les titres privés ; les dividendes le sont presque toujours. La fiche d'une ligne signale ce que nous savons ; votre situation personnelle peut changer le résultat.",
       "Le geste utile : comparer les lignes en brut (c'est ce que fait le comparateur), puis vérifier le net avec votre conseiller ou votre fiscaliste avant de trancher entre deux lignes proches.",
     ],
@@ -313,7 +313,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Un fonds prélève des droits d'entrée et de sortie (en pourcentage du montant) et des frais de gestion, déjà déduits dans la VL. Ils sont dans son prospectus ; la fiche les rappelle et le calcul de référence les applique à un million.",
       "Purpose Capital facture des commissions selon sa convention, communiquées par votre conseiller à la confirmation. Les rendements du Guichet sont affichés avant ces commissions, pour que toutes les lignes se comparent de la même façon.",
-      "Le geste utile : sur un placement court, regarder les frais avant le rendement — 1 % de droits d'entrée pèse lourd sur trois mois, peu sur cinq ans.",
+      "Le geste utile : sur un placement court, regarder les frais avant le rendement : 1 % de droits d'entrée pèse lourd sur trois mois, peu sur cinq ans.",
     ],
     widget: "fund",
     quiz: { q: "Les frais de gestion d'un fonds…", options: ["vous sont facturés à part chaque année", "sont déjà déduits dans la VL", "n'existent que sur les fonds actions"], answer: 1, why: "La VL est nette des frais de gestion ; seuls les droits d'entrée et de sortie s'ajoutent." },

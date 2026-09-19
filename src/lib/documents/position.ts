@@ -16,7 +16,7 @@ export interface Position {
   accrued: number;
   accruedDays: number;
   commission: number;
-  total: number; // to settle (client pays) — negative for a cession (client receives)
+  total: number; // to settle (client pays) : negative for a cession (client receives)
   irr?: number;
   schedule: CashFlow[]; // coupons / redemption for the position
 }
@@ -116,7 +116,7 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
     const fee = principal * (f.entryFeePct / 100);
     return { label: `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts`, units, unitWord: "parts", priceLabel: navLabel, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: fee, total: opts.unitsOverride != null ? principal + fee : amount, schedule: [] };
   }
-  // RACHAT — the client sells `amount` titles at par and receives the proceeds.
+  // RACHAT : the client sells `amount` titles at par and receives the proceeds.
   const n = opts.unitsOverride ?? amount;
   const proceeds = n * offer.nominal;
   return {

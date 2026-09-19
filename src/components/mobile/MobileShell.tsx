@@ -10,7 +10,7 @@ import styles from "./MobileShell.module.css";
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
  * title, and a bottom tab bar with the four destinations. Desktop keeps the
  * site header; both are rendered, CSS shows one. The back arrow returns to
- * the list the reader came from — same filters, same scroll — using the
+ * the list the reader came from, same filters, same scroll, using the
  * browser history when it is ours, or the last list URL we remembered.
  */
 export const LAST_LIST_KEY = "guichet:lastList";

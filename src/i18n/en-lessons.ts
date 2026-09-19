@@ -14,7 +14,7 @@ export const EN_LESSONS: Record<string, string> = {
 
   /* lesson 1 */
   "Une Obligation du Trésor assimilable (OTA) est un prêt que vous faites à un État de la CEMAC. L'État vous verse chaque année un coupon (un pourcentage du nominal) et vous rend le nominal à l'échéance.": "A fungible Treasury bond (OTA) is a loan you make to a CEMAC State. Each year the State pays you a coupon (a percentage of par) and returns the par at maturity.",
-  "Le nominal est la valeur faciale d'un titre — 10 000 FCFA pour une OTA. Le coupon se calcule dessus : 6 % de 10 000 = 600 FCFA par titre et par an.": "Par is the face value of a security — 10,000 FCFA for a Treasury bond. The coupon is computed on it: 6% of 10,000 = 600 FCFA per security per year.",
+  "Le nominal est la valeur faciale d'un titre : 10 000 FCFA pour une OTA. Le coupon se calcule dessus : 6 % de 10 000 = 600 FCFA par titre et par an.": "Par is the face value of a security : 10,000 FCFA for a Treasury bond. The coupon is computed on it: 6% of 10,000 = 600 FCFA per security per year.",
   "Le prix est ce que vous payez, en pourcentage du nominal. À 96 %, un titre de 10 000 coûte 9 600 (plus le coupon couru s'il y en a). Le rendement actuariel dit ce que cela rapporte réellement par an jusqu'à l'échéance, en tenant compte du prix.": "The price is what you pay, as a percentage of par. At 96%, a 10,000 security costs 9,600 (plus accrued interest if any). The yield to maturity says what it really returns per year until maturity, taking the price into account.",
   "Sur une fiche du Guichet, le chiffre en or est ce rendement, brut, si vous êtes servi au prix affiché et gardez le titre jusqu'au bout.": "On a Guichet page, the gold figure is that yield, gross, if you are served at the displayed price and hold the security to the end.",
   "Sur une OTA à 6 % achetée 96 %, le coupon annuel par titre de 10 000 FCFA est…": "On a 6% Treasury bond bought at 96%, the annual coupon per 10,000 FCFA security is…",
@@ -90,7 +90,7 @@ export const EN_LESSONS: Record<string, string> = {
   "Le PER (cours divisé par le bénéfice par action) dit combien d'années de bénéfice vous payez. Entre 5 et 12 est courant sur les marchés africains ; au-dessus, le marché paie une croissance attendue ou la rareté du titre.": "The P/E (price divided by earnings per share) says how many years of earnings you pay. Between 5 and 12 is common on African markets; above, the market pays for expected growth or for the scarcity of the stock.",
   "Une action n'a pas d'échéance ni de capital garanti : le cours monte et descend, le dividende dépend des résultats et de l'assemblée.": "A share has no maturity and no guaranteed capital: the price goes up and down, the dividend depends on results and on the shareholders' meeting.",
   "Une action cote 45 000 FCFA et verse 2 500 FCFA de dividende brut. Son rendement du dividende est…": "A share trades at 45,000 FCFA and pays a 2,500 FCFA gross dividend. Its dividend yield is…",
-  "2 500 / 45 000 = 5,6 % — avant retenue à la source.": "2,500 / 45,000 = 5.6% — before withholding tax.",
+  "2 500 / 45 000 = 5,6 % : avant retenue à la source.": "2,500 / 45,000 = 5.6% : before withholding tax.",
   "Cours, dividende, PER": "Price, dividend, P/E",
   "Dernier dividende": "Last dividend",
   "au cours de bourse": "at the market price",
@@ -129,7 +129,7 @@ export const EN_LESSONS: Record<string, string> = {
   "Une question pour finir": "One question to finish",
   "acquis": "learnt",
   "Exact.": "Right.",
-  "Pas tout à fait —": "Not quite —",
+  "Pas tout à fait.": "Not quite.",
   "Leçon suivante :": "Next lesson:",
   "restitués sous deux jours": "returned within two days",
   "10 M à 96 %": "10 M at 96%",

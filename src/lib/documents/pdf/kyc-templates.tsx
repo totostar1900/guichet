@@ -9,7 +9,7 @@ const ROLE = { representant: "Représentant légal", mandataire: "Mandataire", b
 
 /**
  * Convention d'ouverture de compte-titres. Rendered blank as the model the
- * client reads, and filled once accepted (code, timestamp) — the accepted copy
+ * client reads, and filled once accepted (code, timestamp) : the accepted copy
  * is the record of the electronic acceptance.
  */
 export function Convention({ number, file, now }: { number: string; file?: ClientFile; now: Date }) {
@@ -51,18 +51,18 @@ export function Convention({ number, file, now }: { number: string; file?: Clien
           </Text>
         </View>
       ) : (
-        <Sig left="Le Titulaire — « lu et approuvé », date et signature" right={`${COMPANY.legalName}`} />
+        <Sig left="Le Titulaire : « lu et approuvé », date et signature" right={`${COMPANY.legalName}`} />
       )}
     </Letter>
   );
 }
 
-/** Account-opening file for the SVT / custodian — the KYC summary they need, whatever the account structure. */
+/** Account-opening file for the SVT / custodian : the KYC summary they need, whatever the account structure. */
 export function DossierOuverture({ number, file, now }: { number: string; file: ClientFile; now: Date }) {
   const id = file.identity;
   return (
     <Letter heading={`Dossier d'ouverture · ${number}`}>
-      <Text style={s.h1}>Demande d&apos;ouverture de sous-compte nominatif — {id.name}</Text>
+      <Text style={s.h1}>Demande d&apos;ouverture de sous-compte nominatif : {id.name}</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDate(localIso(now))} · dossier KYC {file.id.slice(0, 8)} · {KIND_LABEL[file.kind]}
       </Text>
@@ -76,12 +76,12 @@ export function DossierOuverture({ number, file, now }: { number: string; file: 
           ["Type", KIND_LABEL[file.kind]],
           ["Adresse", [id.address, id.city, id.country].filter(Boolean).join(", ") || "—"],
           ["Téléphone · e-mail", [id.phone, id.email].filter(Boolean).join(" · ") || "—"],
-          ...(file.kind === "physique" ? ([["Naissance · nationalité", [id.birthDate ? fmtDate(id.birthDate) : "", id.nationality].filter(Boolean).join(" · ") || "—"], ["Pièce d'identité", `${id.idType ?? "—"} n° ${id.idNumber ?? "—"}${id.idExpiresOn ? `, expire le ${fmtDate(id.idExpiresOn)}` : ""}`], ["Profession", id.profession ?? "—"]] as [string, string][]) : ([["Immatriculation", id.registration ?? "—"], ["Forme", `${id.legalForm ?? "—"}${file.kind === "groupement" && /indivision/i.test(id.legalForm ?? "") ? " — plafond 25 000 000 FCFA de nominal" : ""}`], ...(id.decisionRule ? [["Règle de décision", id.decisionRule]] : [])] as [string, string][])),
+          ...(file.kind === "physique" ? ([["Naissance · nationalité", [id.birthDate ? fmtDate(id.birthDate) : "", id.nationality].filter(Boolean).join(" · ") || "—"], ["Pièce d'identité", `${id.idType ?? "—"} n° ${id.idNumber ?? "—"}${id.idExpiresOn ? `, expire le ${fmtDate(id.idExpiresOn)}` : ""}`], ["Profession", id.profession ?? "—"]] as [string, string][]) : ([["Immatriculation", id.registration ?? "—"], ["Forme", `${id.legalForm ?? "—"}${file.kind === "groupement" && /indivision/i.test(id.legalForm ?? "") ? " : plafond 25 000 000 FCFA de nominal" : ""}`], ...(id.decisionRule ? [["Règle de décision", id.decisionRule]] : [])] as [string, string][])),
           ["NIU", id.taxId ?? "—"],
           ["Résident hors CEMAC", id.residentAbroad ? "oui" : "non"],
           ["Origine des fonds", file.funds.source ?? "—"],
           ["Banque de règlement", file.funds.bankName ?? "—"],
-          ["PPE", file.funds.pep || file.persons.some((p) => p.pep) ? "oui — diligence renforcée" : "non"],
+          ["PPE", file.funds.pep || file.persons.some((p) => p.pep) ? "oui : diligence renforcée" : "non"],
           ["Notation de risque", file.review.risk ? RISK_LABEL[file.review.risk] : "—"],
           ["Catégorie", file.profile.category === "professionnel" ? "professionnel" : "non professionnel"],
         ]}
@@ -94,7 +94,7 @@ export function DossierOuverture({ number, file, now }: { number: string; file: 
       <Text style={s.p}>
         Convention d&apos;ouverture de compte-titres acceptée le {file.consents.conventionAt ? fmtDateTime(file.consents.conventionAt) : "—"}. Prochaine revue KYC : {file.review.nextReviewOn ? fmtDate(file.review.nextReviewOn) : "—"}.
       </Text>
-      <Sig left={`Pour ${COMPANY.legalName} — responsable de la conformité`} right="Réception du dépositaire — n° de compte attribué, date, visa" />
+      <Sig left={`Pour ${COMPANY.legalName} : responsable de la conformité`} right="Réception du dépositaire : n° de compte attribué, date, visa" />
     </Letter>
   );
 }

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import styles from "./PushToggle.module.css";
 
 /**
- * « Recevoir les alertes sur ce téléphone » — registers the service worker and
+ * « Recevoir les alertes sur ce téléphone » : registers the service worker and
  * a push subscription for the signed-in user. iPhone needs the app installed on
  * the home screen first; we say so instead of failing silently.
  */

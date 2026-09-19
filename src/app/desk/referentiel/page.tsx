@@ -249,7 +249,7 @@ async function Glossary({ glossary, inDb, open }: { glossary: Record<string, Ter
               <tr key={k}>
                 <td>
                   <b>{glossary[k].short}</b>
-                  {glossary[k].long && <small className="muted"> — {glossary[k].long}</small>}
+                  {glossary[k].long && <small className="muted"> : {glossary[k].long}</small>}
                   <br />
                   <small className="mono muted">{k}</small>
                 </td>

@@ -9,7 +9,7 @@ import { positionsFrom, upcomingFlows } from "@/lib/positions";
 import { flushQueuedOpportunities } from "@/lib/notify/broadcast";
 
 /**
- * Coupon and redemption notices — J-3 and the day itself.
+ * Coupon and redemption notices : J-3 and the day itself.
  * Call daily (Vercel cron or any scheduler) with `Authorization: Bearer <CRON_SECRET>`.
  * Idempotent: one notification per (intent, flow date, horizon), keyed on `subject`.
  */
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     if (!c) continue;
     const o = u.position.offer;
     const what = u.flow.label === "Coupon" ? "coupon" : u.flow.label === "Remboursement" ? "remboursement" : "coupon et remboursement du capital";
-    const text = `${COMPANY.name} — ${u.inDays === 0 ? "aujourd'hui" : "dans 3 jours"} : ${what} de ${fmt(u.flow.amount)} FCFA brut sur ${o.title} (${o.isin}), ${fmt(u.position.units)} ${u.position.unitWord}, payé le ${fmtDate(u.flow.date)} par l'émetteur sur votre compte de règlement.`;
+    const text = `${COMPANY.name} : ${u.inDays === 0 ? "aujourd'hui" : "dans 3 jours"} : ${what} de ${fmt(u.flow.amount)} FCFA brut sur ${o.title} (${o.isin}), ${fmt(u.position.units)} ${u.position.unitWord}, payé le ${fmtDate(u.flow.date)} par l'émetteur sur votre compte de règlement.`;
     const target: { channel: NotifyChannel; to: string } | undefined = c.phone && c.whatsappOptIn ? { channel: "whatsapp", to: c.phone } : c.email ? { channel: "email", to: c.email } : undefined;
     if (!target) continue;
     const row = await r.createNotification({ kind: "results", channel: target.channel, to: target.to, contactName: c.name, subject: key, body: text, intentId: u.position.intent.id, offerId: o.id, status: "queued" });
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       await r.updateNotification(row.id, { status: "skipped", error: "canal non configuré" });
     } else {
       try {
-        const id = target.channel === "whatsapp" ? await sendWhatsAppText(target.to, text) : await sendEmail(target.to, `${what} — ${o.title}`, `<p>${text}</p>`, text);
+        const id = target.channel === "whatsapp" ? await sendWhatsAppText(target.to, text) : await sendEmail(target.to, `${what} : ${o.title}`, `<p>${text}</p>`, text);
         await r.updateNotification(row.id, { status: "sent", providerId: id, sentAt: new Date().toISOString() });
       } catch (e) {
         await r.updateNotification(row.id, { status: "failed", error: e instanceof Error ? e.message : "échec" });

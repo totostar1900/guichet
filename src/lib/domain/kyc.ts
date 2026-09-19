@@ -1,4 +1,4 @@
-/* Onboarding · KYC · compte-titres — domain model (see supabase/migrations/0006_kyc.sql). */
+/* Onboarding · KYC · compte-titres : domain model (see supabase/migrations/0006_kyc.sql). */
 
 export type ClientKind = "physique" | "morale" | "groupement" | "institutionnel";
 export type KycStatus = "brouillon" | "soumis" | "en_revue" | "complements" | "approuve" | "refuse";
@@ -68,7 +68,7 @@ export interface ClientFile {
     source?: string;
     expectedAmount?: string;
     bankName?: string;
-    /** Settlement account in the client's name — where sale, redemption, coupon and redemption proceeds are paid. */
+    /** Settlement account in the client's name : where sale, redemption, coupon and redemption proceeds are paid. */
     bankAccount?: string; // RIB / IBAN
     bankHolder?: string; // intitulé du compte, must match the client
     pep: boolean;

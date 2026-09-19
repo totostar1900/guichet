@@ -7,7 +7,7 @@ import { supabaseAuthClient } from "@/lib/auth/supabase";
 import { repo } from "@/lib/data";
 
 /**
- * Second factor for the desk (TOTP, Supabase Auth — no extra service, no cost).
+ * Second factor for the desk (TOTP, Supabase Auth : no extra service, no cost).
  * Enrolment shows a QR code once; every later desk login asks for the 6-digit code.
  */
 export type MfaState = { step: "enrol"; factorId: string; qr: string; secret: string; error?: string } | { step: "verify"; factorId: string; error?: string } | { step: "error"; error: string };

@@ -19,12 +19,12 @@ export function NewSourceForm({ extraction }: { extraction: boolean }) {
       <form action={action} className={styles.newForm}>
         <div className={styles.newGrid}>
           <label className="field">
-            {t("Fichier (PDF, JPEG, PNG, WebP — 20 Mo max)")}
+            {t("Fichier (PDF, JPEG, PNG, WebP : 20 Mo max)")}
             <input type="file" name="file" accept="application/pdf,image/jpeg,image/png,image/webp" />
           </label>
           <label className="field">
             Titre (facultatif)
-            <input name="title" placeholder={t("Ex. Communiqué OTA Cameroun — n° …")} />
+            <input name="title" placeholder={t("Ex. Communiqué OTA Cameroun : n° …")} />
           </label>
           <label className="field">
             Reçu de (facultatif)

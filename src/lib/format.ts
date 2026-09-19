@@ -18,7 +18,7 @@ export const fmt = (n: number): string => nf.format(Math.round(n));
 export const fmtPct = (v: number, decimals = 1): string =>
   `${v.toLocaleString("fr-FR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} %`;
 
-/** Price in % of nominal — 3 decimals only when needed. */
+/** Price in % of nominal : 3 decimals only when needed. */
 export const fmtPrice = (v: number): string => fmtPct(v, Number.isInteger(v) ? 0 : 3);
 
 export const fmtDate = (iso: string, withYear = true): string => {
@@ -32,7 +32,7 @@ export const fmtDateTime = (iso: string): string => {
   return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${hm}`;
 };
 
-/** Weekday, day, month and year — the heading of a day in a feed. */
+/** Weekday, day, month and year : the heading of a day in a feed. */
 export const fmtDay = (iso: string): string => {
   const d = parseDate(iso);
   return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;

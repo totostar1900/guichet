@@ -1,6 +1,6 @@
 /**
  * Domain model of the Guichet.
- * Mirrors the SQL schema in supabase/migrations — keep both in sync.
+ * Mirrors the SQL schema in supabase/migrations : keep both in sync.
  */
 
 export type OfferKind = "OTA" | "BTA" | "ACTIONS" | "APE" | "RACHAT" | "MARCHE" | "FONDS";
@@ -77,7 +77,7 @@ export interface Offer {
   typeKey?: string;
   /** Free facts declared by the product type (e.g. "Garantie", "Notation"). */
   extra?: Record<string, string>;
-  /** « Sélection du desk » : a neutral reason and an expiry — never a recommendation. */
+  /** « Sélection du desk » : a neutral reason and an expiry : never a recommendation. */
   featured?: { reason: string; until: string; by: string; at: string };
   operation: OfferOperation;
   country: Country;
@@ -100,8 +100,8 @@ export interface Offer {
 
   // economics
   nominal: number; // FCFA per title
-  couponRate?: number; // % p.a. — OTA / APE
-  precountRate?: number; // % — BTA (taux précompté)
+  couponRate?: number; // % p.a. : OTA / APE
+  precountRate?: number; // % : BTA (taux précompté)
   pricePct?: number; // desk price, % of nominal
   priceNote?: string; // "indicatif" etc.
   rateNote?: string;
@@ -128,12 +128,12 @@ export interface Offer {
   priceSource?: "boc" | "desk"; // where lastPrice comes from: the ingested bulletin, or a desk fallback entry
   hidden?: boolean; // ingested line the desk chose not to show in the Guichet
 
-  // OPCVM (kind FONDS) — NAV from the bulletin, terms from the distribution agreement
+  // OPCVM (kind FONDS) : NAV from the bulletin, terms from the distribution agreement
   fund?: FundTerms;
 
   // publication
   version: number;
-  pricedAt?: string; // ISO — when the desk published the current price
+  pricedAt?: string; // ISO : when the desk published the current price
   resultLine?: string; // "Servie à 96,500 % · …"
 }
 
@@ -279,7 +279,7 @@ export interface GeneratedDocument {
 
 /* ---------------- Contacts & notifications ---------------- */
 
-/** Who we can reach — until onboarding lands, a light contact record. */
+/** Who we can reach : until onboarding lands, a light contact record. */
 export interface Contact {
   id: string; // = client userId when known
   name: string;
@@ -370,7 +370,7 @@ export interface PushSubscription {
 export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
 export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest" | "opportunity";
 
-/** A message a client (or anyone) sent us on WhatsApp or by e-mail — the desk inbox. */
+/** A message a client (or anyone) sent us on WhatsApp or by e-mail : the desk inbox. */
 export interface InboundMessage {
   id: string;
   channel: NotifyChannel;

@@ -9,7 +9,7 @@ import { emailConfigured, sendEmail, sendWhatsAppText, whatsappConfigured } from
  * configured, else e-mail; in demo mode it is shown on screen.
  */
 export async function notifyCode(f: ClientFile, code: string): Promise<"WhatsApp" | "e-mail" | "demo"> {
-  const text = `${COMPANY.name} — votre code d'acceptation de la convention d'ouverture de compte-titres : ${code}. Valable 10 minutes. Ne le communiquez à personne.`;
+  const text = `${COMPANY.name} : votre code d'acceptation de la convention d'ouverture de compte-titres : ${code}. Valable 10 minutes. Ne le communiquez à personne.`;
   const r = repo();
   if (f.identity.phone && whatsappConfigured()) {
     try {
@@ -21,7 +21,7 @@ export async function notifyCode(f: ClientFile, code: string): Promise<"WhatsApp
     }
   }
   if (f.identity.email && emailConfigured()) {
-    const id = await sendEmail(f.identity.email, `${COMPANY.name} — code d'acceptation`, `<p>${text}</p>`, text);
+    const id = await sendEmail(f.identity.email, `${COMPANY.name} : code d'acceptation`, `<p>${text}</p>`, text);
     await r.createNotification({ kind: "intent_update", channel: "email", to: f.identity.email, contactName: f.identity.name, subject: "Code d'acceptation", body: "Code d'acceptation de la convention (masqué)", status: "sent", providerId: id, sentAt: new Date().toISOString() });
     return "e-mail";
   }
@@ -37,7 +37,7 @@ export async function notifyKycDecision(f: ClientFile, decision: "approuve" | "c
     complements: `Votre dossier d'ouverture de compte a besoin de compléments : ${details ?? "voir votre espace"}. Reprenez-le dans le Guichet › Ouvrir un compte.`,
     refuse: `Nous ne pouvons pas donner suite à votre demande d'ouverture de compte${details ? ` : ${details}` : ""}. Un conseiller reste à votre disposition.`,
   } as const;
-  const text = `${COMPANY.name} — ${lines[decision]}`;
+  const text = `${COMPANY.name} : ${lines[decision]}`;
   const r = repo();
   const to = f.identity.phone && f.consents.whatsappAt ? { channel: "whatsapp" as const, to: f.identity.phone } : f.identity.email ? { channel: "email" as const, to: f.identity.email } : undefined;
   if (!to) return;
@@ -48,7 +48,7 @@ export async function notifyKycDecision(f: ClientFile, decision: "approuve" | "c
     return;
   }
   try {
-    const id = to.channel === "whatsapp" ? await sendWhatsAppText(to.to, text) : await sendEmail(to.to, "Ouverture de compte — Purpose Capital", `<p>${text}</p>`, text);
+    const id = to.channel === "whatsapp" ? await sendWhatsAppText(to.to, text) : await sendEmail(to.to, "Ouverture de compte : Purpose Capital", `<p>${text}</p>`, text);
     await r.updateNotification(row.id, { status: "sent", providerId: id, sentAt: new Date().toISOString() });
   } catch (e) {
     await r.updateNotification(row.id, { status: "failed", error: e instanceof Error ? e.message : "échec" });

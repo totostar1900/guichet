@@ -1,5 +1,5 @@
 /**
- * Info — eight short lessons, one idea each, illustrated with a real line
+ * Info : eight short lessons, one idea each, illustrated with a real line
  * of the Guichet and closed by one question. These are the code defaults; the
  * desk edits them in the référentiel (kind « lesson ») without touching code.
  */
@@ -34,7 +34,7 @@ export const FIRST_COURSE: Lesson[] = [
     intro: "Cinq chiffres suffisent, dans cet ordre : coupon, nominal, échéance, prix, rendement.",
     body: [
       "Une Obligation du Trésor assimilable (OTA) est un prêt que vous faites à un État de la CEMAC. L'État vous verse chaque année un coupon (un pourcentage du nominal) et vous rend le nominal à l'échéance.",
-      "Le nominal est la valeur faciale d'un titre — 10 000 FCFA pour une OTA. Le coupon se calcule dessus : 6 % de 10 000 = 600 FCFA par titre et par an.",
+      "Le nominal est la valeur faciale d'un titre : 10 000 FCFA pour une OTA. Le coupon se calcule dessus : 6 % de 10 000 = 600 FCFA par titre et par an.",
       "Le prix est ce que vous payez, en pourcentage du nominal. À 96 %, un titre de 10 000 coûte 9 600 (plus le coupon couru s'il y en a). Le rendement actuariel dit ce que cela rapporte réellement par an jusqu'à l'échéance, en tenant compte du prix.",
       "Sur une fiche du Guichet, le chiffre en or est ce rendement, brut, si vous êtes servi au prix affiché et gardez le titre jusqu'au bout.",
     ],
@@ -93,7 +93,7 @@ export const FIRST_COURSE: Lesson[] = [
     order: 5,
     title: "Durée et risque : 2029 ne paie pas comme 2031",
     minutes: 2,
-    intro: "Plus la ligne est longue, plus le rendement demandé est élevé — et plus le prix bouge.",
+    intro: "Plus la ligne est longue, plus le rendement demandé est élevé : et plus le prix bouge.",
     body: [
       "Prêter cinq ans immobilise votre argent plus longtemps qu'en prêter deux : les émetteurs paient cette patience par un coupon plus élevé. C'est la courbe des taux.",
       "Une même décote rapporte d'autant plus par an que la ligne est courte : 4 points récupérés en 18 mois valent plus que 4 points récupérés en 5 ans.",
@@ -115,7 +115,7 @@ export const FIRST_COURSE: Lesson[] = [
       "Une action n'a pas d'échéance ni de capital garanti : le cours monte et descend, le dividende dépend des résultats et de l'assemblée.",
     ],
     widget: "equity",
-    quiz: { q: "Une action cote 45 000 FCFA et verse 2 500 FCFA de dividende brut. Son rendement du dividende est…", options: ["5,6 %", "2,5 %", "18 %"], answer: 0, why: "2 500 / 45 000 = 5,6 % — avant retenue à la source." },
+    quiz: { q: "Une action cote 45 000 FCFA et verse 2 500 FCFA de dividende brut. Son rendement du dividende est…", options: ["5,6 %", "2,5 %", "18 %"], answer: 0, why: "2 500 / 45 000 = 5,6 % : avant retenue à la source." },
     terms: ["per", "rendement_dividende", "dividende", "cours", "bnpa"],
   },
   {
@@ -139,7 +139,7 @@ export const FIRST_COURSE: Lesson[] = [
     order: 8,
     title: "Les quatre risques, et ce qu'on peut faire",
     minutes: 3,
-    intro: "Crédit, liquidité, prix, allocation — chaque fiche les rappelle dans « À garder en tête ».",
+    intro: "Crédit, liquidité, prix, allocation : chaque fiche les rappelle dans « À garder en tête ».",
     body: [
       "Crédit : l'émetteur peut ne pas payer. Pour un État de la CEMAC, le risque est celui de sa capacité à honorer sa dette ; pour une entreprise, celui de sa solidité. On ne prête pas tout à un seul émetteur.",
       "Liquidité : revendre avant l'échéance peut prendre plusieurs séances et se faire à un prix inférieur. On n'engage que ce qu'on peut immobiliser jusqu'au terme.",

@@ -43,7 +43,7 @@ export function Quiz({ lessonKey, q, options, answer, why, nextHref, nextTitle }
           {o}
         </button>
       ))}
-      {picked != null && <p className={`${styles.why} ${picked === answer ? styles.okTxt : styles.koTxt}`}>{picked === answer ? `${tr("Exact.")} ${why}` : `${tr("Pas tout à fait —")} ${why}`}</p>}
+      {picked != null && <p className={`${styles.why} ${picked === answer ? styles.okTxt : styles.koTxt}`}>{picked === answer ? `${tr("Exact.")} ${why}` : `${tr("Pas tout à fait.")} ${why}`}</p>}
       {picked === answer && nextHref && (
         <Link className="btn primary" href={nextHref}>
           {tr("Leçon suivante :")} {nextTitle} →

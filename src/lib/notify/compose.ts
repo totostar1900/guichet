@@ -36,9 +36,9 @@ export function offerPublished(o: Offer, firstName?: string): Message {
           : o.kind === "MARCHE"
             ? `${o.market} · dernier cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"} · achat / vente au marché, règlement T+${o.settlementDays ?? 3}`
             : "rachat au pair (100 % du nominal)";
-  const text = `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · nouvelle offre\n${o.title} — ${o.issuer}\n${headline}\nTitres inscrits à votre nom.\nDépôt des offres : ${fmtDateTime(o.deadlineAt)}.\n\nVoir la fiche et répondre : ${link(o)}\n\n${DISCLAIMER}`;
+  const text = `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · nouvelle offre\n${o.title} : ${o.issuer}\n${headline}\nTitres inscrits à votre nom.\nDépôt des offres : ${fmtDateTime(o.deadlineAt)}.\n\nVoir la fiche et répondre : ${link(o)}\n\n${DISCLAIMER}`;
   return {
-    subject: `${COMPANY.name} — ${o.title} · ${headline.split(" · ")[0]}`,
+    subject: `${COMPANY.name} : ${o.title} · ${headline.split(" · ")[0]}`,
     text,
     template: { name: tmpl("WA_TEMPLATE_OFFER", "guichet_offre"), params: [o.title, headline, fmtDateTime(o.deadlineAt), link(o)] },
   };
@@ -46,7 +46,7 @@ export function offerPublished(o: Offer, firstName?: string): Message {
 
 export function intentReceived(i: Intent, o: Offer, estimate?: string): Message {
   const what = INTENT_LABEL[i.type];
-  const text = `${COMPANY.name} — reçu, réf. ${i.ref}\n${what} sur ${o.title}${i.amount ? ` · ${fmt(i.amount)} ${o.kind === "RACHAT" ? "titres" : "FCFA"}` : ""}.${estimate ? `\n${estimate}` : ""}\n\n${
+  const text = `${COMPANY.name} : reçu, réf. ${i.ref}\n${what} sur ${o.title}${i.amount ? ` · ${fmt(i.amount)} ${o.kind === "RACHAT" ? "titres" : "FCFA"}` : ""}.${estimate ? `\n${estimate}` : ""}\n\n${
     i.type === "ferme"
       ? "Un conseiller vous confirme avant la clôture et vous envoie le bulletin à signer."
       : i.type === "appetit"
@@ -55,7 +55,7 @@ export function intentReceived(i: Intent, o: Offer, estimate?: string): Message 
           ? "Nous vérifions la position et vous confirmons."
           : "Un conseiller vous répond dans l'heure."
   }\nCe message n'est ni un ordre ni une garantie d'allocation.`;
-  return { subject: `Reçu — ${i.ref} · ${o.title}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, text.replace(/^.*\n/, "")] } };
+  return { subject: `Reçu : ${i.ref} · ${o.title}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, text.replace(/^.*\n/, "")] } };
 }
 
 export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?: string): Message {
@@ -77,8 +77,8 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
     reglee: o.kind === "FONDS" ? `${i.type === "rachat" ? "Rachat réglé : le produit est viré sur votre compte bancaire." : `Vos parts de ${o.title} sont inscrites à votre nom au registre du dépositaire.`} L'avis d'opération suit.` : `Règlement effectué le ${fmtDate(o.settleOn)} : vos titres ${o.isin} sont inscrits à votre nom. L'avis d'opéré suit.`,
     annulee: `Votre intention ${i.ref} a été annulée. Contactez-nous si ce n'est pas attendu.`,
   };
-  const text = `${COMPANY.name} — ${o.title}\n${lines[state]}`;
-  return { subject: `${o.title} — ${i.ref}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, lines[state]] } };
+  const text = `${COMPANY.name} : ${o.title}\n${lines[state]}`;
+  return { subject: `${o.title} : ${i.ref}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, lines[state]] } };
 }
 
 export function documentSent(d: GeneratedDocument, o?: Offer): Message {
@@ -90,7 +90,7 @@ export function documentSent(d: GeneratedDocument, o?: Offer): Message {
     non_allocation: "Vos fonds sont restitués sous deux jours ouvrés.",
     opere: "Il confirme l'inscription des titres à votre nom et votre échéancier.",
   };
-  const text = `${COMPANY.name} — ${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}\n${action[d.type] ?? ""}`;
+  const text = `${COMPANY.name} : ${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}\n${action[d.type] ?? ""}`;
   return { subject: `${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}`, text };
 }
 

@@ -9,7 +9,7 @@ import { prettyName } from "@/lib/market/names";
 /**
  * OPCVM documents. Purpose Capital is the distributor: the order goes to the
  * manager's centralising agent, the units are registered at the depositary in
- * the client's name, at the next NAV — never a price known in advance.
+ * the client's name, at the next NAV : never a price known in advance.
  */
 
 const units3 = (u: number) => u.toLocaleString("fr-FR", { maximumFractionDigits: 3 });
@@ -21,7 +21,7 @@ export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, 
   const f = fundOf(offer);
   return (
     <Letter heading={`Bulletin de souscription · ${number}`}>
-      <Text style={s.h1}>Bulletin de souscription — {offer.title}</Text>
+      <Text style={s.h1}>Bulletin de souscription : {offer.title}</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDate(now.toISOString().slice(0, 10))} · intention {intent.ref} · dernière VL connue {fmt(f.nav)} FCFA au {fmtDate(f.navDate)}
       </Text>
@@ -39,7 +39,7 @@ export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, 
         Le souscripteur demande à {COMPANY.legalName}, distributeur, de transmettre cet ordre à {prettyName(f.manager)} pour exécution à la <Text style={s.b}>prochaine valeur liquidative</Text> suivant la centralisation
         {f.cutoff ? ` (${f.cutoff})` : ""}. Le nombre de parts est arrêté par la société de gestion à cette VL et confirmé par avis ; il peut différer de l&apos;estimation ci-dessus. Les parts sont inscrites au nom du souscripteur au registre tenu par le dépositaire. Le souscripteur reconnaît avoir reçu le document d&apos;information clé du fonds et accepte le règlement du fonds ; il a été informé que la valeur liquidative peut baisser et que les performances passées ne préjugent pas des performances futures.
       </Text>
-      <Sig left="Le souscripteur — « lu et approuvé », date et signature" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      <Sig left="Le souscripteur : « lu et approuvé », date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
   );
 }
@@ -49,7 +49,7 @@ export function AppelDeFondsOpcvm({ number, intent, offer, now }: ClientDocCtx) 
   const f = fundOf(offer);
   return (
     <Letter heading={`Appel de fonds · ${number}`}>
-      <Text style={s.h1}>Appel de fonds — souscription {offer.title}</Text>
+      <Text style={s.h1}>Appel de fonds : souscription {offer.title}</Text>
       <Text style={s.ref}>
         {number} · émis le {fmtDate(now.toISOString().slice(0, 10))} · à créditer avant la centralisation{f.cutoff ? ` (${f.cutoff})` : ""}
       </Text>
@@ -76,7 +76,7 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
   const f = fundOf(offer);
   return (
     <Letter heading={`Demande de rachat · ${number}`}>
-      <Text style={s.h1}>Demande de rachat de parts — {offer.title}</Text>
+      <Text style={s.h1}>Demande de rachat de parts : {offer.title}</Text>
       <Text style={s.ref}>
         {number} · établie le {fmtDate(now.toISOString().slice(0, 10))} · intention {intent.ref} · dernière VL connue {fmt(f.nav)} FCFA au {fmtDate(f.navDate)}
       </Text>
@@ -93,7 +93,7 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
       <Text style={s.p}>
         Le porteur demande à {COMPANY.legalName} de transmettre cette demande à {prettyName(f.manager)} pour exécution à la prochaine valeur liquidative de rachat. Le produit, arrêté à cette VL, est viré sur le compte de règlement ci-dessus, ouvert au nom du porteur, dans le délai prévu par le règlement du fonds{f.settlementDays != null ? ` (J+${f.settlementDays} après la VL)` : ""}.
       </Text>
-      <Sig left="Le porteur — date et signature" right={`${COMPANY.legalName} — confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      <Sig left="Le porteur : date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
     </Letter>
   );
 }
@@ -164,7 +164,7 @@ export function BordereauSgo({ number, manager, now, lines, accounts, payouts }:
       <Text style={s.p}>
         Merci d&apos;exécuter ces ordres à la prochaine valeur liquidative, d&apos;inscrire les parts au nom de chaque porteur au registre tenu par le dépositaire (dossiers d&apos;identification joints pour les porteurs marqués « à créer ») et de nous adresser les avis d&apos;opération individuels. Les espèces de souscription sont virées depuis notre compte de règlement clients ségrégué ; les produits de rachat sont à virer directement sur le compte bancaire de chaque porteur tel qu&apos;indiqué au registre.
       </Text>
-      <Sig left={`Pour ${COMPANY.legalName} — le Directeur Général, signature et cachet`} right={`Réception ${prettyName(manager)} — date, heure, visa`} />
+      <Sig left={`Pour ${COMPANY.legalName} : le Directeur Général, signature et cachet`} right={`Réception ${prettyName(manager)} : date, heure, visa`} />
     </Letter>
   );
 }

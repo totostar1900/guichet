@@ -29,7 +29,7 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
   // Empty selects and inputs mean « not given », not an invalid value.
   const raw = Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string" && v.trim() !== ""));
   const p = schema.safeParse(raw);
-  if (!p.success) return { ok: false, error: `Saisie invalide : ${p.error.issues[0]?.path.join(".") ?? ""} — ${p.error.issues[0]?.message ?? ""}` };
+  if (!p.success) return { ok: false, error: `Saisie invalide : ${p.error.issues[0]?.path.join(".") ?? ""} : ${p.error.issues[0]?.message ?? ""}` };
   const { fileId, decision, risk, custodianAccount, notes, requestedItems, screeningLists, screeningOutcome, screeningNotes } = p.data;
   const r = repo();
   const f = await r.getClientFile(fileId);
@@ -55,7 +55,7 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
     });
     await generateKycDocument("convention", updated, desk.name);
     await generateKycDocument("dossier_svt", updated, desk.name);
-    await r.logEvent({ kind: "desk", html: `<b>Dossier approuvé</b> — ${updated.identity.name} (${updated.kind}, risque ${risk}${custodianAccount ? `, compte ${custodianAccount}` : ""}) · par ${desk.name}` });
+    await r.logEvent({ kind: "desk", html: `<b>Dossier approuvé</b> : ${updated.identity.name} (${updated.kind}, risque ${risk}${custodianAccount ? `, compte ${custodianAccount}` : ""}) · par ${desk.name}` });
     await notifyKycDecision(updated, "approuve");
     revalidatePath("/desk/clients");
     revalidatePath("/desk");
@@ -64,14 +64,14 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
   if (decision === "complements") {
     if (!requestedItems) return { ok: false, error: "Indiquez les compléments demandés dans le champ « Compléments à demander » (ex. justificatif de domicile lisible), puis cliquez à nouveau." };
     const updated = await r.updateClientFile(fileId, { status: "complements", documents, screening, review: { ...f.review, notes, requestedItems, reviewedBy: desk.name, reviewedAt: now.toISOString() } });
-    await r.logEvent({ kind: "desk", html: `Dossier ${updated.identity.name} — <b>compléments demandés</b> : ${requestedItems} · ${desk.name}` });
+    await r.logEvent({ kind: "desk", html: `Dossier ${updated.identity.name} : <b>compléments demandés</b> : ${requestedItems} · ${desk.name}` });
     await notifyKycDecision(updated, "complements", requestedItems);
     revalidatePath("/desk/clients");
     return { ok: true, message: "Compléments demandés, client prévenu." };
   }
   if (decision === "refuse") {
     const updated = await r.updateClientFile(fileId, { status: "refuse", documents, screening, review: { ...f.review, risk, notes, reviewedBy: desk.name, reviewedAt: now.toISOString() } });
-    await r.logEvent({ kind: "desk", html: `Dossier ${updated.identity.name} — <b>refusé</b> · ${desk.name}${notes ? ` — ${notes}` : ""}` });
+    await r.logEvent({ kind: "desk", html: `Dossier ${updated.identity.name} : <b>refusé</b> · ${desk.name}${notes ? ` : ${notes}` : ""}` });
     await notifyKycDecision(updated, "refuse", notes);
     revalidatePath("/desk/clients");
     return { ok: true, message: "Dossier refusé." };
@@ -91,14 +91,14 @@ export async function setCustodianAccountAction(_p: ReviewResult | null, form: F
   const f = await r.getClientFile(fileId);
   if (!f || f.status !== "approuve") return { ok: false, error: "Le dossier doit être approuvé." };
   const updated = await r.updateClientFile(fileId, { review: { ...f.review, custodianAccount } });
-  await r.logEvent({ kind: "desk", html: `<b>Sous-compte nominatif ouvert</b> — ${updated.identity.name} · n° ${custodianAccount} · par ${desk.name}` });
+  await r.logEvent({ kind: "desk", html: `<b>Sous-compte nominatif ouvert</b> : ${updated.identity.name} · n° ${custodianAccount} · par ${desk.name}` });
   await notifyKycDecision(updated, "approuve");
   revalidatePath("/desk/clients");
   revalidatePath("/desk");
   return { ok: true, message: "Compte actif : le client peut passer des prises fermes." };
 }
 
-/** Optional automatic pre-check (OpenSanctions) — hints for the officer, stored on the file. */
+/** Optional automatic pre-check (OpenSanctions) : hints for the officer, stored on the file. */
 export async function autoScreenAction(_p: ReviewResult | null, form: FormData): Promise<ReviewResult> {
   const desk = await requireDesk("/desk/clients");
   const fileId = String(form.get("fileId") ?? "");
@@ -107,7 +107,7 @@ export async function autoScreenAction(_p: ReviewResult | null, form: FormData):
   if (!f) return { ok: false, error: "Dossier introuvable." };
   const auto = await screenFile(f);
   await r.updateClientFile(fileId, { screening: { ...f.screening, auto } });
-  await r.logEvent({ kind: "desk", html: `Pré-contrôle sanctions / PPE — ${f.identity.name} : ${auto.provider === "none" ? "fournisseur non configuré" : `${auto.hits.length} correspondance(s)${auto.error ? ` (${auto.error})` : ""}`} · ${desk.name}` });
+  await r.logEvent({ kind: "desk", html: `Pré-contrôle sanctions / PPE : ${f.identity.name} : ${auto.provider === "none" ? "fournisseur non configuré" : `${auto.hits.length} correspondance(s)${auto.error ? ` (${auto.error})` : ""}`} · ${desk.name}` });
   revalidatePath("/desk/clients");
   return auto.provider === "none" ? { ok: false, error: "OPENSANCTIONS_API_KEY absente : le pré-contrôle automatique est désactivé. Consultez les listes manuellement et attestez ci-dessous." } : { ok: true, message: `Pré-contrôle effectué : ${auto.hits.length} correspondance(s) à examiner.` };
 }

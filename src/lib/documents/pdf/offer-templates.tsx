@@ -8,7 +8,7 @@ import { KV, Letter, Table, Text } from "./primitives";
 
 /**
  * Fiche d'une ligne du Guichet, à envoyer sur WhatsApp ou par e-mail : la même
- * information que la page, sur deux pages A4 — identité, chiffres clés, calcul
+ * information que la page, sur deux pages A4 : identité, chiffres clés, calcul
  * de référence, échéancier, points d'attention, documents.
  */
 export interface OfferSheetCtx {
@@ -83,8 +83,8 @@ export function FicheOffre({ number, offer: o, summary: sm, family, status, refe
           <Text style={H2}>Documents</Text>
           {o.documents.map((d) => (
             <Text key={d.name} style={{ fontSize: 8.5, marginTop: 2 }}>
-              {d.name} — {d.meta}
-              {d.url ? ` — ${d.url}` : ""}
+              {d.name} : {d.meta}
+              {d.url ? ` : ${d.url}` : ""}
             </Text>
           ))}
         </View>

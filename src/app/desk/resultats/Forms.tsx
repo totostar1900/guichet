@@ -15,7 +15,7 @@ interface Line {
   orders: { id: string; ref: string; client: string; units: string; amount: number }[];
 }
 
-/** Served price per line and allocation per transmitted order — one submit applies the auction. */
+/** Served price per line and allocation per transmitted order : one submit applies the auction. */
 export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Line[] }) {
   const t = useT();
   const [state, action, pending] = useActionState<ResultsOutcome | null, FormData>(applyResultsAction, null);

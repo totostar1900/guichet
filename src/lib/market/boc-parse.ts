@@ -105,7 +105,7 @@ export const num = (s: string): number => {
   const n = Number(t);
   return Number.isFinite(n) ? n : NaN;
 };
-/** "26/12/2025" → "2025-12-26"; the BVMAC sometimes prints "05/012/2025" — the month keeps its last two digits. */
+/** "26/12/2025" → "2025-12-26"; the BVMAC sometimes prints "05/012/2025" : the month keeps its last two digits. */
 export const isoDate = (d: string): string => {
   const m = d.match(/^(\d{2})\/(\d{2,3})\/(\d{4})$/);
   return m ? `${m[3]}-${m[2].slice(-2)}-${m[1]}` : d;
@@ -351,7 +351,7 @@ function splitIssuer(raw: string): { issuer: string; designation: string } {
   for (const iss of ISSUERS) {
     if (t.toUpperCase().startsWith(iss)) return { issuer: iss, designation: t.slice(iss.length).trim() || t };
   }
-  // generic: "<ISSUER> <CODE> <rate>% …" — the title starts at the token preceding the rate
+  // generic: "<ISSUER> <CODE> <rate>% …" : the title starts at the token preceding the rate
   const m = t.match(/^(.*?)\s+([A-Z0-9-]+(?: MT)? \d+[.,]?\d*\s?%.*)$/);
   if (m) return { issuer: m[1].trim(), designation: m[2].trim() };
   return { issuer: t, designation: t };
@@ -368,7 +368,7 @@ const DENSE = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(.+?,\d{3})(\d{1,4},\d{2})([
 // Older bulletins print the nominal without decimals ("5910" + "6000" + "28,54"): the accrued coupon is then the first ",dd" amount.
 const DENSE_OLD = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(\d{6,16}),(\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
 
-/** Old layout: "<price><nominal><accrued-int>" glued, then ",dd" — pick the accrued length that makes price ≈ pct × nominal. */
+/** Old layout: "<price><nominal><accrued-int>" glued, then ",dd" : pick the accrued length that makes price ≈ pct × nominal. */
 function splitOld(digits: string, dec: string, pct: number): { price: number; nominal: number; accrued: number } | undefined {
   for (let n = 1; n <= 4; n++) {
     if (digits.length - n < 2) break;
@@ -424,7 +424,7 @@ function parseBonds(lines: string[], warnings: string[]): BocBond[] {
       out.push({ isin, mnemo: h[3], issuer, designation, segment: segmentOf(issuer), previousDate: isoDate(m0[1]), previousPct: pct, previousFcfa: pn.price, nominalRemaining: pn.nominal, accruedCoupon: accrued, status: m0[6], open: num(m0[7]), close: num(m0[8]), thresholdHigh: num(m0[9]), thresholdLow: num(m0[10]), variationPct: num(m0[11]), referenceNextFcfa: num(m0[12]) });
       continue;
     }
-    // Layout B: one cell per line — "ISSUER", "TITLE", "ISIN", "MNEMO", date, pct, fcfa, nominal, accrued, vol×5, status, open, close, high, low, variation, ref
+    // Layout B: one cell per line"ISSUER", "TITLE", "ISIN", "MNEMO", date, pct, fcfa, nominal, accrued, vol×5, status, open, close, high, low, variation, ref
     const m = section[i].match(ISIN_RE);
     if (!m) continue;
     const isin = `${m[1]}${m[2]}`;

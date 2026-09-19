@@ -44,7 +44,7 @@ export async function updateQuoteAction(_p: MarketResult | null, form: FormData)
   if (reason && !isResponsable(desk)) {
     const a = await r.createApproval({ kind: "offer_quote", entityId: o.id, title: o.title, payload: next, reason, requestedBy: desk.name });
     await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason }, reason });
-    await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> proposé par ${desk.name}, en attente d'un responsable — ${reason}` });
+    await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> proposé par ${desk.name}, en attente d'un responsable : ${reason}` });
     revalidatePath("/desk/approbations");
     return { ok: true, message: `Proposition transmise à un responsable : ${reason}.` };
   }
@@ -83,11 +83,11 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
   const o = await r.getOffer(i.offerId);
   if (!o) return { ok: false, error: "Ligne introuvable." };
   const asked = positionFor(i, o).units;
-  // Funds: the subscription amount is fixed, units follow the NAV retained — accept what the manager confirms.
+  // Funds: the subscription amount is fixed, units follow the NAV retained : accept what the manager confirms.
   const units = o.kind === "FONDS" ? p.data.executedUnits : Math.min(p.data.executedUnits, asked);
   const updated = await r.updateIntent(i.id, { state: "servie", executedPrice: p.data.executedPrice, servedUnits: units, allocationPct: Math.round((units / Math.max(asked, 1)) * 100) });
   const unitsText = o.kind === "FONDS" ? `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL ${fmt(p.data.executedPrice)} FCFA` : `${fmt(units)} / ${fmt(asked)} à ${o.instrument === "obligation" ? fmtPrice(p.data.executedPrice) : fmt(p.data.executedPrice) + " FCFA"}`;
-  await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) — <b>exécuté</b> ${unitsText} · par ${desk.name}` });
+  await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>exécuté</b> ${unitsText} · par ${desk.name}` });
   await notifyIntentUpdated(updated, o, "servie", desk.name);
   revalidatePath("/desk/marche");
   revalidatePath("/desk");
@@ -105,7 +105,7 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   const o = await r.getOffer(i.offerId);
   if (!o) return { ok: false, error: "Ligne introuvable." };
   const updated = await r.updateIntent(i.id, { state: "reglee" });
-  await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) — <b>réglé</b> · par ${desk.name}` });
+  await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>réglé</b> · par ${desk.name}` });
   try {
     await generateForIntent("opere", i.id, { advisor: desk.name, allocation: (updated.allocationPct ?? 100) / 100 });
   } catch (e) {
@@ -175,7 +175,7 @@ export async function fundBordereauAction(_p: MarketResult | null, form: FormDat
     const doc = await generateFundBordereau(manager, { advisor: desk.name });
     revalidatePath("/desk/documents");
     revalidatePath("/desk/marche");
-    return { ok: true, message: `${doc.number} généré — à retrouver dans Documents.` };
+    return { ok: true, message: `${doc.number} généré : à retrouver dans Documents.` };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Génération impossible." };
   }

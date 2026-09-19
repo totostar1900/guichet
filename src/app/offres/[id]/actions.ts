@@ -43,7 +43,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const session = await getSession();
   if (!session) return { ok: false, error: "Connectez-vous pour envoyer une intention." };
   const parsed = schema.safeParse(Object.fromEntries(form));
-  if (!parsed.success) return { ok: false, error: "Formulaire incomplet — vérifiez le type et le canal." };
+  if (!parsed.success) return { ok: false, error: "Formulaire incomplet : vérifiez le type et le canal." };
   const { offerId, type, amount, channel, message, limitPrice } = parsed.data;
   const firstName = (parsed.data.firstName ?? "").trim().replace(/\s+/g, " ");
   const lastName = (parsed.data.lastName ?? "").trim().replace(/\s+/g, " ");
@@ -78,7 +78,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     if (file && isIndivision(file)) {
       const [allIntents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
       const held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), offers).reduce((s, p) => s + p.nominalAmount, 0);
-      if (held + amt > INDIVISION_CEILING) return { ok: false, error: `Un groupement en indivision est limité à ${fmt(INDIVISION_CEILING)} FCFA de nominal (déjà détenu : ${fmt(held)}). Au-delà, le groupe doit être une association déclarée — parlez-en au desk.` };
+      if (held + amt > INDIVISION_CEILING) return { ok: false, error: `Un groupement en indivision est limité à ${fmt(INDIVISION_CEILING)} FCFA de nominal (déjà détenu : ${fmt(held)}). Au-delà, le groupe doit être une association déclarée : parlez-en au desk.` };
     }
   }
   // Funds are registered at the depositary in the client's name: an approved file is enough, no SVT sub-account needed.
@@ -98,7 +98,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   });
   // Keep the profile reachable with what the client just typed (the desk calls from there).
   await r.updateContact(session.userId, { name: clientName, phone: contactPhone || undefined, email: contactEmail || undefined });
-  if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} — <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
+  if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} : <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
   const sent = (await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined)).map((n) => ({ channel: n.channel, status: n.status }));
   revalidatePath("/desk");
   return { ok: true, ref: intent.ref, type, channel, needsAccount, phone: contactPhone, email: contactEmail, sent };
@@ -117,7 +117,7 @@ export async function toggleWatch(offerId: string, on: boolean): Promise<{ ok: b
       await r.addWatch(session.userId, offerId, watchSnapshot(offer));
     } else await r.removeWatch(session.userId, offerId);
   } catch {
-    return { ok: false, watching: false }; // table missing (migration 0014) — the button stays off
+    return { ok: false, watching: false }; // table missing (migration 0014) : the button stays off
   }
   revalidatePath(`/offres/${offerId}`);
   revalidatePath("/moi");

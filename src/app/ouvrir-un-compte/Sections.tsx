@@ -101,7 +101,7 @@ export function IdentitySection({ file, editable }: P) {
               <label className="field">
                 {file.kind === "groupement" ? "Forme du groupement" : "Forme juridique"}
                 {file.kind === "groupement" ? (
-                  <Select block name="legalForm" value={id.legalForm ?? ""} options={[{ value: "", label: "—" }, { value: "association déclarée", label: t("Association déclarée (compte au nom de l'association)") }, { value: "indivision de mandataires", label: t("Groupe informel — compte en indivision au nom des mandataires (jusqu'à 25 M FCFA)") }, { value: "coopérative / GIC", label: t("Coopérative ou GIC") }]} />
+                  <Select block name="legalForm" value={id.legalForm ?? ""} options={[{ value: "", label: "—" }, { value: "association déclarée", label: t("Association déclarée (compte au nom de l'association)") }, { value: "indivision de mandataires", label: t("Groupe informel : compte en indivision au nom des mandataires (jusqu'à 25 M FCFA)") }, { value: "coopérative / GIC", label: t("Coopérative ou GIC") }]} />
                 ) : (
                   <input name="legalForm" defaultValue={id.legalForm} placeholder={t("SARL, SA, SAS…")} />
                 )}
@@ -249,7 +249,7 @@ export function DocsSection({ file, editable }: P) {
   return (
     <section className={styles.sec}>
       <h2 className="display">{t("3 · Pièces justificatives")}</h2>
-      <p className={styles.hint}>{t("Photographiez chaque pièce avec votre téléphone — une photo nette suffit, elle est réduite avant l'envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu'à la vérification de votre identité.")}</p>
+      <p className={styles.hint}>{t("Photographiez chaque pièce avec votre téléphone : une photo nette suffit, elle est réduite avant l'envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu'à la vérification de votre identité.")}</p>
       <div className={styles.docs}>
         {req.map((k) => (
           <DocRow key={k} kind={k} file={file} editable={editable} />
@@ -286,7 +286,7 @@ export function FundsSection({ file, editable }: P) {
             <input name="bankName" defaultValue={f.bankName} placeholder={t("Ex. Afriland First Bank")} />
           </label>
           <label className="field">
-            {t("RIB / IBAN de ce compte — y sont virés vos produits de vente, de rachat, coupons et remboursements")}
+            {t("RIB / IBAN de ce compte : y sont virés vos produits de vente, de rachat, coupons et remboursements")}
             <input name="bankAccount" defaultValue={f.bankAccount} placeholder="Ex. CM21 10005 00001 12345678901 23" inputMode="text" autoComplete="off" />
           </label>
           <label className="field">
@@ -318,7 +318,7 @@ export function FundsSection({ file, editable }: P) {
           </label>
           <label className="field">
             {t("Capacité à supporter une perte")}
-            <Select block name="lossCapacity" value={p.lossCapacity ?? ""} options={[{ value: "", label: "—" }, { value: "Faible — ces fonds sont nécessaires à court terme", label: t("Faible — ces fonds sont nécessaires à court terme") }, { value: "Moyenne", label: t("Moyenne") }, { value: "Élevée — épargne de long terme", label: t("Élevée — épargne de long terme") }]} />
+            <Select block name="lossCapacity" value={p.lossCapacity ?? ""} options={[{ value: "", label: "—" }, { value: "Faible : ces fonds sont nécessaires à court terme", label: t("Faible : ces fonds sont nécessaires à court terme") }, { value: "Moyenne", label: t("Moyenne") }, { value: "Élevée : épargne de long terme", label: t("Élevée : épargne de long terme") }]} />
           </label>
         </fieldset>
         <Msg state={state} />
@@ -341,7 +341,7 @@ export function ConsentSection({ file, editable }: P) {
     <section className={styles.sec}>
       <h2 className="display">{t("5 · Convention et consentements")}</h2>
       <div className={styles.convention}>
-        <b>{t("Convention d'ouverture de compte-titres — l'essentiel")}</b>
+        <b>{t("Convention d'ouverture de compte-titres : l'essentiel")}</b>
         <ul>
           <li>{t("Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.")}</li>
           <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom.")}</li>

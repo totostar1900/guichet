@@ -230,7 +230,7 @@ export async function saveJsonAction(_p: RefResult | null, form: FormData): Prom
   const p = (kind === REF.companies ? companySchema : issuerSchema).safeParse(json);
   if (!p.success) {
     const i = p.error.issues[0];
-    return { ok: false, error: `Fiche incomplète : ${i?.path.join(".") || "racine"} — ${i?.message}.` };
+    return { ok: false, error: `Fiche incomplète : ${i?.path.join(".") || "racine"} : ${i?.message}.` };
   }
   const key = kind === REF.companies ? (p.data as { mnemo: string }).mnemo : (p.data as { slug: string }).slug;
   const beforeJ = (await repo().listReference(kind)).find((r) => r.key === key)?.data;

@@ -5,7 +5,7 @@ import { setLangAction } from "@/i18n/actions";
 import { useLang } from "@/i18n/client";
 import styles from "./LangSwitch.module.css";
 
-/** FR · EN — one click, the whole app switches; the choice is kept for a year. */
+/** FR · EN : one click, the whole app switches; the choice is kept for a year. */
 export function LangSwitch({ compact }: { compact?: boolean }) {
   const lang = useLang();
   const pathname = usePathname();

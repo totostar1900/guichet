@@ -15,9 +15,9 @@ export default async function RobotPage() {
       <DeskNav current="/desk/robot" />
       <div className="panel">
         <div className="panel-h">
-          <h2>{t("Robot WhatsApp — banc d'essai")}</h2>
+          <h2>{t("Robot WhatsApp : banc d'essai")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {t(botAvailable() ? "Actif : les messages entrants reçoivent une réponse automatique" : "Inactif — ajoutez ANTHROPIC_API_KEY pour l'activer")}
+            {t(botAvailable() ? "Actif : les messages entrants reçoivent une réponse automatique" : "Inactif : ajoutez ANTHROPIC_API_KEY pour l'activer")}
           </span>
         </div>
         <BotBench contacts={contacts.map((c) => ({ name: c.name, phone: c.phone! }))} />

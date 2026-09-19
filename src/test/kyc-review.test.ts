@@ -39,7 +39,7 @@ describe("revue KYC", () => {
     expect(missingForSubmission(file)).toEqual([]); // no piece, no id number: still submittable
     expect(missingForApproval(file).length).toBeGreaterThan(3); // the desk sees what is left
 
-    // « Demander des compléments » with the screening select left on « — à renseigner — » (empty string).
+    // « Demander des compléments » with the screening select left on «, à renseigner, » (empty string).
     const noItems = await reviewAction(null, form({ fileId: file.id, decision: "complements", screeningOutcome: "", requestedItems: "" }));
     expect(noItems.ok).toBe(false);
     expect(!noItems.ok && noItems.error).toMatch(/Compléments à demander/);

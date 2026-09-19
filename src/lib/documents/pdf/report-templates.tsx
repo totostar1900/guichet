@@ -6,7 +6,7 @@ import type { Activity, ClientRow, OrderRow, Period } from "@/lib/reporting";
 import { KV, Letter, Sig, Table, Text, s } from "./primitives";
 
 /**
- * Rapport d'activité périodique — the figures the regulator asks a société de
+ * Rapport d'activité périodique : the figures the regulator asks a société de
  * bourse for, computed from the same rows as the desk's reporting page.
  * Nothing typed, everything reproducible from the register at the period's dates.
  */
@@ -45,7 +45,7 @@ export function RapportActivite({ number, period, now, activity: a, journal, cli
   const noScreen = clients.filter((c) => c.status === "approuve" && c.screening === "non attesté").length;
   return (
     <Letter heading={`Rapport d'activité · ${number}`}>
-      <Text style={s.h1}>Rapport d&apos;activité — du {fmtDate(period.from)} au {fmtDate(period.to)}</Text>
+      <Text style={s.h1}>Rapport d&apos;activité : du {fmtDate(period.from)} au {fmtDate(period.to)}</Text>
       <Text style={s.ref}>
         {number} · établi le {fmtDateTime(now.toISOString())} · {COMPANY.legalName}, {COMPANY.licence}
       </Text>
@@ -53,7 +53,7 @@ export function RapportActivite({ number, period, now, activity: a, journal, cli
       <Text style={[s.p, s.b]}>1. Synthèse de la période</Text>
       <KV
         rows={[
-          ["Intentions reçues (tous canaux)", `${intentsTotal}${intentsTotal ? ` — ${Object.entries(a.intents).map(([k, n]) => `${n} ${k.toLowerCase()}`).join(", ")}` : ""}`],
+          ["Intentions reçues (tous canaux)", `${intentsTotal}${intentsTotal ? ` : ${Object.entries(a.intents).map(([k, n]) => `${n} ${k.toLowerCase()}`).join(", ")}` : ""}`],
           ["Ordres fermes reçus (montant estimé à réception)", `${journal.length} · ${fmtMillions(a.firmAmount)}`],
           ["Ordres exécutés · réglés", `${a.executedCount} · ${a.settledCount}`],
           ["Montants réglés par instrument", Object.entries(a.settledByInstrument).map(([k, v]) => `${k} ${fmtMillions(v)}`).join(" · ") || "aucun règlement"],
@@ -81,15 +81,15 @@ export function RapportActivite({ number, period, now, activity: a, journal, cli
       <Text style={[s.p, s.b]}>3. Clientèle et conformité</Text>
       <KV
         rows={[
-          ["Dossiers clients au registre", `${clients.length} — ${approved} approuvé${approved > 1 ? "s" : ""}, ${pending} en instruction`],
+          ["Dossiers clients au registre", `${clients.length} : ${approved} approuvé${approved > 1 ? "s" : ""}, ${pending} en instruction`],
           ["Répartition par type", Object.entries(clients.reduce<Record<string, number>>((acc, c) => ((acc[c.kind] = (acc[c.kind] ?? 0) + 1), acc), {})).map(([k, n]) => `${k} ${n}`).join(" · ") || "—"],
           ["Répartition par niveau de risque", Object.entries(clients.reduce<Record<string, number>>((acc, c) => ((acc[c.risk || "non noté"] = (acc[c.risk || "non noté"] ?? 0) + 1), acc), {})).map(([k, n]) => `${k} ${n}`).join(" · ") || "—"],
-          ["Contrôle sanctions / PPE attesté", `${clients.filter((c) => c.screening !== "non attesté").length} dossier(s) attesté(s)${noScreen ? ` — ${noScreen} approuvé(s) sans attestation : à régulariser` : ""}`],
+          ["Contrôle sanctions / PPE attesté", `${clients.filter((c) => c.screening !== "non attesté").length} dossier(s) attesté(s)${noScreen ? ` : ${noScreen} approuvé(s) sans attestation : à régulariser` : ""}`],
           ["Revues périodiques échues", String(clients.filter((c) => c.nextReviewOn && c.nextReviewOn <= period.to).length)],
         ]}
       />
 
-      <Text style={[s.p, s.b]}>4. Conservation — positions en fin de période</Text>
+      <Text style={[s.p, s.b]}>4. Conservation : positions en fin de période</Text>
       {positions.length ? (
         <>
           <Table cols={[{ label: "Segment", flex: 2 }, { label: "Positions", right: true }, { label: "Valeur indicative (FCFA)", flex: 1.6, right: true }]} rows={[...holders.entries()].map(([k, v]) => [k, v.n, fmt(v.value)])} />
@@ -114,7 +114,7 @@ export function RapportActivite({ number, period, now, activity: a, journal, cli
           Méthode : toutes les valeurs proviennent du registre des offres, du journal des ordres, des dossiers clients et des documents émis par {COMPANY.legalName} ; elles sont recalculées à la demande et reproductibles. Valeurs indicatives au dernier cours de clôture ou à la dernière VL publiée ; lignes du marché primaire au nominal.
         </Text>
       </View>
-      <Sig left={`Pour ${COMPANY.legalName} — le Directeur Général`} right="Responsable de la conformité — visa" />
+      <Sig left={`Pour ${COMPANY.legalName} : le Directeur Général`} right="Responsable de la conformité : visa" />
     </Letter>
   );
 }

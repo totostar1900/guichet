@@ -1,4 +1,4 @@
-// Dump embedded JPEG (DCTDecode) images of a PDF — the usual content of scanned statements.
+// Dump embedded JPEG (DCTDecode) images of a PDF: the usual content of scanned statements.
 // usage: node scripts/pdf-images.cjs <file.pdf> <outDir> [maxImages]
 const fs = require("fs");
 const [file, outDir, max] = process.argv.slice(2);

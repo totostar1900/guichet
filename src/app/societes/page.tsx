@@ -10,7 +10,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Sociétés cotées — BVMAC" };
+export const metadata = { title: "Sociétés cotées : BVMAC" };
 
 
 export default async function SocietesPage() {
@@ -28,7 +28,7 @@ export default async function SocietesPage() {
         <div>
           <h1 className="display">{t("Les sociétés cotées")}</h1>
           <p className={styles.lead}>
-            {t("Les {n} entreprises dont les actions s'échangent à la BVMAC, ensemble {cap} de capitalisation. Pour chacune : ce qu'elle fait, ses comptes certifiés des dernières années, ce que vaut l'action aujourd'hui et comment lire ces chiffres — puis un rapport PDF sur la période de votre choix.", { n: COMPANIES.length, cap: fmtUnits(totalCap, true) })}
+            {t("Les {n} entreprises dont les actions s'échangent à la BVMAC, ensemble {cap} de capitalisation. Pour chacune : ce qu'elle fait, ses comptes certifiés des dernières années, ce que vaut l'action aujourd'hui et comment lire ces chiffres : puis un rapport PDF sur la période de votre choix.", { n: COMPANIES.length, cap: fmtUnits(totalCap, true) })}
           </p>
         </div>
         {bulletins[0] && (
@@ -92,7 +92,7 @@ export default async function SocietesPage() {
           const G = getRegistry().glossary;
           return (["per", "rendement_dividende", "capitalisation", "ytd"] as const).map((k) => (
             <div key={k}>
-              <b>{"long" in G[k] && G[k].long ? `${t(G[k].short)} — ${t(G[k].long)}` : t(G[k].short)}</b>
+              <b>{"long" in G[k] && G[k].long ? `${t(G[k].short)} : ${t(G[k].long)}` : t(G[k].short)}</b>
               {t(G[k].text)}
             </div>
           ));

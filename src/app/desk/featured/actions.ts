@@ -17,7 +17,7 @@ const schema = z.object({
 
 const FORBIDDEN = /\b(meilleur|recommand|conseill|à saisir|profitez|garanti|sûr|opportunité en or|exceptionnel)/i;
 
-/** « Sélection du desk » : a factual reason, an expiry, at most three at a time — audited, never a recommendation. */
+/** « Sélection du desk » : a factual reason, an expiry, at most three at a time : audited, never a recommendation. */
 export async function featureOfferAction(_p: FeatureResult | null, form: FormData): Promise<FeatureResult> {
   const desk = await requireDesk("/desk");
   const p = schema.safeParse(Object.fromEntries(form));
@@ -33,13 +33,13 @@ export async function featureOfferAction(_p: FeatureResult | null, form: FormDat
   if (active.length >= 3) return { ok: false, error: "Trois lignes au plus à la une : retirez-en une d'abord." };
   const featured = { reason: p.data.reason, until: p.data.until, by: desk.name, at: new Date().toISOString() };
   try {
-    await r.upsertOffer({ ...o, featured, version: o.version + 1 }, { expectedVersion: o.version, by: desk.name, note: `À la une — ${p.data.reason}` });
+    await r.upsertOffer({ ...o, featured, version: o.version + 1 }, { expectedVersion: o.version, by: desk.name, note: `À la une : ${p.data.reason}` });
   } catch (e) {
     if (e instanceof ConflictError) return { ok: false, error: e.message };
     throw e;
   }
   await audit("offer.feature", "offer", o.id, { before: { featured: o.featured ?? null }, after: { featured }, reason: p.data.reason });
-  await r.logEvent({ kind: "desk", offerId: o.id, html: `<b>${o.title}</b> mise à la une par ${desk.name} — ${p.data.reason} (jusqu'au ${p.data.until})` });
+  await r.logEvent({ kind: "desk", offerId: o.id, html: `<b>${o.title}</b> mise à la une par ${desk.name} : ${p.data.reason} (jusqu'au ${p.data.until})` });
   for (const path of ["/", "/desk", `/offres/${o.id}`]) revalidatePath(path);
   return { ok: true, message: `${o.title} est à la une jusqu'au ${p.data.until}.` };
 }
@@ -75,7 +75,7 @@ export async function broadcastOpportunityAction(_p: FeatureResult | null, form:
   const plan = await planBroadcast(o, p.data.segment);
   if (plan.recipients.length === 0) return { ok: false, error: `Personne à prévenir${plan.capped ? ` (${plan.capped} déjà alerté${plan.capped > 1 ? "s" : ""} aujourd'hui)` : ""}.` };
   if (plan.recipients.length > 50 && !isResponsable(desk)) return { ok: false, error: `${plan.recipients.length} destinataires : au-delà de 50, un responsable doit lancer la diffusion.` };
-  if (!p.data.confirm) return { ok: false, error: `${plan.recipients.length} client${plan.recipients.length > 1 ? "s" : ""} (${plan.pushDevices} appareil${plan.pushDevices > 1 ? "s" : ""} avec alertes${plan.capped ? `, ${plan.capped} déjà alerté${plan.capped > 1 ? "s" : ""} aujourd'hui` : ""})${plan.quiet ? " — envoi différé à 7 h" : ""}. Cochez « Confirmer » puis relancez.` };
+  if (!p.data.confirm) return { ok: false, error: `${plan.recipients.length} client${plan.recipients.length > 1 ? "s" : ""} (${plan.pushDevices} appareil${plan.pushDevices > 1 ? "s" : ""} avec alertes${plan.capped ? `, ${plan.capped} déjà alerté${plan.capped > 1 ? "s" : ""} aujourd'hui` : ""})${plan.quiet ? " : envoi différé à 7 h" : ""}. Cochez « Confirmer » puis relancez.` };
   const tally = await broadcastOpportunity(o, o.featured.reason, p.data.segment, desk.name);
   await audit("offer.broadcast", "offer", o.id, { after: { segment: p.data.segment, ...tally }, reason: o.featured.reason });
   revalidatePath("/desk");

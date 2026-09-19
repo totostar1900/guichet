@@ -1,4 +1,4 @@
-/** Documentation — the chrome around the bilingual pages (their text carries its own English). */
+/** Documentation : the chrome around the bilingual pages (their text carries its own English). */
 export const EN_DOCS: Record<string, string> = {
   "Documentation": "Documentation",
   "Comment l'application fonctionne, ce qu'elle coûte, comment on aide un client, comment on l'administre et comment on la maintient. En français et en anglais, en mots simples ; chaque page dit quand elle a été relue face à l'application.": "How the app works, what it costs, how to help a client, how to administer and maintain it. In French and English, in plain words; every page says when it was last read against the app.",
@@ -35,7 +35,7 @@ export const EN_DOCS: Record<string, string> = {
   "Aucune note dans docs/notes.": "No note under docs/notes.",
   "modifié le": "modified on",
   "Dernière note modifiée le": "Last note modified on",
-  "État du projet, décisions, conventions, migrations, ce qui reste à faire — en anglais, copiées du dossier docs/notes du dépôt.": "Project state, decisions, conventions, migrations, what is left — in English, copied from the repository's docs/notes folder.",
+  "État du projet, décisions, conventions, migrations, ce qui reste à faire : en anglais, copiées du dossier docs/notes du dépôt.": "Project state, decisions, conventions, migrations, what is left : in English, copied from the repository's docs/notes folder.",
   "Chaque chiffre s'explique": "Every figure explains itself",
   "Touchez une carte : d'où vient le chiffre, ligne par ligne, avec la leçon de deux minutes qui va avec. Les bulles « i » de la page font pareil pour chaque mot ; tout est réuni sous Info, avec un simulateur et la page Aide.": "Tap a card: where the figure comes from, line by line, with the two-minute lesson that goes with it. The 'i' bubbles on the page do the same for every word; everything is gathered under Info, with a simulator and the Help page.",
   "La page Guide du client : le glossaire et les leçons de ces onglets, tels que le client les lit": "The client's Guide page: the glossary and lessons of these tabs, as the client reads them",
@@ -108,7 +108,7 @@ export const EN_DOCS: Record<string, string> = {
   "Les fonds ont leur page": "Funds have their own page",
   "Les parts de fonds (OPCVM) se souscrivent à la prochaine valeur liquidative : elles ont leur propre tableau, avec leurs catégories et leur société de gestion.": "Fund units are subscribed at the next net asset value: they have their own table, with their categories and their manager.",
   "Filtrer, puis trier": "Filter, then sort",
-  "Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres. Le tri et les filtres restent dans l'adresse de la page — revenez d'une fiche, la liste est telle que vous l'aviez laissée.": "Instrument, country, status, term, yield: each filter adds to the others. Sort and filters stay in the page address — come back from a line, the list is as you left it.",
+  "Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres. Le tri et les filtres restent dans l'adresse de la page : revenez d'une fiche, la liste est telle que vous l'aviez laissée.": "Instrument, country, status, term, yield: each filter adds to the others. Sort and filters stay in the page address : come back from a line, the list is as you left it.",
   "Tableau, liste ou cartes": "Table, list or cards",
   "Le tableau compare les chiffres, la liste se lit d'un trait, les cartes conviennent au téléphone. Le rendement est toujours le premier chiffre.": "The table compares figures, the list reads in one go, the cards suit a phone. The yield is always the first figure.",
   "Quatre catégories": "Four categories",
@@ -119,7 +119,7 @@ export const EN_DOCS: Record<string, string> = {
   "Ce que le client voit : la page Titres, ses deux interrupteurs de marché (primaire, secondaire) et le lien vers les fonds": "What the client sees: the Securities page, its two market switches (primary, secondary) and the link to the funds",
   "La page Fonds du client : un seul tableau, les quatre catégories expliquées au-dessus": "The client's Funds page: one table, the four categories explained above it",
   "Ce que le client en voit": "What the client sees of it",
-  "Les cours nourrissent la page Titres — deux interrupteurs, Marché primaire et Marché secondaire, tous deux allumés par défaut — et les VL nourrissent la page Fonds, un seul tableau avec les quatre catégories expliquées au-dessus.": "Prices feed the Securities page — two switches, Primary market and Secondary market, both on by default — and NAVs feed the Funds page, one table with the four categories explained above it.",
+  "Les cours nourrissent la page Titres, deux interrupteurs, Marché primaire et Marché secondaire, tous deux allumés par défaut, et les VL nourrissent la page Fonds, un seul tableau avec les quatre catégories expliquées au-dessus.": "Prices feed the Securities page, two switches, Primary market and Secondary market, both on by default, and NAVs feed the Funds page, one table with the four categories explained above it.",
   "Voir la page Titres": "See the Securities page",
   "Les deux parcours du Guide : « Lire une ligne » (huit leçons) et « Comprendre le marché CEMAC » (vingt leçons en cinq sections, colonne Cours). Titre, texte, schéma ou bloc, question.": "The Guide's two courses: 'Reading a line' (eight lessons) and 'Understanding the CEMAC market' (twenty lessons in five sections, Course column). Title, text, diagram or block, question.",
   "Le parcours « Comprendre le marché CEMAC » : cinq sections repliables, vingt leçons, la progression du client": "The 'Understanding the CEMAC market' course: five folding sections, twenty lessons, the client's progress",

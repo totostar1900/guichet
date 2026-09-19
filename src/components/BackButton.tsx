@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { useT } from "@/i18n/client";
 
-/** « ← Retour » — the page the reader came from when there is one in this tab, a fallback link otherwise. */
+/** « ← Retour » : the page the reader came from when there is one in this tab, a fallback link otherwise. */
 export function BackButton({ fallbackHref, fallbackLabel, className = "btn sm ghost" }: { fallbackHref: string; fallbackLabel: string; className?: string }) {
   const t = useT();
   const router = useRouter();

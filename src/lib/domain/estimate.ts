@@ -3,7 +3,7 @@ import { bondCalc, btaCalc } from "../finance";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "../format";
 
 /**
- * One-line sizing of a client's amount at the published price — used in the
+ * One-line sizing of a client's amount at the published price : used in the
  * intent form (client) and in the desk's confirmation. Returns plain segments
  * so both React and text channels (WhatsApp) can render it.
  */
@@ -47,7 +47,7 @@ export function estimate(o: Offer, amount: number): Estimate {
     const ref = o.ask ?? o.lastPrice ?? 0;
     const unit = isBond ? (o.nominal * ref) / 100 : ref;
     const n = Math.floor(amount / Math.max(unit, 1));
-    if (o.lotSize && n < o.lotSize) return { ok: false, text: `Quantité minimale ${o.lotSize} — soit ${fmt(o.lotSize * unit)} FCFA au cours actuel.` };
+    if (o.lotSize && n < o.lotSize) return { ok: false, text: `Quantité minimale ${o.lotSize} : soit ${fmt(o.lotSize * unit)} FCFA au cours actuel.` };
     const r = isBond && o.couponRate != null && o.maturityOn ? bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, n * o.nominal, ref) : undefined;
     return { ok: n > 0, titles: n, outlay: r ? r.outlay : n * unit, text: n > 0 ? `≈ ${fmt(n)} ${isBond ? "titres" : "actions"} au cours de référence ${isBond ? fmtPrice(ref) : fmt(ref) + " FCFA"} · ${fmt(r ? r.outlay : n * unit)} FCFA${r?.accruedDays ? ` dont ${fmt(r.accrued)} de coupon couru` : ""} · règlement T+${o.settlementDays ?? 3} · le prix d'exécution dépend du marché` : "Montant inférieur à une unité." };
   }

@@ -17,7 +17,7 @@ import { getT } from "@/i18n/server";
 export const metadata = { title: "Guide" };
 
 /**
- * The Guide tab (/info): where a first-time investor starts — eight short lessons
+ * The Guide tab (/info): where a first-time investor starts : eight short lessons
  * (référentiel), the bond simulator, the comparison tool, the glossary;
  * « Premiers pas » replayable here. The former « Simulateur & repères » lives here.
  */
@@ -27,13 +27,13 @@ export default async function InfoPage() {
   const parcoursCount = (await loadLessons()).filter((l) => l.section).length;
   const t = await getT();
   const keys = Object.keys(G).sort((a, b) => G[a].short.localeCompare(G[b].short, "fr"));
-  // The search index: glossary, lessons, tools and pages — in the viewer's language.
+  // The search index: glossary, lessons, tools and pages : in the viewer's language.
   const entries: SearchEntry[] = [
-    ...keys.map((k) => ({ kind: "terme" as const, title: G[k].long ? `${t(G[k].short)} — ${t(G[k].long)}` : t(G[k].short), text: t(G[k].text), href: `/info#terme-${k}`, extra: k.replace(/_/g, " ") })),
+    ...keys.map((k) => ({ kind: "terme" as const, title: G[k].long ? `${t(G[k].short)} : ${t(G[k].long)}` : t(G[k].short), text: t(G[k].text), href: `/info#terme-${k}`, extra: k.replace(/_/g, " ") })),
     { kind: "lecon" as const, title: t("Comprendre le marché CEMAC"), text: t("Cinq sections, vingt leçons : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais."), href: "/info/parcours", extra: "parcours cours marché BEAC COSUMAF BVMAC acteurs instruments risques" },
     ...(await loadLessons()).filter((l) => l.section).map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
     ...lessons.map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
-    { kind: "outil" as const, title: t("Simulateur d'obligation"), text: t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet."), href: "/info#simulateur", extra: "simulation rendement prix coupon" },
+    { kind: "outil" as const, title: t("Simulateur d'obligation"), text: t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet."), href: "/info#simulateur", extra: "simulation rendement prix coupon" },
     { kind: "outil" as const, title: t("Comparer deux lignes"), text: t("Deux offres côte à côte : rendement, durée, ticket, calendrier."), href: "/comparer", extra: "comparaison comparateur" },
     { kind: "outil" as const, title: t("Revoir les premiers pas"), text: t("Toutes les opportunités de la zone CEMAC, à un endroit"), href: "/info?premiers-pas=1", extra: "onboarding tutoriel guide" },
     { kind: "page" as const, title: t("Guichet"), text: t("Titres neufs : vous souscrivez auprès de l'émetteur (Trésor, entreprise) pendant une fenêtre, à un prix fixé par adjudication ou par le desk.") + " " + t("Titres déjà cotés à la BVMAC : vous achetez ou vendez à un autre investisseur, au cours du jour, en séance."), href: "/", extra: "offres lignes marché primaire secondaire OTA BTA APE IPO" },
@@ -59,7 +59,7 @@ export default async function InfoPage() {
         <div className={styles.head}>
           <div className="eyebrow">Guide</div>
           <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
-          <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques — expliqués une fois pour toutes, sans jargon inutile.")}</p>
+          <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
         </div>
         <div data-coach="info-search" id="recherche" className={styles.anchor}>
           <InfoSearch entries={entries} />
@@ -107,8 +107,8 @@ export default async function InfoPage() {
           {t("Simulateur d'obligation")}
         </h2>
         <div className={styles.sim} data-coach="info-sim">
-          <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours — les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
-          <div className={styles.warn}>{t("Outil pédagogique — résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
+          <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
+          <div className={styles.warn}>{t("Outil pédagogique : résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
           <Simulator />
         </div>
 
@@ -133,7 +133,7 @@ export default async function InfoPage() {
           replayLabel={t("Comment utiliser le Guide ?")}
           stops={[
             { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, une leçon, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
-            { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page — la recherche, les leçons, le simulateur, les outils, le glossaire — et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
+            { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page, la recherche, les leçons, le simulateur, les outils, le glossaire, et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
             { target: "info-lessons", title: t("Huit leçons de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque leçon se lit en deux minutes et se coche une fois lue.") },
             { target: "info-glossaire", title: t("Les mots du Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },

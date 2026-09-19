@@ -19,7 +19,7 @@ export async function publishedNews(now = new Date(), archive = false): Promise<
   return all.filter((n) => n.status === "publiee" && (archive || isVisible(n, now)));
 }
 
-/** Items linked to a line, a company, an issuer or a glossary term — for the « Actualités liées » block on a page. */
+/** Items linked to a line, a company, an issuer or a glossary term : for the « Actualités liées » block on a page. */
 export async function newsFor(kind: NewsItem["links"][number]["kind"], key: string, now = new Date()): Promise<NewsItem[]> {
   const live = await publishedNews(now);
   return live.filter((n) => n.links.some((l) => l.kind === kind && l.key === key));

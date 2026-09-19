@@ -37,7 +37,7 @@ export default async function MarketPage() {
 
       <div className="panel" data-coach="import">
         <div className="panel-h">
-          <h2>{t("Bulletin Officiel de la Cote — BVMAC")}</h2>
+          <h2>{t("Bulletin Officiel de la Cote : BVMAC")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t("Téléchargé chaque jour de bourse à 18 h 30 UTC, lu automatiquement, cours et VL versés dans le Guichet · le PDF est conservé")}
           </span>
@@ -197,7 +197,7 @@ export default async function MarketPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>OPCVM — {t("{n} fonds lus au bulletin, {m} ouvert(s) à la souscription", { n: funds.length, m: funds.filter((o) => o.fund?.distributed).length })}</h2>
+          <h2>OPCVM : {t("{n} fonds lus au bulletin, {m} ouvert(s) à la souscription", { n: funds.length, m: funds.filter((o) => o.fund?.distributed).length })}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t("VL publiées par les sociétés de gestion agréées COSUMAF. Un fonds n'est proposé à la souscription qu'avec une convention de distribution : cochez « distribué », renseignez la référence, les droits et le minimum.")}
           </span>
