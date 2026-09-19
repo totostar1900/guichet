@@ -11,6 +11,7 @@ import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
+import { TrustNudge } from "@/components/TrustNudge";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -75,10 +76,14 @@ export default async function MyPage() {
             {t(s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte")}
           </Link>
         )}
+        <Link href="/moi/securite" className="btn">
+          {t("Sécurité")}
+        </Link>
         <Link href="/" className="btn">
           {t("Voir les offres")}
         </Link>
       </div>
+      <TrustNudge />
 
       <div className={styles.kpis}>
         <div>

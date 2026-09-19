@@ -787,11 +787,18 @@ export const supabaseRepository: Repository = {
     if (error) fail("removeDevices", error);
   },
   async updateContact(id, patch) {
-    const row: Record<string, string> = {};
+    const row: Record<string, string | null> = {};
     if (patch.name) row.display_name = patch.name;
     if (patch.phone) row.phone = patch.phone;
     if (patch.email) row.email = patch.email;
     if (!Object.keys(row).length) return;
+    if (patch.phone || patch.email) {
+      // A new number or address is a new channel: its proof falls with the old one.
+      const { data: cur } = await db().from("profiles").select("phone, email").eq("id", id).maybeSingle();
+      const c = (cur ?? {}) as { phone?: string | null; email?: string | null };
+      if (patch.phone && c.phone && c.phone !== patch.phone) row.phone_verified_at = null;
+      if (patch.email && c.email && c.email !== patch.email) row.email_verified_at = null;
+    }
     const { error } = await db().from("profiles").update(row).eq("id", id);
     if (error) fail("updateContact", error);
   },

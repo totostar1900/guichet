@@ -5,6 +5,7 @@ import { z } from "zod";
 import { authMode } from "@/lib/auth";
 import { clearDevSession, writeDevSession } from "@/lib/auth/dev";
 import type { Session } from "@/lib/auth/types";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 
 export type LoginState = { step: "email"; error?: string } | { step: "code"; email: string; error?: string } | { step: "phone"; error?: string } | { step: "phone-code"; phone: string; error?: string };
 
@@ -105,4 +106,22 @@ export async function logout(): Promise<void> {
     await clearDevSession();
   }
   redirect("/");
+}
+
+/* ---------- Appareils de confiance : clé d'accès ou code à 4 chiffres ---------- */
+
+export async function passkeyOptions() {
+  const { passkeyAuthenticationOptions } = await import("@/lib/auth/devices");
+  return passkeyAuthenticationOptions();
+}
+
+export async function passkeyLogin(response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+  const { passkeyAuthenticate } = await import("@/lib/auth/devices");
+  return passkeyAuthenticate(response);
+}
+
+export async function pinLogin(deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
+  if (!/^[a-zA-Z0-9-]{4,60}$/.test(deviceId) || !/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
+  const { pinAuthenticate } = await import("@/lib/auth/devices");
+  return pinAuthenticate(deviceId, token, pin);
 }

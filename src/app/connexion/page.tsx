@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { ReplayPresentation } from "@/components/mobile/Presentation";
+import { DeviceSignIn } from "./DeviceSignIn";
 
 export const metadata = { title: "Connexion" };
 
@@ -22,6 +23,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="eyebrow">{COMPANY.name}</div>
         <h1 className="display">{t("Se connecter")}</h1>
         {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau code ci-dessous : il arrive en quelques secondes.")}</p>}
+        <DeviceSignIn next={next} />
         {mode === "supabase" ? (
           <>
             <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>

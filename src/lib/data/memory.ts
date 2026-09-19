@@ -469,11 +469,17 @@ export const memoryRepository: Repository = {
       store().contacts.push(c);
     }
     if (patch.name) c.name = patch.name;
+    // A new number or address is a new channel: its proof falls with the old one.
+    const st = store().channels.get(id);
     if (patch.phone) {
+      if (st?.phone && st.phone !== patch.phone) Object.assign(st, { phone: patch.phone, phoneVerifiedAt: undefined });
       c.phone = patch.phone;
       c.whatsappOptIn = true; // giving the number on the form is the consent
     }
-    if (patch.email) c.email = patch.email;
+    if (patch.email) {
+      if (st?.email && st.email !== patch.email) Object.assign(st, { email: patch.email, emailVerifiedAt: undefined });
+      c.email = patch.email;
+    }
   },
   async listNotifications(limit = 50) {
     return structuredClone(store().notifications.slice(0, limit));

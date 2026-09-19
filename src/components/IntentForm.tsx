@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useRef, useState } from "react";
 import type { IntentResult } from "@/app/offres/[id]/actions";
-import { checkPhoneProof, guestSendEmailCode, guestVerifyEmailCode, sendPhoneProof, submitIntent } from "@/app/offres/[id]/actions";
+import { submitIntent } from "@/app/offres/[id]/actions";
 import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone } from "@/lib/format";
+import { ProofBlock } from "@/components/ProofBlock";
+import { TrustNudge } from "@/components/TrustNudge";
 import { estimate } from "@/lib/domain/estimate";
 import { orderChecks } from "@/lib/domain/checks";
 import { Info } from "./Info";
@@ -47,76 +48,6 @@ function redemptionEstimate(o: Offer, units: number): string {
   const gross = units * o.fund.nav;
   const fee = gross * (o.fund.exitFeePct / 100);
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
-}
-
-/**
- * The proof of a channel, inline: a six-digit code sent on the channel and
- * typed here, once. The phone (WhatsApp) is proven by Guichet's own code; a
- * guest's e-mail by the sign-in code, which also creates the account.
- */
-function ProofBlock({ kind, target, onProven, demo }: { kind: "phone" | "email"; target: string; onProven: (target: string) => void; demo?: string }) {
-  const t = useT();
-  const router = useRouter();
-  const [sent, setSent] = useState<"idle" | "sent">("idle");
-  const [code, setCode] = useState("");
-  const [msg, setMsg] = useState<{ error?: string; demo?: string } | null>(demo ? { demo } : null);
-  const [pending, start] = useTransition();
-  const send = () =>
-    start(async () => {
-      const r = kind === "phone" ? await sendPhoneProof(target) : await guestSendEmailCode(target);
-      if (!r.ok) {
-        setMsg({ error: r.error });
-        return;
-      }
-      setSent("sent");
-      setMsg("demoCode" in r && r.demoCode ? { demo: r.demoCode } : null);
-    });
-  const check = () =>
-    start(async () => {
-      if (kind === "phone") {
-        const r = await checkPhoneProof(target, code);
-        if (!r.ok) {
-          setMsg({ error: r.error });
-          return;
-        }
-        onProven(normalizePhone(target));
-      } else {
-        const r = await guestVerifyEmailCode(target, code);
-        if (!r.ok) {
-          setMsg({ error: r.error });
-          return;
-        }
-        onProven(target.trim().toLowerCase());
-        router.refresh(); // the session now exists: the page comes back signed in
-      }
-    });
-  return (
-    <div className={styles.proof} aria-live="polite">
-      {sent === "idle" ? (
-        <>
-          <span>{t(kind === "phone" ? "Ce numéro n'est pas encore prouvé : un code arrive sur WhatsApp, une seule fois." : "Un code arrive sur cet e-mail : il vous connecte, et crée votre compte s'il n'existe pas.")}</span>
-          <button type="button" className="btn sm primary" disabled={pending || !target} onClick={send}>
-            {t(pending ? "Envoi…" : kind === "phone" ? "Recevoir le code sur WhatsApp" : "Recevoir le code par e-mail")}
-          </button>
-        </>
-      ) : (
-        <>
-          <span>{t(kind === "phone" ? "Le code à six chiffres reçu sur WhatsApp :" : "Le code à six chiffres reçu par e-mail :")}</span>
-          <div className={styles.proofRow}>
-            <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" aria-label={t("Code à six chiffres")} />
-            <button type="button" className="btn sm primary" disabled={pending || code.length !== 6} onClick={check}>
-              {t(pending ? "Vérification…" : "Valider")}
-            </button>
-          </div>
-          <button type="button" className={styles.linkBtn} disabled={pending} onClick={send}>
-            {t("Renvoyer le code")}
-          </button>
-        </>
-      )}
-      {msg?.error && <em className={styles.proofError}>{msg.error}</em>}
-      {msg?.demo && <em className={styles.proofDemo}>{t("Serveur de démonstration, code :")} {msg.demo}</em>}
-    </div>
-  );
 }
 
 export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus }) {
@@ -190,6 +121,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               </Link>
             </div>
           )}
+          <TrustNudge />
           <div className={styles.doneActions}>
             <Link className="btn sm" href={`/offres/${offer.id}`}>
               {t("Autre intention")}
@@ -302,7 +234,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span>
                 {t("Téléphone (WhatsApp)")} <em className={styles.req}>· {t("requis")}</em>
               </span>
-              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 ().-]{8,}" title={t("Numéro avec indicatif, ex. +237 6 87 67 67 67")} />
+              <input name="contactPhone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} required pattern="[+0-9 \(\)\.\-]{8,}" title={t("Numéro avec indicatif, ex. +237 6 87 67 67 67")} />
               {phoneOk && <em className={styles.proven}>✓ {t("prouvé")}</em>}
             </label>
             <label className="field">
