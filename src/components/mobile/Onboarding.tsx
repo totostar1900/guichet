@@ -173,14 +173,17 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
   useEffect(() => {
     if (force) return;
     if (path.startsWith("/desk") || path.startsWith("/connexion") || path.startsWith("/auth")) return;
-    const t = setTimeout(() => {
+    // The thirty-second presentation goes first: wait for it (or any other dialog) to close.
+    const t = setInterval(() => {
+      if (document.querySelector("[role=dialog][aria-modal=true]:not([aria-hidden=true])")) return;
+      clearInterval(t);
       try {
         if (!localStorage.getItem(SEEN)) setOpen(true);
       } catch {
         // storage unavailable: never nag
       }
-    }, 400);
-    return () => clearTimeout(t);
+    }, 500);
+    return () => clearInterval(t);
   }, [force, path]);
   const close = () => {
     try {

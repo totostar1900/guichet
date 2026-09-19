@@ -6,6 +6,7 @@ import { devLogin } from "./actions";
 import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { ReplayPresentation } from "@/components/mobile/Presentation";
 
 export const metadata = { title: "Connexion" };
 
@@ -25,6 +26,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <>
             <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>
             <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} />
+            <p className={styles.discover}>
+              {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
+            </p>
           </>
         ) : (
           <>

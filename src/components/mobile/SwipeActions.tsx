@@ -19,9 +19,9 @@ import styles from "./SwipeActions.module.css";
  * Leaving the actions is easy: slide back from anywhere (40 px is enough),
  * tap the « ‹ » handle, tap elsewhere, or scroll away. A turned card stays
  * turned: it comes back on its own « Recto » button, on a deliberate pull
- * to the left (half a turn), or when another card is turned (one back at a
- * time); scrolling and tapping around it leave it be, since the reader is
- * reading it. The first 8 px decide between the page's scroll and the
+ * to the left (half a turn), when another card is turned (one back at a
+ * time), or once it scrolls out of sight; tapping around it leaves it be,
+ * since the reader is reading it. The first 8 px decide between the page's scroll and the
  * card's pull.
  */
 // One turned card at a time: turning another one puts the previous back on its front.
@@ -79,10 +79,23 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
     // The back may grow once its curve arrives: the boxes follow.
     const ro = backEl.current ? new ResizeObserver(() => { if (st.angle > 90) fit(true); }) : null;
     if (backEl.current) for (const child of Array.from(backEl.current.children)) ro?.observe(child);
+    // A turned card that scrolls out of view (under the header, below the tab bar) turns back by itself:
+    // out of sight, back to its front. A card taller than the screen keeps a fair share before that.
+    let watcher: IntersectionObserver | null = null;
+    const watch = () => {
+      watcher?.disconnect();
+      const room = window.innerHeight - 60 - 56;
+      const h = el.getBoundingClientRect().height || 1;
+      const threshold = Math.min(0.6, (room / h) * 0.8);
+      watcher = new IntersectionObserver(([e]) => { if (st.angle > 90 && (!e.isIntersecting || e.intersectionRatio < threshold)) close(); }, { rootMargin: "-60px 0px -56px 0px", threshold: [threshold] });
+      watcher.observe(el);
+    };
     const close = () => {
       st.x = 0;
       st.angle = 0;
       if (turnedNow === close) turnedNow = null;
+      watcher?.disconnect();
+      watcher = null;
       paint(true);
     };
     const onStart = (e: TouchEvent) => {
@@ -157,6 +170,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       if (st.angle === 180) {
         if (turnedNow && turnedNow !== close) turnedNow();
         turnedNow = close;
+        window.setTimeout(watch, 350); // once the box has taken the back's height
       }
       paint(true);
     };
@@ -185,6 +199,7 @@ export function SwipeActions({ id, back, onTurn, children }: { id: string; back?
       document.removeEventListener("click", onDoc, true);
       ro?.disconnect();
       window.clearTimeout(sleepTimer);
+      watcher?.disconnect();
       if (turnedNow === close) turnedNow = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

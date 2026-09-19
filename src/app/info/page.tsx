@@ -4,6 +4,7 @@ import { loadLessons } from "@/lib/reference";
 import { getRegistry } from "@/lib/registry";
 import { DoneMark } from "./[key]/Quiz";
 import { ReplayOnboarding } from "@/components/mobile/Onboarding";
+import { ReplayPresentation } from "@/components/mobile/Presentation";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
 import { Simulator } from "@/components/Simulator";
@@ -36,6 +37,7 @@ export default async function InfoPage() {
     ...lessons.map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
     { kind: "outil" as const, title: t("Simulateur d'obligation"), text: t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet."), href: "/info#simulateur", extra: "simulation rendement prix coupon" },
     { kind: "outil" as const, title: t("Comparer deux lignes"), text: t("Deux offres côte à côte : rendement, durée, ticket, calendrier."), href: "/comparer", extra: "comparaison comparateur" },
+    { kind: "outil" as const, title: t("Guichet en 30 secondes"), text: t("Le marché de la CEMAC, sur votre téléphone.") + " " + t("Chaque chiffre est expliqué, jamais recommandé."), href: "/info?presentation=1", extra: "présentation vidéo découvrir introduction nouveau" },
     { kind: "outil" as const, title: t("Revoir les premiers pas"), text: t("Toutes les opportunités de la zone CEMAC, à un endroit"), href: "/info?premiers-pas=1", extra: "onboarding tutoriel guide" },
     { kind: "page" as const, title: t("Guichet"), text: t("Titres neufs : vous souscrivez auprès de l'émetteur (Trésor, entreprise) pendant une fenêtre, à un prix fixé par adjudication ou par le desk.") + " " + t("Titres déjà cotés à la BVMAC : vous achetez ou vendez à un autre investisseur, au cours du jour, en séance."), href: "/", extra: "offres lignes marché primaire secondaire OTA BTA APE IPO" },
     { kind: "page" as const, title: t("Fonds"), text: t("Parts de fonds communs de placement : vous souscrivez ou rachetez à la prochaine valeur liquidative."), href: "/fonds", extra: "OPCVM FCP VL gestion collective" },
@@ -74,6 +76,7 @@ export default async function InfoPage() {
                 {t("Aide : vos questions, nos réponses")} →
               </Link>
               <ReplayOnboarding />
+              <ReplayPresentation fromQuery />
             </Suspense>
           </div>
           {lessons.map((l) => (

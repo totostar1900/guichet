@@ -11,6 +11,7 @@ import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { Onboarding } from "@/components/mobile/Onboarding";
+import { Presentation } from "@/components/mobile/Presentation";
 import { isDesk } from "@/lib/auth/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
 import { loadRegistry } from "@/lib/reference";
@@ -80,6 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <MobileShell signedIn={Boolean(session)} name={session?.name} desk={isDesk(session)} />
+        <Presentation />
         <Onboarding />
         <main className={styles.main}>{children}</main>
         </RegistryProvider>
