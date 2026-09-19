@@ -10,7 +10,7 @@ import styles from "./Sheet.module.css";
  * tapped beside to close), a small dialog in the middle on a desk. The page
  * keeps its scroll position underneath; that is the point of it.
  */
-export function Sheet({ open, onClose, title, sub, children, wide, navy, dock }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" }) {
+export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, tabs }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right"; tabs?: { key: string; label: string; on: boolean; pick: () => void }[] }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -64,6 +64,15 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock }:
               ×
             </button>
           </div>
+          {tabs && (
+            <div className={styles.tabs} role="tablist">
+              {tabs.map((tb) => (
+                <button key={tb.key} type="button" role="tab" aria-selected={tb.on} className={tb.on ? styles.tabOn : undefined} onClick={tb.pick}>
+                  {tb.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className={styles.body}>{children}</div>
       </div>

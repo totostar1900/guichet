@@ -99,6 +99,40 @@ export function revealAnchor(id: string) {
   return true;
 }
 
+/** The words of a query, the results ranked (title matches first), and whether it was a question. */
+export function rankEntries(entries: SearchEntry[], q: string, limit = 8): { results: { e: SearchEntry; score: number }[]; words: string[]; asked: boolean } {
+  const raw = fold(q)
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 2);
+  const words = raw.filter((w) => !STOP.has(w)).map(stem);
+  const asked = raw.length > words.length; // the reader typed a question, not just a word
+  if (words.length === 0) return { results: [], words, asked };
+  const alts = words.flatMap((w) => (SYN[w] ?? []).map(stem));
+  const results = entries
+    .map((e) => {
+      const title = fold(e.title + " " + (e.extra ?? ""));
+      const body = fold(e.text);
+      const tw = title.split(/[^a-z0-9]+/).map(stem);
+      let score = 0;
+      for (const w of words) {
+        if (tw.includes(w)) score += 10;
+        else if (title.includes(w)) score += 6;
+        if (body.includes(w)) score += 2;
+      }
+      for (const w of alts) {
+        if (tw.includes(w)) score += 4;
+        else if (title.includes(w)) score += 2;
+        else if (body.includes(w)) score += 1;
+      }
+      if (e.kind === "terme" && asked) score += 1; // a question wants a definition first
+      return { e, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || a.e.title.localeCompare(b.e.title, "fr"))
+    .slice(0, limit);
+  return { results, words: [...words, ...alts], asked };
+}
+
 export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
   const t = useT();
   const router = useRouter();
@@ -107,38 +141,7 @@ export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
   const box = useRef<HTMLDivElement>(null);
   const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Leçon"), outil: t("Outil"), page: t("Page") };
 
-  const { results, words, asked } = useMemo(() => {
-    const raw = fold(q)
-      .split(/[^a-z0-9]+/)
-      .filter((w) => w.length >= 2);
-    const words = raw.filter((w) => !STOP.has(w)).map(stem);
-    const asked = raw.length > words.length; // the reader typed a question, not just a word
-    if (words.length === 0) return { results: [], words, asked };
-    const alts = words.flatMap((w) => (SYN[w] ?? []).map(stem));
-    const results = entries
-      .map((e) => {
-        const title = fold(e.title + " " + (e.extra ?? ""));
-        const body = fold(e.text);
-        const tw = title.split(/[^a-z0-9]+/).map(stem);
-        let score = 0;
-        for (const w of words) {
-          if (tw.includes(w)) score += 10;
-          else if (title.includes(w)) score += 6;
-          if (body.includes(w)) score += 2;
-        }
-        for (const w of alts) {
-          if (tw.includes(w)) score += 4;
-          else if (title.includes(w)) score += 2;
-          else if (body.includes(w)) score += 1;
-        }
-        if (e.kind === "terme" && asked) score += 1; // a question wants a definition first
-        return { e, score };
-      })
-      .filter((x) => x.score > 0)
-      .sort((a, b) => b.score - a.score || a.e.title.localeCompare(b.e.title, "fr"))
-      .slice(0, 8);
-    return { results, words: [...words, ...alts], asked };
-  }, [q, entries]);
+  const { results, words, asked } = useMemo(() => rankEntries(entries, q), [q, entries]);
 
   const go = (href: string) => {
     setQ("");

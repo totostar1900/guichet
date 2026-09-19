@@ -7,12 +7,13 @@ import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
+import { buildGuideIndex } from "@/lib/guide-index";
 import { InfoNav } from "./InfoNav";
 import { Actor } from "@/components/Illustrations";
 import { Glossary } from "./Glossary";
 import styles from "./page.module.css";
 import docs from "@/app/desk/docs/docs.module.css";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 
 export const metadata = { title: "Guide" };
 
@@ -25,26 +26,9 @@ export default async function InfoPage() {
   const G = getRegistry().glossary;
   const lessons = (await loadLessons()).filter((l) => !l.section).sort((a, b) => a.order - b.order);
   const parcoursCount = (await loadLessons()).filter((l) => l.section).length;
-  const t = await getT();
+  const [t, lang] = await Promise.all([getT(), getLang()]);
   const keys = Object.keys(G).sort((a, b) => G[a].short.localeCompare(G[b].short, "fr"));
-  // The search index: glossary, lessons, tools and pages : in the viewer's language.
-  const entries: SearchEntry[] = [
-    ...keys.map((k) => ({ kind: "terme" as const, title: G[k].long ? `${t(G[k].short)} : ${t(G[k].long)}` : t(G[k].short), text: t(G[k].text), href: `/info#terme-${k}`, extra: k.replace(/_/g, " ") })),
-    { kind: "lecon" as const, title: t("Comprendre le marché CEMAC"), text: t("Six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie."), href: "/info/parcours", extra: "parcours cours marché BEAC COSUMAF BVMAC acteurs instruments risques" },
-    ...(await loadLessons()).filter((l) => l.section).map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
-    ...lessons.map((l) => ({ kind: "lecon" as const, title: t(l.title), text: [t(l.intro), ...l.body.map((p) => t(p)), t(l.quiz.q)].join(" "), href: `/info/${l.key}` })),
-    { kind: "outil" as const, title: t("Simulateur d'obligation"), text: t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet."), href: "/info#simulateur", extra: "simulation rendement prix coupon" },
-    { kind: "outil" as const, title: t("Comparer deux lignes"), text: t("Deux offres côte à côte : rendement, durée, ticket, calendrier."), href: "/comparer", extra: "comparaison comparateur" },
-    { kind: "outil" as const, title: t("Guichet en 30 secondes"), text: t("Le marché de la CEMAC, sur votre téléphone.") + " " + t("Chaque chiffre est expliqué, jamais recommandé."), href: "/info?presentation=1", extra: "présentation vidéo découvrir introduction nouveau" },
-    { kind: "outil" as const, title: t("Revoir les premiers pas"), text: t("Toutes les opportunités de la zone CEMAC, à un endroit"), href: "/info?premiers-pas=1", extra: "onboarding tutoriel guide" },
-    { kind: "page" as const, title: t("Guichet"), text: t("Titres neufs : vous souscrivez auprès de l'émetteur (Trésor, entreprise) pendant une fenêtre, à un prix fixé par adjudication ou par le desk.") + " " + t("Titres déjà cotés à la BVMAC : vous achetez ou vendez à un autre investisseur, au cours du jour, en séance."), href: "/", extra: "offres lignes marché primaire secondaire OTA BTA APE IPO" },
-    { kind: "page" as const, title: t("Fonds"), text: t("Parts de fonds communs de placement : vous souscrivez ou rachetez à la prochaine valeur liquidative."), href: "/fonds", extra: "OPCVM FCP VL gestion collective" },
-    { kind: "page" as const, title: t("Sociétés cotées et émetteurs"), text: t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC."), href: "/societes", extra: "actions entreprises BVMAC PER dividende" },
-    { kind: "page" as const, title: t("Ouvrir un compte"), text: t("Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil, puis l'acceptation de la convention par code. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger."), href: "/ouvrir-un-compte", extra: "KYC compte-titres dossier pièces convention" },
-    { kind: "page" as const, title: t("Mon espace"), text: t("Intentions en cours") + " · " + t("Mes positions") + " · " + t("Mes documents") + " · " + t("Lignes suivies") + " · " + t("Alertes sur cet appareil"), href: "/moi", extra: "positions relevé documents intentions alertes suivi" },
-    { kind: "page" as const, title: t("Aide : vos questions, nos réponses"), text: t("Se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre."), href: "/info/aide", extra: "aide FAQ questions support code connexion réclamation données" },
-    { kind: "page" as const, title: t("Se connecter"), text: t("Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir."), href: "/connexion", extra: "connexion code mot de passe identifiant" },
-  ];
+  const entries: SearchEntry[] = (await buildGuideIndex(t, lang)).entries;
   const sections = [
     { id: "recherche", title: t("Recherche") },
     { id: "lecons", title: t("Huit leçons courtes") },

@@ -253,3 +253,121 @@ button.item:hover,
   display: flex;
   gap: 10px;
 }
+
+/* the search of the Aide tab */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: var(--gold-soft);
+  margin: 4px 0 8px;
+}
+.search svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  flex: none;
+}
+.search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.search small {
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.hits {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.hit {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+.hit:first-child {
+  border-top: 0;
+}
+.hit:hover,
+.hit:focus-visible {
+  background: var(--surface-2);
+}
+.hit em {
+  font-style: normal;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  flex: none;
+  width: 62px;
+}
+.hit b {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.none {
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.here {
+  background: var(--paper);
+  border-radius: 10px;
+  border-top: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.q {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.86rem;
+  min-height: 44px;
+}
+.group + .q {
+  border-top: 0;
+}
+.q i {
+  font-style: normal;
+  color: var(--ink-3);
+}
+.more {
+  display: inline-block;
+  padding: 6px 4px 2px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+}

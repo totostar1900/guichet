@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { logout } from "@/app/connexion/actions";
 import { GUIDE } from "@/data/desk-guide";
 import { useT } from "@/i18n/client";
@@ -14,6 +14,9 @@ import { Sheet } from "./mobile/Sheet";
 import { Presentation } from "./mobile/Presentation";
 import { Onboarding } from "./mobile/Onboarding";
 import { startDeskTour } from "./DeskTour";
+import { rankEntries, type SearchEntry } from "@/app/info/InfoSearch";
+import { doneKey } from "@/app/info/[key]/Quiz";
+import { TOP_QUESTIONS, type GuideIndex } from "@/lib/guide-index-shared";
 import styles from "./AppMenu.module.css";
 
 /**
@@ -34,6 +37,25 @@ export interface AppMenuProps {
 }
 
 const COACH_KEY = "guichet:coach:menu";
+type Tab = "aide" | "contact" | "reglages";
+// The Guide's index, fetched once per page life when the menu first opens (it is the viewer's language).
+let indexCache: GuideIndex | null = null;
+let indexPromise: Promise<GuideIndex> | null = null;
+function loadIndex(): Promise<GuideIndex> {
+  if (indexCache) return Promise.resolve(indexCache);
+  if (!indexPromise)
+    indexPromise = fetch("/api/guide-index")
+      .then((r) => r.json() as Promise<GuideIndex>)
+      .then((i) => (indexCache = i));
+  return indexPromise;
+}
+const readDone = (keys: string[]) => {
+  try {
+    return keys.filter((k) => localStorage.getItem(doneKey(k)) === "1");
+  } catch {
+    return [];
+  }
+};
 const noop = () => () => {};
 const firstTimeSnapshot = () => {
   try {
@@ -68,6 +90,7 @@ const D = {
   out: "M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 16l4-4-4-4M19 12H9",
   docs: "M6 3h9l4 4v14H6zM14 3v5h5M9 12h6M9 16h6",
   eye: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6zM12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0",
+  profile: "M4 19V9M10 19V5M16 19v-8M22 19H2",
 };
 
 export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: AppMenuProps) {
@@ -81,6 +104,18 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
   const [tourStep, setTourStep] = useState<number | null>(null);
   const firstTime = useSyncExternalStore(noop, firstTimeSnapshot, () => "");
   const [coachGone, setCoachGone] = useState(false);
+  const [tab, setTab] = useState<Tab>("aide");
+  const [q, setQ] = useState("");
+  const [index, setIndex] = useState<GuideIndex | null>(indexCache);
+  const [done, setDone] = useState<string[]>([]);
+  const hits = useMemo(() => (index && q.trim().length >= 2 ? rankEntries(index.entries, q, 6).results.map((r) => r.e) : []), [index, q]);
+  const first = index?.lessons.filter((l) => !l.section) ?? [];
+  const course = index?.lessons.filter((l) => l.section) ?? [];
+  const firstDone = first.filter((l) => done.includes(l.key)).length;
+  const courseDone = course.filter((l) => done.includes(l.key)).length;
+  const resume = course.find((l) => !done.includes(l.key));
+  const resumeSection = resume && index ? index.sections.find((x) => x.key === resume.section) : undefined;
+  const top = index ? TOP_QUESTIONS.map((slug) => index.aide.find((r) => r.slug === slug)).filter((r): r is NonNullable<typeof r> => Boolean(r)) : [];
 
   const onFiche = path.startsWith("/offres/");
   const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(onFiche ? t("Bonjour, je regarde {line} sur le Guichet et…", { line: typeof document === "undefined" ? "" : document.title.replace(/\s*·\s*Guichet.*$/i, "") }) : t("Bonjour, j'ai une question sur le Guichet…"))}`;
@@ -96,8 +131,18 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
       setTourStep(null);
     }
     setOpen(true);
+    setTab("aide");
+    setQ("");
+    loadIndex().then((i) => {
+      setIndex(i);
+      setDone(readDone(i.lessons.map((l) => l.key)));
+    });
   };
   const close = () => setOpen(false);
+  const openHit = (e: SearchEntry) => {
+    close();
+    router.push(e.href);
+  };
   const dismissCoach = () => {
     try {
       localStorage.setItem(COACH_KEY, new Date().toISOString());
@@ -139,9 +184,118 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
         </div>
       )}
 
-      <Sheet open={open} onClose={close} navy dock="top-right" title={signedIn && name ? t("Bonjour {name}", { name: name.split(/\s+/)[0] }) : "Guichet"} sub={t(desk ? "aide · réglages" : "aide · contact · réglages")}>
+      <Sheet
+        open={open}
+        onClose={close}
+        navy
+        dock="top-right"
+        title={signedIn && name ? t("Bonjour {name}", { name: name.split(/\s+/)[0] }) : "Guichet"}
+        tabs={(desk ? (["aide", "reglages"] as Tab[]) : (["aide", "contact", "reglages"] as Tab[])).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : k === "contact" ? "Contact" : "Réglages"), on: tab === k, pick: () => setTab(k) }))}
+      >
         <div className={styles.menu}>
-          {!desk && (
+          {tab === "aide" && (
+            <>
+              <label className={styles.search}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+                <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Une question, un mot… ex. coupon couru")} aria-label={t("Rechercher dans l'aide")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && openHit(hits[0])} />
+                <small>{t("aide · glossaire · leçons")}</small>
+              </label>
+              {q.trim().length >= 2 && (
+                <div className={styles.hits} role="listbox">
+                  {hits.length === 0 && <span className={styles.none}>{index ? t("Aucun résultat") : t("Un instant…")}</span>}
+                  {hits.map((e) => (
+                    <button key={e.href + e.title} type="button" role="option" aria-selected={false} className={styles.hit} onClick={() => openHit(e)}>
+                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Leçon" : e.kind === "outil" ? "Outil" : "Aide")}</em>
+                      <b>{e.title}</b>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {coachLabel && (
+                <>
+                  <div className={styles.group}>{t("Sur cette page")}</div>
+                  <button type="button" className={`${styles.item} ${styles.here}`} onClick={go(() => window.dispatchEvent(new Event("guichet:coach:replay")))}>
+                    <Icon d={D.marks} gold />
+                    <span>
+                      <b>{coachLabel}</b>
+                      <small>{t("les repères de cette page")}</small>
+                    </span>
+                  </button>
+                </>
+              )}
+              <div className={styles.group}>{t("Apprendre")}</div>
+              {desk ? (
+                <>
+                  <button type="button" className={styles.item} onClick={go(() => startDeskTour(router))}>
+                    <Icon d={D.tour} gold />
+                    <span>
+                      <b>{t("Visite guidée")}</b>
+                      <small>{tourStep != null && tourStep > 0 ? t("en cours, étape {n} : reprendre du début", { n: tourStep + 1 }) : t("vingt étapes à travers le desk")}</small>
+                    </span>
+                  </button>
+                  <Link className={styles.item} href={guideKey ? `/desk/guide#${guideKey}` : "/desk/guide"} onClick={close}>
+                    <Icon d={D.help} gold />
+                    <span>
+                      <b>{t(guideKey ? "Cette page, champ par champ" : "Guide du desk")}</b>
+                      <small>{t("Guide du desk")}</small>
+                    </span>
+                  </Link>
+                  <Link className={styles.item} href="/desk/docs" onClick={close}>
+                    <Icon d={D.docs} gold />
+                    <span>
+                      <b>{t("Documentation")}</b>
+                      <small>{t("fonctionnement, plateformes, aider un client")}</small>
+                    </span>
+                  </Link>
+                  <button type="button" className={styles.item} onClick={go(() => setPlay("presentation"))}>
+                    <Icon d={D.eye} gold />
+                    <span>
+                      <b>{t("Ce que voit le client")}</b>
+                      <small>{t("trente secondes, puis les premiers pas")}</small>
+                    </span>
+                  </button>
+                </>
+              ) : (
+                <div className={styles.tiles}>
+                  <button type="button" className={styles.tile} onClick={go(() => setPlay("presentation"))}>
+                    <b>{t("Guichet en trente secondes")}</b>
+                    <small>{t("la présentation")}</small>
+                  </button>
+                  <button type="button" className={styles.tile} onClick={go(() => setPlay("onboarding"))}>
+                    <b>{t("Premiers pas")}</b>
+                    <small>{t("six écrans")}</small>
+                  </button>
+                  <Link className={styles.tile} href="/info#lecons" onClick={close}>
+                    <b>{t("Lire une ligne")}</b>
+                    <small>{index ? t("{n} leçons · {d} lues", { n: first.length, d: firstDone }) : t("huit leçons")}</small>
+                  </Link>
+                  <Link className={styles.tile} href={resume ? `/info/${resume.key}` : "/info/parcours"} onClick={close}>
+                    <b>{t("Comprendre le marché")}</b>
+                    <small>{index ? (resume && courseDone > 0 ? t("{n} leçons · reprendre {s}", { n: course.length, s: `${resumeSection ? String.fromCharCode(64 + resumeSection.order) : ""}·${course.filter((l) => l.section === resume.section).indexOf(resume) + 1}` }) : t("{n} leçons · {d} lues", { n: course.length, d: courseDone })) : t("vingt-huit leçons")}</small>
+                  </Link>
+                </div>
+              )}
+              {!desk && (
+                <>
+                  <div className={styles.group}>{t("Les questions qu'on nous pose")}</div>
+                  {top.map((r) => (
+                    <Link key={r.slug} className={styles.q} href={`/info/aide#q-${r.slug}`} onClick={close}>
+                      <span>{r.q}</span>
+                      <i aria-hidden="true">›</i>
+                    </Link>
+                  ))}
+                  <Link className={styles.more} href="/info/aide" onClick={close}>
+                    {t("Toute l'aide")} →
+                  </Link>
+                </>
+              )}
+            </>
+          )}
+
+          {tab === "contact" && !desk && (
             <>
               <div className={styles.group}>{t("Parler à quelqu'un")}</div>
               <a className={styles.item} href={wa} target="_blank" rel="noopener" onClick={close}>
@@ -168,122 +322,76 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
                   </b>
                 </span>
               </a>
+              <Link className={styles.item} href="/info/mentions" onClick={close}>
+                <Icon d={D.docs} />
+                <span>
+                  <b>{t("Mentions et responsabilités")}</b>
+                  <small>{t("qui vous parle, les risques, vos données")}</small>
+                </span>
+              </Link>
             </>
           )}
 
-          <div className={styles.group}>{t("Découvrir")}</div>
-          {coachLabel && (
-            <button type="button" className={styles.item} onClick={go(() => window.dispatchEvent(new Event("guichet:coach:replay")))}>
-              <Icon d={D.marks} gold />
-              <span>
-                <b>{coachLabel}</b>
-                <small>{t("les repères de cette page")}</small>
-              </span>
-            </button>
-          )}
-          {desk ? (
+          {tab === "reglages" && (
             <>
-              <button type="button" className={styles.item} onClick={go(() => startDeskTour(router))}>
-                <Icon d={D.tour} gold />
+              <div className={styles.group}>{t(signedIn ? "Mon compte" : "Réglages")}</div>
+              <div className={styles.item}>
+                <Icon d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
                 <span>
-                  <b>{t("Visite guidée")}</b>
-                  <small>{tourStep != null && tourStep > 0 ? t("en cours, étape {n} : reprendre du début", { n: tourStep + 1 }) : t("vingt étapes à travers le desk")}</small>
+                  <b>{t("Langue")}</b>
                 </span>
-              </button>
-              <Link className={styles.item} href={guideKey ? `/desk/guide#${guideKey}` : "/desk/guide"} onClick={close}>
-                <Icon d={D.help} gold />
-                <span>
-                  <b>{t(guideKey ? "Cette page, champ par champ" : "Guide du desk")}</b>
-                  <small>{t("Guide du desk")}</small>
-                </span>
-              </Link>
-              <Link className={styles.item} href="/desk/docs" onClick={close}>
-                <Icon d={D.docs} gold />
-                <span>
-                  <b>{t("Documentation")}</b>
-                  <small>{t("fonctionnement, plateformes, aider un client")}</small>
-                </span>
-              </Link>
-              <button type="button" className={styles.item} onClick={go(() => setPlay("presentation"))}>
-                <Icon d={D.eye} gold />
-                <span>
-                  <b>{t("Ce que voit le client")}</b>
-                  <small>{t("trente secondes, puis les premiers pas")}</small>
-                </span>
-              </button>
+                <LangSwitch compact />
+              </div>
+              {!desk && (
+                <button type="button" className={styles.item} onClick={go(() => setCards(true))}>
+                  <Icon d={D.cards} />
+                  <span>
+                    <b>{t("Affichage des cartes")}</b>
+                    <small>{t("densité, distinction")}</small>
+                  </span>
+                </button>
+              )}
+              {!desk && (
+                <div className={styles.item}>
+                  <Icon d={D.bell} />
+                  <span>
+                    <b>{t("Alertes sur cet appareil")}</b>
+                  </span>
+                  <span className={styles.side}>
+                    <PushToggle vapidKey={vapidKey} compact />
+                  </span>
+                </div>
+              )}
+              {signedIn && !desk && (
+                <Link className={styles.item} href="/moi/profil" onClick={close}>
+                  <Icon d={D.profile} />
+                  <span>
+                    <b>{t("Mon profil financier")}</b>
+                    <small>{t("horizon, tolérance, connaissance")}</small>
+                  </span>
+                </Link>
+              )}
+              {signedIn && !desk && (
+                <Link className={styles.item} href="/moi/securite" onClick={close}>
+                  <Icon d={D.shield} />
+                  <span>
+                    <b>{t("Sécurité")}</b>
+                    <small className={security && security.channels === 2 ? styles.good : undefined}>{security ? t("{c} canaux prouvés · {d} appareil", { c: String(security.channels), d: String(security.devices) }) : t("canaux prouvés, appareils")}</small>
+                  </span>
+                </Link>
+              )}
+              {signedIn && (
+                <form action={logout} className={styles.form}>
+                  <button type="submit" className={`${styles.item} ${styles.danger}`}>
+                    <Icon d={D.out} />
+                    <span>
+                      <b>{t("Se déconnecter")}</b>
+                      {!desk && <small>{t("l'appareil reste connu")}</small>}
+                    </span>
+                  </button>
+                </form>
+              )}
             </>
-          ) : (
-            <div className={styles.tiles}>
-              <button type="button" className={styles.tile} onClick={go(() => setPlay("presentation"))}>
-                <Icon d={D.play} gold />
-                <b>{t("Guichet en trente secondes")}</b>
-                <small>{t("revoir la présentation")}</small>
-              </button>
-              <button type="button" className={styles.tile} onClick={go(() => setPlay("onboarding"))}>
-                <Icon d={D.steps} gold />
-                <b>{t("Premiers pas")}</b>
-                <small>{t("six écrans, deux minutes")}</small>
-              </button>
-              <Link className={styles.tile} href="/info/aide" onClick={close}>
-                <Icon d={D.help} gold />
-                <b>{t("Aide")}</b>
-                <small>{t("les questions qu'on nous pose")}</small>
-              </Link>
-              <Link className={styles.tile} href="/info" onClick={close}>
-                <Icon d={D.book} gold />
-                <b>{t("Le Guide")}</b>
-                <small>{t("leçons et glossaire")}</small>
-              </Link>
-            </div>
-          )}
-
-          <div className={styles.group}>{t(signedIn ? "Mon compte" : "Réglages")}</div>
-          <div className={styles.item}>
-            <Icon d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-            <span>
-              <b>{t("Langue")}</b>
-            </span>
-            <LangSwitch compact />
-          </div>
-          {!desk && (
-            <button type="button" className={styles.item} onClick={go(() => setCards(true))}>
-              <Icon d={D.cards} />
-              <span>
-                <b>{t("Affichage des cartes")}</b>
-                <small>{t("densité, distinction")}</small>
-              </span>
-            </button>
-          )}
-          {!desk && (
-            <div className={styles.item}>
-              <Icon d={D.bell} />
-              <span>
-                <b>{t("Alertes sur cet appareil")}</b>
-              </span>
-              <span className={styles.side}>
-                <PushToggle vapidKey={vapidKey} compact />
-              </span>
-            </div>
-          )}
-          {signedIn && !desk && (
-            <Link className={styles.item} href="/moi/securite" onClick={close}>
-              <Icon d={D.shield} />
-              <span>
-                <b>{t("Sécurité")}</b>
-                <small className={security && security.channels === 2 ? styles.good : undefined}>{security ? t("{c} canaux prouvés · {d} appareil", { c: String(security.channels), d: String(security.devices) }) : t("canaux prouvés, appareils")}</small>
-              </span>
-            </Link>
-          )}
-          {signedIn && (
-            <form action={logout} className={styles.form}>
-              <button type="submit" className={`${styles.item} ${styles.danger}`}>
-                <Icon d={D.out} />
-                <span>
-                  <b>{t("Se déconnecter")}</b>
-                  {!desk && <small>{t("l'appareil reste connu")}</small>}
-                </span>
-              </button>
-            </form>
           )}
 
           <div className={styles.foot}>

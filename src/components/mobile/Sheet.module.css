@@ -157,3 +157,37 @@
     transform: none;
   }
 }
+
+/* tabs in the head: one line, the open one underlined in gold */
+.tabs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  margin: 8px -14px -8px;
+}
+.tabs button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 10px 0 11px;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+.navy .tabs button {
+  color: #c9d2e0;
+}
+.tabs .tabOn {
+  color: var(--ink);
+  border-bottom-color: var(--gold);
+}
+.navy .tabs .tabOn {
+  color: #fff;
+}
+@media (max-width: 760px) {
+  .tabs {
+    margin: 8px -14px -8px;
+  }
+}
