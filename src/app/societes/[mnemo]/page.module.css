@@ -297,6 +297,11 @@
 .lineFacts small {
   color: var(--ink-3);
   font-size: 0.72rem;
+  display: block;
+  overflow-wrap: anywhere;
+}
+.lineFacts > div {
+  min-width: 0;
 }
 .goldTxt {
   color: var(--gold-ink);

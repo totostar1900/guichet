@@ -566,4 +566,12 @@ export const EN_TEMPLATES: Record<string, string> = {
   "{p} % du nominal — ce que vous payez": "{p}% of par — what you pay",
   "{y} brut, si servi à ce prix et gardé jusqu'au bout": "{y} gross, if served at this price and held to the end",
   "fixé par le desk": "set by the desk",
+  "Décote de {n} points, récupérée à l'échéance : le rendement dépasse le coupon.": "A discount of {n} points, recovered at maturity: the yield exceeds the coupon.",
+  "Prime de {n} points, perdue à l'échéance : le rendement passe sous le coupon.": "A premium of {n} points, lost at maturity: the yield falls below the coupon.",
+  "Au pair : vous payez 100, récupérez 100 ; le rendement est le coupon, {c}.": "At par: you pay 100, get 100 back; the yield is the coupon, {c}.",
+  "Pour 10 000 000 de nominal : décaissement {o} FCFA dont {a} de coupon couru ({d} j).": "For 10 000 000 of par: outlay {o} FCFA of which {a} of accrued interest ({d} d).",
+  "Pour 10 000 000 de nominal : décaissement {o} FCFA.": "For 10 000 000 of par: outlay {o} FCFA.",
+  "Sur {d} jours : vous payez {p}, recevez {n}. Le rendement dépasse le taux précompté parce que l'intérêt est calculé sur le nominal mais vous n'avancez que le prix.": "Over {d} days: you pay {p}, receive {n}. The yield exceeds the discount rate because the interest is computed on par while you only advance the price.",
+  "nominal restant {n} / titre": "remaining par {n} / security",
+  "échéancier à préciser": "schedule to be confirmed",
 };

@@ -46,7 +46,7 @@ function BondPrice({ live }: { live: Live }) {
   const [price, setPrice] = useState(live.pricePct ?? 96);
   const input = { nominal: live.nominal ?? 10_000, couponRate: live.couponRate ?? 6, settleOn: live.settleOn ?? "2026-09-17", maturityOn: live.maturityOn ?? "2028-03-31", lastCouponOn: live.lastCouponOn ?? null };
   const r = bondCalc(input, 10_000_000, price);
-  const reading = price < 99.95 ? `Décote de ${(100 - price).toFixed(1).replace(".", ",")} points, récupérée à l'échéance : le rendement dépasse le coupon.` : price > 100.05 ? `Prime de ${(price - 100).toFixed(1).replace(".", ",")} points, perdue à l'échéance : le rendement passe sous le coupon.` : `Au pair : vous payez 100, récupérez 100 ; le rendement est le coupon, ${pct(input.couponRate)}.`;
+  const reading = price < 99.95 ? t("Décote de {n} points, récupérée à l'échéance : le rendement dépasse le coupon.", { n: (100 - price).toFixed(1).replace(".", ",") }) : price > 100.05 ? t("Prime de {n} points, perdue à l'échéance : le rendement passe sous le coupon.", { n: (price - 100).toFixed(1).replace(".", ",") }) : t("Au pair : vous payez 100, récupérez 100 ; le rendement est le coupon, {c}.", { c: pct(input.couponRate) });
   return (
     <>
       <LiveLine live={live} />
@@ -72,7 +72,7 @@ function BondPrice({ live }: { live: Live }) {
         </div>
       </div>
       <p className={styles.reading}>
-        {reading} Pour 10 000 000 de nominal : décaissement {fmt(r.outlay)} FCFA{r.accruedDays ? ` dont ${fmt(r.accrued)} de coupon couru (${r.accruedDays} j)` : ""}.
+        {reading} {r.accruedDays ? t("Pour 10 000 000 de nominal : décaissement {o} FCFA dont {a} de coupon couru ({d} j).", { o: fmt(r.outlay), a: fmt(r.accrued), d: r.accruedDays }) : t("Pour 10 000 000 de nominal : décaissement {o} FCFA.", { o: fmt(r.outlay) })}
       </p>
     </>
   );
@@ -134,7 +134,7 @@ function BtaRate({ live }: { live: Live }) {
         </div>
       </div>
       <p className={styles.reading}>
-        Sur {r.days} jours : vous payez {fmt(Math.round(r.pricePerBond))}, recevez {fmt(input.nominal)}. Le rendement dépasse le taux précompté parce que l&apos;intérêt est calculé sur le nominal mais vous n&apos;avancez que le prix.
+        {t("Sur {d} jours : vous payez {p}, recevez {n}. Le rendement dépasse le taux précompté parce que l'intérêt est calculé sur le nominal mais vous n'avancez que le prix.", { d: r.days, p: fmt(Math.round(r.pricePerBond)), n: fmt(input.nominal) })}
       </p>
     </>
   );
@@ -273,6 +273,7 @@ const RISKS: [string, string][] = [
   ["Allocation", "Attendre la confirmation du desk avant de compter les titres."],
 ];
 function Risks() {
+  const t = useT();
   const [on, setOn] = useState<number[]>([]);
   return (
     <ol className={styles.steps}>
@@ -282,8 +283,8 @@ function Risks() {
             ✓
           </button>
           <span>
-            <b>{k}</b>
-            {v}
+            <b>{t(k)}</b>
+            {t(v)}
           </span>
         </li>
       ))}

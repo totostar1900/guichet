@@ -111,7 +111,7 @@ export default async function EmetteurPage({ params }: Props) {
                       <div>
                         <span>{tr("Remboursement")}</span>
                         <b>{t ? (t.periodsPerYear === 1 ? "annuel" : t.periodsPerYear === 2 ? "semestriel" : "trimestriel") : "—"}</b>
-                        <small>{t ? `nominal restant ${fmt(o.nominal)} / titre` : "échéancier à préciser"}</small>
+                        <small>{t ? tr("nominal restant {n} / titre", { n: fmt(o.nominal) }) : tr("échéancier à préciser")}</small>
                       </div>
                     </div>
                   </Link>
