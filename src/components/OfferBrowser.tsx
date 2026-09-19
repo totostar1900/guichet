@@ -12,6 +12,8 @@ import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch } from "./Density";
 import { LineMenu } from "./mobile/LineMenu";
+import { Sheet } from "./mobile/Sheet";
+import { FilterFab } from "./FilterFab";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
@@ -290,32 +292,14 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
 }
 
 
-/* ---------- phone: filters in a bottom sheet ---------- */
+/* ---------- the filters, the search and the sort in a sheet over the list (the page keeps its place) ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
-function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number; gauge: React.ReactNode }) {
+function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, extra }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number; gauge: React.ReactNode; extra: React.ReactNode }) {
   const t = useT();
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
   return (
-    <>
-      <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
-      <div className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={t("Filtrer")} aria-hidden={!open}>
-        <div className={styles.grab} />
-        <div className={styles.sheetHead}>
-          <b>{t("Filtrer")}</b>
-          <button type="button" onClick={onClear}>
-            {t("Effacer")}
-          </button>
-        </div>
-        <div className={styles.sheetBody}>
+    <Sheet open={open} onClose={onClose} title={t("Filtrer et trier")}>
+      <div className={styles.sheetBody}>
+          {extra}
           {groups.map((g) => (
             <div key={g.key} className={styles.fg}>
               <span>{t(g.label)}</span>
@@ -332,12 +316,16 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge }:
             <span>{t("Rendement")}</span>
             {gauge}
           </div>
-        </div>
+      </div>
+      <div className={styles.sheetFoot}>
+        <button type="button" className="btn sm ghost" onClick={onClear}>
+          {t("Effacer")}
+        </button>
         <button type="button" className={`btn primary ${styles.sheetApply}`} onClick={onClose}>
           {t("Voir")} {count} {count > 1 ? "lignes" : "ligne"}
         </button>
       </div>
-    </>
+    </Sheet>
   );
 }
 
@@ -377,19 +365,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       // storage unavailable
     }
   }, [pathname, sp]);
-  // The market tabs and the toolbar stay frozen under the site header; the table
-  // header then sticks right under them, whatever height the toolbar wraps to.
+  // The floating filter button watches the toolbar: it shows once the toolbar is under the header.
   const top = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!top.current || !wrapRef.current) return;
-    const el = top.current;
-    const apply = () => wrapRef.current?.style.setProperty("--sticky-h", `${el.offsetHeight}px`);
-    apply();
-    const ro = new ResizeObserver(apply);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
@@ -584,7 +562,33 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           </div>
         )}
       </div>
-      <FilterSheet open={sheet} onClose={() => setSheet(false)} groups={groups} onToggle={toggle} onClear={reset} count={rows.length} gauge={<YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} />} />
+      <FilterSheet
+        open={sheet}
+        onClose={() => setSheet(false)}
+        groups={groups}
+        onToggle={toggle}
+        onClear={reset}
+        count={rows.length}
+        gauge={<YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} />}
+        extra={
+          <>
+            <div className={styles.fg}>
+              <span>{t("Rechercher")}</span>
+              <input type="search" className={styles.sheetSearch} placeholder={t("Rechercher une ligne, un émetteur, un ISIN")} aria-label={t("Rechercher")} defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
+            </div>
+            <div className={styles.fg}>
+              <span>{t("Tri")}</span>
+              <div className={styles.sheetSort}>
+                <Select value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
+                <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={t(dir === "asc" ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
+                  {dir === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
+            </div>
+          </>
+        }
+      />
+      <FilterFab watch={top} onClick={() => setSheet(true)} count={filterCount + Number(Boolean(q))} open={sheet} />
 
       <div className={styles.meta}>
         <span>

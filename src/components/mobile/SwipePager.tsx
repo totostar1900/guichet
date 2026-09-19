@@ -3,7 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { LIST_ORDER_KEY, type ListMemory } from "@/components/ListNav";
+import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory } from "@/components/ListNav";
 import styles from "./SwipePager.module.css";
 
 /**
@@ -76,8 +76,10 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   // The neighbours: from the list memory for a fiche, from the page otherwise.
   const prev: Neighbour | null = id ? (mem && mem.i > 0 ? { href: `/offres/${mem.mem.ids[mem.i - 1]}`, title: mem.mem.titles?.[mem.i - 1] ?? "", pos: `${mem.i} / ${mem.mem.ids.length}` } : null) : (prevProp ?? null);
   const next: Neighbour | null = id ? (mem && mem.i < mem.mem.ids.length - 1 ? { href: `/offres/${mem.mem.ids[mem.i + 1]}`, title: mem.mem.titles?.[mem.i + 1] ?? "", pos: `${mem.i + 2} / ${mem.mem.ids.length}` } : null) : (nextProp ?? null);
-  const prevHref = prev?.href ?? null;
-  const nextHref = next?.href ?? null;
+  // A list neighbour opens as it was last shown: same filters, same sort, and its own scroll comes back with it.
+  const resolve = (n: Neighbour | null) => (n ? (id ? n.href : (rememberedListUrl(n.href) ?? n.href)) : null);
+  const prevHref = resolve(prev);
+  const nextHref = resolve(next);
   const ready = id ? Boolean(mem) : true;
 
   // Arriving from a swipe: slide in from the side the finger pointed to (on the next frame, so the animation starts on its first keyframe).
@@ -154,6 +156,10 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       if (e.cancelable) e.preventDefault();
       const atEnd = (dx > 0 && !prevHref) || (dx < 0 && !nextHref);
       d.dx = atEnd ? dx * 0.25 : dx * 0.92; // a rubber band at the ends
+      // Past the commit point the neighbour says so: let go and it opens.
+      const w0 = el.clientWidth;
+      peekNext?.classList.toggle(styles.ready, dx < 0 && Math.abs(d.dx) > w0 * COMMIT);
+      peekPrev?.classList.toggle(styles.ready, dx > 0 && Math.abs(d.dx) > w0 * COMMIT);
       const now = performance.now();
       d.vx = (tch.clientX - d.lastX) / Math.max(1, now - d.lastT);
       d.lastX = tch.clientX;
@@ -165,6 +171,8 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       const done = d;
       d = null;
       if (done.lock !== "h") return;
+      peekNext?.classList.remove(styles.ready);
+      peekPrev?.classList.remove(styles.ready);
       const w = el.clientWidth;
       const dir = done.dx < 0 ? 1 : -1;
       const target = dir > 0 ? nextHref : prevHref;
@@ -204,14 +212,16 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       </div>
       {ready && prev && (
         <div className={`${styles.peek} ${styles.prev} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
-          <span className={styles.peekPos}>{prev.pos}</span>
+          <span className={styles.peekPos}>← {prev.pos}</span>
           <b>{prev.title}</b>
+          <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
         </div>
       )}
       {ready && next && (
         <div className={`${styles.peek} ${styles.next} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
-          <span className={styles.peekPos}>{next.pos}</span>
+          <span className={styles.peekPos}>{next.pos} →</span>
           <b>{next.title}</b>
+          <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
         </div>
       )}
       <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">

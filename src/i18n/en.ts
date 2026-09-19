@@ -239,6 +239,7 @@ export const EN: Record<string, string> = {
   "Glissez vers la gauche : la ligne suivante": "Swipe left: the next line",
   "Glissez vers la droite : la ligne précédente": "Swipe right: the previous line",
   "Glissez vers la gauche : les fonds": "Swipe left: the funds",
+  "Relâchez pour ouvrir": "Let go to open",
   "Glissez vers la droite : les titres": "Swipe right: the securities",
   "Revenir en haut": "Back to top",
   "Densité des cartes": "Card density",

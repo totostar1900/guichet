@@ -6,12 +6,12 @@ import styles from "./BackToTop.module.css";
 
 /**
  * A round chevron in the bottom-right corner of a long page: shows once the
- * reader has scrolled more than a screen and a half, takes them back to the
+ * reader has scrolled most of a screen down, takes them back to the
  * top in one tap. On the phone it sits above the tab bar; on a desk, in the
  * corner of the window. Pages mount it themselves (lists, the Guide), never
  * the fiche, whose corner belongs to the action bar.
  */
-export function BackToTop({ screens = 1.5 }: { screens?: number }) {
+export function BackToTop({ screens = 0.8 }: { screens?: number }) {
   const t = useT();
   const [on, setOn] = useState(false);
   useEffect(() => {

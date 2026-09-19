@@ -44,9 +44,34 @@
     transform: translateX(100%);
   }
   .peekPos {
-    font-size: 0.78rem;
-    color: var(--ink-3);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
     font-variant-numeric: tabular-nums;
+  }
+  .peekGo {
+    display: inline-block;
+    margin-top: 6px;
+    align-self: flex-start;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--on-navy);
+    background: var(--navy);
+    border-radius: 999px;
+    padding: 4px 10px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .ready {
+    border-color: var(--gold);
+    box-shadow: inset 0 0 0 1px var(--gold);
+  }
+  .ready .peekGo {
+    opacity: 1;
+    transform: none;
   }
   .peek b {
     font-size: 1.15rem;

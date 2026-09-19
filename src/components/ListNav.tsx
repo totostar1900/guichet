@@ -12,7 +12,17 @@ import styles from "./ListNav.module.css";
  * previous or next line without leaving the page.
  */
 export const LIST_ORDER_KEY = "guichet:listOrder";
-export const LIST_SCROLL_KEY = "guichet:listScroll";
+const scrollKey = (pathname: string) => `guichet:listScroll:${pathname}`;
+
+/** The URL a list (by pathname) was last shown with, filters and sort included; null when never shown. */
+export function rememberedListUrl(pathname: string): string | null {
+  try {
+    const raw = sessionStorage.getItem(scrollKey(pathname));
+    return raw ? (JSON.parse(raw) as { url: string }).url : null;
+  } catch {
+    return null;
+  }
+}
 
 export interface ListMemory {
   url: string; // pathname + query of the list as it was shown
@@ -93,38 +103,55 @@ export function ListNav({ id, fallbackHref, fallbackLabel }: { id: string; fallb
 
 /**
  * Lists call this once mounted: restores the scroll of a list the reader came
- * back to, and saves it the moment they leave for a line (the router scrolls
- * to the top on its own, so saving on scroll would only ever record zero).
+ * back to (from a line, or by swiping back from the other list), and keeps
+ * the list's URL and position up to date as they scroll, one memory per list.
  */
 export function useListScroll(url: string) {
   useEffect(() => {
+    const pathname = url.split("?")[0];
+    const key = scrollKey(pathname);
     const timers: number[] = [];
+    let saved: { url: string; y: number } | null = null;
     try {
-      const raw = sessionStorage.getItem(LIST_SCROLL_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw) as { url: string; y: number };
-        // The router's own scroll-to-top lands after mount: restore a few times over the first moments.
-        if (saved.url === url && saved.y > 0) for (const ms of [0, 80, 240]) timers.push(window.setTimeout(() => window.scrollTo({ top: saved.y }), ms));
-      }
+      const raw = sessionStorage.getItem(key);
+      const s = raw ? (JSON.parse(raw) as { url: string; y: number }) : null;
+      if (s && s.url === url && s.y > 0) saved = s;
     } catch {
       // storage unavailable
     }
+    // The router scrolls to the top on its own, sometimes late (a streamed list): for a second, the saved
+    // position wins over any scroll that is not it, and nothing is recorded.
+    const until = performance.now() + 1000;
+    if (saved) for (const ms of [0, 80, 240, 600]) timers.push(window.setTimeout(() => window.scrollTo({ top: saved!.y }), ms));
+    // Once the address has moved on (the router scrolls to the top before the old page unmounts), nothing more is recorded.
+    const here = () => `${window.location.pathname}${window.location.search}` === url;
     const save = () => {
+      if (!here()) return;
       try {
-        sessionStorage.setItem(LIST_SCROLL_KEY, JSON.stringify({ url, y: window.scrollY }));
+        sessionStorage.setItem(key, JSON.stringify({ url, y: window.scrollY }));
       } catch {
         // storage unavailable
       }
     };
-    const onClick = (e: MouseEvent) => {
-      const a = (e.target as HTMLElement | null)?.closest?.("a[href]");
-      if (a && a.getAttribute("href")?.startsWith("/offres/")) save();
+    let throttle = 0;
+    const onScroll = () => {
+      if (performance.now() < until) {
+        if (saved && Math.abs(window.scrollY - saved.y) > 2) window.scrollTo({ top: saved.y });
+        return;
+      }
+      if (throttle) return;
+      throttle = window.setTimeout(() => {
+        throttle = 0;
+        save();
+      }, 120);
     };
-    document.addEventListener("click", onClick, true);
+    if (!saved) save();
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pagehide", save);
     return () => {
-      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pagehide", save);
+      if (throttle) clearTimeout(throttle);
       timers.forEach(clearTimeout);
     };
   }, [url]);

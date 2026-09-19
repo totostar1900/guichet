@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch } from "@/components/Density";
 import { Sheet } from "@/components/mobile/Sheet";
+import { FilterFab } from "@/components/FilterFab";
 import { usePhone } from "@/components/chart-utils";
 import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
@@ -200,22 +200,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   // The controls are not frozen any more: once they scroll out above, a floating « Filtrer · Trier » brings them back over the list.
   const phone = usePhone();
   const toolsRef = useRef<HTMLDivElement>(null);
-  const [fab, setFab] = useState(false);
   const [sheet, setSheet] = useState(false);
-  // The floating button lives on the body: the list may be sliding under a finger, the button must not.
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-  useEffect(() => {
-    const el = toolsRef.current;
-    if (!el) return;
-    // The site header covers the top 60 px: the band counts as gone once it is under it.
-    const io = new IntersectionObserver(([e]) => setFab(!e.isIntersecting && e.boundingClientRect.bottom < 60), { rootMargin: "-60px 0px 0px 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   // The controls, once: in the page, and again in the sheet the floating button opens.
   const toolbar = (
@@ -287,17 +272,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       </div>
       {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}
-      {mounted &&
-        createPortal(
-          <button type="button" className={`${styles.fab} ${fab && !sheet ? styles.fabOn : ""}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-hidden={!fab} tabIndex={fab ? 0 : -1}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 6h16M7 12h10M10 18h4" />
-            </svg>
-            {t("Filtrer · Trier")}
-            {active + Number(Boolean(q)) > 0 ? ` · ${active + Number(Boolean(q))}` : ""}
-          </button>,
-          document.body,
-        )}
+      <FilterFab watch={toolsRef} onClick={() => setSheet(true)} count={active + Number(Boolean(q))} open={sheet} />
       <Sheet open={sheet} onClose={() => setSheet(false)} title={t("Filtrer et trier")}>
         <div className={styles.sheetTools}>
           {toolbar}

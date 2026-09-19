@@ -1,10 +1,11 @@
+/* the gold chip of the toolbar's « Filtrer », so it reads as the line's own button */
 .dots {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--navy);
+  border: 1px solid var(--gold);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -17,9 +18,9 @@
 }
 .dots:hover,
 .dots:focus-visible {
-  color: var(--on-navy);
-  background: var(--navy);
-  border-color: var(--navy);
+  color: var(--navy);
+  background: var(--gold);
+  border-color: var(--gold);
 }
 .scrim {
   position: fixed;
