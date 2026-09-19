@@ -379,7 +379,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
   return (
     <div className={styles.page}>
-      <SwipePager id={o.id}>
+      <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
       <FichePanes className={styles.main}>
         <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
         <div className={styles.head}>

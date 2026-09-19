@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
-import { BackToTop } from "@/components/BackToTop";
+import { DensitySwitch } from "@/components/Density";
+import { Sheet } from "@/components/mobile/Sheet";
+import { usePhone } from "@/components/chart-utils";
+import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
@@ -193,6 +197,55 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   }, [listUrl, orderKey]);
   useListScroll(listUrl);
 
+  // The controls are not frozen any more: once they scroll out above, a floating « Filtrer · Trier » brings them back over the list.
+  const phone = usePhone();
+  const toolsRef = useRef<HTMLDivElement>(null);
+  const [fab, setFab] = useState(false);
+  const [sheet, setSheet] = useState(false);
+  // The floating button lives on the body: the list may be sliding under a finger, the button must not.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  useEffect(() => {
+    const el = toolsRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setFab(!e.isIntersecting && e.boundingClientRect.bottom < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // The controls, once: in the page, and again in the sheet the floating button opens.
+  const toolbar = (
+    <div className={styles.toolbar}>
+      <label className={styles.search}>
+        <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
+      </label>
+      <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
+        <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
+          {t("Toutes")}
+        </button>
+        {CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => (
+          <button key={c} type="button" className={`${styles.chip} ${cat === c ? styles.chipOn : ""}`} onClick={() => setCat(cat === c ? "" : c)} aria-pressed={cat === c}>
+            {t(FUND_CATEGORY_LABEL[c])}
+          </button>
+        ))}
+      </div>
+      <Select className={styles.fixed} value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
+      <Select className={styles.fixedSm} value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
+      <label className={styles.sort}>
+        {t("Tri")}
+        <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
+        {sort !== "categorie" && sort !== "nom" && (
+          <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
+            {desc ? "↓" : "↑"}
+          </button>
+        )}
+      </label>
+    </div>
+  );
+
   return (
     <>
       <section className={`${styles.families} ${familiesOpen ? "" : styles.familiesClosed}`} aria-label={t("Les quatre catégories de fonds")} data-coach="fonds-familles">
@@ -218,33 +271,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </div>
         )}
       </section>
-      <div className={styles.sticky} data-coach="fonds-filtres">
-        <div className={styles.toolbar}>
-          <label className={styles.search}>
-            <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
-          </label>
-          <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
-            <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
-              {t("Toutes")}
-            </button>
-            {CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => (
-              <button key={c} type="button" className={`${styles.chip} ${cat === c ? styles.chipOn : ""}`} onClick={() => setCat(cat === c ? "" : c)} aria-pressed={cat === c}>
-                {t(FUND_CATEGORY_LABEL[c])}
-              </button>
-            ))}
-          </div>
-          <Select className={styles.fixed} value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
-          <Select className={styles.fixedSm} value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
-          <label className={styles.sort}>
-            {t("Tri")}
-            <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
-            {sort !== "categorie" && sort !== "nom" && (
-              <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
-                {desc ? "↓" : "↑"}
-              </button>
-            )}
-          </label>
-        </div>
+      <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
+        {toolbar}
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
           {active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
@@ -254,10 +282,48 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               {t("Effacer")}
             </button>
           )}
+          <DensitySwitch className={styles.density} />
         </div>
       </div>
+      {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}
+      {mounted &&
+        createPortal(
+          <button type="button" className={`${styles.fab} ${fab && !sheet ? styles.fabOn : ""}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-hidden={!fab} tabIndex={fab ? 0 : -1}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            {t("Filtrer · Trier")}
+            {active + Number(Boolean(q)) > 0 ? ` · ${active + Number(Boolean(q))}` : ""}
+          </button>,
+          document.body,
+        )}
+      <Sheet open={sheet} onClose={() => setSheet(false)} title={t("Filtrer et trier")}>
+        <div className={styles.sheetTools}>
+          {toolbar}
+        </div>
+        <div className={styles.sheetFoot}>
+          <span>
+            <b>{filtered.length}</b> {t("fonds")}
+          </span>
+          {(active > 0 || q) && (
+            <button type="button" className="btn sm ghost" onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}>
+              {t("Effacer")}
+            </button>
+          )}
+          <button type="button" className="btn sm primary" onClick={() => setSheet(false)}>
+            {t("Voir")}
+          </button>
+        </div>
+      </Sheet>
 
-      {rowsShown.length > 0 && (
+      {rowsShown.length > 0 && phone && (
+        <section className={styles.cards} data-coach="fonds-table">
+          {rowsShown.map((r) => (
+            <FundCard key={r.id} r={r} />
+          ))}
+        </section>
+      )}
+      {rowsShown.length > 0 && !phone && (
         <section className={styles.group} data-coach="fonds-table">
           <div className="scroll-x">
             <table className={styles.tbl}>
@@ -286,14 +352,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </section>
       )}
       {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
-      <BackToTop />
       <CoachMarks
         id="fonds"
         replayLabel={t("Comment lire cette page ?")}
         stops={[
           { target: "fonds-familles", title: t("Quatre catégories"), text: t("Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. Chaque carte explique la catégorie en une phrase et filtre le tableau ; repliez le bandeau quand vous le connaissez.") },
-          { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. La bande reste visible pendant que le tableau défile.") },
-          { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription.") },
+          { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. Quand la bande est sortie de l'écran, le bouton « Filtrer · Trier » en bas la ramène sans remonter.") },
+          { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.") },
         ]}
       />
     </>

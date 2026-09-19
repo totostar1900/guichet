@@ -53,6 +53,19 @@
     line-height: 1.25;
     color: var(--ink);
   }
+  /* the first-visit step aside: 38 px towards the neighbour and back, the neighbour following */
+  .nudgeNext {
+    animation: nudgeNext 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .nudgePrev {
+    animation: nudgePrev 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .nudgeNextIn {
+    animation: nudgeNextIn 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .nudgePrevIn {
+    animation: nudgePrevIn 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
   .fromRight {
     animation: fromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -79,6 +92,46 @@
   }
   .hintOn {
     opacity: 1;
+  }
+}
+@keyframes nudgeNext {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35%,
+  65% {
+    transform: translateX(-38px);
+  }
+}
+@keyframes nudgePrev {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35%,
+  65% {
+    transform: translateX(38px);
+  }
+}
+@keyframes nudgeNextIn {
+  0%,
+  100% {
+    transform: translateX(100%);
+  }
+  35%,
+  65% {
+    transform: translateX(calc(100% - 38px));
+  }
+}
+@keyframes nudgePrevIn {
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+  35%,
+  65% {
+    transform: translateX(calc(-100% + 38px));
   }
 }
 @keyframes fromRight {

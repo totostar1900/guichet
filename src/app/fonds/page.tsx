@@ -1,5 +1,7 @@
 import { repo } from "@/lib/data";
 import { FundsBrowser } from "./FundsBrowser";
+import { BackToTop } from "@/components/BackToTop";
+import { SwipePager } from "@/components/mobile/SwipePager";
 import type { Offer } from "@/lib/domain/types";
 import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
@@ -15,9 +17,10 @@ export default async function FondsPage() {
   const funds = offers.filter((o): o is Offer & { fund: NonNullable<Offer["fund"]> } => o.kind === "FONDS" && Boolean(o.fund));
   const last = bulletins[0];
   const open = funds.filter((o) => o.fund.distributed && !o.hidden).length;
+  const titres = offers.filter((o) => !o.hidden && o.kind !== "FONDS").length;
 
   return (
-    <>
+    <SwipePager prev={{ href: "/", title: t("Obligations, bons du Trésor et actions de la zone CEMAC"), pos: `${t("Titres")} · ${titres}` }} hintKey="liste" hints={{ next: "Glissez vers la gauche : les fonds", prev: "Glissez vers la droite : les titres" }}>
       <div className={styles.head}>
         <div>
           <h1 className="display">{t("Fonds communs de placement")}</h1>
@@ -41,6 +44,7 @@ export default async function FondsPage() {
       <p className={styles.note}>
         {t("Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds. Purpose Capital agit en distributeur : aucune détention pour compte de tiers, les parts sont au nom du porteur au registre du dépositaire.")}
       </p>
-    </>
+      <BackToTop />
+    </SwipePager>
   );
 }

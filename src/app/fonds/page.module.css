@@ -257,11 +257,8 @@
 .countHint {
   color: var(--ink-2);
 }
-/* The selector band stays under the site header while the tables scroll (same treatment as the Guichet). */
-.sticky {
-  position: sticky;
-  top: 60px;
-  z-index: 20;
+/* The selector band scrolls with the page; once out of view, the floating « Filtrer · Trier » brings it back over the list. */
+.tools {
   background: var(--paper);
   margin: 0 -20px;
   padding: 10px 20px 0;
@@ -382,6 +379,88 @@
   font-size: 0.8rem;
   color: var(--ink-3);
   margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.count > b {
+  margin-right: 2px;
+}
+.density {
+  margin-left: auto;
+}
+/* the floating « Filtrer · Trier », bottom-left so the chevron keeps the right corner */
+.fab {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 38;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 2px solid var(--gold);
+  background: var(--navy);
+  color: #fff;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(11, 37, 69, 0.35);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.fabOn {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.fab:hover,
+.fab:focus-visible {
+  background: var(--gold);
+  color: var(--navy);
+}
+/* in the sheet the same controls stack, full width */
+.sheetTools .toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.sheetTools .search,
+.sheetTools .fixed,
+.sheetTools .fixedSm,
+.sheetTools .chips {
+  width: 100%;
+  flex: none;
+}
+.sheetTools .sort {
+  justify-content: space-between;
+}
+.sheetFoot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.sheetFoot > span {
+  flex: 1;
+}
+.sheetFoot b {
+  color: var(--ink);
+}
+/* the phone: cards in place of the table */
+.cards {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
 }
 @media (max-width: 760px) {
   .chips {
@@ -391,8 +470,7 @@
     min-width: 0;
     padding: 6px 4px;
   }
-  .sticky {
-    top: 52px; /* under the phone header */
+  .tools {
     margin: 0 -12px;
     padding: 6px 12px 0;
   }
@@ -401,6 +479,11 @@
   }
   .count {
     margin-bottom: 6px;
+  }
+  .fab {
+    left: 12px;
+    bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 13px;
   }
   .search,
   .fixed,
@@ -418,4 +501,9 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fab {
+    transition: none;
+  }
 }

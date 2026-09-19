@@ -1,7 +1,7 @@
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-top: 3px solid var(--line-2);
+  border-top: 3px solid var(--card-c, var(--line-2));
   border-radius: var(--radius);
   padding: 14px 16px 14px;
   display: grid;
@@ -94,4 +94,102 @@
   color: var(--ink-3);
   font-size: 0.74rem;
   white-space: nowrap;
+}
+
+/* the facts of a card are read in order: the number first, then the action row */
+.row2 {
+  display: contents;
+}
+/* compact: two lines, the number and the action on the second */
+.compact {
+  padding: 9px 12px;
+  gap: 4px;
+  border-top: 1px solid var(--line);
+  border-left: 3px solid var(--card-c, var(--line-2));
+  border-radius: 10px;
+}
+.compact .head > :first-child > :not(:first-child),
+.compact .facts,
+.compact .act > a {
+  display: none;
+}
+.compact .head > :first-child > :first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.88rem;
+}
+.compact .row2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.compact .big {
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.compact .big b {
+  font-size: 1.05rem;
+}
+.compact .big small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.compact .act {
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.compact .when {
+  margin-left: 0;
+  font-size: 0.7rem;
+}
+.compact .when {
+  order: -1;
+}
+
+/* a fund's card: the same shape, its own identity lines and the sign of a performance */
+.fundId {
+  min-width: 0;
+}
+.fundTitle {
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.fundTitle a {
+  color: inherit;
+  text-decoration: none;
+}
+.fundTitle a:hover {
+  text-decoration: underline;
+}
+.fundSub {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--crit);
+}
+.whenC {
+  display: none;
+}
+.compact .whenC {
+  display: inline;
+}
+.compact .whenD {
+  display: none;
+}
+.compact .big b {
+  white-space: nowrap;
+  flex: none;
 }

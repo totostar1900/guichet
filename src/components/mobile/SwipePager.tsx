@@ -7,10 +7,13 @@ import { LIST_ORDER_KEY, type ListMemory } from "@/components/ListNav";
 import styles from "./SwipePager.module.css";
 
 /**
- * On the phone a fiche is one card in the reader's list: a sideways drag
- * follows the finger, the neighbouring line peeks in, and past a third of the
- * screen (or with a flick) the page snaps to it. The arrows of the list bar
- * stay for those who prefer to tap. Under 760 px only; above, plain children.
+ * On the phone a page has neighbours: a fiche is one card in the reader's
+ * list (the next and previous lines), the Titres list has the Fonds list at
+ * its side. A sideways drag follows the finger, the neighbour peeks in, and
+ * past a third of the screen (or with a flick) the page snaps to it. Taps
+ * (the arrows of the list bar, the tabs) stay for those who prefer them.
+ * Under 760 px only; above, plain children. The first time, the page steps
+ * aside on its own for a moment so the neighbour shows on the edge.
  *
  * What the gesture leaves alone: the first 22 px of the left edge (the
  * system's back swipe), anything that scrolls sideways (tables, chip rows),
@@ -22,7 +25,12 @@ const SLOP = 10;
 const COMMIT = 0.3; // of the width
 const FLICK = 0.6; // px / ms
 const ENTER_KEY = "guichet:swipeDir";
-const HINT_KEY = "guichet:hint:swipe";
+
+export interface Neighbour {
+  href: string;
+  title: string;
+  pos: string; // "3 / 12", "Fonds · 6"
+}
 
 function ownsDrag(target: HTMLElement, root: HTMLElement): boolean {
   let el: HTMLElement | null = target;
@@ -35,7 +43,7 @@ function ownsDrag(target: HTMLElement, root: HTMLElement): boolean {
   return false;
 }
 
-export function SwipePager({ id, children }: { id: string; children: React.ReactNode }) {
+export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints, children }: { id?: string; prev?: Neighbour; next?: Neighbour; hintKey: string; hints: { next: string; prev: string }; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
   const root = useRef<HTMLDivElement>(null);
@@ -53,6 +61,7 @@ export function SwipePager({ id, children }: { id: string; children: React.React
     () => null,
   );
   const mem = useMemo(() => {
+    if (!id) return null;
     try {
       const m = raw ? (JSON.parse(raw) as ListMemory) : null;
       const i = m ? m.ids.indexOf(id) : -1;
@@ -63,9 +72,13 @@ export function SwipePager({ id, children }: { id: string; children: React.React
   }, [raw, id]);
   const [enter, setEnter] = useState<"left" | "right" | null>(null);
   const [hint, setHint] = useState(false);
-  const prevId = mem && mem.i > 0 ? mem.mem.ids[mem.i - 1] : null;
-  const nextId = mem && mem.i < mem.mem.ids.length - 1 ? mem.mem.ids[mem.i + 1] : null;
-  const titleOf = (n: number) => mem?.mem.titles?.[n] ?? "";
+  const [nudge, setNudge] = useState(false);
+  // The neighbours: from the list memory for a fiche, from the page otherwise.
+  const prev: Neighbour | null = id ? (mem && mem.i > 0 ? { href: `/offres/${mem.mem.ids[mem.i - 1]}`, title: mem.mem.titles?.[mem.i - 1] ?? "", pos: `${mem.i} / ${mem.mem.ids.length}` } : null) : (prevProp ?? null);
+  const next: Neighbour | null = id ? (mem && mem.i < mem.mem.ids.length - 1 ? { href: `/offres/${mem.mem.ids[mem.i + 1]}`, title: mem.mem.titles?.[mem.i + 1] ?? "", pos: `${mem.i + 2} / ${mem.mem.ids.length}` } : null) : (nextProp ?? null);
+  const prevHref = prev?.href ?? null;
+  const nextHref = next?.href ?? null;
+  const ready = id ? Boolean(mem) : true;
 
   // Arriving from a swipe: slide in from the side the finger pointed to (on the next frame, so the animation starts on its first keyframe).
   useEffect(() => {
@@ -81,30 +94,29 @@ export function SwipePager({ id, children }: { id: string; children: React.React
     return () => cancelAnimationFrame(raf);
   }, [id]);
 
-  // The neighbours are fetched ahead so the snap lands on a ready page; the first time, a word about the gesture.
+  // The neighbours are fetched ahead so the snap lands on a ready page; the first time, the page steps aside and a word says why.
   useEffect(() => {
-    if (!mem || !window.matchMedia("(max-width: 760px)").matches) return;
-    if (prevId) router.prefetch(`/offres/${prevId}`);
-    if (nextId) router.prefetch(`/offres/${nextId}`);
+    if (!ready || !window.matchMedia("(max-width: 760px)").matches) return;
+    if (prevHref) router.prefetch(prevHref);
+    if (nextHref) router.prefetch(nextHref);
     try {
-      if (!localStorage.getItem(HINT_KEY) && (prevId || nextId)) {
-        localStorage.setItem(HINT_KEY, "1");
-        const a = window.setTimeout(() => setHint(true), 900);
-        const b = window.setTimeout(() => setHint(false), 4200);
-        return () => {
-          clearTimeout(a);
-          clearTimeout(b);
-        };
+      const key = `guichet:hint:swipe:${hintKey}`;
+      if (!localStorage.getItem(key) && (prevHref || nextHref)) {
+        localStorage.setItem(key, "1");
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const timers = [window.setTimeout(() => setHint(true), 900), window.setTimeout(() => setHint(false), 4200)];
+        if (!reduced) timers.push(window.setTimeout(() => setNudge(true), 800), window.setTimeout(() => setNudge(false), 1900));
+        return () => timers.forEach(clearTimeout);
       }
     } catch {
       // storage unavailable
     }
-  }, [mem, prevId, nextId, router]);
+  }, [ready, prevHref, nextHref, hintKey, router]);
 
   useEffect(() => {
     const el = root.current;
     const card = cur.current;
-    if (!el || !card || !mem) return;
+    if (!el || !card || !ready) return;
     const peekPrev = el.querySelector<HTMLElement>(`.${styles.prev}`);
     const peekNext = el.querySelector<HTMLElement>(`.${styles.next}`);
     let d: { x0: number; y0: number; dx: number; lock: "h" | "v" | null; lastX: number; lastT: number; vx: number } | null = null;
@@ -134,7 +146,7 @@ export function SwipePager({ id, children }: { id: string; children: React.React
       }
       if (d.lock !== "h") return;
       if (e.cancelable) e.preventDefault();
-      const atEnd = (dx > 0 && !prevId) || (dx < 0 && !nextId);
+      const atEnd = (dx > 0 && !prevHref) || (dx < 0 && !nextHref);
       d.dx = atEnd ? dx * 0.25 : dx * 0.92; // a rubber band at the ends
       const now = performance.now();
       d.vx = (tch.clientX - d.lastX) / Math.max(1, now - d.lastT);
@@ -149,7 +161,7 @@ export function SwipePager({ id, children }: { id: string; children: React.React
       if (done.lock !== "h") return;
       const w = el.clientWidth;
       const dir = done.dx < 0 ? 1 : -1;
-      const target = dir > 0 ? nextId : prevId;
+      const target = dir > 0 ? nextHref : prevHref;
       const commit = target && (Math.abs(done.dx) > w * COMMIT || Math.abs(done.vx) > FLICK);
       if (commit) {
         place(-dir * w, true);
@@ -159,7 +171,7 @@ export function SwipePager({ id, children }: { id: string; children: React.React
         } catch {
           // storage or haptics unavailable
         }
-        window.setTimeout(() => router.push(`/offres/${target}`), reduced ? 0 : 200);
+        window.setTimeout(() => router.push(target), reduced ? 0 : 200);
       } else {
         place(0, true);
         window.setTimeout(() => el.classList.remove(styles.dragging), 280);
@@ -175,31 +187,29 @@ export function SwipePager({ id, children }: { id: string; children: React.React
       el.removeEventListener("touchend", onEnd);
       el.removeEventListener("touchcancel", onEnd);
     };
-  }, [mem, prevId, nextId, router]);
+  }, [ready, prevHref, nextHref, router]);
 
+  // The step aside goes towards the next neighbour, or the previous one when there is no next.
+  const nudgeDir = nudge ? (nextHref ? "next" : prevHref ? "prev" : null) : null;
   return (
     <div ref={root} className={styles.pager}>
-      <div ref={cur} className={`${styles.cur} ${enter === "right" ? styles.fromRight : enter === "left" ? styles.fromLeft : ""}`}>
+      <div ref={cur} className={`${styles.cur} ${enter === "right" ? styles.fromRight : enter === "left" ? styles.fromLeft : ""} ${nudgeDir === "next" ? styles.nudgeNext : nudgeDir === "prev" ? styles.nudgePrev : ""}`}>
         {children}
       </div>
-      {mem && prevId && (
-        <div className={`${styles.peek} ${styles.prev}`} aria-hidden="true">
-          <span className={styles.peekPos}>
-            {mem.i} / {mem.mem.ids.length}
-          </span>
-          <b>{titleOf(mem.i - 1)}</b>
+      {ready && prev && (
+        <div className={`${styles.peek} ${styles.prev} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
+          <span className={styles.peekPos}>{prev.pos}</span>
+          <b>{prev.title}</b>
         </div>
       )}
-      {mem && nextId && (
-        <div className={`${styles.peek} ${styles.next}`} aria-hidden="true">
-          <span className={styles.peekPos}>
-            {mem.i + 2} / {mem.mem.ids.length}
-          </span>
-          <b>{titleOf(mem.i + 1)}</b>
+      {ready && next && (
+        <div className={`${styles.peek} ${styles.next} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
+          <span className={styles.peekPos}>{next.pos}</span>
+          <b>{next.title}</b>
         </div>
       )}
       <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">
-        {t(nextId ? "Glissez vers la gauche : la ligne suivante" : "Glissez vers la droite : la ligne précédente")}
+        {t(nextHref ? hints.next : hints.prev)}
       </div>
     </div>
   );
