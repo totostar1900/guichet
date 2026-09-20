@@ -44,7 +44,7 @@ export function ConsentGate({ previous }: { previous?: string }) {
         <div className={styles.foot}>
           <label className={styles.check}>
             <input type="checkbox" checked={read} onChange={(e) => setRead(e.target.checked)} />
-            <span>{t("J'ai lu ces mentions : je comprends que le Guichet n'est pas un conseil et que je porte les risques décrits.")}</span>
+            <span>{t("J'ai lu ces mentions : je décide en connaissance des risques décrits, avec un conseiller pour en parler.")}</span>
           </label>
           {error && <em className={styles.error}>{error}</em>}
           <div className={styles.row}>

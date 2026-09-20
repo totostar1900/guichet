@@ -143,13 +143,13 @@ const Art5 = () => (
 
 const SCREENS: Screen[] = [
   { kick: "Guichet · Purpose Capital", title: "Le marché de la CEMAC, sur votre téléphone.", text: "Obligations des Trésors, actions cotées à la BVMAC, fonds : tout ce qui se place dans la zone, au même endroit.", art: <Art1 /> },
-  { kick: "1 · Voir", title: "Chaque chiffre est expliqué, jamais recommandé.", text: "Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.", art: <Art2 /> },
-  { kick: "2 · Dire", title: "Vous dites ce que vous voulez faire.", text: "Un montant, vos coordonnées, un récapitulatif. Ce n'est pas un ordre : c'est une intention, que le desk reçoit.", art: <Art3 /> },
+  { kick: "1 · Voir", title: "Chaque chiffre est expliqué, la décision reste la vôtre.", text: "Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.", art: <Art2 /> },
+  { kick: "2 · Dire", title: "Vous dites ce que vous voulez faire.", text: "Un montant, vos coordonnées, un récapitulatif. C'est une intention, que le desk reçoit : l'ordre vient après, avec un conseiller.", art: <Art3 /> },
   { kick: "3 · Parler", title: "Un conseiller vous rappelle avant tout engagement.", text: "Rien n'est débité sans votre accord. Le règlement se fait par virement, sur le compte de l'appel de fonds que vous recevez.", art: <Art4 /> },
   { kick: "4 · Suivre", title: "Vos ordres, vos titres, vos documents : Mon espace.", text: "Chaque étape vous est notifiée ; relevés et avis se téléchargent ; vos parts sont à votre nom chez le dépositaire.", art: <Art5 /> },
 ];
 const STEPS: [string, string][] = [
-  ["Voir", "chaque chiffre expliqué, jamais recommandé"],
+  ["Voir", "chaque chiffre expliqué, la décision reste la vôtre"],
   ["Dire", "une intention, pas un ordre"],
   ["Parler", "un conseiller vous rappelle avant tout engagement"],
   ["Suivre", "ordres, titres, documents dans Mon espace"],

@@ -4,7 +4,7 @@
  * version; a new version (a changed text, a new date below) asks again at the
  * next sign-in. The same text is public at /info/mentions.
  */
-export const LEGAL_VERSION = "2026-09-19";
+export const LEGAL_VERSION = "2026-09-20";
 
 export interface LegalSection {
   id: string;
@@ -29,15 +29,15 @@ export const LEGAL: LegalSection[] = [
   },
   {
     id: "conseil",
-    title: { fr: "Ni conseil, ni promesse", en: "Neither advice nor promise" },
+    title: { fr: "Des chiffres expliqués, une décision qui reste la vôtre", en: "Figures explained, a decision that stays yours" },
     body: {
       fr: [
-        "Le Guichet est une communication à caractère promotionnel. Il décrit des instruments et calcule des chiffres ; il ne vous recommande rien. Une ligne « à la une » ou une sélection du desk est un choix éditorial, pas un conseil adapté à votre situation.",
+        "Le Guichet est une communication à caractère promotionnel. Il décrit des instruments et calcule des chiffres, en clair, pour que vous décidiez en connaissance de cause. Une ligne « à la une » ou une sélection du desk est un choix éditorial ; le conseil adapté à votre situation, c'est votre conseiller qui vous le donne, en vous rappelant.",
         "Les rendements affichés sont actuariels, annuels, bruts, en convention Exact/Exact, hors commission et hors fiscalité, sous réserve du prix effectivement servi. Ils décrivent une promesse de l'émetteur ou un passé ; aucun ne prédit l'avenir.",
         "Une intention d'investissement n'est ni un ordre ni une garantie d'allocation. Rien n'est engagé tant qu'un conseiller n'a pas confirmé avec vous et que vous n'avez pas signé le bulletin correspondant.",
       ],
       en: [
-        "The Guichet is a promotional communication. It describes instruments and computes figures; it recommends nothing to you. A featured line or a desk selection is an editorial choice, not advice suited to your situation.",
+        "The Guichet is a promotional communication. It describes instruments and computes figures, in plain words, so that you decide knowingly. A featured line or a desk selection is an editorial choice; the advice suited to your situation comes from your adviser, who calls you back.",
         "Yields shown are actuarial, annual, gross, on the Actual/Actual convention, before commission and tax, subject to the price actually served. They describe an issuer's promise or a past; none predicts the future.",
         "An investment intention is neither an order nor a guarantee of allocation. Nothing is committed until an adviser has confirmed with you and you have signed the corresponding order form.",
       ],

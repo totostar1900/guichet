@@ -17,14 +17,14 @@ export const AIDE: DocPage = {
   chapters: [
     {
       id: "guichet",
-      title: l("Ce qu'est Guichet, et ce qu'il n'est pas", "What Guichet is, and is not"),
+      title: l("Ce que Guichet fait pour vous", "What Guichet does for you"),
       blocks: [
         { type: "lead", text: l("Guichet est le comptoir en ligne de Purpose Capital, société de bourse agréée par la COSUMAF. Vous y voyez les placements de la zone CEMAC avec leurs chiffres expliqués, vous nous dites ce que vous souhaitez faire, et un conseiller vous rappelle avant tout engagement.", "Guichet is the online counter of Purpose Capital, a brokerage firm licensed by the COSUMAF. You see the CEMAC zone's investments with their figures explained, you tell us what you wish to do, and an adviser calls you back before any commitment.") },
         {
           type: "list",
           items: [
             l("Guichet ne débite jamais votre compte : un règlement se fait par virement, uniquement sur le compte indiqué dans l'appel de fonds que vous recevez.", "Guichet never debits your account: settlement is a transfer, only to the account shown in the call for funds you receive."),
-            l("Guichet ne donne pas de conseil : chaque chiffre est expliqué, jamais recommandé. Les risques de chaque ligne sont écrits sous « À garder en tête ».", "Guichet gives no advice: every figure is explained, never recommended. Each line's risks are written under \"Keep in mind\"."),
+            l("Guichet explique chaque chiffre et vous laisse décider ; le conseil, c'est votre conseiller qui vous le donne en vous rappelant. Les risques de chaque ligne sont écrits sous « À garder en tête ».", "Guichet explains every figure and lets you decide; the advice comes from your adviser, who calls you back. Each line's risks are written under \"Keep in mind\"."),
             l("Les rendements affichés sont bruts, avant commission et fiscalité ; les conditions vous sont communiquées par votre conseiller.", "Yields shown are gross, before commission and tax; terms are communicated by your adviser."),
           ],
         },

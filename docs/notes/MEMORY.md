@@ -9,3 +9,4 @@
 - [Supabase migrations](guichet-supabase-migrations.md) : applied via Chrome SQL editor with window.monaco setValue; enum adds run alone; 0001–0028 applied (0023 funds open, 0024 inbox, 0025 news, 0026 channels+devices, 0027 terms, 0028 financial profile)
 - [No em dashes](guichet-no-em-dash.md) : house style, colon / commas / middle dot instead; the lone missing-value dash stays
 - [Auth and channels](guichet-auth-channels.md) : two proven channels before an intention, guest e-mail code, WhatsApp bridge link, passkeys + browser-bound PIN, /moi/securite; migration 0026
+- [Positive tone](guichet-positive-tone.md) : say what Guichet does, never what it is not; regulatory disclaimer stays; bump LEGAL_VERSION when legal text changes

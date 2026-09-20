@@ -314,7 +314,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           </label>
         )}
         <div className={styles.foot}>
-          <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie de performance." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. Ni conseil, ni garantie d'allocation.")}</small>
+          <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>
           <button className="btn primary" type="submit" disabled={pending || !ready}>
             {t(pending ? "Envoi…" : "Envoyer au desk")}
           </button>

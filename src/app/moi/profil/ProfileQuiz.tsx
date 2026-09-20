@@ -113,7 +113,7 @@ export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
               </span>
             </div>
           </div>
-          <span className={styles.hint}>{t("Ce profil n'est pas un conseil : il décrit ce que vous nous avez dit de vous.")}</span>
+          <span className={styles.hint}>{t("Ce profil décrit ce que vous nous avez dit de vous ; le conseil, c'est votre conseiller.")}</span>
         </div>
         <div className={styles.actions}>
           <Link href="/" className="btn primary">
@@ -148,7 +148,7 @@ export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
           <span>{o[lang]}</span>
         </label>
       ))}
-      <span className={styles.hint}>{t("Il n'y a pas de bonne réponse : votre profil sert à vous montrer les bons repères, pas à vous juger. Rien n'est un conseil.")}</span>
+      <span className={styles.hint}>{t("Toutes les réponses sont bonnes : votre profil sert à vous montrer les bons repères. La décision reste la vôtre.")}</span>
       {error && <span className={styles.hint} style={{ color: "var(--crit)" }}>{error}</span>}
       <div className={styles.nav}>
         {n > 0 ? (
