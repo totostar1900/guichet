@@ -14,6 +14,7 @@ import { MobileShell } from "@/components/mobile/MobileShell";
 import { Onboarding } from "@/components/mobile/Onboarding";
 import { Presentation } from "@/components/mobile/Presentation";
 import { isDesk } from "@/lib/auth/types";
+import type { ClientPrefs } from "@/lib/domain/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
 import { loadRegistry } from "@/lib/reference";
 import { LangProvider } from "@/i18n/client";
@@ -55,11 +56,12 @@ async function countOffers(): Promise<{ titres: number; fonds: number } | undefi
   }
 }
 
-/** What the menu says under « Sécurité » : proven channels and trusted devices. Never fails the page. */
-async function securityLine(userId: string): Promise<{ channels: number; devices: number } | undefined> {
+/** What the menu says under « Sécurité » (proven channels, trusted devices) and what the account sheet shows (each channel, the preferences). Never fails the page. */
+async function accountLine(userId: string): Promise<{ security: { channels: number; devices: number }; phone?: string; email?: string; phoneOk: boolean; emailOk: boolean; prefs: ClientPrefs } | undefined> {
   try {
-    const [ch, devices] = await Promise.all([repo().getChannelStatus(userId), repo().listDevices(userId)]);
-    return { channels: (ch.phoneVerifiedAt ? 1 : 0) + (ch.emailVerifiedAt || ch.email ? 1 : 0), devices: devices.length };
+    const [ch, devices, prefs] = await Promise.all([repo().getChannelStatus(userId), repo().listDevices(userId), repo().getPrefs(userId).catch(() => ({}) as ClientPrefs)]);
+    const emailOk = Boolean(ch.emailVerifiedAt);
+    return { security: { channels: (ch.phoneVerifiedAt ? 1 : 0) + (emailOk || ch.email ? 1 : 0), devices: devices.length }, phone: ch.phone, email: ch.email, phoneOk: Boolean(ch.phoneVerifiedAt), emailOk, prefs };
   } catch {
     return undefined;
   }
@@ -69,7 +71,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const backend = backendName();
   const [session, registry, lang, t, navCounts] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers()]);
   const desk = isDesk(session);
-  const [security, profile] = session && !desk ? await Promise.all([securityLine(session.userId), repo().getFinancialProfile(session.userId).catch(() => undefined)]) : [undefined, undefined];
+  const [account, profile] = session ? await Promise.all([accountLine(session.userId), desk ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined)]) : [undefined, undefined];
+  const security = desk ? undefined : account?.security;
   // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
   const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
@@ -108,7 +111,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={session?.email} desk={desk} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} desk={desk} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />

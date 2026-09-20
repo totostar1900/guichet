@@ -3,7 +3,7 @@ import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/se
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -80,6 +80,7 @@ interface Store {
   channels: Map<string, ChannelStatus>;
   consents: Map<string, { version: string; at: string }>;
   profiles: Map<string, FinancialProfile>;
+  prefs: Map<string, ClientPrefs>;
   codes: ChannelCode[];
   devices: TrustedDevice[];
   notifications: Notification[];
@@ -119,6 +120,7 @@ function store(): Store {
       channels: new Map(),
       consents: new Map(),
       profiles: new Map(),
+      prefs: new Map(),
       codes: [],
       devices: [],
       notifications: [],
@@ -425,6 +427,12 @@ export const memoryRepository: Repository = {
   async setFinancialProfile(userId, p) {
     (store().profiles ??= new Map()).set(userId, p);
   },
+  async getPrefs(userId) {
+    return (store().prefs ??= new Map()).get(userId) ?? {};
+  },
+  async setPrefs(userId, p) {
+    (store().prefs ??= new Map()).set(userId, { ...(await this.getPrefs(userId)), ...p });
+  },
   async getConsent(userId) {
     return store().consents.get(userId) ?? {};
   },
@@ -487,6 +495,7 @@ export const memoryRepository: Repository = {
       store().contacts.push(c);
     }
     if (patch.name) c.name = patch.name;
+    if (patch.segment) c.segment = patch.segment;
     // A new number or address is a new channel: its proof falls with the old one.
     const st = store().channels.get(id);
     if (patch.phone) {

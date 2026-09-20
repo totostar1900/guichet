@@ -344,21 +344,15 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                   </div>
                   <div className={styles.group}>{t("Couleurs")}</div>
                   <PaletteSwitch lang={lang} />
-                  <div className={styles.line}>
-                    <LangSwitch compact />
-                    {signedIn ? (
-                      <form action={logout} className={styles.form}>
-                        <button type="submit" className={styles.lineOut}>
-                          <Icon d={D.out} />
-                          {t("Se déconnecter")}
-                        </button>
-                      </form>
-                    ) : (
+                  {/* Signed in, the language and the way out live behind the initial; a visitor finds them here. */}
+                  {!signedIn && (
+                    <div className={styles.line}>
+                      <LangSwitch compact />
                       <Link href="/connexion" className={styles.lineOut} onClick={close}>
                         {t("Se connecter")}
                       </Link>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <div className={styles.group}>{t("Nous joindre")}</div>
                   {contactBlock}
                 </>

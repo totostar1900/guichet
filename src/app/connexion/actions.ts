@@ -148,6 +148,18 @@ export async function logout(): Promise<void> {
   redirect("/");
 }
 
+/** « Se déconnecter partout » : every session of this account, on every device, ends now; the trusted devices stay listed under Sécurité. */
+export async function logoutEverywhere(): Promise<void> {
+  if (authMode() === "supabase") {
+    const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+    const sb = await supabaseAuthClient();
+    await sb.auth.signOut({ scope: "global" });
+  } else {
+    await clearDevSession();
+  }
+  redirect("/");
+}
+
 /* ---------- Appareils de confiance : clé d'accès ou code à 4 chiffres ---------- */
 
 export async function passkeyOptions() {

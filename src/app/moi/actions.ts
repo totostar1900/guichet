@@ -44,3 +44,35 @@ export async function acceptTerms(version: string): Promise<{ ok: true } | { ok:
   revalidatePath("/", "layout");
   return { ok: true };
 }
+
+export type IdentityResult = { ok: true; name: string; segment: string } | { ok: false; error: string };
+
+/** The client corrects their own name and city from the account sheet; the segment keeps its first part (« Personne physique »). */
+export async function identityAction(_p: IdentityResult | null, form: FormData): Promise<IdentityResult> {
+  const s = await requireSession("/moi");
+  const name = String(form.get("name") ?? "").trim().replace(/\s+/g, " ");
+  const city = String(form.get("city") ?? "").trim().replace(/\s+/g, " ");
+  if (name.length < 2 || name.length > 80) return { ok: false, error: "Indiquez votre nom tel qu'il figure sur votre pièce d'identité." };
+  if (city.length > 60) return { ok: false, error: "Ville trop longue." };
+  const kind = s.segment.split("·")[0].trim() || "Personne physique";
+  const segment = city ? `${kind} · ${city}` : kind;
+  await repo().updateContact(s.userId, { name, segment });
+  revalidatePath("/", "layout");
+  return { ok: true, name, segment };
+}
+
+/** One preference at a time, saved as soon as it is touched: how the desk reaches you first, statements by e-mail. */
+export async function prefsAction(p: { reach?: "whatsapp" | "email" | "call"; statementsByEmail?: boolean }): Promise<{ ok: true } | { ok: false; error: string }> {
+  const s = await requireSession("/moi");
+  const patch: { reach?: "whatsapp" | "email" | "call"; statementsByEmail?: boolean } = {};
+  if (p.reach === "whatsapp" || p.reach === "email" || p.reach === "call") patch.reach = p.reach;
+  if (typeof p.statementsByEmail === "boolean") patch.statementsByEmail = p.statementsByEmail;
+  if (!Object.keys(patch).length) return { ok: false, error: "Rien à enregistrer." };
+  try {
+    await repo().setPrefs(s.userId, patch);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
+  }
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

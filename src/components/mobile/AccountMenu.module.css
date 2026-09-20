@@ -32,7 +32,7 @@
   place-items: center;
   flex: none;
 }
-.card > span:last-child {
+.who {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -110,4 +110,221 @@
   font-size: 0.74rem;
   color: var(--ink-3);
   line-height: 1.45;
+}
+.card {
+  position: relative;
+}
+.editBtn {
+  flex: none;
+  align-self: flex-start;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+.editFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.err {
+  font-size: 0.74rem;
+  color: var(--crit);
+}
+.channels {
+  display: flex;
+  flex-direction: column;
+}
+.channel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  min-height: 44px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.channel > svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.channel > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.channel b {
+  font-size: 0.84rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.channel small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.channel i {
+  font-style: normal;
+  color: var(--ink-3);
+}
+.ok {
+  color: var(--good) !important;
+  font-weight: 700;
+}
+.group {
+  margin: 14px 0 2px;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 800;
+}
+.pref {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  min-height: 48px;
+  border-top: 1px solid var(--line);
+}
+.pref:first-child {
+  border-top: 0;
+}
+.pref > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pref b {
+  font-size: 0.9rem;
+}
+.pref small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  line-height: 1.35;
+}
+.prefCol {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px;
+}
+.seg button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 30px;
+}
+.seg .segOn {
+  background: var(--select);
+  color: var(--on-select);
+}
+.switch {
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  border: 0;
+  background: var(--line-2);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+}
+.switch i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: left 0.15s;
+}
+.switchOn {
+  background: var(--select);
+}
+.switchOn i {
+  left: 21px;
+}
+.out {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.out form {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.outBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.outBtn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.outAll {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 6px 8px;
+  cursor: pointer;
+  text-decoration: underline dotted 1px;
+  text-underline-offset: 3px;
 }

@@ -1,7 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type Contact, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -738,6 +738,17 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("profiles").upsert({ id: userId, financial_profile: p }, { onConflict: "id" });
     if (error) fail("setFinancialProfile", error);
   },
+  async getPrefs(userId) {
+    const { data, error } = await db().from("profiles").select("prefs").eq("id", userId).maybeSingle();
+    if (error) fail("getPrefs", error);
+    const r = (data ?? {}) as { prefs?: ClientPrefs | null };
+    return r.prefs ?? {};
+  },
+  async setPrefs(userId, p) {
+    const cur = await this.getPrefs(userId);
+    const { error } = await db().from("profiles").update({ prefs: { ...cur, ...p } }).eq("id", userId);
+    if (error) fail("setPrefs", error);
+  },
   async getConsent(userId) {
     const { data, error } = await db().from("profiles").select("terms_version, terms_accepted_at").eq("id", userId).maybeSingle();
     if (error) fail("getConsent", error);
@@ -818,6 +829,7 @@ export const supabaseRepository: Repository = {
   async updateContact(id, patch) {
     const row: Record<string, string | null> = {};
     if (patch.name) row.display_name = patch.name;
+    if (patch.segment) row.segment = patch.segment;
     if (patch.phone) row.phone = patch.phone;
     if (patch.email) row.email = patch.email;
     if (!Object.keys(row).length) return;

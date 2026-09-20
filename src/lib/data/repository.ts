@@ -1,5 +1,5 @@
 import type { FinancialProfile } from "@/data/profile";
-import type { Approval, AuditEntry, ChannelCode, ChannelStatus, Contact, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
+import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -64,7 +64,10 @@ export interface Repository {
   removeWatch(userId: string, offerId: string): Promise<void>;
   updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt">>): Promise<void>;
   /** Client-side updates to reachability (phone, e-mail) : the desk keeps the last one given. */
-  updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email">>): Promise<void>;
+  updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email" | "segment">>): Promise<void>;
+  /** The client's personal preferences, set from the account sheet. */
+  getPrefs(userId: string): Promise<ClientPrefs>;
+  setPrefs(userId: string, p: ClientPrefs): Promise<void>;
   /** Proven channels of a client, and the proof itself (a code, six digits, ten minutes, five tries). */
   /** The legal text the client accepted: its version (a date) and when. */
   getConsent(userId: string): Promise<{ version?: string; at?: string }>;

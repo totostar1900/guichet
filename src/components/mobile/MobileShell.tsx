@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountMenu } from "./AccountMenu";
+import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
 
 /**
@@ -77,7 +78,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, desk, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; desk: boolean; pendingCount?: number; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; pendingCount?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -151,7 +152,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, desk, pendin
             </Link>
           )}
           {signedIn ? (
-            <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} />
+            <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} phone={phone} phoneOk={phoneOk} emailOk={emailOk} prefs={prefs} kycStatus={kycStatus} vapidKey={vapidKey} />
           ) : (
             !path.startsWith("/connexion") && (
               <Link href={`/connexion?next=${encodeURIComponent(path)}`} className={styles.signin}>

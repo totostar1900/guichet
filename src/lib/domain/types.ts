@@ -473,3 +473,9 @@ export interface ReferenceRow<T = unknown> {
   updatedAt: string;
   updatedBy?: string;
 }
+
+/** What the client chose in their account: how the desk reaches them first, and whether statements go by e-mail. */
+export interface ClientPrefs {
+  reach?: "whatsapp" | "email" | "call";
+  statementsByEmail?: boolean;
+}
