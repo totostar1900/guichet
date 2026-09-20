@@ -352,6 +352,9 @@ export const SEED_OFFERS: Offer[] = [
 ];
 
 export const SEED_INTENTS: Intent[] = [
+  // the demo client (dev login « G. Nitcheu ») has a past: one line settled, one not served
+  { id: "i-001", ref: "PF-0602-001", clientId: "dev-client-g-nitcheu", offerId: "rca-ota-c-2028", offerVersion: 1, clientName: "G. Nitcheu", clientSegment: "Personne physique · Yaoundé", type: "ferme", amount: 5_000_000, channel: "WhatsApp", state: "reglee", allocationPct: 100, createdAt: "2026-06-02T09:10:00", updatedAt: "2026-06-12T10:00:00" },
+  { id: "i-002", ref: "PF-0715-002", clientId: "dev-client-g-nitcheu", offerId: "rca-ota-c-2028", offerVersion: 1, clientName: "G. Nitcheu", clientSegment: "Personne physique · Yaoundé", type: "appetit", amount: 2_000_000, channel: "E-mail", state: "non_servie", createdAt: "2026-07-15T14:20:00", updatedAt: "2026-07-20T09:00:00" },
   {
     id: "i-011",
     ref: "PF-0914-011",

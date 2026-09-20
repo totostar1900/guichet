@@ -31,6 +31,9 @@ export default async function MyPage() {
   const [intents, offers, docs] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments()]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
+  // A line no longer listed (back to draft, withdrawn) still exists: the history keeps its name and its fiche.
+  const missing = [...new Set(mine.map((i) => i.offerId).filter((id) => !byOffer.has(id)))];
+  for (const o of await Promise.all(missing.map((id) => r.getOffer(id).catch(() => undefined)))) if (o) byOffer.set(o.id, o);
   const [myFile, contact, watches] = await Promise.all([r.getClientFileByUser(s.userId), r.getContact(s.userId), r.listWatches(s.userId)]);
   const followed = watches.map((w) => byOffer.get(w.offerId)).filter((o): o is NonNullable<typeof o> => Boolean(o));
   const now = new Date();
@@ -251,7 +254,28 @@ export default async function MyPage() {
           <h2>{t("Historique")} ({closed.length})</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>{t("intentions servies, réglées, non servies ou annulées")}</span>
         </summary>
-        <div className="scroll-x">
+        <div className={styles.histCards}>
+          {closed.map((i) => {
+            const o = byOffer.get(i.offerId);
+            return (
+              <div key={i.id} className={styles.histCard}>
+                <div className={styles.cardTop}>
+                  <div>
+                    <b>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</b>
+                    <small>
+                      {t(INTENT_LABEL[i.type])}
+                      {i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · {t("réf.")} {i.ref} · {fmtDate(i.createdAt, false)}
+                    </small>
+                  </div>
+                  <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
+                </div>
+                <span className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</span>
+              </div>
+            );
+          })}
+          {closed.length === 0 && <p className="muted">{t("Rien encore.")}</p>}
+        </div>
+        <div className={`scroll-x ${styles.deskTable}`}>
           <table className="tbl">
             <thead>
               <tr>

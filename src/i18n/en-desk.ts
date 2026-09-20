@@ -788,4 +788,6 @@ export const EN_MORE: Record<string, string> = {
   "Présentation": "Layout",
   "Mon dossier": "My file",
   "pièces du dossier, relevés, attestations": "file pieces, statements, certificates",
+  "Tout replier": "Fold all",
+  "Tout déplier": "Unfold all",
 };

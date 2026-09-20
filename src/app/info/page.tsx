@@ -12,6 +12,7 @@ import { buildGuideIndex } from "@/lib/guide-index";
 import { InfoNav } from "./InfoNav";
 import { Actor } from "@/components/Illustrations";
 import { Glossary } from "./Glossary";
+import { FoldAll, FoldSection } from "@/components/Fold";
 import styles from "./page.module.css";
 import docs from "@/app/desk/docs/docs.module.css";
 import { getLang, getT } from "@/i18n/server";
@@ -54,16 +55,23 @@ export default async function InfoPage() {
         <div data-coach="info-search" id="recherche" className={styles.anchor}>
           <InfoSearch entries={entries} />
         </div>
+        <div className={styles.foldBar}>
+          <FoldAll group="info" ids={["lecons", "parcours", "simulateur", "outils", "glossaire"]} />
+        </div>
 
-        <div className={`${styles.lessons} ${styles.anchor}`} data-coach="info-lessons" id="lecons">
-          <div className={styles.lessonsHead}>
-            <h2 className={styles.h2}>{t("Huit leçons courtes")}</h2>
+        <FoldSection
+          group="info"
+          id="lecons"
+          title={t("Huit leçons courtes")}
+          aside={
             <Suspense>
               <Link className="btn sm" href="/info/aide" data-coach="info-aide">
                 {t("Aide : vos questions, nos réponses")} →
               </Link>
             </Suspense>
-          </div>
+          }
+        >
+        <div className={styles.lessons} data-coach="info-lessons">
           {lessons.map((l) => (
             <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
               <i>{l.order}</i>
@@ -77,10 +85,9 @@ export default async function InfoPage() {
             </Link>
           ))}
         </div>
+        </FoldSection>
 
-        <h2 className={`${styles.h2} ${styles.anchor}`} id="parcours">
-          {t("Comprendre le marché CEMAC")}
-        </h2>
+        <FoldSection group="info" id="parcours" title={t("Comprendre le marché CEMAC")}>
         <Link href="/info/parcours" className={styles.parcours} data-coach="info-parcours">
           <span className={styles.parcoursStrip} aria-hidden="true">
             {(["beac", "tresor", "guichet", "client"] as const).map((k) => (
@@ -96,19 +103,17 @@ export default async function InfoPage() {
           </span>
           <span className={styles.parcoursGo}>{t("Commencer")} →</span>
         </Link>
+        </FoldSection>
 
-        <h2 className={`${styles.h2} ${styles.anchor}`} id="simulateur">
-          {t("Simulateur d'obligation")}
-        </h2>
+        <FoldSection group="info" id="simulateur" title={t("Simulateur d'obligation")}>
         <div className={styles.sim} data-coach="info-sim">
           <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
           <div className={styles.warn}>{t("Outil pédagogique : résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
           <Simulator />
         </div>
+        </FoldSection>
 
-        <h2 className={`${styles.h2} ${styles.anchor}`} id="outils">
-          {t("Outils et repères")}
-        </h2>
+        <FoldSection group="info" id="outils" title={t("Outils et repères")}>
         <div className={styles.grid}>
           <Link href="/comparer" className={styles.tile}>
             <span className={styles.k}>{t("Outil")}</span>
@@ -126,6 +131,7 @@ export default async function InfoPage() {
             <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
           </Link>
         </div>
+        </FoldSection>
 
         <BackToTop lift />
         <GuideBar pos={{ label: t("Le Guide") }} />
@@ -141,10 +147,9 @@ export default async function InfoPage() {
             { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
           ]}
         />
-        <h2 className={`${styles.h2} ${styles.anchor}`} id="glossaire">
-          {t("Les mots du Guichet")}
-        </h2>
+        <FoldSection group="info" id="glossaire" title={t("Les mots du Guichet")}>
         <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
+        </FoldSection>
       </div>
     </div>
   );

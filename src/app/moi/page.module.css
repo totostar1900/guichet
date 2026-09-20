@@ -273,3 +273,65 @@
   color: var(--ink-3);
   margin-top: 2px;
 }
+
+/* the phone reads cards, the desk reads tables: history and documents */
+.histCards,
+.docCards {
+  display: none;
+}
+@media (max-width: 760px) {
+  .deskTable {
+    display: none;
+  }
+  .histCards,
+  .docCards {
+    display: grid;
+    gap: 8px;
+    padding: 8px 12px 12px;
+  }
+  .histCard {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    background: var(--paper);
+    display: grid;
+    gap: 6px;
+  }
+  .docCard {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    background: var(--surface);
+  }
+  .docCardMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .docCardMain b {
+    font-size: 0.88rem;
+  }
+  .docCardMain small {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .docCardSide {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .docGroup .docCards {
+    padding: 4px 0 8px;
+  }
+  .docGroupHead {
+    padding: 10px 0 4px;
+  }
+}

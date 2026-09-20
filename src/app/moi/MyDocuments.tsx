@@ -92,6 +92,27 @@ export function MyDocuments({ docs, ops }: { docs: DocRow[]; ops: DocOp[] }) {
       </tr>
     );
   };
+  // On the phone, a card per document: the label first, the number and the date under it, the state and the PDF at the right.
+  const card = (d: DocRow, remind: boolean) => {
+    const op = d.intentId ? opOf.get(d.intentId) : undefined;
+    return (
+      <div key={d.id} className={styles.docCard}>
+        <div className={styles.docCardMain}>
+          <b>{d.label}</b>
+          <small>
+            {d.number} · {fmtDateTime(d.createdAt)}
+          </small>
+          {remind && <small className={styles.docFor}>{op ? (op.href ? <a href={op.href}>{op.title}</a> : op.title) : t("Mon dossier")}{op ? ` · ${op.about}` : ""}</small>}
+        </div>
+        <div className={styles.docCardSide}>
+          <span className={`st ${d.status === "signe" ? "reglee" : d.status === "envoye" ? "transmise" : "recue"}`}>{t(d.status === "signe" ? "Signé" : d.status === "envoye" ? "Envoyé" : "Disponible")}</span>
+          <a className="btn sm" href={d.href} target="_blank" rel="noreferrer">
+            PDF
+          </a>
+        </div>
+      </div>
+    );
+  };
   const head = (
     <thead>
       <tr>
@@ -121,12 +142,15 @@ export function MyDocuments({ docs, ops }: { docs: DocRow[]; ops: DocOp[] }) {
       </div>
       {docs.length === 0 && <p className="muted">{t("Vos bulletins, appels de fonds et avis apparaîtront ici.")}</p>}
       {docs.length > 0 && !byOp && (
-        <div className="scroll-x">
-          <table className="tbl">
-            {head}
-            <tbody>{sorted.map((d) => row(d, true))}</tbody>
-          </table>
-        </div>
+        <>
+          <div className={styles.docCards}>{sorted.map((d) => card(d, true))}</div>
+          <div className={`scroll-x ${styles.deskTable}`}>
+            <table className="tbl">
+              {head}
+              <tbody>{sorted.map((d) => row(d, true))}</tbody>
+            </table>
+          </div>
+        </>
       )}
       {docs.length > 0 &&
         byOp &&
@@ -139,7 +163,8 @@ export function MyDocuments({ docs, ops }: { docs: DocRow[]; ops: DocOp[] }) {
               </span>
               {g.op && <span className={`st ${g.op.stateKey}`}>{g.op.state}</span>}
             </div>
-            <div className="scroll-x">
+            <div className={styles.docCards}>{g.rows.map((d) => card(d, false))}</div>
+            <div className={`scroll-x ${styles.deskTable}`}>
               <table className="tbl">
                 {head}
                 <tbody>{g.rows.map((d) => row(d, false))}</tbody>

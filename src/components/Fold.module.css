@@ -1,0 +1,110 @@
+/* a section that folds: a thin gold line above, the title, a chevron at the right */
+.section {
+  border-top: 1px solid var(--gold);
+  padding-top: 14px;
+  margin-top: 36px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.title {
+  font-size: 1.05rem;
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  scroll-margin-top: 110px;
+}
+.aside {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.chev {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--gold-ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.chev svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s;
+}
+.open .chev svg {
+  transform: rotate(180deg);
+}
+.body {
+  padding-top: 12px;
+}
+.body[hidden] {
+  display: none;
+}
+/* the control at the top: folds or opens every section */
+.all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--navy-text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0 12px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.all svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--gold-ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+.allClosed svg {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chev svg,
+  .all svg {
+    transition: none;
+  }
+}
+@media (max-width: 760px) {
+  .section {
+    margin-top: 28px;
+  }
+  /* the title keeps its line; what stands beside it on a desk goes under it */
+  .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    row-gap: 8px;
+  }
+  .aside {
+    grid-column: 1 / -1;
+  }
+  .title {
+    scroll-margin-top: 120px;
+  }
+}
