@@ -23,6 +23,9 @@ export function InfoNav({ sections }: { sections: { id: string; title: string }[
       <Link href="/comparer">{t("Comparer deux lignes")}</Link>
       <Link href="/societes">{t("Sociétés cotées et émetteurs")}</Link>
       <Link href="/actualites">{t("Actualités")}</Link>
+      <Link href="/info/mentions" className={styles.navLegal}>
+        {t("Mentions et responsabilités")}
+      </Link>
     </nav>
   );
 }

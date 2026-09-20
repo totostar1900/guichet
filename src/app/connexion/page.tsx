@@ -9,7 +9,11 @@ import { getT } from "@/i18n/server";
 import { ReplayPresentation } from "@/components/mobile/Presentation";
 import { DeviceSignIn } from "./DeviceSignIn";
 
-export const metadata = { title: "Connexion" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Connexion") };
+}
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; erreur?: string }> }) {
   const { next = "/", erreur } = await searchParams;

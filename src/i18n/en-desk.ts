@@ -732,4 +732,7 @@ export const EN_MORE: Record<string, string> = {
   "Haut de page": "Top of page",
   "Dernière section": "Last section",
   "Guide · Lire une ligne en trente secondes": "Guide · Read a line in thirty seconds",
+  "Connexion": "Sign in",
+  "Fonds : OPCVM de la CEMAC": "Funds: CEMAC mutual funds",
+  "Sociétés cotées : BVMAC": "Listed companies: BVMAC",
 };

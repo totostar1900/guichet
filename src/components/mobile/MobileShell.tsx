@@ -140,7 +140,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0, menu }: { 
                 <path d="M15 5l-7 7 7 7" />
               </svg>
             </button>
-            <div className={styles.title}>{title || "…"}</div>
+            <div className={styles.title}>{title ? t(title) : "…"}</div>
           </>
         )}
         <div className={styles.right}>

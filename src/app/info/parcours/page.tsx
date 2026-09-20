@@ -13,7 +13,11 @@ import styles from "./page.module.css";
 import { Parcours } from "./Parcours";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Comprendre le marché CEMAC" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Comprendre le marché CEMAC") };
+}
 
 const STRIP: ActorKind[] = ["tresor", "entreprise", "gestion", "guichet", "svt", "bvmac", "beac", "cosumaf", "depositaire", "client"];
 

@@ -4,7 +4,11 @@ import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
 import { GuideBar } from "../GuideBar";
 
-export const metadata = { title: "Mentions et responsabilités" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Mentions et responsabilités") };
+}
 
 /** The legal text, public: the same one a client accepts at sign-in. */
 export default async function MentionsPage() {

@@ -13,7 +13,11 @@ import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Actualités" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Actualités") };
+}
 
 const fold = (s: string): string =>
   s

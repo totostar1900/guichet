@@ -11,7 +11,11 @@ import styles from "@/app/desk/docs/docs.module.css";
 import { AideBrowser } from "./AideBrowser";
 import { GuideBar } from "../GuideBar";
 
-export const metadata = { title: "Aide" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Aide") };
+}
 
 /**
  * The client help page: the only documentation page rendered outside the desk

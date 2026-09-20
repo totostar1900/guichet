@@ -424,3 +424,12 @@
   display: flex;
   align-items: center;
 }
+
+/* the legal page: reachable from the Guide, as a quiet last line rather than a learning tile */
+.legal {
+  display: block;
+  padding: 12px 4px 4px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  text-align: center;
+}

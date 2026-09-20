@@ -6,7 +6,11 @@ import { SecurityPanel } from "./SecurityPanel";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Sécurité" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Sécurité") };
+}
 
 /** The client's proven channels and trusted devices. */
 export default async function SecurityPage() {

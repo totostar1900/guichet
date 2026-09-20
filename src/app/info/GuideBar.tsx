@@ -298,9 +298,12 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                   {t("Les mots du Guichet")}
                 </Link>
                 <Link href="/info/aide" onClick={close}>
-                  {t("Aide")} · {t("Mentions")}
+                  {t("Aide : vos questions, nos réponses")}
                 </Link>
               </div>
+              <Link href="/info/mentions" className={styles.legal} onClick={close}>
+                {t("Mentions et responsabilités")}
+              </Link>
             </>
           )}
         </div>

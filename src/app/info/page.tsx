@@ -16,7 +16,11 @@ import styles from "./page.module.css";
 import docs from "@/app/desk/docs/docs.module.css";
 import { getLang, getT } from "@/i18n/server";
 
-export const metadata = { title: "Guide" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Guide") };
+}
 
 /**
  * The Guide tab (/info): where a first-time investor starts : eight short lessons

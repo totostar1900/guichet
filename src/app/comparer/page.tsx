@@ -17,7 +17,11 @@ import type { Offer } from "@/lib/domain/types";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Comparer deux lignes" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Comparer deux lignes") };
+}
 
 /**
  * Two lines side by side, on the figures a client actually weighs: what it

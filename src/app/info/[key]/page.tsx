@@ -20,8 +20,9 @@ type Props = { params: Promise<{ key: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { key } = await params;
-  const l = (await loadLessons()).find((x) => x.key === key);
-  return { title: l ? l.title : "Leçon" };
+  const [ls, t] = await Promise.all([loadLessons(), getT()]);
+  const l = ls.find((x) => x.key === key);
+  return { title: t(l ? l.title : "Leçon") };
 }
 
 /** Picks the real line the lesson plays with: an open one first, then any published one of the right kind. */

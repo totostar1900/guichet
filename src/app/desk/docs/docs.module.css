@@ -58,6 +58,12 @@
   flex-direction: column;
   gap: 4px;
 }
+/* the legal page at the foot of the Guide's column: quieter than the rest */
+.nav .navLegal {
+  margin-top: 10px;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
 .nav .group {
   font-size: 0.68rem;
   letter-spacing: 0.1em;

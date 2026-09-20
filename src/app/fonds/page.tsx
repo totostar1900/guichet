@@ -7,7 +7,11 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Fonds : OPCVM de la CEMAC" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Fonds : OPCVM de la CEMAC") };
+}
 
 export default async function FondsPage() {
   const t = await getT();

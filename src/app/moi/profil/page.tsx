@@ -6,7 +6,11 @@ import { ProfileQuiz } from "./ProfileQuiz";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Mon profil financier" };
+/** The tab and the phone header read this title: in the reader's language. */
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Mon profil financier") };
+}
 
 /** Seven questions, a profile, four measures: what the client told us of themselves, never advice. */
 export default async function ProfilPage() {
