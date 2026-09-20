@@ -849,4 +849,5 @@ export const EN_MORE: Record<string, string> = {
   "absent": "missing",
   "relevés : dans Mes documents seulement": "statements: in My documents only",
   "relevés par e-mail": "statements by e-mail",
+  "Les premiers pas, en six écrans": "First steps, in six screens",
 };

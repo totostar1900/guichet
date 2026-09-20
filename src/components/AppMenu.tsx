@@ -54,8 +54,8 @@ function deskOpenNow(): boolean {
 const noop = () => () => {};
 const firstTimeSnapshot = () => {
   try {
-    // After the presentation and the first steps, once: the last landmark points at the menu.
-    return localStorage.getItem("guichet:presented") && localStorage.getItem("guichet:onboarded") && !localStorage.getItem(COACH_KEY) ? "show" : "";
+    // After the presentation, once: the last landmark points at the menu.
+    return localStorage.getItem("guichet:presented") && !localStorage.getItem(COACH_KEY) ? "show" : "";
   } catch {
     return "";
   }

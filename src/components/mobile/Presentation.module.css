@@ -324,3 +324,16 @@
   stroke: #fff;
   stroke-width: 2;
 }
+.more {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 4px;
+  cursor: pointer;
+  text-decoration: underline dotted 1px;
+  text-underline-offset: 3px;
+}

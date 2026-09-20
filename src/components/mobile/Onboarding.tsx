@@ -11,6 +11,8 @@ import styles from "./Onboarding.module.css";
  * SVG + CSS only: nothing to host, nothing to load.
  */
 const SEEN = "guichet:onboarded";
+/** Dispatched to open the six screens from elsewhere (the presentation's last screen). */
+export const OPEN_EVENT = "guichet:onboarding:open";
 
 const SLIDES = [
   {
@@ -170,20 +172,14 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
   const path = usePathname();
   const [open, setOpen] = useState(force);
   const [i, setI] = useState(0);
+  // Never on its own: the thirty-second presentation is the one first-visit screen. These six open
+  // when asked (the ⋮, the Guide, the presentation's last screen) through this event.
   useEffect(() => {
     if (force) return;
     if (path.startsWith("/desk") || path.startsWith("/connexion") || path.startsWith("/auth")) return;
-    // The thirty-second presentation goes first: wait for it (or any other dialog) to close.
-    const t = setInterval(() => {
-      if (document.querySelector("[role=dialog][aria-modal=true]:not([aria-hidden=true])")) return;
-      clearInterval(t);
-      try {
-        if (!localStorage.getItem(SEEN)) setOpen(true);
-      } catch {
-        // storage unavailable: never nag
-      }
-    }, 500);
-    return () => clearInterval(t);
+    const on = () => setOpen(true);
+    window.addEventListener(OPEN_EVENT, on);
+    return () => window.removeEventListener(OPEN_EVENT, on);
   }, [force, path]);
   const close = () => {
     try {

@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Presentation.module.css";
+import { OPEN_EVENT } from "./Onboarding";
 
 /**
  * « Guichet en trente secondes » : five screens of six seconds for whoever
@@ -218,7 +219,7 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
   const back = () => setI(Math.max(i - 1, 0));
   // A tap: right two thirds forward, left third back (as a status). A finger held pauses; its release is not a tap.
   const onPointerDown = (e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest("button, a")) return;
+    if ((e.target as HTMLElement).closest("button, a, [data-start]")) return;
     hold.current = { timer: window.setTimeout(() => { if (hold.current) hold.current.held = true; setPaused(true); }, 220), held: false };
   };
   const onPointerUp = (e: React.PointerEvent) => {
@@ -227,7 +228,7 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
     const held = hold.current.held;
     hold.current = null;
     setPaused(false);
-    if (held || (e.target as HTMLElement).closest("button, a")) return;
+    if (held || (e.target as HTMLElement).closest("button, a, [data-start]")) return;
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX - r.left < r.width / 3) back();
     else next();
@@ -258,6 +259,18 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
             <div className={styles.art} onClick={(e) => (e.target as Element).closest("[data-start]") && close()} onKeyDown={(e) => e.key === "Enter" && (e.target as Element).closest("[data-start]") && close()}>
               {s.art}
             </div>
+            {last && (
+              <button
+                type="button"
+                className={styles.more}
+                onClick={() => {
+                  close();
+                  window.dispatchEvent(new Event(OPEN_EVENT));
+                }}
+              >
+                {t("Les premiers pas, en six écrans")} →
+              </button>
+            )}
           </div>
           <div className={styles.steps}>
             <h3>{t("En quatre gestes")}</h3>
