@@ -214,6 +214,11 @@ button {
 }
 a {
   color: inherit;
+  /* the house line under a link or a word that opens something: single, thin, dotted */
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
+  text-underline-offset: 3px;
 }
 :focus-visible {
   outline: 2px solid var(--gold);

@@ -8,6 +8,7 @@ import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { Sheet } from "@/components/mobile/Sheet";
 import { FilterFab } from "@/components/FilterFab";
+import { FilterLine } from "@/components/FilterLine";
 import { usePhone } from "@/components/chart-utils";
 import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
@@ -265,7 +266,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         )}
       </section>
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
-        {toolbar}
+        <div className={styles.deskTools}>{toolbar}</div>
+        <FilterLine count={active + Number(Boolean(q))} summary={[q && `« ${q} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={() => setSheet(true)} />
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
           {active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}

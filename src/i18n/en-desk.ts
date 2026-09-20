@@ -725,4 +725,11 @@ export const EN_MORE: Record<string, string> = {
   "un mot du Guichet": "a word of the Guichet",
   "Les acteurs du marché": "The market's actors",
   "spécialiste en valeurs du Trésor": "primary dealer",
+  "une opportunité, une clôture, un ordre servi": "an opportunity, a closing, an order served",
+  "Sujet": "Subject",
+  "Section": "Section",
+  "passée": "passed",
+  "Haut de page": "Top of page",
+  "Dernière section": "Last section",
+  "Guide · Lire une ligne en trente secondes": "Guide · Read a line in thirty seconds",
 };

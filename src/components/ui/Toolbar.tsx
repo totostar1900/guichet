@@ -4,6 +4,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./ui.module.css";
 import { Select, type SelectOption } from "./Select";
 import { useT } from "@/i18n/client";
+import { useState } from "react";
+import { FilterLine } from "../FilterLine";
+import { Sheet } from "../mobile/Sheet";
 
 /**
  * One filter row for a list: search · chips · selects · (right) sort, all on a
@@ -39,8 +42,12 @@ export function Toolbar({ searchKey = "q", placeholder = "Rechercher", chipKey, 
   const keys = [searchKey, chipKey, ...selects.map((s) => s.key)].filter((k): k is string => Boolean(k));
   const active = keys.filter((k) => sp.get(k)).length;
   const chipCur = chipKey ? (sp.get(chipKey) ?? "") : "";
+  const [sheet, setSheet] = useState(false);
+  // What the phone's line says: the search, the chip, each select's choice, in words.
+  const summary = [searchKey && sp.get(searchKey) ? `« ${sp.get(searchKey)} »` : "", chips?.find((c) => c.value && c.value === chipCur)?.label ?? "", ...selects.map((s) => s.options.find((o) => o.value === sp.get(s.key))?.label ?? "")].filter(Boolean).join(" · ");
+  const sortLabel = sort ? (sort.options.find((o) => o.value === (sp.get(sort.key) ?? sort.options[0]?.value))?.label ?? "") : undefined;
 
-  return (
+  const controls = (
     <div className={`${styles.bar} ${sticky ? styles.barSticky : ""} ${inset ? styles.barInset : ""}`} role="search">
       {searchKey && (
         <label className={styles.search}>
@@ -78,5 +85,20 @@ export function Toolbar({ searchKey = "q", placeholder = "Rechercher", chipKey, 
         {sort && <Select compact label={sort.label} value={sp.get(sort.key) ?? sort.options[0]?.value ?? ""} options={sort.options} onChange={(v) => update({ [sort.key]: v })} />}
       </div>
     </div>
+  );
+
+  return (
+    <>
+      <div className={styles.deskBar}>{controls}</div>
+      <FilterLine count={active} summary={summary} sortLabel={sortLabel} onOpen={() => setSheet(true)} />
+      <Sheet open={sheet} onClose={() => setSheet(false)} title={t("Filtrer et trier")}>
+        <div className={styles.sheetBar}>{controls}</div>
+        <div className={styles.sheetFoot}>
+          <button type="button" className="btn sm primary" onClick={() => setSheet(false)}>
+            {t("Voir")}
+          </button>
+        </div>
+      </Sheet>
+    </>
   );
 }

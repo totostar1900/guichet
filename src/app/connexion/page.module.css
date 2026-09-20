@@ -144,7 +144,10 @@
   cursor: pointer;
   font: inherit;
   font-size: 0.8rem;
-  text-decoration: underline;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
+  text-underline-offset: 3px;
 }
 .passkeyHint {
   margin: 12px 0 0;

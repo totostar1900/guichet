@@ -306,15 +306,19 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
                       </Link>
                     )}
                   </div>
-                  <div className={styles.item}>
-                    <Icon d={D.bell} />
-                    <span>
-                      <b>{t("Alertes sur cet appareil")}</b>
-                    </span>
-                    <span className={styles.side}>
-                      <PushToggle vapidKey={vapidKey} compact />
-                    </span>
-                  </div>
+                  {/* the alerts row exists only once the VAPID keys are set on the server: without them there is no button to show */}
+                  {vapidKey && (
+                    <div className={styles.item}>
+                      <Icon d={D.bell} />
+                      <span>
+                        <b>{t("Alertes sur cet appareil")}</b>
+                        <small>{t("une opportunité, une clôture, un ordre servi")}</small>
+                      </span>
+                      <span className={styles.side}>
+                        <PushToggle vapidKey={vapidKey} compact />
+                      </span>
+                    </div>
+                  )}
                 </>
               )}
             </>

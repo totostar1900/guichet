@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SectionLine, type SectionItem } from "@/components/SectionLine";
 import styles from "./docs.module.css";
 
 /**
@@ -22,7 +23,8 @@ export function Outline({ chapters, label, meta }: { chapters: { id: string; tit
   );
 }
 
-export function ChapterLinks({ chapters }: { chapters: { id: string; title: string }[] }) {
+/** The chapter chips of the left column on a desk; on the phone, the « Sur cette page » line (SectionLine) instead. */
+export function ChapterLinks({ chapters, label, pageTitle }: { chapters: SectionItem[]; label?: string; pageTitle?: string }) {
   const active = useActiveChapter(chapters.map((c) => c.id));
   const row = useRef<HTMLDivElement>(null);
   // On the phone the chapters are one scrolling row: the chip being read slides into view as the page scrolls.
@@ -35,13 +37,16 @@ export function ChapterLinks({ chapters }: { chapters: { id: string; title: stri
     box.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   }, [active]);
   return (
-    <div className={styles.chapters} ref={row}>
-      {chapters.map((c) => (
-        <a key={c.id} href={`#${c.id}`} aria-current={c.id === active ? "true" : undefined}>
-          {c.title}
-        </a>
-      ))}
-    </div>
+    <>
+      <div className={styles.chapters} ref={row}>
+        {chapters.map((c) => (
+          <a key={c.id} href={`#${c.id}`} aria-current={c.id === active ? "true" : undefined}>
+            {c.title}
+          </a>
+        ))}
+      </div>
+      <SectionLine chapters={chapters} active={active} label={label} pageTitle={pageTitle} />
+    </>
   );
 }
 

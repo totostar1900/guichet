@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Info } from "@/components/Info";
 import { Select } from "@/components/ui/Select";
+import { FilterLine } from "@/components/FilterLine";
+import { Sheet } from "@/components/mobile/Sheet";
 import { useT } from "@/i18n/client";
 import { fmt, fmtPct, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
@@ -92,44 +94,62 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
     );
   };
 
+  const [sheet, setSheet] = useState(false);
+  // The controls, once: in the page on a desk, in a sheet on the phone.
+  const toolbar = (
+    <div className={styles.toolbar}>
+      <label className={styles.search}>
+        <input type="search" placeholder={t("Une société, un mnémo, un secteur")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
+      </label>
+      <div className={styles.chips} role="group" aria-label={t("Pays")}>
+        <button type="button" className={`${styles.chip} ${country === "" ? styles.chipOn : ""}`} onClick={() => setCountry("")}>
+          {t("Tous")}
+        </button>
+        {countries.map((c) => (
+          <button key={c} type="button" className={`${styles.chip} ${country === c ? styles.chipOn : ""}`} aria-pressed={country === c} onClick={() => setCountry(country === c ? "" : c)}>
+            {t(c)}
+          </button>
+        ))}
+      </div>
+      <Select value={sector} onChange={setSector} label={t("Secteur")} options={[{ value: "", label: t("tous") }, ...sectors.map((s) => ({ value: s, label: t(s) }))]} />
+      <label className={styles.sort}>
+        {t("Tri")}
+        <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
+        <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
+          {desc ? "↓" : "↑"}
+        </button>
+      </label>
+      {(active > 0 || q) && (
+        <button
+          type="button"
+          className={styles.clear}
+          onClick={() => {
+            setQ("");
+            setCountry("");
+            setSector("");
+          }}
+        >
+          {t("Effacer")}
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <>
-      <div className={styles.toolbar}>
-        <label className={styles.search}>
-          <input type="search" placeholder={t("Une société, un mnémo, un secteur")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
-        </label>
-        <div className={styles.chips} role="group" aria-label={t("Pays")}>
-          <button type="button" className={`${styles.chip} ${country === "" ? styles.chipOn : ""}`} onClick={() => setCountry("")}>
-            {t("Tous")}
+      <div className={styles.deskTools}>{toolbar}</div>
+      <FilterLine count={active + Number(Boolean(q))} summary={[q && `« ${q} »`, country && t(country), sector && t(sector)].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={() => setSheet(true)} />
+      <Sheet open={sheet} onClose={() => setSheet(false)} title={t("Filtrer et trier")}>
+        <div className={styles.sheetTools}>{toolbar}</div>
+        <div className={styles.sheetFoot}>
+          <span>
+            <b>{list.length}</b> {t(list.length > 1 ? "sociétés" : "société")}
+          </span>
+          <button type="button" className="btn sm primary" onClick={() => setSheet(false)}>
+            {t("Voir")}
           </button>
-          {countries.map((c) => (
-            <button key={c} type="button" className={`${styles.chip} ${country === c ? styles.chipOn : ""}`} aria-pressed={country === c} onClick={() => setCountry(country === c ? "" : c)}>
-              {t(c)}
-            </button>
-          ))}
         </div>
-        <Select value={sector} onChange={setSector} label={t("Secteur")} options={[{ value: "", label: t("tous") }, ...sectors.map((s) => ({ value: s, label: t(s) }))]} />
-        <label className={styles.sort}>
-          {t("Tri")}
-          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
-          <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
-            {desc ? "↓" : "↑"}
-          </button>
-        </label>
-        {(active > 0 || q) && (
-          <button
-            type="button"
-            className={styles.clear}
-            onClick={() => {
-              setQ("");
-              setCountry("");
-              setSector("");
-            }}
-          >
-            {t("Effacer")}
-          </button>
-        )}
-      </div>
+      </Sheet>
       <div className={styles.count}>
         <b>{list.length}</b> {t(list.length > 1 ? "sociétés" : "société")}
         {active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}

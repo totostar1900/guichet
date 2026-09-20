@@ -150,7 +150,9 @@
   font-size: 0.82rem;
   font-weight: 600;
   padding: 7px 8px;
-  text-decoration: underline;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
   text-underline-offset: 3px;
 }
 .seg {

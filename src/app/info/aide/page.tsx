@@ -40,7 +40,7 @@ export default async function AidePage() {
           <Link href="/info/aide" aria-current="page">
             {doc.title[lang]}
           </Link>
-          <ChapterLinks chapters={chapters.map((c) => ({ id: c.id, title: c.title }))} />
+          <ChapterLinks chapters={chapters.map((c) => ({ id: c.id, title: c.title }))} label={t("Sujet")} pageTitle={t("Aide : vos questions, nos réponses")} />
         </div>
         <span className={styles.group}>{t("Pour aller plus loin")}</span>
         <Link href="/info">{t("Glossaire et leçons")}</Link>

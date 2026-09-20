@@ -15,7 +15,7 @@ export function InfoNav({ sections }: { sections: { id: string; title: string }[
         <Link href="/info" aria-current="page">
           {t("Lire une ligne en trente secondes")}
         </Link>
-        <ChapterLinks chapters={sections} />
+        <ChapterLinks chapters={sections} pageTitle={t("Guide · Lire une ligne en trente secondes")} />
       </div>
       <span className={styles.group}>{t("Pour aller plus loin")}</span>
       <Link href="/info/parcours">{t("Comprendre le marché CEMAC")}</Link>

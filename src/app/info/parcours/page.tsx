@@ -21,7 +21,7 @@ const STRIP: ActorKind[] = ["tresor", "entreprise", "gestion", "guichet", "svt",
 export default async function ParcoursPage() {
   const t = await getT();
   const lessons = (await loadLessons()).filter((l) => l.section).sort((a, b) => a.order - b.order);
-  const chapters = SECTIONS.map((s) => ({ id: `section-${s.key}`, title: `${String.fromCharCode(64 + s.order)} · ${t(s.title)}` }));
+  const chapters = SECTIONS.map((s) => ({ id: `section-${s.key}`, title: `${String.fromCharCode(64 + s.order)} · ${t(s.title)}`, letter: String.fromCharCode(64 + s.order), color: s.color, section: s.key }));
   return (
     <div className={`${docs.reader} ${docs.readerTwo}`}>
       <nav className={docs.nav} aria-label={t("Guide")} data-coach="parcours-nav">
@@ -31,7 +31,7 @@ export default async function ParcoursPage() {
           <Link href="/info/parcours" aria-current="page">
             {t("Comprendre le marché CEMAC")}
           </Link>
-          <ChapterLinks chapters={chapters} />
+          <ChapterLinks chapters={chapters} label={t("Section")} pageTitle={t("Comprendre le marché CEMAC")} />
         </div>
         <span className={docs.group}>{t("Pour aller plus loin")}</span>
         <Link href="/info#lecons">{t("Lire une ligne en trente secondes")}</Link>

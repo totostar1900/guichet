@@ -1,4 +1,4 @@
-/* a word that opens its sheet: underlined like a link, in the running text's colour */
+/* a word that opens its sheet: the house line (single, thin, dotted), in the running text's colour */
 .word {
   display: inline;
   border: 0;
@@ -8,28 +8,20 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: var(--gold);
-  text-decoration-thickness: 2px;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
   text-underline-offset: 3px;
   border-radius: 2px;
-}
-/* inside a drawing: a single thin dotted line, the drawing keeps the eye */
-.subtle {
-  text-decoration: underline dotted;
-  text-decoration-color: var(--ink-3);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-.subtle:hover,
-.subtle:focus-visible {
-  background: transparent;
-  text-decoration-color: var(--navy-text);
 }
 .word:hover,
 .word:focus-visible {
   color: var(--navy-text);
-  background: var(--gold-soft);
+  text-decoration-color: var(--navy-text);
+}
+/* inside a drawing the same line; kept as a class so a drawing can tune it */
+.subtle {
+  text-decoration-style: dotted;
 }
 .body {
   display: flex;

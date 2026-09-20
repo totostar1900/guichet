@@ -139,8 +139,9 @@
 .refLink {
   color: var(--ink);
   font-weight: 700;
-  text-decoration: underline;
-  text-decoration-color: var(--line-2);
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
   text-underline-offset: 3px;
 }
 .refLink:hover {

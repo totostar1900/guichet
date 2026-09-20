@@ -40,7 +40,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
               <Link href={`/desk/docs/${d.slug}`} aria-current={d.slug === doc.slug ? "page" : undefined}>
                 {d.title[lang]}
               </Link>
-              {d.slug === doc.slug && <ChapterLinks chapters={chapters} />}
+              {d.slug === doc.slug && <ChapterLinks chapters={chapters} pageTitle={doc.title[lang]} />}
             </div>
           ))}
           <span className={styles.group}>{t("Notes")}</span>

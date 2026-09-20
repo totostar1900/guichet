@@ -227,7 +227,10 @@ button.item:hover,
 }
 .foot a {
   color: var(--ink-3);
-  text-decoration: underline;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-3);
+  text-underline-offset: 3px;
   white-space: nowrap;
 }
 @media (max-width: 760px) {
