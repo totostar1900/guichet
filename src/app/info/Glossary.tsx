@@ -36,7 +36,6 @@ export function Glossary({ entries }: { entries: GlossEntry[] }) {
   const t = useT();
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"alpha" | "group">("alpha");
-  const [grouped, setGrouped] = useState(false);
   const [only, setOnly] = useState<GlossGroup | "">("");
 
   const shown = useMemo(() => {
@@ -45,7 +44,7 @@ export function Glossary({ entries }: { entries: GlossEntry[] }) {
     const byAlpha = (a: GlossEntry, b: GlossEntry) => a.short.localeCompare(b.short, "fr");
     return sort === "group" ? [...list].sort((a, b) => GROUP_ORDER.indexOf(groupOf(a.k)) - GROUP_ORDER.indexOf(groupOf(b.k)) || byAlpha(a, b)) : [...list].sort(byAlpha);
   }, [entries, q, sort, only]);
-  const groups = grouped || sort === "group" ? GROUP_ORDER.map((g) => ({ g, items: shown.filter((e) => groupOf(e.k) === g) })).filter((x) => x.items.length) : [{ g: null as GlossGroup | null, items: shown }];
+  const groups = sort === "group" ? GROUP_ORDER.map((g) => ({ g, items: shown.filter((e) => groupOf(e.k) === g) })).filter((x) => x.items.length) : [{ g: null as GlossGroup | null, items: shown }];
   const counts = GROUP_ORDER.map((g) => [g, entries.filter((e) => groupOf(e.k) === g).length] as const).filter(([, n]) => n > 0);
 
   return (
@@ -79,10 +78,6 @@ export function Glossary({ entries }: { entries: GlossEntry[] }) {
             </button>
           </span>
         </label>
-        <label className={styles.check}>
-          <input type="checkbox" checked={grouped || sort === "group"} disabled={sort === "group"} onChange={(e) => setGrouped(e.target.checked)} />
-          {t("Grouper par catégorie")}
-        </label>
       </div>
       <div className={styles.count}>
         <b>{shown.length}</b> {t(shown.length > 1 ? "mots" : "mot")}
@@ -95,7 +90,7 @@ export function Glossary({ entries }: { entries: GlossEntry[] }) {
             {items.map((e) => (
               <div key={e.k} id={`terme-${e.k}`} className={styles.term}>
                 <b>{e.long ? `${e.short} : ${e.long}` : e.short}</b>
-                {!g && !grouped && <small className={styles.tag}>{t(GROUP_LABEL[groupOf(e.k)])}</small>}
+                {!g && <small className={styles.tag}>{t(GROUP_LABEL[groupOf(e.k)])}</small>}
                 <p>{e.text}</p>
               </div>
             ))}

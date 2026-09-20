@@ -67,12 +67,6 @@
   align-items: center;
   gap: 6px;
 }
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
 .count {
   font-size: 0.8rem;
   color: var(--ink-3);
@@ -150,8 +144,7 @@
   .tiles > button.on {
     border-color: var(--navy-text);
   }
-  .opt,
-  .check {
+  .opt {
     justify-content: space-between;
   }
   .gloss {
