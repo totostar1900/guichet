@@ -7,6 +7,11 @@
   --gold-soft: #fbf1da;
   --gold-line: #e3cf9a; /* the thin gold hairline of separators : quiet, never a stroke */
   --bar-edge: transparent; /* under the navy bars: nothing in the light, a gold hairline once the page is dark too */
+  /* the four fund categories (monétaire, obligataire, diversifié, actions): dots and rails on the funds page */
+  --cat-M: #0e7490;
+  --cat-O: #15803d;
+  --cat-D: #a16207;
+  --cat-A: #be185d;
   --paper: #f6f7f9;
   --surface: #ffffff;
   --surface-2: #f0f2f5;
@@ -78,6 +83,10 @@
     --gold-soft: #332c18;
     --gold-line: #6a5a2a;
     --bar-edge: #6a5a2a;
+    --cat-M: #5ec8d8;
+    --cat-O: #6fd39a;
+    --cat-D: #e0b65a;
+    --cat-A: #f08bb6;
     --fill: #e0b65a;
     --fill-ink: #0b2545;
     --hero: #e0b65a;
@@ -148,6 +157,10 @@
   --gold-soft: #332c18;
   --gold-line: #6a5a2a;
   --bar-edge: #6a5a2a;
+  --cat-M: #5ec8d8;
+  --cat-O: #6fd39a;
+  --cat-D: #e0b65a;
+  --cat-A: #f08bb6;
   --fill: #e0b65a;
   --fill-ink: #0b2545;
   --hero: #e0b65a;

@@ -287,16 +287,16 @@
   flex: none;
 }
 .family[data-cat="M"] {
-  --cat: #0e7490;
+  --cat: var(--cat-M);
 }
 .family[data-cat="O"] {
-  --cat: #15803d;
+  --cat: var(--cat-O);
 }
 .family[data-cat="D"] {
-  --cat: #a16207;
+  --cat: var(--cat-D);
 }
 .family[data-cat="A"] {
-  --cat: #be185d;
+  --cat: var(--cat-A);
 }
 .family span {
   font-size: 0.84rem;
