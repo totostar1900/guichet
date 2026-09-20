@@ -38,6 +38,6 @@ Corps (HTML) :
 
 ## Ce que le code du Guichet fait déjà
 
-- `src/app/connexion/actions.ts` › `sendCode` : `signInWithOtp` avec `emailRedirectTo` (le lien) ; `verifyCode` : `verifyOtp({ email, token, type: "email" })` (le code). Les deux mènent à la même session.
-- Le formulaire dit « saisissez le code qu'il contient, ou cliquez simplement sur son lien ». Une fois le gabarit en place, on pourra ne parler que du code.
+- `src/app/connexion/actions.ts` › `sendCode` : `signInWithOtp` **en flux implicite** (client supabase-js à part, `flowType: "implicit"`) avec `emailRedirectTo` = `/auth/callback?next=…`. Pourquoi implicite : un lien PKCE ne s'ouvre que dans le navigateur qui l'a demandé, or le client lit son e-mail sur le téléphone et touche le lien depuis l'app Mail (constat du 20 septembre : « le lien ne s'ouvre pas »). En implicite la session revient dans le fragment de l'URL ; `/auth/callback` sans paramètre sert une page minimale qui la remet à `/auth/session` (POST, `setSession` → cookies), et `AuthHashRedirect` fait pareil si Supabase retombe sur l'URL du site. `verifyCode` : `verifyOtp({ email, token, type: "email" })` (le code, dès que le gabarit l'imprime).
+- Le formulaire dit « ouvrez le lien qu'il contient, il vous connecte ici ; si l'e-mail montre aussi un code, vous pouvez le saisir », et le bouton « Recevoir mon lien de connexion ». Une fois le gabarit en place, on pourra parler du code d'abord.
 - Un lien expiré ou déjà ouvert renvoie sur /connexion avec l'explication (`AuthHashRedirect`).

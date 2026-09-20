@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className={styles.card}>
         <div className="eyebrow">{COMPANY.name}</div>
         <h1 className="display">{t("Se connecter")}</h1>
-        {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau code ci-dessous : il arrive en quelques secondes.")}</p>}
+        {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
         <DeviceSignIn next={next} />
         {mode === "supabase" ? (
           <>

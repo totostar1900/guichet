@@ -271,7 +271,7 @@ export const EN: Record<string, string> = {
   "ordres, titres, documents dans Mon espace": "orders, holdings, documents in My space",
   "Voir les lignes": "See the lines",
   "← → pour passer d'un écran à l'autre": "← → to move between screens",
-  "Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau code ci-dessous : il arrive en quelques secondes.": "This sign-in link has expired, or was already used (some mail apps open links before you do). Ask for a new code below: it arrives within seconds.",
+  "Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.": "This sign-in link has expired, or was already used (some mail apps open links before you do). Ask for a new link below: it arrives within seconds.",
   // the back of a card
   "Calendrier": "Calendar",
   "étape en cours": "current step",

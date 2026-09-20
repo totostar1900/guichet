@@ -24,11 +24,11 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="mode" value={mode} />
         <p className={styles.hint}>
-          {t("Message envoyé à")} <b>{to}</b>{t(state.step === "code" ? " : saisissez le code qu'il contient, ou cliquez simplement sur son lien de connexion." : ". Le code est valable quelques minutes.")}
+          {t("Message envoyé à")} <b>{to}</b>{t(state.step === "code" ? " : ouvrez le lien qu'il contient, il vous connecte ici. Si l'e-mail montre aussi un code, vous pouvez le saisir." : ". Le code est valable quelques minutes.")}
         </p>
         <label className="field">
-          {t("Code à 6 chiffres")}
-          <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus required />
+          {t(state.step === "code" ? "Code à 6 chiffres (si l'e-mail en montre un)" : "Code à 6 chiffres")}
+          <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus={state.step !== "code"} required />
         </label>
         {state.error && <div className={styles.error}>{state.error}</div>}
         <div className={styles.row}>
@@ -69,7 +69,7 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
       )}
       {state.error && <div className={styles.error}>{state.error}</div>}
       <button className="btn primary" type="submit" disabled={pending}>
-        {t(pending ? "Envoi…" : "Recevoir un code")}
+        {t(pending ? "Envoi…" : mode === "email" ? "Recevoir mon lien de connexion" : "Recevoir un code")}
       </button>
     </form>
   );

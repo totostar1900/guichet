@@ -17,13 +17,16 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   const email = z.string().email().safeParse(String(form.get("email") ?? "").trim().toLowerCase());
   if (!email.success) return { step: "email", error: "Adresse e-mail invalide." };
   if (authMode() !== "supabase") return { step: "email", error: "Supabase n'est pas configuré." };
-  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
-  const sb = await supabaseAuthClient();
-  // The e-mail carries a code when the template prints {{ .Token }} (custom SMTP) and always a link:
-  // both work : the link lands on /auth/callback, which exchanges it for a session.
+  // The e-mail always carries a link, and a code once the template prints {{ .Token }} (custom SMTP):
+  // both work. The link is requested in the implicit flow on purpose: a PKCE link only opens in the
+  // browser that asked for it, while a client reads the mail on the phone and taps the link from the mail
+  // app. In the implicit flow the session comes back in the URL's hash, and AuthHashRedirect hands it to
+  // the server (/auth/session), whatever the browser.
   const next = safeNext(form.get("next"));
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const { error } = await sb.auth.signInWithOtp({ email: email.data, options: { shouldCreateUser: true, emailRedirectTo: `${base}/auth/callback?next=${encodeURIComponent(next)}` } });
+  const { createClient } = await import("@supabase/supabase-js");
+  const plain = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { flowType: "implicit", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+  const { error } = await plain.auth.signInWithOtp({ email: email.data, options: { shouldCreateUser: true, emailRedirectTo: `${base}/auth/callback?next=${encodeURIComponent(next)}` } });
   if (error) return { step: "email", error: `Envoi impossible : ${error.message}` };
   return { step: "code", email: email.data };
 }
