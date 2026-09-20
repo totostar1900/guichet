@@ -783,4 +783,9 @@ export const EN_MORE: Record<string, string> = {
   "leçon": "lesson",
   "Profil financier": "Financial profile",
   "Nous joindre": "Reach us",
+  "Par opération": "By operation",
+  "Par date": "By date",
+  "Présentation": "Layout",
+  "Mon dossier": "My file",
+  "pièces du dossier, relevés, attestations": "file pieces, statements, certificates",
 };

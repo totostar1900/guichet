@@ -13,5 +13,5 @@ export default defineConfig({
     },
   },
   // Generous timeouts: the e2e tests render PDFs and run next to a dev server on the same machine.
-  test: { include: ["src/**/*.test.ts"], testTimeout: 30_000 },
+  test: { include: ["src/**/*.test.ts", "src/**/*.test.tsx"], testTimeout: 30_000 },
 });

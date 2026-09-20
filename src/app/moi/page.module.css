@@ -218,3 +218,58 @@
   border-top: 1px solid var(--line);
   font-size: 0.84rem;
 }
+
+/* the documents : the toggle in the panel head, the groups by operation, the reminder under a row */
+.docToggle {
+  margin-left: auto;
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px;
+}
+.docToggle button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 32px;
+}
+.docToggle .docOn {
+  background: var(--select);
+  color: var(--on-select);
+}
+.docGroup {
+  margin-top: 12px;
+}
+.docGroupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 6px;
+  border-top: 1px solid var(--line);
+}
+.docGroupHead > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.docGroupHead b {
+  font-size: 0.92rem;
+}
+.docGroupHead small {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.docFor {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  margin-top: 2px;
+}

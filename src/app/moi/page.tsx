@@ -3,12 +3,13 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
-import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
+import { fmt, fmtDate, fmtMillions } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { ContactForm } from "./ContactForm";
 import { PushToggle } from "@/components/PushToggle";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
+import { MyDocuments } from "./MyDocuments";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -294,46 +295,16 @@ export default async function MyPage() {
         </div>
       </details>
 
-      <div className="panel">
-        <div className="panel-h">
-          <h2>{t("Mes documents")}</h2>
-        </div>
-        <div className="scroll-x">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>{t("N°")}</th>
-                <th>{t("Document")}</th>
-                <th>{t("Émis le")}</th>
-                <th>{t("État")}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {myDocs.map((d) => (
-                <tr key={d.id}>
-                  <td className="mono">{d.number}</td>
-                  <td>{t(DOC_LABEL[d.type])}</td>
-                  <td className="num">{fmtDateTime(d.createdAt)}</td>
-                  <td>{t(d.status === "signe" ? "Signé" : d.status === "envoye" ? "Envoyé" : "Disponible")}</td>
-                  <td>
-                    <a className="btn sm" href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer">
-                      {t("Ouvrir le PDF")}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-              {myDocs.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="muted">
-                    {t("Vos bulletins, appels de fonds et avis apparaîtront ici.")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <MyDocuments
+        docs={myDocs.map((d) => ({ id: d.id, number: d.number, label: t(DOC_LABEL[d.type]), createdAt: d.createdAt, status: d.status, href: `/desk/documents/pdf/${d.id}`, intentId: d.intentId }))}
+        ops={mine
+          .slice()
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          .map((i) => {
+            const o = byOffer.get(i.offerId);
+            return { id: i.id, title: o?.title ?? i.offerId, about: `${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · ${t("réf.")} ${i.ref}`, state: t(INTENT_STATE_LABEL[i.state]), stateKey: i.state, href: o ? `/offres/${o.id}` : undefined };
+          })}
+      />
     </div>
   );
 }
