@@ -8,13 +8,17 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
 }
+/* the title row is always 44px tall, aside or not : the chevron never moves */
 .title {
   font-size: 1.05rem;
   margin: 0;
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   scroll-margin-top: 110px;
 }
 /* the figure and the state word beside the title: quiet, always there, most useful once folded */
@@ -33,7 +37,8 @@
 .chev {
   flex: none;
   width: 36px;
-  height: 36px;
+  height: 44px;
+  align-self: flex-start;
   border: 0;
   background: transparent;
   color: var(--ink-3);
