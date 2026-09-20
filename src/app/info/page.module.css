@@ -40,7 +40,7 @@
   min-height: 118px;
 }
 .tile:hover {
-  border-color: var(--gold);
+  border-color: var(--gold-line);
 }
 .tile b {
   font-size: 0.98rem;
@@ -120,7 +120,7 @@
   color: var(--ink);
 }
 .lesson:hover {
-  border-color: var(--gold);
+  border-color: var(--gold-line);
 }
 .lesson i {
   width: 34px;
@@ -166,7 +166,7 @@
 .warn {
   background: var(--paper);
   color: var(--ink-2);
-  border-left: 3px solid var(--gold);
+  border-left: 2px solid var(--gold-line);
   font-size: 0.76rem;
   padding: 8px 12px;
   border-radius: 0 var(--radius) var(--radius) 0;

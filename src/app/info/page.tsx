@@ -121,12 +121,12 @@ export default async function InfoPage() {
             <span>{t("Deux offres côte à côte : rendement, durée, ticket, calendrier.")}</span>
           </Link>
           <Link href="/moi/profil" className={styles.tile}>
-            <span className={styles.k}>{t("Repère")}</span>
+            <span className={styles.k}>{t("Outil")}</span>
             <b>{t("Votre profil financier en deux minutes")}</b>
             <span>{t("Sept questions : horizon, tolérance, connaissance, capacité. Un profil à titre d'information, à garder dans votre dossier avec un compte.")}</span>
           </Link>
           <Link href="/societes" className={styles.tile}>
-            <span className={styles.k}>{t("Repères")}</span>
+            <span className={styles.k}>{t("Sociétés")}</span>
             <b>{t("Sociétés cotées et émetteurs")}</b>
             <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
           </Link>
@@ -135,6 +135,9 @@ export default async function InfoPage() {
 
         <BackToTop lift />
         <GuideBar pos={{ label: t("Le Guide") }} />
+        <FoldSection group="info" id="glossaire" title={t("Les mots du Guichet")}>
+        <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
+        </FoldSection>
         <CoachMarks
           id="info"
           replayLabel={t("Comment utiliser le Guide ?")}
@@ -147,9 +150,6 @@ export default async function InfoPage() {
             { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
           ]}
         />
-        <FoldSection group="info" id="glossaire" title={t("Les mots du Guichet")}>
-        <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
-        </FoldSection>
       </div>
     </div>
   );

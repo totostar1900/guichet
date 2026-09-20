@@ -5,6 +5,7 @@
   --gold: #b8860b;
   --gold-ink: #8a6408;
   --gold-soft: #fbf1da;
+  --gold-line: #e3cf9a; /* the thin gold hairline of separators : quiet, never a stroke */
   --paper: #f6f7f9;
   --surface: #ffffff;
   --surface-2: #f0f2f5;
@@ -74,6 +75,7 @@
     --gold: #e0b65a;
     --gold-ink: #e0b65a;
     --gold-soft: #332c18;
+    --gold-line: #6a5a2a;
     --fill: #e0b65a;
     --fill-ink: #0b2545;
     --hero: #e0b65a;
@@ -141,6 +143,7 @@
   --gold: #e0b65a;
   --gold-ink: #e0b65a;
   --gold-soft: #332c18;
+  --gold-line: #6a5a2a;
   --fill: #e0b65a;
   --fill-ink: #0b2545;
   --hero: #e0b65a;

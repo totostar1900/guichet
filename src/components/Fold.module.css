@@ -1,8 +1,8 @@
 /* a section that folds: a thin gold line above, the title, a chevron at the right */
 .section {
-  border-top: 1px solid var(--gold);
-  padding-top: 14px;
-  margin-top: 36px;
+  border-top: 1px solid var(--gold-line);
+  padding-top: 12px;
+  margin-top: 32px;
 }
 .head {
   display: flex;
@@ -34,10 +34,9 @@
   flex: none;
   width: 36px;
   height: 36px;
-  border-radius: 18px;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--gold-ink);
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -48,7 +47,7 @@
   height: 18px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.4;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
   transition: transform 0.2s;
@@ -82,8 +81,8 @@
   width: 14px;
   height: 14px;
   fill: none;
-  stroke: var(--gold-ink);
-  stroke-width: 2.4;
+  stroke: currentColor;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
   transform: rotate(180deg);
@@ -109,8 +108,17 @@
     align-items: center;
     row-gap: 8px;
   }
+  .title {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .chev {
+    grid-column: 2;
+    grid-row: 1;
+  }
   .aside {
     grid-column: 1 / -1;
+    grid-row: 2;
   }
   .title {
     scroll-margin-top: 120px;
