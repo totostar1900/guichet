@@ -1,0 +1,27 @@
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+  color: var(--ink-2);
+  background: var(--surface);
+}
+.first {
+  border-color: var(--gold);
+  color: var(--gold-ink);
+  background: var(--gold-soft);
+  font-weight: 700;
+}
+.ok {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 50%, transparent);
+}

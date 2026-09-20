@@ -8,6 +8,7 @@ import { ReviewForm } from "./ReviewForm";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
+import { ReachLine } from "@/components/desk/ReachLine";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Clients" };
@@ -23,7 +24,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const docs = await r.listDocuments();
   const todo = files.filter((f) => f.status === "soumis" || f.status === "en_revue").length;
   const selected = files.find((f) => f.id === sp.file) ?? files.find((f) => f.status === "soumis" || f.status === "en_revue") ?? files[0];
-  const [lang, fin] = await Promise.all([getLang(), selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined]);
+  const [lang, fin, prefs, channels] = await Promise.all([
+    getLang(),
+    selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
+    selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
+    selected ? r.getChannelStatus(selected.userId).catch(() => undefined) : undefined,
+  ]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id) : [];
   const now = new Date();
 
@@ -58,6 +64,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   {[selected.identity.phone, selected.identity.email, selected.identity.city, selected.identity.country].filter(Boolean).join(" · ")}
                   {selected.submittedAt ? ` · ${t("soumis le")} ${fmtDateTime(selected.submittedAt)}` : ""}
                 </div>
+                <ReachLine prefs={prefs} channels={channels} t={t} />
               </div>
               <span className={`${styles.st} ${styles[`st_${selected.status}`]}`}>{t(STATUS_LABEL[selected.status])}</span>
             </div>

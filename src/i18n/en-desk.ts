@@ -840,4 +840,13 @@ export const EN_MORE: Record<string, string> = {
   "Enregistrement impossible.": "Could not save.",
   "Ville trop longue.": "City too long.",
   "Indiquez votre nom tel qu'il figure sur votre pièce d'identité.": "Give your name as it appears on your ID.",
+  "WhatsApp d'abord": "WhatsApp first",
+  "E-mail d'abord": "E-mail first",
+  "Un appel d'abord": "A call first",
+  "choisi par le client": "chosen by the client",
+  "déduit du canal prouvé": "inferred from the proven channel",
+  "par défaut": "by default",
+  "absent": "missing",
+  "relevés : dans Mes documents seulement": "statements: in My documents only",
+  "relevés par e-mail": "statements by e-mail",
 };

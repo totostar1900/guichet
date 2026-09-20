@@ -17,6 +17,7 @@ import { transitionIntent } from "../../actions";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
+import { ReachLine } from "@/components/desk/ReachLine";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Intention" };
@@ -43,7 +44,12 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   const s = summarize(o, now);
   const contact = (it.clientId && contacts.find((c) => c.id === it.clientId)) || contacts.find((c) => (it.contactPhone && c.phone === it.contactPhone) || (it.contactEmail && c.email === it.contactEmail));
   const file = it.clientId ? await r.getClientFileByUser(it.clientId) : undefined;
-  const [lang, fin] = await Promise.all([getLang(), it.clientId ? r.getFinancialProfile(it.clientId).catch(() => undefined) : undefined]);
+  const [lang, fin, prefs, channels] = await Promise.all([
+    getLang(),
+    it.clientId ? r.getFinancialProfile(it.clientId).catch(() => undefined) : undefined,
+    it.clientId ? r.getPrefs(it.clientId).catch(() => undefined) : undefined,
+    it.clientId ? r.getChannelStatus(it.clientId).catch(() => undefined) : undefined,
+  ]);
   const sameClient = (x: Intent) => (it.clientId && x.clientId === it.clientId) || (it.contactPhone && x.contactPhone === it.contactPhone) || (it.contactEmail && x.contactEmail === it.contactEmail);
   const history = intents.filter((x) => x.id !== it.id && sameClient(x)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const positions = it.clientId ? positionsFrom(intents.filter((x) => x.clientId === it.clientId), offers, now) : [];
@@ -240,6 +246,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               {[contact?.phone ?? it.contactPhone, contact?.email ?? it.contactEmail].filter(Boolean).join(" · ")}
               {contact ? (contact.whatsappOptIn ? " · WhatsApp ✓" : " · WhatsApp non consenti") : ""}
             </div>
+            <ReachLine prefs={prefs} channels={channels} t={t} />
           </div>
 
           <h4>{t("Profil financier")}</h4>
