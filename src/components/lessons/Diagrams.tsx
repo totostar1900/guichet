@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Linked, TermWord, openTerm } from "../TermSheet";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ACTOR_LABEL, Actor, ActorGlyph, type ActorKind } from "../Illustrations";
@@ -14,7 +14,8 @@ import { useT } from "@/i18n/client";
  * falls, when). Drawn once, in the charts' colours; every actor opens its
  * glossary word.
  */
-const GLOSS: Partial<Record<ActorKind, string>> = { svt: "svt", gestion: "opcvm", depositaire: "opcvm", tresor: "ota", entreprise: "apes", bvmac: "cours", cosumaf: "apes" };
+// every actor has its own word: a tap opens it on the page (TermSheet), the glossary keeps the same text
+const GLOSS: Record<ActorKind, string> = { beac: "beac", cosumaf: "cosumaf", bvmac: "bvmac", depositaire: "depositaire", tresor: "tresor", entreprise: "emetteur", guichet: "societe_bourse", svt: "svt", gestion: "gestion", client: "compte_titres" };
 
 const SUB: Record<ActorKind, string> = {
   beac: "banque centrale · titres publics",
@@ -24,7 +25,7 @@ const SUB: Record<ActorKind, string> = {
   tresor: "BTA, OTA, rachats",
   entreprise: "APE, introductions en bourse",
   guichet: "société de bourse : votre guichet",
-  svt: "dépose à l'adjudication",
+  svt: "spécialiste en valeurs du Trésor",
   gestion: "gère le fonds, fixe la VL",
   client: "compte-titres à votre nom",
 };
@@ -45,12 +46,10 @@ function Node({ kind, x, y, w, focus, scale = 0.55, dark }: { kind: ActorKind; x
     </>
   );
   const g = GLOSS[kind];
-  return g ? (
-    <Link href={`/info#terme-${g}`} className={styles.node} aria-label={t(ACTOR_LABEL[kind])}>
+  return (
+    <g className={styles.node} role="button" tabIndex={0} aria-label={`${t(ACTOR_LABEL[kind])} : ${t("un mot du Guichet")}`} onClick={() => openTerm(g)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openTerm(g)}>
       {label}
-    </Link>
-  ) : (
-    <g className={styles.node}>{label}</g>
+    </g>
   );
 }
 
@@ -116,23 +115,21 @@ function MapSvg({ focus, id }: { focus?: string[]; id: string }) {
   );
 }
 
-/** One actor in the phone's stacked map: the drawing, the name (its glossary word when it has one), a line under it. */
+/** One actor in the phone's stacked map: the drawing, the name (a tap opens its word), a line under it whose own words open theirs. */
 function Card({ kind, focus, size = 56, sub }: { kind: ActorKind; focus?: string[]; size?: number; sub?: boolean }) {
   const t = useT();
   const dim = Boolean(focus && focus.length && !focus.includes(kind));
-  const g = GLOSS[kind];
-  const name = t(ACTOR_LABEL[kind]);
   return (
     <div className={`${styles.card} ${dim ? styles.cardDim : ""}`}>
       <Actor kind={kind} size={size} />
-      {g ? (
-        <Link href={`/info#terme-${g}`} className={styles.cardName}>
-          {name}
-        </Link>
-      ) : (
-        <b className={styles.cardName}>{name}</b>
+      <b className={styles.cardName}>
+        <TermWord k={GLOSS[kind]}>{t(ACTOR_LABEL[kind])}</TermWord>
+      </b>
+      {sub && (
+        <small>
+          <Linked text={t(SUB[kind])} />
+        </small>
       )}
-      {sub && <small>{t(SUB[kind])}</small>}
     </div>
   );
 }

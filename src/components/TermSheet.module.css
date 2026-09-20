@@ -1,0 +1,56 @@
+/* a word that opens its sheet: underlined like a link, in the running text's colour */
+.word {
+  display: inline;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+}
+.word:hover,
+.word:focus-visible {
+  color: var(--navy-text);
+  background: var(--gold-soft);
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.plate {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 84px;
+  border-radius: 10px;
+  background: var(--paper);
+}
+.text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.links a {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--navy-text);
+  text-decoration: none;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}

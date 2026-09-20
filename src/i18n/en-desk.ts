@@ -722,4 +722,7 @@ export const EN_MORE: Record<string, string> = {
   "Un compte-titres à votre nom": "A custody account in your name",
   "inscrit chez le dépositaire ; vos titres et votre argent y sont, à votre nom": "held at the custodian; your securities and your money are there, in your name",
   "Où va l'argent, où sont les titres": "Where the money goes, where the securities are",
+  "un mot du Guichet": "a word of the Guichet",
+  "Les acteurs du marché": "The market's actors",
+  "spécialiste en valeurs du Trésor": "primary dealer",
 };

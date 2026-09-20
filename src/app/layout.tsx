@@ -21,6 +21,7 @@ import { LangSwitch } from "@/components/LangSwitch";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
 import { ConsentGate } from "@/components/ConsentGate";
+import { TermSheetHost } from "@/components/TermSheet";
 import { LEGAL_VERSION } from "@/data/legal";
 import { Suspense } from "react";
 
@@ -77,6 +78,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LangProvider lang={lang}>
         <AuthHashRedirect />
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
+        <TermSheetHost />
         <header className={styles.top}>
           <div className={styles.topIn}>
             <Link className={styles.brand} href="/">

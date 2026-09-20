@@ -15,15 +15,16 @@ export interface GlossEntry {
   long?: string;
   text: string;
 }
-export type GlossGroup = "dette" | "actions" | "fonds" | "ordres" | "etats" | "autres";
+export type GlossGroup = "acteurs" | "dette" | "actions" | "fonds" | "ordres" | "etats" | "autres";
 const GROUP_OF: Record<string, GlossGroup> = Object.fromEntries([
-  ...["ota", "bta", "precompte", "coupon", "coupon_couru", "nominal", "pair", "in_fine", "lignes", "decote_duree", "rendement_actuariel", "apes", "adjudication", "prix_limite", "svt"].map((k) => [k, "dette"]),
-  ...["per", "bnpa", "dividende", "rendement_dividende", "payout", "flottant", "capitalisation", "price_to_book", "roe", "marge_nette", "resultat_net", "fonds_propres", "chiffre_affaires", "total_bilan", "valeur_ajoutee", "primes", "pnb", "ytd", "cours", "seuils", "volume", "liquidite"].map((k) => [k, "actions"]),
+  ...["ota", "bta", "precompte", "coupon", "coupon_couru", "nominal", "pair", "in_fine", "lignes", "decote_duree", "rendement_actuariel", "apes", "adjudication", "prix_limite", "rachat"].map((k) => [k, "dette"]),
+  ...["beac", "cosumaf", "bvmac", "depositaire", "tresor", "svt", "gestion", "societe_bourse", "emetteur"].map((k) => [k, "acteurs"]),
+  ...["per", "bnpa", "dividende", "rendement_dividende", "payout", "flottant", "capitalisation", "price_to_book", "roe", "marge_nette", "resultat_net", "fonds_propres", "chiffre_affaires", "total_bilan", "valeur_ajoutee", "primes", "pnb", "ytd", "cours", "seuils", "volume", "liquidite", "introduction"].map((k) => [k, "actions"]),
   ...["vl", "variation_vl", "opcvm", "perf_origine"].map((k) => [k, "fonds"]),
-  ...["ticket", "commission", "rendement_cours"].map((k) => [k, "ordres"]),
+  ...["ticket", "commission", "rendement_cours", "compte_titres"].map((k) => [k, "ordres"]),
 ]) as Record<string, GlossGroup>;
-const GROUP_LABEL: Record<GlossGroup, string> = { dette: "Titres de dette", actions: "Actions et sociétés", fonds: "Fonds", ordres: "Le Guichet et vos ordres", etats: "Les états d'une ligne", autres: "Autres" };
-const GROUP_ORDER: GlossGroup[] = ["dette", "actions", "fonds", "ordres", "etats", "autres"];
+const GROUP_LABEL: Record<GlossGroup, string> = { acteurs: "Les acteurs du marché", dette: "Titres de dette", actions: "Actions et sociétés", fonds: "Fonds", ordres: "Le Guichet et vos ordres", etats: "Les états d'une ligne", autres: "Autres" };
+const GROUP_ORDER: GlossGroup[] = ["acteurs", "dette", "actions", "fonds", "ordres", "etats", "autres"];
 export const groupOf = (k: string): GlossGroup => (k.startsWith("etat_") ? "etats" : (GROUP_OF[k] ?? "autres"));
 
 const fold = (s: string) =>

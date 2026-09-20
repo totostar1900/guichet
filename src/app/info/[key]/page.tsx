@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SwipePager } from "@/components/mobile/SwipePager";
 import { GuideBar } from "../GuideBar";
+import { LinkedParagraphs } from "@/components/TermSheet";
 import { notFound } from "next/navigation";
 import { repo } from "@/lib/data";
 import { displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
@@ -96,9 +97,7 @@ export default async function LessonPage({ params }: Props) {
         <p className={styles.intro}>{t(l.intro)}</p>
       </div>
       <div className={styles.body}>
-        {l.body.map((p, k) => (
-          <p key={k}>{t(p)}</p>
-        ))}
+        <LinkedParagraphs paragraphs={l.body.map((p) => t(p))} />
       </div>
       <div className={styles.widget}>
         <LessonWidget kind={l.widget} live={live} focus={l.focus} />

@@ -63,9 +63,12 @@
 }
 .node {
   cursor: pointer;
+  outline: none;
 }
-a.node:hover .name {
+.node:hover .name,
+.node:focus-visible .name {
   text-decoration: underline;
+  text-decoration-color: var(--gold);
 }
 .arrow {
   stroke: var(--ink-3);
@@ -407,11 +410,6 @@ a.node:hover .name {
   color: var(--ink);
   text-decoration: none;
   overflow-wrap: anywhere;
-}
-a.cardName {
-  text-decoration: underline;
-  text-decoration-color: var(--line-2);
-  text-underline-offset: 3px;
 }
 .card small {
   font-size: 0.7rem;
