@@ -15,7 +15,8 @@ import { missingForApproval, RISK_LABEL, STATUS_LABEL } from "@/lib/kyc/checklis
 import { positionsFrom } from "@/lib/positions";
 import { transitionIntent } from "../../actions";
 import styles from "./page.module.css";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
+import { ProfileCard } from "@/components/desk/ProfileCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Intention" };
@@ -42,6 +43,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   const s = summarize(o, now);
   const contact = (it.clientId && contacts.find((c) => c.id === it.clientId)) || contacts.find((c) => (it.contactPhone && c.phone === it.contactPhone) || (it.contactEmail && c.email === it.contactEmail));
   const file = it.clientId ? await r.getClientFileByUser(it.clientId) : undefined;
+  const [lang, fin] = await Promise.all([getLang(), it.clientId ? r.getFinancialProfile(it.clientId).catch(() => undefined) : undefined]);
   const sameClient = (x: Intent) => (it.clientId && x.clientId === it.clientId) || (it.contactPhone && x.contactPhone === it.contactPhone) || (it.contactEmail && x.contactEmail === it.contactEmail);
   const history = intents.filter((x) => x.id !== it.id && sameClient(x)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const positions = it.clientId ? positionsFrom(intents.filter((x) => x.clientId === it.clientId), offers, now) : [];
@@ -239,6 +241,9 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               {contact ? (contact.whatsappOptIn ? " · WhatsApp ✓" : " · WhatsApp non consenti") : ""}
             </div>
           </div>
+
+          <h4>{t("Profil financier")}</h4>
+          <ProfileCard profile={fin} lang={lang} t={t} amount={est?.outlay ?? (o.kind === "FONDS" && it.type !== "rachat" ? (it.amount ?? undefined) : undefined)} />
 
           <h4>{t("Dossier client")}</h4>
           {file ? (

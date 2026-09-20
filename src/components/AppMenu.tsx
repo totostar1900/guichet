@@ -8,7 +8,6 @@ import { GUIDE } from "@/data/desk-guide";
 import { useT } from "@/i18n/client";
 import { COMPANY } from "@/lib/config";
 import { LangSwitch } from "./LangSwitch";
-import { PushToggle } from "./PushToggle";
 import { Sheet } from "./mobile/Sheet";
 import { Presentation } from "./mobile/Presentation";
 import { Onboarding } from "./mobile/Onboarding";
@@ -36,12 +35,13 @@ export interface AppMenuProps {
   security?: { channels: number; devices: number };
   /** The client's financial profile, when set: the word under « Mon profil ». */
   profile?: "prudent" | "equilibre" | "dynamique";
+  /** Kept for the layout's call; the alerts row lives on Mon espace now. */
   vapidKey?: string;
   build?: string;
 }
 
 const COACH_KEY = "guichet:coach:menu";
-type Tab = "guichet" | "contact" | "aide" | "reglages";
+type Tab = "guichet" | "aide" | "reglages";
 /** Yaoundé (UTC+1), Monday to Friday, 8 h to 17 h: whether a conseiller is at the desk right now. */
 function deskOpenNow(): boolean {
   const d = new Date(new Date().getTime() + 60 * 60 * 1000);
@@ -86,7 +86,7 @@ const D = {
   pin: "M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
 };
 
-export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, build }: AppMenuProps) {
+export function AppMenu({ signedIn, desk, name, security, profile, build }: AppMenuProps) {
   const t = useT();
   const path = usePathname();
   const router = useRouter();
@@ -151,6 +151,53 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
   };
 
   const coach = Boolean(firstTime) && !coachGone && !desk;
+  // The contacts, at the foot of the one sheet: WhatsApp first, the number in large.
+  const contactBlock = (
+    <>
+              <a className={styles.waCard} href={wa} target="_blank" rel="noopener" onClick={close}>
+                <span className={styles.waHead}>
+                  <Icon d={D.whatsapp} />
+                  <b>WhatsApp</b>
+                </span>
+                <strong>{COMPANY.phone}</strong>
+                <small>{t(onFiche ? "un conseiller répond dans l'heure ouvrée, au sujet de cette ligne" : "un conseiller répond dans l'heure ouvrée")}</small>
+                <span className={styles.waBtn}>{t("Écrire")}</span>
+              </a>
+              <div className={styles.contactPair}>
+                <a className={styles.contactCard} href={`tel:${COMPANY.phone.replace(/\s/g, "")}`} onClick={close}>
+                  <Icon d={D.phone} />
+                  <b>{t("Appeler")}</b>
+                  <strong>{COMPANY.phone}</strong>
+                  <small>{t("lundi à vendredi, 8 h à 17 h")}</small>
+                </a>
+                <a className={styles.contactCard} href={`mailto:${COMPANY.email}`} onClick={close}>
+                  <Icon d={D.mail} />
+                  <b>{t("E-mail")}</b>
+                  <strong>{COMPANY.email}</strong>
+                  <small>{t("réponse sous un jour ouvré")}</small>
+                </a>
+              </div>
+              <div className={styles.address}>
+                <Icon d={D.pin} />
+                <span>
+                  <b>{COMPANY.legalName}</b>
+                  <small>{COMPANY.address}</small>
+                  <small>{t(COMPANY.licence)}</small>
+                </span>
+              </div>
+              <div className={styles.hours}>
+                <span>
+                  <b>{t("Ouvert")}</b> · {t("lundi à vendredi, 8 h à 17 h")}
+                </span>
+                {openNow && (
+                  <em>
+                    <i aria-hidden="true" />
+                    {t("en ligne maintenant")}
+                  </em>
+                )}
+              </div>
+          </>
+  );
 
   return (
     <>
@@ -185,7 +232,7 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
         dock="top-right"
         tall={!desk}
         title={signedIn && name ? t("Bonjour {name}", { name: name.split(/\s+/)[0] }) : "Guichet"}
-        tabs={(desk ? (["aide", "reglages"] as Tab[]) : (["guichet", "contact"] as Tab[])).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : k === "guichet" ? "Guichet" : k === "contact" ? "Contact" : "Réglages"), on: tab === k, pick: () => setTab(k) }))}
+        tabs={desk ? (["aide", "reglages"] as Tab[]).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : "Réglages"), on: tab === k, pick: () => setTab(k) })) : undefined}
       >
         <div className={styles.menu}>
           {(tab === "aide" || tab === "guichet") && (
@@ -291,85 +338,23 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
                   </div>
                   <div className={styles.line}>
                     <LangSwitch compact />
-                    {!signedIn && (
+                    {signedIn ? (
+                      <form action={logout} className={styles.form}>
+                        <button type="submit" className={styles.lineOut}>
+                          <Icon d={D.out} />
+                          {t("Se déconnecter")}
+                        </button>
+                      </form>
+                    ) : (
                       <Link href="/connexion" className={styles.lineOut} onClick={close}>
                         {t("Se connecter")}
                       </Link>
                     )}
                   </div>
-                  {/* the alerts row exists only once the VAPID keys are set on the server: without them there is no button to show */}
-                  {vapidKey && (
-                    <div className={styles.item}>
-                      <Icon d={D.bell} />
-                      <span>
-                        <b>{t("Alertes sur cet appareil")}</b>
-                        <small>{t("une opportunité, une clôture, un ordre servi")}</small>
-                      </span>
-                      <span className={styles.side}>
-                        <PushToggle vapidKey={vapidKey} compact />
-                      </span>
-                    </div>
-                  )}
-                  {signedIn && (
-                    <form action={logout} className={styles.form}>
-                      <button type="submit" className={`${styles.item} ${styles.danger}`}>
-                        <Icon d={D.out} />
-                        <span>
-                          <b>{t("Se déconnecter")}</b>
-                          <small>{t("l'appareil reste connu")}</small>
-                        </span>
-                      </button>
-                    </form>
-                  )}
+                  <div className={styles.group}>{t("Nous joindre")}</div>
+                  {contactBlock}
                 </>
               )}
-            </>
-          )}
-
-          {tab === "contact" && !desk && (
-            <>
-              <a className={styles.waCard} href={wa} target="_blank" rel="noopener" onClick={close}>
-                <span className={styles.waHead}>
-                  <Icon d={D.whatsapp} />
-                  <b>WhatsApp</b>
-                </span>
-                <strong>{COMPANY.phone}</strong>
-                <small>{t(onFiche ? "un conseiller répond dans l'heure ouvrée, au sujet de cette ligne" : "un conseiller répond dans l'heure ouvrée")}</small>
-                <span className={styles.waBtn}>{t("Écrire")}</span>
-              </a>
-              <div className={styles.contactPair}>
-                <a className={styles.contactCard} href={`tel:${COMPANY.phone.replace(/\s/g, "")}`} onClick={close}>
-                  <Icon d={D.phone} />
-                  <b>{t("Appeler")}</b>
-                  <strong>{COMPANY.phone}</strong>
-                  <small>{t("lundi à vendredi, 8 h à 17 h")}</small>
-                </a>
-                <a className={styles.contactCard} href={`mailto:${COMPANY.email}`} onClick={close}>
-                  <Icon d={D.mail} />
-                  <b>{t("E-mail")}</b>
-                  <strong>{COMPANY.email}</strong>
-                  <small>{t("réponse sous un jour ouvré")}</small>
-                </a>
-              </div>
-              <div className={styles.address}>
-                <Icon d={D.pin} />
-                <span>
-                  <b>{COMPANY.legalName}</b>
-                  <small>{COMPANY.address}</small>
-                  <small>{t(COMPANY.licence)}</small>
-                </span>
-              </div>
-              <div className={styles.hours}>
-                <span>
-                  <b>{t("Ouvert")}</b> · {t("lundi à vendredi, 8 h à 17 h")}
-                </span>
-                {openNow && (
-                  <em>
-                    <i aria-hidden="true" />
-                    {t("en ligne maintenant")}
-                  </em>
-                )}
-              </div>
             </>
           )}
 

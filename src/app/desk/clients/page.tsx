@@ -6,7 +6,8 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
 import styles from "./page.module.css";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
+import { ProfileCard } from "@/components/desk/ProfileCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Clients" };
@@ -22,6 +23,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const docs = await r.listDocuments();
   const todo = files.filter((f) => f.status === "soumis" || f.status === "en_revue").length;
   const selected = files.find((f) => f.id === sp.file) ?? files.find((f) => f.status === "soumis" || f.status === "en_revue") ?? files[0];
+  const [lang, fin] = await Promise.all([getLang(), selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id) : [];
   const now = new Date();
 
@@ -133,6 +135,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                 )}
               </div>
               <div>
+                <h3>{t("Profil financier")}</h3>
+                <ProfileCard profile={fin} lang={lang} t={t} />
                 <h3>{t("Contrôles")}</h3>
                 <ul className={styles.checks}>
                   {autoChecks(selected, now).map((c) => (

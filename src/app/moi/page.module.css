@@ -15,13 +15,7 @@
 .head > a {
   margin-left: auto;
 }
-/* the sign-out beside the profile: the first control at the right, so it is never looked for */
-.out {
-  margin-left: auto;
-}
-.out + a {
-  margin-left: 0;
-}
+
 .contact {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

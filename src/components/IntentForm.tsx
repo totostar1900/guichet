@@ -15,7 +15,8 @@ import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { fmt, parseAmount, parseUnits } from "@/lib/format";
 import styles from "./IntentForm.module.css";
-import { useT } from "@/i18n/client";
+import { useLang, useT } from "@/i18n/client";
+import { amountFlag } from "@/data/profile";
 
 const DONE: Record<IntentType, (by: string) => string> = {
   ferme: (by) => `Votre prise ferme est dans le carnet. Un conseiller vous confirme ${by} avant la clôture et vous envoie le bulletin à signer.`,
@@ -50,12 +51,13 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels, bridge, profileFlag }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
   const t = useT();
+  const lang = useLang();
   const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
@@ -72,7 +74,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const emailOk = signedIn && !email ? who.email.includes("@") : Boolean(provenEmail && who.email.trim().toLowerCase() === provenEmail);
   // The intention leaves the client's profile: they say so before it goes, and the desk reads it.
   const [profileOk, setProfileOk] = useState(false);
-  const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk);
+  const [amountOk, setAmountOk] = useState(false);
   // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
   const [step, setStep] = useState(1);
   const formRef = useRef<HTMLFormElement>(null);
@@ -96,6 +98,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   };
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
   const est = estimate(offer, parse(amount));
+  // The outlay against the savings the client said they can invest this year: a word, and a confirmation past half of it.
+  const amountMark = investable != null && est.outlay ? amountFlag({ investable, kind: "equilibre", horizonYears: [0, 1], measures: { horizon: 0, tolerance: 0, knowledge: 0, capacity: 0 }, answers: {}, updatedAt: "" }, est.outlay) : null;
+  const amountWarn = amountMark?.level === "warn" ? amountMark[lang] : undefined;
+  const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk) && (!amountWarn || amountOk);
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
   const market = offer.kind === "MARCHE";
   // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
@@ -304,15 +310,23 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </button>
           </div>
         )}
+        {amountWarn && (
+          <label className={styles.profileBox}>
+            <input type="checkbox" checked={amountOk} onChange={(e) => setAmountOk(e.target.checked)} />
+            <span>
+              <b>{t("Ce montant est {flag}.", { flag: amountWarn })}</b> {t("Je le sais et je confirme mon intention ; un conseiller en parlera avec moi.")}
+            </span>
+          </label>
+        )}
         {profileFlag && (
           <label className={styles.profileBox}>
             <input type="checkbox" checked={profileOk} onChange={(e) => setProfileOk(e.target.checked)} />
             <span>
               <b>{t("Cette ligne est {flag}.", { flag: profileFlag })}</b> {t("Je le sais et je confirme mon intention ; un conseiller en parlera avec moi.")}
             </span>
-            <input type="hidden" name="profileFlag" value={profileOk ? profileFlag : ""} />
           </label>
         )}
+        <input type="hidden" name="profileFlag" value={[profileFlag && profileOk ? profileFlag : "", amountWarn && amountOk ? amountWarn : ""].filter(Boolean).join(" · ")} />
         <div className={styles.foot}>
           <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>
           <button className="btn primary" type="submit" disabled={pending || !ready}>

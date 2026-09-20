@@ -27,7 +27,7 @@ export default async function ProfilPage() {
       </div>
       {!s && (
         <p className={styles.guestNote}>
-          <b>{t("À titre d'information")}</b> · {t("Sept questions, deux minutes, un profil : il reste sur cet appareil. Avec un compte, il rejoint votre dossier et les fiches vous montrent vos repères.")}
+          <b>{t("À titre d'information")}</b> · {t("Dix-sept questions en trois blocs, cinq minutes, un profil : il reste sur cet appareil. Avec un compte, il rejoint votre dossier et les fiches vous montrent vos repères.")}
         </p>
       )}
       <ProfileQuiz initial={profile} guest={!s} />
