@@ -15,6 +15,7 @@ import { startDeskTour } from "./DeskTour";
 import { rankEntries, type SearchEntry } from "@/app/info/InfoSearch";
 import { TOP_QUESTIONS, type GuideIndex } from "@/lib/guide-index-shared";
 import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
+import { usePhone } from "./chart-utils";
 import styles from "./AppMenu.module.css";
 
 /**
@@ -97,6 +98,9 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
   const firstTime = useSyncExternalStore(noop, firstTimeSnapshot, () => "");
   const [coachGone, setCoachGone] = useState(false);
   const [tab, setTab] = useState<Tab>(desk ? "aide" : "guichet");
+  // On the phone the desk gets one sheet too: its learning items, then the language and the account.
+  const phone = usePhone();
+  const deskTabs = desk && !phone;
   const [openNow, setOpenNow] = useState(false);
   const [q, setQ] = useState("");
   const [index, setIndex] = useState<GuideIndex | null>(cachedGuideIndex());
@@ -230,12 +234,12 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
         onClose={close}
         navy
         dock="top-right"
-        tall={!desk}
+        tall={!desk || phone}
         title={signedIn && name ? t("Bonjour {name}", { name: name.split(/\s+/)[0] }) : "Guichet"}
-        tabs={desk ? (["aide", "reglages"] as Tab[]).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : "Réglages"), on: tab === k, pick: () => setTab(k) })) : undefined}
+        tabs={deskTabs ? (["aide", "reglages"] as Tab[]).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : "Réglages"), on: tab === k, pick: () => setTab(k) })) : undefined}
       >
         <div className={styles.menu}>
-          {(tab === "aide" || tab === "guichet") && (
+          {(tab === "aide" || tab === "guichet" || !deskTabs) && (
             <>
               <label className={styles.search}>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -358,7 +362,7 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
             </>
           )}
 
-          {tab === "reglages" && desk && (
+          {desk && (tab === "reglages" || !deskTabs) && (
             <>
               <div className={styles.group}>{t(signedIn ? "Mon compte" : "Réglages")}</div>
               <div className={styles.item}>
