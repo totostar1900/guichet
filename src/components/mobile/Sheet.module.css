@@ -191,3 +191,38 @@
     margin: 8px -14px -8px;
   }
 }
+
+/* a fixed height on the phone: the tabs change the content, never the sheet's edge */
+@media (max-width: 760px) {
+  .tall,
+  .tall.sheetOpen {
+    height: min(620px, 84vh);
+    max-height: 84vh;
+  }
+  .tall .body {
+    flex: 1 1 auto;
+  }
+}
+/* a row under the body: prev / next, an action; stays while the body scrolls */
+.foot {
+  flex: none;
+  border-top: 1px solid var(--line);
+  padding: 8px 14px 12px;
+}
+@media (max-width: 760px) {
+  .foot {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+/* a tab may carry a small drawing before its word (the chapter's ring) */
+.tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.tabs button > svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}

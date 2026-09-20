@@ -300,3 +300,278 @@ a.node:hover .name {
     overflow-x: auto;
   }
 }
+
+/* the actors map on the phone: three bands, then « Agrandir » */
+.stack {
+  display: none;
+}
+.stackHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.stackHead b {
+  font-size: 0.9rem;
+}
+.enlarge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--navy-text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 12px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.enlarge svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bandBox,
+.boxA,
+.boxB {
+  border-radius: 10px;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bandBox {
+  background: var(--paper);
+}
+.boxA {
+  background: var(--surface);
+  border: 1.5px solid var(--chart-out);
+}
+.boxB {
+  background: var(--gold-soft);
+  border: 1.5px solid var(--gold);
+}
+.stack h4 {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.boxA h4 {
+  color: var(--chart-out);
+}
+.boxB h4 {
+  color: var(--gold-ink);
+}
+.four {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.four .card {
+  align-items: center;
+  text-align: center;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.boxA .card,
+.boxB .card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+}
+.boxA .card > svg,
+.boxB .card > svg {
+  grid-row: 1 / 3;
+}
+.cardDim {
+  opacity: 0.35;
+}
+.cardName {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+a.cardName {
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+.card small {
+  font-size: 0.7rem;
+  color: var(--ink-2);
+  line-height: 1.3;
+}
+.between {
+  margin: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.youBox {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--box-you);
+  color: #fff;
+}
+.youBox > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.youBox b {
+  font-size: 0.86rem;
+}
+.youBox small {
+  font-size: 0.72rem;
+  color: #c9d3e6;
+  line-height: 1.35;
+}
+.youEyebrow {
+  font-size: 0.64rem !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.youPlate {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 66px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.bandTextStack {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--paper);
+}
+.bandTextStack b {
+  color: var(--ink);
+}
+@media (max-width: 760px) {
+  .scroll {
+    display: none;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* the map in fullscreen */
+.zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+.zoomHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+.zoomHead b {
+  white-space: nowrap;
+}
+.zoomHead small {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zoomScale {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.zoomClose {
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.zoomView {
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  background: var(--paper);
+}
+.zoomInner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 900px;
+  height: 440px;
+  transform-origin: 0 0;
+  background: var(--surface);
+  border-radius: 10px;
+}
+.zoomInner .map {
+  width: 900px;
+  height: 440px;
+  min-width: 0;
+}
+.turn {
+  display: none;
+  margin: 0;
+  padding: 8px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+@media (orientation: portrait) {
+  .turn {
+    display: block;
+  }
+}

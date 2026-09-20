@@ -1,108 +1,261 @@
-/* the bar: phone only, above the tab bar */
-.bar {
+/* the corner capsule: phone only, above the tab bar */
+.corner {
   display: none;
 }
 @media (max-width: 760px) {
-  .bar {
+  .corner {
     position: fixed;
-    left: 12px;
-    right: 12px;
+    right: 14px;
     bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 10px);
     z-index: 40;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 10px;
+    display: flex;
     align-items: center;
-    padding: 8px 10px;
-    background: var(--navy);
-    color: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(11, 37, 69, 0.35);
+    padding: 4px;
+    background: var(--surface);
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(11, 37, 69, 0.24);
   }
 }
 .sommaire {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
   border: 0;
-  background: #1c355c;
-  color: #fff;
+  background: transparent;
+  color: var(--navy-text);
   display: grid;
   place-items: center;
   cursor: pointer;
+  padding: 0;
+  flex: none;
+  overflow: hidden;
+  transition: width 0.22s, opacity 0.18s;
 }
 .sommaire svg {
   width: 22px;
   height: 22px;
   fill: none;
-  stroke: var(--gold);
-  stroke-width: 2;
+  stroke: currentColor;
+  stroke-width: 2.2;
   stroke-linecap: round;
 }
-.pos {
+.pastille {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  flex: none;
+  position: relative;
+}
+.double .pastille::after {
+  /* the hairline between the two halves */
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--line-2);
+  transition: opacity 0.18s;
+}
+.ring {
+  display: block;
+}
+.ringTrack {
+  fill: none;
+  stroke: var(--line-2);
+  stroke-width: 4;
+}
+.ringArc {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s;
+}
+.ringPlace {
+  fill: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+/* folded while the page scrolls: the pastille alone, the sommaire as a badge on its shoulder */
+.badge {
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--navy);
+  border: 2px solid var(--surface);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+}
+.badge svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.folded .sommaire {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.folded .pastille::after {
+  opacity: 0;
+}
+.folded .badge {
+  opacity: 1;
+  transform: none;
+}
+.tabIcon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sommaire,
+  .badge,
+  .ringArc,
+  .pastille::after {
+    transition: none;
+  }
+}
+
+/* the foot of the sheet: previous / next lesson */
+.foot {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.pos small {
-  font-size: 0.66rem;
-  color: #c9d2e0;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ticks {
-  display: flex;
-  gap: 3px;
-}
-.ticks i {
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background: #3b5580;
-}
-.tickDone {
-  background: var(--gold) !important;
-}
-.tickHere {
-  background: #fff !important;
-}
-.arrows {
-  display: flex;
-  gap: 4px;
+  gap: 8px;
 }
 .prev,
 .next {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy-text);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 9px;
   text-decoration: none;
-  background: #1c355c;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .next {
   background: var(--gold);
-}
-.prev svg,
-.next svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: #fff;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.next svg {
-  stroke: var(--navy);
-  stroke-width: 2.6;
+  border-color: var(--gold);
+  color: var(--navy);
+  font-weight: 800;
 }
 .off {
-  opacity: 0.25;
+  opacity: 0.35;
+}
+
+/* « Vous êtes ici » */
+.here {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--gold-soft);
+  border-left: 3px solid var(--line-2);
+  margin-bottom: 8px;
+}
+.here > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.here b {
+  font-size: 0.84rem;
+}
+.here small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.hereEyebrow {
+  font-size: 0.64rem !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink) !important;
+  font-weight: 800;
+}
+.hereLine {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 12px 10px;
+  border-left: 3px solid var(--gold);
+  margin-bottom: 8px;
+}
+.hereLine b {
+  font-size: 0.86rem;
+}
+.lessons {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 4px 0 2px 12px;
+  border-left: 3px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+}
+.lesson {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.84rem;
+  min-height: 38px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.lesson i {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  border: 2px solid var(--line-2);
+  color: var(--ink-3);
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+}
+.lessonDone {
+  color: var(--ink-3);
+}
+.lessonDone i {
+  color: #fff;
+}
+.lessonHere {
+  font-weight: 800;
+}
+.lesson span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lesson small {
+  color: var(--gold-ink);
+  font-weight: 700;
+  font-size: 0.74rem;
 }
 
 /* the sommaire sheet */

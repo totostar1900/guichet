@@ -66,11 +66,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const backend = backendName();
   const [session, registry, lang, t, navCounts] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers()]);
   const desk = isDesk(session);
-  const security = session && !desk ? await securityLine(session.userId) : undefined;
+  const [security, profile] = session && !desk ? await Promise.all([securityLine(session.userId), repo().getFinancialProfile(session.userId).catch(() => undefined)]) : [undefined, undefined];
   // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
   const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
-  const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
+  const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={ui.variable}>
       <body>

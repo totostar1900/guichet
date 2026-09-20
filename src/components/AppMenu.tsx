@@ -8,7 +8,6 @@ import { GUIDE } from "@/data/desk-guide";
 import { useT } from "@/i18n/client";
 import { COMPANY } from "@/lib/config";
 import { LangSwitch } from "./LangSwitch";
-import { CardDisplaySheet } from "./Density";
 import { PushToggle } from "./PushToggle";
 import { Sheet } from "./mobile/Sheet";
 import { Presentation } from "./mobile/Presentation";
@@ -20,24 +19,36 @@ import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-i
 import styles from "./AppMenu.module.css";
 
 /**
- * The « ⋮ » of the application, right of the account in the header: someone
- * to talk to first, then what there is to discover (the two first-visit
- * animations, replayable; the help; the guide), then the settings, then the
- * account. Vertical dots for the app, the gold horizontal « ··· » for a line:
- * one gesture, two scopes, and « Déclarer une intention » is in neither.
- * A sheet on the phone, a menu docked under the header on a desk.
+ * The « ⋮ » of the application, right of the account in the header. On the
+ * phone, two tabs at a fixed height: « Guichet » (the search, this page's
+ * landmarks, six tiles: the presentation, the first steps, the help, the
+ * Guide, the profile, the security; the language and the alerts; the
+ * account) and « Contact » (WhatsApp with the number in large, call, e-mail,
+ * the address and the licence, the hours). On a desk, « Aide » and
+ * « Réglages », docked under the header. Vertical dots for the app, the gold
+ * horizontal « ··· » for a line: one gesture, two scopes, and « Déclarer une
+ * intention » is in neither.
  */
 export interface AppMenuProps {
   signedIn: boolean;
   desk: boolean;
   name?: string;
   security?: { channels: number; devices: number };
+  /** The client's financial profile, when set: the word under « Mon profil ». */
+  profile?: "prudent" | "equilibre" | "dynamique";
   vapidKey?: string;
   build?: string;
 }
 
 const COACH_KEY = "guichet:coach:menu";
-type Tab = "aide" | "contact" | "reglages";
+type Tab = "guichet" | "contact" | "aide" | "reglages";
+/** Yaoundé (UTC+1), Monday to Friday, 8 h to 17 h: whether a conseiller is at the desk right now. */
+function deskOpenNow(): boolean {
+  const d = new Date(new Date().getTime() + 60 * 60 * 1000);
+  const day = d.getUTCDay();
+  const h = d.getUTCHours();
+  return day >= 1 && day <= 5 && h >= 8 && h < 17;
+}
 const noop = () => () => {};
 const firstTimeSnapshot = () => {
   try {
@@ -72,20 +83,21 @@ const D = {
   docs: "M6 3h9l4 4v14H6zM14 3v5h5M9 12h6M9 16h6",
   eye: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6zM12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0",
   profile: "M4 19V9M10 19V5M16 19v-8M22 19H2",
+  pin: "M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
 };
 
-export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: AppMenuProps) {
+export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, build }: AppMenuProps) {
   const t = useT();
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [cards, setCards] = useState(false);
   const [play, setPlay] = useState<"presentation" | "onboarding" | null>(null);
   const [coachLabel, setCoachLabel] = useState<string | null>(null);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const firstTime = useSyncExternalStore(noop, firstTimeSnapshot, () => "");
   const [coachGone, setCoachGone] = useState(false);
-  const [tab, setTab] = useState<Tab>("aide");
+  const [tab, setTab] = useState<Tab>(desk ? "aide" : "guichet");
+  const [openNow, setOpenNow] = useState(false);
   const [q, setQ] = useState("");
   const [index, setIndex] = useState<GuideIndex | null>(cachedGuideIndex());
   const [done, setDone] = useState<string[]>([]);
@@ -112,7 +124,8 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
       setTourStep(null);
     }
     setOpen(true);
-    setTab("aide");
+    setTab(desk ? "aide" : "guichet");
+    setOpenNow(deskOpenNow());
     setQ("");
     loadGuideIndex().then((i) => {
       setIndex(i);
@@ -170,11 +183,12 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
         onClose={close}
         navy
         dock="top-right"
+        tall={!desk}
         title={signedIn && name ? t("Bonjour {name}", { name: name.split(/\s+/)[0] }) : "Guichet"}
-        tabs={(desk ? (["aide", "reglages"] as Tab[]) : (["aide", "contact", "reglages"] as Tab[])).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : k === "contact" ? "Contact" : "Réglages"), on: tab === k, pick: () => setTab(k) }))}
+        tabs={(desk ? (["aide", "reglages"] as Tab[]) : (["guichet", "contact"] as Tab[])).map((k) => ({ key: k, label: t(k === "aide" ? "Aide" : k === "guichet" ? "Guichet" : k === "contact" ? "Contact" : "Réglages"), on: tab === k, pick: () => setTab(k) }))}
       >
         <div className={styles.menu}>
-          {tab === "aide" && (
+          {(tab === "aide" || tab === "guichet") && (
             <>
               <label className={styles.search}>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -207,9 +221,9 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
                   </button>
                 </>
               )}
-              <div className={styles.group}>{t("Apprendre")}</div>
               {desk ? (
                 <>
+                  <div className={styles.group}>{t("Apprendre")}</div>
                   <button type="button" className={styles.item} onClick={go(() => startDeskTour(router))}>
                     <Icon d={D.tour} gold />
                     <span>
@@ -240,37 +254,67 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
                   </button>
                 </>
               ) : (
-                <div className={styles.tiles}>
-                  <button type="button" className={styles.tile} onClick={go(() => setPlay("presentation"))}>
-                    <b>{t("Guichet en trente secondes")}</b>
-                    <small>{t("la présentation")}</small>
-                  </button>
-                  <button type="button" className={styles.tile} onClick={go(() => setPlay("onboarding"))}>
-                    <b>{t("Premiers pas")}</b>
-                    <small>{t("six écrans")}</small>
-                  </button>
-                  <Link className={styles.tile} href="/info#lecons" onClick={close}>
-                    <b>{t("Lire une ligne")}</b>
-                    <small>{index ? t("{n} leçons · {d} lues", { n: first.length, d: firstDone }) : t("huit leçons")}</small>
-                  </Link>
-                  <Link className={styles.tile} href={resume ? `/info/${resume.key}` : "/info/parcours"} onClick={close}>
-                    <b>{t("Comprendre le marché")}</b>
-                    <small>{index ? (resume && courseDone > 0 ? t("{n} leçons · reprendre {s}", { n: course.length, s: `${resumeSection ? String.fromCharCode(64 + resumeSection.order) : ""}·${course.filter((l) => l.section === resume.section).indexOf(resume) + 1}` }) : t("{n} leçons · {d} lues", { n: course.length, d: courseDone })) : t("vingt-huit leçons")}</small>
-                  </Link>
-                </div>
-              )}
-              {!desk && (
                 <>
-                  <div className={styles.group}>{t("Les questions qu'on nous pose")}</div>
-                  {top.map((r) => (
-                    <Link key={r.slug} className={styles.q} href={`/info/aide#q-${r.slug}`} onClick={close}>
-                      <span>{r.q}</span>
-                      <i aria-hidden="true">›</i>
+                  <div className={styles.tiles}>
+                    <button type="button" className={styles.tile} onClick={go(() => setPlay("presentation"))}>
+                      <Icon d={D.play} />
+                      <b>{t("Trente secondes")}</b>
+                      <small>{t("la présentation")}</small>
+                    </button>
+                    <button type="button" className={styles.tile} onClick={go(() => setPlay("onboarding"))}>
+                      <Icon d={D.steps} />
+                      <b>{t("Premiers pas")}</b>
+                      <small>{t("six écrans")}</small>
+                    </button>
+                    <Link className={styles.tile} href="/info/aide" onClick={close}>
+                      <Icon d={D.help} />
+                      <b>{t("Aide")}</b>
+                      <small>{t("les questions qu'on nous pose")}</small>
                     </Link>
-                  ))}
-                  <Link className={styles.more} href="/info/aide" onClick={close}>
-                    {t("Toute l'aide")} →
-                  </Link>
+                    <Link className={styles.tile} href={resume && courseDone > 0 ? `/info/${resume.key}` : "/info"} onClick={close}>
+                      <Icon d={D.book} />
+                      <b>{t("Le Guide")}</b>
+                      <small>{index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("leçons, outils, glossaire")}</small>
+                    </Link>
+                    {signedIn && (
+                      <Link className={styles.tile} href="/moi/profil" onClick={close}>
+                        <Icon d={D.profile} />
+                        <b>{t("Mon profil")}</b>
+                        <small>{profile ? t(profile === "prudent" ? "prudent" : profile === "equilibre" ? "équilibré" : "dynamique") : t("deux minutes")}</small>
+                      </Link>
+                    )}
+                    {signedIn && (
+                      <Link className={styles.tile} href="/moi/securite" onClick={close}>
+                        <Icon d={D.shield} />
+                        <b>{t("Sécurité")}</b>
+                        <small className={security && security.channels === 2 ? styles.good : undefined}>{security ? t("{c} canaux · {d} appareil", { c: String(security.channels), d: String(security.devices) }) : t("canaux, appareils")}</small>
+                      </Link>
+                    )}
+                  </div>
+                  <div className={styles.line}>
+                    <LangSwitch compact />
+                    {signedIn ? (
+                      <form action={logout} className={styles.form}>
+                        <button type="submit" className={styles.lineOut}>
+                          <Icon d={D.out} />
+                          {t("Se déconnecter")}
+                        </button>
+                      </form>
+                    ) : (
+                      <Link href="/connexion" className={styles.lineOut} onClick={close}>
+                        {t("Se connecter")}
+                      </Link>
+                    )}
+                  </div>
+                  <div className={styles.item}>
+                    <Icon d={D.bell} />
+                    <span>
+                      <b>{t("Alertes sur cet appareil")}</b>
+                    </span>
+                    <span className={styles.side}>
+                      <PushToggle vapidKey={vapidKey} compact />
+                    </span>
+                  </div>
                 </>
               )}
             </>
@@ -278,42 +322,52 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
 
           {tab === "contact" && !desk && (
             <>
-              <div className={styles.group}>{t("Parler à quelqu'un")}</div>
-              <a className={styles.item} href={wa} target="_blank" rel="noopener" onClick={close}>
-                <Icon d={D.whatsapp} />
-                <span>
-                  <b>{t(onFiche ? "Écrire sur WhatsApp au sujet de cette ligne" : "Écrire sur WhatsApp")}</b>
-                  <small>{t("un conseiller répond dans l'heure ouvrée")}</small>
+              <a className={styles.waCard} href={wa} target="_blank" rel="noopener" onClick={close}>
+                <span className={styles.waHead}>
+                  <Icon d={D.whatsapp} />
+                  <b>WhatsApp</b>
                 </span>
+                <strong>{COMPANY.phone}</strong>
+                <small>{t(onFiche ? "un conseiller répond dans l'heure ouvrée, au sujet de cette ligne" : "un conseiller répond dans l'heure ouvrée")}</small>
+                <span className={styles.waBtn}>{t("Écrire")}</span>
               </a>
-              <a className={styles.item} href={`tel:${COMPANY.phone.replace(/\s/g, "")}`} onClick={close}>
-                <Icon d={D.phone} />
-                <span>
-                  <b>
-                    {t("Appeler")} · {COMPANY.phone}
-                  </b>
+              <div className={styles.contactPair}>
+                <a className={styles.contactCard} href={`tel:${COMPANY.phone.replace(/\s/g, "")}`} onClick={close}>
+                  <Icon d={D.phone} />
+                  <b>{t("Appeler")}</b>
+                  <strong>{COMPANY.phone}</strong>
                   <small>{t("lundi à vendredi, 8 h à 17 h")}</small>
-                </span>
-              </a>
-              <a className={styles.item} href={`mailto:${COMPANY.email}`} onClick={close}>
-                <Icon d={D.mail} />
+                </a>
+                <a className={styles.contactCard} href={`mailto:${COMPANY.email}`} onClick={close}>
+                  <Icon d={D.mail} />
+                  <b>{t("E-mail")}</b>
+                  <strong>{COMPANY.email}</strong>
+                  <small>{t("réponse sous un jour ouvré")}</small>
+                </a>
+              </div>
+              <div className={styles.address}>
+                <Icon d={D.pin} />
                 <span>
-                  <b>
-                    {t("E-mail")} · {COMPANY.email}
-                  </b>
+                  <b>{COMPANY.legalName}</b>
+                  <small>{COMPANY.address}</small>
+                  <small>{t(COMPANY.licence)}</small>
                 </span>
-              </a>
-              <Link className={styles.item} href="/info/mentions" onClick={close}>
-                <Icon d={D.docs} />
+              </div>
+              <div className={styles.hours}>
                 <span>
-                  <b>{t("Mentions et responsabilités")}</b>
-                  <small>{t("qui vous parle, les risques, vos données")}</small>
+                  <b>{t("Ouvert")}</b> · {t("lundi à vendredi, 8 h à 17 h")}
                 </span>
-              </Link>
+                {openNow && (
+                  <em>
+                    <i aria-hidden="true" />
+                    {t("en ligne maintenant")}
+                  </em>
+                )}
+              </div>
             </>
           )}
 
-          {tab === "reglages" && (
+          {tab === "reglages" && desk && (
             <>
               <div className={styles.group}>{t(signedIn ? "Mon compte" : "Réglages")}</div>
               <div className={styles.item}>
@@ -323,51 +377,12 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
                 </span>
                 <LangSwitch compact />
               </div>
-              {!desk && (
-                <button type="button" className={styles.item} onClick={go(() => setCards(true))}>
-                  <Icon d={D.cards} />
-                  <span>
-                    <b>{t("Affichage des cartes")}</b>
-                    <small>{t("densité, distinction")}</small>
-                  </span>
-                </button>
-              )}
-              {!desk && (
-                <div className={styles.item}>
-                  <Icon d={D.bell} />
-                  <span>
-                    <b>{t("Alertes sur cet appareil")}</b>
-                  </span>
-                  <span className={styles.side}>
-                    <PushToggle vapidKey={vapidKey} compact />
-                  </span>
-                </div>
-              )}
-              {signedIn && !desk && (
-                <Link className={styles.item} href="/moi/profil" onClick={close}>
-                  <Icon d={D.profile} />
-                  <span>
-                    <b>{t("Mon profil financier")}</b>
-                    <small>{t("horizon, tolérance, connaissance")}</small>
-                  </span>
-                </Link>
-              )}
-              {signedIn && !desk && (
-                <Link className={styles.item} href="/moi/securite" onClick={close}>
-                  <Icon d={D.shield} />
-                  <span>
-                    <b>{t("Sécurité")}</b>
-                    <small className={security && security.channels === 2 ? styles.good : undefined}>{security ? t("{c} canaux prouvés · {d} appareil", { c: String(security.channels), d: String(security.devices) }) : t("canaux prouvés, appareils")}</small>
-                  </span>
-                </Link>
-              )}
               {signedIn && (
                 <form action={logout} className={styles.form}>
                   <button type="submit" className={`${styles.item} ${styles.danger}`}>
                     <Icon d={D.out} />
                     <span>
                       <b>{t("Se déconnecter")}</b>
-                      {!desk && <small>{t("l'appareil reste connu")}</small>}
                     </span>
                   </button>
                 </form>
@@ -392,7 +407,6 @@ export function AppMenu({ signedIn, desk, name, security, vapidKey, build }: App
         </div>
       </Sheet>
 
-      {!desk && <CardDisplaySheet open={cards} onClose={() => setCards(false)} />}
       {play === "presentation" && <Presentation force onClose={() => setPlay(desk ? "onboarding" : null)} />}
       {play === "onboarding" && <Onboarding force onClose={() => setPlay(null)} />}
     </>

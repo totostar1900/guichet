@@ -104,7 +104,7 @@ export default async function LessonPage({ params }: Props) {
         <LessonWidget kind={l.widget} live={live} focus={l.focus} />
       </div>
       <Quiz lessonKey={l.key} q={t(l.quiz.q)} options={l.quiz.options.map((o) => t(o))} answer={l.quiz.answer} why={t(l.quiz.why)} nextHref={next ? `/info/${next.key}` : after ? `/info/${after.key}` : section ? "/info/parcours" : undefined} nextTitle={next ? t(next.title) : after ? `${t("Section suivante")} : ${t(after.title)}` : section ? t("Retour au parcours") : undefined} />
-      <GuideBar pos={{ label: pos(i + 1), index: i + 1, total: lessons.length }} prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title) } : undefined} next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title) } : undefined} here={section?.key} />
+      <GuideBar pos={{ label: pos(i + 1), index: i + 1, total: lessons.length }} prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title) } : undefined} next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title) } : undefined} chapter={section ? { key: section.key, letter: String.fromCharCode(64 + section.order), color: section.color, title: t(section.title) } : { letter: String(i + 1), color: "var(--gold-ink)", title: t("Lire une ligne en trente secondes") }} lessonKey={l.key} />
       <nav className={styles.pager}>
         {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {t(lessons[i - 1].title)}</Link> : <span />}
         {next ? <Link href={`/info/${next.key}`}>{t(next.title)} →</Link> : after ? <Link href={`/info/${after.key}`}>{t(after.title)} →</Link> : null}

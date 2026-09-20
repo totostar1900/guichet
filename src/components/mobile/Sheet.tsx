@@ -8,9 +8,11 @@ import styles from "./Sheet.module.css";
 /**
  * A sheet over the page: from the bottom on the phone (pulled down or
  * tapped beside to close), a small dialog in the middle on a desk. The page
- * keeps its scroll position underneath; that is the point of it.
+ * keeps its scroll position underneath; that is the point of it. `tall`
+ * fixes the sheet's height on the phone, so that switching tabs never moves
+ * its edge; `foot` is a row that stays under the scrolling body.
  */
-export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, tabs }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right"; tabs?: { key: string; label: string; on: boolean; pick: () => void }[] }) {
+export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, tabs, tall, foot }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right"; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; foot?: React.ReactNode }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -52,7 +54,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
   return createPortal(
     <>
       <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
-      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${tall ? styles.tall : ""} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className={styles.head}>
           <div className={styles.grab} />
           <div className={styles.titleRow}>
@@ -75,6 +77,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
           )}
         </div>
         <div className={styles.body}>{children}</div>
+        {foot && <div className={styles.foot}>{foot}</div>}
       </div>
     </>,
     document.body,

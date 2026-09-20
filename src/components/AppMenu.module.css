@@ -371,3 +371,196 @@ button.item:hover,
   color: var(--navy-text);
   text-decoration: none;
 }
+
+/* the phone's tiles carry an icon; the language and the account share one line */
+.tile > svg {
+  margin-bottom: 2px;
+}
+.line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px 4px;
+  min-height: 44px;
+}
+.lineOut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--navy-text);
+  text-decoration: none;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+.lineOut > svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the Contact tab: WhatsApp first, in navy with the number in large */
+.waCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--navy);
+  color: var(--on-navy);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-decoration: none;
+  position: relative;
+  margin-top: 4px;
+}
+.waHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #c9d2e0;
+}
+.waHead > svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.waCard strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.waCard small {
+  font-size: 0.76rem;
+  color: #c9d2e0;
+}
+.waBtn {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 800;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+.contactPair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.contactCard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  min-width: 0;
+}
+.contactCard > svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--navy-text);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  margin-bottom: 4px;
+}
+.contactCard b {
+  font-size: 0.84rem;
+}
+.contactCard strong {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy-text);
+  overflow-wrap: anywhere;
+}
+.contactCard small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.address {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 4px 4px;
+  font-size: 0.8rem;
+}
+.address > svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: var(--navy-text);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.address > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.address small {
+  color: var(--ink-3);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+.hours {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 4px 0;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.hours em {
+  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--good);
+  font-weight: 700;
+  font-size: 0.76rem;
+}
+.hours i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+}
+/* on the phone the sheet's height is fixed: the foot goes to the bottom, a short tab leaves room above it */
+@media (max-width: 760px) {
+  .menu {
+    min-height: 100%;
+  }
+  .foot {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .side small {
+    white-space: normal;
+    overflow: visible;
+  }
+}

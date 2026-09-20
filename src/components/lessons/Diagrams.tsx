@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ACTOR_LABEL, ActorGlyph, type ActorKind } from "../Illustrations";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ACTOR_LABEL, Actor, ActorGlyph, type ActorKind } from "../Illustrations";
 import styles from "./Diagrams.module.css";
 import { useT } from "@/i18n/client";
 
@@ -52,67 +54,280 @@ function Node({ kind, x, y, w, focus, scale = 0.55, dark }: { kind: ActorKind; x
   );
 }
 
-export function ActorsMap({ focus }: { focus?: string[] }) {
+/** The map itself, 900 × 440: drawn in the lesson on a desk, and in the phone's fullscreen view. */
+function MapSvg({ focus, id }: { focus?: string[]; id: string }) {
   const t = useT();
   return (
-    <div className={styles.wrap}>
-      <div className={styles.scroll}>
-      <svg viewBox="0 0 900 440" className={styles.map} role="img" aria-label={t("Carte des acteurs du marché CEMAC")}>
-        <defs>
-          <marker id="dg-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" className={styles.arrowHead} />
-          </marker>
-        </defs>
-        <rect x="0" y="0" width="900" height="96" rx="10" className={styles.band} />
-        <text x="14" y="20" className={styles.bandTitle}>
-          {t("CEUX QUI FIXENT LES RÈGLES ET SURVEILLENT")}
-        </text>
-        <Node kind="beac" x={14} y={30} w={210} focus={focus} />
-        <Node kind="cosumaf" x={236} y={30} w={210} focus={focus} />
-        <Node kind="bvmac" x={458} y={30} w={210} focus={focus} />
-        <Node kind="depositaire" x={680} y={30} w={210} focus={focus} />
+    <svg viewBox="0 0 900 440" className={styles.map} role="img" aria-label={t("Carte des acteurs du marché CEMAC")}>
+      <defs>
+        <marker id={id} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" className={styles.arrowHead} />
+        </marker>
+      </defs>
+      <rect x="0" y="0" width="900" height="96" rx="10" className={styles.band} />
+      <text x="14" y="20" className={styles.bandTitle}>
+        {t("CEUX QUI FIXENT LES RÈGLES ET SURVEILLENT")}
+      </text>
+      <Node kind="beac" x={14} y={30} w={210} focus={focus} />
+      <Node kind="cosumaf" x={236} y={30} w={210} focus={focus} />
+      <Node kind="bvmac" x={458} y={30} w={210} focus={focus} />
+      <Node kind="depositaire" x={680} y={30} w={210} focus={focus} />
 
-        <rect x="0" y="130" width="270" height="196" rx="10" className={styles.boxIssuers} />
-        <text x="14" y="150" className={styles.boxTitle}>
-          {t("CEUX QUI EMPRUNTENT")}
-        </text>
-        <Node kind="tresor" x={14} y={166} w={250} focus={focus} scale={0.45} />
-        <Node kind="entreprise" x={14} y={236} w={250} focus={focus} scale={0.45} />
+      <rect x="0" y="130" width="270" height="196" rx="10" className={styles.boxIssuers} />
+      <text x="14" y="150" className={styles.boxTitle}>
+        {t("CEUX QUI EMPRUNTENT")}
+      </text>
+      <Node kind="tresor" x={14} y={166} w={250} focus={focus} scale={0.45} />
+      <Node kind="entreprise" x={14} y={236} w={250} focus={focus} scale={0.45} />
 
-        <rect x="290" y="130" width="320" height="196" rx="10" className={styles.boxMid} />
-        <text x="304" y="150" className={styles.boxTitleGold}>
-          {t("CEUX QUI PORTENT VOS ORDRES")}
-        </text>
-        <Node kind="guichet" x={304} y={158} w={300} focus={focus} scale={0.4} />
-        <Node kind="svt" x={304} y={212} w={300} focus={focus} scale={0.4} />
-        <Node kind="gestion" x={304} y={266} w={300} focus={focus} scale={0.4} />
+      <rect x="290" y="130" width="320" height="196" rx="10" className={styles.boxMid} />
+      <text x="304" y="150" className={styles.boxTitleGold}>
+        {t("CEUX QUI PORTENT VOS ORDRES")}
+      </text>
+      <Node kind="guichet" x={304} y={158} w={300} focus={focus} scale={0.4} />
+      <Node kind="svt" x={304} y={212} w={300} focus={focus} scale={0.4} />
+      <Node kind="gestion" x={304} y={266} w={300} focus={focus} scale={0.4} />
 
-        <rect x="630" y="130" width="270" height="196" rx="10" className={styles.boxYou} />
-        <text x="644" y="150" className={styles.boxTitleLight}>
-          {t("VOUS")}
-        </text>
-        <rect x="644" y="186" width="92" height="70" rx="8" className={styles.clientCard} />
-        <Node kind="client" x={650} y={190} w={250} focus={focus} scale={0.65} dark />
+      <rect x="630" y="130" width="270" height="196" rx="10" className={styles.boxYou} />
+      <text x="644" y="150" className={styles.boxTitleLight}>
+        {t("VOUS")}
+      </text>
+      <rect x="644" y="186" width="92" height="70" rx="8" className={styles.clientCard} />
+      <Node kind="client" x={650} y={190} w={250} focus={focus} scale={0.65} dark />
 
-        <path d="M270 228 L290 228" className={styles.arrow} markerEnd="url(#dg-arr)" />
-        <text x="280" y="220" textAnchor="middle" className={styles.arrowLabel}>
-          {t("titres")}
-        </text>
-        <path d="M610 228 L630 228" className={styles.arrowGold} markerEnd="url(#dg-arr)" markerStart="url(#dg-arr)" />
-        <path d="M120 96 L120 130 M340 96 L420 130 M560 96 L520 130 M780 96 L780 130" className={styles.watch} />
-        <text x="450" y="118" textAnchor="middle" className={styles.arrowLabel}>
-          {t("agréments, règles, surveillance")}
-        </text>
+      <path d="M270 228 L290 228" className={styles.arrow} markerEnd={`url(#${id})`} />
+      <text x="280" y="220" textAnchor="middle" className={styles.arrowLabel}>
+        {t("titres")}
+      </text>
+      <path d="M610 228 L630 228" className={styles.arrowGold} markerEnd={`url(#${id})`} markerStart={`url(#${id})`} />
+      <path d="M120 96 L120 130 M340 96 L420 130 M560 96 L520 130 M780 96 L780 130" className={styles.watch} />
+      <text x="450" y="118" textAnchor="middle" className={styles.arrowLabel}>
+        {t("agréments, règles, surveillance")}
+      </text>
 
-        <rect x="0" y="346" width="900" height="92" rx="10" className={styles.band} />
-        <text x="14" y="366" className={styles.bandTitle}>
-          {t("OÙ VA L'ARGENT · OÙ SONT LES TITRES")}
-        </text>
-        <foreignObject x="14" y="374" width="872" height="60">
-          <p className={styles.bandText}>{t("Votre virement va au compte de l'appel de fonds (jamais ailleurs) → le SVT ou la bourse → l'émetteur. Les titres sont inscrits à votre nom au dépositaire ; les coupons et remboursements font le chemin inverse.")}</p>
-        </foreignObject>
-      </svg>
+      <rect x="0" y="346" width="900" height="92" rx="10" className={styles.band} />
+      <text x="14" y="366" className={styles.bandTitle}>
+        {t("OÙ VA L'ARGENT · OÙ SONT LES TITRES")}
+      </text>
+      <foreignObject x="14" y="374" width="872" height="60">
+        <p className={styles.bandText}>{t("Votre virement va au compte de l'appel de fonds (jamais ailleurs) → le SVT ou la bourse → l'émetteur. Les titres sont inscrits à votre nom au dépositaire ; les coupons et remboursements font le chemin inverse.")}</p>
+      </foreignObject>
+    </svg>
+  );
+}
+
+/** One actor in the phone's stacked map: the drawing, the name (its glossary word when it has one), a line under it. */
+function Card({ kind, focus, size = 56, sub }: { kind: ActorKind; focus?: string[]; size?: number; sub?: boolean }) {
+  const t = useT();
+  const dim = Boolean(focus && focus.length && !focus.includes(kind));
+  const g = GLOSS[kind];
+  const name = t(ACTOR_LABEL[kind]);
+  return (
+    <div className={`${styles.card} ${dim ? styles.cardDim : ""}`}>
+      <Actor kind={kind} size={size} />
+      {g ? (
+        <Link href={`/info#terme-${g}`} className={styles.cardName}>
+          {name}
+        </Link>
+      ) : (
+        <b className={styles.cardName}>{name}</b>
+      )}
+      {sub && <small>{t(SUB[kind])}</small>}
+    </div>
+  );
+}
+
+/**
+ * The map in fullscreen on the phone: pinch to zoom, drag to move, a
+ * double tap between the fit and twice the fit. Portrait shows a line
+ * inviting to turn the phone: landscape is the map's own shape.
+ */
+function MapZoom({ focus, onClose }: { focus?: string[]; onClose: () => void }) {
+  const t = useT();
+  const view = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const st = useRef({ s: 1, fit: 1, x: 0, y: 0, pointers: new Map<number, { x: number; y: number }>(), dist: 0, lastTap: 0 });
+  const [scale, setScale] = useState(1);
+
+  const apply = useCallback(() => {
+    const k = st.current;
+    if (inner.current) inner.current.style.transform = `translate(${k.x}px, ${k.y}px) scale(${k.s})`;
+    setScale(Math.round((k.s / k.fit) * 10) / 10);
+  }, []);
+  const fit = useCallback(() => {
+    const el = view.current;
+    if (!el) return;
+    const k = st.current;
+    k.fit = Math.min((el.clientWidth - 16) / 900, (el.clientHeight - 16) / 440);
+    k.s = k.fit;
+    k.x = (el.clientWidth - 900 * k.s) / 2;
+    k.y = (el.clientHeight - 440 * k.s) / 2;
+    apply();
+  }, [apply]);
+
+  useEffect(() => {
+    fit();
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("resize", fit);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("resize", fit);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [fit, onClose]);
+
+  const zoomAt = (factor: number, cx: number, cy: number) => {
+    const k = st.current;
+    const s = Math.min(k.fit * 4, Math.max(k.fit, k.s * factor));
+    const f = s / k.s;
+    k.x = cx - (cx - k.x) * f;
+    k.y = cy - (cy - k.y) * f;
+    k.s = s;
+  };
+  const onDown = (e: React.PointerEvent) => {
+    const k = st.current;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    k.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (k.pointers.size === 2) {
+      const [a, b] = [...k.pointers.values()];
+      k.dist = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const k = st.current;
+    const p = k.pointers.get(e.pointerId);
+    if (!p) return;
+    const rect = view.current?.getBoundingClientRect();
+    const ox = rect?.left ?? 0;
+    const oy = rect?.top ?? 0;
+    if (k.pointers.size === 1) {
+      k.x += e.clientX - p.x;
+      k.y += e.clientY - p.y;
+    } else if (k.pointers.size === 2) {
+      const other = [...k.pointers.entries()].find(([id]) => id !== e.pointerId)?.[1];
+      if (other) {
+        const dist = Math.hypot(e.clientX - other.x, e.clientY - other.y);
+        const mx = (e.clientX + other.x) / 2 - ox;
+        const my = (e.clientY + other.y) / 2 - oy;
+        if (k.dist > 0) zoomAt(dist / k.dist, mx, my);
+        k.x += (e.clientX - p.x) / 2;
+        k.y += (e.clientY - p.y) / 2;
+        k.dist = dist;
+      }
+    }
+    k.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    apply();
+  };
+  const onUp = (e: React.PointerEvent) => {
+    const k = st.current;
+    const p = k.pointers.get(e.pointerId);
+    k.pointers.delete(e.pointerId);
+    k.dist = 0;
+    if (!p || k.pointers.size > 0) return;
+    // A tap (no move) twice within 300 ms: between the fit and twice the fit, around the finger.
+    const moved = Math.hypot(e.clientX - p.x, e.clientY - p.y) > 6;
+    const now = e.timeStamp;
+    if (!moved && now - k.lastTap < 300) {
+      const rect = view.current?.getBoundingClientRect();
+      const cx = e.clientX - (rect?.left ?? 0);
+      const cy = e.clientY - (rect?.top ?? 0);
+      if (k.s > k.fit * 1.05) fit();
+      else {
+        zoomAt(2, cx, cy);
+        apply();
+      }
+      k.lastTap = 0;
+    } else k.lastTap = moved ? 0 : now;
+  };
+
+  return createPortal(
+    <div className={styles.zoom} role="dialog" aria-modal="true" aria-label={t("La carte des acteurs")}>
+      <div className={styles.zoomHead}>
+        <b>{t("La carte des acteurs")}</b>
+        <small>{t("pincer pour zoomer · glisser pour se déplacer")}</small>
+        <span className={styles.zoomScale} aria-live="polite">
+          ×{scale.toLocaleString("fr-FR")}
+        </span>
+        <button type="button" className={styles.zoomClose} onClick={onClose} aria-label={t("Fermer")}>
+          ×
+        </button>
       </div>
+      <div ref={view} className={styles.zoomView} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+        <div ref={inner} className={styles.zoomInner}>
+          <MapSvg focus={focus} id="dg-arr-zoom" />
+        </div>
+      </div>
+      <p className={styles.turn}>{t("Tournez le téléphone : la carte s'étale sur toute la largeur.")}</p>
+    </div>,
+    document.body,
+  );
+}
+
+export function ActorsMap({ focus }: { focus?: string[] }) {
+  const t = useT();
+  const [zoom, setZoom] = useState(false);
+  const dim = (k: ActorKind) => Boolean(focus && focus.length && !focus.includes(k));
+  return (
+    <div className={styles.wrap}>
+      {/* the desk: the map as one drawing */}
+      <div className={styles.scroll}>
+        <MapSvg focus={focus} id="dg-arr" />
+      </div>
+
+      {/* the phone: three bands read from top to bottom, and « Agrandir » */}
+      <div className={styles.stack}>
+        <div className={styles.stackHead}>
+          <b>{t("La carte des acteurs")}</b>
+          <button type="button" className={styles.enlarge} onClick={() => setZoom(true)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+            </svg>
+            {t("Agrandir")}
+          </button>
+        </div>
+        <section className={styles.bandBox}>
+          <h4>{t("Ceux qui fixent les règles et surveillent")}</h4>
+          <div className={styles.four}>
+            <Card kind="beac" focus={focus} />
+            <Card kind="cosumaf" focus={focus} />
+            <Card kind="bvmac" focus={focus} />
+            <Card kind="depositaire" focus={focus} />
+          </div>
+        </section>
+        <p className={styles.between}>↓ {t("agréments, règles, surveillance")} ↓</p>
+        <div className={styles.pair}>
+          <section className={styles.boxA}>
+            <h4>{t("Ceux qui empruntent")}</h4>
+            <Card kind="tresor" focus={focus} size={44} sub />
+            <Card kind="entreprise" focus={focus} size={44} sub />
+          </section>
+          <section className={styles.boxB}>
+            <h4>{t("Ceux qui portent vos ordres")}</h4>
+            <Card kind="guichet" focus={focus} size={44} sub />
+            <Card kind="svt" focus={focus} size={44} sub />
+            <Card kind="gestion" focus={focus} size={44} sub />
+          </section>
+        </div>
+        <p className={styles.between}>↓ {t("titres")} · {t("argent")} ↓</p>
+        <section className={`${styles.youBox} ${dim("client") ? styles.cardDim : ""}`}>
+          <span className={styles.youPlate}>
+            <Actor kind="client" size={64} />
+          </span>
+          <span>
+            <small className={styles.youEyebrow}>{t("Vous")}</small>
+            <b>{t("Un compte-titres à votre nom")}</b>
+            <small>{t("inscrit chez le dépositaire ; vos titres et votre argent y sont, à votre nom")}</small>
+          </span>
+        </section>
+        <p className={styles.bandTextStack}>
+          <b>{t("Où va l'argent, où sont les titres")}</b> : {t("Votre virement va au compte de l'appel de fonds (jamais ailleurs) → le SVT ou la bourse → l'émetteur. Les titres sont inscrits à votre nom au dépositaire ; les coupons et remboursements font le chemin inverse.")}
+        </p>
+      </div>
+      {zoom && <MapZoom focus={focus} onClose={() => setZoom(false)} />}
+
       <p className={styles.how}>
         <b>{t("Comment lire")}</b> : {t("de gauche à droite, le chemin d'un titre ; de haut en bas, qui surveille qui. Un acteur estompé n'est pas concerné par cette leçon ; un acteur souligné ouvre son mot du glossaire.")}
       </p>
