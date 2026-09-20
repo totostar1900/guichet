@@ -46,18 +46,18 @@ const PATTERNS: [string, RegExp][] = [
   ["coupon_couru", /\bcoupon couru\b|\baccrued coupon\b/i],
 ];
 
-/** A tappable word. */
-export function TermWord({ k, children }: { k: string; children: ReactNode }) {
+/** A tappable word: a gold line in running text, a thin dotted one () inside a drawing. */
+export function TermWord({ k, children, subtle }: { k: string; children: ReactNode; subtle?: boolean }) {
   const t = useT();
   return (
-    <button type="button" className={styles.word} onClick={() => openTerm(k)} aria-label={`${children} : ${t("un mot du Guichet")}`}>
+    <button type="button" className={`${styles.word} ${subtle ? styles.subtle : ""}`} onClick={() => openTerm(k)} aria-label={`${children} : ${t("un mot du Guichet")}`}>
       {children}
     </button>
   );
 }
 
 /** The sentence with its known words made tappable; `seen` keeps one tap per word across several sentences. */
-export function linkTerms(text: string, seen: Set<string> = new Set()): ReactNode[] {
+export function linkTerms(text: string, seen: Set<string> = new Set(), subtle = false): ReactNode[] {
   const glossary = getRegistry().glossary;
   const out: ReactNode[] = [];
   let rest = text;
@@ -72,7 +72,7 @@ export function linkTerms(text: string, seen: Set<string> = new Set()): ReactNod
     if (!best) break;
     if (best.i > 0) out.push(rest.slice(0, best.i));
     out.push(
-      <TermWord key={`${best.k}-${n++}`} k={best.k}>
+      <TermWord key={`${best.k}-${n++}`} k={best.k} subtle={subtle}>
         {best.m}
       </TermWord>,
     );
@@ -98,8 +98,8 @@ export function LinkedParagraphs({ paragraphs, className }: { paragraphs: string
 }
 
 /** One line with its words linked (a caption, a subtitle). */
-export function Linked({ text }: { text: string }) {
-  return <>{linkTerms(text)}</>;
+export function Linked({ text, subtle }: { text: string; subtle?: boolean }) {
+  return <>{linkTerms(text, new Set(), subtle)}</>;
 }
 
 const title = (t: T, k: string) => {

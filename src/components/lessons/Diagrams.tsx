@@ -123,11 +123,13 @@ function Card({ kind, focus, size = 56, sub }: { kind: ActorKind; focus?: string
     <div className={`${styles.card} ${dim ? styles.cardDim : ""}`}>
       <Actor kind={kind} size={size} />
       <b className={styles.cardName}>
-        <TermWord k={GLOSS[kind]}>{t(ACTOR_LABEL[kind])}</TermWord>
+        <TermWord k={GLOSS[kind]} subtle>
+          {t(ACTOR_LABEL[kind])}
+        </TermWord>
       </b>
       {sub && (
         <small>
-          <Linked text={t(SUB[kind])} />
+          <Linked text={t(SUB[kind])} subtle />
         </small>
       )}
     </div>
