@@ -11,6 +11,7 @@ import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
+import { usePhone } from "./chart-utils";
 import { LineMenu } from "./mobile/LineMenu";
 import { Sheet } from "./mobile/Sheet";
 import { FilterFab } from "./FilterFab";
@@ -348,15 +349,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const q = sp.get("q") ?? "";
   const sort = (sp.get("tri") as SortKey) || "deadline";
   const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
-  const [autoView, setAutoView] = useState<View>("table");
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 760px)");
-    const apply = () => setAutoView(mq.matches ? "cards" : "table");
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
-  const view = (sp.get("vue") as View) || autoView;
+  // The phone reads cards, the desk a table: decided from the media query at hydration, not after a first paint (no compact flash).
+  const phone = usePhone();
+  const view = (sp.get("vue") as View) || (phone ? "cards" : "table");
   const [sheet, setSheet] = useState(false);
   const sep = useDistinction();
   useEffect(() => {
