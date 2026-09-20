@@ -116,15 +116,15 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
       <div className={styles.result}>
         <div className={styles.hero}>
           <svg viewBox="0 0 120 120" width="110" height="110" aria-hidden="true">
-            <path d="M10 92 A50 50 0 0 1 110 92" fill="none" stroke="#2b436b" strokeWidth="12" strokeLinecap="round" />
-            <path d="M10 92 A50 50 0 0 1 60 42" fill="none" stroke={p.kind === "prudent" ? "#d9a94a" : "#2b436b"} strokeWidth="12" strokeLinecap="round" />
+            <path d="M10 92 A50 50 0 0 1 110 92" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="12" strokeLinecap="round" />
+            <path d="M10 92 A50 50 0 0 1 60 42" fill="none" stroke={p.kind === "prudent" ? "#d9a94a" : "rgba(255,255,255,0.18)"} strokeWidth="12" strokeLinecap="round" />
             <path d="M10 92 A50 50 0 0 1 96 57" fill="none" stroke={p.kind === "equilibre" ? "#d9a94a" : "transparent"} strokeWidth="12" strokeLinecap="round" />
             <path d="M10 92 A50 50 0 0 1 110 92" fill="none" stroke={p.kind === "dynamique" ? "#d9a94a" : "transparent"} strokeWidth="12" strokeLinecap="round" />
             <circle cx={nx} cy={ny} r="6" fill="#fff" />
             <text x="60" y="88" textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" fontFamily="inherit">
               {PROFILE_LABEL[p.kind][lang]}
             </text>
-            <text x="60" y="104" textAnchor="middle" fontSize="8" fill="#c9d2e0" fontFamily="inherit">
+            <text x="60" y="104" textAnchor="middle" fontSize="8" fill="var(--on-navy-2)" fontFamily="inherit">
               {t("prudent · équilibré · dynamique")}
             </text>
           </svg>

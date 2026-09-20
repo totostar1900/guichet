@@ -66,6 +66,9 @@
 /* ---------- the dark side of each palette ---------- */
 @media (prefers-color-scheme: dark) {
   :root[data-palette="ivoire"]:not([data-theme="light"]) {
+    --zebra: #22302a;
+    --neutral-soft: #262b25;
+    --back-face: #3a3018;
     --paper: #131513;
     --surface: #1b1e1a;
     --surface-2: #242823;
@@ -74,6 +77,14 @@
     --gold-soft: #332c18;
   }
   :root[data-palette="ardoise"]:not([data-theme="light"]) {
+    --neutral-soft: #253040;
+    --select: #e0b65a;
+    --on-select: #24303f;
+    --fill: #e0b65a;
+    --fill-ink: #24303f;
+    --fam-OTA: #9db6e0;
+    --fam-OTA-soft: #1c2c48;
+    --gold-ink: #e0b65a;
     --paper: #12161c;
     --surface: #1b2129;
     --surface-2: #232b35;
@@ -85,6 +96,14 @@
     --zebra: #20272f;
   }
   :root[data-palette="encre"]:not([data-theme="light"]) {
+    --neutral-soft: #24262b;
+    --select: #e0b65a;
+    --on-select: #111827;
+    --fill: #e0b65a;
+    --fill-ink: #111827;
+    --fam-OTA: #b9c4d3;
+    --fam-OTA-soft: #24262b;
+    --gold-ink: #e0b65a;
     --paper: #0f1012;
     --surface: #17181b;
     --surface-2: #202125;
@@ -97,6 +116,9 @@
   }
 }
 :root[data-palette="ivoire"][data-theme="dark"] {
+  --zebra: #22302a;
+  --neutral-soft: #262b25;
+  --back-face: #3a3018;
   --paper: #131513;
   --surface: #1b1e1a;
   --surface-2: #242823;
@@ -105,6 +127,14 @@
   --gold-soft: #332c18;
 }
 :root[data-palette="ardoise"][data-theme="dark"] {
+  --neutral-soft: #253040;
+  --select: #e0b65a;
+  --on-select: #24303f;
+  --fill: #e0b65a;
+  --fill-ink: #24303f;
+  --fam-OTA: #9db6e0;
+  --fam-OTA-soft: #1c2c48;
+  --gold-ink: #e0b65a;
   --paper: #12161c;
   --surface: #1b2129;
   --surface-2: #232b35;
@@ -116,6 +146,14 @@
   --zebra: #20272f;
 }
 :root[data-palette="encre"][data-theme="dark"] {
+  --neutral-soft: #24262b;
+  --select: #e0b65a;
+  --on-select: #111827;
+  --fill: #e0b65a;
+  --fill-ink: #111827;
+  --fam-OTA: #b9c4d3;
+  --fam-OTA-soft: #24262b;
+  --gold-ink: #e0b65a;
   --paper: #0f1012;
   --surface: #17181b;
   --surface-2: #202125;

@@ -28,7 +28,7 @@
   fill: var(--gold-ink);
 }
 .boxTitleLight {
-  fill: #c9d3e6;
+  fill: var(--on-navy-2);
 }
 .boxIssuers {
   fill: var(--surface);
@@ -59,7 +59,7 @@
   fill: #fff;
 }
 .sub.onDark {
-  fill: #c9d3e6;
+  fill: var(--on-navy-2);
 }
 .node {
   cursor: pointer;
@@ -447,7 +447,7 @@
 }
 .youBox small {
   font-size: 0.72rem;
-  color: #c9d3e6;
+  color: var(--on-navy-2);
   line-height: 1.35;
 }
 .youEyebrow {

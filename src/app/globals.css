@@ -37,7 +37,7 @@
   --zebra: #e6eaf1;
   --neutral-soft: #e8ebf0;
   --chart-out: #0b2545;
-  --chart-in: #c9962b;
+  --chart-in: #b07f15; /* the gold of a chart line : 3.5:1 on white, still the brand's gold */
   --radius: 6px;
   /* One hue per instrument family : badge text / soft background. Same in every view. */
   --fam-OTA: #0b2545;

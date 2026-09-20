@@ -183,7 +183,7 @@
 }
 .hero small {
   font-size: 0.76rem;
-  color: #c9d2e0;
+  color: var(--on-navy-2);
 }
 .hero b {
   font-size: 1.15rem;

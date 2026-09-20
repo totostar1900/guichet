@@ -177,7 +177,7 @@
   cursor: pointer;
 }
 .navy .tabs button {
-  color: #c9d2e0;
+  color: var(--on-navy-2);
 }
 .tabs .tabOn {
   color: var(--ink);
