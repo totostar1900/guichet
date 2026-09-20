@@ -8,6 +8,7 @@ import type { AideRow } from "@/lib/guide-index-shared";
 import { TOP_QUESTIONS } from "@/lib/guide-index-shared";
 import { helpFeedback } from "./actions";
 import styles from "./aide.module.css";
+import { FoldAll, FoldSection, openFold } from "@/components/Fold";
 
 /**
  * The help as a page that answers: the question first (a search over every
@@ -60,12 +61,16 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
       const m = /^#q-(.+)$/.exec(window.location.hash);
       if (!m) return;
       setOpenSlug(decodeURIComponent(m[1]));
+      // The answer may sit in a folded chapter: open that chapter first.
+      const slug = decodeURIComponent(m[1]);
+      const ch = chapters.find((c) => c.rows.some((r) => r.slug === slug));
+      if (ch) openFold("aide", ch.id);
       window.setTimeout(() => document.getElementById(`q-${decodeURIComponent(m[1])}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
     };
     go();
     window.addEventListener("hashchange", go);
     return () => window.removeEventListener("hashchange", go);
-  }, []);
+  }, [chapters]);
 
   const vote = (r: AideRow, useful: boolean) => {
     setVoted((v) => ({ ...v, [r.slug]: useful }));
@@ -157,6 +162,9 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
         </section>
       ) : (
         <>
+          <div className={styles.foldBar}>
+            <FoldAll group="aide" ids={chapters.map((c) => c.id)} />
+          </div>
           <div className={styles.tiles} data-coach="aide-nav">
             {chapters.map((c) => (
               <a key={c.id} href={`#${c.id}`} className={styles.tile}>
@@ -169,14 +177,12 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
             ))}
           </div>
           {chapters.map((c) => (
-            <section key={c.id} id={c.id} className={styles.chapter} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
-              <div className={styles.chapterHead}>
-                <h2>{c.title}</h2>
-                {c.rows.length > 0 && <small>{t("{n} questions", { n: c.rows.length })}</small>}
-              </div>
-              <div className={styles.intro}>{c.intro}</div>
-              {c.rows.map(answer)}
-            </section>
+            <div key={c.id} className={styles.chapter} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
+              <FoldSection group="aide" id={c.id} title={c.title} hint={c.rows.length > 0 ? `· ${t("{n} questions", { n: c.rows.length })}` : undefined}>
+                <div className={styles.intro}>{c.intro}</div>
+                {c.rows.map(answer)}
+              </FoldSection>
+            </div>
           ))}
         </>
       )}

@@ -61,13 +61,14 @@ const Art2 = () => (
         i
       </text>
     </g>
+    {/* the bubble a touch on « i » opens: kept inside the drawing, its text short enough for the box */}
     <g className={styles.rise3}>
-      <rect x="150" y="118" width="120" height="44" rx="8" fill="#fff4d6" />
-      <text x="160" y="136" fontSize="9" fontWeight="700" fill="#8a6a1d">
+      <rect x="118" y="122" width="164" height="44" rx="8" fill="#fff4d6" />
+      <text x="128" y="140" fontSize="9" fontWeight="700" fill="#8a6a1d">
         Rendement actuariel
       </text>
-      <text x="160" y="150" fontSize="8" fill="#4a5266">
-        ce que rapporte la ligne chaque année…
+      <text x="128" y="154" fontSize="8" fill="#4a5266">
+        ce que rapporte la ligne, par an
       </text>
     </g>
   </svg>
@@ -132,7 +133,8 @@ const Art5 = () => (
         <path d={`M232 ${Number(y) + 12}l4 4 8-8`} fill="none" stroke="#2f7d4f" strokeWidth="2.5" strokeDasharray="40" className={styles.tick} />
       </g>
     ))}
-    <g className={styles.pop}>
+    {/* the one « Commencer » of the last screen: drawn in the picture, and a real button (the scene listens for data-start) */}
+    <g className={`${styles.pop} ${styles.start}`} data-start role="button" tabIndex={0}>
       <rect x="40" y="130" width="220" height="30" rx="15" fill="#d4a63c" />
       <text x="150" y="150" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0d2b5b">
         Commencer
@@ -253,12 +255,9 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
             <span className={`${styles.kick} ${styles.rise}`}>{t(s.kick)}</span>
             <h2 className={styles.rise2}>{t(s.title)}</h2>
             <p className={styles.rise3}>{t(s.text)}</p>
-            <div className={styles.art}>{s.art}</div>
-            {last && (
-              <button type="button" className={styles.cta} onClick={close}>
-                {t("Commencer")}
-              </button>
-            )}
+            <div className={styles.art} onClick={(e) => (e.target as Element).closest("[data-start]") && close()} onKeyDown={(e) => e.key === "Enter" && (e.target as Element).closest("[data-start]") && close()}>
+              {s.art}
+            </div>
           </div>
           <div className={styles.steps}>
             <h3>{t("En quatre gestes")}</h3>

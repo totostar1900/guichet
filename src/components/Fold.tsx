@@ -97,3 +97,8 @@ export function FoldAll({ group, ids }: { group: string; ids: string[] }) {
     </button>
   );
 }
+
+/** Opens one section from outside (a deep link to something inside it). */
+export function openFold(group: string, id: string) {
+  write(key(group, id), "open");
+}

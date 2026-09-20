@@ -107,9 +107,11 @@
   color: var(--ink-3);
 }
 .chapter {
+  scroll-margin-top: 110px;
+}
+.chapter section > div:last-child:not([hidden]) {
   display: grid;
   gap: 8px;
-  scroll-margin-top: 110px;
 }
 .chapterHead {
   display: flex;
@@ -269,4 +271,12 @@
     margin: 0 -12px;
     border-radius: 0;
   }
+}
+.foldBar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.chapter :global(h2) {
+  font-size: 1.05rem;
 }
