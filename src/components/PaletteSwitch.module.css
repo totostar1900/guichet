@@ -1,0 +1,64 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 4px 10px;
+}
+.row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.swatch {
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ink-3);
+  border-radius: 10px;
+}
+.swatch i {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  display: block;
+}
+.swatch.on i {
+  border-color: var(--gold);
+}
+.swatch small {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.swatch.on small {
+  color: var(--ink);
+}
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px;
+}
+.seg button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 30px;
+}
+.seg .segOn {
+  background: var(--select);
+  color: var(--on-select);
+}

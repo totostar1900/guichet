@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AccountMenu } from "./AccountMenu";
 import styles from "./MobileShell.module.css";
 
 /**
@@ -76,7 +77,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, desk, pendingCount = 0, menu }: { signedIn: boolean; name?: string; desk: boolean; pendingCount?: number; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, desk, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; desk: boolean; pendingCount?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -150,9 +151,7 @@ export function MobileShell({ signedIn, name, desk, pendingCount = 0, menu }: { 
             </Link>
           )}
           {signedIn ? (
-            <Link href={desk ? "/desk" : "/moi"} className={styles.avatar} aria-label={t("Mon compte")} title={name}>
-              {(name ?? "?").trim().charAt(0).toUpperCase()}
-            </Link>
+            <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} />
           ) : (
             !path.startsWith("/connexion") && (
               <Link href={`/connexion?next=${encodeURIComponent(path)}`} className={styles.signin}>

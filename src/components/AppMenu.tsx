@@ -5,9 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { logout } from "@/app/connexion/actions";
 import { GUIDE } from "@/data/desk-guide";
-import { useT } from "@/i18n/client";
+import { useLang, useT } from "@/i18n/client";
 import { COMPANY } from "@/lib/config";
 import { LangSwitch } from "./LangSwitch";
+import { PaletteSwitch } from "./PaletteSwitch";
 import { Sheet } from "./mobile/Sheet";
 import { Presentation } from "./mobile/Presentation";
 import { Onboarding } from "./mobile/Onboarding";
@@ -89,6 +90,7 @@ const D = {
 
 export function AppMenu({ signedIn, desk, name, security, profile, build }: AppMenuProps) {
   const t = useT();
+  const lang = useLang();
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -340,6 +342,8 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       </Link>
                     )}
                   </div>
+                  <div className={styles.group}>{t("Couleurs")}</div>
+                  <PaletteSwitch lang={lang} />
                   <div className={styles.line}>
                     <LangSwitch compact />
                     {signedIn ? (
@@ -364,6 +368,8 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
 
           {desk && (tab === "reglages" || !deskTabs) && (
             <>
+              <div className={styles.group}>{t("Couleurs")}</div>
+              <PaletteSwitch lang={lang} />
               <div className={styles.group}>{t(signedIn ? "Mon compte" : "Réglages")}</div>
               <div className={styles.item}>
                 <Icon d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />

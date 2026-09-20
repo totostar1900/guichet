@@ -1,0 +1,128 @@
+/*
+ * The palettes: the same tokens, redefined. Four, all close to the brand
+ * (navy and gold) or neutral: « Navy et or » is the base in globals.css;
+ * « Ivoire » keeps navy and gold on warm paper; « Ardoise » is a slate
+ * neutral; « Encre » is near-black with warm greys, the gold alone as accent.
+ * What never changes: the selection gold, the states (good · warn · crit),
+ * the product families, the sections of the parcours, the drawings.
+ * `data-palette` on <html> is set before paint by the layout's inline script,
+ * from the device's choice (guichet:palette); `data-theme` the same way.
+ */
+
+/* ---------- Ivoire : navy et or sur papier chaud ---------- */
+:root[data-palette="ivoire"] {
+  --paper: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-2: #f2ecdf;
+  --line: #e7dfcf;
+  --line-2: #d6ccb6;
+  --gold-soft: #f6ead0;
+  --zebra: #efe8d9;
+  --neutral-soft: #ede6d8;
+  --back-face: #f1e4c4;
+}
+
+/* ---------- Ardoise : un neutre bleuté, l'or reste ---------- */
+:root[data-palette="ardoise"] {
+  --navy: #24303f;
+  --navy-2: #34435a;
+  --hero: #24303f;
+  --fill: #24303f;
+  --select: #24303f;
+  --navy-text: #24303f;
+  --box-you: #24303f;
+  --chart-out: #24303f;
+  --paper: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eceef1;
+  --line: #e2e5ea;
+  --line-2: #cbd0d8;
+  --zebra: #e8ebef;
+  --fam-OTA: #24303f;
+  --fam-OTA-soft: #e6e9ee;
+}
+
+/* ---------- Encre : noir d'encre, gris chauds, l'or seul ---------- */
+:root[data-palette="encre"] {
+  --navy: #111827;
+  --navy-2: #1f2937;
+  --hero: #111827;
+  --fill: #111827;
+  --select: #111827;
+  --navy-text: #111827;
+  --box-you: #111827;
+  --chart-out: #111827;
+  --paper: #f7f7f5;
+  --surface: #ffffff;
+  --surface-2: #efefec;
+  --line: #e5e5e0;
+  --line-2: #cfcfc8;
+  --zebra: #ebebe7;
+  --neutral-soft: #e9e9e4;
+  --fam-OTA: #111827;
+  --fam-OTA-soft: #e7e7e3;
+}
+
+/* ---------- the dark side of each palette ---------- */
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="ivoire"]:not([data-theme="light"]) {
+    --paper: #131513;
+    --surface: #1b1e1a;
+    --surface-2: #242823;
+    --line: #2e332d;
+    --line-2: #40473e;
+    --gold-soft: #332c18;
+  }
+  :root[data-palette="ardoise"]:not([data-theme="light"]) {
+    --paper: #12161c;
+    --surface: #1b2129;
+    --surface-2: #232b35;
+    --line: #2d3641;
+    --line-2: #3d4856;
+    --navy-text: #b9c4d3;
+    --chart-out: #b9c4d3;
+    --box-you: #2a3646;
+    --zebra: #20272f;
+  }
+  :root[data-palette="encre"]:not([data-theme="light"]) {
+    --paper: #0f1012;
+    --surface: #17181b;
+    --surface-2: #202125;
+    --line: #2a2c31;
+    --line-2: #3a3d43;
+    --navy-text: #d1d5db;
+    --chart-out: #d1d5db;
+    --box-you: #24262b;
+    --zebra: #1d1e22;
+  }
+}
+:root[data-palette="ivoire"][data-theme="dark"] {
+  --paper: #131513;
+  --surface: #1b1e1a;
+  --surface-2: #242823;
+  --line: #2e332d;
+  --line-2: #40473e;
+  --gold-soft: #332c18;
+}
+:root[data-palette="ardoise"][data-theme="dark"] {
+  --paper: #12161c;
+  --surface: #1b2129;
+  --surface-2: #232b35;
+  --line: #2d3641;
+  --line-2: #3d4856;
+  --navy-text: #b9c4d3;
+  --chart-out: #b9c4d3;
+  --box-you: #2a3646;
+  --zebra: #20272f;
+}
+:root[data-palette="encre"][data-theme="dark"] {
+  --paper: #0f1012;
+  --surface: #17181b;
+  --surface-2: #202125;
+  --line: #2a2c31;
+  --line-2: #3a3d43;
+  --navy-text: #d1d5db;
+  --chart-out: #d1d5db;
+  --box-you: #24262b;
+  --zebra: #1d1e22;
+}

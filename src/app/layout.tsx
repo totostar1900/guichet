@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Manrope } from "next/font/google";
 import "./globals.css";
+import "./palettes.css";
 import styles from "./layout.module.css";
 import { COMPANY, DISCLAIMER, PRODUCT } from "@/lib/config";
 import { NavTabs } from "@/components/NavTabs";
@@ -22,6 +23,7 @@ import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
+import { PALETTE_BOOT } from "@/components/PaletteSwitch";
 import { LEGAL_VERSION } from "@/data/legal";
 import { Suspense } from "react";
 
@@ -73,7 +75,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} className={ui.variable}>
+    <html lang={lang} className={ui.variable} suppressHydrationWarning>
+      <head>
+        {/* the device's palette and theme, applied before the first paint */}
+        <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT }} />
+      </head>
       <body>
         <LangProvider lang={lang}>
         <AuthHashRedirect />
@@ -102,7 +108,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} desk={desk} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={session?.email} desk={desk} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
