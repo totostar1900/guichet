@@ -725,3 +725,10 @@
 .cards[data-sep="shadow"] {
   gap: 14px;
 }
+
+/* Served HTML shows the table (the server cannot know the screen); on a phone it hides until hydration picks the cards, unless the reader asked for the table. */
+@media (max-width: 760px) {
+  .tableWrap:not([data-chosen]) {
+    visibility: hidden;
+  }
+}

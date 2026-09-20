@@ -177,11 +177,11 @@ const StatusPill = ({ s }: { s: OfferSummary }) => {
   return <span className={`pill ${s.statusClass}`}>{s.countdown ? `${t("Clôture")} ${s.countdown}` : t(s.status)}</span>;
 };
 
-function Table({ rows, sort, dir, onSort, grouped, featured }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean }) {
+function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean }) {
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
   const t = useT();
   return (
-    <div className={styles.tableWrap}>
+    <div className={styles.tableWrap} data-chosen={chosen ? "1" : undefined}>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -487,7 +487,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   useListScroll(listUrl);
   const render = (list: Row[], featured: boolean) =>
     view === "table" ? (
-      <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} />
+      <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
     ) : view === "list" ? (
       <List rows={list} grouped={grouped && !featured} featured={featured} />
     ) : (
