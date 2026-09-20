@@ -48,8 +48,8 @@
 }
 .more:hover,
 .more:focus-visible {
-  color: var(--navy);
-  border-color: var(--navy);
+  color: var(--navy-text);
+  border-color: var(--navy-text);
 }
 .row {
   display: grid;
@@ -80,9 +80,9 @@
   cursor: pointer;
 }
 .chipOn {
-  background: var(--navy);
-  color: var(--on-navy);
-  border-color: var(--navy);
+  background: var(--select);
+  color: var(--on-select);
+  border-color: var(--select);
 }
 .hint {
   font-size: 0.76rem;

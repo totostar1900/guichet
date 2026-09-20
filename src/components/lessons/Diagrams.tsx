@@ -24,7 +24,7 @@ const SUB: Record<ActorKind, string> = {
   guichet: "société de bourse : votre guichet",
   svt: "dépose à l'adjudication",
   gestion: "gère le fonds, fixe la VL",
-  client: "un compte-titres à votre nom",
+  client: "compte-titres à votre nom",
 };
 
 function Node({ kind, x, y, w, focus, scale = 0.55, dark }: { kind: ActorKind; x: number; y: number; w: number; focus?: string[]; scale?: number; dark?: boolean }) {

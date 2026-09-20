@@ -159,7 +159,7 @@
   background: var(--surface);
 }
 .lesson:hover {
-  border-color: var(--navy);
+  border-color: var(--navy-text);
 }
 .lessonDone {
   background: var(--paper);

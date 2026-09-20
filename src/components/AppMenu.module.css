@@ -368,6 +368,6 @@ button.item:hover,
   padding: 6px 4px 2px;
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--navy-text);
   text-decoration: none;
 }

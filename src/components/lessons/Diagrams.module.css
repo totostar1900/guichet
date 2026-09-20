@@ -41,7 +41,7 @@
   stroke-width: 1.5;
 }
 .boxYou {
-  fill: var(--chart-out);
+  fill: var(--box-you);
 }
 .clientCard {
   fill: var(--surface);

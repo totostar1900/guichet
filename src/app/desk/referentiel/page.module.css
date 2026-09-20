@@ -36,7 +36,7 @@
   background: var(--surface);
 }
 .tabs a[aria-current="page"] {
-  color: var(--navy);
+  color: var(--navy-text);
   border-color: var(--gold);
   background: var(--gold-soft, #fbf1da);
   font-weight: 600;
@@ -84,7 +84,7 @@
 }
 .tagEdit {
   background: var(--gold-soft, #fbf1da);
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .tagNew {
   background: #dff1e6;

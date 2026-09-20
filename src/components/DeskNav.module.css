@@ -41,8 +41,8 @@
   color: var(--ink);
 }
 .tabs a[aria-current="page"] {
-  background: var(--navy);
-  color: var(--on-navy);
+  background: var(--select);
+  color: var(--on-select);
 }
 .badge {
   display: inline-grid;

@@ -129,7 +129,7 @@
   background: var(--surface-2);
 }
 .ddItem input {
-  accent-color: var(--navy);
+  accent-color: var(--select);
   margin: 0;
 }
 .ddClear {
@@ -425,7 +425,7 @@
   cursor: pointer;
 }
 .groupToggle input {
-  accent-color: var(--navy);
+  accent-color: var(--select);
 }
 .groupHead,
 .groupRow td {
@@ -541,9 +541,9 @@
   font-family: inherit;
 }
 .chipOn {
-  background: var(--navy);
-  color: var(--on-navy);
-  border-color: var(--navy);
+  background: var(--select);
+  color: var(--on-select);
+  border-color: var(--select);
 }
 @media (max-width: 760px) {
   .filters {

@@ -61,7 +61,7 @@
 .opt input {
   width: 20px;
   height: 20px;
-  accent-color: var(--navy);
+  accent-color: var(--select);
   flex: none;
 }
 .hint {

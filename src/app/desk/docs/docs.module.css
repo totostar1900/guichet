@@ -78,9 +78,10 @@
   color: var(--ink);
 }
 .nav a[aria-current="page"] {
-  background: var(--navy);
-  color: #fff;
-  font-weight: 600;
+  /* the page being read: bold on a soft gold ground; its chapters below carry the moving gold bar, so one thing moves */
+  background: var(--gold-soft);
+  color: var(--ink);
+  font-weight: 700;
 }
 .nav .chapters {
   display: flex;
@@ -93,7 +94,7 @@
   font-size: 0.78rem;
 }
 .nav .chapters a[aria-current="true"] {
-  color: var(--navy);
+  color: var(--ink);
   font-weight: 700;
   background: none;
   box-shadow: inset 2px 0 0 var(--gold);
@@ -121,7 +122,7 @@
   line-height: 1.35;
 }
 .outline a[aria-current="true"] {
-  color: var(--navy);
+  color: var(--navy-text);
   font-weight: 700;
 }
 .outline .meta {
@@ -278,7 +279,7 @@
   border-radius: 6px;
   background: var(--surface);
   text-decoration: none;
-  color: var(--navy);
+  color: var(--navy-text);
   font-weight: 700;
   font-size: 0.86rem;
   margin: 0 0 14px;
@@ -298,7 +299,7 @@
 }
 .pager a {
   text-decoration: none;
-  color: var(--navy);
+  color: var(--navy-text);
   font-weight: 700;
 }
 
@@ -310,7 +311,7 @@
   font-size: 0.7rem;
   font-weight: 700;
   background: var(--neutral-soft);
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .chip.client {
   background: var(--good-soft);
@@ -344,12 +345,12 @@
   color: var(--ink);
 }
 .card:hover {
-  border-color: var(--navy);
+  border-color: var(--navy-text);
 }
 .card h2 {
   font-size: 1.02rem;
   margin: 0;
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .card p {
   margin: 0;
@@ -389,10 +390,10 @@
   color: var(--ink);
 }
 .result:hover {
-  border-color: var(--navy);
+  border-color: var(--navy-text);
 }
 .result b {
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .result small {
   color: var(--ink-3);
@@ -501,9 +502,9 @@
     background: var(--surface);
   }
   .nav .chapters a[aria-current="true"] {
-    background: var(--navy);
-    border-color: var(--navy);
-    color: #fff;
+    background: var(--select);
+    border-color: var(--select);
+    color: var(--on-select);
     box-shadow: none;
   }
 }

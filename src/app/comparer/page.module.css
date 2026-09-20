@@ -127,7 +127,7 @@
 }
 .pickBtn:hover,
 .pickerOpen .pickBtn {
-  border-color: var(--navy);
+  border-color: var(--navy-text);
 }
 .pickBtn svg {
   flex: none;
@@ -203,9 +203,9 @@
   padding: 3px 9px;
 }
 .chipOn {
-  background: var(--navy);
-  color: var(--on-navy);
-  border-color: var(--navy);
+  background: var(--select);
+  color: var(--on-select);
+  border-color: var(--select);
 }
 .list {
   max-height: 300px;

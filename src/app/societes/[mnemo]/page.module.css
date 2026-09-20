@@ -306,3 +306,22 @@
 .goldTxt {
   color: var(--gold-ink);
 }
+
+/* a bond of the issuer: identity on top, three facts under it, on any width (the list rule above would lay them in one row) */
+.docs a.lineCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.docs .lineCard small {
+  white-space: normal;
+}
+@media (max-width: 480px) {
+  .lineFacts {
+    gap: 8px;
+  }
+  .lineFacts b {
+    font-size: 0.86rem;
+    overflow-wrap: anywhere;
+  }
+}

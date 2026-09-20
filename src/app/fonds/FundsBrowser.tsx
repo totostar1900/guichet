@@ -242,20 +242,21 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     <>
       <section className={`${styles.families} ${familiesOpen ? "" : styles.familiesClosed}`} aria-label={t("Les quatre catégories de fonds")} data-coach="fonds-familles">
         <div className={styles.familiesHead}>
-          <h2>{t("Quatre catégories, quatre façons de placer")}</h2>
-          <span>
-            <Link href="/info/fonds-vl">{t("Leçon : la VL et les frais")} →</Link>
-            <button type="button" onClick={() => setFamilies(!familiesOpen)} aria-expanded={familiesOpen}>
-              {t(familiesOpen ? "Replier" : "Déplier")}
-            </button>
-          </span>
+          <button type="button" className={styles.familiesToggle} onClick={() => setFamilies(!familiesOpen)} aria-expanded={familiesOpen}>
+            <h2>{t("Quatre catégories, quatre façons de placer")}</h2>
+            <svg viewBox="0 0 24 24" aria-hidden="true" className={familiesOpen ? styles.chevOpen : undefined}>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {familiesOpen && <Link href="/info/fonds-vl">{t("Leçon : la VL et les frais")} →</Link>}
         </div>
         {familiesOpen && (
           <div className={styles.familiesGrid}>
             {CATS.filter((c) => c !== "?").map((c) => (
-              <button key={c} type="button" className={`${styles.family} ${cat === c ? styles.familyOn : ""}`} aria-pressed={cat === c} onClick={() => setCat(cat === c ? "" : c)}>
+              <button key={c} type="button" className={`${styles.family} ${cat === c ? styles.familyOn : ""}`} aria-pressed={cat === c} onClick={() => setCat(cat === c ? "" : c)} data-cat={c}>
                 <b>
-                  {t(FUND_CATEGORY_LABEL[c])} · {rows.filter((r) => r.category === c).length}
+                  <i className={styles.familyDot} aria-hidden="true" />
+                  {t(FUND_CATEGORY_LABEL[c])} <em>· {rows.filter((r) => r.category === c).length}</em>
                 </b>
                 <span>{t(BLURB[c])}</span>
               </button>

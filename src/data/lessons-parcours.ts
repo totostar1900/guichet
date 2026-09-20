@@ -12,7 +12,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     key: "qui-fait-quoi",
     section: "acteurs",
     order: 101,
-    title: "La BEAC, la COSUMAF, la BVMAC : qui fait quoi",
+    title: "BEAC, COSUMAF, BVMAC : qui fait quoi",
     minutes: 2,
     intro: "Trois institutions, trois rôles : la monnaie et les titres publics, la surveillance, la cotation.",
     body: [
@@ -21,7 +21,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
       "La BVMAC est la bourse régionale, à Douala. C'est là que se cotent les actions et les obligations déjà émises, séance après séance, et qu'est publié chaque soir le Bulletin Officiel de la Cote que le Guichet reprend.",
     ],
     widget: "carte",
-    quiz: { q: "Une entreprise veut emprunter auprès du public par un emprunt obligataire. Qui donne son visa ?", options: ["La BEAC", "La COSUMAF", "La BVMAC"], answer: 1, why: "La COSUMAF vise toute opération ouverte au public ; la BVMAC cotera ensuite les titres, la BEAC n'intervient que sur les titres des États." },
+    quiz: { q: "Une entreprise veut emprunter auprès du public par un emprunt obligataire. Qui donne son visa ?", options: ["BEAC", "COSUMAF", "BVMAC"], answer: 1, why: "La COSUMAF vise toute opération ouverte au public ; la BVMAC cotera ensuite les titres, la BEAC n'intervient que sur les titres des États." },
     terms: ["svt", "apes"],
   },
   {

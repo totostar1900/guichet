@@ -146,7 +146,7 @@
   font-size: 0.74rem;
 }
 .out b {
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .in b {
   color: var(--gold-ink);

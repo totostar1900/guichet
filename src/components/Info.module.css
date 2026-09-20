@@ -40,8 +40,8 @@
 .btn:hover,
 .btn:focus-visible,
 .btn.on {
-  border-color: var(--navy);
-  color: var(--navy);
+  border-color: var(--navy-text);
+  color: var(--navy-text);
 }
 .bubble {
   position: fixed;

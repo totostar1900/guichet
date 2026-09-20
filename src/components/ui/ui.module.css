@@ -171,9 +171,9 @@
   margin-left: 4px;
 }
 .chipOn {
-  background: var(--navy);
-  color: var(--on-navy);
-  border-color: var(--navy);
+  background: var(--select);
+  color: var(--on-select);
+  border-color: var(--select);
 }
 .right {
   margin-left: auto;

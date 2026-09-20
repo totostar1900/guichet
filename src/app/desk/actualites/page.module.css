@@ -111,7 +111,7 @@
 .check input {
   width: 16px;
   height: 16px;
-  accent-color: var(--navy);
+  accent-color: var(--select);
 }
 .preview {
   display: flex;
@@ -209,9 +209,9 @@
   color: var(--ink);
 }
 .filters a[aria-current="page"] {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: #fff;
+  background: var(--select);
+  border-color: var(--select);
+  color: var(--on-select);
 }
 .tiny {
   font-size: 0.76rem;

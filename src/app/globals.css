@@ -27,6 +27,12 @@
   --info: #2a5db0;
   --info-soft: #e1eaf8;
   --back-face: #f4e9cf;
+  /* a chosen chip, tab or tile: navy on a light ground, gold on a dark one (navy sinks into a dark ground) */
+  /* navy as a text or stroke colour on a surface: itself on a light ground, a pale blue on a dark one */
+  --navy-text: #0b2545;
+  --box-you: #0b2545;
+  --select: #0b2545;
+  --on-select: #ffffff;
   --zebra: #e6eaf1;
   --neutral-soft: #e8ebf0;
   --chart-out: #0b2545;
@@ -80,6 +86,10 @@
     --info: #7fa8ee;
     --info-soft: #1b2e4f;
     --back-face: #3a3018;
+    --navy-text: #9fc0f7;
+    --box-you: #24446f;
+    --select: #e0b65a;
+    --on-select: #0b2545;
     --zebra: #22324f;
     --neutral-soft: #25344d;
     --chart-out: #7fa8ee;
@@ -143,6 +153,10 @@
   --info: #7fa8ee;
   --info-soft: #1b2e4f;
   --back-face: #3a3018;
+  --navy-text: #9fc0f7;
+  --box-you: #24446f;
+  --select: #e0b65a;
+  --on-select: #0b2545;
   --zebra: #22324f;
   --neutral-soft: #25344d;
   --chart-out: #7fa8ee;
@@ -379,8 +393,8 @@ h3 {
   opacity: 0.8;
 }
 .mtogglesGroup > button.on {
-  background: var(--navy);
-  color: var(--on-navy);
+  background: var(--select);
+  color: var(--on-select);
 }
 .mtogglesHint {
   font-size: 0.78rem;

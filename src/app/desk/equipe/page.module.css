@@ -32,7 +32,7 @@
 }
 .responsable {
   background: var(--gold-soft);
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .okTag {
   color: var(--good);

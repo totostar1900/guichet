@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./docs.module.css";
 
 /**
@@ -24,8 +24,18 @@ export function Outline({ chapters, label, meta }: { chapters: { id: string; tit
 
 export function ChapterLinks({ chapters }: { chapters: { id: string; title: string }[] }) {
   const active = useActiveChapter(chapters.map((c) => c.id));
+  const row = useRef<HTMLDivElement>(null);
+  // On the phone the chapters are one scrolling row: the chip being read slides into view as the page scrolls.
+  useEffect(() => {
+    const box = row.current;
+    if (!box || !active || box.scrollWidth <= box.clientWidth) return;
+    const el = box.querySelector<HTMLElement>(`a[href="#${active}"]`);
+    if (!el) return;
+    const left = el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2;
+    box.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [active]);
   return (
-    <div className={styles.chapters}>
+    <div className={styles.chapters} ref={row}>
       {chapters.map((c) => (
         <a key={c.id} href={`#${c.id}`} aria-current={c.id === active ? "true" : undefined}>
           {c.title}

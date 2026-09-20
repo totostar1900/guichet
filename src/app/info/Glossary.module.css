@@ -59,8 +59,8 @@
 }
 .tiles > button.on,
 .seg > button.on {
-  background: var(--navy);
-  color: var(--on-navy);
+  background: var(--select);
+  color: var(--on-select);
 }
 .opt {
   display: inline-flex;
@@ -148,7 +148,7 @@
     padding: 6px 11px;
   }
   .tiles > button.on {
-    border-color: var(--navy);
+    border-color: var(--navy-text);
   }
   .opt,
   .check {

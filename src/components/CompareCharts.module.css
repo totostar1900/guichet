@@ -61,7 +61,7 @@
 
 /* the two line colours, used on text, bars and strokes alike */
 .a {
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .b {
   color: #2a8a9a;

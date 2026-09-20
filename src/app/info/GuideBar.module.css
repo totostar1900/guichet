@@ -250,7 +250,7 @@
   margin: 8px 0 2px;
   font-size: 0.84rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--navy-text);
   text-decoration: none;
 }
 .tools {

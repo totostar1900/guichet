@@ -35,7 +35,7 @@
   height: 34px;
   border-radius: 50%;
   background: #e0b65a;
-  color: var(--navy);
+  color: var(--navy-text);
   display: grid;
   place-items: center;
   font-weight: 600;

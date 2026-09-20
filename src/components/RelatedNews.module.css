@@ -33,7 +33,7 @@
 .list a {
   text-decoration: none;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--navy-text);
 }
 .when {
   font-size: 0.72rem;
@@ -49,5 +49,5 @@
   align-self: flex-start;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--navy-text);
 }

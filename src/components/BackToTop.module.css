@@ -28,8 +28,8 @@
 .btn:hover,
 .btn:focus-visible {
   background: var(--surface);
-  color: var(--navy);
-  border-color: var(--navy);
+  color: var(--navy-text);
+  border-color: var(--navy-text);
 }
 @media (max-width: 760px) {
   .btn {

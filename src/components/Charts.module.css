@@ -114,7 +114,7 @@
   font-variant-numeric: tabular-nums;
 }
 .seg0 {
-  background: var(--navy);
+  background: var(--chart-out);
 }
 .seg1 {
   background: var(--chart-in);

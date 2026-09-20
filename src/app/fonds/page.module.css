@@ -206,11 +206,38 @@
   font-size: 0.8rem;
 }
 .familiesHead a {
-  color: var(--navy);
+  color: var(--navy-text);
   font-weight: 700;
   text-decoration: none;
 }
-.familiesHead button {
+.familiesToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.familiesToggle svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+  transition: transform 0.15s;
+}
+.familiesToggle .chevOpen {
+  transform: rotate(180deg);
+}
+.familiesHead button.unused {
   border: 0;
   background: none;
   color: var(--ink-3);
@@ -239,19 +266,46 @@
   cursor: pointer;
 }
 .family:hover {
-  border-color: var(--navy);
+  border-color: var(--cat, var(--gold));
 }
 .family b {
-  font-size: 0.84rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.family b em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.familyDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--cat, var(--gold));
+  flex: none;
+}
+.family[data-cat="M"] {
+  --cat: #0e7490;
+}
+.family[data-cat="O"] {
+  --cat: #15803d;
+}
+.family[data-cat="D"] {
+  --cat: #a16207;
+}
+.family[data-cat="A"] {
+  --cat: #be185d;
 }
 .family span {
-  font-size: 0.76rem;
-  line-height: 1.45;
-  color: var(--ink-2);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--ink);
 }
 .familyOn {
-  border-color: var(--navy);
-  box-shadow: inset 3px 0 0 var(--gold);
+  border-color: var(--cat, var(--gold));
+  box-shadow: inset 3px 0 0 var(--cat, var(--gold)), 0 0 0 1px var(--cat, var(--gold));
   background: var(--surface);
 }
 .countHint {
@@ -328,9 +382,9 @@
   font-family: inherit;
 }
 .chipOn {
-  background: var(--navy);
-  color: var(--on-navy);
-  border-color: var(--navy);
+  background: var(--select);
+  color: var(--on-select);
+  border-color: var(--select);
 }
 .sel,
 .sort select {
