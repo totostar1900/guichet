@@ -115,7 +115,8 @@
     --zebra: #1d1e22;
   }
 }
-:root[data-palette="ivoire"][data-theme="dark"] {
+:root[data-palette="ivoire"][data-theme="dark"],
+:root[data-palette="ivoire"][data-theme="dim"] {
   --zebra: #22302a;
   --neutral-soft: #262b25;
   --back-face: #3a3018;
@@ -126,7 +127,8 @@
   --line-2: #40473e;
   --gold-soft: #332c18;
 }
-:root[data-palette="ardoise"][data-theme="dark"] {
+:root[data-palette="ardoise"][data-theme="dark"],
+:root[data-palette="ardoise"][data-theme="dim"] {
   --neutral-soft: #253040;
   --select: #e0b65a;
   --on-select: #24303f;
@@ -145,7 +147,8 @@
   --box-you: #2a3646;
   --zebra: #20272f;
 }
-:root[data-palette="encre"][data-theme="dark"] {
+:root[data-palette="encre"][data-theme="dark"],
+:root[data-palette="encre"][data-theme="dim"] {
   --neutral-soft: #24262b;
   --select: #e0b65a;
   --on-select: #111827;
@@ -163,4 +166,35 @@
   --chart-out: #d1d5db;
   --box-you: #24262b;
   --zebra: #1d1e22;
+}
+
+/* ---------- tamisé, per palette : the dark side's inks on surfaces a step lighter ---------- */
+:root[data-palette="ivoire"][data-theme="dim"] {
+  --paper: #1f221d;
+  --surface: #292d27;
+  --surface-2: #343931;
+  --line: #40463d;
+  --line-2: #525a4e;
+  --zebra: #2e3630;
+  --neutral-soft: #30352e;
+}
+:root[data-palette="ardoise"][data-theme="dim"] {
+  --paper: #1d232c;
+  --surface: #262e3a;
+  --surface-2: #303947;
+  --line: #3c4756;
+  --line-2: #4d5a6c;
+  --zebra: #2b3440;
+  --neutral-soft: #2f3a4a;
+  --box-you: #36455a;
+}
+:root[data-palette="encre"][data-theme="dim"] {
+  --paper: #1b1c20;
+  --surface: #24262b;
+  --surface-2: #2e3036;
+  --line: #3a3d44;
+  --line-2: #4b4f58;
+  --zebra: #292b30;
+  --neutral-soft: #2e3036;
+  --box-you: #34373e;
 }

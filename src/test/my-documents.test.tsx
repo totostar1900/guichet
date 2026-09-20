@@ -22,6 +22,11 @@ describe("MyDocuments", () => {
     expect(html).toContain("Mon dossier");
     expect(html.indexOf("Mon dossier")).toBeGreaterThan(html.indexOf("PC-AF-2026-0019"));
     expect(html).not.toContain("FCP Monétaire"); // an operation without documents has no group
+    // each group folds from its head (a chevron, open at first) and « Tout replier » folds them all
+    expect(html).toContain("Tout replier");
+    expect((html.match(/aria-expanded="true"/g) ?? []).length).toBe(2);
+    expect(html).toContain("2 documents");
+    expect(html).toContain("1 document<");
   });
   it("shows the empty line when there is nothing yet", () => {
     const html = renderToStaticMarkup(<MyDocuments docs={[]} ops={ops} />);

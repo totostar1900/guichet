@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useT } from "@/i18n/client";
 import { fmtDateTime } from "@/lib/format";
 import styles from "./page.module.css";
@@ -59,6 +59,15 @@ export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[
       // storage unavailable: the choice lasts for this page
     }
   };
+  // Folded groups (by operation): a set of keys, in memory for this page; « Tout replier » folds them all.
+  const [closed, setClosed] = useState<Set<string>>(() => new Set());
+  const toggle = (k: string) =>
+    setClosed((c) => {
+      const n = new Set(c);
+      if (n.has(k)) n.delete(k);
+      else n.add(k);
+      return n;
+    });
   const opOf = new Map(ops.map((o) => [o.id, o]));
   const sorted = [...docs].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const groups = [...ops.map((o) => ({ op: o, rows: docs.filter((d) => d.intentId === o.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt)) })).filter((g) => g.rows.length > 0), { op: undefined, rows: docs.filter((d) => !d.intentId || !opOf.has(d.intentId)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)) }].filter((g) => g.rows.length > 0);
@@ -113,6 +122,8 @@ export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[
       </div>
     );
   };
+  const keyOf = (g: { op?: DocOp }) => g.op?.id ?? "file";
+  const allClosed = groups.every((g) => closed.has(keyOf(g)));
   const head = (
     <thead>
       <tr>
@@ -129,6 +140,14 @@ export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[
     <div className="panel">
       <div className={inFold ? styles.docBar : "panel-h"}>
         {!inFold && <h2>{t("Mes documents")}</h2>}
+        {docs.length > 0 && byOp && groups.length > 1 && (
+          <button type="button" className={`${styles.docAll} ${allClosed ? styles.docAllClosed : ""}`} onClick={() => setClosed(allClosed ? new Set() : new Set(groups.map(keyOf)))}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+            {t(allClosed ? "Tout déplier" : "Tout replier")}
+          </button>
+        )}
         {docs.length > 0 && (
           <div className={styles.docToggle} role="group" aria-label={t("Présentation")}>
             <button type="button" className={byOp ? styles.docOn : ""} aria-pressed={byOp} onClick={() => pick("operation")}>
@@ -154,24 +173,40 @@ export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[
       )}
       {docs.length > 0 &&
         byOp &&
-        groups.map((g) => (
-          <section key={g.op?.id ?? "file"} className={styles.docGroup}>
-            <div className={styles.docGroupHead}>
-              <span>
-                <b>{g.op ? g.op.href ? <a href={g.op.href}>{g.op.title}</a> : g.op.title : t("Mon dossier")}</b>
-                <small>{g.op ? g.op.about : t("pièces du dossier, relevés, attestations")}</small>
-              </span>
-              {g.op && <span className={`st ${g.op.stateKey}`}>{g.op.state}</span>}
-            </div>
-            <div className={styles.docCards}>{g.rows.map((d) => card(d, false))}</div>
-            <div className={`scroll-x ${styles.deskTable}`}>
-              <table className="tbl">
-                {head}
-                <tbody>{g.rows.map((d) => row(d, false))}</tbody>
-              </table>
-            </div>
-          </section>
-        ))}
+        groups.map((g) => {
+          const k = keyOf(g);
+          const open = !closed.has(k);
+          return (
+            <section key={k} className={`${styles.docGroup} ${open ? "" : styles.docGroupClosed}`}>
+              {/* the head folds the group: the line's link stays a link, the chevron is the button */}
+              <div className={styles.docGroupHead} onClick={() => toggle(k)}>
+                <span>
+                  <b>{g.op ? g.op.href ? <a href={g.op.href} onClick={(e) => e.stopPropagation()}>{g.op.title}</a> : g.op.title : t("Mon dossier")}</b>
+                  <small>
+                    {g.op ? g.op.about : t("pièces du dossier, relevés, attestations")} · {g.rows.length} {t(g.rows.length > 1 ? "documents" : "document")}
+                  </small>
+                </span>
+                {g.op && <span className={`st ${g.op.stateKey}`}>{g.op.state}</span>}
+                <button type="button" className={styles.docChev} aria-expanded={open} aria-label={t(open ? "Replier" : "Déplier")} onClick={(e) => { e.stopPropagation(); toggle(k); }}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+              </div>
+              {open && (
+                <>
+                  <div className={styles.docCards}>{g.rows.map((d) => card(d, false))}</div>
+                  <div className={`scroll-x ${styles.deskTable}`}>
+                    <table className="tbl">
+                      {head}
+                      <tbody>{g.rows.map((d) => row(d, false))}</tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </section>
+          );
+        })}
     </div>
   );
 }

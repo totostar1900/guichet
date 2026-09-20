@@ -21,6 +21,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px 14px;
   max-width: 720px;
+  padding: 14px 16px 16px;
 }
 .contactFoot {
   grid-column: 1 / -1;
@@ -249,12 +250,14 @@
 .docGroupHead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0 6px;
+  gap: 10px;
+  padding: 6px 4px 6px 16px;
   border-top: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
 }
 .docGroupHead > span:first-child {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -262,10 +265,70 @@
 }
 .docGroupHead b {
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
 }
 .docGroupHead small {
   font-size: 0.76rem;
   color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+.docGroupHead .st {
+  flex: none;
+}
+.docChev {
+  flex: none;
+  width: 36px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.docChev svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+.docGroupClosed .docChev svg {
+  transform: none;
+}
+.docAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--navy-text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0 12px;
+  min-height: 32px;
+  cursor: pointer;
+}
+.docAll svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+.docAllClosed svg {
+  transform: none;
 }
 .docFor {
   display: block;
@@ -345,7 +408,21 @@
 .docBar {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   padding: 12px 16px 0;
+}
+.docBar .docToggle {
+  margin-left: 0;
+}
+@media (max-width: 760px) {
+  .docBar {
+    padding: 10px 12px 0;
+  }
+  .docGroupHead {
+    padding-left: 12px;
+  }
 }
 .noHead {
   padding-top: 0;

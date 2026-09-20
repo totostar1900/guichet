@@ -799,6 +799,7 @@ export const EN_MORE: Record<string, string> = {
   "auto": "auto",
   "clair": "light",
   "sombre": "dark",
+  "tamisé": "dim",
   "Le desk": "The desk",
   "intentions, lignes, documents": "intentions, lines, documents",
   "intentions, positions, documents": "intentions, positions, documents",

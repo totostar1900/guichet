@@ -1,8 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import styles from "./PaletteSwitch.module.css";
+import { PALETTES, THEMES, P_KEY, T_KEY, P_COOKIE, T_COOKIE, YEAR } from "@/lib/palette";
+
 
 /**
  * « Couleurs » in the ⋮ : the palette (four, all near the brand or neutral)
@@ -10,15 +13,6 @@ import styles from "./PaletteSwitch.module.css";
  * applied before paint by the layout's inline script, so a page never
  * flashes in the wrong colours; here they are applied at once on <html>.
  */
-export const PALETTES = [
-  { key: "navy", fr: "Navy et or", en: "Navy and gold", a: "#0b2545", b: "#b8860b", paper: "#f6f7f9" },
-  { key: "ivoire", fr: "Ivoire", en: "Ivory", a: "#0b2545", b: "#b8860b", paper: "#f7f3ea" },
-  { key: "ardoise", fr: "Ardoise", en: "Slate", a: "#24303f", b: "#b8860b", paper: "#f4f5f7" },
-  { key: "encre", fr: "Encre", en: "Ink", a: "#111827", b: "#b8860b", paper: "#f7f7f5" },
-] as const;
-const THEMES = ["auto", "light", "dark"] as const;
-const P_KEY = "guichet:palette";
-const T_KEY = "guichet:theme";
 const EVENT = "guichet:colors";
 
 const subscribe = (cb: () => void) => {
@@ -48,6 +42,8 @@ function apply(palette: string, theme: string) {
   } catch {
     // storage unavailable: the choice lasts for this page
   }
+  document.cookie = `${P_COOKIE}=${palette}; path=/; max-age=${YEAR}; samesite=lax`;
+  document.cookie = `${T_COOKIE}=${theme}; path=/; max-age=${YEAR}; samesite=lax`;
   window.dispatchEvent(new Event(EVENT));
 }
 
@@ -59,7 +55,13 @@ export function PaletteSwitch({ lang }: { lang: "fr" | "en" }) {
       <div className={styles.row} role="group" aria-label={t("Palette")}>
         {PALETTES.map((p) => (
           <button key={p.key} type="button" className={`${styles.swatch} ${palette === p.key ? styles.on : ""}`} aria-pressed={palette === p.key} onClick={() => apply(p.key, theme)} title={p[lang]}>
-            <i style={{ background: `linear-gradient(135deg, ${p.a} 50%, ${p.b} 50%)`, boxShadow: `inset 0 0 0 3px ${p.paper}` }} />
+            {/* a tiny page: its paper, its header band, a gold mark and two lines of its ink; four palettes, four different pages */}
+            <i style={{ background: p.paper, borderColor: palette === p.key ? undefined : p.line }}>
+              <b style={{ background: p.a }} />
+              <em style={{ background: p.b }} />
+              <s style={{ background: p.ink }} />
+              <s style={{ background: p.ink, width: "60%" }} />
+            </i>
             <small>{p[lang]}</small>
           </button>
         ))}
@@ -67,7 +69,7 @@ export function PaletteSwitch({ lang }: { lang: "fr" | "en" }) {
       <div className={styles.seg} role="group" aria-label={t("Thème")}>
         {THEMES.map((k) => (
           <button key={k} type="button" className={theme === k ? styles.segOn : ""} aria-pressed={theme === k} onClick={() => apply(palette, k)}>
-            {t(k === "auto" ? "auto" : k === "light" ? "clair" : "sombre")}
+            {t(k === "auto" ? "auto" : k === "light" ? "clair" : k === "dim" ? "tamisé" : "sombre")}
           </button>
         ))}
       </div>
@@ -75,5 +77,22 @@ export function PaletteSwitch({ lang }: { lang: "fr" | "en" }) {
   );
 }
 
-/** The script the layout inlines in <head>: applies the device's choice before the first paint. */
-export const PALETTE_BOOT = `(function(){try{var p=localStorage.getItem("${P_KEY}"),t=localStorage.getItem("${T_KEY}"),r=document.documentElement;if(p&&p!=="navy")r.setAttribute("data-palette",p);if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();`;
+
+/** After each navigation, <html> gets the device's choice again: a re-rendered layout may have reset its attributes. */
+export function PaletteKeeper() {
+  const path = usePathname();
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem(P_KEY) ?? "navy";
+      const t = localStorage.getItem(T_KEY) ?? "auto";
+      const r = document.documentElement;
+      if (p === "navy") r.removeAttribute("data-palette");
+      else if (r.getAttribute("data-palette") !== p) r.setAttribute("data-palette", p);
+      if (t === "auto") r.removeAttribute("data-theme");
+      else if (r.getAttribute("data-theme") !== t) r.setAttribute("data-theme", t);
+    } catch {
+      // storage unavailable
+    }
+  }, [path]);
+  return null;
+}

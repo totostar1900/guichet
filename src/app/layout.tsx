@@ -24,7 +24,9 @@ import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
-import { PALETTE_BOOT } from "@/components/PaletteSwitch";
+import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
+import { PaletteKeeper } from "@/components/PaletteSwitch";
+import { cookies } from "next/headers";
 import { LEGAL_VERSION } from "@/data/legal";
 import { Suspense } from "react";
 
@@ -69,7 +71,7 @@ async function accountLine(userId: string): Promise<{ security: { channels: numb
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const [session, registry, lang, t, navCounts] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers()]);
+  const [session, registry, lang, t, navCounts, jar] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers(), cookies()]);
   const desk = isDesk(session);
   const [account, profile] = session ? await Promise.all([accountLine(session.userId), desk ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined)]) : [undefined, undefined];
   const security = desk ? undefined : account?.security;
@@ -78,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} className={ui.variable} suppressHydrationWarning>
+    <html lang={lang} className={ui.variable} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value)}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT }} />
@@ -86,6 +88,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <LangProvider lang={lang}>
         <AuthHashRedirect />
+        <PaletteKeeper />
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
         <TermSheetHost />
         <header className={styles.top}>
