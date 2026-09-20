@@ -66,9 +66,14 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
     const visible = (e: HTMLElement) => getComputedStyle(e).display !== "none" && e.getClientRects().length > 0;
     const el = all.find((e) => getComputedStyle(e).position === "fixed" && visible(e)) ?? all.find(visible);
     if (!el) {
-      // Nothing to point at on this layout: skip the stop.
-      const skip = setTimeout(() => (n < stops.length - 1 ? setN(n + 1) : finish()), 0);
-      return () => clearTimeout(skip);
+      // Nothing to point at on this layout: skip the stop when another can be pointed at; otherwise tell it without its ring, so a walk-through never ends before it began.
+      const another = stops.some((s, i) => i !== n && [...document.querySelectorAll<HTMLElement>(`[data-coach="${s.target}"]`)].some(visible));
+      if (another) {
+        const skip = setTimeout(() => (n < stops.length - 1 ? setN(n + 1) : finish()), 0);
+        return () => clearTimeout(skip);
+      }
+      const unring = setTimeout(() => setBox(null), 0);
+      return () => clearTimeout(unring);
     }
     el.scrollIntoView({ block: "center", behavior: "smooth" });
     const measure = () => {

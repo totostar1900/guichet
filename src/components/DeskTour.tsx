@@ -13,6 +13,7 @@ import { useT } from "@/i18n/client";
  * automatically.
  */
 const KEY = "guichet:desktour";
+const START = "guichet:desktour:start";
 
 export function startDeskTour(router: { push: (href: string) => void }) {
   try {
@@ -20,7 +21,9 @@ export function startDeskTour(router: { push: (href: string) => void }) {
   } catch {
     // storage unavailable
   }
-  router.push(TOUR[0].path);
+  // Already on the first stop's page: a push to the same path changes nothing, so the tour is told directly.
+  if (window.location.pathname === TOUR[0].path) window.dispatchEvent(new Event(START));
+  else router.push(TOUR[0].path);
 }
 
 export function DeskTour() {
@@ -39,7 +42,12 @@ export function DeskTour() {
       // storage unavailable
     }
     const t = setTimeout(() => setN(v == null ? null : Number(v)), 0);
-    return () => clearTimeout(t);
+    const restart = () => setN(0);
+    window.addEventListener(START, restart);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener(START, restart);
+    };
   }, [pathname]);
 
   const save = (i: number | null) => {
@@ -76,9 +84,20 @@ export function DeskTour() {
       return;
     }
     const el = [...document.querySelectorAll<HTMLElement>(`[data-coach="${stop.target}"]`)].find((e) => e.getClientRects().length > 0);
+    // Nothing to point at on this layout (the phone hides some of the desk): the stop is still told, without its ring, unless another stop of this page can be pointed at.
     if (!el) {
-      const skip = setTimeout(() => go(n + 1), 0);
-      return () => clearTimeout(skip);
+      const another = TOUR.some((s, i) => i !== n && s.path === pathname && document.querySelector(`[data-coach="${s.target}"]`)?.getClientRects().length);
+      if (another && n < TOUR.length - 1) {
+        const skip = setTimeout(() => go(n + 1), 0);
+        return () => clearTimeout(skip);
+      }
+      const unring = setTimeout(() => setBox(null), 0);
+      const esc = (e: KeyboardEvent) => e.key === "Escape" && finish();
+      document.addEventListener("keydown", esc);
+      return () => {
+        clearTimeout(unring);
+        document.removeEventListener("keydown", esc);
+      };
     }
     el.scrollIntoView({ block: "center", behavior: "smooth" });
     const measure = () => {

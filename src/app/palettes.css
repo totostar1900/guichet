@@ -65,7 +65,7 @@
 
 /* ---------- the dark side of each palette ---------- */
 @media (prefers-color-scheme: dark) {
-  :root[data-palette="ivoire"]:not([data-theme="light"]) {
+  :root[data-palette="ivoire"]:not([data-theme="light"]):not([data-theme="dim"]) {
     --zebra: #22302a;
     --neutral-soft: #262b25;
     --back-face: #3a3018;
@@ -76,7 +76,7 @@
     --line-2: #40473e;
     --gold-soft: #332c18;
   }
-  :root[data-palette="ardoise"]:not([data-theme="light"]) {
+  :root[data-palette="ardoise"]:not([data-theme="light"]):not([data-theme="dim"]) {
     --neutral-soft: #253040;
     --select: #e0b65a;
     --on-select: #24303f;
@@ -95,7 +95,7 @@
     --box-you: #2a3646;
     --zebra: #20272f;
   }
-  :root[data-palette="encre"]:not([data-theme="light"]) {
+  :root[data-palette="encre"]:not([data-theme="light"]):not([data-theme="dim"]) {
     --neutral-soft: #24262b;
     --select: #e0b65a;
     --on-select: #111827;
@@ -115,8 +115,7 @@
     --zebra: #1d1e22;
   }
 }
-:root[data-palette="ivoire"][data-theme="dark"],
-:root[data-palette="ivoire"][data-theme="dim"] {
+:root[data-palette="ivoire"][data-theme="dark"] {
   --zebra: #22302a;
   --neutral-soft: #262b25;
   --back-face: #3a3018;
@@ -127,8 +126,7 @@
   --line-2: #40473e;
   --gold-soft: #332c18;
 }
-:root[data-palette="ardoise"][data-theme="dark"],
-:root[data-palette="ardoise"][data-theme="dim"] {
+:root[data-palette="ardoise"][data-theme="dark"] {
   --neutral-soft: #253040;
   --select: #e0b65a;
   --on-select: #24303f;
@@ -147,8 +145,7 @@
   --box-you: #2a3646;
   --zebra: #20272f;
 }
-:root[data-palette="encre"][data-theme="dark"],
-:root[data-palette="encre"][data-theme="dim"] {
+:root[data-palette="encre"][data-theme="dark"] {
   --neutral-soft: #24262b;
   --select: #e0b65a;
   --on-select: #111827;
@@ -168,33 +165,35 @@
   --zebra: #1d1e22;
 }
 
-/* ---------- tamisé, per palette : the dark side's inks on surfaces a step lighter ---------- */
+/* ---------- tamisé, per palette : the light inks on a page a few steps down ---------- */
 :root[data-palette="ivoire"][data-theme="dim"] {
-  --paper: #1f221d;
-  --surface: #292d27;
-  --surface-2: #343931;
-  --line: #40463d;
-  --line-2: #525a4e;
-  --zebra: #2e3630;
-  --neutral-soft: #30352e;
+  --paper: #e4dcc9;
+  --surface: #f0ead9;
+  --surface-2: #dbd2bc;
+  --line: #cdc3a9;
+  --line-2: #b3a78a;
+  --zebra: #e9e2d0;
+  --neutral-soft: #e0d8c4;
+  --gold-soft: #e8d9ad;
+  --back-face: #e3d3a5;
 }
 :root[data-palette="ardoise"][data-theme="dim"] {
-  --paper: #1d232c;
-  --surface: #262e3a;
-  --surface-2: #303947;
-  --line: #3c4756;
-  --line-2: #4d5a6c;
-  --zebra: #2b3440;
-  --neutral-soft: #2f3a4a;
-  --box-you: #36455a;
+  --paper: #d8dce2;
+  --surface: #e6e9ed;
+  --surface-2: #cfd4dc;
+  --line: #bfc6cf;
+  --line-2: #a3adba;
+  --zebra: #dee2e7;
+  --neutral-soft: #d6dbe2;
+  --fam-OTA-soft: #d0d6de;
 }
 :root[data-palette="encre"][data-theme="dim"] {
-  --paper: #1b1c20;
-  --surface: #24262b;
-  --surface-2: #2e3036;
-  --line: #3a3d44;
-  --line-2: #4b4f58;
-  --zebra: #292b30;
-  --neutral-soft: #2e3036;
-  --box-you: #34373e;
+  --paper: #dcdcd8;
+  --surface: #e9e9e5;
+  --surface-2: #d3d3ce;
+  --line: #c3c3bd;
+  --line-2: #a9a9a2;
+  --zebra: #e2e2dd;
+  --neutral-soft: #d9d9d4;
+  --fam-OTA-soft: #d5d5d0;
 }

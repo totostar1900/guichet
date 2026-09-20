@@ -69,7 +69,7 @@
   --font-mono: var(--font-ui);
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not([data-theme="dim"]) {
     --paper: #0e1928;
     --surface: #16233a;
     --surface-2: #1d2d48;
@@ -126,8 +126,7 @@
     --fam-OPCVM-soft: #332c18;
   }
 }
-:root[data-theme="dark"],
-:root[data-theme="dim"] {
+:root[data-theme="dark"] {
   --fam-OTA: #9db6e0;
   --fam-OTA-soft: #1c2c48;
   --fam-BTA: #6fcdc6;
@@ -183,24 +182,25 @@
   --chart-in: #e0b65a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
-/* « Tamisé » : between light and dark, a navy-grey page rather than a near-black one; the same inks as the dark side, the surfaces a step lighter. */
+/* « Tamisé » : a real middle ground, read with the light inks : a blue-grey page, softer surfaces, the navy and the gold as in the light. */
 :root[data-theme="dim"] {
-  --paper: #1a2436;
-  --surface: #222f4b;
-  --surface-2: #2b3a5a;
-  --line: #36486a;
-  --line-2: #48597b;
-  --ink-3: #97a5ba;
-  --zebra: #293857;
-  --neutral-soft: #2c3c5c;
-  --gold-soft: #3b3320;
-  --gold-line: #75642f;
-  --bar-edge: #75642f;
-  --box-you: #2f4f7d;
-  --back-face: #443a1d;
-  --fam-OTA-soft: #26385a;
-  --fam-OPCVM-soft: #3b3320;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --paper: #dbe1ea;
+  --surface: #e9edf3;
+  --surface-2: #d2d9e4;
+  --line: #c2cad7;
+  --line-2: #a6b2c3;
+  --ink: #141c2b;
+  --ink-2: #364357;
+  --ink-3: #5a687d;
+  --zebra: #e1e6ee;
+  --neutral-soft: #d9dfe8;
+  --gold: #a8780a;
+  --gold-ink: #6f5005;
+  --gold-soft: #eadfbd;
+  --gold-line: #c9b476;
+  --chart-in: #8c6410;
+  --back-face: #e6d8ad;
+  --shadow: 0 10px 30px rgba(11, 37, 69, 0.14);
 }
 
 * {

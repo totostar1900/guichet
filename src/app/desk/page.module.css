@@ -89,8 +89,7 @@
 .barFirm {
   background: var(--navy) !important;
 }
-:global(:root[data-theme="dark"]) .barFirm,
-:global(:root[data-theme="dim"]) .barFirm {
+:global(:root[data-theme="dark"]) .barFirm {
   background: var(--info) !important;
 }
 .cd {
