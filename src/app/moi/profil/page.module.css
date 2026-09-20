@@ -188,3 +188,42 @@
     grid-template-columns: 96px minmax(0, 1fr);
   }
 }
+
+/* a visitor: the note above the quiz, and, once signed in, the profile found on the device */
+.guestNote {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--gold);
+  background: var(--gold-soft);
+  border-radius: 0 10px 10px 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.guestNote b {
+  color: var(--gold-ink);
+}
+.keep {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--gold);
+  background: var(--gold-soft);
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+.keep > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.keep b {
+  font-size: 0.9rem;
+}
+.keep small {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}

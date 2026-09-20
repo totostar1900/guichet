@@ -2,18 +2,28 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { PROFILE_LABEL, PROFILE_QUESTIONS, type FinancialProfile } from "@/data/profile";
+import { computeProfile, PROFILE_LABEL, PROFILE_QUESTIONS, type FinancialProfile } from "@/data/profile";
+import { useLocalProfile, writeLocalProfile } from "@/lib/profile-local";
 import { useLang, useT } from "@/i18n/client";
 import { fmtDate } from "@/lib/format";
 import { saveProfile } from "./actions";
 import styles from "./page.module.css";
 
-/** One question at a time, then the profile: a gauge, four bars, and what it changes on the Guichet. */
-export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
+/**
+ * One question at a time, then the profile: a gauge, four bars, and what it
+ * changes on the Guichet. A visitor without an account (`guest`) gets the same
+ * quiz, for information: the profile is computed here and kept on the device;
+ * once signed in, a profile found on the device is offered to keep in the file.
+ */
+export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; guest?: boolean }) {
   const t = useT();
   const lang = useLang();
-  const [profile, setProfile] = useState<FinancialProfile | undefined>(initial);
-  const [redo, setRedo] = useState(!initial);
+  const [saved, setSaved] = useState<FinancialProfile | undefined>(undefined);
+  const [redo, setRedo] = useState(false);
+  // The device may hold a profile made as a visitor: it is the visitor's own, and, once signed in, one to keep.
+  const onDevice = useLocalProfile();
+  const profile = saved ?? (guest ? onDevice : initial);
+  const local = !guest && !initial && !saved ? onDevice : undefined;
   const [n, setN] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>(initial?.answers ?? {});
   const [error, setError] = useState<string | null>(null);
@@ -28,15 +38,37 @@ export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
       setN(n + 1);
       return;
     }
+    if (guest) {
+      const p = computeProfile(answers);
+      writeLocalProfile(p);
+      setSaved(p);
+      setRedo(false);
+      setN(0);
+      return;
+    }
     start(async () => {
       const r = await saveProfile(answers);
       if (!r.ok) {
         setError(r.error);
         return;
       }
-      setProfile(r.profile);
+      setSaved(r.profile);
       setRedo(false);
       setN(0);
+    });
+  };
+
+  const keepLocal = () => {
+    if (!local) return;
+    start(async () => {
+      const r = await saveProfile(local.answers);
+      if (!r.ok) {
+        setError(r.error);
+        return;
+      }
+      writeLocalProfile(null);
+      setSaved(r.profile);
+      setRedo(false);
     });
   };
 
@@ -80,7 +112,7 @@ export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
             <b>
               {PROFILE_LABEL[p.kind][lang]}, {t("horizon")} {horizonText}
             </b>
-            <small>{t("établi le {date} · à revoir dans un an ou quand votre situation change", { date: fmtDate(p.updatedAt) })}</small>
+            <small>{guest ? t("à titre d'information · gardé sur cet appareil, le {date}", { date: fmtDate(p.updatedAt) }) : t("établi le {date} · à revoir dans un an ou quand votre situation change", { date: fmtDate(p.updatedAt) })}</small>
           </div>
         </div>
         <div className={styles.panel}>
@@ -113,12 +145,18 @@ export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
               </span>
             </div>
           </div>
-          <span className={styles.hint}>{t("Ce profil décrit ce que vous nous avez dit de vous ; le conseil, c'est votre conseiller.")}</span>
+          <span className={styles.hint}>{guest ? t("Ces repères s'activent avec un compte : connectez-vous et ce profil rejoint votre dossier.") : t("Ce profil décrit ce que vous nous avez dit de vous ; le conseil, c'est votre conseiller.")}</span>
         </div>
         <div className={styles.actions}>
-          <Link href="/" className="btn primary">
-            {t("Voir les lignes")}
-          </Link>
+          {guest ? (
+            <Link href="/connexion?next=%2Fmoi%2Fprofil" className="btn primary">
+              {t("Garder ce profil dans mon dossier")}
+            </Link>
+          ) : (
+            <Link href="/" className="btn primary">
+              {t("Voir les lignes")}
+            </Link>
+          )}
           <button type="button" className="btn" onClick={() => setRedo(true)}>
             {t("Refaire")}
           </button>
@@ -129,6 +167,17 @@ export function ProfileQuiz({ initial }: { initial?: FinancialProfile }) {
 
   return (
     <div className={styles.quiz}>
+      {local && !profile && (
+        <div className={styles.keep}>
+          <span>
+            <b>{t("Un profil {kind} attend sur cet appareil", { kind: PROFILE_LABEL[local.kind][lang] })}</b>
+            <small>{t("fait avant votre connexion, le {date}", { date: fmtDate(local.updatedAt) })}</small>
+          </span>
+          <button type="button" className="btn sm primary" disabled={pending} onClick={keepLocal}>
+            {t("Le garder")}
+          </button>
+        </div>
+      )}
       <div className={styles.meta}>
         <span>
           {t("Question")} <b>{n + 1}</b> {t("sur {n}", { n: PROFILE_QUESTIONS.length })}

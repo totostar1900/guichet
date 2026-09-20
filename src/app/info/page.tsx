@@ -112,6 +112,11 @@ export default async function InfoPage() {
             <b>{t("Comparer deux lignes")}</b>
             <span>{t("Deux offres côte à côte : rendement, durée, ticket, calendrier.")}</span>
           </Link>
+          <Link href="/moi/profil" className={styles.tile}>
+            <span className={styles.k}>{t("Repère")}</span>
+            <b>{t("Votre profil financier en deux minutes")}</b>
+            <span>{t("Sept questions : horizon, tolérance, connaissance, capacité. Un profil à titre d'information, à garder dans votre dossier avec un compte.")}</span>
+          </Link>
           <Link href="/societes" className={styles.tile}>
             <span className={styles.k}>{t("Repères")}</span>
             <b>{t("Sociétés cotées et émetteurs")}</b>

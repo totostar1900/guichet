@@ -276,13 +276,11 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
                       <b>{t("Le Guide")}</b>
                       <small>{index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("leçons, outils, glossaire")}</small>
                     </Link>
-                    {signedIn && (
-                      <Link className={styles.tile} href="/moi/profil" onClick={close}>
-                        <Icon d={D.profile} />
-                        <b>{t("Mon profil")}</b>
-                        <small>{profile ? t(profile === "prudent" ? "prudent" : profile === "equilibre" ? "équilibré" : "dynamique") : t("deux minutes")}</small>
-                      </Link>
-                    )}
+                    <Link className={styles.tile} href="/moi/profil" onClick={close}>
+                      <Icon d={D.profile} />
+                      <b>{t("Mon profil")}</b>
+                      <small>{profile ? t(profile === "prudent" ? "prudent" : profile === "equilibre" ? "équilibré" : "dynamique") : signedIn ? t("deux minutes") : t("deux minutes · à titre indicatif")}</small>
+                    </Link>
                     {signedIn && (
                       <Link className={styles.tile} href="/moi/securite" onClick={close}>
                         <Icon d={D.shield} />
