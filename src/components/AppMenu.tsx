@@ -291,14 +291,7 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
                   </div>
                   <div className={styles.line}>
                     <LangSwitch compact />
-                    {signedIn ? (
-                      <form action={logout} className={styles.form}>
-                        <button type="submit" className={styles.lineOut}>
-                          <Icon d={D.out} />
-                          {t("Se déconnecter")}
-                        </button>
-                      </form>
-                    ) : (
+                    {!signedIn && (
                       <Link href="/connexion" className={styles.lineOut} onClick={close}>
                         {t("Se connecter")}
                       </Link>
@@ -316,6 +309,17 @@ export function AppMenu({ signedIn, desk, name, security, profile, vapidKey, bui
                         <PushToggle vapidKey={vapidKey} compact />
                       </span>
                     </div>
+                  )}
+                  {signedIn && (
+                    <form action={logout} className={styles.form}>
+                      <button type="submit" className={`${styles.item} ${styles.danger}`}>
+                        <Icon d={D.out} />
+                        <span>
+                          <b>{t("Se déconnecter")}</b>
+                          <small>{t("l'appareil reste connu")}</small>
+                        </span>
+                      </button>
+                    </form>
                   )}
                 </>
               )}

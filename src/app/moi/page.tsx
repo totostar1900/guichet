@@ -15,6 +15,7 @@ import { TrustNudge } from "@/components/TrustNudge";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { logout } from "@/app/connexion/actions";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -80,6 +81,11 @@ export default async function MyPage() {
             {t(s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte")}
           </Link>
         )}
+        <form action={logout} className={styles.out}>
+          <button type="submit" className="btn ghost">
+            {t("Se déconnecter")}
+          </button>
+        </form>
         <Link href="/moi/profil" className="btn">
           {t("Mon profil")}
         </Link>
