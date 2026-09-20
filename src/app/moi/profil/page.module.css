@@ -142,7 +142,7 @@
 .track {
   height: 8px;
   border-radius: 4px;
-  background: var(--surface-2);
+  background: var(--line);
   position: relative;
 }
 .fill {
@@ -151,7 +151,7 @@
   top: 0;
   bottom: 0;
   border-radius: 4px;
-  background: var(--navy);
+  background: var(--chart-out); /* navy on a light ground, pale blue on a dark one: the bar never sinks into its track */
 }
 .fillGold {
   background: var(--gold);
