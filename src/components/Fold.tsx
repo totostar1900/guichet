@@ -38,7 +38,8 @@ const write = (k: string, v: string) => {
   window.dispatchEvent(new Event(EVENT));
 };
 
-export function FoldSection({ group, id, title, aside, children, defaultOpen = true }: { group: string; id: string; title: ReactNode; aside?: ReactNode; children: ReactNode; defaultOpen?: boolean }) {
+/** `hint`: the figure and the word of state that stay on the line once folded (« 2 · une à signer »): folded, the page reads as a dashboard. */
+export function FoldSection({ group, id, title, aside, hint, children, defaultOpen = true }: { group: string; id: string; title: ReactNode; aside?: ReactNode; hint?: ReactNode; children: ReactNode; defaultOpen?: boolean }) {
   const t = useT();
   const stored = useSyncExternalStore(subscribe, () => read(key(group, id)), () => "");
   const open = stored ? stored === "open" : defaultOpen;
@@ -56,6 +57,7 @@ export function FoldSection({ group, id, title, aside, children, defaultOpen = t
       <div className={styles.head}>
         <h2 className={styles.title} id={id}>
           {title}
+          {hint && <small className={styles.hint}>{hint}</small>}
         </h2>
         {aside && open && <span className={styles.aside}>{aside}</span>}
         <button type="button" className={styles.chev} aria-expanded={open} aria-controls={`fold-${id}`} aria-label={`${open ? t("Replier") : t("Déplier")} : ${typeof title === "string" ? title : ""}`} onClick={() => write(key(group, id), open ? "closed" : "open")}>

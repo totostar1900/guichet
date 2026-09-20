@@ -10,6 +10,7 @@ import { PushToggle } from "@/components/PushToggle";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
 import { MyDocuments } from "./MyDocuments";
+import { FoldAll, FoldSection } from "@/components/Fold";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -64,6 +65,7 @@ export default async function MyPage() {
   const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : STOPS.indexOf(st));
   const open = mine.filter((i) => i.state === "recue" || i.state === "confirmee" || i.state === "transmise").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const closed = mine.filter((i) => !open.includes(i)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const toSign = open.filter((i) => i.state === "confirmee").length;
   const valued = positions.reduce((t, p) => t + (p.marketValue ?? p.nominalAmount ?? 0), 0);
   const nextFlow = positions.map((p) => p.nextFlow).filter((x): x is NonNullable<typeof x> => Boolean(x)).sort((a, b) => a.date.localeCompare(b.date))[0];
   const amountText = (i: Intent, kind?: string) => (i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${kind === "RACHAT" ? "titres" : "FCFA"}`) : "");
@@ -113,12 +115,12 @@ export default async function MyPage() {
           <small>{open.length ? t(open.length > 1 ? "intentions suivies par le desk" : "intention suivie par le desk") : t("aucune intention en cours")}</small>
         </div>
       </div>
+      <div className={styles.foldBar}>
+        <FoldAll group="moi" ids={["intentions", "coordonnees", "suivies", "positions", "historique", "documents"]} />
+      </div>
 
+      <FoldSection group="moi" id="intentions" title={t("Intentions en cours")} hint={`· ${open.length}${toSign ? ` · ${t(toSign > 1 ? "{n} à signer" : "une à signer", { n: toSign })}` : ""}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t("reçue → confirmée → transmise → servie → réglée")}</span>}>
       <div className="panel">
-        <div className="panel-h">
-          <h2>{t("Intentions en cours")}</h2>
-          <span className="muted" style={{ fontSize: ".8rem" }}>{t("reçue → confirmée → transmise → servie → réglée")}</span>
-        </div>
         {open.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans le Guichet.")}</div>}
         {open.length > 0 && (
           <div className={styles.cards}>
@@ -150,11 +152,10 @@ export default async function MyPage() {
         )}
       </div>
 
+      </FoldSection>
+
+      <FoldSection group="moi" id="coordonnees" title={t("Mes coordonnées")} hint={!contact?.phone || !contact?.email ? `· ${t("à compléter")}` : "· WhatsApp ✓ · e-mail ✓"}>
       <div className="panel">
-        <div className="panel-h">
-          <h2>{t("Mes coordonnées")}</h2>
-          {(!contact?.phone || !contact?.email) && <span className="pill closing">{t("à compléter")}</span>}
-        </div>
         <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
         <div className={styles.push}>
           <b>{t("Alertes sur cet appareil")}</b>
@@ -162,11 +163,10 @@ export default async function MyPage() {
         </div>
       </div>
 
+      </FoldSection>
+
+      <FoldSection group="moi" id="suivies" title={t("Lignes suivies")} hint={`· ${followed.length}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t(followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut.")}</span>}>
       <div className="panel">
-        <div className="panel-h">
-          <h2>{t("Lignes suivies")}</h2>
-          <span className="muted" style={{ fontSize: ".8rem" }}>{t(followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut.")}</span>
-        </div>
         {followed.length > 0 && (
           <div className={styles.watchList}>
             {followed.map((o) => {
@@ -187,16 +187,15 @@ export default async function MyPage() {
         )}
       </div>
 
+      </FoldSection>
+
       {positions.length > 0 && (
+        <FoldSection group="moi" id="positions" title={t("Mes positions")} hint={`· ${fmtMillions(valued)}${nextFlow ? ` · ${t("flux le {date}", { date: fmtDate(nextFlow.date, false) })}` : ""}`} aside={<StatementButtons />}>
         <div className="panel">
-          <div className="panel-h">
-            <h2>{t("Mes positions")}</h2>
+          <div className={`panel-h ${styles.noHead}`}>
             <span className="muted" style={{ fontSize: ".8rem" }}>
               {t("titres inscrits à votre nom · flux à venir")}
             </span>
-            <div className="right">
-              <StatementButtons />
-            </div>
           </div>
           <div className="scroll-x">
             <table className="tbl">
@@ -247,13 +246,11 @@ export default async function MyPage() {
             </table>
           </div>
         </div>
+        </FoldSection>
       )}
 
-      <details className={`panel ${styles.history}`}>
-        <summary className="panel-h">
-          <h2>{t("Historique")} ({closed.length})</h2>
-          <span className="muted" style={{ fontSize: ".8rem" }}>{t("intentions servies, réglées, non servies ou annulées")}</span>
-        </summary>
+      <FoldSection group="moi" id="historique" title={t("Historique")} hint={`· ${closed.length}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t("intentions servies, réglées, non servies ou annulées")}</span>} defaultOpen={false}>
+      <div className="panel">
         <div className={styles.histCards}>
           {closed.map((i) => {
             const o = byOffer.get(i.offerId);
@@ -317,9 +314,12 @@ export default async function MyPage() {
             </tbody>
           </table>
         </div>
-      </details>
+      </div>
+      </FoldSection>
 
+      <FoldSection group="moi" id="documents" title={t("Mes documents")} hint={`· ${myDocs.length}`}>
       <MyDocuments
+        inFold
         docs={myDocs.map((d) => ({ id: d.id, number: d.number, label: t(DOC_LABEL[d.type]), createdAt: d.createdAt, status: d.status, href: `/desk/documents/pdf/${d.id}`, intentId: d.intentId }))}
         ops={mine
           .slice()
@@ -329,6 +329,7 @@ export default async function MyPage() {
             return { id: i.id, title: o?.title ?? i.offerId, about: `${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · ${t("réf.")} ${i.ref}`, state: t(INTENT_STATE_LABEL[i.state]), stateKey: i.state, href: o ? `/offres/${o.id}` : undefined };
           })}
       />
+      </FoldSection>
     </div>
   );
 }

@@ -17,6 +17,14 @@
   min-width: 0;
   scroll-margin-top: 110px;
 }
+/* the figure and the state word beside the title: quiet, always there, most useful once folded */
+.hint {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-left: 8px;
+  white-space: nowrap;
+}
 .aside {
   display: flex;
   align-items: center;

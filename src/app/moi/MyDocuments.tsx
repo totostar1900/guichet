@@ -47,7 +47,7 @@ const read = () => {
   }
 };
 
-export function MyDocuments({ docs, ops }: { docs: DocRow[]; ops: DocOp[] }) {
+export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[]; inFold?: boolean }) {
   const t = useT();
   const stored = useSyncExternalStore(subscribe, read, () => "");
   const byOp = stored ? stored === "operation" : ops.length > 1;
@@ -127,8 +127,8 @@ export function MyDocuments({ docs, ops }: { docs: DocRow[]; ops: DocOp[] }) {
 
   return (
     <div className="panel">
-      <div className="panel-h">
-        <h2>{t("Mes documents")}</h2>
+      <div className={inFold ? styles.docBar : "panel-h"}>
+        {!inFold && <h2>{t("Mes documents")}</h2>}
         {docs.length > 0 && (
           <div className={styles.docToggle} role="group" aria-label={t("Présentation")}>
             <button type="button" className={byOp ? styles.docOn : ""} aria-pressed={byOp} onClick={() => pick("operation")}>

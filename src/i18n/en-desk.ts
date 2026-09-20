@@ -790,4 +790,7 @@ export const EN_MORE: Record<string, string> = {
   "pièces du dossier, relevés, attestations": "file pieces, statements, certificates",
   "Tout replier": "Fold all",
   "Tout déplier": "Unfold all",
+  "{n} à signer": "{n} to sign",
+  "une à signer": "one to sign",
+  "flux le {date}": "flow on {date}",
 };
