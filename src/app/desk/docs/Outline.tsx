@@ -24,7 +24,7 @@ export function Outline({ chapters, label, meta }: { chapters: { id: string; tit
 }
 
 /** The chapter chips of the left column on a desk; on the phone, the « Sur cette page » line (SectionLine) instead. */
-export function ChapterLinks({ chapters, label, pageTitle }: { chapters: SectionItem[]; label?: string; pageTitle?: string }) {
+export function ChapterLinks({ chapters, label, pageTitle, line = true }: { chapters: SectionItem[]; label?: string; pageTitle?: string; line?: boolean }) {
   const active = useActiveChapter(chapters.map((c) => c.id));
   const row = useRef<HTMLDivElement>(null);
   // On the phone the chapters are one scrolling row: the chip being read slides into view as the page scrolls.
@@ -45,7 +45,7 @@ export function ChapterLinks({ chapters, label, pageTitle }: { chapters: Section
           </a>
         ))}
       </div>
-      <SectionLine chapters={chapters} active={active} label={label} pageTitle={pageTitle} />
+      {line && <SectionLine chapters={chapters} active={active} label={label} pageTitle={pageTitle} />}
     </>
   );
 }

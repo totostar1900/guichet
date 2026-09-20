@@ -6,7 +6,8 @@ import { sendCode, sendPhoneCode, verifyCode, verifyPhoneCode, type LoginState }
 import styles from "./page.module.css";
 
 /** One-time code by e-mail or by phone (SMS / WhatsApp, per Supabase provider). */
-export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnabled: boolean }) {
+/** `withCode`: the Guichet sends its own e-mail (Resend set): the code is what to expect; otherwise a link. */
+export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; phoneEnabled: boolean; withCode: boolean }) {
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [state, action, pending] = useActionState<LoginState, FormData>(async (prev, form) => {
     if (form.get("restart")) return { step: form.get("mode") === "phone" ? "phone" : "email" };
@@ -24,11 +25,11 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="mode" value={mode} />
         <p className={styles.hint}>
-          {t("Message envoyé à")} <b>{to}</b>{t(state.step === "code" ? " : ouvrez le lien qu'il contient, il vous connecte ici. Si l'e-mail montre aussi un code, vous pouvez le saisir." : ". Le code est valable quelques minutes.")}
+          {t("Message envoyé à")} <b>{to}</b>{t(state.step === "code" ? (state.withCode ? " : saisissez le code qu'il contient. Il vaut dix minutes ; le dernier reçu est toujours le bon." : " : ouvrez le lien qu'il contient, il vous connecte ici. Si l'e-mail montre aussi un code, vous pouvez le saisir.") : ". Le code est valable quelques minutes.")}
         </p>
         <label className="field">
-          {t(state.step === "code" ? "Code à 6 chiffres (si l'e-mail en montre un)" : "Code à 6 chiffres")}
-          <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus={state.step !== "code"} required />
+          {t(state.step === "code" && !state.withCode ? "Code à 6 chiffres (si l'e-mail en montre un)" : "Code à 6 chiffres")}
+          <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus={state.step !== "code" || Boolean(state.withCode)} required />
         </label>
         {state.error && <div className={styles.error}>{state.error}</div>}
         <div className={styles.row}>
@@ -69,7 +70,7 @@ export function EmailOtpForm({ next, phoneEnabled }: { next: string; phoneEnable
       )}
       {state.error && <div className={styles.error}>{state.error}</div>}
       <button className="btn primary" type="submit" disabled={pending}>
-        {t(pending ? "Envoi…" : mode === "email" ? "Recevoir mon lien de connexion" : "Recevoir un code")}
+        {t(pending ? "Envoi…" : mode === "email" && !withCode ? "Recevoir mon lien de connexion" : "Recevoir un code")}
       </button>
     </form>
   );

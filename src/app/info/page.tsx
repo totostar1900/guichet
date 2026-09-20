@@ -78,7 +78,10 @@ export default async function InfoPage() {
           ))}
         </div>
 
-        <Link href="/info/parcours" className={`${styles.parcours} ${styles.anchor}`} id="parcours" data-coach="info-parcours">
+        <h2 className={`${styles.h2} ${styles.anchor}`} id="parcours">
+          {t("Comprendre le marché CEMAC")}
+        </h2>
+        <Link href="/info/parcours" className={styles.parcours} data-coach="info-parcours">
           <span className={styles.parcoursStrip} aria-hidden="true">
             {(["beac", "tresor", "guichet", "client"] as const).map((k) => (
               <span key={k} className={styles.actorPlate}>
@@ -88,7 +91,7 @@ export default async function InfoPage() {
           </span>
           <span className={styles.parcoursText}>
             <span className="eyebrow">{t("Parcours")}</span>
-            <b>{t("Comprendre le marché CEMAC")}</b>
+            <b>{t("Six sections, du marché à la monnaie")}</b>
             <small>{t("{n} leçons en six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie.", { n: parcoursCount })}</small>
           </span>
           <span className={styles.parcoursGo}>{t("Commencer")} →</span>

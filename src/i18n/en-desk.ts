@@ -748,4 +748,6 @@ export const EN_MORE: Record<string, string> = {
   "deux minutes · à titre indicatif": "two minutes · for information",
   "Votre profil financier en deux minutes": "Your financial profile in two minutes",
   "Sept questions : horizon, tolérance, connaissance, capacité. Un profil à titre d'information, à garder dans votre dossier avec un compte.": "Seven questions: horizon, tolerance, knowledge, capacity. A profile for information, to keep in your file with an account.",
+  "Six sections, du marché à la monnaie": "Six sections, from the market to the currency",
+  " : saisissez le code qu'il contient. Il vaut dix minutes ; le dernier reçu est toujours le bon.": ": enter the code it contains. It lasts ten minutes; the last one received is always the right one.",
 };

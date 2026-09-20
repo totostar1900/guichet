@@ -94,9 +94,7 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
               </span>
               <SectionShape shape={s.shape} color={shapeColor(s)} size={24} />
               <span className={styles.headText}>
-                <b>
-                  {letter(s.order)} · {t(s.title)}
-                </b>
+                <b>{t(s.title)}</b>
                 <small>
                   {t("{n} leçons", { n: ls.length })} · {ls.reduce((x, l) => x + l.minutes, 0)} min{doneN > 0 ? ` · ${doneN === ls.length ? t("lues") : t("{n} lues", { n: doneN })}` : ""}
                 </small>

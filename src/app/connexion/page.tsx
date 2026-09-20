@@ -31,7 +31,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {mode === "supabase" ? (
           <>
             <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>
-            <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} />
+            <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
             <p className={styles.discover}>
               {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
             </p>

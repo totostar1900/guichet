@@ -1,7 +1,8 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useOutsideTap } from "./chart-utils";
 import type { BondResult } from "@/lib/finance";
 import { fmt, fmtDate, fmtUnits } from "@/lib/format";
 
@@ -13,6 +14,9 @@ import { fmt, fmtDate, fmtUnits } from "@/lib/format";
 export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string }) {
   const t = useT();
   const [hover, setHover] = useState<number | null>(null);
+  const ref = useRef<SVGSVGElement>(null);
+  // A bubble opened by a finger closes on the next tap outside the chart, or on the same bar again.
+  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
   const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: t("Souscription") }, ...r.flows];
   const W = 560;
   const H = 276;
@@ -34,7 +38,7 @@ export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string })
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: 768, margin: "8px auto 0" }}>
-      <svg className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} onMouseLeave={() => setHover(null)}>
+      <svg ref={ref} className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} onMouseLeave={() => setHover(null)}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
           const x = padL + slot * i + slot / 2 - bw / 2;
@@ -43,7 +47,7 @@ export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string })
           const y = neg ? base + 1 : base - bh - 1;
           const showVal = !dense || i === 0 || i === pts.length - 1 || hover === i;
           return (
-            <g key={i} onMouseEnter={() => setHover(i)} onTouchStart={() => setHover(i)} style={{ opacity: hover != null && hover !== i ? 0.55 : 1 }}>
+            <g key={i} onMouseEnter={() => setHover(i)} onTouchStart={() => setHover((h) => (h === i ? null : i))} style={{ opacity: hover != null && hover !== i ? 0.55 : 1 }}>
               <rect x={padL + slot * i} y={0} width={slot} height={H} fill={hover === i ? "var(--navy)" : "transparent"} fillOpacity={0.05} />
               <rect x={x} y={y} width={bw} height={bh} rx="3" fill={neg ? "var(--chart-out)" : "var(--chart-in)"} />
               {showVal && (

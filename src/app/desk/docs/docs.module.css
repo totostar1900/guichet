@@ -517,3 +517,10 @@
     box-shadow: none;
   }
 }
+
+/* a page whose sections carry their own letters and colours: no line under the phone header */
+@media (max-width: 760px) {
+  .navDeskOnly {
+    display: none;
+  }
+}

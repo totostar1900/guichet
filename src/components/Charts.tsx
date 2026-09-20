@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useOutsideTap } from "./chart-utils";
 import styles from "./Charts.module.css";
 import { useT } from "@/i18n/client";
 
@@ -46,6 +47,7 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
   const tr = useT();
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
+  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
   const W = 720;
   const H = height;
   const padL = 56;
@@ -131,6 +133,7 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
 export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: string[]; series: { name: string; values: number[]; accent?: boolean }[]; height?: number; ariaLabel: string }) {
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
+  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
   const W = 720;
   const H = height;
   const padL = 56;

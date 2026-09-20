@@ -1,5 +1,7 @@
 # Supabase : le code à six chiffres dans l'e-mail de connexion
 
+**Depuis le 20 septembre 2026, le chemin le plus court** : poser `RESEND_API_KEY` et `EMAIL_FROM` sur Vercel (domaine vérifié chez Resend). Le Guichet écrit alors lui-même l'e-mail de connexion (`sendCode` : `generateLink` côté admin donne le code et le `token_hash` ; Resend l'envoie : le code en grand, un lien qui s'ouvre depuis n'importe quel navigateur en dessous). Aucun gabarit Supabase à toucher, aucune limite de 2 e-mails / heure. Le formulaire dit alors « saisissez le code ». Sans ces deux variables, c'est le lien Supabase (flux implicite) qui part, comme décrit plus bas.
+
 Constat du 19 septembre 2026 : Supabase envoie **un lien** et non un code. Le lien ouvre une session dans un autre onglet (ou l'app Mail l'a déjà « ouvert ») ; le code, lui, garde le client sur l'écran où il est. Le formulaire du Guichet accepte les deux : il suffit que l'e-mail contienne le code.
 
 Pourquoi ce n'est pas encore le cas : sur l'expéditeur par défaut de Supabase, les gabarits ne se modifient pas (Authentication › Emails : « Set up custom SMTP to edit templates »). Le gabarit par défaut ne contient que le lien.

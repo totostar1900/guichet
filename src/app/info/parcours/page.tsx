@@ -28,14 +28,14 @@ export default async function ParcoursPage() {
   const chapters = SECTIONS.map((s) => ({ id: `section-${s.key}`, title: `${String.fromCharCode(64 + s.order)} · ${t(s.title)}`, letter: String.fromCharCode(64 + s.order), color: s.color, section: s.key }));
   return (
     <div className={`${docs.reader} ${docs.readerTwo}`}>
-      <nav className={docs.nav} aria-label={t("Guide")} data-coach="parcours-nav">
+      <nav className={`${docs.nav} ${docs.navDeskOnly}`} aria-label={t("Guide")} data-coach="parcours-nav">
         <Link href="/info">← {t("Guide")}</Link>
         <span className={docs.group}>{t("Parcours")}</span>
         <div>
           <Link href="/info/parcours" aria-current="page">
             {t("Comprendre le marché CEMAC")}
           </Link>
-          <ChapterLinks chapters={chapters} label={t("Section")} pageTitle={t("Comprendre le marché CEMAC")} />
+          <ChapterLinks chapters={chapters} line={false} />
         </div>
         <span className={docs.group}>{t("Pour aller plus loin")}</span>
         <Link href="/info#lecons">{t("Lire une ligne en trente secondes")}</Link>
