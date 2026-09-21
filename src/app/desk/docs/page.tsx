@@ -1,3 +1,4 @@
+import { fold } from "@/lib/text";
 import Link from "next/link";
 import { Suspense } from "react";
 import { DeskNav } from "@/components/DeskNav";
@@ -9,12 +10,6 @@ import { fmtDate } from "@/lib/format";
 import styles from "./docs.module.css";
 
 export const metadata = { title: "Documentation" };
-
-const fold = (s: string): string =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
 
 const AUDIENCES = Object.keys(AUDIENCE_LABEL) as Audience[];
 

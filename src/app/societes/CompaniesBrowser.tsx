@@ -1,5 +1,6 @@
 "use client";
 
+import { fold } from "@/lib/text";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Info } from "@/components/Info";
@@ -54,8 +55,8 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
   const cls = (v?: number | null) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
 
   const list = useMemo(() => {
-    const ql = q.trim().toLowerCase();
-    const out = rows.filter((r) => (!country || r.country === country) && (!sector || r.sector === sector) && (!ql || `${r.shortName} ${r.mnemo} ${r.activity} ${r.sector}`.toLowerCase().includes(ql)));
+    const ql = fold(q.trim());
+    const out = rows.filter((r) => (!country || r.country === country) && (!sector || r.sector === sector) && (!ql || fold(`${r.shortName} ${r.mnemo} ${r.activity} ${r.sector}`).includes(ql)));
     const cmp = (a: CompanyRow, b: CompanyRow) => {
       switch (sort) {
         case "name":

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
+import { fold } from "@/lib/text";
 import { fmtDate } from "@/lib/format";
 import { Origin, type DraftState } from "./Origin";
 import styles from "./page.module.css";
@@ -35,12 +36,13 @@ const originRank = (r: TermRow) => (r.draft ? 0 : r.inDb ? 1 : 2);
 export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; missing: { isin: string; title: string; issuer: string }[]; highlight?: string }) {
   const tr = useT();
   const [q, setQ] = useState("");
+  const [typing, setTyping] = useState(false);
   const [origin, setOrigin] = useState<OriginFilter>("");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "isin", dir: 1 });
   const list = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = fold(q.trim());
     const out = rows.filter((r) => {
-      if (needle && !`${r.isin} ${r.issuer ?? ""} ${r.title ?? ""} ${r.source}`.toLowerCase().includes(needle)) return false;
+      if (needle && !fold(`${r.isin} ${r.issuer ?? ""} ${r.title ?? ""} ${r.source}`).includes(needle)) return false;
       if (origin === "defaut" && (r.inDb || r.draft)) return false;
       if (origin === "desk" && !r.inDb) return false;
       if (origin === "brouillon" && !r.draft) return false;
@@ -62,6 +64,22 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
     };
     return out.sort((a, b) => cmp(a, b) * sort.dir);
   }, [rows, q, origin, sort]);
+  // What the typed letters match: issuers, lines, ISINs; a tap fills the box.
+  const suggestions = useMemo(() => {
+    const d = fold(q.trim());
+    if (!typing || d.length < 2) return [];
+    const seen = new Set<string>();
+    const out: { kind: string; text: string }[] = [];
+    const push = (kind: string, text?: string) => {
+      if (!text || seen.has(text) || !fold(text).includes(d) || fold(text) === d) return;
+      seen.add(text);
+      out.push({ kind, text });
+    };
+    for (const r of rows) push(tr("Émetteur"), r.issuer);
+    for (const r of rows) push(tr("Ligne"), r.title);
+    for (const r of rows) push("ISIN", r.isin);
+    return out.slice(0, 8);
+  }, [rows, q, typing, tr]);
   const th = (key: SortKey, label: string) => (
     <th aria-sort={sort.key === key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
       <button type="button" className={styles.sortBtn} onClick={() => setSort((s) => ({ key, dir: s.key === key ? ((s.dir * -1) as 1 | -1) : 1 }))}>
@@ -75,15 +93,16 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
       {missing.length > 0 && (
         <div className={styles.missing} id="sans-echeancier">
           <b>
-            {missing.length} {tr("obligation(s) cotée(s) sans échéancier exact")}
+            {missing.length} {tr("obligation(s) cotée(s) sans échéancier exact")}.
           </b>
-          <span>{tr("le prix se calcule sur l'année du bulletin ; la fiche signalétique BVMAC donne la date, la périodicité et le différé")}</span>
+          <span>{tr("Ces lignes sont au bulletin mais absentes du tableau ci-dessous : leur prix se calcule sur la seule année d'échéance du bulletin. À faire : ouvrir la fiche signalétique BVMAC (ou la note d'information) de la ligne, « Créer » avec la date exacte d'échéance, les paiements par an et le différé, enregistrer, puis « Publier ».")}</span>
           <ul>
             {missing.map((m) => (
               <li key={m.isin}>
-                <span className="mono">{m.isin}</span> · {m.issuer} · <small>{m.title}</small>
+                <span className="mono">{m.isin}</span>
+                <span>{fold(m.title).startsWith(fold(m.issuer)) ? m.title : `${m.issuer} · ${m.title}`}</span>
                 <Link className="btn sm" href={`/desk/referentiel?onglet=echeanciers&nouveau=${m.isin}#edit`}>
-                  {tr("Créer")}
+                  {tr("Créer l'échéancier")}
                 </Link>
               </li>
             ))}
@@ -91,7 +110,42 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
         </div>
       )}
       <div className={styles.toolbar}>
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("ISIN, émetteur, ligne, source…")} aria-label={tr("Filtrer les échéanciers")} />
+        <span className={styles.searchWrap}>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setTyping(true);
+            }}
+            onBlur={() => window.setTimeout(() => setTyping(false), 150)}
+            onFocus={() => setTyping(true)}
+            placeholder={tr("ISIN, émetteur, ligne, source…")}
+            aria-label={tr("Filtrer les échéanciers")}
+            autoComplete="off"
+          />
+          {suggestions.length > 0 && (
+            <ul className={styles.suggest} role="listbox">
+              {suggestions.map((sug) => (
+                <li key={sug.text}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={false}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setQ(sug.text);
+                      setTyping(false);
+                    }}
+                  >
+                    <em>{sug.kind}</em>
+                    <b>{sug.text}</b>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </span>
         <select value={origin} onChange={(e) => setOrigin(e.target.value as OriginFilter)} aria-label={tr("Origine")}>
           <option value="">{tr("Toutes les origines")}</option>
           <option value="defaut">{tr("Valeur par défaut")}</option>

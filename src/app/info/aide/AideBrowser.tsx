@@ -1,5 +1,7 @@
 "use client";
 
+import { fold } from "@/lib/text";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useT } from "@/i18n/client";
@@ -33,12 +35,6 @@ const ICON: Record<string, string> = {
   contact: "M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20z",
   entretien: "M14 6a4 4 0 0 0-5.6 3.7L3 15l2 2 5.3-5.4A4 4 0 0 0 16 8l-2.5 2.5-1.5-1.5z",
 };
-
-const fold = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
 
 export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: string }) {
   const t = useT();

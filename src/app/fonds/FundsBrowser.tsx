@@ -1,5 +1,6 @@
 "use client";
 
+import { fold } from "@/lib/text";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -166,8 +167,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const freqs = useMemo(() => [...new Set(rows.map((r) => r.frequency))].filter((f) => f !== "?"), [rows]);
 
   const filtered = useMemo(() => {
-    const ql = q.trim().toLowerCase();
-    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!freq || r.frequency === freq) && (!ql || `${r.title} ${r.manager} ${r.depositary}`.toLowerCase().includes(ql)));
+    const ql = fold(q.trim());
+    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":

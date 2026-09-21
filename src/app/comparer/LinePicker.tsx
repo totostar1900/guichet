@@ -1,5 +1,7 @@
 "use client";
 
+import { fold } from "@/lib/text";
+
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import styles from "./page.module.css";
@@ -15,12 +17,6 @@ export interface PickLine {
   yieldText: string; // « 6,25 % » or « : »
   status: string;
 }
-
-const fold = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
 
 /**
  * The picker of one side of the comparison: a button that opens a panel with

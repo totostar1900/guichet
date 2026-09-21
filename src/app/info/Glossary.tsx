@@ -1,5 +1,7 @@
 "use client";
 
+import { fold } from "@/lib/text";
+
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
 import styles from "./Glossary.module.css";
@@ -26,12 +28,6 @@ const GROUP_OF: Record<string, GlossGroup> = Object.fromEntries([
 const GROUP_LABEL: Record<GlossGroup, string> = { acteurs: "Les acteurs du marché", dette: "Titres de dette", actions: "Actions et sociétés", fonds: "Fonds", ordres: "Le Guichet et vos ordres", etats: "Les états d'une ligne", autres: "Autres" };
 const GROUP_ORDER: GlossGroup[] = ["acteurs", "dette", "actions", "fonds", "ordres", "etats", "autres"];
 export const groupOf = (k: string): GlossGroup => (k.startsWith("etat_") ? "etats" : (GROUP_OF[k] ?? "autres"));
-
-const fold = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
 
 export function Glossary({ entries }: { entries: GlossEntry[] }) {
   const t = useT();

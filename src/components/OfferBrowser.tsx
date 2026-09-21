@@ -1,5 +1,6 @@
 "use client";
 
+import { fold } from "@/lib/text";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -387,13 +388,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   // The search's suggestions while typing: distinct lines, issuers and ISINs that contain the letters.
   const [draft, setDraft] = useState("");
   const suggestions = useMemo(() => {
-    const d = draft.trim().toLowerCase();
+    const d = fold(draft.trim());
     if (d.length < 2) return [];
     const seen = new Set<string>();
     const out: { kind: string; text: string }[] = [];
     const push = (kind: string, text: string) => {
       const k = kind + text;
-      if (!text || seen.has(k) || !text.toLowerCase().includes(d) || text.toLowerCase() === d) return;
+      if (!text || seen.has(k) || !fold(text).includes(d) || fold(text) === d) return;
       seen.add(k);
       out.push({ kind, text });
     };
@@ -462,7 +463,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   }, [offers]);
 
   const rows = useMemo(() => {
-    const ql = q.trim().toLowerCase();
+    const ql = fold(q.trim());
     const out = offers
       .filter((o) => {
         const st = displayStatus(o, now);
@@ -485,8 +486,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           if (y == null || (yr.min != null && y < yr.min) || (yr.max != null && y > yr.max)) return false;
         }
         if (ql) {
-          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ").toLowerCase();
-          if (!hay.includes(ql)) return false;
+          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ");
+          if (!fold(hay).includes(ql)) return false;
         }
         return true;
       })

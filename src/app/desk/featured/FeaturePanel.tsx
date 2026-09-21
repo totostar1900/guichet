@@ -1,5 +1,6 @@
 "use client";
 
+import { fold } from "@/lib/text";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
@@ -23,8 +24,8 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
   const chosen = candidates.find((c) => c.id === value);
   const [text, setText] = useState(chosen?.title ?? "");
   const [open, setOpen] = useState(false);
-  const q = text.trim().toLowerCase();
-  const hits = (q && text !== chosen?.title ? candidates.filter((c) => c.title.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)) : candidates).slice(0, 8);
+  const q = fold(text.trim());
+  const hits = (q && text !== chosen?.title ? candidates.filter((c) => fold(c.title).includes(q) || fold(c.id).includes(q)) : candidates).slice(0, 8);
   return (
     <div className={styles.picker}>
       <input

@@ -1,3 +1,4 @@
+import { fold } from "@/lib/text";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Toolbar } from "@/components/ui/Toolbar";
@@ -18,12 +19,6 @@ export async function generateMetadata() {
   const t = await getT();
   return { title: t("Actualités") };
 }
-
-const fold = (s: string): string =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
 
 /** The reader's view: what the desk selected this month, grouped by day, the original one click away. */
 export default async function NewsPage({ searchParams }: { searchParams: Promise<{ rubrique?: string; q?: string; archive?: string }> }) {
