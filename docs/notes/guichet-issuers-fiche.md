@@ -9,3 +9,5 @@ Since 2026-09-21: `src/data/issuer-registry.ts` = classification layer over line
 
 **Why:** the user wants one structure per line kind, no invented data, no "non communiqué" badges (they worry clients), risk is generic and belongs in the Guide.
 **How to apply:** add issuers to the registry (STATES/REGIONAL) or to companies.ts/issuers.ts; never surface a missing-value badge to clients; keep bulletin labels verbatim. Mockup: https://claude.ai/artifact/QpZRQvMK9unFtJRWZ1zgEJ. See [[guichet-phone-ux]], [[guichet-companies-data]].
+
+Groups fold: `GroupHead` + `GroupBody` in OfferBrowser use `useFold("titres", groupId(issuer))` (Fold.tsx), `FoldAll` next to the group toggle; the phone filter sheet has the view switch (Cartes · Liste · Tableau) and the group toggle shows on phones too.
