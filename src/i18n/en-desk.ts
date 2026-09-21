@@ -1089,4 +1089,10 @@ export const EN_MORE: Record<string, string> = {
   "ordres confirmés seulement": "confirmed orders only",
   "ordres exécutés seulement": "executed orders only",
   "Tout le journal": "Whole journal",
+  // Leçons : dupliquer
+  "Dupliquer": "Duplicate",
+  "Nouvelle leçon à partir de celle-ci": "New lesson from this one",
+  "Nouvelle leçon à partir de": "New lesson from",
+  "Tout est repris de la leçon d'origine : donnez une clé (l'adresse de la page), un titre, et changez ce qui doit l'être. La leçon d'origine ne bouge pas.": "Everything is taken from the original lesson: give a key (the page's address), a title, and change what needs changing. The original lesson does not move.",
+  "Créer cette copie (brouillon)": "Create this copy (draft)",
 };

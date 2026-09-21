@@ -400,3 +400,15 @@
 .missing li a {
   margin-left: auto;
 }
+
+.rowBtns {
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+.copyHint {
+  margin: 0;
+  padding: 8px 16px 0;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}

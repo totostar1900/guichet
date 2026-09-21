@@ -205,19 +205,21 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
 const WIDGET_LABEL: Record<Lesson["widget"], string> = { read_ota: "Lire une OTA (cinq chiffres)", bond_price: "Prix → rendement (curseur)", bta_rate: "Taux précompté → prix et rendement", tenor: "Deux durées, même décote", equity: "Cours, dividende, PER", fund: "Montant → parts à la VL", auction: "Part servie à l'adjudication", risks: "Les quatre risques (cases)", carte: "Schéma : la carte des acteurs", chemin: "Schéma : le chemin d'un ordre", vie: "Schéma : la ligne de vie d'un titre", categories: "Schéma : les quatre catégories de fonds" };
 const SECTION_LABEL: Record<string, string> = { "": "Lire une ligne (les huit premières)", acteurs: "Parcours 1 · Le marché et ses acteurs", instruments: "Parcours 2 · Les instruments", risques: "Parcours 3 · Les risques", ordre: "Parcours 4 · Passer un ordre", cadre: "Parcours 5 · Fiscalité, frais et documents" };
 
-export function LessonForm({ l }: { l?: Lesson }) {
+/** `copy`: the form opens on a duplicate of `l` (new key, next order, title marked), to change and save as a new lesson. */
+export function LessonForm({ l, copy }: { l?: Lesson; copy?: boolean }) {
   const tr = useT();
   const [state, action, pending] = useActionState<RefResult | null, FormData>(saveLessonAction, null);
   return (
     <form action={action} className={styles.form}>
+      {(!l || copy) && <input type="hidden" name="nouvelle" value="1" />}
       <div className={styles.row3}>
         <label>
           <span>{tr("Clé (adresse de la page, ne change plus)")}</span>
-          <input name="key" defaultValue={l?.key} readOnly={Boolean(l)} className="mono" placeholder={tr("ex. lire-un-bta")} required />
+          <input name="key" defaultValue={copy ? `${l?.key ?? ""}-2` : l?.key} readOnly={Boolean(l) && !copy} className="mono" placeholder={tr("ex. lire-un-bta")} required />
         </label>
         <label>
           <span>{tr("Ordre")}</span>
-          <input name="order" type="number" min={1} max={99} defaultValue={l?.order ?? 9} required />
+          <input name="order" type="number" min={1} max={99} defaultValue={copy ? (l?.order ?? 8) + 1 : (l?.order ?? 9)} required />
         </label>
         <label>
           <span>{tr("Durée annoncée (min)")}</span>
@@ -226,7 +228,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
       </div>
       <label>
         <span>{tr("Titre")}</span>
-        <input name="title" defaultValue={l?.title} required />
+        <input name="title" defaultValue={copy && l ? `${l.title} (copie)` : l?.title} required />
       </label>
       <label>
         <span>{tr("Une phrase d'introduction")}</span>
@@ -271,7 +273,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
         <input name="terms" className="mono" defaultValue={l?.terms.join(", ")} placeholder={tr("ota, nominal, coupon")} />
       </label>
       <div className={styles.actions}>
-        <Foot tab="lecons" editing={Boolean(l)} pending={pending} label={tr("Enregistrer le brouillon")} />
+        <Foot tab="lecons" editing={Boolean(l) && !copy} pending={pending} label={tr(copy ? "Créer cette copie (brouillon)" : "Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>

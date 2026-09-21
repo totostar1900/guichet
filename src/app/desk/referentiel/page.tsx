@@ -32,7 +32,7 @@ const TABS: [Tab, string, string][] = [
   ["emetteurs", "Émetteurs", REF.issuers],
 ];
 
-type Sp = { onglet?: string; cle?: string; ok?: string; publie?: string; nouveau?: string; depuis?: string; point?: string };
+type Sp = { onglet?: string; cle?: string; ok?: string; publie?: string; nouveau?: string; copie?: string; depuis?: string; point?: string };
 
 /** One entry as the desk sees it: the value it would read after « Publier », with where it stands. */
 interface Seen<T> {
@@ -138,7 +138,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       {tab === "types" && <Types types={await loadTypes()} {...ctx} />}
       {tab === "echeanciers" && <Terms terms={[...(await loadBondTerms()).values()]} {...ctx} nouveau={sp.nouveau ?? ""} />}
       {tab === "glossaire" && <Glossary glossary={await loadGlossary()} {...ctx} />}
-      {tab === "lecons" && <Lessons list={await loadLessons()} {...ctx} />}
+      {tab === "lecons" && <Lessons list={await loadLessons()} {...ctx} copie={sp.copie ?? ""} />}
       {tab === "societes" && <Companies list={await loadCompanies()} {...ctx} />}
       {tab === "emetteurs" && <Issuers list={await loadIssuers()} {...ctx} />}
     </>
@@ -311,10 +311,12 @@ async function Glossary({ glossary, rows, open, ok }: { glossary: Record<string,
   );
 }
 
-async function Lessons({ list: published, rows, open, ok }: { list: Lesson[] } & Ctx) {
+async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesson[]; copie: string } & Ctx) {
   const tr = await getT();
   const list = seen(published, (l) => l.key, LESSONS, (l) => l.key, rows);
   const cur = list.find((s) => s.item.key === open);
+  // « Dupliquer » : the new-lesson form opens on a copy of an existing one, to change and save under its own key.
+  const model = !cur && copie ? list.find((s) => s.item.key === copie)?.item : undefined;
   return (
     <>
       <div className="panel">
@@ -348,9 +350,14 @@ async function Lessons({ list: published, rows, open, ok }: { list: Lesson[] } &
                   <Origin inDb={s.inDb} builtin={s.builtin} draft={s.draft} />
                 </td>
                 <td className="r">
-                  <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
-                    {tr("Modifier")}
-                  </Link>
+                  <span className={styles.rowBtns}>
+                    <Link className="btn sm ghost" href={`/desk/referentiel?onglet=lecons&copie=${l.key}#edit`} title={tr("Nouvelle leçon à partir de celle-ci")}>
+                      {tr("Dupliquer")}
+                    </Link>
+                    <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
+                      {tr("Modifier")}
+                    </Link>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -358,8 +365,9 @@ async function Lessons({ list: published, rows, open, ok }: { list: Lesson[] } &
         </table>
       </div>
       <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.title} »`} kind={REF.lessons} k={cur.item.key} s={cur} /> : <EditHead title={tr("Nouvelle leçon")} kind={REF.lessons} />}
-        <LessonForm key={cur?.item.key ?? "new"} l={cur?.item} />
+        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.title} »`} kind={REF.lessons} k={cur.item.key} s={cur} /> : <EditHead title={model ? `${tr("Nouvelle leçon à partir de")} « ${model.title} »` : tr("Nouvelle leçon")} kind={REF.lessons} />}
+        {model && <p className={styles.copyHint}>{tr("Tout est repris de la leçon d'origine : donnez une clé (l'adresse de la page), un titre, et changez ce qui doit l'être. La leçon d'origine ne bouge pas.")}</p>}
+        <LessonForm key={cur?.item.key ?? (model ? `copy-${model.key}` : "new")} l={cur?.item ?? model} copy={Boolean(model)} />
       </div>
     </>
   );

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { REF } from "@/lib/reference";
+import { LESSONS } from "@/data/lessons";
 import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
@@ -158,6 +159,11 @@ export async function saveLessonAction(_p: RefResult | null, form: FormData): Pr
   const p = lessonSchema.safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
   const d = p.data;
+  if (form.get("nouvelle") === "1") {
+    // a copy (or a new lesson) must not silently overwrite an existing key
+    const taken = LESSONS.some((l) => l.key === d.key) || (await repo().listReference(REF.lessons)).some((r) => r.key === d.key);
+    if (taken) return { ok: false, error: `La clé « ${d.key} » existe déjà : choisissez-en une autre pour cette nouvelle leçon.` };
+  }
   const data = {
     key: d.key,
     order: d.order,
