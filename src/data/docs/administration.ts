@@ -7,7 +7,7 @@ export const ADMINISTRATION: DocPage = {
   summary: l("Équipe et rôles, second facteur, approbations, référentiel, journal, reporting, santé, et les gestes d'urgence.", "Team and roles, second factor, approvals, reference data, audit log, reporting, health, and the emergency moves."),
   visibility: "desk",
   audience: ["admin"],
-  order: 4,
+  order: 6,
   checkedOn: "2026-09-18",
   owner: "Georges",
   chapters: [

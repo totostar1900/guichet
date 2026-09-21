@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DocBlock, DocChapter } from "@/data/docs/types";
 import styles from "@/app/desk/docs/docs.module.css";
+import { DocDiagram } from "./DocDiagrams";
 
 /** Renders a documentation page's chapters in one language : the same on the desk and on the client help page. */
 export function DocBlocks({ chapters, lang }: { chapters: DocChapter[]; lang: "fr" | "en" }) {
@@ -88,6 +89,13 @@ export function DocBlockList({ blocks, lang }: { blocks: DocBlock[]; lang: "fr" 
           <Link key={k} href={b.href} className={styles.link}>
             {L(b.label)} →{b.hint && <small>{L(b.hint)}</small>}
           </Link>
+        );
+      case "diagram":
+        return (
+          <figure key={k} className={styles.figure}>
+            <DocDiagram kind={b.kind} lang={lang} />
+            <figcaption>{L(b.caption)}</figcaption>
+          </figure>
         );
     }
   };

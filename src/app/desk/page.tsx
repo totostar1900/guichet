@@ -12,6 +12,8 @@ import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/
 import { transitionIntent } from "./actions";
 import { DeskLive } from "@/components/DeskLive";
 import { FeaturePanel } from "./featured/FeaturePanel";
+import { TodayPanel } from "./today/TodayPanel";
+import { todayTiles } from "./today/today";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
@@ -60,6 +62,8 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map((o) => ({ ...featRow(o), closed: !isActionable(displayStatus(o, now)) }));
   const featCandidates = offers.filter((o) => !o.hidden && !(o.featured && o.featured.until >= today) && isActionable(displayStatus(o, now))).map(featRow);
 
+  const today_ = await todayTiles(t, now, offers);
+
   const notifStatus: Record<string, [string, string]> = { sent: ["confirmee", "Envoyé"], skipped: ["recue", "Préparé"], failed: ["annulee", "Échec"], queued: ["info", "En file"] };
 
   return (
@@ -67,6 +71,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
       <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
 
+      <TodayPanel tiles={today_.tiles} bulletin={today_.bulletin} today={today_.today} />
+
+      <div id="une" />
       <FeaturePanel active={featActive} candidates={featCandidates} />
 
       <div className={styles.kpis} data-coach="kpis">

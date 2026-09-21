@@ -524,3 +524,23 @@
     display: none;
   }
 }
+
+/* a drawn schema: full width, its sentence under it */
+.figure {
+  margin: 14px 0 18px;
+  padding: 12px 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.figure svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  font-family: var(--font-ui);
+}
+.figure figcaption {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}

@@ -1,0 +1,70 @@
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.head p {
+  max-width: 70ch;
+}
+.files {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  white-space: nowrap;
+}
+.files a:not(.btn) {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.more,
+.p {
+  margin: 0;
+  padding: 10px 16px 14px;
+  font-size: 0.86rem;
+}
+.models {
+  list-style: none;
+  margin: 0;
+  padding: 6px 16px 12px;
+}
+.models li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+.models li:first-child {
+  border-top: 0;
+}
+.models small {
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+.refs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px 28px;
+  padding: 8px 16px 14px;
+  font-size: 0.86rem;
+}
+.refs h3 {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 8px 0 6px;
+}
+.refs ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.refs li {
+  margin: 3px 0;
+}
+.refs small {
+  color: var(--ink-3);
+}

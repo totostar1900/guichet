@@ -2,6 +2,8 @@ import { ADMINISTRATION } from "./administration";
 import { AIDE } from "./aide";
 import { FONCTIONNEMENT } from "./fonctionnement";
 import { PLATEFORMES } from "./plateformes";
+import { RELATION } from "./relation";
+import { SOURCES } from "./sources";
 import { SUPPORT } from "./support";
 import { TECHNIQUE } from "./technique";
 import type { Audience, DocBlock, DocPage, L } from "./types";
@@ -9,7 +11,7 @@ import type { Audience, DocBlock, DocPage, L } from "./types";
 export * from "./types";
 
 /** Every documentation page, in reading order. */
-export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, PLATEFORMES, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
+export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, RELATION, SOURCES, PLATEFORMES, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
 
 /** What a client may read: public pages only. Everything else stays behind the desk. */
 export const PUBLIC_DOCS: DocPage[] = DOCS.filter((d) => d.visibility === "public");
@@ -33,6 +35,8 @@ export function blockText(b: DocBlock, lang: "fr" | "en"): string {
       return [...b.head.map(t), ...b.rows.flatMap((r) => r.map(t))].join(" ");
     case "link":
       return `${t(b.label)} ${b.hint ? t(b.hint) : ""}`;
+    case "diagram":
+      return t(b.caption);
   }
 }
 

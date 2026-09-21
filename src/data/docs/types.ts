@@ -26,7 +26,11 @@ export type DocBlock =
   | { type: "table"; head: L[]; rows: L[][] }
   | { type: "flow"; steps: L[] }
   | { type: "note"; kind: "info" | "warn" | "rule"; text: L }
-  | { type: "link"; href: string; label: L; hint?: L };
+  | { type: "link"; href: string; label: L; hint?: L }
+  /** A drawn schema (src/components/docs/DocDiagrams.tsx), with the sentence that reads it. */
+  | { type: "diagram"; kind: DiagramKind; caption: L };
+
+export type DiagramKind = "sources" | "journee" | "relation" | "communication" | "documents" | "hebergement";
 
 export interface DocChapter {
   id: string;

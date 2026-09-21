@@ -7,7 +7,7 @@ export const SUPPORT: DocPage = {
   summary: l("Les situations qu'un client rapporte, ce qu'on vérifie, ce qu'on répond en clair, et quand on passe la main.", "The situations a client reports, what to check, what to answer plainly, and when to hand over."),
   visibility: "desk",
   audience: ["desk"],
-  order: 3,
+  order: 5,
   checkedOn: "2026-09-18",
   owner: "Desk",
   chapters: [

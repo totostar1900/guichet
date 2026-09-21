@@ -7,7 +7,7 @@ export const PLATEFORMES: DocPage = {
   summary: l("Les huit services externes : rôle, titulaire du compte, abonnement nécessaire, coût mensuel ; comment on se connecte, où sont les clés.", "The eight external services: role, account holder, plan needed, monthly cost; how sign-in works, where the keys are."),
   visibility: "desk",
   audience: ["admin", "tech"],
-  order: 2,
+  order: 4,
   checkedOn: "2026-09-18",
   owner: "Georges",
   chapters: [
@@ -15,6 +15,7 @@ export const PLATEFORMES: DocPage = {
       id: "hebergement",
       title: l("Construction et hébergement", "Build and hosting"),
       blocks: [
+        { type: "diagram", kind: "hebergement", caption: l("Deux adresses, une application ; les quatre services autour.", "Two addresses, one application; the four services around it.") },
         { type: "lead", text: l("Deux abonnements payants suffisent pour tourner en production : Vercel Pro et Supabase Pro. Le reste est gratuit. Les prix sont les tarifs publics connus au 18 septembre 2026, à vérifier avant de budgéter.", "Two paid plans are enough to run in production: Vercel Pro and Supabase Pro. Everything else is free. Prices are the public list prices known on 18 September 2026; check before budgeting.") },
         {
           type: "table",
