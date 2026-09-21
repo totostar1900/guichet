@@ -92,7 +92,7 @@ export const SOURCES: DocPage = {
           type: "table",
           head: [l("Règle du passage", "Passage rule"), l("Exemples", "Examples"), l("Entre en vigueur", "Comes into force")],
           rows: [
-            [l("Libre", "Free"), l("Lignes de signature, note de pied d'un relevé", "Signature lines, footnote of a statement"), l("Dès l'enregistrement", "As soon as it is saved")],
+            [l("Libre", "Free"), l("Lignes de signature, note de pied d'un relevé, bordereaux et dossier SVT (jamais envoyés au client)", "Signature lines, footnote of a statement, bordereaux and custodian file (never sent to the client)"), l("Dès l'enregistrement", "As soon as it is saved")],
             [l("Relu", "Reviewed"), l("Provenance des fonds, portée d'une attestation, relevé sans position", "Origin of funds, scope of an attestation, empty statement"), l("Quand un autre membre du desk que l'auteur l'a relu", "Once another desk member than the author has reviewed it")],
             [l("Réglementaire", "Regulatory"), l("Demande d'ordre, irrévocabilité, attestation du cédant, règlement-livraison, articles de la convention", "Order request, irrevocability, seller's attestation, settlement-delivery, agreement articles"), l("Quand un responsable l'a approuvé", "Once a manager has approved it")],
           ],

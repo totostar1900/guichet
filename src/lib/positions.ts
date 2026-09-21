@@ -21,6 +21,8 @@ export interface Position {
   /** Line the client can trade out of: the same offer (secondary / fund) : where a « Vendre / Racheter » order goes. */
   exit?: { intent: "vente" | "rachat"; offerId: string };
   flows: { date: string; amount: number; label: string }[]; // future flows only
+  /** Flows whose date is behind us: coupons and redemptions the issuer should have paid. */
+  paid: { date: string; amount: number; label: string }[];
   nextFlow?: { date: string; amount: number; label: string };
   maturityOn?: string;
 }
@@ -60,9 +62,11 @@ export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date
       }
       if (!units) return [];
       const p = positionFor(i, o, { pricePct: o.servedPricePct, unitsOverride: units });
-      const flows = p.schedule.map((f) => ({ date: localIso(f.date), amount: f.amount, label: f.label })).filter((f) => f.date >= today);
+      const all = p.schedule.map((f) => ({ date: localIso(f.date), amount: f.amount, label: f.label }));
+      const flows = all.filter((f) => f.date >= today);
+      const paid = all.filter((f) => f.date < today);
       const v = valuation(o, units, offers);
-      return [{ intent: i, offer: o, units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows, nextFlow: flows[0], maturityOn: o.maturityOn, ...v }];
+      return [{ intent: i, offer: o, units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows, paid, nextFlow: flows[0], maturityOn: o.maturityOn, ...v }];
     })
     .sort((a, b) => (a.nextFlow?.date ?? "9999").localeCompare(b.nextFlow?.date ?? "9999"));
 }

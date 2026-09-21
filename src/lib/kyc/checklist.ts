@@ -60,6 +60,8 @@ export const STATUS_LABEL: Record<ClientFile["status"], string> = {
   complements: "Compléments demandés",
   approuve: "Approuvé : compte actif",
   refuse: "Refusé",
+  en_cloture: "En clôture : transfert en cours",
+  clos: "Clos",
 };
 
 export const RISK_LABEL: Record<RiskRating, string> = { faible: "Faible", moyen: "Moyen", eleve: "Élevé" };

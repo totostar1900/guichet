@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { IngestForm, UploadForm } from "../marche/Forms";
+import { CouponBatch } from "./CouponBatch";
 import styles from "./TodayPanel.module.css";
 
 /**
@@ -52,6 +53,7 @@ export async function TodayPanel({ tiles, bulletin, today }: { tiles: Tile[]; bu
           );
         })}
       </div>
+      {tiles.some((x) => x.key === "coupons" && x.tone !== "ok") && <CouponBatch n={tiles.find((x) => x.key === "coupons")!.value} />}
       {showTools && (
         <div className={styles.tools}>
           <div>

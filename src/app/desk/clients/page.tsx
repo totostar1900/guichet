@@ -5,6 +5,9 @@ import type { ClientFile } from "@/lib/domain/kyc";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
+import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
+import { positionsFrom } from "@/lib/positions";
+import { INTENT_LABEL } from "@/lib/domain/intent";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
@@ -14,7 +17,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Clients" };
 
 const ROLE = { representant: "Représentant", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
-const ORDER: Record<ClientFile["status"], number> = { soumis: 0, en_revue: 1, complements: 2, brouillon: 3, approuve: 4, refuse: 5 };
+const ORDER: Record<ClientFile["status"], number> = { soumis: 0, en_revue: 1, complements: 2, brouillon: 3, approuve: 4, en_cloture: 5, refuse: 6, clos: 7 };
 
 export default async function ClientsPage({ searchParams }: { searchParams: Promise<{ file?: string }> }) {
   const t = await getT();
@@ -30,8 +33,17 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getChannelStatus(selected.userId).catch(() => undefined) : undefined,
   ]);
-  const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id) : [];
+  const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id || (d.clientId === selected.userId && (d.type === "coupon" || d.type === "reclamation" || d.type === "releve" || d.type === "attestation"))) : [];
   const now = new Date();
+  // the acts panel: positions with their paid flows (and the notice each already has), the client's operations
+  const [intents, offers] = selected ? await Promise.all([r.listIntents(), r.listOffers()]) : [[], []];
+  const mine = selected ? intents.filter((i) => i.clientId === selected.userId) : [];
+  const byFlow = new Map(docs.filter((d) => d.flowKey).map((d) => [d.flowKey!, d]));
+  const actPositions: ActPosition[] = selected
+    ? positionsFrom(mine, offers).map((p) => ({ isin: p.offer.isin, title: p.offer.title, units: p.units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, paid: p.paid.map((f) => ({ ...f, docNumber: byFlow.get(`${selected.userId}|${p.offer.isin}|${f.date}`)?.number, docId: byFlow.get(`${selected.userId}|${p.offer.isin}|${f.date}`)?.id })) }))
+    : [];
+  const byOffer = new Map(offers.map((o) => [o.id, o]));
+  const operations: ActOperation[] = mine.filter((i) => i.state !== "annulee").slice(0, 30).map((i) => ({ ref: i.ref, label: `${i.ref} · ${byOffer.get(i.offerId)?.title ?? ""} · ${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${i.amount.toLocaleString("fr-FR")}` : ""} · ${fmtDate(i.createdAt)}` }));
 
   return (
     <>
@@ -191,6 +203,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
             <div data-coach="review">
               <ReviewForm file={selected} suggested={suggestedRisk(selected)} riskLabels={RISK_LABEL} />
             </div>
+            <ClientActs fileId={selected.id} clientId={selected.userId} status={selected.status} mandataires={selected.persons.filter((p) => p.role === "mandataire").map((p) => ({ name: p.name, idNumber: p.idNumber }))} mandates={selected.acts?.mandates ?? []} closure={selected.acts?.closure} positions={actPositions} operations={operations} custodianAccount={selected.review.custodianAccount} />
           </div>
         )}
       </div>

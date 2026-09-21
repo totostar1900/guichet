@@ -1,7 +1,40 @@
 /* Onboarding · KYC · compte-titres : domain model (see supabase/migrations/0006_kyc.sql). */
 
 export type ClientKind = "physique" | "morale" | "groupement" | "institutionnel";
-export type KycStatus = "brouillon" | "soumis" | "en_revue" | "complements" | "approuve" | "refuse";
+export type KycStatus = "brouillon" | "soumis" | "en_revue" | "complements" | "approuve" | "refuse" | "en_cloture" | "clos";
+
+/** A power given to a third party to pass orders: prepared by the desk, signed by the client and the mandatary. */
+export interface Mandate {
+  id: string;
+  personName: string;
+  idNumber?: string;
+  relation?: string;
+  scope: { orders: boolean; notices: boolean; fundsOnly: boolean };
+  until?: string; // YYYY-MM-DD
+  docId?: string;
+  docNumber?: string;
+  status: "prepare" | "signe" | "revoque";
+  createdAt: string;
+  createdBy?: string;
+  signedAt?: string;
+  revokedAt?: string;
+}
+
+/** The end of the relationship: a transfer of positions and / or the closure of the account. */
+export interface Closure {
+  scope: "tout" | "partiel" | "vide";
+  destination?: string;
+  destinationAccount?: string;
+  reason?: string;
+  isins?: string[];
+  docId?: string;
+  docNumber?: string;
+  requestedAt: string;
+  requestedBy?: string;
+  signedAt?: string;
+  confirmedAt?: string;
+  confirmedBy?: string;
+}
 export type RiskRating = "faible" | "moyen" | "eleve";
 
 export type KycDocKind =
@@ -78,6 +111,8 @@ export interface ClientFile {
   consents: { dataAt?: string; whatsappAt?: string; conventionAt?: string; conventionMethod?: string; pendingCodeHash?: string; pendingCodeAt?: string };
   review: { risk?: RiskRating; notes?: string; reviewedBy?: string; reviewedAt?: string; nextReviewOn?: string; custodianAccount?: string; requestedItems?: string };
   /** Sanctions / PEP screening: the officer's attestation (mandatory) and the last automatic pre-check (optional). */
+  /** Acts on the file: mandates given, the closure in progress. */
+  acts?: { mandates?: Mandate[]; closure?: Closure };
   screening?: {
     attestedBy?: string;
     attestedAt?: string;

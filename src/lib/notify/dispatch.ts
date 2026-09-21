@@ -125,6 +125,21 @@ export async function notifyDocument(d: GeneratedDocument, channel: NotifyChanne
   return deliver("document", t, m, { intentId: i.id, offerId: o?.id, documentId: d.id, pdf: { bytes, filename: `${d.number}.pdf` } });
 }
 
+/**
+ * Sends a document that belongs to a client rather than to an intention (a
+ * coupon notice, a mandate, a complaint copy, a transfer order) on one channel;
+ * « skipped » with the reason when the client cannot be reached there.
+ */
+export async function notifyClientDocument(d: GeneratedDocument, c: Contact, channel: NotifyChannel): Promise<Notification> {
+  const r = repo();
+  const o = d.offerId ? await r.getOffer(d.offerId) : undefined;
+  const m = documentSent(d, o ?? undefined);
+  const [t] = targets(c, [channel]);
+  if (!t) return r.createNotification({ kind: "document", channel, to: "—", contactName: c.name, subject: m.subject, body: m.text, documentId: d.id, intentId: d.intentId, offerId: d.offerId, status: "skipped", error: channel === "whatsapp" ? "Pas de numéro WhatsApp avec opt-in" : "Pas d'adresse e-mail" });
+  const bytes = await readSource(d.fileKey);
+  return deliver("document", t, m, { intentId: d.intentId, offerId: d.offerId, documentId: d.id, pdf: { bytes, filename: `${d.number}.pdf` } });
+}
+
 /** A plain message to one contact on every channel they have (used by the followed-lines alerts). */
 export async function notifyRaw(kind: NotifyKind, c: Contact, m: { subject: string; text: string }, refs: { offerId?: string } = {}): Promise<Notification[]> {
   const out: Notification[] = [];

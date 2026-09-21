@@ -87,3 +87,25 @@ a.tile:hover {
   font-weight: 700;
   color: var(--ink-2);
 }
+
+.batch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 14px 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--warn);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  font-size: 0.82rem;
+}
+.batch .ok {
+  color: var(--good);
+  font-weight: 700;
+}
+.batch .err {
+  color: var(--crit);
+  font-weight: 700;
+}

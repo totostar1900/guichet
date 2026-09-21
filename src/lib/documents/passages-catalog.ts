@@ -32,6 +32,17 @@ export const PLACEHOLDER_LABEL: Record<string, string> = {
   compte: "compte de règlement du client",
   categorie: "catégorie du titulaire (professionnel ou non)",
   conseiller: "nom du conseiller",
+  mandant: "nom du mandant (le client)",
+  mandataire: "nom du mandataire",
+  etendue: "l'étendue cochée du mandat",
+  fin: "date de fin du mandat",
+  banque: "banque du compte de règlement",
+  rib: "fin du RIB du compte de règlement",
+  prochain: "prochain flux (date et nature)",
+  etablissement: "établissement de destination",
+  delai_accuse: "délai d'accusé de réception",
+  delai_reponse: "délai de réponse",
+  canal: "canal de signature (WhatsApp, e-mail)",
   rendement: "rendement actuariel servi",
   livraison: "phrase de livraison (titres inscrits, ou produit viré sur le compte)",
 };
@@ -39,6 +50,29 @@ export const PLACEHOLDER_LABEL: Record<string, string> = {
 const P = (key: string, label: string, hint: string, sensitivity: PassageSensitivity, placeholders: string[], fr: string, en: string, required: string[] = []): PassageDef => ({ key, label, hint, sensitivity, placeholders, required, fr, en });
 
 export const PASSAGES: Partial<Record<DocumentType, PassageDef[]>> = {
+  non_allocation: [
+    P("restitution", "Restitution des fonds", "le paragraphe sous le résultat", "relu", ["date_adjudication", "delai"], "La demande n'a pas été servie à l'adjudication du {date_adjudication}. Les fonds appelés sont restitués sur le compte de règlement du client sous {delai}, sans frais.", "The request was not served at the auction of {date_adjudication}. The funds called are returned to the client's settlement account within {delai}, free of charge.", ["date_adjudication"]),
+  ],
+  mandat: [
+    P("objet", "Objet du mandat", "le premier paragraphe", "reglementaire", ["mandant", "mandataire", "societe", "compte", "etendue"], "{mandant} (le Mandant) donne pouvoir à {mandataire} (le Mandataire) de transmettre en son nom à {societe} des ordres portant sur le compte-titres {compte}, dans l'étendue suivante : {etendue}. Les fonds ne sortent que vers le compte de règlement du Mandant.", "{mandant} (the Principal) empowers {mandataire} (the Agent) to transmit orders in their name to {societe} on securities account {compte}, within the following scope: {etendue}. Funds leave only towards the Principal's settlement account.", ["mandataire", "societe"]),
+    P("responsabilite", "Responsabilité", "le deuxième paragraphe", "reglementaire", ["societe"], "Les ordres du Mandataire engagent le Mandant comme s'il les avait passés lui-même. {societe} vérifie l'identité du Mandataire à chaque ordre et lui applique les mêmes règles qu'au Mandant.", "The Agent's orders bind the Principal as if placed by the Principal. {societe} checks the Agent's identity on every order and applies the same rules as to the Principal.", ["societe"]),
+    P("duree", "Durée et révocation", "le troisième paragraphe", "reglementaire", ["fin"], "Le mandat vaut jusqu'au {fin} et cesse avant à sa révocation écrite par le Mandant, au décès du Mandant ou à la clôture du compte.", "The mandate is valid until {fin} and ends earlier upon the Principal's written revocation, the Principal's death or the closure of the account.", ["fin"]),
+    P("signatures", "Lignes de signature", "sous les deux cases", "libre", [], "Le Mandant : « bon pour mandat », date et signature · Le Mandataire : « bon pour acceptation », date et signature", "The Principal: “approved as mandate”, date and signature · The Agent: “accepted”, date and signature"),
+  ],
+  coupon: [
+    P("paiement", "Paiement", "le paragraphe sous le tableau", "relu", ["banque", "rib", "prochain"], "Le montant a été réglé par l'émetteur via le dépositaire et crédité sur votre compte de règlement ({banque}, RIB se terminant par {rib}). Prochain flux : {prochain}.", "The amount was paid by the issuer through the custodian and credited to your settlement account ({banque}, account ending {rib}). Next flow: {prochain}."),
+    P("reserve", "Réserve", "la note au pied", "relu", [], "Montants bruts, sous réserve du paiement effectif par l'émetteur ; la fiscalité applicable est celle du titre. Cet avis ne vaut pas relevé de position.", "Gross amounts, subject to actual payment by the issuer; the tax treatment is that of the security. This notice is not a statement of position."),
+  ],
+  reclamation: [
+    P("engagement", "Engagement", "le paragraphe après la demande", "reglementaire", ["societe", "delai_accuse", "delai_reponse"], "{societe} accuse réception de la réclamation sous {delai_accuse} et y répond de façon motivée sous {delai_reponse}.", "{societe} acknowledges the complaint within {delai_accuse} and answers it with reasons within {delai_reponse}.", ["societe"]),
+    P("recours", "Recours", "le paragraphe de fin", "reglementaire", [], "À défaut de réponse satisfaisante dans ce délai, le réclamant peut saisir la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF).", "Failing a satisfactory answer within that time, the complainant may refer the matter to the Central African Financial Market Supervisory Commission (COSUMAF)."),
+    P("signature", "Ligne de signature", "sous le texte", "libre", ["canal"], "Le réclamant : date et signature, ou code de signature envoyé sur {canal}", "The complainant: date and signature, or signature code sent on {canal}"),
+  ],
+  transfert: [
+    P("instruction", "Instruction", "le paragraphe sous le tableau", "reglementaire", ["etablissement"], "Le Titulaire demande le transfert des positions ci-dessus vers {etablissement} et, une fois la livraison confirmée, la clôture de son compte-titres.", "The Holder requests the transfer of the positions above to {etablissement} and, once delivery is confirmed, the closure of the securities account."),
+    P("coupons_frais", "Coupons et frais", "le deuxième paragraphe", "reglementaire", [], "Les coupons et remboursements échus avant la livraison restent dus au Titulaire sur son compte de règlement. Les frais de transfert sont ceux du tarif en vigueur.", "Coupons and redemptions due before delivery remain payable to the Holder on the settlement account. Transfer fees are those of the tariff in force."),
+    P("signature", "Ligne de signature", "sous la case de gauche", "libre", [], "Le Titulaire : « lu et approuvé », date et signature", "The Holder: “read and approved”, date and signature"),
+  ],
   bulletin: [
     P("ordre_primaire", "Demande d'ordre (marché primaire)", "la phrase qui dit ce que le client demande, sur une adjudication", "reglementaire", ["societe", "date_adjudication"], "Le donneur d'ordre demande à {societe} de présenter cet ordre à l'adjudication du {date_adjudication}, au prix ci-dessus.", "The principal asks {societe} to present this order at the auction of {date_adjudication}, at the price above.", ["societe", "date_adjudication"]),
     P("ordre_marche", "Demande d'ordre (marché secondaire)", "la phrase qui dit ce que le client demande, sur une ligne cotée", "reglementaire", ["societe", "marche", "prix_limite"], "Le donneur d'ordre demande à {societe} de présenter cet ordre sur {marche} {prix_limite}, valable jusqu'à révocation ou exécution. Exécution totale ou partielle selon la contrepartie disponible ; les montants ci-dessus sont estimés au cours de référence et sont arrêtés à l'exécution.", "The principal asks {societe} to present this order on {marche} {prix_limite}, valid until revoked or executed. Full or partial execution depending on the counterparty available; the amounts above are estimated at the reference price and fixed at execution.", ["societe", "marche"]),

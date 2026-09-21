@@ -302,3 +302,52 @@
     flex-wrap: wrap;
   }
 }
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.groupHead {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: #fff;
+  margin: 6px 0 2px;
+}
+.groupHead b {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.groupHead small {
+  font-size: 0.66rem;
+  opacity: 0.9;
+}
+.signe {
+  background: var(--gold);
+}
+.envoye {
+  background: var(--navy-3, #1f4a86);
+}
+.interne {
+  background: var(--ink-3);
+}
+.kindTag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-right: 6px;
+}
+.none {
+  color: var(--ink-3);
+  font-size: 0.86rem;
+  margin: 0;
+}

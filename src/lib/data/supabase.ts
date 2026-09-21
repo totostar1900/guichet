@@ -222,16 +222,17 @@ function fromOffer(o: Offer): OfferRow {
 type DocRow = {
   id: string; type: GeneratedDocument["type"]; number: string; title: string; intent_id: string | null; offer_id: string | null; client_name: string | null;
   auction_key: string | null; client_file_id: string | null; client_id: string | null; file_key: string; status: GeneratedDocument["status"]; sent_via: string[] | null; sent_at: string | null; signed_at: string | null;
-  created_at: string; created_by: string | null; template_versions?: Record<string, number> | null;
+  created_at: string; created_by: string | null; template_versions?: Record<string, number> | null; flow_key?: string | null;
 };
 const toDoc = (r: DocRow): GeneratedDocument => ({
   id: r.id, type: r.type, number: r.number, title: r.title, intentId: u(r.intent_id), offerId: u(r.offer_id), clientName: u(r.client_name),
   auctionKey: u(r.auction_key), clientFileId: u(r.client_file_id), clientId: u(r.client_id), fileKey: r.file_key, status: r.status, sentVia: u(r.sent_via), sentAt: u(r.sent_at), signedAt: u(r.signed_at),
-  createdAt: r.created_at, createdBy: u(r.created_by), templateVersions: u(r.template_versions),
+  createdAt: r.created_at, createdBy: u(r.created_by), templateVersions: u(r.template_versions), flowKey: u(r.flow_key),
 });
 const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   const row: Partial<DocRow> = {};
   if (p.templateVersions !== undefined) row.template_versions = p.templateVersions;
+  if (p.flowKey !== undefined) row.flow_key = p.flowKey;
   if (p.type !== undefined) row.type = p.type;
   if (p.number !== undefined) row.number = p.number;
   if (p.title !== undefined) row.title = p.title;
@@ -298,12 +299,12 @@ const fromNotif = (p: Partial<Notification>): Partial<NotifRow> => {
 type KycRow = {
   id: string; user_id: string; kind: ClientFile["kind"]; status: ClientFile["status"]; identity: ClientFile["identity"]; persons: ClientFile["persons"];
   documents: ClientFile["documents"]; funds: ClientFile["funds"]; profile: ClientFile["profile"]; consents: ClientFile["consents"]; review: ClientFile["review"];
-  screening: ClientFile["screening"] | null;
+  screening: ClientFile["screening"] | null; acts?: ClientFile["acts"] | null;
   created_at: string; updated_at: string; submitted_at: string | null;
 };
 const toKyc = (r: KycRow): ClientFile => ({
   id: r.id, userId: r.user_id, kind: r.kind, status: r.status, identity: r.identity, persons: r.persons ?? [], documents: r.documents ?? [], funds: r.funds,
-  profile: r.profile, consents: r.consents ?? {}, review: r.review ?? {}, screening: r.screening ?? undefined, createdAt: r.created_at, updatedAt: r.updated_at, submittedAt: u(r.submitted_at),
+  profile: r.profile, consents: r.consents ?? {}, review: r.review ?? {}, screening: r.screening ?? undefined, acts: r.acts ?? undefined, createdAt: r.created_at, updatedAt: r.updated_at, submittedAt: u(r.submitted_at),
 });
 const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
   const row: Partial<KycRow> = {};
@@ -318,6 +319,7 @@ const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
   if (p.consents !== undefined) row.consents = p.consents;
   if (p.review !== undefined) row.review = p.review;
   if (p.screening !== undefined) row.screening = p.screening;
+  if (p.acts !== undefined) row.acts = p.acts;
   if (p.submittedAt !== undefined) row.submitted_at = p.submittedAt;
   return row;
 };

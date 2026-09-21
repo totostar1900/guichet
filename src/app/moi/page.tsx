@@ -317,7 +317,7 @@ export default async function MyPage() {
       </div>
       </FoldSection>
 
-      <FoldSection group="moi" id="documents" title={t("Mes documents")} hint={`· ${myDocs.length}`}>
+      <FoldSection group="moi" id="documents" title={t("Mes documents")} hint={`· ${myDocs.length}`} aside={<Link className="btn sm" href="/moi/reclamation">{t("Déposer une réclamation")}</Link>}>
       <MyDocuments
         inFold
         docs={myDocs.map((d) => ({ id: d.id, number: d.number, label: t(DOC_LABEL[d.type]), createdAt: d.createdAt, status: d.status, href: `/desk/documents/pdf/${d.id}`, intentId: d.intentId }))}

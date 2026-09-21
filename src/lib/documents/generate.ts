@@ -10,6 +10,7 @@ import { saveSource } from "@/lib/intake/storage";
 import { AppelDeFonds, AvisOpere, AvisResultat, Bordereau, Bulletin, OrdreDeCession, type BordereauCtx, type ClientDocCtx } from "./pdf/templates";
 import { AppelDeFondsOpcvm, AvisOperationOpcvm, BordereauSgo, BulletinSouscriptionOpcvm, DemandeRachatOpcvm, type FundBordereauCtx } from "./pdf/fund-templates";
 import { positionFor } from "./position";
+import { fmtDate } from "@/lib/format";
 import { DOC_LABEL, DOC_PREFIX, type IntentDocumentType } from "./registry";
 
 /**
@@ -168,6 +169,75 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   return store({ type, number, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
+/* ---------------- Actes et avis : mandat, coupon, réclamation, transfert ---------------- */
+import type { Closure, Mandate } from "@/lib/domain/kyc";
+import type { Contact } from "@/lib/domain/types";
+import { addBusinessDays } from "@/lib/finance";
+import { AvisCouponPdf, MandatPdf, ReclamationPdf, TransfertPdf, type ComplaintCtx } from "./pdf/acts-templates";
+
+export async function generateMandate(file: ClientFile, mandate: Mandate, advisor?: string): Promise<GeneratedDocument> {
+  const now = new Date();
+  const number = await nextNumber("mandat", now);
+  const wording = await resolvePassages("mandat");
+  const pdf = await renderToBuffer(el(createElement(MandatPdf, { number, file, mandate, now, texts: wording.text })));
+  return store({ type: "mandat", number, title: `${DOC_LABEL.mandat} : ${file.identity.name} → ${mandate.personName}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+}
+
+/** The positions of a client, for the acts that list them. */
+export async function clientPositions(clientId: string) {
+  const r = repo();
+  const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+  return positionsFrom(intents.filter((i) => i.clientId === clientId), offers);
+}
+
+export const flowKeyOf = (clientId: string, isin: string, date: string) => `${clientId}|${isin}|${date}`;
+
+/** A coupon or redemption notice for one paid flow of one position; issued once per flow (flowKey). */
+export async function generateCouponNotice(clientId: string, isin: string, flowDate: string, opts: { advisor?: string; paidOn?: string; note?: string } = {}): Promise<GeneratedDocument> {
+  const r = repo();
+  const contact = await r.getContact(clientId);
+  if (!contact) throw new Error("Client introuvable");
+  const flowKey = flowKeyOf(clientId, isin, flowDate);
+  const existing = (await r.listDocuments()).find((d) => d.flowKey === flowKey);
+  if (existing) return existing;
+  const positions = await clientPositions(clientId);
+  const position = positions.find((p) => p.offer.isin === isin && p.paid.some((f) => f.date === flowDate));
+  if (!position) throw new Error("Flux introuvable sur les positions du client");
+  const flow = position.paid.find((f) => f.date === flowDate)!;
+  const file = await r.getClientFileByUser(clientId);
+  const bank = file?.funds.bankAccount ? { name: file.funds.bankName, ribEnd: file.funds.bankAccount.replace(/\s/g, "").slice(-4) } : undefined;
+  const now = new Date();
+  const number = await nextNumber("coupon", now);
+  const wording = await resolvePassages("coupon");
+  const pdf = await renderToBuffer(el(createElement(AvisCouponPdf, { number, contact, position, flow, paidOn: opts.paidOn, note: opts.note, bank, next: position.flows[0], now, texts: wording.text })));
+  return store({ type: "coupon", number, title: `${/rembours/i.test(flow.label) ? "Avis de remboursement" : "Avis de coupon"} : ${position.offer.title} · ${fmtDate(flow.date)}`, clientName: contact.name, clientId, offerId: position.offer.id, intentId: position.intent.id, createdBy: opts.advisor, templateVersions: wording.versions, flowKey }, pdf, now);
+}
+
+/** A complaint, from the client (signed by code) or recorded by the desk. The deadlines are stamped on it. */
+export async function generateComplaint(clientId: string, input: { operation?: string; facts: string; ask: string; receivedVia: string; signedBy?: string; advisor?: string; contact?: Contact }): Promise<GeneratedDocument & { ackBy: string; answerBy: string }> {
+  const r = repo();
+  const contact = (await r.getContact(clientId)) ?? input.contact;
+  if (!contact) throw new Error("Client introuvable");
+  const now = new Date();
+  const ackBy = addBusinessDays(now, 2).toISOString().slice(0, 10);
+  const answerBy = new Date(now.getTime() + 30 * 86400e3).toISOString().slice(0, 10);
+  const number = await nextNumber("reclamation", now);
+  const wording = await resolvePassages("reclamation");
+  const ctx: ComplaintCtx = { number, contact, operation: input.operation, facts: input.facts, ask: input.ask, receivedVia: input.receivedVia, signedBy: input.signedBy, ackBy, answerBy, now, texts: wording.text };
+  const pdf = await renderToBuffer(el(createElement(ReclamationPdf, ctx)));
+  const doc = await store({ type: "reclamation", number, title: `Réclamation : ${contact.name}${input.operation ? ` · ${input.operation.slice(0, 40)}` : ""}`, clientName: contact.name, clientId, createdBy: input.advisor, templateVersions: wording.versions }, pdf, now);
+  return { ...doc, ackBy, answerBy };
+}
+
+export async function generateTransferOrder(file: ClientFile, closure: Closure, advisor?: string): Promise<GeneratedDocument> {
+  const positions = await clientPositions(file.userId);
+  const now = new Date();
+  const number = await nextNumber("transfert", now);
+  const wording = await resolvePassages("transfert");
+  const pdf = await renderToBuffer(el(createElement(TransfertPdf, { number, file, closure, positions, now, texts: wording.text })));
+  return store({ type: "transfert", number, title: `${closure.scope === "partiel" ? "Ordre de transfert" : "Ordre de transfert et de clôture"} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+}
+
 /* ---------------- Rapport d'activité (COSUMAF) ---------------- */
 import { activity, clientRegister, orderJournal, type Period } from "@/lib/reporting";
 import { RapportActivite } from "./pdf/report-templates";
@@ -247,6 +317,21 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
   const now = new Date();
   const number = "APERÇU";
   if (type === "convention") return renderToBuffer(el(createElement(Convention, { number, now, texts })));
+  if (type === "mandat" || type === "coupon" || type === "reclamation" || type === "transfert") {
+    const contact: Contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
+    const file: ClientFile = { id: "apercu", userId: "apercu", kind: "physique", status: "approuve", identity: { name: contact.name, phone: contact.phone, email: contact.email, city: "Yaoundé", country: "Cameroun" }, persons: [], documents: [], funds: { pep: false, bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47" }, profile: { category: "non_professionnel" }, consents: {}, review: { custodianAccount: "0000-DEMO" }, createdAt: now.toISOString(), updatedAt: now.toISOString() };
+    if (type === "mandat") return renderToBuffer(el(createElement(MandatPdf, { number, file, mandate: { id: "apercu", personName: "Mandataire de démonstration", idNumber: "passeport 00AA 0000", relation: "frère", scope: { orders: true, notices: true, fundsOnly: false }, until: `${now.getFullYear() + 1}-12-31`, status: "prepare", createdAt: now.toISOString() }, now, texts })));
+    if (type === "reclamation") return renderToBuffer(el(createElement(ReclamationPdf, { number, contact, operation: "PF-0000-000 · ligne de démonstration · 500 titres", facts: "Le coupon annoncé a été crédité treize jours après la date du relevé, sans avis.", ask: "Une explication du délai et la confirmation de la date du prochain coupon.", receivedVia: "Mon espace", signedBy: "code de signature sur WhatsApp", ackBy: now.toISOString().slice(0, 10), answerBy: now.toISOString().slice(0, 10), now, texts })));
+    const offers = await repo().listOffers();
+    const offer = offers.find((o) => (o.kind === "OTA" || o.kind === "APE") && !o.hidden) ?? offers[0];
+    if (!offer) return undefined;
+    const intent: Intent = { id: "apercu", ref: "PF-0000-000", offerId: offer.id, offerVersion: offer.version, clientId: "apercu", clientName: contact.name, clientSegment: contact.segment, type: "ferme", amount: 5_000_000, channel: "WhatsApp", state: "reglee", createdAt: now.toISOString(), updatedAt: now.toISOString() };
+    const p = positionFor(intent, offer);
+    const all = p.schedule.map((f) => ({ date: f.date.toISOString().slice(0, 10), amount: f.amount, label: f.label }));
+    const position = { intent, offer, units: p.units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows: all.slice(1), paid: all.slice(0, 1), nextFlow: all[1], maturityOn: offer.maturityOn };
+    if (type === "coupon") return renderToBuffer(el(createElement(AvisCouponPdf, { number, contact, position, flow: all[0] ?? { date: now.toISOString().slice(0, 10), amount: 0, label: "Coupon" }, bank: { name: "Banque de démonstration", ribEnd: "0047" }, next: all[1], now, texts })));
+    return renderToBuffer(el(createElement(TransfertPdf, { number, file, closure: { scope: "tout", destination: "Société de bourse de démonstration", destinationAccount: "0000-XX", requestedAt: now.toISOString() }, positions: [position], now, texts })));
+  }
   if (type === "releve" || type === "attestation") {
     const contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
     const el2 = type === "releve" ? createElement(RelevePosition, { number, contact, positions: [], now, texts }) : createElement(AttestationDetention, { number, contact, positions: [], now, texts });
@@ -277,7 +362,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
 
 /** The text of a passage as a document would print it, on the demonstration values (for the registry's list). */
 export function previewLine(type: DocumentType, key: string, text: string): string {
-  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom." };
+  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom.", mandant: "Client de démonstration", mandataire: "Mandataire de démonstration", etendue: "passer des ordres sur tous instruments · recevoir les avis", fin: "31 déc. 2027", banque: "Banque de démonstration", rib: "0047", prochain: "coupon du 31 déc. 2026 (272 500 FCFA)", etablissement: "Société de bourse de démonstration · compte 0000-XX", delai_accuse: "deux jours ouvrés", delai_reponse: "trente jours", canal: "WhatsApp" };
   void type;
   void key;
   return fill(text, vars);

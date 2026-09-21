@@ -3,6 +3,7 @@ import { healthChecks } from "@/lib/health";
 import { displayStatus, isActionable } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
 import { fmtDate } from "@/lib/format";
+import { positionsFrom } from "@/lib/positions";
 import type { Tile } from "./TodayPanel";
 
 /**
@@ -102,7 +103,37 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
     action: toValidate ? t("publier") : undefined,
   });
 
-  // 6. Health.
+  // 6. Coupons and redemptions paid without a notice (positions of every client, last 120 days).
+  try {
+    const [intents, docs] = await Promise.all([r.listIntents(), r.listDocuments()]);
+    const done = new Set(docs.filter((d) => d.flowKey).map((d) => d.flowKey));
+    const since = new Date(now.getTime() - 120 * 86400e3).toISOString().slice(0, 10);
+    const clients = [...new Set(intents.map((i) => i.clientId).filter((x): x is string => Boolean(x)))];
+    let flows = 0;
+    const who = new Set<string>();
+    const lines = new Set<string>();
+    for (const clientId of clients)
+      for (const p of positionsFrom(intents.filter((i) => i.clientId === clientId), offers ?? (await r.listOffers())))
+        for (const f of p.paid) {
+          if (f.date < since || done.has(`${clientId}|${p.offer.isin}|${f.date}`)) continue;
+          flows++;
+          who.add(clientId);
+          lines.add(p.offer.title.slice(0, 28));
+        }
+    tiles.push({
+      key: "coupons",
+      label: t("Coupons et remboursements à aviser"),
+      value: flows ? t("{n} flux · {c} client(s)", { n: String(flows), c: String(who.size) }) : "0",
+      detail: flows ? [...lines].slice(0, 3).join(" · ") : t("chaque flux payé a son avis"),
+      tone: flows ? "warn" : "ok",
+      href: "/desk/clients",
+      action: flows ? t("émettre les avis") : undefined,
+    });
+  } catch {
+    /* quiet */
+  }
+
+  // 7. Health.
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   const bad = checks.filter((c) => c.level !== "ok");
   tiles.push({

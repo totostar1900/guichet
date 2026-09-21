@@ -82,6 +82,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const phoneUnprovable = !whatsappConfigured() && !proofDemoAllowed();
   if (!phoneOk && !phoneUnprovable) return { ok: false, error: "Ce numéro WhatsApp n'est pas encore prouvé : saisissez le code reçu avant d'envoyer." };
   if (!allowedIntents(offer, displayStatus(offer)).includes(type)) return { ok: false, error: "Cette intention n'est plus possible sur cette offre." };
+  if (session.kycStatus === "en_cloture" || session.kycStatus === "clos") return { ok: false, error: "Votre compte est en cours de clôture : aucune nouvelle intention n'est possible. Écrivez-nous si ce n'est pas votre demande." };
 
   const amt = offer.kind === "FONDS" && type === "rachat" ? parseUnits(amount) : parseAmount(amount);
   if ((type === "ferme" || type === "cession") && !amt) return { ok: false, error: "Indiquez un montant pour une prise ferme ou une cession." };

@@ -238,3 +238,14 @@ export function amortCalc(b: AmortInput, nominalAmount: number, pricePct: number
   const gain = flows.reduce((s, f) => s + f.amount, 0) - outlay;
   return { titles, accruedDays, accruedPerTitle, accrued: titles * accruedPerTitle, pricePerTitle, outlay, commission: (outlay * (b.commissionPct ?? 0)) / 100, gain, irr, flows };
 }
+
+/** The date n business days (Mon–Fri, holidays not known) after a moment. */
+export function addBusinessDays(from: Date, n: number): Date {
+  const d = new Date(from.getTime());
+  let left = n;
+  while (left > 0) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    if (d.getUTCDay() >= 1 && d.getUTCDay() <= 5) left--;
+  }
+  return d;
+}

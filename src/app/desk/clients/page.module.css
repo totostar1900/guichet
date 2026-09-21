@@ -74,6 +74,14 @@
   background: var(--good-soft);
   color: var(--good);
 }
+.st_en_cloture {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.st_clos {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
 .st_refuse {
   background: var(--crit-soft);
   color: var(--crit);
@@ -267,4 +275,121 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* ---- actes et avis ---- */
+.acts {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gold-line);
+}
+.actGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+.act {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface);
+}
+.act b {
+  font-size: 0.88rem;
+}
+.act p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  flex: 1;
+}
+.actList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+.actList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.inline {
+  display: inline-flex;
+  gap: 6px;
+}
+.actForm {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line-2);
+  border-radius: 10px;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.actForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  min-width: 0;
+}
+.actForm input,
+.actForm select,
+.actForm textarea {
+  font: inherit;
+  font-size: 0.84rem;
+  padding: 6px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+}
+.actForm p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+.row3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+.span2 {
+  grid-column: span 2;
+}
+.actChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.actCheck {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink) !important;
+}
+.actCheck input {
+  width: auto !important;
+}
+.actFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }

@@ -259,7 +259,7 @@ export interface IntakeItem {
 
 /* ---------------- Documents ---------------- */
 
-export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation";
+export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "coupon" | "reclamation" | "transfert";
 export type DocumentStatus = "genere" | "envoye" | "signe";
 
 export interface GeneratedDocument {
@@ -285,6 +285,8 @@ export interface GeneratedDocument {
   createdBy?: string;
   /** The version of each reworded passage this document was rendered with (0 = the code's default). */
   templateVersions?: Record<string, number>;
+  /** For a coupon / redemption notice: the flow it covers (« client|isin|date »), so it is issued once. */
+  flowKey?: string;
 }
 
 /* ---------------- Contacts & notifications ---------------- */

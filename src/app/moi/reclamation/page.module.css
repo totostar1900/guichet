@@ -1,0 +1,125 @@
+.wrap {
+  display: grid;
+  gap: 18px;
+}
+.head h1 {
+  font-size: 1.6rem;
+  margin: 4px 0 6px;
+}
+.lead {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  max-width: 62ch;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px 16px;
+  max-width: 720px;
+}
+.stepper {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.stepper li {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.stepper li[aria-current="step"] {
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 800;
+}
+.form {
+  display: grid;
+  gap: 12px;
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+.form input,
+.form select,
+.form textarea {
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+}
+.form p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+.code {
+  font-size: 1.3rem !important;
+  letter-spacing: 0.4em;
+  text-align: center;
+  max-width: 220px;
+}
+.check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink) !important;
+  font-size: 0.86rem !important;
+}
+.check input {
+  width: auto !important;
+}
+.recap {
+  border-left: 3px solid var(--gold);
+  padding: 4px 12px;
+  display: grid;
+  gap: 6px;
+}
+.recap p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.err {
+  color: var(--crit);
+  font-weight: 700;
+  font-size: 0.82rem;
+  margin: 0;
+}
+.done {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--good);
+  border-radius: 10px;
+  background: var(--good-soft);
+}
+.done p {
+  margin: 0;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 10px 14px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.86rem;
+}

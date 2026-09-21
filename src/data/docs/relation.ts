@@ -91,6 +91,7 @@ export const RELATION: DocPage = {
       id: "situations",
       title: l("Situations et conduite à tenir", "Situations and what to do"),
       blocks: [
+        { type: "p", text: l("Quatre actes ont leur document et leur circuit : le mandat quand un tiers passe les ordres (desk › Dossiers › Actes et avis, signé par le client et le mandataire), l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis Mon espace, signée par code ; accusé de réception sous deux jours ouvrés, réponse sous trente jours, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Four acts have their document and their circuit: the mandate when a third party places orders (desk › Files › Acts and notices, signed by the client and the agent), the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from My space, signed by code; acknowledgement within two business days, answer within thirty days, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
         {
           type: "table",
           head: [l("Situation", "Situation"), l("Conduite", "What to do")],

@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { isResponsable } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import type { DocumentType, TemplateText } from "@/lib/domain/types";
-import { DOC_LABEL, docsForTransition } from "@/lib/documents/registry";
+import { DOC_KIND, DOC_KIND_LABEL, DOC_KIND_RULE, DOC_LABEL, DOC_ORDER, DOC_WHEN, type DocumentKind } from "@/lib/documents/registry";
 import { PASSAGES, SENSITIVITY_LABEL } from "@/lib/documents/passages";
 import { previewLine } from "@/lib/documents/generate";
 import { fmtDateTime } from "@/lib/format";
@@ -15,16 +15,6 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Modèles" };
 
-const WHEN: Partial<Record<DocumentType, string>> = {
-  bulletin: "à la confirmation d'une intention (souscription, achat, vente)",
-  fonds: "à la confirmation, avec le bulletin",
-  cession: "à la confirmation d'une cession ou d'un rachat",
-  allocation: "quand la ligne est servie (ou non servie)",
-  opere: "au règlement",
-  releve: "à la demande du client ou du desk",
-  attestation: "à la demande du client",
-  convention: "à l'ouverture du compte-titres ; le modèle vierge se lit avant l'acceptation",
-};
 
 /**
  * The templates registry: every document model, when the lifecycle
@@ -36,12 +26,12 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
   const [t, sp, session, rows] = await Promise.all([getT(), searchParams, getSession(), repo().listTemplateTexts().catch(() => [] as TemplateText[])]);
   const responsable = isResponsable(session);
   const me = session?.name ?? "";
-  const types = Object.keys(PASSAGES) as DocumentType[];
+  const types = DOC_ORDER;
   const open = (sp.type && types.includes(sp.type as DocumentType) ? sp.type : types[0]) as DocumentType;
+  const kinds: DocumentKind[] = ["signe", "envoye", "interne"];
   const defs = PASSAGES[open] ?? [];
   const byPassage = (key: string) => rows.filter((r) => r.docType === open && r.passage === key).sort((a, b) => b.version - a.version);
   const pendingAll = rows.filter((r) => r.status === "pending").length;
-  void docsForTransition;
   return (
     <>
       <DeskNav current="/desk/referentiel" />
@@ -64,31 +54,45 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
 
       <div className={styles.layout}>
         <nav className={styles.types} aria-label={t("Modèles")}>
-          {types.map((k) => {
-            const n = rows.filter((r) => r.docType === k && r.status === "pending").length;
-            return (
-              <Link key={k} href={`/desk/referentiel/modeles?type=${k}`} aria-current={k === open ? "page" : undefined}>
-                <b>{t(DOC_LABEL[k])}</b>
-                <small>
-                  {(PASSAGES[k] ?? []).length} {t("passages")}
-                  {n ? ` · ${n} ${t("en attente")}` : ""}
-                </small>
-              </Link>
-            );
-          })}
+          {kinds.map((kind) => (
+            <div key={kind} className={styles.group}>
+              <div className={`${styles.groupHead} ${styles[kind]}`} title={t(DOC_KIND_RULE[kind])}>
+                <b>{t(DOC_KIND_LABEL[kind])}</b>
+                <small>{t(DOC_KIND_RULE[kind]).split(" : ")[0]}</small>
+              </div>
+              {types
+                .filter((k) => DOC_KIND[k] === kind)
+                .map((k) => {
+                  const n = rows.filter((r) => r.docType === k && r.status === "pending").length;
+                  const np = (PASSAGES[k] ?? []).length;
+                  return (
+                    <Link key={k} href={`/desk/referentiel/modeles?type=${k}`} aria-current={k === open ? "page" : undefined}>
+                      <b>{t(DOC_LABEL[k])}</b>
+                      <small>
+                        {np ? `${np} ${t("passages")}` : t("mise en page seulement")}
+                        {n ? ` · ${n} ${t("en attente")}` : ""}
+                      </small>
+                    </Link>
+                  );
+                })}
+            </div>
+          ))}
         </nav>
 
         <div className={styles.model}>
           <div className={styles.modelHead}>
             <div>
               <h2>{t(DOC_LABEL[open])}</h2>
-              <small>{t("Produit")} : {t(WHEN[open] ?? "à la demande")}</small>
+              <small>
+                <span className={`${styles.kindTag} ${styles[DOC_KIND[open]]}`}>{t(DOC_KIND_LABEL[DOC_KIND[open]])}</span> {t("Produit")} : {t(DOC_WHEN[open])}
+              </small>
             </div>
             <a className="btn sm primary" href={`/desk/referentiel/modeles/preview?type=${open}`} target="_blank" rel="noreferrer">
               {t("Aperçu PDF · texte en vigueur")}
             </a>
           </div>
 
+          {defs.length === 0 && <p className={styles.none}>{t("Ce document n'a pas de passage rédigé : sa mise en page et ses mentions sont dans le code, ses données viennent du dossier ou de l'intention.")}</p>}
           {defs.map((d) => {
             const versions = byPassage(d.key);
             const current = versions.find((v) => v.status === "current");
