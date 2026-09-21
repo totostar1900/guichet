@@ -57,7 +57,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   // À la une: what is featured now, and which lines could be (open or quoted, not hidden).
   const today = now.toISOString().slice(0, 10);
   const featRow = (o: Offer) => ({ id: o.id, title: o.title, hero: summarize(o, now).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
-  const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map(featRow);
+  const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map((o) => ({ ...featRow(o), closed: !isActionable(displayStatus(o, now)) }));
   const featCandidates = offers.filter((o) => !o.hidden && !(o.featured && o.featured.until >= today) && isActionable(displayStatus(o, now))).map(featRow);
 
   const notifStatus: Record<string, [string, string]> = { sent: ["confirmee", "Envoyé"], skipped: ["recue", "Préparé"], failed: ["annulee", "Échec"], queued: ["info", "En file"] };

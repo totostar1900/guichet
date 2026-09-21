@@ -526,7 +526,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
   // « À la une » : the desk's picks, in their own frame under the toolbar, in the same view as the list.
   const today = nowIso.slice(0, 10);
-  const picks = rows.filter(({ o }) => o.featured && o.featured.until >= today).slice(0, 3);
+  // « À la une » only while a client can act on the line: a closed line leaves the frame by itself.
+  const picks = rows.filter(({ o, s }) => o.featured && o.featured.until >= today && !s.past).slice(0, 3);
   const pickIds = new Set(picks.map(({ o }) => o.id));
   const rest = pickIds.size ? rows.filter(({ o }) => !pickIds.has(o.id)) : rows;
   // The line pages step through this exact order and come back to this exact list.

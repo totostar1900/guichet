@@ -6,6 +6,7 @@ import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { ConflictError } from "@/lib/domain/types";
+import { displayStatus, isActionable } from "@/lib/domain/status";
 
 export type FeatureResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -29,6 +30,10 @@ export async function featureOfferAction(_p: FeatureResult | null, form: FormDat
   if (!o) return { ok: false, error: "Ligne introuvable." };
   const today = new Date().toISOString().slice(0, 10);
   if (p.data.until < today) return { ok: false, error: "La date de fin est déjà passée." };
+  // Only a line a client can act on: open, closing, upcoming or quoted. A closed line is not a selection.
+  if (o.hidden || !isActionable(displayStatus(o))) return { ok: false, error: "Cette ligne est clôturée ou retirée : elle ne peut pas être à la une." };
+  const lineEnd = o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10);
+  if (lineEnd && p.data.until > lineEnd) return { ok: false, error: `La mise à la une ne peut pas dépasser la clôture de la ligne (${lineEnd}).` };
   const active = offers.filter((x) => x.id !== o.id && x.featured && x.featured.until >= today);
   if (active.length >= 3) return { ok: false, error: "Trois lignes au plus à la une : retirez-en une d'abord." };
   const featured = { reason: p.data.reason, until: p.data.until, by: desk.name, at: new Date().toISOString() };

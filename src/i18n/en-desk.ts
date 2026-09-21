@@ -870,4 +870,10 @@ export const EN_MORE: Record<string, string> = {
   "Banque de développement de la CEMAC, détenue par les six États membres et la BEAC ; elle finance des projets publics et privés de la zone et se refinance par des emprunts obligataires cotés à la BVMAC.": "The CEMAC development bank, owned by the six member states and the BEAC; it finances public and private projects in the zone and refinances itself through bonds listed on the BVMAC.",
   "Banque centrale des six États de la CEMAC ; elle tient les adjudications des titres publics.": "Central bank of the six CEMAC states; it runs the auctions of public securities.",
   "Banque de développement": "Development bank",
+  "Tapez un nom de ligne, un ISIN…": "Type a line name, an ISIN…",
+  "cotée": "listed",
+  "Aucune ligne ouverte ou cotée ne correspond.": "No open or listed line matches.",
+  "clôturée : plus affichée aux clients, à retirer": "closed: no longer shown to clients, remove it",
+  "seules les lignes ouvertes ou cotées": "open or listed lines only",
+  "Cette ligne est clôturée ou retirée : elle ne peut pas être à la une.": "This line is closed or withdrawn: it cannot be featured.",
 };
