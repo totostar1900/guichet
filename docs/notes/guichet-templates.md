@@ -9,4 +9,4 @@ Templates registry (built 2026-09-21): what generated documents say is edited fr
 
 **Why:** the desk must reword documents without a deploy, with a review trail, and issued PDFs must never change retroactively. Layout, figures and new document types stay in code.
 
-**How to apply:** add a passage with `P(...)` in the catalogue and call `passage(docType, key, texts, vars)` in the PDF template; never import `@/lib/data` from the catalogue (client bundle). Migration `0030_template_texts.sql` must be applied on Supabase before production use (see [[guichet-supabase-migrations]]); until then the desk reads the code text and saves fail cleanly. Related: [[guichet-issuers-fiche]], [[guichet-docs-and-guides]].
+**How to apply:** add a passage with `P(...)` in the catalogue and call `passage(docType, key, texts, vars)` in the PDF template; never import `@/lib/data` from the catalogue (client bundle). Migration `0030_template_texts.sql` applied on Supabase 2026-09-21 (see [[guichet-supabase-migrations]]). Related: [[guichet-issuers-fiche]], [[guichet-docs-and-guides]].
