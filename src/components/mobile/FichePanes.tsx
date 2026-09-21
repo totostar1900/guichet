@@ -1,12 +1,13 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { createContext, useContext, useState } from "react";
 import styles from "./FichePanes.module.css";
 
 /**
  * On a phone the fiche is read in four compartments: Essentiel, Chiffres,
- * Documents, Risques. Sections carry `data-pane`; this wrapper shows one pane
+ * Documents, Émetteur. Sections carry `data-pane`; this wrapper shows one pane
  * at a time under 760 px and everything above (CSS does the hiding, so the
  * desktop page is untouched and the HTML is the same for both).
  */
@@ -14,7 +15,7 @@ export const PANES: [string, string][] = [
   ["essentiel", "Essentiel"], // translated at render
   ["chiffres", "Chiffres"],
   ["docs", "Documents"],
-  ["risques", "Risques"],
+  ["emetteur", "Émetteur"],
 ];
 
 const PaneCtx = createContext<{ pane: string; setPane: (p: string) => void }>({ pane: "essentiel", setPane: () => undefined });
@@ -45,33 +46,18 @@ export function FicheSegments() {
   );
 }
 
-/** Phone-only bar above the tab bar: the one action, always a thumb away; hides while the form itself is on screen. */
-export function StickyAction({ label, targetId, secondaryHref, secondaryLabel }: { label: string; targetId: string; secondaryHref?: string; secondaryLabel?: string }) {
-  const [hidden, setHidden] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const target = document.getElementById(targetId);
-    if (!target) return;
-    const io = new IntersectionObserver(([e]) => setHidden(e.isIntersecting), { threshold: 0.15 });
-    io.observe(target);
-    return () => io.disconnect();
-  }, [targetId]);
-  const go = () => {
-    const t = document.getElementById(targetId);
-    t?.scrollIntoView({ behavior: "smooth", block: "start" });
-    const first = t?.querySelector<HTMLElement>("input, select, button");
-    setTimeout(() => first?.focus({ preventScroll: true }), 400);
-  };
+/** Phone-only bar above the tab bar: the one action, always a thumb away. It opens the intention on its own page. */
+export function StickyAction({ label, href, secondaryHref, secondaryLabel }: { label: string; href: string; secondaryHref?: string; secondaryLabel?: string }) {
   return (
-    <div ref={ref} className={`${styles.cta} ${hidden ? styles.ctaHidden : ""}`} data-coach="action">
+    <div className={styles.cta} data-coach="action">
       {secondaryHref && (
         <a className="btn sm ghost" href={secondaryHref}>
           {secondaryLabel}
         </a>
       )}
-      <button type="button" className={`btn primary ${styles.ctaMain}`} onClick={go}>
+      <Link className={`btn primary ${styles.ctaMain}`} href={href}>
         {label}
-      </button>
+      </Link>
     </div>
   );
 }

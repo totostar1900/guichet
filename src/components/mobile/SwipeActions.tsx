@@ -172,7 +172,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
           }
           window.setTimeout(() => {
             close();
-            router.push(`${href}#intention`);
+            router.push(`${href}/intention`);
           }, 220);
           return;
         }
@@ -255,13 +255,13 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹
         </button>
-        <button type="button" className={styles.b1} onClick={() => closeThen(() => router.push(`${href}#intention`))} tabIndex={-1}>
+        <button type="button" className={styles.b1} onClick={() => closeThen(() => router.push(`${href}/intention`))} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             <path d="M4 5h16v14H4z M8 10h8 M8 14h5" />
           </svg>
           {t("Déclarer")}
         </button>
-        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}?intent=rappel#intention`))} tabIndex={-1}>
+        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}/intention?intent=rappel`))} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" />
           </svg>

@@ -15,8 +15,7 @@ import { FichePanes, FicheSegments, StickyAction } from "@/components/mobile/Fic
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { SwipePager } from "@/components/mobile/SwipePager";
 import { LineMenu } from "@/components/mobile/LineMenu";
-import { KpiCard } from "@/components/KpiCard";
-import { explainKpis } from "@/lib/domain/explain";
+import { Kpis } from "./Kpis";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
@@ -29,10 +28,12 @@ import type { IntentType, Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate, tenorText } from "@/lib/finance";
 import { positionsFrom } from "@/lib/positions";
 import { typeOf } from "@/lib/registry";
-import { offerRisks } from "@/lib/domain/sheet";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
+import { intentHref, loadIntentContext } from "./intent-context";
+import { IssuerCard } from "./IssuerCard";
+import { issuerKey, resolveIssuer } from "@/data/issuer-registry";
 import { COMPANY, PRODUCT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -49,56 +50,6 @@ export async function generateMetadata({ params }: Props) {
   return { title: o.title, description, openGraph: { title: o.title, description, type: "article", siteName: `${PRODUCT.name} · ${COMPANY.name}` }, twitter: { card: "summary_large_image", title: o.title, description } };
 }
 
-function Kpis({ o }: { o: Offer }) {
-  const dy = displayYield(o);
-  const y = dy.pct;
-  const yTxt = y != null ? `${dy.approx ? "≈ " : ""}${fmtPct(y, 2)}` : "—";
-  const items: [string, string, boolean][] =
-    o.kind === "OTA" || o.kind === "APE"
-      ? [
-          [dy.atPar ? `Taux nominal ${o.servedPricePct ? "servi" : "visé"} au pair` : `Rendement actuariel ${o.servedPricePct ? "servi" : "visé"}`, yTxt, true],
-          [`Prix ${o.servedPricePct ? "servi" : "Purpose"}`, fmtPrice(o.servedPricePct ?? o.pricePct ?? 100), false],
-          ["Coupon annuel", fmtPct(o.couponRate ?? 0, 2), false],
-        ]
-      : o.kind === "FONDS" && o.fund
-        ? [
-            [o.fund.perf1yPct != null ? "Performance sur 12 mois" : `Depuis l'origine${o.fund.inceptionDate ? ` (${fmtDate(o.fund.inceptionDate)})` : ""}`, o.fund.perf1yPct != null ? `${o.fund.perf1yPct > 0 ? "+" : ""}${fmtPct(o.fund.perf1yPct, 2)}` : `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, true],
-            ["Valeur liquidative (FCFA)", fmt(o.fund.nav), false],
-            ["Catégorie", `${FUND_CATEGORY_LABEL[o.fund.category]} · ${FUND_FREQUENCY_LABEL[o.fund.frequency]}`, false],
-          ]
-      : o.kind === "MARCHE"
-        ? [
-            [dy.atPar ? "Taux nominal · au pair" : o.instrument === "obligation" ? "Rendement actuariel annuel brut au cours" : "Rendement du dernier dividende", yTxt, true],
-            [o.instrument === "obligation" ? "Coupon facial" : "Dernier dividende brut", o.instrument === "obligation" ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
-            [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", false],
-          ]
-      : o.kind === "BTA"
-        ? [
-            ["Rendement actuariel annuel", y != null ? fmtPct(y, 2) : "—", true],
-            ["Taux précompté", fmtPct(o.precountRate ?? 0, 2), false],
-            ["Durée", o.maturityOn ? `${daysBetween(o.settleOn, o.maturityOn)} jours` : "—", false],
-          ]
-        : o.kind === "ACTIONS"
-          ? [
-              ["Rendement du dividende au prix", y != null ? fmtPct(y, 2) : "—", true],
-              ["Dernier dividende brut", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
-              ["Prix de souscription (FCFA)", fmt(o.pricePerShare ?? 0), false],
-            ]
-          : [
-              ["Prix de rachat", "100 %", true],
-              ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—", false],
-              ["Volume racheté", o.sizeLabel ?? "—", false],
-            ];
-  // Every card opens on tap: the number decomposed with this line's own figures.
-  const explains = explainKpis(o);
-  return (
-    <div className={styles.kpis} data-coach="kpis">
-      {items.map(([k, v, gold], i) => (
-        <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`/comparer?a=${o.id}`} coach={gold ? "hero" : undefined} />
-      ))}
-    </div>
-  );
-}
 
 /** Read-only reference block at the published price. */
 async function Reference({ o }: { o: Offer }) {
@@ -306,39 +257,19 @@ export default async function OfferPage({ params, searchParams }: Props) {
     );
   }
   const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
-  const channels = session ? await repo().getChannelStatus(session.userId) : undefined;
-  // Came through the desk's WhatsApp link: that number is vouched for, the form asks for the e-mail code only.
-  const { readLineLink } = await import("@/lib/channels");
-  const bridgedPhone = readLineLink(sp.de);
-  const bridge = bridgedPhone && sp.de ? { phone: bridgedPhone, token: sp.de } : undefined;
-  // The client's financial profile against this line: a word by the status, a confirmation before an intention that leaves it.
-  const { profileFlag } = await import("@/data/profile");
-  const fin = session ? await repo().getFinancialProfile(session.userId).catch(() => undefined) : undefined;
-  const tenorYears = o.maturityOn ? Math.max(0, (new Date(o.maturityOn).getTime() - new Date().getTime()) / (365.25 * 864e5)) : undefined;
-  const equity = o.kind === "ACTIONS" || o.instrument === "action" || (o.kind === "FONDS" && o.fund?.category === "A");
-  const mark = profileFlag(fin, { tenorYears, equity });
+  const { channels, bridge, fin, mark, types, initial, held, qty, st, past, priceText } = await loadIntentContext(o, sp, session);
+  const summary = summarize(o, new Date());
+  const profile = resolveIssuer(o);
+  const others = profile ? (await repo().listOffers()).filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })).slice(0, 8) : [];
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
   const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
   const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
   const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 2000) : [];
   // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
   const btaBenchmark = o.kind === "FONDS" ? await latestBta() : undefined;
-  const st = displayStatus(o);
-  const past = isPast(st);
-  const summary = summarize(o, new Date());
-  const types = allowedIntents(o, st);
-  const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
-  // What the signed-in client already holds on this line : caps sales / redemptions and pre-fills « tout vendre ».
-  let held = 0;
-  if (session && (o.kind === "MARCHE" || o.kind === "FONDS")) {
-    const [allIntents, allOffers] = await Promise.all([repo().listIntents(), repo().listOffers()]);
-    held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
-  }
-  const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
 
   const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
-  const priceText = o.kind === "FONDS" && o.fund ? `VL ${fmt(o.fund.nav)} FCFA` : o.kind === "MARCHE" ? `cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}` : o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
   const timeline: [string, string][] =
@@ -371,7 +302,6 @@ export default async function OfferPage({ params, searchParams }: Props) {
         ];
 
   // « À garder en tête » comes from the product type (desk-editable in the référentiel).
-  const risks = offerRisks(o);
   // The walk-through speaks about this line, with its own numbers.
   const dyc = displayYield(o);
   const relatedNews = (await newsFor("offer", o.id)).length;
@@ -436,6 +366,9 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <Kpis o={o} />
           <p className={styles.blurb}>{t(o.blurb)}</p>
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
+          <p className={styles.note}>
+            {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.
+          </p>
         </section>
 
         <section className={styles.sec} data-pane="chiffres">
@@ -451,24 +384,6 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <h3>{t("Valeurs liquidatives publiées")}</h3>
             <NavHistory navs={navs} benchmark={btaBenchmark} />
             <p className={styles.note}>{t("VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement.")} {o.fund?.distributed ? "" : t("Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore : dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion.")}</p>
-          </section>
-        )}
-        {company && (
-          <section className={styles.sec} data-pane="docs">
-            <h3>{t("La société")}</h3>
-            <p className={styles.note}>
-              {t(company.activity)}{" "}
-              <Link href={`/societes/${company.mnemo.toLowerCase()}`}>{t("Analyse complète : comptes certifiés, ratios, dividendes, rapport PDF")} →</Link>
-            </p>
-          </section>
-        )}
-        {issuer && (
-          <section className={styles.sec} data-pane="docs">
-            <h3>{t("L'émetteur")}</h3>
-            <p className={styles.note}>
-              {t(issuer.activity)}{" "}
-              <Link href={`/emetteurs/${issuer.slug}`}>{t("Profil de l'émetteur : comptes publiés, actionnariat, autres emprunts")} →</Link>
-            </p>
           </section>
         )}
         {quotes.length > 0 && (
@@ -532,15 +447,9 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
 
-        <section className={styles.sec} data-pane="risques">
-          <h3>{t("À garder en tête")}</h3>
-          <ul className={styles.risks}>
-            {risks.map(([rt, d]) => (
-              <li key={rt}>
-                <b>{t(rt)}</b> {t(d)}
-              </li>
-            ))}
-          </ul>
+        <section className={styles.sec} data-pane="emetteur">
+          <h3>{t("L'émetteur")}</h3>
+          <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} />
         </section>
       </FichePanes>
       </SwipePager>
@@ -553,7 +462,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           </div>
         )}
       </aside>
-      {!past && <StickyAction label={t(o.kind === "FONDS" ? "Souscrire ou racheter" : o.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention")} targetId="intention" secondaryHref={`/comparer?a=${o.id}`} secondaryLabel={t("Comparer")} />}
+      {!past && <StickyAction label={t(o.kind === "FONDS" ? "Souscrire ou racheter" : o.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention")} href={intentHref(o.id, { intent: sp.intent, qty, de: sp.de })} secondaryHref={`/comparer?a=${o.id}`} secondaryLabel={t("Comparer")} />}
     </div>
   );
 }

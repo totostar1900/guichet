@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { issuerZone } from "@/data/issuer-registry";
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
 import { COUNTRY_CODE, type OfferSummary } from "@/lib/domain/summary";
@@ -15,6 +16,7 @@ import styles from "./LineIdentity.module.css";
 export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" | "xl"; as?: "div" | "h1" }) {
   const t = useT();
   const title = href ? <Link href={href}>{t(s.title)}</Link> : t(s.title);
+  const zone = issuerZone(o);
   return (
     <div className={`${styles.id} ${size === "lg" ? styles.lg : size === "xl" ? styles.xl : ""}`}>
       <Tag className={styles.title}>{title}</Tag>
@@ -22,9 +24,15 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: 
         <span className={`fam fam-${s.family}`} style={famVars(s.family) as React.CSSProperties}>
           {s.kind}
         </span>
-        <span className="cc" title={t(o.countryName)}>
-          {COUNTRY_CODE[o.country]}
-        </span>
+        {zone === "CEMAC" ? (
+          <span className="cc cemac" title={t("Institution de la CEMAC")}>
+            CEMAC
+          </span>
+        ) : (
+          <span className="cc" title={t(o.countryName)}>
+            {COUNTRY_CODE[o.country]}
+          </span>
+        )}
         <span className={styles.isin}>{o.isin}</span>
         <span className={styles.issuer}>{t(s.subtitle)}</span>
       </div>

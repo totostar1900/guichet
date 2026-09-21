@@ -34,7 +34,7 @@
   .panes[data-show="essentiel"] [data-pane]:not([data-pane="essentiel"]),
   .panes[data-show="chiffres"] [data-pane]:not([data-pane="chiffres"]),
   .panes[data-show="docs"] [data-pane]:not([data-pane="docs"]),
-  .panes[data-show="risques"] [data-pane]:not([data-pane="risques"]) {
+  .panes[data-show="emetteur"] [data-pane]:not([data-pane="emetteur"]) {
     display: none;
   }
   .cta {

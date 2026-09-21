@@ -1,0 +1,141 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.badge {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+  border: 1px solid var(--line-2);
+}
+.cemac {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-color: var(--gold-line);
+  font-size: 0.66rem;
+}
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.who b {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.who small {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px 14px;
+}
+.facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.facts span {
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.facts b {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.activity {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.source {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.source a {
+  color: var(--gold-ink);
+}
+.others {
+  border-top: 1px solid var(--gold-line);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+.others h4 {
+  margin: 0 0 4px;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.others h4 small {
+  font-weight: 700;
+  color: var(--gold-ink);
+  margin-left: 4px;
+}
+.other {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.other:first-of-type {
+  border-top: 0;
+}
+.other > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.other b {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.other small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.other em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.92rem;
+  flex: none;
+}
+.gold {
+  color: var(--gold-ink);
+}
+.all {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--gold-ink);
+  align-self: flex-start;
+}

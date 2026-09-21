@@ -231,8 +231,9 @@
   .sec {
     padding: 14px 0;
   }
+  /* on the phone the intention has its own page (/offres/[id]/intention): the side column stays off */
   .side {
-    scroll-margin-top: 64px;
+    display: none;
   }
 }
 @media (max-width: 760px) {

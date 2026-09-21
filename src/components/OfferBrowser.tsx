@@ -12,6 +12,7 @@ import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { usePhone } from "./chart-utils";
+import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
 import { LineMenu } from "./mobile/LineMenu";
 import { Sheet } from "./mobile/Sheet";
 import { FilterFab } from "./FilterFab";
@@ -121,14 +122,16 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
 /* ---------- grouping ---------- */
 type Row = { o: Offer; s: OfferSummary };
 /** Rows in their current order, bucketed by issuer (first appearance keeps the sort). */
-function groupByIssuer(rows: Row[]): { issuer: string; country: Offer["country"]; countryName: string; rows: Row[] }[] {
-  const out: { issuer: string; country: Offer["country"]; countryName: string; rows: Row[] }[] = [];
+/** Groups follow the issuer registry: one head for a borrower's spellings, its zone (a country, or CEMAC) on the flag. */
+function groupByIssuer(rows: Row[]): { issuer: string; zone: IssuerZone; countryName: string; rows: Row[] }[] {
+  const out: { issuer: string; zone: IssuerZone; countryName: string; rows: Row[] }[] = [];
   const idx = new Map<string, number>();
   for (const r of rows) {
-    const k = r.o.issuer;
+    const k = issuerKey(r.o);
     if (!idx.has(k)) {
       idx.set(k, out.length);
-      out.push({ issuer: k, country: r.o.country, countryName: r.o.countryName, rows: [] });
+      const zone = issuerZone(r.o);
+      out.push({ issuer: k, zone, countryName: zone === "CEMAC" ? "Institution de la CEMAC" : r.o.countryName, rows: [] });
     }
     out[idx.get(k)!].rows.push(r);
   }
@@ -139,8 +142,8 @@ function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]
   const fams = [...new Set(g.rows.map((r) => r.s.kind))];
   const inner = (
     <>
-      <span className="cc" title={g.countryName}>
-        {COUNTRY_CODE[g.country]}
+      <span className={`cc ${g.zone === "CEMAC" ? "cemac" : ""}`} title={g.countryName}>
+        {g.zone === "CEMAC" ? "CEMAC" : COUNTRY_CODE[g.zone]}
       </span>
       <b>{g.issuer}</b>
       <span className={styles.groupMeta}>
@@ -178,7 +181,7 @@ const StatusPill = ({ s }: { s: OfferSummary }) => {
 };
 
 function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean }) {
-  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
+  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
   const t = useT();
   return (
     <div className={styles.tableWrap} data-chosen={chosen ? "1" : undefined}>
@@ -250,7 +253,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
 /* ---------- list ---------- */
 function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; featured?: boolean }) {
   const t = useT();
-  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows }];
+  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.list}>
       {groups.flatMap((g) => [
@@ -481,8 +484,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         case "title":
           return a.s.title.localeCompare(b.s.title, "fr");
         case "issuer":
-          // By issuer, then by closing within the issuer: grouped, the groups follow the issuers' order.
-          return a.o.issuer.localeCompare(b.o.issuer, "fr") || (a.s.deadlineAt ? parseDate(a.s.deadlineAt).getTime() : Infinity) - (b.s.deadlineAt ? parseDate(b.s.deadlineAt).getTime() : Infinity);
+          // By issuer (the registry's name, so a borrower's spellings sort together), then by closing within the issuer.
+          return issuerKey(a.o).localeCompare(issuerKey(b.o), "fr") || (a.s.deadlineAt ? parseDate(a.s.deadlineAt).getTime() : Infinity) - (b.s.deadlineAt ? parseDate(b.s.deadlineAt).getTime() : Infinity);
         default:
           return parseDate(a.o.opensAt).getTime() - parseDate(b.o.opensAt).getTime();
       }
@@ -513,7 +516,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       <List rows={list} grouped={grouped && !featured} featured={featured} />
     ) : (
       <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
-        {(grouped && !featured ? groupByIssuer(list) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
+        {(grouped && !featured ? groupByIssuer(list) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
           ...(grouped && !featured ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
           ...g.rows.map(({ o, s }) => (
             <div key={o.id} className={featured ? styles.pickCard : undefined}>
