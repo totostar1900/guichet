@@ -43,8 +43,8 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
   },
   terms: {
     label: "Obligations cotées sans échéancier exact",
-    href: "/desk/referentiel?onglet=echeanciers#sans-echeancier",
-    how: "Le prix se calcule sur l'année du bulletin tant que l'échéancier manque : ouvrir la fiche signalétique BVMAC de la ligne, « Créer » l'échéancier (date exacte, paiements par an, différé), puis « Publier ».",
+    href: "/desk/referentiel?onglet=echeanciers&filtre=sans-echeancier",
+    how: "Le prix se calcule sur l'année du bulletin tant que l'échéancier manque : sur la ligne orange, « Créer l'échéancier » avec la fiche signalétique BVMAC sous les yeux (date exacte, paiements par an, différé), enregistrer, puis « Publier ».",
     docs: { href: "/desk/docs/administration#referentiel", label: "Le référentiel" },
   },
   pricing: {

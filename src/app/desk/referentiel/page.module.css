@@ -515,3 +515,39 @@
   padding: 8px 10px;
   border-radius: 6px;
 }
+
+/* ---- échéanciers : états des lignes ---- */
+.estime td:first-child {
+  box-shadow: inset 4px 0 0 var(--warn);
+}
+.estime td {
+  background: color-mix(in srgb, var(--warn-soft) 55%, var(--surface));
+}
+.quiet td {
+  color: var(--ink-3);
+}
+.warnTag {
+  color: var(--warn);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.tagWarn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.warnBtn {
+  border-color: var(--warn);
+  color: var(--warn);
+  font-weight: 700;
+}
+.linkBtn {
+  border: 0;
+  background: transparent;
+  color: var(--gold-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: underline dotted;
+  cursor: pointer;
+  padding: 0;
+}

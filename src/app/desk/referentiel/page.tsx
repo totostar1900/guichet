@@ -33,7 +33,7 @@ const TABS: [Tab, string, string][] = [
   ["emetteurs", "Émetteurs", REF.issuers],
 ];
 
-type Sp = { onglet?: string; cle?: string; ok?: string; publie?: string; nouveau?: string; copie?: string; depuis?: string; point?: string };
+type Sp = { onglet?: string; cle?: string; ok?: string; publie?: string; nouveau?: string; copie?: string; filtre?: string; depuis?: string; point?: string };
 
 /** One entry as the desk sees it: the value it would read after « Publier », with where it stands. */
 interface Seen<T> {
@@ -137,7 +137,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       )}
 
       {tab === "types" && <Types types={await loadTypes()} {...ctx} />}
-      {tab === "echeanciers" && <Terms terms={[...(await loadBondTerms()).values()]} {...ctx} nouveau={sp.nouveau ?? ""} />}
+      {tab === "echeanciers" && <Terms terms={[...(await loadBondTerms()).values()]} {...ctx} nouveau={sp.nouveau ?? ""} filtre={sp.filtre ?? ""} />}
       {tab === "glossaire" && <Glossary glossary={await loadGlossary()} {...ctx} />}
       {tab === "lecons" && <Lessons list={await loadLessons()} {...ctx} copie={sp.copie ?? ""} />}
       {tab === "societes" && <Companies list={await loadCompanies()} {...ctx} copie={sp.copie ?? ""} nouveau={sp.nouveau ?? ""} />}
@@ -225,27 +225,34 @@ async function Types({ types, rows, open, ok }: { types: ProductType[] } & Ctx) 
   );
 }
 
-async function Terms({ terms, rows, open, ok, nouveau }: { terms: BondTerms[]; nouveau: string } & Ctx) {
+async function Terms({ terms, rows, open, ok, nouveau, filtre }: { terms: BondTerms[]; nouveau: string; filtre: string } & Ctx) {
   const tr = await getT();
   const list = seen(terms, (t) => t.isin, BOND_TERMS, (t) => t.isin, rows);
   const offers = await repo().listOffers();
   const byIsin = new Map(offers.filter((o) => o.isin).map((o) => [o.isin, o]));
+  const quoted = offers.filter((o) => o.kind === "MARCHE" && !o.hidden && o.instrument === "obligation" && o.isin);
+  const quotedIsins = new Set(quoted.map((o) => o.isin));
   const have = new Set(list.map((s) => s.item.isin));
-  const missing = offers
-    .filter((o) => o.kind === "MARCHE" && !o.hidden && o.instrument === "obligation" && o.isin && !have.has(o.isin))
-    .map((o) => ({ isin: o.isin, title: o.title, issuer: o.issuer }))
-    .sort((a, b) => a.issuer.localeCompare(b.issuer, "fr"));
-  const tableRows: TermRow[] = list.map(({ item: t, ...s }) => ({ isin: t.isin, maturityOn: t.maturityOn, periodsPerYear: t.periodsPerYear, graceUntil: t.graceUntil, source: t.source, title: byIsin.get(t.isin)?.title, issuer: byIsin.get(t.isin)?.issuer, ...s }));
+  const today = new Date().toISOString().slice(0, 10);
+  // one row per bond : every échéancier (with its bulletin line when quoted), then every quoted bond that has none yet
+  const tableRows: TermRow[] = [
+    ...list.map(({ item: t, ...s }) => ({ isin: t.isin, maturityOn: t.maturityOn, periodsPerYear: t.periodsPerYear, graceUntil: t.graceUntil, source: t.source, title: byIsin.get(t.isin)?.title, issuer: byIsin.get(t.isin)?.issuer, ...s, state: "exact" as const, atBulletin: quotedIsins.has(t.isin), matured: t.maturityOn < today })),
+    ...quoted.filter((o) => !have.has(o.isin)).map((o) => ({ isin: o.isin, maturityOn: o.maturityOn ?? "", periodsPerYear: 0, source: "", title: o.title, issuer: o.issuer, inDb: false, builtin: false, state: "estime" as const, atBulletin: true, matured: Boolean(o.maturityOn && o.maturityOn < today) })),
+  ];
+  const missing = tableRows.filter((r) => r.state === "estime");
   const cur = list.find((s) => s.item.isin === open);
   const seed = nouveau && byIsin.get(nouveau) ? ({ isin: nouveau, maturityOn: "", periodsPerYear: 1, source: `Fiche signalétique BVMAC · ${byIsin.get(nouveau)!.issuer}` } as unknown as BondTerms) : undefined;
   return (
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>{tr("Échéanciers des obligations")} ({list.length})</h2>
-          <span className="muted">{tr("Le bulletin ne donne que l'année : ici la date exacte, la périodicité et le différé, d'après la fiche signalétique.")}</span>
+          <h2>
+            {tr("Échéanciers des obligations")} ({list.length}
+            {missing.length ? ` + ${missing.length} ${tr("à créer")}` : ""})
+          </h2>
+          <span className="muted">{tr("Une ligne par obligation cotée : le bulletin ne donne que l'année, la fiche signalétique donne la date exacte, la périodicité et le différé. Les échéanciers des lignes échues ou retirées restent, marqués « hors bulletin ».")}</span>
         </div>
-        <TermsTable rows={tableRows} missing={missing} highlight={ok} />
+        <TermsTable rows={tableRows} highlight={ok} initialFilter={filtre} />
       </div>
       <div className="panel" id="edit">
         {cur ? <EditHead title={`${tr("Échéancier")} ${cur.item.isin}`} kind={REF.bondTerms} k={cur.item.isin} s={cur} /> : <EditHead title={seed ? `${tr("Nouvel échéancier")} · ${seed.isin} · ${byIsin.get(seed.isin)?.issuer}` : tr("Nouvel échéancier")} kind={REF.bondTerms} />}

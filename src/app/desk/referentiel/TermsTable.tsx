@@ -10,6 +10,7 @@ import styles from "./page.module.css";
 
 export interface TermRow {
   isin: string;
+  /** Exact date from a fiche ; for an « estimé » row, the bulletin's year as YYYY-12-31. */
   maturityOn: string;
   periodsPerYear: number;
   graceUntil?: string;
@@ -20,12 +21,18 @@ export interface TermRow {
   inDb: boolean;
   builtin: boolean;
   draft?: DraftState;
+  /** exact = an échéancier exists ; estime = quoted at the bulletin, no échéancier yet (the price runs on the bulletin's year). */
+  state: "exact" | "estime";
+  /** The ISIN is quoted at the bulletin (false : matured or delisted, the échéancier is kept). */
+  atBulletin: boolean;
+  /** The maturity date is behind us. */
+  matured: boolean;
 }
 
 type SortKey = "isin" | "issuer" | "maturityOn" | "periodsPerYear" | "origin";
-type OriginFilter = "" | "defaut" | "desk" | "brouillon";
+type OriginFilter = "" | "sans" | "defaut" | "desk" | "brouillon" | "hors";
 
-const originRank = (r: TermRow) => (r.draft ? 0 : r.inDb ? 1 : 2);
+const originRank = (r: TermRow) => (r.state === "estime" ? 0 : r.draft ? 1 : r.inDb ? 2 : r.atBulletin ? 3 : 4);
 
 /**
  * The bond schedules as a table the desk can search and sort: by ISIN or
@@ -33,19 +40,22 @@ const originRank = (r: TermRow) => (r.draft ? 0 : r.inDb ? 1 : 2);
  * desk, draft). Above it, the listed bonds that still have no exact
  * schedule, each with « Créer » pre-filled: the answer to the Santé point.
  */
-export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; missing: { isin: string; title: string; issuer: string }[]; highlight?: string }) {
+export function TermsTable({ rows, highlight, initialFilter }: { rows: TermRow[]; highlight?: string; initialFilter?: string }) {
   const tr = useT();
+  const missing = rows.filter((r) => r.state === "estime");
   const [q, setQ] = useState("");
   const [typing, setTyping] = useState(false);
-  const [origin, setOrigin] = useState<OriginFilter>("");
+  const [origin, setOrigin] = useState<OriginFilter>(initialFilter === "sans-echeancier" ? "sans" : "");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "isin", dir: 1 });
   const list = useMemo(() => {
     const needle = fold(q.trim());
     const out = rows.filter((r) => {
       if (needle && !fold(`${r.isin} ${r.issuer ?? ""} ${r.title ?? ""} ${r.source}`).includes(needle)) return false;
-      if (origin === "defaut" && (r.inDb || r.draft)) return false;
+      if (origin === "sans" && r.state !== "estime") return false;
+      if (origin === "defaut" && (r.inDb || r.draft || r.state === "estime")) return false;
       if (origin === "desk" && !r.inDb) return false;
       if (origin === "brouillon" && !r.draft) return false;
+      if (origin === "hors" && r.atBulletin) return false;
       return true;
     });
     const cmp = (a: TermRow, b: TermRow) => {
@@ -93,20 +103,14 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
       {missing.length > 0 && (
         <div className={styles.missing} id="sans-echeancier">
           <b>
-            {missing.length} {tr("obligation(s) cotée(s) sans échéancier exact")}.
+            {missing.length} {tr("obligation(s) cotée(s) sans échéancier exact")} : {tr("les lignes en orange ci-dessous")}.
           </b>
-          <span>{tr("Ces lignes sont au bulletin mais absentes du tableau ci-dessous : leur prix se calcule sur la seule année d'échéance du bulletin. À faire : ouvrir la fiche signalétique BVMAC (ou la note d'information) de la ligne, « Créer » avec la date exacte d'échéance, les paiements par an et le différé, enregistrer, puis « Publier ».")}</span>
-          <ul>
-            {missing.map((m) => (
-              <li key={m.isin}>
-                <span className="mono">{m.isin}</span>
-                <span>{fold(m.title).startsWith(fold(m.issuer)) ? m.title : `${m.issuer} · ${m.title}`}</span>
-                <Link className="btn sm" href={`/desk/referentiel?onglet=echeanciers&nouveau=${m.isin}#edit`}>
-                  {tr("Créer l'échéancier")}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <span>
+            {tr("Leur prix se calcule sur la seule année du bulletin. À faire : ouvrir la fiche signalétique BVMAC (ou la note d'information) de la ligne, « Créer l'échéancier » sur la ligne, enregistrer, puis « Publier ».")}{" "}
+            <button type="button" className={styles.linkBtn} onClick={() => setOrigin(origin === "sans" ? "" : "sans")}>
+              {origin === "sans" ? tr("Tout le tableau") : tr("Ne voir que ces lignes")}
+            </button>
+          </span>
         </div>
       )}
       <div className={styles.toolbar}>
@@ -148,9 +152,11 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
         </span>
         <select value={origin} onChange={(e) => setOrigin(e.target.value as OriginFilter)} aria-label={tr("Origine")}>
           <option value="">{tr("Toutes les origines")}</option>
+          <option value="sans">{tr("Sans échéancier (à créer)")}</option>
           <option value="defaut">{tr("Valeur par défaut")}</option>
           <option value="desk">{tr("Modifiées ou créées par le desk")}</option>
           <option value="brouillon">{tr("Avec un brouillon")}</option>
+          <option value="hors">{tr("Hors bulletin (échue ou retirée)")}</option>
         </select>
         <small className="muted">
           {list.length} / {rows.length}
@@ -171,7 +177,7 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
         </thead>
         <tbody>
           {list.map((t) => (
-            <tr key={t.isin} className={t.isin === highlight ? styles.hl : undefined} id={`ref-${t.isin}`}>
+            <tr key={t.isin} className={`${t.isin === highlight ? styles.hl : ""} ${t.state === "estime" ? styles.estime : ""} ${!t.atBulletin || t.matured ? styles.quiet : ""}`} id={`ref-${t.isin}`}>
               <td className="mono">{t.isin}</td>
               <td className={styles.wrap}>
                 {t.issuer ?? <span className="muted">—</span>}
@@ -182,26 +188,57 @@ export function TermsTable({ rows, missing, highlight }: { rows: TermRow[]; miss
                   </>
                 )}
               </td>
-              <td>{fmtDate(t.maturityOn)}</td>
-              <td className="r num">{t.periodsPerYear}</td>
-              <td>{t.graceUntil ? fmtDate(t.graceUntil) : "—"}</td>
+              <td>
+                {t.state === "estime" ? (
+                  <>
+                    {t.maturityOn.slice(0, 4)}
+                    <br />
+                    <small className={styles.warnTag}>{tr("année du bulletin, estimée")}</small>
+                  </>
+                ) : (
+                  <>
+                    {fmtDate(t.maturityOn)}
+                    {t.matured && (
+                      <>
+                        <br />
+                        <small className="muted">{tr("échue")}</small>
+                      </>
+                    )}
+                  </>
+                )}
+              </td>
+              <td className="r num">{t.state === "estime" ? "—" : t.periodsPerYear}</td>
+              <td>{t.state === "estime" ? "—" : t.graceUntil ? fmtDate(t.graceUntil) : "—"}</td>
               <td className={styles.wrap}>
-                <small>{t.source}</small>
+                <small>{t.state === "estime" ? "—" : t.source}</small>
               </td>
               <td>
-                <Origin inDb={t.inDb} builtin={t.builtin} draft={t.draft} />
+                {t.state === "estime" ? (
+                  <span className={`${styles.tag} ${styles.tagWarn}`}>{tr("sans échéancier")}</span>
+                ) : (
+                  <span className={styles.origin}>
+                    <Origin inDb={t.inDb} builtin={t.builtin} draft={t.draft} />
+                    {!t.atBulletin && <span className={styles.tag}>{tr("hors bulletin")}</span>}
+                  </span>
+                )}
               </td>
               <td className="r">
-                <Link className="btn sm" href={`/desk/referentiel?onglet=echeanciers&cle=${t.isin}#edit`}>
-                  {tr("Modifier")}
-                </Link>
+                {t.state === "estime" ? (
+                  <Link className={`btn sm ${styles.warnBtn}`} href={`/desk/referentiel?onglet=echeanciers&nouveau=${t.isin}#edit`}>
+                    {tr("Créer l'échéancier")}
+                  </Link>
+                ) : (
+                  <Link className="btn sm" href={`/desk/referentiel?onglet=echeanciers&cle=${t.isin}#edit`}>
+                    {tr("Modifier")}
+                  </Link>
+                )}
               </td>
             </tr>
           ))}
           {list.length === 0 && (
             <tr>
               <td colSpan={8} className="muted">
-                {tr("Aucun échéancier ne correspond.")}
+                {origin === "sans" ? tr("Toutes les obligations cotées ont leur échéancier exact.") : tr("Aucun échéancier ne correspond.")}
               </td>
             </tr>
           )}
