@@ -12,6 +12,7 @@ import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { usePhone } from "./chart-utils";
+import { FoldAll, useFold } from "./Fold";
 import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
 import { LineMenu } from "./mobile/LineMenu";
 import { Sheet } from "./mobile/Sheet";
@@ -137,8 +138,13 @@ function groupByIssuer(rows: Row[]): { issuer: string; zone: IssuerZone; country
   }
   return out;
 }
+/** The slug the fold state of an issuer's group is kept under. */
+const groupId = (issuer: string) => issuer.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+/** An issuer's head: flag, name, count; it folds its lines on a tap (the state stays on the device, « Tout replier » folds them all). */
 function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]; colSpan?: number }) {
   const t = useT();
+  const { open, toggle } = useFold("titres", groupId(g.issuer));
   const fams = [...new Set(g.rows.map((r) => r.s.kind))];
   const inner = (
     <>
@@ -149,15 +155,29 @@ function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]
       <span className={styles.groupMeta}>
         {g.rows.length} {t(g.rows.length > 1 ? "lignes" : "ligne")} · {fams.join(" · ")}
       </span>
+      <span className={`${styles.groupChev} ${open ? styles.groupOpen : ""}`} aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </span>
     </>
   );
+  const a11y = { role: "button" as const, tabIndex: 0, "aria-expanded": open, onClick: toggle, onKeyDown: (e: React.KeyboardEvent) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle()) };
   return colSpan ? (
-    <tr className={styles.groupRow}>
+    <tr className={styles.groupRow} {...a11y}>
       <td colSpan={colSpan}>{inner}</td>
     </tr>
   ) : (
-    <div className={styles.groupHead}>{inner}</div>
+    <div className={styles.groupHead} {...a11y}>
+      {inner}
+    </div>
   );
+}
+
+/** A group's rows, only while its head is open. */
+function GroupBody({ issuer, children }: { issuer: string; children: React.ReactNode }) {
+  const { open } = useFold("titres", groupId(issuer));
+  return open ? <>{children}</> : null;
 }
 
 /* ---------- table ---------- */
@@ -201,7 +221,11 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: R
         <tbody>
           {groups.flatMap((g) => [
             ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
-            ...g.rows.map(({ o, s }) => <TableRow key={o.id} o={o} s={s} featured={featured} />),
+            <GroupBody key={`b-${g.issuer}`} issuer={grouped ? g.issuer : ""}>
+              {g.rows.map(({ o, s }) => (
+                <TableRow key={o.id} o={o} s={s} featured={featured} />
+              ))}
+            </GroupBody>,
           ])}
         </tbody>
       </table>
@@ -258,7 +282,11 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
     <div className={styles.list}>
       {groups.flatMap((g) => [
         ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
-        ...g.rows.map(({ o, s }) => <ListRow key={o.id} o={o} s={s} featured={featured} />),
+        <GroupBody key={`b-${g.issuer}`} issuer={grouped ? g.issuer : ""}>
+          {g.rows.map(({ o, s }) => (
+            <ListRow key={o.id} o={o} s={s} featured={featured} />
+          ))}
+        </GroupBody>,
       ])}
     </div>
   );
@@ -518,12 +546,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
         {(grouped && !featured ? groupByIssuer(list) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
           ...(grouped && !featured ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
-          ...g.rows.map(({ o, s }) => (
-            <div key={o.id} className={featured ? styles.pickCard : undefined}>
-              <OfferCard o={o} s={s} />
-              {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
-            </div>
-          )),
+          <GroupBody key={`b-${g.issuer}`} issuer={grouped && !featured ? g.issuer : ""}>
+            {g.rows.map(({ o, s }) => (
+              <div key={o.id} className={featured ? styles.pickCard : undefined}>
+                <OfferCard o={o} s={s} />
+                {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+              </div>
+            ))}
+          </GroupBody>,
         ])}
       </div>
     );
@@ -642,6 +672,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
                 <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
                 {t("Grouper par émetteur")}
               </label>
+              <div className={styles.sheetViews} role="group" aria-label={t("Affichage")}>
+                {(["cards", "list", "table"] as View[]).map((v) => (
+                  <button key={v} type="button" className={view === v ? styles.on : undefined} aria-pressed={view === v} onClick={() => update({ vue: v })}>
+                    {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className={styles.fg}>
               <span>{t("Tri")}</span>
@@ -669,6 +706,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
           {t("Grouper par émetteur")}
         </label>
+        {grouped && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
         <label className={styles.sortSel}>
           {t("Tri")}
           <Select compact value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />

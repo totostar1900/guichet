@@ -590,12 +590,15 @@
     padding: 4px 10px;
     font-size: 0.72rem;
   }
-  .compareLink,
-  .groupToggle {
+  .compareLink {
     display: none;
   }
+  .groupToggle {
+    margin-left: 0;
+    font-size: 0.78rem;
+  }
   .meta > span:first-child {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
   }
   .sortSel {
     margin-left: auto;
@@ -825,4 +828,70 @@
     white-space: normal;
     line-height: 1.3;
   }
+}
+
+/* the issuer's head folds its lines: a bare chevron at the right, the whole head is the button */
+.groupHead,
+.groupRow {
+  cursor: pointer;
+  user-select: none;
+}
+.groupHead:focus-visible,
+.groupRow:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.groupChev {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-3);
+  flex: none;
+}
+.groupChev svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s;
+}
+.groupChev.groupOpen svg {
+  transform: rotate(180deg);
+}
+.groupRow td {
+  position: relative;
+}
+.groupRow .groupChev {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.sheetViews {
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px;
+  margin-top: 8px;
+}
+.sheetViews button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 32px;
+}
+.sheetViews .on {
+  background: var(--select);
+  color: var(--on-select);
 }

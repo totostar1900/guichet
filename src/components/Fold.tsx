@@ -102,3 +102,10 @@ export function FoldAll({ group, ids }: { group: string; ids: string[] }) {
 export function openFold(group: string, id: string) {
   write(key(group, id), "open");
 }
+
+/** The fold state of one id in a group, and its toggle: for groups drawn by a list rather than by FoldSection. */
+export function useFold(group: string, id: string, defaultOpen = true): { open: boolean; toggle: () => void } {
+  const stored = useSyncExternalStore(subscribe, () => read(key(group, id)), () => "");
+  const open = stored ? stored === "open" : defaultOpen;
+  return { open, toggle: () => write(key(group, id), open ? "closed" : "open") };
+}
