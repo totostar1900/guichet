@@ -42,6 +42,17 @@ describe("sélection du desk et diffusion", () => {
     expect(s.badges.some((b) => b.key === "selection" && b.note === "Clôture cette semaine")).toBe(true);
   });
 
+  it("refuses a closed line and a date past the line's closing", async () => {
+    const { featureOfferAction } = await import("@/app/desk/featured/actions");
+    const until = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
+    const closed = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
+    expect(closed.ok).toBe(false);
+    expect(!closed.ok && closed.error).toMatch(/clôturée/);
+    const late = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Nouvelle ligne", until: "2026-12-31" }));
+    expect(late.ok).toBe(false);
+    expect(!late.ok && late.error).toMatch(/clôture de la ligne/);
+  });
+
   it("caps the selection at three", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
     const until = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
