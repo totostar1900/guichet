@@ -8,10 +8,10 @@ import styles from "./docs.module.css";
  * « Sur cette page » : the open page's chapters, the one in view marked as
  * you scroll; the same list drives the chapter links of the left navigation.
  */
-export function Outline({ chapters, label, meta }: { chapters: { id: string; title: string }[]; label: string; meta: React.ReactNode }) {
+export function Outline({ chapters, label, meta, side = "right" }: { chapters: { id: string; title: string }[]; label: string; meta: React.ReactNode; side?: "left" | "right" }) {
   const active = useActiveChapter(chapters.map((c) => c.id));
   return (
-    <nav className={styles.outline} aria-label={label} data-coach="docs-outline">
+    <nav className={side === "left" ? styles.outlineLeft : styles.outline} aria-label={label} data-coach="docs-outline">
       <span className={styles.label}>{label}</span>
       {chapters.map((c) => (
         <a key={c.id} href={`#${c.id}`} aria-current={c.id === active ? "true" : undefined}>

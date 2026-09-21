@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: d ? `${d.title[lang]} · Documentation` : "Documentation" };
 }
 
-/** One documentation page: the navigation tree on the left, the text in the middle, its outline on the right. */
+/** One documentation page: its own outline on the left (chapter by chapter), the text in the middle, the list of documents on the right. */
 export default async function DocPage({ params }: { params: Promise<{ slug: string }> }) {
   const [{ slug }, t, lang] = await Promise.all([params, getT(), getLang()]);
   const doc = docBySlug(slug);
@@ -32,23 +32,25 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
     <>
       <DeskNav current="/desk/docs" />
       <div className={styles.reader}>
-        <nav className={styles.nav} aria-label={t("Documentation")} data-coach="docs-tree">
-          <Link href="/desk/docs">← {t("Toutes les pages")}</Link>
-          <span className={styles.group}>{t("Documentation")}</span>
-          {DOCS.map((d) => (
-            <div key={d.slug}>
-              <Link href={`/desk/docs/${d.slug}`} aria-current={d.slug === doc.slug ? "page" : undefined}>
-                {d.title[lang]}
-              </Link>
-              {d.slug === doc.slug && <ChapterLinks chapters={chapters} pageTitle={doc.title[lang]} />}
-            </div>
-          ))}
-          <span className={styles.group}>{t("Notes")}</span>
-          <Link href="/desk/docs/notes">{t("Notes de travail de l'assistant")}</Link>
-          <span className={styles.group}>{t("Pages du desk")}</span>
-          <Link href="/desk/guide">{t("Guide, champ par champ")}</Link>
-        </nav>
+        {/* left: this document, chapter by chapter, and its card */}
+        <Outline
+          chapters={chapters}
+          label={doc.title[lang]}
+          meta={
+            <>
+              {t("Vérifié le")} {fmtDate(doc.checkedOn)}
+              <br />
+              {t("Responsable")} : {doc.owner}
+              <br />
+              <Link href="/desk/docs">{t("Rechercher dans la documentation")}</Link>
+            </>
+          }
+          side="left"
+        />
 
+        <div className={styles.phoneOnly}>
+          <ChapterLinks chapters={chapters} pageTitle={doc.title[lang]} />
+        </div>
         <article className={styles.doc} data-coach="docs-page">
           <h1>{doc.title[lang]}</h1>
           <p className={styles.summary}>{doc.summary[lang]}</p>
@@ -67,19 +69,20 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
           </div>
         </article>
 
-        <Outline
-          chapters={chapters}
-          label={t("Sur cette page")}
-          meta={
-            <>
-              {t("Vérifié le")} {fmtDate(doc.checkedOn)}
-              <br />
-              {t("Responsable")} : {doc.owner}
-              <br />
-              <Link href="/desk/docs">{t("Rechercher dans la documentation")}</Link>
-            </>
-          }
-        />
+        {/* right: the list of documents */}
+        <nav className={styles.nav} aria-label={t("Documentation")} data-coach="docs-tree">
+          <Link href="/desk/docs">← {t("Toutes les pages")}</Link>
+          <span className={styles.group}>{t("Documentation")}</span>
+          {DOCS.map((d) => (
+            <Link key={d.slug} href={`/desk/docs/${d.slug}`} aria-current={d.slug === doc.slug ? "page" : undefined}>
+              {d.title[lang]}
+            </Link>
+          ))}
+          <span className={styles.group}>{t("Notes")}</span>
+          <Link href="/desk/docs/notes">{t("Notes de travail de l'assistant")}</Link>
+          <span className={styles.group}>{t("Pages du desk")}</span>
+          <Link href="/desk/guide">{t("Guide, champ par champ")}</Link>
+        </nav>
       </div>
     </>
   );
