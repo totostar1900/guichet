@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { BackToTop } from "@/components/BackToTop";
 import { repo } from "@/lib/data";
+import { IndexPulse } from "@/components/IndexPulse";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function GuichetPage() {
   const nowIso = new Date().toISOString();
   return (
     <>
+      <IndexPulse compact />
       <Suspense>
         <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
       </Suspense>

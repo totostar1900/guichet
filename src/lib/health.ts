@@ -6,6 +6,7 @@ import { repo } from "@/lib/data";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
+import { indexCheck } from "@/lib/market/index";
 
 /**
  * One glance at whether the machine is running: last bulletin, freshness of
@@ -113,7 +114,17 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     detail: pending.map((o) => o.title).join(" · ") || "—",
   });
 
-  // 8. Actualités: dead links on the page, and received links nobody has sorted for a week.
+  // 8. The index against the share prices of the last two sessions read.
+  try {
+    const [b0, b1] = bulletins;
+    const [q0, q1] = await Promise.all([b0 ? r.quotesOn(b0.sessionDate) : [], b1 ? r.quotesOn(b1.sessionDate) : []]);
+    const chk = indexCheck(b0, q1, q0);
+    out.push({ key: "index", label: "Indice BVMAC et cours d'actions", level: chk.ok ? "ok" : "warn", value: b0?.indexValue != null ? `${b0.indexValue.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · ${(b0.indexVariationPct ?? 0) >= 0 ? "+" : ""}${(b0.indexVariationPct ?? 0).toFixed(2).replace(".", ",")} %` : "non lu", detail: chk.detail });
+  } catch {
+    /* quiet */
+  }
+
+  // 9. Actualités: dead links on the page, and received links nobody has sorted for a week.
   const news = await loadNews();
   const dead = news.filter((n) => n.status === "publiee" && isVisible(n, now) && n.linkOk === false);
   const unsorted = news.filter((n) => n.status === "recu" && now.getTime() - new Date(n.createdAt).getTime() > 7 * 86_400_000);

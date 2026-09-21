@@ -14,3 +14,4 @@
 - [Positive tone](guichet-positive-tone.md) : say what Guichet does, never what it is not; regulatory disclaimer stays; bump LEGAL_VERSION when legal text changes
 - [Templates registry](guichet-templates.md) : desk › Référentiel › Modèles, passages catalogue vs server resolver, libre/relu/réglementaire, migrations 0030 + 0032 applied 2026-09-21; acts & notices (mandat, coupon, réclamation, transfert)
 - [Référentiel drafts + Santé links](guichet-referentiel-drafts.md) : saves are drafts until Publier, health-how table, « Depuis Santé » strip; migration 0031
+- [BVMAC index](guichet-index-bvmac.md) : pulse, company base-100, Comparer reference, Santé check, lesson, desk doc; shown and explained only; methodology letter pending

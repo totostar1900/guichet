@@ -26,6 +26,8 @@ export interface Live {
   nav?: number;
   entryFeePct?: number;
   exampleNote?: string;
+  /** For the index lesson: the last level, the horizons, the weights of the shares. */
+  index?: { level: number; date: string; day?: number; month?: number; ytd?: number; year?: number; weights: { mnemo: string; wTotal: number; wFloat: number }[] };
 }
 
 const pct = (n: number) => fmtPct(n, 2);
@@ -292,8 +294,77 @@ function Risks() {
   );
 }
 
+/** The index: the level and its horizons, the weights of the seven shares, and « move one share » to see the index follow. */
+function IndexWidget({ live }: { live: Live }) {
+  const t = useT();
+  const ix = live.index;
+  const [pick, setPick] = useState(0);
+  const [move, setMove] = useState(5);
+  const [mode, setMode] = useState<"total" | "float">("total");
+  if (!ix) return <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>;
+  const ws = ix.weights;
+  const wgt = ws[pick] ? (mode === "total" ? ws[pick].wTotal : ws[pick].wFloat) / 100 : 0;
+  const after = ix.level * (1 + (wgt * move) / 100);
+  const sg = (v?: number, d = 1) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`);
+  return (
+    <div className={styles.widget}>
+      <div className={styles.wRow}>
+        <div>
+          <span className={styles.wLabel}>BVMAC All Share · {fmtDate(ix.date)}</span>
+          <b className={styles.wBig}>{ix.level.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+        </div>
+        <div className={styles.wStats}>
+          <span>
+            {t("séance")} <b>{sg(ix.day, 2)}</b>
+          </span>
+          <span>
+            {t("un mois")} <b>{sg(ix.month)}</b>
+          </span>
+          <span>
+            {t("depuis le 1er janvier")} <b>{sg(ix.ytd)}</b>
+          </span>
+          <span>
+            {t("douze mois")} <b>{sg(ix.year)}</b>
+          </span>
+        </div>
+      </div>
+      {ws.length > 0 && (
+        <>
+          <div className={styles.wBars}>
+            {ws.map((x, i) => (
+              <button key={x.mnemo} type="button" className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`} onClick={() => setPick(i)} aria-pressed={i === pick}>
+                <span>{x.mnemo}</span>
+                <i style={{ width: `${Math.max(1, mode === "total" ? x.wTotal : x.wFloat)}%` }} />
+                <em>{(mode === "total" ? x.wTotal : x.wFloat).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</em>
+              </button>
+            ))}
+          </div>
+          <div className={styles.wControls}>
+            <label>
+              {t("Pondération")}
+              <select value={mode} onChange={(e) => setMode(e.target.value as "total" | "float")}>
+                <option value="total">{t("capital global")}</option>
+                <option value="float">{t("flottant coté")}</option>
+              </select>
+            </label>
+            <label>
+              {t("{m} bouge de", { m: ws[pick]?.mnemo ?? "" })} <b>{sg(move, 1)}</b>
+              <input type="range" min={-20} max={20} step={0.5} value={move} onChange={(e) => setMove(Number(e.target.value))} />
+            </label>
+          </div>
+          <p className={styles.wRead}>
+            {t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { m: ws[pick]?.mnemo ?? "", v: sg(move, 1), a: after.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), d: sg(wgt * move, 2) })}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function LessonWidget({ kind, live, focus }: { kind: Kind; live: Live; focus?: string[] }) {
   switch (kind) {
+    case "indice":
+      return <IndexWidget live={live} />;
     case "carte":
       return <ActorsMap focus={focus} />;
     case "chemin":

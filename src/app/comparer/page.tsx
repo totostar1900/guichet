@@ -11,6 +11,7 @@ import { LinePicker, type PickLine } from "./LinePicker";
 import { CompareCharts } from "@/components/CompareCharts";
 import { compareLine } from "@/lib/domain/compare";
 import { daysBetween } from "@/lib/finance";
+import { indexSeries, indexStats, indexWeights } from "@/lib/market/index";
 import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
 import type { Offer } from "@/lib/domain/types";
@@ -62,7 +63,12 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
   const chartLines = cols.length === 2 ? await Promise.all(cols.map(async (o) => compareLine(o, o.kind === "FONDS" && o.fund ? await r.listFundNavs(o.fund.key, 2000) : [], now))) : [];
   const bta = all.filter((x) => x.kind === "BTA" && x.precountRate != null && x.maturityOn && x.settleOn).sort((p, q) => (q.pricedAt ?? "").localeCompare(p.pricedAt ?? ""))[0];
   const btaY = bta ? displayYield(bta).pct : null;
-  const benchmark = bta && btaY != null ? { label: `BTA ${Math.round(daysBetween(bta.settleOn, bta.maturityOn!) / 7)} sem.`, pct: btaY } : undefined;
+  const btaBench = bta && btaY != null ? { label: `BTA ${Math.round(daysBetween(bta.settleOn, bta.maturityOn!) / 7)} sem.`, pct: btaY } : undefined;
+  // Two listed shares compare to the equity market, not to a Treasury bill: the BVMAC All Share Index over twelve months.
+  const shares = cols.length === 2 && cols.every((o) => o.kind === "MARCHE" && o.instrument === "action");
+  const idx = shares ? indexStats(indexSeries(await r.listBulletins(400).catch(() => []))) : undefined;
+  const benchmark = shares ? (idx?.year != null ? { label: "BVMAC All Share · 12 mois", pct: idx.year } : undefined) : btaBench;
+  const weights = shares ? indexWeights(await r.latestQuotes().catch(() => [])) : [];
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
   // The since-inception figure sits right under the return, whichever side brought it.
   if (labels.includes("Depuis l'origine")) labels.splice(1, 0, ...labels.splice(labels.indexOf("Depuis l'origine"), 1));
@@ -115,6 +121,19 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
             </div>
           ))}
 
+          {shares && (
+            <div className={styles.row}>
+              <div className={styles.label}>{t("Dans l'indice BVMAC")}</div>
+              {cols.map((o, i) => {
+                const wgt = weights.find((x) => x.isin === o.isin);
+                return (
+                  <div key={i} className={styles.cell}>
+                    {wgt ? `${t("poids")} ${fmtPct(wgt.weightTotal, 1)} (${t("capital global")}) · ${fmtPct(wgt.weightFloat, 1)} (${t("flottant")})${wgt.liquidity3mPct != null ? ` · ${t("liquidité 3 mois")} ${fmtPct(wgt.liquidity3mPct, 2)}` : ""}` : "—"}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className={styles.row}>
             <div className={styles.label}>{t("Statut")}</div>
             {data.map((d, i) => (

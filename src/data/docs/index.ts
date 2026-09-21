@@ -1,6 +1,7 @@
 import { ADMINISTRATION } from "./administration";
 import { AIDE } from "./aide";
 import { FONCTIONNEMENT } from "./fonctionnement";
+import { INDICE } from "./indice";
 import { PLATEFORMES } from "./plateformes";
 import { RELATION } from "./relation";
 import { SOURCES } from "./sources";
@@ -11,7 +12,7 @@ import type { Audience, DocBlock, DocPage, L } from "./types";
 export * from "./types";
 
 /** Every documentation page, in reading order. */
-export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, RELATION, SOURCES, PLATEFORMES, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
+export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, RELATION, SOURCES, INDICE, PLATEFORMES, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
 
 /** What a client may read: public pages only. Everything else stays behind the desk. */
 export const PUBLIC_DOCS: DocPage[] = DOCS.filter((d) => d.visibility === "public");

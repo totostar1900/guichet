@@ -4,6 +4,7 @@ import { GuideBar } from "../GuideBar";
 import { LinkedParagraphs } from "@/components/TermSheet";
 import { notFound } from "next/navigation";
 import { repo } from "@/lib/data";
+import { indexSeries, indexStats, indexWeights } from "@/lib/market/index";
 import { displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
 import { loadCompanies, loadLessons } from "@/lib/reference";
@@ -67,6 +68,10 @@ export default async function LessonPage({ params }: Props) {
   } else if (l.widget === "fund") {
     const o = offers.find((x) => x.kind === "FONDS" && x.fund?.distributed && !x.hidden) ?? offers.find((x) => x.kind === "FONDS" && x.fund);
     live = o?.fund ? { title: o.title, href: `/offres/${o.id}`, nav: o.fund.nav, entryFeePct: o.fund.entryFeePct } : { title: "Exemple : FCP monétaire", nav: 13_262, entryFeePct: 0, exampleNote: "exemple" };
+  } else if (l.widget === "indice") {
+    const [bulletins, latest] = await Promise.all([repo().listBulletins(400).catch(() => []), repo().latestQuotes().catch(() => [])]);
+    const st = indexStats(indexSeries(bulletins));
+    live = st.last ? { title: "BVMAC All Share Index", index: { level: st.last.value, date: st.last.date, day: st.day, month: st.month, ytd: st.ytd, year: st.year, weights: indexWeights(latest).map((x) => ({ mnemo: x.mnemo, wTotal: x.weightTotal, wFloat: x.weightFloat })) } } : { title: "BVMAC All Share Index" };
   } else {
     live = { title: "Les quatre risques" };
   }

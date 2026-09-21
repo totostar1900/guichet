@@ -1,3 +1,4 @@
+import { IndexPulse } from "@/components/IndexPulse";
 import { fold } from "@/lib/text";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -67,6 +68,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           <h1>{t("Ce qui bouge sur le marché, en trois lignes")}</h1>
           <p>{t("Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.")}</p>
         </div>
+        <IndexPulse />
 
         <div data-coach="filters">
           <Suspense>

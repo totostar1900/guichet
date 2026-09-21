@@ -5,6 +5,8 @@ import { BarChart, LineChart, ShareBar } from "@/components/Charts";
 import { companyByMnemo } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";
+import { IndexVsShare } from "@/components/IndexVsShare";
+import { indexSeries, indexWeights } from "@/lib/market/index";
 import { COUNTRY_CODE } from "@/lib/domain/summary";
 import { Info, Term } from "@/components/Info";
 import type { TermKey } from "@/lib/glossary";
@@ -42,6 +44,9 @@ export default async function SocietePage({ params, searchParams }: Props) {
   const figs = [...c.figures].sort((x, y) => x.year - y.year);
   const years = figs.map((f) => String(f.year));
   const listedLine = (await r.listOffers()).find((o) => o.kind === "MARCHE" && o.isin === c.isin);
+  const [bulletins, latest] = await Promise.all([r.listBulletins(400).catch(() => []), r.latestQuotes().catch(() => [])]);
+  const indexPoints = indexSeries(bulletins);
+  const weight = indexWeights(latest).find((x) => x.isin === c.isin);
   const scale = pickScale(figs.flatMap((f) => [f.revenue, f.netIncome, f.equity, f.totalAssets]));
   const sc = (v?: number | null) => (v == null ? "—" : fmtScaled(v, scale.div));
   const revenueTerm: TermKey = a.latest.revenueLabel.startsWith("Produit") ? "pnb" : a.latest.revenueLabel.startsWith("Primes") ? "primes" : "chiffre_affaires";
@@ -133,6 +138,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
             ) : (
               <div className={styles.reading}>{t("Aucun cours ingéré sur cette période : l'historique se remplit à partir des bulletins de la BVMAC.")}</div>
             )}
+            <IndexVsShare name={c.shortName} share={history.map((q) => ({ date: q.sessionDate, value: q.close }))} index={indexPoints} from={from} weight={weight} dividendPerShare={quote?.lastDividend ?? undefined} close={quote?.close} />
           </div>
 
           <div className={styles.panel}>

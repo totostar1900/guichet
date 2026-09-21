@@ -1,0 +1,77 @@
+.wrap {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--gold-line);
+  display: grid;
+  gap: 6px;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: 0.84rem;
+}
+.keys {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.kShare,
+.kIndex {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--navy);
+}
+.kIndex {
+  background: var(--gold);
+  margin-left: 8px;
+}
+.svg {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  display: block;
+}
+.grid {
+  stroke: var(--line);
+}
+.tick {
+  font-size: 10px;
+  fill: var(--ink-3);
+}
+.index {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+.share {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 2;
+}
+:root[data-theme="dark"] .share {
+  stroke: var(--on-navy-2, #c9d3e3);
+}
+:root[data-theme="dark"] .kShare {
+  background: var(--on-navy-2, #c9d3e3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dim"]) .share {
+    stroke: var(--on-navy-2, #c9d3e3);
+  }
+  :root:not([data-theme="light"]):not([data-theme="dim"]) .kShare {
+    background: var(--on-navy-2, #c9d3e3);
+  }
+}
+.read {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}

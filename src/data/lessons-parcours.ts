@@ -157,9 +157,25 @@ export const PARCOURS_LESSONS: Lesson[] = [
     terms: ["dividende", "per", "flottant", "seuils"],
   },
   {
-    key: "opcvm-categories",
+    key: "indice-bvmac",
     section: "instruments",
     order: 110,
+    title: "L'indice de la BVMAC : ce qu'il dit, ce qu'il ne dit pas",
+    minutes: 2,
+    intro: "Un seul nombre pour tout le marché des actions. Il vaut par sa variation, et par ce qu'on sait de son poids.",
+    body: [
+      "Le BVMAC All Share Index résume, séance après séance, l'ensemble des actions cotées : une somme de capitalisations (cours × nombre de titres) ramenée à une base. Le bulletin publie son niveau et sa variation du jour ; le Guichet les lit à chaque séance et les montre sur Titres et Actualités.",
+      "Sept sociétés, et des poids très inégaux : sur le capital global, une valeur pèse près des trois quarts de l'indice. Une variation de l'indice est donc presque toujours le mouvement d'une ou deux valeurs, pas du « marché ». Regardez laquelle a traité avant de conclure.",
+      "Presque toutes les séances affichent 0,00 % : sans transaction, le cours de référence ne bouge pas. L'indice ne compte pas les dividendes ; la performance d'un porteur, c'est le cours plus le dividende. Le Guichet montre l'indice et l'explique ; il ne le prend jamais pour un objectif à battre.",
+    ],
+    widget: "indice",
+    quiz: { q: "L'indice a gagné 0,8 % sur la séance et une seule valeur a traité. Laquelle est la plus probable ?", options: ["La plus grosse capitalisation de la cote", "La plus petite", "N'importe laquelle, l'indice est une moyenne simple"], answer: 0, why: "L'indice pèse par la capitalisation : la valeur qui pèse les trois quarts fait presque tout le mouvement." },
+    terms: ["indice", "capitalisation", "flottant", "dividende"],
+  },
+  {
+    key: "opcvm-categories",
+    section: "instruments",
+    order: 111,
     title: "OPCVM : quatre catégories, une VL",
     minutes: 3,
     intro: "Un fonds achète pour vous un panier de titres ; sa catégorie dit ce qu'il y a dans le panier.",
@@ -176,7 +192,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "risque-credit",
     section: "risques",
-    order: 111,
+    order: 112,
     title: "Le risque de crédit : et si l'emprunteur ne paie pas ?",
     minutes: 2,
     intro: "Un coupon promis n'est pas un coupon versé : tout dépend de qui promet.",
@@ -192,7 +208,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "risque-liquidite",
     section: "risques",
-    order: 112,
+    order: 113,
     title: "Le risque de liquidité : pouvoir sortir quand on veut",
     minutes: 2,
     intro: "Un titre vaut ce qu'un acheteur en donne le jour où vous voulez vendre.",
@@ -208,7 +224,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "risque-prix",
     section: "risques",
-    order: 113,
+    order: 114,
     title: "Le risque de prix et de taux",
     minutes: 2,
     intro: "Quand les taux montent, les obligations existantes baissent : votre titre à 6 % vaut moins face à des nouveaux à 7 %.",
@@ -224,7 +240,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "risque-allocation",
     section: "risques",
-    order: 114,
+    order: 115,
     title: "Allocation et change : ne pas tout mettre au même endroit",
     minutes: 2,
     intro: "Le risque le plus fréquent n'est pas un défaut : c'est une épargne entière sur une seule idée.",
@@ -241,7 +257,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "intention-confirmation",
     section: "ordre",
-    order: 115,
+    order: 116,
     title: "L'intention, puis la confirmation : rien n'est engagé sans vous",
     minutes: 2,
     intro: "Le Guichet ne prend pas d'ordre en aveugle : vous dites ce que vous voulez, un conseiller confirme avec vous.",
@@ -257,7 +273,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "adjudication-prix-servi",
     section: "ordre",
-    order: 116,
+    order: 117,
     title: "L'adjudication et le prix servi",
     minutes: 2,
     intro: "Le prix que vous voyez sur la fiche est celui auquel vos ordres sont présentés ; le Trésor décide qui est servi.",
@@ -273,7 +289,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "reglement-releves",
     section: "ordre",
-    order: 117,
+    order: 118,
     title: "Règlement, relevés, coupons : la vie de la ligne après l'ordre",
     minutes: 2,
     intro: "Une fois servi, tout passe par des papiers datés : appel de fonds, avis, relevé, puis les coupons aux dates prévues.",
@@ -290,7 +306,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "retenue-source",
     section: "cadre",
-    order: 118,
+    order: 119,
     title: "La retenue à la source : du brut au net",
     minutes: 2,
     intro: "Les chiffres du Guichet sont bruts ; ce qui arrive sur votre compte peut être diminué d'un impôt retenu à la source.",
@@ -306,7 +322,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "frais",
     section: "cadre",
-    order: 119,
+    order: 120,
     title: "Les frais : ceux du fonds, ceux du courtier",
     minutes: 2,
     intro: "Deux familles de frais, écrites à deux endroits : le prospectus du fonds, la convention de Purpose Capital.",
@@ -322,7 +338,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
   {
     key: "documents",
     section: "cadre",
-    order: 120,
+    order: 121,
     title: "Vos documents : ce que vous devez avoir, et quand",
     minutes: 2,
     intro: "Un placement se prouve par des papiers ; les voici, dans l'ordre où ils arrivent.",

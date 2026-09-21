@@ -224,3 +224,117 @@
   color: var(--good);
   font-weight: 800;
 }
+
+/* the index widget */
+.wRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.wLabel {
+  display: block;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.wBig {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.wStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.wStats b {
+  color: var(--ink);
+}
+.wBars {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+.wBar {
+  display: grid;
+  grid-template-columns: 96px 1fr 56px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.wBar i {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--navy);
+  min-width: 2px;
+}
+.wBar em {
+  font-style: normal;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.wBarOn {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.wBarOn i {
+  background: var(--gold);
+}
+.wControls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.wControls label {
+  display: grid;
+  gap: 4px;
+}
+.wControls select {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 5px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.wControls input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.wControls b {
+  color: var(--ink);
+}
+.wRead {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+@media (max-width: 520px) {
+  .wControls {
+    grid-template-columns: 1fr;
+  }
+  .wBar {
+    grid-template-columns: 72px 1fr 50px;
+  }
+}

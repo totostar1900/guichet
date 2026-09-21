@@ -7,7 +7,7 @@ import type { SectionKey } from "./parcours";
 import { PARCOURS_LESSONS } from "./lessons-parcours";
 import { ECONOMIE_LESSONS } from "./lessons-economie";
 
-export type LessonWidget = "bond_price" | "bta_rate" | "tenor" | "equity" | "fund" | "auction" | "risks" | "read_ota" | "carte" | "chemin" | "vie" | "categories";
+export type LessonWidget = "bond_price" | "bta_rate" | "tenor" | "equity" | "fund" | "auction" | "risks" | "read_ota" | "carte" | "chemin" | "vie" | "categories" | "indice";
 
 export interface Lesson {
   key: string;

@@ -202,7 +202,7 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
   );
 }
 
-const WIDGET_LABEL: Record<Lesson["widget"], string> = { read_ota: "Lire une OTA (cinq chiffres)", bond_price: "Prix → rendement (curseur)", bta_rate: "Taux précompté → prix et rendement", tenor: "Deux durées, même décote", equity: "Cours, dividende, PER", fund: "Montant → parts à la VL", auction: "Part servie à l'adjudication", risks: "Les quatre risques (cases)", carte: "Schéma : la carte des acteurs", chemin: "Schéma : le chemin d'un ordre", vie: "Schéma : la ligne de vie d'un titre", categories: "Schéma : les quatre catégories de fonds" };
+const WIDGET_LABEL: Record<Lesson["widget"], string> = { read_ota: "Lire une OTA (cinq chiffres)", bond_price: "Prix → rendement (curseur)", bta_rate: "Taux précompté → prix et rendement", tenor: "Deux durées, même décote", equity: "Cours, dividende, PER", fund: "Montant → parts à la VL", auction: "Part servie à l'adjudication", risks: "Les quatre risques (cases)", carte: "Schéma : la carte des acteurs", chemin: "Schéma : le chemin d'un ordre", vie: "Schéma : la ligne de vie d'un titre", categories: "Schéma : les quatre catégories de fonds" , indice: "L'indice de la BVMAC (niveau, poids, curseur)" };
 const SECTION_LABEL: Record<string, string> = { "": "Lire une ligne (les huit premières)", acteurs: "Parcours 1 · Le marché et ses acteurs", instruments: "Parcours 2 · Les instruments", risques: "Parcours 3 · Les risques", ordre: "Parcours 4 · Passer un ordre", cadre: "Parcours 5 · Fiscalité, frais et documents" };
 
 /** `copy`: the form opens on a duplicate of `l` (new key, next order, title marked), to change and save as a new lesson. */

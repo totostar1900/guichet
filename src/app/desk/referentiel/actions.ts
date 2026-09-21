@@ -145,7 +145,7 @@ const lessonSchema = z.object({
   title: z.string().trim().min(4, "Titre requis."),
   intro: z.string().trim().min(10, "Une phrase d'introduction est requise."),
   body: z.string().trim().min(20, "Le corps de la leçon est requis (paragraphes séparés par une ligne vide)."),
-  widget: z.enum(["bond_price", "bta_rate", "tenor", "equity", "fund", "auction", "risks", "read_ota", "carte", "chemin", "vie", "categories"]),
+  widget: z.enum(["bond_price", "bta_rate", "tenor", "equity", "fund", "auction", "risks", "read_ota", "carte", "chemin", "vie", "categories", "indice"]),
   section: z.enum(["", "acteurs", "instruments", "risques", "ordre", "cadre"]).default(""),
   q: z.string().trim().min(5, "La question est requise."),
   o1: z.string().trim().min(1, "Trois réponses sont requises."),

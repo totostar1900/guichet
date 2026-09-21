@@ -50,7 +50,7 @@ const NATURE: Record<CompareLine["ret"]["nature"], string> = {
 };
 function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benchmark }) {
   const t = useT();
-  const rows = [...lines.map((l, i) => ({ label: t(l.title), pct: l.ret.pct, note: l.ret.note, nature: l.ret.nature, cls: COLORS[i] })), ...(benchmark ? [{ label: benchmark.label, pct: benchmark.pct, note: t("le dernier bon du Trésor publié"), nature: "promesse" as const, cls: styles.bench }] : [])];
+  const rows = [...lines.map((l, i) => ({ label: t(l.title), pct: l.ret.pct, note: l.ret.note, nature: l.ret.nature, cls: COLORS[i] })), ...(benchmark ? [{ label: benchmark.label, pct: benchmark.pct, note: benchmark.label.startsWith("BVMAC") ? t("l'indice des actions cotées, dividendes non compris") : t("le dernier bon du Trésor publié"), nature: "promesse" as const, cls: styles.bench }] : [])];
   const max = Math.max(1, ...rows.map((r) => r.pct ?? 0));
   return (
     <div className={styles.card}>

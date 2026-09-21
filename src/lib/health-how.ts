@@ -53,6 +53,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Une ligne ouverte aux intentions sans prix ni taux affiché : renseigner le prix ou le taux de précompte sur la ligne, ou la repasser en brouillon.",
     docs: { href: "/desk/docs/fonctionnement#vie-ligne", label: "La vie d'une ligne" },
   },
+  index: {
+    label: "Indice BVMAC et cours d'actions",
+    href: "/desk/marche",
+    how: "L'indice publié a bougé sans qu'aucun cours d'action ne change dans la lecture (ou l'inverse) : ouvrir le PDF conservé de la séance au Dépôt, comparer la page « Marché des actions » et le bloc de l'indice, relancer la lecture depuis Aujourd'hui ou saisir le cours manquant.",
+    docs: { href: "/desk/docs/indice", label: "L'indice BVMAC" },
+  },
   news: {
     label: "Actualités",
     href: "/desk/actualites",
