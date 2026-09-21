@@ -1313,4 +1313,6 @@ export const EN_MORE: Record<string, string> = {
   "Réclamation déposée": "Complaint filed",
   "Accusé de réception au plus tard le {a} ; réponse au plus tard le {b}. La copie signée est dans Mes documents.": "Acknowledgement by {a}; answer by {b}. The signed copy is in My documents.",
   "Voir le document": "See the document",
+  "Un fonds de cette société…": "A fund of this company…",
+  "Retirer ce filtre": "Remove this filter",
 };

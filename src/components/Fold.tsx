@@ -54,13 +54,21 @@ export function FoldSection({ group, id, title, aside, hint, children, defaultOp
   }, [group, id]);
   return (
     <section className={`${styles.section} ${open ? styles.open : ""}`} data-fold={id}>
-      <div className={styles.head}>
+      {/* the whole title row folds and unfolds; what the aside holds (links, buttons, inputs) keeps its own job */}
+      <div
+        className={styles.head}
+        onClick={(e) => {
+          const el = e.target as HTMLElement;
+          if (el.closest(`.${styles.aside}`) || (el.closest("a, button, input, select, label") && !el.closest(`.${styles.chev}`))) return;
+          write(key(group, id), open ? "closed" : "open");
+        }}
+      >
         <h2 className={styles.title} id={id}>
           {title}
           {hint && <small className={styles.hint}>{hint}</small>}
         </h2>
         {aside && open && <span className={styles.aside}>{aside}</span>}
-        <button type="button" className={styles.chev} aria-expanded={open} aria-controls={`fold-${id}`} aria-label={`${open ? t("Replier") : t("Déplier")} : ${typeof title === "string" ? title : ""}`} onClick={() => write(key(group, id), open ? "closed" : "open")}>
+        <button type="button" className={styles.chev} aria-expanded={open} aria-controls={`fold-${id}`} aria-label={`${open ? t("Replier") : t("Déplier")} : ${typeof title === "string" ? title : ""}`} >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 9l6 6 6-6" />
           </svg>

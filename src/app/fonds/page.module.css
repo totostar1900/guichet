@@ -326,8 +326,85 @@
   margin-bottom: 8px;
 }
 .search {
-  flex: 0 1 220px;
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 380px;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.search input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.managerTag {
+  flex: none;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid var(--gold);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-radius: 999px;
+  padding: 4px 9px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.suggest {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 45;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-height: 280px;
+  overflow-y: auto;
+}
+.suggest button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.suggest button:hover,
+.suggest button:focus-visible {
+  background: var(--surface-2);
+}
+.suggest em {
+  flex: none;
+  font-style: normal;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 800;
+  min-width: 52px;
+}
+.suggest b {
+  font-weight: 600;
+  font-size: 0.84rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* The selectors keep a fixed width whatever value they show: only the table below moves when a filter changes. */
 .fixed {
@@ -442,7 +519,10 @@
   margin-right: 2px;
 }
 .density {
-  margin-left: auto;
+  margin-left: 0;
+}
+.sheetTools .density {
+  display: none;
 }
 /* in the sheet the same controls stack, full width */
 .sheetTools .toolbar {

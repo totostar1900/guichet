@@ -11,7 +11,8 @@ import { fmt, fmtDate, fmtUnits } from "@/lib/format";
  * capital. One scale for in and out; hover a bar for the exact amount and the
  * running total (what has come back so far against what went out).
  */
-export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string }) {
+/** `compact`: the Guide simulator draws it a fifth smaller, labels included (the viewBox scales with the box). */
+export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: string; compact?: boolean }) {
   const t = useT();
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
@@ -37,7 +38,7 @@ export function FlowsChart({ r, settleOn }: { r: BondResult; settleOn: string })
   const h = hover != null ? pts[hover] : null;
 
   return (
-    <div style={{ position: "relative", width: "100%", maxWidth: 768, margin: "8px auto 0" }}>
+    <div style={{ position: "relative", width: "100%", maxWidth: compact ? 614 : 768, margin: "8px auto 0" }}>
       <svg ref={ref} className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} onMouseLeave={() => setHover(null)}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {

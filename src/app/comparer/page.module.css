@@ -1,3 +1,8 @@
+/* The page reads at a document's width: two columns of figures, not a spreadsheet across the screen. */
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+}
 .head h1 {
   font-size: 1.3rem;
   margin: 0 0 4px;

@@ -75,7 +75,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
   const better = (i: number) => data.length === 2 && data[0].dy.pct != null && data[1].dy.pct != null && (data[0].dy.pct > data[1].dy.pct ? 0 : 1) === i;
 
   return (
-    <>
+    <div className={styles.page}>
       <div className={styles.head}>
         <BackButton fallbackHref="/" fallbackLabel={t("Retour au Guichet")} />
         <h1>{t("Comparer deux lignes")}</h1>
@@ -170,6 +170,6 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
       )}
       {cols.length === 2 && <CompareCharts lines={chartLines} benchmark={benchmark} />}
       {cols.length === 1 && <p className="muted">{t("Choisissez une seconde ligne pour comparer.")}</p>}
-    </>
+    </div>
   );
 }

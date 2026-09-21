@@ -164,6 +164,16 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const setDesc = (v: boolean) => update({ sens: v ? undefined : "asc" });
 
   const managers = useMemo(() => [...new Set(rows.map((r) => r.manager))].sort((a, b) => a.localeCompare(b, "fr")), [rows]);
+  // What the typed letters match: management companies (a filter) and funds (a search); a tap applies it.
+  const [typing, setTyping] = useState(false);
+  const suggestions = useMemo(() => {
+    const d = fold(q.trim());
+    if (!typing || d.length < 2) return [] as { kind: "gestion" | "fonds"; text: string }[];
+    const out: { kind: "gestion" | "fonds"; text: string }[] = [];
+    for (const m of managers) if (fold(m).includes(d) && m !== manager) out.push({ kind: "gestion", text: m });
+    for (const r of rows) if (fold(r.title).includes(d) && fold(r.title) !== d) out.push({ kind: "fonds", text: r.title });
+    return out.slice(0, 8);
+  }, [q, typing, managers, manager, rows]);
   const freqs = useMemo(() => [...new Set(rows.map((r) => r.frequency))].filter((f) => f !== "?"), [rows]);
 
   const filtered = useMemo(() => {
@@ -213,9 +223,48 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   // The controls, once: in the page, and again in the sheet the floating button opens.
   const toolbar = (
     <div className={styles.toolbar}>
-      <label className={styles.search}>
-        <input type="search" placeholder={t("Un fonds, une société de gestion, un dépositaire")} aria-label={t("Rechercher")} value={q} onChange={(e) => setQ(e.target.value)} />
-      </label>
+      <div className={styles.search}>
+        {manager && (
+          <button type="button" className={styles.managerTag} onClick={() => setManager("")} title={t("Retirer ce filtre")}>
+            {manager} ×
+          </button>
+        )}
+        <input
+          type="search"
+          placeholder={manager ? t("Un fonds de cette société…") : t("Un fonds, une société de gestion, un dépositaire")}
+          aria-label={t("Rechercher")}
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setTyping(true);
+          }}
+          onFocus={() => setTyping(true)}
+          onBlur={() => window.setTimeout(() => setTyping(false), 150)}
+          autoComplete="off"
+        />
+        {suggestions.length > 0 && (
+          <ul className={styles.suggest} role="listbox">
+            {suggestions.map((sug) => (
+              <li key={sug.kind + sug.text}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={false}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setTyping(false);
+                    if (sug.kind === "gestion") update({ gestion: sug.text, q: undefined });
+                    else setQ(sug.text);
+                  }}
+                >
+                  <em>{t(sug.kind === "gestion" ? "Gestion" : "Fonds")}</em>
+                  <b>{sug.text}</b>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
         <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
           {t("Toutes")}
@@ -226,7 +275,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </button>
         ))}
       </div>
-      <Select className={styles.fixed} value={manager} onChange={setManager} label={t("Gestion")} options={[{ value: "", label: t("toutes les sociétés") }, ...managers.map((m) => ({ value: m, label: m }))]} />
       <Select className={styles.fixedSm} value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
       <label className={styles.sort}>
         {t("Tri")}
@@ -237,6 +285,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </button>
         )}
       </label>
+      <DensitySwitch className={styles.density} />
     </div>
   );
 
@@ -278,7 +327,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               {t("Effacer")}
             </button>
           )}
-          <DensitySwitch className={styles.density} />
         </div>
       </div>
       {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}

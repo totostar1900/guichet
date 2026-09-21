@@ -8,6 +8,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.head:hover .chev {
+  color: var(--gold-ink);
 }
 /* the title row is always 44px tall, aside or not : the chevron never moves */
 .title {
