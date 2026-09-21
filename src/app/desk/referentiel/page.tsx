@@ -10,7 +10,8 @@ import { fmtDateTime } from "@/lib/format";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
 import { loadBondTerms, loadCompanies, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
 import { BUILTIN_TYPES, ENGINE_LABEL, type ProductType } from "@/lib/registry";
-import { GlossaryForm, JsonForm, LessonForm, TermForm, TypeForm } from "./Forms";
+import { GlossaryForm, LessonForm, TermForm, TypeForm } from "./Forms";
+import { FicheForm, type FicheSeed } from "./FicheForm";
 import { Origin, type DraftState } from "./Origin";
 import { DiscardButton, PublishButton, ResetButton } from "./RowActions";
 import { TermsTable, type TermRow } from "./TermsTable";
@@ -139,8 +140,8 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       {tab === "echeanciers" && <Terms terms={[...(await loadBondTerms()).values()]} {...ctx} nouveau={sp.nouveau ?? ""} />}
       {tab === "glossaire" && <Glossary glossary={await loadGlossary()} {...ctx} />}
       {tab === "lecons" && <Lessons list={await loadLessons()} {...ctx} copie={sp.copie ?? ""} />}
-      {tab === "societes" && <Companies list={await loadCompanies()} {...ctx} />}
-      {tab === "emetteurs" && <Issuers list={await loadIssuers()} {...ctx} />}
+      {tab === "societes" && <Companies list={await loadCompanies()} {...ctx} copie={sp.copie ?? ""} nouveau={sp.nouveau ?? ""} />}
+      {tab === "emetteurs" && <Issuers list={await loadIssuers()} {...ctx} copie={sp.copie ?? ""} nouveau={sp.nouveau ?? ""} />}
     </>
   );
 }
@@ -373,10 +374,50 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
   );
 }
 
-async function Companies({ list: published, rows, open, ok }: { list: Company[] } & Ctx) {
+/** The lines of the bulletin that have no fiche yet: a company or an issuer comes from the bulletin, its fiche is written here. */
+async function NoFiche({ items, tab, label }: { items: { isin: string; title: string }[]; tab: string; label: string }) {
+  const tr = await getT();
+  if (!items.length) return null;
+  return (
+    <div className={styles.missing}>
+      <b>
+        {items.length} {label}.
+      </b>
+      <ul>
+        {items.map((m) => (
+          <li key={m.isin}>
+            <span className="mono">{m.isin}</span>
+            <span>{m.title}</span>
+            <Link className="btn sm" href={`/desk/referentiel?onglet=${tab}&nouveau=${m.isin}#edit`}>
+              {tr("Créer la fiche")}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const slugOf = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 24);
+
+async function Companies({ list: published, rows, open, ok, copie, nouveau }: { list: Company[]; copie: string; nouveau: string } & Ctx) {
   const tr = await getT();
   const list = seen(published, (c) => c.mnemo, COMPANIES, (c) => c.mnemo, rows);
   const cur = list.find((s) => s.item.mnemo === open);
+  const model = !cur && copie ? list.find((s) => s.item.mnemo === copie)?.item : undefined;
+  const offers = await repo().listOffers();
+  const known = new Set(list.map((s) => s.item.isin));
+  const fromBoc = offers.filter((o) => o.kind === "MARCHE" && !o.hidden && o.instrument === "action" && o.isin && !known.has(o.isin));
+  const seedOffer = !cur && !model && nouveau ? fromBoc.find((o) => o.isin === nouveau) : undefined;
+  const seed: FicheSeed | undefined = seedOffer ? { key: (seedOffer.issuer.split(/\s+/)[0] ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6), isin: seedOffer.isin, name: seedOffer.issuer, shortName: seedOffer.issuer, country: seedOffer.country } : undefined;
+  const newTitle = model ? `${tr("Nouvelle fiche à partir de")} « ${model.shortName} »` : seed ? `${tr("Fiche de")} ${seed.shortName} · ${seed.isin}` : tr("Nouvelle société");
   return (
     <>
       <div className="panel">
@@ -384,6 +425,7 @@ async function Companies({ list: published, rows, open, ok }: { list: Company[] 
           <h2>{tr("Sociétés cotées")} ({list.length})</h2>
           <span className="muted">{tr("Chiffres clés, actionnariat, documents et lecture : la page /societes.")}</span>
         </div>
+        <NoFiche items={fromBoc.map((o) => ({ isin: o.isin, title: o.title }))} tab="societes" label={tr("société(s) cotée(s) au bulletin sans fiche")} />
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
@@ -412,9 +454,14 @@ async function Companies({ list: published, rows, open, ok }: { list: Company[] 
                   <Origin inDb={s.inDb} builtin={s.builtin} draft={s.draft} />
                 </td>
                 <td className="r">
-                  <Link className="btn sm" href={`/desk/referentiel?onglet=societes&cle=${c.mnemo}#edit`}>
-                    {tr("Modifier")}
-                  </Link>
+                  <span className={styles.rowBtns}>
+                    <Link className="btn sm ghost" href={`/desk/referentiel?onglet=societes&copie=${c.mnemo}#edit`} title={tr("Nouvelle fiche à partir de celle-ci")}>
+                      {tr("Dupliquer")}
+                    </Link>
+                    <Link className="btn sm" href={`/desk/referentiel?onglet=societes&cle=${c.mnemo}#edit`}>
+                      {tr("Modifier")}
+                    </Link>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -422,17 +469,29 @@ async function Companies({ list: published, rows, open, ok }: { list: Company[] 
         </table>
       </div>
       <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Fiche")} ${cur.item.shortName}`} kind={REF.companies} k={cur.item.mnemo} s={cur} /> : <EditHead title={tr("Nouvelle société")} kind={REF.companies} />}
-        <JsonForm key={cur?.item.mnemo ?? "new"} kind={REF.companies} data={cur?.item} label={tr("Société cotée")} />
+        {cur ? <EditHead title={`${tr("Fiche")} ${cur.item.shortName}`} kind={REF.companies} k={cur.item.mnemo} s={cur} /> : <EditHead title={newTitle} kind={REF.companies} />}
+        {cur || model || seed ? (
+          <FicheForm key={cur?.item.mnemo ?? (model ? `copy-${model.mnemo}` : `seed-${seed?.isin}`)} kind={REF.companies} data={cur?.item ?? model} tab="societes" copy={Boolean(model)} seed={seed} />
+        ) : (
+          <p className={styles.copyHint}>{tr("Une société cotée n'est pas créée à la main : sa ligne arrive avec le bulletin de la BVMAC, et sa fiche se rédige ici depuis « Créer la fiche » (ce que le bulletin sait est pré-rempli) ou « Dupliquer » sur une fiche voisine.")}</p>
+        )}
       </div>
     </>
   );
 }
 
-async function Issuers({ list: published, rows, open, ok }: { list: BondIssuer[] } & Ctx) {
+async function Issuers({ list: published, rows, open, ok, copie, nouveau }: { list: BondIssuer[]; copie: string; nouveau: string } & Ctx) {
   const tr = await getT();
   const list = seen(published, (i) => i.slug, ISSUERS, (i) => i.slug, rows);
   const cur = list.find((s) => s.item.slug === open);
+  const model = !cur && copie ? list.find((s) => s.item.slug === copie)?.item : undefined;
+  const offers = await repo().listOffers();
+  const known = new Set(list.flatMap((s) => s.item.isins ?? []));
+  const companyIsins = new Set(COMPANIES.map((c) => c.isin));
+  const fromBoc = offers.filter((o) => o.kind === "MARCHE" && !o.hidden && o.instrument === "obligation" && o.isin && !known.has(o.isin) && !companyIsins.has(o.isin));
+  const seedOffer = !cur && !model && nouveau ? fromBoc.find((o) => o.isin === nouveau) : undefined;
+  const seed: FicheSeed | undefined = seedOffer ? { key: slugOf(seedOffer.issuer), isin: seedOffer.isin, name: seedOffer.issuer, shortName: seedOffer.issuer, country: seedOffer.country } : undefined;
+  const newTitle = model ? `${tr("Nouvelle fiche à partir de")} « ${model.shortName} »` : seed ? `${tr("Fiche de")} ${seed.shortName} · ${seed.isin}` : tr("Nouvel émetteur");
   return (
     <>
       <div className="panel">
@@ -440,6 +499,7 @@ async function Issuers({ list: published, rows, open, ok }: { list: BondIssuer[]
           <h2>{tr("Émetteurs obligataires")} ({list.length})</h2>
           <span className="muted">{tr("Les pages /emetteurs : lignes rattachées par ISIN, chiffres clés, documents.")}</span>
         </div>
+        <NoFiche items={fromBoc.map((o) => ({ isin: o.isin, title: o.title }))} tab="emetteurs" label={tr("ligne(s) obligataire(s) au bulletin sans fiche d'émetteur")} />
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
@@ -468,9 +528,14 @@ async function Issuers({ list: published, rows, open, ok }: { list: BondIssuer[]
                   <Origin inDb={s.inDb} builtin={s.builtin} draft={s.draft} />
                 </td>
                 <td className="r">
-                  <Link className="btn sm" href={`/desk/referentiel?onglet=emetteurs&cle=${i.slug}#edit`}>
-                    {tr("Modifier")}
-                  </Link>
+                  <span className={styles.rowBtns}>
+                    <Link className="btn sm ghost" href={`/desk/referentiel?onglet=emetteurs&copie=${i.slug}#edit`} title={tr("Nouvelle fiche à partir de celle-ci")}>
+                      {tr("Dupliquer")}
+                    </Link>
+                    <Link className="btn sm" href={`/desk/referentiel?onglet=emetteurs&cle=${i.slug}#edit`}>
+                      {tr("Modifier")}
+                    </Link>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -478,8 +543,12 @@ async function Issuers({ list: published, rows, open, ok }: { list: BondIssuer[]
         </table>
       </div>
       <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Fiche")} ${cur.item.shortName}`} kind={REF.issuers} k={cur.item.slug} s={cur} /> : <EditHead title={tr("Nouvel émetteur")} kind={REF.issuers} />}
-        <JsonForm key={cur?.item.slug ?? "new"} kind={REF.issuers} data={cur?.item} label={tr("Émetteur")} />
+        {cur ? <EditHead title={`${tr("Fiche")} ${cur.item.shortName}`} kind={REF.issuers} k={cur.item.slug} s={cur} /> : <EditHead title={newTitle} kind={REF.issuers} />}
+        {cur || model || seed ? (
+          <FicheForm key={cur?.item.slug ?? (model ? `copy-${model.slug}` : `seed-${seed?.isin}`)} kind={REF.issuers} data={cur?.item ?? model} tab="emetteurs" copy={Boolean(model)} seed={seed} />
+        ) : (
+          <p className={styles.copyHint}>{tr("Un émetteur n'est pas créé à la main : ses lignes arrivent avec le bulletin de la BVMAC, et sa fiche se rédige ici depuis « Créer la fiche » (ce que le bulletin sait est pré-rempli) ou « Dupliquer » sur une fiche voisine.")}</p>
+        )}
       </div>
     </>
   );

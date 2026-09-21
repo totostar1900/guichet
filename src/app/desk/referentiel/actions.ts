@@ -8,6 +8,8 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { REF } from "@/lib/reference";
 import { LESSONS } from "@/data/lessons";
+import { COMPANIES } from "@/data/companies";
+import { ISSUERS } from "@/data/issuers";
 import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
@@ -245,6 +247,10 @@ export async function saveJsonAction(_p: RefResult | null, form: FormData): Prom
     return { ok: false, error: `Fiche incomplète : ${i?.path.join(".") || "racine"} : ${i?.message}.` };
   }
   const key = kind === REF.companies ? (p.data as { mnemo: string }).mnemo : (p.data as { slug: string }).slug;
+  if (form.get("nouvelle") === "1") {
+    const taken = (kind === REF.companies ? COMPANIES.some((c) => c.mnemo === key) : ISSUERS.some((i) => i.slug === key)) || (await repo().listReference(kind)).some((r) => r.key === key);
+    if (taken) return { ok: false, error: `L'identifiant « ${key} » existe déjà : choisissez-en un autre pour cette nouvelle fiche.` };
+  }
   const beforeJ = (await repo().listReference(kind)).find((r) => r.key === key)?.data;
   await repo().saveReferenceDraft(kind, key, { op: "set", data: p.data }, desk.name);
   await audit("reference.draft", "reference", `${kind}/${key}`, { before: beforeJ, after: p.data });

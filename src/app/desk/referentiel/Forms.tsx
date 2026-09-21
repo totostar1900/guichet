@@ -10,7 +10,7 @@ import { INTENT_LABEL } from "@/lib/domain/intent";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { ENGINE_LABEL, type Engine, type ProductType } from "@/lib/registry";
 import type { Lesson } from "@/data/lessons";
-import { saveGlossaryAction, saveJsonAction, saveLessonAction, saveTermAction, saveTypeAction, type RefResult } from "./actions";
+import { saveGlossaryAction, saveLessonAction, saveTermAction, saveTypeAction, type RefResult } from "./actions";
 import styles from "./page.module.css";
 
 function Msg({ state }: { state: RefResult | null }) {
@@ -274,25 +274,6 @@ export function LessonForm({ l, copy }: { l?: Lesson; copy?: boolean }) {
       </label>
       <div className={styles.actions}>
         <Foot tab="lecons" editing={Boolean(l) && !copy} pending={pending} label={tr(copy ? "Créer cette copie (brouillon)" : "Enregistrer le brouillon")} />
-      </div>
-      <Msg state={state} />
-    </form>
-  );
-}
-
-/** Company / issuer sheets are large structured records: edited as JSON, checked field by field on save. */
-export function JsonForm({ kind, data, label }: { kind: string; data?: unknown; label: string }) {
-  const tr = useT();
-  const [state, action, pending] = useActionState<RefResult | null, FormData>(saveJsonAction, null);
-  return (
-    <form action={action} className={`${styles.form} ${styles.compact}`}>
-      <input type="hidden" name="kind" value={kind} />
-      <label>
-        <span>{label} : fiche complète (JSON)</span>
-        <textarea name="json" rows={data ? 22 : 10} className="mono" defaultValue={data ? JSON.stringify(data, null, 2) : ""} spellCheck={false} required />
-      </label>
-      <div className={styles.actions}>
-        <Foot tab={kind === "company" ? "societes" : "emetteurs"} editing={Boolean(data)} pending={pending} label={tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>
