@@ -8,6 +8,7 @@ import { repo } from "@/lib/data";
 import { summarize } from "@/lib/domain/summary";
 import { fmtDateTime } from "@/lib/format";
 import { LifecycleForm } from "./LifecycleForm";
+import { DocumentsForm } from "./DocumentsForm";
 import { RestoreForm } from "./RestoreForm";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -61,6 +62,14 @@ export default async function LigneHistoriquePage({ params }: Props) {
           <span className={`pill ${o.status === "withdrawn" ? "annulee" : "confirmee"}`}>{o.status === "withdrawn" ? "Retirée du Guichet" : `Statut : ${o.status}`}</span>
           <LifecycleForm offerId={o.id} current={o.version} withdrawn={o.status === "withdrawn"} />
         </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-h">
+          <h2>{t("Documents de la ligne")} ({o.documents.length})</h2>
+          <span className="muted">{t("ce que la fiche client propose en téléchargement : un fichier réel derrière chaque titre")}</span>
+        </div>
+        <DocumentsForm offerId={o.id} current={o.version} documents={o.documents} />
       </div>
 
       <div className={styles.cols}>

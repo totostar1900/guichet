@@ -314,7 +314,7 @@
   flex-direction: column;
   padding: 5px 10px;
   border-radius: 8px;
-  color: #fff;
+  border-left: 4px solid transparent;
   margin: 6px 0 2px;
 }
 .groupHead b {
@@ -324,16 +324,21 @@
 }
 .groupHead small {
   font-size: 0.66rem;
-  opacity: 0.9;
 }
 .signe {
-  background: var(--gold);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-color: var(--gold);
 }
 .envoye {
-  background: var(--navy-3, #1f4a86);
+  background: var(--info-soft);
+  color: var(--info);
+  border-color: var(--info);
 }
 .interne {
-  background: var(--ink-3);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border-color: var(--ink-3);
 }
 .kindTag {
   display: inline-block;
@@ -341,9 +346,9 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #fff;
   padding: 1px 7px;
   border-radius: 999px;
+  border: 1px solid currentColor;
   margin-right: 6px;
 }
 .none {

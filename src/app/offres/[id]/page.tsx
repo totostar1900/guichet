@@ -427,21 +427,17 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <h3>{t("Documents")}</h3>
           <div className={styles.docs}>
             {o.documents.length === 0 && <span className="muted" style={{ fontSize: ".82rem" }}>{t("Documents archivés.")}</span>}
-            {o.documents.map((d) =>
-              d.url ? (
-                <a key={d.name} className={`${styles.doc} ${styles.docLink}`} href={d.url} target="_blank" rel="noreferrer">
-                  <span className="mono">{/\.(png|jpe?g)$/i.test(d.url) ? "IMG" : "PDF"}</span>
+            {o.documents.map((d, n) => {
+              const href = d.url ?? (d.fileKey ? `/offres/${o.id}/doc/${n}` : undefined);
+              if (!href) return null;
+              return (
+                <a key={`${d.name}-${n}`} className={`${styles.doc} ${styles.docLink}`} href={href} target="_blank" rel="noreferrer">
+                  <span className="mono">{/\.(png|jpe?g)$/i.test(d.url ?? d.mimeType ?? "") || /image\//.test(d.mimeType ?? "") ? "IMG" : "PDF"}</span>
                   {t(d.name)}
                   <span className={styles.docMeta}>{d.meta} ↗</span>
                 </a>
-              ) : (
-                <div key={d.name} className={styles.doc} title={t("Sur demande au desk")}>
-                  <span className="mono">PDF</span>
-                  {t(d.name)}
-                  <span className={styles.docMeta}>{d.meta} · {t("sur demande")}</span>
-                </div>
-              ),
-            )}
+              );
+            })}
           </div>
         </section>
 

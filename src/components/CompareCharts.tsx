@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { useOutsideTap, usePhone } from "./chart-utils";
 import type { CompareLine, FlowItem } from "@/lib/domain/compare";
 import { drawdown, invested, REF_AMOUNT, rollingAnnualised, type SeriesPoint } from "./FundCharts";
@@ -215,12 +215,22 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
   const phone = usePhone();
   const calRef = useRef<SVGSVGElement>(null);
   useOutsideTap(calRef, hover != null, useCallback(() => setHover(null), []));
+  // drawn at the width it gets (a timeline needs its width), never below the phone frame
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [boxW, setBoxW] = useState(0);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => setBoxW(Math.round(entries[0].contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const all = lines.flatMap((l) => l.flows!.items);
   const from = all.map((f) => f.date).sort()[0];
   const to = all.map((f) => f.date).sort().pop()!;
   const span = Math.max(30, daysBetween(from, to));
   const maxAbs = Math.max(...all.map((f) => Math.abs(f.amount)));
-  const W = phone ? 380 : 1000;
+  const W = boxW >= 380 ? Math.min(1200, boxW) : phone ? 380 : 1000;
   const laneH = phone ? 76 : 84;
   const H = laneH * lines.length + 24;
   const padL = phone ? 12 : 24;
@@ -239,12 +249,12 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
   }, [from, to, span]);
   const h = hover ? lines[hover.l].flows!.items[hover.i] : null;
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${styles.full}`}>
       <div className={styles.head}>
         <b>{t("Le calendrier des flux")}</b>
         <span>{lines.map((l) => t(l.flows!.title)).join(" · ")}</span>
       </div>
-      <div className={styles.calWrap}>
+      <div className={styles.calWrap} ref={boxRef}>
         <svg ref={calRef} viewBox={`0 0 ${W} ${H}`} className={styles.cal} role="img" aria-label={t("Le calendrier des flux")}>
           {lines.map((l, li) => {
             const base = li * laneH + laneH / 2 + 4;

@@ -167,6 +167,42 @@ function Documents({ lang }: { lang: Lang }) {
   );
 }
 
+/** The map of the documents: three kinds as lanes, the six moments of a relationship as columns; the four new acts marked. */
+function CarteDocuments({ lang }: { lang: Lang }) {
+  const cols = [T(lang, "Ouverture", "Opening"), T(lang, "Ordre", "Order"), T(lang, "Exécution", "Execution"), T(lang, "Règlement", "Settlement"), T(lang, "Vie du titre", "Life of the security"), T(lang, "Fin", "End")];
+  const lanes: { name: string; rule: string; fill: string; stroke: string; cells: string[][] }[] = [
+    { name: T(lang, "Signés par le client", "Signed by the client"), rule: T(lang, "réglementaire", "regulatory"), fill: "var(--gold-soft)", stroke: "var(--gold)", cells: [[T(lang, "Convention", "Agreement"), T(lang, "Mandat *", "Mandate *")], [T(lang, "Bulletin d'ordre", "Order form"), T(lang, "Ordre de cession", "Sale order")], [], [], [T(lang, "Réclamation *", "Complaint *")], [T(lang, "Transfert · clôture *", "Transfer · closure *")]] },
+    { name: T(lang, "Envoyés au client", "Sent to the client"), rule: T(lang, "relu", "reviewed"), fill: "var(--info-soft)", stroke: "var(--info)", cells: [[], [T(lang, "Appel de fonds", "Call for funds")], [T(lang, "Avis de résultat", "Result notice"), T(lang, "Non-allocation", "Non-allotment")], [T(lang, "Avis d'opéré", "Contract note")], [T(lang, "Avis de coupon *", "Coupon notice *"), T(lang, "Relevé · attestation", "Statement · attestation")], [T(lang, "Relevé final", "Final statement")]] },
+    { name: T(lang, "Transmis aux contreparties", "Sent to counterparties"), rule: T(lang, "libre · interne", "free · internal"), fill: "var(--surface-2)", stroke: "var(--line-2)", cells: [[T(lang, "Dossier SVT", "Custodian file")], [], [T(lang, "Bordereau SVT", "Auction slip"), T(lang, "Bordereau OPCVM", "Fund slip")], [T(lang, "Confirmation SDB", "Broker confirmation")], [], [T(lang, "Instruction dépositaire", "Custodian instruction")]] },
+  ];
+  const L = 138;
+  const cw = (760 - L - 8) / 6;
+  const rowH = 74;
+  return (
+    <svg viewBox="0 0 760 270" role="img" aria-label={T(lang, "La carte des documents", "The map of the documents")}>
+      <Defs />
+      {cols.map((c, i) => label(L + i * cw + cw / 2, 16, c, `h${i}`, { size: 9.5, weight: 800, fill: "var(--ink-3)" }))}
+      {lanes.map((ln, r) => {
+        const y = 26 + r * rowH;
+        return [
+          box(6, y, L - 12, rowH - 6, `l${r}`, ln.fill, ln.stroke),
+          ...wrap(ln.name, 18).map((t, k) => label(6 + (L - 12) / 2, y + 22 + k * 13, t, `ln${r}${k}`, { size: 10.5, weight: 800 })),
+          label(6 + (L - 12) / 2, y + rowH - 16, ln.rule, `lr${r}`, { size: 9, weight: 700, fill: "var(--ink-3)" }),
+          ...ln.cells.flatMap((cell, c) =>
+            cell.map((d, k) => [
+              box(L + c * cw + 3, y + 4 + k * 32, cw - 6, 28, `c${r}${c}${k}`, ln.fill, ln.stroke),
+              ...wrap(d, 16)
+                .slice(0, 2)
+                .map((t, j) => label(L + c * cw + cw / 2, y + 16 + k * 32 + j * 11, t, `ct${r}${c}${k}${j}`, { size: 8.5, weight: 700 })),
+            ]),
+          ),
+        ];
+      })}
+      {label(380, 262, T(lang, "* nouveau depuis le 21 septembre 2026 : mandat, avis de coupon / remboursement, réclamation, ordre de transfert / clôture.", "* new since 21 September 2026: mandate, coupon / redemption notice, complaint, transfer / closure order."), "f", { size: 9.5, weight: 500, fill: "var(--ink-3)" })}
+    </svg>
+  );
+}
+
 /** Two addresses, one application; where each service runs. */
 function Hebergement({ lang }: { lang: Lang }) {
   return (
@@ -221,5 +257,7 @@ export function DocDiagram({ kind, lang }: { kind: DiagramKind; lang: Lang }) {
       return <Documents lang={lang} />;
     case "hebergement":
       return <Hebergement lang={lang} />;
+    case "carte-documents":
+      return <CarteDocuments lang={lang} />;
   }
 }

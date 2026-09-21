@@ -140,3 +140,60 @@
   flex: 1 1 420px;
   margin-top: 0;
 }
+
+/* ---- documents of the line ---- */
+.docs {
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+.docList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.86rem;
+}
+.docList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.noFile {
+  color: var(--warn);
+  font-weight: 700;
+}
+.inline {
+  margin-left: auto;
+}
+.attach {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line-2);
+}
+.attach label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.attach input {
+  font: inherit;
+  font-size: 0.84rem;
+  padding: 6px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .attach {
+    grid-template-columns: 1fr;
+  }
+}

@@ -30,7 +30,7 @@ export type DocBlock =
   /** A drawn schema (src/components/docs/DocDiagrams.tsx), with the sentence that reads it. */
   | { type: "diagram"; kind: DiagramKind; caption: L };
 
-export type DiagramKind = "sources" | "journee" | "relation" | "communication" | "documents" | "hebergement";
+export type DiagramKind = "sources" | "journee" | "relation" | "communication" | "documents" | "hebergement" | "carte-documents";
 
 export interface DocChapter {
   id: string;

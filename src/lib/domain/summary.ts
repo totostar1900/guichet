@@ -79,7 +79,7 @@ export function badgesFor(o: Offer, st: DisplayStatus, now: Date): Badge[] {
   return out;
 }
 
-export function summarize(o: Offer, now: Date): OfferSummary {
+export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): OfferSummary {
   const st = displayStatus(o, now);
   const past = isPast(st);
   const dy = displayYield(o);
@@ -89,7 +89,7 @@ export function summarize(o: Offer, now: Date): OfferSummary {
   const com = fmtPct(o.commissionPct, 2);
   const base = {
     st,
-    status: statusLabel(o, st),
+    status: statusLabel(o, st, opts.fine),
     statusClass: st,
     badges: badgesFor(o, st, now),
     kind: typeOf(o).short,

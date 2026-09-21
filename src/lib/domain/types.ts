@@ -68,6 +68,11 @@ export interface OfferDocument {
   name: string;
   meta: string; // "PDF · 2 p."
   url?: string;
+  /** A file the desk attached (bucket « sources ») ; served at /offres/<id>/doc/<n>. */
+  fileKey?: string;
+  mimeType?: string;
+  addedAt?: string;
+  addedBy?: string;
 }
 
 export interface Offer {

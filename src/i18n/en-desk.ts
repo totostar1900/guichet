@@ -1358,4 +1358,13 @@ export const EN_MORE: Record<string, string> = {
   "L'indice de la BVMAC (niveau, poids, curseur)": "The BVMAC index (level, weights, slider)",
   "Indice BVMAC": "BVMAC index",
   "Un seul nombre pour toutes les actions cotées : une somme de capitalisations ramenée à une base, publiée chaque séance par la BVMAC. Il vaut par sa variation ; sept valeurs, dont une pèse les trois quarts ; les dividendes n'y sont pas.": "One number for every listed share: a sum of capitalisations brought to a base, published every session by the BVMAC. It is worth its variation; seven shares, one of which weighs three quarters; dividends are not in it.",
+  "Clôturées": "Closed",
+  "Documents de la ligne": "Documents of the line",
+  "ce que la fiche client propose en téléchargement : un fichier réel derrière chaque titre": "what the client's page offers for download: a real file behind every title",
+  "sans fichier : à retirer ou à joindre": "no file: remove or attach",
+  "Aucun document sur cette ligne : la fiche client n'en promet aucun.": "No document on this line: the client's page promises none.",
+  "Titre affiché au client": "Title shown to the client",
+  "Communiqué d'annonce n° …, Note d'information, Teaser": "Announcement no. …, Information note, Teaser",
+  "Fichier (PDF ou image, 15 Mo max)": "File (PDF or image, 15 MB max)",
+  "Joindre le document": "Attach the document",
 };

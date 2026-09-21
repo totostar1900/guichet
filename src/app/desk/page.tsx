@@ -60,7 +60,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
   // À la une: what is featured now, and which lines could be (open or quoted, not hidden).
   const today = now.toISOString().slice(0, 10);
-  const featRow = (o: Offer) => ({ id: o.id, title: o.title, hero: summarize(o, now).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
+  const featRow = (o: Offer) => ({ id: o.id, title: o.title, hero: summarize(o, now, { fine: true }).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
   const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map((o) => ({ ...featRow(o), closed: !isActionable(displayStatus(o, now)) }));
   const featCandidates = offers.filter((o) => !o.hidden && !(o.featured && o.featured.until >= today) && isActionable(displayStatus(o, now))).map(featRow);
 
@@ -197,7 +197,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {rows.map(({ o, nF, sF, nA, sA }) => (
                 <tr key={o.id}>
                   <td>
-                    <LineIdentity o={o} s={summarize(o, now)} href={`/offres/${o.id}`} />
+                    <LineIdentity o={o} s={summarize(o, now, { fine: true })} href={`/offres/${o.id}`} />
                   </td>
                   <td className="num">
                     {noPrice(o) ? (

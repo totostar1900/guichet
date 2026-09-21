@@ -41,7 +41,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   const o = offers.find((x) => x.id === it.offerId);
   if (!o) notFound();
   const now = new Date();
-  const s = summarize(o, now);
+  const s = summarize(o, now, { fine: true });
   const contact = (it.clientId && contacts.find((c) => c.id === it.clientId)) || contacts.find((c) => (it.contactPhone && c.phone === it.contactPhone) || (it.contactEmail && c.email === it.contactEmail));
   const file = it.clientId ? await r.getClientFileByUser(it.clientId) : undefined;
   const [lang, fin, prefs, channels] = await Promise.all([

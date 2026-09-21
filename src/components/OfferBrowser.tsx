@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
-import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears } from "@/lib/domain/status";
+import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears, clientStatusGroup } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
@@ -43,9 +43,7 @@ const STATUSES: [string, string][] = [
   ["open", "Ouvertes"],
   ["quoted", "Cotées · souscription"],
   ["upcoming", "À venir"],
-  ["results", "Résultats"],
-  ["live", "En vie"],
-  ["matured", "Échues"],
+  ["closed", "Clôturées"],
 ];
 const TENORS: [string, string][] = [
   ["lt1", "Moins d'un an"],
@@ -59,7 +57,7 @@ type View = "table" | "list" | "cards";
 const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", recent: "plus récent" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
-const normStatus = (s: DisplayStatus): string => (s === "closing" ? "open" : s === "closed" ? "results" : s === "on_request" ? "quoted" : s);
+const normStatus = (s: DisplayStatus): string => clientStatusGroup(s);
 const parseNum = (s: string) => Number(s.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
 
 /* ---------- dropdown of checkboxes ---------- */

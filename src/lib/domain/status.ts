@@ -19,11 +19,30 @@ export const STATUS_LABEL: Record<DisplayStatus, string> = {
   matured: "Échue",
 };
 
-/** Pill text: a distributed fund is « ouvert à la souscription », not « coté ». */
-export function statusLabel(o: Offer, s: DisplayStatus): string {
+/**
+ * The pill a client reads: four words. « Cotée » or « Souscription ouverte »
+ * for what trades any day, « À venir », « Ouverte » (the last hours are told
+ * by the countdown, not by another word), and « Clôturée » for every window
+ * that is over, whatever the desk's finer state (closed, results, live,
+ * matured). `fine` gives the desk its precise word.
+ */
+export function statusLabel(o: Offer, s: DisplayStatus, fine = false): string {
   if (o.kind === "FONDS" && s === "quoted") return "Souscription ouverte";
-  if (s === "results" && !o.resultLine && !o.servedPricePct) return "Clôturée";
+  if (fine) {
+    if (s === "results" && !o.resultLine && !o.servedPricePct) return "Clôturée";
+    return STATUS_LABEL[s];
+  }
+  if (s === "closing") return "Ouverte";
+  if (s === "closed" || s === "results" || s === "live" || s === "matured") return "Clôturée";
   return STATUS_LABEL[s];
+}
+
+/** The client's four filter families, from the nine display states. */
+export function clientStatusGroup(s: DisplayStatus): "quoted" | "upcoming" | "open" | "closed" {
+  if (s === "quoted" || s === "on_request") return "quoted";
+  if (s === "upcoming") return "upcoming";
+  if (s === "open" || s === "closing") return "open";
+  return "closed";
 }
 
 export const CLOSING_WINDOW_MS = 6 * 3600 * 1000;
