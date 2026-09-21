@@ -393,3 +393,16 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+
+.manualLists {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.manualLists > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

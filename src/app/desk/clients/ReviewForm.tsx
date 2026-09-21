@@ -80,6 +80,24 @@ function ScreeningBlock({ file, closed }: { file: ClientFile; closed: boolean })
   );
 }
 
+/** No provider configured : the officer opens the public lists, one per name, and attests below. */
+function ManualLists({ names, lists }: { names: string[]; lists: { key: string; label: string; url: string }[] }) {
+  const t = useT();
+  return (
+    <div className={styles.manualLists}>
+      <small>{t("Pré-contrôle automatique non activé (abonnement OpenSanctions, à décider) : consultez les listes pour chaque nom, puis attestez ci-dessous.")}</small>
+      <div>
+        {lists.map((l) => (
+          <a key={l.key} className="btn sm" href={l.url} target="_blank" rel="noreferrer">
+            {t(l.label)}
+          </a>
+        ))}
+      </div>
+      {names.length > 1 && <small>{t("Noms à vérifier")} : {names.join(" · ")}</small>}
+    </div>
+  );
+}
+
 function AutoScreenButton({ file }: { file: ClientFile }) {
   const t = useT();
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(autoScreenAction, null);
@@ -94,14 +112,14 @@ function AutoScreenButton({ file }: { file: ClientFile }) {
   );
 }
 
-export function ReviewForm({ file, suggested, riskLabels }: { file: ClientFile; suggested: RiskRating; riskLabels: Record<RiskRating, string> }) {
+export function ReviewForm({ file, suggested, riskLabels, screening }: { file: ClientFile; suggested: RiskRating; riskLabels: Record<RiskRating, string>; screening?: { auto: boolean; names: string[]; lists: { key: string; label: string; url: string }[] } }) {
   const t = useT();
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>(reviewAction, null);
   const closed = file.status === "approuve" || file.status === "refuse";
   if (file.status === "approuve" && !file.review.custodianAccount) return <AccountForm file={file} />;
   return (
     <div className={styles.review}>
-    {!closed && <AutoScreenButton file={file} />}
+    {!closed && (screening?.auto !== false ? <AutoScreenButton file={file} /> : <ManualLists names={screening.names} lists={screening.lists} />)}
     <form action={action} className={styles.reviewInner}>
       <input type="hidden" name="fileId" value={file.id} />
       <h3>{t("Décision de conformité")}</h3>

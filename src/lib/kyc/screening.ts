@@ -26,6 +26,14 @@ export interface ScreeningResult {
 
 export const screeningConfigured = (): boolean => Boolean(process.env.OPENSANCTIONS_API_KEY);
 
+/** The public searches the officer runs by hand when no provider is configured, the name pre-filled where the site accepts it. */
+export const MANUAL_LISTS: { key: string; label: string; url: (name: string) => string }[] = [
+  { key: "opensanctions", label: "OpenSanctions (ONU, UE, OFAC, PPE réunis)", url: (n) => `https://www.opensanctions.org/search/?q=${encodeURIComponent(n)}` },
+  { key: "un", label: "Liste consolidée ONU", url: () => "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list" },
+  { key: "eu", label: "Carte des sanctions UE", url: () => "https://www.sanctionsmap.eu/" },
+  { key: "ofac", label: "OFAC (États-Unis)", url: () => "https://sanctionssearch.ofac.treas.gov/" },
+];
+
 /** Names worth screening on a file: the holder and every person listed. */
 export function namesToScreen(f: ClientFile): string[] {
   const names = [f.identity.name, ...f.persons.map((p) => p.name)].map((n) => n.trim()).filter((n) => n.length > 2);

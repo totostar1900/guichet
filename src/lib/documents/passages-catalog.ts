@@ -43,6 +43,8 @@ export const PLACEHOLDER_LABEL: Record<string, string> = {
   delai_accuse: "délai d'accusé de réception",
   delai_reponse: "délai de réponse",
   canal: "canal de signature (WhatsApp, e-mail)",
+  svt: "nom du SVT",
+  gestion: "société de gestion",
   rendement: "rendement actuariel servi",
   livraison: "phrase de livraison (titres inscrits, ou produit viré sur le compte)",
 };
@@ -50,6 +52,13 @@ export const PLACEHOLDER_LABEL: Record<string, string> = {
 const P = (key: string, label: string, hint: string, sensitivity: PassageSensitivity, placeholders: string[], fr: string, en: string, required: string[] = []): PassageDef => ({ key, label, hint, sensitivity, placeholders, required, fr, en });
 
 export const PASSAGES: Partial<Record<DocumentType, PassageDef[]>> = {
+  bordereau: [
+    P("reglement_svt", "Règlement-livraison (bordereau SVT)", "le paragraphe après l'annexe par client", "libre", ["date_reglement", "svt"], "Règlement-livraison : débit de notre compte espèces ouvert dans vos livres, valeur {date_reglement} ; livraison des titres sur les sous-comptes nominatifs des clients listés (ouverture préalable pour ceux marqués « à ouvrir », dossiers transmis). Merci de nous confirmer la réception avant l'heure limite et de nous transmettre les résultats dès publication.", "Settlement-delivery: debit of our cash account in your books, value date {date_reglement}; delivery of the securities to the nominative sub-accounts of the clients listed (prior opening for those marked “to open”, files sent). Please confirm receipt before the deadline and send us the results as soon as published.", ["date_reglement"]),
+    P("execution_opcvm", "Instruction d'exécution (bordereau OPCVM)", "le paragraphe de fin du bordereau de centralisation", "libre", ["gestion"], "Merci d'exécuter ces ordres à la prochaine valeur liquidative, d'inscrire les parts au nom de chaque porteur au registre tenu par le dépositaire (dossiers d'identification joints pour les porteurs marqués « à créer ») et de nous adresser les avis d'opération individuels. Les espèces de souscription sont virées depuis notre compte de règlement clients ségrégué ; les produits de rachat sont à virer directement sur le compte bancaire de chaque porteur tel qu'indiqué au registre.", "Please execute these orders at the next net asset value, register the units in each holder's name in the register kept by the depositary (identification files attached for holders marked “to create”) and send us the individual operation notices. Subscription cash is wired from our segregated client settlement account; redemption proceeds are to be wired directly to each holder's bank account as shown in the register."),
+  ],
+  dossier_svt: [
+    P("demande", "Demande et attestation", "le paragraphe sous l'identité", "libre", ["societe"], "{societe} demande l'ouverture d'un sous-compte titres nominatif au nom du client ci-dessous, sous son regroupement, et atteste avoir procédé à son identification et à la vérification de ses pièces conformément à la réglementation CEMAC en matière de LBC/FT.", "{societe} requests the opening of a nominative securities sub-account in the name of the client below, under its grouping, and attests having identified the client and checked their documents in accordance with CEMAC AML/CFT regulation.", ["societe"]),
+  ],
   non_allocation: [
     P("restitution", "Restitution des fonds", "le paragraphe sous le résultat", "relu", ["date_adjudication", "delai"], "La demande n'a pas été servie à l'adjudication du {date_adjudication}. Les fonds appelés sont restitués sur le compte de règlement du client sous {delai}, sans frais.", "The request was not served at the auction of {date_adjudication}. The funds called are returned to the client's settlement account within {delai}, free of charge.", ["date_adjudication"]),
   ],

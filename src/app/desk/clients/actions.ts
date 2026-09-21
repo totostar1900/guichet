@@ -109,5 +109,5 @@ export async function autoScreenAction(_p: ReviewResult | null, form: FormData):
   await r.updateClientFile(fileId, { screening: { ...f.screening, auto } });
   await r.logEvent({ kind: "desk", html: `Pré-contrôle sanctions / PPE : ${f.identity.name} : ${auto.provider === "none" ? "fournisseur non configuré" : `${auto.hits.length} correspondance(s)${auto.error ? ` (${auto.error})` : ""}`} · ${desk.name}` });
   revalidatePath("/desk/clients");
-  return auto.provider === "none" ? { ok: false, error: "OPENSANCTIONS_API_KEY absente : le pré-contrôle automatique est désactivé. Consultez les listes manuellement et attestez ci-dessous." } : { ok: true, message: `Pré-contrôle effectué : ${auto.hits.length} correspondance(s) à examiner.` };
+  return auto.provider === "none" ? { ok: false, error: "Le pré-contrôle automatique n'est pas activé sur cette plateforme : consultez les listes par les liens ci-dessous et attestez." } : { ok: true, message: `Pré-contrôle effectué : ${auto.hits.length} correspondance(s) à examiner.` };
 }

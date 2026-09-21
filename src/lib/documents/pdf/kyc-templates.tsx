@@ -60,7 +60,7 @@ export function Convention({ number, file, now, texts }: { number: string; file?
 }
 
 /** Account-opening file for the SVT / custodian : the KYC summary they need, whatever the account structure. */
-export function DossierOuverture({ number, file, now }: { number: string; file: ClientFile; now: Date }) {
+export function DossierOuverture({ number, file, now, texts }: { number: string; file: ClientFile; now: Date; texts?: Record<string, string> }) {
   const id = file.identity;
   return (
     <Letter heading={`Dossier d'ouverture · ${number}`}>
@@ -68,9 +68,7 @@ export function DossierOuverture({ number, file, now }: { number: string; file: 
       <Text style={s.ref}>
         {number} · établi le {fmtDate(localIso(now))} · dossier KYC {file.id.slice(0, 8)} · {KIND_LABEL[file.kind]}
       </Text>
-      <Text style={s.p}>
-        {COMPANY.legalName} demande l&apos;ouverture d&apos;un sous-compte titres nominatif au nom du client ci-dessous, sous son regroupement, et atteste avoir procédé à son identification et à la vérification de ses pièces conformément à la réglementation CEMAC en matière de LBC/FT.
-      </Text>
+      <Text style={s.p}>{passage("dossier_svt", "demande", texts, { societe: COMPANY.legalName })}</Text>
       <KV
         left
         rows={[

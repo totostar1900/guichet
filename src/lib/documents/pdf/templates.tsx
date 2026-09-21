@@ -206,9 +206,10 @@ export interface BordereauCtx {
   now: Date;
   /** clientId → nominative sub-account number at the SVT. */
   accounts?: Map<string, string | undefined>;
+  texts?: Record<string, string>;
 }
 
-export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourceRef, lines, now, accounts }: BordereauCtx) {
+export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourceRef, lines, now, accounts, texts }: BordereauCtx) {
   const svt = SVT_BY_COUNTRY[country] ?? { name: "SVT partenaire", address: "" };
   const rows = lines.map(({ offer, intents }) => {
     const units = intents.reduce((a, x) => a + x.position.units, 0);
@@ -237,9 +238,7 @@ export function Bordereau({ number, country, issuer, deadlineAt, settleOn, sourc
         cols={[{ label: "Client", flex: 2 }, { label: "Sous-compte", flex: 1.5, mono: true }, { label: "Ligne", flex: 1.5, mono: true }, { label: "Titres", right: true }, { label: "Réf. ordre", flex: 1.2, mono: true }, { label: "État" }]}
         rows={lines.flatMap(({ offer, intents }) => intents.map(({ intent, position }) => [intent.clientName, (intent.clientId && accounts?.get(intent.clientId)) || "à ouvrir", offer.isin, fmt(position.units), intent.ref, intent.state === "transmise" ? "transmis" : "confirmé"]))}
       />
-      <Text style={s.p}>
-        Règlement-livraison : débit de notre compte espèces ouvert dans vos livres, valeur {fmtDate(settleOn)} ; livraison des titres sur les sous-comptes nominatifs des clients listés (ouverture préalable pour ceux marqués « à ouvrir », dossiers transmis). Merci de nous confirmer la réception avant l&apos;heure limite et de nous transmettre les résultats dès publication.
-      </Text>
+      <Text style={s.p}>{passage("bordereau", "reglement_svt", texts, { date_reglement: fmtDate(settleOn), svt: svt.name })}</Text>
       <Sig left={`Pour ${COMPANY.legalName} : le Directeur Général, signature et cachet`} right={`Réception ${svt.name.split(" · ")[0]}, heure, visa`} />
     </Letter>
   );

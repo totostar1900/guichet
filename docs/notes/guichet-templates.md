@@ -1,15 +1,17 @@
 ---
 name: guichet-templates
-description: Templates registry (three kinds, 15 models incl. mandat/coupon/réclamation/transfert since 2026-09-21 evening) with versioning (desk › Référentiel › Modèles) built 2026-09-21; passages catalogue vs server resolver split, sensitivities, migration 0030 status
+description: Templates registry (desk › Référentiel › Modèles): passages catalogue vs server resolver, three sensitivities, three kinds, consultable models with previews for every DocumentType, "Dernier émis", other editions
 metadata:
   type: project
 ---
 
-Templates registry (built 2026-09-21): what generated documents say is edited from the desk, passage by passage, at `/desk/referentiel/modeles`. Catalogue + client-safe helpers live in `src/lib/documents/passages-catalog.ts` (PASSAGES, PLACEHOLDER_LABEL, SENSITIVITY_LABEL, fill, checkPassage, passage); the server resolver `resolvePassages` (reads the repo, tolerates a missing table) is in `src/lib/documents/passages.ts`, which re-exports the catalogue. Three sensitivities: libre (in force on save), relu (another desk member than the author activates), reglementaire (responsable approves). Statuses current / pending / superseded; `documents.template_versions` records which versions each PDF carried. Preview route `/desk/referentiel/modeles/preview?type=&v=|passage=&fr=` renders on demo data, desk only. Client editor exports `PassageEditor` and `ActivateVersion` (a static property on a client function is NOT visible from a server component; use named exports).
+Guichet templates registry, live since 2026-09-21, extended 2026-09-22.
 
-**Why:** the desk must reword documents without a deploy, with a review trail, and issued PDFs must never change retroactively. Layout, figures and new document types stay in code.
+- Client-safe catalogue `src/lib/documents/passages-catalog.ts` (PASSAGES, PLACEHOLDER_LABEL, SENSITIVITY_LABEL, fill, checkPassage, passage); server resolver `passages.ts` (`resolvePassages(type)` → {text, versions}); table `template_texts` (migration 0030), `documents.template_versions` on every generated PDF.
+- Sensitivities: libre (in force on save), relu (another desk member), reglementaire (responsable). Kinds: signe / envoye / interne (`DOC_KIND`, `DOC_ORDER`, `DOC_ROLES`, `MOMENTS` in `src/lib/documents/registry.ts`).
+- Every DocumentType has a preview (`renderPreview(type, override?, variant?)` in generate.ts; route `/desk/referentiel/modeles/preview?type=&v=|passage=&fr=&variante=opcvm`). bordereau (SVT demo auction lines / OPCVM with `variante=opcvm`) and dossier_svt render on demo data; their sentences are libre passages (bordereau: reglement_svt, execution_opcvm; dossier_svt: demande).
+- Registry page shows "Dernier émis" per model from `listDocuments()`, a second preview button for bordereau, and an "Autres éditions" section (fiche PDF d'une ligne, rapport société, rapport d'activité: on-demand, not stored, preview links on a real line / company / period).
+- Rule: a model without passages is consulted through its preview; wording changes for it go to the technical team.
 
-**How to apply:** add a passage with `P(...)` in the catalogue and call `passage(docType, key, texts, vars)` in the PDF template; never import `@/lib/data` from the catalogue (client bundle). Migration `0030_template_texts.sql` applied on Supabase 2026-09-21 (see [[guichet-supabase-migrations]]). Related: [[guichet-issuers-fiche]], [[guichet-docs-and-guides]].
-
-
-**Acts and notices (2026-09-21 evening):** DocumentType gained mandat · coupon · reclamation · transfert; KycStatus gained en_cloture · clos; ClientFile.acts holds mandates and the closure; GeneratedDocument.flowKey (client|isin|date) makes coupon notices unique; Position.paid lists flows already due. Registry lists DOC_ORDER in three kinds (DOC_KIND / DOC_KIND_LABEL / DOC_KIND_RULE / DOC_WHEN in registry.ts). Desk actions in src/app/desk/clients/acts-actions.ts (mandateAction, couponNoticeAction, couponBatchAction, transferAction, closureStepAction, complaintDeskAction), panel ClientActs.tsx; client complaint at /moi/reclamation (code on proven WhatsApp, else the signed-in e-mail). notifyClientDocument sends a client document without an intention. Decisions taken: mandate never lets funds out to the agent; notices only go by a proven channel; complaint signed by code; « en clôture » refuses new intentions (submitIntent checks session.kycStatus). Migration 0032 (enum adds + flow_key + acts).
+**Why:** the desk asked to consult every model, including internal ones; previews + libre passages give that without new DocumentTypes.
+**How to apply:** new DocumentType ⇒ add DOC_LABEL/PREFIX/KIND/ROLES/WHEN, a preview branch in renderPreview, passages if any, EN keys. See [[guichet-referentiel-drafts]], [[guichet-docs-and-guides]].

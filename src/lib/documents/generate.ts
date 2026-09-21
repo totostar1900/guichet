@@ -97,10 +97,11 @@ export async function generateBordereau(country: string, deadlineAt: string, opt
   const now = new Date();
   const number = await nextNumber("bordereau", now);
   const first = offers[0];
-  const ctx: BordereauCtx = { number, country, issuer: first.issuer, deadlineAt, settleOn: first.settleOn, sourceRef: first.documents[0]?.name, lines, now, accounts };
+  const wording = await resolvePassages("bordereau");
+  const ctx: BordereauCtx = { number, country, issuer: first.issuer, deadlineAt, settleOn: first.settleOn, sourceRef: first.documents[0]?.name, lines, now, accounts, texts: wording.text };
   const pdf = await renderToBuffer(el(createElement(Bordereau, ctx)));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
-  return store({ type: "bordereau", number, title: `Bordereau SVT : ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor }, pdf, now);
+  return store({ type: "bordereau", number, title: `Bordereau SVT : ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /** Confirmed / transmitted OPCVM orders of one manager, grouped for its centralising agent. */
@@ -119,9 +120,10 @@ export async function generateFundBordereau(manager: string, opts: GenerateOpts 
   const payouts = new Map(files.map((f) => [f.userId, f.funds.bankAccount ? `${f.funds.bankName ? `${f.funds.bankName} ` : ""}${f.funds.bankAccount}` : undefined]));
   const now = new Date();
   const number = await nextNumber("bordereau", now);
-  const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts, payouts })));
+  const wording = await resolvePassages("bordereau");
+  const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts, payouts, texts: wording.text })));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
-  return store({ type: "bordereau", number, title: `Bordereau de centralisation : ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor }, pdf, now);
+  return store({ type: "bordereau", number, title: `Bordereau de centralisation : ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 async function store(meta: Omit<GeneratedDocument, "id" | "fileKey" | "status" | "createdAt">, pdf: Buffer, now: Date): Promise<GeneratedDocument> {
@@ -146,7 +148,7 @@ export async function generateKycDocument(type: "convention" | "dossier_svt", fi
   const now = new Date();
   const number = await nextNumber(type, now);
   const wording = await resolvePassages(type);
-  const element = type === "convention" ? createElement(Convention, { number, file, now, texts: wording.text }) : createElement(DossierOuverture, { number, file, now });
+  const element = type === "convention" ? createElement(Convention, { number, file, now, texts: wording.text }) : createElement(DossierOuverture, { number, file, now, texts: wording.text });
   const pdf = await renderToBuffer(el(element));
   return store({ type, number, title: `${DOC_LABEL[type]} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
@@ -310,12 +312,41 @@ import { PASSAGES, fill } from "./passages";
  * or with one passage replaced by a proposed text: what the desk looks at
  * before saving a version. Nothing is stored or numbered.
  */
-export async function renderPreview(type: DocumentType, override?: { passage: string; fr: string }): Promise<Buffer | undefined> {
+export async function renderPreview(type: DocumentType, override?: { passage: string; fr: string }, variant?: string): Promise<Buffer | undefined> {
   const wording = await resolvePassages(type);
   const texts = { ...wording.text };
   if (override) texts[override.passage] = override.fr;
   const now = new Date();
   const number = "APERÇU";
+  const demoIntent = (offer: Offer, type: Intent["type"], amount: number, name: string, seg: string): Intent => ({ id: `apercu-${offer.id}-${name}`, ref: "PF-0000-000", offerId: offer.id, offerVersion: offer.version, clientId: `apercu-${name}`, clientName: name, clientSegment: seg, type, amount, channel: "WhatsApp", state: "confirmee", createdAt: now.toISOString(), updatedAt: now.toISOString() });
+  if (type === "bordereau" && variant !== "opcvm") {
+    // a demonstration auction : the open OTA / BTA lines of one issuer, two clients each
+    const offers = (await repo().listOffers()).filter((o) => (o.kind === "OTA" || o.kind === "BTA") && !o.hidden);
+    const first = offers[0];
+    if (!first) return undefined;
+    const same = offers.filter((o) => o.country === first.country).slice(0, 3);
+    const lines: BordereauCtx["lines"] = same.map((offer) => {
+      const a = demoIntent(offer, "ferme", 5_000_000, "Client de démonstration A", "Personne physique · Yaoundé");
+      const b = demoIntent(offer, "ferme", 20_000_000, "Client de démonstration B", "Entreprise · Douala");
+      return { offer, intents: [a, b].map((intent) => ({ intent, position: positionFor(intent, offer) })) };
+    });
+    const accounts = new Map<string, string | undefined>([["apercu-Client de démonstration A", "0001-DEMO"]]);
+    return renderToBuffer(el(createElement(Bordereau, { number, country: first.country, issuer: first.issuer, deadlineAt: first.deadlineAt, settleOn: first.settleOn, sourceRef: "Communiqué de démonstration", lines, now, accounts, texts })));
+  }
+  if (type === "bordereau") {
+    const funds = (await repo().listOffers()).filter((o) => o.kind === "FONDS" && o.fund);
+    const first = funds[0];
+    if (!first) return undefined;
+    const lines: FundBordereauCtx["lines"] = funds
+      .filter((o) => o.fund?.manager === first.fund?.manager)
+      .slice(0, 2)
+      .map((offer) => ({ offer, intents: [demoIntent(offer, "souscription", 2_000_000, "Client de démonstration A", "Personne physique · Yaoundé"), demoIntent(offer, "rachat", 10, "Client de démonstration B", "Diaspora · Paris")].map((intent) => ({ intent, position: positionFor(intent, offer) })) }));
+    return renderToBuffer(el(createElement(BordereauSgo, { number, manager: first.fund!.manager, now, lines, accounts: new Map([["apercu-Client de démonstration A", "REG-0001"]]), payouts: new Map([["apercu-Client de démonstration B", "Banque de démonstration 00000 00000 00000000000 47"]]), texts })));
+  }
+  if (type === "dossier_svt") {
+    const file: ClientFile = { id: "apercu-000000", userId: "apercu", kind: "physique", status: "approuve", identity: { name: "Client de démonstration", phone: "+237 6 00 00 00 00", email: "client@exemple.com", address: "Quartier de démonstration", city: "Yaoundé", country: "Cameroun", birthDate: "1985-03-12", nationality: "Camerounaise", profession: "Commerçant", taxId: "P000000000000A", idType: "CNI", idNumber: "000000000", idExpiresOn: `${now.getFullYear() + 3}-01-01` }, persons: [], documents: [], funds: { pep: false, source: "Revenus d'activité", bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47", bankHolder: "Client de démonstration" }, profile: { category: "non_professionnel" }, consents: { conventionAt: now.toISOString(), conventionMethod: "code à usage unique" }, review: { risk: "faible", nextReviewOn: `${now.getFullYear() + 5}-01-01` }, createdAt: now.toISOString(), updatedAt: now.toISOString() };
+    return renderToBuffer(el(createElement(DossierOuverture, { number, file, now, texts })));
+  }
   if (type === "convention") return renderToBuffer(el(createElement(Convention, { number, now, texts })));
   if (type === "mandat" || type === "coupon" || type === "reclamation" || type === "transfert") {
     const contact: Contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
@@ -337,7 +368,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
     const el2 = type === "releve" ? createElement(RelevePosition, { number, contact, positions: [], now, texts }) : createElement(AttestationDetention, { number, contact, positions: [], now, texts });
     return renderToBuffer(el(el2));
   }
-  if (!(type in PASSAGES) || type === "bordereau" || type === "dossier_svt") return undefined;
+  if (!(type in PASSAGES)) return undefined;
   const offers = await repo().listOffers();
   const offer = offers.find((o) => (o.kind === "OTA" || o.kind === "APE") && !o.hidden) ?? offers.find((o) => o.kind === "MARCHE" && o.instrument === "obligation") ?? offers[0];
   if (!offer) return undefined;

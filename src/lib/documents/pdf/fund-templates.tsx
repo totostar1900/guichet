@@ -5,6 +5,7 @@ import type { Position } from "../position";
 import { payoutLine, type ClientDocCtx } from "./templates";
 import { Addr, KV, Letter, Sig, Table, Text, s } from "./primitives";
 import { prettyName } from "@/lib/market/names";
+import { passage } from "../passages-catalog";
 
 /**
  * OPCVM documents. Purpose Capital is the distributor: the order goes to the
@@ -131,9 +132,10 @@ export interface FundBordereauCtx {
   accounts?: Map<string, string | undefined>;
   /** clientId → bank + RIB where redemption proceeds are paid. */
   payouts?: Map<string, string | undefined>;
+  texts?: Record<string, string>;
 }
 
-export function BordereauSgo({ number, manager, now, lines, accounts, payouts }: FundBordereauCtx) {
+export function BordereauSgo({ number, manager, now, lines, accounts, payouts, texts }: FundBordereauCtx) {
   const subs = lines.flatMap((l) => l.intents.filter((x) => x.intent.type === "souscription").map((x) => ({ ...x, offer: l.offer })));
   const reds = lines.flatMap((l) => l.intents.filter((x) => x.intent.type === "rachat").map((x) => ({ ...x, offer: l.offer })));
   const cash = subs.reduce((a, x) => a + (x.intent.amount ?? 0), 0);
@@ -161,9 +163,7 @@ export function BordereauSgo({ number, manager, now, lines, accounts, payouts }:
           />
         </>
       )}
-      <Text style={s.p}>
-        Merci d&apos;exécuter ces ordres à la prochaine valeur liquidative, d&apos;inscrire les parts au nom de chaque porteur au registre tenu par le dépositaire (dossiers d&apos;identification joints pour les porteurs marqués « à créer ») et de nous adresser les avis d&apos;opération individuels. Les espèces de souscription sont virées depuis notre compte de règlement clients ségrégué ; les produits de rachat sont à virer directement sur le compte bancaire de chaque porteur tel qu&apos;indiqué au registre.
-      </Text>
+      <Text style={s.p}>{passage("bordereau", "execution_opcvm", texts, { gestion: manager })}</Text>
       <Sig left={`Pour ${COMPANY.legalName} : le Directeur Général, signature et cachet`} right={`Réception ${prettyName(manager)} : date, heure, visa`} />
     </Letter>
   );

@@ -3,7 +3,9 @@ import { DeskNav } from "@/components/DeskNav";
 import { getSession } from "@/lib/auth";
 import { isResponsable } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import type { DocumentType, TemplateText } from "@/lib/domain/types";
+import type { DocumentType, GeneratedDocument, TemplateText } from "@/lib/domain/types";
+import { loadCompanies } from "@/lib/reference";
+import { defaultPeriod } from "@/lib/reporting";
 import { DOC_KIND, DOC_KIND_LABEL, DOC_KIND_RULE, DOC_LABEL, DOC_ORDER, DOC_WHEN, type DocumentKind } from "@/lib/documents/registry";
 import { PASSAGES, SENSITIVITY_LABEL } from "@/lib/documents/passages";
 import { previewLine } from "@/lib/documents/generate";
@@ -23,7 +25,15 @@ export const metadata = { title: "Modèles" };
  * coming into force. What is not listed here is code.
  */
 export default async function ModelesPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
-  const [t, sp, session, rows] = await Promise.all([getT(), searchParams, getSession(), repo().listTemplateTexts().catch(() => [] as TemplateText[])]);
+  const [t, sp, session, rows, docs, offers, companies] = await Promise.all([
+    getT(),
+    searchParams,
+    getSession(),
+    repo().listTemplateTexts().catch(() => [] as TemplateText[]),
+    repo().listDocuments().catch(() => [] as GeneratedDocument[]),
+    repo().listOffers().catch(() => []),
+    loadCompanies().catch(() => []),
+  ]);
   const responsable = isResponsable(session);
   const me = session?.name ?? "";
   const types = DOC_ORDER;
@@ -32,6 +42,17 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
   const defs = PASSAGES[open] ?? [];
   const byPassage = (key: string) => rows.filter((r) => r.docType === open && r.passage === key).sort((a, b) => b.version - a.version);
   const pendingAll = rows.filter((r) => r.status === "pending").length;
+  const issued = docs.filter((d) => d.type === open).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const last = issued[0];
+  // the editions the desk produces on demand, previewed on a real line, company or period : not stored, no passages
+  const sample = offers.find((o) => !o.hidden && o.kind !== "MARCHE") ?? offers[0];
+  const company = companies[0];
+  const period = defaultPeriod();
+  const editions: { key: string; label: string; when: string; href?: string }[] = [
+    { key: "fiche", label: "Fiche PDF d'une ligne", when: "à la demande, depuis la fiche d'une ligne du Guichet (« Fiche PDF ») ; les données de la ligne, l'indice et l'échéancier", href: sample ? `/offres/${sample.id}/fiche` : undefined },
+    { key: "societe", label: "Rapport société", when: "à la demande, depuis la page d'une société cotée ; cours, dividendes, ratios et commentaire de période", href: company ? `/societes/${company.mnemo}/rapport?p=ytd` : undefined },
+    { key: "activite", label: "Rapport d'activité", when: "à la demande, depuis Reporting ; ordres, clients, documents et flux sur la période", href: `/desk/reporting/pdf?from=${period.from}&to=${period.to}` },
+  ];
   return (
     <>
       <DeskNav current="/desk/referentiel" />
@@ -87,12 +108,33 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
                 <span className={`${styles.kindTag} ${styles[DOC_KIND[open]]}`}>{t(DOC_KIND_LABEL[DOC_KIND[open]])}</span> {t("Produit")} : {t(DOC_WHEN[open])}
               </small>
             </div>
-            <a className="btn sm primary" href={`/desk/referentiel/modeles/preview?type=${open}`} target="_blank" rel="noreferrer">
-              {t("Aperçu PDF · texte en vigueur")}
-            </a>
+            <div className={styles.previews}>
+              <a className="btn sm primary" href={`/desk/referentiel/modeles/preview?type=${open}`} target="_blank" rel="noreferrer">
+                {open === "bordereau" ? t("Aperçu PDF · bordereau SVT") : t("Aperçu PDF · texte en vigueur")}
+              </a>
+              {open === "bordereau" && (
+                <a className="btn sm" href="/desk/referentiel/modeles/preview?type=bordereau&variante=opcvm" target="_blank" rel="noreferrer">
+                  {t("Aperçu PDF · bordereau OPCVM")}
+                </a>
+              )}
+            </div>
           </div>
+          <p className={styles.last}>
+            {last ? (
+              <>
+                {t("Dernier émis")} : <span className="mono">{last.number}</span> · {fmtDateTime(last.createdAt)}
+                {last.clientName ? ` · ${last.clientName}` : ""} ·{" "}
+                <a href={`/desk/documents/pdf/${last.id}`} target="_blank" rel="noreferrer">
+                  PDF
+                </a>{" "}
+                · <Link href={`/desk/documents?type=${open}`}>{t("{n} émis", { n: String(issued.length) })}</Link>
+              </>
+            ) : (
+              t("Aucun document de ce modèle n'a encore été émis : l'aperçu montre le modèle sur des données de démonstration.")
+            )}
+          </p>
 
-          {defs.length === 0 && <p className={styles.none}>{t("Ce document n'a pas de passage rédigé : sa mise en page et ses mentions sont dans le code, ses données viennent du dossier ou de l'intention.")}</p>}
+          {defs.length === 0 && <p className={styles.none}>{t("Ce modèle se consulte par l'aperçu : ses mentions sont fixées par le code et ses données viennent du dossier, de l'intention ou des positions. Une modification de texte se demande à l'équipe technique.")}</p>}
           {defs.map((d) => {
             const versions = byPassage(d.key);
             const current = versions.find((v) => v.status === "current");
@@ -135,6 +177,28 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
               </section>
             );
           })}
+
+          <section className={styles.editions} id="editions">
+            <h3>{t("Autres éditions")}</h3>
+            <p className="muted">{t("Produites à la demande, non numérotées dans Documents, sans passage modifiable : le modèle se consulte sur une ligne, une société ou une période réelles.")}</p>
+            <ul>
+              {editions.map((e) => (
+                <li key={e.key}>
+                  <div>
+                    <b>{t(e.label)}</b>
+                    <small>{t(e.when)}</small>
+                  </div>
+                  {e.href ? (
+                    <a className="btn sm" href={e.href} target="_blank" rel="noreferrer">
+                      {t("Aperçu PDF")}
+                    </a>
+                  ) : (
+                    <span className="muted">{t("aucune donnée à montrer")}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
       </div>
     </>

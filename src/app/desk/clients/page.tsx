@@ -5,6 +5,7 @@ import type { ClientFile } from "@/lib/domain/kyc";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
+import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
 import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
 import { positionsFrom } from "@/lib/positions";
 import { INTENT_LABEL } from "@/lib/domain/intent";
@@ -201,7 +202,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
             </div>
 
             <div data-coach="review">
-              <ReviewForm file={selected} suggested={suggestedRisk(selected)} riskLabels={RISK_LABEL} />
+              <ReviewForm file={selected} suggested={suggestedRisk(selected)} riskLabels={RISK_LABEL} screening={{ auto: screeningConfigured(), names: namesToScreen(selected), lists: MANUAL_LISTS.map((l) => ({ key: l.key, label: l.label, url: l.url(namesToScreen(selected)[0] ?? selected.identity.name) })) }} />
             </div>
             <ClientActs fileId={selected.id} clientId={selected.userId} status={selected.status} mandataires={selected.persons.filter((p) => p.role === "mandataire").map((p) => ({ name: p.name, idNumber: p.idNumber }))} mandates={selected.acts?.mandates ?? []} closure={selected.acts?.closure} positions={actPositions} operations={operations} custodianAccount={selected.review.custodianAccount} />
           </div>
