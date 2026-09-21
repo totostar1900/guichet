@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
@@ -15,6 +16,31 @@ import styles from "./page.module.css";
 function Msg({ state }: { state: RefResult | null }) {
   if (!state) return null;
   return <p className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</p>;
+}
+
+/**
+ * Cancel on every form: editing an entry, back to the list with the panel
+ * closed; a new entry, the fields cleared. Then the submit, which always
+ * stages a draft (« Publier » on the tab makes it what the clients read).
+ */
+function Foot({ tab, editing, pending, label }: { tab: string; editing: boolean; pending: boolean; label: string }) {
+  const tr = useT();
+  return (
+    <>
+      {editing ? (
+        <Link className="btn sm ghost" href={`/desk/referentiel?onglet=${tab}`}>
+          {tr("Annuler")}
+        </Link>
+      ) : (
+        <button className="btn sm ghost" type="reset">
+          {tr("Effacer")}
+        </button>
+      )}
+      <button className="btn sm primary" type="submit" disabled={pending} title={tr("Enregistre un brouillon : « Publier » le rend visible des clients")}>
+        {pending ? "…" : label}
+      </button>
+    </>
+  );
 }
 
 const INTENTS = Object.keys(INTENT_LABEL) as (keyof typeof INTENT_LABEL)[];
@@ -101,16 +127,14 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
         <label className={styles.inlineCheck}>
           <input type="checkbox" name="enabled" defaultChecked={t?.enabled ?? true} /> {tr("Proposé dans le Guichet et le desk")}
         </label>
-        <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : isNew ? tr("Créer le type") : tr("Enregistrer")}
-        </button>
+        <Foot tab="types" editing={!isNew} pending={pending} label={isNew ? tr("Créer le type (brouillon)") : tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>
   );
 }
 
-export function TermForm({ t }: { t?: BondTerms }) {
+export function TermForm({ t, isNew }: { t?: BondTerms; isNew?: boolean }) {
   const tr = useT();
   const [state, action, pending] = useActionState<RefResult | null, FormData>(saveTermAction, null);
   return (
@@ -118,7 +142,7 @@ export function TermForm({ t }: { t?: BondTerms }) {
       <div className={styles.row3}>
         <label>
           <span>{tr("ISIN")}</span>
-          <input name="isin" defaultValue={t?.isin} readOnly={Boolean(t)} className="mono" maxLength={12} required />
+          <input name="isin" defaultValue={t?.isin} readOnly={Boolean(t) && !isNew} className="mono" maxLength={12} required />
         </label>
         <label>
           <span>{tr("Échéance exacte")}</span>
@@ -140,9 +164,7 @@ export function TermForm({ t }: { t?: BondTerms }) {
         </label>
       </div>
       <div className={styles.actions}>
-        <button className="btn sm primary" type="submit" disabled={pending}>
-          {tr(pending ? "…" : "Enregistrer")}
-        </button>
+        <Foot tab="echeanciers" editing={Boolean(t) && !isNew} pending={pending} label={tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>
@@ -173,9 +195,7 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
         <textarea name="text" rows={3} defaultValue={t?.text} required />
       </label>
       <div className={styles.actions}>
-        <button className="btn sm primary" type="submit" disabled={pending}>
-          {tr(pending ? "…" : "Enregistrer")}
-        </button>
+        <Foot tab="glossaire" editing={Boolean(k)} pending={pending} label={tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>
@@ -251,9 +271,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
         <input name="terms" className="mono" defaultValue={l?.terms.join(", ")} placeholder={tr("ota, nominal, coupon")} />
       </label>
       <div className={styles.actions}>
-        <button className="btn sm primary" type="submit" disabled={pending}>
-          {tr(pending ? "…" : "Enregistrer la leçon")}
-        </button>
+        <Foot tab="lecons" editing={Boolean(l)} pending={pending} label={tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>
@@ -262,6 +280,7 @@ export function LessonForm({ l }: { l?: Lesson }) {
 
 /** Company / issuer sheets are large structured records: edited as JSON, checked field by field on save. */
 export function JsonForm({ kind, data, label }: { kind: string; data?: unknown; label: string }) {
+  const tr = useT();
   const [state, action, pending] = useActionState<RefResult | null, FormData>(saveJsonAction, null);
   return (
     <form action={action} className={`${styles.form} ${styles.compact}`}>
@@ -271,9 +290,7 @@ export function JsonForm({ kind, data, label }: { kind: string; data?: unknown; 
         <textarea name="json" rows={data ? 22 : 10} className="mono" defaultValue={data ? JSON.stringify(data, null, 2) : ""} spellCheck={false} required />
       </label>
       <div className={styles.actions}>
-        <button className="btn sm primary" type="submit" disabled={pending}>
-          {pending ? "…" : "Enregistrer la fiche"}
-        </button>
+        <Foot tab={kind === "company" ? "societes" : "emetteurs"} editing={Boolean(data)} pending={pending} label={tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>

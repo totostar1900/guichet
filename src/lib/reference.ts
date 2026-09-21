@@ -11,14 +11,14 @@ import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/l
 /**
  * Reference data as the desk maintains it in the app. Each kind starts from
  * the built-in defaults shipped in code and is overridden row by row from the
- * `reference` table : so an empty table changes nothing, and « Importer les
- * valeurs par défaut » on the desk copies the defaults into the table to edit.
+ * `reference` table : so an empty table changes nothing. The desk's changes
+ * wait as drafts on the row until « Publier » ; only `data` is read here.
  */
 export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson" } as const;
 
 const rows = cache(async <T,>(kind: string): Promise<Map<string, T>> => {
   const list = await repo().listReference(kind);
-  return new Map(list.map((r) => [r.key, r.data as T]));
+  return new Map(list.filter((r) => r.data != null).map((r) => [r.key, r.data as T]));
 });
 
 export const loadTypes = cache(async (): Promise<ProductType[]> => {
@@ -72,30 +72,3 @@ export const loadRegistry = cache(async (): Promise<Registry> => {
   setRegistry(reg);
   return reg;
 });
-
-/** Copies the code defaults of one kind into the table (only keys not yet there), so the desk can edit them. */
-export async function importDefaults(kind: string, by: string): Promise<number> {
-  const r = repo();
-  const have = new Set((await r.listReference(kind)).map((x) => x.key));
-  const entries: [string, unknown][] =
-    kind === REF.types
-      ? BUILTIN_TYPES.map((t) => [t.key, t])
-      : kind === REF.bondTerms
-        ? BOND_TERMS.map((b) => [b.isin, b])
-        : kind === REF.companies
-          ? COMPANIES.map((c) => [c.mnemo, c])
-          : kind === REF.issuers
-            ? ISSUERS.map((i) => [i.slug, i])
-            : kind === REF.glossary
-              ? Object.entries(GLOSSARY_DEFAULTS)
-              : kind === REF.lessons
-                ? LESSONS.map((l) => [l.key, l])
-                : [];
-  let n = 0;
-  for (const [key, data] of entries) {
-    if (have.has(key)) continue;
-    await r.upsertReference(kind, key, data, by);
-    n++;
-  }
-  return n;
-}

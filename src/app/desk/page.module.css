@@ -147,3 +147,14 @@
 .refLink:hover {
   text-decoration-color: var(--gold);
 }
+
+.filterTag {
+  font-size: 0.78rem;
+  color: var(--warn);
+  font-weight: 700;
+}
+.noPrice {
+  color: var(--warn);
+  font-weight: 700;
+  font-size: 0.78rem;
+}

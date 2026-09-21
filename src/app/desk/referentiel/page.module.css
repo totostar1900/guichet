@@ -215,3 +215,132 @@
     gap: 6px;
   }
 }
+
+/* ---- drafts, flashes, toolbar ---- */
+.tagDraft {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.origin {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.draftBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--warn);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  font-size: 0.84rem;
+}
+.draftBar > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.draftBar span {
+  font-size: 0.76rem;
+}
+.draftBtns,
+.editBtns {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.flashOk,
+.flashDraft {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.flashOk {
+  background: var(--good-soft, #dff1e6);
+  color: var(--good, #2f7d4f);
+}
+.flashDraft {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.hl td {
+  background: var(--gold-soft);
+}
+.dangerBtn {
+  color: var(--crit);
+  border-color: var(--crit);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.toolbar input,
+.toolbar select {
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.toolbar input {
+  flex: 1 1 24ch;
+  max-width: 40ch;
+}
+.sortBtn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.sortBtn:hover {
+  color: var(--gold-ink);
+}
+.missing {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--warn);
+  background: var(--warn-soft);
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.missing > span {
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+.missing ul {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.missing li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.missing li a {
+  margin-left: auto;
+}

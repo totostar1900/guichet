@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { textMatch } from "@/lib/text";
 import { DeskNav } from "@/components/DeskNav";
+import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
 import { countdown, displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
@@ -25,7 +26,7 @@ export const metadata = { title: "Desk" };
 const FIRM = (i: Intent) => i.type === "ferme" || i.type === "cession";
 const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];
 
-export default async function DeskPage({ searchParams }: { searchParams: Promise<{ etat?: string; q?: string; ligne?: string; tri?: string }> }) {
+export default async function DeskPage({ searchParams }: { searchParams: Promise<{ etat?: string; q?: string; ligne?: string; tri?: string; filtre?: string; depuis?: string; point?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
@@ -34,7 +35,8 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const byId = new Map(offers.map((o) => [o.id, o]));
 
   // Book: open offers, grouped by their deadline (an auction = one deadline per issuer).
-  const live = offers.filter((o) => isActionable(displayStatus(o, now)) && o.kind !== "ACTIONS" && o.kind !== "MARCHE");
+  const noPrice = (o: (typeof offers)[number]) => o.pricePct == null && o.precountRate == null;
+  const live = offers.filter((o) => isActionable(displayStatus(o, now)) && o.kind !== "ACTIONS" && o.kind !== "MARCHE" && (sp.filtre !== "sans-prix" || noPrice(o)));
   const rows = live.map((o) => {
     const its = intents.filter((i) => i.offerId === o.id && OPEN_STATES.includes(i.state));
     const firm = its.filter(FIRM);
@@ -70,7 +72,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     <>
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
       <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
+      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-prix" ? String(live.length) : undefined} />}
 
+      <div id="aujourdhui" />
       <TodayPanel tiles={today_.tiles} bulletin={today_.bulletin} today={today_.today} />
 
       <div id="une" />
@@ -164,9 +168,14 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="offres">
         <div className="panel-h">
           <h2>{t("Carnet d'appétits : offres ouvertes")}</h2>
+          {sp.filtre === "sans-prix" && (
+            <span className={styles.filterTag}>
+              {t("{n} ligne(s) sans prix du desk", { n: String(live.length) })} · <Link href="/desk#offres">{t("Toutes")}</Link>
+            </span>
+          )}
           <span className="muted right" style={{ fontSize: ".8rem" }}>
             {t("prises fermes en navy, appétits en or")}
           </span>
@@ -190,7 +199,18 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                   <td>
                     <LineIdentity o={o} s={summarize(o, now)} href={`/offres/${o.id}`} />
                   </td>
-                  <td className="num">{o.kind === "BTA" ? fmtPct(o.precountRate ?? 0, 2) : fmtPrice(o.pricePct ?? 100)}{o.priceNote || o.rateNote ? <span className="muted"> (indic.)</span> : null}</td>
+                  <td className="num">
+                    {noPrice(o) ? (
+                      <Link className={styles.noPrice} href={`/desk/lignes/${o.id}`}>
+                        {t("sans prix : renseigner")}
+                      </Link>
+                    ) : (
+                      <>
+                        {o.kind === "BTA" ? fmtPct(o.precountRate ?? 0, 2) : fmtPrice(o.pricePct ?? 100)}
+                        {o.priceNote || o.rateNote ? <span className="muted"> (indic.)</span> : null}
+                      </>
+                    )}
+                  </td>
                   <td className="r">
                     <b>{nF}</b> · {fmtMillions(sF)}
                   </td>

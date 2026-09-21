@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { FromSante } from "@/components/desk/FromSante";
 import { getT } from "@/i18n/server";
 import { fmtDateTime } from "@/lib/format";
 import { loadNews } from "@/lib/news";
@@ -34,7 +35,7 @@ function StateButton({ id, what, label, ghost }: { id: string; what: string; lab
   );
 }
 
-export default async function DeskNewsPage({ searchParams }: { searchParams: Promise<{ cle?: string; etat?: string }> }) {
+export default async function DeskNewsPage({ searchParams }: { searchParams: Promise<{ cle?: string; etat?: string; depuis?: string; point?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const now = new Date();
@@ -68,6 +69,7 @@ export default async function DeskNewsPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <DeskNav current="/desk/actualites" badges={{ "/desk/actualites": received.length }} />
+      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} />}
       <div className={styles.head}>
         <div>
           <h1>{t("Actualités")}</h1>

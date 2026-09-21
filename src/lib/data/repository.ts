@@ -1,5 +1,5 @@
 import type { FinancialProfile } from "@/data/profile";
-import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
+import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -58,6 +58,12 @@ export interface Repository {
   listReference(kind: string): Promise<ReferenceRow[]>;
   upsertReference(kind: string, key: string, data: unknown, by?: string): Promise<void>;
   deleteReference(kind: string, key: string): Promise<void>;
+  /** Stages a change on one entry; nothing the app reads moves until publishReference. */
+  saveReferenceDraft(kind: string, key: string, draft: ReferenceDraft, by: string): Promise<void>;
+  /** Applies the drafts of one kind (all, or the given keys): set → published, reset → row removed. Returns the keys applied. */
+  publishReference(kind: string, keys?: string[]): Promise<string[]>;
+  /** Drops the drafts of one kind (all, or the given keys); a row with no published value disappears. */
+  discardReference(kind: string, keys?: string[]): Promise<string[]>;
   /** Lines followed by clients (all of them for the daily alert, one client's for their page). */
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }): Promise<Watch>;

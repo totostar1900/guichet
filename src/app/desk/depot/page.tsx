@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { FromSante } from "@/components/desk/FromSante";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
 import { BOND_TERMS } from "@/data/bond-terms";
@@ -19,7 +20,7 @@ export const metadata = { title: "Dépôt" };
  * figures (BVMAC fiches, issuers' accounts). One page, so that « where is
  * the file » has one answer.
  */
-export default async function DepotPage({ searchParams }: { searchParams: Promise<{ n?: string }> }) {
+export default async function DepotPage({ searchParams }: { searchParams: Promise<{ n?: string; depuis?: string; point?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
@@ -38,6 +39,7 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <DeskNav current="/desk/depot" />
+      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} />}
       <div className={styles.head}>
         <div>
           <div className="eyebrow">{t("Desk · Dépôt")}</div>

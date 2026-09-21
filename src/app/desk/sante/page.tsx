@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { healthChecks } from "@/lib/health";
+import { HEALTH_HOW } from "@/lib/health-how";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import styles from "./page.module.css";
@@ -8,6 +9,12 @@ import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Santé du système" };
+
+/** The target page's address with « depuis=sante&point=… » before any #anchor. */
+function fromSante(href: string, key: string): string {
+  const [path, hash] = href.split("#");
+  return `${path}${path.includes("?") ? "&" : "?"}depuis=sante&point=${key}${hash ? `#${hash}` : ""}`;
+}
 
 const LEVEL: Record<string, string> = { ok: "OK", warn: "À surveiller", crit: "Action requise" };
 
@@ -28,13 +35,27 @@ export default async function SantePage() {
       </div>
 
       <div className={styles.grid}>
-        {checks.map((c) => (
-          <div key={c.key} className={`${styles.check} ${styles[c.level]}`}>
-            <span className={styles.label}>{t(c.label)}</span>
-            <b>{t(c.value)}</b>
-            {c.detail && <small>{t(c.detail)}</small>}
-          </div>
-        ))}
+        {checks.map((c) => {
+          const how = HEALTH_HOW[c.key];
+          const act = c.level !== "ok" && how;
+          const inner = (
+            <>
+              <span className={styles.label}>{t(c.label)}</span>
+              <b>{t(c.value)}</b>
+              {c.detail && <small>{t(c.detail)}</small>}
+              {act && <span className={styles.go}>{t("Traiter")} →</span>}
+            </>
+          );
+          return act ? (
+            <Link key={c.key} className={`${styles.check} ${styles[c.level]} ${styles.act}`} href={fromSante(how.href, c.key)} title={t(how.how)}>
+              {inner}
+            </Link>
+          ) : (
+            <div key={c.key} className={`${styles.check} ${styles[c.level]}`}>
+              {inner}
+            </div>
+          );
+        })}
       </div>
 
       <div className={styles.cols}>

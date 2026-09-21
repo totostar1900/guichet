@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { FromSante } from "@/components/desk/FromSante";
+import type { Offer } from "@/lib/domain/types";
 import { repo } from "@/lib/data";
 import { positionFor } from "@/lib/documents/position";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
@@ -13,11 +15,15 @@ import { getT } from "@/i18n/server";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marché secondaire" };
 
-export default async function MarketPage() {
+export default async function MarketPage({ searchParams }: { searchParams: Promise<{ filtre?: string; depuis?: string; point?: string }> }) {
+  const sp = await searchParams;
   const t = await getT();
   const r = repo();
   const [offers, intents, bulletins] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10)]);
-  const lines = offers.filter((o) => o.kind === "MARCHE").sort((a, b) => (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.title.localeCompare(b.title));
+  const lastSession = bulletins.filter((b) => b.status === "ok").map((b) => b.sessionDate).sort().reverse()[0];
+  const stale = (o: Offer) => Boolean(lastSession && !o.hidden && o.lastPriceOn && o.lastPriceOn < lastSession);
+  const allLines = offers.filter((o) => o.kind === "MARCHE").sort((a, b) => (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.title.localeCompare(b.title));
+  const lines = sp.filtre === "sans-cours" ? allLines.filter(stale) : allLines;
   const byId = new Map(offers.map((o) => [o.id, o]));
   const orders = intents.filter((i) => (i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state !== "annulee").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const funds = offers.filter((o) => o.kind === "FONDS" && o.fund).sort((a, b) => Number(Boolean(b.fund?.distributed)) - Number(Boolean(a.fund?.distributed)) || a.title.localeCompare(b.title));
@@ -34,6 +40,7 @@ export default async function MarketPage() {
   return (
     <>
       <DeskNav current="/desk/marche" />
+      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-cours" ? `${lines.length} / ${allLines.length}` : undefined} />}
 
       <div className="panel" data-coach="import">
         <div className="panel-h">
@@ -117,7 +124,16 @@ export default async function MarketPage() {
         )}
       </div>
 
-      <div className="panel">
+      <div className="panel" id="cotations">
+        {sp.filtre === "sans-cours" && (
+          <p className={styles.filterLine}>
+            <b>
+              {lines.length} / {allLines.length} {t("lignes sans cours à la dernière séance")}
+              {lastSession ? ` (${fmtDate(lastSession)})` : ""}
+            </b>
+            <Link href="/desk/marche#cotations">{t("Toutes les lignes")}</Link>
+          </p>
+        )}
         <div className="panel-h">
           <h2>{t("Cotations")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
@@ -143,7 +159,7 @@ export default async function MarketPage() {
                 const isBond = o.instrument === "obligation";
                 const f = (v?: number) => (v == null ? "—" : isBond ? fmtPrice(v) : fmt(v));
                 return (
-                  <tr key={o.id} className={o.hidden ? styles.hiddenRow : undefined}>
+                  <tr key={o.id} className={o.hidden ? styles.hiddenRow : stale(o) ? styles.staleRow : undefined}>
                     <td>
                       <b>
                         <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
@@ -168,6 +184,7 @@ export default async function MarketPage() {
                     <td className="r num">{f(o.ask)}</td>
                     <td className="num">
                       {o.lastPriceOn ? fmtDate(o.lastPriceOn) : "—"}
+                      {stale(o) && <small className={styles.staleTag}> {t("avant la dernière séance")}</small>}
                       <br />
                       <small className="muted">{o.pricedAt ? fmtDateTime(o.pricedAt) : ""}</small>
                     </td>
@@ -195,7 +212,7 @@ export default async function MarketPage() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="opcvm">
         <div className="panel-h">
           <h2>OPCVM : {t("{n} fonds lus au bulletin, {m} ouvert(s) à la souscription", { n: funds.length, m: funds.filter((o) => o.fund?.distributed).length })}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>

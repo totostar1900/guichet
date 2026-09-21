@@ -1,7 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -395,6 +395,9 @@ function fail(ctx: string, error: { message: string } | null): never {
   throw new Error(`${ctx}: ${error?.message ?? "unknown error"}`);
 }
 
+type RefRow = { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null; draft?: unknown; draft_by?: string | null; draft_at?: string | null };
+const toReferenceRow = (r: RefRow): ReferenceRow => ({ kind: r.kind, key: r.key, data: r.data ?? null, updatedAt: r.updated_at, updatedBy: u(r.updated_by), ...(r.draft ? { draft: r.draft as ReferenceDraft, draftBy: u(r.draft_by ?? null), draftAt: r.draft_at ?? undefined } : {}) });
+
 export const supabaseRepository: Repository = {
   async listOffers() {
     const { data, error } = await db().from("offers").select("*").neq("status", "draft").order("deadline_at");
@@ -695,7 +698,40 @@ export const supabaseRepository: Repository = {
       if (/reference/.test(error.message)) return []; // migration 0016 not applied yet
       fail("listReference", error);
     }
-    return (data as { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null }[]).map((r) => ({ kind: r.kind, key: r.key, data: r.data, updatedAt: r.updated_at, updatedBy: u(r.updated_by) }));
+    return (data as RefRow[]).map(toReferenceRow);
+  },
+  async saveReferenceDraft(kind, key, draft, by) {
+    const { data: existing } = await db().from("reference").select("key").eq("kind", kind).eq("key", key).maybeSingle();
+    const patch = { draft, draft_by: by, draft_at: new Date().toISOString() };
+    const { error } = existing ? await db().from("reference").update(patch).eq("kind", kind).eq("key", key) : await db().from("reference").insert({ kind, key, data: null, updated_by: by, ...patch });
+    if (error) fail("saveReferenceDraft", error);
+  },
+  async publishReference(kind, keys) {
+    let q = db().from("reference").select("*").eq("kind", kind).not("draft", "is", null);
+    if (keys) q = q.in("key", keys);
+    const { data, error } = await q;
+    if (error) fail("publishReference", error);
+    const done: string[] = [];
+    for (const r of (data ?? []) as RefRow[]) {
+      const d = r.draft as ReferenceDraft;
+      const res = d.op === "reset" ? await db().from("reference").delete().eq("kind", kind).eq("key", r.key) : await db().from("reference").update({ data: d.data, updated_at: new Date().toISOString(), updated_by: r.draft_by, draft: null, draft_by: null, draft_at: null }).eq("kind", kind).eq("key", r.key);
+      if (res.error) fail("publishReference", res.error);
+      done.push(r.key);
+    }
+    return done;
+  },
+  async discardReference(kind, keys) {
+    let q = db().from("reference").select("*").eq("kind", kind).not("draft", "is", null);
+    if (keys) q = q.in("key", keys);
+    const { data, error } = await q;
+    if (error) fail("discardReference", error);
+    const done: string[] = [];
+    for (const r of (data ?? []) as RefRow[]) {
+      const res = r.data == null ? await db().from("reference").delete().eq("kind", kind).eq("key", r.key) : await db().from("reference").update({ draft: null, draft_by: null, draft_at: null }).eq("kind", kind).eq("key", r.key);
+      if (res.error) fail("discardReference", res.error);
+      done.push(r.key);
+    }
+    return done;
   },
   async upsertReference(kind, key, data, by) {
     const { error } = await db().from("reference").upsert({ kind, key, data, updated_at: new Date().toISOString(), updated_by: by ?? null }, { onConflict: "kind,key" });

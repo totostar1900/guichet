@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { DeskNav } from "@/components/DeskNav";
+import { FromSante } from "@/components/desk/FromSante";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { repo } from "@/lib/data";
 import type { InboundMessage, Notification } from "@/lib/domain/types";
@@ -23,7 +24,7 @@ type Thread = { key: string; channel: "whatsapp" | "email"; name?: string; clien
  * what the client wrote (WhatsApp webhook, inbound mailbox) and what we sent
  * (every outbound notification). Reply from here; mark a thread handled.
  */
-export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ avec?: string; q?: string; etat?: string; canal?: string }> }) {
+export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ avec?: string; q?: string; etat?: string; canal?: string; depuis?: string; point?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
@@ -66,6 +67,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <DeskNav current="/desk/messages" badges={{ "/desk/messages": unread }} />
+      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} />}
       <Suspense>
         <Toolbar
           placeholder={t("Nom, numéro, adresse, texte…")}

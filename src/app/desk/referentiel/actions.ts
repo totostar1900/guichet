@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { importDefaults, REF } from "@/lib/reference";
+import { REF } from "@/lib/reference";
 import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
@@ -23,6 +24,15 @@ function revalidateAll() {
 
 async function log(html: string, by: string) {
   await repo().logEvent({ kind: "desk", html: `${html} · par ${by}` });
+}
+
+/** The tab of the page that shows one kind. */
+const TAB_OF: Record<string, string> = { [REF.types]: "types", [REF.bondTerms]: "echeanciers", [REF.glossary]: "glossaire", [REF.lessons]: "lecons", [REF.companies]: "societes", [REF.issuers]: "emetteurs" };
+
+/** After a staged change: back to the list, the row highlighted, the form closed. */
+function done(kind: string, key: string): never {
+  revalidatePath("/desk/referentiel");
+  redirect(`/desk/referentiel?onglet=${TAB_OF[kind] ?? "types"}&ok=${encodeURIComponent(key)}`);
 }
 
 /* ---------- Types de produits ---------- */
@@ -73,11 +83,10 @@ export async function saveTypeAction(_p: RefResult | null, form: FormData): Prom
   const builtin = BUILTIN_TYPES.some((t) => t.key === d.key);
   const t: ProductType = { key: d.key, label: d.label, short: d.short, segment: d.segment, engine: d.engine, color: d.color.toLowerCase(), colorSoft: d.colorSoft.toLowerCase(), cautions, checklist: lines(d.checklist), intentsOpen, fields, enabled: d.enabled === "on", sort: d.sort, builtin };
   const beforeT = (await repo().listReference(REF.types)).find((r) => r.key === t.key)?.data;
-  await repo().upsertReference(REF.types, t.key, t, desk.name);
-  await audit("reference.upsert", "reference", `${REF.types}/${t.key}`, { before: beforeT, after: t });
-  await log(`Type de produit <b>${t.key}</b> ${builtin ? "modifié" : "enregistré"} (${t.label})`, desk.name);
-  revalidateAll();
-  return { ok: true, message: `Type ${t.key} enregistré.` };
+  await repo().saveReferenceDraft(REF.types, t.key, { op: "set", data: t }, desk.name);
+  await audit("reference.draft", "reference", `${REF.types}/${t.key}`, { before: beforeT, after: t });
+  await log(`Type de produit <b>${t.key}</b> ${builtin ? "modifié" : "créé"} en brouillon (${t.label})`, desk.name);
+  done(REF.types, t.key);
 }
 
 /* ---------- Échéanciers ---------- */
@@ -97,11 +106,10 @@ export async function saveTermAction(_p: RefResult | null, form: FormData): Prom
   const { isin, maturityOn, periodsPerYear, graceUntil, source } = p.data;
   const data = { isin, maturityOn, periodsPerYear: periodsPerYear as 1 | 2 | 4, ...(graceUntil ? { graceUntil } : {}), source };
   const beforeB = (await repo().listReference(REF.bondTerms)).find((r) => r.key === isin)?.data;
-  await repo().upsertReference(REF.bondTerms, isin, data, desk.name);
-  await audit("reference.upsert", "reference", `${REF.bondTerms}/${isin}`, { before: beforeB, after: data });
-  await log(`Échéancier <b>${isin}</b> enregistré (échéance ${maturityOn}, ${periodsPerYear}/an)`, desk.name);
-  revalidateAll();
-  return { ok: true, message: `Échéancier ${isin} enregistré.` };
+  await repo().saveReferenceDraft(REF.bondTerms, isin, { op: "set", data: data }, desk.name);
+  await audit("reference.draft", "reference", `${REF.bondTerms}/${isin}`, { before: beforeB, after: data });
+  await log(`Échéancier <b>${isin}</b> en brouillon (échéance ${maturityOn}, ${periodsPerYear}/an)`, desk.name);
+  done(REF.bondTerms, isin);
 }
 
 /* ---------- Glossaire ---------- */
@@ -119,11 +127,10 @@ export async function saveGlossaryAction(_p: RefResult | null, form: FormData): 
   if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
   const { key, short, long, text } = p.data;
   const beforeG = (await repo().listReference(REF.glossary)).find((r) => r.key === key)?.data;
-  await repo().upsertReference(REF.glossary, key, { short, ...(long ? { long } : {}), text }, desk.name);
-  await audit("reference.upsert", "reference", `${REF.glossary}/${key}`, { before: beforeG, after: { short, long, text } });
-  await log(`Terme du glossaire <b>${short}</b> enregistré`, desk.name);
-  revalidateAll();
-  return { ok: true, message: `Terme « ${short} » enregistré.` };
+  await repo().saveReferenceDraft(REF.glossary, key, { op: "set", data: { short, ...(long ? { long } : {}), text } }, desk.name);
+  await audit("reference.draft", "reference", `${REF.glossary}/${key}`, { before: beforeG, after: { short, long, text } });
+  await log(`Terme du glossaire <b>${short}</b> en brouillon`, desk.name);
+  done(REF.glossary, key);
 }
 
 /* ---------- Leçons (Info) ---------- */
@@ -164,11 +171,10 @@ export async function saveLessonAction(_p: RefResult | null, form: FormData): Pr
     terms: d.terms.split(/[,\s]+/).map((x) => x.trim().toLowerCase()).filter(Boolean),
   };
   const before = (await repo().listReference(REF.lessons)).find((r) => r.key === d.key)?.data;
-  await repo().upsertReference(REF.lessons, d.key, data, desk.name);
-  await audit("reference.upsert", "reference", `${REF.lessons}/${d.key}`, { before, after: data });
-  await log(`Leçon <b>${d.title}</b> enregistrée`, desk.name);
-  revalidateAll();
-  return { ok: true, message: `Leçon « ${d.title} » enregistrée.` };
+  await repo().saveReferenceDraft(REF.lessons, d.key, { op: "set", data: data }, desk.name);
+  await audit("reference.draft", "reference", `${REF.lessons}/${d.key}`, { before, after: data });
+  await log(`Leçon <b>${d.title}</b> en brouillon`, desk.name);
+  done(REF.lessons, d.key);
 }
 
 /* ---------- Sociétés et émetteurs (fiches complètes, éditées en JSON) ---------- */
@@ -234,33 +240,55 @@ export async function saveJsonAction(_p: RefResult | null, form: FormData): Prom
   }
   const key = kind === REF.companies ? (p.data as { mnemo: string }).mnemo : (p.data as { slug: string }).slug;
   const beforeJ = (await repo().listReference(kind)).find((r) => r.key === key)?.data;
-  await repo().upsertReference(kind, key, p.data, desk.name);
-  await audit("reference.upsert", "reference", `${kind}/${key}`, { before: beforeJ, after: p.data });
-  await log(`Fiche ${KIND_LABEL[kind]} <b>${key}</b> enregistrée`, desk.name);
-  revalidateAll();
-  return { ok: true, message: `Fiche ${key} enregistrée.` };
+  await repo().saveReferenceDraft(kind, key, { op: "set", data: p.data }, desk.name);
+  await audit("reference.draft", "reference", `${kind}/${key}`, { before: beforeJ, after: p.data });
+  await log(`Fiche ${KIND_LABEL[kind]} <b>${key}</b> en brouillon`, desk.name);
+  done(kind, key);
 }
 
-/* ---------- Commun : retour aux valeurs par défaut, suppression, import ---------- */
+/* ---------- Commun : retour aux valeurs par défaut, publication, abandon ---------- */
 
-/** Removes the desk's row: a built-in entry goes back to the code defaults, a desk-created one disappears. */
+/** Stages the return to the code default (a desk-created entry disappears at publication). */
 export async function resetReferenceAction(form: FormData): Promise<void> {
   const desk = await requireDesk("/desk/referentiel");
   const kind = String(form.get("kind") ?? "");
   const key = String(form.get("key") ?? "");
   if (!KINDS.includes(kind) || !key) return;
-  const beforeD = (await repo().listReference(kind)).find((r) => r.key === key)?.data;
-  await repo().deleteReference(kind, key);
-  await audit("reference.delete", "reference", `${kind}/${key}`, { before: beforeD });
-  await log(`${KIND_LABEL[kind] ?? kind} <b>${key}</b> : retour aux valeurs par défaut (ou suppression)`, desk.name);
-  revalidateAll();
+  const row = (await repo().listReference(kind)).find((r) => r.key === key);
+  if (!row) return;
+  if (row.data == null) {
+    // a new entry still in draft: nothing to publish back to, the draft simply goes
+    await repo().discardReference(kind, [key]);
+  } else {
+    await repo().saveReferenceDraft(kind, key, { op: "reset" }, desk.name);
+    await audit("reference.draft", "reference", `${kind}/${key}`, { before: row.data, after: null });
+  }
+  await log(`${KIND_LABEL[kind] ?? kind} <b>${key}</b> : retour aux valeurs par défaut en brouillon`, desk.name);
+  done(kind, key);
 }
 
-export async function importDefaultsAction(form: FormData): Promise<void> {
+/** Makes every draft of one tab (or one entry) what the app reads. */
+export async function publishReferenceAction(form: FormData): Promise<void> {
   const desk = await requireDesk("/desk/referentiel");
   const kind = String(form.get("kind") ?? "");
+  const key = String(form.get("key") ?? "");
   if (!KINDS.includes(kind)) return;
-  const n = await importDefaults(kind, desk.name);
-  await log(`Valeurs par défaut importées : ${n} ${KIND_LABEL[kind] ?? kind}(s)`, desk.name);
+  const rows = (await repo().listReference(kind)).filter((r) => r.draft && (!key || r.key === key));
+  const keys = await repo().publishReference(kind, key ? [key] : undefined);
+  for (const r of rows) await audit("reference.publish", "reference", `${kind}/${r.key}`, { before: r.data, after: r.draft?.op === "set" ? r.draft.data : null });
+  await log(`${KIND_LABEL[kind] ?? kind} : ${keys.length} modification(s) publiée(s)${keys.length <= 6 ? ` (${keys.join(", ")})` : ""}`, desk.name);
   revalidateAll();
+  redirect(`/desk/referentiel?onglet=${TAB_OF[kind] ?? "types"}&publie=${keys.length}`);
+}
+
+/** Drops every draft of one tab (or one entry); what the app reads does not move. */
+export async function discardReferenceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/referentiel");
+  const kind = String(form.get("kind") ?? "");
+  const key = String(form.get("key") ?? "");
+  if (!KINDS.includes(kind)) return;
+  const keys = await repo().discardReference(kind, key ? [key] : undefined);
+  await log(`${KIND_LABEL[kind] ?? kind} : ${keys.length} brouillon(s) abandonné(s)`, desk.name);
+  revalidatePath("/desk/referentiel");
+  redirect(`/desk/referentiel?onglet=${TAB_OF[kind] ?? "types"}`);
 }

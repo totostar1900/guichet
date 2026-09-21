@@ -406,6 +406,37 @@ export const memoryRepository: Repository = {
   async deleteReference(kind, key) {
     store().reference = store().reference.filter((r) => !(r.kind === kind && r.key === key));
   },
+  async saveReferenceDraft(kind, key, draft, by) {
+    const rows = store().reference;
+    const i = rows.findIndex((r) => r.kind === kind && r.key === key);
+    const d = { draft: structuredClone(draft), draftBy: by, draftAt: nowIso() };
+    if (i >= 0) rows[i] = { ...rows[i], ...d };
+    else rows.push({ kind, key, data: null, updatedAt: nowIso(), ...d });
+  },
+  async publishReference(kind, keys) {
+    const done: string[] = [];
+    store().reference = store()
+      .reference.map((r) => {
+        if (r.kind !== kind || !r.draft || (keys && !keys.includes(r.key))) return r;
+        done.push(r.key);
+        if (r.draft.op === "reset") return null;
+        return { kind, key: r.key, data: r.draft.data, updatedAt: nowIso(), updatedBy: r.draftBy };
+      })
+      .filter((r): r is ReferenceRow => r !== null);
+    return done;
+  },
+  async discardReference(kind, keys) {
+    const done: string[] = [];
+    store().reference = store()
+      .reference.map((r) => {
+        if (r.kind !== kind || !r.draft || (keys && !keys.includes(r.key))) return r;
+        done.push(r.key);
+        if (r.data == null) return null;
+        return { kind, key: r.key, data: r.data, updatedAt: r.updatedAt, updatedBy: r.updatedBy };
+      })
+      .filter((r): r is ReferenceRow => r !== null);
+    return done;
+  },
   async listWatches(userId) {
     return structuredClone(store().watches.filter((w) => !userId || w.userId === userId));
   },

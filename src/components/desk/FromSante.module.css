@@ -1,0 +1,47 @@
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--gold);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  background: var(--gold-soft);
+  font-size: 0.82rem;
+}
+.eyebrow {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.strip b {
+  color: var(--ink);
+}
+.how {
+  flex: 1 1 40ch;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.links {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.links a {
+  font-weight: 600;
+}
+.links button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  padding: 0 2px;
+}

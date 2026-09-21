@@ -468,12 +468,19 @@ export interface Notification {
 }
 
 /** A desk-editable reference record (product type, bond schedule, company, issuer, glossary term). */
+/** A change waiting for « Publier » : a new value, or a return to the code default (removal of the row). */
+export type ReferenceDraft<T = unknown> = { op: "set"; data: T } | { op: "reset" };
+
 export interface ReferenceRow<T = unknown> {
   kind: string;
   key: string;
-  data: T;
+  /** The published value the app reads; null while a new entry is still a draft. */
+  data: T | null;
   updatedAt: string;
   updatedBy?: string;
+  draft?: ReferenceDraft<T>;
+  draftBy?: string;
+  draftAt?: string;
 }
 
 /** What the client chose in their account: how the desk reaches them first, and whether statements go by e-mail. */

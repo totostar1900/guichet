@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
@@ -11,14 +12,16 @@ export const metadata = { title: "Reporting" };
 
 const DOC_FR: Record<string, string> = { bulletin: "bulletins", fonds: "appels de fonds", cession: "ordres de cession", bordereau: "bordereaux SVT", allocation: "avis d'allocation", non_allocation: "avis de non-allocation", opere: "avis d'opéré", convention: "conventions", dossier_svt: "dossiers SVT", releve: "relevés", attestation: "attestations" };
 
-export default async function ReportingPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string }> }) {
+export default async function ReportingPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string; vue?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const d = defaultPeriod();
   const p: Period = { from: sp.from && /^\d{4}-\d{2}-\d{2}$/.test(sp.from) ? sp.from : d.from, to: sp.to && /^\d{4}-\d{2}-\d{2}$/.test(sp.to) ? sp.to : d.to };
   const r = repo();
   const [offers, intents, events, files, docs, notifs] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listDocuments(), r.listNotifications(5000)]);
-  const journal = orderJournal(intents, offers, events, p);
+  const journalAll = orderJournal(intents, offers, events, p);
+  const vue = sp.vue === "fermes" || sp.vue === "executes" ? sp.vue : "";
+  const journal = vue === "fermes" ? journalAll.filter((o) => o.confirmedAt) : vue === "executes" ? journalAll.filter((o) => o.executedAt) : journalAll;
   const clients = clientRegister(files);
   const act = activity(intents, offers, files, docs, notifs, p);
   const positions = positionsFrom(intents, offers);
@@ -51,35 +54,40 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
       </form>
 
       <div className={styles.kpis}>
-        <div className={styles.kpi}>
+        <Link className={styles.kpi} href="/desk" title={t("Ouvrir le carnet des intentions")}>
           <span>{t("Intentions reçues")}</span>
           <b>{Object.values(act.intents).reduce((s, n) => s + n, 0)}</b>
           <small>{Object.entries(act.intents).map(([k, n]) => `${n} ${k.toLowerCase()}`).join(" · ") || "—"}</small>
-        </div>
-        <div className={styles.kpi}>
+        </Link>
+        <Link className={`${styles.kpi} ${vue === "fermes" ? styles.kpiOn : ""}`} href={`/desk/reporting?${q}&vue=fermes#journal`} title={t("Voir ces ordres dans le journal")}>
           <span>{t("Ordres fermes reçus")}</span>
           <b>{fmtMillions(act.firmAmount)}</b>
           <small>{t("montants estimés à la réception")}</small>
-        </div>
-        <div className={styles.kpi}>
+        </Link>
+        <Link className={`${styles.kpi} ${vue === "executes" ? styles.kpiOn : ""}`} href={`/desk/reporting?${q}&vue=executes#journal`} title={t("Voir ces ordres dans le journal")}>
           <span>{t("Exécutés · réglés")}</span>
           <b>
             {act.executedCount} · {act.settledCount}
           </b>
           <small>{Object.entries(act.settledByInstrument).map(([k, v]) => `${k} ${fmtMillions(v)}`).join(" · ") || t("aucun règlement")}</small>
-        </div>
-        <div className={styles.kpi}>
+        </Link>
+        <Link className={styles.kpi} href="#clients" title={t("Voir le registre des clients")}>
           <span>{t("Comptes ouverts · encours")}</span>
           <b>
             {act.newAccounts} · {fmtMillions(act.positionsNominal)}
           </b>
           <small>{act.holders} porteur{act.holders > 1 ? "s" : ""} · nominal en conservation</small>
-        </div>
+        </Link>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="journal">
         <div className="panel-h">
           <h2>{t("Journal des ordres")}</h2>
+          {vue && (
+            <span className={styles.vue}>
+              {t(vue === "fermes" ? "ordres confirmés seulement" : "ordres exécutés seulement")} · <Link href={`/desk/reporting?${q}#journal`}>{t("Tout le journal")}</Link>
+            </span>
+          )}
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {t(journal.length > 1 ? "{n} ordres du {a} au {b} : horodatage de chaque étape" : "{n} ordre du {a} au {b} : horodatage de chaque étape", { n: journal.length, a: fmtDate(p.from), b: fmtDate(p.to) })}
           </span>
@@ -194,7 +202,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="clients">
         <div className="panel-h">
           <h2>{t("Registre des clients")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>

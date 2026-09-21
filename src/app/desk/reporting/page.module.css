@@ -19,6 +19,8 @@
   margin-bottom: 18px;
 }
 .kpi {
+  color: inherit;
+  text-decoration: none;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -60,4 +62,17 @@
   .two {
     grid-template-columns: 1fr;
   }
+}
+
+.kpi:hover {
+  border-color: var(--gold);
+}
+.kpiOn {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.vue {
+  font-size: 0.78rem;
+  color: var(--gold-ink);
+  font-weight: 600;
 }

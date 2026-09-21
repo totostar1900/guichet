@@ -1,0 +1,62 @@
+/**
+ * For each Santé point: where the desk goes to act, what to do there in one
+ * line, and the documentation section that explains it. Client-safe (no
+ * data access) so the « Depuis Santé » strip can read it on the target page.
+ */
+export interface HealthHow {
+  label: string;
+  href: string;
+  how: string;
+  docs?: { href: string; label: string };
+}
+
+export const HEALTH_HOW: Record<string, HealthHow> = {
+  boc: {
+    label: "Dernier bulletin BVMAC",
+    href: "/desk#aujourdhui",
+    how: "Sous la tuile du bulletin : « relancer » relit la BVMAC ; si le site ne répond pas, « déposer le PDF » reçu par e-mail.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
+  ingests: {
+    label: "Ingestions à vérifier",
+    href: "/desk/depot",
+    how: "Ouvrir la séance en « à vérifier » ou « échec », comparer le PDF conservé au bulletin BVMAC, relancer la lecture depuis Aujourd'hui ou saisir les cours manquants dans Cotes & VL.",
+    docs: { href: "/desk/docs/sources#depot", label: "Le dépôt de documents" },
+  },
+  prices: {
+    label: "Lignes cotées sans cours à la dernière séance",
+    href: "/desk/marche?filtre=sans-cours",
+    how: "Une ligne sans cours à la dernière séance n'a pas traité ce jour-là, ou le bulletin l'a manquée : vérifier le bulletin ; si un cours existe, le saisir en secours (la fiche dira « cours saisi par le desk ») ; sinon attendre la prochaine séance.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
+  navs: {
+    label: "VL en retard",
+    href: "/desk/marche?filtre=vl-retard#opcvm",
+    how: "Une VL quotidienne ou hebdomadaire vieille de plus de trois semaines : demander la VL à la société de gestion, la saisir sur le fonds, ou vérifier que le bulletin la publie encore.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
+  },
+  notify: {
+    label: "Messages clients",
+    href: "/desk/messages",
+    how: "Un message en échec se renvoie depuis Messages ; si WhatsApp ou l'e-mail n'est pas configuré, les clés sont sur Vercel (OPERATIONS.md § 9).",
+    docs: { href: "/desk/docs/relation#canaux", label: "Canaux et règles" },
+  },
+  terms: {
+    label: "Obligations cotées sans échéancier exact",
+    href: "/desk/referentiel?onglet=echeanciers#sans-echeancier",
+    how: "Le prix se calcule sur l'année du bulletin tant que l'échéancier manque : ouvrir la fiche signalétique BVMAC de la ligne, « Créer » l'échéancier (date exacte, paiements par an, différé), puis « Publier ».",
+    docs: { href: "/desk/docs/administration#referentiel", label: "Le référentiel" },
+  },
+  pricing: {
+    label: "Lignes ouvertes sans prix du desk",
+    href: "/desk?filtre=sans-prix#offres",
+    how: "Une ligne ouverte aux intentions sans prix ni taux affiché : renseigner le prix ou le taux de précompte sur la ligne, ou la repasser en brouillon.",
+    docs: { href: "/desk/docs/fonctionnement#vie-ligne", label: "La vie d'une ligne" },
+  },
+  news: {
+    label: "Actualités",
+    href: "/desk/actualites",
+    how: "Un lien mort se retire ou se remplace ; un lien reçu depuis plus de sept jours se publie ou se rejette.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
+  },
+};

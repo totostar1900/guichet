@@ -8,8 +8,9 @@
 - [Issuers and fiche](guichet-issuers-fiche.md) : issuer registry (aliases, CEMAC zone, sourced text, silent gaps), fiche panes Essentiel·Chiffres·Documents·Émetteur, intention page /offres/[id]/intention (2026-09-21)
 - [Companies data](guichet-companies-data.md) : 7 BVMAC issuers in companies.ts; scanned PDFs rendered with scripts/pdf-pages.mjs
 - [Bond terms source](guichet-bond-terms.md) : BVMAC fiches signalétiques (JPG) → src/data/bond-terms.ts; Congo (EOCG) missing
-- [Supabase migrations](guichet-supabase-migrations.md) : applied via Chrome SQL editor with window.monaco setValue; enum adds run alone; 0001–0030 applied (0023 funds open, 0024 inbox, 0025 news, 0026 channels+devices, 0027 terms, 0028 financial profile, 0029 prefs)
+- [Supabase migrations](guichet-supabase-migrations.md) : applied via Chrome SQL editor with window.monaco setValue; enum adds run alone; 0001–0031 applied (0023 funds open, 0024 inbox, 0025 news, 0026 channels+devices, 0027 terms, 0028 financial profile, 0029 prefs)
 - [No em dashes](guichet-no-em-dash.md) : house style, colon / commas / middle dot instead; the lone missing-value dash stays
 - [Auth and channels](guichet-auth-channels.md) : two proven channels before an intention, guest e-mail code, WhatsApp bridge link, passkeys + browser-bound PIN, /moi/securite; migration 0026
 - [Positive tone](guichet-positive-tone.md) : say what Guichet does, never what it is not; regulatory disclaimer stays; bump LEGAL_VERSION when legal text changes
 - [Templates registry](guichet-templates.md) : desk › Référentiel › Modèles, passages catalogue vs server resolver, libre/relu/réglementaire, migration 0030 applied 2026-09-21
+- [Référentiel drafts + Santé links](guichet-referentiel-drafts.md) : saves are drafts until Publier, health-how table, « Depuis Santé » strip; migration 0031

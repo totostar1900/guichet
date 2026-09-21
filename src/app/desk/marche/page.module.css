@@ -117,3 +117,22 @@
   flex-wrap: wrap;
   padding: 0 16px 12px;
 }
+
+.filterLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--gold-line, var(--line));
+  background: var(--gold-soft);
+}
+.staleRow td:first-child {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.staleTag {
+  display: block;
+  color: var(--warn);
+  font-size: 0.7rem;
+}

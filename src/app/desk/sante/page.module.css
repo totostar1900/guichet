@@ -46,6 +46,21 @@
   font-size: 0.74rem;
   line-height: 1.4;
 }
+.act {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.act:hover {
+  border-color: var(--gold);
+  background: var(--surface-2);
+}
+.go {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--gold-ink);
+}
 .label {
   font-size: 0.68rem;
   text-transform: uppercase;

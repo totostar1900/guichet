@@ -66,7 +66,7 @@ export const ADMINISTRATION: DocPage = {
       id: "referentiel",
       title: l("Référentiel : changer l'application sans code", "Reference data: changing the app without code"),
       blocks: [
-        { type: "lead", text: l("Six onglets, chacun avec des valeurs par défaut livrées avec l'application ; ce que vous enregistrez prend le dessus, et « revenir aux valeurs par défaut » l'efface.", "Six tabs, each with defaults shipped with the app; what you save takes precedence, and \"back to defaults\" erases it.") },
+        { type: "lead", text: l("Six onglets, chacun avec des valeurs par défaut livrées avec l'application. Ce que vous enregistrez est d'abord un brouillon : « Publier » le rend visible des clients, « Abandonner » le retire, « Revenir aux valeurs par défaut » efface votre version.", "Six tabs, each with defaults shipped with the app; what you save takes precedence, and \"back to defaults\" erases it.") },
         {
           type: "table",
           head: [l("Onglet", "Tab"), l("Ce qu'on y règle", "What is set there"), l("Effet immédiat sur", "Immediate effect on")],
@@ -77,6 +77,15 @@ export const ADMINISTRATION: DocPage = {
             [l("Leçons", "Lessons"), l("Les huit leçons d'Info.", "The eight Info lessons."), l("Info, onboarding.", "Info, onboarding.")],
             [l("Sociétés cotées", "Listed companies"), l("Activité, comptes, actionnariat, lecture des chiffres, documents.", "Activity, accounts, shareholders, reading of the figures, documents."), l("Sociétés, rapports PDF.", "Companies, PDF reports.")],
             [l("Émetteurs", "Issuers"), l("Les émetteurs obligataires non cotés en actions.", "Bond issuers without listed shares."), l("Fiches émetteur.", "Issuer pages.")],
+          ],
+        },
+        {
+          type: "steps",
+          items: [
+            l("Modifier une entrée : « Modifier » sur la ligne, corriger, « Enregistrer le brouillon » ; la liste revient avec la ligne surlignée et l'étiquette « brouillon ». « Annuler » ferme le formulaire sans rien garder.", "Edit an entry: “Edit” on the row, correct, “Save the draft”; the list comes back with the row highlighted and the “draft” tag. “Cancel” closes the form without keeping anything."),
+            l("Vérifier, puis publier : le bandeau en tête de l'onglet compte les modifications non publiées ; « Publier » les applique toutes, ou « Publier cette entrée » depuis son panneau. Les clients ne lisent que ce qui est publié.", "Check, then publish: the banner at the top of the tab counts unpublished changes; “Publish” applies them all, or “Publish this entry” from its panel. Clients read only what is published."),
+            l("Se raviser : « Abandonner » retire les brouillons, la valeur publiée ne bouge pas. « Revenir aux valeurs par défaut » prépare le retour à la valeur livrée avec l'application (un brouillon ↺), à publier comme le reste.", "Change your mind: “Discard” removes the drafts, the published value does not move. “Back to defaults” prepares the return to the value shipped with the app (a ↺ draft), published like the rest."),
+            l("Échéanciers : la boîte filtre par ISIN, émetteur, ligne ou source, les colonnes se trient ; en tête, les obligations cotées sans échéancier exact, « Créer » pré-remplit l'ISIN et la source.", "Schedules: the box filters by ISIN, issuer, line or source, columns sort; at the top, the listed bonds without an exact schedule, “Create” pre-fills the ISIN and the source."),
           ],
         },
         { type: "note", kind: "info", text: l("Chaque modification est versionnée dans le Journal (entité Référentiel) : on voit qui a changé quoi, avant / après, et on peut revenir en arrière.", "Every change is versioned in the audit log (entity Reference data): who changed what, before / after, and it can be undone.") },
