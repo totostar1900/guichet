@@ -83,6 +83,33 @@ export const SOURCES: DocPage = {
       ],
     },
     {
+      id: "modeles",
+      title: l("Les modèles de documents et leurs versions", "Document models and their versions"),
+      blocks: [
+        { type: "p", text: l("Ce que disent les documents que le Guichet produit (bulletin d'ordre, appel de fonds, ordre de cession, avis de résultat, avis d'opéré, relevé, attestation, convention) se règle depuis le desk, passage par passage, dans Référentiel › Modèles. La mise en page, les chiffres et les références restent dans le code.", "What the documents Guichet produces say (order form, call for funds, sale order, result notice, contract note, statement, attestation, agreement) is set from the desk, passage by passage, in Reference data › Models. Layout, figures and references stay in the code.") },
+        { type: "link", href: "/desk/referentiel/modeles", label: l("Ouvrir les modèles", "Open the models"), hint: l("texte en vigueur, historique, aperçu PDF", "text in force, history, PDF preview") },
+        {
+          type: "table",
+          head: [l("Règle du passage", "Passage rule"), l("Exemples", "Examples"), l("Entre en vigueur", "Comes into force")],
+          rows: [
+            [l("Libre", "Free"), l("Lignes de signature, note de pied d'un relevé", "Signature lines, footnote of a statement"), l("Dès l'enregistrement", "As soon as it is saved")],
+            [l("Relu", "Reviewed"), l("Provenance des fonds, portée d'une attestation, relevé sans position", "Origin of funds, scope of an attestation, empty statement"), l("Quand un autre membre du desk que l'auteur l'a relu", "Once another desk member than the author has reviewed it")],
+            [l("Réglementaire", "Regulatory"), l("Demande d'ordre, irrévocabilité, attestation du cédant, règlement-livraison, articles de la convention", "Order request, irrevocability, seller's attestation, settlement-delivery, agreement articles"), l("Quand un responsable l'a approuvé", "Once a manager has approved it")],
+          ],
+        },
+        {
+          type: "steps",
+          items: [
+            l("Changer un mot : Référentiel › Modèles › le modèle › le passage › « Modifier ce passage » ; garder les champs marqués * ; écrire la note (ce qui change, et pourquoi) ; « Aperçu PDF avec ce texte » ; enregistrer ou proposer.", "Change a word: Reference data › Models › the model › the passage › “Edit this passage”; keep the fields marked *; write the note (what changes, and why); “PDF preview with this text”; save or propose."),
+            l("Une version attend : le badge orange en tête de page la compte ; un autre membre du desk (relu) ou un responsable (réglementaire) lit l'aperçu puis la met en vigueur ; le journal le note.", "A version is pending: the orange badge at the top counts it; another desk member (reviewed) or a manager (regulatory) reads the preview then puts it in force; the log records it."),
+            l("Revenir en arrière : l'historique du passage garde chaque version remplacée, « Revenir à cette version » ; un responsable peut rétablir le texte d'origine du code.", "Go back: the passage's history keeps every superseded version, “Go back to this version”; a manager can restore the original text from the code."),
+            l("Un document déjà émis ne change jamais : il garde la version de chaque passage qu'il portait (table documents, colonne template_versions) ; un auditeur peut relire le texte exact d'un PDF d'il y a deux ans.", "An issued document never changes: it keeps the version of every passage it carried (documents table, template_versions column); an auditor can reread the exact text of a PDF from two years ago."),
+            l("Un modèle nouveau (un type de document qui n'existe pas encore) ou un changement de mise en page passent par le développement, comme la documentation.", "A new model (a document type that does not exist yet) or a layout change go through development, like the documentation."),
+          ],
+        },
+      ],
+    },
+    {
       id: "bulletin",
       title: l("Le bulletin, de la BVMAC à la fiche", "The bulletin, from the BVMAC to the line"),
       blocks: [

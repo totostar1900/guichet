@@ -283,6 +283,8 @@ export interface GeneratedDocument {
   signedAt?: string;
   createdAt: string;
   createdBy?: string;
+  /** The version of each reworded passage this document was rendered with (0 = the code's default). */
+  templateVersions?: Record<string, number>;
 }
 
 /* ---------------- Contacts & notifications ---------------- */
@@ -478,4 +480,27 @@ export interface ReferenceRow<T = unknown> {
 export interface ClientPrefs {
   reach?: "whatsapp" | "email" | "call";
   statementsByEmail?: boolean;
+}
+
+/* ---------------- Templates : the desk's wording, versioned ---------------- */
+
+/** How a passage becomes current: at once, after a second desk member read it, or after a responsable approved it. */
+export type PassageSensitivity = "libre" | "relu" | "reglementaire";
+export type TemplateTextStatus = "current" | "pending" | "superseded";
+
+/** One version of one passage of one document model. The code holds the default; the registry holds what the desk wrote since. */
+export interface TemplateText {
+  id: string;
+  docType: DocumentType;
+  passage: string;
+  version: number;
+  fr: string;
+  en: string;
+  status: TemplateTextStatus;
+  by: string;
+  at: string;
+  note?: string;
+  /** Who made it current (the reader or the responsable), when. */
+  approvedBy?: string;
+  approvedAt?: string;
 }

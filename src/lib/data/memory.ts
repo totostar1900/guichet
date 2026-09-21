@@ -3,7 +3,7 @@ import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/se
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -81,6 +81,7 @@ interface Store {
   consents: Map<string, { version: string; at: string }>;
   profiles: Map<string, FinancialProfile>;
   prefs: Map<string, ClientPrefs>;
+  templateTexts: TemplateText[];
   codes: ChannelCode[];
   devices: TrustedDevice[];
   notifications: Notification[];
@@ -121,6 +122,7 @@ function store(): Store {
       consents: new Map(),
       profiles: new Map(),
       prefs: new Map(),
+      templateTexts: [],
       codes: [],
       devices: [],
       notifications: [],
@@ -432,6 +434,25 @@ export const memoryRepository: Repository = {
   },
   async setPrefs(userId, p) {
     (store().prefs ??= new Map()).set(userId, { ...(await this.getPrefs(userId)), ...p });
+  },
+  async listTemplateTexts(docType) {
+    const all = (store().templateTexts ??= []);
+    return all.filter((t) => !docType || t.docType === docType).sort((a, b) => a.docType.localeCompare(b.docType) || a.passage.localeCompare(b.passage) || b.version - a.version);
+  },
+  async addTemplateText(t) {
+    const all = (store().templateTexts ??= []);
+    const version = Math.max(0, ...all.filter((x) => x.docType === t.docType && x.passage === t.passage).map((x) => x.version)) + 1;
+    const row: TemplateText = { ...t, id: crypto.randomUUID(), version, at: new Date().toISOString() };
+    if (row.status === "current") for (const x of all) if (x.docType === t.docType && x.passage === t.passage && x.status === "current") x.status = "superseded";
+    all.push(row);
+    return row;
+  },
+  async setTemplateTextStatus(id, status, approvedBy) {
+    const all = (store().templateTexts ??= []);
+    const row = all.find((x) => x.id === id);
+    if (!row) return;
+    if (status === "current") for (const x of all) if (x.docType === row.docType && x.passage === row.passage && x.status === "current") x.status = "superseded";
+    Object.assign(row, { status, approvedBy: status === "current" ? approvedBy : row.approvedBy, approvedAt: status === "current" ? new Date().toISOString() : row.approvedAt });
   },
   async getConsent(userId) {
     return store().consents.get(userId) ?? {};

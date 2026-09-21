@@ -1,11 +1,12 @@
 import { COMPANY } from "@/lib/config";
+import { passage } from "../passages-catalog";
 import type { Contact } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import type { Position } from "@/lib/positions";
 import { Addr, Letter, Sig, Table, Text, s } from "./primitives";
 
 /** Relevé de position : what the client holds and the flows ahead, at a date. */
-export function RelevePosition({ number, contact, positions, now }: { number: string; contact: Contact; positions: Position[]; now: Date }) {
+export function RelevePosition({ number, contact, positions, now, texts }: { number: string; contact: Contact; positions: Position[]; now: Date; texts?: Record<string, string> }) {
   const nominal = positions.reduce((a, p) => a + p.nominalAmount, 0);
   const cost = positions.reduce((a, p) => a + p.costBasis, 0);
   const value = positions.reduce((a, p) => a + (p.marketValue ?? p.nominalAmount), 0);
@@ -30,14 +31,14 @@ export function RelevePosition({ number, contact, positions, now }: { number: st
           <Table cols={[{ label: "Date", flex: 1.1 }, { label: "Ligne", flex: 2.4 }, { label: "Nature", flex: 1.6 }, { label: "Montant (FCFA)", flex: 1.3, right: true }]} rows={flows.map((f) => [fmtDate(f.date), f.line, f.label, fmt(f.amount)])} />
         </>
       )}
-      {positions.length === 0 && <Text style={s.p}>Aucune position en portefeuille à cette date.</Text>}
-      <Text style={s.small}>Valeurs indicatives : dernier cours de clôture publié par la BVMAC ou dernière valeur liquidative publiée par la société de gestion ; lignes du marché primaire non cotées valorisées au nominal. Ce relevé reflète les ordres réglés enregistrés par {COMPANY.legalName}. Les coupons et remboursements sont payés par l&apos;émetteur aux dates indiquées, sur le compte de règlement du titulaire. Toute réclamation dans les trente jours.</Text>
+      {positions.length === 0 && <Text style={s.p}>{passage("releve", "vide", texts)}</Text>}
+      <Text style={s.small}>{passage("releve", "valeurs", texts, { societe: COMPANY.legalName })}</Text>
     </Letter>
   );
 }
 
 /** Attestation de détention : one signed statement of holdings at a date. */
-export function AttestationDetention({ number, contact, positions, now }: { number: string; contact: Contact; positions: Position[]; now: Date }) {
+export function AttestationDetention({ number, contact, positions, now, texts }: { number: string; contact: Contact; positions: Position[]; now: Date; texts?: Record<string, string> }) {
   return (
     <Letter heading={`Attestation · ${number}`}>
       <Text style={s.h1}>Attestation de détention de titres</Text>
@@ -52,7 +53,7 @@ export function AttestationDetention({ number, contact, positions, now }: { numb
         rows={positions.map((p) => [p.offer.title, p.offer.isin, `${p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} ${p.unitWord}`, fmt(p.nominalAmount), p.marketValue != null ? fmt(p.marketValue) : "au nominal", p.maturityOn ? fmtDate(p.maturityOn) : "—"])}
         total={["Total", "", "", fmt(positions.reduce((a, p) => a + p.nominalAmount, 0)), fmt(positions.reduce((a, p) => a + (p.marketValue ?? p.nominalAmount), 0)), ""]}
       />
-      <Text style={s.p}>La présente attestation est délivrée à la demande du titulaire pour servir et valoir ce que de droit. Elle ne vaut ni évaluation ni engagement de rachat.</Text>
+      <Text style={s.p}>{passage("attestation", "valoir", texts)}</Text>
       <Sig left={`Pour ${COMPANY.legalName} : signature et cachet`} right="" />
     </Letter>
   );

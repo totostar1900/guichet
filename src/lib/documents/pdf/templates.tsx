@@ -4,6 +4,7 @@ import type { Intent, Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, fmtPct, localIso } from "@/lib/format";
 import { positionFor, type Position } from "../position";
 import { Addr, KV, Letter, Sig, Table, Text, s } from "./primitives";
+import { passage } from "../passages-catalog";
 
 /** Everything a client document needs. */
 export interface ClientDocCtx {
@@ -19,6 +20,8 @@ export interface ClientDocCtx {
   account?: string;
   /** Client's settlement account (RIB) : printed where money goes back to the client. */
   payout?: { bank?: string; account?: string; holder?: string };
+  /** The desk's wording in force for this document type (passage key → text); the code's defaults otherwise. */
+  texts?: Record<string, string>;
 }
 export const payoutLine = (p?: ClientDocCtx["payout"]) => (p?.account ? `${p.bank ? `${p.bank} · ` : ""}${p.account}${p.holder ? ` (${p.holder})` : ""}` : "RIB à communiquer au desk");
 
@@ -27,7 +30,7 @@ const clientBlock = (i: Intent, account?: string): [string, string[]] => ["Donne
 const lineTitle = (o: Offer) => `${o.title}${o.operation === "abondement" ? " (réouverture)" : o.operation === "nouvelle_ligne" ? " (ligne nouvelle)" : ""}`;
 
 /* ---------------- Bulletin d'ordre ---------------- */
-export function Bulletin({ number, intent, offer, position: p, now, advisor, account }: ClientDocCtx) {
+export function Bulletin({ number, intent, offer, position: p, now, advisor, account, texts }: ClientDocCtx) {
   const isBond = offer.kind === "OTA" || offer.kind === "APE" || (offer.kind === "MARCHE" && offer.instrument === "obligation");
   const market = offer.kind === "MARCHE";
   const sell = intent.type === "vente";
@@ -66,17 +69,17 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
       )}
       <Text style={s.p}>
         {market
-          ? `Le donneur d'ordre demande à ${COMPANY.legalName} de présenter cet ordre sur ${offer.market}${intent.limitPrice != null ? ` au prix limite de ${p.priceLabel}` : " au prix du marché"}, valable jusqu'à révocation ou exécution. Exécution totale ou partielle selon la contrepartie disponible ; les montants ci-dessus sont estimés au cours de référence et sont arrêtés à l'exécution.`
-          : `Le donneur d'ordre demande à ${COMPANY.legalName} de présenter cet ordre à l'adjudication du ${fmtDate(offer.deadlineAt)}, au prix ci-dessus.`}
-        {market ? "" : " "} L&apos;ordre est irrévocable dès sa transmission au SVT. En cas d&apos;allocation partielle, les montants sont ajustés au prorata ; en cas de non-allocation, les fonds sont restitués sous deux jours ouvrés, sans frais.
+          ? passage("bulletin", "ordre_marche", texts, { societe: COMPANY.legalName, marche: offer.market ?? "", prix_limite: intent.limitPrice != null ? `au prix limite de ${p.priceLabel}` : "au prix du marché" })
+          : passage("bulletin", "ordre_primaire", texts, { societe: COMPANY.legalName, date_adjudication: fmtDate(offer.deadlineAt) })}{" "}
+        {passage("bulletin", "irrevocable", texts)}
       </Text>
-      <Sig left="Le donneur d'ordre : « lu et approuvé », date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      <Sig left={passage("bulletin", "signature_client", texts)} right={passage("bulletin", "signature_societe", texts, { societe: COMPANY.legalName, conseiller: advisor ? ` · ${advisor}` : "" })} />
     </Letter>
   );
 }
 
 /* ---------------- Appel de fonds ---------------- */
-export function AppelDeFonds({ number, intent, offer, position: p, now }: ClientDocCtx) {
+export function AppelDeFonds({ number, intent, offer, position: p, now, texts }: ClientDocCtx) {
   const dayBefore = new Date(`${offer.settleOn}T15:00:00`);
   dayBefore.setDate(dayBefore.getDate() - 1);
   return (
@@ -95,16 +98,14 @@ export function AppelDeFonds({ number, intent, offer, position: p, now }: Client
         ]}
         total={["Montant à virer", `${fmt(p.total)} FCFA`]}
       />
-      <Text style={s.p}>
-        Les fonds doivent provenir d&apos;un compte au nom du donneur d&apos;ordre et être disponibles la veille du règlement. À défaut, l&apos;ordre n&apos;est pas présenté et le client en est informé. En cas de non-allocation totale ou partielle, l&apos;excédent est restitué sous deux jours ouvrés sur le compte d&apos;origine.
-      </Text>
-      <Text style={s.small}>Le compte de règlement clients est ségrégué des fonds propres de {COMPANY.legalName} et ne sert qu&apos;au règlement-livraison des opérations de la clientèle.</Text>
+      <Text style={s.p}>{passage("fonds", "provenance", texts)}</Text>
+      <Text style={s.small}>{passage("fonds", "segregation", texts, { societe: COMPANY.legalName })}</Text>
     </Letter>
   );
 }
 
 /* ---------------- Ordre de cession ---------------- */
-export function OrdreDeCession({ number, intent, offer, position: p, now, advisor, payout }: ClientDocCtx) {
+export function OrdreDeCession({ number, intent, offer, position: p, now, advisor, payout, texts }: ClientDocCtx) {
   return (
     <Letter heading={`Ordre de cession · ${number}`}>
       <Text style={s.h1}>Ordre de cession : rachat par l&apos;émetteur</Text>
@@ -117,15 +118,15 @@ export function OrdreDeCession({ number, intent, offer, position: p, now, adviso
         rows={[[lineTitle(offer), offer.isin, fmt(p.units), p.priceLabel, fmt(p.nominalAmount), fmt(p.commission), fmt(-p.total)]]}
       />
       <Text style={s.p}>
-        Le coupon couru est réglé par l&apos;émetteur selon les modalités du rachat. Le cédant atteste détenir les titres libres de tout nantissement et autorise leur livraison contre paiement, valeur {fmtDate(offer.settleOn)}. Produit de cession crédité sous un jour ouvré après règlement sur le compte de règlement du cédant : {payoutLine(payout)}.
+        {passage("cession", "attestation", texts, { date_reglement: fmtDate(offer.settleOn), compte: payoutLine(payout) })}
       </Text>
-      <Sig left="Le cédant : date, signature et cachet" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      <Sig left={passage("cession", "signature_cedant", texts)} right={passage("bulletin", "signature_societe", texts, { societe: COMPANY.legalName, conseiller: advisor ? ` · ${advisor}` : "" })} />
     </Letter>
   );
 }
 
 /* ---------------- Avis de résultat / non-allocation ---------------- */
-export function AvisResultat({ number, intent, offer, position: p, now, allocation = 1 }: ClientDocCtx) {
+export function AvisResultat({ number, intent, offer, position: p, now, allocation = 1, texts }: ClientDocCtx) {
   const served = allocation > 0;
   const servedPos = served ? positionFor(intent, offer, { pricePct: offer.servedPricePct, unitsOverride: Math.floor(p.units * allocation) }) : undefined;
   return (
@@ -158,16 +159,14 @@ export function AvisResultat({ number, intent, offer, position: p, now, allocati
         />
       )}
       {servedPos?.irr != null && (
-        <Text style={s.p}>
-          Le règlement-livraison intervient le {fmtDate(offer.settleOn)}. Vous recevrez l&apos;avis d&apos;opéré dès confirmation de l&apos;inscription des titres à votre nom. Rendement actuariel annuel brut sur la base du prix servi : <Text style={s.b}>{fmtPct(servedPos.irr, 2)}</Text>.
-        </Text>
+        <Text style={s.p}>{passage("allocation", "reglement", texts, { date_reglement: fmtDate(offer.settleOn), rendement: fmtPct(servedPos.irr, 2) })}</Text>
       )}
     </Letter>
   );
 }
 
 /* ---------------- Avis d'opéré ---------------- */
-export function AvisOpere({ number, intent, offer, position: p, now, allocation = 1, payout }: ClientDocCtx) {
+export function AvisOpere({ number, intent, offer, position: p, now, allocation = 1, payout, texts }: ClientDocCtx) {
   const paysClient = intent.type === "vente" || intent.type === "cession";
   const pos = positionFor(intent, offer, { pricePct: offer.servedPricePct, unitsOverride: Math.floor(p.units * allocation) });
   return (
@@ -190,9 +189,7 @@ export function AvisOpere({ number, intent, offer, position: p, now, allocation 
           />
         </>
       )}
-      <Text style={s.p}>
-        Date de valeur : {fmtDate(offer.settleOn)}. {paysClient ? `Produit net viré sur votre compte de règlement (${payoutLine(payout)}).` : "Titres dématérialisés, inscrits à votre nom."} Cet avis tient lieu de confirmation d&apos;exécution ; votre relevé de position est disponible dans votre espace Guichet.
-      </Text>
+      <Text style={s.p}>{passage("opere", "confirmation", texts, { date_reglement: fmtDate(offer.settleOn), livraison: paysClient ? `Produit net viré sur votre compte de règlement (${payoutLine(payout)}).` : "Titres dématérialisés, inscrits à votre nom." })}</Text>
     </Letter>
   );
 }

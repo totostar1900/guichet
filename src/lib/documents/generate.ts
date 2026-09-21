@@ -1,4 +1,5 @@
 import "server-only";
+import { resolvePassages } from "./passages";
 import { companyByMnemo, loadRegistry } from "@/lib/reference";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
@@ -63,9 +64,10 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   const file = intent.clientId ? await r.getClientFileByUser(intent.clientId) : undefined;
   const account = file?.review.custodianAccount;
   const payout = file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined;
-  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout };
+  const wording = await resolvePassages(type);
+  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout, texts: wording.text };
   const pdf = await renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
-  return store({ type, number, title: `${DOC_LABEL[type]} : ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor }, pdf, now);
+  return store({ type, number, title: `${DOC_LABEL[type]} : ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /** All firm intents on the lines of one auction (same issuer country + deadline). */
@@ -135,15 +137,17 @@ import { Convention, DossierOuverture } from "./pdf/kyc-templates";
 
 /** Blank convention model (read before acceptance). Not stored. */
 export async function renderConventionModel(): Promise<Buffer> {
-  return renderToBuffer(el(createElement(Convention, { number: "MODÈLE", now: new Date() })));
+  const wording = await resolvePassages("convention");
+  return renderToBuffer(el(createElement(Convention, { number: "MODÈLE", now: new Date(), texts: wording.text })));
 }
 
 export async function generateKycDocument(type: "convention" | "dossier_svt", file: ClientFile, advisor?: string): Promise<GeneratedDocument> {
   const now = new Date();
   const number = await nextNumber(type, now);
-  const element = type === "convention" ? createElement(Convention, { number, file, now }) : createElement(DossierOuverture, { number, file, now });
+  const wording = await resolvePassages(type);
+  const element = type === "convention" ? createElement(Convention, { number, file, now, texts: wording.text }) : createElement(DossierOuverture, { number, file, now });
   const pdf = await renderToBuffer(el(element));
-  return store({ type, number, title: `${DOC_LABEL[type]} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor }, pdf, now);
+  return store({ type, number, title: `${DOC_LABEL[type]} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /* ---------------- Statements ---------------- */
@@ -158,9 +162,10 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   const positions = positionsFrom(intents.filter((i) => i.clientId === clientId), offers);
   const now = new Date();
   const number = await nextNumber(type, now);
-  const element = type === "releve" ? createElement(RelevePosition, { number, contact, positions, now }) : createElement(AttestationDetention, { number, contact, positions, now });
+  const wording = await resolvePassages(type);
+  const element = type === "releve" ? createElement(RelevePosition, { number, contact, positions, now, texts: wording.text }) : createElement(AttestationDetention, { number, contact, positions, now, texts: wording.text });
   const pdf = await renderToBuffer(el(element));
-  return store({ type, number, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor }, pdf, now);
+  return store({ type, number, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /* ---------------- Rapport d'activité (COSUMAF) ---------------- */
@@ -224,4 +229,56 @@ export async function renderOfferSheet(id: string): Promise<{ pdf: Buffer; numbe
   const number = `PC-FICHE-${o.id.toUpperCase().slice(0, 24)}-${now.toISOString().slice(0, 10).replace(/-/g, "")}`;
   const pdf = await renderToBuffer(el(createElement(FicheOffre, { number, offer: o, summary: sm, family: offerFamily(o), status: statusLabel(o, st), reference: ref ? { title: ref.title, rows: ref.rows } : undefined, flows: ref?.flows, settleOn: ref?.settleOn, risks: offerRisks(o), now })));
   return { pdf, number };
+}
+
+/* ---------------- Previews for the templates registry ---------------- */
+import type { Intent } from "@/lib/domain/types";
+import { PASSAGES, fill } from "./passages";
+
+/**
+ * A document type rendered on demonstration data with the wording in force,
+ * or with one passage replaced by a proposed text: what the desk looks at
+ * before saving a version. Nothing is stored or numbered.
+ */
+export async function renderPreview(type: DocumentType, override?: { passage: string; fr: string }): Promise<Buffer | undefined> {
+  const wording = await resolvePassages(type);
+  const texts = { ...wording.text };
+  if (override) texts[override.passage] = override.fr;
+  const now = new Date();
+  const number = "APERÇU";
+  if (type === "convention") return renderToBuffer(el(createElement(Convention, { number, now, texts })));
+  if (type === "releve" || type === "attestation") {
+    const contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
+    const el2 = type === "releve" ? createElement(RelevePosition, { number, contact, positions: [], now, texts }) : createElement(AttestationDetention, { number, contact, positions: [], now, texts });
+    return renderToBuffer(el(el2));
+  }
+  if (!(type in PASSAGES) || type === "bordereau" || type === "dossier_svt") return undefined;
+  const offers = await repo().listOffers();
+  const offer = offers.find((o) => (o.kind === "OTA" || o.kind === "APE") && !o.hidden) ?? offers.find((o) => o.kind === "MARCHE" && o.instrument === "obligation") ?? offers[0];
+  if (!offer) return undefined;
+  const intent: Intent = {
+    id: "apercu",
+    ref: "PF-0000-000",
+    offerId: offer.id,
+    offerVersion: offer.version,
+    clientName: "Client de démonstration",
+    clientSegment: "Personne physique · Yaoundé",
+    type: type === "cession" ? "cession" : "ferme",
+    amount: type === "cession" ? 100 : 5_000_000,
+    channel: "WhatsApp",
+    state: "confirmee",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+  };
+  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: "Conseiller", allocation: 1, texts };
+  const render = (offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type as IntentDocumentType];
+  return render ? renderToBuffer(render(ctx)) : undefined;
+}
+
+/** The text of a passage as a document would print it, on the demonstration values (for the registry's list). */
+export function previewLine(type: DocumentType, key: string, text: string): string {
+  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom." };
+  void type;
+  void key;
+  return fill(text, vars);
 }

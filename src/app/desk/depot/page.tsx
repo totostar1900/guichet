@@ -35,12 +35,6 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
     ...ISSUERS.flatMap((i) => i.documents.map((d) => ({ who: i.shortName, title: d.title, year: d.year, url: d.url }))),
   ].sort((a, b) => a.who.localeCompare(b.who, "fr") || b.year - a.year);
   const termSources = [...new Set(BOND_TERMS.map((x) => x.source))];
-  const models: { title: string; hint: string; href: string }[] = [
-    { title: "Convention de compte-titres (modèle vierge)", hint: "PDF · ce que le client lit avant d'accepter", href: "/desk/documents/convention-modele" },
-    { title: "Bulletin d'ordre · Appel de fonds · Bordereau · Avis · Relevé", hint: "produits depuis Documents pour une intention donnée", href: "/desk/documents" },
-    { title: "Fiche PDF d'une ligne", hint: "depuis la fiche de la ligne, bouton « Fiche PDF » (le « ··· » sur téléphone)", href: "/" },
-    { title: "Modèles d'e-mails de connexion", hint: "docs/supabase-email-templates.md dans le dépôt de code", href: "/desk/docs/technique" },
-  ];
   return (
     <>
       <DeskNav current="/desk/depot" />
@@ -172,16 +166,13 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
       <section className="panel">
         <div className="panel-h">
           <h2>{t("Modèles")}</h2>
-          <span className="muted">{t("les gabarits que le Guichet remplit ; le texte des modèles vit dans le code (src/lib/documents)")}</span>
+          <span className="muted">{t("ce que disent les documents, passage par passage, avec les versions : le registre des modèles")}</span>
         </div>
-        <ul className={styles.models}>
-          {models.map((m) => (
-            <li key={m.title}>
-              <Link href={m.href}>{t(m.title)}</Link>
-              <small>{t(m.hint)}</small>
-            </li>
-          ))}
-        </ul>
+        <p className={styles.p}>
+          <Link className="btn sm" href="/desk/referentiel/modeles">
+            {t("Ouvrir les modèles")} →
+          </Link>
+        </p>
       </section>
 
       <section className="panel">

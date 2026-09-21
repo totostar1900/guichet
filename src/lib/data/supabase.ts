@@ -1,7 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -222,15 +222,16 @@ function fromOffer(o: Offer): OfferRow {
 type DocRow = {
   id: string; type: GeneratedDocument["type"]; number: string; title: string; intent_id: string | null; offer_id: string | null; client_name: string | null;
   auction_key: string | null; client_file_id: string | null; client_id: string | null; file_key: string; status: GeneratedDocument["status"]; sent_via: string[] | null; sent_at: string | null; signed_at: string | null;
-  created_at: string; created_by: string | null;
+  created_at: string; created_by: string | null; template_versions?: Record<string, number> | null;
 };
 const toDoc = (r: DocRow): GeneratedDocument => ({
   id: r.id, type: r.type, number: r.number, title: r.title, intentId: u(r.intent_id), offerId: u(r.offer_id), clientName: u(r.client_name),
   auctionKey: u(r.auction_key), clientFileId: u(r.client_file_id), clientId: u(r.client_id), fileKey: r.file_key, status: r.status, sentVia: u(r.sent_via), sentAt: u(r.sent_at), signedAt: u(r.signed_at),
-  createdAt: r.created_at, createdBy: u(r.created_by),
+  createdAt: r.created_at, createdBy: u(r.created_by), templateVersions: u(r.template_versions),
 });
 const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   const row: Partial<DocRow> = {};
+  if (p.templateVersions !== undefined) row.template_versions = p.templateVersions;
   if (p.type !== undefined) row.type = p.type;
   if (p.number !== undefined) row.number = p.number;
   if (p.title !== undefined) row.title = p.title;
@@ -324,6 +325,9 @@ const fromKyc = (p: Partial<ClientFile>): Partial<KycRow> => {
 const toEvent = (r: EventRow): EventLog => ({ id: r.id, at: r.at, kind: r.kind, html: r.html, intentId: u(r.intent_id), offerId: u(r.offer_id) });
 
 let client: SupabaseClient | undefined;
+type TemplateTextRow = { id: string; doc_type: DocumentType; passage: string; version: number; fr: string; en: string; status: TemplateTextStatus; by_name: string; at: string; note: string | null; approved_by: string | null; approved_at: string | null };
+const toTemplateText = (r: TemplateTextRow): TemplateText => ({ id: r.id, docType: r.doc_type, passage: r.passage, version: r.version, fr: r.fr, en: r.en ?? "", status: r.status, by: r.by_name, at: r.at, note: r.note ?? undefined, approvedBy: r.approved_by ?? undefined, approvedAt: r.approved_at ?? undefined });
+
 type BulletinRow = {
   session_date: string; number: number; source_url: string | null; file_key: string | null; ingested_at: string; ingested_by: MarketBulletin["ingestedBy"]; status: MarketBulletin["status"];
   index_value: string | null; index_variation_pct: string | null; counts: MarketBulletin["counts"]; warnings: string[]; anomalies: string[]; notices: string[];
@@ -748,6 +752,47 @@ export const supabaseRepository: Repository = {
     const cur = await this.getPrefs(userId);
     const { error } = await db().from("profiles").update({ prefs: { ...cur, ...p } }).eq("id", userId);
     if (error) fail("setPrefs", error);
+  },
+  async listTemplateTexts(docType) {
+    let q = db().from("template_texts").select("*").order("doc_type").order("passage").order("version", { ascending: false });
+    if (docType) q = q.eq("doc_type", docType);
+    const { data, error } = await q;
+    if (error) fail("listTemplateTexts", error);
+    return (data as TemplateTextRow[]).map(toTemplateText);
+  },
+  async addTemplateText(t) {
+    const { data: prev, error: e0 } = await db().from("template_texts").select("id, version, status").eq("doc_type", t.docType).eq("passage", t.passage);
+    if (e0) fail("addTemplateText", e0);
+    const rows = (prev ?? []) as { id: string; version: number; status: string }[];
+    const version = Math.max(0, ...rows.map((x) => x.version)) + 1;
+    if (t.status === "current") {
+      const ids = rows.filter((x) => x.status === "current").map((x) => x.id);
+      if (ids.length) {
+        const { error } = await db().from("template_texts").update({ status: "superseded" }).in("id", ids);
+        if (error) fail("addTemplateText", error);
+      }
+    }
+    const { data, error } = await db()
+      .from("template_texts")
+      .insert({ doc_type: t.docType, passage: t.passage, version, fr: t.fr, en: t.en, status: t.status, by_name: t.by, note: t.note ?? null, approved_by: t.approvedBy ?? null, approved_at: t.approvedAt ?? null })
+      .select("*")
+      .single();
+    if (error) fail("addTemplateText", error);
+    return toTemplateText(data as TemplateTextRow);
+  },
+  async setTemplateTextStatus(id, status, approvedBy) {
+    const { data: row, error: e0 } = await db().from("template_texts").select("*").eq("id", id).maybeSingle();
+    if (e0) fail("setTemplateTextStatus", e0);
+    if (!row) return;
+    const r = row as TemplateTextRow;
+    if (status === "current") {
+      const { error } = await db().from("template_texts").update({ status: "superseded" }).eq("doc_type", r.doc_type).eq("passage", r.passage).eq("status", "current");
+      if (error) fail("setTemplateTextStatus", error);
+    }
+    const patch: Record<string, unknown> = { status };
+    if (status === "current") Object.assign(patch, { approved_by: approvedBy ?? null, approved_at: new Date().toISOString() });
+    const { error } = await db().from("template_texts").update(patch).eq("id", id);
+    if (error) fail("setTemplateTextStatus", error);
   },
   async getConsent(userId) {
     const { data, error } = await db().from("profiles").select("terms_version, terms_accepted_at").eq("id", userId).maybeSingle();

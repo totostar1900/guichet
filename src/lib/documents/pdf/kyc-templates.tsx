@@ -1,4 +1,5 @@
 import { View } from "@react-pdf/renderer";
+import { passage } from "../passages-catalog";
 import { COMPANY } from "@/lib/config";
 import type { ClientFile } from "@/lib/domain/kyc";
 import { fmtDate, fmtDateTime, localIso } from "@/lib/format";
@@ -12,19 +13,20 @@ const ROLE = { representant: "Représentant légal", mandataire: "Mandataire", b
  * client reads, and filled once accepted (code, timestamp) : the accepted copy
  * is the record of the electronic acceptance.
  */
-export function Convention({ number, file, now }: { number: string; file?: ClientFile; now: Date }) {
+export function Convention({ number, file, now, texts }: { number: string; file?: ClientFile; now: Date; texts?: Record<string, string> }) {
   const id = file?.identity;
+  const art = (key: string, vars: Record<string, string | undefined> = {}) => passage("convention", key, texts, vars);
   const articles: [string, string][] = [
-    ["1. Objet", `${COMPANY.legalName} (« l'Intermédiaire »), ${COMPANY.licence}, ouvre au Titulaire un compte-titres destiné à recevoir les instruments financiers acquis par son intermédiaire sur le marché monétaire de la CEMAC (bons et obligations du Trésor) et sur le marché financier régional (BVMAC).`],
-    ["2. Conservation", "Les titres sont dématérialisés et inscrits au nom du Titulaire sur un sous-compte nominatif ouvert à son nom, sous le regroupement de l'Intermédiaire, dans les livres du dépositaire désigné (établissement agréé Spécialiste en Valeurs du Trésor ou dépositaire central). Le Titulaire en est propriétaire de plein droit, y compris en cas de défaillance de l'Intermédiaire. L'Intermédiaire tient la position du Titulaire et lui adresse un avis d'opéré par opération et un relevé de position au moins annuel."],
-    ["3. Espèces", "Les espèces nécessaires aux opérations transitent par un compte de règlement ségrégué des fonds propres de l'Intermédiaire. Les fonds doivent provenir d'un compte bancaire ouvert au nom du Titulaire ; tout versement d'un tiers est refusé."],
-    ["4. Ordres", "Une intention transmise par le Guichet, WhatsApp ou tout autre canal n'est pas un ordre. Un ordre naît de la confirmation par l'Intermédiaire et de l'acceptation d'un bulletin d'ordre par le Titulaire. L'ordre est irrévocable dès sa transmission à l'adjudication ou au marché. Les prix et volumes servis sont arrêtés par l'émetteur ou le marché ; l'Intermédiaire ne garantit aucune allocation."],
-    ["5. Information et catégorisation", `Le Titulaire est catégorisé « ${file?.profile.category === "professionnel" ? "professionnel" : "non professionnel"} ». Il reconnaît avoir reçu l'information sur les risques (crédit, prix, liquidité, allocation) et que les communications de l'Intermédiaire ont un caractère promotionnel et ne constituent pas un conseil personnalisé, sauf convention distincte.`],
-    ["6. Tarifs", "Les conditions tarifaires applicables sont celles de l'annexe tarifaire remise par le conseiller ; aucun frais d'ouverture. Toute modification tarifaire est notifiée trente jours avant application."],
-    ["7. Communications", "Le Titulaire accepte de recevoir avis, relevés et documents par voie électronique (espace Guichet, e-mail, WhatsApp s'il y a consenti). Il peut retirer son consentement WhatsApp à tout moment (mot-clé STOP)."],
-    ["8. Données personnelles et LBC/FT", "Les données et pièces recueillies servent à l'identification du Titulaire, à la tenue du compte et aux obligations réglementaires. Elles sont conservées dix ans après la fin de la relation. L'Intermédiaire peut demander à tout moment des informations complémentaires sur l'origine des fonds."],
-    ["9. Procurations et succession", "Le Titulaire peut désigner un mandataire par acte écrit. En cas de décès, la position est conservée jusqu'à instruction des ayants droit dûment justifiés."],
-    ["10. Réclamations, durée, résiliation", `Réclamations à ${COMPANY.email} ; à défaut de réponse satisfaisante, médiation de la COSUMAF. La convention est conclue pour une durée indéterminée ; chaque partie peut la résilier moyennant un préavis de trente jours, les titres étant transférés ou cédés selon les instructions du Titulaire.`],
+    ["1. Objet", art("art_objet", { societe: COMPANY.legalName, agrement: COMPANY.licence })],
+    ["2. Conservation", art("art_conservation")],
+    ["3. Espèces", art("art_especes")],
+    ["4. Ordres", art("art_ordres")],
+    ["5. Information et catégorisation", art("art_information", { categorie: file?.profile.category === "professionnel" ? "professionnel" : "non professionnel" })],
+    ["6. Tarifs", art("art_tarifs")],
+    ["7. Communications", art("art_communications")],
+    ["8. Données personnelles et LBC/FT", art("art_donnees")],
+    ["9. Procurations et succession", art("art_procurations")],
+    ["10. Réclamations, durée, résiliation", art("art_reclamations", { email: COMPANY.email })],
   ];
   return (
     <Letter heading={`Convention · ${number}`}>
