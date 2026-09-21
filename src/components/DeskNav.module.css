@@ -4,7 +4,7 @@
   gap: 4px 10px;
   flex-wrap: wrap;
   /* the one gap between the desk bar and every page's content : pages add none of their own */
-  margin-bottom: 28px;
+  margin-bottom: 42px;
 }
 .group {
   display: flex;

@@ -1543,4 +1543,13 @@ export const EN_MORE: Record<string, string> = {
   "Liste consolidée ONU": "UN consolidated list",
   "Carte des sanctions UE": "EU sanctions map",
   "OFAC (États-Unis)": "OFAC (United States)",
+  // La carte des documents, frise des moments
+  "dossier accepté": "file accepted",
+  "intention confirmée": "intention confirmed",
+  "résultats, valeur liquidative": "results, net asset value",
+  "livraison, virement": "delivery, transfer",
+  "coupons, relevés": "coupons, statements",
+  "transfert, clôture": "transfer, closure",
+  "émis": "issued",
+  "versions de texte en attente": "wording versions pending",
 };

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useT } from "@/i18n/client";
 import { ACTOR_LABEL, FLOWS, type FlowDoc } from "@/data/flows";
 import type { DocumentType } from "@/lib/domain/types";
-import { DOC_KIND, DOC_KIND_LABEL, DOC_KIND_RULE, DOC_LABEL, DOC_ORDER, DOC_ROLES, DOC_WHEN, MOMENTS, MOMENT_LABEL, type DocumentKind } from "@/lib/documents/registry";
+import { DOC_KIND, DOC_KIND_LABEL, DOC_KIND_RULE, DOC_LABEL, DOC_ORDER, DOC_ROLES, DOC_WHEN, MOMENTS, MOMENT_HINT, MOMENT_LABEL, type DocMoment, type DocumentKind } from "@/lib/documents/registry";
 import { PASSAGES } from "@/lib/documents/passages-catalog";
 import { Sheet } from "@/components/mobile/Sheet";
 import styles from "./DocMap.module.css";
@@ -81,46 +81,91 @@ function DocSheet({ type, stats, onClose }: { type: DocumentType | null; stats?:
 }
 
 /**
- * The map of the documents: three kinds as rows, the six moments as
- * columns, every tile opening the sheet. With `stats`, the tiles carry the
- * issued count (the Dépôt's hub); without, the map explains (the
- * documentation).
+ * The map of the documents: three kinds as rows, the six moments as a
+ * frise of columns, every tile opening the sheet. With `stats`, the tiles
+ * carry the issued count (the Dépôt's hub); without, the map explains (the
+ * documentation). On a phone the same map turns: moments down, kinds across.
  */
 export function DocMap({ stats }: { stats?: DocStats }) {
   const t = useT();
   const [open, setOpen] = useState<DocumentType | null>(null);
+  const tiles = (kind: DocumentKind, m: DocMoment) =>
+    DOC_ORDER.filter((d) => DOC_KIND[d] === kind && DOC_ROLES[d].moment === m).map((d) => (
+      <button key={d} type="button" className={`${styles.tile} ${styles[kind]}`} onClick={() => setOpen(d)} aria-haspopup="dialog">
+        <span>{t(DOC_LABEL[d])}</span>
+        {stats?.issued && (
+          <em>
+            <b>{stats.issued[d] ?? 0}</b> {t("émis")}
+          </em>
+        )}
+        {stats?.pending?.[d] ? <i className={styles.pend} title={t("versions en attente")} /> : null}
+      </button>
+    ));
   return (
     <div className={styles.map}>
-      <div className={styles.grid} role="table" aria-label={t("La carte des documents")}>
-        <div className={styles.corner} role="columnheader" />
-        {MOMENTS.map((m) => (
-          <div key={m} className={styles.colHead} role="columnheader">
-            {t(MOMENT_LABEL[m])}
-          </div>
-        ))}
+      {/* wide: moments across */}
+      <div className={styles.wide} role="table" aria-label={t("La carte des documents")}>
+        <div className={styles.stage} role="row">
+          <i />
+          {MOMENTS.map((m) => (
+            <span key={m} role="columnheader">
+              {t(MOMENT_LABEL[m])}
+              <b>{t(MOMENT_HINT[m])}</b>
+            </span>
+          ))}
+        </div>
         {KINDS.map((kind) => (
-          <div key={kind} className={styles.row} role="row">
-            <div className={`${styles.lane} ${styles[kind]}`} role="rowheader">
-              <b>{t(DOC_KIND_LABEL[kind])}</b>
-              <small>{t(DOC_KIND_RULE[kind]).split(" : ")[0]}</small>
+          <div key={kind} className={`${styles.band} ${styles[`k_${kind}`]}`} role="row">
+            <div className={styles.lane} role="rowheader" title={t(DOC_KIND_RULE[kind])}>
+              {t(DOC_KIND_LABEL[kind])}
             </div>
             {MOMENTS.map((m) => (
               <div key={m} className={styles.cell} role="cell">
-                {DOC_ORDER.filter((d) => DOC_KIND[d] === kind && DOC_ROLES[d].moment === m).map((d) => (
-                  <button key={d} type="button" className={`${styles.tile} ${styles[kind]}`} onClick={() => setOpen(d)} aria-haspopup="dialog">
-                    <span>{t(DOC_LABEL[d])}</span>
-                    {DOC_ROLES[d].isNew && <em className={styles.new}>{t("nouveau")}</em>}
-                    {stats?.issued && <small>{stats.issued[d] ?? 0}</small>}
-                    {stats?.pending?.[d] ? <i className={styles.pend} title={t("versions en attente")} /> : null}
-                  </button>
-                ))}
+                {tiles(kind, m)}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* phone: the same map turned, moments down */}
+      <div className={styles.narrow} role="table" aria-label={t("La carte des documents")}>
+        <div className={styles.kinds} role="row">
+          <i />
+          {KINDS.map((kind) => (
+            <span key={kind} className={styles[`k_${kind}`]} role="columnheader">
+              {t(DOC_KIND_LABEL[kind]).split(" ")[0]}
+            </span>
+          ))}
+        </div>
+        {MOMENTS.map((m) => (
+          <div key={m} className={styles.band} role="row">
+            <div className={styles.lane} role="rowheader">
+              {t(MOMENT_LABEL[m])}
+            </div>
+            {KINDS.map((kind) => (
+              <div key={kind} className={styles.cell} role="cell">
+                {tiles(kind, m)}
               </div>
             ))}
           </div>
         ))}
       </div>
       <p className={styles.legend}>
-        <i className={`${styles.dot} ${styles.signe}`} /> {t("signé par le client")} <i className={`${styles.dot} ${styles.envoye}`} /> {t("envoyé au client")} <i className={`${styles.dot} ${styles.interne}`} /> {t("transmis aux contreparties")} · {t("toucher un document : qui le prépare, qui le signe, où il naît")}
+        <span>
+          <i className={`${styles.dot} ${styles.signe}`} /> {t("signé par le client")} · {t(DOC_KIND_RULE.signe).split(" : ")[0]}
+        </span>
+        <span>
+          <i className={`${styles.dot} ${styles.envoye}`} /> {t("envoyé au client")} · {t(DOC_KIND_RULE.envoye).split(" : ")[0]}
+        </span>
+        <span>
+          <i className={`${styles.dot} ${styles.interne}`} /> {t("transmis aux contreparties")} · {t(DOC_KIND_RULE.interne).split(" : ")[0]}
+        </span>
+        {stats?.pending && Object.values(stats.pending).some(Boolean) ? (
+          <span>
+            <i className={styles.pendDot} /> {t("versions de texte en attente")}
+          </span>
+        ) : null}
+        <span>{t("toucher un document : qui le prépare, qui le signe, où il naît")}</span>
       </p>
       <DocSheet type={open} stats={stats} onClose={() => setOpen(null)} />
     </div>

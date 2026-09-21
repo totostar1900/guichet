@@ -108,6 +108,8 @@ export function docsAvailable(i: Intent): IntentDocumentType[] {
 export type DocMoment = "ouverture" | "ordre" | "execution" | "reglement" | "vie" | "fin";
 export const MOMENT_LABEL: Record<DocMoment, string> = { ouverture: "Ouverture", ordre: "Ordre", execution: "Exécution", reglement: "Règlement", vie: "Vie du titre", fin: "Fin" };
 export const MOMENTS: DocMoment[] = ["ouverture", "ordre", "execution", "reglement", "vie", "fin"];
+/** One line under each moment on the map: what opens it. */
+export const MOMENT_HINT: Record<DocMoment, string> = { ouverture: "dossier accepté", ordre: "intention confirmée", execution: "résultats, valeur liquidative", reglement: "livraison, virement", vie: "coupons, relevés", fin: "transfert, clôture" };
 
 export interface DocRole {
   moment: DocMoment;
@@ -121,23 +123,22 @@ export interface DocRole {
   /** The clock that runs on it, when there is one. */
   clock?: string;
   /** New since the acts of September 2026. */
-  isNew?: boolean;
 }
 
 const DOCS_PAGE = (type: DocumentType) => ({ href: `/desk/documents?type=${type}`, label: "Documents, filtrés sur ce modèle" });
 
 export const DOC_ROLES: Record<DocumentType, DocRole> = {
   convention: { moment: "ouverture", prepares: "Purpose, depuis le dossier", signs: "le client (code à usage unique, ou papier) et Purpose", receives: "le client (copie dans Mes documents)", find: DOCS_PAGE("convention"), born: { href: "/desk/clients", label: "Dossiers › approbation du dossier" } },
-  mandat: { moment: "ouverture", prepares: "le desk, depuis le dossier", signs: "le client (mandant) et le mandataire", receives: "le client, le mandataire, le dossier", find: DOCS_PAGE("mandat"), born: { href: "/desk/clients", label: "Dossiers › Actes et avis › Établir un mandat" }, isNew: true },
+  mandat: { moment: "ouverture", prepares: "le desk, depuis le dossier", signs: "le client (mandant) et le mandataire", receives: "le client, le mandataire, le dossier", find: DOCS_PAGE("mandat"), born: { href: "/desk/clients", label: "Dossiers › Actes et avis › Établir un mandat" } },
   bulletin: { moment: "ordre", prepares: "Purpose, depuis l'intention", signs: "le client : « lu et approuvé »", receives: "le desk (signé), le client (copie)", find: DOCS_PAGE("bulletin"), born: { href: "/desk", label: "Carnet › confirmer l'intention" } },
   cession: { moment: "ordre", prepares: "Purpose, depuis l'intention", signs: "le client (cédant), avec l'attestation du cédant", receives: "le desk (signé), le client (copie)", find: DOCS_PAGE("cession"), born: { href: "/desk", label: "Carnet › confirmer l'intention" } },
-  reclamation: { moment: "vie", prepares: "le Guichet, sur les mots du client (ou le desk pour une réclamation reçue)", signs: "le client, par code sur son canal prouvé", receives: "le desk (Messages), le client (copie)", find: DOCS_PAGE("reclamation"), born: { href: "/moi/reclamation", label: "Mon espace › Déposer une réclamation ; Dossiers › Actes et avis" }, clock: "accusé de réception sous 2 jours ouvrés, réponse sous 30 jours", isNew: true },
-  transfert: { moment: "fin", prepares: "le desk, depuis le dossier et les positions", signs: "le client", receives: "le dépositaire, le client (copie)", find: DOCS_PAGE("transfert"), born: { href: "/desk/clients", label: "Dossiers › Actes et avis › Transférer ou clôturer" }, clock: "dossier « en clôture » à la signature, « clos » à la confirmation du dépositaire", isNew: true },
+  reclamation: { moment: "vie", prepares: "le Guichet, sur les mots du client (ou le desk pour une réclamation reçue)", signs: "le client, par code sur son canal prouvé", receives: "le desk (Messages), le client (copie)", find: DOCS_PAGE("reclamation"), born: { href: "/moi/reclamation", label: "Mon espace › Déposer une réclamation ; Dossiers › Actes et avis" }, clock: "accusé de réception sous 2 jours ouvrés, réponse sous 30 jours" },
+  transfert: { moment: "fin", prepares: "le desk, depuis le dossier et les positions", signs: "le client", receives: "le dépositaire, le client (copie)", find: DOCS_PAGE("transfert"), born: { href: "/desk/clients", label: "Dossiers › Actes et avis › Transférer ou clôturer" }, clock: "dossier « en clôture » à la signature, « clos » à la confirmation du dépositaire" },
   fonds: { moment: "ordre", prepares: "Purpose, avec le bulletin", signs: "personne : une instruction à exécuter", receives: "le client, qui vire avant la date limite", find: DOCS_PAGE("fonds"), born: { href: "/desk", label: "Carnet › confirmer l'intention" }, clock: "virement avant la clôture de la fenêtre" },
   allocation: { moment: "execution", prepares: "Purpose, depuis le résultat saisi", signs: "personne", receives: "le client", find: DOCS_PAGE("allocation"), born: { href: "/desk/resultats", label: "Résultats › saisir l'adjudication" } },
   non_allocation: { moment: "execution", prepares: "Purpose, depuis le résultat saisi", signs: "personne", receives: "le client (fonds restitués)", find: DOCS_PAGE("non_allocation"), born: { href: "/desk/resultats", label: "Résultats › saisir l'adjudication" }, clock: "fonds restitués sous deux jours ouvrés" },
   opere: { moment: "reglement", prepares: "Purpose, au règlement", signs: "personne", receives: "le client", find: DOCS_PAGE("opere"), born: { href: "/desk/marche", label: "Cotes & VL › régler l'ordre" } },
-  coupon: { moment: "vie", prepares: "Purpose, depuis l'échéancier", signs: "personne", receives: "le client, par son canal prouvé (sinon gardé au dossier)", find: DOCS_PAGE("coupon"), born: { href: "/desk", label: "Aujourd'hui › Coupons à aviser ; Dossiers › Actes et avis" }, isNew: true },
+  coupon: { moment: "vie", prepares: "Purpose, depuis l'échéancier", signs: "personne", receives: "le client, par son canal prouvé (sinon gardé au dossier)", find: DOCS_PAGE("coupon"), born: { href: "/desk", label: "Aujourd'hui › Coupons à aviser ; Dossiers › Actes et avis" } },
   releve: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "personne", receives: "le client", find: DOCS_PAGE("releve"), born: { href: "/moi", label: "Mon espace › Relevé de position ; le desk depuis le dossier" } },
   attestation: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "Purpose (signature et cachet)", receives: "le client, pour un tiers", find: DOCS_PAGE("attestation"), born: { href: "/moi", label: "Mon espace › Attestation de détention" } },
   dossier_svt: { moment: "ouverture", prepares: "le desk, depuis le dossier KYC", signs: "Purpose", receives: "le SVT ou le dépositaire", find: DOCS_PAGE("dossier_svt"), born: { href: "/desk/clients", label: "Dossiers › approbation du dossier" } },
