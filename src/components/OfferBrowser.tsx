@@ -50,10 +50,10 @@ const TENORS: [string, string][] = [
   ["gt3", "Plus de 3 ans"],
   ["eq", "Actions et fonds"],
 ];
-export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "recent";
+export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer" | "recent";
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
-const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", recent: "plus récent" };
+const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", recent: "plus récent" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
 const normStatus = (s: DisplayStatus): string => (s === "closing" ? "open" : s === "closed" ? "results" : s === "on_request" ? "quoted" : s);
@@ -353,6 +353,24 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const phone = usePhone();
   const view = (sp.get("vue") as View) || (phone ? "cards" : "table");
   const [sheet, setSheet] = useState(false);
+  // The search's suggestions while typing: distinct lines, issuers and ISINs that contain the letters.
+  const [draft, setDraft] = useState("");
+  const suggestions = useMemo(() => {
+    const d = draft.trim().toLowerCase();
+    if (d.length < 2) return [];
+    const seen = new Set<string>();
+    const out: { kind: string; text: string }[] = [];
+    const push = (kind: string, text: string) => {
+      const k = kind + text;
+      if (!text || seen.has(k) || !text.toLowerCase().includes(d) || text.toLowerCase() === d) return;
+      seen.add(k);
+      out.push({ kind, text });
+    };
+    for (const o of offers) push("Émetteur", o.issuer);
+    for (const o of offers) push("Ligne", o.title);
+    for (const o of offers) push("ISIN", o.isin ?? "");
+    return out.slice(0, 8);
+  }, [draft, offers]);
   const sep = useDistinction();
   useEffect(() => {
     try {
@@ -462,6 +480,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           return parseNum(a.s.minimum) - parseNum(b.s.minimum);
         case "title":
           return a.s.title.localeCompare(b.s.title, "fr");
+        case "issuer":
+          // By issuer, then by closing within the issuer: grouped, the groups follow the issuers' order.
+          return a.o.issuer.localeCompare(b.o.issuer, "fr") || (a.s.deadlineAt ? parseDate(a.s.deadlineAt).getTime() : Infinity) - (b.s.deadlineAt ? parseDate(b.s.deadlineAt).getTime() : Infinity);
         default:
           return parseDate(a.o.opensAt).getTime() - parseDate(b.o.opensAt).getTime();
       }
@@ -492,12 +513,15 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       <List rows={list} grouped={grouped && !featured} featured={featured} />
     ) : (
       <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
-        {list.map(({ o, s }) => (
-          <div key={o.id} className={featured ? styles.pickCard : undefined}>
-            <OfferCard o={o} s={s} />
-            {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
-          </div>
-        ))}
+        {(grouped && !featured ? groupByIssuer(list) : [{ issuer: "", country: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
+          ...(grouped && !featured ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
+          ...g.rows.map(({ o, s }) => (
+            <div key={o.id} className={featured ? styles.pickCard : undefined}>
+              <OfferCard o={o} s={s} />
+              {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+            </div>
+          )),
+        ])}
       </div>
     );
 
@@ -512,7 +536,44 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
             </svg>
-            <input type="search" placeholder={t("Rechercher une ligne, un émetteur, un ISIN")} aria-label={t("Rechercher")} defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
+            <input
+              type="search"
+              placeholder={t("Rechercher une ligne, un émetteur, un ISIN")}
+              aria-label={t("Rechercher")}
+              defaultValue={q}
+              autoComplete="off"
+              onChange={(e) => {
+                setDraft(e.target.value);
+                update({ q: e.target.value || undefined });
+              }}
+              onFocus={(e) => setDraft(e.target.value)}
+              onBlur={() => window.setTimeout(() => setDraft(""), 150)}
+              onKeyDown={(e) => e.key === "Escape" && setDraft("")}
+            />
+            {/* what the typed letters match: lines, issuers, ISINs; a tap fills the field and filters the list */}
+            {suggestions.length > 0 && (
+              <ul className={styles.suggest} role="listbox">
+                {suggestions.map((sug) => (
+                  <li key={sug.kind + sug.text}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const input = (e.currentTarget.closest("label") as HTMLLabelElement).querySelector("input");
+                        if (input) input.value = sug.text;
+                        setDraft("");
+                        update({ q: sug.text });
+                      }}
+                    >
+                      <em>{t(sug.kind)}</em>
+                      <b>{sug.text}</b>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </label>
           <button type="button" className={styles.sheetBtn} onClick={() => setSheet(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -571,6 +632,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
             <div className={styles.fg}>
               <span>{t("Rechercher")}</span>
               <input type="search" className={styles.sheetSearch} placeholder={t("Rechercher une ligne, un émetteur, un ISIN")} aria-label={t("Rechercher")} defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
+            </div>
+            <div className={styles.fg}>
+              <span>{t("Présentation")}</span>
+              <label className={styles.sheetGroup}>
+                <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
+                {t("Grouper par émetteur")}
+              </label>
             </div>
             <div className={styles.fg}>
               <span>{t("Tri")}</span>

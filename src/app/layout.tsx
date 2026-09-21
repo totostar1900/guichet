@@ -26,6 +26,7 @@ import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
 import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
 import { PaletteKeeper } from "@/components/PaletteSwitch";
+import { BarProbe } from "@/components/mobile/BarProbe";
 import { cookies } from "next/headers";
 import { LEGAL_VERSION } from "@/data/legal";
 import { Suspense } from "react";
@@ -89,6 +90,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LangProvider lang={lang}>
         <AuthHashRedirect />
         <PaletteKeeper />
+        <Suspense>
+          <BarProbe />
+        </Suspense>
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
         <TermSheetHost />
         <header className={styles.top}>

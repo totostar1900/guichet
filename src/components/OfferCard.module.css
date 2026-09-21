@@ -297,3 +297,15 @@
     margin-top: 0;
   }
 }
+.whenLabel {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-right: 5px;
+}
+.whenLabel::after {
+  content: "·";
+  margin-left: 5px;
+  color: var(--ink-3);
+  font-weight: 400;
+}

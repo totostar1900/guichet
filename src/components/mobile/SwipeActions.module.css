@@ -9,6 +9,7 @@
 .flip,
 .front {
   min-width: 0;
+  position: relative;
 }
 @media (max-width: 760px) {
   /* At rest a card is a plain box: no 3D, no back, no compositing layer (fifty of them sank an iPhone).
@@ -118,5 +119,36 @@
   .anim,
   .wrap {
     transition: none;
+  }
+}
+.turnHint {
+  display: none;
+}
+@media (max-width: 760px) {
+  .turnHint {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .turnHint svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .open .turnHint,
+  .turned .turnHint {
+    display: none;
   }
 }

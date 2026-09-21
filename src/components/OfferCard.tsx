@@ -26,7 +26,10 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
   const href = `/offres/${o.id}`;
   const t = useT();
   const compact = useDensity() === "compact";
-  const when = s.deadline === "continue" ? t("cotation continue") : t(s.deadline);
+  // « Clôture · jeu. 15 oct. 17 h 00 » on the card's foot; a listed line reads « cotation continue ».
+  const continuous = s.deadline === "continue";
+  const when = continuous ? t("cotation continue") : t(s.deadline);
+  const whenLabel = continuous || !when ? null : <em className={styles.whenLabel}>{t("Clôture")}</em>;
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const facts = useMemo(() => backFacts(o, new Date()), [o]);
@@ -71,7 +74,10 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
         <div className={styles.big}>
           <b className={s.gold ? styles.gold : ""}>{s.hero}</b>
           <small>{t(s.heroSub)}</small>
-          <span className={styles.whenC}>{when}</span>
+          <span className={styles.whenC}>
+            {whenLabel}
+            {when}
+          </span>
         </div>
         <div className={styles.facts}>
           {s.facts.map(([k, v, note]) => (
@@ -83,7 +89,10 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           ))}
         </div>
         <div className={styles.foot}>
-          <span className={styles.when}>{when}</span>
+          <span className={styles.when}>
+            {whenLabel}
+            {when}
+          </span>
           <Link className="btn sm" href={href}>
             {t("Voir la fiche")} →
           </Link>

@@ -19,7 +19,7 @@ import styles from "./SwipeActions.module.css";
  * Leaving the actions is easy: slide back from anywhere (40 px is enough),
  * tap the « ‹ » handle, tap elsewhere, or scroll away. A turned card stays
  * turned: it comes back on its own flip icon (the same corner as the front), on a deliberate pull
- * to the left (half a turn), when another card is turned (one back at a
+ * to either side (half a turn), when another card is turned (one back at a
  * time), or once it scrolls out of sight; tapping around it leaves it be,
  * since the reader is reading it. The first 8 px decide between the page's scroll and the
  * card's pull.
@@ -145,8 +145,8 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
         d.x = x;
         st.x = x;
       } else {
-        // The turn follows the finger: a full width of pull is half a turn.
-        d.angle = Math.max(0, Math.min(180, d.fromAngle + (dx / w) * 180));
+        // The turn follows the finger: a full width of pull is half a turn. From the back, either direction brings the front.
+        d.angle = d.fromAngle > 0 ? Math.max(0, 180 - (Math.abs(dx) / w) * 180) : Math.max(0, Math.min(180, (dx / w) * 180));
         st.angle = d.angle;
       }
       paint(false);
@@ -271,6 +271,14 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
       <div ref={flip} className={styles.flip}>
         <div ref={front} className={styles.front}>
           {children}
+          {/* a faint chevron on the right edge: the card turns over on a pull to the right */}
+          {back && (
+            <span className={styles.turnHint} aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </span>
+          )}
         </div>
         {back && (
           <div ref={backEl} className={styles.back} aria-hidden="true" style={{ visibility: "hidden" }}>

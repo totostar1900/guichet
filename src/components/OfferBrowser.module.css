@@ -38,6 +38,7 @@
   flex-wrap: wrap;
 }
 .search {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -730,5 +731,98 @@
 @media (max-width: 760px) {
   .tableWrap:not([data-chosen]) {
     visibility: hidden;
+  }
+}
+
+/* the search's suggestions: a list under the field, above the page, one line each, nothing underneath shows through */
+.suggest {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: calc(100% + 4px);
+  z-index: 45;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-height: 280px;
+  overflow-y: auto;
+}
+.suggest button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--ink);
+  min-height: 40px;
+}
+.suggest button:hover,
+.suggest button:focus-visible {
+  background: var(--surface-2);
+}
+.suggest em {
+  flex: none;
+  font-style: normal;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 800;
+  min-width: 62px;
+}
+.suggest b {
+  font-weight: 600;
+  font-size: 0.86rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sheetGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 36px;
+}
+.sheetGroup input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--navy);
+}
+/* the issuer's head above its cards, on the phone too */
+.cards .groupHead {
+  grid-column: 1 / -1;
+  padding: 10px 4px 0;
+}
+@media (max-width: 760px) {
+  /* on the phone the list takes the toolbar's whole width, so a line's name reads in full */
+  .toolbar {
+    position: relative;
+  }
+  .search {
+    position: static;
+  }
+  .suggest {
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    max-height: 60vh;
+  }
+  .suggest b {
+    white-space: normal;
+    line-height: 1.3;
   }
 }
