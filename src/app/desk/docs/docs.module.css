@@ -120,6 +120,10 @@
   padding-left: 0;
   border-right: 1px solid var(--line);
   padding-right: 14px;
+  /* clear of the desk nav by four times the reader gap, and tall enough to never scroll inside itself */
+  margin-top: 42px;
+  max-height: none;
+  overflow: visible;
 }
 .outlineLeft .label {
   font-size: 0.86rem;
@@ -588,4 +592,13 @@
   .nav {
     display: none;
   }
+}
+
+.live {
+  margin: 12px 0 18px;
+}
+.live figcaption {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  margin-top: 6px;
 }

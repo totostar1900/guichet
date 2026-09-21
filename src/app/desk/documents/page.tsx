@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
+import type { DocumentType } from "@/lib/domain/types";
 import { auctionLines } from "@/lib/documents/generate";
 import { DOC_LABEL, docsAvailable } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
@@ -28,10 +30,14 @@ const CHAIN: [string, string, string, string][] = [
   ["Vie du titre", "Avis de coupon, relevé de position", "Porteurs", "Programmé : étape suivante"],
 ];
 
-export default async function DocumentsPage() {
+export default async function DocumentsPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const t = await getT();
   const r = repo();
-  const [offers, intents, docs] = await Promise.all([r.listOffers(), r.listIntents(), r.listDocuments()]);
+  const sp = await searchParams;
+  const [offers, intents, allDocs] = await Promise.all([r.listOffers(), r.listIntents(), r.listDocuments()]);
+  // ?type= narrows the issued list to one model (the map of documents links here)
+  const typeFilter = sp.type && sp.type in DOC_LABEL ? (sp.type as DocumentType) : undefined;
+  const docs = typeFilter ? allDocs.filter((x) => x.type === typeFilter) : allDocs;
   const now = new Date();
   const byOffer = new Map(offers.map((o) => [o.id, o]));
 
@@ -182,9 +188,15 @@ export default async function DocumentsPage() {
 
       <div className="panel">
         <div className="panel-h">
-          <h2>{t("Documents émis")}</h2>
+          <h2>{t("Documents émis")}{typeFilter ? ` · ${t(DOC_LABEL[typeFilter])}` : ""}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
             {docs.length} document{docs.length > 1 ? "s" : ""} · originaux conservés
+            {typeFilter && (
+              <>
+                {" · "}
+                <Link href="/desk/documents">{t("tous les modèles")}</Link>
+              </>
+            )}
           </span>
         </div>
         <div className="scroll-x">

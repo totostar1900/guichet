@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DeskNav } from "@/components/DeskNav";
 import { AUDIENCE_LABEL, DOCS, docBySlug } from "@/data/docs";
 import { DocBlocks } from "@/components/docs/DocBlocks";
+import { docStats } from "@/lib/documents/stats";
 import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { ChapterLinks, Outline } from "../Outline";
@@ -62,7 +63,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
               </span>
             ))}
           </div>
-          <DocBlocks chapters={doc.chapters} lang={lang} />
+          <DocBlocks chapters={doc.chapters} lang={lang} stats={doc.chapters.some((c) => c.blocks.some((b) => b.type === "docmap")) ? await docStats() : undefined} />
           <div className={styles.pager}>
             {prev ? <Link href={`/desk/docs/${prev.slug}`}>← {prev.title[lang]}</Link> : <span />}
             {next ? <Link href={`/desk/docs/${next.slug}`}>{next.title[lang]} →</Link> : <span />}

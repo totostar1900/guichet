@@ -38,6 +38,8 @@ export function blockText(b: DocBlock, lang: "fr" | "en"): string {
     case "link":
       return `${t(b.label)} ${b.hint ? t(b.hint) : ""}`;
     case "diagram":
+    case "docmap":
+    case "flows":
       return t(b.caption);
   }
 }

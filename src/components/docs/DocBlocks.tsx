@@ -2,16 +2,17 @@ import Link from "next/link";
 import type { DocBlock, DocChapter } from "@/data/docs/types";
 import styles from "@/app/desk/docs/docs.module.css";
 import { DocDiagram } from "./DocDiagrams";
+import { DocFlows, DocMap, type DocStats } from "./DocMap";
 
 /** Renders a documentation page's chapters in one language : the same on the desk and on the client help page. */
-export function DocBlocks({ chapters, lang }: { chapters: DocChapter[]; lang: "fr" | "en" }) {
+export function DocBlocks({ chapters, lang, stats }: { chapters: DocChapter[]; lang: "fr" | "en"; stats?: DocStats }) {
   const L = (x: { fr: string; en: string }) => x[lang];
   return (
     <>
       {chapters.map((c) => (
         <section key={c.id} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
           <h2 id={c.id}>{L(c.title)}</h2>
-          <DocBlockList blocks={c.blocks} lang={lang} />
+          <DocBlockList blocks={c.blocks} lang={lang} stats={stats} />
         </section>
       ))}
     </>
@@ -19,7 +20,7 @@ export function DocBlocks({ chapters, lang }: { chapters: DocChapter[]; lang: "f
 }
 
 /** The blocks alone, for a page that draws its own chapter frames (the client help). */
-export function DocBlockList({ blocks, lang }: { blocks: DocBlock[]; lang: "fr" | "en" }) {
+export function DocBlockList({ blocks, lang, stats }: { blocks: DocBlock[]; lang: "fr" | "en"; stats?: DocStats }) {
   const L = (x: { fr: string; en: string }) => x[lang];
   const block = (b: DocBlock, k: number) => {
     switch (b.type) {
@@ -94,6 +95,20 @@ export function DocBlockList({ blocks, lang }: { blocks: DocBlock[]; lang: "fr" 
         return (
           <figure key={k} className={styles.figure}>
             <DocDiagram kind={b.kind} lang={lang} />
+            <figcaption>{L(b.caption)}</figcaption>
+          </figure>
+        );
+      case "docmap":
+        return (
+          <figure key={k} className={styles.live}>
+            <DocMap stats={stats} />
+            <figcaption>{L(b.caption)}</figcaption>
+          </figure>
+        );
+      case "flows":
+        return (
+          <figure key={k} className={styles.live}>
+            <DocFlows />
             <figcaption>{L(b.caption)}</figcaption>
           </figure>
         );

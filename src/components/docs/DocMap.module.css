@@ -1,0 +1,331 @@
+.map {
+  margin: 12px 0 16px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 150px repeat(6, minmax(112px, 1fr));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+.corner,
+.colHead {
+  padding: 8px 10px;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.colHead {
+  border-left: 1px solid var(--line);
+}
+.row {
+  display: contents;
+}
+.lane {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  border-left: 4px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+}
+.lane b {
+  font-size: 0.82rem;
+}
+.lane small {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+.cell {
+  padding: 8px;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 60px;
+}
+.tile {
+  position: relative;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+  cursor: pointer;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tile:hover,
+.tile:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.tile small {
+  font-weight: 800;
+  font-size: 0.7rem;
+  color: var(--ink-2);
+}
+.new {
+  font-style: normal;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--info);
+  font-weight: 800;
+}
+.pend {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warn);
+}
+.signe {
+  background: var(--gold-soft);
+  border-color: var(--gold-line) !important;
+}
+.lane.signe {
+  border-left-color: var(--gold);
+}
+.envoye {
+  background: var(--info-soft);
+  border-color: color-mix(in srgb, var(--info) 40%, transparent) !important;
+}
+.lane.envoye {
+  border-left-color: var(--info);
+}
+.interne {
+  background: var(--surface-2);
+  border-color: var(--line-2) !important;
+  color: var(--ink-2);
+}
+.lane.interne {
+  border-left-color: var(--ink-3);
+}
+.legend {
+  margin: 8px 0 0;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  vertical-align: -1px;
+  margin: 0 4px 0 8px;
+  border: 1px solid var(--line-2);
+}
+.dot.signe {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+}
+.dot.envoye {
+  background: var(--info-soft);
+  border-color: var(--info);
+}
+/* sheet */
+.sheet {
+  display: grid;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+.roles {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 0.88rem;
+}
+.roles dt {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 800;
+  padding-top: 3px;
+}
+.roles dd {
+  margin: 0;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* flows */
+.flows {
+  margin: 12px 0 16px;
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.tabs button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tabs button[aria-selected="true"] {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+.intro {
+  margin: 0 0 12px;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  counter-reset: step;
+}
+.step {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--line-2);
+  border-radius: 12px;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  counter-increment: step;
+}
+.step::before {
+  content: counter(step);
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink-3);
+}
+.step b {
+  font-size: 0.88rem;
+  line-height: 1.3;
+  padding-right: 22px;
+}
+.who {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.a_client {
+  border-top-color: var(--gold);
+}
+.a_client .who,
+.legend .a_client {
+  color: var(--gold-ink);
+}
+.a_desk {
+  border-top-color: var(--info);
+}
+.a_desk .who {
+  color: var(--info);
+}
+.a_tiers {
+  border-top-color: var(--good);
+}
+.a_tiers .who {
+  color: var(--good);
+}
+.state {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  padding: 2px 7px;
+  border-radius: 4px;
+  width: max-content;
+  max-width: 100%;
+}
+.clock {
+  font-size: 0.7rem;
+  color: var(--warn);
+  font-weight: 700;
+}
+.docline {
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink);
+}
+.docline b {
+  font-size: 0.76rem;
+  padding-right: 0;
+}
+.docline span {
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  line-height: 1.3;
+}
+.docline:hover,
+.docline:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.received {
+  cursor: default;
+  font-size: 0.7rem;
+  border-style: dashed !important;
+}
+.received:hover {
+  outline: 0;
+}
+.bar {
+  display: inline-block;
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  vertical-align: 2px;
+  margin: 0 4px 0 8px;
+  background: var(--line-2);
+}
+.bar.a_client {
+  background: var(--gold);
+}
+.bar.a_desk {
+  background: var(--info);
+}
+.bar.a_tiers {
+  background: var(--good);
+}
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 120px repeat(6, minmax(112px, 1fr));
+  }
+}

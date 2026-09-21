@@ -28,7 +28,10 @@ export type DocBlock =
   | { type: "note"; kind: "info" | "warn" | "rule"; text: L }
   | { type: "link"; href: string; label: L; hint?: L }
   /** A drawn schema (src/components/docs/DocDiagrams.tsx), with the sentence that reads it. */
-  | { type: "diagram"; kind: DiagramKind; caption: L };
+  | { type: "diagram"; kind: DiagramKind; caption: L }
+  /** The interactive map of the documents (every tile opens the sheet), and the six operations as tabs of step cards. */
+  | { type: "docmap"; caption: L }
+  | { type: "flows"; caption: L };
 
 export type DiagramKind = "sources" | "journee" | "relation" | "communication" | "documents" | "hebergement" | "carte-documents";
 

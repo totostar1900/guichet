@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
+import { DocMap } from "@/components/docs/DocMap";
+import { docStats } from "@/lib/documents/stats";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
 import { BOND_TERMS } from "@/data/bond-terms";
@@ -36,6 +38,7 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
     ...ISSUERS.flatMap((i) => i.documents.map((d) => ({ who: i.shortName, title: d.title, year: d.year, url: d.url }))),
   ].sort((a, b) => a.who.localeCompare(b.who, "fr") || b.year - a.year);
   const termSources = [...new Set(BOND_TERMS.map((x) => x.source))];
+  const stats = await docStats();
   return (
     <>
       <DeskNav current="/desk/depot" />
@@ -167,14 +170,18 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
 
       <section className="panel">
         <div className="panel-h">
-          <h2>{t("Modèles")}</h2>
-          <span className="muted">{t("ce que disent les documents, passage par passage, avec les versions : le registre des modèles")}</span>
+          <h2>{t("La carte des documents")}</h2>
+          <span className="muted">{t("chaque document avec le nombre émis ; un point orange : des versions de texte en attente ; toucher pour la fiche, le modèle, où il naît")}</span>
         </div>
-        <p className={styles.p}>
+        <div className={styles.p}>
+          <DocMap stats={stats} />
           <Link className="btn sm" href="/desk/referentiel/modeles">
             {t("Ouvrir les modèles")} →
+          </Link>{" "}
+          <Link className="btn sm ghost" href="/desk/docs/documents">
+            {t("Les parcours, opération par opération")} →
           </Link>
-        </p>
+        </div>
       </section>
 
       <section className="panel">
