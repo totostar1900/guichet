@@ -78,7 +78,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; pendingCount?: number; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -164,6 +164,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
         </div>
       </div>
 
+      {!deskHost && (
       <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         {tabs.map((tab) => (
           <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
@@ -175,6 +176,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
           </Link>
         ))}
       </nav>
+      )}
     </>
   );
 }

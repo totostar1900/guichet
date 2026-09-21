@@ -14,12 +14,14 @@ const TABS = [
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk") },
 ];
 
-export function NavTabs({ counts }: { counts?: { titres: number; fonds: number } }) {
+/** `mode`: "client" hides the Desk tab (the desk has its own host), "desk" keeps only it, "all" is the one-host setup. */
+export function NavTabs({ counts, mode = "all" }: { counts?: { titres: number; fonds: number }; mode?: "all" | "client" | "desk" }) {
   const path = usePathname();
   const t = useT();
+  const tabs = mode === "client" ? TABS.filter((x) => x.href !== "/desk") : mode === "desk" ? TABS.filter((x) => x.href === "/desk") : TABS;
   return (
     <nav className={styles.tabs} aria-label="Sections">
-      {TABS.map((tab) => (
+      {tabs.map((tab) => (
         <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
           {t(tab.label)}
           {counts && tab.href === "/" && <b className={styles.count}>{counts.titres}</b>}

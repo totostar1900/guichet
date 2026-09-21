@@ -1,11 +1,10 @@
-import { isDesk } from "@/lib/auth/types";
 import Link from "next/link";
 import { logout } from "@/app/connexion/actions";
 import type { Session } from "@/lib/auth/types";
 import styles from "./UserMenu.module.css";
 import { getT } from "@/i18n/server";
 
-export async function UserMenu({ session }: { session: Session | null }) {
+export async function UserMenu({ session, deskUi }: { session: Session | null; deskUi?: boolean }) {
   const t = await getT();
   if (!session)
     return (
@@ -21,11 +20,11 @@ export async function UserMenu({ session }: { session: Session | null }) {
     .toUpperCase();
   return (
     <div className={styles.menu}>
-      <Link href={t(isDesk(session) ? "/desk" : "/moi")} className={styles.who}>
+      <Link href={t(deskUi ? "/desk" : "/moi")} className={styles.who}>
         <b>{session.name}</b>
-        <span>{isDesk(session) ? "Desk" : t(session.segment)}</span>
+        <span>{deskUi ? "Desk" : t(session.segment)}</span>
       </Link>
-      <div className={`${styles.avatar} ${isDesk(session) ? styles.desk : ""}`} title={session.email ?? session.segment}>
+      <div className={`${styles.avatar} ${deskUi ? styles.desk : ""}`} title={session.email ?? session.segment}>
         {initials}
       </div>
       {session.role === "client" && session.tier < 2 && (

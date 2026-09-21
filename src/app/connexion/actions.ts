@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { deskOrigin, isDeskHost } from "@/lib/hosts";
 import { z } from "zod";
 import { authMode } from "@/lib/auth";
 import { clearDevSession, writeDevSession } from "@/lib/auth/dev";
@@ -18,7 +20,9 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   if (!email.success) return { step: "email", error: "Adresse e-mail invalide." };
   if (authMode() !== "supabase") return { step: "email", error: "Supabase n'est pas configuré." };
   const next = safeNext(form.get("next"));
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  // The link in the e-mail opens on the host that asked: the desk host keeps its own session.
+  const host = (await headers()).get("host");
+  const base = isDeskHost(host) ? deskOrigin() : (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
   const { createClient } = await import("@supabase/supabase-js");
 
   // With our own sender (Resend), the Guichet writes the e-mail itself: the six-digit code in large,

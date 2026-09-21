@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { readDevSession } from "./dev";
 import { isDesk, isResponsable, type Session } from "./types";
+import { clientOrigin } from "@/lib/hosts";
 
 export const authMode = (): "supabase" | "dev" => (process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "dev");
 
@@ -41,7 +42,8 @@ export const mfaRequired = (): boolean => process.env.DESK_MFA !== "off";
 /** Desk-only areas and actions (opérateur or responsable), behind the second factor. */
 export async function requireDesk(next = "/desk"): Promise<Session> {
   const s = await requireSession(next);
-  if (!isDesk(s)) redirect("/?acces=desk");
+  // A client on the desk: back to the client site (on the desk host, « / » would only come back here).
+  if (!isDesk(s)) redirect(`${clientOrigin()}/?acces=desk`);
   if (s.provider === "supabase" && mfaRequired()) {
     if (!s.mfaEnrolled) redirect(`/connexion/mfa?enrol=1&next=${encodeURIComponent(next)}`);
     if (!s.mfaVerified) redirect(`/connexion/mfa?next=${encodeURIComponent(next)}`);

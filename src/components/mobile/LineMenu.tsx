@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
+import { useSheetPresence } from "./useSheetPresence";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import styles from "./LineMenu.module.css";
 
@@ -45,6 +46,7 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className, openR
     () => true,
     () => false,
   );
+  const { shown, visible } = useSheetPresence(open);
 
   const close = useCallback(() => setOpen(false), []);
   // The card's pull-to-reveal « Plus » opens this same sheet.
@@ -162,10 +164,12 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className, openR
         </svg>
       </button>
       {mounted &&
+        (shown || toast) &&
         createPortal(
           <>
-            <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={close} aria-hidden="true" />
-            <div ref={sheet} className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={t("Actions sur cette ligne")} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+            {shown && <div className={`${styles.scrim} ${visible ? styles.scrimOpen : ""}`} onClick={close} aria-hidden="true" />}
+            {shown && (
+            <div ref={sheet} className={`${styles.sheet} ${visible ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={t("Actions sur cette ligne")} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
               <div className={styles.grab} />
               <div className={styles.head}>
                 <div className={styles.title}>{line.title}</div>
@@ -182,9 +186,12 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className, openR
                 {t("Fermer")}
               </button>
             </div>
-            <div className={`${styles.toast} ${toast ? styles.toastOn : ""}`} role="status" aria-live="polite">
-              {toast}
-            </div>
+            )}
+            {toast && (
+              <div className={`${styles.toast} ${styles.toastOn}`} role="status" aria-live="polite">
+                {toast}
+              </div>
+            )}
           </>,
           document.body,
         )}

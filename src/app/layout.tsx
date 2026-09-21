@@ -27,7 +27,8 @@ import { TermSheetHost } from "@/components/TermSheet";
 import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
 import { PaletteKeeper } from "@/components/PaletteSwitch";
 import { BarProbe } from "@/components/mobile/BarProbe";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
 import { Suspense } from "react";
 
@@ -72,14 +73,18 @@ async function accountLine(userId: string): Promise<{ security: { channels: numb
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const [session, registry, lang, t, navCounts, jar] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers(), cookies()]);
+  const [session, registry, lang, t, navCounts, jar, hdrs] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers(), cookies(), headers()]);
   const desk = isDesk(session);
+  // With the desk on its own host, the client site shows no desk control, even to staff.
+  const onDeskHost = isDeskHost(hdrs.get("host"));
+  const deskUi = desk && (!deskSplit() || onDeskHost);
+  const navMode = deskSplit() ? (onDeskHost ? "desk" : "client") : "all";
   const [account, profile] = session ? await Promise.all([accountLine(session.userId), desk ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined)]) : [undefined, undefined];
   const security = desk ? undefined : account?.security;
   // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
   const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
-  const menu = <AppMenu signedIn={Boolean(session)} desk={desk} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
+  const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={ui.variable} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value)}>
       <head>
@@ -103,7 +108,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <em>{PRODUCT.name}</em> · {PRODUCT.tagline}
               </span>
             </Link>
-            <NavTabs counts={navCounts} />
+            <NavTabs counts={navCounts} mode={navMode} />
             <div className={styles.right}>
               {backend === "memory" && (
                 <span className={styles.backend} title={t("Aucun backend configuré : données de démonstration en mémoire")}>
@@ -113,12 +118,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Suspense>
                 <LangSwitch />
               </Suspense>
-              <UserMenu session={session} />
+              <UserMenu session={session} deskUi={deskUi} />
               {menu}
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} desk={desk} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />

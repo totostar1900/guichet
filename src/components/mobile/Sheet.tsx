@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Sheet.module.css";
+import { useSheetPresence } from "./useSheetPresence";
 
 /**
  * A sheet over the page: from the bottom on the phone (pulled down or
@@ -21,6 +22,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
     () => true,
     () => false,
   );
+  const { shown, visible } = useSheetPresence(open);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -32,7 +34,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
       document.body.style.overflow = prev;
     };
   }, [open, onClose]);
-  if (!mounted) return null;
+  if (!mounted || !shown) return null;
   const onTouchStart = (e: React.TouchEvent) => {
     // Only a pull that starts on the handle or the title closes: the body may scroll.
     if (!(e.target as HTMLElement).closest(`.${styles.head}`)) return;
@@ -53,8 +55,8 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
   };
   return createPortal(
     <>
-      <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
-      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${tall ? styles.tall : ""} ${open ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div className={`${styles.scrim} ${visible ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
+      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${tall ? styles.tall : ""} ${visible ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className={styles.head}>
           <div className={styles.grab} />
           <div className={styles.titleRow}>
