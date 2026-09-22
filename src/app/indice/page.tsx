@@ -25,7 +25,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
     return { ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined, titles: s?.titles ?? 0, amount: s?.amount ?? 0, trades: s?.trades ?? 0 };
   });
   const lastCount = (quotes: { sharesTotal?: number; sharesFloat?: number }[], k: "sharesTotal" | "sharesFloat") => [...quotes].reverse().find((q) => (q[k] ?? 0) > 0)?.[k];
-  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0 })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
+  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0, variationPct: q.variationPct })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
   // the sessions table : moved sessions by default, every session on demand, one share or all, fifty per page
   const all = sp.toutes === "1";
   const societe = sp.societe && weights.some((w) => w.mnemo === sp.societe) ? sp.societe : "";

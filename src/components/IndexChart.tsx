@@ -20,7 +20,7 @@ export interface ChartPoint {
 export interface OverlaySeries {
   mnemo: string;
   name: string;
-  points: { date: string; value: number; titles?: number; amount?: number; trades?: number }[];
+  points: { date: string; value: number; titles?: number; amount?: number; trades?: number; variationPct?: number }[];
   /** Shares in issue and in public hands (the last count read), so a capitalisation exists for every session. */
   sharesTotal?: number;
   sharesFloat?: number;
@@ -69,6 +69,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const [hover, setHover] = useState<number | null>(null);
   const [pins, setPins] = useState<string[]>([]);
   const [marks, setMarks] = useState<Marks>("ligne_points");
+  // the company dimension of the calendar, the capitalisation and the float
+  const [company, setCompany] = useState("");
+  const co = overlays.find((o) => o.mnemo === company);
   // touch : the first tap shows the reading, the second on the same point pins it
   const touchRef = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -251,6 +254,19 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             </label>
           </>
         )}
+        {(view === "calendrier" || view === "capitalisation" || view === "flottant") && (
+          <label className={styles.select}>
+            {t("Société")}
+            <select value={company} onChange={(e) => setCompany(e.target.value)}>
+              <option value="">{view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés")}</option>
+              {overlays.map((o) => (
+                <option key={o.mnemo} value={o.mnemo}>
+                  {o.mnemo} · {o.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {withVol && (
           <>
             <label className={styles.select}>
@@ -424,6 +440,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
       {view === "calendrier" && (
         <Calendar
           points={pts}
+          company={co}
           from={period === "all" ? d0 : from}
           to={dN}
           onPick={(d) => {
@@ -438,9 +455,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {view === "contributions" && <Contributions index={pts} overlays={overlays} from={pinA && pinB ? pinA.date : d0} to={pinA && pinB ? pinB.date : dN} />}
 
-      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} />}
+      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} company={co} />}
 
-      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} />}
+      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} company={co} />}
     </div>
   );
 }
@@ -521,7 +538,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
 }
 
 /** The sum of the capitalisations, session after session, total and float stacked. */
-function Capitalisation({ index, overlays, W }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number }) {
+function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries }) {
   const t = useT();
   const [floatOnly, setFloatOnly] = useState(false);
   const H = W < 480 ? 220 : 280;
@@ -529,7 +546,12 @@ function Capitalisation({ index, overlays, W }: { index: ChartPoint[]; overlays:
   const padR = 14;
   const padT = 14;
   const padB = 28;
-  const rows = index.map((p) => ({ date: p.date, total: overlays.reduce((s, o) => s + capAt(o, p.date, "total"), 0), float: overlays.reduce((s, o) => s + capAt(o, p.date, "float"), 0) }));
+  const set = company ? [company] : overlays;
+  const rows = index.map((p) => ({ date: p.date, total: set.reduce((s, o) => s + capAt(o, p.date, "total"), 0), float: set.reduce((s, o) => s + capAt(o, p.date, "float"), 0) }));
+  // the stack : companies from the heaviest, each band on top of the previous
+  const kind: "total" | "float" = floatOnly ? "float" : "total";
+  const order = company ? [] : [...overlays].sort((a, b) => capAt(b, index[index.length - 1].date, kind) - capAt(a, index[index.length - 1].date, kind));
+  const stack = order.map((o, i) => ({ o, lower: index.map((p) => order.slice(0, i).reduce((s, q) => s + capAt(q, p.date, kind), 0)), upper: index.map((p) => order.slice(0, i + 1).reduce((s, q) => s + capAt(q, p.date, kind), 0)) }));
   if (rows.length < 2 || !rows[rows.length - 1].total) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
   const d0 = rows[0].date;
   const dN = rows[rows.length - 1].date;
@@ -541,6 +563,9 @@ function Capitalisation({ index, overlays, W }: { index: ChartPoint[]; overlays:
   const area = (k: "total" | "float") => `${x(d0).toFixed(1)},${y(0).toFixed(1)} ${path(k)} ${x(dN).toFixed(1)},${y(0).toFixed(1)}`;
   const last = rows[rows.length - 1];
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => top * f);
+  const band = (lower: number[], upper: number[]) => `${index.map((p, i) => `${x(p.date).toFixed(1)},${y(upper[i]).toFixed(1)}`).join(" ")} ${[...index].reverse().map((p, k) => `${x(p.date).toFixed(1)},${y(lower[index.length - 1 - k]).toFixed(1)}`).join(" ")}`;
+  const shade = (i: number) => 0.9 - (i / Math.max(1, order.length - 1)) * 0.7;
+  const totalLast = order.reduce((s, o) => s + capAt(o, last.date, kind), 0);
   return (
     <div className={styles.capWrap}>
       <div className={styles.bar}>
@@ -560,14 +585,35 @@ function Capitalisation({ index, overlays, W }: { index: ChartPoint[]; overlays:
             </text>
           </g>
         ))}
-        {!floatOnly && (
+        {stack.length > 0 ? (
+          stack.map(({ o, lower, upper }, i) => (
+            <polygon key={o.mnemo} points={band(lower, upper)} className={styles.stackBand} style={{ fillOpacity: shade(i) }}>
+              <title>
+                {o.mnemo} · {money(upper[upper.length - 1] - lower[lower.length - 1])} FCFA
+              </title>
+            </polygon>
+          ))
+        ) : (
           <>
-            <polygon points={area("total")} className={styles.areaTotal} />
-            <polyline points={path("total")} className={styles.line} />
+            {!floatOnly && (
+              <>
+                <polygon points={area("total")} className={styles.areaTotal} />
+                <polyline points={path("total")} className={styles.line} />
+              </>
+            )}
+            <polygon points={area("float")} className={styles.areaFloat} />
+            <polyline points={path("float")} className={styles.overlay} />
           </>
         )}
-        <polygon points={area("float")} className={styles.areaFloat} />
-        <polyline points={path("float")} className={styles.overlay} />
+        {stack.map(({ o, lower, upper }, i) => {
+          const h = upper[upper.length - 1] - lower[lower.length - 1];
+          const mid = y(lower[lower.length - 1] + h / 2);
+          return h / top > 0.045 ? (
+            <text key={`l${o.mnemo}`} x={W - padR - 4} y={mid + 3} textAnchor="end" className={`${styles.tick} ${styles.stackLabel}`} style={{ fill: i < 2 ? "var(--surface)" : "var(--ink)" }}>
+              {o.mnemo} {lvl((h / totalLast) * 100, 0)} %
+            </text>
+          ) : null;
+        })}
         <text x={padL} y={H - 8} className={styles.tick}>
           {fmtDate(d0)}
         </text>
@@ -576,22 +622,34 @@ function Capitalisation({ index, overlays, W }: { index: ChartPoint[]; overlays:
         </text>
       </svg>
       <p className={styles.legend}>
-        {!floatOnly && (
-          <span>
-            <i className={styles.kLine} /> {t("capital global")} : {money(last.total)} FCFA
-          </span>
+        {stack.length > 0 ? (
+          <>
+            <span>
+              {t(floatOnly ? "flottant coté empilé par société" : "capital global empilé par société")} : {money(totalLast)} FCFA · {order.slice(0, 3).map((o) => `${o.mnemo} ${lvl((capAt(o, last.date, kind) / totalLast) * 100, 0)} %`).join(", ")}
+            </span>
+            <span>{t("la bande la plus sombre est la plus lourde ; choisir une société la montre seule")}</span>
+          </>
+        ) : (
+          <>
+            {!floatOnly && (
+              <span>
+                <i className={styles.kLine} /> {company ? `${company.mnemo} · ` : ""}
+                {t("capital global")} : {money(last.total)} FCFA
+              </span>
+            )}
+            <span>
+              <i className={`${styles.kLine} ${styles.kGold}`} /> {t("flottant coté")} : {money(last.float)} FCFA ({last.total ? lvl((last.float / last.total) * 100, 0) : "—"} %)
+            </span>
+            <span>{t("cours de clôture × nombre de titres lu au bulletin ; la même courbe que l'indice, en francs")}</span>
+          </>
         )}
-        <span>
-          <i className={`${styles.kLine} ${styles.kGold}`} /> {t("flottant coté")} : {money(last.float)} FCFA ({last.total ? lvl((last.float / last.total) * 100, 0) : "—"} %)
-        </span>
-        <span>{t("cours de clôture × nombre de titres lu au bulletin ; la même courbe que l'indice, en francs")}</span>
       </p>
     </div>
   );
 }
 
 /** The published index against a float-weighted reading of the same prices, base 100, and the float rotation per share. */
-function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number }) {
+function FloatView({ index, overlays, W, company }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries }) {
   const t = useT();
   const H = W < 480 ? 220 : 260;
   const padL = 46;
@@ -680,8 +738,15 @@ function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: Over
       )}
       <div className={styles.contrib}>
         <div className={styles.contribHead}>{t("Rotation du flottant sur la période · montant échangé ÷ flottant coté")}</div>
+        {company && totCap > 0 && (
+          <p className={styles.legend}>
+            <span>
+              <b>{company.mnemo}</b> : {lvl((capAt(company, dN, "float") / totCap) * 100, 1)} % {t("du flottant de la cote")} ({money(capAt(company, dN, "float"))} FCFA) · {lvl((capAt(company, dN, "total") / overlays.reduce((s, o) => s + capAt(o, dN, "total"), 0)) * 100, 1)} % {t("du capital global")} · {t("flottant")} {capAt(company, dN, "total") ? lvl((capAt(company, dN, "float") / capAt(company, dN, "total")) * 100, 0) : "—"} % {t("de son capital")}
+            </span>
+          </p>
+        )}
         {rot.map((r) => (
-          <div key={r.o.mnemo} className={styles.contribRow}>
+          <div key={r.o.mnemo} className={`${styles.contribRow} ${company && company.mnemo !== r.o.mnemo ? styles.contribDim : ""} ${company && company.mnemo === r.o.mnemo ? styles.contribOn : ""}`}>
             <Link href={`/societes/${r.o.mnemo.toLowerCase()}?depuis=indice`}>{r.o.mnemo}</Link>
             <span className={styles.contribTrack}>
               <i className={`${styles.contribBar} ${styles.contribGold}`} style={{ left: 0, width: `${(r.pct / rotMax) * 100}%` }} />
@@ -704,9 +769,10 @@ function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: Over
 }
 
 /** A year (or the period) of sessions : one cell per weekday, a column per week ; colour is the move, dashed is a bulletin not read. */
-function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: string; to: string; onPick: (d: string) => void }) {
+function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[]; company?: OverlaySeries; from: string; to: string; onPick: (d: string) => void }) {
   const t = useT();
   const byDate = new Map(points.map((p) => [p.date, p]));
+  const coByDate = new Map((company?.points ?? []).map((p) => [p.date, p]));
   // the bubble is fixed to the viewport (the panel clips its overflow) and kept inside it
   const [tip, setTip] = useState<{ date: string; x: number; y: number; above: boolean } | null>(null);
   const touch = useRef(false);
@@ -735,6 +801,14 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
     if (d < from || d > to) return styles.calOut;
     const p = byDate.get(d);
     if (!p) return styles.calMissing;
+    if (company) {
+      const q = coByDate.get(d);
+      if (!q) return styles.calFlat;
+      const cv = q.variationPct ?? 0;
+      if (cv === 0) return (q.trades ?? 0) > 0 ? styles.calTraded : styles.calFlat;
+      const ca = Math.abs(cv);
+      return `${cv > 0 ? styles.calUp : styles.calDown} ${styles[`calL${ca >= 3 ? 3 : ca >= 1 ? 2 : 1}`]}`;
+    }
     const v = p.variationPct ?? 0;
     if (v === 0) return styles.calFlat;
     const a = Math.abs(v);
@@ -795,7 +869,28 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
       {tip && (
         <div className={`${styles.calTip} ${tip.above ? styles.calTipAbove : ""}`} style={{ left: tip.x, top: tip.y }} role="status">
           <b>{new Date(`${tip.date}T12:00:00Z`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b>
-          {tipPoint ? (
+          {tipPoint && company ? (
+            (() => {
+              const q = coByDate.get(tip.date);
+              return q ? (
+                <>
+                  <div className={styles.calTipRow}>
+                    <span className={styles.calTipLevel}>
+                      {company.mnemo} {fmt(q.value)}
+                    </span>
+                    <em className={`${styles.calTipDelta} ${(q.variationPct ?? 0) > 0 ? styles.calTipUp : (q.variationPct ?? 0) < 0 ? styles.calTipDown : ""}`}>{signed(q.variationPct)}</em>
+                  </div>
+                  <small>{q.trades ? `${fmt(q.titles ?? 0)} ${t("titres")} · ${money(q.amount ?? 0)} FCFA · ${q.trades} ${t("transaction(s)")}` : t("pas d'échange sur cette valeur")}</small>
+                  <small>
+                    {t("l'indice")} : {lvl(tipPoint.value)} · {signed(tipPoint.variationPct)}
+                  </small>
+                  <small className={styles.calTipHint}>{t("toucher pour épingler sur la vue Niveau")}</small>
+                </>
+              ) : (
+                <small>{t("cours de cette valeur non lu sur cette séance")}</small>
+              );
+            })()
+          ) : tipPoint ? (
             <>
               <div className={styles.calTipRow}>
                 <span className={styles.calTipLevel}>{lvl(tipPoint.value)}</span>
@@ -835,9 +930,19 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
         <span>
           <i className={`${styles.sw} ${styles.calDown} ${styles.calL3}`} /> {t("baisse")}
         </span>
+        {company && (
+          <span>
+            <i className={`${styles.sw} ${styles.calTraded}`} /> {t("échange sans changement de cours")}
+          </span>
+        )}
         <span>
           <i className={`${styles.sw} ${styles.calMissing}`} /> {t("jour ouvré sans bulletin lu (jours fériés compris)")}
         </span>
+        {company && (
+          <span>
+            <b>{company.mnemo}</b> : {[...coByDate.entries()].filter(([d, q]) => d >= from && d <= to && (q.variationPct ?? 0) !== 0).length} {t("séances avec changement de cours")}, {[...coByDate.entries()].filter(([d, q]) => d >= from && d <= to && (q.trades ?? 0) > 0).length} {t("avec échange")}
+          </span>
+        )}
         <span>
           {points.length} {t("séances lues")}, {points.filter((p) => (p.variationPct ?? 0) !== 0).length} {t("avec mouvement")}, {missing} {t("sans bulletin")} · {t("toucher une séance l'épingle sur la vue Niveau")}
         </span>

@@ -1707,4 +1707,16 @@ export const EN_MORE: Record<string, string> = {
   "Tracé": "Drawing",
   "ligne et points": "line and dots",
   "points": "dots",
+  // Indice : la société dans le calendrier, la capitalisation, le flottant
+  "toutes, empilées": "all, stacked",
+  "flottant coté empilé par société": "quoted float stacked by company",
+  "capital global empilé par société": "total capital stacked by company",
+  "la bande la plus sombre est la plus lourde ; choisir une société la montre seule": "the darkest band is the heaviest; picking a company shows it alone",
+  "du flottant de la cote": "of the exchange's float",
+  "du capital global": "of total capital",
+  "de son capital": "of its capital",
+  "pas d'échange sur cette valeur": "no trade on this share",
+  "cours de cette valeur non lu sur cette séance": "this share's price not read on that session",
+  "séances avec changement de cours": "sessions with a price change",
+  "avec échange": "with a trade",
 };
