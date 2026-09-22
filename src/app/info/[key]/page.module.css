@@ -330,6 +330,123 @@
   font-size: 0.84rem;
   line-height: 1.5;
 }
+/* the simulated level beside the published one */
+.wAfter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: 10px;
+  font-size: 1rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.wAfter b {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.wAfter em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.wAfter small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.up,
+.up em {
+  color: var(--good);
+}
+.up em {
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+}
+.down,
+.down em {
+  color: var(--warn);
+}
+.down em {
+  background: var(--warn-soft);
+}
+.wBar i {
+  transition: width 0.25s ease;
+}
+.wBar em small {
+  display: block;
+  font-size: 0.64rem;
+  line-height: 1;
+}
+.wHint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  line-height: 1.45;
+  padding: 8px 10px;
+  border-left: 3px solid var(--gold-line);
+  background: var(--surface-2);
+  border-radius: 0 6px 6px 0;
+}
+/* the gauge : the value's move and the index's on one scale */
+.wGauge {
+  margin-top: 12px;
+}
+.wTrack {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(to right, var(--warn-soft), var(--surface-2) 50%, color-mix(in srgb, var(--good) 14%, transparent));
+}
+.wZero {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line-2);
+}
+.wNeedle {
+  position: absolute;
+  top: -3px;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+  box-shadow: 0 1px 3px rgba(11, 37, 69, 0.25);
+  transition: left 0.2s ease;
+}
+.wNeedleValue {
+  background: var(--gold);
+}
+.wNeedleIndex {
+  background: var(--navy-text);
+}
+.wScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.wKeys {
+  display: flex;
+  gap: 16px;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.wKeys i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: -1px;
+  margin-right: 4px;
+}
 @media (max-width: 520px) {
   .wControls {
     grid-template-columns: 1fr;

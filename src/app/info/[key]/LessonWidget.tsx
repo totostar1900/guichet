@@ -303,15 +303,32 @@ function IndexWidget({ live }: { live: Live }) {
   const [mode, setMode] = useState<"total" | "float">("total");
   if (!ix) return <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>;
   const ws = ix.weights;
-  const wgt = ws[pick] ? (mode === "total" ? ws[pick].wTotal : ws[pick].wFloat) / 100 : 0;
-  const after = ix.level * (1 + (wgt * move) / 100);
+  const wOf = (x: { wTotal: number; wFloat: number }) => (mode === "total" ? x.wTotal : x.wFloat);
+  const wgt = ws[pick] ? wOf(ws[pick]) / 100 : 0;
+  // one value moves by m : the index moves by w·m ; its weight becomes w(1+m) / (1+w·m), the others shrink by 1 / (1+w·m)
+  const m = move / 100;
+  const shift = wgt * m;
+  const after = ix.level * (1 + shift);
+  const weightAfter = (i: number) => {
+    const w0 = wOf(ws[i]) / 100;
+    return (i === pick ? (w0 * (1 + m)) / (1 + shift) : w0 / (1 + shift)) * 100;
+  };
   const sg = (v?: number, d = 1) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`);
+  const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const tone = move > 0 ? styles.up : move < 0 ? styles.down : "";
+  // the gauge : −20 % … +20 %, the value's move and the index's
+  const gx = (v: number) => 50 + (Math.max(-20, Math.min(20, v)) / 20) * 50;
   return (
     <div className={styles.widget}>
       <div className={styles.wRow}>
         <div>
           <span className={styles.wLabel}>BVMAC All Share · {fmtDate(ix.date)}</span>
-          <b className={styles.wBig}>{ix.level.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+          <b className={styles.wBig}>{lvl(ix.level)}</b>
+          {move !== 0 && ws[pick] && (
+            <span className={`${styles.wAfter} ${tone}`} aria-live="polite">
+              → <b>{lvl(after)}</b> <em>{sg(shift * 100, 2)}</em> <small>{t("si {m} bouge de {v}", { m: ws[pick].mnemo, v: sg(move, 1) })}</small>
+            </span>
+          )}
         </div>
         <div className={styles.wStats}>
           <span>
@@ -331,13 +348,18 @@ function IndexWidget({ live }: { live: Live }) {
       {ws.length > 0 && (
         <>
           <div className={styles.wBars}>
-            {ws.map((x, i) => (
-              <button key={x.mnemo} type="button" className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`} onClick={() => setPick(i)} aria-pressed={i === pick}>
-                <span>{x.mnemo}</span>
-                <i style={{ width: `${Math.max(1, mode === "total" ? x.wTotal : x.wFloat)}%` }} />
-                <em>{(mode === "total" ? x.wTotal : x.wFloat).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</em>
-              </button>
-            ))}
+            {ws.map((x, i) => {
+              const w1 = weightAfter(i);
+              return (
+                <button key={x.mnemo} type="button" className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`} onClick={() => setPick(i)} aria-pressed={i === pick}>
+                  <span>{x.mnemo}</span>
+                  <i style={{ width: `${Math.max(1, w1)}%` }} />
+                  <em>
+                    {w1.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %{move !== 0 && Math.abs(w1 - wOf(x)) >= 0.05 ? <small className={tone}>{sg(w1 - wOf(x), 1).replace(" %", "")}</small> : null}
+                  </em>
+                </button>
+              );
+            })}
           </div>
           <div className={styles.wControls}>
             <label>
@@ -352,8 +374,34 @@ function IndexWidget({ live }: { live: Live }) {
               <input type="range" min={-20} max={20} step={0.5} value={move} onChange={(e) => setMove(Number(e.target.value))} />
             </label>
           </div>
+          <p className={styles.wHint}>
+            {mode === "total"
+              ? t("Capital global : toutes les actions de la société × le cours, y compris les blocs de l'État ou des fondateurs. C'est la taille de la société ; une grosse société peu négociée pèse lourd.")
+              : t("Flottant coté : seulement les titres en mains du public × le cours, ce qui peut vraiment s'acheter et se vendre. C'est le poids que le marché peut porter ; une grosse société à petit flottant pèse moins.")}{" "}
+            {t("Laquelle utilise la BVMAC : à confirmer.")}
+          </p>
+          <div className={styles.wGauge} aria-hidden="true">
+            <div className={styles.wTrack}>
+              <span className={styles.wZero} />
+              <i className={`${styles.wNeedle} ${styles.wNeedleValue} ${tone}`} style={{ left: `${gx(move)}%` }} title={ws[pick]?.mnemo} />
+              <i className={`${styles.wNeedle} ${styles.wNeedleIndex} ${tone}`} style={{ left: `${gx(shift * 100)}%` }} title={t("l'indice")} />
+            </div>
+            <div className={styles.wScale}>
+              <span>−20 %</span>
+              <span>0</span>
+              <span>+20 %</span>
+            </div>
+            <div className={styles.wKeys}>
+              <span>
+                <i className={styles.wNeedleValue} /> {ws[pick]?.mnemo} {sg(move, 1)}
+              </span>
+              <span>
+                <i className={styles.wNeedleIndex} /> {t("l'indice")} {sg(shift * 100, 2)}
+              </span>
+            </div>
+          </div>
           <p className={styles.wRead}>
-            {t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { m: ws[pick]?.mnemo ?? "", v: sg(move, 1), a: after.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), d: sg(wgt * move, 2) })}
+            {t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { m: ws[pick]?.mnemo ?? "", v: sg(move, 1), a: lvl(after), d: sg(shift * 100, 2) })}
           </p>
         </>
       )}

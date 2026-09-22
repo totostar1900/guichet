@@ -165,7 +165,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     intro: "Un seul nombre pour tout le marché des actions. Il vaut par sa variation, et par ce qu'on sait de son poids.",
     body: [
       "Le BVMAC All Share Index résume, séance après séance, l'ensemble des actions cotées : une somme de capitalisations (cours × nombre de titres) ramenée à une base. Le bulletin publie son niveau et sa variation du jour ; le Guichet les lit à chaque séance et les montre sur Titres et Actualités.",
-      "Sept sociétés, et des poids très inégaux : sur le capital global, une valeur pèse près des trois quarts de l'indice. Une variation de l'indice est donc presque toujours le mouvement d'une ou deux valeurs, pas du « marché ». Regardez laquelle a traité avant de conclure.",
+      "Sept sociétés, et des poids très inégaux : sur le capital global, une valeur pèse près des trois quarts de l'indice. Une variation de l'indice est donc presque toujours le mouvement d'une ou deux valeurs, pas du « marché ». Regardez laquelle a traité avant de conclure. Deux façons de peser : le capital global (toutes les actions × le cours : la taille de la société) ou le flottant coté (les seuls titres en mains du public : ce qui se négocie vraiment) ; une grosse société à petit flottant pèse lourd dans l'un, moins dans l'autre.",
       "Presque toutes les séances affichent 0,00 % : sans transaction, le cours de référence ne bouge pas. L'indice ne compte pas les dividendes ; la performance d'un porteur, c'est le cours plus le dividende. Le Guichet montre l'indice et l'explique ; il ne le prend jamais pour un objectif à battre.",
     ],
     widget: "indice",
