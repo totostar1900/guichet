@@ -662,13 +662,14 @@ function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: Over
 function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: string; to: string; onPick: (d: string) => void }) {
   const t = useT();
   const byDate = new Map(points.map((p) => [p.date, p]));
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [tip, setTip] = useState<{ date: string; x: number; y: number; left: boolean } | null>(null);
+  // the bubble is fixed to the viewport (the panel clips its overflow) and kept inside it
+  const [tip, setTip] = useState<{ date: string; x: number; y: number; above: boolean } | null>(null);
   const showTip = (date: string, el: HTMLElement) => {
-    const box = wrapRef.current?.getBoundingClientRect();
     const r = el.getBoundingClientRect();
-    if (!box) return;
-    setTip({ date, x: r.left - box.left + r.width / 2, y: r.bottom - box.top + 6, left: r.left - box.left > box.width * 0.6 });
+    const half = 130;
+    const x = Math.min(window.innerWidth - half - 8, Math.max(half + 8, r.left + r.width / 2));
+    const above = r.bottom + 200 > window.innerHeight;
+    setTip({ date, x, y: above ? r.top - 6 : r.bottom + 6, above });
   };
   const tipPoint = tip ? byDate.get(tip.date) : undefined;
   const prevOf = (d: string) => {
@@ -701,7 +702,7 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
   return (
-    <div className={styles.calWrap} ref={wrapRef} onPointerLeave={() => setTip(null)}>
+    <div className={styles.calWrap} onPointerLeave={() => setTip(null)}>
       <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
         <span />
         {weeks.map((w, i) => (
@@ -727,7 +728,7 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
         ))}
       </div>
       {tip && (
-        <div className={`${styles.calTip} ${tip.left ? styles.calTipLeft : ""}`} style={{ left: tip.x, top: tip.y }} role="status">
+        <div className={`${styles.calTip} ${tip.above ? styles.calTipAbove : ""}`} style={{ left: tip.x, top: tip.y }} role="status">
           <b>{new Date(`${tip.date}T12:00:00Z`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b>
           {tipPoint ? (
             <>

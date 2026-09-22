@@ -240,11 +240,11 @@
 }
 /* the dark bubble of a session */
 .calTip {
-  position: absolute;
-  z-index: 3;
+  position: fixed;
+  z-index: 30;
   transform: translateX(-50%);
-  min-width: 220px;
-  max-width: 300px;
+  width: 260px;
+  max-width: calc(100vw - 16px);
   background: #0b2545;
   color: #eaeff6;
   border-radius: 10px;
@@ -269,11 +269,12 @@
   transform: rotate(45deg);
   border-radius: 2px;
 }
-.calTipLeft {
-  transform: translateX(-85%);
+.calTipAbove {
+  transform: translate(-50%, -100%);
 }
-.calTipLeft::before {
-  left: 85%;
+.calTipAbove::before {
+  top: auto;
+  bottom: -6px;
 }
 .calTip b {
   color: #fff;
