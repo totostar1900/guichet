@@ -50,7 +50,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   useEffect(() => {
     const el = boxRef.current;
     if (!el) return;
-    const ro = new ResizeObserver((es) => setW(Math.max(320, Math.floor(es[0].contentRect.width))));
+    const measure = (width: number) => setW(Math.max(320, Math.floor(width)));
+    measure(el.getBoundingClientRect().width);
+    const ro = new ResizeObserver((es) => measure(es[0].contentRect.width));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);

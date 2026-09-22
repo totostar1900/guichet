@@ -298,7 +298,7 @@
 }
 .wControls {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: end;
   margin-top: 10px;
@@ -339,6 +339,14 @@
   font-size: 1rem;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
+  /* always the same height : the simulation never moves the layout */
+  min-height: 1.6rem;
+}
+.wAfterIdle small {
+  color: var(--ink-3);
+}
+.wResetIdle {
+  opacity: 0.45;
 }
 .wAfter b {
   font-size: 1.2rem;
@@ -378,6 +386,7 @@
   display: block;
   font-size: 0.64rem;
   line-height: 1;
+  min-height: 0.64rem;
 }
 .wHint {
   margin: 8px 0 0;

@@ -324,11 +324,15 @@ function IndexWidget({ live }: { live: Live }) {
         <div>
           <span className={styles.wLabel}>BVMAC All Share · {fmtDate(ix.date)}</span>
           <b className={styles.wBig}>{lvl(ix.level)}</b>
-          {move !== 0 && ws[pick] && (
-            <span className={`${styles.wAfter} ${tone}`} aria-live="polite">
-              → <b>{lvl(after)}</b> <em>{sg(shift * 100, 2)}</em> <small>{t("si {m} bouge de {v}", { m: ws[pick].mnemo, v: sg(move, 1) })}</small>
-            </span>
-          )}
+          <span className={`${styles.wAfter} ${tone} ${move === 0 ? styles.wAfterIdle : ""}`} aria-live="polite">
+            {move !== 0 && ws[pick] ? (
+              <>
+                → <b>{lvl(after)}</b> <em>{sg(shift * 100, 2)}</em> <small>{t("si {m} bouge de {v}", { m: ws[pick].mnemo, v: sg(move, 1) })}</small>
+              </>
+            ) : (
+              <small>{t("poids réels du bulletin : déplacez le curseur pour simuler")}</small>
+            )}
+          </span>
         </div>
         <div className={styles.wStats}>
           <span>
@@ -355,7 +359,7 @@ function IndexWidget({ live }: { live: Live }) {
                   <span>{x.mnemo}</span>
                   <i style={{ width: `${Math.max(1, w1)}%` }} />
                   <em>
-                    {w1.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %{move !== 0 && Math.abs(w1 - wOf(x)) >= 0.05 ? <small className={tone}>{sg(w1 - wOf(x), 1).replace(" %", "")}</small> : null}
+                    {w1.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %<small className={tone}>{move !== 0 && Math.abs(w1 - wOf(x)) >= 0.05 ? sg(w1 - wOf(x), 1).replace(" %", "") : " "}</small>
                   </em>
                 </button>
               );
@@ -373,6 +377,9 @@ function IndexWidget({ live }: { live: Live }) {
               {t("{m} bouge de", { m: ws[pick]?.mnemo ?? "" })} <b>{sg(move, 1)}</b>
               <input type="range" min={-20} max={20} step={0.5} value={move} onChange={(e) => setMove(Number(e.target.value))} />
             </label>
+            <button type="button" className={`btn sm ${move === 0 ? styles.wResetIdle : ""}`} onClick={() => setMove(0)} disabled={move === 0}>
+              {t("Revenir aux poids réels")}
+            </button>
           </div>
           <p className={styles.wHint}>
             {mode === "total"

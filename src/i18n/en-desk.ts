@@ -1607,4 +1607,6 @@ export const EN_MORE: Record<string, string> = {
   "effacer": "clear",
   "touchez une seconde date pour lire l'écart": "tap a second date to read the change",
   "Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux. Les points colorés sont les séances où l'indice a bougé.": "Hover to read a session; tap two points (or pick two dates) to read the change between them. The coloured dots are the sessions where the index moved.",
+  "poids réels du bulletin : déplacez le curseur pour simuler": "real weights from the bulletin: move the slider to simulate",
+  "Revenir aux poids réels": "Back to the real weights",
 };
