@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type React from "react";
 import styles from "./tracker.module.css";
 
@@ -61,6 +61,27 @@ export function useTracker({ keys, x, yAt, W, H, pins = [], onPin, onRange }: Tr
     setPos({ x: cx, y: above ? py - 12 : py + 14, above });
   };
   const hide = () => setHover(null);
+  // a reading stays after the finger lifts : it closes on the next touch or click elsewhere, on a scroll, or on Escape
+  useEffect(() => {
+    if (hover == null) return;
+    const outside = (e: Event) => {
+      const el = svgRef.current;
+      if (el && e.target instanceof Node && el.contains(e.target)) return;
+      setHover(null);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setHover(null);
+    const onScroll = () => setHover(null);
+    document.addEventListener("pointerdown", outside, true);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      document.removeEventListener("pointerdown", outside, true);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [hover]);
   const clearTimer = () => {
     if (touch.current?.timer) window.clearTimeout(touch.current.timer);
   };

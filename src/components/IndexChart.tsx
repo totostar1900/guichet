@@ -749,6 +749,28 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
   // the bubble is fixed to the viewport (the panel clips its overflow) and kept inside it
   const [tip, setTip] = useState<{ date: string; x: number; y: number; above: boolean } | null>(null);
   const touch = useRef(false);
+  const calRef = useRef<HTMLDivElement>(null);
+  // the bubble left by a finger closes on the next touch or click elsewhere, on a scroll, or on Escape
+  useEffect(() => {
+    if (!tip) return;
+    const outside = (e: Event) => {
+      const el = calRef.current;
+      if (el && e.target instanceof Node && el.contains(e.target)) return;
+      setTip(null);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setTip(null);
+    const onScroll = () => setTip(null);
+    document.addEventListener("pointerdown", outside, true);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      document.removeEventListener("pointerdown", outside, true);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [tip]);
   const showTip = (date: string, el: HTMLElement) => {
     const r = el.getBoundingClientRect();
     const half = 130;
@@ -796,6 +818,7 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
   const day = ["lun", "mar", "mer", "jeu", "ven"];
   return (
     <div
+      ref={calRef}
       className={styles.calWrap}
       onPointerLeave={(e) => e.pointerType !== "touch" && setTip(null)}
       onPointerMove={(e) => {
