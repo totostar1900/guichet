@@ -283,14 +283,15 @@
   min-width: 2px;
 }
 .wPick {
-  text-align: left;
-  border: 0;
-  background: transparent;
-  font: inherit;
   font-weight: 700;
-  color: inherit;
-  cursor: pointer;
   padding: 2px 0;
+}
+.wBar {
+  cursor: pointer;
+}
+.wBar:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
 }
 .wTrackBar {
   position: relative;

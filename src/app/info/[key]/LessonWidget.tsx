@@ -359,16 +359,21 @@ function IndexWidget({ live }: { live: Live }) {
               const w1 = weightAfter(x);
               const mv = moveOf(x.mnemo);
               return (
-                <div key={x.mnemo} className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`}>
-                  <button type="button" className={styles.wPick} onClick={() => setPick(i)} aria-pressed={i === pick}>
-                    {x.mnemo}
-                  </button>
+                <div key={x.mnemo} className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`} role="button" tabIndex={0} aria-pressed={i === pick} onClick={() => setPick(i)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setPick(i))}>
+                  <span className={styles.wPick}>{x.mnemo}</span>
                   <span className={styles.wTrackBar}>
                     <i style={{ width: `${Math.max(1, w1)}%` }} />
                     {mv !== 0 && (
                       <b className={`${styles.wMove} ${toneOf(mv)}`} title={t("déplacement appliqué à cette ligne")}>
                         {sg(mv, 1)}
-                        <button type="button" aria-label={t("Retirer ce déplacement")} onClick={() => setMoves((cur) => Object.fromEntries(Object.entries(cur).filter(([k]) => k !== x.mnemo)))}>
+                        <button
+                          type="button"
+                          aria-label={t("Retirer ce déplacement")}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMoves((cur) => Object.fromEntries(Object.entries(cur).filter(([k]) => k !== x.mnemo)));
+                          }}
+                        >
                           ×
                         </button>
                       </b>
