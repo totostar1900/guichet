@@ -1724,4 +1724,5 @@ export const EN_MORE: Record<string, string> = {
   "lecture en flottant": "float reading",
   "la rotation ci-dessous est celle de cet intervalle": "the rotation below is that of this interval",
   "Rotation du flottant · montant échangé ÷ flottant coté": "Float rotation · amount traded ÷ quoted float",
+  "Rien pour « {q} »": "Nothing for “{q}”",
 };

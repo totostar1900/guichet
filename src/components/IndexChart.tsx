@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
 import { fmt, fmtDate, money } from "@/lib/format";
 import styles from "./IndexChart.module.css";
 
@@ -234,60 +235,17 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             <label className={styles.check}>
               <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
             </label>
-            <label className={styles.select}>
-              {t("Tracé")}
-              <select value={marks} onChange={(e) => setMarks(e.target.value as Marks)}>
-                <option value="ligne">{t("ligne")}</option>
-                <option value="ligne_points">{t("ligne et points")}</option>
-                <option value="points">{t("points")}</option>
-              </select>
-            </label>
-            <label className={styles.select}>
-              {t("Comparer à")}
-              <select value={overlay} onChange={(e) => setOverlay(e.target.value)}>
-                <option value="">{t("aucune valeur")}</option>
-                {overlays.map((o) => (
-                  <option key={o.mnemo} value={o.mnemo}>
-                    {o.mnemo} · {o.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Select compact label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_points", label: t("ligne et points") }, { value: "points", label: t("points") }]} />
+            <Select compact label={t("Comparer à")} value={overlay} onChange={setOverlay} options={[{ value: "", label: t("aucune valeur") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
           </>
         )}
         {(view === "calendrier" || view === "capitalisation" || view === "flottant") && (
-          <label className={styles.select}>
-            {t("Société")}
-            <select value={company} onChange={(e) => setCompany(e.target.value)}>
-              <option value="">{view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés")}</option>
-              {overlays.map((o) => (
-                <option key={o.mnemo} value={o.mnemo}>
-                  {o.mnemo} · {o.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select compact label={t("Société")} value={company} onChange={setCompany} options={[{ value: "", label: view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
         )}
         {withVol && (
           <>
-            <label className={styles.select}>
-              {t("Volumes")}
-              <select value={volKey} onChange={(e) => setVolKey(e.target.value as VolumeKey)}>
-                <option value="amount">{t("montant échangé (FCFA)")}</option>
-                <option value="titles">{t("titres échangés")}</option>
-                <option value="trades">{t("nombre de transactions")}</option>
-              </select>
-            </label>
-            <label className={styles.select}>
-              <select value={volOf} onChange={(e) => setVolOf(e.target.value)} aria-label={t("Société")}>
-                <option value="">{t("toutes les sociétés")}</option>
-                {overlays.map((o) => (
-                  <option key={o.mnemo} value={o.mnemo}>
-                    {o.mnemo} · {o.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Select compact label={t("Volumes")} value={volKey} onChange={(v) => setVolKey(v as VolumeKey)} options={[{ value: "amount", label: t("montant échangé (FCFA)") }, { value: "titles", label: t("titres échangés") }, { value: "trades", label: t("nombre de transactions") }]} />
+            <Select compact label={t("Société")} value={volOf} onChange={setVolOf} options={[{ value: "", label: t("toutes les sociétés") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
           </>
         )}
       </div>
@@ -584,13 +542,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
         <span>
           {t("du {a} au {b}", { a: fmtDate(a.date), b: fmtDate(b.date) })} · {t("indice")} <b className={published >= 0 ? styles.upT : styles.downT}>{signed(published)}</b>
         </span>
-        <label className={styles.select}>
-          {t("pondération")}
-          <select value={kind} onChange={(e) => setKind(e.target.value as "total" | "float")}>
-            <option value="total">{t("capital global")}</option>
-            <option value="float">{t("flottant coté")}</option>
-          </select>
-        </label>
+        <Select compact label={t("pondération")} value={kind} onChange={(v) => setKind(v as "total" | "float")} options={[{ value: "total", label: t("capital global") }, { value: "float", label: t("flottant coté") }]} />
       </div>
       <div className={styles.contrib}>
         {rows.map((r) => (

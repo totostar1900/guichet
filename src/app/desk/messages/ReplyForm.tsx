@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { replyAction } from "./actions";
 import styles from "./page.module.css";
@@ -18,14 +19,7 @@ export function ReplyForm({ to, channel, name, lines = [] }: { to: string; chann
       {lines.length > 0 && (
         <label className={styles.withLine}>
           <span>{t("Répondre avec la ligne")}</span>
-          <select name="offerId" defaultValue="">
-            <option value="">{t("aucune")}</option>
-            {lines.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.title}
-              </option>
-            ))}
-          </select>
+          <Select block name="offerId" value="" options={[{ value: "", label: t("aucune") }, ...lines.map((l) => ({ value: l.id, label: l.title }))]} />
           <small className="muted">{t(channel === "whatsapp" ? "La fiche, et un lien qui reconnaît ce numéro : l'intention ne demandera que le code e-mail." : "La fiche de la ligne, en lien.")}</small>
         </label>
       )}

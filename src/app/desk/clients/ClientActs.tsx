@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
 import type { Closure, Mandate } from "@/lib/domain/kyc";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { closureStepAction, complaintDeskAction, couponNoticeAction, mandateAction, mandateStatusAction, transferAction, type ActResult } from "./acts-actions";
@@ -184,22 +185,18 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
           <input type="hidden" name="clientId" value={clientId} />
           <label>
             <span>{t("Flux payé sans avis")}</span>
-            <select
+            <Select
+              block
               name="flowPick"
+              required
+              placeholder={t("Choisir…")}
               value={flow ? `${flow.isin}|${flow.date}` : ""}
-              onChange={(e) => {
-                const [isin, date] = e.target.value.split("|");
+              onChange={(v) => {
+                const [isin, date] = v.split("|");
                 setFlow(isin ? { isin, date } : null);
               }}
-              required
-            >
-              <option value="">{t("Choisir…")}</option>
-              {pendingFlows.map((f) => (
-                <option key={`${f.isin}|${f.date}`} value={`${f.isin}|${f.date}`}>
-                  {f.title} · {f.label} {fmtDate(f.date)} · {fmt(f.amount)} FCFA
-                </option>
-              ))}
-            </select>
+              options={pendingFlows.map((f) => ({ value: `${f.isin}|${f.date}`, label: `${f.title} · ${f.label} ${fmtDate(f.date)}`, hint: `${fmt(f.amount)} FCFA` }))}
+            />
           </label>
           <input type="hidden" name="isin" value={flow?.isin ?? ""} />
           <input type="hidden" name="date" value={flow?.date ?? ""} />
@@ -210,12 +207,7 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
             </label>
             <label>
               <span>{t("Envoyer par")}</span>
-              <select name="send" defaultValue="auto">
-                <option value="auto">{t("canal préféré, s'il est prouvé")}</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="email">E-mail</option>
-                <option value="none">{t("ne pas envoyer, garder au dossier")}</option>
-              </select>
+              <Select block name="send" value="auto" options={[{ value: "auto", label: t("canal préféré, s'il est prouvé") }, { value: "whatsapp", label: "WhatsApp" }, { value: "email", label: "E-mail" }, { value: "none", label: t("ne pas envoyer, garder au dossier") }]} />
             </label>
             <label>
               <span>{t("Note sur l'avis (facultatif)")}</span>
@@ -241,11 +233,7 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
           <div className={styles.row3}>
             <label>
               <span>{t("Portée")}</span>
-              <select name="scope" defaultValue={positions.length ? "tout" : "vide"}>
-                <option value="tout">{t("Toutes les positions et clôture du compte")}</option>
-                <option value="partiel">{t("Certaines positions, le compte reste ouvert")}</option>
-                <option value="vide">{t("Clôture sans position (compte vide)")}</option>
-              </select>
+              <Select block name="scope" value={positions.length ? "tout" : "vide"} options={[{ value: "tout", label: t("Toutes les positions et clôture du compte") }, { value: "partiel", label: t("Certaines positions, le compte reste ouvert") }, { value: "vide", label: t("Clôture sans position (compte vide)") }]} />
             </label>
             <label>
               <span>{t("Établissement de destination")}</span>
@@ -324,24 +312,11 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
           <div className={styles.row3}>
             <label>
               <span>{t("Reçue par")}</span>
-              <select name="receivedVia" defaultValue="Appel">
-                <option>Appel</option>
-                <option>WhatsApp</option>
-                <option>E-mail</option>
-                <option>Courrier</option>
-                <option>Agence</option>
-              </select>
+              <Select block name="receivedVia" value="Appel" options={["Appel", "WhatsApp", "E-mail", "Courrier", "Agence"].map((v) => ({ value: v, label: v }))} />
             </label>
             <label className={styles.span2}>
               <span>{t("Opération concernée")}</span>
-              <select name="operation" defaultValue="">
-                <option value="">{t("Aucune en particulier")}</option>
-                {operations.map((o) => (
-                  <option key={o.ref} value={o.label}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+              <Select block name="operation" value="" options={[{ value: "", label: t("Aucune en particulier") }, ...operations.map((o) => ({ value: o.label, label: o.label, hint: o.ref }))]} />
             </label>
           </div>
           <label>

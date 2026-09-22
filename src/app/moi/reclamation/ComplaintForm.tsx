@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
 import { fmtDate } from "@/lib/format";
 import { complaintDepositAction, complaintPrepareAction, type ComplaintStep } from "./actions";
 import styles from "./page.module.css";
@@ -28,14 +29,7 @@ export function ComplaintForm({ ops, phoneProven, phone, email }: { ops: { ref: 
         <form action={prepare} className={styles.form}>
           <label>
             <span>{t("Quelle opération ?")}</span>
-            <select name="operation" value={operation} onChange={(e) => setOperation(e.target.value)}>
-              <option value="">{t("Aucune opération en particulier")}</option>
-              {ops.map((o) => (
-                <option key={o.ref} value={o.ref}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            <Select block name="operation" value={operation} onChange={setOperation} options={[{ value: "", label: t("Aucune opération en particulier") }, ...ops.map((o) => ({ value: o.ref, label: o.label, hint: o.ref }))]} />
           </label>
           <label>
             <span>{t("Que s'est-il passé ?")}</span>

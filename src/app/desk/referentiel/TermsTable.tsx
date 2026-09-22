@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
 import { fold } from "@/lib/text";
 import { fmtDate } from "@/lib/format";
 import { Origin, type DraftState } from "./Origin";
@@ -150,14 +151,20 @@ export function TermsTable({ rows, highlight, initialFilter }: { rows: TermRow[]
             </ul>
           )}
         </span>
-        <select value={origin} onChange={(e) => setOrigin(e.target.value as OriginFilter)} aria-label={tr("Origine")}>
-          <option value="">{tr("Toutes les origines")}</option>
-          <option value="sans">{tr("Sans échéancier (à créer)")}</option>
-          <option value="defaut">{tr("Valeur par défaut")}</option>
-          <option value="desk">{tr("Modifiées ou créées par le desk")}</option>
-          <option value="brouillon">{tr("Avec un brouillon")}</option>
-          <option value="hors">{tr("Hors bulletin (échue ou retirée)")}</option>
-        </select>
+        <Select
+          compact
+          label={tr("Origine")}
+          value={origin}
+          onChange={(v) => setOrigin(v as OriginFilter)}
+          options={[
+            { value: "", label: tr("Toutes les origines") },
+            { value: "sans", label: tr("Sans échéancier (à créer)") },
+            { value: "defaut", label: tr("Valeur par défaut") },
+            { value: "desk", label: tr("Modifiées ou créées par le desk") },
+            { value: "brouillon", label: tr("Avec un brouillon") },
+            { value: "hors", label: tr("Hors bulletin (échue ou retirée)") },
+          ]}
+        />
         <small className="muted">
           {list.length} / {rows.length}
         </small>

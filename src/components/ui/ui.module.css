@@ -275,3 +275,77 @@
   padding-top: 10px;
   border-top: 1px solid var(--line);
 }
+
+/* the select as a search field : the same box, typed in */
+.selInput {
+  width: 100%;
+  min-width: 80px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0;
+}
+.selInput::placeholder {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.selOpen .selBtn {
+  border-color: var(--gold);
+  cursor: text;
+}
+.selList {
+  display: grid;
+}
+.selNone {
+  padding: 10px;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+/* the phone : a sheet with the field on top */
+.selSheet {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  top: auto;
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  z-index: 60;
+  border-radius: 14px;
+}
+.selSheetHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 8px 14px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-radius: 14px 14px 0 0;
+}
+.selSheetHead .selInput {
+  font-size: 1rem;
+  padding: 6px 0;
+}
+.selClose {
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  flex: none;
+}
+.selSheet .selList {
+  overflow: auto;
+  padding: 6px;
+}

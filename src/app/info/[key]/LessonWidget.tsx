@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
 import { useState } from "react";
 import type { LessonWidget as Kind } from "@/data/lessons";
 import { ActorsMap, FundCategories, Lifeline, OrderPath } from "@/components/lessons/Diagrams";
@@ -389,10 +390,7 @@ function IndexWidget({ live }: { live: Live }) {
           <div className={styles.wControls}>
             <label>
               {t("Pondération")}
-              <select value={mode} onChange={(e) => setMode(e.target.value as "total" | "float")}>
-                <option value="total">{t("capital global")}</option>
-                <option value="float">{t("flottant coté")}</option>
-              </select>
+              <Select compact value={mode} onChange={(v) => setMode(v as "total" | "float")} options={[{ value: "total", label: t("capital global") }, { value: "float", label: t("flottant coté") }]} />
             </label>
             <label>
               {t("{m} bouge de", { m: ws[pick]?.mnemo ?? "" })} <b>{sg(move, 1)}</b>
