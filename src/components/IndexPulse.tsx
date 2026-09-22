@@ -50,6 +50,9 @@ export async function IndexPulse({ compact }: { compact?: boolean }) {
           <span>
             {t("douze mois")} <b className={tone(stats.year)}>{signed(stats.year)}</b>
           </span>
+          <Link href="/indice" className={styles.how}>
+            {t("voir l'indice")} →
+          </Link>
           <Link href="/info/indice-bvmac" className={styles.how}>
             {t("comment le lire")} →
           </Link>

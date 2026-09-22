@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import type { IndexPoint, IndexWeight } from "@/lib/market/index";
 import { base100 } from "@/lib/market/index";
@@ -32,7 +33,7 @@ export async function IndexVsShare({ name, share, index, from, weight, dividendP
       <div className={styles.head}>
         <b>{t("Cours et indice, base 100 depuis le {d}", { d: fmtDate(dates[0]) })}</b>
         <span className={styles.keys}>
-          <i className={styles.kShare} /> {name} <i className={styles.kIndex} /> BVMAC-AS
+          <i className={styles.kShare} /> {name} <i className={styles.kIndex} /> <Link href="/indice">BVMAC-AS →</Link>
         </span>
       </div>
       <svg viewBox="0 0 680 170" role="img" aria-label={t("Cours de {n} et indice BVMAC, base 100", { n: name })} className={styles.svg}>

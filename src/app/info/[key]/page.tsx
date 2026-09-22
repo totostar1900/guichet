@@ -71,7 +71,7 @@ export default async function LessonPage({ params }: Props) {
   } else if (l.widget === "indice") {
     const [bulletins, latest] = await Promise.all([repo().listBulletins(400).catch(() => []), repo().latestQuotes().catch(() => [])]);
     const st = indexStats(indexSeries(bulletins));
-    live = st.last ? { title: "BVMAC All Share Index", index: { level: st.last.value, date: st.last.date, day: st.day, month: st.month, ytd: st.ytd, year: st.year, weights: indexWeights(latest).map((x) => ({ mnemo: x.mnemo, wTotal: x.weightTotal, wFloat: x.weightFloat })) } } : { title: "BVMAC All Share Index" };
+    live = st.last ? { title: "BVMAC All Share Index", href: "/indice", index: { level: st.last.value, date: st.last.date, day: st.day, month: st.month, ytd: st.ytd, year: st.year, weights: indexWeights(latest).map((x) => ({ mnemo: x.mnemo, wTotal: x.weightTotal, wFloat: x.weightFloat })) } } : { title: "BVMAC All Share Index" };
   } else {
     live = { title: "Les quatre risques" };
   }

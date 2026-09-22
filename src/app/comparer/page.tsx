@@ -123,7 +123,9 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
 
           {shares && (
             <div className={styles.row}>
-              <div className={styles.label}>{t("Dans l'indice BVMAC")}</div>
+              <div className={styles.label}>
+                <Link href="/indice">{t("Dans l'indice BVMAC")} →</Link>
+              </div>
               {cols.map((o, i) => {
                 const wgt = weights.find((x) => x.isin === o.isin);
                 return (

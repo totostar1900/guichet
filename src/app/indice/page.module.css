@@ -1,0 +1,160 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.head h1 {
+  font-size: 1.3rem;
+  margin: 4px 0 4px;
+}
+.lead {
+  margin: 0;
+  color: var(--ink-2);
+  max-width: 72ch;
+  font-size: 0.92rem;
+}
+.links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.level {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  align-items: flex-end;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius);
+}
+.big {
+  display: grid;
+  gap: 2px;
+}
+.big small {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.big b {
+  font-size: 2.2rem;
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.big span {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.deltas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 0;
+}
+.deltas div {
+  display: grid;
+  gap: 2px;
+}
+.deltas dt {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.deltas dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.deltas dd small {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--warn);
+}
+.chart {
+  padding: 8px 16px 16px;
+}
+.p {
+  margin: 0;
+  padding: 0 16px 14px;
+  color: var(--ink-3);
+  font-size: 0.86rem;
+}
+.tableWrap {
+  overflow-x: auto;
+}
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.numSmall {
+  text-align: right;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.moved td b {
+  font-weight: 800;
+}
+.wcell {
+  display: inline-grid;
+  grid-template-columns: 56px auto;
+  gap: 6px;
+  align-items: center;
+}
+.wcell i {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--navy);
+  justify-self: start;
+  min-width: 2px;
+  width: 0;
+}
+.wcell .wf {
+  background: var(--gold);
+}
+.two,
+.three {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px 20px;
+  padding: 12px 16px 16px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.two p,
+.three p {
+  margin: 0;
+}
+.two b,
+.three b {
+  color: var(--ink);
+}
+.method {
+  margin: 0;
+  padding: 10px 16px 16px;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+  line-height: 1.5;
+}
