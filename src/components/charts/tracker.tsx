@@ -36,7 +36,8 @@ export function useTracker({ keys, x, yAt, W, H, pins = [], onPin, onRange }: Tr
   const touch = useRef<{ id: number; x0: number; i0: number; moved: boolean; range: boolean; wasReading: boolean; timer: number | null } | null>(null);
   const nearest = (clientX: number, svg: SVGSVGElement) => {
     const r = svg.getBoundingClientRect();
-    const px = ((clientX - r.left) / Math.max(1, r.width)) * W;
+    if (r.width < 1) return hover ?? 0; // not laid out (a closed fold, a hidden tab) : keep what was read
+    const px = ((clientX - r.left) / r.width) * W;
     let best = 0;
     let bd = Infinity;
     for (let i = 0; i < keys.length; i++) {

@@ -33,7 +33,7 @@ export const axisRow = (phone: boolean) => (phone ? { y: 20, extra: 24 } : { y: 
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 
 /** The NAV curve, one dot per bulletin, with a bubble on hover or touch showing that NAV. */
-export function NavChart({ series, sinceStart, range, onRange }: { series: NavPoint[]; sinceStart?: boolean; range?: [string, string]; onRange?: (from: string, to: string) => void }) {
+export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; sinceStart?: boolean; onRange?: (from: string, to: string) => void }) {
   const t = useT();
   const phone = usePhone();
   const metrics = labelMetrics(phone);
@@ -57,7 +57,8 @@ export function NavChart({ series, sinceStart, range, onRange }: { series: NavPo
   const axis = axisLabel(series.map((p) => p.date), phone);
   const keys = series.map((p) => p.date);
   const idx = (k: string) => keys.indexOf(k);
-  const pins = pin ? [pin] : range ? [range[0], range[1]].filter((d) => keys.includes(d)) : [];
+  // only the pin the reader just set is drawn : the chart is already framed on the period, marking its edges would say nothing
+  const pins = pin ? [pin] : [];
   const track = useTracker({
     keys,
     x,

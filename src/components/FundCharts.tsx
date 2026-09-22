@@ -71,7 +71,7 @@ export function drawdown(window: NavPoint[]): SeriesPoint[] {
   });
 }
 
-export function FundChart({ mode, series, benchmark, windowDays, range, onRange }: { mode: Exclude<ChartMode, "vl">; series: SeriesPoint[]; benchmark?: Benchmark; windowDays?: number; range?: [string, string]; onRange?: (from: string, to: string) => void }) {
+export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mode: Exclude<ChartMode, "vl">; series: SeriesPoint[]; benchmark?: Benchmark; windowDays?: number; onRange?: (from: string, to: string) => void }) {
   const t = useT();
   const phone = usePhone();
   const metrics = labelMetrics(phone);
@@ -103,7 +103,8 @@ export function FundChart({ mode, series, benchmark, windowDays, range, onRange 
 
   const keys = series.map((p) => p.date);
   const idx = (k: string) => keys.indexOf(k);
-  const pins = pin ? [pin] : range ? [range[0], range[1]].filter((d) => keys.includes(d)) : [];
+  // only the pin the reader just set is drawn : the chart is already framed on the period, marking its edges would say nothing
+  const pins = pin ? [pin] : [];
   const track = useTracker({
     keys,
     x,
