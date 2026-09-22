@@ -137,7 +137,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
                 ))}
               </nav>
             </div>
-            <LineChart points={slice.map((q) => ({ date: q.sessionDate, value: q.close }))} ariaLabel={`Cours de clôture de ${c.shortName}`} />
+            <LineChart points={slice.map((q) => ({ date: q.sessionDate, value: q.close, volume: q.volumeTraded || 0, amount: q.valueTraded || 0 }))} ariaLabel={`Cours de clôture de ${c.shortName}`} />
             {period ? (
               <div className={styles.reading}>
                 <b>{t("Comment lire.")}</b> {t(periodComment(period, c))}

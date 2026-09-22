@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { labelMetrics, useOutsideTap, usePhone } from "./chart-utils";
+import { useState } from "react";
+import { RangeRead, TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
+import { labelMetrics, usePhone } from "./chart-utils";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
@@ -32,13 +33,12 @@ export const axisRow = (phone: boolean) => (phone ? { y: 20, extra: 24 } : { y: 
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 
 /** The NAV curve, one dot per bulletin, with a bubble on hover or touch showing that NAV. */
-export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStart?: boolean }) {
+export function NavChart({ series, sinceStart, range, onRange }: { series: NavPoint[]; sinceStart?: boolean; range?: [string, string]; onRange?: (from: string, to: string) => void }) {
   const t = useT();
-  const ref = useRef<SVGSVGElement>(null);
-  const [hover, setHover] = useState<number | null>(null);
   const phone = usePhone();
   const metrics = labelMetrics(phone);
-  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
+  // the first tap pins a date ; the second hands the range to the page, which reframes everything on it
+  const [pin, setPin] = useState<string | null>(null);
   const values = series.map((n) => n.nav);
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -55,32 +55,32 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
   const iMin = values.indexOf(min);
   const last = series.length - 1;
   const axis = axisLabel(series.map((p) => p.date), phone);
-
-  // The nearest point to the pointer, in viewBox units.
-  const pick = (clientX: number) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const vx = ((clientX - r.left) / r.width) * W;
-    let best = 0;
-    for (let i = 1; i < series.length; i++) if (Math.abs(x(i) - vx) < Math.abs(x(best) - vx)) best = i;
-    setHover(best);
-  };
+  const keys = series.map((p) => p.date);
+  const idx = (k: string) => keys.indexOf(k);
+  const pins = pin ? [pin] : range ? [range[0], range[1]].filter((d) => keys.includes(d)) : [];
+  const track = useTracker({
+    keys,
+    x,
+    yAt: (i) => y(series[i].nav),
+    W,
+    H: H + row.extra,
+    pins,
+    onPin: (k) => {
+      if (!onRange) return;
+      if (pin && pin !== k) {
+        const [a, b] = [pin, k].sort();
+        setPin(null);
+        onRange(a, b);
+      } else setPin(pin === k ? null : k);
+    },
+  });
+  const hover = track.hover;
   const h = hover == null ? null : series[hover];
   const prev = hover != null && hover > 0 ? series[hover - 1] : null;
 
   return (
     <div className={styles.navChart}>
-      <svg
-        ref={ref}
-        viewBox={`0 0 ${W} ${H + row.extra}`}
-        role="img"
-        aria-label={`${series.length} ${t("valeurs liquidatives publiées")}, ${fmt(series[0].nav)} → ${fmt(series[last].nav)} FCFA`}
-        onMouseMove={(e) => pick(e.clientX)}
-        onMouseLeave={() => setHover(null)}
-        onTouchStart={(e) => pick(e.touches[0].clientX)}
-        onTouchMove={(e) => pick(e.touches[0].clientX)}
-      >
+      <svg viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={`${series.length} ${t("valeurs liquidatives publiées")}, ${fmt(series[0].nav)} → ${fmt(series[last].nav)} FCFA`} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
         <text x={padX - 4} y={y(max) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
@@ -93,7 +93,6 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
         )}
         <path d={area} className={styles.area} />
         <path d={path} className={styles.line} />
-        {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad} y2={H - pad} className={styles.cursor} />}
         {series.map((n, i) => (
           <circle key={n.date} cx={x(i)} cy={y(n.nav)} r={i === hover ? 4 : i === last ? 3.5 : i === iMax || i === iMin ? 2.6 : 1.6} className={i === last || i === hover ? styles.dot : styles.point}>
             <title>{`${fmtDate(n.date)} · ${fmt(n.nav)} FCFA`}</title>
@@ -104,19 +103,16 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
             {axis.label(series[i].date)}
           </text>
         ))}
+        <TrackMarks x={(k) => x(idx(k))} y={(k) => y(series[idx(k)].nav)} hover={h?.date} pinA={pin ?? track.pinA} pinB={pin ? undefined : track.pinB} padT={pad} padB={row.extra + pad} H={H + row.extra} />
       </svg>
       {h && hover != null && (
-        <div
-          className={`${styles.tip} ${y(h.nav) < H * 0.45 ? styles.tipBelow : ""} ${x(hover) > W * 0.72 ? styles.tipLeft : x(hover) < W * 0.28 ? styles.tipRight : ""}`}
-          style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.nav) / (H + row.extra)) * 100}%` }}
-          role="status"
-        >
+        <TrackTip pos={track.pos}>
           <b>{fmt(h.nav)} FCFA</b>
           <span>
             {t("VL du")} {fmtDate(h.date)} · BOC n° {h.bulletinNo}
           </span>
           <span>
-            {t("Variation")} {signed(h.variationPct ?? (prev ? (h.nav / prev.nav - 1) * 100 : undefined))}
+            {t("Variation")} <em className={(h.variationPct ?? (prev ? h.nav / prev.nav - 1 : 0)) >= 0 ? trackStyles.up : trackStyles.down}>{signed(h.variationPct ?? (prev ? (h.nav / prev.nav - 1) * 100 : undefined))}</em>
             {prev ? ` ${t("depuis le")} ${fmtDate(prev.date, false)}` : ""}
           </span>
           {sinceStart && hover > 0 && (
@@ -127,7 +123,13 @@ export function NavChart({ series, sinceStart }: { series: NavPoint[]; sinceStar
           <span>
             {t("Depuis l'origine")} {signed(h.perfSinceInceptionPct)}
           </span>
-        </div>
+          {onRange && <small>{pin ? t("toucher pour fermer la période à cette date") : t("toucher deux dates pour recadrer la période")}</small>}
+        </TrackTip>
+      )}
+      {pin && (
+        <RangeRead onClear={() => setPin(null)} clearLabel={t("effacer")}>
+          <b>{fmtDate(pin)}</b> : {t("touchez une seconde date pour recadrer la période")}
+        </RangeRead>
       )}
     </div>
   );

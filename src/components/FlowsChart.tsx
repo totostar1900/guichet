@@ -1,10 +1,10 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { useCallback, useRef, useState } from "react";
-import { useOutsideTap } from "./chart-utils";
+import { useState } from "react";
+import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
 import type { BondResult } from "@/lib/finance";
-import { fmt, fmtDate, fmtUnits } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
 
 /**
  * Cash flows for one bond position: one outflow at settlement, then coupons and
@@ -14,10 +14,7 @@ import { fmt, fmtDate, fmtUnits } from "@/lib/format";
 /** `compact`: the Guide simulator draws it a fifth smaller, labels included (the viewBox scales with the box). */
 export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: string; compact?: boolean }) {
   const t = useT();
-  const [hover, setHover] = useState<number | null>(null);
-  const ref = useRef<SVGSVGElement>(null);
-  // A bubble opened by a finger closes on the next tap outside the chart, or on the same bar again.
-  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
+  const [pins, setPins] = useState<string[]>([]);
   const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: t("Souscription") }, ...r.flows];
   const W = 560;
   const H = 276;
@@ -35,11 +32,20 @@ export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: 
   const dense = pts.length > 7;
   const cum: number[] = [];
   pts.reduce((s, p, i) => (cum[i] = s + p.amount), 0);
+  const keys = pts.map((p, i) => `${iso(p.date)}|${i}`);
+  const cx = (i: number) => padL + slot * i + slot / 2;
+  const barTop = (i: number) => (pts[i].amount < 0 ? base + 1 : base - Math.max(3, Math.abs(pts[i].amount) * scale) - 1);
+  const track = useTracker({ keys, x: cx, yAt: barTop, W, H, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
+  const hover = track.hover;
   const h = hover != null ? pts[hover] : null;
+  const idx = (k: string) => keys.indexOf(k);
+  const iA = track.pinA ? idx(track.pinA) : -1;
+  const iB = track.pinB ? idx(track.pinB) : -1;
+  const backBetween = iA >= 0 && iB >= 0 ? pts.slice(iA + 1, iB + 1).filter((p) => p.amount > 0).reduce((s, p) => s + p.amount, 0) : 0;
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: compact ? 614 : 768, margin: "8px auto 0" }}>
-      <svg ref={ref} className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} onMouseLeave={() => setHover(null)}>
+      <svg className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} {...track.handlers}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
           const x = padL + slot * i + slot / 2 - bw / 2;
@@ -48,7 +54,7 @@ export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: 
           const y = neg ? base + 1 : base - bh - 1;
           const showVal = !dense || i === 0 || i === pts.length - 1 || hover === i;
           return (
-            <g key={i} onMouseEnter={() => setHover(i)} onTouchStart={() => setHover((h) => (h === i ? null : i))} style={{ opacity: hover != null && hover !== i ? 0.55 : 1 }}>
+            <g key={i} style={{ opacity: hover != null && hover !== i ? 0.55 : 1 }}>
               <rect x={padL + slot * i} y={0} width={slot} height={H} fill={hover === i ? "var(--navy)" : "transparent"} fillOpacity={0.05} />
               <rect x={x} y={y} width={bw} height={bh} rx="3" fill={neg ? "var(--chart-out)" : "var(--chart-in)"} />
               {showVal && (
@@ -68,9 +74,10 @@ export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: 
             </g>
           );
         })}
+        <TrackMarks x={(k) => cx(idx(k))} y={(k) => barTop(idx(k))} hover={hover != null ? keys[hover] : undefined} pinA={track.pinA} pinB={track.pinB} padT={0} padB={28} H={H} />
       </svg>
       {h && hover != null && (
-        <div className="chartTip" style={{ left: `${((padL + slot * hover + slot / 2) / W) * 100}%` }}>
+        <TrackTip pos={track.pos}>
           <b>
             {h.amount < 0 ? "−" : "+"}
             {fmt(Math.abs(h.amount))} FCFA
@@ -79,11 +86,24 @@ export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: 
             {h.label} · {fmtDate(iso(h.date))}
           </span>
           <span>
-            cumul à cette date : {cum[hover] < 0 ? "−" : "+"}
-            {fmt(Math.abs(cum[hover]))} FCFA
+            {t("cumul à cette date")} : <em className={cum[hover] >= 0 ? trackStyles.up : trackStyles.down}>{cum[hover] < 0 ? "−" : "+"}{fmt(Math.abs(cum[hover]))} FCFA</em>
           </span>
-        </div>
+          <small>{iA >= 0 && iB < 0 ? t("toucher pour lire ce qui revient jusqu'à ce flux") : t("toucher deux flux pour lire ce qui revient entre eux")}</small>
+        </TrackTip>
       )}
+      {iA >= 0 && iB >= 0 ? (
+        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
+          <b>
+            {fmtDate(iso(pts[iA].date))} → {fmtDate(iso(pts[iB].date))}
+          </b>{" "}
+          : <b className={trackStyles.up}>+{fmt(backBetween)} FCFA</b> {t("reçus en {n} flux", { n: String(iB - iA) })} · {t("cumul")} {cum[iA] < 0 ? "−" : "+"}{fmt(Math.abs(cum[iA]))} → {cum[iB] < 0 ? "−" : "+"}{fmt(Math.abs(cum[iB]))} FCFA
+          {r.outlay ? ` · ${fmtPct((backBetween / r.outlay) * 100, 1)} ${t("de la mise")}` : ""}
+        </RangeRead>
+      ) : iA >= 0 ? (
+        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
+          <b>{fmtDate(iso(pts[iA].date))}</b> : {t("touchez un second flux pour lire ce qui revient entre les deux")}
+        </RangeRead>
+      ) : null}
     </div>
   );
 }

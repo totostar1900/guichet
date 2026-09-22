@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useOutsideTap } from "./chart-utils";
+import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
 import styles from "./Charts.module.css";
 import { useT } from "@/i18n/client";
 
@@ -35,29 +36,23 @@ function niceTicks(min: number, max: number, n = 4): number[] {
   return out;
 }
 
-/** Uses the SVG's own coordinate space so the tracker works whatever the rendered size. */
-function svgX(e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>, svg: SVGSVGElement, W: number): number {
-  const rect = svg.getBoundingClientRect();
-  const clientX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
-  return ((clientX - rect.left) / rect.width) * W;
-}
-
-/** Closing prices over time; flat segments stay flat (the BVMAC prints the last price every session). */
-export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { points: { date: string; value: number; extra?: string }[]; unit?: string; height?: number; ariaLabel: string }) {
+/**
+ * Closing prices over time; flat segments stay flat (the BVMAC prints the last
+ * price every session). Tracked : the crosshair reads a session, two taps pin a
+ * range and read the change between the dates.
+ */
+export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { points: { date: string; value: number; extra?: string; volume?: number; amount?: number }[]; unit?: string; height?: number; ariaLabel: string }) {
   const tr = useT();
-  const [hover, setHover] = useState<number | null>(null);
-  const ref = useRef<SVGSVGElement>(null);
-  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
+  const [pins, setPins] = useState<string[]>([]);
   const W = 720;
   const H = height;
   const padL = 56;
   const padR = 12;
   const padT = 14;
   const padB = 28;
-  if (points.length === 0) return <div className={styles.empty}>{tr("Pas encore de cours sur cette période.")}</div>;
   const vals = points.map((p) => p.value);
-  let min = Math.min(...vals);
-  let max = Math.max(...vals);
+  let min = points.length ? Math.min(...vals) : 0;
+  let max = points.length ? Math.max(...vals) : 1;
   if (max === min) {
     min = min * 0.97;
     max = max * 1.03;
@@ -65,27 +60,28 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
   const pad = (max - min) * 0.08;
   min -= pad;
   max += pad;
-  const ticks = niceTicks(min, max, 4);
-  const x = (i: number) => (points.length === 1 ? W / 2 : padL + (i * (W - padL - padR)) / (points.length - 1));
+  const x = (i: number) => (points.length === 1 ? W / 2 : padL + (i * (W - padL - padR)) / Math.max(1, points.length - 1));
   const y = (v: number) => padT + (H - padT - padB) * (1 - (v - min) / (max - min));
+  const keys = points.map((p) => p.date);
+  const track = useTracker({ keys, x, yAt: (i) => y(points[i].value), W, H, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
+  if (points.length === 0) return <div className={styles.empty}>{tr("Pas encore de cours sur cette période.")}</div>;
+  const ticks = niceTicks(min, max, 4);
   const d = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(" ");
   const area = `${d} L${x(points.length - 1).toFixed(1)} ${(H - padB).toFixed(1)} L${x(0).toFixed(1)} ${(H - padB).toFixed(1)} Z`;
   const last = points[points.length - 1];
   const up = last.value >= points[0].value;
   const labelIdx = points.length > 2 ? [0, Math.floor(points.length / 2), points.length - 1] : points.map((_, i) => i);
-  const onMove = (e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>) => {
-    if (!ref.current) return;
-    const px = svgX(e, ref.current, W);
-    const step = points.length > 1 ? (W - padL - padR) / (points.length - 1) : 1;
-    const i = Math.max(0, Math.min(points.length - 1, Math.round((px - padL) / step)));
-    setHover(i);
-  };
-  const h = hover != null ? points[hover] : null;
-  const prev = hover != null && hover > 0 ? points[hover - 1] : null;
-  const tipLeft = h ? Math.min(Math.max(x(hover!), padL + 90), W - padR - 90) : 0;
+  const idx = (k: string) => keys.indexOf(k);
+  const h = track.hover != null ? points[track.hover] : null;
+  const prev = track.hover != null && track.hover > 0 ? points[track.hover - 1] : null;
+  const pA = track.pinA ? points[idx(track.pinA)] : undefined;
+  const pB = track.pinB ? points[idx(track.pinB)] : undefined;
+  const between = pA && pB ? points.slice(idx(pA.date), idx(pB.date) + 1) : [];
+  const amountBetween = between.slice(1).reduce((s, p) => s + (p.amount ?? 0), 0);
+  const volumeBetween = between.slice(1).reduce((s, p) => s + (p.volume ?? 0), 0);
   return (
     <div className={styles.wrapRel}>
-      <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={ariaLabel} onMouseMove={onMove} onMouseLeave={() => setHover(null)} onTouchStart={onMove} onTouchMove={onMove}>
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={ariaLabel} {...track.handlers}>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className={styles.grid} />
@@ -107,26 +103,49 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
             {frDate(points[i].date)}
           </text>
         ))}
-        {h && (
-          <g>
-            <line x1={x(hover!)} x2={x(hover!)} y1={padT} y2={H - padB} className={styles.cross} />
-            <circle cx={x(hover!)} cy={y(h.value)} r={5} className={up ? styles.dotUp : styles.dotDown} />
-          </g>
-        )}
+        <TrackMarks x={(k) => x(idx(k))} y={(k) => y(points[idx(k)].value)} hover={h?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
       </svg>
       {h && (
-        <div className={styles.tip} style={{ left: `${(tipLeft / W) * 100}%`, top: 0 }}>
+        <TrackTip pos={track.pos}>
           <b>
             {full(h.value)} {unit}
           </b>
           <span>{frDate(h.date)}</span>
-          {prev && <span>vs séance préc. : {pct(((h.value - prev.value) / prev.value) * 100)}</span>}
-          <span>vs début de période : {pct(((h.value - points[0].value) / points[0].value) * 100)}</span>
+          {prev && (
+            <span>
+              {tr("vs séance précédente")} : <em className={h.value >= prev.value ? trackStyles.up : trackStyles.down}>{pct(((h.value - prev.value) / prev.value) * 100)}</em>
+            </span>
+          )}
+          <span>
+            {tr("vs début de période")} : <em className={h.value >= points[0].value ? trackStyles.up : trackStyles.down}>{pct(((h.value - points[0].value) / points[0].value) * 100)}</em>
+          </span>
+          {h.volume != null && <small>{h.volume ? `${full(h.volume)} ${tr("titres")} · ${fmtShort(h.amount ?? 0)} FCFA` : tr("aucun échange")}</small>}
           {h.extra && <span>{h.extra}</span>}
-        </div>
+          <small>{pA && !pB ? tr("toucher pour lire l'écart depuis l'épingle") : tr("toucher deux points pour lire un écart")}</small>
+        </TrackTip>
       )}
+      {pA && pB ? (
+        <RangeRead onClear={() => setPins([])} clearLabel={tr("effacer")}>
+          <b>
+            {frDate(pA.date)} → {frDate(pB.date)}
+          </b>{" "}
+          : {full(pA.value)} → {full(pB.value)} {unit}, <b className={pB.value >= pA.value ? trackStyles.up : trackStyles.down}>{pct(((pB.value - pA.value) / pA.value) * 100)}</b> · {between.length} {tr("séances")}
+          {volumeBetween ? ` · ${full(volumeBetween)} ${tr("titres")} · ${fmtShort(amountBetween)} FCFA` : ""}
+        </RangeRead>
+      ) : pA ? (
+        <RangeRead onClear={() => setPins([])} clearLabel={tr("effacer")}>
+          <b>{frDate(pA.date)}</b> : {full(pA.value)} {unit} · {tr("touchez une seconde date pour lire l'écart")}
+        </RangeRead>
+      ) : null}
     </div>
   );
+}
+
+/** Uses the SVG's own coordinate space so the bar tracker works whatever the rendered size. */
+function svgX(e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>, svg: SVGSVGElement, W: number): number {
+  const rect = svg.getBoundingClientRect();
+  const clientX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
+  return ((clientX - rect.left) / rect.width) * W;
 }
 
 /** Grouped bars per year (e.g. revenue and net income). Values in FCFA. */

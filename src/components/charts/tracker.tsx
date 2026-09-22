@@ -1,0 +1,135 @@
+"use client";
+
+import { useRef, useState } from "react";
+import type React from "react";
+import styles from "./tracker.module.css";
+
+/**
+ * The tracking of a time chart, shared by every chart of the platform : the
+ * nearest point under the pointer, a bubble fixed to the viewport (never
+ * clipped by a panel, kept inside the window, above the point near the
+ * bottom), and two pins that set a range. On touch, the first tap reads,
+ * the second on the same point pins. The chart keeps its own drawing ; it
+ * spreads `handlers` on its <svg>, draws <TrackMarks>, and renders the
+ * bubble with <TrackTip>.
+ */
+export interface TrackerArgs {
+  /** One key per point, in drawing order (a date, usually). */
+  keys: string[];
+  /** x of a point in viewBox units, and y of the point at index i. */
+  x: (i: number) => number;
+  yAt: (i: number) => number;
+  W: number;
+  H: number;
+  /** The pinned keys the chart is given (none, one, or two, sorted). */
+  pins?: string[];
+  onPin?: (key: string) => void;
+}
+
+export function useTracker({ keys, x, yAt, W, H, pins = [], onPin }: TrackerArgs) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const touchRef = useRef(false);
+  const [hover, setHover] = useState<number | null>(null);
+  const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
+  const nearest = (clientX: number, svg: SVGSVGElement) => {
+    const r = svg.getBoundingClientRect();
+    const px = ((clientX - r.left) / r.width) * W;
+    let best = 0;
+    let bd = Infinity;
+    for (let i = 0; i < keys.length; i++) {
+      const d = Math.abs(x(i) - px);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    }
+    return best;
+  };
+  const show = (i: number) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    const px = r.left + (x(i) / W) * r.width;
+    const py = r.top + (yAt(i) / H) * r.height;
+    const half = 120;
+    const cx = Math.min(window.innerWidth - half - 8, Math.max(half + 8, px));
+    const above = py + 170 > window.innerHeight;
+    setHover(i);
+    setPos({ x: cx, y: above ? py - 12 : py + 14, above });
+  };
+  const hide = () => setHover(null);
+  const handlers = {
+    ref: svgRef,
+    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+      touchRef.current = e.pointerType === "touch";
+    },
+    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (e.pointerType !== "touch") show(nearest(e.clientX, e.currentTarget));
+    },
+    onPointerLeave: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (e.pointerType !== "touch") hide();
+    },
+    onClick: (e: React.MouseEvent<SVGSVGElement>) => {
+      const i = nearest(e.clientX, e.currentTarget);
+      if (touchRef.current && hover !== i) {
+        show(i);
+        return;
+      }
+      if (onPin) onPin(keys[i]);
+      else if (touchRef.current) hide();
+    },
+  };
+  const pinA = pins[0] && keys.includes(pins[0]) ? pins[0] : undefined;
+  const pinB = pins[1] && keys.includes(pins[1]) ? pins[1] : undefined;
+  return { handlers, hover, pos, pinA, pinB, hide };
+}
+
+/** Toggle a key in a pins list : one, then two (sorted), a third starts over. */
+export const togglePin = (cur: string[], key: string): string[] => (cur.includes(key) ? cur.filter((d) => d !== key) : cur.length >= 2 ? [key] : [...cur, key].sort());
+
+/** The crosshair, the pins and the pinned range, drawn inside the chart's <svg>. */
+export function TrackMarks({ x, y, hover, pinA, pinB, padT, padB, H }: { x: (key: string) => number; y: (key: string) => number; hover?: string; pinA?: string; pinB?: string; padT: number; padB: number; H: number }) {
+  return (
+    <>
+      {pinA && pinB && <rect x={x(pinA)} y={padT} width={Math.max(0, x(pinB) - x(pinA))} height={H - padT - padB} className={styles.range} />}
+      {[pinA, pinB].filter((d): d is string => Boolean(d)).map((d) => (
+        <g key={d} className={styles.pin}>
+          <line x1={x(d)} x2={x(d)} y1={padT} y2={H - padB} />
+          <circle cx={x(d)} cy={y(d)} r={5} />
+        </g>
+      ))}
+      {hover && (
+        <g className={styles.cross}>
+          <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} />
+          <circle cx={x(hover)} cy={y(hover)} r={4} />
+        </g>
+      )}
+    </>
+  );
+}
+
+/** The bubble, fixed to the viewport, on the tip tokens (the inverse of the ground in every theme). */
+export function TrackTip({ pos, children }: { pos: { x: number; y: number; above: boolean } | null; children: React.ReactNode }) {
+  if (!pos) return null;
+  return (
+    <div className={`${styles.tip} ${pos.above ? styles.tipAbove : ""}`} style={{ left: pos.x, top: pos.y }} role="status">
+      {children}
+    </div>
+  );
+}
+
+/** A range line under a chart : « du … au … : … », with a clear button. */
+export function RangeRead({ children, onClear, clearLabel }: { children: React.ReactNode; onClear?: () => void; clearLabel: string }) {
+  return (
+    <p className={styles.read}>
+      {children}
+      {onClear && (
+        <button type="button" className={styles.clear} onClick={onClear}>
+          {clearLabel}
+        </button>
+      )}
+    </p>
+  );
+}
+
+export { styles as trackStyles };

@@ -10,6 +10,7 @@ import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import q from "./QuoteHistory.module.css";
 import styles from "./CompareCharts.module.css";
 import { useT } from "@/i18n/client";
+import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
 
 /**
  * The graphs under the comparison table. Which ones appear depends on the
@@ -329,10 +330,8 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
 type XY = SeriesPoint & { x?: number };
 function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond }: { series: XY[][]; labels: string[]; bench?: { label: string; at: (date: string) => number }; fmtY: (v: number) => string; zero: boolean; area: "up" | "down"; xDays?: number; stepSecond?: boolean }) {
   const t = useT();
-  const ref = useRef<SVGSVGElement>(null);
-  const [hx, setHx] = useState<number | null>(null);
   const phone = usePhone();
-  useOutsideTap(ref, hx != null, useCallback(() => setHx(null), []));
+  const [pins, setPins] = useState<string[]>([]);
   const W = phone ? 380 : 1000;
   const H = phone ? 170 : 220;
   const pad = 10;
@@ -344,9 +343,8 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   const px = (p: XY) => p.x ?? daysBetween(first, p.date);
   const benchPts = bench ? dates.map((d) => ({ date: d, y: bench.at(d) })) : [];
   const ys = [...series.flat().map((p) => p.y), ...benchPts.map((p) => p.y), ...(zero ? [0] : [])];
-  if (ys.length === 0) return <div className="empty">{t("Pas assez d'historique commun.")}</div>;
-  let min = Math.min(...ys);
-  let max = Math.max(...ys);
+  let min = ys.length ? Math.min(...ys) : 0;
+  let max = ys.length ? Math.max(...ys) : 1;
   if (max === min) {
     max += 1;
     min -= 1;
@@ -355,23 +353,29 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   const padX = labelW;
   const x = (d: number) => padX + ((W - padX - pad) * d) / span;
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
+  // the stops the pointer snaps to : every x where a line has a point, with its date
+  const stops = [...new Map(series.flat().map((p) => [px(p), p.date])).entries()].map(([d, date]) => ({ d, date })).sort((p, q) => p.d - q.d);
+  const keys = stops.map((st) => String(st.d));
+  const atStop = (s: XY[], d: number) => [...s].reverse().find((p) => px(p) <= d) ?? null;
+  const anchorY = (d: number) => {
+    const p = series.map((s) => atStop(s, d)).find(Boolean);
+    return p ? y(p.y) : H / 2;
+  };
+  const track = useTracker({ keys, x: (i) => x(stops[i].d), yAt: (i) => anchorY(stops[i].d), W, H: H + 18, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
+  if (ys.length === 0) return <div className="empty">{t("Pas assez d'historique commun.")}</div>;
   const path = (s: XY[], step?: boolean) => s.map((p, i) => `${i === 0 ? "M" : step ? "L" : "L"}${x(px(p)).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const baseY = area === "down" ? y(Math.max(min, Math.min(max, 0))) : H - pad;
   const axis = axisLabel(dates, phone);
-  const pick = (clientX: number) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const vx = ((clientX - r.left) / r.width) * W;
-    setHx(Math.max(0, Math.min(span, ((vx - padX) * span) / (W - padX - pad))));
-  };
-  // At the hovered x, the latest point of each line at or before it.
-  const at = (s: XY[]) => (hx == null ? null : [...s].reverse().find((p) => px(p) <= hx) ?? null);
-  const hovered = series.map(at);
+  const hs = track.hover != null ? stops[track.hover] : null;
+  const hovered = hs ? series.map((s) => atStop(s, hs.d)) : [];
   const anchor = hovered.find(Boolean);
+  const when = (st: { d: number; date: string }) => (xDays ? `${Math.round(st.d / 30)} ${t("mois")}` : fmtDate(st.date));
+  const stopOf = (k?: string) => (k ? stops.find((st) => String(st.d) === k) : undefined);
+  const sA = stopOf(track.pinA);
+  const sB = stopOf(track.pinB);
   return (
     <div className={styles.dual}>
-      <svg ref={ref} viewBox={`0 0 ${W} ${H + 18}`} onMouseMove={(e) => pick(e.clientX)} onMouseLeave={() => setHx(null)} onTouchStart={(e) => pick(e.touches[0].clientX)} onTouchMove={(e) => pick(e.touches[0].clientX)} role="img" aria-label={labels.join(" / ")}>
+      <svg viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={labels.join(" / ")} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={q.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={q.guide} />
         <text x={padX - 5} y={y(max) + 4} className={styles.tick} style={{ fontSize: fontPx }} textAnchor="end">
@@ -391,7 +395,6 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
             </g>
           ),
         )}
-        {hx != null && <line x1={x(hx)} x2={x(hx)} y1={pad} y2={H - pad} className={q.cursor} />}
         {hovered.map((p, i) => (p ? <circle key={i} cx={x(px(p))} cy={y(p.y)} r={4} className={`${styles.end} ${COLORS[i]}`} /> : null))}
         {(xDays
           ? [0, 0.25, 0.5, 0.75, 1].map((k) => ({ d: k * span, label: `${Math.round((k * span) / 30)} ${t("mois")}` }))
@@ -401,13 +404,15 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
             {tk.label}
           </text>
         ))}
+        <TrackMarks x={(k) => x(Number(k))} y={(k) => anchorY(Number(k))} hover={hs ? String(hs.d) : undefined} pinA={track.pinA} pinB={track.pinB} padT={pad} padB={18 + pad} H={H + 18} />
       </svg>
-      {anchor && hx != null && (
-        <div className={`${q.tip} ${x(hx) > W * 0.7 ? q.tipLeft : x(hx) < W * 0.3 ? q.tipRight : ""}`} style={{ left: `${(x(hx) / W) * 100}%`, top: `${(y(anchor.y) / (H + 18)) * 100}%` }} role="status">
+      {anchor && hs && (
+        <TrackTip pos={track.pos}>
+          <b>{when(hs)}</b>
           {hovered.map((p, i) =>
             p ? (
               <span key={i}>
-                <i className={COLORS[i]}>■</i> {labels[i]} : <b>{fmtY(p.y)}</b> · {xDays ? `${Math.round(px(p) / 30)} ${t("mois")}` : fmtDate(p.date)}
+                <i className={COLORS[i]}>■</i> {labels[i]} : <b>{fmtY(p.y)}</b>
               </span>
             ) : null,
           )}
@@ -416,8 +421,32 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
               <i className={styles.bench}>┄</i> {bench.label} : {fmtY(bench.at(anchor.date))}
             </span>
           )}
-        </div>
+          <small>{sA && !sB ? t("toucher pour lire l'écart depuis l'épingle") : t("toucher deux points pour lire un écart")}</small>
+        </TrackTip>
       )}
+      {sA && sB ? (
+        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
+          <b>
+            {when(sA)} → {when(sB)}
+          </b>
+          {series.map((s, i) => {
+            const pa = atStop(s, sA.d);
+            const pb = atStop(s, sB.d);
+            if (!pa || !pb) return null;
+            const delta = pb.y - pa.y;
+            return (
+              <span key={i}>
+                {" "}
+                · <i className={COLORS[i]}>■</i> {labels[i]} : {fmtY(pa.y)} → {fmtY(pb.y)} (<b className={delta >= 0 ? trackStyles.up : trackStyles.down}>{area === "up" && !zero ? `${delta >= 0 ? "+" : ""}${fmtPct(pa.y ? (delta / pa.y) * 100 : 0, 1)}` : `${delta >= 0 ? "+" : ""}${fmtPct(delta, 1).replace(" %", " pt")}`}</b>)
+              </span>
+            );
+          })}
+        </RangeRead>
+      ) : sA ? (
+        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
+          <b>{when(sA)}</b> : {t("touchez une seconde date pour lire l'écart")}
+        </RangeRead>
+      ) : null}
     </div>
   );
 }
