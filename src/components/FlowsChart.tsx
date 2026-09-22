@@ -45,7 +45,7 @@ export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: 
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: compact ? 614 : 768, margin: "8px auto 0" }}>
-      <svg className="chart chartSm" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} {...track.handlers}>
+      <svg className={`chart chartSm ${trackStyles.track}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} {...track.handlers}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
           const x = padL + slot * i + slot / 2 - bw / 2;

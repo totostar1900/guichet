@@ -81,7 +81,7 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
   const volumeBetween = between.slice(1).reduce((s, p) => s + (p.volume ?? 0), 0);
   return (
     <div className={styles.wrapRel}>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={ariaLabel} {...track.handlers}>
+      <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={ariaLabel} {...track.handlers}>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className={styles.grid} />

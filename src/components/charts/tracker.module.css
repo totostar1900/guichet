@@ -97,3 +97,8 @@
 .down {
   color: var(--warn);
 }
+
+/* the chart owns the horizontal drag, the page keeps the vertical scroll */
+.track {
+  touch-action: pan-y;
+}

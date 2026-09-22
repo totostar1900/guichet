@@ -24,16 +24,19 @@ export interface TrackerArgs {
   /** The pinned keys the chart is given (none, one, or two, sorted). */
   pins?: string[];
   onPin?: (key: string) => void;
+  /** A range drawn in one gesture (long press, then drag) : both pins at once. */
+  onRange?: (a: string, b: string) => void;
 }
 
-export function useTracker({ keys, x, yAt, W, H, pins = [], onPin }: TrackerArgs) {
+export function useTracker({ keys, x, yAt, W, H, pins = [], onPin, onRange }: TrackerArgs) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const touchRef = useRef(false);
   const [hover, setHover] = useState<number | null>(null);
   const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
+  // the finger : where it landed, whether it moved, whether the long press turned the drag into a range
+  const touch = useRef<{ id: number; x0: number; i0: number; moved: boolean; range: boolean; wasReading: boolean; timer: number | null } | null>(null);
   const nearest = (clientX: number, svg: SVGSVGElement) => {
     const r = svg.getBoundingClientRect();
-    const px = ((clientX - r.left) / r.width) * W;
+    const px = ((clientX - r.left) / Math.max(1, r.width)) * W;
     let best = 0;
     let bd = Infinity;
     for (let i = 0; i < keys.length; i++) {
@@ -58,25 +61,73 @@ export function useTracker({ keys, x, yAt, W, H, pins = [], onPin }: TrackerArgs
     setPos({ x: cx, y: above ? py - 12 : py + 14, above });
   };
   const hide = () => setHover(null);
+  const clearTimer = () => {
+    if (touch.current?.timer) window.clearTimeout(touch.current.timer);
+  };
   const handlers = {
     ref: svgRef,
     onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
-      touchRef.current = e.pointerType === "touch";
+      if (e.pointerType !== "touch") return;
+      const svg = e.currentTarget;
+      const i = nearest(e.clientX, svg);
+      clearTimer();
+      touch.current = { id: e.pointerId, x0: e.clientX, i0: i, moved: false, range: false, wasReading: hover === i, timer: null };
+      try {
+        svg.setPointerCapture(e.pointerId);
+      } catch {
+        /* an old browser : the drag still follows while the finger stays on the chart */
+      }
+      show(i);
+      if (onRange) {
+        touch.current.timer = window.setTimeout(() => {
+          if (touch.current && !touch.current.moved) {
+            touch.current.range = true;
+            onRange(keys[i], keys[i]);
+            if (navigator.vibrate) navigator.vibrate(12);
+          }
+        }, 420);
+      }
     },
     onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
-      if (e.pointerType !== "touch") show(nearest(e.clientX, e.currentTarget));
+      if (e.pointerType !== "touch") {
+        show(nearest(e.clientX, e.currentTarget));
+        return;
+      }
+      const tch = touch.current;
+      if (!tch || tch.id !== e.pointerId) return;
+      if (Math.abs(e.clientX - tch.x0) > 6) {
+        if (!tch.moved) {
+          tch.moved = true;
+          if (!tch.range) clearTimer();
+        }
+      }
+      const i = nearest(e.clientX, e.currentTarget);
+      show(i);
+      if (tch.range && onRange) {
+        const [p, q] = [keys[tch.i0], keys[i]].sort();
+        onRange(p, q);
+      }
+    },
+    onPointerUp: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (e.pointerType !== "touch") return;
+      const tch = touch.current;
+      clearTimer();
+      touch.current = null;
+      if (!tch) return;
+      // a tap on the point already read pins it ; a tap elsewhere or a scrub leaves the reading
+      if (!tch.moved && !tch.range && tch.wasReading && onPin) onPin(keys[tch.i0]);
+    },
+    onPointerCancel: () => {
+      clearTimer();
+      touch.current = null;
     },
     onPointerLeave: (e: React.PointerEvent<SVGSVGElement>) => {
       if (e.pointerType !== "touch") hide();
     },
     onClick: (e: React.MouseEvent<SVGSVGElement>) => {
-      const i = nearest(e.clientX, e.currentTarget);
-      if (touchRef.current && hover !== i) {
-        show(i);
-        return;
-      }
-      if (onPin) onPin(keys[i]);
-      else if (touchRef.current) hide();
+      // the mouse : a click pins ; the finger's taps are handled above (its click follows and is ignored)
+      if (touch.current || e.nativeEvent.detail === 0 || (e.nativeEvent as PointerEvent).pointerType === "touch") return;
+      if (onPin) onPin(keys[nearest(e.clientX, e.currentTarget)]);
     },
   };
   const pinA = pins[0] && keys.includes(pins[0]) ? pins[0] : undefined;

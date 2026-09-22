@@ -58,7 +58,7 @@
   z-index: 40;
   min-width: max(100%, 200px);
   max-height: 300px;
-  overflow: auto;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -304,36 +304,50 @@
   font-size: 0.82rem;
   color: var(--ink-3);
 }
-/* the phone : a sheet with the field on top */
-.selSheet {
-  position: fixed;
-  left: 8px;
-  right: 8px;
-  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-  top: auto;
-  max-height: min(70vh, 520px);
+/* the panel : anchored under the box, above it when the room is below, never past the screen's edge */
+.selMenu {
   display: flex;
   flex-direction: column;
+  max-width: calc(100vw - 16px);
   padding: 0;
-  z-index: 60;
-  border-radius: 14px;
 }
-.selSheetHead {
+.selUp {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.selRight {
+  left: auto;
+  right: 0;
+}
+.selList {
+  overflow: auto;
+  padding: 6px;
+}
+.selHead {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 10px 8px 14px;
+  gap: 6px;
+  padding: 8px 8px 8px 12px;
   border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
   background: var(--surface);
-  border-radius: 14px 14px 0 0;
+  flex: none;
 }
-.selSheetHead .selInput {
+.selHead .selInput {
   font-size: 1rem;
-  padding: 6px 0;
+  padding: 4px 0;
 }
-.selClose {
+.selHeadLabel {
+  flex: 1;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.selIcon {
   border: 0;
   background: var(--surface-2);
   color: var(--ink-2);
@@ -344,8 +358,10 @@
   line-height: 1;
   cursor: pointer;
   flex: none;
+  display: inline-grid;
+  place-items: center;
 }
-.selSheet .selList {
-  overflow: auto;
-  padding: 6px;
+.selIcon[aria-pressed="true"] {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
 }

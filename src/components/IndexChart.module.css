@@ -597,3 +597,7 @@ button.calCell:focus-visible {
   background: color-mix(in srgb, var(--gold) 20%, transparent);
   border: 1px solid var(--gold);
 }
+
+.cal {
+  touch-action: pan-y;
+}

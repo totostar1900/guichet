@@ -1749,4 +1749,7 @@ export const EN_MORE: Record<string, string> = {
   "séance où l'indice a bougé": "session where the index moved",
   "intervalle épinglé": "pinned interval",
   "Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux.": "Hover to read a session; tap two points (or pick two dates) to read the change between them.",
+  "Chercher dans la liste": "Search the list",
+  "{n} choix": "{n} choices",
+  "ligne et mouvements": "line and moves",
 };

@@ -375,7 +375,7 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   const sB = stopOf(track.pinB);
   return (
     <div className={styles.dual}>
-      <svg viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={labels.join(" / ")} {...track.handlers}>
+      <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={labels.join(" / ")} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={q.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={q.guide} />
         <text x={padX - 5} y={y(max) + 4} className={styles.tick} style={{ fontSize: fontPx }} textAnchor="end">

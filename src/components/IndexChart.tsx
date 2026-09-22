@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
+import { TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
 import { fmt, fmtDate, money } from "@/lib/format";
 import styles from "./IndexChart.module.css";
 
@@ -31,7 +32,7 @@ export interface OverlaySeries {
 export type IndexView = "niveau" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
 type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
 type VolumeKey = "amount" | "titles" | "trades";
-type Marks = "ligne" | "ligne_points" | "points";
+type Marks = "ligne" | "ligne_mouvements" | "points";
 const PERIODS: [PeriodKey, string][] = [
   ["1m", "1 mois"],
   ["3m", "3 mois"],
@@ -68,16 +69,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const [overlay, setOverlay] = useState("");
   const [volKey, setVolKey] = useState<VolumeKey>("amount");
   const [volOf, setVolOf] = useState("");
-  const [hover, setHover] = useState<number | null>(null);
   const [pins, setPins] = useState<string[]>([]);
-  const [marks, setMarks] = useState<Marks>("ligne_points");
+  const [marks, setMarks] = useState<Marks>("ligne_mouvements");
   // the company dimension of the calendar, the capitalisation and the float
   const [company, setCompany] = useState("");
   const co = overlays.find((o) => o.mnemo === company);
-  // touch : the first tap shows the reading, the second on the same point pins it
-  const touchRef = useRef(false);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [tipPos, setTipPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(760);
   useEffect(() => {
@@ -126,11 +122,10 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     const p = pts.find((q) => q.date === date);
     return p?.[volKey] ?? 0;
   };
-  if (!last || pts.length < 2) return <div className="empty">{t("Pas assez de séances lues sur cette période.")}</div>;
 
   const dates = pts.map((p) => p.date);
-  const d0 = dates[0];
-  const dN = dates[dates.length - 1];
+  const d0 = dates[0] ?? "2000-01-01";
+  const dN = dates[dates.length - 1] ?? "2000-01-02";
   const span = Math.max(1, daysBetween(d0, dN));
   const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
   const ys = [...series.map((p) => p.y), ...ovSeries.map((p) => p.y)];
@@ -156,31 +151,24 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   };
   const ticks = 4;
   const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
+  // as many date ticks as the width can carry, first and last always
   const dateTicks: string[] = [];
   {
-    const step = Math.max(1, Math.round(span / 5));
-    for (let d = 0; d <= span; d += step) dateTicks.push(shift(dN, span - d));
+    const n = W < 480 ? 1 : W < 760 ? 3 : 5;
+    const step = Math.max(1, span / n);
+    for (let k = 0; k <= n; k++) dateTicks.push(shift(dN, Math.round(span - k * step)));
   }
+  const tickDate = (d: string) => (W < 480 ? new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" }) : fmtDate(d));
   const vols = pts.map((p) => volAt(p.date));
   const volMax = Math.max(1, ...vols);
   const volLabel = (v: number) => (volKey === "amount" ? money(v) : fmt(v));
   const totals = { titles: pts.reduce((a, p) => a + (p.titles ?? 0), 0), amount: pts.reduce((a, p) => a + (p.amount ?? 0), 0), trades: pts.reduce((a, p) => a + (p.trades ?? 0), 0), moved: pts.filter((p) => (p.variationPct ?? 0) !== 0).length };
-  const nearest = (clientX: number, svg: SVGSVGElement) => {
-    const r = svg.getBoundingClientRect();
-    const px = ((clientX - r.left) / r.width) * W;
-    let best = 0;
-    let bd = Infinity;
-    pts.forEach((p, i) => {
-      const d = Math.abs(x(p.date) - px);
-      if (d < bd) {
-        bd = d;
-        best = i;
-      }
-    });
-    return best;
-  };
   const togglePin = (date: string) => setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
+  const setRange = (a: string, b: string) => setPins(a === b ? [a] : [a, b]);
   const at = (d: string) => pts.find((p) => p.date === d);
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(series[i]?.y ?? 0), W, H, pins, onPin: togglePin, onRange: setRange });
+  const hover = track.hover;
+  if (!last || pts.length < 2) return <div className="empty">{t("Pas assez de séances lues sur cette période.")}</div>;
   const hp = hover != null ? pts[hover] : undefined;
   const sInfo = (d: string) => series.find((p) => p.date === d);
   const oInfo = (d: string) => ovSeries.filter((p) => p.date <= d).pop();
@@ -189,29 +177,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const between = pinA && pinB ? pts.filter((p) => p.date > pinA.date && p.date <= pinB.date) : [];
   const moved = between.filter((p) => (p.variationPct ?? 0) !== 0).length;
   const lineView = view === "niveau" || view === "volumes";
-  const placeTip = (i: number) => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const r = svg.getBoundingClientRect();
-    const px = r.left + (x(pts[i].date) / W) * r.width;
-    const py = r.top + (y(series[i].y) / H) * r.height;
-    const half = 120;
-    const cx = Math.min(window.innerWidth - half - 8, Math.max(half + 8, px));
-    const above = py + 170 > window.innerHeight;
-    setTipPos({ x: cx, y: above ? py - 12 : py + 14, above });
-  };
-  const hoverAt = (i: number) => {
-    setHover(i);
-    placeTip(i);
-  };
-  const onSvgClick = (clientX: number, svg: SVGSVGElement) => {
-    const i = nearest(clientX, svg);
-    if (touchRef.current && hover !== i) {
-      hoverAt(i);
-      return;
-    }
-    togglePin(pts[i].date);
-  };
 
   return (
     <div className={styles.wrap} ref={boxRef}>
@@ -235,7 +200,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             <label className={styles.check}>
               <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
             </label>
-            <Select compact label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_points", label: t("ligne et points") }, { value: "points", label: t("points") }]} />
+            <Select compact label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
             <Select compact label={t("Comparer à")} value={overlay} onChange={setOverlay} options={[{ value: "", label: t("aucune valeur") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
           </>
         )}
@@ -252,23 +217,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {lineView && (
         <>
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            className={styles.svg}
-            role="img"
-            aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })}
-            ref={svgRef}
-            onPointerDown={(e) => {
-              touchRef.current = e.pointerType === "touch";
-            }}
-            onPointerMove={(e) => {
-              if (e.pointerType !== "touch") hoverAt(nearest(e.clientX, e.currentTarget));
-            }}
-            onPointerLeave={(e) => {
-              if (e.pointerType !== "touch") setHover(null);
-            }}
-            onClick={(e) => onSvgClick(e.clientX, e.currentTarget)}
-          >
+          <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
                 <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -277,9 +226,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
                 </text>
               </g>
             ))}
-            {dateTicks.map((d) => (
-              <text key={d} x={x(d)} y={H - 8} textAnchor={d === d0 ? "start" : d === dN ? "end" : "middle"} className={styles.tick}>
-                {fmtDate(d)}
+            {dateTicks.map((d, i) => (
+              <text key={d} x={x(d)} y={H - 8} textAnchor={i === 0 ? "start" : i === dateTicks.length - 1 ? "end" : "middle"} className={styles.tick}>
+                {tickDate(d)}
               </text>
             ))}
             {showBase && <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />}
@@ -308,9 +257,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               segments(series).map((s, i) => (
                 <polyline key={i} points={s} className={styles.line} />
               ))}
-            {marks !== "ligne" && series.map((p) => <circle key={`m${p.date}`} cx={x(p.date)} cy={y(p.y)} r={marks === "points" ? 2.4 : 1.6} className={styles.dot} />)}
+            {marks === "points" && series.map((p) => <circle key={`m${p.date}`} cx={x(p.date)} cy={y(p.y)} r={2.4} className={styles.dot} />)}
             {series
-              .filter((p) => (p.variationPct ?? 0) !== 0)
+              .filter((p) => marks !== "ligne" && (p.variationPct ?? 0) !== 0)
               .map((p) => (
                 <circle key={p.date} cx={x(p.date)} cy={y(p.y)} r={3.5} className={(p.variationPct ?? 0) > 0 ? styles.up : styles.down}>
                   <title>
@@ -318,25 +267,10 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
                   </title>
                 </circle>
               ))}
-            {pins.map((d) => {
-              const s = sInfo(d);
-              return s ? (
-                <g key={d} className={styles.pin}>
-                  <line x1={x(d)} x2={x(d)} y1={padT} y2={H - padB} />
-                  <circle cx={x(d)} cy={y(s.y)} r={5} />
-                </g>
-              ) : null;
-            })}
-            {pinA && pinB && <rect x={x(pinA.date)} y={padT} width={Math.max(0, x(pinB.date) - x(pinA.date))} height={H - padT - padB} className={styles.range} />}
-            {hp && (
-              <g className={styles.cross}>
-                <line x1={x(hp.date)} x2={x(hp.date)} y1={padT} y2={H - padB} />
-                <circle cx={x(hp.date)} cy={y(sInfo(hp.date)!.y)} r={4} />
-              </g>
-            )}
+            <TrackMarks x={(k) => x(k)} y={(k) => y(sInfo(k)?.y ?? 0)} hover={hp?.date} pinA={pinA?.date} pinB={pinB?.date} padT={padT} padB={padB} H={H} />
           </svg>
-          {hp && tipPos && (
-            <div className={`${styles.tip} ${tipPos.above ? styles.tipAbove : ""}`} style={{ left: tipPos.x, top: tipPos.y }}>
+          {hp && track.pos && (
+            <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
               <b>{fmtDate(hp.date)}</b>
               <span>
                 {lvl(hp.value)} <em className={(hp.variationPct ?? 0) > 0 ? styles.upT : (hp.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(hp.variationPct)}</em>
@@ -437,92 +371,10 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {view === "contributions" && <Contributions index={pts} overlays={overlays} from={pinA && pinB ? pinA.date : d0} to={pinA && pinB ? pinB.date : dN} />}
 
-      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} company={co} pins={pins} onPin={togglePin} />}
+      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} company={co} pins={pins} onPin={togglePin} onRange={setRange} />}
 
-      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} company={co} pins={pins} onPin={togglePin} />}
+      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} company={co} pins={pins} onPin={togglePin} onRange={setRange} />}
     </div>
-  );
-}
-
-/**
- * The tracking of a chart : the nearest session under the pointer, a tip
- * fixed to the viewport, and the two pins that set a range. Shared by the
- * views so a range pinned on one is read on the others.
- */
-function useTracker({ dates, x, yAt, W, H, pins, onPin }: { dates: string[]; x: (d: string) => number; yAt: (i: number) => number; W: number; H: number; pins: string[]; onPin: (d: string) => void }) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const touchRef = useRef(false);
-  const [hover, setHover] = useState<number | null>(null);
-  const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
-  const nearest = (clientX: number, svg: SVGSVGElement) => {
-    const r = svg.getBoundingClientRect();
-    const px = ((clientX - r.left) / r.width) * W;
-    let best = 0;
-    let bd = Infinity;
-    dates.forEach((d, i) => {
-      const dd = Math.abs(x(d) - px);
-      if (dd < bd) {
-        bd = dd;
-        best = i;
-      }
-    });
-    return best;
-  };
-  const show = (i: number) => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const r = svg.getBoundingClientRect();
-    const px = r.left + (x(dates[i]) / W) * r.width;
-    const py = r.top + (yAt(i) / H) * r.height;
-    const half = 120;
-    const cx = Math.min(window.innerWidth - half - 8, Math.max(half + 8, px));
-    const above = py + 170 > window.innerHeight;
-    setHover(i);
-    setPos({ x: cx, y: above ? py - 12 : py + 14, above });
-  };
-  const handlers = {
-    ref: svgRef,
-    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
-      touchRef.current = e.pointerType === "touch";
-    },
-    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
-      if (e.pointerType !== "touch") show(nearest(e.clientX, e.currentTarget));
-    },
-    onPointerLeave: (e: React.PointerEvent<SVGSVGElement>) => {
-      if (e.pointerType !== "touch") setHover(null);
-    },
-    onClick: (e: React.MouseEvent<SVGSVGElement>) => {
-      const i = nearest(e.clientX, e.currentTarget);
-      if (touchRef.current && hover !== i) {
-        show(i);
-        return;
-      }
-      onPin(dates[i]);
-    },
-  };
-  const pinA = pins[0] && dates.includes(pins[0]) ? pins[0] : undefined;
-  const pinB = pins[1] && dates.includes(pins[1]) ? pins[1] : undefined;
-  return { handlers, hover, pos, pinA, pinB };
-}
-
-/** The crosshair, the pins and the pinned range drawn over a chart. */
-function TrackMarks({ x, y, hover, pinA, pinB, padT, padB, H }: { x: (d: string) => number; y: (d: string) => number; hover?: string; pinA?: string; pinB?: string; padT: number; padB: number; H: number }) {
-  return (
-    <>
-      {pinA && pinB && <rect x={x(pinA)} y={padT} width={Math.max(0, x(pinB) - x(pinA))} height={H - padT - padB} className={styles.range} />}
-      {[pinA, pinB].filter(Boolean).map((d) => (
-        <g key={d} className={styles.pin}>
-          <line x1={x(d!)} x2={x(d!)} y1={padT} y2={H - padB} />
-          <circle cx={x(d!)} cy={y(d!)} r={5} />
-        </g>
-      ))}
-      {hover && (
-        <g className={styles.cross}>
-          <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} />
-          <circle cx={x(hover)} cy={y(hover)} r={4} />
-        </g>
-      )}
-    </>
   );
 }
 
@@ -596,7 +448,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
 }
 
 /** The sum of the capitalisations, session after session, total and float stacked. */
-function Capitalisation({ index, overlays, W, company, pins, onPin }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void }) {
+function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
   const t = useT();
   const [floatOnly, setFloatOnly] = useState(false);
   const H = W < 480 ? 220 : 280;
@@ -624,7 +476,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin }: { index: C
   const dates = rows.map((r) => r.date);
   const rowAt = (d: string) => rows.find((r) => r.date === d)!;
   const yOf = (d: string) => y(floatOnly ? rowAt(d).float : rowAt(d).total);
-  const track = useTracker({ dates, x, yAt: (i) => y(floatOnly ? rows[i].float : rows[i].total), W, H, pins, onPin });
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(floatOnly ? rows[i].float : rows[i].total), W, H, pins, onPin, onRange });
   const hp = track.hover != null ? rows[track.hover] : undefined;
   const rA = track.pinA ? rowAt(track.pinA) : undefined;
   const rB = track.pinB ? rowAt(track.pinB) : undefined;
@@ -642,7 +494,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin }: { index: C
           <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant seul")}
         </label>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Capitalisation de la cote, séance après séance")} {...track.handlers}>
+      <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Capitalisation de la cote, séance après séance")} {...track.handlers}>
         {ticks.map((v) => (
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -738,7 +590,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin }: { index: C
 }
 
 /** The published index against a float-weighted reading of the same prices, base 100, and the float rotation per share. */
-function FloatView({ index, overlays, W, company, pins, onPin }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void }) {
+function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
   const t = useT();
   const H = W < 480 ? 220 : 260;
   const padL = 46;
@@ -778,7 +630,7 @@ function FloatView({ index, overlays, W, company, pins, onPin }: { index: ChartP
   const ticks = 4;
   const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
   const dates = index.map((p) => p.date);
-  const track = useTracker({ dates, x, yAt: (i) => y(pub[i].y), W, H, pins, onPin });
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(pub[i].y), W, H, pins, onPin, onRange });
   const hp = track.hover != null ? index[track.hover] : undefined;
   const at = (arr: { date: string; y: number }[], d: string) => arr.find((p) => p.date === d)?.y ?? 100;
   // the rotation window : the pinned range when there is one, else the period
@@ -800,7 +652,7 @@ function FloatView({ index, overlays, W, company, pins, onPin }: { index: ChartP
     <div className={styles.capWrap}>
       {hasCaps ? (
         <>
-          <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
+          <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
                 <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -943,7 +795,16 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
   return (
-    <div className={styles.calWrap} onPointerLeave={(e) => e.pointerType !== "touch" && setTip(null)}>
+    <div
+      className={styles.calWrap}
+      onPointerLeave={(e) => e.pointerType !== "touch" && setTip(null)}
+      onPointerMove={(e) => {
+        if (e.pointerType !== "touch" || e.buttons === 0) return;
+        const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+        const d = el?.getAttribute("data-date");
+        if (d && d !== tip?.date) showTip(d, el!);
+      }}
+    >
       <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
         <span />
         {weeks.map((w, i) => (
@@ -963,6 +824,7 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
                 <button
                   key={d}
                   type="button"
+                  data-date={d}
                   className={`${styles.calCell} ${cls(d)}`}
                   aria-label={label}
                   onPointerDown={(e) => {

@@ -11,7 +11,10 @@ import styles from "./ui.module.css";
  * under it, every entry shown until something is typed, then the list
  * narrows as you type (accents ignored, label and hint searched). Single
  * value, keyboard-driven (arrows, Enter, Escape), a form field through a
- * hidden input. On a phone the list opens as a sheet with the field on top.
+ * hidden input. The list opens anchored under the box (above it when the
+ * room is below), measured against the visual viewport so a keyboard never
+ * hides it ; the keyboard itself only comes when asked : a short list is
+ * two taps, the magnifier (or typing on a keyboard) turns on the field.
  */
 export interface SelectOption {
   value: string;
@@ -29,6 +32,9 @@ export function Select({ value, options, onChange, label, name, placeholder, com
   const [inner, setInner] = useState(value);
   const [query, setQuery] = useState("");
   const [phone, setPhone] = useState(false);
+  // the field is earned, not automatic : on a phone it appears on the magnifier ; on a desktop it is focused for long lists only
+  const [typing, setTyping] = useState(false);
+  const [place, setPlace] = useState<{ up: boolean; maxH: number; right: boolean }>({ up: false, maxH: 320, right: false });
   const cur = onChange ? value : inner;
   const set = (v: string) => {
     if (onChange) onChange(v);
@@ -61,6 +67,32 @@ export function Select({ value, options, onChange, label, name, placeholder, com
     m.addEventListener("change", on);
     return () => m.removeEventListener("change", on);
   }, []);
+  const measure = () => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const top = vv ? vv.offsetTop : 0;
+    const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+    const width = vv ? vv.width : window.innerWidth;
+    const below = bottom - r.bottom - 12;
+    const above = r.top - top - 12;
+    const up = below < 180 && above > below;
+    setPlace({ up, maxH: Math.max(120, Math.min(320, (up ? above : below))), right: r.left + Math.max(r.width, 220) > width - 8 });
+  };
+  useEffect(() => {
+    if (!open) return;
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", measure);
+    vv?.addEventListener("scroll", measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      vv?.removeEventListener("resize", measure);
+      vv?.removeEventListener("scroll", measure);
+      window.removeEventListener("resize", measure);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {
@@ -77,13 +109,16 @@ export function Select({ value, options, onChange, label, name, placeholder, com
     listRef.current?.querySelectorAll<HTMLElement>("[role=option]")[active]?.scrollIntoView({ block: "nearest" });
   }, [open, active]);
   const openMenu = (typed = "") => {
+    measure();
     setQuery(typed);
+    setTyping(Boolean(typed) || (!phone && selectable.length > 12));
     setActive(typed ? 0 : Math.max(0, selectable.findIndex((o) => o.value === cur)));
     setOpen(true);
   };
   const closeMenu = () => {
     setOpen(false);
     setQuery("");
+    setTyping(false);
   };
   const choose = (v: string) => {
     set(v);
@@ -124,7 +159,7 @@ export function Select({ value, options, onChange, label, name, placeholder, com
         setActive(0);
       }}
       onKeyDown={onKey}
-      autoFocus
+      autoFocus={typing}
       aria-autocomplete="list"
       aria-controls={`${id}-list`}
       aria-expanded={open}
@@ -139,9 +174,9 @@ export function Select({ value, options, onChange, label, name, placeholder, com
     <div className={`${styles.sel} ${compact ? styles.selCompact : ""} ${block ? styles.selBlock : ""} ${open ? styles.selOpen : ""} ${className}`} ref={ref}>
       {name && <input type="hidden" name={name} value={cur} required={required} />}
       {open && !phone ? (
-        <div className={`${styles.selBtn} ${styles.selHas}`}>
+        <div className={`${styles.selBtn} ${styles.selHas}`} onClick={() => setTyping(true)}>
           {label && <span className={styles.selLabel}>{label}</span>}
-          <span className={styles.selValue}>{field}</span>
+          <span className={styles.selValue}>{typing ? field : current?.label ?? placeholder ?? "—"}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
             <path d="m6 9 6 6 6-6" />
           </svg>
@@ -175,11 +210,21 @@ export function Select({ value, options, onChange, label, name, placeholder, com
           </button>
       )}
       {open && (
-        <div className={`${styles.selMenu} ${phone ? styles.selSheet : ""}`} id={`${id}-list`} ref={listRef}>
+        <div className={`${styles.selMenu} ${place.up ? styles.selUp : ""} ${place.right ? styles.selRight : ""}`} id={`${id}-list`} ref={listRef} style={{ maxHeight: place.maxH }}>
           {phone && (
-            <div className={styles.selSheetHead}>
-              {field}
-              <button type="button" className={styles.selClose} onClick={closeMenu} aria-label={t("Fermer")}>
+            <div className={styles.selHead}>
+              {typing ? (
+                field
+              ) : (
+                <span className={styles.selHeadLabel}>{label ?? placeholder ?? t("{n} choix", { n: String(selectable.length) })}</span>
+              )}
+              <button type="button" className={styles.selIcon} onClick={() => setTyping((v) => !v)} aria-label={t("Chercher dans la liste")} aria-pressed={typing}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+              </button>
+              <button type="button" className={styles.selIcon} onClick={closeMenu} aria-label={t("Fermer")}>
                 ×
               </button>
             </div>
