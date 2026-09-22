@@ -10,6 +10,20 @@ import { loadCompanies } from "@/lib/reference";
  * index measures and what it does not. Everything is computed from the sessions
  * of that quarter only, so a published quarter never changes afterwards.
  */
+/**
+ * A sentence the note writes: the French text is the dictionary key, the
+ * figures are its values. The page and the desk pass it through t(); the PDF,
+ * which is a French document, fills it with `fill`.
+ */
+export interface Sentence {
+  key: string;
+  vars?: Record<string, string | number>;
+}
+
+/** The French reading of a sentence: the key with its values put in. */
+export const fill = (s: Sentence): string => s.key.replace(/\{(\w+)\}/g, (m, k) => String(s.vars?.[k] ?? m));
+export const fillAll = (ss: Sentence[]): string => ss.map(fill).join(" ");
+
 export interface QuarterKey {
   /** « 2026-T3 ». */
   key: string;
@@ -68,9 +82,9 @@ export interface QuarterNote {
   bySector: { label: string; pct: number }[];
   byCountry: { label: string; pct: number }[];
   /** The sentences the note leads with, written from the figures. */
-  headline: string;
-  reading: string;
-  caution: string;
+  headline: Sentence[];
+  reading: Sentence[];
+  caution: Sentence[];
   /** True when a session's published change is not reconstituted by the prices read: said in one line, never detailed to a client. */
   methodOpen: boolean;
 }
@@ -186,7 +200,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
   const movedSessions = [...moved].reverse().map((p) => ({
     date: p.date,
     variationPct: p.variationPct ?? 0,
-    movers: (d.movers.get(p.date) ?? []).filter((m) => m.variationPct !== 0).map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · ") || "aucun cours d'action modifié dans nos lectures",
+    movers: (d.movers.get(p.date) ?? []).filter((m) => m.variationPct !== 0).map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · "),
   }));
 
   const group = (pick: (l: QuarterLine) => string) => {
@@ -205,18 +219,48 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
 
   const top = lines.reduce((a, l) => (Math.abs(l.points) > Math.abs(a.points) ? l : a), lines[0]);
   const best = [...lines].sort((a, b) => b.move - a.move)[0];
-  const headline =
+  const headline: Sentence[] =
     moved.length === 0
-      ? `Aucune séance du trimestre n'a fait bouger l'indice : il reste à ${fmt(last.value)} points.`
-      : `L'indice BVMAC All Share termine le ${quarter.label} à ${fmt(last.value)} points, ${signed(ret)} sur le trimestre, après ${moved.length} séance${moved.length > 1 ? "s" : ""} avec mouvement sur ${inQ.length} séances lues.`;
-  const reading =
+      ? [{ key: "Aucune séance du trimestre n'a fait bouger l'indice : il reste à {v} points.", vars: { v: fmt(last.value) } }]
+      : [
+          {
+            key:
+              moved.length > 1
+                ? "L'indice BVMAC All Share termine le {q} à {v} points, {r} sur le trimestre, après {m} séances avec mouvement sur {n} séances lues."
+                : "L'indice BVMAC All Share termine le {q} à {v} points, {r} sur le trimestre, après une seule séance avec mouvement sur {n} séances lues.",
+            vars: { q: quarter.label, v: fmt(last.value), r: signed(ret), m: moved.length, n: inQ.length },
+          },
+        ];
+  const reading: Sentence[] =
     top && Math.abs(top.points) > 0.01
-      ? `${top.name} porte le mouvement : ${signed(top.move, 1)} sur son cours et un poids de ${fmtPct(top.weight, 1)} de la cote, soit ${signed(top.points, 2).replace(" %", " point")} d'indice.${best && best.mnemo !== top.mnemo && best.move > top.move ? ` La plus forte hausse du trimestre est celle de ${best.name}, ${signed(best.move, 1)}, dont le poids de ${fmtPct(best.weight, 1)} limite l'effet sur l'indice.` : ""}`
-      : `Aucune valeur n'a pesé sur l'indice ce trimestre.`;
-  const caution =
+      ? [
+          {
+            key: "{c} porte le mouvement : {m} sur son cours et un poids de {w} de la cote, soit {p} d'indice.",
+            vars: { c: top.name, m: signed(top.move, 1), w: fmtPct(top.weight, 1), p: signed(top.points, 2).replace(" %", " point") },
+          },
+          ...(best && best.mnemo !== top.mnemo && best.move > top.move
+            ? [
+                {
+                  key: "La plus forte hausse du trimestre est celle de {c}, {m}, dont le poids de {w} limite l'effet sur l'indice.",
+                  vars: { c: best.name, m: signed(best.move, 1), w: fmtPct(best.weight, 1) },
+                },
+              ]
+            : []),
+        ]
+      : [{ key: "Aucune valeur n'a pesé sur l'indice ce trimestre." }];
+  const caution: Sentence[] =
     amount > 0
-      ? `${money(amount)} FCFA ont changé de mains en ${trades} transaction${trades > 1 ? "s" : ""} sur l'ensemble de la cote. Une position se construit et se défait en plusieurs séances : passez par un ordre à cours limité et donnez-lui du temps.`
-      : `Aucune transaction sur les actions ce trimestre : le niveau de l'indice reflète les derniers cours connus, pas un prix auquel acheter ou vendre aujourd'hui.`;
+      ? [
+          {
+            key:
+              trades > 1
+                ? "{a} FCFA ont changé de mains en {n} transactions sur l'ensemble de la cote."
+                : "{a} FCFA ont changé de mains en une seule transaction sur l'ensemble de la cote.",
+            vars: { a: money(amount), n: trades },
+          },
+          { key: "Une position se construit et se défait en plusieurs séances : passez par un ordre à cours limité et donnez-lui du temps." },
+        ]
+      : [{ key: "Aucune transaction sur les actions ce trimestre : le niveau de l'indice reflète les derniers cours connus, pas un prix auquel acheter ou vendre aujourd'hui." }];
 
   return {
     quarter,

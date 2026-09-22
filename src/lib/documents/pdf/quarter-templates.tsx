@@ -1,6 +1,6 @@
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
-import type { QuarterNote } from "@/lib/market/index-quarter";
+import { fillAll, type QuarterNote } from "@/lib/market/index-quarter";
 import { KV, Letter, Table, Text, s } from "./primitives";
 
 /**
@@ -21,8 +21,8 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
         {n.number} · {COMPANY.legalName}, {COMPANY.licence} · séances du {fmtDate(n.quarter.from)} au {fmtDate(n.quarter.to)}
       </Text>
 
-      <Text style={s.p}>{n.headline}</Text>
-      <Text style={s.p}>{n.reading}</Text>
+      <Text style={s.p}>{fillAll(n.headline)}</Text>
+      <Text style={s.p}>{fillAll(n.reading)}</Text>
 
       <Text style={[s.p, s.b]}>1. Le trimestre en chiffres</Text>
       <KV
@@ -62,7 +62,7 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
       )}
 
       <Text style={[s.p, s.b]}>3. Ce qui s&apos;est échangé</Text>
-      <Text style={s.p}>{n.caution}</Text>
+      <Text style={s.p}>{fillAll(n.caution)}</Text>
       {traded.length > 0 && (
         <Table
           cols={[

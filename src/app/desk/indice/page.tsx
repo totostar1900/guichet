@@ -70,7 +70,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
               </Link>
             ))}
           </div>
-          <p className={styles.lead2}>{quarter.headline}</p>
+          <p className={styles.lead2}>{quarter.headline.map((x) => t(x.key, x.vars)).join(" ")}</p>
           <div className={styles.publish}>
             <a className="btn sm primary" href={`/indice/note/${quarter.quarter.key.toLowerCase()}`} target="_blank" rel="noreferrer">
               {t("Lire la page publique")}

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { repo } from "@/lib/data";
 import { indexQuarterFor, publishQuarterNote } from "@/lib/documents/generate";
+import { fillAll } from "@/lib/market/index-quarter";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -23,6 +24,6 @@ export async function GET(req: NextRequest) {
   if (already) return NextResponse.json({ ok: true, key, already: already.number });
   const doc = await publishQuarterNote(key, "le robot");
   if (!doc) return NextResponse.json({ ok: false, key, error: "note non produite" }, { status: 500 });
-  await repo().logEvent({ kind: "desk", html: `Note trimestrielle sur l'indice : ${doc.number} · ${note.headline} · à relire avant diffusion` });
+  await repo().logEvent({ kind: "desk", html: `Note trimestrielle sur l'indice : ${doc.number} · ${fillAll(note.headline)} · à relire avant diffusion` });
   return NextResponse.json({ ok: true, key, number: doc.number, methodOpen: note.methodOpen });
 }

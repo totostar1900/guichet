@@ -34,6 +34,9 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
   const traded = n.lines.filter((l) => l.trades > 0);
   const top = n.lines.reduce((a, l) => (Math.abs(l.points) > Math.abs(a.points) ? l : a), n.lines[0]);
   const share = (pct: number) => `${Math.max(0, Math.min(100, pct))}%`;
+  /** The note writes its sentences as keys and values: they read in the visitor's language. */
+  const say = (ss: { key: string; vars?: Record<string, string | number> }[]) => ss.map((x) => t(x.key, x.vars)).join(" ");
+  const qlabel = (q: { q: number; year: number }) => t(q.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: q.q, y: q.year });
   const others = list.filter((q) => q.key !== n.quarter.key).slice(0, 4);
 
   return (
@@ -45,8 +48,8 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         </span>
       </header>
 
-      <h1 className={styles.title}>{t("L'indice BVMAC All Share au {q}", { q: n.quarter.label })}</h1>
-      <p className={styles.stand}>{n.headline}</p>
+      <h1 className={styles.title}>{t("L'indice BVMAC All Share au {q}", { q: qlabel(n.quarter) })}</h1>
+      <p className={styles.stand}>{say(n.headline)}</p>
       <p className={styles.byline}>
         {t("Lecture des bulletins officiels de la cote ; calculs {c}", { c: COMPANY.legalName })} · <Link href="/indice">{t("la page de l'indice, mise à jour à chaque séance")}</Link>
       </p>
@@ -85,7 +88,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         <h2>
           <span className={styles.n}>01</span> {t("Ce que le trimestre a fait")}
         </h2>
-        <p>{n.reading}</p>
+        <p>{say(n.reading)}</p>
         <figure className={styles.figure}>
           <div className={styles.figtitle}>{t("Niveau de l'indice, fin de mois")}</div>
           <div className={styles.bars}>
@@ -97,7 +100,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                 <div key={m.label} className={styles.bar}>
                   <b>{fmt(m.value)}</b>
                   <i style={{ height: `${Math.max(6, h)}%` }} className={m.ret > 0 ? styles.barUp : m.ret < 0 ? styles.barDown : ""} />
-                  <span>{m.label}</span>
+                  <span>{t(m.label)}</span>
                   <em className={m.ret > 0 ? styles.up : m.ret < 0 ? styles.down : ""}>{signed(m.ret, 1)}</em>
                 </div>
               );
@@ -123,7 +126,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                   <tr key={s.date}>
                     <td>{fmtDate(s.date)}</td>
                     <td className={`${styles.num} ${s.variationPct > 0 ? styles.up : styles.down}`}>{signed(s.variationPct)}</td>
-                    <td>{s.movers}</td>
+                    <td>{s.movers || t("aucun cours d'action modifié dans nos lectures")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -159,8 +162,8 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                       <b>{l.mnemo}</b> · {l.name}
                     </Link>
                   </td>
-                  <td>{l.sector}</td>
-                  <td>{l.country}</td>
+                  <td>{t(l.sector)}</td>
+                  <td>{t(l.country)}</td>
                   <td className={styles.num}>{fmt(l.price)}</td>
                   <td className={styles.num}>{l.yield != null ? fmtPct(l.yield, 1) : "—"}</td>
                   <td className={styles.num}>{fmtPct(l.weight, 1)}</td>
@@ -184,7 +187,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             <div className={styles.figtitle}>{t("Par secteur")}</div>
             {n.bySector.map((g) => (
               <div key={g.label} className={styles.split}>
-                <span>{g.label}</span>
+                <span>{t(g.label)}</span>
                 <i style={{ width: share(g.pct) }} />
                 <b>{fmtPct(g.pct, 1)}</b>
               </div>
@@ -194,7 +197,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             <div className={styles.figtitle}>{t("Par pays")}</div>
             {n.byCountry.map((g) => (
               <div key={g.label} className={styles.split}>
-                <span>{g.label}</span>
+                <span>{t(g.label)}</span>
                 <i style={{ width: share(g.pct) }} />
                 <b>{fmtPct(g.pct, 1)}</b>
               </div>
@@ -212,7 +215,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         <h2>
           <span className={styles.n}>03</span> {t("Ce qui s'est échangé, et ce que cela change pour vous")}
         </h2>
-        <p>{n.caution}</p>
+        <p>{say(n.caution)}</p>
         {traded.length > 0 && (
           <div className={styles.tw}>
             <table>
@@ -281,7 +284,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
           <span>{t("Les autres trimestres")}</span>
           {others.map((q) => (
             <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`}>
-              {q.label}
+              {qlabel(q)}
             </Link>
           ))}
         </nav>

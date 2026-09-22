@@ -1871,4 +1871,19 @@ export const EN_MORE: Record<string, string> = {
   "tout le monde : la note trimestrielle est publique": "everyone: the quarterly note is public",
   "Desk › Indice": "Desk › Index",
   "trimestrielle et publique ; mensuelle et interne": "quarterly and public; monthly and internal",
+
+  /* ---------- les phrases que la note écrit de ses chiffres ---------- */
+  "1er trimestre {y}": "Q1 {y}",
+  "{n}e trimestre {y}": "Q{n} {y}",
+  "Aucune séance du trimestre n'a fait bouger l'indice : il reste à {v} points.": "No session of the quarter moved the index: it stays at {v} points.",
+  "L'indice BVMAC All Share termine le {q} à {v} points, {r} sur le trimestre, après {m} séances avec mouvement sur {n} séances lues.": "The BVMAC All Share index ends {q} at {v} points, {r} over the quarter, after {m} sessions with a move out of {n} sessions read.",
+  "L'indice BVMAC All Share termine le {q} à {v} points, {r} sur le trimestre, après une seule séance avec mouvement sur {n} séances lues.": "The BVMAC All Share index ends {q} at {v} points, {r} over the quarter, after a single session with a move out of {n} sessions read.",
+  "{c} porte le mouvement : {m} sur son cours et un poids de {w} de la cote, soit {p} d'indice.": "{c} carries the move: {m} on its price and a weight of {w} of the market, that is {p} of index.",
+  "La plus forte hausse du trimestre est celle de {c}, {m}, dont le poids de {w} limite l'effet sur l'indice.": "The strongest rise of the quarter is {c}, {m}, whose weight of {w} limits its effect on the index.",
+  "Aucune valeur n'a pesé sur l'indice ce trimestre.": "No share weighed on the index this quarter.",
+  "{a} FCFA ont changé de mains en {n} transactions sur l'ensemble de la cote.": "{a} FCFA changed hands in {n} trades across the whole market.",
+  "{a} FCFA ont changé de mains en une seule transaction sur l'ensemble de la cote.": "{a} FCFA changed hands in a single trade across the whole market.",
+  "Une position se construit et se défait en plusieurs séances : passez par un ordre à cours limité et donnez-lui du temps.": "A position is built and unwound over several sessions: use a limit order and give it time.",
+  "Aucune transaction sur les actions ce trimestre : le niveau de l'indice reflète les derniers cours connus, pas un prix auquel acheter ou vendre aujourd'hui.": "No equity trade this quarter: the index level reflects the last known prices, not a price at which to buy or sell today.",
+  "aucun cours d'action modifié dans nos lectures": "no share price changed in our readings",
 };
