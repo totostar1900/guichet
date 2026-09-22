@@ -92,3 +92,9 @@ export const normalizePhone = (s: string | undefined): string => {
   if (d.startsWith("00")) return `+${d.slice(2)}`;
   return d.length === 9 ? `+237${d}` : `+${d}`;
 };
+
+/** FCFA in a short form : 1,2 Md · 340 M · 850 k. */
+export const money = (v: number): string => {
+  const d = (x: number, n: number) => x.toLocaleString("fr-FR", { minimumFractionDigits: n, maximumFractionDigits: n });
+  return v >= 1e9 ? `${d(v / 1e9, 1)} Md` : v >= 1e6 ? `${d(v / 1e6, v >= 1e8 ? 0 : 1)} M` : v >= 1e3 ? `${d(v / 1e3, 0)} k` : fmt(v);
+};

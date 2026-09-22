@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { IndexChart, money, type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
-import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
+import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
+import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";

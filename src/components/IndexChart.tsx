@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt, fmtDate, money } from "@/lib/format";
 import styles from "./IndexChart.module.css";
 
 export interface ChartPoint {
@@ -49,8 +49,6 @@ const shift = (iso: string, days: number) => new Date(new Date(`${iso}T12:00:00Z
 const daysBetween = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00Z`).getTime() - new Date(`${a}T12:00:00Z`).getTime()) / 86400e3);
 const lvl = (v: number, d = 2) => v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${lvl(v, d)} %`);
-/** FCFA in a short form : 1,2 Md · 340 M · 850 k. */
-export const money = (v: number) => (v >= 1e9 ? `${lvl(v / 1e9, 1)} Md` : v >= 1e6 ? `${lvl(v / 1e6, v >= 1e8 ? 0 : 1)} M` : v >= 1e3 ? `${lvl(v / 1e3, 0)} k` : fmt(v));
 
 /**
  * The index, every session read, under one selector of views: the level
