@@ -572,3 +572,28 @@ button.calCell:focus-visible {
 .contribOn a {
   color: var(--gold-ink);
 }
+
+/* the legend of the level views */
+.kDash {
+  background: repeating-linear-gradient(to right, var(--gold) 0 5px, transparent 5px 9px);
+}
+.sw.kUp {
+  background: var(--good);
+  border-radius: 50%;
+}
+.sw.kDown {
+  background: var(--warn);
+  border-radius: 50%;
+}
+.sw.vol {
+  background: var(--line-2);
+  border-radius: 1px;
+}
+.sw.volMoved {
+  background: var(--gold);
+  border-radius: 1px;
+}
+.sw.kRange {
+  background: color-mix(in srgb, var(--gold) 20%, transparent);
+  border: 1px solid var(--gold);
+}

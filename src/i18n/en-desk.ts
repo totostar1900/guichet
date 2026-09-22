@@ -1741,4 +1741,12 @@ export const EN_MORE: Record<string, string> = {
   "cumul": "cumulative",
   "de la mise": "of the outlay",
   "touchez un second flux pour lire ce qui revient entre les deux": "tap a second flow to read what comes back between the two",
+  // Indice : légende des vues Niveau
+  "indice BVMAC All Share": "BVMAC All Share index",
+  "séance en hausse": "session up",
+  "séance en baisse": "session down",
+  "montant échangé": "amount traded",
+  "séance où l'indice a bougé": "session where the index moved",
+  "intervalle épinglé": "pinned interval",
+  "Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux.": "Hover to read a session; tap two points (or pick two dates) to read the change between them.",
 };

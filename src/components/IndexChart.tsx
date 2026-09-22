@@ -357,6 +357,29 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               </span>
             </div>
           )}
+          <p className={styles.legend}>
+            <span>
+              <i className={styles.kLine} /> {t("indice BVMAC All Share")}{showBase ? ` · ${t("base 100")}` : ""}
+            </span>
+            {ov && (
+              <span>
+                <i className={`${styles.kLine} ${styles.kGold} ${styles.kDash}`} /> {ov.mnemo} · {ov.name} ({t("base 100")})
+              </span>
+            )}
+            <span>
+              <i className={`${styles.sw} ${styles.kUp}`} /> {t("séance en hausse")} <i className={`${styles.sw} ${styles.kDown}`} /> {t("séance en baisse")}
+            </span>
+            {withVol && (
+              <span>
+                <i className={`${styles.sw} ${styles.vol}`} /> {volKey === "amount" ? t("montant échangé") : volKey === "titles" ? t("titres échangés") : t("transactions")} <i className={`${styles.sw} ${styles.volMoved}`} /> {t("séance où l'indice a bougé")}
+              </span>
+            )}
+            {pinA && pinB && (
+              <span>
+                <i className={`${styles.sw} ${styles.kRange}`} /> {t("intervalle épinglé")}
+              </span>
+            )}
+          </p>
           <div className={styles.pinsBar}>
             <label>
               {t("Du")}
@@ -389,7 +412,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               <p className={styles.pinsRead}>
                 {withVol
                   ? t("Sur la période : {a} FCFA échangés, {n} transactions, {m} séances avec mouvement. Barres dorées : l'indice a bougé.", { a: money(totals.amount), n: fmt(totals.trades), m: String(totals.moved) })
-                  : t("Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux. Les points colorés sont les séances où l'indice a bougé.")}
+                  : t("Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux.")}
               </p>
             )}
           </div>
