@@ -2,6 +2,7 @@ import Link from "next/link";
 import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
+import { quarters } from "@/lib/market/index-quarter";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 
@@ -19,7 +20,9 @@ const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2,
  */
 export default async function IndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string }> }) {
   const [t, sp] = await Promise.all([getT(), searchParams]);
-  const { stats, weights, nameOf, histories, trading, movers, lastBulletin, missing } = await indexPageData();
+  const data = await indexPageData();
+  const { stats, weights, nameOf, histories, trading, movers, lastBulletin, missing } = data;
+  const notes = quarters(data).slice(0, 6);
   const points: ChartPoint[] = stats.points.map((p) => {
     const s = trading.get(p.date);
     return { ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined, titles: s?.titles ?? 0, amount: s?.amount ?? 0, trades: s?.trades ?? 0 };
@@ -141,6 +144,22 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
               <IndexChart points={points} overlays={overlays} />
             </div>
           </section>
+
+          {notes.length > 0 && (
+            <section className="panel">
+              <div className="panel-h">
+                <h2>{t("Les notes de marché")}</h2>
+                <span className="muted">{t("un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre, ce que l'indice ne dit pas")}</span>
+              </div>
+              <div className={styles.btns}>
+                {notes.map((q) => (
+                  <Link key={q.key} className="btn sm" href={`/indice/note/${q.key.toLowerCase()}`}>
+                    {q.label} →
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="panel">
             <div className="panel-h">

@@ -299,6 +299,38 @@ export async function publishIndexNote(month: string, by: string): Promise<Gener
   return store({ type: "note_indice", number: made.note.number, title: `Note mensuelle sur l'indice : ${made.note.month.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
 }
 
+import { quarterNote, quarters, type QuarterNote } from "@/lib/market/index-quarter";
+import { NoteTrimestrielle } from "./pdf/quarter-templates";
+
+/** The quarters the note can cover, most recent first (closed quarters only unless asked). */
+export async function indexQuarters(includeCurrent = false) {
+  return quarters(await indexPageData(), includeCurrent);
+}
+
+/** The quarterly note of one quarter : the figures the page and the PDF share. */
+export async function indexQuarterFor(key?: string): Promise<QuarterNote | undefined> {
+  return quarterNote(key);
+}
+
+/** The PDF of one quarter, rendered on demand or stored when the desk publishes it. */
+export async function renderQuarterNote(key?: string): Promise<{ pdf: Buffer; note: QuarterNote } | undefined> {
+  const note = await quarterNote(key);
+  if (!note) return undefined;
+  const wording = await resolvePassages("note_indice");
+  const pdf = await renderToBuffer(el(createElement(NoteTrimestrielle, { note, texts: wording.text })));
+  return { pdf, note };
+}
+
+/** Publish the quarter : one document, numbered, kept like the others. */
+export async function publishQuarterNote(key: string, by: string): Promise<GeneratedDocument | undefined> {
+  const made = await renderQuarterNote(key);
+  if (!made) return undefined;
+  const existing = (await repo().listDocuments()).find((d) => d.type === "note_indice" && d.number === made.note.number);
+  if (existing) return existing;
+  const wording = await resolvePassages("note_indice");
+  return store({ type: "note_indice", number: made.note.number, title: `Note de marché : l'indice BVMAC au ${made.note.quarter.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
+}
+
 /* ---------------- Rapport sur une société cotée ---------------- */
 
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";

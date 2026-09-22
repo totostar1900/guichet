@@ -31,6 +31,10 @@
     {
       "path": "/api/cron/note-indice",
       "schedule": "40 6 3 * *"
+    },
+    {
+      "path": "/api/cron/note-trimestre",
+      "schedule": "0 7 5 1,4,7,10 *"
     }
   ]
 }

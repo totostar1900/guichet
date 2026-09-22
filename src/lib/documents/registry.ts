@@ -35,7 +35,7 @@ export const DOC_WHEN: Record<DocumentType, string> = {
   cession: "à la confirmation d'une cession ou d'un rachat",
   reclamation: "quand le client la dépose (Mon espace) ou que le desk enregistre celle reçue",
   transfert: "à la demande de transfert ou de clôture ; le dossier passe « en clôture » à la signature",
-  note_indice: "au premier bulletin de chaque mois, sur le mois écoulé",
+  note_indice: "chaque trimestre pour la note publique, chaque mois pour la note du desk",
   fonds: "à la confirmation, avec le bulletin ; à exécuter par le client",
   allocation: "quand la ligne est servie",
   non_allocation: "quand la ligne n'est pas servie ; les fonds sont restitués",
@@ -63,7 +63,7 @@ export const DOC_LABEL: Record<DocumentType, string> = {
   coupon: "Avis de coupon · de remboursement",
   reclamation: "Réclamation",
   transfert: "Ordre de transfert · de clôture",
-  note_indice: "Note mensuelle sur l'indice",
+  note_indice: "Note sur l'indice BVMAC",
 };
 
 export const DOC_PREFIX: Record<DocumentType, string> = {
@@ -146,6 +146,6 @@ export const DOC_ROLES: Record<DocumentType, DocRole> = {
   releve: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "personne", receives: "le client", find: DOCS_PAGE("releve"), born: { href: "/moi", label: "Mon espace › Relevé de position ; le desk depuis le dossier" } },
   attestation: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "Purpose (signature et cachet)", receives: "le client, pour un tiers", find: DOCS_PAGE("attestation"), born: { href: "/moi", label: "Mon espace › Attestation de détention" } },
   dossier_svt: { moment: "ouverture", prepares: "le desk, depuis le dossier KYC", signs: "Purpose", receives: "le SVT ou le dépositaire", find: DOCS_PAGE("dossier_svt"), born: { href: "/desk/clients", label: "Dossiers › approbation du dossier" } },
-  note_indice: { moment: "vie", prepares: "le Guichet, depuis les bulletins lus", signs: "personne : c'est une note d'information", receives: "les clients et le desk", find: DOCS_PAGE("note_indice"), born: { href: "/desk/indice", label: "Desk › Note sur l'indice" }, clock: "publiée au premier bulletin du mois" },
+  note_indice: { moment: "vie", prepares: "le Guichet, depuis les bulletins lus", signs: "personne : c'est une note d'information", receives: "tout le monde : la note trimestrielle est publique", find: DOCS_PAGE("note_indice"), born: { href: "/desk/indice", label: "Desk › Indice" }, clock: "trimestrielle et publique ; mensuelle et interne" },
   bordereau: { moment: "execution", prepares: "le desk", signs: "Purpose", receives: "le SVT (adjudication) ou la société de gestion (OPCVM)", find: DOCS_PAGE("bordereau"), born: { href: "/desk/resultats", label: "Résultats › bordereau de l'adjudication ; Cotes & VL › bordereau OPCVM" } },
 };

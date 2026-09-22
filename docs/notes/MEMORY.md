@@ -15,3 +15,4 @@
 - [Templates registry](guichet-templates.md) : desk › Référentiel › Modèles, passages catalogue vs server resolver, libre/relu/réglementaire, migrations 0030 + 0032 applied 2026-09-21; acts & notices (mandat, coupon, réclamation, transfert)
 - [Référentiel drafts + Santé links](guichet-referentiel-drafts.md) : saves are drafts until Publier, health-how table, « Depuis Santé » strip; migration 0031
 - [BVMAC index](guichet-index-bvmac.md) : pulse, company base-100, Comparer reference, Santé check, lesson, desk doc; shown and explained only; methodology letter pending
+- [Market notes](guichet-notes-de-marche.md) : quarterly note public (page /indice/note/<T> + PDF), monthly note desk-only; crons, publishing, docs/notes-de-marche.md + /desk/docs/publications

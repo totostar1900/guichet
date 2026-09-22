@@ -1,0 +1,289 @@
+/* The quarterly note reads as a paper : one column, generous measure, house colours. */
+.sheet {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-block: 8px 40px;
+}
+.masthead {
+  border-top: 3px solid var(--navy);
+  padding-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.house {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--navy-text);
+}
+.meta {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 4.4vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 18px 0 0;
+  text-wrap: balance;
+  max-width: 20ch;
+}
+.stand {
+  font-size: 1.06rem;
+  color: var(--ink-2);
+  max-width: 64ch;
+  margin: 12px 0 0;
+  line-height: 1.55;
+}
+.byline {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  margin: 10px 0 0;
+}
+.byline a {
+  color: var(--navy-text);
+}
+.fiche {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+  margin: 22px 0 0;
+}
+.fiche div {
+  padding: 12px 14px 12px 0;
+  border-right: 1px solid var(--line);
+}
+.fiche div:last-child {
+  border-right: 0;
+}
+.fiche dt {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.fiche dd {
+  margin: 4px 0 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.fiche small {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--warn);
+}
+.sheet section {
+  margin-top: 34px;
+}
+.sheet h2 {
+  font-family: var(--font-display);
+  font-size: 1.24rem;
+  margin: 0 0 8px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  text-wrap: balance;
+}
+.n {
+  font-size: 0.8rem;
+  color: var(--gold-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sheet p {
+  margin: 0 0 12px;
+  max-width: 68ch;
+  line-height: 1.6;
+}
+.figure {
+  margin: 18px 0;
+}
+.figtitle {
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: left;
+}
+.bars {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  height: 170px;
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: 4px;
+}
+.bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 4px;
+}
+.bar b {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.bar i {
+  display: block;
+  width: 100%;
+  max-width: 88px;
+  background: var(--chart-out);
+  border-radius: 4px 4px 0 0;
+  opacity: 0.85;
+}
+.bar i.barUp {
+  background: var(--good);
+}
+.bar i.barDown {
+  background: var(--warn);
+}
+.bar span {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.bar em {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.figure figcaption {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  margin-top: 8px;
+  line-height: 1.45;
+}
+.tw {
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.tw table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.tw caption {
+  caption-side: top;
+  text-align: left;
+}
+.tw th {
+  text-align: left;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+  padding: 0 0 7px 14px;
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+.tw th:first-child,
+.tw td:first-child {
+  padding-left: 0;
+}
+.tw td {
+  padding: 8px 0 8px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.tw tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--line-2);
+  font-weight: 700;
+}
+.tw a {
+  color: inherit;
+  text-decoration: none;
+}
+.tw a:hover {
+  text-decoration: underline;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.splits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px 28px;
+  margin: 18px 0;
+}
+.split {
+  display: grid;
+  grid-template-columns: 96px 1fr 54px;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+.split i {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--chart-out);
+  min-width: 2px;
+}
+.split b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.list {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  max-width: 68ch;
+}
+.list li {
+  margin-bottom: 8px;
+  line-height: 1.55;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 30px 0 0;
+}
+.others {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: baseline;
+  margin-top: 22px;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.others a {
+  color: var(--navy-text);
+}
+.footer {
+  border-top: 1px solid var(--line-2);
+  margin-top: 26px;
+  padding-top: 14px;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  line-height: 1.55;
+}
+.footer b {
+  color: var(--ink-2);
+}

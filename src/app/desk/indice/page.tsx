@@ -3,15 +3,15 @@ import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import type { GeneratedDocument } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
-import { indexNoteFor, indexNoteMonths } from "@/lib/documents/generate";
+import { indexNoteFor, indexNoteMonths, indexQuarterFor, indexQuarters } from "@/lib/documents/generate";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
-import { publishNoteAction } from "./actions";
+import { publishNoteAction, publishQuarterAction } from "./actions";
 import { Publish } from "./Publish";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Note sur l'indice" };
+export const metadata = { title: "Notes sur l'indice" };
 
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 const pts = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2).replace(" %", " pt")}`;
@@ -21,13 +21,19 @@ const pts = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2).replace(" %", " pt
  * of the month, the sentences the note leads with, the sessions left to clear,
  * a PDF preview, and the button that publishes the month.
  */
-export default async function NoteIndicePage({ searchParams }: { searchParams: Promise<{ mois?: string; ok?: string }> }) {
+export default async function NoteIndicePage({ searchParams }: { searchParams: Promise<{ mois?: string; trimestre?: string; ok?: string }> }) {
   await requireDesk("/desk/indice");
-  const [t, sp, months] = await Promise.all([getT(), searchParams, indexNoteMonths()]);
+  const [t, sp, months, qs] = await Promise.all([getT(), searchParams, indexNoteMonths(), indexQuarters()]);
   const month = sp.mois && months.some((m) => m.key === sp.mois) ? sp.mois : months[0]?.key;
-  const [note, docs] = await Promise.all([indexNoteFor(month), repo().listDocuments().catch(() => [] as GeneratedDocument[])]);
+  const qKey = sp.trimestre && qs.some((q) => q.key === sp.trimestre) ? sp.trimestre : qs[0]?.key;
+  const [note, quarter, docs] = await Promise.all([
+    indexNoteFor(month),
+    qKey ? indexQuarterFor(qKey) : Promise.resolve(undefined),
+    repo().listDocuments().catch(() => [] as GeneratedDocument[]),
+  ]);
   const published = docs.filter((d) => d.type === "note_indice").sort((a, b) => b.number.localeCompare(a.number));
   const already = note ? published.find((d) => d.number === note.number) : undefined;
+  const qDoc = quarter ? published.find((d) => d.number === quarter.number) : undefined;
 
   return (
     <>
@@ -35,8 +41,8 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
       <div className={styles.head}>
         <div>
           <div className="eyebrow">{t("Marché · Indice")}</div>
-          <h1 className="display">{t("Note mensuelle sur l'indice")}</h1>
-          <p className="muted">{t("Écrite seule à partir des bulletins lus, relue et publiée par le desk. Le robot la prépare au début du mois suivant ; rien ne part à un client sans qu'une personne l'ait lue.")}</p>
+          <h1 className="display">{t("Les notes sur l'indice")}</h1>
+          <p className="muted">{t("Deux notes écrites seules à partir des bulletins lus : la trimestrielle, publique, faite pour un client ; la mensuelle, gardée au desk, qui sert au contrôle. Le robot les prépare, une personne les relit et les publie.")}</p>
         </div>
         <div className={styles.headLinks}>
           <Link className="btn sm" href="/indice">
@@ -50,6 +56,42 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
 
       {sp.ok && <div className={styles.ok}>{t("Note publiée : elle est dans Documents, prête à être envoyée.")}</div>}
 
+      {quarter && (
+        <section className={`panel ${styles.pub}`}>
+          <div className="panel-h">
+            <h2>{t("Note trimestrielle, publique")}</h2>
+            <span className="muted">{quarter.number} · {quarter.quarter.label}</span>
+          </div>
+          <div className={styles.months}>
+            {qs.slice(0, 6).map((q) => (
+              <Link key={q.key} href={`/desk/indice?trimestre=${q.key}`} className={`btn sm ${q.key === qKey ? "" : "ghost"}`}>
+                {q.label}
+                {published.some((d) => d.number === `PC-IDX-${q.key.replace("-", "")}`) ? " ✓" : ""}
+              </Link>
+            ))}
+          </div>
+          <p className={styles.lead2}>{quarter.headline}</p>
+          <div className={styles.publish}>
+            <a className="btn sm primary" href={`/indice/note/${quarter.quarter.key.toLowerCase()}`} target="_blank" rel="noreferrer">
+              {t("Lire la page publique")}
+            </a>
+            <a className="btn sm" href={`/indice/note/${quarter.quarter.key.toLowerCase()}/pdf`} target="_blank" rel="noreferrer">
+              {t("Le PDF")}
+            </a>
+            {qDoc ? (
+              <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(qDoc.createdAt), who: qDoc.createdBy ?? "—" })}</span>
+            ) : (
+              <Publish month={quarter.quarter.key} action={publishQuarterAction} label={t("Publier le {q}", { q: quarter.quarter.label })} />
+            )}
+          </div>
+          <p className={styles.p}>
+            {t("La page et le PDF sont publics et se lisent sans compte. Publier fige le trimestre : le PDF part dans Documents avec son numéro, et la page porte sa date de publication.")}
+            {quarter.methodOpen ? " " + t("Cette note dit en une ligne que la méthodologie de l'indice est en cours de confirmation auprès de la BVMAC.") : ""}
+          </p>
+        </section>
+      )}
+
+      <h2 className={styles.h2}>{t("Note mensuelle, pour le desk")}</h2>
       <div className={styles.months}>
         {months.slice(0, 14).map((m) => (
           <Link key={m.key} href={`/desk/indice?mois=${m.key}`} className={`btn sm ${m.key === month ? "" : "ghost"}`}>
