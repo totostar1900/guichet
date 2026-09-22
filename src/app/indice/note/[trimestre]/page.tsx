@@ -13,9 +13,11 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
 const pts = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2).replace(" %", " pt")}`;
 
 export async function generateMetadata({ params }: { params: Promise<{ trimestre: string }> }) {
-  const { trimestre } = await params;
+  const [{ trimestre }, t] = await Promise.all([params, getT()]);
   const note = await quarterNote(trimestre.toUpperCase());
-  return { title: note ? `L'indice BVMAC au ${note.quarter.label}` : "Note trimestrielle" };
+  if (!note) return { title: t("Note trimestrielle") };
+  const q = t(note.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: note.quarter.q, y: note.quarter.year });
+  return { title: t("L'indice BVMAC au {q}", { q }) };
 }
 
 /**

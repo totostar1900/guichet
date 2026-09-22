@@ -1897,4 +1897,8 @@ export const EN_MORE: Record<string, string> = {
   /* ---------- la référence d'un ordre ---------- */
   "Journal des ordres : jamais porté sur ce que reçoit le client": "Order journal: never printed on what the client receives",
   "N° journal · réf. client": "Journal no. · client ref.",
+
+  /* ---------- titre de la note trimestrielle ---------- */
+  "L'indice BVMAC au {q}": "The BVMAC index at {q}",
+  "Note trimestrielle": "Quarterly note",
 };
