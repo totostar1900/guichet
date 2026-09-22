@@ -154,7 +154,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
               <div className={styles.btns}>
                 {notes.map((q) => (
                   <Link key={q.key} className="btn sm" href={`/indice/note/${q.key.toLowerCase()}`}>
-                    {q.label} →
+                    {t(q.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: q.q, y: q.year })} →
                   </Link>
                 ))}
               </div>

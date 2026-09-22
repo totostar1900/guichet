@@ -60,12 +60,12 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
         <section className={`panel ${styles.pub}`}>
           <div className="panel-h">
             <h2>{t("Note trimestrielle, publique")}</h2>
-            <span className="muted">{quarter.number} · {quarter.quarter.label}</span>
+            <span className="muted">{quarter.number} · {t(quarter.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: quarter.quarter.q, y: quarter.quarter.year })}</span>
           </div>
           <div className={styles.months}>
             {qs.slice(0, 6).map((q) => (
               <Link key={q.key} href={`/desk/indice?trimestre=${q.key}`} className={`btn sm ${q.key === qKey ? "" : "ghost"}`}>
-                {q.label}
+                {t(q.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: q.q, y: q.year })}
                 {published.some((d) => d.number === `PC-IDX-${q.key.replace("-", "")}`) ? " ✓" : ""}
               </Link>
             ))}
@@ -81,7 +81,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
             {qDoc ? (
               <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(qDoc.createdAt), who: qDoc.createdBy ?? "—" })}</span>
             ) : (
-              <Publish month={quarter.quarter.key} action={publishQuarterAction} label={t("Publier le {q}", { q: quarter.quarter.label })} />
+              <Publish month={quarter.quarter.key} action={publishQuarterAction} label={t("Publier le {q}", { q: t(quarter.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: quarter.quarter.q, y: quarter.quarter.year }) })} />
             )}
           </div>
           <p className={styles.p}>
