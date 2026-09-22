@@ -11,7 +11,7 @@ import { LinePicker, type PickLine } from "./LinePicker";
 import { CompareCharts } from "@/components/CompareCharts";
 import { compareLine } from "@/lib/domain/compare";
 import { daysBetween } from "@/lib/finance";
-import { indexSeries, indexStats, indexWeights } from "@/lib/market/index";
+import { floatRotation, indexSeries, indexStats, indexWeights, rotationWording } from "@/lib/market/index";
 import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
 import type { Offer } from "@/lib/domain/types";
@@ -69,6 +69,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
   const idx = shares ? indexStats(indexSeries(await r.listBulletins(400).catch(() => []))) : undefined;
   const benchmark = shares ? (idx?.year != null ? { label: "BVMAC All Share · 12 mois", pct: idx.year } : undefined) : btaBench;
   const weights = shares ? indexWeights(await r.latestQuotes().catch(() => [])) : [];
+  const rotations = shares ? await Promise.all(cols.map(async (o) => (o.isin ? floatRotation(await r.listQuotes(o.isin, 400).catch(() => [])) : undefined))) : [];
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
   // The since-inception figure sits right under the return, whichever side brought it.
   if (labels.includes("Depuis l'origine")) labels.splice(1, 0, ...labels.splice(labels.indexOf("Depuis l'origine"), 1));
@@ -128,9 +129,11 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
               </div>
               {cols.map((o, i) => {
                 const wgt = weights.find((x) => x.isin === o.isin);
+                const rot = rotations[i];
                 return (
                   <div key={i} className={styles.cell}>
                     {wgt ? `${t("poids")} ${fmtPct(wgt.weightTotal, 1)} (${t("capital global")}) · ${fmtPct(wgt.weightFloat, 1)} (${t("flottant")})${wgt.liquidity3mPct != null ? ` · ${t("liquidité 3 mois")} ${fmtPct(wgt.liquidity3mPct, 2)}` : ""}` : "—"}
+                    {rot ? ` · ${t("rotation du flottant 12 mois")} ${fmtPct(rot.pct, rot.pct < 10 ? 1 : 0)} (${t(`liquidité ${rotationWording(rot)}`)})` : ""}
                   </div>
                 );
               })}

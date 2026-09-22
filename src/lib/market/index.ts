@@ -92,6 +92,41 @@ export function indexCheck(current: MarketBulletin | undefined, previousQuotes: 
   return { ok: true, detail: indexMoved ? `indice et cours cohérents (${moved.join(", ")})` : "indice stable, aucun cours d'action changé" };
 }
 
+export interface FloatRotation {
+  /** FCFA traded over the window. */
+  amount: number;
+  /** Float capitalisation at the end of the window (last share count read × last close). */
+  capFloat: number;
+  /** amount ÷ capFloat, in percent. */
+  pct: number;
+  days: number;
+  trades: number;
+}
+
+/**
+ * Float rotation of one share : the FCFA traded over the last `days` days
+ * against the quoted float, the honest measure of how easily a position
+ * can be taken or left. Undefined when the float is not read yet.
+ */
+export function floatRotation(quotes: Quote[], days = 365): FloatRotation | undefined {
+  const sorted = [...quotes].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+  const last = sorted[sorted.length - 1];
+  if (!last) return undefined;
+  const shares = [...sorted].reverse().find((q) => (q.sharesFloat ?? 0) > 0)?.sharesFloat;
+  const capFloat = last.marketCapFloat && last.marketCapFloat > 0 ? last.marketCapFloat : shares ? shares * last.close : 0;
+  if (!capFloat) return undefined;
+  const from = new Date(new Date(`${last.sessionDate}T12:00:00Z`).getTime() - days * 86400e3).toISOString().slice(0, 10);
+  const win = sorted.filter((q) => q.sessionDate >= from);
+  const amount = win.reduce((a, q) => a + (q.valueTraded || 0), 0);
+  const trades = win.reduce((a, q) => a + (q.trades || 0), 0);
+  return { amount, capFloat, pct: (amount / capFloat) * 100, days, trades };
+}
+
+/** How to say a rotation : the words a client needs before buying. */
+export function rotationWording(r: FloatRotation): "faible" | "moyenne" | "vive" {
+  return r.pct < 5 ? "faible" : r.pct < 20 ? "moyenne" : "vive";
+}
+
 /** Two series rebased to 100 at the first common date, for the share-against-index chart. */
 export function base100(series: { date: string; value: number }[], from: string): { date: string; value: number }[] {
   const s = series.filter((p) => p.date >= from);

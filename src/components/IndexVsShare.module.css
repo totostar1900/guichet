@@ -75,3 +75,39 @@
   font-size: 0.86rem;
   line-height: 1.5;
 }
+
+.rotation {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  padding-top: 6px;
+  border-top: 1px dashed var(--line);
+}
+.rotation b {
+  color: var(--ink);
+}
+.rotTag {
+  display: inline-block;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: 1px;
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+.rotTag.faible {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.rotTag.moyenne {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.rotTag.vive {
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+  color: var(--good);
+}

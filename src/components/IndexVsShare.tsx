@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
-import type { IndexPoint, IndexWeight } from "@/lib/market/index";
-import { base100 } from "@/lib/market/index";
+import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
+import type { FloatRotation, IndexPoint, IndexWeight } from "@/lib/market/index";
+import { base100, rotationWording } from "@/lib/market/index";
 import { getT } from "@/i18n/server";
 import styles from "./IndexVsShare.module.css";
 
@@ -11,7 +11,7 @@ import styles from "./IndexVsShare.module.css";
  * sentence that matters (did the share move with the market, or alone),
  * with the weight of the share in the index and its last dividend.
  */
-export async function IndexVsShare({ name, share, index, from, weight, dividendPerShare, close }: { name: string; share: { date: string; value: number }[]; index: IndexPoint[]; from: string; weight?: IndexWeight; dividendPerShare?: number; close?: number }) {
+export async function IndexVsShare({ name, share, index, from, weight, dividendPerShare, close, rotation }: { name: string; share: { date: string; value: number }[]; index: IndexPoint[]; from: string; weight?: IndexWeight; dividendPerShare?: number; close?: number; rotation?: FloatRotation }) {
   const t = await getT();
   const s = base100(share, from);
   const i = base100(index, from);
@@ -63,6 +63,16 @@ export async function IndexVsShare({ name, share, index, from, weight, dividendP
         {weight ? ` ${t("Poids de {n} dans l'indice : {w} (capital global), {f} (flottant)", { n: name, w: fmtPct(weight.weightTotal, 1), f: fmtPct(weight.weightFloat, 1) })}.` : ""}
         {dividendPerShare != null && close ? ` ${t("Dernier dividende : {d} FCFA par action, {y} du cours, non compté dans l'indice", { d: fmt(dividendPerShare), y: fmtPct((dividendPerShare / close) * 100, 1) })}.` : ""}
       </p>
+      {rotation && (
+        <p className={styles.rotation}>
+          <b>
+            {t("Rotation du flottant douze mois")} : {fmtPct(rotation.pct, rotation.pct < 10 ? 1 : 0)}
+          </b>{" "}
+          <span className={`${styles.rotTag} ${styles[rotationWording(rotation)]}`}>{t(`liquidité ${rotationWording(rotation)}`)}</span> : {money(rotation.amount)} FCFA {t("échangés en {n} transactions, sur un flottant coté de {c} FCFA", { n: fmt(rotation.trades), c: money(rotation.capFloat) })}.{" "}
+          {rotationWording(rotation) === "faible" ? t("À ce rythme, entrer ou sortir d'une position prend du temps : passez par un ordre à cours limité et laissez-lui des semaines.") : rotationWording(rotation) === "moyenne" ? t("Une position raisonnable se prend et se quitte en quelques séances.") : t("La valeur s'échange régulièrement : un ordre trouve sa contrepartie vite.")}{" "}
+          <Link href="/indice">{t("Toutes les sociétés sur l'indice")} →</Link>
+        </p>
+      )}
     </div>
   );
 }

@@ -662,6 +662,19 @@ function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: Over
 function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: string; to: string; onPick: (d: string) => void }) {
   const t = useT();
   const byDate = new Map(points.map((p) => [p.date, p]));
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [tip, setTip] = useState<{ date: string; x: number; y: number; left: boolean } | null>(null);
+  const showTip = (date: string, el: HTMLElement) => {
+    const box = wrapRef.current?.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (!box) return;
+    setTip({ date, x: r.left - box.left + r.width / 2, y: r.bottom - box.top + 6, left: r.left - box.left > box.width * 0.6 });
+  };
+  const tipPoint = tip ? byDate.get(tip.date) : undefined;
+  const prevOf = (d: string) => {
+    const i = points.findIndex((p) => p.date === d);
+    return i > 0 ? points[i - 1] : undefined;
+  };
   const start = new Date(`${from}T12:00:00Z`);
   start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
   const end = new Date(`${to}T12:00:00Z`);
@@ -688,7 +701,7 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
   return (
-    <div className={styles.calWrap}>
+    <div className={styles.calWrap} ref={wrapRef} onPointerLeave={() => setTip(null)}>
       <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
         <span />
         {weeks.map((w, i) => (
@@ -702,16 +715,50 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
             {weeks.map((w) => {
               const d = w[k];
               const p = byDate.get(d);
-              const title = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}${p.movers?.length ? ` · ${p.movers.map((m) => m.mnemo).join(", ")}` : ""}` : d >= from && d <= to ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
+              const label = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}` : d >= from && d <= to ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
+              const inRange = d >= from && d <= to;
               return p ? (
-                <button key={d} type="button" className={`${styles.calCell} ${cls(d)}`} title={title} aria-label={title} onClick={() => onPick(d)} />
+                <button key={d} type="button" className={`${styles.calCell} ${cls(d)}`} aria-label={label} onClick={() => onPick(d)} onPointerEnter={(e) => showTip(d, e.currentTarget)} onFocus={(e) => showTip(d, e.currentTarget)} />
               ) : (
-                <i key={d} className={`${styles.calCell} ${cls(d)}`} title={title} />
+                <i key={d} className={`${styles.calCell} ${cls(d)}`} aria-label={label || undefined} onPointerEnter={inRange ? (e) => showTip(d, e.currentTarget) : undefined} />
               );
             })}
           </div>
         ))}
       </div>
+      {tip && (
+        <div className={`${styles.calTip} ${tip.left ? styles.calTipLeft : ""}`} style={{ left: tip.x, top: tip.y }} role="status">
+          <b>{new Date(`${tip.date}T12:00:00Z`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b>
+          {tipPoint ? (
+            <>
+              <div className={styles.calTipRow}>
+                <span className={styles.calTipLevel}>{lvl(tipPoint.value)}</span>
+                <em className={`${styles.calTipDelta} ${(tipPoint.variationPct ?? 0) > 0 ? styles.calTipUp : (tipPoint.variationPct ?? 0) < 0 ? styles.calTipDown : ""}`}>{signed(tipPoint.variationPct)}</em>
+              </div>
+              {prevOf(tip.date) && (
+                <small>
+                  {t("séance précédente")} {fmtDate(prevOf(tip.date)!.date)} : {lvl(prevOf(tip.date)!.value)}
+                </small>
+              )}
+              {tipPoint.movers?.length ? (
+                <div className={styles.calTipMovers}>
+                  {tipPoint.movers.map((m) => (
+                    <span key={m.mnemo}>
+                      {m.mnemo} <em className={m.variationPct > 0 ? styles.calTipUp : m.variationPct < 0 ? styles.calTipDown : ""}>{m.variationPct !== 0 ? signed(m.variationPct) : t("échange")}</em>
+                    </span>
+                  ))}
+                </div>
+              ) : (tipPoint.variationPct ?? 0) !== 0 ? (
+                <small>{t("cours d'action non lus sur cette séance")}</small>
+              ) : null}
+              <small>{tipPoint.titles ? `${fmt(tipPoint.titles)} ${t("titres")} · ${money(tipPoint.amount ?? 0)} FCFA · ${tipPoint.trades ?? 0} ${t("transaction(s)")}` : t("aucun échange sur les actions")}</small>
+              <small className={styles.calTipHint}>{t("toucher pour épingler sur la vue Niveau")}</small>
+            </>
+          ) : (
+            <small>{t("Jour ouvré sans bulletin lu : jour férié, séance non tenue ou bulletin non publié.")}</small>
+          )}
+        </div>
+      )}
       <p className={styles.legend}>
         <span>
           <i className={`${styles.sw} ${styles.calFlat}`} /> {t("séance à 0,00 %")}

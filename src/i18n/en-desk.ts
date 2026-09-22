@@ -1688,4 +1688,18 @@ export const EN_MORE: Record<string, string> = {
   "précédentes": "previous",
   "suivantes": "next",
   "page {p} sur {n}": "page {p} of {n}",
+  // Rotation du flottant, bulle du calendrier
+  "Rotation du flottant douze mois": "Float rotation, twelve months",
+  "liquidité faible": "low liquidity",
+  "liquidité moyenne": "medium liquidity",
+  "liquidité vive": "brisk liquidity",
+  "échangés en {n} transactions, sur un flottant coté de {c} FCFA": "traded in {n} trades, on a quoted float of {c} FCFA",
+  "À ce rythme, entrer ou sortir d'une position prend du temps : passez par un ordre à cours limité et laissez-lui des semaines.": "At this pace, entering or leaving a position takes time: use a limit order and give it weeks.",
+  "Une position raisonnable se prend et se quitte en quelques séances.": "A reasonable position is taken and left within a few sessions.",
+  "La valeur s'échange régulièrement : un ordre trouve sa contrepartie vite.": "The share trades regularly: an order finds its counterparty quickly.",
+  "Toutes les sociétés sur l'indice": "All companies on the index page",
+  "séance précédente": "previous session",
+  "échange": "trade",
+  "toucher pour épingler sur la vue Niveau": "tap to pin on the Level view",
+  "Jour ouvré sans bulletin lu : jour férié, séance non tenue ou bulletin non publié.": "Weekday with no bulletin read: public holiday, no session held or bulletin not published.",
 };
