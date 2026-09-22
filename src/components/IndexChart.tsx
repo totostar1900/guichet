@@ -400,8 +400,10 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   );
 }
 
-/** Close of a share at or before a date (sessions are sparse). */
-const closeAt = (o: OverlaySeries, date: string) => o.points.filter((p) => p.date <= date).pop()?.value;
+/** Close of a share at or before a date (sessions are sparse) ; at the start of a history, the first close after it. */
+const closeAt = (o: OverlaySeries, date: string) => o.points.filter((p) => p.date <= date).pop()?.value ?? o.points.find((p) => p.date > date)?.value;
+/** Signed points of index, « +3,68 pt ». */
+const pts = (v: number) => `${v > 0 ? "+" : ""}${lvl(v, 2)} pt`;
 /** Capitalisation of a share at a date, on the last share count read. */
 const capAt = (o: OverlaySeries, date: string, kind: "total" | "float") => {
   const c = closeAt(o, date);
@@ -453,7 +455,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
               <i className={styles.contribZero} />
               <i className={`${styles.contribBar} ${r.pts >= 0 ? styles.contribUp : styles.contribDown}`} style={r.pts >= 0 ? { left: "50%", width: `${(r.pts / max) * 50}%` } : { right: "50%", width: `${(-r.pts / max) * 50}%` }} />
             </span>
-            <b className={r.pts > 0 ? styles.upT : r.pts < 0 ? styles.downT : ""}>{signed(r.pts)} pt</b>
+            <b className={r.pts > 0 ? styles.upT : r.pts < 0 ? styles.downT : ""}>{pts(r.pts)}</b>
             <small>
               {t("poids")} {lvl(r.weight, 1)} % × {t("cours")} {signed(r.move, 1)}
             </small>
@@ -462,11 +464,11 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
       </div>
       <p className={styles.legend}>
         <span>
-          {t("Somme")} : <b>{signed(sum)} pt</b>
+          {t("Somme")} : <b>{pts(sum)}</b>
           {top && sum ? ` · ${top.o.mnemo} ${t("a fait")} ${lvl(Math.min(999, Math.abs((top.pts / sum) * 100)), 0)} % ${t("du mouvement")}` : ""}
         </span>
         <span>
-          {t("écart avec la variation publiée")} : {signed(published - sum)} pt · {t("poids en début de période, cours de clôture ; la note de méthode dit le reste")}
+          {t("écart avec la variation publiée")} : {pts(published - sum)} · {t("poids en début de période, cours de clôture ; la note de méthode dit le reste")}
         </span>
       </p>
     </div>
