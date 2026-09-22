@@ -639,3 +639,34 @@ button.calCell:focus-visible {
   white-space: nowrap;
   overflow: hidden;
 }
+
+/* « comment lire » : closed by default, one paragraph when opened */
+.howTo {
+  margin-top: 4px;
+}
+.howTo button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-3);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.howTo button:hover,
+.howTo button[aria-expanded="true"] {
+  border-color: var(--gold);
+  color: var(--gold-ink);
+  background: var(--gold-soft);
+}
+.howTo p {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 78ch;
+  border-left: 3px solid var(--gold-line);
+  padding: 2px 0 2px 12px;
+}

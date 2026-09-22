@@ -49,6 +49,35 @@ const VIEWS: [IndexView, string][] = [
   ["capitalisation", "Capitalisation"],
   ["flottant", "Flottant"],
 ];
+type CapReading = "francs" | "log" | "croissance" | "part";
+const CAP_READINGS: [CapReading, string][] = [
+  ["francs", "en francs"],
+  ["log", "échelle log"],
+  ["croissance", "croissance, base 100"],
+  ["part", "part de la cote"],
+];
+/** One sentence per reading : what the eye is looking at, opened on demand. */
+const CAP_HOW: Record<CapReading, string> = {
+  francs: "La cote en francs : la courbe bleue est la somme des capitalisations (cours × nombre de titres), la dorée la part en mains du public. L'écart entre les deux est ce qui ne se négocie pas. La barre du dessous donne la répartition du jour : une société qui prend les trois quarts de la barre prend les trois quarts de l'indice.",
+  log: "Même chose en francs, mais l'axe est logarithmique : une même hausse en pourcentage occupe la même hauteur, qu'elle parte de 10 milliards ou de 1 000. C'est la lecture des professionnels sur un historique long : la taille et la croissance se voient dans le même cadre.",
+  croissance: "Chaque société part de 100 au début de la période : la courbe dit sa croissance, pas sa taille. Une petite valeur qui double monte plus haut que la plus grosse société de la cote, ce que l'indice, lui, ne montre jamais.",
+  part: "La part de chaque société dans la capitalisation de la cote, séance après séance. Une courbe qui monte gagne du terrain sur les autres, même si sa capitalisation baisse : c'est la lecture de la concentration dans le temps.",
+};
+
+/** « Comment lire » : one short paragraph the reader opens when a view needs it, closed by default. */
+function HowTo({ text }: { text: string }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={styles.howTo}>
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        {open ? "×" : "?"} {t("Comment lire ce graphique")}
+      </button>
+      {open && <p>{text}</p>}
+    </div>
+  );
+}
+
 /** Seven readable hues for the companies, in the order of the split and of the growth lines. */
 const GROWTH = ["var(--chart-out)", "var(--gold)", "#2a8a9a", "#7a5cc0", "#1e7f4f", "#b4600a", "#6b7280"];
 const shift = (iso: string, days: number) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - days * 86400e3).toISOString().slice(0, 10);
@@ -352,6 +381,13 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               </p>
             )}
           </div>
+          <HowTo
+            text={t(
+              withVol
+                ? "Le niveau de l'indice au-dessus, le négoce de chaque séance au-dessous : barre grise quand l'indice n'a pas bougé, dorée quand il a bougé. Une grande barre grise est un bloc négocié au même cours : de l'activité sans mouvement de prix."
+                : "Le niveau publié de l'indice, séance après séance. Les points colorés sont les séances où il a bougé, vert en hausse, orange en baisse ; les autres séances valent exactement le cours de la veille. Une coupure de la ligne veut dire qu'aucun bulletin n'a été lu pendant plus d'une semaine, jamais qu'il ne s'est rien passé.",
+            )}
+          />
         </>
       )}
 
@@ -445,6 +481,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
           {t("écart avec la variation publiée")} : {pts(published - sum)} · {t("poids en début de période, cours de clôture ; la note de méthode dit le reste")}
         </span>
       </p>
+      <HowTo text={t("Le mouvement de la période, partagé entre les sociétés : la barre de chacune est son poids multiplié par la variation de son cours, en points d'indice. Une très forte hausse sur une petite valeur donne une petite barre ; c'est ainsi que la performance de l'indice appartient à une ou deux sociétés. L'écart avec la variation publiée mesure ce que nos cours lus n'expliquent pas.")} />
     </div>
   );
 }
@@ -453,8 +490,8 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
 function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
   const t = useT();
   const [floatOnly, setFloatOnly] = useState(false);
-  // « en francs » : the exchange's capitalisation over time ; « croissance » : each company in base 100, so size never hides growth
-  const [reading, setReading] = useState<"francs" | "croissance">("francs");
+  // four readings : the exchange in francs (linear or log, size and growth in one frame), each company in base 100, or each one's share of the exchange
+  const [reading, setReading] = useState<CapReading>("francs");
   const H = W < 480 ? 220 : 280;
   const padL = 52;
   const padR = 14;
@@ -475,14 +512,38 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   const gLo = growthY.length ? Math.min(...growthY, 100) - 2 : 98;
   const gHi = growthY.length ? Math.max(...growthY, 100) + 2 : 102;
   const topF = Math.max(1, ...rows.map((r) => (floatOnly ? r.float : r.total))) * 1.06;
-  const y = (v: number) => (reading === "francs" ? padT + (1 - v / topF) * (H - padT - padB) : padT + (1 - (v - gLo) / (gHi - gLo)) * (H - padT - padB));
+  // the shares of the exchange, session by session : each company's capitalisation over the total of that session
+  const shares = (company ? [company] : overlays).map((o) => ({ o, pts: index.map((p) => { const tot = overlays.reduce((s2, q) => s2 + capAt(q, p.date, kind), 0); return { date: p.date, y: tot ? (capAt(o, p.date, kind) / tot) * 100 : 0 }; }) }));
+  const logLo = Math.max(1, Math.min(...rows.flatMap((r) => [r.total, r.float]).filter((v) => v > 0)) * 0.8);
+  const logHi = Math.max(logLo * 2, ...rows.map((r) => r.total)) * 1.25;
+  const lg = (v: number) => Math.log10(Math.max(logLo, v));
+  const plot = (v: number) => padT + (1 - v) * (H - padT - padB);
+  const y = (v: number) =>
+    reading === "francs"
+      ? plot(v / topF)
+      : reading === "log"
+        ? plot((lg(v) - lg(logLo)) / (lg(logHi) - lg(logLo)))
+        : reading === "part"
+          ? plot(v / 100)
+          : plot((v - gLo) / (gHi - gLo));
   const path = (k: "total" | "float") => rows.map((r) => `${x(r.date).toFixed(1)},${y(r[k]).toFixed(1)}`).join(" ");
   const area = (k: "total" | "float") => `${x(d0).toFixed(1)},${y(0).toFixed(1)} ${path(k)} ${x(dN).toFixed(1)},${y(0).toFixed(1)}`;
-  const ticks = reading === "francs" ? [0, 0.25, 0.5, 0.75, 1].map((v) => topF * v) : [gLo, (gLo + gHi) / 2, 100, gHi].filter((v, i, a) => a.indexOf(v) === i);
+  const decades: number[] = [];
+  for (let p = Math.floor(Math.log10(logLo)); Math.pow(10, p) <= logHi; p++) for (const m of [1, 3]) { const v = m * Math.pow(10, p); if (v >= logLo && v <= logHi) decades.push(v); }
+  const ticks =
+    reading === "francs"
+      ? [0, 0.25, 0.5, 0.75, 1].map((v) => topF * v)
+      : reading === "log"
+        ? decades
+        : reading === "part"
+          ? [0, 25, 50, 75, 100]
+          : [gLo, (gLo + gHi) / 2, 100, gHi].filter((v, i, a) => a.indexOf(v) === i);
+  const curves = reading === "part" ? shares : lines;
   const dates = rows.map((r) => r.date);
   const rowAt = (d: string) => rows.find((r) => r.date === d)!;
-  const yOf = (d: string) => (reading === "francs" ? y(floatOnly ? rowAt(d).float : rowAt(d).total) : y(lines[0]?.pts.find((p) => p.date === d)?.y ?? 100));
-  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(reading === "francs" ? (floatOnly ? rows[i].float : rows[i].total) : (lines[0]?.pts[i]?.y ?? 100)), W, H, pins, onPin, onRange });
+  const flat = reading === "francs" || reading === "log";
+  const yOf = (d: string) => (flat ? y(floatOnly ? rowAt(d).float : rowAt(d).total) : y(curves[0]?.pts.find((p) => p.date === d)?.y ?? (reading === "part" ? 50 : 100)));
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(flat ? (floatOnly ? rows[i].float : rows[i].total) : (curves[0]?.pts[i]?.y ?? (reading === "part" ? 50 : 100))), W, H, pins, onPin, onRange });
   const hp = track.hover != null ? rows[track.hover] : undefined;
   const rA = track.pinA ? rowAt(track.pinA) : undefined;
   const rB = track.pinB ? rowAt(track.pinB) : undefined;
@@ -496,12 +557,11 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
     <div className={styles.capWrap}>
       <div className={styles.bar}>
         <div className={styles.pills} role="tablist" aria-label={t("Lecture")}>
-          <button type="button" role="tab" aria-selected={reading === "francs"} onClick={() => setReading("francs")}>
-            {t("en francs")}
-          </button>
-          <button type="button" role="tab" aria-selected={reading === "croissance"} onClick={() => setReading("croissance")}>
-            {t("croissance, base 100")}
-          </button>
+          {CAP_READINGS.map(([k, label]) => (
+            <button key={k} type="button" role="tab" aria-selected={reading === k} onClick={() => setReading(k)}>
+              {t(label)}
+            </button>
+          ))}
         </div>
         <label className={styles.check}>
           <input type="radio" name="capk" checked={!floatOnly} onChange={() => setFloatOnly(false)} /> {t("capital global")}
@@ -515,11 +575,11 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={v === 100 && reading === "croissance" ? styles.baseLine : styles.grid} />
             <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
-              {reading === "francs" ? money(v) : lvl(v, 0)}
+              {flat ? money(v) : reading === "part" ? `${lvl(v, 0)} %` : lvl(v, 0)}
             </text>
           </g>
         ))}
-        {reading === "francs" ? (
+        {flat ? (
           <>
             {!floatOnly && (
               <>
@@ -531,7 +591,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
             <polyline points={path("float")} className={styles.overlay} />
           </>
         ) : (
-          lines.map((l, i) => (
+          curves.map((l, i) => (
             <g key={l.o.mnemo}>
               <polyline points={l.pts.map((p) => `${x(p.date).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ")} className={styles.growth} style={{ stroke: GROWTH[i % GROWTH.length] }} />
               <text x={W - padR - 2} y={y(l.pts[l.pts.length - 1].y) + 3} textAnchor="end" className={`${styles.tick} ${styles.stackLabel}`} style={{ fill: GROWTH[i % GROWTH.length] }}>
@@ -551,7 +611,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
       {hp && track.pos && (
         <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
           <b>{fmtDate(hp.date)}</b>
-          {reading === "francs" ? (
+          {flat ? (
             <>
               <span>
                 {t("capital global")} : {money(hp.total)} FCFA
@@ -561,11 +621,12 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
               </span>
             </>
           ) : (
-            lines.slice(0, 4).map((l, i) => {
+            curves.slice(0, 4).map((l, i) => {
               const v = l.pts.find((p) => p.date === hp.date)?.y ?? 100;
               return (
                 <span key={l.o.mnemo}>
-                  <i className={styles.kDot} style={{ background: GROWTH[i % GROWTH.length] }} /> {l.o.mnemo} : {lvl(v, 1)} <em className={v >= 100 ? styles.upT : styles.downT}>{signed(v - 100, 1)}</em>
+                  <i className={styles.kDot} style={{ background: GROWTH[i % GROWTH.length] }} /> {l.o.mnemo} : {reading === "part" ? `${lvl(v, 1)} %` : lvl(v, 1)}
+                  {reading === "croissance" ? <em className={v >= 100 ? styles.upT : styles.downT}> {signed(v - 100, 1)}</em> : null}
                 </span>
               );
             })
@@ -580,7 +641,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           : {t("capital global")} {money(rA.total)} → {money(rB.total)} FCFA (<b className={rB.total >= rA.total ? styles.upT : styles.downT}>{signed(rA.total ? ((rB.total - rA.total) / rA.total) * 100 : 0, 1)}</b>) · {t("flottant coté")} {money(rA.float)} → {money(rB.float)} (<b className={rB.float >= rA.float ? styles.upT : styles.downT}>{signed(rA.float ? ((rB.float - rA.float) / rA.float) * 100 : 0, 1)}</b>)
         </p>
       )}
-      {reading === "francs" && !company && splitTotal > 0 && (
+      {flat && !company && splitTotal > 0 && (
         <div className={styles.splitWrap}>
           <div className={styles.splitHead}>
             {t("Aujourd'hui, qui pèse quoi")} · {floatOnly ? t("flottant coté") : t("capital global")} {money(splitTotal)} FCFA
@@ -602,7 +663,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
         </div>
       )}
       <p className={styles.legend}>
-        {reading === "francs" ? (
+        {flat ? (
           <>
             {!floatOnly && (
               <span>
@@ -615,6 +676,15 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
             </span>
             <span>{t("cours de clôture × nombre de titres lu au bulletin ; la même courbe que l'indice, en francs")}</span>
           </>
+        ) : reading === "part" ? (
+          <>
+            <span>{t("la part de chaque société dans la capitalisation de la cote, séance par séance")}</span>
+            {shares[0] && (
+              <span>
+                {shares.map((l) => `${l.o.mnemo} ${lvl(l.pts[l.pts.length - 1].y, 1)} %`).join(" · ")}
+              </span>
+            )}
+          </>
         ) : (
           <>
             <span>{t("chaque société à 100 au début de la période : la taille ne cache plus la croissance")}</span>
@@ -626,6 +696,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           </>
         )}
       </p>
+      <HowTo text={t(CAP_HOW[reading])} />
     </div>
   );
 }
@@ -794,6 +865,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
         </span>
         <span>{t("une rotation faible veut dire qu'une position peut prendre des mois à sortir")}</span>
       </p>
+      <HowTo text={t("En haut, l'indice publié (pesé par le capital global) et la même séquence de cours pesée par le seul flottant : quand les deux s'écartent, le mouvement tenait à des titres qui ne s'échangent pas. Choisir une société ajoute son cours en base 100. En bas, la rotation : le montant échangé sur la période divisé par le flottant coté, la mesure honnête de la facilité à entrer et à sortir.")} />
     </div>
   );
 }
@@ -1010,6 +1082,7 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
           {points.length} {t("séances lues")}, {points.filter((p) => (p.variationPct ?? 0) !== 0).length} {t("avec mouvement")}, {missing} {t("sans bulletin")} · {t("toucher une séance l'épingle sur la vue Niveau")}
         </span>
       </p>
+      <HowTo text={t("Une case par jour ouvré, une colonne par semaine. La couleur dit le mouvement de la séance, l'intensité sa force ; le gris est une séance à 0,00 %, le pointillé un jour sans bulletin lu (jour férié, séance non tenue ou bulletin non publié). Choisir une société colore les cases avec le cours de cette valeur, hachurées quand elle s'échange sans changer de prix.")} />
     </div>
   );
 }
@@ -1067,6 +1140,7 @@ function SmallMultiples({ index, overlays, from }: { index: ChartPoint[]; overla
         </span>
         <span>{t("base 100 au début de la période · toucher une vignette ouvre la société")}</span>
       </p>
+      <HowTo text={t("Une vignette par société : son cours en trait plein, l'indice en pointillé doré, les deux ramenés à 100 au début de la période. La courbe au-dessus du pointillé a fait mieux que le marché, celle en dessous moins bien. Les paliers sont les séances sans transaction, pas des jours de stabilité.")} />
     </div>
   );
 }
