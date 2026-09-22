@@ -177,6 +177,8 @@ function parseCapitalisation(lines: string[], warnings: string[]): BocCapitalisa
     const tail = (dateAt > 0 ? cells.slice(dateAt + 1) : cells.slice(5)).filter(isNum).map(num).slice(0, -2);
     out.push({ isin, mnemo, close, sharesFloat, sharesTotal, ...dividend, liquidity3mPct: tail[0], eps: tail[1], marketCapFloat, marketCapTotal });
   }
+  // the section is there but nothing came out of it: say so rather than return empty
+  if (out.length === 0) warnings.push("Section « Capitalisation boursière » présente mais illisible : aucune ligne.");
   return out;
 }
 
@@ -264,9 +266,10 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
       issuerLines.unshift(l);
     }
     const issuer = [...issuerLines, loose[1]].join(" ").replace(/\s+/g, " ").trim();
-    // Older layout: the whole row sits on the next 1–2 lines (prev close glued to the date).
+    // The row sits on the next 1 to 4 lines: today everything is glued together,
+    // before November 2025 the close, the date and the rest came out separately.
     let dense: BocEquity | undefined;
-    for (let k = 1; k <= 2 && !dense; k++) {
+    for (let k = 1; k <= 4 && !dense; k++) {
       const cand = section.slice(i + 1, i + 1 + k).join("").replace(/^[A-Za-z\s-]+(?=\d)/, "");
       if (/^[\d ]+\d{2}\/\d{2}\/\d{4}/.test(cand)) dense = parseEquityDense(isin, issuer, cand);
     }
