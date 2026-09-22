@@ -26,7 +26,7 @@
   width: 14px;
   height: 3px;
   border-radius: 2px;
-  background: var(--navy);
+  background: var(--chart-out);
 }
 .kIndex {
   background: var(--gold);
@@ -53,11 +53,8 @@
 }
 .share {
   fill: none;
-  stroke: var(--navy);
+  stroke: var(--chart-out);
   stroke-width: 2;
-}
-:root[data-theme="dark"] .share {
-  stroke: var(--on-navy-2, #c9d3e3);
 }
 :root[data-theme="dark"] .kShare {
   background: var(--on-navy-2, #c9d3e3);

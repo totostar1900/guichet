@@ -76,12 +76,18 @@
 }
 .line {
   fill: none;
-  stroke: var(--navy);
+  stroke: var(--chart-out);
   stroke-width: 2;
   stroke-linejoin: round;
 }
-:root[data-theme="dark"] .line {
-  stroke: var(--on-navy-2, #c9d3e3);
+.marksOnly .line {
+  stroke-opacity: 0.25;
+  stroke-width: 1;
+}
+.dot {
+  fill: var(--chart-out);
+  stroke: var(--surface);
+  stroke-width: 1;
 }
 .overlay {
   fill: none;
@@ -105,7 +111,7 @@
 }
 .cross circle {
   fill: var(--surface);
-  stroke: var(--navy);
+  stroke: var(--chart-out);
   stroke-width: 2;
 }
 .pin line {
@@ -122,38 +128,37 @@
   opacity: 0.08;
 }
 .tip {
-  position: absolute;
-  top: 52px;
-  transform: translateX(10px);
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 8px;
-  padding: 6px 10px;
+  position: fixed;
+  transform: translateX(-50%);
+  background: var(--tip-bg);
+  border-radius: 10px;
+  padding: 8px 12px;
   font-size: 0.76rem;
-  color: var(--ink-2);
+  color: var(--tip-ink-2);
   display: grid;
   gap: 2px;
   pointer-events: none;
-  box-shadow: 0 4px 12px rgba(11, 37, 69, 0.12);
+  box-shadow: var(--tip-shadow);
   font-variant-numeric: tabular-nums;
-  z-index: 2;
-  min-width: 150px;
+  z-index: 30;
+  width: 240px;
+  max-width: calc(100vw - 16px);
 }
-.tipLeft {
-  transform: translateX(calc(-100% - 10px));
+.tipAbove {
+  transform: translate(-50%, -100%);
 }
 .tip b {
-  color: var(--ink);
+  color: var(--tip-ink);
 }
 .tip em {
   font-style: normal;
   font-weight: 700;
 }
 .tipSince {
-  color: var(--ink-3);
+  color: var(--tip-ink-3);
 }
 .tipMovers {
-  color: var(--gold-ink);
+  color: var(--tip-accent);
   font-weight: 700;
 }
 .upT {
@@ -161,6 +166,12 @@
 }
 .downT {
   color: var(--warn);
+}
+.tip .upT {
+  color: var(--tip-up);
+}
+.tip .downT {
+  color: var(--tip-down);
 }
 .pinsBar {
   display: flex;
@@ -245,15 +256,15 @@
   transform: translateX(-50%);
   width: 260px;
   max-width: calc(100vw - 16px);
-  background: #0b2545;
-  color: #eaeff6;
+  background: var(--tip-bg);
+  color: var(--tip-ink-2);
   border-radius: 10px;
   padding: 10px 12px;
   display: grid;
   gap: 5px;
   font-size: 0.76rem;
   line-height: 1.35;
-  box-shadow: 0 10px 28px rgba(11, 37, 69, 0.35), 0 2px 6px rgba(11, 37, 69, 0.25);
+  box-shadow: var(--tip-shadow);
   pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
@@ -265,7 +276,7 @@
   width: 12px;
   height: 12px;
   margin-left: -6px;
-  background: #0b2545;
+  background: var(--tip-bg);
   transform: rotate(45deg);
   border-radius: 2px;
 }
@@ -277,7 +288,7 @@
   bottom: -6px;
 }
 .calTip b {
-  color: #fff;
+  color: var(--tip-ink);
   font-size: 0.8rem;
   text-transform: capitalize;
 }
@@ -289,7 +300,7 @@
 .calTipLevel {
   font-size: 1.15rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--tip-ink);
 }
 .calTipDelta {
   font-style: normal;
@@ -297,38 +308,38 @@
   font-size: 0.8rem;
   padding: 1px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #c9d3e3;
+  background: var(--tip-line);
+  color: var(--tip-ink-2);
 }
 .calTipUp {
-  color: #7fe0a6;
+  color: var(--tip-up);
 }
 .calTipDown {
-  color: #ffb86b;
+  color: var(--tip-down);
 }
 em.calTipDelta.calTipUp {
-  background: rgba(92, 196, 140, 0.2);
+  background: color-mix(in srgb, var(--tip-up) 22%, transparent);
 }
 em.calTipDelta.calTipDown {
-  background: rgba(240, 165, 82, 0.22);
+  background: color-mix(in srgb, var(--tip-down) 22%, transparent);
 }
 .calTipMovers {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 10px;
   font-weight: 700;
-  color: #e0b65a;
+  color: var(--tip-accent);
 }
 .calTipMovers em {
   font-style: normal;
 }
 .calTip small {
-  color: #b5c0d0;
+  color: var(--tip-ink-2);
   font-size: 0.7rem;
 }
 .calTipHint {
-  color: #8593a8 !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--tip-ink-3) !important;
+  border-top: 1px solid var(--tip-line);
   padding-top: 5px;
 }
 .cal {
@@ -448,7 +459,7 @@ button.calCell:focus-visible {
   height: 3px;
   vertical-align: 3px;
   margin-right: 4px;
-  background: var(--navy);
+  background: var(--chart-out);
 }
 .kGold {
   background: var(--gold);
@@ -534,7 +545,7 @@ button.calCell:focus-visible {
   background: var(--gold);
 }
 .areaTotal {
-  fill: var(--navy);
+  fill: var(--chart-out);
   opacity: 0.08;
 }
 .areaFloat {

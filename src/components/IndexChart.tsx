@@ -29,6 +29,7 @@ export interface OverlaySeries {
 export type IndexView = "niveau" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
 type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
 type VolumeKey = "amount" | "titles" | "trades";
+type Marks = "ligne" | "ligne_points" | "points";
 const PERIODS: [PeriodKey, string][] = [
   ["1m", "1 mois"],
   ["3m", "3 mois"],
@@ -67,6 +68,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const [volOf, setVolOf] = useState("");
   const [hover, setHover] = useState<number | null>(null);
   const [pins, setPins] = useState<string[]>([]);
+  const [marks, setMarks] = useState<Marks>("ligne_points");
+  // touch : the first tap shows the reading, the second on the same point pins it
+  const touchRef = useRef(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [tipPos, setTipPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(760);
   useEffect(() => {
@@ -177,9 +183,30 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const pinB = pins[1] ? at(pins[1]) : undefined;
   const between = pinA && pinB ? pts.filter((p) => p.date > pinA.date && p.date <= pinB.date) : [];
   const moved = between.filter((p) => (p.variationPct ?? 0) !== 0).length;
-  const tipX = hp ? x(hp.date) : 0;
-  const tipLeft = tipX > W * 0.6;
   const lineView = view === "niveau" || view === "volumes";
+  const placeTip = (i: number) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    const px = r.left + (x(pts[i].date) / W) * r.width;
+    const py = r.top + (y(series[i].y) / H) * r.height;
+    const half = 120;
+    const cx = Math.min(window.innerWidth - half - 8, Math.max(half + 8, px));
+    const above = py + 170 > window.innerHeight;
+    setTipPos({ x: cx, y: above ? py - 12 : py + 14, above });
+  };
+  const hoverAt = (i: number) => {
+    setHover(i);
+    placeTip(i);
+  };
+  const onSvgClick = (clientX: number, svg: SVGSVGElement) => {
+    const i = nearest(clientX, svg);
+    if (touchRef.current && hover !== i) {
+      hoverAt(i);
+      return;
+    }
+    togglePin(pts[i].date);
+  };
 
   return (
     <div className={styles.wrap} ref={boxRef}>
@@ -202,6 +229,14 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
           <>
             <label className={styles.check}>
               <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
+            </label>
+            <label className={styles.select}>
+              {t("Tracé")}
+              <select value={marks} onChange={(e) => setMarks(e.target.value as Marks)}>
+                <option value="ligne">{t("ligne")}</option>
+                <option value="ligne_points">{t("ligne et points")}</option>
+                <option value="points">{t("points")}</option>
+              </select>
             </label>
             <label className={styles.select}>
               {t("Comparer à")}
@@ -247,9 +282,17 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             className={styles.svg}
             role="img"
             aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })}
-            onPointerMove={(e) => setHover(nearest(e.clientX, e.currentTarget))}
-            onPointerLeave={() => setHover(null)}
-            onClick={(e) => togglePin(pts[nearest(e.clientX, e.currentTarget)].date)}
+            ref={svgRef}
+            onPointerDown={(e) => {
+              touchRef.current = e.pointerType === "touch";
+            }}
+            onPointerMove={(e) => {
+              if (e.pointerType !== "touch") hoverAt(nearest(e.clientX, e.currentTarget));
+            }}
+            onPointerLeave={(e) => {
+              if (e.pointerType !== "touch") setHover(null);
+            }}
+            onClick={(e) => onSvgClick(e.clientX, e.currentTarget)}
           >
             {tickVals.map((v) => (
               <g key={v}>
@@ -286,9 +329,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             {segments(ovSeries).map((s, i) => (
               <polyline key={`o${i}`} points={s} className={styles.overlay} />
             ))}
-            {segments(series).map((s, i) => (
-              <polyline key={i} points={s} className={styles.line} />
-            ))}
+            {marks !== "points" &&
+              segments(series).map((s, i) => (
+                <polyline key={i} points={s} className={styles.line} />
+              ))}
+            {marks !== "ligne" && series.map((p) => <circle key={`m${p.date}`} cx={x(p.date)} cy={y(p.y)} r={marks === "points" ? 2.4 : 1.6} className={styles.dot} />)}
             {series
               .filter((p) => (p.variationPct ?? 0) !== 0)
               .map((p) => (
@@ -315,8 +360,8 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               </g>
             )}
           </svg>
-          {hp && (
-            <div className={`${styles.tip} ${tipLeft ? styles.tipLeft : ""}`} style={{ left: `${(tipX / W) * 100}%` }}>
+          {hp && tipPos && (
+            <div className={`${styles.tip} ${tipPos.above ? styles.tipAbove : ""}`} style={{ left: tipPos.x, top: tipPos.y }}>
               <b>{fmtDate(hp.date)}</b>
               <span>
                 {lvl(hp.value)} <em className={(hp.variationPct ?? 0) > 0 ? styles.upT : (hp.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(hp.variationPct)}</em>
@@ -664,6 +709,7 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
   const byDate = new Map(points.map((p) => [p.date, p]));
   // the bubble is fixed to the viewport (the panel clips its overflow) and kept inside it
   const [tip, setTip] = useState<{ date: string; x: number; y: number; above: boolean } | null>(null);
+  const touch = useRef(false);
   const showTip = (date: string, el: HTMLElement) => {
     const r = el.getBoundingClientRect();
     const half = 130;
@@ -702,7 +748,7 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
   return (
-    <div className={styles.calWrap} onPointerLeave={() => setTip(null)}>
+    <div className={styles.calWrap} onPointerLeave={(e) => e.pointerType !== "touch" && setTip(null)}>
       <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
         <span />
         {weeks.map((w, i) => (
@@ -719,9 +765,28 @@ function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: st
               const label = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}` : d >= from && d <= to ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
               const inRange = d >= from && d <= to;
               return p ? (
-                <button key={d} type="button" className={`${styles.calCell} ${cls(d)}`} aria-label={label} onClick={() => onPick(d)} onPointerEnter={(e) => showTip(d, e.currentTarget)} onFocus={(e) => showTip(d, e.currentTarget)} />
+                <button
+                  key={d}
+                  type="button"
+                  className={`${styles.calCell} ${cls(d)}`}
+                  aria-label={label}
+                  onPointerDown={(e) => {
+                    touch.current = e.pointerType === "touch";
+                  }}
+                  onClick={(e) => {
+                    if (touch.current && tip?.date !== d) {
+                      showTip(d, e.currentTarget);
+                      return;
+                    }
+                    onPick(d);
+                  }}
+                  onPointerEnter={(e) => {
+                    if (e.pointerType !== "touch") showTip(d, e.currentTarget);
+                  }}
+                  onFocus={(e) => showTip(d, e.currentTarget)}
+                />
               ) : (
-                <i key={d} className={`${styles.calCell} ${cls(d)}`} aria-label={label || undefined} onPointerEnter={inRange ? (e) => showTip(d, e.currentTarget) : undefined} />
+                <i key={d} className={`${styles.calCell} ${cls(d)}`} aria-label={label || undefined} onPointerEnter={inRange ? (e) => showTip(d, e.currentTarget) : undefined} onClick={inRange ? (e) => showTip(d, e.currentTarget) : undefined} />
               );
             })}
           </div>

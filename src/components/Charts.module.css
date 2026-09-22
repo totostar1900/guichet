@@ -152,17 +152,17 @@
   max-width: 260px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--tip-bg);
+  color: var(--tip-ink-2);
   font-size: 0.74rem;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
   pointer-events: none;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--tip-shadow);
   z-index: 30;
 }
 .tip b {
-  color: var(--surface);
+  color: var(--tip-ink);
   font-weight: 800;
 }
 .tip > b {

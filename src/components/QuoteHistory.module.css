@@ -138,8 +138,9 @@
   max-width: 260px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--tip-bg);
+  color: var(--tip-ink-2);
+  box-shadow: var(--tip-shadow);
   font-size: 0.74rem;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
@@ -164,7 +165,7 @@
   transform: translate(-12px, 14px);
 }
 .tip b {
-  color: var(--surface);
+  color: var(--tip-ink);
   font-weight: 800;
   font-size: 0.86rem;
 }
