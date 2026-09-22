@@ -32,7 +32,9 @@ describe("actes et avis", () => {
     const flow = positions[0].paid[0];
     const d1 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date, { advisor: "Desk Test" });
     expect(d1.type).toBe("coupon");
-    expect(d1.number).toMatch(/^PC-AC-\d{4}-\d{4}$/);
+    // the client's copy carries no rank; the register entry does, and stays at the desk
+    expect(d1.number).toMatch(/^PC-AC-\d{6}-[23456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/);
+    expect(d1.registerNo).toMatch(/^PC-AC-\d{4}-\d{4}$/);
     expect(d1.flowKey).toBe(`c-se|CM0000TEST01|${flow.date}`);
     const d2 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date);
     expect(d2.id).toBe(d1.id);

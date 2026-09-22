@@ -46,3 +46,16 @@
   background: var(--good-soft);
   color: var(--good);
 }
+
+/* one line to find a document by either of its two references */
+.find {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 0 12px;
+}
+.find input {
+  flex: 1;
+  min-width: 220px;
+}

@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import type { DocumentType } from "@/lib/domain/types";
 import { auctionLines } from "@/lib/documents/generate";
 import { DOC_LABEL, docsAvailable } from "@/lib/documents/registry";
+import { registerOf } from "@/lib/documents/numbering";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { displayStatus, isActionable } from "@/lib/domain/status";
 import type { GeneratedDocument } from "@/lib/domain/types";
@@ -30,14 +31,20 @@ const CHAIN: [string, string, string, string][] = [
   ["Vie du titre", "Avis de coupon, relevé de position", "Porteurs", "Programmé : étape suivante"],
 ];
 
-export default async function DocumentsPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+export default async function DocumentsPage({ searchParams }: { searchParams: Promise<{ type?: string; q?: string }> }) {
   const t = await getT();
   const r = repo();
   const sp = await searchParams;
   const [offers, intents, allDocs] = await Promise.all([r.listOffers(), r.listIntents(), r.listDocuments()]);
   // ?type= narrows the issued list to one model (the map of documents links here)
   const typeFilter = sp.type && sp.type in DOC_LABEL ? (sp.type as DocumentType) : undefined;
-  const docs = typeFilter ? allDocs.filter((x) => x.type === typeFilter) : allDocs;
+  // ?q= finds a document by either reference : the one the client quotes, or the register entry
+  const q = (sp.q ?? "").trim().toLowerCase();
+  const docs = allDocs.filter(
+    (x) =>
+      (!typeFilter || x.type === typeFilter) &&
+      (!q || [x.number, registerOf(x), x.clientName ?? "", x.title].some((v) => v.toLowerCase().includes(q))),
+  );
   const now = new Date();
   const byOffer = new Map(offers.map((o) => [o.id, o]));
 
@@ -199,11 +206,23 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             )}
           </span>
         </div>
+        <form className={styles.find} method="get">
+          {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
+          <input name="q" defaultValue={sp.q ?? ""} placeholder={t("Une référence, un client : PC-BUL-260922-K7Q4 ou PC-BUL-2026-0018")} aria-label={t("Chercher un document")} />
+          <button className="btn sm" type="submit">
+            {t("Chercher")}
+          </button>
+          {q && (
+            <Link className="btn sm ghost" href={typeFilter ? `/desk/documents?type=${typeFilter}` : "/desk/documents"}>
+              {t("Effacer")}
+            </Link>
+          )}
+        </form>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
-                <th>N°</th>
+                <th>{t("Référence")}</th>
                 <th>{t("Document")}</th>
                 <th>{t("Client")}</th>
                 <th>{t("Généré")}</th>
@@ -220,6 +239,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                       <a href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer">
                         {d.number}
                       </a>
+                      {registerOf(d) !== d.number && (
+                        <small className="muted" title={t("Entrée du registre : jamais portée sur l'exemplaire du client")}>
+                          <br />
+                          {registerOf(d)}
+                        </small>
+                      )}
                     </td>
                     <td>{t(DOC_LABEL[d.type])}</td>
                     <td>{d.clientName ?? <span className="muted">SVT</span>}</td>

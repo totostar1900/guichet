@@ -220,12 +220,13 @@ function fromOffer(o: Offer): OfferRow {
 }
 
 type DocRow = {
+  register_no: string | null;
   id: string; type: GeneratedDocument["type"]; number: string; title: string; intent_id: string | null; offer_id: string | null; client_name: string | null;
   auction_key: string | null; client_file_id: string | null; client_id: string | null; file_key: string; status: GeneratedDocument["status"]; sent_via: string[] | null; sent_at: string | null; signed_at: string | null;
   created_at: string; created_by: string | null; template_versions?: Record<string, number> | null; flow_key?: string | null;
 };
 const toDoc = (r: DocRow): GeneratedDocument => ({
-  id: r.id, type: r.type, number: r.number, title: r.title, intentId: u(r.intent_id), offerId: u(r.offer_id), clientName: u(r.client_name),
+  id: r.id, type: r.type, number: r.number, registerNo: u(r.register_no), title: r.title, intentId: u(r.intent_id), offerId: u(r.offer_id), clientName: u(r.client_name),
   auctionKey: u(r.auction_key), clientFileId: u(r.client_file_id), clientId: u(r.client_id), fileKey: r.file_key, status: r.status, sentVia: u(r.sent_via), sentAt: u(r.sent_at), signedAt: u(r.signed_at),
   createdAt: r.created_at, createdBy: u(r.created_by), templateVersions: u(r.template_versions), flowKey: u(r.flow_key),
 });
@@ -235,6 +236,7 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   if (p.flowKey !== undefined) row.flow_key = p.flowKey;
   if (p.type !== undefined) row.type = p.type;
   if (p.number !== undefined) row.number = p.number;
+  if (p.registerNo !== undefined) row.register_no = p.registerNo;
   if (p.title !== undefined) row.title = p.title;
   if (p.intentId !== undefined) row.intent_id = p.intentId;
   if (p.offerId !== undefined) row.offer_id = p.offerId;

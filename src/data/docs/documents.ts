@@ -43,5 +43,26 @@ export const DOCUMENTS: DocPage = {
         { type: "link", href: "/desk/clients", label: l("Dossiers › Actes et avis", "Files › Acts and notices"), hint: l("mandat, avis de coupon, transfert / clôture, réclamation reçue", "mandate, coupon notice, transfer / closure, complaint received") },
       ],
     },
+    {
+      id: "references",
+      title: l("Les deux références d'un document", "The two references of a document"),
+      blocks: [
+        { type: "lead", text: l("Chaque document porte deux références, parce qu'elles font deux métiers différents : celle qu'il imprime, que le client cite, et celle du registre de la maison, que le desk et un contrôleur lisent.", "Every document carries two references, because they do two different jobs: the one it prints, which the client quotes, and the one in the firm's register, read by the desk and by a controller.") },
+        {
+          type: "table",
+          head: [l("", ""), l("La référence imprimée", "The printed reference"), l("L'entrée du registre", "The register entry")],
+          rows: [
+            [l("À quoi elle ressemble", "What it looks like"), l("PC-BUL-260922-K7Q4", "PC-BUL-260922-K7Q4"), l("PC-BUL-2026-0018", "PC-BUL-2026-0018")],
+            [l("Ce qu'elle dit", "What it says"), l("le modèle et le jour d'émission, puis quatre caractères tirés au sort", "the model and the day of issue, then four characters drawn at random"), l("le modèle, l'année, et le rang dans la suite de l'année", "the model, the year, and the rank in that year's sequence")],
+            [l("Qui la voit", "Who sees it"), l("le client, sur son document ; le desk ; tout le monde", "the client, on their document; the desk; everyone"), l("le desk et l'audit, jamais l'exemplaire d'un client", "the desk and audit, never a client's copy")],
+          ],
+        },
+        { type: "p", text: l("La raison est simple : une référence qui compte donne le compte. Un client qui reçoit PC-AF-2026-0002 sait que c'est le deuxième appel de fonds de l'année, et un client qui en reçoit deux à quelques semaines d'écart connaît le rythme. Ce n'est pas une information à lui donner en même temps que son document. La référence imprimée ne porte donc aucun rang ; le registre, lui, garde une suite ininterrompue, qui est ce qu'un contrôleur attend.", "The reason is simple: a reference that counts gives the count away. A client receiving PC-AF-2026-0002 knows it is the second funding call of the year, and a client receiving two a few weeks apart knows the rate. That is not something to hand over along with their document. So the printed reference carries no rank; the register keeps an unbroken sequence, which is what a controller expects.") },
+        { type: "note", kind: "info", text: l("Deux exceptions, voulues. Un document transmis à une contrepartie (bordereau de soumission, dossier SVT) garde sa suite comme référence : la BVMAC et le Trésor lisent un registre, et il n'y a pas de volume à protéger d'eux. Une note sur l'indice garde la référence de sa période (PC-IDX-2026T2), qui ne dit rien d'autre qu'un trimestre.", "Two exceptions, on purpose. A document sent to a counterparty (submission form, SVT file) keeps its sequence as its reference: the BVMAC and the Treasury read a register, and there is no volume to protect from them. A note on the index keeps its period's reference (PC-IDX-2026T2), which says nothing but a quarter.") },
+        { type: "note", kind: "rule", text: l("Une référence déjà entre les mains d'un client ne change jamais. Les documents émis avant cette règle gardent la leur, et c'est elle qui sert d'entrée de registre. Les deux formes se cherchent dans la même boîte, à Documents.", "A reference already in a client's hands never changes. Documents issued before this rule keep theirs, and it serves as their register entry. Both forms are searched from the same box, in Documents.") },
+        { type: "p", text: l("La référence imprimée s'épelle au téléphone sans hésitation : son alphabet ne contient ni I, ni L, ni O, ni U, ni zéro, ni un. Le registre, lui, se calcule à partir de la plus haute entrée déjà inscrite, jamais du nombre de lignes : un document retiré ne rend pas son numéro au suivant.", "The printed reference spells out over the phone without hesitation: its alphabet holds no I, L, O, U, zero or one. The register is computed from the highest entry already logged, never from the number of rows: a removed document never hands its number to the next one.") },
+        { type: "link", href: "/desk/documents", label: l("Documents", "Documents"), hint: l("la boîte de recherche accepte l'une ou l'autre référence", "the search box takes either reference") },
+      ],
+    },
   ],
 };

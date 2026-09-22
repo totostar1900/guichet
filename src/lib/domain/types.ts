@@ -270,7 +270,10 @@ export type DocumentStatus = "genere" | "envoye" | "signe";
 export interface GeneratedDocument {
   id: string;
   type: DocumentType;
-  number: string; // PC-BUL-2026-0018
+  /** Printed on the document, quoted by the client: PC-BUL-260922-K7Q4, or the sequence for a counterparty document. */
+  number: string;
+  /** The firm's log entry, PC-BUL-2026-0018: desk and audit only, never on a client's copy. Absent before the split. */
+  registerNo?: string;
   title: string; // shown in lists
   intentId?: string;
   offerId?: string;

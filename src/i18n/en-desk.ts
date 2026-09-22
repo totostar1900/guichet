@@ -1886,4 +1886,11 @@ export const EN_MORE: Record<string, string> = {
   "Une position se construit et se défait en plusieurs séances : passez par un ordre à cours limité et donnez-lui du temps.": "A position is built and unwound over several sessions: use a limit order and give it time.",
   "Aucune transaction sur les actions ce trimestre : le niveau de l'indice reflète les derniers cours connus, pas un prix auquel acheter ou vendre aujourd'hui.": "No equity trade this quarter: the index level reflects the last known prices, not a price at which to buy or sell today.",
   "aucun cours d'action modifié dans nos lectures": "no share price changed in our readings",
+
+  /* ---------- les deux références d'un document ---------- */
+  "Chercher": "Search",
+  "Chercher un document": "Search for a document",
+  "Référence": "Reference",
+  "Entrée du registre : jamais portée sur l'exemplaire du client": "Register entry: never printed on the client's copy",
+  "Une référence, un client : PC-BUL-260922-K7Q4 ou PC-BUL-2026-0018": "A reference, a client: PC-BUL-260922-K7Q4 or PC-BUL-2026-0018",
 };

@@ -11,20 +11,13 @@ import { AppelDeFonds, AvisOpere, AvisResultat, Bordereau, Bulletin, OrdreDeCess
 import { AppelDeFondsOpcvm, AvisOperationOpcvm, BordereauSgo, BulletinSouscriptionOpcvm, DemandeRachatOpcvm, type FundBordereauCtx } from "./pdf/fund-templates";
 import { positionFor } from "./position";
 import { fmtDate } from "@/lib/format";
-import { DOC_LABEL, DOC_PREFIX, type IntentDocumentType } from "./registry";
+import { DOC_LABEL, type IntentDocumentType } from "./registry";
+import { nextNumbers } from "./numbering";
 
 /**
  * Turns rows into numbered PDFs on the letterhead, stores the bytes and
  * records the document. Numbers: PC-<PREFIX>-<year>-<seq>, one sequence per prefix.
  */
-
-async function nextNumber(type: DocumentType, now: Date): Promise<string> {
-  const prefix = DOC_PREFIX[type];
-  const year = now.getFullYear();
-  const docs = await repo().listDocuments();
-  const seq = docs.filter((d) => d.number.startsWith(`PC-${prefix}-${year}-`)).length + 1;
-  return `PC-${prefix}-${year}-${String(seq).padStart(4, "0")}`;
-}
 
 type PdfElement = ReactElement<DocumentProps>;
 const el = (e: ReactElement) => e as PdfElement;
@@ -61,14 +54,14 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   const offer = await r.getOffer(intent.offerId);
   if (!offer) throw new Error("Offre introuvable");
   const now = new Date();
-  const number = await nextNumber(type, now);
+  const { number, registerNo } = await nextNumbers(type, now);
   const file = intent.clientId ? await r.getClientFileByUser(intent.clientId) : undefined;
   const account = file?.review.custodianAccount;
   const payout = file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined;
   const wording = await resolvePassages(type);
   const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout, texts: wording.text };
   const pdf = await renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
-  return store({ type, number, title: `${DOC_LABEL[type]} : ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type, number, registerNo, title: `${DOC_LABEL[type]} : ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /** All firm intents on the lines of one auction (same issuer country + deadline). */
@@ -95,13 +88,13 @@ export async function generateBordereau(country: string, deadlineAt: string, opt
   const files = await repo().listClientFiles();
   const accounts = new Map(files.map((f) => [f.userId, f.review.custodianAccount]));
   const now = new Date();
-  const number = await nextNumber("bordereau", now);
+  const { number, registerNo } = await nextNumbers("bordereau", now);
   const first = offers[0];
   const wording = await resolvePassages("bordereau");
   const ctx: BordereauCtx = { number, country, issuer: first.issuer, deadlineAt, settleOn: first.settleOn, sourceRef: first.documents[0]?.name, lines, now, accounts, texts: wording.text };
   const pdf = await renderToBuffer(el(createElement(Bordereau, ctx)));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
-  return store({ type: "bordereau", number, title: `Bordereau SVT : ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type: "bordereau", number, registerNo, title: `Bordereau SVT : ${first.issuer} · adjudication du ${deadlineAt.slice(0, 10)} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `${country}|${deadlineAt}`, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /** Confirmed / transmitted OPCVM orders of one manager, grouped for its centralising agent. */
@@ -119,18 +112,18 @@ export async function generateFundBordereau(manager: string, opts: GenerateOpts 
   const accounts = new Map(files.map((f) => [f.userId, f.review.custodianAccount]));
   const payouts = new Map(files.map((f) => [f.userId, f.funds.bankAccount ? `${f.funds.bankName ? `${f.funds.bankName} ` : ""}${f.funds.bankAccount}` : undefined]));
   const now = new Date();
-  const number = await nextNumber("bordereau", now);
+  const { number, registerNo } = await nextNumbers("bordereau", now);
   const wording = await resolvePassages("bordereau");
   const pdf = await renderToBuffer(el(createElement(BordereauSgo, { number, manager, now, lines, accounts, payouts, texts: wording.text })));
   const n = lines.reduce((a, l) => a + l.intents.length, 0);
-  return store({ type: "bordereau", number, title: `Bordereau de centralisation : ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type: "bordereau", number, registerNo, title: `Bordereau de centralisation : ${manager} · ${n} ordre${n > 1 ? "s" : ""}`, auctionKey: `opcvm|${manager}`, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 async function store(meta: Omit<GeneratedDocument, "id" | "fileKey" | "status" | "createdAt">, pdf: Buffer, now: Date): Promise<GeneratedDocument> {
   const fileKey = `docs/${meta.number}.pdf`;
   await saveSource(fileKey, new Uint8Array(pdf), "application/pdf");
   const doc = await repo().createDocument({ ...meta, fileKey, status: "genere", createdAt: now.toISOString() });
-  await repo().logEvent({ kind: "document", intentId: meta.intentId, offerId: meta.offerId, html: `<b>${DOC_LABEL[meta.type]}</b> ${meta.number} généré${meta.clientName ? ` pour ${meta.clientName}` : ""}${meta.createdBy ? ` · par ${meta.createdBy}` : ""}` });
+  await repo().logEvent({ kind: "document", intentId: meta.intentId, offerId: meta.offerId, html: `<b>${DOC_LABEL[meta.type]}</b> ${meta.number}${meta.registerNo && meta.registerNo !== meta.number ? ` · registre ${meta.registerNo}` : ""} généré${meta.clientName ? ` pour ${meta.clientName}` : ""}${meta.createdBy ? ` · par ${meta.createdBy}` : ""}` });
   return doc;
 }
 
@@ -146,11 +139,11 @@ export async function renderConventionModel(): Promise<Buffer> {
 
 export async function generateKycDocument(type: "convention" | "dossier_svt", file: ClientFile, advisor?: string): Promise<GeneratedDocument> {
   const now = new Date();
-  const number = await nextNumber(type, now);
+  const { number, registerNo } = await nextNumbers(type, now);
   const wording = await resolvePassages(type);
   const element = type === "convention" ? createElement(Convention, { number, file, now, texts: wording.text }) : createElement(DossierOuverture, { number, file, now, texts: wording.text });
   const pdf = await renderToBuffer(el(element));
-  return store({ type, number, title: `${DOC_LABEL[type]} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type, number, registerNo, title: `${DOC_LABEL[type]} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /* ---------------- Statements ---------------- */
@@ -164,11 +157,11 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
   const positions = positionsFrom(intents.filter((i) => i.clientId === clientId), offers);
   const now = new Date();
-  const number = await nextNumber(type, now);
+  const { number, registerNo } = await nextNumbers(type, now);
   const wording = await resolvePassages(type);
   const element = type === "releve" ? createElement(RelevePosition, { number, contact, positions, now, texts: wording.text }) : createElement(AttestationDetention, { number, contact, positions, now, texts: wording.text });
   const pdf = await renderToBuffer(el(element));
-  return store({ type, number, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type, number, registerNo, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /* ---------------- Actes et avis : mandat, coupon, réclamation, transfert ---------------- */
@@ -179,10 +172,10 @@ import { AvisCouponPdf, MandatPdf, ReclamationPdf, TransfertPdf, type ComplaintC
 
 export async function generateMandate(file: ClientFile, mandate: Mandate, advisor?: string): Promise<GeneratedDocument> {
   const now = new Date();
-  const number = await nextNumber("mandat", now);
+  const { number, registerNo } = await nextNumbers("mandat", now);
   const wording = await resolvePassages("mandat");
   const pdf = await renderToBuffer(el(createElement(MandatPdf, { number, file, mandate, now, texts: wording.text })));
-  return store({ type: "mandat", number, title: `${DOC_LABEL.mandat} : ${file.identity.name} → ${mandate.personName}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type: "mandat", number, registerNo, title: `${DOC_LABEL.mandat} : ${file.identity.name} → ${mandate.personName}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /** The positions of a client, for the acts that list them. */
@@ -209,10 +202,10 @@ export async function generateCouponNotice(clientId: string, isin: string, flowD
   const file = await r.getClientFileByUser(clientId);
   const bank = file?.funds.bankAccount ? { name: file.funds.bankName, ribEnd: file.funds.bankAccount.replace(/\s/g, "").slice(-4) } : undefined;
   const now = new Date();
-  const number = await nextNumber("coupon", now);
+  const { number, registerNo } = await nextNumbers("coupon", now);
   const wording = await resolvePassages("coupon");
   const pdf = await renderToBuffer(el(createElement(AvisCouponPdf, { number, contact, position, flow, paidOn: opts.paidOn, note: opts.note, bank, next: position.flows[0], now, texts: wording.text })));
-  return store({ type: "coupon", number, title: `${/rembours/i.test(flow.label) ? "Avis de remboursement" : "Avis de coupon"} : ${position.offer.title} · ${fmtDate(flow.date)}`, clientName: contact.name, clientId, offerId: position.offer.id, intentId: position.intent.id, createdBy: opts.advisor, templateVersions: wording.versions, flowKey }, pdf, now);
+  return store({ type: "coupon", number, registerNo, title: `${/rembours/i.test(flow.label) ? "Avis de remboursement" : "Avis de coupon"} : ${position.offer.title} · ${fmtDate(flow.date)}`, clientName: contact.name, clientId, offerId: position.offer.id, intentId: position.intent.id, createdBy: opts.advisor, templateVersions: wording.versions, flowKey }, pdf, now);
 }
 
 /** A complaint, from the client (signed by code) or recorded by the desk. The deadlines are stamped on it. */
@@ -223,21 +216,21 @@ export async function generateComplaint(clientId: string, input: { operation?: s
   const now = new Date();
   const ackBy = addBusinessDays(now, 2).toISOString().slice(0, 10);
   const answerBy = new Date(now.getTime() + 30 * 86400e3).toISOString().slice(0, 10);
-  const number = await nextNumber("reclamation", now);
+  const { number, registerNo } = await nextNumbers("reclamation", now);
   const wording = await resolvePassages("reclamation");
   const ctx: ComplaintCtx = { number, contact, operation: input.operation, facts: input.facts, ask: input.ask, receivedVia: input.receivedVia, signedBy: input.signedBy, ackBy, answerBy, now, texts: wording.text };
   const pdf = await renderToBuffer(el(createElement(ReclamationPdf, ctx)));
-  const doc = await store({ type: "reclamation", number, title: `Réclamation : ${contact.name}${input.operation ? ` · ${input.operation.slice(0, 40)}` : ""}`, clientName: contact.name, clientId, createdBy: input.advisor, templateVersions: wording.versions }, pdf, now);
+  const doc = await store({ type: "reclamation", number, registerNo, title: `Réclamation : ${contact.name}${input.operation ? ` · ${input.operation.slice(0, 40)}` : ""}`, clientName: contact.name, clientId, createdBy: input.advisor, templateVersions: wording.versions }, pdf, now);
   return { ...doc, ackBy, answerBy };
 }
 
 export async function generateTransferOrder(file: ClientFile, closure: Closure, advisor?: string): Promise<GeneratedDocument> {
   const positions = await clientPositions(file.userId);
   const now = new Date();
-  const number = await nextNumber("transfert", now);
+  const { number, registerNo } = await nextNumbers("transfert", now);
   const wording = await resolvePassages("transfert");
   const pdf = await renderToBuffer(el(createElement(TransfertPdf, { number, file, closure, positions, now, texts: wording.text })));
-  return store({ type: "transfert", number, title: `${closure.scope === "partiel" ? "Ordre de transfert" : "Ordre de transfert et de clôture"} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+  return store({ type: "transfert", number, registerNo, title: `${closure.scope === "partiel" ? "Ordre de transfert" : "Ordre de transfert et de clôture"} : ${file.identity.name}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
 /* ---------------- Rapport d'activité (COSUMAF) ---------------- */
@@ -296,7 +289,8 @@ export async function publishIndexNote(month: string, by: string): Promise<Gener
   const existing = (await repo().listDocuments()).find((d) => d.type === "note_indice" && d.number === made.note.number);
   if (existing) return existing;
   const wording = await resolvePassages("note_indice");
-  return store({ type: "note_indice", number: made.note.number, title: `Note mensuelle sur l'indice : ${made.note.month.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
+  const { registerNo } = await nextNumbers("note_indice", new Date(), made.note.number);
+  return store({ type: "note_indice", number: made.note.number, registerNo, title: `Note mensuelle sur l'indice : ${made.note.month.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
 }
 
 import { quarterNote, quarters, type QuarterNote } from "@/lib/market/index-quarter";
@@ -328,7 +322,8 @@ export async function publishQuarterNote(key: string, by: string): Promise<Gener
   const existing = (await repo().listDocuments()).find((d) => d.type === "note_indice" && d.number === made.note.number);
   if (existing) return existing;
   const wording = await resolvePassages("note_indice");
-  return store({ type: "note_indice", number: made.note.number, title: `Note de marché : l'indice BVMAC au ${made.note.quarter.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
+  const { registerNo } = await nextNumbers("note_indice", new Date(), made.note.number);
+  return store({ type: "note_indice", number: made.note.number, registerNo, title: `Note de marché : l'indice BVMAC au ${made.note.quarter.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
 }
 
 /* ---------------- Rapport sur une société cotée ---------------- */
