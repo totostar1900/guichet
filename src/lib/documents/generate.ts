@@ -264,6 +264,41 @@ export async function renderActivityReport(period: Period): Promise<{ pdf: Buffe
   return { pdf, number };
 }
 
+/* ---------------- Note mensuelle sur l'indice ---------------- */
+
+import { indexNote, noteMonths, type IndexNote } from "@/lib/market/index-note";
+import { indexPageData } from "@/lib/market/index-data";
+import { NoteIndice } from "./pdf/index-templates";
+
+/** The months the note can cover, most recent first. */
+export async function indexNoteMonths() {
+  return noteMonths(await indexPageData());
+}
+
+/** The note of one month, computed from the series : the figures the desk reads before publishing. */
+export async function indexNoteFor(month?: string): Promise<IndexNote | undefined> {
+  return indexNote(month);
+}
+
+/** The PDF of one month, rendered on demand (preview) or stored when the desk publishes it. */
+export async function renderIndexNote(month?: string): Promise<{ pdf: Buffer; note: IndexNote } | undefined> {
+  const note = await indexNote(month);
+  if (!note) return undefined;
+  const wording = await resolvePassages("note_indice");
+  const pdf = await renderToBuffer(el(createElement(NoteIndice, { note, texts: wording.text })));
+  return { pdf, note };
+}
+
+/** Publish the month's note : one document per month, kept and numbered like the others. */
+export async function publishIndexNote(month: string, by: string): Promise<GeneratedDocument | undefined> {
+  const made = await renderIndexNote(month);
+  if (!made) return undefined;
+  const existing = (await repo().listDocuments()).find((d) => d.type === "note_indice" && d.number === made.note.number);
+  if (existing) return existing;
+  const wording = await resolvePassages("note_indice");
+  return store({ type: "note_indice", number: made.note.number, title: `Note mensuelle sur l'indice : ${made.note.month.label}`, createdBy: by, templateVersions: wording.versions }, made.pdf, new Date());
+}
+
 /* ---------------- Rapport sur une société cotée ---------------- */
 
 import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/companies/analysis";

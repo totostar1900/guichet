@@ -264,7 +264,7 @@ export interface IntakeItem {
 
 /* ---------------- Documents ---------------- */
 
-export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "coupon" | "reclamation" | "transfert";
+export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "coupon" | "reclamation" | "transfert" | "note_indice";
 export type DocumentStatus = "genere" | "envoye" | "signe";
 
 export interface GeneratedDocument {

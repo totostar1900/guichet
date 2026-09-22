@@ -1,7 +1,7 @@
 import type { DocumentType, Intent, IntentState, IntentType } from "@/lib/domain/types";
 
 /** Documents that belong to one intent (everything but the grouped bordereau). */
-export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "coupon" | "reclamation" | "transfert">;
+export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "coupon" | "reclamation" | "transfert" | "note_indice">;
 
 /** Three kinds of documents, each with its own rule for wording changes and its own audience. */
 export type DocumentKind = "signe" | "envoye" | "interne";
@@ -12,6 +12,7 @@ export const DOC_KIND: Record<DocumentType, DocumentKind> = {
   cession: "signe",
   reclamation: "signe",
   transfert: "signe",
+  note_indice: "envoye",
   fonds: "envoye",
   allocation: "envoye",
   non_allocation: "envoye",
@@ -25,7 +26,7 @@ export const DOC_KIND: Record<DocumentType, DocumentKind> = {
 export const DOC_KIND_LABEL: Record<DocumentKind, string> = { signe: "Signés par le client", envoye: "Envoyés au client", interne: "Transmis aux contreparties" };
 export const DOC_KIND_RULE: Record<DocumentKind, string> = { signe: "réglementaire : un responsable approuve chaque changement de texte", envoye: "relu : un autre membre du desk relit chaque changement", interne: "libre : en vigueur dès l'enregistrement ; jamais envoyé au client" };
 /** The order of the life of a relationship, for lists. */
-export const DOC_ORDER: DocumentType[] = ["convention", "mandat", "bulletin", "cession", "reclamation", "transfert", "fonds", "allocation", "non_allocation", "opere", "coupon", "releve", "attestation", "dossier_svt", "bordereau"];
+export const DOC_ORDER: DocumentType[] = ["convention", "mandat", "bulletin", "cession", "reclamation", "transfert", "fonds", "allocation", "non_allocation", "opere", "coupon", "releve", "attestation", "note_indice", "dossier_svt", "bordereau"];
 /** When the lifecycle produces each document. */
 export const DOC_WHEN: Record<DocumentType, string> = {
   convention: "à l'ouverture du compte-titres ; le modèle vierge se lit avant l'acceptation",
@@ -34,6 +35,7 @@ export const DOC_WHEN: Record<DocumentType, string> = {
   cession: "à la confirmation d'une cession ou d'un rachat",
   reclamation: "quand le client la dépose (Mon espace) ou que le desk enregistre celle reçue",
   transfert: "à la demande de transfert ou de clôture ; le dossier passe « en clôture » à la signature",
+  note_indice: "au premier bulletin de chaque mois, sur le mois écoulé",
   fonds: "à la confirmation, avec le bulletin ; à exécuter par le client",
   allocation: "quand la ligne est servie",
   non_allocation: "quand la ligne n'est pas servie ; les fonds sont restitués",
@@ -61,6 +63,7 @@ export const DOC_LABEL: Record<DocumentType, string> = {
   coupon: "Avis de coupon · de remboursement",
   reclamation: "Réclamation",
   transfert: "Ordre de transfert · de clôture",
+  note_indice: "Note mensuelle sur l'indice",
 };
 
 export const DOC_PREFIX: Record<DocumentType, string> = {
@@ -79,6 +82,7 @@ export const DOC_PREFIX: Record<DocumentType, string> = {
   coupon: "AC",
   reclamation: "REC",
   transfert: "TRF",
+  note_indice: "IDX",
 };
 
 /** Documents the lifecycle produces when an intent reaches a state. */
@@ -142,5 +146,6 @@ export const DOC_ROLES: Record<DocumentType, DocRole> = {
   releve: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "personne", receives: "le client", find: DOCS_PAGE("releve"), born: { href: "/moi", label: "Mon espace › Relevé de position ; le desk depuis le dossier" } },
   attestation: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "Purpose (signature et cachet)", receives: "le client, pour un tiers", find: DOCS_PAGE("attestation"), born: { href: "/moi", label: "Mon espace › Attestation de détention" } },
   dossier_svt: { moment: "ouverture", prepares: "le desk, depuis le dossier KYC", signs: "Purpose", receives: "le SVT ou le dépositaire", find: DOCS_PAGE("dossier_svt"), born: { href: "/desk/clients", label: "Dossiers › approbation du dossier" } },
+  note_indice: { moment: "vie", prepares: "le Guichet, depuis les bulletins lus", signs: "personne : c'est une note d'information", receives: "les clients et le desk", find: DOCS_PAGE("note_indice"), born: { href: "/desk/indice", label: "Desk › Note sur l'indice" }, clock: "publiée au premier bulletin du mois" },
   bordereau: { moment: "execution", prepares: "le desk", signs: "Purpose", receives: "le SVT (adjudication) ou la société de gestion (OPCVM)", find: DOCS_PAGE("bordereau"), born: { href: "/desk/resultats", label: "Résultats › bordereau de l'adjudication ; Cotes & VL › bordereau OPCVM" } },
 };
