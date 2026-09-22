@@ -325,3 +325,13 @@
     overflow-wrap: anywhere;
   }
 }
+
+.backs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+.backFrom {
+  color: var(--navy-text);
+  font-weight: 700;
+}

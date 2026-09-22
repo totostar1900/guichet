@@ -16,7 +16,7 @@ import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ mnemo: string }>; searchParams: Promise<{ p?: string }> };
+type Props = { params: Promise<{ mnemo: string }>; searchParams: Promise<{ p?: string; depuis?: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const c = await companyByMnemo((await params).mnemo);
@@ -53,9 +53,16 @@ export default async function SocietePage({ params, searchParams }: Props) {
 
   return (
     <>
-      <Link href="/societes" className={styles.back}>
-        {t("← Toutes les sociétés cotées")}
-      </Link>
+      <div className={styles.backs}>
+        {sp.depuis === "indice" && (
+          <Link href="/indice" className={`${styles.back} ${styles.backFrom}`}>
+            {t("← Retour à l'indice BVMAC")}
+          </Link>
+        )}
+        <Link href="/societes" className={styles.back}>
+          {t("← Toutes les sociétés cotées")}
+        </Link>
+      </div>
       <div className={styles.head}>
         <div>
           <div className={`eyebrow ${styles.eyebrow}`}>

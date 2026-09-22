@@ -1702,4 +1702,5 @@ export const EN_MORE: Record<string, string> = {
   "échange": "trade",
   "toucher pour épingler sur la vue Niveau": "tap to pin on the Level view",
   "Jour ouvré sans bulletin lu : jour férié, séance non tenue ou bulletin non publié.": "Weekday with no bulletin read: public holiday, no session held or bulletin not published.",
+  "← Retour à l'indice BVMAC": "← Back to the BVMAC index",
 };

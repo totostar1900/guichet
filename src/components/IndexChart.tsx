@@ -450,7 +450,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
       <div className={styles.contrib}>
         {rows.map((r) => (
           <div key={r.o.mnemo} className={styles.contribRow}>
-            <Link href={`/societes/${r.o.mnemo.toLowerCase()}`}>{r.o.mnemo}</Link>
+            <Link href={`/societes/${r.o.mnemo.toLowerCase()}?depuis=indice`}>{r.o.mnemo}</Link>
             <span className={styles.contribTrack}>
               <i className={styles.contribZero} />
               <i className={`${styles.contribBar} ${r.pts >= 0 ? styles.contribUp : styles.contribDown}`} style={r.pts >= 0 ? { left: "50%", width: `${(r.pts / max) * 50}%` } : { right: "50%", width: `${(-r.pts / max) * 50}%` }} />
@@ -637,7 +637,7 @@ function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: Over
         <div className={styles.contribHead}>{t("Rotation du flottant sur la période · montant échangé ÷ flottant coté")}</div>
         {rot.map((r) => (
           <div key={r.o.mnemo} className={styles.contribRow}>
-            <Link href={`/societes/${r.o.mnemo.toLowerCase()}`}>{r.o.mnemo}</Link>
+            <Link href={`/societes/${r.o.mnemo.toLowerCase()}?depuis=indice`}>{r.o.mnemo}</Link>
             <span className={styles.contribTrack}>
               <i className={`${styles.contribBar} ${styles.contribGold}`} style={{ left: 0, width: `${(r.pct / rotMax) * 100}%` }} />
             </span>
@@ -807,7 +807,7 @@ function SmallMultiples({ index, overlays, from }: { index: ChartPoint[]; overla
           const path = (arr: { date: string; y: number }[]) => arr.map((p) => `${x(p.date).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
           const alone = Math.abs(sEnd - iEnd) >= 2;
           return (
-            <Link key={o.mnemo} href={`/societes/${o.mnemo.toLowerCase()}`} className={styles.smCard}>
+            <Link key={o.mnemo} href={`/societes/${o.mnemo.toLowerCase()}?depuis=indice`} className={styles.smCard}>
               <b>
                 {o.mnemo} <span className={sEnd > 0 ? styles.upT : sEnd < 0 ? styles.downT : ""}>{signed(sEnd, 1)}</span>
               </b>

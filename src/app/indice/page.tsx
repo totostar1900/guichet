@@ -285,7 +285,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
                               mv.map((m, i) => (
                                 <span key={m.mnemo}>
                                   {i > 0 ? " · " : ""}
-                                  <Link href={`/societes/${m.mnemo.toLowerCase()}`}>{m.mnemo}</Link>{" "}
+                                  <Link href={`/societes/${m.mnemo.toLowerCase()}?depuis=indice`}>{m.mnemo}</Link>{" "}
                                   {m.variationPct !== 0 ? <b className={tone(m.variationPct)}>{signed(m.variationPct)}</b> : <span className="muted">{t("échange sans changement de cours")}</span>}
                                 </span>
                               ))
@@ -344,7 +344,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
                   {weights.map((w) => (
                     <tr key={w.isin}>
                       <td>
-                        <Link href={`/societes/${w.mnemo.toLowerCase()}`}>
+                        <Link href={`/societes/${w.mnemo.toLowerCase()}?depuis=indice`}>
                           <b>{w.mnemo}</b> · {nameOf(w.mnemo)}
                         </Link>
                       </td>
