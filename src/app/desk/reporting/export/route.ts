@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
   if (type === "ordres") {
     const rows = orderJournal(intents, offers, events, p);
     csv = toCsv(
-      ["Référence", "Reçu le", "Client", "Segment", "Instrument", "Ligne", "ISIN", "Sens", "Quantité", "Montant (FCFA)", "Prix", "Canal", "État", "Confirmé le", "Transmis le", "Exécuté le", "Réglé le", "Conseiller"],
-      rows.map((o) => [o.ref, o.receivedAt, o.client, o.segment, o.instrument, o.line, o.isin, o.sens, o.quantity, Math.round(o.amount), o.price, o.channel, o.state, o.confirmedAt, o.transmittedAt, o.executedAt, o.settledAt, o.advisor]),
+      ["N° journal", "Référence client", "Reçu le", "Client", "Segment", "Instrument", "Ligne", "ISIN", "Sens", "Quantité", "Montant (FCFA)", "Prix", "Canal", "État", "Confirmé le", "Transmis le", "Exécuté le", "Réglé le", "Conseiller"],
+      rows.map((o) => [o.registerNo, o.ref, o.receivedAt, o.client, o.segment, o.instrument, o.line, o.isin, o.sens, o.quantity, Math.round(o.amount), o.price, o.channel, o.state, o.confirmedAt, o.transmittedAt, o.executedAt, o.settledAt, o.advisor]),
     );
     name = `journal-des-ordres_${p.from}_${p.to}.csv`;
   } else if (type === "clients") {

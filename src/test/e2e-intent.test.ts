@@ -56,7 +56,7 @@ describe("intent → desk → documents", () => {
     const res = await submitIntent(null, form);
     expect(res.ok).toBe(true);
     if (!res.ok) return;
-    expect(res.ref).toMatch(/^[A-Z]{2}-\d{4}-\d{3}$/);
+    expect(res.ref).toMatch(/^[A-Z]{2}-\d{4}-[23456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/);
     expect(res.phone).toBe("+237687676767");
     expect(res.email).toBe("awa.ndongo@example.com");
     expect(res.sent.length).toBe(2); // WhatsApp + e-mail, prepared even without providers

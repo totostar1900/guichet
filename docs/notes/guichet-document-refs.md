@@ -1,6 +1,6 @@
 ---
 name: guichet-document-refs
-description: Guichet document references (2026-09-22): printed ref is opaque for client documents (PC-BUL-260922-K7Q4), internal register_no keeps the sequence (PC-BUL-2026-0018); counterparty docs stay sequential, note_indice keeps its period; migration 0034
+description: Guichet client-visible references (2026-09-22): documents and intentions both print an opaque ref, the sequence moves to an internal register_no / order journal; counterparty docs stay sequential; migrations 0034 and 0035
 metadata:
   type: project
 ---
@@ -9,4 +9,8 @@ metadata:
 
 **Why:** the user noticed that `PC-AF-2026-0002` tells a client it is the second funding call of the year, and two documents weeks apart give away the rate. Decision taken: client documents opaque, counterparty documents sequential.
 
-**How to apply:** a reference already in a client's hands never changes, so documents issued before 2026-09-22 keep theirs and `registerOf()` falls back to `number` for them. Never print `registerNo` on a client copy. If another client-visible identifier turns out to be sequential (intention refs, `/offres/<id>/doc/<n>`, statement numbering), it has the same leak and should get the same treatment. Related: [[guichet-templates]], [[guichet-supabase-migrations]], [[guichet-notes-de-marche]].
+**Intentions, same split** (migration 0035, applied 2026-09-22): `makeRef(type, now)` in `src/lib/data/repository.ts` now returns `PF-0914-K7Q4` (same alphabet) and `makeOrderNo(seq)` writes `intents.register_no` = `PC-ORD-000018` from the existing `intent_seq`. The intention ref is the widest-seen identifier in the app: acknowledgement, order form, My space, and the client's bank transfer reference. The desk sees the journal entry on the intention page and in the first column of the exported order journal (`OrderRow.registerNo`). A duplicate ref is redrawn; a missing column degrades gracefully like the other migrations.
+
+**The rest of the sweep** (2026-09-22, nothing to change): offer ids are descriptive slugs; `/offres/<id>/doc/<n>` numbers within one line; files, documents, accounts and positions use random ids; the custodian sub-account number is assigned by the SVT; the only other DB sequence is `audit.id` (bigserial), desk-only.
+
+**How to apply:** a reference already in a client's hands never changes, so documents issued before 2026-09-22 keep theirs and `registerOf()` falls back to `number` for them. Never print `registerNo` on a client copy. The sweep of client-visible identifiers is done; if a new one is introduced, check it carries no rank before it reaches a client. Related: [[guichet-templates]], [[guichet-supabase-migrations]], [[guichet-notes-de-marche]].

@@ -83,3 +83,27 @@ describe("les références d'un document", () => {
     expect(registerOf({ number: "PC-AF-260922-K7Q4", registerNo: "PC-AF-2026-0002" })).toBe("PC-AF-2026-0002");
   });
 });
+
+describe("la référence d'un ordre", () => {
+  it("carries no rank, while the order journal keeps the sequence", async () => {
+    const { makeOrderNo, makeRef } = await import("@/lib/data/repository");
+    const day = new Date("2026-09-14T09:00:00.000Z");
+    const a = makeRef("ferme", day);
+    expect(a).toMatch(/^PF-0914-[23456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/);
+    // no I, L, O, U, zero or one : it is read out on the phone and typed on a transfer form
+    expect(a.slice(8)).not.toMatch(/[ILOU01]/);
+    // two orders taken the same day do not follow one another
+    const b = makeRef("ferme", day);
+    expect(b).not.toBe(a);
+    expect(makeOrderNo(18)).toBe("PC-ORD-000018");
+  });
+
+  it("gives a new order both references", async () => {
+    const { repo } = await import("@/lib/data");
+    const offers = await repo().listOffers();
+    const offer = offers[0];
+    const i = await repo().createIntent({ offerId: offer.id, clientName: "Cliente de test", clientSegment: "Particulier", type: "ferme", amount: 1_000_000, channel: "WhatsApp" });
+    expect(i.ref).toMatch(/^PF-\d{4}-[23456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/);
+    expect(i.registerNo).toMatch(/^PC-ORD-\d{6}$/);
+  });
+});

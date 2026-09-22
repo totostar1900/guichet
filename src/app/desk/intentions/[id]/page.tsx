@@ -80,7 +80,8 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
       <div className={styles.crumbs}>
         <Link href="/desk">{t("← Carnet du jour")}</Link>
         <span>
-          {it.ref} · {t("reçue le {d} · {c}", { d: fmtDateTime(it.createdAt), c: it.channel })}
+          {it.ref}
+          {it.registerNo && it.registerNo !== it.ref ? <span className="muted" title={t("Journal des ordres : jamais porté sur ce que reçoit le client")}> · {it.registerNo}</span> : null} · {t("reçue le {d} · {c}", { d: fmtDateTime(it.createdAt), c: it.channel })}
         </span>
       </div>
 

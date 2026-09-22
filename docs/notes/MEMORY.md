@@ -8,7 +8,7 @@
 - [Issuers and fiche](guichet-issuers-fiche.md) : issuer registry (aliases, CEMAC zone, sourced text, silent gaps), fiche panes Essentiel·Chiffres·Documents·Émetteur, intention page /offres/[id]/intention (2026-09-21)
 - [Companies data](guichet-companies-data.md) : 7 BVMAC issuers in companies.ts; scanned PDFs rendered with scripts/pdf-pages.mjs
 - [Bond terms source](guichet-bond-terms.md) : BVMAC fiches signalétiques (JPG) → src/data/bond-terms.ts; Congo (EOCG) missing
-- [Supabase migrations](guichet-supabase-migrations.md) : applied via Chrome SQL editor with window.monaco setValue; enum adds run alone; 0001–0034 applied (0029 prefs, 0030 templates, 0031 drafts, 0032 acts, 0033 note_indice, 0034 documents.register_no)
+- [Supabase migrations](guichet-supabase-migrations.md) : applied via Chrome SQL editor with window.monaco setValue; enum adds run alone; 0001–0035 applied (0029 prefs, 0030 templates, 0031 drafts, 0032 acts, 0033 note_indice, 0034 documents.register_no, 0035 intents.register_no)
 - [No em dashes](guichet-no-em-dash.md) : house style, colon / commas / middle dot instead; the lone missing-value dash stays
 - [Auth and channels](guichet-auth-channels.md) : two proven channels before an intention, guest e-mail code, WhatsApp bridge link, passkeys + browser-bound PIN, /moi/securite; migration 0026
 - [Positive tone](guichet-positive-tone.md) : say what Guichet does, never what it is not; regulatory disclaimer stays; bump LEGAL_VERSION when legal text changes
@@ -16,4 +16,4 @@
 - [Référentiel drafts + Santé links](guichet-referentiel-drafts.md) : saves are drafts until Publier, health-how table, « Depuis Santé » strip; migration 0031
 - [BVMAC index](guichet-index-bvmac.md) : pulse, company base-100, Comparer reference, Santé check, lesson, desk doc; shown and explained only; methodology letter pending
 - [Market notes](guichet-notes-de-marche.md) : quarterly note public (page /indice/note/<T> + PDF), monthly note desk-only; crons, publishing, docs/notes-de-marche.md + /desk/docs/publications
-- [Document references](guichet-document-refs.md) : printed ref opaque for client docs (PC-BUL-260922-K7Q4), internal register_no keeps the sequence; counterparty docs sequential; migration 0034
+- [Document references](guichet-document-refs.md) : documents AND intentions print an opaque ref (PC-BUL-260922-K7Q4, PF-0914-K7Q4), the sequence moves to an internal register / order journal; counterparty docs sequential; migrations 0034-0035

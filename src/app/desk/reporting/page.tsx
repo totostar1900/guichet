@@ -99,7 +99,7 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
           <table className="tbl">
             <thead>
               <tr>
-                <th>{t("Réf.")}</th>
+                <th>{t("N° journal · réf. client")}</th>
                 <th>{t("Reçu")}</th>
                 <th>{t("Client")}</th>
                 <th>{t("Instrument · ligne")}</th>
@@ -118,7 +118,10 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
             <tbody>
               {journal.map((o) => (
                 <tr key={o.ref}>
-                  <td className="mono">{o.ref}</td>
+                  <td className="mono">
+                    {o.registerNo}
+                    {o.registerNo !== o.ref && <small className="muted"><br />{o.ref}</small>}
+                  </td>
                   <td className="num">{fmtT(o.receivedAt)}</td>
                   <td className="who">
                     {o.client}

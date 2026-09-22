@@ -1893,4 +1893,8 @@ export const EN_MORE: Record<string, string> = {
   "Référence": "Reference",
   "Entrée du registre : jamais portée sur l'exemplaire du client": "Register entry: never printed on the client's copy",
   "Une référence, un client : PC-BUL-260922-K7Q4 ou PC-BUL-2026-0018": "A reference, a client: PC-BUL-260922-K7Q4 or PC-BUL-2026-0018",
+
+  /* ---------- la référence d'un ordre ---------- */
+  "Journal des ordres : jamais porté sur ce que reçoit le client": "Order journal: never printed on what the client receives",
+  "N° journal · réf. client": "Journal no. · client ref.",
 };

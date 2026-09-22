@@ -7,7 +7,7 @@ import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domai
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeRef, type Repository } from "./repository";
+import { makeOrderNo, makeRef, type Repository } from "./repository";
 
 /**
  * Supabase-backed repository. Server-side only (uses the service role key when
@@ -70,6 +70,7 @@ type OfferRow = {
 type IntentRow = {
   id: string;
   ref: string;
+  register_no: string | null;
   offer_id: string;
   offer_version: number;
   client_id: string | null;
@@ -155,6 +156,7 @@ function toIntent(r: IntentRow): Intent {
   return {
     id: r.id,
     ref: r.ref,
+    registerNo: u(r.register_no),
     offerId: r.offer_id,
     offerVersion: r.offer_version,
     clientId: u(r.client_id),
@@ -444,9 +446,11 @@ export const supabaseRepository: Repository = {
     if (!offer) throw new Error(`Offer ${input.offerId} not found`);
     const { data: seqData, error: seqErr } = await db().rpc("next_intent_seq");
     if (seqErr) fail("next_intent_seq", seqErr);
-    const ref = makeRef(input.type, Number(seqData));
+    // two references : the one the client quotes carries no rank, the journal entry does
+    const ref = makeRef(input.type);
     const row: Record<string, unknown> = {
       ref,
+      register_no: makeOrderNo(Number(seqData)),
       offer_id: offer.id,
       offer_version: offer.version,
       client_id: input.clientId ?? null,
@@ -465,6 +469,17 @@ export const supabaseRepository: Repository = {
       profile_flag: input.profileFlag ?? null,
     };
     let { data, error } = await db().from("intents").insert(row).select("*").single();
+    if (error && /register_no/.test(error.message)) {
+      // Migration 0035 not applied yet: the order still leaves, its journal entry waits for the migration.
+      console.warn("[intents] migration 0035_intent_register.sql manquante : le numéro de journal attend");
+      delete row.register_no;
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
+    // an opaque reference can, very rarely, land on one already taken: draw another
+    for (let i = 0; error && /intents_ref_key|duplicate key/.test(error.message) && i < 5; i++) {
+      row.ref = makeRef(input.type);
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
     if (error && /profile_flag/.test(error.message)) {
       // Migration 0028 not applied yet: the intent still leaves, the flag stays in the message.
       delete row.profile_flag;

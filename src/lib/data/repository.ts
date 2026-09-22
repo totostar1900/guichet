@@ -158,8 +158,24 @@ export const INTENT_PREFIX: Record<NewIntentInput["type"], string> = {
   rachat: "RA",
 };
 
-/** PF-0914-018 : prefix, MMDD, running number for the day. */
-export function makeRef(type: NewIntentInput["type"], seq: number, now = new Date()): string {
+/** No I, L, O, U, 0 or 1: a reference is read out on the phone and typed on a transfer form. */
+const REF_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+/**
+ * PF-0914-K7Q4 : the operation, the day, then four characters drawn at random.
+ * The client quotes this one, and it is the reference of their bank transfer.
+ * It carries no rank: an order says nothing about how many the firm has taken.
+ */
+export function makeRef(type: NewIntentInput["type"], now = new Date()): string {
   const mmdd = `${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-  return `${INTENT_PREFIX[type]}-${mmdd}-${String(seq).padStart(3, "0")}`;
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const tail = [...bytes].map((b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
+  return `${INTENT_PREFIX[type]}-${mmdd}-${tail}`;
 }
+
+/**
+ * PC-ORD-000018 : the order journal, one unbroken sequence, desk and audit only.
+ * It is never printed on what a client receives.
+ */
+export const makeOrderNo = (seq: number): string => `PC-ORD-${String(seq).padStart(6, "0")}`;

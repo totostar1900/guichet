@@ -148,7 +148,10 @@ export type Channel = "WhatsApp" | "Appel" | "E-mail";
 
 export interface Intent {
   id: string;
-  ref: string; // PF-0914-011
+  /** Quoted by the client and used as their transfer reference: PF-0914-K7Q4. */
+  ref: string;
+  /** The order journal entry, PC-ORD-000018: desk and audit only. Absent on orders taken before the split. */
+  registerNo?: string;
   offerId: string;
   offerVersion: number;
   clientName: string;

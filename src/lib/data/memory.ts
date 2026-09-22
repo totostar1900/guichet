@@ -8,7 +8,7 @@ import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeRef, type Repository } from "./repository";
+import { makeOrderNo, makeRef, type Repository } from "./repository";
 
 /** A few inbound messages so the desk inbox has something to answer in demo mode. */
 function seedInbound(): InboundMessage[] {
@@ -200,7 +200,8 @@ export const memoryRepository: Repository = {
     const at = nowIso();
     const intent: Intent = {
       id: uid(),
-      ref: makeRef(input.type, s.seq),
+      ref: makeRef(input.type),
+      registerNo: makeOrderNo(s.seq),
       offerId: offer.id,
       offerVersion: offer.version,
       clientName: input.clientName,

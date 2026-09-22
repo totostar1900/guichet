@@ -39,6 +39,8 @@ function transitions(intentId: string, events: EventLog[]): Partial<Record<Inten
 
 export interface OrderRow {
   ref: string;
+  /** The journal entry, PC-ORD-000018. Falls back to the reference for older orders. */
+  registerNo: string;
   receivedAt: string;
   client: string;
   segment: string;
@@ -71,6 +73,7 @@ export function orderJournal(intents: Intent[], offers: Offer[], events: EventLo
       const price = o?.kind === "MARCHE" ? (i.executedPrice != null ? `exécuté ${i.executedPrice}` : i.limitPrice != null ? `limite ${i.limitPrice}` : "marché") : o?.servedPricePct != null ? `servi ${o.servedPricePct}` : o?.pricePct != null ? `publié ${o.pricePct}` : o?.precountRate != null ? `taux ${o.precountRate}` : "";
       return {
         ref: i.ref,
+        registerNo: i.registerNo ?? i.ref,
         receivedAt: i.createdAt,
         client: i.clientName,
         segment: i.clientSegment,
