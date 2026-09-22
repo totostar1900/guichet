@@ -17,14 +17,35 @@ const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2,
  * moved and which share moved it, the composition on both weightings, and
  * how to read it. Market information, open to everyone.
  */
-export default async function IndicePage() {
-  const t = await getT();
+export default async function IndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string }> }) {
+  const [t, sp] = await Promise.all([getT(), searchParams]);
   const { stats, weights, nameOf, histories, trading, movers, lastBulletin, missing } = await indexPageData();
   const points: ChartPoint[] = stats.points.map((p) => {
     const s = trading.get(p.date);
     return { ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined, titles: s?.titles ?? 0, amount: s?.amount ?? 0, trades: s?.trades ?? 0 };
   });
-  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0 })) }));
+  const lastCount = (quotes: { sharesTotal?: number; sharesFloat?: number }[], k: "sharesTotal" | "sharesFloat") => [...quotes].reverse().find((q) => (q[k] ?? 0) > 0)?.[k];
+  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0 })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
+  // the sessions table : moved sessions by default, every session on demand, one share or all, fifty per page
+  const all = sp.toutes === "1";
+  const societe = sp.societe && weights.some((w) => w.mnemo === sp.societe) ? sp.societe : "";
+  const page = Math.max(1, Number(sp.page) || 1);
+  const PER = 50;
+  const tableRows = [...stats.points]
+    .reverse()
+    .filter((p) => (all ? true : (p.variationPct ?? 0) !== 0))
+    .filter((p) => (societe ? Boolean(trading.get(p.date)?.shares[societe]?.trades || trading.get(p.date)?.shares[societe]?.variationPct) : true));
+  const pageRows = tableRows.slice((page - 1) * PER, page * PER);
+  const pages = Math.max(1, Math.ceil(tableRows.length / PER));
+  const q = (o: { toutes?: string; societe?: string; page?: string }) => {
+    const u = new URLSearchParams();
+    const v = { toutes: all ? "1" : "", societe, page: "", ...o };
+    if (v.toutes) u.set("toutes", "1");
+    if (v.societe) u.set("societe", v.societe);
+    if (v.page && v.page !== "1") u.set("page", v.page);
+    const qs = u.toString();
+    return `/indice${qs ? `?${qs}` : ""}#seances`;
+  };
   // twelve months of trading, for the data panel
   const since12 = stats.last ? new Date(new Date(`${stats.last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10) : "";
   const y12 = [...trading.entries()].filter(([d]) => d >= since12);
@@ -208,46 +229,94 @@ export default async function IndicePage() {
             </div>
           </section>
 
-          <section className="panel">
+          <section className="panel" id="seances">
             <div className="panel-h">
-              <h2>{t("Les séances où l'indice a bougé")}</h2>
-              <span className="muted">{t("{n} sur {m} lues : les autres sont à 0,00 %, sans transaction sur les actions", { n: String(movedSessions.length), m: String(stats.points.length) })}</span>
+              <h2>{all ? t("Toutes les séances") : t("Les séances où l'indice a bougé")}</h2>
+              <span className="muted">{all ? t("{n} séances lues, avec le négoce de chacune", { n: String(tableRows.length) }) : t("{n} sur {m} lues : les autres sont à 0,00 %, sans transaction sur les actions", { n: String(movedSessions.length), m: String(stats.points.length) })}</span>
             </div>
-            {movedSessions.length === 0 ? (
-              <p className={styles.p}>{t("Aucune séance avec mouvement sur la période lue.")}</p>
+            <div className={styles.tableBar}>
+              <Link className={`btn sm ${all ? "" : "primary"}`} href={q({ toutes: "" })}>
+                {t("avec mouvement")}
+              </Link>
+              <Link className={`btn sm ${all ? "primary" : ""}`} href={q({ toutes: "1" })}>
+                {t("toutes les séances")}
+              </Link>
+              <span className={styles.tableSep} />
+              <Link className={`btn sm ${societe ? "ghost" : ""}`} href={q({ societe: "" })}>
+                {t("toutes les sociétés")}
+              </Link>
+              {weights.map((w) => (
+                <Link key={w.mnemo} className={`btn sm ${societe === w.mnemo ? "" : "ghost"}`} href={q({ societe: w.mnemo })}>
+                  {w.mnemo}
+                </Link>
+              ))}
+            </div>
+            {pageRows.length === 0 ? (
+              <p className={styles.p}>{t("Aucune séance ne correspond.")}</p>
             ) : (
               <div className={styles.tableWrap}>
                 <table className={`tbl ${styles.moved}`}>
                   <thead>
                     <tr>
                       <th>{t("Séance")}</th>
-                      <th className={styles.num}>{t("Variation")}</th>
                       <th className={styles.num}>{t("Niveau")}</th>
+                      <th className={styles.num}>{t("Variation")}</th>
+                      <th className={styles.num}>{t("Titres")}</th>
+                      <th className={styles.num}>{t("Montant")}</th>
+                      <th className={styles.num}>{t("Trans.")}</th>
                       <th>{t("Ce qui a bougé")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {movedSessions.slice(0, 60).map((p) => (
-                      <tr key={p.date}>
-                        <td>{fmtDate(p.date)}</td>
-                        <td className={`${styles.num} ${tone(p.variationPct)}`}>{signed(p.variationPct)}</td>
-                        <td className={styles.num}>{lvl(p.value)}</td>
-                        <td>
-                          {(movers.get(p.date) ?? []).length ? (
-                            movers.get(p.date)!.map((m, i) => (
-                              <span key={m.mnemo}>
-                                {i > 0 ? " · " : ""}
-                                <Link href={`/societes/${m.mnemo.toLowerCase()}`}>{m.mnemo}</Link> <b className={tone(m.variationPct)}>{signed(m.variationPct)}</b>
-                              </span>
-                            ))
-                          ) : (
-                            <span className="muted">{t("cours d'action non lus sur cette séance")}</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {pageRows.map((p) => {
+                      const s = trading.get(p.date);
+                      const sh = societe && s ? s.shares[societe] : undefined;
+                      const mv = movers.get(p.date) ?? [];
+                      return (
+                        <tr key={p.date}>
+                          <td>{fmtDate(p.date)}</td>
+                          <td className={styles.num}>{lvl(p.value)}</td>
+                          <td className={`${styles.num} ${tone(p.variationPct)}`}>{signed(p.variationPct)}</td>
+                          <td className={styles.num}>{fmt(sh ? sh.titles : (s?.titles ?? 0))}</td>
+                          <td className={styles.num}>{(sh ? sh.amount : (s?.amount ?? 0)) ? `${money(sh ? sh.amount : (s?.amount ?? 0))}` : "0"}</td>
+                          <td className={styles.num}>{sh ? sh.trades : (s?.trades ?? 0)}</td>
+                          <td>
+                            {mv.length ? (
+                              mv.map((m, i) => (
+                                <span key={m.mnemo}>
+                                  {i > 0 ? " · " : ""}
+                                  <Link href={`/societes/${m.mnemo.toLowerCase()}`}>{m.mnemo}</Link>{" "}
+                                  {m.variationPct !== 0 ? <b className={tone(m.variationPct)}>{signed(m.variationPct)}</b> : <span className="muted">{t("échange sans changement de cours")}</span>}
+                                </span>
+                              ))
+                            ) : (p.variationPct ?? 0) !== 0 ? (
+                              <span className="muted">{t("cours d'action non lus sur cette séance")}</span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+              </div>
+            )}
+            {pages > 1 && (
+              <div className={styles.pager}>
+                {page > 1 && (
+                  <Link className="btn sm ghost" href={q({ page: String(page - 1) })}>
+                    ← {t("précédentes")}
+                  </Link>
+                )}
+                <span className="muted">
+                  {t("page {p} sur {n}", { p: String(page), n: String(pages) })}
+                </span>
+                {page < pages && (
+                  <Link className="btn sm ghost" href={q({ page: String(page + 1) })}>
+                    {t("suivantes")} →
+                  </Link>
+                )}
               </div>
             )}
           </section>

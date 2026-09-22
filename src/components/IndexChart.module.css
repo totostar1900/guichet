@@ -367,3 +367,83 @@ button.calCell:focus-visible {
     font-size: 0.5rem;
   }
 }
+
+/* contributions, capitalisation, float */
+.contribWrap,
+.capWrap {
+  display: grid;
+  gap: 10px;
+}
+.contrib {
+  display: grid;
+  gap: 6px;
+}
+.contribHead {
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+  margin-top: 6px;
+}
+.contribRow {
+  display: grid;
+  grid-template-columns: 64px 1fr 84px;
+  gap: 2px 10px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.contribRow a {
+  font-weight: 800;
+  color: var(--ink);
+  text-decoration: none;
+}
+.contribRow b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.contribRow small {
+  grid-column: 2 / -1;
+  color: var(--ink-3);
+  font-size: 0.7rem;
+}
+.contribTrack {
+  position: relative;
+  height: 14px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  display: block;
+}
+.contribZero {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--ink-3);
+}
+.contribBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  min-width: 1px;
+  transition: width 0.2s ease;
+}
+.contribUp {
+  background: var(--good);
+}
+.contribDown {
+  background: var(--warn);
+}
+.contribGold {
+  background: var(--gold);
+}
+.areaTotal {
+  fill: var(--navy);
+  opacity: 0.08;
+}
+.areaFloat {
+  fill: var(--gold);
+  opacity: 0.25;
+}

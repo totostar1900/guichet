@@ -21,9 +21,12 @@ export interface OverlaySeries {
   mnemo: string;
   name: string;
   points: { date: string; value: number; titles?: number; amount?: number; trades?: number }[];
+  /** Shares in issue and in public hands (the last count read), so a capitalisation exists for every session. */
+  sharesTotal?: number;
+  sharesFloat?: number;
 }
 
-export type IndexView = "niveau" | "volumes" | "calendrier" | "societes";
+export type IndexView = "niveau" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
 type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
 type VolumeKey = "amount" | "titles" | "trades";
 const PERIODS: [PeriodKey, string][] = [
@@ -36,8 +39,11 @@ const PERIODS: [PeriodKey, string][] = [
 const VIEWS: [IndexView, string][] = [
   ["niveau", "Niveau"],
   ["volumes", "Niveau + volumes"],
+  ["contributions", "Contributions"],
   ["calendrier", "Calendrier"],
   ["societes", "Sociétés en base 100"],
+  ["capitalisation", "Capitalisation"],
+  ["flottant", "Flottant"],
 ];
 const shift = (iso: string, days: number) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - days * 86400e3).toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00Z`).getTime() - new Date(`${a}T12:00:00Z`).getTime()) / 86400e3);
@@ -386,6 +392,268 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
       )}
 
       {view === "societes" && <SmallMultiples index={pts} overlays={overlays} from={from} />}
+
+      {view === "contributions" && <Contributions index={pts} overlays={overlays} from={pinA && pinB ? pinA.date : d0} to={pinA && pinB ? pinB.date : dN} />}
+
+      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} />}
+
+      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} />}
+    </div>
+  );
+}
+
+/** Close of a share at or before a date (sessions are sparse). */
+const closeAt = (o: OverlaySeries, date: string) => o.points.filter((p) => p.date <= date).pop()?.value;
+/** Capitalisation of a share at a date, on the last share count read. */
+const capAt = (o: OverlaySeries, date: string, kind: "total" | "float") => {
+  const c = closeAt(o, date);
+  const n = kind === "total" ? o.sharesTotal : o.sharesFloat;
+  return c && n ? c * n : 0;
+};
+
+/** The period's move split by share : weight at the start × the share's own move, on the chosen weighting. */
+function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; overlays: OverlaySeries[]; from: string; to: string }) {
+  const t = useT();
+  const [kind, setKind] = useState<"total" | "float">("total");
+  const a = index.find((p) => p.date >= from);
+  const b = [...index].reverse().find((p) => p.date <= to);
+  if (!a || !b || a.date >= b.date) return <div className="empty">{t("Choisissez deux dates sur la vue Niveau, ou une période.")}</div>;
+  const caps = overlays.map((o) => ({ o, cap: capAt(o, a.date, kind) }));
+  const total = caps.reduce((s, x) => s + x.cap, 0);
+  const rows = caps
+    .map(({ o, cap }) => {
+      const c0 = closeAt(o, a.date);
+      const c1 = closeAt(o, b.date);
+      const move = c0 && c1 ? (c1 / c0 - 1) * 100 : 0;
+      const weight = total ? (cap / total) * 100 : 0;
+      return { o, weight, move, pts: (weight / 100) * move };
+    })
+    .sort((x, y) => Math.abs(y.pts) - Math.abs(x.pts));
+  const sum = rows.reduce((s, r) => s + r.pts, 0);
+  const published = (b.value / a.value - 1) * 100;
+  const max = Math.max(0.1, ...rows.map((r) => Math.abs(r.pts)));
+  const top = rows[0];
+  return (
+    <div className={styles.contribWrap}>
+      <div className={styles.bar}>
+        <span>
+          {t("du {a} au {b}", { a: fmtDate(a.date), b: fmtDate(b.date) })} · {t("indice")} <b className={published >= 0 ? styles.upT : styles.downT}>{signed(published)}</b>
+        </span>
+        <label className={styles.select}>
+          {t("pondération")}
+          <select value={kind} onChange={(e) => setKind(e.target.value as "total" | "float")}>
+            <option value="total">{t("capital global")}</option>
+            <option value="float">{t("flottant coté")}</option>
+          </select>
+        </label>
+      </div>
+      <div className={styles.contrib}>
+        {rows.map((r) => (
+          <div key={r.o.mnemo} className={styles.contribRow}>
+            <Link href={`/societes/${r.o.mnemo.toLowerCase()}`}>{r.o.mnemo}</Link>
+            <span className={styles.contribTrack}>
+              <i className={styles.contribZero} />
+              <i className={`${styles.contribBar} ${r.pts >= 0 ? styles.contribUp : styles.contribDown}`} style={r.pts >= 0 ? { left: "50%", width: `${(r.pts / max) * 50}%` } : { right: "50%", width: `${(-r.pts / max) * 50}%` }} />
+            </span>
+            <b className={r.pts > 0 ? styles.upT : r.pts < 0 ? styles.downT : ""}>{signed(r.pts)} pt</b>
+            <small>
+              {t("poids")} {lvl(r.weight, 1)} % × {t("cours")} {signed(r.move, 1)}
+            </small>
+          </div>
+        ))}
+      </div>
+      <p className={styles.legend}>
+        <span>
+          {t("Somme")} : <b>{signed(sum)} pt</b>
+          {top && sum ? ` · ${top.o.mnemo} ${t("a fait")} ${lvl(Math.min(999, Math.abs((top.pts / sum) * 100)), 0)} % ${t("du mouvement")}` : ""}
+        </span>
+        <span>
+          {t("écart avec la variation publiée")} : {signed(published - sum)} pt · {t("poids en début de période, cours de clôture ; la note de méthode dit le reste")}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+/** The sum of the capitalisations, session after session, total and float stacked. */
+function Capitalisation({ index, overlays, W }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number }) {
+  const t = useT();
+  const [floatOnly, setFloatOnly] = useState(false);
+  const H = W < 480 ? 220 : 280;
+  const padL = 52;
+  const padR = 14;
+  const padT = 14;
+  const padB = 28;
+  const rows = index.map((p) => ({ date: p.date, total: overlays.reduce((s, o) => s + capAt(o, p.date, "total"), 0), float: overlays.reduce((s, o) => s + capAt(o, p.date, "float"), 0) }));
+  if (rows.length < 2 || !rows[rows.length - 1].total) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
+  const d0 = rows[0].date;
+  const dN = rows[rows.length - 1].date;
+  const span = Math.max(1, daysBetween(d0, dN));
+  const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
+  const top = Math.max(...rows.map((r) => (floatOnly ? r.float : r.total))) * 1.06;
+  const y = (v: number) => padT + (1 - v / top) * (H - padT - padB);
+  const path = (k: "total" | "float") => rows.map((r) => `${x(r.date).toFixed(1)},${y(r[k]).toFixed(1)}`).join(" ");
+  const area = (k: "total" | "float") => `${x(d0).toFixed(1)},${y(0).toFixed(1)} ${path(k)} ${x(dN).toFixed(1)},${y(0).toFixed(1)}`;
+  const last = rows[rows.length - 1];
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => top * f);
+  return (
+    <div className={styles.capWrap}>
+      <div className={styles.bar}>
+        <label className={styles.check}>
+          <input type="radio" name="capk" checked={!floatOnly} onChange={() => setFloatOnly(false)} /> {t("capital global et flottant")}
+        </label>
+        <label className={styles.check}>
+          <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant seul")}
+        </label>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Capitalisation de la cote, séance après séance")}>
+        {ticks.map((v) => (
+          <g key={v}>
+            <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
+            <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
+              {money(v)}
+            </text>
+          </g>
+        ))}
+        {!floatOnly && (
+          <>
+            <polygon points={area("total")} className={styles.areaTotal} />
+            <polyline points={path("total")} className={styles.line} />
+          </>
+        )}
+        <polygon points={area("float")} className={styles.areaFloat} />
+        <polyline points={path("float")} className={styles.overlay} />
+        <text x={padL} y={H - 8} className={styles.tick}>
+          {fmtDate(d0)}
+        </text>
+        <text x={W - padR} y={H - 8} textAnchor="end" className={styles.tick}>
+          {fmtDate(dN)}
+        </text>
+      </svg>
+      <p className={styles.legend}>
+        {!floatOnly && (
+          <span>
+            <i className={styles.kLine} /> {t("capital global")} : {money(last.total)} FCFA
+          </span>
+        )}
+        <span>
+          <i className={`${styles.kLine} ${styles.kGold}`} /> {t("flottant coté")} : {money(last.float)} FCFA ({last.total ? lvl((last.float / last.total) * 100, 0) : "—"} %)
+        </span>
+        <span>{t("cours de clôture × nombre de titres lu au bulletin ; la même courbe que l'indice, en francs")}</span>
+      </p>
+    </div>
+  );
+}
+
+/** The published index against a float-weighted reading of the same prices, base 100, and the float rotation per share. */
+function FloatView({ index, overlays, W }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number }) {
+  const t = useT();
+  const H = W < 480 ? 220 : 260;
+  const padL = 46;
+  const padR = 14;
+  const padT = 14;
+  const padB = 28;
+  // chain the float-weighted session returns : Σ (float cap of the previous session) × (close / previous close − 1)
+  const reading: { date: string; y: number }[] = [];
+  let level = 100;
+  index.forEach((p, i) => {
+    if (i > 0) {
+      const prev = index[i - 1].date;
+      const caps = overlays.map((o) => ({ o, cap: capAt(o, prev, "float") }));
+      const tot = caps.reduce((s, c) => s + c.cap, 0);
+      let r = 0;
+      for (const { o, cap } of caps) {
+        const c0 = closeAt(o, prev);
+        const c1 = closeAt(o, p.date);
+        if (c0 && c1 && tot) r += (cap / tot) * (c1 / c0 - 1);
+      }
+      level *= 1 + r;
+    }
+    reading.push({ date: p.date, y: level });
+  });
+  const pub = index.map((p) => ({ date: p.date, y: (p.value / index[0].value) * 100 }));
+  const d0 = index[0].date;
+  const dN = index[index.length - 1].date;
+  const span = Math.max(1, daysBetween(d0, dN));
+  const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
+  const all = [...pub.map((p) => p.y), ...reading.map((p) => p.y)];
+  const lo = Math.min(...all) - 1;
+  const hi = Math.max(...all) + 1;
+  const y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
+  const path = (arr: { date: string; y: number }[]) => arr.map((p) => `${x(p.date).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
+  const pubEnd = pub[pub.length - 1].y - 100;
+  const readEnd = reading[reading.length - 1].y - 100;
+  const ticks = 4;
+  const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
+  // rotation : amount traded over the period ÷ float capitalisation at the end
+  const rot = overlays
+    .map((o) => {
+      const amount = o.points.filter((p) => p.date >= d0 && p.date <= dN).reduce((s, p) => s + (p.amount ?? 0), 0);
+      const cap = capAt(o, dN, "float");
+      return { o, amount, cap, pct: cap ? (amount / cap) * 100 : 0 };
+    })
+    .sort((a, b) => b.pct - a.pct);
+  const rotMax = Math.max(1, ...rot.map((r) => r.pct));
+  const totAmount = rot.reduce((s, r) => s + r.amount, 0);
+  const totCap = rot.reduce((s, r) => s + r.cap, 0);
+  const hasCaps = totCap > 0;
+  return (
+    <div className={styles.capWrap}>
+      {hasCaps ? (
+        <>
+          <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Indice publié et lecture en flottant, base 100")}>
+            {tickVals.map((v) => (
+              <g key={v}>
+                <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
+                <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
+                  {lvl(v, 0)}
+                </text>
+              </g>
+            ))}
+            <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />
+            <polyline points={path(reading)} className={styles.overlay} />
+            <polyline points={path(pub)} className={styles.line} />
+            <text x={padL} y={H - 8} className={styles.tick}>
+              {fmtDate(d0)}
+            </text>
+            <text x={W - padR} y={H - 8} textAnchor="end" className={styles.tick}>
+              {fmtDate(dN)}
+            </text>
+          </svg>
+          <p className={styles.legend}>
+            <span>
+              <i className={styles.kLine} /> {t("indice publié, capital global")} : {signed(pubEnd, 1)}
+            </span>
+            <span>
+              <i className={`${styles.kLine} ${styles.kGold}`} /> {t("lecture en flottant coté (Guichet, non publiée)")} : {signed(readEnd, 1)}
+            </span>
+            <span>{t("les mêmes cours, pesés par les seuls titres en mains du public : l'écart dit combien le mouvement tenait à des titres qui ne s'échangent pas")}</span>
+          </p>
+        </>
+      ) : (
+        <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de lecture en flottant à montrer.")}</div>
+      )}
+      <div className={styles.contrib}>
+        <div className={styles.contribHead}>{t("Rotation du flottant sur la période · montant échangé ÷ flottant coté")}</div>
+        {rot.map((r) => (
+          <div key={r.o.mnemo} className={styles.contribRow}>
+            <Link href={`/societes/${r.o.mnemo.toLowerCase()}`}>{r.o.mnemo}</Link>
+            <span className={styles.contribTrack}>
+              <i className={`${styles.contribBar} ${styles.contribGold}`} style={{ left: 0, width: `${(r.pct / rotMax) * 100}%` }} />
+            </span>
+            <b>{lvl(r.pct, r.pct < 10 ? 1 : 0)} %</b>
+            <small>
+              {money(r.amount)} FCFA {t("sur")} {money(r.cap)}
+            </small>
+          </div>
+        ))}
+      </div>
+      <p className={styles.legend}>
+        <span>
+          {t("Cote entière")} : {totCap ? lvl((totAmount / totCap) * 100, 0) : "—"} % {t("du flottant a changé de mains sur la période")} ({money(totAmount)} {t("sur")} {money(totCap)} FCFA)
+        </span>
+        <span>{t("une rotation faible veut dire qu'une position peut prendre des mois à sortir")}</span>
+      </p>
     </div>
   );
 }
