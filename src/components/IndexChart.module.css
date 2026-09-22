@@ -565,9 +565,6 @@ button.calCell:focus-visible {
   font-weight: 800;
   font-size: 10px;
 }
-.contribDim {
-  opacity: 0.4;
-}
 .contribOn a {
   color: var(--gold-ink);
 }
@@ -599,4 +596,46 @@ button.calCell:focus-visible {
 
 .cal {
   touch-action: pan-y;
+}
+
+/* the growth lines, the split bar of today */
+.growth {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.kDot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  vertical-align: -1px;
+  margin-right: 4px;
+}
+.splitWrap {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+.splitHead {
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.split {
+  display: flex;
+  height: 26px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.splitPart {
+  display: grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
 }

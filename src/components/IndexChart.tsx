@@ -49,6 +49,8 @@ const VIEWS: [IndexView, string][] = [
   ["capitalisation", "Capitalisation"],
   ["flottant", "Flottant"],
 ];
+/** Seven readable hues for the companies, in the order of the split and of the growth lines. */
+const GROWTH = ["var(--chart-out)", "var(--gold)", "#2a8a9a", "#7a5cc0", "#1e7f4f", "#b4600a", "#6b7280"];
 const shift = (iso: string, days: number) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - days * 86400e3).toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00Z`).getTime() - new Date(`${a}T12:00:00Z`).getTime()) / 86400e3);
 const lvl = (v: number, d = 2) => v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -451,67 +453,73 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
 function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
   const t = useT();
   const [floatOnly, setFloatOnly] = useState(false);
+  // « en francs » : the exchange's capitalisation over time ; « croissance » : each company in base 100, so size never hides growth
+  const [reading, setReading] = useState<"francs" | "croissance">("francs");
   const H = W < 480 ? 220 : 280;
   const padL = 52;
   const padR = 14;
   const padT = 14;
   const padB = 28;
+  const kind: "total" | "float" = floatOnly ? "float" : "total";
   const set = company ? [company] : overlays;
   const rows = index.map((p) => ({ date: p.date, total: set.reduce((s, o) => s + capAt(o, p.date, "total"), 0), float: set.reduce((s, o) => s + capAt(o, p.date, "float"), 0) }));
-  // the stack : companies from the heaviest, each band on top of the previous
-  const kind: "total" | "float" = floatOnly ? "float" : "total";
-  const order = company ? [] : [...overlays].sort((a, b) => capAt(b, index[index.length - 1].date, kind) - capAt(a, index[index.length - 1].date, kind));
-  const stack = order.map((o, i) => ({ o, lower: index.map((p) => order.slice(0, i).reduce((s, q) => s + capAt(q, p.date, kind), 0)), upper: index.map((p) => order.slice(0, i + 1).reduce((s, q) => s + capAt(q, p.date, kind), 0)) }));
   const ready = rows.length >= 2 && rows[rows.length - 1].total > 0;
   const d0 = rows[0]?.date ?? "2000-01-01";
   const dN = rows[rows.length - 1]?.date ?? "2000-01-02";
   const span = Math.max(1, daysBetween(d0, dN));
   const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
-  const top = Math.max(...rows.map((r) => (floatOnly ? r.float : r.total))) * 1.06;
-  const y = (v: number) => padT + (1 - v / top) * (H - padT - padB);
+  const last = rows[rows.length - 1];
+  // the growth reading : every company in base 100 on the period, one shared scale
+  const lines = (company ? [company] : overlays).map((o) => ({ o, pts: index.map((p) => ({ date: p.date, cap: capAt(o, p.date, kind) })) })).map(({ o, pts }) => ({ o, pts: pts[0]?.cap ? pts.map((q) => ({ date: q.date, y: (q.cap / pts[0].cap) * 100 })) : [] })).filter((l) => l.pts.length > 1);
+  const growthY = lines.flatMap((l) => l.pts.map((p) => p.y));
+  const gLo = growthY.length ? Math.min(...growthY, 100) - 2 : 98;
+  const gHi = growthY.length ? Math.max(...growthY, 100) + 2 : 102;
+  const topF = Math.max(1, ...rows.map((r) => (floatOnly ? r.float : r.total))) * 1.06;
+  const y = (v: number) => (reading === "francs" ? padT + (1 - v / topF) * (H - padT - padB) : padT + (1 - (v - gLo) / (gHi - gLo)) * (H - padT - padB));
   const path = (k: "total" | "float") => rows.map((r) => `${x(r.date).toFixed(1)},${y(r[k]).toFixed(1)}`).join(" ");
   const area = (k: "total" | "float") => `${x(d0).toFixed(1)},${y(0).toFixed(1)} ${path(k)} ${x(dN).toFixed(1)},${y(0).toFixed(1)}`;
-  const last = rows[rows.length - 1];
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => top * f);
+  const ticks = reading === "francs" ? [0, 0.25, 0.5, 0.75, 1].map((v) => topF * v) : [gLo, (gLo + gHi) / 2, 100, gHi].filter((v, i, a) => a.indexOf(v) === i);
   const dates = rows.map((r) => r.date);
   const rowAt = (d: string) => rows.find((r) => r.date === d)!;
-  const yOf = (d: string) => y(floatOnly ? rowAt(d).float : rowAt(d).total);
-  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(floatOnly ? rows[i].float : rows[i].total), W, H, pins, onPin, onRange });
+  const yOf = (d: string) => (reading === "francs" ? y(floatOnly ? rowAt(d).float : rowAt(d).total) : y(lines[0]?.pts.find((p) => p.date === d)?.y ?? 100));
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(reading === "francs" ? (floatOnly ? rows[i].float : rows[i].total) : (lines[0]?.pts[i]?.y ?? 100)), W, H, pins, onPin, onRange });
   const hp = track.hover != null ? rows[track.hover] : undefined;
   const rA = track.pinA ? rowAt(track.pinA) : undefined;
   const rB = track.pinB ? rowAt(track.pinB) : undefined;
   if (!ready) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
-  const band = (lower: number[], upper: number[]) => `${index.map((p, i) => `${x(p.date).toFixed(1)},${y(upper[i]).toFixed(1)}`).join(" ")} ${[...index].reverse().map((p, k) => `${x(p.date).toFixed(1)},${y(lower[index.length - 1 - k]).toFixed(1)}`).join(" ")}`;
-  const shade = (i: number) => 0.9 - (i / Math.max(1, order.length - 1)) * 0.7;
-  const totalLast = order.reduce((s, o) => s + capAt(o, last.date, kind), 0);
+  // today's split : one bar, the whole exchange, heaviest first
+  const split = [...overlays].map((o) => ({ o, cap: capAt(o, dN, kind) })).filter((p) => p.cap > 0).sort((a, b) => b.cap - a.cap);
+  const splitTotal = split.reduce((s, p) => s + p.cap, 0);
+  const growthOf = (l: { pts: { y: number }[] }) => (l.pts.length ? l.pts[l.pts.length - 1].y - 100 : 0);
+  const ranked = [...lines].sort((a, b) => growthOf(b) - growthOf(a));
   return (
     <div className={styles.capWrap}>
       <div className={styles.bar}>
+        <div className={styles.pills} role="tablist" aria-label={t("Lecture")}>
+          <button type="button" role="tab" aria-selected={reading === "francs"} onClick={() => setReading("francs")}>
+            {t("en francs")}
+          </button>
+          <button type="button" role="tab" aria-selected={reading === "croissance"} onClick={() => setReading("croissance")}>
+            {t("croissance, base 100")}
+          </button>
+        </div>
         <label className={styles.check}>
-          <input type="radio" name="capk" checked={!floatOnly} onChange={() => setFloatOnly(false)} /> {t("capital global et flottant")}
+          <input type="radio" name="capk" checked={!floatOnly} onChange={() => setFloatOnly(false)} /> {t("capital global")}
         </label>
         <label className={styles.check}>
-          <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant seul")}
+          <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant coté")}
         </label>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Capitalisation de la cote, séance après séance")} {...track.handlers}>
         {ticks.map((v) => (
           <g key={v}>
-            <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
+            <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={v === 100 && reading === "croissance" ? styles.baseLine : styles.grid} />
             <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
-              {money(v)}
+              {reading === "francs" ? money(v) : lvl(v, 0)}
             </text>
           </g>
         ))}
-        {stack.length > 0 ? (
-          stack.map(({ o, lower, upper }, i) => (
-            <polygon key={o.mnemo} points={band(lower, upper)} className={styles.stackBand} style={{ fillOpacity: shade(i) }}>
-              <title>
-                {o.mnemo} · {money(upper[upper.length - 1] - lower[lower.length - 1])} FCFA
-              </title>
-            </polygon>
-          ))
-        ) : (
+        {reading === "francs" ? (
           <>
             {!floatOnly && (
               <>
@@ -522,16 +530,16 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
             <polygon points={area("float")} className={styles.areaFloat} />
             <polyline points={path("float")} className={styles.overlay} />
           </>
+        ) : (
+          lines.map((l, i) => (
+            <g key={l.o.mnemo}>
+              <polyline points={l.pts.map((p) => `${x(p.date).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ")} className={styles.growth} style={{ stroke: GROWTH[i % GROWTH.length] }} />
+              <text x={W - padR - 2} y={y(l.pts[l.pts.length - 1].y) + 3} textAnchor="end" className={`${styles.tick} ${styles.stackLabel}`} style={{ fill: GROWTH[i % GROWTH.length] }}>
+                {l.o.mnemo}
+              </text>
+            </g>
+          ))
         )}
-        {stack.map(({ o, lower, upper }, i) => {
-          const h = upper[upper.length - 1] - lower[lower.length - 1];
-          const mid = y(lower[lower.length - 1] + h / 2);
-          return h / top > 0.045 ? (
-            <text key={`l${o.mnemo}`} x={W - padR - 4} y={mid + 3} textAnchor="end" className={`${styles.tick} ${styles.stackLabel}`} style={{ fill: i < 2 ? "var(--surface)" : "var(--ink)" }}>
-              {o.mnemo} {lvl((h / totalLast) * 100, 0)} %
-            </text>
-          ) : null;
-        })}
         <text x={padL} y={H - 8} className={styles.tick}>
           {fmtDate(d0)}
         </text>
@@ -543,14 +551,24 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
       {hp && track.pos && (
         <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
           <b>{fmtDate(hp.date)}</b>
-          <span>
-            {t("capital global")} : {money(hp.total)} FCFA
-          </span>
-          <span>
-            {t("flottant coté")} : {money(hp.float)} FCFA ({hp.total ? lvl((hp.float / hp.total) * 100, 0) : "—"} %)
-          </span>
-          {stack.length > 0 && (
-            <span className={styles.tipSince}>{order.slice(0, 3).map((o) => `${o.mnemo} ${money(capAt(o, hp.date, kind))}`).join(" · ")}</span>
+          {reading === "francs" ? (
+            <>
+              <span>
+                {t("capital global")} : {money(hp.total)} FCFA
+              </span>
+              <span>
+                {t("flottant coté")} : {money(hp.float)} FCFA ({hp.total ? lvl((hp.float / hp.total) * 100, 0) : "—"} %)
+              </span>
+            </>
+          ) : (
+            lines.slice(0, 4).map((l, i) => {
+              const v = l.pts.find((p) => p.date === hp.date)?.y ?? 100;
+              return (
+                <span key={l.o.mnemo}>
+                  <i className={styles.kDot} style={{ background: GROWTH[i % GROWTH.length] }} /> {l.o.mnemo} : {lvl(v, 1)} <em className={v >= 100 ? styles.upT : styles.downT}>{signed(v - 100, 1)}</em>
+                </span>
+              );
+            })
           )}
         </div>
       )}
@@ -562,15 +580,29 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           : {t("capital global")} {money(rA.total)} → {money(rB.total)} FCFA (<b className={rB.total >= rA.total ? styles.upT : styles.downT}>{signed(rA.total ? ((rB.total - rA.total) / rA.total) * 100 : 0, 1)}</b>) · {t("flottant coté")} {money(rA.float)} → {money(rB.float)} (<b className={rB.float >= rA.float ? styles.upT : styles.downT}>{signed(rA.float ? ((rB.float - rA.float) / rA.float) * 100 : 0, 1)}</b>)
         </p>
       )}
+      {reading === "francs" && !company && splitTotal > 0 && (
+        <div className={styles.splitWrap}>
+          <div className={styles.splitHead}>
+            {t("Aujourd'hui, qui pèse quoi")} · {floatOnly ? t("flottant coté") : t("capital global")} {money(splitTotal)} FCFA
+          </div>
+          <div className={styles.split}>
+            {split.map((p, i) => (
+              <span key={p.o.mnemo} className={styles.splitPart} style={{ width: `${(p.cap / splitTotal) * 100}%`, background: GROWTH[i % GROWTH.length] }} title={`${p.o.mnemo} · ${money(p.cap)} FCFA`}>
+                {(p.cap / splitTotal) * 100 >= 8 ? `${p.o.mnemo} ${lvl((p.cap / splitTotal) * 100, 0)} %` : ""}
+              </span>
+            ))}
+          </div>
+          <p className={styles.legend}>
+            {split.map((p, i) => (
+              <span key={p.o.mnemo}>
+                <i className={styles.kDot} style={{ background: GROWTH[i % GROWTH.length] }} /> {p.o.mnemo} {lvl((p.cap / splitTotal) * 100, 1)} %
+              </span>
+            ))}
+          </p>
+        </div>
+      )}
       <p className={styles.legend}>
-        {stack.length > 0 ? (
-          <>
-            <span>
-              {t(floatOnly ? "flottant coté empilé par société" : "capital global empilé par société")} : {money(totalLast)} FCFA · {order.slice(0, 3).map((o) => `${o.mnemo} ${lvl((capAt(o, last.date, kind) / totalLast) * 100, 0)} %`).join(", ")}
-            </span>
-            <span>{t("la bande la plus sombre est la plus lourde ; choisir une société la montre seule")}</span>
-          </>
-        ) : (
+        {reading === "francs" ? (
           <>
             {!floatOnly && (
               <span>
@@ -582,6 +614,15 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
               <i className={`${styles.kLine} ${styles.kGold}`} /> {t("flottant coté")} : {money(last.float)} FCFA ({last.total ? lvl((last.float / last.total) * 100, 0) : "—"} %)
             </span>
             <span>{t("cours de clôture × nombre de titres lu au bulletin ; la même courbe que l'indice, en francs")}</span>
+          </>
+        ) : (
+          <>
+            <span>{t("chaque société à 100 au début de la période : la taille ne cache plus la croissance")}</span>
+            {ranked[0] && (
+              <span>
+                {t("la plus forte")} : <b>{ranked[0].o.mnemo}</b> {signed(growthOf(ranked[0]), 1)} · {t("la plus faible")} : <b>{ranked[ranked.length - 1].o.mnemo}</b> {signed(growthOf(ranked[ranked.length - 1]), 1)}
+              </span>
+            )}
           </>
         )}
       </p>
@@ -620,7 +661,12 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
   const dN = index[index.length - 1].date;
   const span = Math.max(1, daysBetween(d0, dN));
   const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
-  const all = [...pub.map((p) => p.y), ...reading.map((p) => p.y)];
+  // a company picked : its own price in base 100, drawn against the two market readings
+  const coLine = company ? (() => {
+    const first = closeAt(company, index[0].date);
+    return first ? index.map((p) => ({ date: p.date, y: ((closeAt(company, p.date) ?? first) / first) * 100 })) : [];
+  })() : [];
+  const all = [...pub.map((p) => p.y), ...reading.map((p) => p.y), ...coLine.map((p) => p.y)];
   const lo = Math.min(...all) - 1;
   const hi = Math.max(...all) + 1;
   const y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
@@ -652,7 +698,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
     <div className={styles.capWrap}>
       {hasCaps ? (
         <>
-          <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
+          <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={company ? t("{m}, lecture en flottant et indice publié, base 100", { m: company.mnemo }) : t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
                 <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -664,6 +710,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
             <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />
             <polyline points={path(reading)} className={styles.overlay} />
             <polyline points={path(pub)} className={styles.line} />
+            {coLine.length > 1 && <polyline points={path(coLine)} className={styles.growth} style={{ stroke: "#2a8a9a" }} />}
             <text x={padL} y={H - 8} className={styles.tick}>
               {fmtDate(d0)}
             </text>
@@ -681,6 +728,11 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
               <span>
                 {t("lecture en flottant")} : {lvl(at(reading, hp.date), 1)} <em className={at(reading, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(reading, hp.date) - 100, 1)}</em>
               </span>
+              {coLine.length > 1 && company && (
+                <span>
+                  <i className={styles.kDot} style={{ background: "#2a8a9a" }} /> {company.mnemo} : {lvl(at(coLine, hp.date), 1)} <em className={at(coLine, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(coLine, hp.date) - 100, 1)}</em>
+                </span>
+              )}
               <span className={styles.tipSince}>
                 {t("écart")} : {signed(at(pub, hp.date) - at(reading, hp.date), 1).replace(" %", " pt")}
               </span>
@@ -701,6 +753,11 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
             <span>
               <i className={`${styles.kLine} ${styles.kGold}`} /> {t("lecture en flottant coté (Guichet, non publiée)")} : {signed(readEnd, 1)}
             </span>
+            {coLine.length > 1 && company && (
+              <span>
+                <i className={styles.kLine} style={{ background: "#2a8a9a" }} /> {company.mnemo} : {signed(coLine[coLine.length - 1].y - 100, 1)}
+              </span>
+            )}
             <span>{t("les mêmes cours, pesés par les seuls titres en mains du public : l'écart dit combien le mouvement tenait à des titres qui ne s'échangent pas")}</span>
           </p>
         </>
@@ -719,7 +776,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
           </p>
         )}
         {rot.map((r) => (
-          <div key={r.o.mnemo} className={`${styles.contribRow} ${company && company.mnemo !== r.o.mnemo ? styles.contribDim : ""} ${company && company.mnemo === r.o.mnemo ? styles.contribOn : ""}`}>
+          <div key={r.o.mnemo} className={`${styles.contribRow} ${company && company.mnemo === r.o.mnemo ? styles.contribOn : ""}`}>
             <Link href={`/societes/${r.o.mnemo.toLowerCase()}?depuis=indice`}>{r.o.mnemo}</Link>
             <span className={styles.contribTrack}>
               <i className={`${styles.contribBar} ${styles.contribGold}`} style={{ left: 0, width: `${(r.pct / rotMax) * 100}%` }} />

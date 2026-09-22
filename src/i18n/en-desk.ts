@@ -1752,4 +1752,12 @@ export const EN_MORE: Record<string, string> = {
   "Chercher dans la liste": "Search the list",
   "{n} choix": "{n} choices",
   "ligne et mouvements": "line and moves",
+  // Indice : capitalisation en francs ou en croissance, flottant d'une société
+  "en francs": "in francs",
+  "croissance, base 100": "growth, base 100",
+  "Aujourd'hui, qui pèse quoi": "Today, who weighs what",
+  "chaque société à 100 au début de la période : la taille ne cache plus la croissance": "every company at 100 at the start of the period: size no longer hides growth",
+  "la plus forte": "the strongest",
+  "la plus faible": "the weakest",
+  "{m}, lecture en flottant et indice publié, base 100": "{m}, float reading and published index, base 100",
 };
