@@ -1719,4 +1719,9 @@ export const EN_MORE: Record<string, string> = {
   "cours de cette valeur non lu sur cette séance": "this share's price not read on that session",
   "séances avec changement de cours": "sessions with a price change",
   "avec échange": "with a trade",
+  // Indice : suivi sur la capitalisation et le flottant
+  "indice publié": "published index",
+  "lecture en flottant": "float reading",
+  "la rotation ci-dessous est celle de cet intervalle": "the rotation below is that of this interval",
+  "Rotation du flottant · montant échangé ÷ flottant coté": "Float rotation · amount traded ÷ quoted float",
 };

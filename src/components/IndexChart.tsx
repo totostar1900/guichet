@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type React from "react";
 import { useT } from "@/i18n/client";
 import { fmt, fmtDate, money } from "@/lib/format";
 import styles from "./IndexChart.module.css";
@@ -455,10 +456,92 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {view === "contributions" && <Contributions index={pts} overlays={overlays} from={pinA && pinB ? pinA.date : d0} to={pinA && pinB ? pinB.date : dN} />}
 
-      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} company={co} />}
+      {view === "capitalisation" && <Capitalisation index={pts} overlays={overlays} W={W} company={co} pins={pins} onPin={togglePin} />}
 
-      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} company={co} />}
+      {view === "flottant" && <FloatView index={pts} overlays={overlays} W={W} company={co} pins={pins} onPin={togglePin} />}
     </div>
+  );
+}
+
+/**
+ * The tracking of a chart : the nearest session under the pointer, a tip
+ * fixed to the viewport, and the two pins that set a range. Shared by the
+ * views so a range pinned on one is read on the others.
+ */
+function useTracker({ dates, x, yAt, W, H, pins, onPin }: { dates: string[]; x: (d: string) => number; yAt: (i: number) => number; W: number; H: number; pins: string[]; onPin: (d: string) => void }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const touchRef = useRef(false);
+  const [hover, setHover] = useState<number | null>(null);
+  const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
+  const nearest = (clientX: number, svg: SVGSVGElement) => {
+    const r = svg.getBoundingClientRect();
+    const px = ((clientX - r.left) / r.width) * W;
+    let best = 0;
+    let bd = Infinity;
+    dates.forEach((d, i) => {
+      const dd = Math.abs(x(d) - px);
+      if (dd < bd) {
+        bd = dd;
+        best = i;
+      }
+    });
+    return best;
+  };
+  const show = (i: number) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    const px = r.left + (x(dates[i]) / W) * r.width;
+    const py = r.top + (yAt(i) / H) * r.height;
+    const half = 120;
+    const cx = Math.min(window.innerWidth - half - 8, Math.max(half + 8, px));
+    const above = py + 170 > window.innerHeight;
+    setHover(i);
+    setPos({ x: cx, y: above ? py - 12 : py + 14, above });
+  };
+  const handlers = {
+    ref: svgRef,
+    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+      touchRef.current = e.pointerType === "touch";
+    },
+    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (e.pointerType !== "touch") show(nearest(e.clientX, e.currentTarget));
+    },
+    onPointerLeave: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (e.pointerType !== "touch") setHover(null);
+    },
+    onClick: (e: React.MouseEvent<SVGSVGElement>) => {
+      const i = nearest(e.clientX, e.currentTarget);
+      if (touchRef.current && hover !== i) {
+        show(i);
+        return;
+      }
+      onPin(dates[i]);
+    },
+  };
+  const pinA = pins[0] && dates.includes(pins[0]) ? pins[0] : undefined;
+  const pinB = pins[1] && dates.includes(pins[1]) ? pins[1] : undefined;
+  return { handlers, hover, pos, pinA, pinB };
+}
+
+/** The crosshair, the pins and the pinned range drawn over a chart. */
+function TrackMarks({ x, y, hover, pinA, pinB, padT, padB, H }: { x: (d: string) => number; y: (d: string) => number; hover?: string; pinA?: string; pinB?: string; padT: number; padB: number; H: number }) {
+  return (
+    <>
+      {pinA && pinB && <rect x={x(pinA)} y={padT} width={Math.max(0, x(pinB) - x(pinA))} height={H - padT - padB} className={styles.range} />}
+      {[pinA, pinB].filter(Boolean).map((d) => (
+        <g key={d} className={styles.pin}>
+          <line x1={x(d!)} x2={x(d!)} y1={padT} y2={H - padB} />
+          <circle cx={x(d!)} cy={y(d!)} r={5} />
+        </g>
+      ))}
+      {hover && (
+        <g className={styles.cross}>
+          <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} />
+          <circle cx={x(hover)} cy={y(hover)} r={4} />
+        </g>
+      )}
+    </>
   );
 }
 
@@ -538,7 +621,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
 }
 
 /** The sum of the capitalisations, session after session, total and float stacked. */
-function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries }) {
+function Capitalisation({ index, overlays, W, company, pins, onPin }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void }) {
   const t = useT();
   const [floatOnly, setFloatOnly] = useState(false);
   const H = W < 480 ? 220 : 280;
@@ -552,9 +635,9 @@ function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; 
   const kind: "total" | "float" = floatOnly ? "float" : "total";
   const order = company ? [] : [...overlays].sort((a, b) => capAt(b, index[index.length - 1].date, kind) - capAt(a, index[index.length - 1].date, kind));
   const stack = order.map((o, i) => ({ o, lower: index.map((p) => order.slice(0, i).reduce((s, q) => s + capAt(q, p.date, kind), 0)), upper: index.map((p) => order.slice(0, i + 1).reduce((s, q) => s + capAt(q, p.date, kind), 0)) }));
-  if (rows.length < 2 || !rows[rows.length - 1].total) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
-  const d0 = rows[0].date;
-  const dN = rows[rows.length - 1].date;
+  const ready = rows.length >= 2 && rows[rows.length - 1].total > 0;
+  const d0 = rows[0]?.date ?? "2000-01-01";
+  const dN = rows[rows.length - 1]?.date ?? "2000-01-02";
   const span = Math.max(1, daysBetween(d0, dN));
   const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
   const top = Math.max(...rows.map((r) => (floatOnly ? r.float : r.total))) * 1.06;
@@ -563,6 +646,14 @@ function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; 
   const area = (k: "total" | "float") => `${x(d0).toFixed(1)},${y(0).toFixed(1)} ${path(k)} ${x(dN).toFixed(1)},${y(0).toFixed(1)}`;
   const last = rows[rows.length - 1];
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => top * f);
+  const dates = rows.map((r) => r.date);
+  const rowAt = (d: string) => rows.find((r) => r.date === d)!;
+  const yOf = (d: string) => y(floatOnly ? rowAt(d).float : rowAt(d).total);
+  const track = useTracker({ dates, x, yAt: (i) => y(floatOnly ? rows[i].float : rows[i].total), W, H, pins, onPin });
+  const hp = track.hover != null ? rows[track.hover] : undefined;
+  const rA = track.pinA ? rowAt(track.pinA) : undefined;
+  const rB = track.pinB ? rowAt(track.pinB) : undefined;
+  if (!ready) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
   const band = (lower: number[], upper: number[]) => `${index.map((p, i) => `${x(p.date).toFixed(1)},${y(upper[i]).toFixed(1)}`).join(" ")} ${[...index].reverse().map((p, k) => `${x(p.date).toFixed(1)},${y(lower[index.length - 1 - k]).toFixed(1)}`).join(" ")}`;
   const shade = (i: number) => 0.9 - (i / Math.max(1, order.length - 1)) * 0.7;
   const totalLast = order.reduce((s, o) => s + capAt(o, last.date, kind), 0);
@@ -576,7 +667,7 @@ function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; 
           <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant seul")}
         </label>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Capitalisation de la cote, séance après séance")}>
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Capitalisation de la cote, séance après séance")} {...track.handlers}>
         {ticks.map((v) => (
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -620,7 +711,30 @@ function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; 
         <text x={W - padR} y={H - 8} textAnchor="end" className={styles.tick}>
           {fmtDate(dN)}
         </text>
+        <TrackMarks x={x} y={yOf} hover={hp?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
       </svg>
+      {hp && track.pos && (
+        <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
+          <b>{fmtDate(hp.date)}</b>
+          <span>
+            {t("capital global")} : {money(hp.total)} FCFA
+          </span>
+          <span>
+            {t("flottant coté")} : {money(hp.float)} FCFA ({hp.total ? lvl((hp.float / hp.total) * 100, 0) : "—"} %)
+          </span>
+          {stack.length > 0 && (
+            <span className={styles.tipSince}>{order.slice(0, 3).map((o) => `${o.mnemo} ${money(capAt(o, hp.date, kind))}`).join(" · ")}</span>
+          )}
+        </div>
+      )}
+      {rA && rB && (
+        <p className={styles.pinsRead}>
+          <b>
+            {fmtDate(rA.date)} → {fmtDate(rB.date)}
+          </b>{" "}
+          : {t("capital global")} {money(rA.total)} → {money(rB.total)} FCFA (<b className={rB.total >= rA.total ? styles.upT : styles.downT}>{signed(rA.total ? ((rB.total - rA.total) / rA.total) * 100 : 0, 1)}</b>) · {t("flottant coté")} {money(rA.float)} → {money(rB.float)} (<b className={rB.float >= rA.float ? styles.upT : styles.downT}>{signed(rA.float ? ((rB.float - rA.float) / rA.float) * 100 : 0, 1)}</b>)
+        </p>
+      )}
       <p className={styles.legend}>
         {stack.length > 0 ? (
           <>
@@ -649,7 +763,7 @@ function Capitalisation({ index, overlays, W, company }: { index: ChartPoint[]; 
 }
 
 /** The published index against a float-weighted reading of the same prices, base 100, and the float rotation per share. */
-function FloatView({ index, overlays, W, company }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries }) {
+function FloatView({ index, overlays, W, company, pins, onPin }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void }) {
   const t = useT();
   const H = W < 480 ? 220 : 260;
   const padL = 46;
@@ -688,11 +802,18 @@ function FloatView({ index, overlays, W, company }: { index: ChartPoint[]; overl
   const readEnd = reading[reading.length - 1].y - 100;
   const ticks = 4;
   const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
-  // rotation : amount traded over the period ÷ float capitalisation at the end
+  const dates = index.map((p) => p.date);
+  const track = useTracker({ dates, x, yAt: (i) => y(pub[i].y), W, H, pins, onPin });
+  const hp = track.hover != null ? index[track.hover] : undefined;
+  const at = (arr: { date: string; y: number }[], d: string) => arr.find((p) => p.date === d)?.y ?? 100;
+  // the rotation window : the pinned range when there is one, else the period
+  const rFrom = track.pinA && track.pinB ? track.pinA : d0;
+  const rTo = track.pinA && track.pinB ? track.pinB : dN;
+  // rotation : amount traded over the window ÷ float capitalisation at its end
   const rot = overlays
     .map((o) => {
-      const amount = o.points.filter((p) => p.date >= d0 && p.date <= dN).reduce((s, p) => s + (p.amount ?? 0), 0);
-      const cap = capAt(o, dN, "float");
+      const amount = o.points.filter((p) => p.date > rFrom && p.date <= rTo).reduce((s, p) => s + (p.amount ?? 0), 0);
+      const cap = capAt(o, rTo, "float");
       return { o, amount, cap, pct: cap ? (amount / cap) * 100 : 0 };
     })
     .sort((a, b) => b.pct - a.pct);
@@ -704,7 +825,7 @@ function FloatView({ index, overlays, W, company }: { index: ChartPoint[]; overl
     <div className={styles.capWrap}>
       {hasCaps ? (
         <>
-          <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Indice publié et lecture en flottant, base 100")}>
+          <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
                 <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -722,7 +843,30 @@ function FloatView({ index, overlays, W, company }: { index: ChartPoint[]; overl
             <text x={W - padR} y={H - 8} textAnchor="end" className={styles.tick}>
               {fmtDate(dN)}
             </text>
+            <TrackMarks x={x} y={(d) => y(at(pub, d))} hover={hp?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
           </svg>
+          {hp && track.pos && (
+            <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
+              <b>{fmtDate(hp.date)}</b>
+              <span>
+                {t("indice publié")} : {lvl(at(pub, hp.date), 1)} <em className={at(pub, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(pub, hp.date) - 100, 1)}</em>
+              </span>
+              <span>
+                {t("lecture en flottant")} : {lvl(at(reading, hp.date), 1)} <em className={at(reading, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(reading, hp.date) - 100, 1)}</em>
+              </span>
+              <span className={styles.tipSince}>
+                {t("écart")} : {signed(at(pub, hp.date) - at(reading, hp.date), 1).replace(" %", " pt")}
+              </span>
+            </div>
+          )}
+          {track.pinA && track.pinB && (
+            <p className={styles.pinsRead}>
+              <b>
+                {fmtDate(track.pinA)} → {fmtDate(track.pinB)}
+              </b>{" "}
+              : {t("indice publié")} <b className={at(pub, track.pinB) >= at(pub, track.pinA) ? styles.upT : styles.downT}>{signed((at(pub, track.pinB) / at(pub, track.pinA) - 1) * 100, 1)}</b> · {t("lecture en flottant")} <b className={at(reading, track.pinB) >= at(reading, track.pinA) ? styles.upT : styles.downT}>{signed((at(reading, track.pinB) / at(reading, track.pinA) - 1) * 100, 1)}</b> · {t("la rotation ci-dessous est celle de cet intervalle")}
+            </p>
+          )}
           <p className={styles.legend}>
             <span>
               <i className={styles.kLine} /> {t("indice publié, capital global")} : {signed(pubEnd, 1)}
@@ -737,7 +881,9 @@ function FloatView({ index, overlays, W, company }: { index: ChartPoint[]; overl
         <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de lecture en flottant à montrer.")}</div>
       )}
       <div className={styles.contrib}>
-        <div className={styles.contribHead}>{t("Rotation du flottant sur la période · montant échangé ÷ flottant coté")}</div>
+        <div className={styles.contribHead}>
+          {t("Rotation du flottant · montant échangé ÷ flottant coté")} · {fmtDate(rFrom)} → {fmtDate(rTo)}
+        </div>
         {company && totCap > 0 && (
           <p className={styles.legend}>
             <span>
