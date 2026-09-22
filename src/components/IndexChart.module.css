@@ -61,7 +61,6 @@
   height: auto;
   display: block;
   touch-action: pan-y;
-  cursor: crosshair;
 }
 .grid {
   stroke: var(--line);

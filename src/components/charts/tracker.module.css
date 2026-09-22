@@ -98,7 +98,8 @@
   color: var(--warn);
 }
 
-/* the chart owns the horizontal drag, the page keeps the vertical scroll */
+/* the chart owns the horizontal drag, the page keeps the vertical scroll ; the cross says a date can be set here */
 .track {
   touch-action: pan-y;
+  cursor: crosshair;
 }

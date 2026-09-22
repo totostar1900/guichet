@@ -168,7 +168,7 @@ export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark
         <div className={`${styles.chart} ${styles.navBlock}`}>
           {window_.length > 0 ? (
             <>
-              {mode === "vl" ? <NavChart series={window_} sinceStart range={[a, b]} onRange={(from, to) => update({ du: from, au: to, periode: undefined })} /> : <FundChart mode={mode} series={plotted} benchmark={benchmark} windowDays={windowDays} />}
+              {mode === "vl" ? <NavChart series={window_} sinceStart range={[a, b]} onRange={(from, to) => update({ du: from, au: to, periode: undefined })} /> : <FundChart mode={mode} series={plotted} benchmark={benchmark} windowDays={windowDays} range={[a, b]} onRange={(from, to) => update({ du: from, au: to, periode: undefined })} />}
               {mode !== "vl" && headline && (
                 <div className={styles.legend}>
                   <span>{MODE_HINT[mode] ? t(MODE_HINT[mode]) : null}</span>

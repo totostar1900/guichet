@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { labelMetrics, useOutsideTap, usePhone } from "./chart-utils";
+import { useState } from "react";
+import { RangeRead, TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
+import { labelMetrics, usePhone } from "./chart-utils";
 import { axisLabel, axisRow, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
@@ -70,13 +71,12 @@ export function drawdown(window: NavPoint[]): SeriesPoint[] {
   });
 }
 
-export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclude<ChartMode, "vl">; series: SeriesPoint[]; benchmark?: Benchmark; windowDays?: number }) {
+export function FundChart({ mode, series, benchmark, windowDays, range, onRange }: { mode: Exclude<ChartMode, "vl">; series: SeriesPoint[]; benchmark?: Benchmark; windowDays?: number; range?: [string, string]; onRange?: (from: string, to: string) => void }) {
   const t = useT();
-  const ref = useRef<SVGSVGElement>(null);
-  const [hover, setHover] = useState<number | null>(null);
   const phone = usePhone();
   const metrics = labelMetrics(phone);
-  useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
+  // the first click pins a date ; the second hands the range to the page, which reframes every reading on it
+  const [pin, setPin] = useState<string | null>(null);
   const W = 320;
   const H = 96;
   const pad = 6;
@@ -101,21 +101,41 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
   const row = axisRow(phone);
   const last = n - 1;
 
-  const pick = (clientX: number) => {
-    const el = ref.current;
-    if (!el || n === 0) return;
-    const r = el.getBoundingClientRect();
-    const vx = ((clientX - r.left) / r.width) * W;
-    let best = 0;
-    for (let i = 1; i < n; i++) if (Math.abs(x(i) - vx) < Math.abs(x(best) - vx)) best = i;
-    setHover(best);
-  };
+  const keys = series.map((p) => p.date);
+  const idx = (k: string) => keys.indexOf(k);
+  const pins = pin ? [pin] : range ? [range[0], range[1]].filter((d) => keys.includes(d)) : [];
+  const track = useTracker({
+    keys,
+    x,
+    yAt: (i) => y(series[i].y),
+    W,
+    H: H + row.extra,
+    pins,
+    onPin: (k) => {
+      if (!onRange) return;
+      if (pin && pin !== k) {
+        const [a, b] = [pin, k].sort();
+        setPin(null);
+        onRange(a, b);
+      } else setPin(pin === k ? null : k);
+    },
+    onRange: onRange
+      ? (a, b) => {
+          if (a === b) setPin(a);
+          else {
+            setPin(null);
+            onRange(a, b);
+          }
+        }
+      : undefined,
+  });
+  const hover = track.hover;
   const h = hover == null ? null : series[hover];
   if (n === 0) return <div className="empty">{t(mode === "rendement" ? "Pas assez d'historique pour une fenêtre de {n} jours." : "Aucune VL publiée sur cette période.", { n: windowDays ?? 365 })}</div>;
 
   return (
     <div className={styles.navChart}>
-      <svg ref={ref} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={t(MODE_LABEL[mode])} onMouseMove={(e) => pick(e.clientX)} onMouseLeave={() => setHover(null)} onTouchStart={(e) => pick(e.touches[0].clientX)} onTouchMove={(e) => pick(e.touches[0].clientX)}>
+      <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={t(MODE_LABEL[mode])} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
         <text x={padX - 4} y={y(max) + 3} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor="end">
@@ -145,13 +165,13 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
             <circle cx={x(last)} cy={y(series[last].y)} r={3.5} className={styles.dot} />
           </>
         )}
-        {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad} y2={H - pad} className={styles.cursor} />}
         {hover != null && mode !== "variations" && <circle cx={x(hover)} cy={y(series[hover].y)} r={4} className={styles.dot} />}
         {axis.ticks.map((i) => (
           <text key={i} x={x(i)} y={H + row.y} className={styles.tick} style={{ fontSize: metrics.font }} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"}>
             {axis.label(series[i].date)}
           </text>
         ))}
+        <TrackMarks x={(k) => x(idx(k))} y={(k) => y(series[idx(k)].y)} hover={h?.date} pinA={pin ?? track.pinA} pinB={pin ? undefined : track.pinB} padT={pad} padB={row.extra + pad} H={H + row.extra} />
       </svg>
       {bench && benchmark && (
         <div className={styles.keys}>
@@ -164,7 +184,7 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
         </div>
       )}
       {h && hover != null && (
-        <div className={`${styles.tip} ${y(h.y) < H * 0.45 ? styles.tipBelow : ""} ${x(hover) > W * 0.72 ? styles.tipLeft : x(hover) < W * 0.28 ? styles.tipRight : ""}`} style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.y) / (H + row.extra)) * 100}%` }} role="status">
+        <TrackTip pos={track.pos}>
           {mode === "rendement" && (
             <>
               <b>{signed(h.y)} {t("par an")}</b>
@@ -211,7 +231,13 @@ export function FundChart({ mode, series, benchmark, windowDays }: { mode: Exclu
               <span>{t("écart au plus haut atteint avant cette date")}</span>
             </>
           )}
-        </div>
+          {onRange && <small>{pin ? t("toucher pour fermer la période à cette date") : t("toucher deux dates pour recadrer la période")}</small>}
+        </TrackTip>
+      )}
+      {pin && (
+        <RangeRead onClear={() => setPin(null)} clearLabel={t("effacer")}>
+          <b>{fmtDate(pin)}</b> : {t("touchez une seconde date pour recadrer la période")}
+        </RangeRead>
       )}
     </div>
   );
