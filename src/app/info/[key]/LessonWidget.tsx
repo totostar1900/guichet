@@ -299,35 +299,38 @@ function IndexWidget({ live }: { live: Live }) {
   const t = useT();
   const ix = live.index;
   const [pick, setPick] = useState(0);
-  const [move, setMove] = useState(5);
+  // the scenario : one move per line, kept when another line is picked
+  const [moves, setMoves] = useState<Record<string, number>>(() => (ix?.weights[0] ? { [ix.weights[0].mnemo]: 5 } : {}));
   const [mode, setMode] = useState<"total" | "float">("total");
   if (!ix) return <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>;
   const ws = ix.weights;
   const wOf = (x: { wTotal: number; wFloat: number }) => (mode === "total" ? x.wTotal : x.wFloat);
-  const wgt = ws[pick] ? wOf(ws[pick]) / 100 : 0;
-  // one value moves by m : the index moves by w·m ; its weight becomes w(1+m) / (1+w·m), the others shrink by 1 / (1+w·m)
-  const m = move / 100;
-  const shift = wgt * m;
+  const moveOf = (mnemo: string) => moves[mnemo] ?? 0;
+  const move = ws[pick] ? moveOf(ws[pick].mnemo) : 0;
+  const setMove = (v: number) => ws[pick] && setMoves((cur) => (v === 0 ? Object.fromEntries(Object.entries(cur).filter(([k]) => k !== ws[pick].mnemo)) : { ...cur, [ws[pick].mnemo]: v }));
+  const moved = ws.filter((x) => moveOf(x.mnemo) !== 0);
+  // each line i moves by mᵢ : the index moves by Σ wᵢ·mᵢ ; a weight becomes wᵢ(1+mᵢ) / (1+Σ wⱼ·mⱼ)
+  const contrib = (x: { mnemo: string; wTotal: number; wFloat: number }) => (wOf(x) / 100) * (moveOf(x.mnemo) / 100);
+  const shift = ws.reduce((acc, x) => acc + contrib(x), 0);
   const after = ix.level * (1 + shift);
-  const weightAfter = (i: number) => {
-    const w0 = wOf(ws[i]) / 100;
-    return (i === pick ? (w0 * (1 + m)) / (1 + shift) : w0 / (1 + shift)) * 100;
-  };
+  const weightAfter = (x: { mnemo: string; wTotal: number; wFloat: number }) => ((wOf(x) / 100) * (1 + moveOf(x.mnemo) / 100)) / (1 + shift) * 100;
   const sg = (v?: number, d = 1) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`);
   const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const tone = move > 0 ? styles.up : move < 0 ? styles.down : "";
-  // the gauge : −20 % … +20 %, the value's move and the index's
+  const toneOf = (v: number) => (v > 0 ? styles.up : v < 0 ? styles.down : "");
+  const tone = toneOf(shift);
+  // the gauge : −20 % … +20 %, the picked line's move and the index's
   const gx = (v: number) => 50 + (Math.max(-20, Math.min(20, v)) / 20) * 50;
+  const scenario = moved.map((x) => `${x.mnemo} ${sg(moveOf(x.mnemo), 1)}`).join(", ");
   return (
     <div className={styles.widget}>
       <div className={styles.wRow}>
         <div>
           <span className={styles.wLabel}>BVMAC All Share · {fmtDate(ix.date)}</span>
           <b className={styles.wBig}>{lvl(ix.level)}</b>
-          <span className={`${styles.wAfter} ${tone} ${move === 0 ? styles.wAfterIdle : ""}`} aria-live="polite">
-            {move !== 0 && ws[pick] ? (
+          <span className={`${styles.wAfter} ${tone} ${moved.length === 0 ? styles.wAfterIdle : ""}`} aria-live="polite">
+            {moved.length > 0 ? (
               <>
-                → <b>{lvl(after)}</b> <em>{sg(shift * 100, 2)}</em> <small>{t("si {m} bouge de {v}", { m: ws[pick].mnemo, v: sg(move, 1) })}</small>
+                → <b>{lvl(after)}</b> <em>{sg(shift * 100, 2)}</em> <small>{moved.length === 1 ? t("si {m} bouge de {v}", { m: moved[0].mnemo, v: sg(moveOf(moved[0].mnemo), 1) }) : t("{n} lignes déplacées", { n: String(moved.length) })}</small>
               </>
             ) : (
               <small>{t("poids réels du bulletin : déplacez le curseur pour simuler")}</small>
@@ -353,15 +356,28 @@ function IndexWidget({ live }: { live: Live }) {
         <>
           <div className={styles.wBars}>
             {ws.map((x, i) => {
-              const w1 = weightAfter(i);
+              const w1 = weightAfter(x);
+              const mv = moveOf(x.mnemo);
               return (
-                <button key={x.mnemo} type="button" className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`} onClick={() => setPick(i)} aria-pressed={i === pick}>
-                  <span>{x.mnemo}</span>
-                  <i style={{ width: `${Math.max(1, w1)}%` }} />
+                <div key={x.mnemo} className={`${styles.wBar} ${i === pick ? styles.wBarOn : ""}`}>
+                  <button type="button" className={styles.wPick} onClick={() => setPick(i)} aria-pressed={i === pick}>
+                    {x.mnemo}
+                  </button>
+                  <span className={styles.wTrackBar}>
+                    <i style={{ width: `${Math.max(1, w1)}%` }} />
+                    {mv !== 0 && (
+                      <b className={`${styles.wMove} ${toneOf(mv)}`} title={t("déplacement appliqué à cette ligne")}>
+                        {sg(mv, 1)}
+                        <button type="button" aria-label={t("Retirer ce déplacement")} onClick={() => setMoves((cur) => Object.fromEntries(Object.entries(cur).filter(([k]) => k !== x.mnemo)))}>
+                          ×
+                        </button>
+                      </b>
+                    )}
+                  </span>
                   <em>
-                    {w1.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %<small className={tone}>{move !== 0 && Math.abs(w1 - wOf(x)) >= 0.05 ? sg(w1 - wOf(x), 1).replace(" %", "") : " "}</small>
+                    {w1.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %<small className={toneOf(w1 - wOf(x))}>{moved.length > 0 && Math.abs(w1 - wOf(x)) >= 0.05 ? sg(w1 - wOf(x), 1).replace(" %", "") : "\u00a0"}</small>
                   </em>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -377,7 +393,7 @@ function IndexWidget({ live }: { live: Live }) {
               {t("{m} bouge de", { m: ws[pick]?.mnemo ?? "" })} <b>{sg(move, 1)}</b>
               <input type="range" min={-20} max={20} step={0.5} value={move} onChange={(e) => setMove(Number(e.target.value))} />
             </label>
-            <button type="button" className={`btn sm ${move === 0 ? styles.wResetIdle : ""}`} onClick={() => setMove(0)} disabled={move === 0}>
+            <button type="button" className={`btn sm ${moved.length === 0 ? styles.wResetIdle : ""}`} onClick={() => setMoves({})} disabled={moved.length === 0}>
               {t("Revenir aux poids réels")}
             </button>
           </div>
@@ -390,8 +406,8 @@ function IndexWidget({ live }: { live: Live }) {
           <div className={styles.wGauge} aria-hidden="true">
             <div className={styles.wTrack}>
               <span className={styles.wZero} />
-              <i className={`${styles.wNeedle} ${styles.wNeedleValue} ${tone}`} style={{ left: `${gx(move)}%` }} title={ws[pick]?.mnemo} />
-              <i className={`${styles.wNeedle} ${styles.wNeedleIndex} ${tone}`} style={{ left: `${gx(shift * 100)}%` }} title={t("l'indice")} />
+              <i className={`${styles.wNeedle} ${styles.wNeedleValue}`} style={{ left: `${gx(move)}%` }} title={ws[pick]?.mnemo} />
+              <i className={`${styles.wNeedle} ${styles.wNeedleIndex}`} style={{ left: `${gx(shift * 100)}%` }} title={t("l'indice")} />
             </div>
             <div className={styles.wScale}>
               <span>−20 %</span>
@@ -408,7 +424,9 @@ function IndexWidget({ live }: { live: Live }) {
             </div>
           </div>
           <p className={styles.wRead}>
-            {t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { m: ws[pick]?.mnemo ?? "", v: sg(move, 1), a: lvl(after), d: sg(shift * 100, 2) })}
+            {moved.length <= 1
+              ? t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { m: (moved[0] ?? ws[pick])?.mnemo ?? "", v: sg(moved[0] ? moveOf(moved[0].mnemo) : 0, 1), a: lvl(after), d: sg(shift * 100, 2) })
+              : t("Scénario : {s}. L'indice passe à {a} ({d}) ; chaque ligne y contribue à hauteur de son poids : {c}. Les lignes non déplacées voient leur poids se réajuster. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { s: scenario, a: lvl(after), d: sg(shift * 100, 2), c: moved.map((x) => `${x.mnemo} ${sg(contrib(x) * 100, 2)}`).join(", ") })}
           </p>
         </>
       )}

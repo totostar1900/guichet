@@ -1609,4 +1609,8 @@ export const EN_MORE: Record<string, string> = {
   "Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux. Les points colorés sont les séances où l'indice a bougé.": "Hover to read a session; tap two points (or pick two dates) to read the change between them. The coloured dots are the sessions where the index moved.",
   "poids réels du bulletin : déplacez le curseur pour simuler": "real weights from the bulletin: move the slider to simulate",
   "Revenir aux poids réels": "Back to the real weights",
+  "{n} lignes déplacées": "{n} lines moved",
+  "déplacement appliqué à cette ligne": "move applied to this line",
+  "Retirer ce déplacement": "Remove this move",
+  "Scénario : {s}. L'indice passe à {a} ({d}) ; chaque ligne y contribue à hauteur de son poids : {c}. Les lignes non déplacées voient leur poids se réajuster. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.": "Scenario: {s}. The index goes to {a} ({d}); each line contributes in proportion to its weight: {c}. The lines not moved see their weight readjust. Assumption: capitalisation-weighted index, exact rules to confirm with the BVMAC.",
 };

@@ -273,7 +273,6 @@
   font: inherit;
   font-size: 0.78rem;
   color: var(--ink);
-  cursor: pointer;
   text-align: left;
 }
 .wBar i {
@@ -282,6 +281,56 @@
   border-radius: 5px;
   background: var(--navy);
   min-width: 2px;
+}
+.wPick {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.wTrackBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+}
+/* the move applied to the line : the cause, beside the bar that shows the result */
+.wMove {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 4px 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.wMove.up {
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+}
+.wMove.down {
+  background: var(--warn-soft);
+}
+.wMove button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0 3px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.wMove button:hover {
+  opacity: 1;
 }
 .wBar em {
   font-style: normal;
