@@ -203,3 +203,167 @@
   font-size: 0.76rem;
   cursor: pointer;
 }
+/* views */
+.views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.views button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.views button[aria-selected="true"] {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+.vol {
+  fill: var(--line-2);
+}
+.volMoved {
+  fill: var(--gold);
+}
+/* calendar */
+.calWrap {
+  display: grid;
+  gap: 8px;
+}
+.cal {
+  display: grid;
+  gap: 3px;
+  align-items: center;
+}
+.calMonth,
+.calDay {
+  font-size: 0.6rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: visible;
+}
+.calCell {
+  display: block;
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 2px;
+  border: 0;
+  padding: 0;
+  background: var(--surface-2);
+  cursor: default;
+}
+button.calCell {
+  cursor: pointer;
+}
+button.calCell:hover,
+button.calCell:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.calOut {
+  visibility: hidden;
+}
+.calFlat {
+  background: var(--line-2);
+}
+.calMissing {
+  background: transparent;
+  border: 1px dashed var(--line-2);
+}
+.calUp.calL1 {
+  background: color-mix(in srgb, var(--good) 35%, transparent);
+}
+.calUp.calL2 {
+  background: color-mix(in srgb, var(--good) 65%, transparent);
+}
+.calUp.calL3 {
+  background: var(--good);
+}
+.calDown.calL1 {
+  background: color-mix(in srgb, var(--warn) 35%, transparent);
+}
+.calDown.calL2 {
+  background: color-mix(in srgb, var(--warn) 65%, transparent);
+}
+.calDown.calL3 {
+  background: var(--warn);
+}
+.legend {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: center;
+}
+.sw {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: -1px;
+  margin-right: 4px;
+}
+/* small multiples */
+.smWrap {
+  display: grid;
+  gap: 8px;
+}
+.sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.smCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+}
+.smCard:hover {
+  border-color: var(--gold);
+}
+.smCard b {
+  font-size: 0.82rem;
+  display: flex;
+  justify-content: space-between;
+}
+.smCard small {
+  color: var(--ink-3);
+  font-size: 0.7rem;
+}
+.smSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.kLine {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  vertical-align: 3px;
+  margin-right: 4px;
+  background: var(--navy);
+}
+.kGold {
+  background: var(--gold);
+}
+@media (max-width: 640px) {
+  .cal {
+    gap: 1px;
+  }
+  .calMonth {
+    font-size: 0.5rem;
+  }
+}

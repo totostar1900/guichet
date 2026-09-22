@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
-import { repo } from "@/lib/data";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
-import { indexSeries, indexStats, indexWeights } from "@/lib/market/index";
-import { loadCompanies } from "@/lib/reference";
+import { IndexChart, money, type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
+import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
+import { indexPageData } from "@/lib/market/index-data";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 
@@ -21,17 +19,21 @@ const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2,
  */
 export default async function IndicePage() {
   const t = await getT();
-  const r = repo();
-  const [bulletins, latest, companies] = await Promise.all([r.listBulletins(2000).catch(() => []), r.latestQuotes().catch(() => []), loadCompanies().catch(() => [])]);
-  const stats = indexStats(indexSeries(bulletins));
-  const weights = indexWeights(latest);
-  const nameOf = (mnemo: string) => companies.find((c) => c.mnemo === mnemo)?.shortName ?? mnemo;
-  // every equity's history : the overlay series and the movers of each session
-  const histories = await Promise.all(weights.map(async (w) => ({ w, quotes: (await r.listQuotes(w.isin, 2000).catch(() => [])).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate)) })));
-  const movers = new Map<string, { mnemo: string; variationPct: number }[]>();
-  for (const { w, quotes } of histories) for (const q of quotes) if (q.variationPct !== 0 || q.trades > 0) movers.set(q.sessionDate, [...(movers.get(q.sessionDate) ?? []), { mnemo: w.mnemo, variationPct: q.variationPct }]);
-  const points: ChartPoint[] = stats.points.map((p) => ({ ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined }));
-  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close })) }));
+  const { stats, weights, nameOf, histories, trading, movers, lastBulletin, missing } = await indexPageData();
+  const points: ChartPoint[] = stats.points.map((p) => {
+    const s = trading.get(p.date);
+    return { ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined, titles: s?.titles ?? 0, amount: s?.amount ?? 0, trades: s?.trades ?? 0 };
+  });
+  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0 })) }));
+  // twelve months of trading, for the data panel
+  const since12 = stats.last ? new Date(new Date(`${stats.last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10) : "";
+  const y12 = [...trading.entries()].filter(([d]) => d >= since12);
+  const amount12 = y12.reduce((a, [, s]) => a + s.amount, 0);
+  const trades12 = y12.reduce((a, [, s]) => a + s.trades, 0);
+  const byShare12 = new Map<string, number>();
+  for (const [, s] of y12) for (const [m, v] of Object.entries(s.shares)) byShare12.set(m, (byShare12.get(m) ?? 0) + v.amount);
+  const top12 = [...byShare12.entries()].sort((a, b) => b[1] - a[1])[0];
+  const lastMoved = [...stats.points].reverse().find((p) => (p.variationPct ?? 0) !== 0);
   const last = stats.last;
   const year = last ? stats.points.filter((p) => p.date >= new Date(new Date(`${last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10)) : [];
   const high = year.reduce<typeof last>((a, p) => (!a || p.value > a.value ? p : a), undefined);
@@ -41,6 +43,7 @@ export default async function IndicePage() {
   const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? "" : v > 0 ? styles.up : styles.down);
   const capT = weights.reduce((a, w) => a + w.capTotal, 0);
   const capF = weights.reduce((a, w) => a + w.capFloat, 0);
+  const rotation12 = capF ? (amount12 / capF) * 100 : undefined;
 
   return (
     <>
@@ -115,6 +118,93 @@ export default async function IndicePage() {
             </div>
             <div className={styles.chart}>
               <IndexChart points={points} overlays={overlays} />
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Données")}</h2>
+              <span className="muted">{t("d'où vient chaque chiffre, ce qui manque, ce qu'on peut emporter")}</span>
+            </div>
+            <dl className={styles.info}>
+              <div>
+                <dt>{t("Dernier bulletin")}</dt>
+                <dd>
+                  {lastBulletin ? `BOC n° ${lastBulletin.number}` : "—"} · {t("séance du {d}", { d: fmtDate(last.date) })}
+                  {lastBulletin && <small>{t("lu le {d}, {by}", { d: fmtDateTime(lastBulletin.ingestedAt), by: lastBulletin.ingestedBy === "cron" ? t("par le robot") : t("par le desk") })}</small>}
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Historique")}</dt>
+                <dd>
+                  {stats.points.length} {t("séances")}
+                  <small>
+                    {t("du {a} au {b}", { a: fmtDate(stats.points[0].date), b: fmtDate(last.date) })}
+                  </small>
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Jours ouvrés sans bulletin lu")}</dt>
+                <dd>
+                  {missing.length}
+                  <small>{missing.length ? `${missing.slice(-6).map((d) => fmtDate(d)).join(", ")}${missing.length > 6 ? " …" : ""} · ${t("jours fériés compris")}` : t("aucun")}</small>
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Séances avec mouvement")}</dt>
+                <dd>
+                  {movedSessions.length}
+                  <small>
+                    {fmtPct((movedSessions.length / stats.points.length) * 100, 0)} {t("des séances")}
+                    {lastMoved ? ` · ${t("dernière")} : ${fmtDate(lastMoved.date)}, ${signed(lastMoved.variationPct)}` : ""}
+                  </small>
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Montant échangé 12 mois")}</dt>
+                <dd>
+                  {money(amount12)} FCFA
+                  <small>
+                    {fmt(trades12)} {t("transactions")}
+                    {top12 && amount12 ? ` · ${fmtPct((top12[1] / amount12) * 100, 0)} ${t("sur")} ${top12[0]}` : ""}
+                  </small>
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Capitalisation")}</dt>
+                <dd>
+                  {money(capT)} FCFA
+                  <small>
+                    {t("flottant coté")} {money(capF)} ({capT ? fmtPct((capF / capT) * 100, 0) : "—"})
+                    {rotation12 != null ? ` · ${t("rotation du flottant 12 mois")} : ${fmtPct(rotation12, 0)}` : ""}
+                  </small>
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Méthode")}</dt>
+                <dd>
+                  {t("indice de prix, pondéré par la capitalisation")}
+                  <small>{t("base, date de base et règle de pondération : à confirmer auprès de la BVMAC")}</small>
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Source")}</dt>
+                <dd>
+                  {t("Bulletin officiel de la cote, BVMAC")}
+                  <small>{t("chaque bulletin est gardé ; rien n'est recalculé, tout est relu")}</small>
+                </dd>
+              </div>
+            </dl>
+            <div className={styles.btns}>
+              <a className="btn sm primary" href="/indice/serie.csv">
+                {t("Télécharger la série (CSV)")}
+              </a>
+              <Link className="btn sm" href="/info/indice-bvmac">
+                {t("La leçon")}
+              </Link>
+              <Link className="btn sm ghost" href="/societes">
+                {t("Les sociétés cotées")}
+              </Link>
             </div>
           </section>
 

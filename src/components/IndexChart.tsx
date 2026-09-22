@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
-import { fmtDate } from "@/lib/format";
+import { fmt, fmtDate } from "@/lib/format";
 import styles from "./IndexChart.module.css";
 
 export interface ChartPoint {
@@ -11,14 +12,20 @@ export interface ChartPoint {
   variationPct?: number;
   /** The shares that traded on that session (mnemo and variation), when the index moved. */
   movers?: { mnemo: string; variationPct: number }[];
+  /** Equity trading of the session, all shares: titles, FCFA, number of trades. */
+  titles?: number;
+  amount?: number;
+  trades?: number;
 }
 export interface OverlaySeries {
   mnemo: string;
   name: string;
-  points: { date: string; value: number }[];
+  points: { date: string; value: number; titles?: number; amount?: number; trades?: number }[];
 }
 
+export type IndexView = "niveau" | "volumes" | "calendrier" | "societes";
 type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
+type VolumeKey = "amount" | "titles" | "trades";
 const PERIODS: [PeriodKey, string][] = [
   ["1m", "1 mois"],
   ["3m", "3 mois"],
@@ -26,23 +33,34 @@ const PERIODS: [PeriodKey, string][] = [
   ["12m", "12 mois"],
   ["all", "Tout"],
 ];
+const VIEWS: [IndexView, string][] = [
+  ["niveau", "Niveau"],
+  ["volumes", "Niveau + volumes"],
+  ["calendrier", "Calendrier"],
+  ["societes", "Sociétés en base 100"],
+];
 const shift = (iso: string, days: number) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - days * 86400e3).toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00Z`).getTime() - new Date(`${a}T12:00:00Z`).getTime()) / 86400e3);
 const lvl = (v: number, d = 2) => v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${lvl(v, d)} %`);
+/** FCFA in a short form : 1,2 Md · 340 M · 850 k. */
+export const money = (v: number) => (v >= 1e9 ? `${lvl(v / 1e9, 1)} Md` : v >= 1e6 ? `${lvl(v / 1e6, v >= 1e8 ? 0 : 1)} M` : v >= 1e3 ? `${lvl(v / 1e3, 0)} k` : fmt(v));
 
 /**
- * The index, every session read, with a crosshair that follows the pointer,
- * points pinned by a tap (one, then two : the change between the dates), a
- * base-100 reading, one listed share overlaid on the same base, and the
- * sessions where the index moved marked and named. Sessions further than a
- * week apart are not joined : a missing bulletin is a gap, not a flat line.
+ * The index, every session read, under one selector of views: the level
+ * (crosshair, pins, base 100, one share overlaid), the level with the
+ * session's trading as bars, the calendar of a year of sessions, and the
+ * listed shares as small charts against the index. Sessions further than
+ * a week apart are not joined : a missing bulletin is a gap, not a line.
  */
 export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey }) {
   const t = useT();
+  const [view, setView] = useState<IndexView>("niveau");
   const [period, setPeriod] = useState<PeriodKey>(defaultPeriod);
   const [rebase, setRebase] = useState(false);
   const [overlay, setOverlay] = useState("");
+  const [volKey, setVolKey] = useState<VolumeKey>("amount");
+  const [volOf, setVolOf] = useState("");
   const [hover, setHover] = useState<number | null>(null);
   const [pins, setPins] = useState<string[]>([]);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -56,7 +74,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const H = W < 480 ? 240 : 320;
+  const withVol = view === "volumes";
+  const volH = withVol ? (W < 480 ? 70 : 90) : 0;
+  const H = (W < 480 ? 240 : 320) + volH;
   const padL = 46;
   const padR = 14;
   const padT = 14;
@@ -81,6 +101,16 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   };
   const series = useMemo(() => (showBase ? base(pts) : pts.map((p) => ({ ...p, y: p.value }))), [pts, showBase]);
   const ovSeries = useMemo(() => (ov ? base(ovPts) : []), [ovPts, ov]);
+  // the trading of each session, all shares or one
+  const volSrc = overlays.find((o) => o.mnemo === volOf);
+  const volAt = (date: string): number => {
+    if (volSrc) {
+      const q = volSrc.points.find((p) => p.date === date);
+      return q?.[volKey] ?? 0;
+    }
+    const p = pts.find((q) => q.date === date);
+    return p?.[volKey] ?? 0;
+  };
   if (!last || pts.length < 2) return <div className="empty">{t("Pas assez de séances lues sur cette période.")}</div>;
 
   const dates = pts.map((p) => p.date);
@@ -94,8 +124,8 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const pad = (hi - lo || lo * 0.02 || 1) * 0.08;
   lo -= pad;
   hi += pad;
-  const y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
-  // segments : break the line where two sessions are more than a week apart
+  const plotB = H - padB - volH;
+  const y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * (plotB - padT);
   const segments = (arr: { date: string; y: number }[]) => {
     const out: string[] = [];
     let cur: string[] = [];
@@ -111,12 +141,15 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   };
   const ticks = 4;
   const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
-  // date ticks : first, last and up to four in between at round months
   const dateTicks: string[] = [];
   {
     const step = Math.max(1, Math.round(span / 5));
     for (let d = 0; d <= span; d += step) dateTicks.push(shift(dN, span - d));
   }
+  const vols = pts.map((p) => volAt(p.date));
+  const volMax = Math.max(1, ...vols);
+  const volLabel = (v: number) => (volKey === "amount" ? money(v) : fmt(v));
+  const totals = { titles: pts.reduce((a, p) => a + (p.titles ?? 0), 0), amount: pts.reduce((a, p) => a + (p.amount ?? 0), 0), trades: pts.reduce((a, p) => a + (p.trades ?? 0), 0), moved: pts.filter((p) => (p.variationPct ?? 0) !== 0).length };
   const nearest = (clientX: number, svg: SVGSVGElement) => {
     const r = svg.getBoundingClientRect();
     const px = ((clientX - r.left) / r.width) * W;
@@ -131,9 +164,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     });
     return best;
   };
-  const togglePin = (date: string) => {
-    setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
-  };
+  const togglePin = (date: string) => setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
   const at = (d: string) => pts.find((p) => p.date === d);
   const hp = hover != null ? pts[hover] : undefined;
   const sInfo = (d: string) => series.find((p) => p.date === d);
@@ -144,9 +175,17 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const moved = between.filter((p) => (p.variationPct ?? 0) !== 0).length;
   const tipX = hp ? x(hp.date) : 0;
   const tipLeft = tipX > W * 0.6;
+  const lineView = view === "niveau" || view === "volumes";
 
   return (
     <div className={styles.wrap} ref={boxRef}>
+      <div className={styles.views} role="tablist" aria-label={t("Vue")}>
+        {VIEWS.map(([k, label]) => (
+          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)}>
+            {t(label)}
+          </button>
+        ))}
+      </div>
       <div className={styles.bar}>
         <div className={styles.pills} role="tablist" aria-label={t("Période")}>
           {PERIODS.map(([k, label]) => (
@@ -155,124 +194,330 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             </button>
           ))}
         </div>
-        <label className={styles.check}>
-          <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
-        </label>
-        <label className={styles.select}>
-          {t("Comparer à")}
-          <select value={overlay} onChange={(e) => setOverlay(e.target.value)}>
-            <option value="">{t("aucune valeur")}</option>
-            {overlays.map((o) => (
-              <option key={o.mnemo} value={o.mnemo}>
-                {o.mnemo} · {o.name}
-              </option>
+        {lineView && (
+          <>
+            <label className={styles.check}>
+              <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
+            </label>
+            <label className={styles.select}>
+              {t("Comparer à")}
+              <select value={overlay} onChange={(e) => setOverlay(e.target.value)}>
+                <option value="">{t("aucune valeur")}</option>
+                {overlays.map((o) => (
+                  <option key={o.mnemo} value={o.mnemo}>
+                    {o.mnemo} · {o.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+        {withVol && (
+          <>
+            <label className={styles.select}>
+              {t("Volumes")}
+              <select value={volKey} onChange={(e) => setVolKey(e.target.value as VolumeKey)}>
+                <option value="amount">{t("montant échangé (FCFA)")}</option>
+                <option value="titles">{t("titres échangés")}</option>
+                <option value="trades">{t("nombre de transactions")}</option>
+              </select>
+            </label>
+            <label className={styles.select}>
+              <select value={volOf} onChange={(e) => setVolOf(e.target.value)} aria-label={t("Société")}>
+                <option value="">{t("toutes les sociétés")}</option>
+                {overlays.map((o) => (
+                  <option key={o.mnemo} value={o.mnemo}>
+                    {o.mnemo} · {o.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+      </div>
+
+      {lineView && (
+        <>
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            className={styles.svg}
+            role="img"
+            aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })}
+            onPointerMove={(e) => setHover(nearest(e.clientX, e.currentTarget))}
+            onPointerLeave={() => setHover(null)}
+            onClick={(e) => togglePin(pts[nearest(e.clientX, e.currentTarget)].date)}
+          >
+            {tickVals.map((v) => (
+              <g key={v}>
+                <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
+                <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
+                  {lvl(v, 0)}
+                </text>
+              </g>
             ))}
-          </select>
-        </label>
-      </div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className={styles.svg}
-        role="img"
-        aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })}
-        onPointerMove={(e) => setHover(nearest(e.clientX, e.currentTarget))}
-        onPointerLeave={() => setHover(null)}
-        onClick={(e) => togglePin(pts[nearest(e.clientX, e.currentTarget)].date)}
-      >
-        {tickVals.map((v) => (
-          <g key={v}>
-            <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
-            <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
-              {showBase ? lvl(v, 0) : lvl(v, 0)}
-            </text>
-          </g>
-        ))}
-        {dateTicks.map((d) => (
-          <text key={d} x={x(d)} y={H - 8} textAnchor={d === d0 ? "start" : d === dN ? "end" : "middle"} className={styles.tick}>
-            {fmtDate(d)}
-          </text>
-        ))}
-        {showBase && <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />}
-        {segments(ovSeries).map((s, i) => (
-          <polyline key={`o${i}`} points={s} className={styles.overlay} />
-        ))}
-        {segments(series).map((s, i) => (
-          <polyline key={i} points={s} className={styles.line} />
-        ))}
-        {series
-          .filter((p) => (p.variationPct ?? 0) !== 0)
-          .map((p) => (
-            <circle key={p.date} cx={x(p.date)} cy={y(p.y)} r={3.5} className={(p.variationPct ?? 0) > 0 ? styles.up : styles.down}>
-              <title>
-                {fmtDate(p.date)} · {signed(p.variationPct)} {p.movers?.length ? `· ${p.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(", ")}` : ""}
-              </title>
-            </circle>
-          ))}
-        {pins.map((d) => {
-          const s = sInfo(d);
-          return s ? (
-            <g key={d} className={styles.pin}>
-              <line x1={x(d)} x2={x(d)} y1={padT} y2={H - padB} />
-              <circle cx={x(d)} cy={y(s.y)} r={5} />
-            </g>
-          ) : null;
-        })}
-        {pinA && pinB && <rect x={x(pinA.date)} y={padT} width={Math.max(0, x(pinB.date) - x(pinA.date))} height={H - padT - padB} className={styles.range} />}
-        {hp && (
-          <g className={styles.cross}>
-            <line x1={x(hp.date)} x2={x(hp.date)} y1={padT} y2={H - padB} />
-            <circle cx={x(hp.date)} cy={y(sInfo(hp.date)!.y)} r={4} />
-          </g>
-        )}
-      </svg>
-      {hp && (
-        <div className={`${styles.tip} ${tipLeft ? styles.tipLeft : ""}`} style={{ left: `${(tipX / W) * 100}%` }}>
-          <b>{fmtDate(hp.date)}</b>
-          <span>
-            {lvl(hp.value)} <em className={(hp.variationPct ?? 0) > 0 ? styles.upT : (hp.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(hp.variationPct)}</em>
-          </span>
-          {showBase && <span>{t("base 100")} : {lvl(sInfo(hp.date)!.y, 1)}</span>}
-          {ov && oInfo(hp.date) && (
-            <span>
-              {ov.mnemo} : {lvl(oInfo(hp.date)!.y, 1)}
-            </span>
+            {dateTicks.map((d) => (
+              <text key={d} x={x(d)} y={H - 8} textAnchor={d === d0 ? "start" : d === dN ? "end" : "middle"} className={styles.tick}>
+                {fmtDate(d)}
+              </text>
+            ))}
+            {showBase && <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />}
+            {withVol && (
+              <g>
+                <line x1={padL} x2={W - padR} y1={H - padB} y2={H - padB} className={styles.grid} />
+                <text x={padL - 6} y={H - padB - volH + 12} textAnchor="end" className={styles.tick}>
+                  {volLabel(volMax)}
+                </text>
+                <text x={padL - 6} y={H - padB} textAnchor="end" className={styles.tick}>
+                  0
+                </text>
+                {pts.map((p, i) => {
+                  const v = vols[i];
+                  if (!v) return null;
+                  const h = (v / volMax) * (volH - 16);
+                  const bw = Math.max(1.5, Math.min(6, ((W - padL - padR) / Math.max(1, pts.length)) * 0.7));
+                  return <rect key={p.date} x={x(p.date) - bw / 2} y={H - padB - h} width={bw} height={h} className={`${styles.vol} ${(p.variationPct ?? 0) !== 0 ? styles.volMoved : ""}`} />;
+                })}
+              </g>
+            )}
+            {segments(ovSeries).map((s, i) => (
+              <polyline key={`o${i}`} points={s} className={styles.overlay} />
+            ))}
+            {segments(series).map((s, i) => (
+              <polyline key={i} points={s} className={styles.line} />
+            ))}
+            {series
+              .filter((p) => (p.variationPct ?? 0) !== 0)
+              .map((p) => (
+                <circle key={p.date} cx={x(p.date)} cy={y(p.y)} r={3.5} className={(p.variationPct ?? 0) > 0 ? styles.up : styles.down}>
+                  <title>
+                    {fmtDate(p.date)} · {signed(p.variationPct)} {p.movers?.length ? `· ${p.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(", ")}` : ""}
+                  </title>
+                </circle>
+              ))}
+            {pins.map((d) => {
+              const s = sInfo(d);
+              return s ? (
+                <g key={d} className={styles.pin}>
+                  <line x1={x(d)} x2={x(d)} y1={padT} y2={H - padB} />
+                  <circle cx={x(d)} cy={y(s.y)} r={5} />
+                </g>
+              ) : null;
+            })}
+            {pinA && pinB && <rect x={x(pinA.date)} y={padT} width={Math.max(0, x(pinB.date) - x(pinA.date))} height={H - padT - padB} className={styles.range} />}
+            {hp && (
+              <g className={styles.cross}>
+                <line x1={x(hp.date)} x2={x(hp.date)} y1={padT} y2={H - padB} />
+                <circle cx={x(hp.date)} cy={y(sInfo(hp.date)!.y)} r={4} />
+              </g>
+            )}
+          </svg>
+          {hp && (
+            <div className={`${styles.tip} ${tipLeft ? styles.tipLeft : ""}`} style={{ left: `${(tipX / W) * 100}%` }}>
+              <b>{fmtDate(hp.date)}</b>
+              <span>
+                {lvl(hp.value)} <em className={(hp.variationPct ?? 0) > 0 ? styles.upT : (hp.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(hp.variationPct)}</em>
+              </span>
+              {showBase && <span>{t("base 100")} : {lvl(sInfo(hp.date)!.y, 1)}</span>}
+              {ov && oInfo(hp.date) && (
+                <span>
+                  {ov.mnemo} : {lvl(oInfo(hp.date)!.y, 1)}
+                </span>
+              )}
+              <span className={styles.tipSince}>
+                {t("depuis le {d}", { d: fmtDate(d0) })} : {signed(((hp.value - pts[0].value) / pts[0].value) * 100)}
+              </span>
+              {hp.movers?.length ? <span className={styles.tipMovers}>{hp.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · ")}</span> : null}
+              <span className={styles.tipSince}>
+                {hp.titles ? `${fmt(hp.titles)} ${t("titres")} · ${money(hp.amount ?? 0)} FCFA · ${hp.trades ?? 0} ${t("transaction(s)")}` : t("aucun échange sur les actions")}
+                {volSrc ? ` · ${volSrc.mnemo} : ${volLabel(volAt(hp.date))}` : ""}
+              </span>
+            </div>
           )}
-          <span className={styles.tipSince}>
-            {t("depuis le {d}", { d: fmtDate(d0) })} : {signed(((hp.value - pts[0].value) / pts[0].value) * 100)}
-          </span>
-          {hp.movers?.length ? <span className={styles.tipMovers}>{hp.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · ")}</span> : null}
-        </div>
+          <div className={styles.pinsBar}>
+            <label>
+              {t("Du")}
+              <input type="date" value={pins[0] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [e.target.value, ...cur.slice(1)].sort() : cur.slice(1)))} />
+            </label>
+            <label>
+              {t("Au")}
+              <input type="date" value={pins[1] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [cur[0] ?? d0, e.target.value].sort() : cur.slice(0, 1)))} />
+            </label>
+            {pinA && pinB ? (
+              <p className={styles.pinsRead}>
+                <b>
+                  {fmtDate(pinA.date)} → {fmtDate(pinB.date)}
+                </b>{" "}
+                : {lvl(pinA.value)} → {lvl(pinB.value)}, <b className={pinB.value >= pinA.value ? styles.upT : styles.downT}>{signed(((pinB.value - pinA.value) / pinA.value) * 100)}</b> · {t("{n} séances, {m} avec mouvement", { n: String(between.length), m: String(moved) })}
+                {" · "}
+                {money(between.reduce((a, p) => a + (p.amount ?? 0), 0))} FCFA
+                <button type="button" className={styles.clear} onClick={() => setPins([])}>
+                  {t("effacer")}
+                </button>
+              </p>
+            ) : pinA ? (
+              <p className={styles.pinsRead}>
+                <b>{fmtDate(pinA.date)}</b> : {lvl(pinA.value)} · {t("touchez une seconde date pour lire l'écart")}
+                <button type="button" className={styles.clear} onClick={() => setPins([])}>
+                  {t("effacer")}
+                </button>
+              </p>
+            ) : (
+              <p className={styles.pinsRead}>
+                {withVol
+                  ? t("Sur la période : {a} FCFA échangés, {n} transactions, {m} séances avec mouvement. Barres dorées : l'indice a bougé.", { a: money(totals.amount), n: fmt(totals.trades), m: String(totals.moved) })
+                  : t("Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux. Les points colorés sont les séances où l'indice a bougé.")}
+              </p>
+            )}
+          </div>
+        </>
       )}
-      <div className={styles.pinsBar}>
-        <label>
-          {t("Du")}
-          <input type="date" value={pins[0] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [e.target.value, ...cur.slice(1)].sort() : cur.slice(1)))} />
-        </label>
-        <label>
-          {t("Au")}
-          <input type="date" value={pins[1] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [cur[0] ?? d0, e.target.value].sort() : cur.slice(0, 1)))} />
-        </label>
-        {pinA && pinB ? (
-          <p className={styles.pinsRead}>
-            <b>
-              {fmtDate(pinA.date)} → {fmtDate(pinB.date)}
-            </b>{" "}
-            : {lvl(pinA.value)} → {lvl(pinB.value)}, <b className={pinB.value >= pinA.value ? styles.upT : styles.downT}>{signed(((pinB.value - pinA.value) / pinA.value) * 100)}</b> · {t("{n} séances, {m} avec mouvement", { n: String(between.length), m: String(moved) })}
-            <button type="button" className={styles.clear} onClick={() => setPins([])}>
-              {t("effacer")}
-            </button>
-          </p>
-        ) : pinA ? (
-          <p className={styles.pinsRead}>
-            <b>{fmtDate(pinA.date)}</b> : {lvl(pinA.value)} · {t("touchez une seconde date pour lire l'écart")}
-            <button type="button" className={styles.clear} onClick={() => setPins([])}>
-              {t("effacer")}
-            </button>
-          </p>
-        ) : (
-          <p className={styles.pinsRead}>{t("Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux. Les points colorés sont les séances où l'indice a bougé.")}</p>
-        )}
+
+      {view === "calendrier" && (
+        <Calendar
+          points={pts}
+          from={period === "all" ? d0 : from}
+          to={dN}
+          onPick={(d) => {
+            if (!at(d)) return;
+            setView("niveau");
+            togglePin(d);
+          }}
+        />
+      )}
+
+      {view === "societes" && <SmallMultiples index={pts} overlays={overlays} from={from} />}
+    </div>
+  );
+}
+
+/** A year (or the period) of sessions : one cell per weekday, a column per week ; colour is the move, dashed is a bulletin not read. */
+function Calendar({ points, from, to, onPick }: { points: ChartPoint[]; from: string; to: string; onPick: (d: string) => void }) {
+  const t = useT();
+  const byDate = new Map(points.map((p) => [p.date, p]));
+  const start = new Date(`${from}T12:00:00Z`);
+  start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
+  const end = new Date(`${to}T12:00:00Z`);
+  const weeks: string[][] = [];
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 7)) {
+    const w: string[] = [];
+    for (let k = 0; k < 5; k++) w.push(new Date(d.getTime() + k * 86400e3).toISOString().slice(0, 10));
+    weeks.push(w);
+  }
+  const cls = (d: string) => {
+    if (d < from || d > to) return styles.calOut;
+    const p = byDate.get(d);
+    if (!p) return styles.calMissing;
+    const v = p.variationPct ?? 0;
+    if (v === 0) return styles.calFlat;
+    const a = Math.abs(v);
+    const lvlCls = a >= 1 ? 3 : a >= 0.3 ? 2 : 1;
+    return `${v > 0 ? styles.calUp : styles.calDown} ${styles[`calL${lvlCls}`]}`;
+  };
+  const missing = weeks.flat().filter((d) => d >= from && d <= to && !byDate.has(d)).length;
+  const monthAt = (i: number) => {
+    const m = weeks[i][0].slice(0, 7);
+    return i === 0 || weeks[i - 1][0].slice(0, 7) !== m ? new Date(`${weeks[i][0]}T12:00:00Z`).toLocaleDateString("fr-FR", { month: "short" }) : "";
+  };
+  const day = ["lun", "mar", "mer", "jeu", "ven"];
+  return (
+    <div className={styles.calWrap}>
+      <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
+        <span />
+        {weeks.map((w, i) => (
+          <span key={w[0]} className={styles.calMonth}>
+            {monthAt(i)}
+          </span>
+        ))}
+        {[0, 1, 2, 3, 4].map((k) => (
+          <div key={k} style={{ display: "contents" }}>
+            <span className={styles.calDay}>{day[k]}</span>
+            {weeks.map((w) => {
+              const d = w[k];
+              const p = byDate.get(d);
+              const title = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}${p.movers?.length ? ` · ${p.movers.map((m) => m.mnemo).join(", ")}` : ""}` : d >= from && d <= to ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
+              return p ? (
+                <button key={d} type="button" className={`${styles.calCell} ${cls(d)}`} title={title} aria-label={title} onClick={() => onPick(d)} />
+              ) : (
+                <i key={d} className={`${styles.calCell} ${cls(d)}`} title={title} />
+              );
+            })}
+          </div>
+        ))}
       </div>
+      <p className={styles.legend}>
+        <span>
+          <i className={`${styles.sw} ${styles.calFlat}`} /> {t("séance à 0,00 %")}
+        </span>
+        <span>
+          <i className={`${styles.sw} ${styles.calUp} ${styles.calL3}`} /> {t("hausse")}
+        </span>
+        <span>
+          <i className={`${styles.sw} ${styles.calDown} ${styles.calL3}`} /> {t("baisse")}
+        </span>
+        <span>
+          <i className={`${styles.sw} ${styles.calMissing}`} /> {t("jour ouvré sans bulletin lu (jours fériés compris)")}
+        </span>
+        <span>
+          {points.length} {t("séances lues")}, {points.filter((p) => (p.variationPct ?? 0) !== 0).length} {t("avec mouvement")}, {missing} {t("sans bulletin")} · {t("toucher une séance l'épingle sur la vue Niveau")}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+/** Each listed share against the index, both in base 100 over the period, one small chart per share. */
+function SmallMultiples({ index, overlays, from }: { index: ChartPoint[]; overlays: OverlaySeries[]; from: string }) {
+  const t = useT();
+  const i0 = index[0]?.value;
+  if (!i0) return null;
+  const ix = index.map((p) => ({ date: p.date, y: (p.value / i0) * 100 }));
+  const iEnd = ix[ix.length - 1].y - 100;
+  return (
+    <div className={styles.smWrap}>
+      <div className={styles.sm}>
+        {overlays.map((o) => {
+          const pts = o.points.filter((p) => p.date >= from);
+          const s0 = pts[0]?.value;
+          if (!s0 || pts.length < 2) return null;
+          const s = pts.map((p) => ({ date: p.date, y: (p.value / s0) * 100 }));
+          const sEnd = s[s.length - 1].y - 100;
+          const all = [...s.map((p) => p.y), ...ix.map((p) => p.y)];
+          const lo = Math.min(...all) - 1;
+          const hi = Math.max(...all) + 1;
+          const d0 = ix[0].date < s[0].date ? ix[0].date : s[0].date;
+          const dN = ix[ix.length - 1].date > s[s.length - 1].date ? ix[ix.length - 1].date : s[s.length - 1].date;
+          const span = Math.max(1, daysBetween(d0, dN));
+          const x = (d: string) => 4 + (daysBetween(d0, d) / span) * 192;
+          const y = (v: number) => 6 + (1 - (v - lo) / (hi - lo)) * 50;
+          const path = (arr: { date: string; y: number }[]) => arr.map((p) => `${x(p.date).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
+          const alone = Math.abs(sEnd - iEnd) >= 2;
+          return (
+            <Link key={o.mnemo} href={`/societes/${o.mnemo.toLowerCase()}`} className={styles.smCard}>
+              <b>
+                {o.mnemo} <span className={sEnd > 0 ? styles.upT : sEnd < 0 ? styles.downT : ""}>{signed(sEnd, 1)}</span>
+              </b>
+              <small>
+                {o.name} · {t("l'indice")} {signed(iEnd, 1)}
+              </small>
+              <svg viewBox="0 0 200 62" className={styles.smSvg} aria-label={`${o.mnemo} ${t("et l'indice, base 100")}`}>
+                <line x1="4" x2="196" y1={y(100)} y2={y(100)} className={styles.grid} />
+                <polyline points={path(ix)} className={styles.overlay} />
+                <polyline points={path(s)} className={styles.line} />
+              </svg>
+              <small>{alone ? (sEnd > iEnd ? t("a fait plus que le marché") : t("a fait moins que le marché")) : t("a suivi le marché")}</small>
+            </Link>
+          );
+        })}
+      </div>
+      <p className={styles.legend}>
+        <span>
+          <i className={styles.kLine} /> {t("la société")}
+        </span>
+        <span>
+          <i className={`${styles.kLine} ${styles.kGold}`} /> {t("l'indice")}
+        </span>
+        <span>{t("base 100 au début de la période · toucher une vignette ouvre la société")}</span>
+      </p>
     </div>
   );
 }
