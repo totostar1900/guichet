@@ -41,6 +41,8 @@ export interface QuarterLine {
   country: string;
   activity: string;
   holder?: string;
+  /** Share of the first core shareholder, so a sentence can cite only the ones that carry it. */
+  holderPct?: number;
   price: number;
   dividend?: number;
   yield?: number;
@@ -85,6 +87,24 @@ export interface QuarterNote {
   headline: Sentence[];
   reading: Sentence[];
   caution: Sentence[];
+  /** Every session of the quarter, for the curve. */
+  points: { date: string; value: number; variationPct: number }[];
+  /** The session that moved the index most, for the annotation on the curve. */
+  peak?: { date: string; variationPct: number; movers: string };
+  /** Session statistics: what an honest reading of the risk looks like on this market. */
+  stats: {
+    avg: number;
+    sd: number;
+    /** Annualised on every session read, then on the sessions that actually moved. */
+    volAll?: number;
+    volMoved?: number;
+    /** Deepest fall from a high inside the quarter, in %. */
+    drawdown: number;
+    drawdownFrom?: string;
+    drawdownTo?: string;
+  };
+  /** Weight of the financial sectors: the index is, for the most part, a banking reading. */
+  financePct: number;
   /** True when a session's published change is not reconstituted by the prices read: said in one line, never detailed to a client. */
   methodOpen: boolean;
 }
@@ -167,6 +187,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
         country: c?.country ?? "—",
         activity: c?.activity ?? "",
         holder: core ? `${core.name} ${fmtPct(core.pct, 1)}` : undefined,
+        holderPct: core?.pct,
         price,
         dividend,
         yield: dividend && price ? (dividend / price) * 100 : undefined,
@@ -216,6 +237,55 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     const ratio = p.variationPct ? expected / p.variationPct : 0;
     return !(nz.length > 0 && ratio > 0.5 && ratio < 2);
   });
+
+  // what the sessions say about the risk : two volatilities, because one of them is an artefact
+  const vars = inQ.map((p) => p.variationPct ?? 0);
+  const avg = vars.reduce((x, y) => x + y, 0) / Math.max(1, vars.length);
+  const sd = Math.sqrt(vars.reduce((x, v) => x + (v - avg) ** 2, 0) / Math.max(1, vars.length - 1)) || 0;
+  const movedVars = moved.map((p) => p.variationPct ?? 0);
+  const movedAvg = movedVars.reduce((x, y) => x + y, 0) / Math.max(1, movedVars.length);
+  const movedSd = movedVars.length > 1 ? Math.sqrt(movedVars.reduce((x, v) => x + (v - movedAvg) ** 2, 0) / (movedVars.length - 1)) : 0;
+  const perYear = inQ.length * 4;
+  const stats = {
+    avg,
+    sd,
+    volAll: sd ? sd * Math.sqrt(perYear) : undefined,
+    volMoved: movedSd ? movedSd * Math.sqrt(Math.max(1, moved.length) * 4) : undefined,
+    ...(() => {
+      let peakV = inQ[0].value;
+      let peakD = inQ[0].date;
+      let dd = 0;
+      let from: string | undefined;
+      let to: string | undefined;
+      for (const p of inQ) {
+        if (p.value > peakV) {
+          peakV = p.value;
+          peakD = p.date;
+        }
+        const fall = peakV > 0 ? (p.value / peakV - 1) * 100 : 0;
+        if (fall < dd) {
+          dd = fall;
+          from = peakD;
+          to = p.date;
+        }
+      }
+      return { drawdown: dd, drawdownFrom: from, drawdownTo: to };
+    })(),
+  };
+
+  // the session that carried the quarter, named on the curve
+  const peakSession = moved.reduce<(typeof moved)[number] | undefined>((a, p) => (a && Math.abs(a.variationPct ?? 0) >= Math.abs(p.variationPct ?? 0) ? a : p), undefined);
+  const peak = peakSession
+    ? {
+        date: peakSession.date,
+        variationPct: peakSession.variationPct ?? 0,
+        movers: (d.movers.get(peakSession.date) ?? []).filter((m) => m.variationPct !== 0).map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · "),
+      }
+    : undefined;
+
+  // four of the seven are financial : the reading is, for the most part, a banking one
+  const FINANCE = /banqu|banca|assur|réassur|reassur|financ|holding/i;
+  const financePct = lines.filter((l) => FINANCE.test(l.sector) || FINANCE.test(l.activity)).reduce((x, l) => x + l.weight, 0);
 
   const top = lines.reduce((a, l) => (Math.abs(l.points) > Math.abs(a.points) ? l : a), lines[0]);
   const best = [...lines].sort((a, b) => b.move - a.move)[0];
@@ -285,6 +355,10 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     lines,
     monthly,
     movedSessions,
+    points: inQ.map((p) => ({ date: p.date, value: p.value, variationPct: p.variationPct ?? 0 })),
+    peak,
+    stats,
+    financePct,
     bySector: group((l) => l.sector),
     byCountry: group((l) => l.country),
     headline,

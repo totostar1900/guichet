@@ -27,7 +27,6 @@ export const EN_PARCOURS: Record<string, string> = {
   "Cinq sections, vingt leçons : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais.": "Five sections, twenty lessons: the market and its actors, the instruments, the risks, placing an order, tax and fees.",
   "{n} leçons en cinq sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais.": "{n} lessons in five sections: the market and its actors, the instruments, the risks, placing an order, tax and fees.",
   "Commencer": "Start",
-  "Cours": "Course",
   "Lire une ligne (les huit premières)": "Reading a line (the first eight)",
   "Parcours 1 · Le marché et ses acteurs": "Course 1 · The market and its actors",
   "Parcours 2 · Les instruments": "Course 2 · The instruments",
