@@ -1,6 +1,6 @@
 /* The quarterly note reads as a paper : one column, generous measure, house colours. */
 .sheet {
-  max-width: 1060px;
+  max-width: 1240px;
   margin: 0 auto;
   padding-block: 8px 40px;
 }
@@ -34,14 +34,16 @@
   text-wrap: balance;
   max-width: 20ch;
 }
-.stand {
+/* .sheet p vient plus bas et le battrait sur la marge comme sur la mesure : le chapeau et la signature se nomment depuis la feuille */
+.sheet .stand {
   font-size: 1.06rem;
   color: var(--ink-2);
   max-width: 64ch;
-  margin: 12px 0 0;
+  /* 36 px et non 12 : le chapeau est une seconde voix, pas la suite du titre */
+  margin: 36px 0 0;
   line-height: 1.55;
 }
-.byline {
+.sheet .byline {
   font-size: 0.78rem;
   color: var(--ink-3);
   margin: 10px 0 0;
@@ -57,8 +59,9 @@
   border-bottom: 1px solid var(--line-2);
   margin: 22px 0 0;
 }
+/* un chiffre colle a son filet se lit comme le chiffre d'a cote : la meme marge des deux cotes, a toutes les largeurs de grille */
 .fiche div {
-  padding: 12px 14px 12px 0;
+  padding: 12px 16px;
   border-right: 1px solid var(--line);
 }
 .fiche div:last-child {
@@ -288,20 +291,49 @@
   color: var(--ink-2);
 }
 
-/* the article and its margin column, as a paper sets them */
+/* l'article entre ses deux colonnes de service, comme un journal les pose */
 .cols {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 232px;
-  gap: 0 40px;
+  grid-template-columns: 196px minmax(0, 1fr) 232px;
+  gap: 0 36px;
   align-items: start;
   margin-top: 36px;
+}
+/* la colonne de gauche colle d'un bloc : le sommaire et les liens du document ensemble */
+.lnav {
+  position: sticky;
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+}
+/* le rail ne colle plus de lui-meme, et son filet gauche tomberait dans la gouttiere de la page */
+.lnav > nav {
+  position: static;
+  max-height: none;
+  overflow: visible;
+  border-left: 0;
+  padding-left: 0;
+}
+.docs {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.acts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .aside {
   font-size: 0.82rem;
   line-height: 1.5;
   color: var(--ink-2);
+  /* la fiche technique s'ancre a la meme ligne que le sommaire, et defile en elle-meme :
+     plus haute que l'ecran, elle emportait son propre titre hors de vue au premier defilement */
   position: sticky;
-  top: calc(16px + env(safe-area-inset-top, 0px));
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
 }
 .aside h4 {
   font-size: 0.62rem;
@@ -359,6 +391,31 @@
   max-width: none;
 }
 
+/* sous 1100 px le sommaire rendrait l'article illisible : deux colonnes, et les liens passent sous l'article */
+@media (max-width: 1100px) {
+  .cols {
+    grid-template-columns: minmax(0, 1fr) 232px;
+  }
+  .lnav {
+    display: contents;
+  }
+  .lnav > nav {
+    display: none;
+  }
+  .aside {
+    order: 1;
+  }
+  .docs {
+    order: 2;
+    margin-top: 30px;
+  }
+  .acts {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
 /* one column on a phone: these come last so they win over the base rules above */
 @media (max-width: 900px) {
   .cols {
@@ -368,6 +425,8 @@
     border-left: 3px solid var(--gold-line);
     padding-left: 14px;
     position: static;
+    max-height: none;
+    overflow: visible;
     margin-top: 12px;
   }
 }

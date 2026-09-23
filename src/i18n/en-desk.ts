@@ -2035,4 +2035,11 @@ export const EN_MORE: Record<string, string> = {
   /* ---------- les actualités, page à part entière ---------- */
   "Actualités du marché": "Market news",
   "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié": "Treasuries, BVMAC, companies, funds, regulation: what the desk has read and published",
+  "Ce que l'indice fait bien": "What the index does well",
+  "La concentration": "Concentration",
+  "Les sociétés": "The companies",
+  "Le négoce": "Trading",
+  "Ce qu'il mesure": "What it measures",
+  "L'indice et l'économie": "The index and the economy",
+  "Les pages du marché": "The market pages",
 };

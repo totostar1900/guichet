@@ -50,3 +50,79 @@
     font-size: 0.86rem;
   }
 }
+
+/* « Marché » ouvre la famille de pages : l'onglet reste un lien, le chevron ouvre la liste. */
+.group {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+.chev {
+  background: none;
+  border: 0;
+  color: var(--on-navy-2);
+  padding: 0 10px 0 0;
+  margin-left: -8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.chev:hover,
+.chev[aria-expanded="true"] {
+  color: #fff;
+}
+.chev svg {
+  transition: transform 0.15s ease;
+}
+.chev[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chev svg {
+    transition: none;
+  }
+}
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  min-width: 320px;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.item {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.item:hover {
+  background: var(--surface-2);
+}
+.item b {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.item small {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+/* la bande d'onglets défile horizontalement sous 640 px : un menu absolu y serait rogné,
+   et le téléphone a sa propre barre. Le chevron disparaît, l'onglet reste un lien. */
+@media (max-width: 640px) {
+  .chev {
+    display: none;
+  }
+}

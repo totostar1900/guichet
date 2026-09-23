@@ -6,6 +6,7 @@ import { indexPageData } from "@/lib/market/index-data";
 import { quarterNote, quarters } from "@/lib/market/index-quarter";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
+import { PageOutline } from "@/components/PageOutline";
 import { ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
 import styles from "./note.module.css";
 
@@ -120,8 +121,46 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
       </dl>
 
       <div className={styles.cols}>
+        {/* la colonne de gauche porte la navigation du document : ou on en est, et ou aller ensuite */}
+        <div className={styles.lnav}>
+          <PageOutline
+            label={t("Sommaire")}
+            sections={[
+              { id: "trimestre", title: t("Le trimestre") },
+              { id: "atouts", title: t("Ce que l'indice fait bien") },
+              { id: "concentration", title: t("La concentration") },
+              { id: "societes", title: t("Les sociétés") },
+              { id: "negoce", title: t("Le négoce") },
+              { id: "mesure", title: t("Ce qu'il mesure") },
+              { id: "economie", title: t("L'indice et l'économie") },
+            ]}
+          />
+          <div className={styles.docs}>
+            <div className={styles.acts}>
+              <a className="btn primary" href={`/indice/note/${n.quarter.key.toLowerCase()}/pdf`} target="_blank" rel="noreferrer">
+                {t("Télécharger en PDF")}
+              </a>
+              <Link className="btn ghost" href="/indice">
+                {t("La page de l'indice")}
+              </Link>
+              <Link className="btn ghost" href="/info/indice-bvmac">
+                {t("Comment lire l'indice")}
+              </Link>
+            </div>
+            {others.length > 0 && (
+              <nav className={styles.others}>
+                <span>{t("Les autres trimestres")}</span>
+                {others.map((q) => (
+                  <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`}>
+                    {qlabel(q)}
+                  </Link>
+                ))}
+              </nav>
+            )}
+          </div>
+        </div>
         <main>
-          <section>
+          <section id="trimestre">
             <h2>
               <span className={styles.n}>01</span> {t("Ce que le trimestre a fait")}
             </h2>
@@ -171,7 +210,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             )}
           </section>
 
-          <section>
+          <section id="atouts">
             <h2>
               <span className={styles.n}>02</span> {t("Ce que cet indice fait bien")}
             </h2>
@@ -193,7 +232,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             )}
           </section>
 
-          <section>
+          <section id="concentration">
             <h2>
               <span className={styles.n}>03</span> {t("Le point à connaître : la concentration")}
             </h2>
@@ -220,7 +259,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             </figure>
           </section>
 
-          <section>
+          <section id="societes">
             <h2>
               <span className={styles.n}>04</span> {t("Les sept sociétés derrière le chiffre")}
             </h2>
@@ -309,7 +348,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             )}
           </section>
 
-          <section>
+          <section id="negoce">
             <h2>
               <span className={styles.n}>05</span> {t("Ce qui s'est échangé, et ce que cela change pour vous")}
             </h2>
@@ -351,7 +390,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             </p>
           </section>
 
-          <section>
+          <section id="mesure">
             <h2>
               <span className={styles.n}>06</span> {t("Ce que l'indice mesure, et ce qu'il ne mesure pas")}
             </h2>
@@ -371,7 +410,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             </ul>
           </section>
 
-          <section>
+          <section id="economie">
             <h2>
               <span className={styles.n}>07</span> {t("Ce que l'indice dit, et ne dit pas, de l'économie de la région")}
             </h2>
@@ -465,28 +504,6 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         </p>
       </div>
 
-      <div className={styles.actions}>
-        <a className="btn primary" href={`/indice/note/${n.quarter.key.toLowerCase()}/pdf`} target="_blank" rel="noreferrer">
-          {t("Télécharger en PDF")}
-        </a>
-        <Link className="btn ghost" href="/indice">
-          {t("La page de l'indice")}
-        </Link>
-        <Link className="btn ghost" href="/info/indice-bvmac">
-          {t("Comment lire l'indice")}
-        </Link>
-      </div>
-
-      {others.length > 0 && (
-        <nav className={styles.others}>
-          <span>{t("Les autres trimestres")}</span>
-          {others.map((q) => (
-            <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`}>
-              {qlabel(q)}
-            </Link>
-          ))}
-        </nav>
-      )}
 
       <footer className={styles.footer}>
         <b>{t("Source")}</b> · {t("Bulletin officiel de la cote de la BVMAC, séances lues à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}{" "}
