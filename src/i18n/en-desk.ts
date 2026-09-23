@@ -2196,4 +2196,7 @@ export const EN_MORE: Record<string, string> = {
   "La suppression attend « Publier » comme toute modification, et se défait par « Revenir aux valeurs par défaut ».": "The deletion waits for “Publish” like any change, and is undone by “Back to the default values”.",
   "du glossaire et des bulles « i » qui le citent": "the glossary and the “i” bubbles that quote it",
   "du Guide et des bulles « i » qui y renvoient": "the Guide and the “i” bubbles that point to it",
+  "Le cadre d'un message": "The frame of a message",
+  "la salutation, la formule de politesse et la signature de tous les messages": "the greeting, the closing formula and the signature of every message",
+  "ce que le client lira, une ligne par point": "what the client will read, one line per point",
 };

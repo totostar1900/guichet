@@ -83,15 +83,18 @@ export function Compose({ intentId, messages, phone, email, subject, asked }: { 
       {def.askNote && (
         <label className={styles.composeNote}>
           <span>{t(def.askNote)}</span>
-          <input
+          {/* Plusieurs lignes, parce que « il manque la CNI, le RIB et le justificatif »
+              se lit mieux en liste qu’en phrase, et que le client y répond pièce par pièce. */}
+          <textarea
             value={note}
+            rows={2}
             onChange={(e) => {
               setNote(e.target.value);
               setEdited(null);
               setCopied(false);
             }}
-            maxLength={300}
-            placeholder={t("une ligne, celle que le client lira")}
+            maxLength={600}
+            placeholder={t("ce que le client lira, une ligne par point")}
           />
         </label>
       )}

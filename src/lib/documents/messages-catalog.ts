@@ -48,76 +48,100 @@ const M = (key: string, label: string, hint: string, placeholders: string[], fr:
   askNote: extra.askNote,
 });
 
+/**
+ * Le cadre : la salutation, le corps, la formule et la signature.
+ *
+ * Il est un passage comme les autres, donc réécrivable au Référentiel, mais
+ * il ne se choisit pas : c'est l'enveloppe de tous les messages. L'écrire une
+ * fois plutôt que huit a une raison pratique, changer la formule de politesse
+ * d'un seul geste, et une raison de fond : huit copies d'une même phrase
+ * finissent par en faire huit phrases différentes.
+ *
+ * Les lignes vides comptent. Un message se lit sur un téléphone, dans un fil,
+ * entre deux messages de la famille : quarante mots d'un bloc s'y lisent comme
+ * un mur, et un mur ne se lit pas.
+ */
+export const FRAME: MessageDef = M(
+  "cadre",
+  "Le cadre d'un message",
+  "la salutation, la formule de politesse et la signature de tous les messages",
+  ["client", "corps", "conseiller", "societe"],
+  "Bonjour {client},\n\n{corps}\n\nNous restons à votre disposition.\n{conseiller} · {societe}",
+  "Hello {client},\n\n{corps}\n\nWe remain at your disposal.\n{conseiller} · {societe}",
+  { required: ["corps"] },
+);
+
 export const MESSAGES: MessageDef[] = [
+  FRAME,
   M(
     "accuse",
     "Accusé : l'ordre est à l'étude",
     "quand le client attend un signe après le dépôt",
-    ["client", "ref", "ligne"],
-    "Bonjour {client}, nous avons bien reçu votre ordre {ref} sur {ligne}. Il est à l'étude ; nous revenons vers vous dès qu'il avance.",
-    "Hello {client}, we have received your order {ref} on {ligne}. It is under review; we will come back to you as soon as it moves.",
+    ["ref", "ligne"],
+    "Nous avons bien reçu votre ordre {ref} sur {ligne}.\nIl est à l'étude ; nous revenons vers vous dès qu'il avance.",
+    "We have received your order {ref} on {ligne}.\nIt is under review; we will come back to you as soon as it moves.",
     { when: ["recue"] },
   ),
   M(
     "documents",
     "Pièces manquantes",
     "le message le plus fréquent : il nomme ce qui manque",
-    ["client", "ref", "ligne", "precision"],
-    "Bonjour {client}, pour transmettre votre ordre {ref} sur {ligne}, il nous manque : {precision}. Vous pouvez les déposer depuis Mon espace, ou les envoyer en réponse à ce message.",
-    "Hello {client}, to send your order {ref} on {ligne} we are missing: {precision}. You can file them from My space, or send them in reply to this message.",
+    ["ref", "ligne", "precision"],
+    "Pour transmettre votre ordre {ref} sur {ligne}, il nous manque :\n\n{precision}\n\nVous pouvez les déposer depuis Mon espace, ou les envoyer en réponse à ce message.",
+    "To send your order {ref} on {ligne} we are missing:\n\n{precision}\n\nYou can file them from My space, or send them in reply to this message.",
     { when: ["recue", "confirmee"], askNote: "Les pièces qui manquent, nommées", required: ["precision"] },
   ),
   M(
     "compte",
     "Compte-titres à ouvrir",
     "quand l'ordre attend l'ouverture du compte",
-    ["client", "ref", "ligne"],
-    "Bonjour {client}, votre ordre {ref} sur {ligne} attend l'ouverture de votre compte-titres. Le dossier se remplit depuis Mon espace ; nous transmettons dès qu'il est complet.",
-    "Hello {client}, your order {ref} on {ligne} is waiting for your securities account to be opened. The file is filled in from My space; we send the order as soon as it is complete.",
+    ["ref", "ligne"],
+    "Votre ordre {ref} sur {ligne} attend l'ouverture de votre compte-titres.\nLe dossier se remplit depuis Mon espace ; nous transmettons dès qu'il est complet.",
+    "Your order {ref} on {ligne} is waiting for your securities account to be opened.\nThe file is filled in from My space; we send the order as soon as it is complete.",
     { when: ["recue", "confirmee"] },
   ),
   M(
     "provision",
     "Provision attendue",
     "quand le virement conditionne la transmission",
-    ["client", "ref", "ligne", "montant"],
-    "Bonjour {client}, votre ordre {ref} sur {ligne} porte sur {montant}. Le virement de la provision sur notre compte de règlement clients nous permet de le transmettre.",
-    "Hello {client}, your order {ref} on {ligne} is for {montant}. The transfer of the funds to our client settlement account lets us send it.",
+    ["ref", "ligne", "montant"],
+    "Votre ordre {ref} sur {ligne} porte sur {montant}.\nLe virement de la provision sur notre compte de règlement clients nous permet de le transmettre.",
+    "Your order {ref} on {ligne} is for {montant}.\nThe transfer of the funds to our client settlement account lets us send it.",
     { when: ["recue", "confirmee"] },
   ),
   M(
     "echeance",
     "L'échéance approche",
     "quand la date limite de la ligne se rapproche",
-    ["client", "ref", "ligne", "echeance"],
-    "Bonjour {client}, la date limite de dépôt sur {ligne} est le {echeance}. Votre ordre {ref} doit être complet d'ici là pour partir.",
-    "Hello {client}, the deadline on {ligne} is {echeance}. Your order {ref} has to be complete by then to go out.",
+    ["ref", "ligne", "echeance"],
+    "La date limite de dépôt sur {ligne} est le {echeance}.\nVotre ordre {ref} doit être complet d'ici là pour partir.",
+    "The deadline on {ligne} is {echeance}.\nYour order {ref} has to be complete by then to go out.",
     { when: ["recue", "confirmee"], required: ["echeance"] },
   ),
   M(
     "relance",
     "Relance : sans réponse",
     "quand un message est resté sans retour",
-    ["client", "ref", "ligne"],
-    "Bonjour {client}, nous vous avons écrit au sujet de votre ordre {ref} sur {ligne} et n'avons pas eu de retour. Dites-nous si vous souhaitez le maintenir ; nous restons à votre disposition.",
-    "Hello {client}, we wrote to you about your order {ref} on {ligne} and have had no answer. Tell us whether you wish to keep it; we remain at your disposal.",
+    ["ref", "ligne"],
+    "Nous vous avons écrit au sujet de votre ordre {ref} sur {ligne} et n'avons pas eu de retour.\nDites-nous si vous souhaitez le maintenir.",
+    "We wrote to you about your order {ref} on {ligne} and have had no answer.\nTell us whether you wish to keep it.",
   ),
   M(
     "appel",
     "Proposer un appel",
     "quand la voix réglera plus vite que l'écrit",
-    ["client", "ref", "ligne", "precision"],
-    "Bonjour {client}, au sujet de votre ordre {ref} sur {ligne} : pouvons-nous vous appeler {precision} ? Si ce moment ne vous convient pas, dites-nous le vôtre.",
-    "Hello {client}, about your order {ref} on {ligne}: may we call you {precision}? If that time does not suit you, tell us yours.",
+    ["ref", "ligne", "precision"],
+    "Au sujet de votre ordre {ref} sur {ligne} : pouvons-nous vous appeler {precision} ?\nSi ce moment ne vous convient pas, dites-nous le vôtre.",
+    "About your order {ref} on {ligne}: may we call you {precision}?\nIf that time does not suit you, tell us yours.",
     { askNote: "Le créneau proposé, par exemple « demain matin »", required: ["precision"] },
   ),
   M(
     "autre",
     "Vos propres mots",
     "l'en-tête de la maison, et ce que vous avez à dire",
-    ["client", "ref", "ligne", "precision"],
-    "Bonjour {client}, au sujet de votre ordre {ref} sur {ligne} : {precision}",
-    "Hello {client}, about your order {ref} on {ligne}: {precision}",
+    ["ref", "ligne", "precision"],
+    "Au sujet de votre ordre {ref} sur {ligne} :\n\n{precision}",
+    "About your order {ref} on {ligne}:\n\n{precision}",
     { askNote: "Ce que vous avez à dire", required: ["precision"] },
   ),
 ];
@@ -131,5 +155,6 @@ export const messageDef = (key: string): MessageDef | undefined => MESSAGES.find
  */
 export function messagesFor(state: IntentState): MessageDef[] {
   const rank = (m: MessageDef) => (m.key === "autre" ? 2 : m.when?.includes(state) ? 0 : 1);
-  return [...MESSAGES].sort((a, b) => rank(a) - rank(b));
+  // Le cadre enveloppe les autres : il n'est pas un message qu'on choisit.
+  return MESSAGES.filter((m) => m.key !== FRAME.key).sort((a, b) => rank(a) - rank(b));
 }

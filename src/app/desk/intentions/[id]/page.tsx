@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DeskNav } from "@/components/DeskNav";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
+import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { orderChecks } from "@/lib/domain/checks";
@@ -14,6 +15,7 @@ import { fmt, fmtDateTime, fmtMillions } from "@/lib/format";
 import { missingForApproval, RISK_LABEL, STATUS_LABEL } from "@/lib/kyc/checklist";
 import { positionsFrom } from "@/lib/positions";
 import { transitionIntent } from "../../actions";
+import { COMPANY } from "@/lib/config";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
@@ -83,7 +85,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   // toujours, et l’écran ne proposait que WhatsApp. Certains clients ne lisent
   // que leur courrier.
   const mailTo = contact?.email ?? it.contactEmail;
-  const prepared = await preparedMessages(it.state, { client: it.clientName, ref: it.ref, ligne: o.title, montant: amountText, echeance: o.deadlineAt ? fmtDateTime(o.deadlineAt) : undefined }, await getLang());
+  const prepared = await preparedMessages(it.state, { client: it.clientName, ref: it.ref, ligne: o.title, montant: amountText, echeance: o.deadlineAt ? fmtDateTime(o.deadlineAt) : undefined, conseiller: (await getSession())?.name ?? COMPANY.name, societe: COMPANY.name }, await getLang());
   const asked = it.channel === "E-mail" ? "mail" : it.channel === "WhatsApp" ? "wa" : "tel";
 
   return (
