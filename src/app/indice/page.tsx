@@ -281,7 +281,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             {pageRows.length === 0 ? (
               <p className={styles.p}>{t("Aucune séance ne correspond.")}</p>
             ) : (
-              <div className={styles.tableWrap}>
+              <div className={`scroll-x ${styles.tableWrap}`}>
                 <table className={`tbl ${styles.moved}`}>
                   <thead>
                     <tr>
@@ -353,7 +353,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
               <h2>{t("Composition")}</h2>
               <span className="muted">{t("les actions cotées et leur poids, sur le capital global et sur le flottant coté")}</span>
             </div>
-            <div className={styles.tableWrap}>
+            <div className={`scroll-x ${styles.tableWrap}`}>
               <table className={`tbl ${styles.comp}`}>
                 <thead>
                   <tr>
@@ -397,7 +397,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td>{t("Ensemble")}</td>
+                    <td className={styles.when}>{t("Ensemble")}</td>
                     <td />
                     <td className={styles.num}>{fmt(capT / 1e6)} M</td>
                     <td className={styles.num}>100 %</td>

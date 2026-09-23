@@ -147,7 +147,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
               <h2>{t("Ce qui a fait le mouvement")}</h2>
               <span className="muted">{t("poids × variation du cours, en points d'indice")}</span>
             </div>
-            <div className={styles.tableWrap}>
+            <div className={`scroll-x ${styles.tableWrap}`}>
               <table className="tbl">
                 <thead>
                   <tr>
@@ -185,7 +185,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
                 <h2>{t("Séances à éclaircir")}</h2>
                 <span className="muted">{t("la variation publiée ne se reconstitue pas avec les cours lus du même bulletin")}</span>
               </div>
-              <div className={styles.tableWrap}>
+              <div className={`scroll-x ${styles.tableWrap}`}>
                 <table className="tbl">
                   <thead>
                     <tr>

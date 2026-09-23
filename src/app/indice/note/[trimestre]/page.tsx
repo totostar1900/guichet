@@ -5,6 +5,7 @@ import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarterNote, quarters } from "@/lib/market/index-quarter";
 import { getT } from "@/i18n/server";
+import { BackToTop } from "@/components/BackToTop";
 import { MarketStrip } from "@/components/MarketStrip";
 import { PageOutline } from "@/components/PageOutline";
 import { ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
@@ -512,6 +513,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         <b>{t("Avertissement")}</b> · {t("ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.")}
       </footer>
       <MarketStrip current="notes" />
+      <BackToTop />
     </article>
   );
 }

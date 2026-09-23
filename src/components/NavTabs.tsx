@@ -63,13 +63,13 @@ export function NavTabs({ counts, mode = "all" }: { counts?: { titres: number; f
     <nav className={styles.tabs} aria-label="Sections">
       {tabs.map((tab) => {
         const link = (
-          <Link href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
+          <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
             {t(tab.label)}
             {counts && tab.href === "/" && <b className={styles.count}>{counts.titres}</b>}
             {counts && tab.href === "/fonds" && <b className={styles.count}>{counts.fonds}</b>}
           </Link>
         );
-        if (!tab.menu) return <span key={tab.href}>{link}</span>;
+        if (!tab.menu) return link;
         return (
           <div key={tab.href} className={styles.group} ref={box}>
             {link}

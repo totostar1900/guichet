@@ -123,9 +123,16 @@
   left: 0;
   background: var(--surface);
   white-space: nowrap;
-}
-thead .when {
+  /* Les colonnes mobiles passent dessous, jamais au travers : la cellule est
+     opaque, elle se peint au-dessus de ses freres, et le filet de droite est
+     pose en ombre plutot qu'en bordure, parce que border-collapse partage la
+     bordure entre deux cellules et laisse voir la couture. */
   z-index: 1;
+  box-shadow: 1px 0 0 var(--line);
+}
+thead .when,
+tfoot .when {
+  z-index: 2;
 }
 /* ce qui a bougé tient sur une ligne : c'est ce qui fait défiler la table au lieu de l'écraser */
 .what {

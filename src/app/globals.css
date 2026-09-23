@@ -99,6 +99,9 @@
   --s-9: 24px;
   --s-10: 32px;
   --s-11: 40px;
+  /* La barre du telephone : tout ce qui se fige en haut d'une page doit se
+     figer sous elle, sinon il se fige derriere, invisible. */
+  --mobile-bar: 52px;
   /* La marge interieure d'un panneau, celle que son en-tete pose deja. */
   --panel-inset: var(--s-7);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
