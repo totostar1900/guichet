@@ -61,9 +61,11 @@ export async function rereadAction(_prev: RereadResult | null, form: FormData): 
 }
 
 /**
- * Retire une ligne cotée qui a quitté la cote : elle cesse d'être
- * commandable. Réservé aux absences que le bulletin ne tranche pas seul,
- * celles dont l'échéance est inconnue ou encore à venir.
+ * Clôture une ligne cotée qui a quitté la cote : elle cesse d'être
+ * commandable, sa page reste consultable. Réservé aux absences que l'échéance
+ * ne tranche pas seule. Ce n'est pas un retrait : la maison ne retire rien,
+ * la ligne n'est plus à la cote. Un vrai retrait se fait depuis la fiche de la
+ * ligne, avec un motif et une seconde paire d'yeux.
  */
 export async function withdrawLineAction(_prev: RereadResult | null, form: FormData): Promise<RereadResult> {
   const desk = await requireDesk("/desk/sante");
@@ -72,9 +74,9 @@ export async function withdrawLineAction(_prev: RereadResult | null, form: FormD
   const offer = (await repo().listOffers()).find((o) => o.id === id);
   if (!offer) return { error: "Ligne introuvable." };
   if (offer.kind !== "MARCHE") return { error: "Seule une ligne cotée se retire ainsi." };
-  await repo().upsertOffer({ ...offer, status: "withdrawn", version: offer.version + 1 });
-  await repo().logEvent({ kind: "desk", html: `<b>Ligne retirée de la cote</b> : ${offer.title} · à la main · par ${desk.name}` });
+  await repo().upsertOffer({ ...offer, status: "matured", version: offer.version + 1 });
+  await repo().logEvent({ kind: "desk", html: `<b>Ligne clôturée</b> : ${offer.title} · à la main · par ${desk.name}` });
   revalidatePath("/desk/sante");
   revalidatePath("/titres");
-  return { ok: `${offer.title} : retirée de la cote.` };
+  return { ok: `${offer.title} : clôturée, la page reste consultable.` };
 }

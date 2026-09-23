@@ -68,7 +68,7 @@ export default async function SantePage() {
             <span className="muted">{t("{n} écart entre ce que le Guichet publie et ce que le bulletin cote.", { n: ecarts.length })}</span>
           </div>
           <p className={styles.p}>
-            {t("Une ligne sortie de la cote dont l'échéance est passée se retire seule à la lecture du bulletin. Celles dont l'échéance est inconnue ou encore à venir attendent une décision : tant qu'elles sont publiées, un client peut passer un ordre dessus. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.")}
+            {t("Une ligne sortie de la cote dont l'échéance est passée se clôture seule à la lecture du bulletin : elle cesse d'être commandable, sa page reste consultable, et rien n'est dit au client sur la raison. Celles dont l'échéance est inconnue ou estimée attendent une décision. Le bulletin dit ce qui se cote, pas ce qui a été payé : quand des clients détiennent encore la ligne, le remboursement se vérifie auprès du dépositaire avant tout, et l'avis de remboursement est ce qui l'atteste. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.")}
           </p>
           <div className="scroll-x">
             <table className="tbl">
@@ -78,6 +78,7 @@ export default async function SantePage() {
                   <th>ISIN</th>
                   <th>{t("Ligne")}</th>
                   <th>{t("Ce que dit le bulletin")}</th>
+                  <th className="r">{t("Porteurs")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -90,8 +91,15 @@ export default async function SantePage() {
                     <td className="mono">{e.isin}</td>
                     <td>{e.title}</td>
                     <td className="muted">{t(e.detail)}</td>
+                    <td className="r num">
+                      {e.holders ? (
+                        <b title={t("Des clients détiennent encore cette ligne : le remboursement se vérifie auprès du dépositaire avant toute chose.")}>{e.holders}</b>
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
+                    </td>
                     <td className="r">
-                      {e.kind === "sortie" && e.offerId ? <Reread action={withdrawLineAction} label={t("Retirer")} date={undefined} offerId={e.offerId} /> : null}
+                      {e.kind === "sortie" && e.offerId ? <Reread action={withdrawLineAction} label={t("Clôturer")} date={undefined} offerId={e.offerId} /> : null}
                     </td>
                   </tr>
                 ))}

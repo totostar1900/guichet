@@ -96,7 +96,7 @@ describe("les lignes publiées contre le bulletin", () => {
     expect(issues.filter((i) => i.isin === "CM0000020001")).toEqual([]);
   });
 
-  it("names a line gone from every recent session, and retires it only when its maturity has passed", () => {
+  it("names a line gone from every recent session, closes it only when its maturity has passed, and concludes nothing about repayment", () => {
     const perDate = Object.fromEntries(DATES.map((d) => [d, [quote("CM0000020002", 100, "obligation", d)]]));
     const now = new Date("2026-09-23T12:00:00Z");
     const echue = reconcileLines({ offers: [offer("CM0000020001", { maturityOn: "2026-06-23" }), offer("CM0000020002")], bulletins, quotesByDate: withQuotes(perDate), now });
@@ -105,13 +105,19 @@ describe("les lignes publiées contre le bulletin", () => {
 
     const incertaine = reconcileLines({ offers: [offer("CM0000020001", { maturityOn: "2026-12-31" }), offer("CM0000020002")], bulletins, quotesByDate: withQuotes(perDate), now });
     expect(incertaine[0].retirable).toBe(false);
-    expect(incertaine[0].detail).toContain("desk");
+    // une échéance devinée se dit comme telle, elle ne se présente jamais comme un fait
+    expect(incertaine[0].maturitySource).toBe("intitulé");
+    expect(incertaine[0].detail).toContain("non confirmée");
+    // et dans les deux cas, rien n'est conclu sur le remboursement : nous ne l'avons pas vu
+    for (const i of [...echue, ...incertaine]) expect(i.detail).toContain("pas ce qui a été payé");
   });
 
-  it("ignores a line the desk has already withdrawn", () => {
+  it("ignores a line already closed or withdrawn", () => {
     const perDate = Object.fromEntries(DATES.map((d) => [d, [quote("CM0000020002", 100, "obligation", d)]]));
-    const issues = reconcileLines({ offers: [offer("CM0000020001", { status: "withdrawn" }), offer("CM0000020002")], bulletins, quotesByDate: withQuotes(perDate) });
-    expect(issues).toEqual([]);
+    for (const status of ["withdrawn", "matured"] as const) {
+      const issues = reconcileLines({ offers: [offer("CM0000020001", { status }), offer("CM0000020002")], bulletins, quotesByDate: withQuotes(perDate) });
+      expect(issues).toEqual([]);
+    }
   });
 
   it("catches two quoted lines for one ISIN, and an instrument that does not match", () => {

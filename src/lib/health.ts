@@ -8,6 +8,7 @@ import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { indexCheck } from "@/lib/market/index";
 import { ABSENCE_SESSIONS, reconcileLines, reconcileSummary, type LineIssue } from "@/lib/market/reconcile";
+import { positionsFrom } from "@/lib/positions";
 import type { MarketBulletin } from "@/lib/domain/market";
 
 /**
@@ -46,7 +47,14 @@ export async function lineIssues(): Promise<LineIssue[]> {
   if (bulletins.length === 0) return [];
   const quotesByDate = new Map<string, Awaited<ReturnType<typeof r.quotesOn>>>();
   await Promise.all(bulletins.map(async (b) => quotesByDate.set(b.sessionDate, await r.quotesOn(b.sessionDate))));
-  return reconcileLines({ offers: await r.listOffers(), bulletins, quotesByDate });
+  const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
+  // qui détient encore la ligne : c'est ce qui décide de l'urgence, pas la ligne elle-même
+  const holdersByOffer = new Map<string, number>();
+  for (const p of positionsFrom(intents, offers)) {
+    const key = p.offer.id;
+    holdersByOffer.set(key, (holdersByOffer.get(key) ?? 0) + 1);
+  }
+  return reconcileLines({ offers, bulletins, quotesByDate, holdersByOffer });
 }
 
 /** Business days between two dates (Mon–Fri, holidays not known). */

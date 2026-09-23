@@ -370,8 +370,11 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     for (const g of gone) {
       const o = (await r.listOffers()).find((x) => x.id === g.offerId);
       if (!o) continue;
-      await r.upsertOffer({ ...o, status: "withdrawn", version: o.version + 1 });
-      await r.logEvent({ kind: "desk", html: `<b>Ligne retirée de la cote</b> : ${o.title} · ${g.detail}` });
+      // « matured », pas « withdrawn » : la maison n'a rien retiré, la ligne a
+      // quitté la cote. La page reste consultable avec ses documents et son
+      // historique de cours ; elle cesse seulement d'être commandable.
+      await r.upsertOffer({ ...o, status: "matured", version: o.version + 1 });
+      await r.logEvent({ kind: "desk", html: `<b>Ligne clôturée</b> : ${o.title} · ${g.detail}` });
     }
   }
 

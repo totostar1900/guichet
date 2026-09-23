@@ -1,5 +1,6 @@
 import "server-only";
 import type { MarketBulletin, Quote } from "@/lib/domain/market";
+import { bondTerms } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
 
 /**
@@ -26,8 +27,12 @@ export interface LineIssue {
   detail: string;
   /** Dernière séance où le bulletin la portait, quand nous la connaissons. */
   lastSeen?: string;
-  /** Sortie de cote et échéance passée : le retrait ne demande aucun jugement. */
+  /** Sortie de cote et échéance passée : la clôture ne demande aucun jugement. */
   retirable?: boolean;
+  /** D'où vient l'échéance que nous portons : la fiche de l'émetteur, ou l'intitulé. */
+  maturitySource?: "fiche" | "intitulé";
+  /** Combien de clients détiennent encore cette ligne : ce qui décide de l'urgence. */
+  holders?: number;
 }
 
 const clean = (s: string | undefined): string => (s ?? "").replace(/\s+/g, "").toUpperCase();
@@ -38,6 +43,8 @@ export interface ReconcileInput {
   bulletins: MarketBulletin[];
   /** Les cotations de ces séances, par date. */
   quotesByDate: Map<string, Quote[]>;
+  /** Combien de clients détiennent chaque ligne, quand l'appelant le sait. */
+  holdersByOffer?: Map<string, number>;
   now?: Date;
 }
 
@@ -45,7 +52,7 @@ export interface ReconcileInput {
  * Les écarts entre les lignes cotées publiées et le bulletin. Liste vide
  * quand tout concorde, ce qui est l'état normal.
  */
-export function reconcileLines({ offers, bulletins, quotesByDate, now = new Date() }: ReconcileInput): LineIssue[] {
+export function reconcileLines({ offers, bulletins, quotesByDate, holdersByOffer, now = new Date() }: ReconcileInput): LineIssue[] {
   const last = bulletins[0];
   if (!last) return [];
   const lastQuotes = (quotesByDate.get(last.sessionDate) ?? []).filter((q) => q.instrument === "action" || q.instrument === "obligation");
@@ -58,7 +65,8 @@ export function reconcileLines({ offers, bulletins, quotesByDate, now = new Date
   for (const b of window) for (const q of quotesByDate.get(b.sessionDate) ?? []) seenRecently.add(clean(q.isin));
 
   const byIsin = new Map(lastQuotes.map((q) => [clean(q.isin), q]));
-  const listed = offers.filter((o) => o.kind === "MARCHE" && o.status !== "withdrawn");
+  // une ligne déjà clôturée ou retirée est traitée : elle ne revient pas dans la liste
+  const listed = offers.filter((o) => o.kind === "MARCHE" && o.status !== "withdrawn" && o.status !== "matured");
   const out: LineIssue[] = [];
 
   for (const o of listed) {
@@ -67,6 +75,7 @@ export function reconcileLines({ offers, bulletins, quotesByDate, now = new Date
     if (!q) {
       if (seenRecently.has(key)) continue; // absente d'une séance, pas de la cote
       const matured = !!o.maturityOn && o.maturityOn < today;
+      const source = o.instrument === "obligation" ? (bondTerms(o.isin) ? ("fiche" as const) : ("intitulé" as const)) : undefined;
       out.push({
         kind: "sortie",
         isin: o.isin,
@@ -74,9 +83,14 @@ export function reconcileLines({ offers, bulletins, quotesByDate, now = new Date
         title: o.title,
         lastSeen: o.lastPriceOn,
         retirable: matured,
-        detail: matured
-          ? `absente des ${window.length} dernières séances, échéance du ${o.maturityOn} passée : la ligne a quitté la cote`
-          : `absente des ${window.length} dernières séances${o.lastPriceOn ? `, dernier cours le ${o.lastPriceOn}` : ""}${o.maturityOn ? `, échéance annoncée au ${o.maturityOn}` : ", échéance inconnue"} : à trancher au desk`,
+        maturitySource: source,
+        holders: holdersByOffer?.get(o.id),
+        detail:
+          (matured
+            ? `absente des ${window.length} dernières séances, échéance du ${o.maturityOn} passée`
+            : `absente des ${window.length} dernières séances${o.lastPriceOn ? `, dernier cours le ${o.lastPriceOn}` : ""}${o.maturityOn ? `, échéance portée au ${o.maturityOn}` : ", échéance inconnue"}`) +
+          (source === "fiche" ? " (fiche signalétique de l'émetteur)" : source === "intitulé" ? " (estimée d'après l'intitulé, non confirmée)" : "") +
+          " · le bulletin dit ce qui se cote, pas ce qui a été payé : remboursement à vérifier auprès du dépositaire",
       });
       continue;
     }
