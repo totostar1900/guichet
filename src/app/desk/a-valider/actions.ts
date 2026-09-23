@@ -116,6 +116,8 @@ const decisionSchema = z.object({
   precountRate: z.coerce.number().min(0).max(30).optional(),
   commissionPct: z.coerce.number().min(0).max(5).default(0),
   minTitles: z.coerce.number().int().min(1).optional(),
+  /** Un fonds : la première souscription se dit en francs. */
+  minAmount: z.coerce.number().int().min(0).optional(),
   segment: z.string().default("Tous les clients"),
 });
 

@@ -244,10 +244,19 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
               </label>
             )}
             <input type="hidden" name="commissionPct" value="0" />
-            <label className="field">
-              {tr("Ticket minimum (titres)")}
-              <input name="minTitles" type="number" defaultValue={offer?.minTitles ?? (kind === "BTA" ? 1 : kind === "ACTIONS" ? 10 : 100)} />
-            </label>
+            {kind === "FONDS" ? (
+              // La souscription minimale d’un fonds est une somme, pas un nombre de parts :
+              // on ne sait pas combien de parts elle fera, la VL n’étant celle de demain.
+              <label className="field">
+                {tr("Souscription minimale (FCFA)")}
+                <input name="minAmount" type="number" step="1000" defaultValue={offer?.fund?.minAmount ?? 1000000} />
+              </label>
+            ) : (
+              <label className="field">
+                {tr("Ticket minimum (titres)")}
+                <input name="minTitles" type="number" defaultValue={offer?.minTitles ?? (kind === "BTA" ? 1 : kind === "ACTIONS" ? 10 : 100)} />
+              </label>
+            )}
             <label className="field">
               {tr("Segments")}
               <Select block name="segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements", "Porteurs de la ligne"].map((v) => ({ value: v, label: tr(v) }))} />

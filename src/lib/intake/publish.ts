@@ -7,6 +7,8 @@ export interface DeskDecision {
   commissionPct: number;
   checked?: string[]; // checklist items ticked by the desk
   minTitles?: number;
+  /** Un fonds : la première souscription, en francs. */
+  minAmount?: number;
   segment: string;
   channels: string[];
 }
@@ -64,7 +66,11 @@ export function buildOffer(item: IntakeItem, decision: DeskDecision, existing: O
     commissionPct: decision.commissionPct,
     typeKey: d.typeKey ?? existing?.typeKey,
     extra: d.extra ?? existing?.extra,
-    minTitles: decision.minTitles ?? existing?.minTitles,
+    minTitles: d.kind === "FONDS" ? undefined : (decision.minTitles ?? existing?.minTitles),
+    // Les termes du fonds viennent du bulletin ; on n’y touche que pour la somme
+    // minimale, qui est la seule que le desk arrête. Sans cette ligne ils
+    // disparaissaient à chaque republication.
+    fund: d.kind === "FONDS" && existing?.fund ? { ...existing.fund, minAmount: decision.minAmount ?? existing.fund.minAmount } : existing?.fund,
     sizeLabel: d.sizeLabel ?? existing?.sizeLabel,
     pricePerShare: d.pricePerShare ?? existing?.pricePerShare,
     minShares: d.minShares ?? existing?.minShares,

@@ -94,15 +94,22 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [unit, setUnit] = useState<"titres" | "francs">("titres");
   const [cash, setCash] = useState("");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
-  const [who, setWho] = useState({ firstName, lastName, phone: bridge?.phone || phone || channels?.phone || "", email });
-  // The proofs: the phone as proven on the profile (or just now), the e-mail as the session's (or just proven by a guest).
+  // L’e-mail du compte : celui de la session quand le fournisseur le donne, sinon
+  // celui que le profil a prouvé. On lisait le premier seulement ; quand il
+  // manquait, le formulaire acceptait n’importe quelle adresse bien formée et la
+  // marquait « prouvée », alors qu’un compte connecté se parle à son adresse.
+  const accountEmail = (email || (channels?.emailVerifiedAt && channels.email) || "").trim().toLowerCase();
+  const [who, setWho] = useState({ firstName, lastName, phone: bridge?.phone || phone || channels?.phone || "", email: email || channels?.email || "" });
+  // The proofs: the phone as proven on the profile (or just now), the e-mail as the account's (or just proven by a guest).
   const [provenPhone, setProvenPhone] = useState<string | null>(bridge?.phone ?? (channels?.phoneVerifiedAt && channels.phone ? channels.phone : null));
-  const [provenEmail, setProvenEmail] = useState<string | null>(signedIn && email ? email.toLowerCase() : null);
+  const [provenEmail, setProvenEmail] = useState<string | null>(signedIn && accountEmail ? accountEmail : null);
   // No WhatsApp sender on this host: the desk confirms by phone, the button opens, the intention is marked unproven.
   const [phonePending, setPhonePending] = useState(false);
   const phoneOk = Boolean(provenPhone && normalizePhone(who.phone) === provenPhone);
-  // A session without e-mail (the dev backend) proves nothing: any well-formed e-mail passes there.
-  const emailOk = signedIn && !email ? who.email.includes("@") : Boolean(provenEmail && who.email.trim().toLowerCase() === provenEmail);
+  // Une session dont on ne connaît aucune adresse (le serveur de développement) ne
+  // prouve rien : là, une adresse bien formée passe. Partout ailleurs, l'adresse du
+  // compte est la seule.
+  const emailOk = signedIn && !accountEmail ? who.email.includes("@") : Boolean(provenEmail && who.email.trim().toLowerCase() === provenEmail);
   // The intention leaves the client's profile: they say so before it goes, and the desk reads it.
   const [profileOk, setProfileOk] = useState(false);
   const [amountOk, setAmountOk] = useState(false);
@@ -362,7 +369,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           </div>
           {!signedIn && !emailOk && <ProofBlock kind="email" target={who.email} onProven={setProvenEmail} />}
-          {signedIn && Boolean(email) && !emailOk && <em className={styles.proofError}>{t("L'e-mail est celui de votre connexion ; pour en changer, passez par Mon espace › Sécurité.")}</em>}
+          {signedIn && Boolean(accountEmail) && !emailOk && <em className={styles.proofError}>{t("L'e-mail est celui de votre compte ; pour en changer, passez par Mon espace › Sécurité.")}</em>}
           {signedIn && emailOk && !phoneOk && who.phone.replace(/\D/g, "").length >= 8 && <ProofBlock kind="phone" target={who.phone} onProven={setProvenPhone} onUnavailable={() => setPhonePending(true)} />}
           {!signedIn && emailOk && <em className={styles.proofDemo}>{t("Connexion en cours…")}</em>}
           <div className={styles.channelLbl}>{t("Me joindre par")}</div>

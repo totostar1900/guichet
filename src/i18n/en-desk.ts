@@ -2091,4 +2091,5 @@ export const EN_MORE: Record<string, string> = {
   "Entrer sans attendre un code": "Get in without waiting for a code",
   "Enregistrez cet appareil : la prochaine fois, Face ID, votre empreinte ou un code à quatre chiffres vous connectent, sans passer par votre boîte mail.": "Register this device: next time Face ID, your fingerprint or a four-digit code signs you in, with no trip to your inbox.",
   "Si l’accusé n’arrive pas dans quelques minutes, regardez vos courriers indésirables, et marquez-le comme légitime : les suivants arriveront dans la boîte de réception.": "If the acknowledgement does not arrive within a few minutes, look in your junk folder and mark it as legitimate: the next ones will land in your inbox.",
+  "L'e-mail est celui de votre compte ; pour en changer, passez par Mon espace › Sécurité.": "This is your account e-mail; to change it, go to My space › Security.",
 };
