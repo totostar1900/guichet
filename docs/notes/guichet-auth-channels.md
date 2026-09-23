@@ -89,3 +89,36 @@ le repli `type: "magiclink"` que la page de connexion faisait déjà : le jeton 
 posés sur Vercel, et que le domaine d'envoi est vérifié chez Resend. Sans eux
 l'application retombe sur le lien de Supabase, et la page de connexion le dit en
 toutes lettres plutôt que de promettre un code.
+
+## La preuve du numéro passe par Supabase (24 septembre 2026)
+
+Mon espace › Sécurité répondait « le code WhatsApp n'est pas encore disponible »
+sur le site en production. `requestPhoneProof` ne connaissait qu'une maison :
+l'API WhatsApp de Meta (`WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID`), absente de
+Vercel. Twilio, branché la veille dans Supabase › Auth › Phone, ne servait que
+la connexion.
+
+Avec `PHONE_OTP_ENABLED=1`, la preuve emprunte désormais le fournisseur de
+Supabase. **Deux portes, choisies mécaniquement** sur la comparaison entre
+`user.phone` et le numéro saisi, la même au départ et à la vérification :
+
+- `updateUser({ phone })` puis `verifyOtp({ type: "phone_change" })` pour un
+  numéro nouveau : il s'attache au compte en cours, sans en ouvrir un second.
+- `signInWithOtp({ phone, shouldCreateUser: false })` puis
+  `verifyOtp({ type: "sms" })` pour le numéro que le compte porte déjà, ce que
+  demande la signature d'une réclamation. C'est le piège : GoTrue ignore
+  `phone_change` quand le numéro ne change pas, donc il n'enverrait rien, et le
+  client attendrait un code qui n'existe pas.
+
+`updateUser` ne prend pas de canal : le code d'un numéro nouveau part sur celui
+du fournisseur, le SMS par défaut. `PHONE_OTP_CHANNEL` ne vaut que pour la
+connexion et pour un numéro déjà prouvé. Le formulaire ne promet donc plus
+WhatsApp avant l'envoi (« Recevoir le code par message ») et nomme le canal
+réellement emprunté une fois le code parti. Mon espace › Sécurité parle du
+téléphone, pas de WhatsApp.
+
+Le chemin Meta et le code de démonstration restent en place pour les serveurs où
+ils sont configurés ; le message « pas encore disponible » ne paraît plus que
+lorsque ni l'un ni l'autre n'est là.
+
+Commit 6cb6fc7.
