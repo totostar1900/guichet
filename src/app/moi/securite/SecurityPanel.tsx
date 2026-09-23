@@ -102,15 +102,15 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
             </dd>
           </div>
           <div>
-            <dt>{t("WhatsApp")}</dt>
+            <dt>{t("Téléphone")}</dt>
             <dd>
-              <input type="tel" inputMode="tel" autoComplete="tel" value={phone} placeholder="+237 6 87 67 67 67" onChange={(e) => setPhone(e.target.value)} aria-label={t("Numéro WhatsApp")} />
+              <input type="tel" inputMode="tel" autoComplete="tel" value={phone} placeholder="+237 6 87 67 67 67" onChange={(e) => setPhone(e.target.value)} aria-label={t("Numéro de téléphone")} />
               {proven && phone.replace(/\D/g, "") === proven.replace(/\D/g, "") ? (
                 <small className={styles.ok}>{t("prouvé le {date}", { date: fmtDateTime(channels.phoneVerifiedAt ?? new Date().toISOString()) })}</small>
               ) : phone.replace(/\D/g, "").length >= 8 ? (
                 <ProofBlock kind="phone" target={phone} onProven={setProven} />
               ) : (
-                <small className="muted">{t("Le numéro sur lequel arrivent les accusés de réception et les rappels.")}</small>
+                <small className="muted">{t("Le numéro sur lequel arrivent le code, les accusés de réception et les rappels.")}</small>
               )}
             </dd>
           </div>

@@ -9,13 +9,15 @@ import styles from "./ProofBlock.module.css";
 
 /**
  * The proof of a channel, inline: a six-digit code sent on the channel and
- * typed here, once. The phone (WhatsApp) is proven by Guichet's own code; a
- * guest's e-mail by the sign-in code, which also creates the account.
+ * typed here, once. Which channel carries the phone code depends on the host
+ * (Supabase's provider, or Guichet's own WhatsApp sender), so the wording waits
+ * for the send to name it rather than promising WhatsApp up front.
  */
 export function ProofBlock({ kind, target, onProven, onUnavailable, demo }: { kind: "phone" | "email"; target: string; onProven: (target: string) => void; onUnavailable?: () => void; demo?: string }) {
   const t = useT();
   const router = useRouter();
   const [sent, setSent] = useState<"idle" | "sent" | "unavailable">("idle");
+  const [channel, setChannel] = useState<"whatsapp" | "sms" | "email">(kind === "phone" ? "whatsapp" : "email");
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ error?: string; demo?: string } | null>(demo ? { demo } : null);
   const [pending, start] = useTransition();
@@ -33,6 +35,7 @@ export function ProofBlock({ kind, target, onProven, onUnavailable, demo }: { ki
         return;
       }
       setSent("sent");
+      if ("channel" in r && r.channel) setChannel(r.channel);
       setMsg("demoCode" in r && r.demoCode ? { demo: r.demoCode } : null);
     });
   const check = () =>
@@ -60,14 +63,14 @@ export function ProofBlock({ kind, target, onProven, onUnavailable, demo }: { ki
         <span>{t("Le code WhatsApp n'est pas encore disponible sur ce serveur : un conseiller confirme votre numéro par téléphone avant tout envoi. Vous pouvez envoyer votre intention.")}</span>
       ) : sent === "idle" ? (
         <>
-          <span>{t(kind === "phone" ? "Ce numéro n'est pas encore prouvé : un code arrive sur WhatsApp, une seule fois." : "Un code arrive sur cet e-mail : il vous connecte, et crée votre compte s'il n'existe pas.")}</span>
+          <span>{t(kind === "phone" ? "Ce numéro n'est pas encore prouvé : un code arrive par message sur ce téléphone, une seule fois." : "Un code arrive sur cet e-mail : il vous connecte, et crée votre compte s'il n'existe pas.")}</span>
           <button type="button" className="btn sm primary" disabled={pending || !target} onClick={send}>
-            {t(pending ? "Envoi…" : kind === "phone" ? "Recevoir le code sur WhatsApp" : "Recevoir le code par e-mail")}
+            {t(pending ? "Envoi…" : kind === "phone" ? "Recevoir le code par message" : "Recevoir le code par e-mail")}
           </button>
         </>
       ) : (
         <>
-          <span>{t(kind === "phone" ? "Le code à six chiffres reçu sur WhatsApp :" : "Le code à six chiffres reçu par e-mail :")}</span>
+          <span>{t(kind === "phone" ? (channel === "sms" ? "Le code à six chiffres reçu par SMS :" : "Le code à six chiffres reçu sur WhatsApp :") : "Le code à six chiffres reçu par e-mail :")}</span>
           <div className={styles.proofRow}>
             <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" aria-label={t("Code à six chiffres")} />
             <button type="button" className="btn sm primary" disabled={pending || code.length !== 6} onClick={check}>

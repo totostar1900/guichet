@@ -27,10 +27,44 @@ export type ProofRequest = { ok: true; demoCode?: string; channel: ProofChannel 
 export const proofDemoAllowed = (): boolean => process.env.WHATSAPP_DEMO === "1" || (process.env.NODE_ENV !== "production" && !process.env.VERCEL);
 export type ProofCheck = { ok: true } | { ok: false; error: string; left?: number };
 
+/**
+ * The phone code comes from one of two houses.
+ *
+ * Guichet's own, through Meta's WhatsApp API: our six digits, our table, our
+ * expiry. And Supabase's, through the provider wired on Auth > Phone, today
+ * Twilio, which already carries the sign-in code. The second one wins wherever
+ * it is configured: one provider, one bill, one way to fail.
+ *
+ * Supabase has two doors for a number, and the choice between them is
+ * mechanical. `phone_change` attaches a new number to the account in hand,
+ * without opening a second one. `sms` sends a fresh code to the number the
+ * account already carries, which is what signing a complaint asks for; going
+ * through `phone_change` on an unchanged number would send nothing at all.
+ */
+const supabasePhoneOtp = (): boolean => process.env.PHONE_OTP_ENABLED === "1" && Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+const otpChannel = (): "sms" | "whatsapp" => (process.env.PHONE_OTP_CHANNEL === "whatsapp" ? "whatsapp" : "sms");
+const digits = (v: string | null | undefined) => (v ?? "").replace(/\D/g, "");
+
+/** The Supabase client and the door this number takes: the same one at the send and at the check. */
+async function supabasePhoneDoor(phone: string) {
+  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+  const sb = await supabaseAuthClient();
+  const { data } = await sb.auth.getUser();
+  const door: "sms" | "phone_change" = digits(data.user?.phone) === digits(phone) ? "sms" : "phone_change";
+  return { sb, door };
+}
+
 /** Sends a code to a phone (WhatsApp; SMS when a provider is wired). */
 export async function requestPhoneProof(userId: string | undefined, rawPhone: string): Promise<ProofRequest> {
   const phone = normalizePhone(rawPhone);
   if (!/^\+\d{8,15}$/.test(phone)) return { ok: false, error: "Numéro au format international, ex. +237 6 87 67 67 67." };
+  if (supabasePhoneOtp()) {
+    const { sb, door } = await supabasePhoneDoor(phone);
+    // `phone_change` takes no channel: Supabase sends it on the provider's own, SMS by default.
+    const { error } = door === "sms" ? await sb.auth.signInWithOtp({ phone, options: { shouldCreateUser: false, channel: otpChannel() } }) : await sb.auth.updateUser({ phone });
+    if (error) return { ok: false, error: `Envoi impossible : ${error.message}` };
+    return { ok: true, channel: door === "sms" ? otpChannel() : "sms" };
+  }
   if (!whatsappConfigured() && !proofDemoAllowed()) {
     // No sender on this host and no demo: the desk confirms the number by phone; the intention says so.
     return { ok: false, error: "Le code WhatsApp n'est pas encore disponible : un conseiller confirme votre numéro par téléphone.", unavailable: true };
@@ -56,6 +90,14 @@ export async function confirmPhoneProof(userId: string | undefined, rawPhone: st
   const phone = normalizePhone(rawPhone);
   const code = rawCode.replace(/\D/g, "");
   if (code.length !== 6) return { ok: false, error: "Le code comporte 6 chiffres." };
+  if (supabasePhoneOtp()) {
+    // Supabase's code never reached our table: we hand it back to Supabase to check.
+    const { sb, door } = await supabasePhoneDoor(phone);
+    const { error } = await sb.auth.verifyOtp({ phone, token: code, type: door });
+    if (error) return { ok: false, error: "Code incorrect ou expiré : demandez-en un nouveau." };
+    if (userId) await repo().markChannelVerified(userId, "phone", phone);
+    return { ok: true };
+  }
   const r = repo();
   const c = await r.findChannelCode("whatsapp", phone);
   if (!c) return { ok: false, error: "Aucun code en attente pour ce numéro : demandez-en un nouveau." };

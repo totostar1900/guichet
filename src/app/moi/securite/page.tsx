@@ -26,7 +26,7 @@ export default async function SecurityPage() {
             <Link href="/moi">{t("Mon espace")}</Link> › {t("Sécurité")}
           </div>
           <h1 className="display">{t("Sécurité")}</h1>
-          <p className={styles.lead}>{t("Deux canaux prouvés, e-mail et WhatsApp, et les appareils qui vous ouvrent le Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.")}</p>
+          <p className={styles.lead}>{t("Deux canaux prouvés, e-mail et téléphone, et les appareils qui vous ouvrent le Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.")}</p>
         </div>
       </div>
       <SecurityPanel who={s.name} channels={channels} devices={devices} sessionEmail={s.email} />
