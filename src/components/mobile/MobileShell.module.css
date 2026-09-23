@@ -142,9 +142,16 @@
     border-top: 1px solid var(--line-2);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  /* un onglet peut être un bouton : celui qui lève une feuille au lieu d'ouvrir une page */
+  /* Un onglet peut être un bouton : celui qui lève une feuille au lieu d’ouvrir
+     une page. Sans ces quatre lignes il porte la parure que le navigateur donne
+     aux boutons, fond gris et bordure de deux pixels, au milieu de quatre liens
+     transparents. */
   .tabs a,
   .tabs button {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;

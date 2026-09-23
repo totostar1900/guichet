@@ -58,6 +58,10 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
   const shortDate = (d: string) => fmtDate(d, false);
   const closed = quarters(data);
   const { older, newer } = quarterNeighbours(closed, n.quarter.key);
+  // Deux formes du même service. Le rail a la place de nommer les quatre derniers
+  // trimestres et de les atteindre d'un clic ; le pied de la feuille du téléphone
+  // ne l'a pas, et s'en tient aux deux voisins. L'archive est au bout des deux.
+  const others = closed.filter((q) => q.key !== n.quarter.key).slice(0, 4);
   const stepper = <QuarterStepper older={older} newer={newer} current={n.quarter} total={closed.length} />;
   const flat = n.sessions - n.moved;
   // the two volatilities only tell a story when they actually part ways
@@ -154,7 +158,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             </div>
             <div className={styles.others}>
               <span>{t("Les autres trimestres")}</span>
-              {stepper}
+              <QuarterStepper current={n.quarter} total={closed.length} list={others} />
             </div>
           </div>
         </div>
@@ -510,10 +514,6 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         {n.methodOpen ? t("La méthodologie de l'indice (base, date de base, règle de pondération) est en cours de confirmation auprès de la BVMAC.") : t("Les variations publiées se reconstituent avec les cours et les poids du même bulletin.")}{" "}
         <b>{t("Avertissement")}</b> · {t("ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.")}
       </footer>
-      <div className={styles.whatNext}>
-        <span>{t("Les autres trimestres")}</span>
-        <QuarterStepper older={older} newer={newer} current={n.quarter} total={closed.length} wide />
-      </div>
       <MarketStrip current="notes" />
       <BackToTop />
     </article>

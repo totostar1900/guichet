@@ -270,8 +270,7 @@
 .others {
   margin-top: var(--s-8);
 }
-.others > span,
-.whatNext > span {
+.others > span {
   display: block;
   font-size: 0.62rem;
   letter-spacing: 0.12em;
@@ -279,12 +278,6 @@
   color: var(--ink-3);
   font-weight: 800;
   margin-bottom: var(--s-4);
-}
-/* au pied de l'article, pour qui vient de le finir */
-.whatNext {
-  border-top: 1px solid var(--line-2);
-  margin-top: var(--s-9);
-  padding-top: var(--s-7);
 }
 .footer {
   border-top: 1px solid var(--line-2);

@@ -34,6 +34,26 @@
   font-size: 0.76rem;
 }
 
+/* La forme longue : un trimestre par ligne, le nom entier, puis l'archive. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-size: 0.8rem;
+}
+.list a {
+  color: var(--navy-text);
+  text-decoration: none;
+}
+.list a:hover {
+  text-decoration: underline;
+}
+.list .all {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
 /* au pied de l'article : la place ne manque pas, les noms se disent en entier.
    Les colonnes se serrent sur leur contenu : étirées sur 1240 px, les deux
    voisins se retrouvaient aux extrémités de la page, à un demi-mètre l'un de

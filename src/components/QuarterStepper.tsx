@@ -12,17 +12,38 @@ import styles from "./QuarterStepper.module.css";
  * pas garde la même hauteur pour toujours ; ce qu'il cache, l'archive le
  * montre en entier, et c'est la condition pour qu'il soit honnête.
  *
- * `wide` : au pied de l'article, où la place ne manque pas et où le nom
- * complet du trimestre se lit mieux que son abrégé.
+ * `list` : là où la place ne manque pas, les derniers trimestres se disent en
+ * entier, d'un coup, sans qu'il faille passer par le voisin pour atteindre
+ * l'autre. Le rail d'ordinateur est de ceux-là ; le pied d'une feuille de
+ * téléphone ne l'est pas, et garde le pas à pas.
+ *
+ * Dans les deux formes, le lien vers l'archive reste : c'est lui qui rend la
+ * chose honnête, puisque ni l'une ni l'autre ne montre la série entière.
  */
-export async function QuarterStepper({ older, newer, current, total, wide }: { older?: QuarterKey; newer?: QuarterKey; current: QuarterKey; total: number; wide?: boolean }) {
+export async function QuarterStepper({ older, newer, current, total, wide, list }: { older?: QuarterKey; newer?: QuarterKey; current: QuarterKey; total: number; wide?: boolean; /** les derniers trimestres, en entier, au lieu des deux voisins */ list?: QuarterKey[] }) {
   const [t, lang] = await Promise.all([getT(), getLang()]);
   const label = (q: { q: number; year: number }) => t(q.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: q.q, y: q.year });
   // L'abrégé ne passe pas par le dictionnaire : une clef « T{n} {y} » y devient
   // l'expression ^T(.+?) (.+?)$, qui attrape toute phrase française commençant
   // par un T. Une lettre choisie à la langue est plus sûre et plus claire.
   const shortLabel = (q: { q: number; year: number }) => `${lang === "en" ? "Q" : "T"}${q.q} ${q.year}`;
-  const name = wide ? label : shortLabel;
+  const name = wide || list ? label : shortLabel;
+  const all = (
+    <Link href="/indice/notes" className={styles.all}>
+      {t("Toutes les notes ({n})", { n: total })}
+    </Link>
+  );
+  if (list)
+    return (
+      <nav className={styles.list} aria-label={t("Les autres trimestres")}>
+        {list.map((q) => (
+          <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`}>
+            {name(q)}
+          </Link>
+        ))}
+        {all}
+      </nav>
+    );
   return (
     <nav className={`${styles.step} ${wide ? styles.wide : ""}`} aria-label={t("Les autres trimestres")}>
       {older ? (
@@ -44,9 +65,7 @@ export async function QuarterStepper({ older, newer, current, total, wide }: { o
           —
         </span>
       )}
-      <Link href="/indice/notes" className={styles.all}>
-        {t("Toutes les notes ({n})", { n: total })}
-      </Link>
+      {all}
     </nav>
   );
 }
