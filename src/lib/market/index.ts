@@ -77,19 +77,49 @@ export function indexWeights(quotes: Quote[]): IndexWeight[] {
     .sort((a, b) => b.weightTotal - a.weightTotal);
 }
 
+/** « +1,23 % », dans la convention de la maison. */
+const signedPct = (v: number, d = 2) => `${v > 0 ? "+" : ""}${v.toFixed(d).replace(".", ",")} %`;
+
 /**
- * The index against the share prices of the same session: a published
- * variation with no share price changed in the reading (or the reverse)
- * says a page of the bulletin was misread.
+ * The index against the share prices of the same session.
+ *
+ * Two questions, in order. First the direction: a published variation with no
+ * share price changed in the reading, or the reverse, says a page of the
+ * bulletin was misread. Then the size: the published variation is rebuilt from
+ * the prices of the same bulletin, weighted by the **quoted float** of that
+ * session.
+ *
+ * The float is the weighting the series itself points to: tested over the
+ * sessions read, it reconstitutes the published variation where the global
+ * capitalisation does not, by a wide margin. It stays an inference until the
+ * BVMAC confirms its methodology, so a gap is reported as something to look
+ * at, never as an error of theirs.
  */
 export function indexCheck(current: MarketBulletin | undefined, previousQuotes: Quote[], currentQuotes: Quote[]): { ok: boolean; detail: string } {
   if (!current || current.indexValue == null || current.indexVariationPct == null) return { ok: true, detail: "indice non lu sur la dernière séance" };
+  const published = current.indexVariationPct;
+  const eq = currentQuotes.filter((q) => q.instrument === "action");
   const prev = new Map(previousQuotes.filter((q) => q.instrument === "action").map((q) => [q.isin, q.close]));
-  const moved = currentQuotes.filter((q) => q.instrument === "action" && prev.has(q.isin) && Math.abs(q.close - prev.get(q.isin)!) > 0.001).map((q) => q.mnemo);
-  const indexMoved = Math.abs(current.indexVariationPct) >= 0.005;
-  if (indexMoved && moved.length === 0 && prev.size > 0) return { ok: false, detail: `BVMAC-AS ${current.indexVariationPct > 0 ? "+" : ""}${current.indexVariationPct.toFixed(2).replace(".", ",")} % au bulletin, aucun cours d'action changé dans la lecture : page « Marché des actions » à vérifier` };
+  const movers = eq.filter((q) => (prev.has(q.isin) ? Math.abs(q.close - prev.get(q.isin)!) > 0.001 : Math.abs(q.variationPct) > 0.001));
+  const moved = movers.map((q) => q.mnemo);
+  const indexMoved = Math.abs(published) >= 0.005;
+
+  if (indexMoved && moved.length === 0 && prev.size > 0) return { ok: false, detail: `BVMAC-AS ${signedPct(published)} au bulletin, aucun cours d'action changé dans la lecture : page « Marché des actions » à vérifier` };
   if (!indexMoved && moved.length > 0) return { ok: false, detail: `${moved.join(", ")} : cours changé(s) dans la lecture, indice à 0,00 % au bulletin : bloc de l'indice à vérifier` };
-  return { ok: true, detail: indexMoved ? `indice et cours cohérents (${moved.join(", ")})` : "indice stable, aucun cours d'action changé" };
+  if (!indexMoved) return { ok: true, detail: "indice stable, aucun cours d'action changé" };
+
+  // Rebuild the published variation from the float weights of this very session.
+  const floatTotal = eq.reduce((a, q) => a + (q.marketCapFloat ?? 0), 0);
+  if (!floatTotal) return { ok: true, detail: `indice et cours cohérents (${moved.join(", ")}) · flottant non lu sur cette séance, reconstitution impossible` };
+  const expected = movers.reduce((a, q) => {
+    const move = prev.has(q.isin) && prev.get(q.isin)! > 0 ? (q.close / prev.get(q.isin)! - 1) * 100 : q.variationPct;
+    return a + ((q.marketCapFloat ?? 0) / floatTotal) * move;
+  }, 0);
+  const ratio = expected / published;
+  const reconstituted = ratio > 0.8 && ratio < 1.25;
+  return reconstituted
+    ? { ok: true, detail: `${signedPct(published)} publié, ${signedPct(expected)} reconstitué au flottant (${moved.join(", ")})` }
+    : { ok: false, detail: `${signedPct(published)} publié, ${signedPct(expected)} reconstitué au flottant (${moved.join(", ")}) : écart d'un facteur ${Math.abs(ratio) >= 1 ? Math.abs(ratio).toFixed(1).replace(".", ",") : (1 / Math.abs(ratio)).toFixed(1).replace(".", ",")}${ratio < 0 ? ", et de sens contraire" : ""} · séance à éclaircir` };
 }
 
 export interface FloatRotation {
