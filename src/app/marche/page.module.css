@@ -1,0 +1,72 @@
+/* La porte d'entrée du marché BVMAC : un en-tête, le pouls, puis des panneaux. */
+.head {
+  margin-bottom: 16px;
+}
+.head h1 {
+  margin: 4px 0 6px;
+}
+.lead {
+  color: var(--ink-2);
+  max-width: 72ch;
+  margin: 0;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--warn);
+}
+.note {
+  font-size: 0.84rem;
+  color: var(--ink-3);
+  margin: 10px 0 0;
+  max-width: 74ch;
+  line-height: 1.5;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* les notes et « comprendre » côte à côte, empilés au téléphone */
+.cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.avis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.avis li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.avis li:last-child {
+  border-bottom: 0;
+}
+.avis a {
+  color: var(--navy-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.avis a:hover {
+  text-decoration: underline;
+}
+.avis small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.76rem;
+  margin-top: 2px;
+}
+.source {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  margin: 18px 0 0;
+}

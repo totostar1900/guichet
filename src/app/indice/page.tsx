@@ -75,7 +75,9 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
     <>
       <div className={styles.head}>
         <div>
-          <div className="eyebrow">BVMAC · {t("indice de prix")} · {t("lu à chaque bulletin")}</div>
+          <div className="eyebrow">
+            <Link href="/marche">BVMAC</Link> · {t("indice de prix")} · {t("lu à chaque bulletin")}
+          </div>
           <h1 className="display">{t("L'indice BVMAC All Share")}</h1>
           <p className={styles.lead}>{t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Le Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}</p>
         </div>

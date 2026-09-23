@@ -8,9 +8,9 @@ import { useT } from "@/i18n/client";
 const TABS = [
   { href: "/", label: "Titres", match: (p: string) => p === "/" || p.startsWith("/offres") },
   { href: "/fonds", label: "Fonds", match: (p: string) => p.startsWith("/fonds") },
-  // l'indice et les notes appartiennent au marché : sans cela, aucun onglet ne s'allume sur /indice
-  { href: "/societes", label: "Sociétés", match: (p: string) => p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs") },
-  { href: "/actualites", label: "Actualités", match: (p: string) => p.startsWith("/actualites") },
+  // « Marché » porte tout l'environnement BVMAC : l'indice, les sociétés, les notes, les avis.
+  // Il remplace « Sociétés » et « Actualités », donc il n'ajoute aucun siège et en libère un.
+  { href: "/marche", label: "Marché", match: (p: string) => p.startsWith("/marche") || p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs") || p.startsWith("/actualites") },
   { href: "/info", label: "Guide", match: (p: string) => p.startsWith("/info") || p.startsWith("/comparer") },
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk") },
 ];

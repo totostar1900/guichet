@@ -2012,4 +2012,23 @@ export const EN_MORE: Record<string, string> = {
   "deux titres côte à côte, avec l'indice en repère": "two securities side by side, with the index as a reference",
   "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler": "what it says, what it does not, and the slider to play with",
   "ce que la BVMAC publie hors bulletin, quand nous l'avons relu": "what the BVMAC publishes outside the bulletin, once we have read it",
+
+  /* ---------- l'onglet Marché ---------- */
+  "Le marché": "The market",
+  "Bourse des Valeurs Mobilières de l'Afrique Centrale": "Central African Securities Exchange",
+  "Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.": "What the exchange publishes at every session, and what we read from it: the index, the listed companies, and the notes we draw from them.",
+  "Dernier bulletin lu : n° {n} du {d}.": "Last bulletin read: no. {n} of {d}.",
+  "Chaque société": "Each company",
+  "Capitalisation {c} FCFA · flottant coté {f} ({p}).": "Capitalisation {c} FCFA · quoted float {f} ({p}).",
+  "Le poids est celui du capital global ; la page de l'indice donne aussi la lecture en flottant.": "The weight shown is on the whole capital; the index page also gives the reading on the float.",
+  "Toutes les notes": "All the notes",
+  "La première note paraîtra à la fin du premier trimestre entièrement lu.": "The first note will appear at the end of the first quarter read in full.",
+  "Une note par trimestre : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé, et ce que l'indice ne dit pas. Publique, et en PDF.": "One note per quarter: what the quarter did, the companies behind the number, what changed hands, and what the index does not say. Public, and as a PDF.",
+  "Comprendre": "Understanding",
+  "La leçon : comment lire l'indice": "The lesson: how to read the index",
+  "Ce que publie le bulletin": "What the bulletin publishes",
+  "L'indice se lit dans le bulletin officiel de la cote, séance après séance. Le Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.": "The index is read from the official quotation bulletin, session after session. Guichet shows it as published; it builds none of its own and measures no one against it.",
+  "Aucun avis publié pour l'instant. Les avis reçus de la Bourse sont relus par le desk avant de paraître ici.": "No notice published yet. Notices received from the exchange are read by the desk before appearing here.",
+  "Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.": "Source: official quotation bulletin of the BVMAC, read at each issue; computations by {c}.",
+  "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis": "the way into the BVMAC environment: the index, the companies, the notes, the notices",
 };

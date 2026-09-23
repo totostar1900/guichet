@@ -21,6 +21,7 @@ export interface MarketPage {
 }
 
 export const MARKET_PAGES: MarketPage[] = [
+  { key: "marche", href: "/marche", label: "Le marché", hint: "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis" },
   { key: "indice", href: "/indice", label: "L'indice BVMAC All Share", hint: "le niveau séance par séance, sept vues, la composition sur les deux pondérations" },
   { key: "societes", href: "/societes", label: "Les sociétés cotées", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice#notes", label: "Les notes de marché", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
