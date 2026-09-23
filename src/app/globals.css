@@ -798,3 +798,10 @@ h3 {
   background: var(--info-soft);
   color: var(--info);
 }
+
+/* Sauter à une ancre glisse au lieu de sauter ; sans effet pour qui a demandé moins de mouvement. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

@@ -54,6 +54,11 @@
     display: block;
     /* la ligne « Sur cette page » se lit avant l'article, pas après lui */
     order: -1;
+    /* et elle y reste : sans rail sous 900 px, c'est le seul repère de section */
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px));
+    z-index: 6;
+    background: var(--paper);
     margin-bottom: 14px;
   }
 }

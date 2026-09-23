@@ -5,6 +5,7 @@ import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { PageOutline } from "@/components/PageOutline";
 import { MarketStrip } from "@/components/MarketStrip";
+import { BackToTop } from "@/components/BackToTop";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 
@@ -95,7 +96,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
         <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>
       ) : (
         <div className={styles.withRail}>
-          <div>
+          <div className={styles.sections}>
             <section className={styles.level} id="niveau">
             <div className={styles.big}>
               <small>{fmtDate(last.date)}</small>
@@ -282,9 +283,9 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
                 <table className={`tbl ${styles.moved}`}>
                   <thead>
                     <tr>
-                      <th>{t("Séance")}</th>
-                      <th className={styles.num}>{t("Niveau")}</th>
+                      <th className={styles.when}>{t("Séance")}</th>
                       <th className={styles.num}>{t("Variation")}</th>
+                      <th className={styles.num}>{t("Niveau")}</th>
                       <th className={styles.num}>{t("Titres")}</th>
                       <th className={styles.num}>{t("Montant")}</th>
                       <th className={styles.num}>{t("Trans.")}</th>
@@ -298,13 +299,13 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
                       const mv = movers.get(p.date) ?? [];
                       return (
                         <tr key={p.date}>
-                          <td>{fmtDate(p.date)}</td>
-                          <td className={styles.num}>{lvl(p.value)}</td>
+                          <td className={styles.when}>{fmtDate(p.date)}</td>
                           <td className={`${styles.num} ${tone(p.variationPct)}`}>{signed(p.variationPct)}</td>
+                          <td className={styles.num}>{lvl(p.value)}</td>
                           <td className={styles.num}>{fmt(sh ? sh.titles : (s?.titles ?? 0))}</td>
                           <td className={styles.num}>{(sh ? sh.amount : (s?.amount ?? 0)) ? `${money(sh ? sh.amount : (s?.amount ?? 0))}` : "0"}</td>
                           <td className={styles.num}>{sh ? sh.trades : (s?.trades ?? 0)}</td>
-                          <td>
+                          <td className={styles.what}>
                             {mv.length ? (
                               mv.map((m, i) => (
                                 <span key={m.mnemo}>
@@ -417,7 +418,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             </div>
           </section>
 
-          <section className="panel" id="lecture">
+          <section className={`panel ${styles.teach}`} id="lecture">
             <div className="panel-h">
               <h2>{t("Comment le lire")}</h2>
             </div>
@@ -438,6 +439,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             </p>
             </section>
             <MarketStrip current="indice" />
+            <BackToTop />
           </div>
           <PageOutline
             label={t("Sur cette page")}

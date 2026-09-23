@@ -98,8 +98,38 @@
   color: var(--ink-3);
   font-size: 0.86rem;
 }
+/*
+ * La table des séances porte sept colonnes. En portrait, les colonnes de
+ * chiffres tenaient leur largeur et les deux colonnes de texte se repliaient
+ * en cinq lignes : la table n'a jamais défilé, elle s'écrasait. Elles ne se
+ * replient plus, donc la table défile, la même partout, et tourner le
+ * téléphone en rend les colonnes.
+ */
 .tableWrap {
   overflow-x: auto;
+  /* le dégradé de droite dit qu'il reste des colonnes */
+  background:
+    linear-gradient(to right, var(--surface) 30%, transparent),
+    linear-gradient(to left, var(--surface) 30%, transparent) 100% 0,
+    linear-gradient(to right, rgba(17, 24, 39, 0.08), transparent 12px),
+    linear-gradient(to left, rgba(17, 24, 39, 0.08), transparent 12px) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+/* la date reste en vue quand on défile vers les chiffres */
+.when {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  white-space: nowrap;
+}
+thead .when {
+  z-index: 1;
+}
+/* ce qui a bougé tient sur une ligne : c'est ce qui fait défiler la table au lieu de l'écraser */
+.what {
+  white-space: nowrap;
 }
 .num {
   text-align: right;
@@ -233,4 +263,27 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
   }
+}
+
+/*
+ * Le rythme des sections. La page en porte sept, de même nature et de même
+ * poids : rien ne disait où l'une finissait. Les titres grandissent, les
+ * sections s'écartent, et « Comment le lire » prend un fond parce qu'elle
+ * est la seule qui explique au lieu de compter. Un fond alterné aurait dit
+ * que les sections sont de deux sortes, ce qui est faux.
+ */
+.sections > section {
+  margin-bottom: 38px;
+  /* le titre ne se cache pas sous la ligne collante quand on saute à l'ancre */
+  scroll-margin-top: 78px;
+}
+.sections > section h2 {
+  font-size: 1.32rem;
+  letter-spacing: -0.015em;
+  font-weight: 800;
+}
+/* la seule section qui explique plutôt que de compter */
+.teach {
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
 }
