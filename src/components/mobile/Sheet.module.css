@@ -158,6 +158,43 @@
   }
 }
 
+/* Tombée sous la ligne qui l'ouvre, sur téléphone seulement : une ligne gelée
+   en haut de l'écran et une feuille qui monte du bas ne se répondent pas. Le
+   voile part du même bord, de sorte que la ligne reste visible au-dessus :
+   on voit ce qui a ouvert quoi. Le haut exact vient d'une mesure, parce que
+   la ligne n'est gelée qu'une fois la page défilée. */
+@media (max-width: 760px) {
+  .dockUnder,
+  .dockUnder.wide {
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: auto;
+    border-radius: 0 0 18px 18px;
+    transform-origin: top center;
+    transform: translateY(-105%);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  }
+  .dockUnder.sheetOpen {
+    transform: none;
+  }
+  /* la poignée appartient au bord dont la feuille est venue : il n'y en a plus */
+  .dockUnder .grab {
+    display: none;
+  }
+  .dockUnder.navy .head,
+  .dockUnder .head {
+    border-radius: 0;
+  }
+  /* le bas de la feuille ne touche plus le bas de l'écran : pas d'encoche à éviter */
+  .dockUnder .body {
+    padding-bottom: var(--s-7);
+  }
+  .dockUnder .foot {
+    padding-bottom: var(--s-6);
+  }
+}
+
 /* tabs in the head: one line, the open one underlined in gold */
 .tabs {
   display: grid;

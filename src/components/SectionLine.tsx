@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import { loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
 import { Sheet } from "./mobile/Sheet";
@@ -27,6 +27,18 @@ export interface SectionItem {
 export function SectionLine({ chapters, active, label, pageTitle, foot }: { chapters: SectionItem[]; active: string | null; label?: string; pageTitle?: string; /** une rangée que la page ajoute sous « Haut de page » et « Section suivante » */ foot?: React.ReactNode }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  // La feuille tombe sous cette ligne, et la ligne n'est gelée en haut de l'écran
+  // qu'une fois la page défilée : son bas se mesure à l'ouverture, pas en CSS.
+  const wrap = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<number | undefined>(undefined);
+  const raise = () => {
+    if (open) return setOpen(false);
+    // Une ligne qu’une page cache (le Guide a sa propre pastille) ne mesure rien :
+    // sans point d’accroche la feuille remonte du bas, comme avant.
+    const b = wrap.current?.getBoundingClientRect();
+    setAnchor(b && b.bottom > 0 ? Math.round(b.bottom) : undefined);
+    setOpen(true);
+  };
   const [done, setDone] = useState<Record<string, [number, number]>>({});
   const withProgress = chapters.some((c) => c.section);
   useEffect(() => {
@@ -61,8 +73,8 @@ export function SectionLine({ chapters, active, label, pageTitle, foot }: { chap
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   return (
-    <div className={styles.wrap}>
-      <button type="button" className={styles.line} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={`${label ?? t("Sur cette page")} : ${cur.title}, ${idx + 1} ${t("sur {n}", { n: chapters.length })}`}>
+    <div className={styles.wrap} ref={wrap}>
+      <button type="button" className={styles.line} onClick={raise} aria-haspopup="dialog" aria-expanded={open} aria-label={`${label ?? t("Sur cette page")} : ${cur.title}, ${idx + 1} ${t("sur {n}", { n: chapters.length })}`}>
         {cur.letter ? (
           <span className={styles.letter} style={{ background: cur.color }}>
             {cur.letter}
@@ -82,7 +94,7 @@ export function SectionLine({ chapters, active, label, pageTitle, foot }: { chap
         ))}
       </div>
 
-      <Sheet open={open} onClose={() => setOpen(false)} navy title={label ?? t("Sur cette page")} sub={pageTitle}>
+      <Sheet open={open} onClose={() => setOpen(false)} navy dock={anchor ? "under" : undefined} anchorTop={anchor} title={label ?? t("Sur cette page")} sub={pageTitle}>
         <ol className={styles.list}>
           {chapters.map((c, i) => {
             const p = progress(c);

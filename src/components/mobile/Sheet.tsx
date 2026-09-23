@@ -12,8 +12,16 @@ import { useSheetPresence } from "./useSheetPresence";
  * keeps its scroll position underneath; that is the point of it. `tall`
  * fixes the sheet's height on the phone, so that switching tabs never moves
  * its edge; `foot` is a row that stays under the scrolling body.
+ *
+ * `dock` says which edge the sheet belongs to, and the rule is that a menu
+ * opens from the edge its trigger sits nearest. A control on the tab bar
+ * rises from the bottom; « top-right » drops from the header's right end;
+ * « under », with `anchorTop`, drops from under a line frozen at the top of
+ * the screen. A sheet that rises from the bottom when its trigger is frozen
+ * at the top breaks the tie between the control and what it opened, and
+ * covers the page from the wrong end.
  */
-export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, tabs, tall, foot }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right"; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; foot?: React.ReactNode }) {
+export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, anchorTop, tabs, tall, foot }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" | "under"; /** avec dock « under » : le bas du déclencheur, mesuré à l'ouverture */ anchorTop?: number; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; foot?: React.ReactNode }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -43,8 +51,11 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (!drag.current || !box.current) return;
-    drag.current.dy = Math.max(0, e.touches[0].clientY - drag.current.y0);
-    box.current.style.transform = `translateY(${drag.current.dy}px)`;
+    // Une feuille tombée du haut se repousse vers le haut : le geste va toujours
+    // vers le bord d'où elle est venue.
+    const up = dock === "under";
+    drag.current.dy = Math.max(0, up ? drag.current.y0 - e.touches[0].clientY : e.touches[0].clientY - drag.current.y0);
+    box.current.style.transform = `translateY(${up ? -drag.current.dy : drag.current.dy}px)`;
   };
   const onTouchEnd = () => {
     const dy = drag.current?.dy ?? 0;
@@ -55,8 +66,8 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, t
   };
   return createPortal(
     <>
-      <div className={`${styles.scrim} ${visible ? styles.scrimOpen : ""}`} onClick={onClose} aria-hidden="true" />
-      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${tall ? styles.tall : ""} ${visible ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div className={`${styles.scrim} ${visible ? styles.scrimOpen : ""}`} style={dock === "under" && anchorTop != null ? { top: anchorTop } : undefined} onClick={onClose} aria-hidden="true" />
+      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${dock === "under" ? styles.dockUnder : ""} ${tall ? styles.tall : ""} ${visible ? styles.sheetOpen : ""}`} style={dock === "under" && anchorTop != null ? { top: anchorTop, maxHeight: `calc(100vh - ${anchorTop + 16}px)` } : undefined} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className={styles.head}>
           <div className={styles.grab} />
           <div className={styles.titleRow}>
