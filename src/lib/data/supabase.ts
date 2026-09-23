@@ -72,6 +72,7 @@ type IntentRow = {
   ref: string;
   register_no: string | null;
   closed_reason: string | null;
+  counter: unknown;
   offer_id: string;
   offer_version: number;
   client_id: string | null;
@@ -178,6 +179,7 @@ function toIntent(r: IntentRow): Intent {
     limitPrice: r.limit_price === null ? null : Number(r.limit_price),
     executedPrice: r.executed_price === null ? null : Number(r.executed_price),
     closedReason: u(r.closed_reason),
+    counter: (r.counter as Intent["counter"]) ?? undefined,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -520,6 +522,9 @@ export const supabaseRepository: Repository = {
     if (patch.servedUnits !== undefined) row.served_units = patch.servedUnits;
     if (patch.executedPrice !== undefined) row.executed_price = patch.executedPrice;
     if (patch.message !== undefined) row.message = patch.message ?? null;
+    if (patch.amount !== undefined) row.amount = patch.amount;
+    if (patch.limitPrice !== undefined) row.limit_price = patch.limitPrice;
+    if (patch.counter !== undefined) row.counter = patch.counter ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);
     return toIntent(data as IntentRow);

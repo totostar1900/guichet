@@ -20,6 +20,8 @@ import { ProfileCard } from "@/components/desk/ProfileCard";
 import { ReachLine } from "@/components/desk/ReachLine";
 import { CancelOrder } from "./CancelOrder";
 import { Messages } from "./Messages";
+import { CounterOffer } from "./CounterOffer";
+import { counterTerms, counterLapsed, defaultUntil, untilText } from "@/lib/domain/counter";
 import { reasonForDesk } from "@/lib/domain/cancel-reasons";
 
 export const dynamic = "force-dynamic";
@@ -105,6 +107,12 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               <span className={`st ${it.state}`}>{t(INTENT_STATE_LABEL[it.state])}</span>
               {/* un ordre clos porte son motif la ou son etat se lit */}
               {it.state === "annulee" && it.closedReason && <span className="muted" style={{ fontSize: ".8rem" }}>{t(reasonForDesk(it.closedReason))}</span>}
+              {/* En attente de réponse : ce qui a été proposé, et jusqu’à quand */}
+              {it.state === "contre_proposee" && it.counter && (
+                <span className="muted" style={{ fontSize: ".8rem" }}>
+                  {counterTerms(it.counter, it, o)} · {t(counterLapsed(it.counter, now) ? "caduque depuis le {d}" : "jusqu’au {d}", { d: untilText(it.counter) })}
+                </span>
+              )}
             </div>
             <div className={styles.line}>
               <LineIdentity o={o} s={s} href={`/offres/${o.id}`} size="lg" />
@@ -208,7 +216,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 </Link>
               )}
               {next
-                .filter((st) => st !== "annulee" && !marketExec)
+                .filter((st) => st !== "annulee" && st !== "contre_proposee" && !marketExec)
                 .map((st) => (
                   <form key={st} action={transitionIntent}>
                     <input type="hidden" name="intentId" value={it.id} />
@@ -218,6 +226,9 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     </button>
                   </form>
                 ))}
+              {/* Proposer d’autres conditions : un formulaire, pas un bouton. L’ordre ne bouge
+                  qu’au oui du client, et l’écran montre la phrase qu’il recevra. */}
+              {next.includes("contre_proposee") && !marketExec && <CounterOffer intent={it} offer={o} defaultUntil={defaultUntil(o, now)} now={now.toISOString()} />}
               {/* Clore sans suite a sa propre forme : un motif, une relecture, la phrase que le client lira. */}
               {next.includes("annulee") && <CancelOrder intentId={it.id} ref_={it.ref} clientName={it.clientName} offerTitle={o.title} />}
               {next.length === 0 && <span className="muted">{t("Intention terminée : plus aucun passage possible.")}</span>}

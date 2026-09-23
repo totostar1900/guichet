@@ -52,3 +52,40 @@ Le référentiel reste à l'étage 2 et non 1 : `publishReference` consomme le
 brouillon, et un retour arrière honnête demanderait de restaurer depuis le
 journal d'audit. Tant que ce n'est pas écrit, la relecture avant est le seul
 garde-fou vrai.
+
+## La contre-proposition (24 septembre 2026)
+
+Un ordre se confirmait, se transmettait ou se clôturait. Rien ne permettait de
+dire « pas à ce prix-là, mais à celui-ci », ni « pas cent titres, mais
+quarante » : or un carnet étroit l'impose presque à chaque séance. Le desk
+n'avait que deux issues, exécuter autrement que demandé, ce qu'on ne fait pas,
+ou clore, ce qui perd l'ordre.
+
+**Deux décisions prises faute de réponse, à revoir si elles ne conviennent pas :**
+
+- **La portée** : le prix *et* la quantité. Ce sont les deux counters que le
+  marché impose, et supporter les deux coûtait à peine plus qu'un seul.
+- **L'échéance** : quarante-huit heures par défaut, jamais au-delà de la clôture
+  de la ligne, l'opérateur pouvant raccourcir. Un prix ne tient pas, et une
+  offre sans échéance est une position ouverte qu'on a oubliée.
+
+**Deux règles tiennent l'objet :**
+
+1. **L'acceptation du client engage, pas le clic du desk.** C'est une offre que
+   nous faisons ; son oui la transforme en ordre. D'où l'état
+   `contre_proposee`, qui n'est ni confirmé ni clos, et d'où le fait qu'il ne
+   mène jamais à `transmise` : `nextStates` le vérifie, un test aussi.
+2. **Rien n'est écrit sur l'ordre avant ce oui.** La quantité et le prix ne
+   bougent que dans `answerCounter`, côté client, jamais dans `proposeCounter`.
+
+Le client décide depuis **Mon espace**, où il est déjà authentifié : pas de lien
+signé à inventer. Les deux boutons ont le même poids visuel, on ne pousse pas.
+Une proposition périmée ne montre plus de bouton.
+
+Migration 0037 : `intents.counter jsonb`, un seul objet parce que c'est un seul
+acte.
+
+**Ce qui reste ouvert** : la caducité est évaluée à la lecture, pas par une
+tâche planifiée. Un ordre dont la proposition a expiré l'affiche comme caduque
+et le premier clic la referme, mais rien ne repasse la nuit pour les remettre à
+`recue`. À faire si le volume le demande.

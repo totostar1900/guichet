@@ -298,3 +298,32 @@
   font-weight: 500;
   opacity: 0.85;
 }
+
+/* Proposer d'autres conditions : les trois champs, la phrase, puis la relecture. */
+.counter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  flex: 1 1 100%;
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-5);
+  margin-top: var(--s-3);
+}
+.counterRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s-4);
+}
+.counterRow small {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.counterNote {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: var(--s-3) var(--s-5);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+}

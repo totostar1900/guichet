@@ -28,6 +28,7 @@ export const INTENT_STATE_LABEL: Record<IntentState, string> = {
   servie: "Servie",
   non_servie: "Non servie",
   reglee: "Réglée",
+  contre_proposee: "Contre-proposition",
   annulee: "Annulée",
 };
 
@@ -52,9 +53,14 @@ export function nextStates(state: IntentState, type: IntentType): IntentState[] 
   const firm = FIRM_TYPES.includes(type);
   switch (state) {
     case "recue":
-      return ["confirmee", "annulee"];
+      return ["confirmee", "contre_proposee", "annulee"];
+    // Le client a répondu, ou l’échéance est passée : on confirme ce qu’il a accepté,
+    // on revient à l’ordre d’origine, ou l’on clot. Une contre-proposition ne se
+    // transmet jamais telle quelle : sans le oui du client, elle n’est qu’une offre.
+    case "contre_proposee":
+      return ["confirmee", "recue", "annulee"];
     case "confirmee":
-      return firm ? ["transmise", "annulee"] : ["annulee"];
+      return firm ? ["transmise", "contre_proposee", "annulee"] : ["contre_proposee", "annulee"];
     case "transmise":
       return ["servie", "non_servie"];
     case "servie":
@@ -66,6 +72,8 @@ export function nextStates(state: IntentState, type: IntentType): IntentState[] 
 
 export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
   confirmee: "Confirmer",
+  contre_proposee: "Proposer d’autres conditions",
+  recue: "Revenir à l’ordre d’origine",
   transmise: "Transmettre",
   servie: "Servie",
   non_servie: "Non servie",

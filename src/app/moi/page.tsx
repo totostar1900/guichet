@@ -5,6 +5,7 @@ import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtMillions } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
+import { CounterAnswer } from "./CounterAnswer";
 import { ContactForm } from "./ContactForm";
 import { PushToggle } from "@/components/PushToggle";
 import { positionsFrom } from "@/lib/positions";
@@ -43,6 +44,7 @@ export default async function MyPage() {
 
   const NEXT: Record<string, string> = {
     recue: "Un conseiller vous rappelle avant la clôture.",
+    contre_proposee: "Nous vous proposons d’autres conditions : votre réponse est attendue.",
     confirmee: "Signez le bulletin et effectuez le virement indiqué sur l'appel de fonds.",
     transmise: "Ordre transmis au SVT : résultats attendus le jour de l'adjudication.",
     servie: "Servi. Règlement à la date indiquée, puis avis d'opéré.",
@@ -52,6 +54,7 @@ export default async function MyPage() {
   };
   const NEXT_FUND: Record<string, string> = {
     recue: "Un conseiller vous rappelle pour confirmer.",
+    contre_proposee: "Nous vous proposons d’autres conditions : votre réponse est attendue.",
     confirmee: "Signez le bulletin de souscription et effectuez le virement indiqué sur l'appel de fonds.",
     transmise: "Ordre transmis à la société de gestion : exécution à la prochaine valeur liquidative.",
     servie: "Exécuté à la VL retenue. Inscription des parts au registre, puis avis d'opération.",
@@ -62,7 +65,8 @@ export default async function MyPage() {
 
   // The five stops every order goes through; a card shows where each intention stands.
   const STOPS: Intent["state"][] = ["recue", "confirmee", "transmise", "servie", "reglee"];
-  const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : STOPS.indexOf(st));
+  // Une contre-proposition n’a pas recule : l’ordre est la, il attend une reponse.
+  const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : st === "contre_proposee" ? 0 : STOPS.indexOf(st));
   const open = mine.filter((i) => i.state === "recue" || i.state === "confirmee" || i.state === "transmise").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const closed = mine.filter((i) => !open.includes(i)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const toSign = open.filter((i) => i.state === "confirmee").length;
@@ -139,7 +143,8 @@ export default async function MyPage() {
                     </div>
                     <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                   </div>
-                  <div className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</div>
+                  {/* Une contre-proposition se décide ici : c’est le oui du client qui change l’ordre. */}
+                  {i.state === "contre_proposee" && o ? <CounterAnswer intent={i} offer={o} now={new Date()} /> : <div className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</div>}
                   <div className={styles.track} aria-label={t("Étape {n} sur 5", { n: k + 1 })}>
                     {STOPS.map((st, n) => (
                       <i key={st} className={n <= k ? styles.done : undefined} />

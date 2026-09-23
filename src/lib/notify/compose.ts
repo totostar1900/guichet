@@ -1,5 +1,6 @@
 import { COMPANY, DISCLAIMER } from "@/lib/config";
 import { reasonForClient } from "@/lib/domain/cancel-reasons";
+import { counterText } from "@/lib/domain/counter";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import { headlineYield } from "@/lib/domain/status";
 import type { DocumentType, GeneratedDocument, Intent, IntentState, Offer } from "@/lib/domain/types";
@@ -91,6 +92,9 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
     servie: o.kind === "FONDS" ? `Votre ordre ${i.ref} est exécuté${i.executedPrice != null ? ` à la VL de ${fmt(i.executedPrice)} FCFA` : ""}${i.servedUnits != null ? ` pour ${i.servedUnits.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : ""}. L'avis d'opération suit après inscription au registre.` : o.kind === "MARCHE" ? `Votre ordre ${i.ref} est exécuté${i.executedPrice != null ? ` à ${o.instrument === "obligation" ? fmtPrice(i.executedPrice) : fmt(i.executedPrice) + " FCFA"}` : ""}${i.servedUnits != null ? ` pour ${fmt(i.servedUnits)} unités` : ""}. Règlement T+${o.settlementDays ?? 3}, puis avis d'opéré.` : `Résultats : votre ordre ${i.ref} est servi${o.servedPricePct != null ? ` à ${fmtPrice(o.servedPricePct)}` : ""}. Règlement le ${fmtDate(o.settleOn)}. L'avis de résultat suit.`,
     non_servie: `Résultats : votre ordre ${i.ref} n'a pas été servi. Les fonds sont restitués sous deux jours ouvrés, sans frais.`,
     reglee: o.kind === "FONDS" ? `${i.type === "rachat" ? "Rachat réglé : le produit est viré sur votre compte bancaire." : `Vos parts de ${o.title} sont inscrites à votre nom au registre du dépositaire.`} L'avis d'opération suit.` : `Règlement effectué le ${fmtDate(o.settleOn)} : vos titres ${o.isin} sont inscrits à votre nom. L'avis d'opéré suit.`,
+    // Une contre-proposition se lit en entier dans le message : le client décide
+    // depuis Mon espace, et il doit savoir quoi avant d’ouvrir quoi que ce soit.
+    contre_proposee: i.counter ? counterText(i.counter, i, o) : "Nous vous proposons d’autres conditions sur cet ordre : retrouvez-les dans Mon espace.",
     // Le motif d’abord : un client qui apprend que son ordre est clos veut savoir
     // pourquoi avant de savoir qui appeler.
     annulee: cancelText(i),

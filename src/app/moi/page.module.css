@@ -428,3 +428,56 @@
 .noHead {
   padding-top: 0;
 }
+
+/* La contre-proposition, telle que le client la décide. */
+.counter {
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  border-radius: var(--radius);
+  padding: var(--s-5) var(--s-6);
+  margin-top: var(--s-4);
+}
+.counterHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.counterHead b {
+  color: var(--gold-ink);
+  font-size: 0.92rem;
+}
+.counterHead span {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.counterNote {
+  margin: var(--s-4) 0 0;
+  font-size: 0.86rem;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.counterTerms {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-1) var(--s-6);
+  margin: var(--s-5) 0 0;
+  font-size: 0.82rem;
+}
+.counterTerms dt {
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.counterTerms dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 500;
+}
+/* les deux réponses ont le même poids : on ne pousse pas */
+.counterActions {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-top: var(--s-6);
+}

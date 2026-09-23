@@ -1,3 +1,4 @@
+import type { Counter } from "./counter";
 /**
  * Domain model of the Guichet.
  * Mirrors the SQL schema in supabase/migrations : keep both in sync.
@@ -143,7 +144,8 @@ export interface Offer {
 }
 
 export type IntentType = "appetit" | "ferme" | "info" | "rappel" | "cession" | "achat" | "vente" | "souscription" | "rachat";
-export type IntentState = "recue" | "confirmee" | "transmise" | "servie" | "non_servie" | "reglee" | "annulee";
+/** « contre_proposee » : le desk a proposé d’autres conditions et attend la réponse du client. */
+export type IntentState = "recue" | "contre_proposee" | "confirmee" | "transmise" | "servie" | "non_servie" | "reglee" | "annulee";
 export type Channel = "WhatsApp" | "Appel" | "E-mail";
 
 export interface Intent {
@@ -177,6 +179,8 @@ export interface Intent {
   executedPrice?: number | null;
   /** Clos sans suite : le motif de la liste, puis la précision de l’opérateur. Le client le lit. */
   closedReason?: string;
+  /** D’autres conditions soumises au client : son acceptation les reporte sur l’ordre. */
+  counter?: Counter;
   createdAt: string;
   updatedAt: string;
 }
