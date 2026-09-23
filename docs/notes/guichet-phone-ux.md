@@ -70,3 +70,33 @@ droite et tombent de leur déclencheur sur ordinateur ; une requête média les
 renvoie en bas sur téléphone. Le principe les désigne, la décision est de ne pas
 y toucher : ils s'ouvrent des dizaines de fois par jour, en bas de l'écran où se
 tient le pouce.
+
+## Valider une recherche referme le clavier (23 septembre 2026)
+
+`src/lib/ui/commit-search.ts` : `useSearchCommit()` rend `{ input, list, commit }`.
+`commit(apply)` applique le changement, puis floute le champ, puis ramène la
+liste sous les yeux.
+
+Au moment où l'on touche une suggestion, la frappe est finie et la lecture
+commence. Mais le champ garde le focus, donc le téléphone garde son clavier,
+donc la moitié basse de l'écran reste couverte : exactement là où vient de
+s'afficher ce qu'on a demandé. Le web n'a pas de « masquer le clavier », il n'a
+que le focus ; valider veut donc dire flouter.
+
+Trois précautions, chacune pour un piège :
+
+- **On rend d'abord, on floute à la frame suivante.** Flouter dans le
+  gestionnaire du toucher fait remonter la page pendant que le clic synthétique
+  est encore en vol, et celui-ci atterrit sur ce qui a glissé sous le doigt,
+  c'est-à-dire la première ligne du résultat.
+- **Le clavier met un instant à partir.** On attend le redimensionnement de
+  `visualViewport` (échéance de secours à 400 ms) avant de regarder si la liste
+  est encore à portée du regard, et on ne fait défiler que si elle en est sortie.
+- **Rien sur un pointeur fin** (`(pointer: coarse)`) : sans clavier logiciel il
+  n'y a pas d'occultation, et retirer le focus gênerait qui navigue au clavier.
+  Vérifié : sur téléphone le focus part, sur ordinateur il reste.
+
+Posé sur les trois recherches qui filtrent sur place : les titres (suggestion et
+touche Entrée), les fonds, le sélecteur de Comparer. Les recherches qui mènent
+ailleurs (Guide, glossaire, aide) n'en ont pas besoin : la navigation démonte le
+champ, et le clavier suit.

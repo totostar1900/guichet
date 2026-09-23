@@ -1,6 +1,7 @@
 "use client";
 
 import { fold } from "@/lib/text";
+import { useSearchCommit } from "@/lib/ui/commit-search";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -415,6 +416,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   // The floating filter button watches the toolbar: it shows once the toolbar is under the header.
   const top = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  // Toucher une suggestion valide la recherche : le clavier se retire et la liste paraît.
+  const { input: searchInput, list: searchList, commit: commitSearch } = useSearchCommit<HTMLInputElement, HTMLDivElement>();
 
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
@@ -578,6 +581,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
               placeholder={t("Rechercher une ligne, un émetteur, un ISIN")}
               aria-label={t("Rechercher")}
               defaultValue={q}
+              ref={searchInput}
               autoComplete="off"
               onChange={(e) => {
                 setDraft(e.target.value);
@@ -585,7 +589,11 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
               }}
               onFocus={(e) => setDraft(e.target.value)}
               onBlur={() => window.setTimeout(() => setDraft(""), 150)}
-              onKeyDown={(e) => e.key === "Escape" && setDraft("")}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setDraft("");
+                // Entrée vaut choisir : on a fini de taper, on veut voir.
+                if (e.key === "Enter") commitSearch(() => setDraft(""));
+              }}
             />
             {/* what the typed letters match: lines, issuers, ISINs; a tap fills the field and filters the list */}
             {suggestions.length > 0 && (
@@ -600,8 +608,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
                       onClick={(e) => {
                         const input = (e.currentTarget.closest("label") as HTMLLabelElement).querySelector("input");
                         if (input) input.value = sug.text;
-                        setDraft("");
-                        update({ q: sug.text });
+                        commitSearch(() => {
+                          setDraft("");
+                          update({ q: sug.text });
+                        });
                       }}
                     >
                       <em>{t(sug.kind)}</em>
@@ -732,7 +742,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       )}
 
       {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
-      {rest.length > 0 && render(rest, false)}
+      {/* ce que la recherche vient de rendre : c’est cela qu’on ramène sous les yeux quand le clavier se retire */}
+      <div ref={searchList}>{rest.length > 0 && render(rest, false)}</div>
       <CoachMarks
         id="titres"
         replayLabel={t("Comment lire cette page ?")}

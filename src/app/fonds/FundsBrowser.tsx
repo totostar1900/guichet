@@ -1,6 +1,7 @@
 "use client";
 
 import { fold } from "@/lib/text";
+import { useSearchCommit } from "@/lib/ui/commit-search";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -166,6 +167,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const managers = useMemo(() => [...new Set(rows.map((r) => r.manager))].sort((a, b) => a.localeCompare(b, "fr")), [rows]);
   // What the typed letters match: management companies (a filter) and funds (a search); a tap applies it.
   const [typing, setTyping] = useState(false);
+  // Toucher une suggestion valide la recherche : le clavier se retire et la liste paraît.
+  const { input: searchInput, list: searchList, commit: commitSearch } = useSearchCommit<HTMLInputElement, HTMLElement>();
   const suggestions = useMemo(() => {
     const d = fold(q.trim());
     if (!typing || d.length < 2) return [] as { kind: "gestion" | "fonds"; text: string }[];
@@ -230,6 +233,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </button>
         )}
         <input
+          ref={searchInput}
           type="search"
           placeholder={manager ? t("Un fonds de cette société…") : t("Un fonds, une société de gestion, un dépositaire")}
           aria-label={t("Rechercher")}
@@ -251,11 +255,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                   role="option"
                   aria-selected={false}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setTyping(false);
-                    if (sug.kind === "gestion") update({ gestion: sug.text, q: undefined });
-                    else setQ(sug.text);
-                  }}
+                  onClick={() =>
+                    commitSearch(() => {
+                      setTyping(false);
+                      if (sug.kind === "gestion") update({ gestion: sug.text, q: undefined });
+                      else setQ(sug.text);
+                    })
+                  }
                 >
                   <em>{t(sug.kind === "gestion" ? "Gestion" : "Fonds")}</em>
                   <b>{sug.text}</b>
@@ -351,7 +357,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </Sheet>
 
       {rowsShown.length > 0 && phone && (
-        <section className={styles.cards} data-coach="fonds-table" data-sep={sep}>
+        <section className={styles.cards} data-coach="fonds-table" data-sep={sep} ref={searchList}>
           {rowsShown.map((r) => (
             <FundCard key={r.id} r={r} />
           ))}

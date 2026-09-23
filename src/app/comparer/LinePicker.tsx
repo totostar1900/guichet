@@ -1,6 +1,7 @@
 "use client";
 
 import { fold } from "@/lib/text";
+import { useSearchCommit } from "@/lib/ui/commit-search";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
@@ -34,7 +35,8 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
   const [fam, setFam] = useState("");
   const [active, setActive] = useState(0);
   const box = useRef<HTMLDivElement>(null);
-  const input = useRef<HTMLInputElement>(null);
+  // Choisir une ligne ferme le panneau : le clavier suit, et il vaut mieux qu’il suive expressément.
+  const { input, commit: commitSearch } = useSearchCommit<HTMLInputElement, HTMLDivElement>();
   const hidden = useRef<HTMLInputElement>(null);
 
   const families = useMemo(() => [...new Set(lines.filter((l) => !seg || l.segment === seg).map((l) => l.family))], [lines, seg]);
@@ -56,6 +58,7 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
   }, [open]);
 
   const choose = (l: PickLine) => {
+    commitSearch();
     setCur(l.id);
     setOpen(false);
     setQ("");
