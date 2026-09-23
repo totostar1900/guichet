@@ -2148,4 +2148,5 @@ export const EN_MORE: Record<string, string> = {
   "Numéro de téléphone": "Phone number",
   "Le numéro sur lequel arrivent le code, les accusés de réception et les rappels.": "The number the code, the acknowledgements and the reminders arrive on.",
   "Deux canaux prouvés, e-mail et téléphone, et les appareils qui vous ouvrent le Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.": "Two proven channels, e-mail and phone, and the devices that open Guichet with a fingertip or four digits. The e-mail code is always there.",
+  "Le code par téléphone n'est pas disponible pour l'instant : un conseiller confirme votre numéro avant tout envoi. Vous pouvez envoyer votre intention.": "The phone code is not available right now: an adviser confirms your number before anything is sent. You can send your intention.",
 };

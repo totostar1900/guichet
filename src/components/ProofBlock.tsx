@@ -60,7 +60,7 @@ export function ProofBlock({ kind, target, onProven, onUnavailable, demo }: { ki
   return (
     <div className={styles.proof} aria-live="polite">
       {sent === "unavailable" ? (
-        <span>{t("Le code WhatsApp n'est pas encore disponible sur ce serveur : un conseiller confirme votre numéro par téléphone avant tout envoi. Vous pouvez envoyer votre intention.")}</span>
+        <span>{t("Le code par téléphone n'est pas disponible pour l'instant : un conseiller confirme votre numéro avant tout envoi. Vous pouvez envoyer votre intention.")}</span>
       ) : sent === "idle" ? (
         <>
           <span>{t(kind === "phone" ? "Ce numéro n'est pas encore prouvé : un code arrive par message sur ce téléphone, une seule fois." : "Un code arrive sur cet e-mail : il vous connecte, et crée votre compte s'il n'existe pas.")}</span>

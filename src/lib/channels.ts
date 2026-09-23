@@ -62,7 +62,19 @@ export async function requestPhoneProof(userId: string | undefined, rawPhone: st
     const { sb, door } = await supabasePhoneDoor(phone);
     // `phone_change` takes no channel: Supabase sends it on the provider's own, SMS by default.
     const { error } = door === "sms" ? await sb.auth.signInWithOtp({ phone, options: { shouldCreateUser: false, channel: otpChannel() } }) : await sb.auth.updateUser({ phone });
-    if (error) return { ok: false, error: `Envoi impossible : ${error.message}` };
+    if (error) {
+      // Two kinds of refusal, and the client only has business with one of them.
+      // « This number belongs to another account » is about them, and is said.
+      // A provider that will not carry the message (an unapproved Twilio
+      // compliance profile, a country it does not serve, an empty balance) is
+      // about us: the desk gets the words in the log, the client gets the same
+      // way out as when no sender is configured at all.
+      if ((error.status ?? 500) >= 500 || /provider/i.test(error.message)) {
+        console.error(`[channels] Supabase n'a pas pu envoyer le code à ${phone} : ${error.message}`);
+        return { ok: false, error: "Le code par téléphone n'est pas disponible pour l'instant : un conseiller confirme votre numéro par téléphone.", unavailable: true };
+      }
+      return { ok: false, error: `Envoi impossible : ${error.message}` };
+    }
     return { ok: true, channel: door === "sms" ? otpChannel() : "sms" };
   }
   if (!whatsappConfigured() && !proofDemoAllowed()) {
