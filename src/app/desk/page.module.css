@@ -54,6 +54,26 @@
   max-height: 260px;
   overflow: auto;
 }
+/* La diffusion : la hauteur du flux, mais un tableau, donc un en-tête qui
+   tient sa place pendant que les envois défilent sous lui. Le défilement
+   horizontal reste possible pour les écrans étroits. */
+.feedTable {
+  max-height: 260px;
+  overflow: auto;
+}
+.feedTable table {
+  margin: 0;
+}
+.feedTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  /* border-collapse rattache le filet au tableau, pas à la cellule : il
+     défilerait avec les lignes. L’ombre interne, elle, suit l’en-tête. */
+  border-bottom: 0;
+  box-shadow: inset 0 -1px 0 var(--line);
+}
 .ev {
   display: grid;
   grid-template-columns: 52px 1fr;
