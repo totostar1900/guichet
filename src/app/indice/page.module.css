@@ -117,7 +117,7 @@
   background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
   background-attachment: local, local, scroll, scroll;
 }
-/* la date reste en vue quand on défile vers les chiffres */
+/* la première colonne reste en vue quand on défile vers les chiffres : la séance ici, la société sur la composition */
 .when {
   position: sticky;
   left: 0;

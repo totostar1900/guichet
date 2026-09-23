@@ -36,7 +36,9 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
   const all = sp.toutes === "1";
   const societe = sp.societe && weights.some((w) => w.mnemo === sp.societe) ? sp.societe : "";
   const page = Math.max(1, Number(sp.page) || 1);
-  const PER = 50;
+  // 25 et non 50 : sur un téléphone chaque ligne prend trois lignes de texte,
+  // et la barre de défilement horizontale se trouve au bas de la table.
+  const PER = 25;
   const tableRows = [...stats.points]
     .reverse()
     .filter((p) => (all ? true : (p.variationPct ?? 0) !== 0))
@@ -355,7 +357,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
               <table className={`tbl ${styles.comp}`}>
                 <thead>
                   <tr>
-                    <th>{t("Société")}</th>
+                    <th className={styles.when}>{t("Société")}</th>
                     <th className={styles.num}>{t("Cours")}</th>
                     <th className={styles.num}>{t("Capital global")}</th>
                     <th className={styles.num}>{t("Poids")}</th>
@@ -368,7 +370,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
                 <tbody>
                   {weights.map((w) => (
                     <tr key={w.isin}>
-                      <td>
+                      <td className={styles.when}>
                         <Link href={`/societes/${w.mnemo.toLowerCase()}?depuis=indice`}>
                           <b>{w.mnemo}</b> · {nameOf(w.mnemo)}
                         </Link>
