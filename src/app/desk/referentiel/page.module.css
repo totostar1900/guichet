@@ -551,3 +551,17 @@
   cursor: pointer;
   padding: 0;
 }
+
+/* Une entrée supprimée reste à sa place, pâle et barrée : elle peut revenir,
+   et la voir disparaître sans trace inquiéterait à raison. */
+.goneRow > td:first-child b,
+.goneRow > td:nth-child(2) {
+  text-decoration: line-through;
+}
+.goneRow > td {
+  opacity: 0.6;
+}
+.tagGone {
+  background: var(--warn-soft);
+  color: var(--warn);
+}

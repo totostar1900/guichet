@@ -6,7 +6,8 @@ import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { REF } from "@/lib/reference";
+import { REF, TOMBSTONE, isTombstone } from "@/lib/reference";
+import { GLOSSARY } from "@/lib/glossary";
 import { LESSONS } from "@/data/lessons";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
@@ -261,6 +262,59 @@ export async function saveJsonAction(_p: RefResult | null, form: FormData): Prom
 /* ---------- Commun : retour aux valeurs par défaut, publication, abandon ---------- */
 
 /** Stages the return to the code default (a desk-created entry disappears at publication). */
+/** Les clefs que le code livre, par nature d'entrée : celles-là ne s'effacent pas, elles se couvrent. */
+const builtinKeys: Record<string, () => string[]> = {
+  [REF.types]: () => BUILTIN_TYPES.map((t) => t.key),
+  [REF.glossary]: () => Object.keys(GLOSSARY),
+  [REF.lessons]: () => LESSONS.map((l) => l.key),
+  [REF.companies]: () => COMPANIES.map((c) => c.mnemo),
+  [REF.issuers]: () => ISSUERS.map((i) => i.slug),
+};
+
+/**
+ * Supprimer une entrée du référentiel, en brouillon comme tout le reste.
+ *
+ * Deux chemins pour un même geste, et l'opérateur n'a pas à savoir lequel il
+ * emprunte : une entrée que le desk a créée s'efface, une entrée que le code
+ * livre se couvre d'une pierre, parce que l'effacer la ferait revenir au
+ * chargement suivant. Les deux se défont par « Revenir aux valeurs par
+ * défaut », et aucun des deux ne bouge avant « Publier ».
+ */
+export async function removeReferenceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/referentiel");
+  const kind = String(form.get("kind") ?? "");
+  const key = String(form.get("key") ?? "");
+  if (!KINDS.includes(kind) || !key) return;
+  const row = (await repo().listReference(kind)).find((r) => r.key === key);
+  const builtin = (builtinKeys[kind]?.() ?? []).includes(key);
+  if (!builtin && row?.data == null) {
+    // rien de publié : le brouillon s'en va, et il ne reste rien
+    await repo().discardReference(kind, [key]);
+  } else if (builtin) {
+    await repo().saveReferenceDraft(kind, key, { op: "set", data: TOMBSTONE }, desk.name);
+    await audit("reference.draft", "reference", `${kind}/${key}`, { before: row?.data ?? null, after: TOMBSTONE, reason: "suppression" });
+  } else {
+    await repo().saveReferenceDraft(kind, key, { op: "reset" }, desk.name);
+    await audit("reference.draft", "reference", `${kind}/${key}`, { before: row?.data ?? null, after: null, reason: "suppression" });
+  }
+  await log(`${KIND_LABEL[kind] ?? kind} <b>${key}</b> : suppression en brouillon`, desk.name);
+  done(kind, key);
+}
+
+/** Lève la pierre : l'entrée livrée par le code revient telle qu'il l'écrit. */
+export async function restoreReferenceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/referentiel");
+  const kind = String(form.get("kind") ?? "");
+  const key = String(form.get("key") ?? "");
+  if (!KINDS.includes(kind) || !key) return;
+  const row = (await repo().listReference(kind)).find((r) => r.key === key);
+  if (!row || !isTombstone(row.data)) return;
+  await repo().saveReferenceDraft(kind, key, { op: "reset" }, desk.name);
+  await audit("reference.draft", "reference", `${kind}/${key}`, { before: row.data, after: null, reason: "rétablissement" });
+  await log(`${KIND_LABEL[kind] ?? kind} <b>${key}</b> : rétablissement en brouillon`, desk.name);
+  done(kind, key);
+}
+
 export async function resetReferenceAction(form: FormData): Promise<void> {
   const desk = await requireDesk("/desk/referentiel");
   const kind = String(form.get("kind") ?? "");

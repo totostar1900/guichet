@@ -16,10 +16,29 @@ import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/l
  */
 export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson" } as const;
 
-const rows = cache(async <T,>(kind: string): Promise<Map<string, T>> => {
-  const list = await repo().listReference(kind);
-  return new Map(list.filter((r) => r.data != null).map((r) => [r.key, r.data as T]));
-});
+/**
+ * Supprimer une entrée que le code livre.
+ *
+ * Une entrée du desk se supprime en effaçant sa ligne : il ne reste rien. Une
+ * entrée livrée avec l'application ne peut pas s'effacer de cette façon, car
+ * le code la remettrait au chargement suivant. Elle se couvre donc d'une
+ * pierre : une ligne du référentiel qui ne porte pas une valeur mais son
+ * absence, et que les listes retirent.
+ *
+ * C'est réversible, et c'est le point : « Revenir aux valeurs par défaut »
+ * efface la pierre, et le terme revient tel que le code l'écrit. Une
+ * suppression qui ne se défait pas n'a pas sa place dans un référentiel que
+ * plusieurs mains tiennent.
+ */
+export const TOMBSTONE = { __supprime: true } as const;
+export const isTombstone = (d: unknown): boolean => typeof d === "object" && d !== null && (d as { __supprime?: unknown }).__supprime === true;
+
+const raw = cache(async (kind: string) => (await repo().listReference(kind)).filter((r) => r.data != null));
+
+const rows = cache(async <T,>(kind: string): Promise<Map<string, T>> => new Map((await raw(kind)).filter((r) => !isTombstone(r.data)).map((r) => [r.key, r.data as T])));
+
+/** Les clefs que le desk a supprimées : elles ne paraissent nulle part, même livrées par le code. */
+export const gone = cache(async (kind: string): Promise<Set<string>> => new Set((await raw(kind)).filter((r) => isTombstone(r.data)).map((r) => r.key)));
 
 export const loadTypes = cache(async (): Promise<ProductType[]> => {
   const db = await rows<ProductType>(REF.types);
@@ -36,13 +55,14 @@ export const loadBondTerms = cache(async (): Promise<Map<string, BondTerms>> => 
 
 export const loadGlossary = cache(async (): Promise<Record<string, Term>> => {
   const out: Record<string, Term> = { ...GLOSSARY_DEFAULTS };
+  for (const key of await gone(REF.glossary)) delete out[key];
   for (const [key, t] of await rows<Term>(REF.glossary)) out[key] = t;
   return out;
 });
 
 export const loadLessons = cache(async (): Promise<Lesson[]> => {
-  const db = await rows<Lesson>(REF.lessons);
-  const merged = LESSONS.map((l) => db.get(l.key) ?? l);
+  const [db, removed] = await Promise.all([rows<Lesson>(REF.lessons), gone(REF.lessons)]);
+  const merged = LESSONS.filter((l) => !removed.has(l.key)).map((l) => db.get(l.key) ?? l);
   for (const [key, l] of db) if (!merged.some((m) => m.key === key)) merged.push({ ...l, key });
   return merged.sort((a, b) => a.order - b.order);
 });

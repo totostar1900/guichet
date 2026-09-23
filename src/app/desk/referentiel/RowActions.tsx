@@ -3,7 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useId } from "react";
 import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
-import { discardReferenceAction, publishReferenceAction, resetReferenceAction } from "./actions";
+import { discardReferenceAction, publishReferenceAction, removeReferenceAction, resetReferenceAction, restoreReferenceAction } from "./actions";
 import styles from "./page.module.css";
 
 /**
@@ -21,6 +21,55 @@ export function ResetButton({ kind, k, builtin, from, to }: { kind: string; k: s
       <input type="hidden" name="key" value={k} />
       <button className={`btn sm ${builtin ? "" : styles.dangerBtn}`} type="submit">
         {label}
+      </button>
+    </form>
+  );
+}
+
+/**
+ * Supprimer une entrée du référentiel.
+ *
+ * Deux lectures avant le brouillon, puis « Publier » : trois portes pour un
+ * geste qui retire au client un mot qu'il pouvait lire. La première nomme
+ * l'entrée et dit où elle disparaît ; la seconde demande de recopier sa clef,
+ * parce qu'une main qui recopie « rendement_actuariel » ne se trompe pas
+ * d'entrée, alors qu'une main qui clique « oui » se trompe tous les jours.
+ *
+ * Rien n'est perdu : une entrée supprimée se rétablit tant que le code la
+ * livre, et l'historique du référentiel garde le geste.
+ */
+export function DeleteButton({ kind, k, what, where }: { kind: string; k: string; what: string; where: string }) {
+  const tr = useT();
+  const id = useId();
+  return (
+    <form id={id} action={removeReferenceAction} className={styles.inlineForm}>
+      <input type="hidden" name="kind" value={kind} />
+      <input type="hidden" name="key" value={k} />
+      <ConfirmPublish
+        form={id}
+        label={tr("Supprimer")}
+        confirmLabel={tr("Supprimer {k}", { k })}
+        className={`btn sm ${styles.dangerBtn}`}
+        title={tr("Supprimer du référentiel")}
+        typed={k}
+        lines={[
+          tr("« {w} » disparaît de {x} à la publication.", { w: what, x: where }),
+          tr("La suppression attend « Publier » comme toute modification, et se défait par « Revenir aux valeurs par défaut »."),
+        ]}
+      />
+    </form>
+  );
+}
+
+/** Une entrée supprimée que le code livre encore : elle peut revenir. */
+export function RestoreButton({ kind, k }: { kind: string; k: string }) {
+  const tr = useT();
+  return (
+    <form action={restoreReferenceAction} className={styles.inlineForm}>
+      <input type="hidden" name="kind" value={kind} />
+      <input type="hidden" name="key" value={k} />
+      <button className="btn sm" type="submit">
+        {tr("Rétablir")}
       </button>
     </form>
   );

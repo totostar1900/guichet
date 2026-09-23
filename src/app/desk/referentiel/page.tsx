@@ -8,12 +8,12 @@ import type { ReferenceRow } from "@/lib/domain/types";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { fmtDateTime } from "@/lib/format";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
-import { loadBondTerms, loadCompanies, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
+import { isTombstone, loadBondTerms, loadCompanies, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
 import { BUILTIN_TYPES, ENGINE_LABEL, type ProductType } from "@/lib/registry";
 import { GlossaryForm, LessonForm, TermForm, TypeForm } from "./Forms";
 import { FicheForm, type FicheSeed } from "./FicheForm";
 import { Origin, type DraftState } from "./Origin";
-import { DiscardButton, PublishButton, ResetButton } from "./RowActions";
+import { DeleteButton, DiscardButton, PublishButton, ResetButton, RestoreButton } from "./RowActions";
 import { TermsTable, type TermRow } from "./TermsTable";
 import { FromSante } from "@/components/desk/FromSante";
 import { LESSONS, type Lesson } from "@/data/lessons";
@@ -56,12 +56,17 @@ function seen<T>(published: T[], keyOf: (t: T) => string, defaults: T[], keyOfDe
     const key = keyOf(item);
     const r = byKey.get(key);
     const builtin = def.has(key);
+    // une pierre en brouillon ne remplace pas la valeur : l'entrée se lit encore, barrée
+    if (r?.draft?.op === "set" && isTombstone(r.draft.data)) return { item, inDb: r.data != null, builtin, draft: "remove" };
     if (r?.draft?.op === "set") return { item: { ...item, ...(r.draft.data as object) } as T, inDb: r.data != null, builtin, draft: "set" };
     if (r?.draft?.op === "reset") return { item: def.get(key) ?? item, inDb: true, builtin, draft: "reset" };
     return { item, inDb: Boolean(r && r.data != null), builtin };
   });
   for (const r of rows) {
-    if (r.draft?.op === "set" && r.data == null && !published.some((p) => keyOf(p) === r.key)) out.push({ item: { ...(r.draft.data as object), key: r.key } as T, inDb: false, builtin: false, draft: "new" });
+    if (published.some((p) => keyOf(p) === r.key)) continue;
+    // une pierre publiée : l'entrée a disparu des listes, elle reste ici pour pouvoir revenir
+    if (isTombstone(r.data)) out.push({ item: (def.get(r.key) ?? ({ key: r.key } as T)) as T, inDb: true, builtin: def.has(r.key), draft: r.draft?.op === "reset" ? "reset" : "removed" });
+    else if (r.draft?.op === "set" && r.data == null) out.push({ item: { ...(r.draft.data as object), key: r.key } as T, inDb: false, builtin: false, draft: "new" });
   }
   return out;
 }
@@ -149,7 +154,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
 type Ctx = { rows: ReferenceRow[]; open: string; ok: string };
 
 /** The head of the edit panel: the title, then the entry's own buttons (publish / discard its draft, reset). */
-function EditHead({ title, kind, k, s }: { title: string; kind: string; k?: string; s?: Seen<unknown> }) {
+function EditHead({ title, kind, k, s, remove }: { title: string; kind: string; k?: string; s?: Seen<unknown>; remove?: { what: string; where: string } }) {
   return (
     <div className="panel-h">
       <h2>{title}</h2>
@@ -158,6 +163,8 @@ function EditHead({ title, kind, k, s }: { title: string; kind: string; k?: stri
           {s.draft && <DiscardButton kind={kind} k={k} />}
           {s.draft && <PublishButton kind={kind} k={k} />}
           {(s.inDb || s.draft === "new") && s.draft !== "reset" && <ResetButton kind={kind} k={k} builtin={s.builtin} />}
+          {/* Supprimer : une entrée que le code livre se couvre, une entrée du desk s'efface ; le bouton est le même. */}
+          {remove && s.draft !== "remove" && s.draft !== "removed" && <DeleteButton kind={kind} k={k} what={remove.what} where={remove.where} />}
         </span>
       )}
     </div>
@@ -290,7 +297,7 @@ async function Glossary({ glossary, rows, open, ok }: { glossary: Record<string,
           </thead>
           <tbody>
             {list.map(({ item: g, ...s }) => (
-              <tr key={g.key} className={g.key === ok ? styles.hl : undefined} id={`ref-${g.key}`}>
+              <tr key={g.key} className={[g.key === ok ? styles.hl : "", s.draft === "remove" || s.draft === "removed" ? styles.goneRow : ""].filter(Boolean).join(" ") || undefined} id={`ref-${g.key}`}>
                 <td>
                   <b>{g.short}</b>
                   {g.long && <small className="muted"> : {g.long}</small>}
@@ -302,9 +309,13 @@ async function Glossary({ glossary, rows, open, ok }: { glossary: Record<string,
                   <Origin inDb={s.inDb} builtin={s.builtin} draft={s.draft} />
                 </td>
                 <td className="r">
-                  <Link className="btn sm" href={`/desk/referentiel?onglet=glossaire&cle=${g.key}#edit`}>
-                    {tr("Modifier")}
-                  </Link>
+                  {s.draft === "removed" ? (
+                    <RestoreButton kind={REF.glossary} k={g.key} />
+                  ) : (
+                    <Link className="btn sm" href={`/desk/referentiel?onglet=glossaire&cle=${g.key}#edit`}>
+                      {tr("Modifier")}
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}
@@ -312,7 +323,7 @@ async function Glossary({ glossary, rows, open, ok }: { glossary: Record<string,
         </table>
       </div>
       <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.short} »`} kind={REF.glossary} k={cur.item.key} s={cur} /> : <EditHead title={tr("Nouveau terme")} kind={REF.glossary} />}
+        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.short} »`} kind={REF.glossary} k={cur.item.key} s={cur} remove={{ what: cur.item.short, where: tr("du glossaire et des bulles « i » qui le citent") }} /> : <EditHead title={tr("Nouveau terme")} kind={REF.glossary} />}
         <GlossaryForm key={cur?.item.key ?? "new"} k={cur?.item.key} t={cur ? { short: cur.item.short, long: cur.item.long, text: cur.item.text } : undefined} />
       </div>
     </>
@@ -345,7 +356,7 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
           </thead>
           <tbody>
             {list.map(({ item: l, ...s }) => (
-              <tr key={l.key} className={l.key === ok ? styles.hl : undefined} id={`ref-${l.key}`}>
+              <tr key={l.key} className={[l.key === ok ? styles.hl : "", s.draft === "remove" || s.draft === "removed" ? styles.goneRow : ""].filter(Boolean).join(" ") || undefined} id={`ref-${l.key}`}>
                 <td className="r num">{l.order}</td>
                 <td>
                   <b>{l.title}</b>
@@ -358,14 +369,18 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
                   <Origin inDb={s.inDb} builtin={s.builtin} draft={s.draft} />
                 </td>
                 <td className="r">
-                  <span className={styles.rowBtns}>
-                    <Link className="btn sm ghost" href={`/desk/referentiel?onglet=lecons&copie=${l.key}#edit`} title={tr("Nouvelle leçon à partir de celle-ci")}>
-                      {tr("Dupliquer")}
-                    </Link>
-                    <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
-                      {tr("Modifier")}
-                    </Link>
-                  </span>
+                  {s.draft === "removed" ? (
+                    <RestoreButton kind={REF.lessons} k={l.key} />
+                  ) : (
+                    <span className={styles.rowBtns}>
+                      <Link className="btn sm ghost" href={`/desk/referentiel?onglet=lecons&copie=${l.key}#edit`} title={tr("Nouvelle leçon à partir de celle-ci")}>
+                        {tr("Dupliquer")}
+                      </Link>
+                      <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
+                        {tr("Modifier")}
+                      </Link>
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -373,7 +388,7 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
         </table>
       </div>
       <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.title} »`} kind={REF.lessons} k={cur.item.key} s={cur} /> : <EditHead title={model ? `${tr("Nouvelle leçon à partir de")} « ${model.title} »` : tr("Nouvelle leçon")} kind={REF.lessons} />}
+        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.title} »`} kind={REF.lessons} k={cur.item.key} s={cur} remove={{ what: cur.item.title, where: tr("du Guide et des bulles « i » qui y renvoient") }} /> : <EditHead title={model ? `${tr("Nouvelle leçon à partir de")} « ${model.title} »` : tr("Nouvelle leçon")} kind={REF.lessons} />}
         {model && <p className={styles.copyHint}>{tr("Tout est repris de la leçon d'origine : donnez une clé (l'adresse de la page), un titre, et changez ce qui doit l'être. La leçon d'origine ne bouge pas.")}</p>}
         <LessonForm key={cur?.item.key ?? (model ? `copy-${model.key}` : "new")} l={cur?.item ?? model} copy={Boolean(model)} />
       </div>

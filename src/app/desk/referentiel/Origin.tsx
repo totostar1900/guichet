@@ -4,7 +4,7 @@ import { useT } from "@/i18n/client";
 import styles from "./page.module.css";
 
 /** What a draft does to the entry at publication. */
-export type DraftState = "set" | "reset" | "new";
+export type DraftState = "set" | "reset" | "new" | "remove" | "removed";
 
 /**
  * Where an entry's value comes from: the code default, the desk's published
@@ -20,6 +20,8 @@ export function Origin({ inDb, builtin, draft }: { inDb: boolean; builtin: boole
       {draft === "set" && <span className={`${styles.tag} ${styles.tagDraft}`}>{tr("brouillon")}</span>}
       {draft === "new" && <span className={`${styles.tag} ${styles.tagDraft}`}>{tr("nouveau · brouillon")}</span>}
       {draft === "reset" && <span className={`${styles.tag} ${styles.tagDraft}`}>{builtin ? tr("brouillon : retour à la valeur par défaut") : tr("brouillon : suppression")}</span>}
+      {draft === "remove" && <span className={`${styles.tag} ${styles.tagDraft}`}>{tr("brouillon : suppression")}</span>}
+      {draft === "removed" && <span className={`${styles.tag} ${styles.tagGone}`}>{tr("supprimée")}</span>}
     </span>
   );
 }

@@ -2188,4 +2188,12 @@ export const EN_MORE: Record<string, string> = {
   "Ce que vous avez à dire": "What you have to say",
   "{n} lignes": "{n} lines",
   "émetteur(s) au bulletin sans fiche": "issuer(s) in the bulletin without a fiche",
+  "supprimée": "deleted",
+  "Rétablir": "Restore",
+  "Supprimer {k}": "Delete {k}",
+  "Supprimer du référentiel": "Delete from the reference data",
+  "« {w} » disparaît de {x} à la publication.": "“{w}” disappears from {x} at publication.",
+  "La suppression attend « Publier » comme toute modification, et se défait par « Revenir aux valeurs par défaut ».": "The deletion waits for “Publish” like any change, and is undone by “Back to the default values”.",
+  "du glossaire et des bulles « i » qui le citent": "the glossary and the “i” bubbles that quote it",
+  "du Guide et des bulles « i » qui y renvoient": "the Guide and the “i” bubbles that point to it",
 };
