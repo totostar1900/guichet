@@ -30,12 +30,16 @@
   color: var(--on-navy-2);
   font-size: 0.7rem;
 }
+/* Le fond est un or littéral : sa couleur de texte doit l’être aussi. --navy-text
+   vaut #0b2545 au clair mais #9fc0f7 au sombre, et ce bleu pâle sur cet or ne se
+   lisait plus du tout. */
 .avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
   background: #e0b65a;
-  color: var(--navy-text);
+  color: #0b2545;
+  text-decoration: none;
   display: grid;
   place-items: center;
   font-weight: 600;
@@ -70,4 +74,17 @@
 }
 .open:hover {
   background: rgba(224, 182, 90, 0.15);
+}
+
+/* La feuille du compte remplace le nom et la pastille sous 900 px. */
+.compact {
+  display: none;
+}
+@media (max-width: 900px) {
+  .compact {
+    display: inline-flex;
+  }
+  .full {
+    display: none;
+  }
 }

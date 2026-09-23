@@ -118,7 +118,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Suspense>
                 <LangSwitch />
               </Suspense>
-              <UserMenu session={session} deskUi={deskUi} />
+              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY } : undefined} />
               {menu}
             </div>
           </div>
