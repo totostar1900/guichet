@@ -183,16 +183,32 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     /* quiet */
   }
 
-  // 9. Actualités: dead links on the page, and received links nobody has sorted for a week.
+  // 9. Actualités : les liens morts, et la file d'attente de relecture.
+  //
+  // Le compte ne portait que sur les liens reçus depuis plus de sept jours :
+  // une file fraîche restait invisible, et « personne n'a trié » se lisait
+  // comme « rien n'est arrivé ». Le point compte désormais tout ce qui attend,
+  // et ne s'alarme qu'au-delà de sept jours : voir la file est normal, la
+  // laisser vieillir ne l'est pas.
   const news = await loadNews();
   const dead = news.filter((n) => n.status === "publiee" && isVisible(n, now) && n.linkOk === false);
-  const unsorted = news.filter((n) => n.status === "recu" && now.getTime() - new Date(n.createdAt).getTime() > 7 * 86_400_000);
+  const waiting = news.filter((n) => n.status === "recu");
+  const aged = waiting.filter((n) => now.getTime() - new Date(n.createdAt).getTime() > 7 * 86_400_000);
+  const days = (n: (typeof waiting)[number]) => Math.floor((now.getTime() - new Date(n.createdAt).getTime()) / 86_400_000);
+  const oldest = [...waiting].sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
   out.push({
     key: "news",
-    label: "Actualités : liens morts / liens reçus non triés (> 7 jours)",
-    level: dead.length ? "warn" : "ok",
-    value: `${dead.length} / ${unsorted.length}`,
-    detail: [...dead.map((n) => `mort : ${n.title.slice(0, 60)}`), ...unsorted.map((n) => `à trier : ${n.domain}`)].slice(0, 4).join(" · ") || "tout est en ordre",
+    label: "Actualités : liens à trier / liens morts",
+    level: dead.length || aged.length ? "warn" : "ok",
+    value: `${waiting.length} à trier · ${dead.length} mort${dead.length > 1 ? "s" : ""}`,
+    detail:
+      [
+        ...(oldest ? [`le plus ancien attend depuis ${days(oldest)} jour${days(oldest) > 1 ? "s" : ""} : ${oldest.domain}`] : []),
+        ...(aged.length ? [`${aged.length} au-delà de sept jours`] : []),
+        ...dead.map((n) => `lien mort : ${n.title.slice(0, 50)}`),
+      ]
+        .slice(0, 3)
+        .join(" · ") || "aucun lien en attente, aucun lien mort",
   });
 
   return out;

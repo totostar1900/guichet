@@ -74,7 +74,7 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
   news: {
     label: "Actualités",
     href: "/desk/actualites",
-    how: "Un lien mort se retire ou se remplace ; un lien reçu depuis plus de sept jours se publie ou se rejette.",
+    how: "Un lien mort se retire ou se remplace. Un lien reçu se publie, avec son titre réécrit pour le client et ses deux lignes de « pourquoi ça compte », ou se rejette : la file se vide chaque semaine, elle ne se laisse pas vieillir.",
     docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
   },
 };
