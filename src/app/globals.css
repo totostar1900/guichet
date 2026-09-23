@@ -102,6 +102,8 @@
   /* La barre du telephone : tout ce qui se fige en haut d'une page doit se
      figer sous elle, sinon il se fige derriere, invisible. */
   --mobile-bar: 52px;
+  /* et la barre d’onglets du bas : ce qui s’étend jusqu’en bas doit s’arrêter avant elle */
+  --mobile-tabs: 56px;
   /* La marge interieure d'un panneau, celle que son en-tete pose deja. */
   --panel-inset: var(--s-7);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;

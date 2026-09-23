@@ -47,9 +47,12 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
   useEffect(() => {
     if (!open) return;
     input.current?.focus();
-    const close = (e: MouseEvent) => box.current && !box.current.contains(e.target as Node) && setOpen(false);
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    // pointerdown et non mousedown : sur un téléphone le mousedown n’est qu’un écho
+    // du toucher, tardif et parfois avalé par un défilement. Toucher hors du
+    // panneau referme, partout.
+    const close = (e: Event) => box.current && !box.current.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
   }, [open]);
 
   const choose = (l: PickLine) => {
@@ -97,7 +100,8 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
       </button>
       {open && (
         <div className={styles.panel} id={`${id}-panel`} role="dialog" aria-label={label}>
-          <label className={styles.pickSearch}>
+          <div className={styles.searchRow}>
+            <label className={styles.pickSearch}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
@@ -115,7 +119,13 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
               }}
               onKeyDown={onKey}
             />
-          </label>
+            </label>
+            <button type="button" className={styles.panelClose} onClick={() => setOpen(false)} aria-label={t("Fermer")}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6 18 18M18 6 6 18" />
+              </svg>
+            </button>
+          </div>
           <div className={styles.chips} role="group" aria-label={t("Marché")}>
             <button type="button" className={`${styles.chip} ${seg === "" ? styles.chipOn : ""}`} onClick={() => setSeg("")}>
               {t("Tous")}

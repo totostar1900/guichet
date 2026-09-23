@@ -168,6 +168,33 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+/* la recherche et la croix sur une rangée : fermer ne coûte pas une ligne de plus */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.searchRow .pickSearch {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.panelClose {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.panelClose:hover {
+  border-color: var(--navy-text);
+  color: var(--navy-text);
+}
 .pickSearch {
   display: flex;
   align-items: center;
@@ -275,12 +302,38 @@
   .pick {
     grid-template-columns: 1fr;
   }
+  /* Le panneau va d’une barre à l’autre. Il s’arrêtait à 15 vh du haut et passait
+     sous la barre d’onglets, où ses seize derniers pixels ne se lisaient pas ; et
+     sa liste restait plafonnée à 300 px quand le panneau en offrait 650. */
   .panel {
     position: fixed;
-    inset: auto 8px 8px;
-    top: 15vh;
-    max-height: 80vh;
-    overflow: auto;
+    left: var(--s-4);
+    right: var(--s-4);
+    top: calc(var(--mobile-bar) + var(--s-4) + env(safe-area-inset-top, 0px));
+    bottom: calc(var(--mobile-tabs) + var(--s-4) + env(safe-area-inset-bottom, 0px));
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* la liste prend ce qui reste, au lieu d’un plafond fixe */
+  .list {
+    max-height: none;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  /* des pastilles plus serrées : à 375 px les onze étiquettes tenaient sur cinq
+     rangs, qui mangeaient la moitié du panneau avant la première ligne. */
+  .chips {
+    gap: var(--s-2);
+  }
+  .chip {
+    padding: var(--s-1) var(--s-4);
+    font-size: 0.72rem;
+  }
+  .chipSm {
+    padding: var(--s-1) var(--s-3);
+    font-size: 0.68rem;
   }
   .grid {
     grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr);
