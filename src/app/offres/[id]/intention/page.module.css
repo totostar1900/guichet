@@ -33,9 +33,10 @@
   font-size: 0.74rem;
   color: var(--ink-3);
 }
+/* trois cartes, ou quatre quand la ligne porte un nominal : la grille compte elle-même */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
   gap: 8px;
 }
 .form {
@@ -53,13 +54,12 @@
   .page {
     gap: 10px;
   }
+  /* Cette tête ne se fige plus. Haute de 338 px sur un écran de 812, elle en
+     gelait deux cinquièmes et ne laissait que 410 px au formulaire, alors que
+     la barre du téléphone porte déjà le titre de la page et que le prix se
+     rappelle juste au-dessus du champ. */
   .head {
-    position: sticky;
-    top: 52px;
-    z-index: 5;
     padding: 10px 12px;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   }
   .form {
     padding: 12px;

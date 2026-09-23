@@ -149,8 +149,28 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     return (
       <div className={styles.wrap}>
         <div className={styles.done}>
-          <b>{t("Reçu : réf.")} {state.ref}</b>
-          {t(DONE[state.type]("{by}"), { by: t(BY[state.channel]) })}
+          <div className={styles.receiptHead}>
+            <span className={styles.tick} aria-hidden="true">
+              ✓
+            </span>
+            <span>
+              <b>{t("Votre intention est enregistrée")}</b>
+              <small>{t("Gardez cette référence : elle sert de référence de virement.")}</small>
+            </span>
+          </div>
+          <div className={styles.ref}>{state.ref}</div>
+          <dl className={styles.receipt}>
+            <dt>{t("Votre demande")}</dt>
+            <dd>
+              {t(INTENT_LABEL[state.type])}
+              {ordered ? ` · ${market ? `${fmt(ordered)} ${t(offer.instrument === "obligation" ? "titres" : "actions")}` : `${fmtUnits(ordered)} ${t(offer.kind === "FONDS" && type === "rachat" ? "parts" : "FCFA")}`}` : ""}
+            </dd>
+            <dt>{t("La ligne")}</dt>
+            <dd>{offer.title}</dd>
+            <dt>{t("On vous répond")}</dt>
+            <dd>{t(BY[state.channel])}</dd>
+          </dl>
+          <div className={styles.next}>{t("La suite")}</div>
           <ul className={styles.steps}>
             <li>
               {t("Accusé de réception envoyé sur WhatsApp au")} <b>{state.phone}</b> {t("et par e-mail à")} <b>{state.email}</b>
@@ -159,6 +179,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             <li>{t("Un conseiller vous confirme {by} : vérifiez que ce numéro reçoit bien les appels et WhatsApp.", { by: t(BY[state.channel]) })}</li>
             <li>{t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
           </ul>
+          {/* Un accusé de réception part d’un domaine que la boîte du client ne connaît pas encore : il finit souvent au courrier indésirable. */}
+          <p className={styles.spam}>
+            {t("Si l’accusé n’arrive pas dans quelques minutes, regardez vos courriers indésirables, et marquez-le comme légitime : les suivants arriveront dans la boîte de réception.")}
+          </p>
           {state.needsAccount && (
             <div className={styles.needAccount}>
               {t("Pour transmettre cet ordre, votre compte-titres doit être ouvert : dix minutes sur votre téléphone.")}{" "}
@@ -171,9 +195,6 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           <div className={styles.doneActions}>
             <Link className="btn sm" href={`/offres/${offer.id}`}>
               {t("Autre intention")}
-            </Link>
-            <Link className="btn sm ghost" href="/desk">
-              {t("Voir dans le desk")}
             </Link>
           </div>
         </div>

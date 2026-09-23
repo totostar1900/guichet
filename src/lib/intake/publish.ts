@@ -2,7 +2,7 @@ import type { IntakeItem, Offer, OfferDraft } from "@/lib/domain/types";
 
 /** What the desk decides at publication : the only human inputs on an offer. */
 export interface DeskDecision {
-  pricePct?: number; // OTA / APE / RACHAT
+  pricePct?: number; // OTA / APE / RACHAT : ni un BTA ni un fonds n’en portent
   precountRate?: number; // BTA
   commissionPct: number;
   checked?: string[]; // checklist items ticked by the desk
@@ -58,7 +58,9 @@ export function buildOffer(item: IntakeItem, decision: DeskDecision, existing: O
     nominal: d.nominal!,
     couponRate: d.couponRate ?? existing?.couponRate,
     precountRate: d.kind === "BTA" ? decision.precountRate : undefined,
-    pricePct: d.kind === "BTA" ? undefined : d.kind === "RACHAT" ? 100 : decision.pricePct,
+    // Un fonds se souscrit a la prochaine valeur liquidative : lui ecrire un prix,
+    // c’etait inscrire sur la ligne un chiffre qui ne veut rien dire.
+    pricePct: d.kind === "BTA" || d.kind === "FONDS" ? undefined : d.kind === "RACHAT" ? 100 : decision.pricePct,
     commissionPct: decision.commissionPct,
     typeKey: d.typeKey ?? existing?.typeKey,
     extra: d.extra ?? existing?.extra,

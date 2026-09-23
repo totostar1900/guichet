@@ -228,6 +228,15 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
                 {tr("Prix")}
                 <input value={kind === "RACHAT" ? "100 % (au pair)" : "prix d'émission"} readOnly />
               </label>
+            ) : kind === "FONDS" ? (
+              // Un FCP n'a pas de prix que le desk fixe : il a une valeur liquidative,
+              // calculée et publiée par la société de gestion, et l'on souscrit à la
+              // prochaine, inconnue à l'instant de l'ordre. Le champ ne se saisit pas
+              // et n'envoie rien.
+              <label className="field">
+                {tr("Valeur liquidative")}
+                <input value={offer?.fund ? `${fmt(offer.fund.nav)} FCFA · ${offer.fund.navDate}` : tr("publiée par la société de gestion")} readOnly />
+              </label>
             ) : (
               <label className="field">
                 {tr("Prix Purpose (% du nominal)")}

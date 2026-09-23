@@ -7,7 +7,14 @@ import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { daysBetween } from "@/lib/finance";
 import styles from "./page.module.css";
 
-/** The three figures of a line, each opening on its working: on the fiche and on the intention page. */
+/**
+ * Les chiffres d’une ligne, chacun s’ouvrant sur son calcul.
+ *
+ * Le nominal vient en dernier quand la ligne en a un. Il manquait, et c’est
+ * précisément lui qu’il faut pour lire le reste : un ordre sur une obligation se
+ * saisit en montant nominal, et un cours de « 101 % » ne veut rien dire sans
+ * savoir 101 % de quoi.
+ */
 export function Kpis({ o }: { o: Offer }) {
   const dy = displayYield(o);
   const y = dy.pct;
@@ -18,6 +25,7 @@ export function Kpis({ o }: { o: Offer }) {
           [dy.atPar ? `Taux nominal ${o.servedPricePct ? "servi" : "visé"} au pair` : `Rendement actuariel ${o.servedPricePct ? "servi" : "visé"}`, yTxt, true],
           [`Prix ${o.servedPricePct ? "servi" : "Purpose"}`, fmtPrice(o.servedPricePct ?? o.pricePct ?? 100), false],
           ["Coupon annuel", fmtPct(o.couponRate ?? 0, 2), false],
+          ["Nominal par titre (FCFA)", o.nominal ? fmt(o.nominal) : "—", false],
         ]
       : o.kind === "FONDS" && o.fund
         ? [
@@ -30,6 +38,7 @@ export function Kpis({ o }: { o: Offer }) {
             [dy.atPar ? "Taux nominal · au pair" : o.instrument === "obligation" ? "Rendement actuariel annuel brut au cours" : "Rendement du dernier dividende", yTxt, true],
             [o.instrument === "obligation" ? "Coupon facial" : "Dernier dividende brut", o.instrument === "obligation" ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
             [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", false],
+            ...(o.instrument === "obligation" && o.nominal ? ([["Nominal par titre (FCFA)", fmt(o.nominal), false]] as [string, string, boolean][]) : []),
           ]
       : o.kind === "BTA"
         ? [
@@ -47,6 +56,7 @@ export function Kpis({ o }: { o: Offer }) {
               ["Prix de rachat", "100 %", true],
               ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—", false],
               ["Volume racheté", o.sizeLabel ?? "—", false],
+              ...(o.nominal ? ([["Nominal par titre (FCFA)", fmt(o.nominal), false]] as [string, string, boolean][]) : []),
             ];
   // Every card opens on tap: the number decomposed with this line's own figures.
   const explains = explainKpis(o);

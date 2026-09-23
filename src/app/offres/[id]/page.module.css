@@ -55,9 +55,10 @@
   font-size: 0.95rem;
   margin-bottom: 10px;
 }
+/* trois cartes, ou quatre quand la ligne porte un nominal : la grille compte elle-même */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
   gap: 10px;
 }
 .kpi {
