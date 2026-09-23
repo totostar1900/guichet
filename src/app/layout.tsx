@@ -16,7 +16,8 @@ import { Presentation } from "@/components/mobile/Presentation";
 import { isDesk } from "@/lib/auth/types";
 import type { ClientPrefs } from "@/lib/domain/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
-import { loadRegistry } from "@/lib/reference";
+import { loadIssuerRegistry, loadRegistry } from "@/lib/reference";
+import { issuersForClient } from "@/data/issuer-registry";
 import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
 import { LangSwitch } from "@/components/LangSwitch";
@@ -73,7 +74,7 @@ async function accountLine(userId: string): Promise<{ security: { channels: numb
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const [session, registry, lang, t, navCounts, jar, hdrs] = await Promise.all([getSession(), loadRegistry(), getLang(), getT(), countOffers(), cookies(), headers()]);
+  const [session, registry, issuers, lang, t, navCounts, jar, hdrs] = await Promise.all([getSession(), loadRegistry(), loadIssuerRegistry(), getLang(), getT(), countOffers(), cookies(), headers()]);
   const desk = isDesk(session);
   // With the desk on its own host, the client site shows no desk control, even to staff.
   const onDeskHost = isDeskHost(hdrs.get("host"));
@@ -98,7 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense>
           <BarProbe />
         </Suspense>
-        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons}>
+        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons} issuers={issuersForClient(issuers)}>
         <TermSheetHost />
         <header className={styles.top}>
           <div className={styles.topIn}>

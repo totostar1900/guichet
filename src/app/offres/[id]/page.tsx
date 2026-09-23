@@ -7,7 +7,7 @@ import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
-import { companyByIsin, issuerByIsin } from "@/lib/reference";
+import { companyByIsin, issuerByIsin, loadIssuerRegistry } from "@/lib/reference";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
@@ -259,6 +259,9 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
   const { channels, bridge, fin, mark, types, initial, held, qty, st, past, priceText } = await loadIntentContext(o, sp, session);
   const summary = summarize(o, new Date());
+  // Le registre des fiches publiées, installé avant la résolution : la page ne
+  // dépend pas de l’ordre dans lequel Next rend la mise en page et elle.
+  await loadIssuerRegistry();
   const profile = resolveIssuer(o);
   const others = profile ? (await repo().listOffers()).filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })).slice(0, 8) : [];
   const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;

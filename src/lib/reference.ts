@@ -7,6 +7,7 @@ import { ISSUERS, type BondIssuer } from "@/data/issuers";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
 import { LESSONS, type Lesson } from "@/data/lessons";
 import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/lib/registry";
+import { buildIssuerRegistry, setIssuerRegistry, type IssuerProfile } from "@/data/issuer-registry";
 
 /**
  * Reference data as the desk maintains it in the app. Each kind starts from
@@ -74,6 +75,20 @@ export const loadCompanies = cache(async (): Promise<Company[]> => {
   return merged;
 });
 export const companyByMnemo = async (mnemo: string) => (await loadCompanies()).find((c) => c.mnemo.toLowerCase() === mnemo.toLowerCase());
+
+/**
+ * Le registre des émetteurs tel que les fiches publiées le font, installé au
+ * passage pour que `resolveIssuer` dise la même chose partout sur le serveur.
+ * Une société renommée au desk change donc aussi la tête de groupe du
+ * navigateur de lignes et le volet « Émetteur » d'une fiche, pas seulement la
+ * page /societes.
+ */
+export const loadIssuerRegistry = cache(async (): Promise<IssuerProfile[]> => {
+  const [companies, issuers] = await Promise.all([loadCompanies(), loadIssuers()]);
+  const list = buildIssuerRegistry(companies, issuers);
+  setIssuerRegistry(list);
+  return list;
+});
 export const companyByIsin = async (isin: string) => (await loadCompanies()).find((c) => c.isin === isin);
 
 export const loadIssuers = cache(async (): Promise<BondIssuer[]> => {

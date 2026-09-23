@@ -1,6 +1,6 @@
 import type { Country, Offer } from "@/lib/domain/types";
-import { COMPANIES } from "./companies";
-import { ISSUERS } from "./issuers";
+import { COMPANIES, type Company } from "./companies";
+import { ISSUERS, type BondIssuer } from "./issuers";
 
 /**
  * One issuer behind its spellings. The bulletin, the desk's own entries and
@@ -64,11 +64,20 @@ const norm = (s: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-/** The registry: the states and the regional institutions, then the listed companies and the bond issuers already documented. */
-export const ISSUER_REGISTRY: IssuerProfile[] = [
+/**
+ * Le registre, construit sur les fiches qu'on lui donne.
+ *
+ * Il partait des constantes du code, si bien qu'une société renommée au desk
+ * gardait ici son ancien nom, son ancienne zone et ses anciens alias : la page
+ * /societes disait une chose, la tête de groupe du navigateur de lignes en
+ * disait une autre. Les états et les institutions régionales restent dans le
+ * code, parce qu'aucune fiche ne les décrit ; le reste vient des fiches.
+ */
+export function buildIssuerRegistry(companies: Company[], issuers: BondIssuer[]): IssuerProfile[] {
+  return [
   ...STATES,
   ...REGIONAL,
-  ...COMPANIES.map<IssuerProfile>((c) => ({
+  ...companies.map<IssuerProfile>((c) => ({
     slug: c.mnemo.toLowerCase(),
     name: c.shortName,
     family: /banque|bank|banco|finance|crédit|credit|assur/i.test(`${c.name} ${c.sector}`) ? "banque" : "societe",
@@ -81,7 +90,7 @@ export const ISSUER_REGISTRY: IssuerProfile[] = [
     source: "fiche signalétique BVMAC · comptes certifiés",
     href: `/societes/${c.mnemo.toLowerCase()}`,
   })),
-  ...ISSUERS.map<IssuerProfile>((i) => ({
+  ...issuers.map<IssuerProfile>((i) => ({
     slug: i.slug,
     name: i.shortName,
     family: /banque|bank|finance|crédit|credit|assur/i.test(`${i.name} ${i.sector}`) ? "banque" : "societe",
@@ -95,24 +104,55 @@ export const ISSUER_REGISTRY: IssuerProfile[] = [
     website: i.website,
     href: `/emetteurs/${i.slug}`,
   })),
-];
-
-const byIsin = new Map<string, IssuerProfile>();
-const byAlias = new Map<string, IssuerProfile>();
-for (const p of ISSUER_REGISTRY) {
-  for (const isin of p.isins ?? []) byIsin.set(isin, p);
-  for (const a of p.aliases) byAlias.set(norm(a), p);
+  ];
 }
+
+/** Ce que le code livre : le registre d'un serveur qui n'a encore rien lu. */
+export const ISSUER_REGISTRY: IssuerProfile[] = buildIssuerRegistry(COMPANIES, ISSUERS);
+
+/**
+ * Le registre en vigueur, et ses deux index.
+ *
+ * Même geste que `setRegistry` pour les types et le glossaire : le serveur
+ * l'installe en lisant le référentiel, le navigateur le reçoit par
+ * RegistryProvider, et `resolveIssuer` garde sa signature partout. Sans quoi
+ * il faudrait passer le registre en propriété à travers le navigateur de
+ * lignes, la carte d'identité d'une ligne et tout ce qui viendra après.
+ */
+const index = (list: IssuerProfile[]) => {
+  const isin = new Map<string, IssuerProfile>();
+  const alias = new Map<string, IssuerProfile>();
+  for (const p of list) {
+    for (const i of p.isins ?? []) isin.set(i, p);
+    for (const a of p.aliases) alias.set(norm(a), p);
+  }
+  return { list, isin, alias };
+};
+
+let REG = index(ISSUER_REGISTRY);
+
+export const getIssuerRegistry = (): IssuerProfile[] => REG.list;
+export function setIssuerRegistry(list: IssuerProfile[]): void {
+  REG = index(list);
+}
+
+/**
+ * Le registre allégé pour le navigateur : les phrases sourcées et les liens
+ * ne servent qu'au volet « Émetteur », rendu sur le serveur. Ce qui traverse
+ * est ce qui sert à reconnaître un émetteur, rien de plus.
+ */
+export const issuersForClient = (list: IssuerProfile[]): IssuerProfile[] => list.map(({ slug, name, family, zone, aliases, labelPrefixes, isins }) => ({ slug, name, family, zone, aliases, labelPrefixes, isins }));
 
 /** The issuer behind a line, when the registry knows it. */
 export function resolveIssuer(o: Pick<Offer, "isin" | "issuer" | "title">): IssuerProfile | undefined {
+  const { list, isin: byIsin, alias: byAlias } = REG;
   if (o.isin && byIsin.has(o.isin)) return byIsin.get(o.isin);
   const n = norm(o.issuer ?? "");
   if (n && byAlias.has(n)) return byAlias.get(n);
   // « BGFI Holding Corporation S.A. » and « BGFI Holding Corporation » : the same once the suffixes go.
   for (const [alias, p] of byAlias) if (n && (alias === n || (n.length > 6 && alias.startsWith(n)) || (alias.length > 6 && n.startsWith(alias)))) return p;
   const label = (o.title ?? "").toUpperCase();
-  for (const p of ISSUER_REGISTRY) for (const pre of p.labelPrefixes ?? []) if (label.startsWith(pre + " ")) return p;
+  for (const p of list) for (const pre of p.labelPrefixes ?? []) if (label.startsWith(pre + " ")) return p;
   return undefined;
 }
 
