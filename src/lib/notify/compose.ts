@@ -1,4 +1,5 @@
 import { COMPANY, DISCLAIMER } from "@/lib/config";
+import { reasonForClient } from "@/lib/domain/cancel-reasons";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import { headlineYield } from "@/lib/domain/status";
 import type { DocumentType, GeneratedDocument, Intent, IntentState, Offer } from "@/lib/domain/types";
@@ -58,6 +59,21 @@ export function intentReceived(i: Intent, o: Offer, estimate?: string): Message 
   return { subject: `Reçu : ${i.ref} · ${o.title}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, text.replace(/^.*\n/, "")] } };
 }
 
+/**
+ * Ce qu’un client lit quand son ordre est clos sans suite.
+ *
+ * Sans motif, la phrase ne disait rien et rejetait la question sur le client :
+ * « contactez-nous si ce n’est pas attendu ». Avec le motif, elle dit ce qui
+ * s’est passé, et l’invitation à nous écrire redevient une offre plutôt qu’une
+ * charge.
+ */
+function cancelText(i: Intent): string {
+  const why = reasonForClient(i.closedReason);
+  return why
+    ? `Votre ordre ${i.ref} est clos sans suite : ${why}. Écrivez-nous si vous souhaitez le reprendre.`
+    : `Votre ordre ${i.ref} est clos sans suite. Écrivez-nous si ce n’est pas attendu.`;
+}
+
 export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?: string): Message {
   const lines: Record<IntentState, string> = {
     recue: "Votre intention est enregistrée.",
@@ -75,7 +91,9 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
     servie: o.kind === "FONDS" ? `Votre ordre ${i.ref} est exécuté${i.executedPrice != null ? ` à la VL de ${fmt(i.executedPrice)} FCFA` : ""}${i.servedUnits != null ? ` pour ${i.servedUnits.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : ""}. L'avis d'opération suit après inscription au registre.` : o.kind === "MARCHE" ? `Votre ordre ${i.ref} est exécuté${i.executedPrice != null ? ` à ${o.instrument === "obligation" ? fmtPrice(i.executedPrice) : fmt(i.executedPrice) + " FCFA"}` : ""}${i.servedUnits != null ? ` pour ${fmt(i.servedUnits)} unités` : ""}. Règlement T+${o.settlementDays ?? 3}, puis avis d'opéré.` : `Résultats : votre ordre ${i.ref} est servi${o.servedPricePct != null ? ` à ${fmtPrice(o.servedPricePct)}` : ""}. Règlement le ${fmtDate(o.settleOn)}. L'avis de résultat suit.`,
     non_servie: `Résultats : votre ordre ${i.ref} n'a pas été servi. Les fonds sont restitués sous deux jours ouvrés, sans frais.`,
     reglee: o.kind === "FONDS" ? `${i.type === "rachat" ? "Rachat réglé : le produit est viré sur votre compte bancaire." : `Vos parts de ${o.title} sont inscrites à votre nom au registre du dépositaire.`} L'avis d'opération suit.` : `Règlement effectué le ${fmtDate(o.settleOn)} : vos titres ${o.isin} sont inscrits à votre nom. L'avis d'opéré suit.`,
-    annulee: `Votre intention ${i.ref} a été annulée. Contactez-nous si ce n'est pas attendu.`,
+    // Le motif d’abord : un client qui apprend que son ordre est clos veut savoir
+    // pourquoi avant de savoir qui appeler.
+    annulee: cancelText(i),
   };
   const text = `${COMPANY.name} : ${o.title}\n${lines[state]}`;
   return { subject: `${o.title} : ${i.ref}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, lines[state]] } };

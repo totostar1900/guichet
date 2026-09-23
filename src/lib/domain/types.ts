@@ -175,6 +175,8 @@ export interface Intent {
   /** Secondary market: client's limit (FCFA per share, or % of nominal) and the executed price. */
   limitPrice?: number | null;
   executedPrice?: number | null;
+  /** Clos sans suite : le motif de la liste, puis la précision de l’opérateur. Le client le lit. */
+  closedReason?: string;
   createdAt: string;
   updatedAt: string;
 }

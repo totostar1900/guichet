@@ -242,3 +242,22 @@
 .hist li.muted {
   display: block;
 }
+
+/* Clore sans suite : le motif, sa précision, puis le bouton et sa relecture. */
+.cancel {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.cancelNote {
+  flex: 1 1 220px;
+  min-width: 160px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: var(--s-3) var(--s-5);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+}

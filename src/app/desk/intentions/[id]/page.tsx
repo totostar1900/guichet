@@ -18,6 +18,8 @@ import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
 import { ReachLine } from "@/components/desk/ReachLine";
+import { CancelOrder } from "./CancelOrder";
+import { reasonForDesk } from "@/lib/domain/cancel-reasons";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Intention" };
@@ -93,6 +95,8 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 {t(INTENT_LABEL[it.type])} · {amountText}
               </h2>
               <span className={`st ${it.state}`}>{t(INTENT_STATE_LABEL[it.state])}</span>
+              {/* un ordre clos porte son motif la ou son etat se lit */}
+              {it.state === "annulee" && it.closedReason && <span className="muted" style={{ fontSize: ".8rem" }}>{t(reasonForDesk(it.closedReason))}</span>}
             </div>
             <div className={styles.line}>
               <LineIdentity o={o} s={s} href={`/offres/${o.id}`} size="lg" />
@@ -196,7 +200,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 </Link>
               )}
               {next
-                .filter((st) => !(marketExec && st !== "annulee"))
+                .filter((st) => st !== "annulee" && !marketExec)
                 .map((st) => (
                   <form key={st} action={transitionIntent}>
                     <input type="hidden" name="intentId" value={it.id} />
@@ -206,6 +210,8 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     </button>
                   </form>
                 ))}
+              {/* Clore sans suite a sa propre forme : un motif, une relecture, la phrase que le client lira. */}
+              {next.includes("annulee") && <CancelOrder intentId={it.id} ref_={it.ref} clientName={it.clientName} offerTitle={o.title} />}
               {next.length === 0 && <span className="muted">{t("Intention terminée : plus aucun passage possible.")}</span>}
               <Link className="btn ghost" href={`/offres/${o.id}`}>
                 {t("Voir la fiche")}

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
+import { packReason, reasonForDesk } from "@/lib/domain/cancel-reasons";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -21,18 +22,24 @@ export async function transitionIntent(form: FormData): Promise<void> {
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return;
   const { intentId, state } = parsed.data;
+  // Clore sans suite demande un motif : c’est lui que le client lit, et lui que le
+  // journal garde. Un ordre clos sans raison ne s’explique plus six mois après.
+  const reasonKey = String(form.get("reason") ?? "").trim();
+  const reasonNote = String(form.get("reasonNote") ?? "").trim();
+  const closedReason = state === "annulee" && reasonKey ? packReason(reasonKey, reasonNote) : undefined;
   const r = repo();
   const intents = await r.listIntents();
   const it = intents.find((x) => x.id === intentId);
   if (!it || !nextStates(it.state, it.type).includes(state)) return;
-  const updated = await r.setIntentState(intentId, state);
-  await audit("intent.transition", "intent", intentId, { before: { state: it.state }, after: { state }, reason: `${it.ref} · ${it.clientName}` });
+  if (state === "annulee" && !closedReason) return;
+  const updated = await r.setIntentState(intentId, state, closedReason);
+  await audit("intent.transition", "intent", intentId, { before: { state: it.state }, after: { state, closedReason }, reason: closedReason ? reasonForDesk(closedReason) : `${it.ref} · ${it.clientName}` });
   const offer = await r.getOffer(updated.offerId);
   await r.logEvent({
     kind: "desk",
     intentId,
     offerId: updated.offerId,
-    html: `${updated.ref} (${updated.clientName}) : <b>${INTENT_STATE_LABEL[state]}</b>${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
+    html: `${updated.ref} (${updated.clientName}) : <b>${INTENT_STATE_LABEL[state]}</b>${closedReason ? ` · ${reasonForDesk(closedReason)}` : ""}${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
   });
   // The lifecycle produces its paperwork: bulletin + appel de fonds on confirmation, avis on results, avis d'opéré on settlement.
   for (const type of docsForTransition(updated.type, state)) {

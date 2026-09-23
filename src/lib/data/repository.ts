@@ -16,7 +16,8 @@ export interface Repository {
 
   listIntents(): Promise<Intent[]>;
   createIntent(input: NewIntentInput): Promise<Intent>;
-  setIntentState(id: string, state: IntentState): Promise<Intent>;
+  /** `closedReason` n’a de sens qu’avec l’état « annulee » : c’est le motif que le client lit. */
+  setIntentState(id: string, state: IntentState, closedReason?: string): Promise<Intent>;
   updateIntent(id: string, patch: Partial<Pick<Intent, "state" | "allocationPct" | "servedUnits" | "message" | "executedPrice">>): Promise<Intent>;
 
   listEvents(limit?: number): Promise<EventLog[]>;

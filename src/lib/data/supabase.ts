@@ -71,6 +71,7 @@ type IntentRow = {
   id: string;
   ref: string;
   register_no: string | null;
+  closed_reason: string | null;
   offer_id: string;
   offer_version: number;
   client_id: string | null;
@@ -176,6 +177,7 @@ function toIntent(r: IntentRow): Intent {
     servedUnits: r.served_units === null ? undefined : Number(r.served_units),
     limitPrice: r.limit_price === null ? null : Number(r.limit_price),
     executedPrice: r.executed_price === null ? null : Number(r.executed_price),
+    closedReason: u(r.closed_reason),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -522,8 +524,13 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateIntent", error);
     return toIntent(data as IntentRow);
   },
-  async setIntentState(id, state) {
-    const { data, error } = await db().from("intents").update({ state, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
+  async setIntentState(id, state, closedReason) {
+    const { data, error } = await db()
+      .from("intents")
+      .update({ state, updated_at: new Date().toISOString(), ...(closedReason ? { closed_reason: closedReason } : {}) })
+      .eq("id", id)
+      .select("*")
+      .single();
     if (error) fail("setIntentState", error);
     return toIntent(data as IntentRow);
   },
