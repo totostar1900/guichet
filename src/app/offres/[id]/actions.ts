@@ -193,21 +193,35 @@ export async function guestSendEmailCode(rawEmail: string): Promise<GuestEmail> 
   const email = z.string().email().safeParse(rawEmail.trim().toLowerCase());
   if (!email.success) return { ok: false, error: "Adresse e-mail invalide." };
   if (authMode() !== "supabase") return { ok: false, error: "Sur ce serveur de démonstration, connectez-vous d'abord (bouton en haut à droite)." };
-  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
-  const sb = await supabaseAuthClient();
-  const { error } = await sb.auth.signInWithOtp({ email: email.data, options: { shouldCreateUser: true } });
-  if (error) return { ok: false, error: `Envoi impossible : ${error.message}` };
+  // La même lettre que la page de connexion : le code en grand, le lien dessous.
+  // Ici c’est le code qui compte, puisque le client est au milieu d’un formulaire :
+  // un lien l’emmènerait ailleurs et lui ferait tout ressaisir.
+  const { sendSignInCode } = await import("@/lib/auth/email-code");
+  const { headers } = await import("next/headers");
+  const { isDeskHost, deskOrigin } = await import("@/lib/hosts");
+  const host = (await headers()).get("host");
+  const base = isDeskHost(host) ? deskOrigin() : (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
+  const sent = await sendSignInCode(email.data, base);
+  if (!sent.ok) return { ok: false, error: sent.error ?? "Envoi impossible." };
   return { ok: true, step: "code" };
 }
 
 export async function guestVerifyEmailCode(rawEmail: string, code: string): Promise<GuestEmail> {
   const email = rawEmail.trim().toLowerCase();
-  const token = code.replace(/s/g, "");
-  if (!/^d{6,8}$/.test(token)) return { ok: false, error: "Le code comporte 6 chiffres." };
+  // Deux expressions fausses : /s/ retirait la lettre s au lieu des espaces, et
+  // /^d{6,8}$/ cherchait la lettre d répétée, jamais des chiffres. Aucun code à
+  // six chiffres ne passait, donc la preuve par e-mail d’un invité n’aboutissait
+  // jamais. Les barres obliques manquaient.
+  const token = code.replace(/\s/g, "");
+  if (!/^\d{6,8}$/.test(token)) return { ok: false, error: "Le code comporte 6 chiffres." };
   if (authMode() !== "supabase") return { ok: false, error: "Sur ce serveur de démonstration, connectez-vous d'abord." };
   const { supabaseAuthClient } = await import("@/lib/auth/supabase");
   const sb = await supabaseAuthClient();
-  const { data, error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+  // Le code imprime par le gabarit de Supabase se verifie en « email » ; celui
+  // frappe par generateLink, en « magiclink ». Depuis que la lettre part de chez
+  // nous, c’est le second qui arrive, et n’essayer que le premier rejetait tout.
+  let { data, error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+  if (error) ({ data, error } = await sb.auth.verifyOtp({ email, token, type: "magiclink" }));
   if (error || !data.user) return { ok: false, error: "Code incorrect ou expiré." };
   await repo().markChannelVerified(data.user.id, "email", email);
   return { ok: true, step: "in", email };

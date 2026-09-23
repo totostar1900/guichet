@@ -60,3 +60,32 @@ de lien.
 Le canal WhatsApp de Guichet (les accusés, les avis) reste sur l'API Meta, sans
 rapport avec Twilio : `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID`. Deux chemins, deux
 fournisseurs, et `requestPhoneProof` dépend toujours du premier.
+
+## Le code par e-mail ne passe pas par le gabarit de Supabase (23 septembre 2026)
+
+Supabase refuse d'éditer ses gabarits sans SMTP à soi : « Set up custom SMTP to
+edit templates ». Son gabarit par défaut n'imprime pas `{{ .Token }}`, donc il
+envoie un lien. Configurer un SMTP n'est pourtant pas la réponse.
+
+La page de connexion avait déjà la bonne : quand `RESEND_API_KEY`, `EMAIL_FROM`
+et `SUPABASE_SERVICE_ROLE_KEY` sont posés, elle ne demande à Supabase que de
+frapper le jeton (`admin.generateLink`, qui rend `email_otp` et `hashed_token`)
+et écrit la lettre elle-même : le code en grand, le lien dessous. Supabase
+n'envoie rien.
+
+`sendSignInCode()` (`src/lib/auth/email-code.ts`) porte désormais ce chemin pour
+les deux appelants. La preuve d'un invité dans le formulaire d'intention
+appelait `signInWithOtp` en direct et recevait donc toujours le lien de
+Supabase, au milieu d'un formulaire, ce qui emmenait ailleurs et faisait tout
+ressaisir.
+
+**Et une preuve d'invité n'aboutissait jamais.** `guestVerifyEmailCode` relisait
+le code avec `/s/g` et `/^d{6,8}$/` : la lettre s, la lettre d répétée. Les
+barres obliques manquaient, aucun code à six chiffres ne passait. Corrigé, avec
+le repli `type: "magiclink"` que la page de connexion faisait déjà : le jeton de
+`generateLink` ne se vérifie pas en « email ».
+
+**Ce qui reste manuel** : vérifier que `RESEND_API_KEY` et `EMAIL_FROM` sont
+posés sur Vercel, et que le domaine d'envoi est vérifié chez Resend. Sans eux
+l'application retombe sur le lien de Supabase, et la page de connexion le dit en
+toutes lettres plutôt que de promettre un code.
