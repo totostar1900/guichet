@@ -16,20 +16,44 @@ export interface MarketPage {
   label: string;
   /** Ce qu'on y trouve, en une ligne : la bande la montre au survol. */
   hint: string;
+  /** Le nom en deux mots, pour une pastille : le nom complet n'y tiendrait pas. */
+  short?: string;
   /** Vrai quand la page appartient au Guide plutôt qu'au marché lui-même. */
   guide?: boolean;
 }
 
 export const MARKET_PAGES: MarketPage[] = [
   { key: "marche", href: "/marche", label: "Le marché", hint: "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis" },
-  { key: "indice", href: "/indice", label: "L'indice BVMAC All Share", hint: "le niveau séance par séance, sept vues, la composition sur les deux pondérations" },
-  { key: "societes", href: "/societes", label: "Les sociétés cotées", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
-  { key: "notes", href: "/indice#notes", label: "Les notes de marché", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
-  { key: "comparer", href: "/comparer", label: "Comparer deux lignes", hint: "deux titres côte à côte, avec l'indice en repère" },
-  { key: "lecon", href: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
+  { key: "indice", href: "/indice", label: "L'indice BVMAC All Share", short: "L'indice", hint: "le niveau séance par séance, sept vues, la composition sur les deux pondérations" },
+  { key: "societes", href: "/societes", label: "Les sociétés cotées", short: "Les sociétés", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
+  { key: "notes", href: "/indice#notes", label: "Les notes de marché", short: "Les notes", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
+  { key: "comparer", href: "/comparer", label: "Comparer deux lignes", short: "Comparer", hint: "deux titres côte à côte, avec l'indice en repère" },
+  { key: "lecon", href: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
-  { key: "actualites", href: "/actualites", label: "Actualités du marché", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
+  { key: "actualites", href: "/actualites", label: "Actualités du marché", short: "Actualités", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
 ];
+
+/**
+ * Le chemin d'une page, ramené à la page de la famille dont elle relève.
+ *
+ * Trois endroits décidaient séparément qu'une URL appartient au marché :
+ * l'onglet d'ordinateur, la barre du téléphone, et rien du tout pour le
+ * bandeau. Trois listes de préfixes à tenir à jour, donc deux qui dérivent.
+ * Celle-ci est la seule.
+ */
+export function currentMarketPage(path: string): string | undefined {
+  if (path.startsWith("/indice/note")) return "notes";
+  if (path.startsWith("/indice")) return "indice";
+  if (path.startsWith("/societes") || path.startsWith("/emetteurs")) return "societes";
+  if (path.startsWith("/comparer")) return "comparer";
+  if (path.startsWith("/info/indice-bvmac")) return "lecon";
+  if (path.startsWith("/actualites")) return "actualites";
+  if (path.startsWith("/marche")) return "marche";
+  return undefined;
+}
+
+/** Vrai quand la page ouverte appartient au marché BVMAC. */
+export const isMarketPath = (path: string): boolean => currentMarketPage(path) !== undefined;
 
 /** La famille, moins la page où l'on est. */
 export const marketSiblings = (current?: string): MarketPage[] => MARKET_PAGES.filter((p) => p.key !== current);

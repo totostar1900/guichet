@@ -1,0 +1,39 @@
+/* Le bandeau du marché : téléphone seulement, l'ordinateur a le menu de l'onglet et son rail. */
+.rail {
+  display: none;
+}
+@media (max-width: 760px) {
+  .rail {
+    display: flex;
+    gap: var(--s-3);
+    align-items: center;
+    padding: var(--s-4) var(--s-6);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail a {
+    flex: none;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: none;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: var(--s-3) var(--s-6);
+    background: var(--surface);
+  }
+  /* la page ouverte se reconnaît à l'or de la maison, comme l'onglet actif */
+  .rail a[aria-current="page"] {
+    color: var(--gold-ink);
+    border-color: var(--gold-line);
+    background: var(--gold-soft);
+  }
+}

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountMenu } from "./AccountMenu";
+import { MarketChips } from "./MarketChips";
+import { Sheet } from "./Sheet";
+import { MARKET_PAGES, currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
 
@@ -19,7 +22,7 @@ export const LAST_LIST_KEY = "guichet:lastList";
 
 const ROOTS = ["/", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites"];
 
-type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number };
+type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; /** l'onglet lève une feuille au lieu d'ouvrir une page */ sheet?: boolean };
 
 const I = {
   guichet: (
@@ -82,6 +85,9 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
+  // La feuille retient la page sur laquelle elle s'est ouverte : partir la referme.
+  const [marketAt, setMarketAt] = useState<string | null>(null);
+  const marketOpen = marketAt === path;
   const isRoot = ROOTS.includes(path) || path === "/societes";
 
   // The page title comes from <title>, which every page already sets.
@@ -122,7 +128,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
   const tabs: Tab[] = [
     { href: "/", label: t("Titres"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: (p) => p.startsWith("/fonds") },
-    { href: "/marche", label: t("Marché"), icon: I.actualites, match: (p) => p.startsWith("/marche") || p.startsWith("/societes") || p.startsWith("/emetteurs") || p.startsWith("/indice") || p.startsWith("/actualites") },
+    { href: "/marche", label: t("Marché"), icon: I.actualites, match: isMarketPath, sheet: true },
     { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
     { href: "/info", label: t("Guide"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
   ];
@@ -164,19 +170,45 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
         </div>
       </div>
 
+      {!deskHost && <MarketChips />}
+
       {!deskHost && (
       <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
-        {tabs.map((tab) => (
-          <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
-            <span className={styles.icon}>
-              {tab.icon}
-              {tab.badge ? <em>{tab.badge}</em> : null}
-            </span>
-            {t(tab.label)}
-          </Link>
-        ))}
+        {tabs.map((tab) => {
+          const face = (
+            <>
+              <span className={styles.icon}>
+                {tab.icon}
+                {tab.badge ? <em>{tab.badge}</em> : null}
+              </span>
+              {t(tab.label)}
+            </>
+          );
+          if (tab.sheet)
+            return (
+              <button key={tab.href} type="button" aria-current={tab.match(path) ? "page" : undefined} aria-expanded={marketOpen} aria-haspopup="dialog" onClick={() => setMarketAt(marketOpen ? null : path)}>
+                {face}
+              </button>
+            );
+          return (
+            <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
+              {face}
+            </Link>
+          );
+        })}
       </nav>
       )}
+
+      <Sheet open={marketOpen} onClose={() => setMarketAt(null)} title={t("Marché")} sub={t("les pages de la BVMAC")}>
+        <div className={styles.market}>
+          {MARKET_PAGES.map((p) => (
+            <Link key={p.key} href={p.href} className={p.key === currentMarketPage(path) ? styles.marketOn : undefined} onClick={() => setMarketAt(null)}>
+              <b>{t(p.label)}</b>
+              <small>{t(p.hint)}</small>
+            </Link>
+          ))}
+        </div>
+      </Sheet>
     </>
   );
 }

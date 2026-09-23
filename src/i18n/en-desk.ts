@@ -2042,4 +2042,7 @@ export const EN_MORE: Record<string, string> = {
   "Ce qu'il mesure": "What it measures",
   "L'indice et l'économie": "The index and the economy",
   "Les pages du marché": "The market pages",
+  "les pages de la BVMAC": "the BVMAC pages",
+  "L'indice": "The index",
+  "Les notes": "The notes",
 };

@@ -142,7 +142,9 @@
     border-top: 1px solid var(--line-2);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .tabs a {
+  /* un onglet peut être un bouton : celui qui lève une feuille au lieu d'ouvrir une page */
+  .tabs a,
+  .tabs button {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -156,10 +158,12 @@
     text-decoration: none;
     position: relative;
   }
-  .tabs a[aria-current="page"] {
+  .tabs a[aria-current="page"],
+  .tabs button[aria-current="page"] {
     color: var(--gold-ink);
   }
-  .tabs a[aria-current="page"]::after {
+  .tabs a[aria-current="page"]::after,
+  .tabs button[aria-current="page"]::after {
     content: "";
     position: absolute;
     top: 0;
@@ -196,4 +200,41 @@
     border-radius: 8px;
     line-height: 1.4;
   }
+}
+
+/* Les pages du marché, dans la feuille de l'onglet : le nom, puis ce qu'on y trouve.
+   La phrase de chaque page ne se lisait qu'au survol, donc jamais sur un téléphone. */
+.market {
+  display: flex;
+  flex-direction: column;
+}
+.market a {
+  display: block;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+}
+.market a:last-child {
+  border-bottom: 0;
+}
+.market b {
+  display: block;
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+.market small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+/* la page ouverte est marquée : la feuille dit où l'on va, pas seulement où aller */
+.marketOn b {
+  color: var(--gold-ink);
+}
+.marketOn b::after {
+  content: " ·";
+  color: var(--gold);
 }
