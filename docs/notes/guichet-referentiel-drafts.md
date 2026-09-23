@@ -89,3 +89,30 @@ acte.
 tâche planifiée. Un ordre dont la proposition a expiré l'affiche comme caduque
 et le premier clic la referme, mais rien ne repasse la nuit pour les remettre à
 `recue`. À faire si le volume le demande.
+
+## Supprimer une entrée livrée par le code (24 septembre 2026)
+
+Une entrée créée par le desk s'efface (sa ligne `reference` part). Une entrée
+livrée dans le code revenait au chargement suivant : elle se couvre donc d'une
+**pierre tombale**, `TOMBSTONE = { __supprime: true }` dans
+`src/lib/reference.ts`, une ligne qui porte l'absence plutôt qu'une valeur.
+`gone(kind)` rend ces clefs, `loadGlossary` et `loadLessons` les retirent.
+
+- `removeReferenceAction` choisit le chemin (pierre si le code livre la clef,
+  effacement sinon) ; l'opérateur ne sait pas lequel il emprunte.
+- `restoreReferenceAction` lève la pierre.
+- Trois portes : `ConfirmPublish` avec `typed = la clef` (donc recopier
+  « rendement_actuariel »), puis « Publier » comme toute modification.
+- `seen()` connaît deux états de plus, `"remove"` (pierre en brouillon,
+  l'entrée se lit encore, barrée) et `"removed"` (pierre posée, la rangée reste
+  au référentiel avec « Rétablir »).
+
+Garde : `src/test/reference-delete.test.ts`. Commit d0f0363.
+
+**Ce qui n'a pas suivi et reste à décider** : `ISSUER_REGISTRY`
+(`src/data/issuer-registry.ts`) se construit sur la constante `COMPANIES` du
+code, pas sur `loadCompanies()`. Modifier une société au desk ne change donc
+ni ses alias, ni sa zone, ni sa famille, ni ce que `resolveIssuer` /
+`issuerKey` / `issuerZone` répondent (volet Émetteur d'une fiche, têtes de
+groupe du navigateur de lignes, `LineIdentity`). `OfferBrowser` et
+`LineIdentity` sont des composants client, d'où le registre en dur.
