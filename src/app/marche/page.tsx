@@ -5,7 +5,6 @@ import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
-import { publishedNews } from "@/lib/news";
 import { loadCompanies } from "@/lib/reference";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -22,21 +21,22 @@ const signed = (v?: number, d = 2) => {
 /**
  * Le marché : la porte d'entrée de l'environnement BVMAC.
  *
- * L'indice, les sept sociétés cotées, les notes trimestrielles, de quoi
- * comprendre, et les avis de la Bourse. Rien n'est produit ici : chaque
+ * L'indice, les sept sociétés cotées, les notes trimestrielles et de quoi
+ * comprendre. Les actualités n'y sont pas : elles couvrent cinq rubriques,
+ * dont la BVMAC n'est qu'une, et gardent leur propre page. Rien n'est
+ * produit ici : chaque
  * section montre ce qui existe déjà et mène à sa page. La page de l'indice
  * n'était rattachée à aucun onglet ; c'est cette porte qui manquait.
  */
 export default async function MarchePage() {
   const t = await getT();
-  const [data, companies, news] = await Promise.all([indexPageData(), loadCompanies().catch(() => []), publishedNews().catch(() => [])]);
+  const [data, companies] = await Promise.all([indexPageData(), loadCompanies().catch(() => [])]);
   const { weights, nameOf, lastBulletin, movers } = data;
   const notes = quarters(data).slice(0, 4);
   const capTotal = weights.reduce((s, w) => s + w.capTotal, 0);
   const capFloat = weights.reduce((s, w) => s + w.capFloat, 0);
   const day = lastBulletin ? (movers.get(lastBulletin.sessionDate) ?? []) : [];
   const moveOf = (mnemo: string) => day.find((m) => m.mnemo === mnemo)?.variationPct;
-  const avis = news.slice(0, 4);
 
   return (
     <>
@@ -138,33 +138,6 @@ export default async function MarchePage() {
           <p className={styles.note}>{t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Le Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}</p>
         </section>
       </div>
-
-      <section className="panel" id="avis">
-        <div className="panel-h">
-          <h2>{t("Les avis de la Bourse")}</h2>
-          {avis.length > 0 && (
-            <Link className="btn sm ghost" href="/actualites">
-              {t("Toutes les actualités")} →
-            </Link>
-          )}
-        </div>
-        {avis.length === 0 ? (
-          <div className="empty">{t("Aucun avis publié pour l'instant. Les avis reçus de la Bourse sont relus par le desk avant de paraître ici.")}</div>
-        ) : (
-          <ul className={styles.avis}>
-            {avis.map((n) => (
-              <li key={n.id}>
-                <a href={n.url} target="_blank" rel="noreferrer">
-                  {n.title}
-                </a>
-                <small>
-                  {n.source} · {fmtDate(n.publishedAt)}
-                </small>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
       <p className={styles.source}>
         {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}

@@ -2031,4 +2031,8 @@ export const EN_MORE: Record<string, string> = {
   "Aucun avis publié pour l'instant. Les avis reçus de la Bourse sont relus par le desk avant de paraître ici.": "No notice published yet. Notices received from the exchange are read by the desk before appearing here.",
   "Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.": "Source: official quotation bulletin of the BVMAC, read at each issue; computations by {c}.",
   "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis": "the way into the BVMAC environment: the index, the companies, the notes, the notices",
+
+  /* ---------- les actualités, page à part entière ---------- */
+  "Actualités du marché": "Market news",
+  "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié": "Treasuries, BVMAC, companies, funds, regulation: what the desk has read and published",
 };

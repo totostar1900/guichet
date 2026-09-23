@@ -27,7 +27,8 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "notes", href: "/indice#notes", label: "Les notes de marché", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", label: "Comparer deux lignes", hint: "deux titres côte à côte, avec l'indice en repère" },
   { key: "lecon", href: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
-  { key: "actualites", href: "/actualites", label: "Les avis de la Bourse", hint: "ce que la BVMAC publie hors bulletin, quand nous l'avons relu" },
+  // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
+  { key: "actualites", href: "/actualites", label: "Actualités du marché", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
 ];
 
 /** La famille, moins la page où l'on est. */

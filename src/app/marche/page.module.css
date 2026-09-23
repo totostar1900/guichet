@@ -39,32 +39,6 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
 }
-.avis {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.avis li {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--line);
-}
-.avis li:last-child {
-  border-bottom: 0;
-}
-.avis a {
-  color: var(--navy-text);
-  font-weight: 600;
-  text-decoration: none;
-}
-.avis a:hover {
-  text-decoration: underline;
-}
-.avis small {
-  display: block;
-  color: var(--ink-3);
-  font-size: 0.76rem;
-  margin-top: 2px;
-}
 .source {
   font-size: 0.78rem;
   color: var(--ink-3);
