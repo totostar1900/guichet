@@ -49,3 +49,24 @@ Mockups (design log): https://claude.ai/artifact/5fRfPKJiEGd1G4aGtwF9Hc (gesture
 **2026-09-20 evening, ⋮ back to one sheet.** No tabs on the phone: search, « Sur cette page », tiles, the FR · EN line with Se déconnecter (or Se connecter), then a « Nous joindre » group (the former Contact tab as `contactBlock`), footer. Alerts row removed from the menu (Mon espace has the PushToggle). Desk keeps Aide / Réglages.
 
 **2026-09-20 night: folds, palettes, account sheet.** `src/components/Fold.tsx`: `FoldSection {group,id,title,aside,hint,defaultOpen}` + `FoldAll {group,ids}`; state in localStorage `guichet:fold:<group>:<id>`, event `guichet:fold`; a hashchange to `#id` opens the section. Used on /info (group info) and /moi (group moi, hints = count + state word; MyDocuments takes `inFold`). Palettes: `src/app/palettes.css` (`[data-palette=ivoire|ardoise|encre]`, light + dark overrides), `PaletteSwitch` in the ⋮ (phone sheet and desk Réglages), `PALETTE_BOOT` inline script in layout head applies `guichet:palette` / `guichet:theme` before paint (`<html suppressHydrationWarning>`). Account: `src/components/mobile/AccountMenu.tsx` replaces the avatar link in MobileShell (props segment, tier, email from the session); rows to /moi, /moi/profil, /moi/securite, three « bientôt » rows inert. Later that night the sheet became the full account (rule: initial = you, ⋮ = app): editable name/city (`identityAction`, segment keeps its first word), channel rows with proof state, « Chez vous » incl. « Mes coordonnées et pièces » (KYC hint), « Préférences » (LangSwitch, PushToggle, reach WhatsApp·E-mail·Appel, statements by e-mail via `prefsAction` → `profiles.prefs`), « Bientôt » group, foot = logout this device + `logoutEverywhere`. The ⋮ keeps language + « Se connecter » only for visitors. Contrast audit of the 8 palette×theme combos done the same night; pale-on-navy texts use `--on-navy-2`, never a hex. Desk shows it via `src/components/desk/ReachLine.tsx` (client file + intent page). Colours persist via cookies + server-stamped `<html>` (`src/lib/palette.ts`: `paletteAttrs`, `PALETTE_BOOT`, `P_COOKIE`/`T_COOKIE`; `PaletteKeeper` re-applies after navigation): React resets `<html>` attributes on layout re-render otherwise. Themes: auto · clair · tamisé (`dim`, a light-inked blue-grey middle ground, NOT a lighter dark) · sombre; the auto-dark media selectors exclude `dim` via `:not([data-theme="dim"])`, and palette light blocks beat globals dim, so each palette has its own dim block re-setting surfaces. Tours: `startDeskTour` dispatches `guichet:desktour:start` when already on the first stop page; missing targets are told without a ring instead of skipped (DeskTour + CoachMarks). `--bar-edge` gold hairline under navy bars in dark/dim. Swatches are tiny pages. Fund categories `--cat-M/O/D/A`. List view: `usePhone()` decides cards/table at hydration (no compact flash), SSR table hidden on phone unless `?vue=`.
+
+## Une feuille s'ouvre du bord où se tient ce qui l'ouvre (23 septembre 2026)
+
+Règle écrite dans `src/components/mobile/Sheet.tsx` : le `dock` d'une feuille
+suit le bord dont son déclencheur est le plus proche.
+
+- L'onglet « Marché » est sur la barre du bas : sa feuille monte du bas.
+- La pastille du Guide est dans le coin bas : la sienne aussi.
+- La ligne « Sur cette page » est gelée en haut : sa liste tombe de dessous elle
+  (`dock="under"`, avec `anchorTop`). Le haut se **mesure à l'ouverture**, pas en
+  CSS : la ligne est à 200 px en haut d'une note, à 101 px une fois défilée. Le
+  voile part du même bord, la ligne reste visible au-dessus de sa liste, et le
+  glissé se renverse (on repousse vers le bord d'origine).
+- Sans point d'accroche mesurable (le Guide cache cette ligne, il a sa pastille),
+  la feuille remonte du bas comme avant.
+
+**Exception assumée** : le « ⋮ » et l'initiale du compte se tiennent en haut à
+droite et tombent de leur déclencheur sur ordinateur ; une requête média les
+renvoie en bas sur téléphone. Le principe les désigne, la décision est de ne pas
+y toucher : ils s'ouvrent des dizaines de fois par jour, en bas de l'écran où se
+tient le pouce.

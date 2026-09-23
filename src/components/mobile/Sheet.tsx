@@ -20,6 +20,12 @@ import { useSheetPresence } from "./useSheetPresence";
  * the screen. A sheet that rises from the bottom when its trigger is frozen
  * at the top breaks the tie between the control and what it opened, and
  * covers the page from the wrong end.
+ *
+ * Deux menus font exception, et c’est voulu : le « ⋮ » et l’initiale du compte
+ * se tiennent en haut à droite, tombent de leur déclencheur sur ordinateur, et
+ * une requête média les renvoie en bas sur téléphone. Ils s’ouvrent des dizaines
+ * de fois par jour, en bas de l’écran où se tient le pouce ; le principe les
+ * désigne, la décision du 23 septembre 2026 est de ne pas y toucher.
  */
 export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, anchorTop, tabs, tall, foot }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" | "under"; /** avec dock « under » : le bas du déclencheur, mesuré à l'ouverture */ anchorTop?: number; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; foot?: React.ReactNode }) {
   const t = useT();
