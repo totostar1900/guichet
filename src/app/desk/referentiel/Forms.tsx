@@ -219,7 +219,7 @@ export function LessonForm({ l, copy }: { l?: Lesson; copy?: boolean }) {
         </label>
         <label>
           <span>{tr("Ordre")}</span>
-          <input name="order" type="number" min={1} max={99} defaultValue={copy ? (l?.order ?? 8) + 1 : (l?.order ?? 9)} required />
+          <input name="order" type="number" min={1} max={999} defaultValue={copy ? (l?.order ?? 8) + 1 : (l?.order ?? 9)} required />
         </label>
         <label>
           <span>{tr("Durée annoncée (min)")}</span>

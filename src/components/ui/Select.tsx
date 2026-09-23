@@ -42,6 +42,16 @@ export function Select({ value, options, onChange, label, name, placeholder, com
   };
   const [active, setActive] = useState(-1);
   const ref = useRef<HTMLDivElement>(null);
+  // « Effacer » d'un formulaire remet les champs natifs à leur valeur d'origine,
+  // et ne voyait pas celle-ci : la liste gardait le choix de l'opérateur, qui
+  // croyait le formulaire vide. Elle écoute donc la remise à zéro du formulaire.
+  useEffect(() => {
+    const form = ref.current?.closest("form");
+    if (!form || onChange) return;
+    const back = () => setInner(value);
+    form.addEventListener("reset", back);
+    return () => form.removeEventListener("reset", back);
+  }, [value, onChange]);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const id = useId();

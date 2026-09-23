@@ -28,9 +28,14 @@
   gap: 22px;
   align-items: start;
 }
+/* Le rail porte une vingtaine de modèles : plus haut que l’écran, il suivait le
+   défilement de la page au lieu du sien. Il a donc sa propre hauteur et son
+   propre défilement, comme les autres rails de l’application. */
 .types {
   position: sticky;
   top: 72px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;

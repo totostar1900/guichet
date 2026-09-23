@@ -69,6 +69,8 @@ function Rows<T>({ items, onChange, blank, render, add }: { items: T[]; onChange
 export interface FicheSeed {
   key: string;
   isin: string;
+  /** Toutes les lignes du bulletin rattachées à cet émetteur : une fiche les prend d'un coup. */
+  isins?: string[];
   name: string;
   shortName: string;
   country?: Country;
@@ -85,7 +87,7 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
   // identity
   const [key, setKey] = useState(copy ? `${c?.mnemo ?? iss?.slug ?? ""}-2` : (c?.mnemo ?? iss?.slug ?? seed?.key ?? ""));
   const [isin, setIsin] = useState(copy ? "" : (c?.isin ?? seed?.isin ?? ""));
-  const [isins, setIsins] = useState(copy ? "" : (iss?.isins ?? (seed?.isin ? [seed.isin] : [])).join("\n"));
+  const [isins, setIsins] = useState(copy ? "" : (iss?.isins ?? seed?.isins ?? (seed?.isin ? [seed.isin] : [])).join("\n"));
   const [name, setName] = useState(data?.name ?? seed?.name ?? "");
   const [shortName, setShortName] = useState(copy && data ? `${data.shortName} (copie)` : (data?.shortName ?? seed?.shortName ?? ""));
   const [mnemoIss, setMnemoIss] = useState(iss?.mnemo ?? "");
@@ -432,11 +434,11 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
       </details>
 
       <div className={styles.actions}>
-        {editing ? (
-          <Link className="btn sm ghost" href={`/desk/referentiel?onglet=${tab}`}>
-            {t("Annuler")}
-          </Link>
-        ) : null}
+        {/* Une fiche qu'on ouvre par erreur doit pouvoir se refermer : « Annuler »
+            vaut pour la fiche nouvelle comme pour celle qu'on modifie. */}
+        <Link className="btn sm ghost" href={`/desk/referentiel?onglet=${tab}`}>
+          {t("Annuler")}
+        </Link>
         <button className="btn sm primary" type="submit" disabled={pending} title={t("Enregistre un brouillon : « Publier » le rend visible des clients")}>
           {pending ? "…" : t(copy ? "Créer cette copie (brouillon)" : "Enregistrer le brouillon")}
         </button>

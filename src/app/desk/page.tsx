@@ -320,44 +320,23 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {t("Messages sortants (WhatsApp, e-mail) : « préparé » tant que le canal n'est pas configuré")}
             </span>
           </div>
-          <div className="scroll-x">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>{t("Quand")}</th>
-                  <th>{t("Canal")}</th>
-                  <th>{t("Destinataire")}</th>
-                  <th>{t("Message")}</th>
-                  <th>{t("État")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {notifications.map((n) => (
-                  <tr key={n.id}>
-                    <td className="num">{fmtTime(n.createdAt)}</td>
-                    <td>{n.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</td>
-                    <td className="who">
-                      {n.contactName ?? n.to}
-                      <small className="mono">{n.to}</small>
-                    </td>
-                    <td>
-                      <span className="muted" style={{ fontSize: ".78rem" }}>{n.body.split("\n").slice(0, 2).join(" · ").slice(0, 140)}</span>
-                    </td>
-                    <td>
-                      <span className={`st ${notifStatus[n.status][0]}`}>{notifStatus[n.status][1]}</span>
-                      {n.error && <small className="muted"> · {n.error}</small>}
-                    </td>
-                  </tr>
-                ))}
-                {notifications.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="muted">
-                      {t("Aucun message sortant pour l'instant.")}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          {/* La même forme que le flux : une ligne par envoi, l'heure à gauche, le
+              bloc court avec son propre défilement. Un tableau de cinq colonnes
+              donnait à la diffusion le poids d'un registre, alors qu'on la lit
+              comme on lit le flux : du coin de l'œil. */}
+          <div className={styles.feed}>
+            {notifications.map((n) => (
+              <div key={n.id} className={styles.ev}>
+                <span className={styles.when}>{fmtTime(n.createdAt)}</span>
+                <span>
+                  <b>{n.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</b> · {n.contactName ?? n.to}
+                  <span className="muted"> · {n.body.split("\n").slice(0, 2).join(" · ").slice(0, 120)}</span>{" "}
+                  <span className={`st ${notifStatus[n.status][0]}`}>{notifStatus[n.status][1]}</span>
+                  {n.error && <small className="muted"> · {n.error}</small>}
+                </span>
+              </div>
+            ))}
+            {notifications.length === 0 && <div className={styles.ev}><span /><span className="muted">{t("Aucun message sortant pour l'instant.")}</span></div>}
           </div>
         </div>
 

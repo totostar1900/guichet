@@ -168,10 +168,13 @@
   gap: 0 var(--s-9);
   align-items: start;
 }
+/* L'en-tête de l'application est collant et mesure 62 px : un rail collé plus
+   haut que lui passe dessous, et son sommet disparaît au premier défilement.
+   Même valeur que PageOutline, pour que les deux rails s'arrêtent à la même ligne. */
 .withRail > nav {
   position: sticky;
-  top: calc(var(--s-7) + env(safe-area-inset-top, 0px));
-  max-height: calc(100vh - var(--s-10));
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  max-height: calc(100vh - 96px);
   overflow-y: auto;
   border-left: 0;
   padding-left: 0;

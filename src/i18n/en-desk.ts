@@ -2186,4 +2186,6 @@ export const EN_MORE: Record<string, string> = {
   "Vos propres mots": "Your own words",
   "l'en-tête de la maison, et ce que vous avez à dire": "the house heading, and what you have to say",
   "Ce que vous avez à dire": "What you have to say",
+  "{n} lignes": "{n} lines",
+  "émetteur(s) au bulletin sans fiche": "issuer(s) in the bulletin without a fiche",
 };

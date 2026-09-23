@@ -53,6 +53,10 @@ function useActiveSection(ids: string[]): string | null {
       const line = Math.max(120, window.innerHeight * 0.3);
       let cur = els[0].id;
       for (const el of els) if (el.getBoundingClientRect().top <= line) cur = el.id;
+      // Une dernière section trop courte pour hisser son titre jusqu'à la ligne
+      // ne s'allumait jamais, quelque effort de défilement qu'on y mît. Arrivé
+      // au bas de la page, c'est elle qu'on lit : il n'y a rien après.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) cur = els[els.length - 1].id;
       setActive(cur);
     };
     pick();

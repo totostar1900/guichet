@@ -58,7 +58,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
   ];
   return (
     <>
-      <DeskNav current="/desk/referentiel" />
+      <DeskNav current="/desk/referentiel/modeles" />
       <div className={styles.head}>
         <div>
           <div className="eyebrow">{t("Référentiel · Modèles")}</div>
