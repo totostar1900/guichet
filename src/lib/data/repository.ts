@@ -75,7 +75,7 @@ export interface Repository {
   /** The client's personal preferences, set from the account sheet. */
   getPrefs(userId: string): Promise<ClientPrefs>;
   /** The document models' wording: every version (newest first), for one type or all. */
-  listTemplateTexts(docType?: DocumentType): Promise<TemplateText[]>;
+  listTemplateTexts(docType?: TemplateText["docType"]): Promise<TemplateText[]>;
   addTemplateText(t: Omit<TemplateText, "id" | "at" | "version">): Promise<TemplateText>;
   setTemplateTextStatus(id: string, status: TemplateTextStatus, approvedBy?: string): Promise<void>;
   setPrefs(userId: string, p: ClientPrefs): Promise<void>;

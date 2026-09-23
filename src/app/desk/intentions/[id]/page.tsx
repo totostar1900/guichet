@@ -19,6 +19,8 @@ import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
 import { ReachLine } from "@/components/desk/ReachLine";
 import { CancelOrder } from "./CancelOrder";
+import { preparedMessages } from "@/lib/documents/messages";
+import { Compose } from "./Compose";
 import { Messages } from "./Messages";
 import { CounterOffer } from "./CounterOffer";
 import { counterTerms, counterLapsed, defaultUntil, untilText } from "@/lib/domain/counter";
@@ -80,10 +82,8 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   // Répondre par le canal que le client a demandé : l’intention le porte depuis
   // toujours, et l’écran ne proposait que WhatsApp. Certains clients ne lisent
   // que leur courrier.
-  const opening = `Bonjour ${it.clientName}, au sujet de votre ${INTENT_LABEL[it.type].toLowerCase()} ${it.ref} sur ${o.title} : `;
-  const wa = it.contactPhone ? `https://wa.me/${it.contactPhone.replace(/\D/g, "")}?text=${encodeURIComponent(opening)}` : undefined;
   const mailTo = contact?.email ?? it.contactEmail;
-  const mail = mailTo ? `mailto:${mailTo}?subject=${encodeURIComponent(`${o.title} · votre ordre ${it.ref}`)}&body=${encodeURIComponent(`${opening}\n\n`)}` : undefined;
+  const prepared = await preparedMessages(it.state, { client: it.clientName, ref: it.ref, ligne: o.title, montant: amountText, echeance: o.deadlineAt ? fmtDateTime(o.deadlineAt) : undefined }, await getLang());
   const asked = it.channel === "E-mail" ? "mail" : it.channel === "WhatsApp" ? "wa" : "tel";
 
   return (
@@ -236,18 +236,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 {t("Voir la fiche")}
               </Link>
               {/* le canal demandé passe devant et porte la mention : c’est là que le client attend */}
-              {wa && (
-                <a className={`btn ${asked === "wa" ? "" : "ghost"}`} href={wa} target="_blank" rel="noreferrer">
-                  {t("Répondre sur WhatsApp")}
-                  {asked === "wa" && <em className={styles.asked}> · {t("demandé")}</em>}
-                </a>
-              )}
-              {mail && (
-                <a className={`btn ${asked === "mail" ? "" : "ghost"}`} href={mail}>
-                  {t("Répondre par e-mail")}
-                  {asked === "mail" && <em className={styles.asked}> · {t("demandé")}</em>}
-                </a>
-              )}
+              <Compose intentId={it.id} messages={prepared} phone={it.contactPhone} email={mailTo} subject={`${o.title} · votre ordre ${it.ref}`} asked={asked} />
               {asked === "tel" && it.contactPhone && (
                 <a className="btn" href={`tel:${it.contactPhone.replace(/[^\d+]/g, "")}`}>
                   {t("Appeler")} <em className={styles.asked}> · {t("demandé")}</em>

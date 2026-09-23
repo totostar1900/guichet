@@ -2,8 +2,8 @@
 
 import { useActionState, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
-import type { DocumentType, TemplateText } from "@/lib/domain/types";
-import { PLACEHOLDER_LABEL, type PassageDef } from "@/lib/documents/passages-catalog";
+import type { TemplateText } from "@/lib/domain/types";
+import { PLACEHOLDER_LABEL, type PassageDef, type TemplateScope } from "@/lib/documents/passages-catalog";
 import { activateModelTextAction, resetModelTextAction, saveModelTextAction, type ModelResult } from "./actions";
 import styles from "./page.module.css";
 
@@ -14,7 +14,7 @@ import styles from "./page.module.css";
  * « Enregistrer » when the passage is free). Below, the history: every
  * superseded version, each with « Revenir à cette version ».
  */
-export function PassageEditor({ docType, def, current, versions, responsable, me }: { docType: DocumentType; def: PassageDef; current?: TemplateText; versions: TemplateText[]; responsable: boolean; me: string }) {
+export function PassageEditor({ docType, def, current, versions, responsable, me }: { docType: TemplateScope; def: PassageDef; current?: TemplateText; versions: TemplateText[]; responsable: boolean; me: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [fr, setFr] = useState(current?.fr ?? def.fr);
@@ -55,7 +55,7 @@ export function PassageEditor({ docType, def, current, versions, responsable, me
                       {v.note && <small> · {v.note}</small>}
                       <p>{v.fr}</p>
                     </div>
-                    <ActivateVersion id={v.id} can={def.sensitivity === "libre" || def.sensitivity === "relu" || responsable} label={t("Revenir à cette version")} previewHref={`/desk/referentiel/modeles/preview?type=${docType}&v=${v.id}`} />
+                    <ActivateVersion id={v.id} can={def.sensitivity === "libre" || def.sensitivity === "relu" || responsable} label={t("Revenir à cette version")} previewHref={docType === "message" ? undefined : `/desk/referentiel/modeles/preview?type=${docType}&v=${v.id}`} />
                   </li>
                 ))}
               </ul>
@@ -101,9 +101,11 @@ export function PassageEditor({ docType, def, current, versions, responsable, me
             <input name="note" placeholder={t("ce qui change, et pourquoi")} maxLength={120} />
           </label>
           <div className={styles.formFoot}>
-            <a className="btn sm" href={previewHref} target="_blank" rel="noreferrer">
-              {t("Aperçu PDF avec ce texte")}
-            </a>
+            {docType !== "message" && (
+              <a className="btn sm" href={previewHref} target="_blank" rel="noreferrer">
+                {t("Aperçu PDF avec ce texte")}
+              </a>
+            )}
             <span className={styles.spacer} />
             <button
               type="button"
@@ -128,15 +130,17 @@ export function PassageEditor({ docType, def, current, versions, responsable, me
 }
 
 /** The one button that makes a version current, with a preview link beside it. */
-export function ActivateVersion({ id, can, label, previewHref }: { id: string; can: boolean; label: string; previewHref: string }) {
+export function ActivateVersion({ id, can, label, previewHref }: { id: string; can: boolean; label: string; previewHref?: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<ModelResult | null, FormData>(activateModelTextAction, null);
   return (
     <form action={action} className={styles.activate}>
       <input type="hidden" name="id" value={id} />
-      <a className="btn sm ghost" href={previewHref} target="_blank" rel="noreferrer">
-        {t("Aperçu")}
-      </a>
+      {previewHref && (
+        <a className="btn sm ghost" href={previewHref} target="_blank" rel="noreferrer">
+          {t("Aperçu")}
+        </a>
+      )}
       <button type="submit" className="btn sm" disabled={!can || pending} title={can ? undefined : t("réservé à un autre membre du desk ou à un responsable")}>
         {label}
       </button>

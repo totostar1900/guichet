@@ -5,12 +5,11 @@ import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { isResponsable } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import type { DocumentType } from "@/lib/domain/types";
-import { checkPassage, PASSAGES } from "@/lib/documents/passages";
+import { checkPassage, PASSAGES, type TemplateScope } from "@/lib/documents/passages";
 
 export type ModelResult = { ok: true; message: string } | { ok: false; error: string };
 
-const findDef = (docType: string, passage: string) => (PASSAGES[docType as DocumentType] ?? []).find((d) => d.key === passage);
+const findDef = (docType: string, passage: string) => (PASSAGES[docType as TemplateScope] ?? []).find((d) => d.key === passage);
 
 /**
  * A new version of a passage. « libre » is current at once; « relu » waits
@@ -29,7 +28,7 @@ export async function saveModelTextAction(_p: ModelResult | null, form: FormData
   const bad = checkPassage(def, fr, en);
   if (bad) return { ok: false, error: bad };
   const status = def.sensitivity === "libre" ? "current" : "pending";
-  const row = await repo().addTemplateText({ docType: docType as DocumentType, passage, fr, en, status, by: desk.name, note: note || undefined, approvedBy: status === "current" ? desk.name : undefined, approvedAt: status === "current" ? new Date().toISOString() : undefined });
+  const row = await repo().addTemplateText({ docType: docType as TemplateScope, passage, fr, en, status, by: desk.name, note: note || undefined, approvedBy: status === "current" ? desk.name : undefined, approvedAt: status === "current" ? new Date().toISOString() : undefined });
   await audit("template.text", "template", `${docType}:${passage}`, { after: { version: row.version, status, fr, en }, reason: note || undefined });
   await repo().logEvent({ kind: "desk", html: `<b>Modèle ${docType}</b> · passage « ${def.label} » : version ${row.version} ${status === "current" ? "en vigueur" : "proposée"} par ${desk.name}${note ? ` : ${note}` : ""}` });
   revalidatePath("/desk/referentiel/modeles");
@@ -60,7 +59,7 @@ export async function resetModelTextAction(_p: ModelResult | null, form: FormDat
   if (!isResponsable(desk)) return { ok: false, error: "Le retour au texte d'origine se fait par un responsable." };
   const docType = String(form.get("docType") ?? "");
   const passage = String(form.get("passage") ?? "");
-  const rows = (await repo().listTemplateTexts(docType as DocumentType)).filter((r) => r.passage === passage && r.status === "current");
+  const rows = (await repo().listTemplateTexts(docType as TemplateScope)).filter((r) => r.passage === passage && r.status === "current");
   for (const r of rows) await repo().setTemplateTextStatus(r.id, "superseded");
   await audit("template.reset", "template", `${docType}:${passage}`, { reason: `texte d'origine rétabli par ${desk.name}` });
   revalidatePath("/desk/referentiel/modeles");

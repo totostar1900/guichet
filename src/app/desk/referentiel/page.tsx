@@ -475,14 +475,13 @@ async function Companies({ list: published, rows, open, ok, copie, nouveau }: { 
           </tbody>
         </table>
       </div>
-      <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Fiche")} ${cur.item.shortName}`} kind={REF.companies} k={cur.item.mnemo} s={cur} /> : <EditHead title={newTitle} kind={REF.companies} />}
-        {cur || model || seed ? (
+      {/* Le panneau ne paraît qu'avec une fiche à écrire : sans fiche ouverte, il n'a rien à dire. */}
+      {(cur || model || seed) && (
+        <div className="panel" id="edit">
+          {cur ? <EditHead title={`${tr("Fiche")} ${cur.item.shortName}`} kind={REF.companies} k={cur.item.mnemo} s={cur} /> : <EditHead title={newTitle} kind={REF.companies} />}
           <FicheForm key={cur?.item.mnemo ?? (model ? `copy-${model.mnemo}` : `seed-${seed?.isin}`)} kind={REF.companies} data={cur?.item ?? model} tab="societes" copy={Boolean(model)} seed={seed} />
-        ) : (
-          <p className={styles.copyHint}>{tr("Une société cotée n'est pas créée à la main : sa ligne arrive avec le bulletin de la BVMAC, et sa fiche se rédige ici depuis « Créer la fiche » (ce que le bulletin sait est pré-rempli) ou « Dupliquer » sur une fiche voisine.")}</p>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

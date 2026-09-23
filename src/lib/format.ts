@@ -98,3 +98,11 @@ export const money = (v: number): string => {
   const d = (x: number, n: number) => x.toLocaleString("fr-FR", { minimumFractionDigits: n, maximumFractionDigits: n });
   return v >= 1e9 ? `${d(v / 1e9, 1)} Md` : v >= 1e6 ? `${d(v / 1e6, v >= 1e8 ? 0 : 1)} M` : v >= 1e3 ? `${d(v / 1e3, 0)} k` : fmt(v);
 };
+
+/**
+ * Le texte d'un humain, rendu inoffensif avant d'entrer dans un fragment HTML.
+ *
+ * Le fil du desk affiche ses lignes en HTML, parce qu'elles portent des gras et
+ * des liens que le code écrit. Ce que quelqu'un a tapé n'en fait pas partie.
+ */
+export const escapeHtml = (s: string): string => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);

@@ -1,4 +1,5 @@
 import type { DocumentType, PassageSensitivity } from "@/lib/domain/types";
+import { MESSAGES } from "./messages-catalog";
 
 /**
  * The passages of the document models the desk may reword: each one has a
@@ -19,7 +20,21 @@ export interface PassageDef {
   en: string;
 }
 
+/**
+ * Ce que le registre sait tenir. Un document, ou les messages préparés : ils
+ * ont les mêmes besoins (une version en vigueur, une relecture, un
+ * historique) et se rangent donc au même endroit, sous une clef qui n'est
+ * simplement pas celle d'un document.
+ */
+export type TemplateScope = DocumentType | "message";
+
 export const PLACEHOLDER_LABEL: Record<string, string> = {
+  client: "nom du client",
+  ref: "référence de l'ordre (PF-0914-K7Q4)",
+  ligne: "titre de la ligne",
+  montant: "montant ou quantité de l'ordre",
+  echeance: "date limite de dépôt de la ligne",
+  precision: "ce que l'opérateur précise, en une ligne",
   societe: "dénomination de Purpose Capital",
   agrement: "agrément COSUMAF",
   email: "adresse e-mail de la société",
@@ -51,7 +66,8 @@ export const PLACEHOLDER_LABEL: Record<string, string> = {
 
 const P = (key: string, label: string, hint: string, sensitivity: PassageSensitivity, placeholders: string[], fr: string, en: string, required: string[] = []): PassageDef => ({ key, label, hint, sensitivity, placeholders, required, fr, en });
 
-export const PASSAGES: Partial<Record<DocumentType, PassageDef[]>> = {
+export const PASSAGES: Partial<Record<TemplateScope, PassageDef[]>> = {
+  message: MESSAGES,
   note_indice: [
     P("portee", "Phrase de portée, en fin de note", "après le rappel de ce que l'indice mesure", "relu", [], "Purpose Capital montre l'indice tel qu'il est publié et l'explique ; elle ne le recalcule pas, n'en fait pas un objectif et ne mesure aucun client contre lui.", "Purpose Capital shows the index as published and explains it; it does not recompute it, does not make it a target and measures no client against it."),
   ],
@@ -153,7 +169,7 @@ export function checkPassage(def: PassageDef, fr: string, en: string): string | 
 }
 
 /** In a template: the passage's text in force (from `texts`) or the code's default, filled with the document's values. */
-export function passage(docType: DocumentType, key: string, texts: Record<string, string> | undefined, vars: Record<string, string | undefined> = {}): string {
+export function passage(docType: TemplateScope, key: string, texts: Record<string, string> | undefined, vars: Record<string, string | undefined> = {}): string {
   const def = (PASSAGES[docType] ?? []).find((d) => d.key === key);
   return fill(texts?.[key] ?? def?.fr ?? "", vars);
 }

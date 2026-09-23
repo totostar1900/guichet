@@ -517,7 +517,8 @@ export type TemplateTextStatus = "current" | "pending" | "superseded";
 /** One version of one passage of one document model. The code holds the default; the registry holds what the desk wrote since. */
 export interface TemplateText {
   id: string;
-  docType: DocumentType;
+  /** Un type de document, ou « message » : les messages préparés se rangent au même registre. */
+  docType: DocumentType | "message";
   passage: string;
   version: number;
   fr: string;

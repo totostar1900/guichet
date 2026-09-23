@@ -7,7 +7,7 @@ import type { DocumentType, GeneratedDocument, TemplateText } from "@/lib/domain
 import { loadCompanies } from "@/lib/reference";
 import { defaultPeriod } from "@/lib/reporting";
 import { DOC_KIND, DOC_KIND_LABEL, DOC_KIND_RULE, DOC_LABEL, DOC_ORDER, DOC_WHEN, type DocumentKind } from "@/lib/documents/registry";
-import { PASSAGES, SENSITIVITY_LABEL } from "@/lib/documents/passages";
+import { PASSAGES, SENSITIVITY_LABEL, type TemplateScope } from "@/lib/documents/passages";
 import { previewLine } from "@/lib/documents/generate";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -37,7 +37,10 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
   const responsable = isResponsable(session);
   const me = session?.name ?? "";
   const types = DOC_ORDER;
-  const open = (sp.type && types.includes(sp.type as DocumentType) ? sp.type : types[0]) as DocumentType;
+  // Les messages préparés se rangent au même registre : une clef qui n'est pas celle d'un document.
+  const open = (sp.type === "message" ? "message" : sp.type && types.includes(sp.type as DocumentType) ? sp.type : types[0]) as TemplateScope;
+  const isMessage = open === "message";
+  const messagesPending = rows.filter((r) => r.docType === "message" && r.status === "pending").length;
   const kinds: DocumentKind[] = ["signe", "envoye", "interne"];
   const defs = PASSAGES[open] ?? [];
   const byPassage = (key: string) => rows.filter((r) => r.docType === open && r.passage === key).sort((a, b) => b.version - a.version);
@@ -98,20 +101,39 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
                 })}
             </div>
           ))}
+          <div className={styles.group}>
+            <div className={`${styles.groupHead} ${styles.envoye}`} title={t("Ce que le desk écrit au client dans les situations qui reviennent : le texte se relit ici, il s'ouvre depuis un ordre.")}>
+              <b>{t("Messages au client")}</b>
+              <small>{t("préparés, jamais envoyés seuls")}</small>
+            </div>
+            <Link href="/desk/referentiel/modeles?type=message" aria-current={isMessage ? "page" : undefined}>
+              <b>{t("Messages préparés")}</b>
+              <small>
+                {(PASSAGES.message ?? []).length} {t("passages")}
+                {messagesPending ? ` · ${messagesPending} ${t("en attente")}` : ""}
+              </small>
+            </Link>
+          </div>
         </nav>
 
         <div className={styles.model}>
           <div className={styles.modelHead}>
             <div>
-              <h2>{t(DOC_LABEL[open])}</h2>
+              <h2>{isMessage ? t("Messages préparés") : t(DOC_LABEL[open as DocumentType])}</h2>
               <small>
-                <span className={`${styles.kindTag} ${styles[DOC_KIND[open]]}`}>{t(DOC_KIND_LABEL[DOC_KIND[open]])}</span> {t("Produit")} : {t(DOC_WHEN[open])}
+                {isMessage ? (
+                  t("Ouverts depuis un ordre, au desk : « Écrire au client ». L'opérateur choisit, relit, corrige, puis envoie depuis WhatsApp ou son courrier.")
+                ) : (
+                  <>
+                    <span className={`${styles.kindTag} ${styles[DOC_KIND[open as DocumentType]]}`}>{t(DOC_KIND_LABEL[DOC_KIND[open as DocumentType]])}</span> {t("Produit")} : {t(DOC_WHEN[open as DocumentType])}
+                  </>
+                )}
               </small>
             </div>
             <div className={styles.previews}>
-              <a className="btn sm primary" href={`/desk/referentiel/modeles/preview?type=${open}`} target="_blank" rel="noreferrer">
+              {isMessage ? null : <a className="btn sm primary" href={`/desk/referentiel/modeles/preview?type=${open}`} target="_blank" rel="noreferrer">
                 {open === "bordereau" ? t("Aperçu PDF · bordereau SVT") : t("Aperçu PDF · texte en vigueur")}
-              </a>
+              </a>}
               {open === "bordereau" && (
                 <a className="btn sm" href="/desk/referentiel/modeles/preview?type=bordereau&variante=opcvm" target="_blank" rel="noreferrer">
                   {t("Aperçu PDF · bordereau OPCVM")}
@@ -119,7 +141,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
               )}
             </div>
           </div>
-          <p className={styles.last}>
+          {!isMessage && <p className={styles.last}>
             {last ? (
               <>
                 {t("Dernier émis")} : <span className="mono">{last.number}</span> · {fmtDateTime(last.createdAt)}
@@ -132,7 +154,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
             ) : (
               t("Aucun document de ce modèle n'a encore été émis : l'aperçu montre le modèle sur des données de démonstration.")
             )}
-          </p>
+          </p>}
 
           {defs.length === 0 && <p className={styles.none}>{t("Ce modèle se consulte par l'aperçu : ses mentions sont fixées par le code et ses données viennent du dossier, de l'intention ou des positions. Une modification de texte se demande à l'équipe technique.")}</p>}
           {defs.map((d) => {
@@ -154,8 +176,8 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
                   <span>
                     {t("En vigueur")} : {current ? `v${current.version} · ${current.by} · ${fmtDateTime(current.at)}` : t("texte d'origine (code)")}
                   </span>
-                  <p>{previewLine(open, d.key, current?.fr ?? d.fr)}</p>
-                  {current?.en || d.en ? <p className={styles.en}>{previewLine(open, d.key, current?.en || d.en)}</p> : null}
+                  <p>{isMessage ? (current?.fr ?? d.fr) : previewLine(open as DocumentType, d.key, current?.fr ?? d.fr)}</p>
+                  {current?.en || d.en ? <p className={styles.en}>{isMessage ? current?.en || d.en : previewLine(open as DocumentType, d.key, current?.en || d.en)}</p> : null}
                 </div>
                 {pending.length > 0 && (
                   <ul className={styles.pendingList}>
@@ -166,9 +188,9 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
                             v{v.version} · {t("proposée par")} {v.by} · {fmtDateTime(v.at)}
                           </b>
                           {v.note && <small> · {v.note}</small>}
-                          <p>{previewLine(open, d.key, v.fr)}</p>
+                          <p>{isMessage ? v.fr : previewLine(open as DocumentType, d.key, v.fr)}</p>
                         </div>
-                        <ActivateVersion id={v.id} can={d.sensitivity === "libre" || (d.sensitivity === "relu" && (v.by !== me || responsable)) || (d.sensitivity === "reglementaire" && responsable)} label={t(d.sensitivity === "reglementaire" ? "Approuver et mettre en vigueur" : "Relu : mettre en vigueur")} previewHref={`/desk/referentiel/modeles/preview?type=${open}&v=${v.id}`} />
+                        <ActivateVersion id={v.id} can={d.sensitivity === "libre" || (d.sensitivity === "relu" && (v.by !== me || responsable)) || (d.sensitivity === "reglementaire" && responsable)} label={t(d.sensitivity === "reglementaire" ? "Approuver et mettre en vigueur" : "Relu : mettre en vigueur")} previewHref={isMessage ? undefined : `/desk/referentiel/modeles/preview?type=${open}&v=${v.id}`} />
                       </li>
                     ))}
                   </ul>
@@ -178,7 +200,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
             );
           })}
 
-          <section className={styles.editions} id="editions">
+          {!isMessage && <section className={styles.editions} id="editions">
             <h3>{t("Autres éditions")}</h3>
             <p className="muted">{t("Produites à la demande, non numérotées dans Documents, sans passage modifiable : le modèle se consulte sur une ligne, une société ou une période réelles.")}</p>
             <ul>
@@ -198,7 +220,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
                 </li>
               ))}
             </ul>
-          </section>
+          </section>}
         </div>
       </div>
     </>

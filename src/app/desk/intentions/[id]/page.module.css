@@ -327,3 +327,76 @@
   font: inherit;
   font-size: 0.84rem;
 }
+
+/* ---- Écrire au client : le message préparé, relu avant de partir ---- */
+.compose {
+  display: grid;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.composeHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+}
+.composeHead span {
+  font-size: 0.82rem;
+}
+.composeHead button {
+  margin-inline-start: auto;
+}
+.composePick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.composeChip {
+  padding: var(--s-2) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.composeChip:hover {
+  border-color: var(--ink-3);
+}
+.composeOn {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff;
+}
+.composeNote {
+  display: grid;
+  gap: var(--s-2);
+  font-size: 0.82rem;
+}
+.composeNote input {
+  width: 100%;
+}
+.composeBody {
+  width: 100%;
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+.composeFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+.composeWarn {
+  color: var(--warn);
+  font-size: 0.82rem;
+  font-style: normal;
+}
+.composeLink {
+  font-size: 0.8rem;
+}

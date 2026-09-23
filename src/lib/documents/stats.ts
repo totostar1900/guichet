@@ -10,6 +10,7 @@ export async function docStats(): Promise<DocStats> {
   const issued: Partial<Record<DocumentType, number>> = {};
   for (const d of docs) issued[d.type] = (issued[d.type] ?? 0) + 1;
   const pending: Partial<Record<DocumentType, number>> = {};
-  for (const x of texts) if (x.status === "pending") pending[x.docType] = (pending[x.docType] ?? 0) + 1;
+  // la carte des documents ne compte que les documents : les messages preparés ont leur propre entrée au registre
+  for (const x of texts) if (x.status === "pending" && x.docType !== "message") pending[x.docType] = (pending[x.docType] ?? 0) + 1;
   return { issued, pending };
 }
