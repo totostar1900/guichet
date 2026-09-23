@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { logout } from "@/app/connexion/actions";
 import type { Session } from "@/lib/auth/types";
 import styles from "./UserMenu.module.css";
 import { getT } from "@/i18n/server";
@@ -32,11 +31,6 @@ export async function UserMenu({ session, deskUi }: { session: Session | null; d
           {t(session.kycStatus === "soumis" || session.kycStatus === "en_revue" ? "Dossier en revue" : session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? "Compte en cours d'ouverture" : "Ouvrir un compte")}
         </Link>
       )}
-      <form action={logout}>
-        <button type="submit" className={styles.out} title={t("Se déconnecter")} aria-label={t("Se déconnecter")}>
-          ⏻
-        </button>
-      </form>
     </div>
   );
 }

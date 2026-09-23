@@ -82,6 +82,9 @@
     transition: none;
   }
 }
+/* Un téléphone couché fait 375 px de haut : la liste, haute de 502 px, passait
+   sous le bord et ses trois dernières pages ne se touchaient pas. Elle défile
+   en elle-même plutôt que de déborder. */
 .menu {
   position: absolute;
   top: 100%;
@@ -89,6 +92,9 @@
   z-index: 60;
   min-width: 320px;
   max-width: 380px;
+  max-height: calc(100vh - 78px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -124,5 +130,19 @@
 @media (max-width: 640px) {
   .chev {
     display: none;
+  }
+}
+
+/* Entre 640 et 1000 px, un téléphone couché : les six onglets, la signature et la
+   grappe de droite demandaient 838 px dans une boîte de 797. Les onglets se
+   resserrent, ce sont eux qui tiennent la plus grande part. */
+@media (min-width: 641px) and (max-width: 1000px) {
+  .tab {
+    padding: 20px 8px;
+    font-size: 0.84rem;
+  }
+  .count {
+    margin-left: 4px;
+    padding: 1px 4px;
   }
 }

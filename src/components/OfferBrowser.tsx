@@ -213,7 +213,7 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: R
             <Th k="yield" label={t("Rendement")} sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
             <Th k="tenor" label={t("Échéance")} sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
             <th className={`${styles.r} ${styles.hideMd}`}>{t("Durée")}</th>
-            <Th k="minimum" label={t("Ticket minimum")} sort={sort} dir={dir} onSort={onSort} right term="ticket" />
+            <Th k="minimum" label={t("Ticket minimum")} sort={sort} dir={dir} onSort={onSort} right term="ticket" className={styles.hideSm} />
             <th></th>
           </tr>
         </thead>
@@ -257,7 +257,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
             {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
           </td>
           <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
-          <td className={`${styles.r} num`}>
+          <td className={`${styles.r} ${styles.hideSm} num`}>
             {s.minimum}
             {s.minimum !== "—" && <Info text={s.minimumSub} label={t("Ce ticket représente")} subtle />}
           </td>
@@ -396,7 +396,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       seen.add(k);
       out.push({ kind, text });
     };
-    for (const o of offers) push("Émetteur", o.issuer);
+    // Le nom du registre, celui que porte la tête de groupe, et non l’orthographe de
+    // la ligne : proposer « BGFI » tel qu’il est écrit sur une ligne puis ne trouver
+    // que celle-là, c’est promettre un émetteur et rendre une écriture.
+    for (const o of offers) push("Émetteur", issuerKey(o));
     for (const o of offers) push("Ligne", o.title);
     for (const o of offers) push("ISIN", o.isin ?? "");
     return out.slice(0, 8);
@@ -484,7 +487,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           if (y == null || (yr.min != null && y < yr.min) || (yr.max != null && y > yr.max)) return false;
         }
         if (ql) {
-          const hay = [o.title, o.isin, o.issuer, o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ");
+          // les deux écritures : celle de la ligne et celle du registre, qui rassemble les alias
+          const hay = [o.title, o.isin, o.issuer, issuerKey(o), o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ");
           if (!fold(hay).includes(ql)) return false;
         }
         return true;

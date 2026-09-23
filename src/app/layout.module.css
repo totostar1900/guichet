@@ -36,6 +36,15 @@
   font-style: normal;
   color: #e0b65a;
 }
+/* Un téléphone couché fait 812 px : l’en-tête de bureau n’y tenait pas. La
+   signature passait à trois lignes, l’en-tête à 93 px au lieu de 62, et la
+   grappe de droite finissait à 858 px, hors de l’écran. Sous 1000 px la
+   baseline se tait : le nom seul suffit à dire où l’on est. */
+@media (max-width: 1000px) {
+  .brand span {
+    display: none;
+  }
+}
 .right {
   margin-left: auto;
   display: flex;

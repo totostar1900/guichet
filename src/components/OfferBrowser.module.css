@@ -1,7 +1,9 @@
 .wrap {
   display: grid;
   gap: 12px;
-  --header-h: 60px;
+  /* la hauteur réelle de l’en-tête : la tête de table s’y colle, et deux pixels
+     d’erreur la font passer dessous */
+  --header-h: 62px;
 }
 /* The market tabs and the toolbar scroll with the page; once under the header, the floating filter button brings the controls back. */
 .top {
@@ -19,6 +21,20 @@
     margin: -14px -14px 0;
     padding: 10px 14px 8px;
   }
+}
+
+/* La table ne défile de côté que là où elle ne tient pas : un téléphone debout.
+
+   Le seuil était à 820 px, donc un téléphone couché (812) tombait du mauvais
+   côté : la colonne du nom était forcée à 220 px, la table demandait 807 px dans
+   755, le cadre devenait un défileur, et la tête de table cessait de coller. Les
+   lignes passaient alors sous la barre du haut sans que rien ne dise de quelle
+   colonne il s’agissait.
+
+   Un cadre qui défile de côté ne peut pas laisser déborder verticalement : c’est
+   une contrainte de CSS, pas un choix. Les deux vont donc ensemble, au même
+   seuil, et ce seuil est celui où la table cesse vraiment de tenir. */
+@media (max-width: 640px) {
   .table th {
     position: static;
   }
@@ -251,7 +267,7 @@
   overflow-x: clip; /* not a scroll container, so the header can stick to the page */
   min-width: 0;
 }
-@media (max-width: 1000px) {
+@media (max-width: 640px) {
   .tableWrap {
     overflow-x: auto;
   }
@@ -468,6 +484,14 @@
     display: none;
   }
 }
+/* Un rang de plus qui se retire quand l’écran se couche : sans lui la table
+   débordait de trente pixels, donc elle défilait de côté, donc sa tête ne
+   pouvait pas coller. Le ticket minimum se lit sur la fiche. */
+@media (max-width: 900px) {
+  .hideSm {
+    display: none;
+  }
+}
 @media (max-width: 1400px) {
   .hideLg {
     display: none;
@@ -488,6 +512,10 @@
     flex-basis: 100%;
   }
   .line {
+    /* 200 et non 260 : à 812 px la table demandait 807 px dans 755, et les
+       cinquante-deux de trop étaient exactement cette colonne. Elle se serre,
+       la table tient, et sa tête peut coller. */
+    min-width: 200px;
     max-width: 240px;
   }
 }
@@ -504,11 +532,6 @@
   }
   .sortSel {
     margin-left: auto;
-  }
-}
-@media (max-width: 820px) {
-  .table th {
-    position: static;
   }
 }
 .compareLink {
