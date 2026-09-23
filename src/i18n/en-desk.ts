@@ -2108,4 +2108,10 @@ export const EN_MORE: Record<string, string> = {
   "{who} ne recevra pas d'exécution sur {line}.": "{who} will get no execution on {line}.",
   "Ce passage est définitif : l'ordre ne se rouvre pas.": "This step is final: the order does not reopen.",
   "Le client lira : « Votre ordre {r} est clos sans suite : {why}. Écrivez-nous si vous souhaitez le reprendre. »": "The client will read: “Your order {r} is closed without action: {why}. Write to us if you would like to place it again.”",
+  "Échanges": "Exchanges",
+  "Système": "System",
+  "Ce qu'on affiche": "What is shown",
+  "Aucun échange avec ce client sur cet ordre.": "No exchange with this client on this order.",
+  "Rien à afficher.": "Nothing to show.",
+  "demandé": "asked for",
 };

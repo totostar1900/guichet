@@ -261,3 +261,40 @@
   font: inherit;
   font-size: 0.84rem;
 }
+
+/* Le fil d'un ordre : échanges, système, tout. */
+.msgTabs {
+  margin-left: auto;
+  display: inline-flex;
+  gap: var(--s-1);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: var(--s-1);
+}
+.msgTabs button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: var(--s-1) var(--s-4);
+  cursor: pointer;
+}
+.msgTabs button em {
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.msgTabs .msgTabOn {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+/* le canal que le client a demandé */
+.asked {
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.85;
+}
