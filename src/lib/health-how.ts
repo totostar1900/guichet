@@ -17,6 +17,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Sous la tuile du bulletin : « relancer » relit la BVMAC ; si le site ne répond pas, « déposer le PDF » reçu par e-mail.",
     docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
   },
+  lignes: {
+    label: "Lignes publiées contre le bulletin",
+    href: "/desk/sante#lignes",
+    how: "Le tableau « Lignes et bulletin », plus bas sur cette page. Une sortie de cote dont l'échéance est passée se retire seule à la lecture du bulletin ; celles dont l'échéance est inconnue attendent un « Retirer ». Un cours ou un instrument qui diffère du bulletin est un défaut de lecture : relancer la lecture de la séance.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
   relire: {
     label: "Bulletins à relire",
     href: "/desk/sante#relire",

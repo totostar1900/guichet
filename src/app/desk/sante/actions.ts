@@ -59,3 +59,22 @@ export async function rereadAction(_prev: RereadResult | null, form: FormData): 
   revalidatePath("/desk/marche");
   return { ok: parts.join(" · ") };
 }
+
+/**
+ * Retire une ligne cotée qui a quitté la cote : elle cesse d'être
+ * commandable. Réservé aux absences que le bulletin ne tranche pas seul,
+ * celles dont l'échéance est inconnue ou encore à venir.
+ */
+export async function withdrawLineAction(_prev: RereadResult | null, form: FormData): Promise<RereadResult> {
+  const desk = await requireDesk("/desk/sante");
+  const id = String(form.get("offerId") ?? "").trim();
+  if (!id) return { error: "Ligne inconnue." };
+  const offer = (await repo().listOffers()).find((o) => o.id === id);
+  if (!offer) return { error: "Ligne introuvable." };
+  if (offer.kind !== "MARCHE") return { error: "Seule une ligne cotée se retire ainsi." };
+  await repo().upsertOffer({ ...offer, status: "withdrawn", version: offer.version + 1 });
+  await repo().logEvent({ kind: "desk", html: `<b>Ligne retirée de la cote</b> : ${offer.title} · à la main · par ${desk.name}` });
+  revalidatePath("/desk/sante");
+  revalidatePath("/titres");
+  return { ok: `${offer.title} : retirée de la cote.` };
+}

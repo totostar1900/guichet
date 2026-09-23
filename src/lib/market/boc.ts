@@ -10,6 +10,7 @@ import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
 import { loadCompanies, loadRegistry } from "@/lib/reference";
 import { bondTerms } from "@/lib/domain/status";
+import { ABSENCE_SESSIONS, reconcileLines } from "./reconcile";
 
 const COMPANY_DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
 /** The issuer's own filings at the BVMAC, newest first, for the fiche of a listed share. */
@@ -355,6 +356,23 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     const next = offerFromNav(n, parsed.bulletinNo, existing, perf1y(await r.listFundNavs(n.fundKey, 400), n));
     await r.upsertOffer(next);
     (existing ? refreshed : created).push(next.id);
+  }
+
+  // Une ligne qui a quitté la cote et dont l'échéance est passée se retire seule :
+  // la laisser publiée, c'est la laisser commandable. Les autres absences vont à Santé,
+  // où une personne tranche. Jamais pendant la relecture d'une séance ancienne.
+  const latest = (await r.listBulletins(1)).map((b) => b.sessionDate)[0];
+  if (!latest || sessionDate >= latest) {
+    const recent = await r.listBulletins(ABSENCE_SESSIONS);
+    const quotesByDate = new Map<string, typeof quotes>();
+    for (const b of recent) quotesByDate.set(b.sessionDate, b.sessionDate === sessionDate ? quotes : await r.quotesOn(b.sessionDate));
+    const gone = reconcileLines({ offers: await r.listOffers(), bulletins: recent, quotesByDate }).filter((i) => i.kind === "sortie" && i.retirable);
+    for (const g of gone) {
+      const o = (await r.listOffers()).find((x) => x.id === g.offerId);
+      if (!o) continue;
+      await r.upsertOffer({ ...o, status: "withdrawn", version: o.version + 1 });
+      await r.logEvent({ kind: "desk", html: `<b>Ligne retirée de la cote</b> : ${o.title} · ${g.detail}` });
+    }
   }
 
   const status: MarketBulletin["status"] = anomalies.length || parsed.warnings.length ? "partiel" : "ok";

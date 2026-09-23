@@ -1983,4 +1983,15 @@ export const EN_MORE: Record<string, string> = {
   "{n} séances lues à moitié : le lecteur les a marquées au moment même, elles attendent une relecture.": "{n} sessions read only halfway: the reader flagged them at the time, and they are still waiting.",
   "… et {n} autres, reprises six par six.": "… and {n} more, taken six at a time.",
   "Chaque bulletin garde l'adresse de son PDF d'origine : une relecture le reprend tel quel, avec le lecteur d'aujourd'hui. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.": "Every bulletin keeps the address of its original PDF: reading it again takes it as it is, with today's reader. A session without share prices distorts the reading of the index, so that is the one to take first.",
+
+  /* ---------- les lignes contre le bulletin ---------- */
+  "Lignes et bulletin": "Lines against the bulletin",
+  "Lignes publiées contre le bulletin": "Published lines against the bulletin",
+  "Ce que dit le bulletin": "What the bulletin says",
+  "Écart": "Discrepancy",
+  "Sortie de cote": "Left the market",
+  "Non publiée": "Not published",
+  "Doublon": "Duplicate",
+  "{n} écart entre ce que le Guichet publie et ce que le bulletin cote.": "{n} discrepancy between what Guichet publishes and what the bulletin quotes.",
+  "Une ligne sortie de la cote dont l'échéance est passée se retire seule à la lecture du bulletin. Celles dont l'échéance est inconnue ou encore à venir attendent une décision : tant qu'elles sont publiées, un client peut passer un ordre dessus. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.": "A line that has left the market and whose maturity has passed withdraws itself when the bulletin is read. Those whose maturity is unknown or still ahead wait for a decision: while they stay published, a client can place an order on them. A price or an instrument that differs from the bulletin is a reading fault, not a decision: read that session again.",
 };

@@ -7,6 +7,7 @@ import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { indexCheck } from "@/lib/market/index";
+import { ABSENCE_SESSIONS, reconcileLines, reconcileSummary, type LineIssue } from "@/lib/market/reconcile";
 import type { MarketBulletin } from "@/lib/domain/market";
 
 /**
@@ -32,6 +33,20 @@ export interface HealthCheck {
 export async function bulletinsToReread(): Promise<MarketBulletin[]> {
   const all = await repo().listBulletins(2000);
   return all.filter((b) => b.status !== "ok" || !b.counts?.equities).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+}
+
+/**
+ * Les écarts entre les lignes cotées publiées et le bulletin, sur la
+ * dernière séance lue. Ce que le Guichet copie se vérifie ; ce qu'il cesse
+ * de copier aussi.
+ */
+export async function lineIssues(): Promise<LineIssue[]> {
+  const r = repo();
+  const bulletins = await r.listBulletins(ABSENCE_SESSIONS);
+  if (bulletins.length === 0) return [];
+  const quotesByDate = new Map<string, Awaited<ReturnType<typeof r.quotesOn>>>();
+  await Promise.all(bulletins.map(async (b) => quotesByDate.set(b.sessionDate, await r.quotesOn(b.sessionDate))));
+  return reconcileLines({ offers: await r.listOffers(), bulletins, quotesByDate });
 }
 
 /** Business days between two dates (Mon–Fri, holidays not known). */
@@ -84,6 +99,17 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     detail: arriere.length
       ? `${sansCours ? `${sansCours} sans aucun cours d'action · ` : ""}du ${arriere[0].sessionDate} au ${arriere[arriere.length - 1].sessionDate} · relisibles depuis leur adresse d'origine`
       : "chaque séance lue est complète",
+  });
+
+  // 2 ter. Every published listed line against the bulletin, both ways.
+  const issues = await lineIssues();
+  const sorties = issues.filter((i) => i.kind === "sortie");
+  out.push({
+    key: "lignes",
+    label: "Lignes publiées contre le bulletin",
+    level: issues.some((i) => i.kind !== "sortie") ? "crit" : sorties.length ? "warn" : "ok",
+    value: issues.length ? `${issues.length} écart${issues.length > 1 ? "s" : ""}` : `${offers.filter((o) => o.kind === "MARCHE" && o.status !== "withdrawn").length} lignes conformes`,
+    detail: reconcileSummary(issues),
   });
 
   // 3. Listed lines whose price is older than the last bulletin.

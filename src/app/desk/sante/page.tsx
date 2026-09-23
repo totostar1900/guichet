@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
-import { bulletinsToReread, healthChecks } from "@/lib/health";
+import { bulletinsToReread, healthChecks, lineIssues } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
-import { rereadAction } from "./actions";
+import { rereadAction, withdrawLineAction } from "./actions";
 import { Reread } from "./Reread";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -19,10 +19,11 @@ function fromSante(href: string, key: string): string {
 }
 
 const LEVEL: Record<string, string> = { ok: "OK", warn: "À surveiller", crit: "Action requise" };
+const KIND_LABEL: Record<string, string> = { sortie: "Sortie de cote", absente: "Non publiée", prix: "Cours", date: "Date", instrument: "Instrument", doublon: "Doublon" };
 
 export default async function SantePage() {
   const t = await getT();
-  const [checks, bulletins, notifications, arriere] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40), bulletinsToReread()]);
+  const [checks, bulletins, notifications, arriere, ecarts] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40), bulletinsToReread(), lineIssues()]);
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   return (
     <>
@@ -59,6 +60,46 @@ export default async function SantePage() {
           );
         })}
       </div>
+
+      {ecarts.length > 0 && (
+        <section className="panel" id="lignes">
+          <div className="panel-h">
+            <h2>{t("Lignes et bulletin")}</h2>
+            <span className="muted">{t("{n} écart entre ce que le Guichet publie et ce que le bulletin cote.", { n: ecarts.length })}</span>
+          </div>
+          <p className={styles.p}>
+            {t("Une ligne sortie de la cote dont l'échéance est passée se retire seule à la lecture du bulletin. Celles dont l'échéance est inconnue ou encore à venir attendent une décision : tant qu'elles sont publiées, un client peut passer un ordre dessus. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.")}
+          </p>
+          <div className="scroll-x">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>{t("Écart")}</th>
+                  <th>ISIN</th>
+                  <th>{t("Ligne")}</th>
+                  <th>{t("Ce que dit le bulletin")}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {ecarts.map((e, i) => (
+                  <tr key={`${e.kind}-${e.isin}-${i}`}>
+                    <td>
+                      <span className={`st ${e.kind === "sortie" ? "recue" : "annulee"}`}>{t(KIND_LABEL[e.kind])}</span>
+                    </td>
+                    <td className="mono">{e.isin}</td>
+                    <td>{e.title}</td>
+                    <td className="muted">{t(e.detail)}</td>
+                    <td className="r">
+                      {e.kind === "sortie" && e.offerId ? <Reread action={withdrawLineAction} label={t("Retirer")} date={undefined} offerId={e.offerId} /> : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {arriere.length > 0 && (
         <section className="panel" id="relire">
