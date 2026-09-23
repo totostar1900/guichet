@@ -17,6 +17,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Sous la tuile du bulletin : « relancer » relit la BVMAC ; si le site ne répond pas, « déposer le PDF » reçu par e-mail.",
     docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
   },
+  relire: {
+    label: "Bulletins à relire",
+    href: "/desk/sante#relire",
+    how: "Le tableau « Bulletins à relire », plus bas sur cette page : « Relire les plus anciens » reprend six séances depuis l'adresse d'origine du bulletin, « Relire » en fait une seule. À relancer après chaque correction du lecteur.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
   ingests: {
     label: "Ingestions à vérifier",
     href: "/desk/depot",

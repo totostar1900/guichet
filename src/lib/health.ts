@@ -7,6 +7,7 @@ import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { indexCheck } from "@/lib/market/index";
+import type { MarketBulletin } from "@/lib/domain/market";
 
 /**
  * One glance at whether the machine is running: last bulletin, freshness of
@@ -20,6 +21,17 @@ export interface HealthCheck {
   level: "ok" | "warn" | "crit";
   value: string;
   detail?: string;
+}
+
+/**
+ * Les bulletins que le lecteur a laissés incomplets, sur toute l'histoire :
+ * un statut autre que « ok », ou aucune action lue. C'est l'arriéré qu'une
+ * relecture referme. Un lecteur corrigé ne rattrape pas le passé tout seul,
+ * et ces séances manquantes faussent la lecture de l'indice.
+ */
+export async function bulletinsToReread(): Promise<MarketBulletin[]> {
+  const all = await repo().listBulletins(2000);
+  return all.filter((b) => b.status !== "ok" || !b.counts?.equities).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
 }
 
 /** Business days between two dates (Mon–Fri, holidays not known). */
@@ -59,6 +71,19 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     level: bulletins.some((b) => b.status === "echec") ? "crit" : bad.length > 5 ? "warn" : "ok",
     value: `${bad.length} partiel(s) ou échec(s)`,
     detail: bad.slice(0, 5).map((b) => `${b.sessionDate} ${b.status}${b.anomalies[0] ? ` : ${b.anomalies[0].slice(0, 80)}` : ""}`).join(" · ") || "tout est propre",
+  });
+
+  // 2 bis. The whole backlog, not just the last 30: incomplete readings distort the index.
+  const arriere = await bulletinsToReread();
+  const sansCours = arriere.filter((b) => !b.counts?.equities).length;
+  out.push({
+    key: "relire",
+    label: "Bulletins à relire",
+    level: sansCours ? "crit" : arriere.length ? "warn" : "ok",
+    value: `${arriere.length} séance${arriere.length > 1 ? "s" : ""}`,
+    detail: arriere.length
+      ? `${sansCours ? `${sansCours} sans aucun cours d'action · ` : ""}du ${arriere[0].sessionDate} au ${arriere[arriere.length - 1].sessionDate} · relisibles depuis leur adresse d'origine`
+      : "chaque séance lue est complète",
   });
 
   // 3. Listed lines whose price is older than the last bulletin.

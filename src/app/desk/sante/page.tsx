@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
-import { healthChecks } from "@/lib/health";
+import { bulletinsToReread, healthChecks } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
+import { rereadAction } from "./actions";
+import { Reread } from "./Reread";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -20,7 +22,7 @@ const LEVEL: Record<string, string> = { ok: "OK", warn: "À surveiller", crit: "
 
 export default async function SantePage() {
   const t = await getT();
-  const [checks, bulletins, notifications] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40)]);
+  const [checks, bulletins, notifications, arriere] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40), bulletinsToReread()]);
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   return (
     <>
@@ -57,6 +59,59 @@ export default async function SantePage() {
           );
         })}
       </div>
+
+      {arriere.length > 0 && (
+        <section className="panel" id="relire">
+          <div className="panel-h">
+            <h2>{t("Bulletins à relire")}</h2>
+            <span className="muted">
+              {t("{n} séances lues à moitié : le lecteur les a marquées au moment même, elles attendent une relecture.", { n: arriere.length })}
+            </span>
+          </div>
+          <p className={styles.p}>
+            {t("Chaque bulletin garde l'adresse de son PDF d'origine : une relecture le reprend tel quel, avec le lecteur d'aujourd'hui. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.")}
+          </p>
+          <div className={styles.actions}>
+            <Reread action={rereadAction} label={t("Relire les plus anciens")} primary />
+            <Link className="btn sm ghost" href="/desk/marche">
+              {t("Marché")} →
+            </Link>
+          </div>
+          <div className="scroll-x">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>{t("Séance")}</th>
+                  <th>N°</th>
+                  <th>{t("État")}</th>
+                  <th className="r">{t("Actions")}</th>
+                  <th>{t("Ce que le lecteur a dit")}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {arriere.slice(0, 30).map((b) => (
+                  <tr key={b.id}>
+                    <td className="mono">{b.sessionDate}</td>
+                    <td className="mono">{b.number}</td>
+                    <td>
+                      <span className={`st ${b.status === "partiel" ? "recue" : "annulee"}`}>{t(b.status)}</span>
+                    </td>
+                    <td className="r num">{b.counts?.equities ?? 0}</td>
+                    <td className="muted">{(b.anomalies[0] ?? b.warnings[0] ?? "—").slice(0, 90)}</td>
+                    <td className="r">
+                      <Reread action={rereadAction} label={t("Relire")} date={b.sessionDate} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {arriere.length > 30 && (
+            <p className="muted">{t("… et {n} autres, reprises six par six.", { n: arriere.length - 30 })}</p>
+          )}
+        </section>
+      )}
 
       <div className={styles.cols}>
         <div className="panel">

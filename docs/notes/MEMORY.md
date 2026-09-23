@@ -17,3 +17,4 @@
 - [BVMAC index](guichet-index-bvmac.md) : pulse, company base-100, Comparer reference, Santé check, lesson, desk doc; shown and explained only; methodology letter pending
 - [Market notes](guichet-notes-de-marche.md) : quarterly note public (page /indice/note/<T> + PDF), monthly note desk-only; crons, publishing, docs/notes-de-marche.md + /desk/docs/publications
 - [Document references](guichet-document-refs.md) : documents AND intentions print an opaque ref (PC-BUL-260922-K7Q4, PF-0914-K7Q4), the sequence moves to an internal register / order journal; counterparty docs sequential; migrations 0034-0035
+- [Bulletin parser](guichet-boc-parser.md) : pre-Nov-2025 3-line equity rows broke 31 sessions; window 2→4, capitalisation silence warns, 77 bulletins re-ingested, Santé › Bulletins à relire

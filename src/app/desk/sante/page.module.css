@@ -100,3 +100,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* le panneau des bulletins à relire : une phrase, une rangée de boutons, la table */
+.p {
+  color: var(--ink-2);
+  max-width: 78ch;
+  margin: 0 0 12px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
