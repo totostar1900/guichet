@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-09-18",
+  checkedOn: "2026-09-23",
   owner: "Georges",
   chapters: [
     {
@@ -104,6 +104,25 @@ export const TECHNIQUE: DocPage = {
           ],
         },
         { type: "p", text: l("Surveillance : Desk › Santé chaque matin (un point rouge le soir envoie un e-mail au desk) ; Vercel › Logs pour les erreurs d'exécution ; Supabase › Reports pour la base ; resend.com › Logs pour les e-mails ; Meta › WhatsApp Manager pour la qualité du numéro. Un incident se note dans Messages ou dans un mémo avec l'heure, l'effet, la cause, le geste fait.", "Monitoring: Desk › Health every morning (a red point in the evening e-mails the desk); Vercel › Logs for runtime errors; Supabase › Reports for the database; resend.com › Logs for e-mail; Meta › WhatsApp Manager for the number's quality. An incident is noted in Messages or a memo with time, effect, cause, action taken.") },
+      ],
+    },
+    {
+      id: "echelle",
+      title: l("L'échelle d'espacement et les pièces partagées", "The spacing scale and the shared parts"),
+      blocks: [
+        { type: "lead", text: l("Les couleurs et la typographie étaient déjà nommées ; les espaces ne l'étaient pas. Un audit des marges du desk a trouvé un panneau sans retrait intérieur, une table décalée de deux pixels de son propre titre, et vingt et une feuilles qui avaient rattrapé la même chose à la main, dont vingt au même chiffre. La règle existait, il lui manquait un endroit où s'écrire.", "Colours and type were already named; spacing was not. An audit of the desk margins found a panel with no inner inset, a table two pixels out of line with its own title, and twenty-one stylesheets that had fixed the same thing by hand, twenty of them at the same figure. The rule was there, it had nowhere to be written.") },
+        {
+          type: "table",
+          head: [l("Ce qu'on pose", "What you set"), l("Où c'est déclaré", "Where it is declared")],
+          rows: [
+            [l("Un espace : 2 · 4 · 6 · 8 · 10 · 12 · 16 · 20 · 24 · 32 · 40 px", "A space: 2 · 4 · 6 · 8 · 10 · 12 · 16 · 20 · 24 · 32 · 40 px"), l("src/app/globals.css, --s-1 à --s-11", "src/app/globals.css, --s-1 to --s-11")],
+            [l("Le retrait intérieur d'un panneau", "A panel's inner inset"), l("--panel-inset : le panneau le pose à son corps, la feuille de page ne le redit pas", "--panel-inset: the panel gives it to its body, the page stylesheet does not repeat it")],
+            [l("Une couleur, une famille d'instrument, une bulle d'aide", "A colour, an instrument family, a tooltip"), l("globals.css : --navy, --gold, --ink-*, --line-*, --fam-*, --tip-*, --chart-*", "globals.css: --navy, --gold, --ink-*, --line-*, --fam-*, --tip-*, --chart-*")],
+            [l("Un panneau, sa barre de titre, une table, un état", "A panel, its title bar, a table, a state"), l("Les classes globales panel · panel-h · tbl · scroll-x · empty · chips · btn · st", "The global classes panel · panel-h · tbl · scroll-x · empty · chips · btn · st")],
+          ],
+        },
+        { type: "note", kind: "rule", text: l("Harmoniser n'est pas uniformiser : une page du desk se balaie et prend les petits pas, une note de marché se lit et prend les grands. C'est la même échelle, ce ne sont pas les mêmes degrés.", "Harmonising is not making everything the same: a desk page is scanned and takes the small steps, a market note is read and takes the large ones. The same scale, not the same steps.") },
+        { type: "lead", text: l("Deux pas restent hors échelle, 14 px et 18 px, hérités et encore largement posés. Ils marchent, ils ne s'écrivent plus dans du code neuf. Le test src/test/spacing.test.ts compte ce qui sort de l'échelle et refuse que le compte augmente : il peut descendre quand une feuille se range, il ne remonte pas. Écrire la convention ne suffisait pas, on l'avait vérifié ailleurs ; ici quelque chose échoue.", "Two steps stay off the scale, 14px and 18px, inherited and still widely used. They work, they are no longer written in new code. The test src/test/spacing.test.ts counts what falls off the scale and refuses to let the count grow: it can fall when a stylesheet is tidied, it does not rise. Writing the convention down was not enough, as we had seen elsewhere; here something fails.") },
       ],
     },
     {

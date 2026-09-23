@@ -94,6 +94,14 @@ WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un 
 - La file de construction du plan Hobby est lente les soirs de nombreux pushes (10 à 40 minutes entre le push et le début de la construction, un seul chantier à la fois ; Vercel peut annuler de lui-même un build dépassé par un push plus récent). Vérifier sans le tableau de bord : `https://api.github.com/repos/totostar1900/guichet/commits/<sha>/status` (state `pending` = pas encore construit, `success` = construit ; « Canceled from the Vercel Dashboard » = annulé) et un `curl` de la page pour y chercher un marqueur du nouveau code.
 - Tâches planifiées (`vercel.json`, jeton `CRON_SECRET`, UTC) : `boc` 18:30 lun–ven (bulletin BVMAC), `coupons` 07:00, `suivi` 07:15 (lignes suivies, point du matin), `point` 06:30 lun–ven (opportunités en file), `emetteurs` lundi 06:00 (documents des sociétés), `actualites` 04:00 (veille des flux, vérification des liens), `actualites-hebdo` vendredi 16:00 (résumé aux clients). Sur Vercel, le plan Pro est nécessaire (sept tâches, fonctions jusqu'à 5 min, usage commercial).
 
+### L'échelle d'espacement
+
+- Les espaces ont un nom depuis le 23 septembre 2026 : `--s-1` à `--s-11` dans `src/app/globals.css`, soit 2 · 4 · 6 · 8 · 10 · 12 · 16 · 20 · 24 · 32 · 40 px. Elle décrit ce qui était déjà posé : 76 % des espaces de l'application tenaient déjà sur six de ces pas.
+- Le retrait intérieur d'un panneau appartient au panneau (`--panel-inset`) : une feuille de page ne le redit pas, elle ne pose que le vertical, avec `padding-block`.
+- 14 px et 18 px sont les deux pas hérités : ils marchent, ils ne s'écrivent plus dans du code neuf.
+- Le garde-fou : `src/test/spacing.test.ts` compte ce qui sort de l'échelle et refuse que le compte augmente. Il peut descendre quand une feuille se range, il ne remonte pas. Si le test échoue sur un travail légitime, poser un pas de l'échelle ; si la valeur est vraiment nécessaire, baisser le plafond du test dans le même envoi, en disant pourquoi.
+- Harmoniser n'est pas uniformiser : le desk se balaie et prend les petits pas, une note de marché se lit et prend les grands. La même échelle, pas les mêmes degrés.
+
 ## 7. Quand ça coince
 
 | Symptôme | Quoi faire |

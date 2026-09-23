@@ -167,7 +167,8 @@ thead .when {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px 20px;
-  padding: 12px 16px 16px;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 12px 16px;
   font-size: 0.86rem;
   line-height: 1.5;
   color: var(--ink-2);
@@ -182,7 +183,8 @@ thead .when {
 }
 .method {
   margin: 0;
-  padding: 10px 16px 16px;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 10px 16px;
   font-size: 0.8rem;
   color: var(--ink-3);
   border-top: 1px solid var(--line);
@@ -194,7 +196,8 @@ thead .when {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0 22px;
   margin: 0;
-  padding: 0 16px;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 0;
 }
 .info div {
   display: grid;
@@ -234,7 +237,8 @@ thead .when {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  padding: 0 16px 10px;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 0 10px;
 }
 .tableSep {
   width: 1px;

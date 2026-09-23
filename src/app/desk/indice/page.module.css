@@ -59,7 +59,8 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 0 22px;
   margin: 0;
-  padding: 0 16px 14px;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 0 14px;
 }
 .figs div {
   display: grid;
@@ -110,7 +111,8 @@
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  padding: 12px 16px 0;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 12px 0;
   font-size: 0.84rem;
 }
 

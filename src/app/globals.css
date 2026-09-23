@@ -73,6 +73,34 @@
   --fam-OPCVM: #8a6408;
   --fam-OPCVM-soft: #fbf1da;
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
+  /* L'echelle d'espacement.
+
+     Les feuilles portaient 1893 declarations d'espacement pour 35 valeurs
+     distinctes, mais 76 % d'entre elles sur six pas seulement : l'echelle
+     existait deja, personne ne l'avait ecrite. La nommer sert a deux choses,
+     donner un nom au pas qu'on pose, et rendre visible le pas qu'on invente.
+
+     Elle n'impose pas une mesure unique : une page du desk se balaie et prend
+     les petits pas, une note de marche se lit et prend les grands. C'est la
+     meme echelle, ce ne sont pas les memes degres.
+
+     Restent hors echelle 14 px (224 valeurs posees) et 18 px (86), les deux pas
+     herites : ils marchent encore, ils ne s'ecrivent plus. Le garde-fou de
+     src/test/spacing.test.ts compte ce qui sort de l'echelle et refuse que
+     le compte augmente. */
+  --s-1: 2px;
+  --s-2: 4px;
+  --s-3: 6px;
+  --s-4: 8px;
+  --s-5: 10px;
+  --s-6: 12px;
+  --s-7: 16px;
+  --s-8: 20px;
+  --s-9: 24px;
+  --s-10: 32px;
+  --s-11: 40px;
+  /* La marge interieure d'un panneau, celle que son en-tete pose deja. */
+  --panel-inset: var(--s-7);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
   /* Legacy aliases : every face is the same family now. */
   --font-display: var(--font-ui);
@@ -614,6 +642,35 @@ h3 {
   margin-bottom: 18px;
   overflow: hidden;
 }
+/* Le corps d'un panneau prend la marge de son en-tete.
+
+   Le panneau n'en posait aucune : sur les 87 panneaux de l'application, ceux
+   dont le contenu ne s'etait pas invente la sienne s'affichaient a 1 px du
+   filet, seize pixels a gauche de leur propre titre. Vingt et une feuilles
+   l'avaient rattrape a la main, et vingt d'entre elles avaient choisi 16 px :
+   la regle etait la, il lui manquait un endroit ou s'ecrire.
+
+   Le selecteur est volontairement de specificite nulle. Une page qui dit
+   autre chose gagne sans avoir a se battre, et le plein cadre reste possible
+   par la classe bleed comme par une table ou un cadre defilant, qui portent
+   leur marge dans leurs cellules.
+
+   Le vertical reste local : c'est lui qui varie d'un panneau a l'autre, et il
+   varie pour de bonnes raisons. */
+:where(.panel) > :where(:not(.panel-h, .scroll-x, .bleed, .empty, table, hr, img, svg, canvas, iframe)) {
+  padding-inline: var(--panel-inset);
+}
+/* Le haut et le bas du corps, eux aussi : sans eux le contenu touche le filet
+   de l'en-tete et le bord bas du panneau. Seulement aux extremites, jamais
+   entre deux freres : l'espace entre eux vient de leurs propres marges, et
+   deux sources d'espace au meme endroit s'additionnent. */
+:where(.panel) > :where(.panel-h) + :where(:not(.scroll-x, .bleed, .empty, table, hr)) {
+  padding-top: var(--s-6);
+}
+:where(.panel) > :where(:not(.panel-h, .scroll-x, .bleed, .empty, table, hr)):last-child {
+  padding-bottom: var(--s-6);
+}
+
 .panel-h {
   display: flex;
   align-items: center;
@@ -634,18 +691,21 @@ h3 {
   border-collapse: collapse;
   font-size: 0.83rem;
 }
+/* 16 px et non 14 : une table de desk porte presque toujours le titre d'un
+   panneau au-dessus d'elle, et deux pixels d'ecart se lisent comme un defaut
+   de fabrication sur toute la hauteur de la colonne. */
 .tbl th {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ink-3);
   text-align: left;
-  padding: 9px 14px;
+  padding: 9px var(--panel-inset);
   border-bottom: 1px solid var(--line);
   font-weight: 600;
 }
 .tbl td {
-  padding: 9px 14px;
+  padding: 9px var(--panel-inset);
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
 }

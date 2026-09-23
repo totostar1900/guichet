@@ -215,7 +215,8 @@
 .push {
   display: grid;
   gap: 6px;
-  padding: 10px 16px 14px;
+  /* le retrait horizontal vient du panneau */
+  padding-block: 10px 14px;
   border-top: 1px solid var(--line);
   font-size: 0.84rem;
 }
