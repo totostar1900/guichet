@@ -387,3 +387,42 @@
   margin-top: 1px;
   accent-color: var(--select);
 }
+
+/* Sur la cote : titres ou francs, le choix se pose à côté du nom du champ. */
+.unitRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.unitPick {
+  display: inline-flex;
+  gap: var(--s-1);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: var(--s-1);
+}
+.unitPick button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: var(--s-1) var(--s-4);
+  cursor: pointer;
+}
+.unitPick .unitOn {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+/* la conversion, sous le champ : ce qui partira vraiment au carnet */
+.conv {
+  display: block;
+  margin-top: var(--s-2);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  line-height: 1.45;
+}

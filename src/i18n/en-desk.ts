@@ -2074,4 +2074,11 @@ export const EN_MORE: Record<string, string> = {
   "Heures calmes : l’envoi est différé à 7 h.": "Quiet hours: the send is deferred to 7 am.",
   "« {r} » sur {x}.": "“{r}” on {x}.",
   "Un message parti ne se rattrape pas.": "A message that has gone cannot be called back.",
+  "Saisir en": "Enter as",
+  "en titres": "in units",
+  "en actions": "in shares",
+  "en FCFA": "in FCFA",
+  "soit {n} {u} à {p}, pour {c} FCFA": "that is {n} {u} at {p}, for {c} FCFA",
+  "Cette somme n’atteint pas un titre au cours de référence.": "That amount does not reach one unit at the reference price.",
+  "La somme se convertit en titres au cours de référence, arrondie à la quotité par le bas.": "The amount converts into units at the reference price, rounded down to the lot.",
 };

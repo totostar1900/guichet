@@ -31,6 +31,33 @@ const DONE: Record<IntentType, (by: string) => string> = {
 };
 const BY: Record<string, string> = { WhatsApp: "sur WhatsApp", Appel: "par téléphone", "E-mail": "par e-mail" };
 
+/**
+ * Le prix d’un titre, en francs.
+ *
+ * Une obligation se cote en pourcentage du nominal : 101 % sur un nominal de
+ * 10 000 vaut 10 100 francs le titre. Une action se cote en francs, et le cours
+ * est le prix. Le prix limite l’emporte quand il est posé : c’est celui que le
+ * client dit accepter, donc celui qui borne sa dépense.
+ */
+function unitPrice(o: Offer, type: IntentType, limit: number | null): number {
+  const ref = limit ?? (type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0));
+  return o.instrument === "obligation" ? (o.nominal * ref) / 100 : ref;
+}
+
+/**
+ * Combien de titres une somme achète, arrondi à la quotité par le bas.
+ *
+ * Par le bas, toujours : un ordre qui dépasserait la somme annoncée serait une
+ * mauvaise surprise à l’appel de fonds, et le carnet ne prend de toute façon que
+ * des titres entiers, par multiples de la quotité.
+ */
+function qtyForCash(o: Offer, type: IntentType, cash: number, limit: number | null): number {
+  const p = unitPrice(o, type, limit);
+  if (!cash || p <= 0) return 0;
+  const lot = o.lotSize && o.lotSize > 0 ? o.lotSize : 1;
+  return Math.floor(cash / p / lot) * lot;
+}
+
 /** Secondary market: the amount field is a quantity. */
 function marketEstimate(o: Offer, qty: number, type: IntentType): string {
   if (!qty) return "Indiquez une quantité pour voir l'estimation au cours de référence.";
@@ -62,6 +89,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
+  // Sur la cote l’ordre part en titres, c’est ce que le carnet prend. Mais on pense en
+  // francs : on peut saisir une somme, que le formulaire convertit et montre.
+  const [unit, setUnit] = useState<"titres" | "francs">("titres");
+  const [cash, setCash] = useState("");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
   const [who, setWho] = useState({ firstName, lastName, phone: bridge?.phone || phone || channels?.phone || "", email });
   // The proofs: the phone as proven on the profile (or just now), the e-mail as the session's (or just proven by a guest).
@@ -88,8 +119,8 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           return;
         }
       }
-      if (step === 1 && needsAmount && (!parse(amount) || blocked)) {
-        formRef.current.querySelector<HTMLInputElement>('input[name="amount"]')?.focus();
+      if (step === 1 && needsAmount && (!ordered || blocked)) {
+        formRef.current.querySelector<HTMLInputElement>("[data-order-field]")?.focus();
         return;
       }
     }
@@ -97,16 +128,21 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     formRef.current?.closest("aside")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
-  const est = estimate(offer, parse(amount));
+  const market = offer.kind === "MARCHE";
+  const limitNum = limit ? Number(limit.replace(",", ".")) : null;
+  const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
+  const byCash = market && unit === "francs";
+  // Une seule quantité commande tout le reste : l’estimation, les contrôles, le passage
+  // à l’étape suivante, et ce qui part au desk. Saisie en titres, ou déduite d’une somme.
+  const ordered = byCash ? qtyForCash(offer, type, parseAmount(cash), lim) : parse(amount);
+  const est = estimate(offer, ordered);
   // The outlay against the savings the client said they can invest this year: a word, and a confirmation past half of it.
   const amountMark = investable != null && est.outlay ? amountFlag({ investable, kind: "equilibre", horizonYears: [0, 1], measures: { horizon: 0, tolerance: 0, knowledge: 0, capacity: 0 }, answers: {}, updatedAt: "" }, est.outlay) : null;
   const amountWarn = amountMark?.level === "warn" ? amountMark[lang] : undefined;
   const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk) && (!amountWarn || amountOk);
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
-  const market = offer.kind === "MARCHE";
   // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
-  const limitNum = limit ? Number(limit.replace(",", ".")) : null;
-  const checks = needsAmount && parse(amount) ? orderChecks(offer, type, parse(amount), limitNum && !isNaN(limitNum) ? limitNum : null, { held: (type === "vente" || type === "rachat") && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
+  const checks = needsAmount && ordered ? orderChecks(offer, type, ordered, lim, { held: (type === "vente" || type === "rachat") && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
   const blocked = checks.some((c) => c.level === "block");
 
   if (state?.ok) {
@@ -172,15 +208,63 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         <div className={styles.row}>
           {needsAmount ? (
             <label className="field">
-              {amtLabel}
-              <input
-                name="amount"
-                inputMode="numeric"
-                placeholder={offer.kind === "RACHAT" ? "500" : "10 000 000"}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                onBlur={() => amount && setAmount(type === "rachat" ? fmtUnits(parse(amount)) : fmt(parse(amount)))}
-              />
+              {/* Sur la cote, le client choisit son unité : des titres, ou une somme */}
+              {market ? (
+                <span className={styles.unitRow}>
+                  {amtLabel}
+                  <span className={styles.unitPick} role="group" aria-label={t("Saisir en")}>
+                    {(["titres", "francs"] as const).map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        aria-pressed={unit === u}
+                        className={unit === u ? styles.unitOn : undefined}
+                        onClick={() => setUnit(u)}
+                      >
+                        {t(u === "titres" ? (offer.instrument === "obligation" ? "en titres" : "en actions") : "en FCFA")}
+                      </button>
+                    ))}
+                  </span>
+                </span>
+              ) : (
+                amtLabel
+              )}
+              {byCash ? (
+                <input
+                  data-order-field
+                  inputMode="numeric"
+                  placeholder="1 000 000"
+                  value={cash}
+                  onChange={(e) => setCash(e.target.value)}
+                  onBlur={() => cash && setCash(fmt(parseAmount(cash)))}
+                />
+              ) : (
+                <input
+                  data-order-field
+                  name="amount"
+                  inputMode="numeric"
+                  placeholder={offer.kind === "RACHAT" ? "500" : "10 000 000"}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  onBlur={() => amount && setAmount(type === "rachat" ? fmtUnits(parse(amount)) : fmt(parse(amount)))}
+                />
+              )}
+              {/* Ce qui part au desk reste une quantité : c’est ce que le carnet prend. */}
+              {byCash && <input type="hidden" name="amount" value={ordered ? String(ordered) : ""} />}
+              {byCash && (
+                <small className={styles.conv}>
+                  {ordered
+                    ? t("soit {n} {u} à {p}, pour {c} FCFA", {
+                        n: fmt(ordered),
+                        u: t(offer.instrument === "obligation" ? "titres" : "actions"),
+                        p: offer.instrument === "obligation" ? `${lim ?? offer.ask ?? offer.lastPrice ?? 0} %` : `${fmt(lim ?? offer.ask ?? offer.lastPrice ?? 0)} FCFA`,
+                        c: fmt(Math.round(ordered * unitPrice(offer, type, lim))),
+                      })
+                    : parseAmount(cash)
+                      ? t("Cette somme n’atteint pas un titre au cours de référence.")
+                      : t("La somme se convertit en titres au cours de référence, arrondie à la quotité par le bas.")}
+                </small>
+              )}
               {held > 0 && (type === "vente" || type === "rachat") && (
                 <small className={styles.held}>
                   {t("Vous détenez")} {fmtUnits(held)} {t(offer.kind === "FONDS" ? "parts" : offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
@@ -200,7 +284,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           )}
         </div>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, parseAmount(amount), type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>}
+        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>}
         {checks.length > 0 && (
           <ul className={styles.checks} aria-live="polite">
             {checks.map((c) => (
