@@ -1999,4 +1999,17 @@ export const EN_MORE: Record<string, string> = {
   "Clôturer": "Close",
   "Des clients détiennent encore cette ligne : le remboursement se vérifie auprès du dépositaire avant toute chose.": "Clients still hold this line: the repayment is checked with the custodian before anything else.",
   "Une ligne sortie de la cote dont l'échéance est passée se clôture seule à la lecture du bulletin : elle cesse d'être commandable, sa page reste consultable, et rien n'est dit au client sur la raison. Celles dont l'échéance est inconnue ou estimée attendent une décision. Le bulletin dit ce qui se cote, pas ce qui a été payé : quand des clients détiennent encore la ligne, le remboursement se vérifie auprès du dépositaire avant tout, et l'avis de remboursement est ce qui l'atteste. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.": "A line that has left the market and whose maturity has passed closes itself when the bulletin is read: it stops being orderable, its page stays readable, and the client is told nothing about the reason. Those whose maturity is unknown or estimated wait for a decision. The bulletin says what is quoted, not what was paid: when clients still hold the line, the repayment is checked with the custodian first, and the redemption notice is what attests to it. A price or an instrument that differs from the bulletin is a reading fault, not a decision: read that session again.",
+
+  /* ---------- le rail « Sur cette page » et la bande du marché ---------- */
+  "Sur le même sujet": "On the same subject",
+  "Le niveau": "The level",
+  "Les séances": "The sessions",
+  "Lu dans le bulletin officiel de la cote, à chaque séance.": "Read from the official quotation bulletin, at every session.",
+  "Les avis de la Bourse": "The exchange notices",
+  "le niveau séance par séance, sept vues, la composition sur les deux pondérations": "the level session by session, seven views, the composition on both weightings",
+  "les sept actions de la cote, leur cours, leur poids, leur rendement": "the seven shares of the market, their price, their weight, their yield",
+  "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre": "one quarter per note: what it did, the companies behind the number",
+  "deux titres côte à côte, avec l'indice en repère": "two securities side by side, with the index as a reference",
+  "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler": "what it says, what it does not, and the slider to play with",
+  "ce que la BVMAC publie hors bulletin, quand nous l'avons relu": "what the BVMAC publishes outside the bulletin, once we have read it",
 };

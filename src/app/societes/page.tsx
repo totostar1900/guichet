@@ -8,6 +8,7 @@ import { getRegistry } from "@/lib/registry";
 import { fmtDate, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { MarketStrip } from "@/components/MarketStrip";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -105,6 +106,7 @@ export default async function SocietesPage() {
       <p className={styles.note}>
         {t("Les cours viennent du Bulletin Officiel de la Cote de la BVMAC ; les comptes des états financiers certifiés et des fiches signalétiques déposés par les sociétés sur bvm-ac.org. Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.")}
       </p>
+      <MarketStrip current="societes" />
     </>
   );
 }

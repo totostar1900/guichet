@@ -1,0 +1,27 @@
+/* La bande « Sur le même sujet », au pied d'une page de la famille marché. */
+.strip {
+  border-top: 1px solid var(--gold-line);
+  margin-top: 30px;
+  padding-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: baseline;
+}
+.strip b {
+  width: 100%;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.strip a {
+  color: var(--navy-text);
+  font-weight: 600;
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+.strip a:hover {
+  text-decoration: underline;
+}

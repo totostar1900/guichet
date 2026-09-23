@@ -3,6 +3,8 @@ import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/In
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
+import { PageOutline } from "@/components/PageOutline";
+import { MarketStrip } from "@/components/MarketStrip";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 
@@ -90,8 +92,9 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
       {!last ? (
         <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>
       ) : (
-        <>
-          <section className={styles.level}>
+        <div className={styles.withRail}>
+          <div>
+            <section className={styles.level} id="niveau">
             <div className={styles.big}>
               <small>{fmtDate(last.date)}</small>
               <b>{lvl(last.value)}</b>
@@ -135,7 +138,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             </dl>
           </section>
 
-          <section className="panel">
+          <section className="panel" id="courbe">
             <div className="panel-h">
               <h2>{t("Séance après séance")}</h2>
               <span className="muted">{t("lu depuis le bulletin du {d}", { d: fmtDate(stats.points[0].date) })}</span>
@@ -146,7 +149,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
           </section>
 
           {notes.length > 0 && (
-            <section className="panel">
+            <section className="panel" id="notes">
               <div className="panel-h">
                 <h2>{t("Les notes de marché")}</h2>
                 <span className="muted">{t("un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre, ce que l'indice ne dit pas")}</span>
@@ -161,7 +164,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             </section>
           )}
 
-          <section className="panel">
+          <section className="panel" id="donnees">
             <div className="panel-h">
               <h2>{t("Données")}</h2>
               <span className="muted">{t("d'où vient chaque chiffre, ce qui manque, ce qu'on peut emporter")}</span>
@@ -340,7 +343,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             )}
           </section>
 
-          <section className="panel">
+          <section className="panel" id="composition">
             <div className="panel-h">
               <h2>{t("Composition")}</h2>
               <span className="muted">{t("les actions cotées et leur poids, sur le capital global et sur le flottant coté")}</span>
@@ -412,7 +415,7 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
             </div>
           </section>
 
-          <section className="panel">
+          <section className="panel" id="lecture">
             <div className="panel-h">
               <h2>{t("Comment le lire")}</h2>
             </div>
@@ -431,8 +434,23 @@ export default async function IndicePage({ searchParams }: { searchParams: Promi
               {t("Méthode")} : {t("indice pondéré par la capitalisation ; la base, la date de base et la règle de pondération (capital global ou flottant) sont à confirmer auprès de la BVMAC. L'historique commence au premier bulletin lu par le Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
               {t("Le Guichet montre l'indice et l'explique ; il ne le prend jamais pour un objectif à battre.")}
             </p>
-          </section>
-        </>
+            </section>
+            <MarketStrip current="indice" />
+          </div>
+          <PageOutline
+            label={t("Sur cette page")}
+            sections={[
+              { id: "niveau", title: t("Le niveau") },
+              { id: "courbe", title: t("Séance après séance") },
+              ...(notes.length > 0 ? [{ id: "notes", title: t("Les notes de marché") }] : []),
+              { id: "donnees", title: t("Données") },
+              { id: "seances", title: t("Les séances") },
+              { id: "composition", title: t("Composition") },
+              { id: "lecture", title: t("Comment le lire") },
+            ]}
+            meta={t("Lu dans le bulletin officiel de la cote, à chaque séance.")}
+          />
+        </div>
       )}
     </>
   );

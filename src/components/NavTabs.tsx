@@ -8,7 +8,8 @@ import { useT } from "@/i18n/client";
 const TABS = [
   { href: "/", label: "Titres", match: (p: string) => p === "/" || p.startsWith("/offres") },
   { href: "/fonds", label: "Fonds", match: (p: string) => p.startsWith("/fonds") },
-  { href: "/societes", label: "Sociétés", match: (p: string) => p.startsWith("/societes") },
+  // l'indice et les notes appartiennent au marché : sans cela, aucun onglet ne s'allume sur /indice
+  { href: "/societes", label: "Sociétés", match: (p: string) => p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs") },
   { href: "/actualites", label: "Actualités", match: (p: string) => p.startsWith("/actualites") },
   { href: "/info", label: "Guide", match: (p: string) => p.startsWith("/info") || p.startsWith("/comparer") },
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk") },

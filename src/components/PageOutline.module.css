@@ -1,0 +1,59 @@
+/* Le rail « Sur cette page », à droite de l'article sur ordinateur. */
+.rail {
+  position: sticky;
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+  font-size: 0.82rem;
+}
+.label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.rail a {
+  color: var(--ink-3);
+  text-decoration: none;
+  padding: 3px 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+.rail a:hover {
+  color: var(--ink-2);
+}
+.rail a[aria-current="true"] {
+  color: var(--navy-text);
+  font-weight: 700;
+}
+.meta {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* Sur téléphone, la ligne « Sur cette page » remplace le rail. */
+.phone {
+  display: none;
+}
+@media (max-width: 900px) {
+  .rail {
+    display: none;
+  }
+  .phone {
+    display: block;
+    /* la ligne « Sur cette page » se lit avant l'article, pas après lui */
+    order: -1;
+    margin-bottom: 14px;
+  }
+}

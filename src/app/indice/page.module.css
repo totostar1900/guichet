@@ -220,3 +220,17 @@
   padding: 10px 16px 14px;
   font-size: 0.8rem;
 }
+
+/* l'article et son rail « Sur cette page » ; une seule colonne au téléphone */
+.withRail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 0 32px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .withRail {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

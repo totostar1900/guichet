@@ -3,6 +3,7 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
 import { BackButton } from "@/components/BackButton";
 import { getT } from "@/i18n/server";
+import { MarketStrip } from "@/components/MarketStrip";
 import { repo } from "@/lib/data";
 import { displayStatus, displayYield, familyLabel, familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import { fmtDate, fmtPct, localIso } from "@/lib/format";
@@ -194,6 +195,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
       )}
       {cols.length === 2 && <CompareCharts lines={chartLines} benchmark={benchmark} />}
       {cols.length === 1 && <p className="muted">{t("Choisissez une seconde ligne pour comparer.")}</p>}
+      <MarketStrip current="comparer" />
     </div>
   );
 }

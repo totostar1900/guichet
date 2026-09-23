@@ -13,6 +13,7 @@ import type { TermKey } from "@/lib/glossary";
 import { fmt, fmtDate, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { MarketStrip } from "@/components/MarketStrip";
 
 export const dynamic = "force-dynamic";
 
@@ -308,6 +309,7 @@ export default async function SocietePage({ params, searchParams }: Props) {
           </div>
         </div>
       </div>
+      <MarketStrip current="societes" />
     </>
   );
 }

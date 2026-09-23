@@ -120,7 +120,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
 
   const t = useT();
   const tabs: Tab[] = [
-    { href: "/", label: t("Titres"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") },
+    { href: "/", label: t("Titres"), icon: I.guichet, match: (p) => p === "/" || p.startsWith("/offres") || p.startsWith("/societes") || p.startsWith("/emetteurs") || p.startsWith("/indice") },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: (p) => p.startsWith("/fonds") },
     { href: "/actualites", label: t("Actualités"), icon: I.actualites, match: (p) => p.startsWith("/actualites") },
     { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },

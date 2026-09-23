@@ -5,6 +5,7 @@ import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarterNote, quarters } from "@/lib/market/index-quarter";
 import { getT } from "@/i18n/server";
+import { MarketStrip } from "@/components/MarketStrip";
 import { ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
 import styles from "./note.module.css";
 
@@ -493,6 +494,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         {n.methodOpen ? t("La méthodologie de l'indice (base, date de base, règle de pondération) est en cours de confirmation auprès de la BVMAC.") : t("Les variations publiées se reconstituent avec les cours et les poids du même bulletin.")}{" "}
         <b>{t("Avertissement")}</b> · {t("ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.")}
       </footer>
+      <MarketStrip current="notes" />
     </article>
   );
 }
