@@ -78,7 +78,7 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -101,7 +101,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const accountEmail = (email || (channels?.emailVerifiedAt && channels.email) || "").trim().toLowerCase();
   const [who, setWho] = useState({ firstName, lastName, phone: bridge?.phone || phone || channels?.phone || "", email: email || channels?.email || "" });
   // The proofs: the phone as proven on the profile (or just now), the e-mail as the account's (or just proven by a guest).
-  const [provenPhone, setProvenPhone] = useState<string | null>(bridge?.phone ?? (channels?.phoneVerifiedAt && channels.phone ? channels.phone : null));
+  // Trois façons de connaître un numéro prouvé, et la connexion en est une : le
+  // lien WhatsApp du desk, le code que le profil a déjà validé, ou la connexion
+  // par téléphone elle-même.
+  const [provenPhone, setProvenPhone] = useState<string | null>(bridge?.phone ?? (channels?.phoneVerifiedAt && channels.phone ? channels.phone : null) ?? (phoneProven && phone ? normalizePhone(phone) : null));
   const [provenEmail, setProvenEmail] = useState<string | null>(signedIn && accountEmail ? accountEmail : null);
   // No WhatsApp sender on this host: the desk confirms by phone, the button opens, the intention is marked unproven.
   const [phonePending, setPhonePending] = useState(false);

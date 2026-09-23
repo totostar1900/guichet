@@ -30,3 +30,33 @@ Related: [[guichet-project]], [[guichet-supabase-migrations]], [[guichet-phone-u
 **2026-09-20, the profile for visitors.** `src/lib/profile-local.ts` (`useLocalProfile` via useSyncExternalStore, `writeLocalProfile`); `ProfileQuiz guest` computes with `computeProfile` and keeps the profile on the device; signed in without a server profile, a device profile shows a « Le garder » box that calls `saveProfile(local.answers)` then clears the device copy. `/moi/profil` uses `getSession` (public).
 
 **2026-09-20, profile v2.** `src/data/profile.ts`: `PROFILE_QUESTIONS` carry `block` (appetit · connaissance · capacite), `multi` (bitmask answer, « aucun » clears the others), `lesson` + `correct` on the four verifications (`VERIFICATIONS`). `computeProfile(answers, lessonsRead)` keeps v1 arithmetic for seven-answer profiles and adds `version: 2`, `knowledge`, `verified`, `lessonsRead`, `capacity`, `investable` (index into the « epargne » bands, `INVESTABLE_MAX`), `confidence`, `capped`. `toCover(p)` lists missed verifications with their lessons; `amountFlag(p, amount)` reads an outlay against the declared savings (warn past 50 % or beyond). Quiz: `ProfileQuiz` three-block rail, inline feedback on verifications, result with three panels and checks; `saveProfile(answers, lessonsRead)`. Fiche: `IntentForm investable` → second confirmation box, both flags joined in `profileFlag`. Desk: `src/components/desk/ProfileCard.tsx` on the intent page (with `est.outlay`) and the clients page. Tests in `src/test/profile.test.ts`. Not done yet: broadcast targeting by appetite × knowledge, desk « confirmé » flag, KYC pre-fill from bands.
+
+## Le code par téléphone (23 septembre 2026)
+
+Twilio est branché dans Supabase › Auth › Phone. La connexion par téléphone
+était déjà écrite : `/connexion` propose le numéro quand `PHONE_OTP_ENABLED=1`,
+et `PHONE_OTP_CHANNEL` vaut `sms` ou `whatsapp` selon ce que Twilio sert.
+`verifyOtp({ type: "sms" })` vaut pour les deux, Supabase ne distingue pas.
+
+Ce qui manquait : **une connexion par téléphone ne comptait pas comme preuve du
+numéro**. La session portait bien `phone`, mais rien ne disait qu'il avait été
+confirmé, et le formulaire d'intention ne regardait que la table des codes de
+Guichet. Le client prouvait donc une seconde fois, par un code WhatsApp qui
+n'est pas toujours disponible, un numéro que Supabase venait de confirmer.
+
+`Session.phoneVerified` vient désormais de `user.phone_confirmed_at`, à la
+condition que le profil n'ait pas un autre numéro. Le formulaire d'intention
+connaît trois preuves : le lien WhatsApp du desk, le code validé au profil, et
+la connexion par téléphone elle-même.
+
+C'est la symétrie de ce qui a été corrigé pour l'e-mail le même jour : l'app
+savait, et ne s'en servait pas.
+
+**Ce qui reste manuel** : `PHONE_OTP_ENABLED=1` et `PHONE_OTP_CHANNEL` sur
+Vercel, puis *Redeploy*. Et le gabarit d'e-mail de Supabase doit porter
+`{{ .Token }}` et non `{{ .ConfirmationURL }}`, sinon le code arrive sous forme
+de lien.
+
+Le canal WhatsApp de Guichet (les accusés, les avis) reste sur l'API Meta, sans
+rapport avec Twilio : `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID`. Deux chemins, deux
+fournisseurs, et `requestPhoneProof` dépend toujours du premier.

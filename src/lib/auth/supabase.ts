@@ -69,6 +69,10 @@ export async function readSupabaseSession(): Promise<Session | null> {
     name: p?.display_name || email?.split("@")[0] || "Client",
     email: user.email ?? undefined,
     phone: p?.phone ?? user.phone ?? undefined,
+    // Une connexion par téléphone prouve ce numéro, exactement comme une connexion
+    // par e-mail prouve l’adresse. Sans cette ligne, le client devait le prouver une
+    // seconde fois pour passer un ordre, sur un canal qui n’est pas toujours là.
+    phoneVerified: Boolean(user.phone_confirmed_at && user.phone && (!p?.phone || p.phone === user.phone)),
     segment: p?.segment || "Prospect identifié",
     tier: ((p?.tier ?? 1) as Tier) || 1,
     provider: "supabase",

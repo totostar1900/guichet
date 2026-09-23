@@ -15,6 +15,8 @@ export interface Session {
   name: string;
   email?: string;
   phone?: string;
+  /** Le numéro a été confirmé par un code à la connexion : il vaut preuve, comme l’adresse d’une connexion par e-mail. */
+  phoneVerified?: boolean;
   segment: string; // "Personne physique · Douala"
   tier: Tier;
   /** KYC file status when one exists (brouillon → approuve). */
