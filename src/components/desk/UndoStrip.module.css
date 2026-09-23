@@ -1,0 +1,36 @@
+/* La bande de retour arrière, sous le formulaire qui vient de publier. */
+.strip {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-top: var(--s-5);
+  padding: var(--s-5) var(--s-7);
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  border-radius: var(--radius);
+  font-size: 0.86rem;
+  color: var(--gold-ink);
+}
+.strip form {
+  margin: 0;
+}
+.strip button {
+  border: 1px solid var(--gold-line);
+  background: var(--surface);
+  color: var(--navy-text);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: var(--s-2) var(--s-5);
+  cursor: pointer;
+}
+.strip button:hover {
+  border-color: var(--navy-text);
+}
+.strip small {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}

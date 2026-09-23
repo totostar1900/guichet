@@ -8,7 +8,18 @@ import { repo } from "@/lib/data";
 import { ConflictError } from "@/lib/domain/types";
 import { displayStatus, isActionable } from "@/lib/domain/status";
 
-export type FeatureResult = { ok: true; message: string } | { ok: false; error: string };
+export type FeatureResult = { ok: true; message: string } | { ok: false; error: string } | { ok: false; plan: BroadcastPlan };
+
+/** Qui serait prévenu, avant de prévenir qui que ce soit : le compte n’est connu que du serveur. */
+export interface BroadcastPlan {
+  recipients: number;
+  pushDevices: number;
+  capped: number;
+  quiet: boolean;
+  segment: string;
+  title: string;
+  reason: string;
+}
 
 const schema = z.object({
   offerId: z.string().min(1),
@@ -67,6 +78,11 @@ const bcSchema = z.object({ offerId: z.string().min(1), segment: z.string().defa
  * « Diffuser comme opportunité du moment » : push + WhatsApp + e-mail to the
  * matching clients, one alert per client per day, quiet hours deferred. Above
  * 50 recipients, a responsable must be the one pressing the button.
+ *
+ * Deux temps, et c’est le seul geste du desk qui quitte la plateforme : un
+ * WhatsApp ne se rattrape pas. Sans « confirm », l’action ne diffuse rien et
+ * rend le plan, que l’écran affiche en toutes lettres ; la case à cocher qui
+ * précédait pouvait être cochée avant d’avoir vu le moindre chiffre.
  */
 export async function broadcastOpportunityAction(_p: FeatureResult | null, form: FormData): Promise<FeatureResult> {
   const desk = await requireDesk("/desk");
@@ -80,7 +96,8 @@ export async function broadcastOpportunityAction(_p: FeatureResult | null, form:
   const plan = await planBroadcast(o, p.data.segment);
   if (plan.recipients.length === 0) return { ok: false, error: `Personne à prévenir${plan.capped ? ` (${plan.capped} déjà alerté${plan.capped > 1 ? "s" : ""} aujourd'hui)` : ""}.` };
   if (plan.recipients.length > 50 && !isResponsable(desk)) return { ok: false, error: `${plan.recipients.length} destinataires : au-delà de 50, un responsable doit lancer la diffusion.` };
-  if (!p.data.confirm) return { ok: false, error: `${plan.recipients.length} client${plan.recipients.length > 1 ? "s" : ""} (${plan.pushDevices} appareil${plan.pushDevices > 1 ? "s" : ""} avec alertes${plan.capped ? `, ${plan.capped} déjà alerté${plan.capped > 1 ? "s" : ""} aujourd'hui` : ""})${plan.quiet ? " : envoi différé à 7 h" : ""}. Cochez « Confirmer » puis relancez.` };
+  if (!p.data.confirm)
+    return { ok: false, plan: { recipients: plan.recipients.length, pushDevices: plan.pushDevices, capped: plan.capped ?? 0, quiet: Boolean(plan.quiet), segment: p.data.segment, title: o.title, reason: o.featured.reason } };
   const tally = await broadcastOpportunity(o, o.featured.reason, p.data.segment, desk.name);
   await audit("offer.broadcast", "offer", o.id, { after: { segment: p.data.segment, ...tally }, reason: o.featured.reason });
   revalidatePath("/desk");

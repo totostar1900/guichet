@@ -12,3 +12,43 @@ Santé: `src/lib/health-how.ts` (client-safe) maps each check key to href + one-
 **Why:** the user wanted "publish / cancel all" on the référentiel and actionable Santé cards; a permanent "how-to" badge on every page was rejected in favour of the contextual strip.
 
 **How to apply:** a new Santé check needs an entry in HEALTH_HOW and, if its target page lacks it, the FromSante strip + a filter. Migration 0031 must be applied before the desk saves anything (see [[guichet-supabase-migrations]]). Related: [[guichet-templates]].
+
+## Les quatre étages de la confirmation (23 septembre 2026)
+
+Le chemin de l'argent était déjà tenu : publier une ligne passe la liste de
+contrôle du type, les champs requis, le verrou de version, et hors fenêtre
+déléguée l'accord d'un responsable. Le chemin des mots ne l'était pas :
+`publishQuarterAction` écrivait un document numéroté et mettait une page en ligne
+sur un seul clic.
+
+Le piège d'un « êtes-vous sûr » posé partout : il entre dans le rythme du clic en
+une semaine. Le desk portait deux `window.confirm` dont personne ne savait dire
+le texte. Une confirmation ne vaut que si elle est assez rare pour être lue.
+
+| Étage | Ce que c'est | Où |
+|---|---|---|
+| 0 | rien : réversible, pas visible du client | brouillons du référentiel, « Enregistrer » |
+| 1 | retour arrière de 60 s, pas de boîte | actualités (`UndoStrip`) |
+| 2 | relecture des conséquences, avec les chiffres | notes mensuelle et trimestrielle, publication au référentiel (`ConfirmPublish`) |
+| 3 | recopier un mot, ou quatre yeux | diffusion d'opportunité, lignes hors fenêtre déléguée |
+
+Ce qui fait le travail à l'étage 1, c'est que le retour arrière ne taxe que celui
+qui s'est trompé, quand une boîte taxe les cent publications correctes pour
+attraper la centième. Il s'arrête à l'étage 2 parce qu'il cesse d'être vrai : un
+WhatsApp parti ne revient pas.
+
+`ConfirmPublish` ne demande jamais si l'on est sûr : elle redit ce qui va se
+passer, avec les chiffres de la chose, et propose « voir exactement ce que le
+client verra ». **La règle qui l'empêche de se répandre** : une boîte doit nommer
+la chose par son titre et son public par un nombre. Si le code ne sait pas
+produire ces deux faits, elle est du théâtre et ne s'ajoute pas.
+
+La diffusion est passée en deux temps. Elle rend maintenant un `BroadcastPlan`
+(destinataires, appareils, déjà alertés, heures calmes) sans rien envoyer, et
+l'écran fait **recopier le nombre de destinataires**. La case à cocher d'avant
+pouvait être cochée avant d'avoir vu le moindre chiffre.
+
+Le référentiel reste à l'étage 2 et non 1 : `publishReference` consomme le
+brouillon, et un retour arrière honnête demanderait de restaurer depuis le
+journal d'audit. Tant que ce n'est pas écrit, la relecture avant est le seul
+garde-fou vrai.

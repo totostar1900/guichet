@@ -1,0 +1,41 @@
+/* La boîte de relecture : les conséquences, puis les deux boutons. */
+.lines {
+  margin: 0 0 var(--s-6);
+  padding-left: var(--s-8);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.lines li {
+  margin-bottom: var(--s-2);
+}
+.preview {
+  display: inline-block;
+  margin-bottom: var(--s-6);
+  font-size: 0.84rem;
+  color: var(--navy-text);
+}
+.typed {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  margin-bottom: var(--s-6);
+}
+.typed input {
+  display: block;
+  width: 100%;
+  margin-top: var(--s-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: var(--s-4) var(--s-5);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.row {
+  display: flex;
+  gap: var(--s-4);
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-6);
+}

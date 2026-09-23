@@ -1,6 +1,8 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { useId } from "react";
+import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { discardReferenceAction, publishReferenceAction, resetReferenceAction } from "./actions";
 import styles from "./page.module.css";
 
@@ -24,15 +26,32 @@ export function ResetButton({ kind, k, builtin, from, to }: { kind: string; k: s
   );
 }
 
+/**
+ * Publier un brouillon du référentiel change ce que l’application lit, pour les
+ * clients comme pour le desk, et consomme le brouillon : il n’y a pas de retour
+ * en arrière d’un clic. La relecture dit combien d’entrées bougent et lesquelles.
+ */
 export function PublishButton({ kind, k, n, primary }: { kind: string; k?: string; n?: number; primary?: boolean }) {
   const tr = useT();
+  const id = useId();
+  const label = k ? tr("Publier cette entrée") : tr("Publier {n} modification(s)", { n: String(n ?? 0) });
   return (
-    <form action={publishReferenceAction} className={styles.inlineForm}>
+    <form id={id} action={publishReferenceAction} className={styles.inlineForm}>
       <input type="hidden" name="kind" value={kind} />
       {k && <input type="hidden" name="key" value={k} />}
-      <button className={`btn sm ${primary ? "primary" : ""}`} type="submit" title={tr("Rend la modification visible des clients et du desk")}>
-        {k ? tr("Publier cette entrée") : tr("Publier {n} modification(s)", { n: String(n ?? 0) })}
-      </button>
+      <ConfirmPublish
+        form={id}
+        label={label}
+        confirmLabel={label}
+        className={`btn sm ${primary ? "primary" : ""}`}
+        title={tr("Publier au référentiel")}
+        lines={[
+          k
+            ? tr("L'entrée {k} devient ce que l'application lit, pour les clients comme pour le desk.", { k })
+            : tr("{n} modification(s) deviennent ce que l'application lit, pour les clients comme pour le desk.", { n: String(n ?? 0) }),
+          tr("Le brouillon est consommé : revenir en arrière demande de ressaisir la valeur précédente."),
+        ]}
+      />
     </form>
   );
 }

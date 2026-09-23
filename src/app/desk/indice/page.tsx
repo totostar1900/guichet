@@ -81,7 +81,19 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
             {qDoc ? (
               <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(qDoc.createdAt), who: qDoc.createdBy ?? "—" })}</span>
             ) : (
-              <Publish month={quarter.quarter.key} action={publishQuarterAction} label={t("Publier le {q}", { q: t(quarter.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: quarter.quarter.q, y: quarter.quarter.year }) })} />
+              <Publish
+                month={quarter.quarter.key}
+                action={publishQuarterAction}
+                label={t("Publier le {q}", { q: t(quarter.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: quarter.quarter.q, y: quarter.quarter.year }) })}
+                title={t("Publier la note du {q}", { q: t(quarter.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: quarter.quarter.q, y: quarter.quarter.year }) })}
+                lines={[
+                  t("La page publique et son PDF, sous le numéro {n}.", { n: quarter.number }),
+                  t("{s} séances lues, {m} avec mouvement, {r} sur le trimestre, à {l} points.", { s: quarter.sessions, m: quarter.moved, r: `${quarter.ret > 0 ? "+" : ""}${fmtPct(quarter.ret, 2)}`, l: fmt(quarter.level) }),
+                  t("Le numéro est dépensé : republier ce trimestre en consommera un autre."),
+                  ...(quarter.methodOpen ? [t("La note dira que la méthodologie de l'indice est en cours de confirmation auprès de la BVMAC.")] : []),
+                ]}
+                preview={{ href: `/indice/note/${quarter.quarter.key.toLowerCase()}`, label: t("Voir exactement ce que le client verra") }}
+              />
             )}
           </div>
           <p className={styles.p}>
@@ -226,7 +238,17 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
                   <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(already.createdAt), who: already.createdBy ?? "—" })}</span>
                 </>
               ) : (
-                <Publish month={note.month.key} action={publishNoteAction} label={t("Publier la note de {m}", { m: note.month.label })} />
+                <Publish
+                  month={note.month.key}
+                  action={publishNoteAction}
+                  label={t("Publier la note de {m}", { m: note.month.label })}
+                  title={t("Publier la note de {m}", { m: note.month.label })}
+                  lines={[
+                    t("Le PDF part dans Documents sous le numéro {n}. Il ne part pas aux clients : cet envoi se fait ensuite.", { n: note.number }),
+                    t("{s} séances lues, {m} avec mouvement, {r} sur le mois, à {l} points.", { s: note.sessions, m: note.moved, r: `${note.ret > 0 ? "+" : ""}${fmtPct(note.ret, 2)}`, l: fmt(note.level) }),
+                    t("Le numéro est dépensé : republier ce mois en consommera un autre."),
+                  ]}
+                />
               )}
             </div>
             <p className={styles.p}>{t("La publication garde le PDF dans Documents, avec son numéro et la version de chaque passage. L'envoi aux clients se fait ensuite, comme pour les autres documents.")}</p>

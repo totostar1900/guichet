@@ -3,8 +3,9 @@
 import { fold } from "@/lib/text";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { useActionState, useState } from "react";
+import { useActionState, useState, useId } from "react";
 import { FEATURE_REASONS } from "@/lib/domain/featured";
+import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { broadcastOpportunityAction, featureOfferAction, unfeatureOfferAction, type FeatureResult } from "./actions";
 import styles from "./FeaturePanel.module.css";
 
@@ -134,28 +135,61 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
           <button className="btn sm primary" type="submit" disabled={pending || !pick}>
             {t(pending ? "…" : "Mettre à la une")}
           </button>
-          {state && <small className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</small>}
+          {state && <small className={state.ok ? styles.ok : styles.err}>{said(state)}</small>}
         </form>
       )}
     </div>
   );
 }
 
-/** One line: pick the segment, get the count, confirm, send : every send is journalled in Diffusion. */
+/** La phrase d’un résultat : un échec porte soit un message, soit un plan de diffusion. */
+const said = (r: FeatureResult): string => (r.ok ? r.message : "error" in r ? r.error : "");
+
+/**
+ * Diffuser est le seul geste du desk qui quitte la plateforme : un WhatsApp ne
+ * se rattrape pas. Deux temps, donc. On demande d’abord qui serait prévenu, le
+ * serveur compte sans rien envoyer, puis la relecture affiche ce compte et
+ * demande de le recopier. La case à cocher d’avant pouvait être cochée avant
+ * d’avoir vu le moindre chiffre.
+ */
 function BroadcastForm({ offerId }: { offerId: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(broadcastOpportunityAction, null);
+  const sendId = useId();
+  const plan = state && !state.ok && "plan" in state ? state.plan : undefined;
   return (
-    <form action={action} className={styles.bc}>
-      <input type="hidden" name="offerId" value={offerId} />
-      <Select compact name="segment" label={t("Segment")} value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
-      <label className={styles.confirm}>
-        <input type="checkbox" name="confirm" value="1" /> {t("Confirmer")}
-      </label>
-      <button className="btn sm primary" type="submit" disabled={pending}>
-        {t(pending ? "…" : "Diffuser comme opportunité du moment")}
-      </button>
-      {state && <small className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</small>}
-    </form>
+    <div className={styles.bc}>
+      <form action={action} className={styles.bc}>
+        <input type="hidden" name="offerId" value={offerId} />
+        <Select compact name="segment" label={t("Segment")} value={plan?.segment ?? "Tous les clients"} options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
+        <button className="btn sm" type="submit" disabled={pending}>
+          {t(pending ? "…" : "Voir qui serait prévenu")}
+        </button>
+      </form>
+      {plan && (
+        <form id={sendId} action={action} className={styles.bc}>
+          <input type="hidden" name="offerId" value={offerId} />
+          <input type="hidden" name="segment" value={plan.segment} />
+          <input type="hidden" name="confirm" value="1" />
+          <ConfirmPublish
+            form={sendId}
+            className="btn sm primary"
+            label={t("Diffuser à {n} client(s)", { n: plan.recipients })}
+            confirmLabel={t("Diffuser maintenant")}
+            title={t("Diffuser comme opportunité du moment")}
+            typed={String(plan.recipients)}
+            lines={[
+              t("{n} client(s) seront prévenus : push, WhatsApp et e-mail, selon ce que chacun a accepté.", { n: plan.recipients }),
+              t("{d} appareil(s) avec alertes.", { d: plan.pushDevices }),
+              ...(plan.capped ? [t("{c} client(s) déjà alerté(s) aujourd'hui ne le seront pas une seconde fois.", { c: plan.capped })] : []),
+              ...(plan.quiet ? [t("Heures calmes : l'envoi est différé à 7 h.")] : []),
+              t("« {r} » sur {x}.", { r: plan.reason, x: plan.title }),
+              t("Un message parti ne se rattrape pas."),
+            ]}
+          />
+        </form>
+      )}
+      {state && !plan && <small className={state.ok ? styles.ok : styles.err}>{said(state)}</small>}
+    </div>
   );
 }

@@ -5,7 +5,8 @@ import { Select } from "@/components/ui/Select";
 import { useT } from "@/i18n/client";
 import { RUBRIC_LABEL, RUBRICS, SOURCE_OPTIONS, whyProblem, type NewsItem } from "@/lib/news/model";
 import type { LinkMeta } from "@/lib/news/fetch";
-import { readLinkAction, saveNewsAction, type NewsResult } from "./actions";
+import { UndoStrip } from "@/components/desk/UndoStrip";
+import { newsStateAction, readLinkAction, saveNewsAction, type NewsResult } from "./actions";
 import styles from "./page.module.css";
 
 const localInput = (iso?: string): string => {
@@ -157,6 +158,16 @@ export function NewsForm({ item, candidates, featuredTitle }: { item?: NewsItem;
         </>
       )}
       {state && <p className={state.ok ? styles.ok : styles.err}>{state.ok ? state.message : state.error}</p>}
+      {/* Publier une actualité se défait d’un clic, et c’est pourquoi elle n’a pas de boîte de
+          confirmation : le retour arrière ne coûte qu’à celui qui s’est trompé. */}
+      {state?.ok && state.published && state.id && (
+        <UndoStrip
+          key={state.id}
+          message={state.message}
+          action={newsStateAction}
+          fields={{ id: state.id, what: "retirer" }}
+        />
+      )}
       <div className={styles.actions}>
         <button className="btn primary" type="submit" name="do" value="publier" disabled={pending}>
           {pending ? "…" : item?.status === "publiee" ? tr("Enregistrer et republier") : tr("Publier")}

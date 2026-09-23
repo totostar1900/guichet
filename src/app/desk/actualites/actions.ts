@@ -13,7 +13,7 @@ import { domainOf, newsId, RUBRICS, whyProblem, type NewsItem, type NewsRubric, 
 import { defaultVisibleUntil } from "@/lib/news/watch";
 import { NEWS_KIND } from "@/lib/news/model";
 
-export type NewsResult = { ok: true; message: string; id?: string } | { ok: false; error: string };
+export type NewsResult = { ok: true; message: string; id?: string; /** vrai quand ce geste a mis l’article sur la page : l’écran propose alors de revenir en arrière */ published?: boolean } | { ok: false; error: string };
 
 function revalidateNews() {
   for (const p of ["/", "/actualites", "/desk", "/desk/actualites", "/desk/sante"]) revalidatePath(p);
@@ -109,7 +109,7 @@ export async function saveNewsAction(_p: NewsResult | null, form: FormData): Pro
   await audit(before ? "news.update" : "news.create", NEWS_KIND, item.id, { before, after: item, actor: desk.email ?? desk.name });
   await repo().logEvent({ kind: "desk", html: `Actualité ${publishing ? "publiée" : "enregistrée"} : <b>${item.title.replace(/</g, "&lt;")}</b> (${item.source}) · par ${desk.name}` });
   revalidateNews();
-  return { ok: true, message: publishing ? t("Publiée : « {x} ».", { x: item.title }) : t("Brouillon enregistré."), id: item.id };
+  return { ok: true, message: publishing ? t("Publiée : « {x} ».", { x: item.title }) : t("Brouillon enregistré."), id: item.id, published: publishing };
 }
 
 /** Changes the state of one item: écarter (a received link we will not use), retirer (off the page), supprimer. */

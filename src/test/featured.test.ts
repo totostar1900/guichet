@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
+import type { FeatureResult } from "@/app/desk/featured/actions";
 
 /**
  * « À la une » and « opportunité du moment » on the in-memory repository: a
@@ -10,6 +11,9 @@ import type { Session } from "@/lib/auth/types";
 const desk: Session = { userId: "u-op", role: "desk", name: "Op Test", email: "op@example.com", segment: "Desk", tier: 2, provider: "dev", mfaEnrolled: true, mfaVerified: true };
 const resp: Session = { ...desk, userId: "u-resp", role: "responsable", name: "Resp Test" };
 let current: Session = desk;
+
+/** La phrase d’un résultat : un échec porte soit un message, soit un plan de diffusion. */
+const said = (r: FeatureResult): string => (r.ok ? r.message : "error" in r ? r.error : "");
 
 vi.mock("@/lib/auth", () => ({ getSession: async () => current, requireSession: async () => current, requireDesk: async () => current, requireResponsable: async () => current, authMode: () => "dev", mfaRequired: () => false }));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
@@ -47,10 +51,10 @@ describe("sélection du desk et diffusion", () => {
     const until = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
     const closed = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
     expect(closed.ok).toBe(false);
-    expect(!closed.ok && closed.error).toMatch(/clôturée/);
+    expect(said(closed)).toMatch(/clôturée/);
     const late = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Nouvelle ligne", until: "2026-12-31" }));
     expect(late.ok).toBe(false);
-    expect(!late.ok && late.error).toMatch(/clôture de la ligne/);
+    expect(said(late)).toMatch(/clôture de la ligne/);
   });
 
   it("caps the selection at three", async () => {
@@ -59,7 +63,7 @@ describe("sélection du desk et diffusion", () => {
     for (const id of ["mkt-bhc", "mkt-ecmr-2031"]) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
     const fourth = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
     expect(fourth.ok).toBe(false);
-    expect(!fourth.ok && fourth.error).toMatch(/Trois lignes/);
+    expect(said(fourth)).toMatch(/Trois lignes/);
   });
 
   it("counts before sending, journals every send, and never alerts a client twice a day", async () => {
@@ -69,7 +73,8 @@ describe("sélection du desk et diffusion", () => {
     const before = (await r.listNotifications(500)).length;
     const preview = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients" }));
     expect(preview.ok).toBe(false);
-    expect(!preview.ok && preview.error).toMatch(/client/);
+    // Le plan se compte sans rien envoyer : c’est ce compte que l’écran fait recopier.
+    expect(!preview.ok && "plan" in preview && preview.plan.recipients).toBeGreaterThan(0);
     expect((await r.listNotifications(500)).length).toBe(before); // nothing sent on preview
     const sent = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients", confirm: "1" }));
     expect(sent.ok).toBe(true);
@@ -79,7 +84,7 @@ describe("sélection du desk et diffusion", () => {
     expect(rows.every((n) => n.status === "skipped" || n.status === "queued")).toBe(true);
     const again = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients", confirm: "1" }));
     expect(again.ok).toBe(false);
-    expect(!again.ok && again.error).toMatch(/Personne à prévenir|déjà alerté/);
+    expect(said(again)).toMatch(/Personne à prévenir|déjà alerté/);
     current = resp;
   });
 });
