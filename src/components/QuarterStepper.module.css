@@ -1,0 +1,52 @@
+/* Le pas à pas des trimestres : trois cases sur une ligne, l'archive en dessous. */
+.step {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-3);
+  font-size: 0.78rem;
+}
+.side {
+  color: var(--navy-text);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.right {
+  text-align: right;
+}
+.off {
+  color: var(--ink-3);
+}
+.here {
+  font-weight: 700;
+  color: var(--gold-ink);
+  background: var(--gold-soft);
+  border-radius: var(--s-2);
+  padding: var(--s-1) var(--s-3);
+  white-space: nowrap;
+}
+.all {
+  grid-column: 1 / -1;
+  margin-top: var(--s-3);
+  color: var(--navy-text);
+  font-size: 0.76rem;
+}
+
+/* au pied de l'article : la place ne manque pas, les noms se disent en entier.
+   Les colonnes se serrent sur leur contenu : étirées sur 1240 px, les deux
+   voisins se retrouvaient aux extrémités de la page, à un demi-mètre l'un de
+   l'autre. */
+.wide {
+  font-size: 0.86rem;
+  grid-template-columns: auto auto auto;
+  justify-content: start;
+  gap: var(--s-2) var(--s-6);
+}
+.wide .right {
+  text-align: left;
+}
+.wide .all {
+  margin-top: var(--s-4);
+}

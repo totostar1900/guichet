@@ -24,7 +24,7 @@ export interface SectionItem {
   section?: string; // the section's key in the guide index: shows « n / m lues »
 }
 
-export function SectionLine({ chapters, active, label, pageTitle }: { chapters: SectionItem[]; active: string | null; label?: string; pageTitle?: string }) {
+export function SectionLine({ chapters, active, label, pageTitle, foot }: { chapters: SectionItem[]; active: string | null; label?: string; pageTitle?: string; /** une rangée que la page ajoute sous « Haut de page » et « Section suivante » */ foot?: React.ReactNode }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState<Record<string, [number, number]>>({});
@@ -109,6 +109,7 @@ export function SectionLine({ chapters, active, label, pageTitle }: { chapters: 
             <span className={`${styles.next} ${styles.off}`}>{t("Dernière section")}</span>
           )}
         </div>
+        {foot && <div className={styles.extra}>{foot}</div>}
       </Sheet>
     </div>
   );

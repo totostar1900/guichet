@@ -180,3 +180,10 @@
 .off {
   opacity: 0.4;
 }
+
+/* la rangée que la page ajoute sous les deux boutons de la feuille */
+.extra {
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}

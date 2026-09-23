@@ -19,6 +19,9 @@ const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT, ...E
  * a missing entry never breaks anything, it just stays in French.
  * `{name}` placeholders are filled from the params.
  */
+/** Le dictionnaire entier, pour que les tests puissent le relire contre lui-même. */
+export const EN_ALL: Readonly<Record<string, string>> = EN;
+
 export type Lang = "fr" | "en";
 export const LANGS: Lang[] = ["fr", "en"];
 export const LANG_COOKIE = "guichet_lang";

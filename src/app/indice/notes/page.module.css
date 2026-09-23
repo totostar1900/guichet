@@ -1,0 +1,87 @@
+/* L'archive des notes : une section par année, une carte par trimestre. */
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-block: var(--s-4) var(--s-11);
+}
+.head h1 {
+  font-family: var(--font-display);
+  margin: var(--s-2) 0 var(--s-3);
+}
+.lead {
+  color: var(--ink-2);
+  max-width: 68ch;
+  margin: 0;
+  line-height: 1.6;
+}
+.year {
+  margin-top: var(--s-10);
+}
+.year h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: var(--s-3);
+  margin: 0 0 var(--s-2);
+}
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-2);
+}
+.note {
+  display: block;
+  padding: var(--s-6) var(--s-2);
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+}
+.note:hover {
+  background: var(--surface-2);
+}
+.note b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--navy-text);
+}
+.dates {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  margin-top: var(--s-1);
+}
+.figs {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+  flex-wrap: wrap;
+}
+.figs em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+.figs small {
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--warn);
+}
+.empty {
+  margin-top: var(--s-9);
+  color: var(--ink-3);
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius);
+  padding: var(--s-10);
+  text-align: center;
+}

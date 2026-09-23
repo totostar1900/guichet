@@ -2045,4 +2045,9 @@ export const EN_MORE: Record<string, string> = {
   "les pages de la BVMAC": "the BVMAC pages",
   "L'indice": "The index",
   "Les notes": "The notes",
+  "Toutes les notes ({n})": "All the notes ({n})",
+  "séances avec mouvement": "sessions with a move",
+  "Une note par trimestre sur l'indice BVMAC All Share : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé. Chacune est calculée sur les seules séances de son trimestre, et se lit donc de la même façon un an plus tard.": "One note per quarter on the BVMAC All Share index: what the quarter did, the companies behind the number, what was traded. Each is computed from its own quarter's sessions alone, so it reads the same a year later.",
+  "La première note paraîtra à la clôture du premier trimestre complet lu.": "The first note will appear once the first full quarter has been read to its close.",
+  "{n} points d’indice": "{n} index points",
 };

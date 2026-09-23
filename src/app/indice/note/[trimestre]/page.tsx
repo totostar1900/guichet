@@ -4,10 +4,12 @@ import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarterNote, quarters } from "@/lib/market/index-quarter";
+import { quarterNeighbours } from "@/lib/market/quarter-glance";
 import { getT } from "@/i18n/server";
 import { BackToTop } from "@/components/BackToTop";
 import { MarketStrip } from "@/components/MarketStrip";
 import { PageOutline } from "@/components/PageOutline";
+import { QuarterStepper } from "@/components/QuarterStepper";
 import { ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
 import styles from "./note.module.css";
 
@@ -55,7 +57,8 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
     ss.map((x) => t(x.key, x.vars?.q === n.quarter.label ? { ...x.vars, q: qlabel(n.quarter) } : x.vars)).join(" ");
   const shortDate = (d: string) => fmtDate(d, false);
   const closed = quarters(data);
-  const others = closed.filter((q) => q.key !== n.quarter.key).slice(0, 4);
+  const { older, newer } = quarterNeighbours(closed, n.quarter.key);
+  const stepper = <QuarterStepper older={older} newer={newer} current={n.quarter} total={closed.length} />;
   const flat = n.sessions - n.moved;
   // the two volatilities only tell a story when they actually part ways
   const volGap =
@@ -135,6 +138,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
               { id: "mesure", title: t("Ce qu'il mesure") },
               { id: "economie", title: t("L'indice et l'économie") },
             ]}
+            foot={stepper}
           />
           <div className={styles.docs}>
             <div className={styles.acts}>
@@ -148,16 +152,10 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                 {t("Comment lire l'indice")}
               </Link>
             </div>
-            {others.length > 0 && (
-              <nav className={styles.others}>
-                <span>{t("Les autres trimestres")}</span>
-                {others.map((q) => (
-                  <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`}>
-                    {qlabel(q)}
-                  </Link>
-                ))}
-              </nav>
-            )}
+            <div className={styles.others}>
+              <span>{t("Les autres trimestres")}</span>
+              {stepper}
+            </div>
           </div>
         </div>
         <main>
@@ -512,6 +510,10 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
         {n.methodOpen ? t("La méthodologie de l'indice (base, date de base, règle de pondération) est en cours de confirmation auprès de la BVMAC.") : t("Les variations publiées se reconstituent avec les cours et les poids du même bulletin.")}{" "}
         <b>{t("Avertissement")}</b> · {t("ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.")}
       </footer>
+      <div className={styles.whatNext}>
+        <span>{t("Les autres trimestres")}</span>
+        <QuarterStepper older={older} newer={newer} current={n.quarter} total={closed.length} wide />
+      </div>
       <MarketStrip current="notes" />
       <BackToTop />
     </article>

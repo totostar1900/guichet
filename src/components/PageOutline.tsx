@@ -16,8 +16,13 @@ import styles from "./PageOutline.module.css";
  *
  * Ce rail ne porte que les sections de la page. Les liens que la page cite
  * restent dans le texte, où la phrase dit pourquoi on les suivrait.
+ *
+ * `foot` : une rangée que la page ajoute au bas de sa feuille, sous « Haut de
+ * page » et « Section suivante ». Sur un téléphone, cette feuille est la
+ * seule chose de la page qu'on atteigne d'un geste depuis n'importe quelle
+ * hauteur ; ce qui doit rester à portée y a sa place, et nulle part ailleurs.
  */
-export function PageOutline({ sections, label, meta }: { sections: SectionItem[]; label: string; meta?: React.ReactNode }) {
+export function PageOutline({ sections, label, meta, foot }: { sections: SectionItem[]; label: string; meta?: React.ReactNode; foot?: React.ReactNode }) {
   const active = useActiveSection(sections.map((s) => s.id));
   if (sections.length < 2) return null;
   return (
@@ -32,7 +37,7 @@ export function PageOutline({ sections, label, meta }: { sections: SectionItem[]
         {meta && <div className={styles.meta}>{meta}</div>}
       </nav>
       <div className={styles.phone}>
-        <SectionLine chapters={sections} active={active} label={label} />
+        <SectionLine chapters={sections} active={active} label={label} foot={foot} />
       </div>
     </>
   );

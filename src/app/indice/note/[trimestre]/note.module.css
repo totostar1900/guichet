@@ -268,16 +268,23 @@
   margin: 30px 0 0;
 }
 .others {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  align-items: baseline;
-  margin-top: 22px;
-  font-size: 0.82rem;
-  color: var(--ink-3);
+  margin-top: var(--s-8);
 }
-.others a {
-  color: var(--navy-text);
+.others > span,
+.whatNext > span {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+  margin-bottom: var(--s-4);
+}
+/* au pied de l'article, pour qui vient de le finir */
+.whatNext {
+  border-top: 1px solid var(--line-2);
+  margin-top: var(--s-9);
+  padding-top: var(--s-7);
 }
 .footer {
   border-top: 1px solid var(--line-2);
