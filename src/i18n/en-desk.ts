@@ -2114,4 +2114,5 @@ export const EN_MORE: Record<string, string> = {
   "Aucun échange avec ce client sur cet ordre.": "No exchange with this client on this order.",
   "Rien à afficher.": "Nothing to show.",
   "demandé": "asked for",
+  "Le carnet": "The book",
 };

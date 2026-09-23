@@ -158,3 +158,34 @@
   font-weight: 700;
   font-size: 0.78rem;
 }
+
+/* Le carnet et son sommaire : le rail à gauche, le carnet à droite.
+   Le même objet que sur les pages publiques, du côté opposé : ici il n'a pas
+   de gouttière à sa gauche, donc pas de filet non plus. */
+.withRail {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  gap: 0 var(--s-9);
+  align-items: start;
+}
+.withRail > nav {
+  position: sticky;
+  top: calc(var(--s-7) + env(safe-area-inset-top, 0px));
+  max-height: calc(100vh - var(--s-10));
+  overflow-y: auto;
+  border-left: 0;
+  padding-left: 0;
+}
+.rail {
+  min-width: 0;
+}
+/* Sous 1100 px le sommaire prendrait la place du carnet : il s'efface, et la
+   ligne « Sur cette page » du téléphone prend le relais sous 900. */
+@media (max-width: 1100px) {
+  .withRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .withRail > nav {
+    display: none;
+  }
+}
