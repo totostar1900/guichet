@@ -13,7 +13,9 @@ import { fmt, fmtDateTime, fmtMillions } from "@/lib/format";
 import { BordereauButton, GenerateButton } from "./Buttons";
 import { markDocumentAction } from "./actions";
 import styles from "./page.module.css";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
+import { DocDiagram } from "@/components/docs/DocDiagrams";
+import { DOCUMENT_CHAIN } from "@/data/docs/chain";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Documents" };
@@ -21,18 +23,10 @@ export const metadata = { title: "Documents" };
 const STATUS: Record<GeneratedDocument["status"], [string, string]> = { genere: ["new", "Généré"], envoye: ["sent", "Envoyé"], signe: ["ok", "Signé"] };
 
 /** The paperwork chain for one auction, computed from the rows. */
-const CHAIN: [string, string, string, string][] = [
-  ["Annonce", "Message d'offre, teaser, note", "Clients du segment", "Publication par le desk"],
-  ["Intention", "Accusé de réception (référence)", "Le client", "Automatique à l'enregistrement"],
-  ["Prise ferme", "Bulletin d'ordre à signer + appel de fonds", "Le client", "Confirmation par le conseiller"],
-  ["Soumission", "Bordereau de soumission groupée + annexe par client", "SVT", "Clôture du carnet"],
-  ["Résultats", "Avis de résultat et d'allocation / de non-allocation", "Chaque client", "Résultats saisis (servie / non servie)"],
-  ["Règlement", "Avis d'opéré", "Le client", "Règlement-livraison confirmé (réglée)"],
-  ["Vie du titre", "Avis de coupon, relevé de position", "Porteurs", "Programmé : étape suivante"],
-];
 
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<{ type?: string; q?: string }> }) {
   const t = await getT();
+  const lang = await getLang();
   const r = repo();
   const sp = await searchParams;
   const [offers, intents, allDocs] = await Promise.all([r.listOffers(), r.listIntents(), r.listDocuments()]);
@@ -304,6 +298,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             {t("Chaque document est une vue des mêmes lignes, produite au moment où l'étape se produit")}
           </span>
         </div>
+        {/* Le même schéma que la documentation, sur la même liste : il montre la
+            suite, le tableau dessous ajoute le destinataire, et rien n'est écrit
+            deux fois. */}
+        <DocDiagram kind="documents" lang={lang} />
         <div className="scroll-x">
           <table className="tbl">
             <thead>
@@ -315,14 +313,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
               </tr>
             </thead>
             <tbody>
-              {CHAIN.map((row) => (
-                <tr key={row[0]}>
+              {DOCUMENT_CHAIN.map((row) => (
+                <tr key={row.step.fr}>
                   <td>
-                    <b>{t(row[0])}</b>
+                    <b>{row.step[lang]}</b>
                   </td>
-                  <td>{t(row[1])}</td>
-                  <td>{t(row[2])}</td>
-                  <td className="muted">{t(row[3])}</td>
+                  <td>{row.doc[lang]}</td>
+                  <td>{row.to[lang]}</td>
+                  <td className="muted">{row.trigger[lang]}</td>
                 </tr>
               ))}
             </tbody>
