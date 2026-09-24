@@ -127,11 +127,9 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         {!official && <span className={`${styles.st} ${styles.st_blocked}`}>{tr("Source non officielle")}</span>}
         {published && offer && (
           <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
-            <Link href={`/offres/${offer.id}`} className="btn sm">
-              Voir la fiche publiée (v{offer.version})
-            </Link>
-            <Link href={`/desk/lignes/${offer.id}`} className="btn sm ghost">
-              {tr("Historique")}
+            {/* Une seule porte : la ligne au desk porte la lecture et l'historique. */}
+            <Link href={`/desk/lignes/${offer.id}`} className="btn sm">
+              Voir la ligne publiée (v{offer.version})
             </Link>
           </span>
         )}

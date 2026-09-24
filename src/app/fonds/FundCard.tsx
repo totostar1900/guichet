@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
+import { useDeskView, useLineHref } from "@/components/DeskView";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
 import { CardBack } from "@/components/mobile/CardBack";
 import { fundBackFacts } from "@/lib/domain/back";
@@ -27,7 +28,8 @@ const cls = (v?: number) => (v == null ? "" : v > 0 ? styles.up : v < 0 ? styles
 export function FundCard({ r }: { r: FundRow }) {
   const t = useT();
   const compact = useDensity() === "compact";
-  const href = `/offres/${r.id}`;
+  const href = useLineHref()(r.id);
+  const desk = useDeskView();
   const [turned, setTurned] = useState(false);
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
@@ -78,7 +80,7 @@ export function FundCard({ r }: { r: FundRow }) {
           </div>
           <div className={styles.corner}>
             <span className={`pill ${r.open ? "open" : "quoted"}`}>{t(r.open ? "Souscription ouverte" : "Information")}</span>
-            <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} openRef={more} />
+            {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} openRef={more} />}
             <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />

@@ -16,6 +16,7 @@ import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
+import { useDeskView, useLineHref } from "@/components/DeskView";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
@@ -99,10 +100,12 @@ const num = (v?: number) => (v == null ? -Infinity : v);
 /** One row of the table, with its « ··· ». */
 function FundTr({ r }: { r: FundRow }) {
   const t = useT();
+  const href = useLineHref()(r.id);
+  const desk = useDeskView();
   return (
     <tr>
       <td className={styles.name}>
-        <Link href={`/offres/${r.id}`}>{r.title}</Link>
+        <Link href={href}>{r.title}</Link>
         <small>
           {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
           {r.open ? ` · ${t("souscription ouverte")}` : ""}
@@ -131,17 +134,27 @@ function FundTr({ r }: { r: FundRow }) {
       </td>
       <td className={styles.r}>
         <span className={styles.rowBtns}>
-          <Link className="btn sm ghost" href={`/offres/${r.id}`}>
-            {t("Voir la fiche")}
+          <Link className="btn sm ghost" href={href}>
+            {t(desk ? "Voir la ligne" : "Voir la fiche")}
           </Link>
-          <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />
+          {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />}
         </span>
       </td>
     </tr>
   );
 }
 
+/**
+ * La même liste des deux côtés.
+ *
+ * Rien n'est recopié : les rangées, les cartes, les filtres et le tri sont
+ * les mêmes objets. Enveloppée dans « DeskView », une rangée mène à la ligne
+ * du desk et les commandes faites pour un client (le « ··· » qui suit,
+ * compare et partage, la densité des cartes, la visite guidée) ne paraissent
+ * pas. Une correction faite ici paraît des deux côtés le même jour.
+ */
 export function FundsBrowser({ rows }: { rows: FundRow[] }) {
+  const desk = useDeskView();
   const t = useT();
   // The filters and sort live in the URL, so the list comes back exactly as it was left (and the link can be shared).
   const router = useRouter();
@@ -351,7 +364,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           )}
         </label>
       )}
-      <DensitySwitch className={styles.density} />
+      {!desk && <DensitySwitch className={styles.density} />}
     </div>
   );
 
@@ -468,7 +481,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </section>
       )}
       {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
-      <CoachMarks
+      {!desk && <CoachMarks
         id="fonds"
         replayLabel={t("Comment lire cette page ?")}
         stops={[
@@ -476,7 +489,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. Quand la bande est sortie de l'écran, le bouton « Filtrer · Trier » en bas la ramène sans remonter.") },
           { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.") },
         ]}
-      />
+      />}
     </>
   );
 }

@@ -117,7 +117,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               )}
             </div>
             <div className={styles.line}>
-              <LineIdentity o={o} s={s} href={`/offres/${o.id}`} size="lg" />
+              <LineIdentity o={o} s={s} href={`/desk/lignes/${o.id}`} size="lg" />
               <div className={styles.lineFacts}>
                 <div>
                   <span>{t(s.gold ? "Rendement" : "Repère")}</span>
@@ -234,7 +234,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               {/* Clore sans suite a sa propre forme : un motif, une relecture, la phrase que le client lira. */}
               {next.includes("annulee") && <CancelOrder intentId={it.id} ref_={it.ref} clientName={it.clientName} offerTitle={o.title} />}
               {next.length === 0 && <span className="muted">{t("Intention terminée : plus aucun passage possible.")}</span>}
-              <Link className="btn ghost" href={`/offres/${o.id}`}>
+              <Link className="btn ghost" href={`/desk/lignes/${o.id}`}>
                 {t("Voir la fiche")}
               </Link>
               {/* le canal demandé passe devant et porte la mention : c’est là que le client attend */}

@@ -2310,4 +2310,7 @@ export const EN_MORE: Record<string, string> = {
   "non compris : {mots}": "not understood: {mots}",
   "d'après le communiqué": "from the announcement",
   "Laissé vide : un titre. À ne renseigner que si le communiqué fixe un minimum.": "Left blank: one security. Fill it in only if the announcement sets a minimum.",
+  "Voir la ligne": "View the line",
+  "La ligne, telle que le client la lit": "The line, as the client reads it",
+  "mêmes chiffres, même instant, sans le formulaire d'intention": "same figures, same moment, without the intention form",
 };

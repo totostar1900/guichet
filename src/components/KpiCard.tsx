@@ -13,7 +13,7 @@ import styles from "./KpiCard.module.css";
  * figures, what it leaves out, the definition, and the lesson. A bottom sheet
  * on a phone, a popover next to the card on a desktop.
  */
-export function KpiCard({ label, value, gold, explain, compareHref, coach }: { label: string; value: string; gold?: boolean; explain?: KpiExplanation; compareHref?: string; coach?: string }) {
+export function KpiCard({ label, value, gold, explain, compareHref, lessons = true, coach }: { label: string; value: string; gold?: boolean; explain?: KpiExplanation; compareHref?: string; /** Le lien vers la leçon : le Guide n'est pas servi sur le domaine du desk. */ lessons?: boolean; coach?: string }) {
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -83,7 +83,7 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
                 ))}
               </ul>
               <div className={styles.foot}>
-                {lesson && (
+                {lesson && lessons && (
                   <Link className="btn sm primary" href={`/info/${lesson.key}`}>
                     {t("Leçon :")} {t(lesson.title)}
                   </Link>

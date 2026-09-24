@@ -7,6 +7,8 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { summarize } from "@/lib/domain/summary";
 import { fmtDateTime } from "@/lib/format";
+import { FicheReading, loadFiche } from "@/app/offres/[id]/FicheReading";
+import { FichePanes } from "@/components/mobile/FichePanes";
 import { LifecycleForm } from "./LifecycleForm";
 import { DocumentsForm } from "./DocumentsForm";
 import { RestoreForm } from "./RestoreForm";
@@ -32,7 +34,7 @@ export default async function LigneHistoriquePage({ params }: Props) {
   const r = repo();
   const o = await r.getOffer(id);
   if (!o) notFound();
-  const [versions, trail] = await Promise.all([r.listOfferVersions(id), r.listAudit({ entity: "offer", entityId: id, limit: 100 })]);
+  const [versions, trail, fiche] = await Promise.all([r.listOfferVersions(id), r.listAudit({ entity: "offer", entityId: id, limit: 100 }), loadFiche(o)]);
   const s = summarize(o, new Date());
 
   return (
@@ -44,12 +46,33 @@ export default async function LigneHistoriquePage({ params }: Props) {
           <LineIdentity o={o} s={s} size="lg" as="h1" />
         </div>
         <div className={styles.headBtns}>
-          <Link className="btn sm" href={`/offres/${o.id}`}>
-            {t("Fiche client")}
+          {/* Le seul lien qui sorte encore du desk, et il est voulu : voir la
+              page telle que le client la voit, avec son formulaire. Tout le
+              reste se lit ici. */}
+          <Link className="btn sm" href={`/offres/${o.id}`} target="_blank" rel="noreferrer">
+            {t("Fiche client")} ↗
           </Link>
           <Link className="btn sm" href="/desk/journal">
             {t("Journal complet")}
           </Link>
+        </div>
+      </div>
+
+      {/* Ce que le client lit de cette ligne, rendu par le même composant que
+          sa fiche : deux pages qui liraient les mêmes chiffres chacune à sa
+          façon finiraient par ne plus dire la même chose. Lecture seule : le
+          desk enregistre un ordre par ses propres écrans, pas d'ici. */}
+      <div className={`panel ${styles.read}`}>
+        <div className="panel-h">
+          <h2>{t("La ligne, telle que le client la lit")}</h2>
+          <span className="muted" style={{ fontSize: ".8rem" }}>
+            {t("mêmes chiffres, même instant, sans le formulaire d'intention")}
+          </span>
+        </div>
+        <div className={styles.readBody}>
+          <FichePanes>
+            <FicheReading o={o} data={fiche} mode="desk" />
+          </FichePanes>
         </div>
       </div>
 

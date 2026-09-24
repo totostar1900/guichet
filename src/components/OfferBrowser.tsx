@@ -17,6 +17,7 @@ import { usePhone } from "./chart-utils";
 import { FoldAll, useFold } from "./Fold";
 import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
 import { LineMenu } from "./mobile/LineMenu";
+import { useDeskView, useLineHref } from "./DeskView";
 import { Sheet } from "./mobile/Sheet";
 import { FilterFab } from "./FilterFab";
 import { LineIdentity } from "./LineIdentity";
@@ -236,10 +237,12 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: R
 /** One row of the table, with its « ··· ». */
 function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
   const t = useT();
+  const href = useLineHref();
+  const desk = useDeskView();
   return (
         <tr className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
           <td className={styles.line}>
-            <LineIdentity o={o} s={s} href={`/offres/${o.id}`} />
+            <LineIdentity o={o} s={s} href={href(o.id)} />
             {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
           </td>
           <td>
@@ -264,10 +267,10 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
           </td>
           <td className={styles.r}>
             <span className={styles.rowBtns}>
-              <Link className="btn sm ghost" href={`/offres/${o.id}`}>
-                {t("Voir la fiche")}
+              <Link className="btn sm ghost" href={href(o.id)}>
+                {t(desk ? "Voir la ligne" : "Voir la fiche")}
               </Link>
-              <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} />
+              {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} />}
             </span>
           </td>
         </tr>
@@ -295,9 +298,11 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
 /** One row of the list: the « ··· » sits on the corner of the link (a button cannot live inside it). */
 function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
   const t = useT();
+  const href = useLineHref();
+  const desk = useDeskView();
   return (
     <div className={styles.rowWrap}>
-      <Link href={`/offres/${o.id}`} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+      <Link href={href(o.id)} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
         <div className={styles.rowMain}>
           <LineIdentity o={o} s={s} size="lg" />
           {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
@@ -316,9 +321,9 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
             </div>
           ))}
         </dl>
-        <div className={styles.rowAct}>{t("Voir la fiche")} →</div>
+        <div className={styles.rowAct}>{t(desk ? "Voir la ligne" : "Voir la fiche")} →</div>
       </Link>
-      <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} className={styles.rowDots} />
+      {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} className={styles.rowDots} />}
     </div>
   );
 }
@@ -380,6 +385,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const q = sp.get("q") ?? "";
   const sort = (sp.get("tri") as SortKey) || "deadline";
   const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
+  const desk = useDeskView();
   // The phone reads cards, the desk a table: decided from the media query at hydration, not after a first paint (no compact flash).
   const phone = usePhone();
   const view = (sp.get("vue") as View) || (phone ? "cards" : "table");
@@ -728,7 +734,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
             {dir === "asc" ? "↑" : "↓"}
           </button>
         </label>
-        {view === "cards" && <DensitySwitch />}
+        {view === "cards" && !desk && <DensitySwitch />}
       </div>
 
       {picks.length > 0 && (
@@ -744,7 +750,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
       {/* ce que la recherche vient de rendre : c’est cela qu’on ramène sous les yeux quand le clavier se retire */}
       <div ref={searchList}>{rest.length > 0 && render(rest, false)}</div>
-      <CoachMarks
+      {!desk && <CoachMarks
         id="titres"
         replayLabel={t("Comment lire cette page ?")}
         stops={[
@@ -753,7 +759,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
           { target: "titres-filtres", title: t("Filtrer, puis trier"), text: t("Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres. Le tri et les filtres restent dans l'adresse de la page : revenez d'une fiche, la liste est telle que vous l'aviez laissée.") },
           { target: "titres-vues", title: t("Tableau, liste ou cartes"), text: t("Le tableau compare les chiffres, la liste se lit d'un trait, les cartes conviennent au téléphone. Le rendement est toujours le premier chiffre.") },
         ]}
-      />
+      />}
     </div>
   );
 }

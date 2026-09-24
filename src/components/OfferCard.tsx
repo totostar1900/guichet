@@ -6,6 +6,7 @@ import type { Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
 import { LineIdentity } from "./LineIdentity";
 import { LineMenu } from "./mobile/LineMenu";
+import { useDeskView, useLineHref } from "./DeskView";
 import { SwipeActions } from "./mobile/SwipeActions";
 import { CardBack } from "./mobile/CardBack";
 import { backFacts } from "@/lib/domain/back";
@@ -23,7 +24,8 @@ import styles from "./OfferCard.module.css";
  * with its condition and the date.
  */
 export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
-  const href = `/offres/${o.id}`;
+  const href = useLineHref()(o.id);
+  const desk = useDeskView();
   const t = useT();
   const compact = useDensity() === "compact";
   // « Clôture · jeu. 15 oct. 17 h 00 » on the card's foot; a listed line reads « cotation continue ».
@@ -62,7 +64,7 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           <LineIdentity o={o} s={s} href={href} size="lg" />
           <div className={styles.corner}>
             <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
-            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} openRef={more} />
+            {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} openRef={more} />}
             <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />

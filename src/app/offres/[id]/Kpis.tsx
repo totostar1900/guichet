@@ -16,7 +16,7 @@ import styles from "./page.module.css";
  * saisit en montant nominal, et un cours de « 101 % » ne veut rien dire sans
  * savoir 101 % de quoi.
  */
-export function Kpis({ o }: { o: Offer }) {
+export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
   const now = new Date();
   const dy = displayYield(o);
   const y = dy.pct;
@@ -70,7 +70,7 @@ export function Kpis({ o }: { o: Offer }) {
   return (
     <div className={styles.kpis} data-coach="kpis">
       {items.map(([k, v, gold], i) => (
-        <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`/comparer?a=${o.id}`} coach={gold ? "hero" : undefined} />
+        <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`${base}/comparer?a=${o.id}`} lessons={base === ""} coach={gold ? "hero" : undefined} />
       ))}
     </div>
   );

@@ -322,7 +322,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                 {book.map(({ o, nF, sF, nA, sA }) => (
                   <tr key={o.id}>
                     <td>
-                      <LineIdentity o={o} s={summarize(o, now, { fine: true })} href={`/offres/${o.id}`} />
+                      <LineIdentity o={o} s={summarize(o, now, { fine: true })} href={`/desk/lignes/${o.id}`} />
                     </td>
                     <td className="num">
                       {noPrice(o) ? (

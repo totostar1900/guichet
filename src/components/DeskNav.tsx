@@ -28,6 +28,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     label: "Marché",
     tabs: [
       ["/desk/marche", "Cotes & VL"],
+      // La lecture, à côté de la saisie : les mêmes listes que le Guichet,
+      // rendues par les mêmes composants, sans quitter le domaine du desk.
+      ["/desk/titres", "Titres"],
+      ["/desk/fonds", "Fonds"],
       ["/desk/indice", "Indice"],
       ["/desk/actualites", "Actualités"],
       ["/desk/robot", "Robot"],

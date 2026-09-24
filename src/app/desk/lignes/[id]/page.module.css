@@ -199,3 +199,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* La lecture, dans le langage du desk : le corps de la fiche client garde ses
+   propres règles (il vient de son module à lui), on ne lui donne ici que sa
+   largeur et son retrait. */
+.read {
+  padding-bottom: var(--s-4);
+}
+.readBody {
+  padding: 0 var(--panel-inset);
+}

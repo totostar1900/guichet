@@ -63,7 +63,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
       <tr key={o.id} className={fu.distributed ? undefined : styles.hiddenRow}>
         <td>
           <b>
-            <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
+            <Link href={`/desk/lignes/${o.id}`} style={{ textDecoration: "none" }}>
               {o.title}
             </Link>
           </b>
@@ -244,7 +244,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                   <tr key={o.id} className={o.hidden ? styles.hiddenRow : stale(o) ? styles.staleRow : undefined}>
                     <td>
                       <b>
-                        <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
+                        <Link href={`/desk/lignes/${o.id}`} style={{ textDecoration: "none" }}>
                           {o.title}
                         </Link>
                       </b>
