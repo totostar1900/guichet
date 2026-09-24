@@ -583,4 +583,8 @@ export const EN_TEMPLATES: Record<string, string> = {
   "{n} titres × {r} % = {g} FCFA de principal · + {a} FCFA de coupon couru · prix d'exécution selon le marché": "{n} securities × {r} % = {g} FCFA of principal · + {a} FCFA of accrued coupon · execution price per the market",
   "Prix limite {p}, soit {d} au-dessous du dernier cours ({r}) : hors des bornes de cotation.": "Limit price {p}, which is {d} below the last price ({r}): outside the trading bounds.",
   "Prix limite {p}, soit {d} au-dessus du dernier cours ({r}) : hors des bornes de cotation.": "Limit price {p}, which is {d} above the last price ({r}): outside the trading bounds.",
+  "{a} séances sur {b}": "{a} sessions out of {b}",
+  "dernier échange le {d}": "last traded on {d}",
+  "nos ordres : {p} % servis": "our orders: {p} % filled",
+  "nos ordres : {s} servis, {m} non servis, {o} en cours": "our orders: {s} filled, {m} not filled, {o} open",
 };

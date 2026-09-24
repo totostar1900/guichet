@@ -1,0 +1,32 @@
+/* Le taux de service : un chiffre, puis ce qui le fonde, puis nos propres
+   ordres. Trois lignes serrées, parce que la cellule vit dans un tableau déjà
+   dense et qu'elle doit se lire sans l'ouvrir. */
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.35;
+}
+.cell > b {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cell > small {
+  font-size: 0.72rem;
+}
+.good {
+  color: var(--good);
+}
+.thin {
+  color: var(--warn);
+}
+/* Jamais échangée : le mot, pas un pourcentage, et la couleur d'un fait qui bloque. */
+.never {
+  color: var(--crit);
+  font-size: 0.78rem;
+  text-transform: lowercase;
+}
+.desk {
+  font-size: 0.72rem;
+  color: var(--ink-2);
+}

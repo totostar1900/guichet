@@ -11,6 +11,8 @@ import { bocUrl } from "@/lib/market/boc";
 import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { deskFills, lineFills } from "@/lib/market/fill";
+import { FillRate } from "@/components/desk/FillRate";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marché secondaire" };
@@ -19,7 +21,9 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const t = await getT();
   const r = repo();
-  const [offers, intents, bulletins] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10)]);
+  const [offers, intents, bulletins, fills] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10), lineFills()]);
+  // Ce que nos propres ordres sont devenus, ligne par ligne : à côté de ce que le marché offrait.
+  const ours = deskFills(intents);
   const lastSession = bulletins.filter((b) => b.status === "ok").map((b) => b.sessionDate).sort().reverse()[0];
   const stale = (o: Offer) => Boolean(lastSession && !o.hidden && o.lastPriceOn && o.lastPriceOn < lastSession);
   const allLines = offers.filter((o) => o.kind === "MARCHE").sort((a, b) => (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.title.localeCompare(b.title));
@@ -137,7 +141,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         <div className="panel-h">
           <h2>{t("Cotations")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {t("Dernier cours = clôture du bulletin ; acheteur / vendeur = fourchette indicative du desk. La saisie manuelle n'est qu'un secours et se voit sur la fiche.")}
+            {t("Dernier cours = clôture du bulletin ; acheteur / vendeur = fourchette indicative du desk. La saisie manuelle n'est qu'un secours et se voit sur la fiche. La liquidité compte les séances où la ligne s'est échangée sur les douze derniers mois : elle dit si un ordre aurait eu une contrepartie.")}
           </span>
         </div>
         <div className="scroll-x">
@@ -149,6 +153,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                 <th className="r">{t("Dernier")}</th>
                 <th className="r">{t("Acheteur")}</th>
                 <th className="r">{t("Vendeur")}</th>
+                <th>{t("Liquidité (12 mois)")}</th>
                 <th>{t("Mis à jour")}</th>
                 <th>{t("Secours (saisie)")}</th>
                 <th></th>
@@ -182,6 +187,9 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                     <td className="r num">{f(o.lastPrice)}</td>
                     <td className="r num">{f(o.bid)}</td>
                     <td className="r num">{f(o.ask)}</td>
+                    <td>
+                      <FillRate line={o.isin ? fills.get(o.isin) : undefined} desk={ours.get(o.id)} />
+                    </td>
                     <td className="num">
                       {o.lastPriceOn ? fmtDate(o.lastPriceOn) : "—"}
                       {stale(o) && <small className={styles.staleTag}> {t("avant la dernière séance")}</small>}
