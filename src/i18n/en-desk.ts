@@ -2206,4 +2206,8 @@ export const EN_MORE: Record<string, string> = {
   "Dernier échange": "Last trade",
   "aucun relevé": "none on record",
   "le bulletin cote la ligne sans qu'elle traite": "the bulletin prices the line without it trading",
+  "Dernier échange à retrouver": "Last trade to recover",
+  "{n} lignes cotées sans date de dernier échange.": "{n} listed lines with no last-trade date.",
+  "Le bulletin cote chaque ligne à chaque séance, qu'elle ait traité ou non : la date du dernier échange est ce qui dit à un client si son ordre a une chance d'être servi. Elle se retrouve dans les cotes déjà en base, il n'y a rien à retélécharger.": "The bulletin prices every line every session, traded or not: the last-trade date is what tells a client whether their order has a chance of being filled. It is recovered from the prices already on file; nothing needs downloading again.",
+  "Retrouver dans les cotes": "Recover from the prices",
 };

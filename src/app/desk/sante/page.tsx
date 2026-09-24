@@ -4,7 +4,7 @@ import { bulletinsToReread, healthChecks, lineIssues } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
-import { rereadAction, withdrawLineAction } from "./actions";
+import { backfillLastTradedAction, rereadAction, withdrawLineAction } from "./actions";
 import { Reread } from "./Reread";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -23,7 +23,11 @@ const KIND_LABEL: Record<string, string> = { sortie: "Sortie de cote", absente: 
 
 export default async function SantePage() {
   const t = await getT();
-  const [checks, bulletins, notifications, arriere, ecarts] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40), bulletinsToReread(), lineIssues()]);
+  const [checks, bulletins, notifications, arriere, ecarts, offers] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40), bulletinsToReread(), lineIssues(), repo().listOffers()]);
+  // Le dernier échange d'une ligne n'est retenu que depuis peu : celles qui
+  // n'ont pas traité depuis le sont muettes tant que les cotes déjà lues n'ont
+  // pas été reprises. Le bouton ne paraît que tant qu'il reste du travail.
+  const sansEchange = offers.filter((o) => o.kind === "MARCHE" && o.isin && !o.hidden && !o.lastTradedOn);
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   return (
     <>
@@ -105,6 +109,24 @@ export default async function SantePage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+      )}
+
+      {sansEchange.length > 0 && (
+        <section className="panel" id="echanges">
+          <div className="panel-h">
+            <h2>{t("Dernier échange à retrouver")}</h2>
+            <span className="muted">{t("{n} lignes cotées sans date de dernier échange.", { n: String(sansEchange.length) })}</span>
+          </div>
+          <p className={styles.p}>
+            {t("Le bulletin cote chaque ligne à chaque séance, qu'elle ait traité ou non : la date du dernier échange est ce qui dit à un client si son ordre a une chance d'être servi. Elle se retrouve dans les cotes déjà en base, il n'y a rien à retélécharger.")}
+          </p>
+          <div className={styles.actions}>
+            <Reread action={backfillLastTradedAction} label={t("Retrouver dans les cotes")} primary />
+            <Link className="btn sm ghost" href="/desk/marche">
+              {t("Marché")} →
+            </Link>
           </div>
         </section>
       )}

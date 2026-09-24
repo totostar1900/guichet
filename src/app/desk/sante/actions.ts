@@ -5,6 +5,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { bulletinsToReread } from "@/lib/health";
 import { ingestBoc } from "@/lib/market/boc";
+import { tradedSession } from "@/lib/domain/market";
 
 export interface RereadResult {
   ok?: string;
@@ -57,6 +58,47 @@ export async function rereadAction(_prev: RereadResult | null, form: FormData): 
   await repo().logEvent({ kind: "desk", html: `<b>Bulletins relus</b> : ${parts.join(" · ")} · par ${desk.name}` });
   revalidatePath("/desk/sante");
   revalidatePath("/desk/marche");
+  return { ok: parts.join(" · ") };
+}
+
+/**
+ * Retrouve, dans les séances déjà lues, la dernière où chaque ligne s'est
+ * échangée.
+ *
+ * La colonne est née vide : sans ce rattrapage, une ligne resterait muette
+ * jusqu'à ce qu'elle traite de nouveau, ce qui peut prendre des mois sur ce
+ * marché et priverait le client de l'information au moment précis où elle lui
+ * sert le plus. Les cotes sont déjà en base : il n'y a rien à retélécharger.
+ *
+ * La version de la ligne ne bouge pas. On ne change pas ses conditions, on
+ * écrit un fait qu'elle portait depuis toujours et que personne n'avait noté.
+ */
+export async function backfillLastTradedAction(_prev: RereadResult | null): Promise<RereadResult> {
+  const desk = await requireDesk("/desk/sante");
+  const r = repo();
+  const lines = (await r.listOffers()).filter((o) => o.kind === "MARCHE" && o.isin && !o.lastTradedOn);
+  if (lines.length === 0) return { ok: "Toutes les lignes cotées portent déjà leur dernier échange." };
+
+  let set = 0;
+  let silent = 0;
+  for (const o of lines) {
+    const quotes = await r.listQuotes(o.isin, 2000);
+    const traded = quotes.filter(tradedSession).sort((a, b) => b.sessionDate.localeCompare(a.sessionDate))[0];
+    if (!traded) {
+      silent++;
+      continue;
+    }
+    await r.upsertOffer({ ...o, lastTradedOn: traded.sessionDate });
+    set++;
+  }
+
+  const parts = [`${set} ligne${set > 1 ? "s" : ""} datée${set > 1 ? "s" : ""}`];
+  if (silent) parts.push(`${silent} sans aucun échange dans les séances lues`);
+  await repo().logEvent({ kind: "desk", html: `<b>Dernier échange</b> : ${parts.join(" · ")} · retrouvé dans les cotes · par ${desk.name}` });
+  revalidatePath("/desk/sante");
+  revalidatePath("/desk/marche");
+  revalidatePath("/titres");
+  revalidatePath("/offres/[id]", "page");
   return { ok: parts.join(" · ") };
 }
 
