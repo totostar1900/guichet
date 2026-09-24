@@ -55,7 +55,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
       </div>
 
       <div className={styles.form} id="intention" data-coach="action">
-        <IntentForm offer={o} types={c.types} initialType={c.initial} initialAmount={c.qty} held={c.held} priceText={c.priceText} past={c.past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={c.channels} bridge={c.bridge} profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined} investable={c.fin?.investable} />
+        <IntentForm offer={o} types={c.types} initialType={c.initial} initialAmount={c.qty} held={c.held} past={c.past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={c.channels} bridge={c.bridge} profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined} investable={c.fin?.investable} />
         {o.maturityOn && !c.past && (
           <div className={styles.note}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

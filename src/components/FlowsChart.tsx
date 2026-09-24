@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import type { CashFlow } from "@/lib/finance";
 import { useState } from "react";
 import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
 import type { BondResult } from "@/lib/finance";
@@ -12,10 +13,20 @@ import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
  * running total (what has come back so far against what went out).
  */
 /** `compact`: the Guide simulator draws it a fifth smaller, labels included (the viewBox scales with the box). */
-export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: string; compact?: boolean }) {
+/**
+ * Les versements d'une ligne, dessinés.
+ *
+ * Deux appelants, une seule courbe : le bloc de référence de la fiche, qui
+ * tient un calcul complet, et l'échéancier sous l'ordre, qui n'a que ses flux
+ * et le décaissement saisi. Le second passe donc « outlay » et « flows »
+ * plutôt qu'un résultat entier, et le dessin ne change pas pour autant.
+ */
+export function FlowsChart({ r, outlay, flows, settleOn, compact }: { r?: BondResult; outlay?: number; flows?: CashFlow[]; settleOn: string; compact?: boolean }) {
   const t = useT();
   const [pins, setPins] = useState<string[]>([]);
-  const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -r.outlay, label: t("Souscription") }, ...r.flows];
+  const out = r ? r.outlay : (outlay ?? 0);
+  const rest = r ? r.flows : (flows ?? []);
+  const pts = [{ date: new Date(settleOn.length === 10 ? `${settleOn}T00:00:00` : settleOn), amount: -out, label: t("Souscription") }, ...rest];
   const W = 560;
   const H = 276;
   const padL = 16;
@@ -97,7 +108,7 @@ export function FlowsChart({ r, settleOn, compact }: { r: BondResult; settleOn: 
             {fmtDate(iso(pts[iA].date))} → {fmtDate(iso(pts[iB].date))}
           </b>{" "}
           : <b className={trackStyles.up}>+{fmt(backBetween)} FCFA</b> {t("reçus en {n} flux", { n: String(iB - iA) })} · {t("cumul")} {cum[iA] < 0 ? "−" : "+"}{fmt(Math.abs(cum[iA]))} → {cum[iB] < 0 ? "−" : "+"}{fmt(Math.abs(cum[iB]))} FCFA
-          {r.outlay ? ` · ${fmtPct((backBetween / r.outlay) * 100, 1)} ${t("de la mise")}` : ""}
+          {out ? ` · ${fmtPct((backBetween / out) * 100, 1)} ${t("de la mise")}` : ""}
         </RangeRead>
       ) : iA >= 0 ? (
         <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>

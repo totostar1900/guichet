@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useT } from "@/i18n/client";
+import { Amount } from "./Amount";
+import { FlowsChart } from "./FlowsChart";
 import { bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
-import { marketBondCalc } from "@/lib/domain/status";
-import { fmt, fmtDate } from "@/lib/format";
+import { marketAmortInput, marketBondCalc, marketBondInput } from "@/lib/domain/status";
+import { fmtDate } from "@/lib/format";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import styles from "./OrderFlows.module.css";
 
@@ -22,73 +25,125 @@ import styles from "./OrderFlows.module.css";
  * prix d'exécution n'est pas connu, donc le décaissement bouge, pas les
  * versements.
  */
-export function OrderFlows({ offer, quantity, amount, limit, type }: { offer: Offer; quantity: number; amount: number; limit: number | null; type: IntentType }) {
+export function OrderFlows({ offer, quantity, amount, limit, type, settleOn }: { offer: Offer; quantity: number; amount: number; limit: number | null; type: IntentType; settleOn?: string }) {
   const t = useT();
-  const flows = orderFlows(offer, quantity, amount, limit);
+  // Le tableau d'abord : il donne les dates exactes, que le dessin ne donne
+  // pas. Le dessin donne la forme, que le tableau ne donne pas. Personne ne
+  // peut deviner lequel des deux le lecteur est venu chercher.
+  const [view, setView] = useState<"table" | "chart">("table");
+  const [open, setOpen] = useState(false);
+  const { flows, outlay, settleOn: on } = orderPlan(offer, quantity, amount, limit);
   if (!flows.length || type === "vente" || type === "cession" || type === "rachat") return null;
   const total = flows.reduce((s, f) => s + f.amount, 0);
   return (
-    <details className={styles.wrap}>
-      <summary>
-        {t("Ce que cette ligne vous verserait")}
+    <div className={styles.wrap}>
+      {/* Un vrai bouton plutôt qu'un « summary » : la feuille de style met le
+          sommaire en « display: flex », ce qui efface le triangle natif sur
+          WebKit, et la section n'avait alors plus rien qui dise qu'elle s'ouvre. */}
+      <button type="button" className={styles.head} aria-expanded={open} aria-controls="order-flows" onClick={() => setOpen((v) => !v)}>
+        <svg className={`${styles.chev} ${open ? styles.chevOpen : ""}`} viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+        <span className={styles.headTitle}>{t("Ce que cette ligne vous verserait")}</span>
         <small>
-          {flows.length} {t(flows.length > 1 ? "versements" : "versement")} · {fmt(Math.round(total))} FCFA
+          {flows.length} {t(flows.length > 1 ? "versements" : "versement")} · <Amount value={total} />
         </small>
-      </summary>
-      <div className={styles.scroll}>
-        <table className={styles.tbl}>
-          <thead>
-            <tr>
-              <th>{t("Date")}</th>
-              <th>{t("Nature")}</th>
-              <th className="r">{t("Montant")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {flows.map((f) => (
-              <tr key={f.date.toISOString()}>
-                <td>{fmtDate(f.date.toISOString())}</td>
-                <td>{t(f.label)}</td>
-                <td className="r num">{fmt(Math.round(f.amount))}</td>
-              </tr>
+      </button>
+      {open && (
+        <div id="order-flows">
+          <div className={styles.views} role="group" aria-label={t("Affichage")}>
+            {(["table", "chart"] as const).map((v) => (
+              <button key={v} type="button" className={view === v ? styles.viewOn : undefined} aria-pressed={view === v} onClick={() => setView(v)}>
+                {t(v === "table" ? "Tableau" : "Graphique")}
+              </button>
             ))}
-            <tr className={styles.total}>
-              <td colSpan={2}>{t("Total encaissé")}</td>
-              <td className="r num">{fmt(Math.round(total))}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p className={styles.note}>{t("Montants bruts, avant commission et avant fiscalité, en gardant la ligne jusqu'à l'échéance. Le prix d'exécution peut changer le décaissement, pas ces versements.")}</p>
-    </details>
+          </div>
+          {view === "chart" ? (
+            <div className={styles.chart}>
+              <FlowsChart outlay={outlay} flows={flows} settleOn={settleOn ?? on} compact />
+            </div>
+          ) : (
+            <div className={styles.scroll}>
+              <table className={styles.tbl}>
+                <thead>
+                  <tr>
+                    <th>{t("Date")}</th>
+                    <th>{t("Nature")}</th>
+                    <th className="r">{t("Montant")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {flows.map((f) => (
+                    <tr key={f.date.toISOString()}>
+                      <td>{fmtDate(f.date.toISOString())}</td>
+                      <td>{t(f.label)}</td>
+                      <td className="r num">
+                        <Amount value={f.amount} unit={null} />
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className={styles.total}>
+                    <td colSpan={2}>{t("Total encaissé")}</td>
+                    <td className="r num">
+                      <Amount value={total} />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className={styles.note}>{t("Montants bruts, avant commission et avant fiscalité, en gardant la ligne jusqu'à l'échéance. Le prix d'exécution peut changer le décaissement, pas ces versements.")}</p>
+        </div>
+      )}
+    </div>
   );
 }
 
 /**
- * Les flux d'un ordre, quel que soit le compartiment.
+ * Le plan d'un ordre : ce qu'il coûte, quand il se règle, ce qu'il verse.
+ *
+ * Les trois se lisent du même calcul et se sont longtemps lus de deux
+ * fonctions à conditions identiques. Une seule, désormais : le tableau prend
+ * les versements, le dessin prend aussi la mise et sa date, faute de quoi la
+ * courbe partirait d'un jour qui n'est pas celui du règlement.
  *
  * `quantity` porte le nombre de titres sur la cote, où le carnet raisonne en
  * titres ; `amount` porte les francs au primaire, où c'est une somme qu'on
  * soumet. Les deux arrivent, et chaque branche prend celui qui la concerne.
  */
-export function orderFlows(o: Offer, quantity: number, amount: number, limit: number | null): CashFlow[] {
+export interface OrderPlan {
+  flows: CashFlow[];
+  outlay: number;
+  settleOn: string;
+}
+
+export function orderPlan(o: Offer, quantity: number, amount: number, limit: number | null): OrderPlan {
+  const none = { flows: [] as CashFlow[], outlay: 0, settleOn: o.settleOn };
   try {
     if (o.kind === "MARCHE" && o.instrument === "obligation" && quantity > 0) {
       const ref = limit ?? o.ask ?? o.lastPrice ?? 0;
-      return ref > 0 ? (marketBondCalc(o, quantity * o.nominal, ref)?.flows ?? []) : [];
+      if (ref <= 0) return none;
+      const r = marketBondCalc(o, quantity * o.nominal, ref);
+      const inp = marketAmortInput(o) ?? marketBondInput(o);
+      return r ? { flows: r.flows, outlay: r.outlay, settleOn: inp?.settleOn ?? o.settleOn } : none;
     }
     if ((o.kind === "OTA" || o.kind === "APE") && o.couponRate != null && o.maturityOn && amount > 0) {
       const price = o.servedPricePct ?? o.pricePct ?? 100;
-      return bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, amount, price).flows;
+      const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, amount, price);
+      return { flows: r.flows, outlay: r.outlay, settleOn: o.settleOn };
     }
     if (o.kind === "BTA" && o.precountRate != null && o.maturityOn && amount > 0) {
       // Un bon ne verse rien avant son terme : une seule ligne, et c'est déjà
       // l'information qui manque le plus, parce qu'on croit souvent à un coupon.
       const r = btaCalc({ nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn }, amount, o.precountRate);
-      return r.n > 0 ? [{ date: new Date(`${o.maturityOn}T12:00:00`), t: 0, amount: r.redemption, label: "Remboursement" }] : [];
+      return r.n > 0 ? { flows: [{ date: new Date(`${o.maturityOn}T12:00:00`), t: 0, amount: r.redemption, label: "Remboursement" }], outlay: r.outlay, settleOn: o.settleOn } : none;
     }
   } catch {
-    // Un échéancier incomplet ne doit pas emporter le formulaire : sans flux, le tableau ne paraît pas.
+    // Un échéancier incomplet ne doit pas emporter le formulaire : sans flux,
+    // la section ne paraît pas.
   }
-  return [];
+  return none;
 }
+
+/** Les seuls versements, pour qui n'a que faire de la mise. */
+export const orderFlows = (o: Offer, quantity: number, amount: number, limit: number | null): CashFlow[] => orderPlan(o, quantity, amount, limit).flows;

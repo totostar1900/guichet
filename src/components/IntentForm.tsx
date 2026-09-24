@@ -19,6 +19,8 @@ import { fmt, parseAmount, parseUnits } from "@/lib/format";
 import styles from "./IntentForm.module.css";
 import { useLang, useT } from "@/i18n/client";
 import { amountFlag } from "@/data/profile";
+import { Amount } from "./Amount";
+import { groupedInput } from "@/lib/ui/grouped";
 
 const DONE: Record<IntentType, (by: string) => string> = {
   ferme: (by) => `Votre prise ferme est dans le carnet. Un conseiller vous confirme ${by} avant la clôture et vous envoie le bulletin à signer.`,
@@ -90,7 +92,7 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, priceText, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; priceText: string; past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number;  past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -237,7 +239,6 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   return (
     <div className={styles.wrap}>
       <h3 className="display">{t(past ? "Une question sur cette ligne ?" : "Votre intention sur cette ligne")}</h3>
-      {!past && <div className={styles.priceLine}>{priceText}</div>}
       <form action={action} ref={formRef} data-at={step} className={styles.form}>
         <input type="hidden" name="offerId" value={offer.id} />
         {bridge && <input type="hidden" name="de" value={bridge.token} />}
@@ -286,8 +287,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   inputMode="numeric"
                   placeholder="1 000 000"
                   value={cash}
-                  onChange={(e) => setCash(e.target.value)}
-                  onBlur={() => cash && setCash(fmt(parseAmount(cash)))}
+                  {...groupedInput(setCash)}
                 />
               ) : (
                 <input
@@ -296,8 +296,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   inputMode="numeric"
                   placeholder={offer.kind === "RACHAT" ? "500" : "10 000 000"}
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  onBlur={() => amount && setAmount(type === "rachat" ? fmtUnits(parse(amount)) : fmt(parse(amount)))}
+                  {...groupedInput(setAmount, { decimals: offer.kind === "FONDS" && type === "rachat" })}
                 />
               )}
               {/* Ce qui part au desk reste une quantité : c’est ce que le carnet prend. */}
@@ -344,7 +343,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             {sized && outlay > 0 && (
               <div className={styles.outlay}>
                 <span>{t(takes ? "Total à décaisser" : "Total encaissé")}</span>
-                <b>{fmt(Math.round(outlay))} FCFA</b>
+                <b>
+                  <Amount value={outlay} />
+                </b>
               </div>
             )}
             <div className={`${styles.estimate} ${sized ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type, lim) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>

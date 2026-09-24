@@ -2313,4 +2313,10 @@ export const EN_MORE: Record<string, string> = {
   "Voir la ligne": "View the line",
   "La ligne, telle que le client la lit": "The line, as the client reads it",
   "mêmes chiffres, même instant, sans le formulaire d'intention": "same figures, same moment, without the intention form",
+  "À décaisser": "To pay out",
+  "Encaissé jusqu'au terme": "Received by maturity",
+  "si la ligne est gardée jusqu'à l'échéance": "if the line is held to maturity",
+  "s'il est maintenu": "if it is maintained",
+  "{n} actions au cours vendeur": "{n} shares at the ask",
+  "règlement T+{n}": "settlement T+{n}",
 };

@@ -8,22 +8,79 @@
   background: var(--surface);
   margin-top: var(--s-4);
 }
-.wrap > summary {
+/* L'en-tête qui ouvre la section : un chevron, le titre, puis le résumé.
+   Le chevron est le seul signe qu'il y a quelque chose dessous ; sans lui on
+   ne savait pas que la ligne se touchait. */
+.head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s-2) var(--s-4);
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  width: 100%;
   padding: var(--s-4) var(--s-5);
+  border: 0;
+  background: none;
+  text-align: left;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
   font-size: 0.84rem;
   font-weight: 600;
 }
-.wrap > summary small {
+.headTitle {
+  flex: 1 1 auto;
+}
+.head small {
   color: var(--ink-3);
   font-weight: 400;
+  white-space: nowrap;
 }
-.wrap[open] > summary {
-  border-bottom: 1px solid var(--line);
+.chev {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transition: transform 0.16s ease;
+}
+.chevOpen {
+  transform: rotate(0deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chev {
+    transition: none;
+  }
+}
+/* Tableau ou graphique : deux mots, pas deux onglets. La bascule tient sur la
+   ligne sous l'en-tête pour ne pas voler la place au premier versement. */
+.views {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-5) 0;
+  border-top: 1px solid var(--line);
+}
+.views button {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px var(--s-3);
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.viewOn {
+  border-color: var(--gold) !important;
+  background: var(--gold-soft) !important;
+  color: var(--gold-ink) !important;
+}
+.chart {
+  padding: 0 var(--s-4) var(--s-3);
 }
 .scroll {
   max-height: 280px;

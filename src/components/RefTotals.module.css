@@ -1,0 +1,68 @@
+/* La bande de conclusion d'un bloc de référence. Elle se détache de la grille
+   du calcul par une teinte, pas par un cadre de plus : la fiche en porte déjà
+   beaucoup, et un aplat suffit à dire « voici le résultat ». */
+.band {
+  margin-top: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.fig {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-4) var(--s-5);
+}
+/* Un filet entre deux colonnes voisines, jamais au bord : les deux chiffres se
+   distinguent sans que la bande se découpe en cases. */
+.fig + .fig {
+  border-left: 1px solid var(--line);
+}
+@media (max-width: 420px) {
+  .fig + .fig {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+.lab {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.val {
+  font-size: 1.16rem;
+  letter-spacing: -0.01em;
+}
+.note {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+/* Le taux : sur sa propre ligne, séparé des francs qui le précèdent. */
+.rate {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5) var(--s-4);
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.rate > span {
+  display: flex;
+  flex-direction: column;
+  color: var(--ink-2);
+}
+.rate > b {
+  font-size: 1.16rem;
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

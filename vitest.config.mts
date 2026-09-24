@@ -19,5 +19,10 @@ export default defineConfig({
   // quarantaine de fichiers sur une machine chargée, chacun n'a plus qu'une
   // fraction du processeur et six secondes en deviennent trente, sans que rien
   // ne soit cassé. Le plafond suit donc la suite plutôt que l'inverse.
-  test: { include: ["src/**/*.test.ts", "src/**/*.test.tsx"], testTimeout: 90_000, hookTimeout: 90_000 },
+  // Un processus par fichier, mais pas cinquante à la fois : la suite porte
+  // des cas qui lisent de vrais PDF et en prennent quarante secondes à eux
+  // seuls. Lancés tous ensemble, chacun n'a qu'une fraction du processeur, et
+  // ils dépassent le plafond sans que rien ne soit cassé. Moitié des cœurs :
+  // la suite finit plus vite qu'en se disputant la machine.
+  test: { include: ["src/**/*.test.ts", "src/**/*.test.tsx"], testTimeout: 90_000, hookTimeout: 90_000, maxWorkers: "50%", minWorkers: 1 },
 });

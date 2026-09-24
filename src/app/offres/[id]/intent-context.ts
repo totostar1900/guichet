@@ -28,7 +28,6 @@ export interface IntentContext {
   qty?: number;
   st: ReturnType<typeof displayStatus>;
   past: boolean;
-  priceText: string;
 }
 
 export type IntentSearch = { intent?: string; qty?: string; de?: string };
@@ -56,8 +55,7 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
     held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
   }
   const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
-  const priceText = o.kind === "FONDS" && o.fund ? `VL ${fmt(o.fund.nav)} FCFA` : o.kind === "MARCHE" ? `cours ${o.instrument === "obligation" ? fmtPrice(o.lastPrice ?? 0) : fmt(o.lastPrice ?? 0) + " FCFA"}` : o.kind === "RACHAT" ? "au pair (100 %)" : o.kind === "ACTIONS" ? `${fmt(o.pricePerShare ?? 0)} FCFA / action` : o.kind === "BTA" ? `taux ${fmtPct(o.precountRate ?? 0, 2)}` : `prix ${fmtPrice(o.servedPricePct ?? o.pricePct ?? 100)}`;
-  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past, priceText };
+  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past };
 }
 
 /** The intention page for a line, with the type or quantity a caller pre-selects. */

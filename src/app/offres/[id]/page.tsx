@@ -57,7 +57,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
     );
   }
   const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
-  const { channels, bridge, fin, mark, types, initial, held, qty, st, past, priceText } = await loadIntentContext(o, sp, session);
+  const { channels, bridge, fin, mark, types, initial, held, qty, st, past } = await loadIntentContext(o, sp, session);
   const summary = summarize(o, new Date());
   const fiche = await loadFiche(o);
 
@@ -123,7 +123,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} priceText={priceText} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

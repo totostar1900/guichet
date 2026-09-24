@@ -1,0 +1,13 @@
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* L'unité : petite, grise, et détachée du nombre par une demi-espace. Elle se
+   lit encore, elle ne se compte plus comme un chiffre. */
+.unit {
+  margin-left: 0.28em;
+  font-size: 0.62em;
+  font-weight: 500;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}

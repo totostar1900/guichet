@@ -6,6 +6,8 @@ import { QuoteHistory } from "@/components/QuoteHistory";
 import { companyByIsin, issuerByIsin, loadIssuerRegistry } from "@/lib/reference";
 import { FicheSegments } from "@/components/mobile/FichePanes";
 import { Kpis } from "./Kpis";
+import { Amount } from "@/components/Amount";
+import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
 import { displayStatus, displayYield, marketAmortInput, marketBondInput } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
@@ -55,13 +57,14 @@ async function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.titles * r.pricePerTitle)}</div>
           <div>Coupon couru ({r.accruedDays} jours)</div>
           <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
-          <div className="tot">{t(`Décaissement le ${fmtDate(o.settleOn, false)}`)}</div>
-          <div>{fmt(r.outlay)} FCFA</div>
-          <div>{t("Gain brut jusqu'au terme")}</div>
-          <div>{fmt(r.gain)}</div>
-          <div className="hl">{t("Rendement actuariel annuel brut")}</div>
-          <div>{fmtPct(r.irr, 2)}</div>
         </div>
+        <RefTotals
+          figures={[
+            { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t(`règlement le ${fmtDate(o.settleOn, false)}`) },
+            { label: t("Encaissé jusqu'au terme"), value: <Amount value={r.outlay + r.gain} />, note: t(`soit ${fmt(r.gain)} de gain brut`) },
+          ]}
+          rate={{ label: t("Rendement actuariel annuel brut"), value: fmtPct(r.irr, 2), note: t("si la ligne est gardée jusqu'à l'échéance") }}
+        />
         <FlowsChart r={r} settleOn={o.settleOn} />
       </>
     );
@@ -77,15 +80,14 @@ async function Reference({ o }: { o: Offer }) {
           <div>{fmt(r.n)}</div>
           <div>{t("Prix d'achat par bon")}</div>
           <div>{fmt(r.pricePerBond)}</div>
-          <div className="tot">{t(`Décaissement le ${fmtDate(o.settleOn, false)}`)}</div>
-          <div>{fmt(r.outlay)} FCFA</div>
-          <div>{t(`Remboursé le ${fmtDate(o.maturityOn, false)}`)}</div>
-          <div>{fmt(r.redemption)}</div>
-          <div>{t("Intérêt (précompté)")}</div>
-          <div>{fmt(r.gain)}</div>
-          <div className="hl">{t("Rendement actuariel annuel")}</div>
-          <div>{fmtPct(r.yieldPct, 2)}</div>
         </div>
+        <RefTotals
+          figures={[
+            { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t(`règlement le ${fmtDate(o.settleOn, false)}`) },
+            { label: t("Remboursé"), value: <Amount value={r.redemption} />, note: t(`le ${fmtDate(o.maturityOn, false)} · ${fmt(r.gain)} d'intérêt précompté`) },
+          ]}
+          rate={{ label: t("Rendement actuariel annuel"), value: fmtPct(r.yieldPct, 2) }}
+        />
       </>
     );
   }
@@ -136,11 +138,14 @@ async function Reference({ o }: { o: Offer }) {
             <div>{fmt(r.titles * r.pricePerTitle)}</div>
             <div>Coupon couru ({r.accruedDays} jours)</div>
             <div>{fmt(r.accrued)}</div>
-            <div className="tot">{t("Décaissement (règlement T+{n})", { n: o.settlementDays ?? 3 })}</div>
-            <div>{fmt(r.outlay)} FCFA</div>
-            <div className="hl">{t("Rendement actuariel annuel brut à ce cours")}</div>
-            <div>{fmtPct(r.irr, 2)}</div>
           </div>
+          <RefTotals
+            figures={[
+              { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t("règlement T+{n}", { n: o.settlementDays ?? 3 }) },
+              { label: t("Encaissé jusqu'au terme"), value: <Amount value={r.outlay + r.gain} />, note: t(`soit ${fmt(r.gain)} de gain brut`) },
+            ]}
+            rate={{ label: t("Rendement actuariel annuel brut à ce cours"), value: fmtPct(r.irr, 2) }}
+          />
           <FlowsChart r={r} settleOn={settleOn} />
           {terms ? (
             <p className={styles.note}>
@@ -159,17 +164,15 @@ async function Reference({ o }: { o: Offer }) {
         <div className="out">
           <div>{t("Cours vendeur")}</div>
           <div>{fmt(ref)} FCFA</div>
-          <div className="tot">{t("Montant")}</div>
-          <div>{fmt(n * ref)} FCFA</div>
-          {o.dividendPerShare ? (
-            <>
-              <div>{t("Dividende annuel attendu")}</div>
-              <div>{fmt(n * o.dividendPerShare)}</div>
-            </>
-          ) : null}
-          <div className="hl">{t("Total à décaisser")}</div>
-          <div>{fmt(n * ref)} FCFA</div>
         </div>
+        <RefTotals
+          figures={[
+            { label: t("À décaisser"), value: <Amount value={n * ref} />, note: t("{n} actions au cours vendeur", { n: fmt(n) }) },
+            ...(o.dividendPerShare
+              ? [{ label: t("Dividende annuel attendu"), value: <Amount value={n * o.dividendPerShare} />, note: t("s'il est maintenu") }]
+              : []),
+          ]}
+        />
       </>
     );
   }
