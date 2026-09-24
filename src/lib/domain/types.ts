@@ -123,6 +123,8 @@ export interface Offer {
   dividendPerShare?: number;
   lastPrice?: number;
   lastPriceOn?: string;
+  /** Dernière séance où la ligne s'est échangée : le BOC cote tous les jours, il ne se traite pas tous les jours. */
+  lastTradedOn?: string;
 
   // secondary market (kind MARCHE)
   market?: "BVMAC" | "Trésor secondaire";

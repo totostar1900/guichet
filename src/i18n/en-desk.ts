@@ -2199,4 +2199,11 @@ export const EN_MORE: Record<string, string> = {
   "Le cadre d'un message": "The frame of a message",
   "la salutation, la formule de politesse et la signature de tous les messages": "the greeting, the closing formula and the signature of every message",
   "ce que le client lira, une ligne par point": "what the client will read, one line per point",
+  "Dernière séance cotée": "Last session with a price",
+  "Dernière transaction": "Last trade",
+  "aucune sur {n} séances": "none in {n} sessions",
+  "Échangée": "Traded",
+  "Dernier échange": "Last trade",
+  "aucun relevé": "none on record",
+  "le bulletin cote la ligne sans qu'elle traite": "the bulletin prices the line without it trading",
 };

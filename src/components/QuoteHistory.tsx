@@ -1,4 +1,4 @@
-import type { Quote } from "@/lib/domain/market";
+import { tradedSession, type Quote } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
 import { getT } from "@/i18n/server";
@@ -28,6 +28,9 @@ export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
   const first = series[0].close;
   const change = first > 0 ? ((latest.close / first) - 1) * 100 : 0;
   const signed = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
+  // La dernière séance où un prix s'est formé : sur une ligne étroite, c'est elle
+  // qui dit si un ordre a une chance d'être servi, bien plus que la clôture du jour.
+  const lastTraded = quotes.find(tradedSession);
 
   return (
     <div className={styles.wrap}>
@@ -49,6 +52,19 @@ export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
         <div>
           <dt>{t("Clôture")}</dt>
           <dd>{price(latest.close)}</dd>
+        </div>
+        <div>
+          <dt>{t(isBond ? "Dernière séance cotée" : "Dernière transaction")}</dt>
+          <dd>
+            {lastTraded ? (
+              <>
+                {fmtDate(lastTraded.sessionDate)}
+                {!isBond && lastTraded.volumeTraded > 0 ? ` · ${fmt(lastTraded.volumeTraded)} titre${lastTraded.volumeTraded > 1 ? "s" : ""}` : ""}
+              </>
+            ) : (
+              t("aucune sur {n} séances", { n: String(quotes.length) })
+            )}
+          </dd>
         </div>
         <div>
           <dt>{t("Variation")}</dt>
@@ -101,17 +117,17 @@ export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
             <th>{t("Séance")}</th>
             <th className={styles.r}>{t("Clôture")}</th>
             <th className={styles.r}>{t("Var.")}</th>
-            {!isBond && <th className={styles.r}>{t("Volume")}</th>}
+            <th className={styles.r}>{t(isBond ? "Échangée" : "Volume")}</th>
             <th>{t("Bulletin")}</th>
           </tr>
         </thead>
         <tbody>
-          {quotes.slice(0, 6).map((q) => (
+          {quotes.slice(0, 20).map((q) => (
             <tr key={q.sessionDate}>
               <td>{fmtDate(q.sessionDate)}</td>
               <td className={styles.r}>{price(q.close)}</td>
               <td className={`${styles.r} ${q.variationPct < 0 ? styles.down : q.variationPct > 0 ? styles.up : ""}`}>{signed(q.variationPct)}</td>
-              {!isBond && <td className={styles.r}>{fmt(q.volumeTraded)}</td>}
+              <td className={styles.r}>{isBond ? (tradedSession(q) ? t("oui") : "—") : fmt(q.volumeTraded)}</td>
               <td className={styles.muted}>BOC n° {q.bulletinNo}</td>
             </tr>
           ))}

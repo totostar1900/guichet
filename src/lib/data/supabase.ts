@@ -50,6 +50,7 @@ type OfferRow = {
   dividend_per_share: number | null;
   last_price: number | null;
   last_price_on: string | null;
+  last_traded_on: string | null;
   market: Offer["market"] | null;
   instrument: Offer["instrument"] | null;
   bid: number | null;
@@ -136,6 +137,7 @@ function toOffer(r: OfferRow): Offer {
     dividendPerShare: u(r.dividend_per_share) && Number(r.dividend_per_share),
     lastPrice: u(r.last_price) && Number(r.last_price),
     lastPriceOn: u(r.last_price_on),
+    lastTradedOn: u(r.last_traded_on),
     market: u(r.market),
     instrument: u(r.instrument),
     bid: u(r.bid) && Number(r.bid),
@@ -221,7 +223,7 @@ function fromOffer(o: Offer): OfferRow {
     price_note: o.priceNote ?? null, rate_note: o.rateNote ?? null, served_price_pct: o.servedPricePct ?? null, commission_pct: o.commissionPct,
     min_titles: o.minTitles ?? null, size_label: o.sizeLabel ?? null, price_per_share: o.pricePerShare ?? null, min_shares: o.minShares ?? null,
     shares_offered: o.sharesOffered ?? null, dividend_per_share: o.dividendPerShare ?? null, last_price: o.lastPrice ?? null,
-    last_price_on: o.lastPriceOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, type_key: o.typeKey ?? null, extra: o.extra ?? null, featured: o.featured ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
+    last_price_on: o.lastPriceOn ?? null, last_traded_on: o.lastTradedOn ?? null, market: o.market ?? null, instrument: o.instrument ?? null, bid: o.bid ?? null, ask: o.ask ?? null, lot_size: o.lotSize ?? null, settlement_days: o.settlementDays ?? null, price_source: o.priceSource ?? null, hidden: Boolean(o.hidden), fund: o.fund ?? null, type_key: o.typeKey ?? null, extra: o.extra ?? null, featured: o.featured ?? null, version: o.version, priced_at: o.pricedAt ?? null, result_line: o.resultLine ?? null,
   };
 }
 

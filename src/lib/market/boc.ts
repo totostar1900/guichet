@@ -1,6 +1,6 @@
 import "server-only";
 import type { Country, Offer } from "@/lib/domain/types";
-import { fundKey, type FundNav, type MarketBulletin, type Quote } from "@/lib/domain/market";
+import { fundKey, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { parseDate } from "@/lib/finance";
@@ -197,6 +197,8 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, c
     documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo} du ${fmtDate(q.sessionDate)} · PDF`, url: bocUrl(q.sessionDate) }, ...companyDocuments(q.isin, companies), ...base.documents.filter((d) => d.name !== "Bulletin Officiel de la Cote" && !d.meta.startsWith("bvm-ac.org"))],
     lastPrice: q.close,
     lastPriceOn: q.sessionDate,
+    // La clôture est de toutes les séances ; l'échange, non : la date ne bouge que s'il y en a eu un.
+    lastTradedOn: tradedSession(q) ? q.sessionDate : base.lastTradedOn,
     dividendPerShare: q.lastDividend ?? base.dividendPerShare,
     pricedAt: new Date().toISOString(),
     priceSource: "boc",

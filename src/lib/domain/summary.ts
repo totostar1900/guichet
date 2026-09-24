@@ -268,6 +268,11 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
   const isBond = o.instrument === "obligation";
   const lot = o.lotSize ?? 1;
   const priceTxt = o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : `${fmt(o.lastPrice)} FCFA`) : "—";
+  // Le bulletin cote la ligne à chaque séance, échangée ou non : dire seulement
+  // « cours du 9 sept. » laisse croire qu'elle a traité ce jour-là. Sur ce marché
+  // la date du dernier échange est souvent l'information la plus utile des deux,
+  // parce qu'elle dit si un ordre a une chance d'être servi.
+  const tradedTxt = o.lastTradedOn ? (o.lastTradedOn === o.lastPriceOn ? "échangée à cette séance" : `dernier échange le ${fmtDate(o.lastTradedOn, false)}`) : "aucun échange relevé";
   return {
     ...base,
     subtitle: `${o.market} · cotation continue`,
@@ -276,7 +281,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       y != null
         ? dy.atPar
           ? `taux nominal · au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}`
-          : `${isBond ? "actuariel annuel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
+          : `${isBond ? "actuariel annuel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${tradedTxt}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
         : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? (o.maturityOn && o.maturityOn < localIso(now) ? `remboursée le ${fmtDate(o.maturityOn)}` : "échéance à préciser") : "pas de dividende connu"}`,
     heroUnit: dy.atPar ? "au pair · nominal" : `au cours ${priceTxt}`,
     gold: y != null && st === "quoted",
@@ -296,6 +301,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     ],
     ledger: [
       [dy.atPar ? "Taux nominal" : isBond ? "Rendement actuariel" : "Rendement du dividende", yTxt, dy.atPar ? `au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}` : `brut, au cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}`],
+      ["Dernier échange", o.lastTradedOn ? fmtDate(o.lastTradedOn, false) : "—", o.lastTradedOn ? undefined : "le bulletin cote la ligne sans qu'elle traite"],
       isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2), "taux facial"] : ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", "brut, dernier exercice"],
       isBond ? ["Échéance", maturityText(o), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—", `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""}`],

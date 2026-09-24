@@ -5,6 +5,7 @@ import { displayYield, marketBondCalc, marketBondInput } from "@/lib/domain/stat
 import { explainKpis } from "@/lib/domain/explain";
 import { estimate } from "@/lib/domain/estimate";
 import type { Offer } from "@/lib/domain/types";
+import { tradedSession, type Quote } from "@/lib/domain/market";
 
 /**
  * Une obligation cotée, un seul rendement.
@@ -116,5 +117,30 @@ describe("la date de règlement", () => {
       expect(day, `règlement du ${d.toISOString().slice(0, 10)}`).toBeGreaterThan(0);
       expect(day).toBeLessThan(6);
     }
+  });
+});
+
+/**
+ * Une séance cotée n'est pas une séance échangée.
+ *
+ * Le BOC imprime une clôture pour chaque ligne à chaque séance. « Cours 97,00 %
+ * du 9 sept. » se lisait donc comme « elle a traité le 9 septembre » alors
+ * qu'elle pouvait n'avoir rien traité depuis mai. Sur un marché étroit, c'est
+ * la date de l'échange qui dit si un ordre a une chance d'être servi.
+ */
+describe("la dernière séance échangée", () => {
+  const q = (over: Partial<Quote> = {}): Quote => ({ isin: "GA0000020552", sessionDate: "2026-09-09", bulletinNo: 2591, instrument: "obligation", mnemo: "EGA15", issuer: "État du Gabon", designation: "EOG", previousClose: 97, previousDate: "2026-09-08", open: 97, close: 97, thresholdHigh: 99, thresholdLow: 95, variationPct: 0, referenceNext: 97, volumeTraded: 0, valueTraded: 0, trades: 0, status: "NC", ...over }) as Quote;
+
+  it("ne compte pas une séance où rien ne s'est formé", () => {
+    expect(tradedSession(q())).toBe(false);
+    expect(tradedSession(q({ status: "" }))).toBe(false);
+  });
+
+  it("compte les titres échangés, et à défaut le code de séance", () => {
+    // Une action : le bulletin donne des volumes, c'est la preuve la plus forte.
+    expect(tradedSession(q({ volumeTraded: 218, trades: 2 }))).toBe(true);
+    expect(tradedSession(q({ trades: 1 }))).toBe(true);
+    // Une obligation : aucun volume imprimé, le code de séance est tout ce qu'il y a.
+    expect(tradedSession(q({ status: "PEq" }))).toBe(true);
   });
 });

@@ -21,6 +21,23 @@ export interface MarketBulletin {
   notices: string[]; // avis (amortissements, paiements d'intérêts, résultats d'APE…)
 }
 
+/**
+ * Une séance où la ligne s'est réellement échangée.
+ *
+ * Le bulletin donne des volumes pour les actions et rien pour les
+ * obligations : pour celles-ci le code de séance est la seule preuve, et
+ * « NC » est celui qui dit qu'aucun prix ne s'est formé. C'est une preuve
+ * plus faible que des titres comptés, et le texte l'assume : une obligation
+ * annonce une « dernière séance cotée », une action une « dernière
+ * transaction » avec ses titres.
+ *
+ * La distinction compte parce que le BOC imprime une clôture pour chaque
+ * ligne à chaque séance, échangée ou non. « Cours 97,00 % du 9 sept. » se lit
+ * comme « elle a traité le 9 septembre » alors qu'elle peut n'avoir rien
+ * traité depuis mai.
+ */
+export const tradedSession = (q: Pick<Quote, "volumeTraded" | "trades" | "status">): boolean => q.volumeTraded > 0 || q.trades > 0 || (q.status !== "" && q.status !== "NC");
+
 export interface Quote {
   isin: string;
   sessionDate: string; // YYYY-MM-DD
