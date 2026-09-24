@@ -7,7 +7,7 @@ import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LAB
 import { ReviewForm } from "./ReviewForm";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
 import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
-import { fileQueue, waiting } from "@/lib/kyc/queue";
+import { clientDirectory, waiting } from "@/lib/kyc/queue";
 import { positionsFrom } from "@/lib/positions";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import styles from "./page.module.css";
@@ -30,19 +30,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const todo = files.filter((f) => f.status === "soumis" || f.status === "en_revue").length;
   const selected = files.find((f) => f.id === sp.file) ?? files.find((f) => f.status === "soumis" || f.status === "en_revue") ?? files[0];
 
-  // La colonne de gauche est une file de travail, pas un annuaire : elle montre
-  // ce qui attend une main. Tout le monde se trouve au Répertoire, qui ramène
-  // ici par le même lien. À trois cents dossiers, une colonne qui les porte tous
-  // ne se lit plus, et les urgents s'y perdent au milieu.
+  // La colonne porte tout le monde : c'est « ouvre-moi untel » qu'on lui
+  // demande le plus souvent, pas « qu'est-ce qui attend ». Une rangée tient en
+  // une ligne et demie, un nom et de quoi le joindre, et trois cents rangées de
+  // ce format tiennent dans une colonne qui défile. Ce qui attend garde sa
+  // marque et l'ordre de la page le met en tête : la file est devenue le haut
+  // de l'annuaire.
   const q = (sp.q ?? "").trim();
-  // Le dossier ouvert reste dans la file même quand il n'y attend rien : sans
-  // cela, arriver du Répertoire sur un dossier approuvé le montrerait à droite
-  // sans rien à gauche, et on ne saurait plus où l'on est.
-  const queue = fileQueue(files, selected?.id, q);
-  const rest = files.length - queue.length;
-  // Le dossier ouvert garnit toujours la file, si bien que « rien n'attend » ne
-  // paraissait jamais : c'est le nombre de dossiers en attente qui le dit, pas le
-  // nombre de cartes affichées.
+  const queue = clientDirectory(files, q);
   const attente = files.filter(waiting).length;
   const [lang, fin, prefs, channels] = await Promise.all([
     getLang(),
@@ -69,35 +64,36 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       <div className={styles.layout}>
         <aside className={styles.queue} data-coach="queue">
           <form className={styles.search} action="/desk/clients">
-            <input name="q" defaultValue={sp.q} placeholder={t("Un nom, une ville")} aria-label={t("Chercher un dossier")} />
+            <input name="q" defaultValue={sp.q} placeholder={t("Un nom, un numéro, un e-mail")} aria-label={t("Chercher un client")} />
             <button className="btn sm" type="submit">
               {t("Chercher")}
             </button>
           </form>
-          {q && (
-            <div className={styles.qnote}>
-              {t("{n} dossier(s) pour « {q} »", { n: String(queue.length), q: sp.q ?? "" })} · <Link href="/desk/clients">{t("revenir à la file")}</Link>
-            </div>
-          )}
-          {queue.map((f) => (
-            <Link key={f.id} href={`/desk/clients?file=${f.id}`} className={styles.qitem} aria-current={f.id === selected?.id ? "true" : undefined}>
-              <div className={styles.meta}>
-                <span className={`${styles.st} ${styles[`st_${f.status}`]}`}>{t(STATUS_LABEL[f.status])}</span>
-                <span>{t(KIND_LABEL[f.kind])}</span>
-              </div>
-              <b>{f.identity.name || "(sans nom)"}</b>
-              <span className={styles.meta}>
-                {f.identity.city ?? ""} · {t("mis à jour")} {fmtDateTime(f.updatedAt)}
-              </span>
-            </Link>
-          ))}
-          {queue.length === 0 && <div className="empty">{t(files.length === 0 ? "Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte »." : "Aucun dossier ne répond à cette recherche.")}</div>}
-          {!q && files.length > 0 && attente === 0 && <div className={styles.qnote}>{t("Rien n'attend : tous les dossiers sont traités.")}</div>}
-          {!q && rest > 0 && (
-            <div className={styles.qnote}>
-              {t("{n} autre(s) dossier(s), traités", { n: String(rest) })} · <Link href="/desk/repertoire">{t("Répertoire")} →</Link>
-            </div>
-          )}
+          <div className={styles.qnote}>
+            {q
+              ? t("{n} client(s) pour « {q} »", { n: String(queue.length), q: sp.q ?? "" })
+              : attente > 0
+                ? t("{n} clients · {m} en attente", { n: String(files.length), m: String(attente) })
+                : t("{n} clients · rien n'attend", { n: String(files.length) })}
+            {q ? <> · <Link href="/desk/clients">{t("tout voir")}</Link></> : null}
+          </div>
+          <div className={styles.qlist}>
+            {queue.map((f) => (
+              <Link key={f.id} href={`/desk/clients?file=${f.id}`} className={styles.qitem} aria-current={f.id === selected?.id ? "true" : undefined}>
+                <b>
+                  {/* Une pastille, pas une étiquette : l'état complet se lit à
+                      droite, et la colonne n'a la place que de dire « celui-ci
+                      attend ». */}
+                  {waiting(f) && <i className={styles.qdot} aria-hidden="true" />}
+                  {f.identity.name || "(sans nom)"}
+                </b>
+                <span className={styles.qsub}>
+                  {[f.identity.phone, f.identity.email].filter(Boolean).join(" · ") || t("sans contact")}
+                </span>
+              </Link>
+            ))}
+            {queue.length === 0 && <div className="empty">{t(files.length === 0 ? "Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte »." : "Aucun client ne répond à cette recherche.")}</div>}
+          </div>
         </aside>
 
         {selected && (
@@ -109,6 +105,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                 <div className="muted" style={{ fontSize: ".8rem" }}>
                   {[selected.identity.phone, selected.identity.email, selected.identity.city, selected.identity.country].filter(Boolean).join(" · ")}
                   {selected.submittedAt ? ` · ${t("soumis le")} ${fmtDateTime(selected.submittedAt)}` : ""}
+                  {/* La colonne de gauche le portait, en rangée d'une ligne et
+                      demie elle ne le porte plus : la date de dernière main
+                      appartient de toute façon au dossier ouvert. */}
+                  {` · ${t("mis à jour")} ${fmtDateTime(selected.updatedAt)}`}
                 </div>
                 <ReachLine prefs={prefs} channels={channels} t={t} />
               </div>

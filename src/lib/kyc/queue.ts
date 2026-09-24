@@ -1,36 +1,50 @@
+import { fold } from "@/lib/text";
 import type { ClientFile } from "@/lib/domain/kyc";
 
 /**
- * La file de travail des dossiers.
+ * Ce que la colonne de gauche des Dossiers montre, et comment elle cherche.
  *
- * La colonne de gauche montrait tous les dossiers, sans recherche ni limite.
- * À trois cents, elle ne se lit plus : les urgents se perdent au milieu, et la
- * page rend trois cents cartes pour en servir deux. Le fond du problème est
- * qu'elle faisait deux métiers à la fois, une file et un annuaire, qui veulent
- * l'inverse l'un de l'autre : une file doit être courte et diminuer à mesure
- * qu'on travaille, un annuaire doit être complet et se chercher.
+ * Elle a été une file de travail : seulement ce qui n'était pas réglé, le
+ * reste renvoyé au Répertoire. La file était courte, mais elle répondait à une
+ * question que le desk ne pose pas si souvent (« qu'est-ce qui attend ») et
+ * pas à celle qu'il pose tout le temps (« ouvre-moi untel »). La colonne porte
+ * donc de nouveau tout le monde, en rangées d'une ligne et demie qui se
+ * cherchent : trois cents rangées de ce format tiennent dans une colonne qui
+ * défile, là où trois cents cartes ne tenaient pas.
  *
- * L'annuaire est parti au Répertoire. Reste la file : ce qui n'est pas réglé.
- * « Compléments » y figure même si la balle est dans le camp du client, parce
- * qu'un dossier en attente de pièces est un dossier qu'on relance, pas un
- * dossier fini.
+ * Ce qui attend garde sa marque et l'ordre de la page le met en tête : la file
+ * n'a pas disparu, elle est devenue le haut de l'annuaire.
  */
 export const waiting = (f: ClientFile): boolean => f.status === "soumis" || f.status === "en_revue" || f.status === "complements";
 
-const hay = (f: ClientFile) => [f.identity.name, f.identity.email, f.identity.phone, f.identity.city].map((v) => (v ?? "").toLowerCase());
+/** Un numéro ne se cherche pas comme un mot : « 699 88 » doit trouver « +237 699 88 77 66 ». */
+const digits = (v: string) => v.replace(/\D+/g, "");
+
+const fields = (f: ClientFile) => ({
+  words: [f.identity.name, f.identity.email, f.identity.city, f.identity.country, f.identity.address, f.identity.registration, f.identity.taxId].map((v) => fold(v ?? "")).filter(Boolean),
+  tel: digits(f.identity.phone ?? ""),
+});
 
 /**
- * Ce que la colonne montre.
+ * Un dossier répond à une recherche quand chacun des mots tapés répond.
  *
- * En recherche, tout ce qui répond, quel que soit l'état : on cherche un nom
- * précisément parce qu'il n'est pas sous les yeux.
- *
- * Sinon, ce qui attend, plus le dossier ouvert même s'il n'attend rien. Sans
- * cette exception, arriver du Répertoire sur un dossier approuvé l'afficherait
- * à droite avec une colonne vide à gauche, et on ne saurait plus où l'on est.
+ * Chacun, et non l'un d'eux : « awa douala » doit donner les Awa de Douala et
+ * non tous les Awa plus tous les habitants de Douala. Un mot fait de chiffres
+ * est comparé au numéro réduit à ses chiffres, de sorte que l'indicatif, les
+ * espaces et les points n'aient pas à être tapés comme ils sont écrits.
  */
-export function fileQueue(files: ClientFile[], selectedId?: string, query = ""): ClientFile[] {
-  const q = query.trim().toLowerCase();
-  if (q) return files.filter((f) => hay(f).some((v) => v.includes(q)));
-  return files.filter((f) => waiting(f) || f.id === selectedId);
+export function clientMatches(f: ClientFile, query: string): boolean {
+  const tokens = fold(query).split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+  const { words, tel } = fields(f);
+  return tokens.every((tk) => {
+    const numeric = !/[a-z]/.test(tk) && digits(tk).length >= 2;
+    return (numeric && tel.includes(digits(tk))) || words.some((w) => w.includes(tk));
+  });
+}
+
+/** Tout le monde, dans l'ordre reçu, moins ce que la recherche écarte. */
+export function clientDirectory(files: ClientFile[], query = ""): ClientFile[] {
+  const q = query.trim();
+  return q ? files.filter((f) => clientMatches(f, q)) : files;
 }

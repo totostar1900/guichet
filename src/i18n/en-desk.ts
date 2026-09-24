@@ -2298,4 +2298,12 @@ export const EN_MORE: Record<string, string> = {
   "Trier par date de VL": "Sort by NAV date",
   "date": "date",
   "OK": "OK",
+  "Un nom, un numéro, un e-mail": "A name, a number, an e-mail",
+  "Chercher un client": "Search for a client",
+  "{n} client(s) pour « {q} »": "{n} client(s) for « {q} »",
+  "{n} clients · {m} en attente": "{n} clients · {m} waiting",
+  "{n} clients · rien n'attend": "{n} clients · nothing waiting",
+  "tout voir": "see all",
+  "sans contact": "no contact",
+  "Aucun client ne répond à cette recherche.": "No client matches this search.",
 };

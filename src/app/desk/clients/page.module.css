@@ -17,30 +17,66 @@
   gap: 16px;
   align-items: start;
 }
+/* La colonne : une recherche, un compte, puis l'annuaire qui défile seul.
+   Elle porte tout le monde, donc elle défile ; le reste de la page ne la
+   suit pas, sans quoi le dossier ouvert à droite descendrait avec elle. */
 .queue {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-2);
   position: sticky;
   top: 78px;
+  max-height: calc(100vh - 96px);
+  min-height: 0;
 }
+.qlist {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+/* Une rangée, pas une carte : un filet d'un pixel entre deux noms suffit à
+   les séparer, et trois cents rangées de ce format se parcourent. */
 .qitem {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: block;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--line);
   font-size: 0.8rem;
   text-decoration: none;
+  color: inherit;
+}
+.qitem:hover {
+  background: var(--surface-2);
 }
 .qitem[aria-current="true"] {
-  border-color: var(--gold);
+  background: var(--gold-soft);
   box-shadow: inset 3px 0 0 var(--gold);
 }
 .qitem b {
+  display: block;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* « celui-ci attend » : la colonne n'a pas la place d'une étiquette d'état,
+   et l'état complet se lit de toute façon à droite. */
+.qdot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  vertical-align: middle;
+}
+.qsub {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .meta {
   color: var(--ink-3);
