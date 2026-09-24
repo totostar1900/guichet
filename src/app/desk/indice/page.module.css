@@ -120,14 +120,3 @@
 .pub {
   margin-bottom: 8px;
 }
-.lead2 {
-  font-size: 1.02rem;
-  line-height: 1.55;
-  margin: 0 0 14px;
-  max-width: 70ch;
-}
-.h2 {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  margin: 26px 0 10px;
-}

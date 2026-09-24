@@ -70,7 +70,9 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
               </Link>
             ))}
           </div>
-          <p className={styles.lead2}>{quarter.headline.map((x) => t(x.key, x.vars)).join(" ")}</p>
+          <div className={styles.lead}>
+            <p>{quarter.headline.map((x) => t(x.key, x.vars)).join(" ")}</p>
+          </div>
           <div className={styles.publish}>
             <a className="btn sm primary" href={`/indice/note/${quarter.quarter.key.toLowerCase()}`} target="_blank" rel="noreferrer">
               {t("Lire la page publique")}
@@ -103,26 +105,64 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
         </section>
       )}
 
-      <h2 className={styles.h2}>{t("Note mensuelle, pour le desk")}</h2>
-      <div className={styles.months}>
-        {months.slice(0, 14).map((m) => (
-          <Link key={m.key} href={`/desk/indice?mois=${m.key}`} className={`btn sm ${m.key === month ? "" : "ghost"}`}>
-            {m.label}
-            {published.some((d) => d.number === `PC-IDX-${m.key.replace("-", "")}`) ? " ✓" : ""}
-          </Link>
-        ))}
-      </div>
+      {/* La note mensuelle a désormais la forme de la trimestrielle : un
+          panneau qui porte son sélecteur, son texte et ses actions. Le bouton
+          qui publie se tenait quatre panneaux plus bas que la phrase qu'il
+          publie, ce qui n'a de sens pour personne. */}
+      <section className={`panel ${styles.pub}`}>
+        <div className="panel-h">
+          <h2>{t("Note mensuelle, pour le desk")}</h2>
+          <span className="muted">{note ? note.number : t("gardée au desk")}</span>
+        </div>
+        <div className={styles.months}>
+          {months.slice(0, 14).map((m) => (
+            <Link key={m.key} href={`/desk/indice?mois=${m.key}`} className={`btn sm ${m.key === month ? "" : "ghost"}`}>
+              {m.label}
+              {published.some((d) => d.number === `PC-IDX-${m.key.replace("-", "")}`) ? " ✓" : ""}
+            </Link>
+          ))}
+        </div>
+        {!note ? (
+          <p className={styles.p}>{t("Aucune séance lue sur ce mois : il n'y a pas de note à écrire.")}</p>
+        ) : (
+          <>
+            <div className={styles.lead}>
+              <p>{note.headline}</p>
+              <p>{note.reading}</p>
+              <p className={styles.caution}>{note.caution}</p>
+            </div>
+            <div className={styles.publish}>
+              <a className="btn sm primary" href={`/desk/indice/pdf?mois=${note.month.key}`} target="_blank" rel="noreferrer">
+                {t("Aperçu PDF")}
+              </a>
+              {already ? (
+                <>
+                  <a className="btn sm" href={`/desk/documents/pdf/${already.id}`} target="_blank" rel="noreferrer">
+                    {t("La note publiée")}
+                  </a>
+                  <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(already.createdAt), who: already.createdBy ?? "—" })}</span>
+                </>
+              ) : (
+                <Publish
+                  month={note.month.key}
+                  action={publishNoteAction}
+                  label={t("Publier la note de {m}", { m: note.month.label })}
+                  title={t("Publier la note de {m}", { m: note.month.label })}
+                  lines={[
+                    t("Le PDF part dans Documents sous le numéro {n}. Il ne part pas aux clients : cet envoi se fait ensuite.", { n: note.number }),
+                    t("{s} séances lues, {m} avec mouvement, {r} sur le mois, à {l} points.", { s: note.sessions, m: note.moved, r: `${note.ret > 0 ? "+" : ""}${fmtPct(note.ret, 2)}`, l: fmt(note.level) }),
+                    t("Le numéro est dépensé : republier ce mois en consommera un autre."),
+                  ]}
+                />
+              )}
+            </div>
+            <p className={styles.p}>{t("Le PDF part dans Documents avec son numéro et la version de chaque passage. Il ne part pas aux clients : cet envoi se fait ensuite, comme pour les autres documents.")}</p>
+          </>
+        )}
+      </section>
 
-      {!note ? (
-        <div className="empty">{t("Aucune séance lue sur ce mois : il n'y a pas de note à écrire.")}</div>
-      ) : (
+      {note && (
         <>
-          <section className={styles.lead}>
-            <p>{note.headline}</p>
-            <p>{note.reading}</p>
-            <p className={styles.caution}>{note.caution}</p>
-          </section>
-
           <section className="panel">
             <div className="panel-h">
               <h2>{t("Le mois en chiffres")}</h2>
@@ -221,38 +261,6 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
             </section>
           )}
 
-          <section className="panel">
-            <div className="panel-h">
-              <h2>{t("Publier")}</h2>
-              <span className="muted">{note.number}</span>
-            </div>
-            <div className={styles.publish}>
-              <a className="btn sm primary" href={`/desk/indice/pdf?mois=${note.month.key}`} target="_blank" rel="noreferrer">
-                {t("Aperçu PDF")}
-              </a>
-              {already ? (
-                <>
-                  <a className="btn sm" href={`/desk/documents/pdf/${already.id}`} target="_blank" rel="noreferrer">
-                    {t("La note publiée")}
-                  </a>
-                  <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(already.createdAt), who: already.createdBy ?? "—" })}</span>
-                </>
-              ) : (
-                <Publish
-                  month={note.month.key}
-                  action={publishNoteAction}
-                  label={t("Publier la note de {m}", { m: note.month.label })}
-                  title={t("Publier la note de {m}", { m: note.month.label })}
-                  lines={[
-                    t("Le PDF part dans Documents sous le numéro {n}. Il ne part pas aux clients : cet envoi se fait ensuite.", { n: note.number }),
-                    t("{s} séances lues, {m} avec mouvement, {r} sur le mois, à {l} points.", { s: note.sessions, m: note.moved, r: `${note.ret > 0 ? "+" : ""}${fmtPct(note.ret, 2)}`, l: fmt(note.level) }),
-                    t("Le numéro est dépensé : republier ce mois en consommera un autre."),
-                  ]}
-                />
-              )}
-            </div>
-            <p className={styles.p}>{t("La publication garde le PDF dans Documents, avec son numéro et la version de chaque passage. L'envoi aux clients se fait ensuite, comme pour les autres documents.")}</p>
-          </section>
         </>
       )}
     </>
