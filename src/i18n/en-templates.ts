@@ -95,8 +95,6 @@ export const EN_TEMPLATES: Record<string, string> = {
   "≈ {n} parts à la VL du {d} ({v} FCFA) · sans droits d'entrée · le nombre exact de parts dépend de la VL retenue à la centralisation": "≈ {n} units at the NAV of {d} ({v} FCFA) · no entry fee · the exact number of units depends on the NAV applied at the cut-off",
   "≈ {n} {u} au cours de référence {p} · {o} FCFA · règlement T+{t} · le prix d'exécution dépend du marché": "≈ {n} {u} at the reference price {p} · {o} FCFA · settlement T+{t} · the execution price depends on the market",
   "≈ {n} {u} au cours de référence {p} · {o} FCFA dont {a} de coupon couru · règlement T+{t} · le prix d'exécution dépend du marché": "≈ {n} {u} at the reference price {p} · {o} FCFA of which {a} accrued interest · settlement T+{t} · the execution price depends on the market",
-  "{n} {u} × {p} = {g} FCFA à décaisser · prix d'exécution selon le marché": "{n} {u} × {p} = {g} FCFA to pay · execution price per the market",
-  "{n} {u} × {p} = {g} FCFA encaissés · prix d'exécution selon le marché": "{n} {u} × {p} = {g} FCFA received · execution price per the market",
   "{n} parts × VL {v} FCFA = {g} FCFA · net ≈ {net} FCFA à la VL de rachat": "{n} units × NAV {v} FCFA = {g} FCFA · net ≈ {net} FCFA at the redemption NAV",
   "{n} parts × VL {v} FCFA = {g} FCFA · frais du fonds à la sortie {f} · net ≈ {net} FCFA à la VL de rachat": "{n} units × NAV {v} FCFA = {g} FCFA · fund exit fee {f} · net ≈ {net} FCFA at the redemption NAV",
   "Quantité minimale : {n}.": "Minimum quantity: {n}.",
@@ -580,4 +578,7 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Sur {d} jours : vous payez {p}, recevez {n}. Le rendement dépasse le taux précompté parce que l'intérêt est calculé sur le nominal mais vous n'avancez que le prix.": "Over {d} days: you pay {p}, receive {n}. The yield exceeds the discount rate because the interest is computed on par while you only advance the price.",
   "nominal restant {n} / titre": "remaining par {n} / security",
   "échéancier à préciser": "schedule to be confirmed",
+  "{n} actions × {p} FCFA · prix d'exécution selon le marché": "{n} shares × {p} FCFA · execution price per the market",
+  "{n} titres × {r} % = {g} FCFA de principal · prix d'exécution selon le marché": "{n} securities × {r} % = {g} FCFA of principal · execution price per the market",
+  "{n} titres × {r} % = {g} FCFA de principal · + {a} FCFA de coupon couru · prix d'exécution selon le marché": "{n} securities × {r} % = {g} FCFA of principal · + {a} FCFA of accrued coupon · execution price per the market",
 };

@@ -60,15 +60,25 @@ function qtyForCash(o: Offer, type: IntentType, cash: number, limit: number | nu
   return Math.floor(cash / p / lot) * lot;
 }
 
-/** Secondary market: the amount field is a quantity. */
-function marketEstimate(o: Offer, qty: number, type: IntentType): string {
+/**
+ * Marché secondaire : comment le total se compose, et non un second total.
+ *
+ * La phrase annonçait « = 990 000 FCFA à décaisser » juste sous un total de
+ * 1 009 466 : deux chiffres, tous deux présentés comme la somme à payer, et
+ * rien pour dire lequel croire. Le premier oubliait le coupon couru, qui
+ * s'achète avec le titre. Le total a sa ligne au-dessus ; celle-ci dit
+ * seulement d'où il vient.
+ */
+function marketEstimate(o: Offer, qty: number, type: IntentType, limit: number | null): string {
   if (!qty) return "Indiquez une quantité pour voir l'estimation au cours de référence.";
   const isBond = o.instrument === "obligation";
-  const ref = type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0);
-  const unit = isBond ? (o.nominal * ref) / 100 : ref;
+  const ref = limit ?? (type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0));
   if (o.lotSize && qty < o.lotSize) return `Quantité minimale : ${o.lotSize}.`;
-  const gross = qty * unit;
-  return `${fmt(qty)} ${isBond ? "titres" : "actions"} × ${isBond ? `${ref} %` : `${fmt(ref)} FCFA`} = ${fmt(gross)} FCFA ${type === "vente" ? "encaissés" : "à décaisser"} · prix d'exécution selon le marché`;
+  if (!isBond) return `${fmt(qty)} actions × ${fmt(ref)} FCFA · prix d'exécution selon le marché`;
+  const principal = (qty * o.nominal * ref) / 100;
+  const r = marketBondCalc(o, qty * o.nominal, ref);
+  const accrued = r?.accruedDays ? ` · + ${fmt(Math.round(r.accrued))} FCFA de coupon couru` : "";
+  return `${fmt(qty)} titres × ${ref} % = ${fmt(Math.round(principal))} FCFA de principal${accrued} · prix d'exécution selon le marché`;
 }
 
 /** Fund redemption: the amount field is a number of units. */
@@ -337,7 +347,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 <b>{fmt(Math.round(outlay))} FCFA</b>
               </div>
             )}
-            <div className={`${styles.estimate} ${sized ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>
+            <div className={`${styles.estimate} ${sized ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type, lim) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>
             <OrderFlows offer={offer} quantity={market ? ordered : 0} amount={market ? 0 : ordered} limit={lim} type={type} />
           </>
         )}
