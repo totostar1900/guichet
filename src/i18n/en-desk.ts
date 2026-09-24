@@ -2294,4 +2294,8 @@ export const EN_MORE: Record<string, string> = {
   "Trier par cette colonne": "Sort by this column",
   "Tout afficher : {n} lignes": "Show all: {n} rows",
   "N'en montrer que {n}": "Show only {n}",
+  "Par catégorie": "By category",
+  "Trier par date de VL": "Sort by NAV date",
+  "date": "date",
+  "OK": "OK",
 };

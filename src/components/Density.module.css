@@ -94,3 +94,9 @@
     display: inline-flex;
   }
 }
+
+/* La sortie de la feuille : un seul bouton, à droite. */
+.foot {
+  display: flex;
+  justify-content: flex-end;
+}

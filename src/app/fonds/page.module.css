@@ -608,3 +608,35 @@
     display: none;
   }
 }
+
+/* Trier depuis la colonne. Le chevron reste effacé tant que la colonne
+   n'est pas celle du tri : sinon six flèches grises se disputent le regard. */
+.sortTh {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+.sortTh i {
+  font-style: normal;
+  font-size: 0.75em;
+  opacity: 0.3;
+}
+.sortTh:hover i {
+  opacity: 1;
+}
+.sortOn i {
+  opacity: 1;
+  color: var(--gold-ink);
+}
+.sortThSub {
+  font-weight: 400;
+  font-size: 0.78em;
+  color: var(--ink-3);
+}

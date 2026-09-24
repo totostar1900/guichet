@@ -91,7 +91,21 @@ export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: ()
   const t = useT();
   const sep = useDistinction();
   return (
-    <Sheet open={open} onClose={onClose} title={t("Affichage des cartes")}>
+    // Sans pied, la feuille n'avait aucun bouton de sortie : le choix
+    // s'appliquait bien, mais rien ne le refermait, et elle passait pour
+    // cassée. Les autres feuilles de réglage en ont un ; celle-ci l'oubliait.
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={t("Affichage des cartes")}
+      foot={
+        <div className={styles.foot}>
+          <button type="button" className="btn sm primary" onClick={onClose}>
+            {t("OK")}
+          </button>
+        </div>
+      }
+    >
       <div className={styles.row}>
         <span className={styles.label}>{t("Densité")}</span>
         <span className={`${styles.dens} ${styles.densAll}`} role="group" aria-label={t("Densité des cartes")}>

@@ -45,7 +45,7 @@ export interface FundRow {
   featured?: string; // the desk's reason when the fund is « À la une »
 }
 
-type SortKey = "categorie" | "nom" | "vl" | "var" | "an" | "origine" | "date";
+type SortKey = "categorie" | "nom" | "gestion" | "vl" | "var" | "an" | "origine" | "date";
 const SORT: [SortKey, string][] = [
   ["categorie", "par catégorie"],
   ["an", "12 mois"],
@@ -54,7 +54,11 @@ const SORT: [SortKey, string][] = [
   ["vl", "valeur liquidative"],
   ["date", "VL la plus récente"],
   ["nom", "nom"],
+  ["gestion", "société de gestion"],
 ];
+/** Le sens qu'on attend d'une colonne au premier clic : un rendement du plus fort,
+    un nom de A à Z. Le second clic inverse, et c'est lui qui écrit « sens ». */
+const NATURAL: Record<SortKey, "asc" | "desc"> = { categorie: "asc", nom: "asc", gestion: "asc", vl: "desc", var: "desc", an: "desc", origine: "desc", date: "desc" };
 const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
 const BLURB: Record<FundNav["category"], string> = {
   M: "Placement de trésorerie : titres courts, valeur liquidative très régulière, argent disponible sous quelques jours.",
@@ -148,7 +152,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const manager = sp.get("gestion") ?? "";
   const freq = (sp.get("vl") ?? "") as FundNav["frequency"] | "";
   const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
-  const desc = sp.get("sens") !== "asc";
+  const asc = (sp.get("sens") ?? NATURAL[sort]) === "asc";
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
     for (const [k, v] of Object.entries(patch)) {
@@ -157,12 +161,49 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     }
     router.replace(`${pathname}${next.toString() ? `?${next}` : ""}`, { scroll: false });
   };
-  const setQ = (v: string) => update({ q: v || undefined });
+  // Le champ garde ce qu'on tape ; l'URL suit après une pause. Écrire dans
+  // l'URL à chaque touche relançait le rendu de la page entre deux lettres,
+  // et le champ retardait sur le clavier. La liste, elle, se refiltre tout de
+  // suite : c'est `draft` qu'elle lit, pas l'adresse.
+  const [draft, setDraft] = useState(q);
+  const pushed = useRef(q);
+  useEffect(() => {
+    if (draft === pushed.current) return;
+    const id = window.setTimeout(() => {
+      pushed.current = draft;
+      update({ q: draft || undefined });
+    }, 180);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
+  // Un retour arrière, un lien ouvert : l'adresse a changé sans nous.
+  useEffect(() => {
+    if (q !== pushed.current) {
+      pushed.current = q;
+      setDraft(q);
+    }
+  }, [q]);
+  const setQ = (v: string) => {
+    pushed.current = v;
+    setDraft(v);
+    update({ q: v || undefined });
+  };
+  const clearAll = () => {
+    pushed.current = "";
+    setDraft("");
+    update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined });
+  };
   const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
   const setManager = (v: string) => update({ gestion: v || undefined });
   const setFreq = (v: FundNav["frequency"] | "") => update({ vl: v || undefined });
-  const setSort = (v: SortKey) => update({ tri: v === "categorie" ? undefined : v });
-  const setDesc = (v: boolean) => update({ sens: v ? undefined : "asc" });
+  const setSort = (v: SortKey) => update({ tri: v === "categorie" ? undefined : v, sens: undefined });
+  // Depuis l'en-tête d'une colonne : la première fois son sens naturel, la
+  // seconde l'inverse. C'est là qu'on cherche à trier un tableau.
+  const pickSort = (k: SortKey) => {
+    if (sort === k) update({ sens: asc ? "desc" : "asc" });
+    else setSort(k);
+  };
+  const setAsc = (v: boolean) => update({ sens: v === (NATURAL[sort] === "asc") ? undefined : v ? "asc" : "desc" });
 
   const managers = useMemo(() => [...new Set(rows.map((r) => r.manager))].sort((a, b) => a.localeCompare(b, "fr")), [rows]);
   // What the typed letters match: management companies (a filter) and funds (a search); a tap applies it.
@@ -170,22 +211,24 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   // Toucher une suggestion valide la recherche : le clavier se retire et la liste paraît.
   const { input: searchInput, list: searchList, commit: commitSearch } = useSearchCommit<HTMLInputElement, HTMLElement>();
   const suggestions = useMemo(() => {
-    const d = fold(q.trim());
+    const d = fold(draft.trim());
     if (!typing || d.length < 2) return [] as { kind: "gestion" | "fonds"; text: string }[];
     const out: { kind: "gestion" | "fonds"; text: string }[] = [];
     for (const m of managers) if (fold(m).includes(d) && m !== manager) out.push({ kind: "gestion", text: m });
     for (const r of rows) if (fold(r.title).includes(d) && fold(r.title) !== d) out.push({ kind: "fonds", text: r.title });
     return out.slice(0, 8);
-  }, [q, typing, managers, manager, rows]);
+  }, [draft, typing, managers, manager, rows]);
   const freqs = useMemo(() => [...new Set(rows.map((r) => r.frequency))].filter((f) => f !== "?"), [rows]);
 
   const filtered = useMemo(() => {
-    const ql = fold(q.trim());
+    const ql = fold(draft.trim());
     const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":
           return a.title.localeCompare(b.title, "fr");
+        case "gestion":
+          return a.manager.localeCompare(b.manager, "fr") || a.title.localeCompare(b.title, "fr");
         case "vl":
           return a.nav - b.nav;
         case "var":
@@ -200,11 +243,23 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           return Number(b.open) - Number(a.open) || a.title.localeCompare(b.title, "fr");
       }
     };
-    const dir = sort === "categorie" || sort === "nom" ? 1 : desc ? -1 : 1;
+    // « par catégorie » est un rangement, pas une mesure : il garde son ordre.
+    const dir = sort === "categorie" ? 1 : asc ? 1 : -1;
     return [...list].sort((a, b) => dir * cmp(a, b));
-  }, [rows, q, cat, manager, freq, sort, desc]);
+  }, [rows, draft, cat, manager, freq, sort, asc]);
 
   const rowsShown = sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered;
+  // L'en-tête d'une colonne est déjà le nom de ce qu'on veut trier : une
+  // fonction, pas un composant, qu'un composant déclaré dans le rendu
+  // reperdrait son état à chaque passage.
+  const sortTh = (k: SortKey, label: React.ReactNode, cls?: string) => (
+    <th className={cls} aria-sort={sort === k ? (asc ? "ascending" : "descending") : "none"}>
+      <button type="button" className={`${styles.sortTh} ${sort === k ? styles.sortOn : ""}`} onClick={() => pickSort(k)} title={sort === k ? t("Inverser l'ordre") : t("Trier par cette colonne")}>
+        {label}
+        <i aria-hidden="true">{sort === k ? (asc ? "↑" : "↓") : "↕"}</i>
+      </button>
+    </th>
+  );
   const familiesOpen = useSyncExternalStore(subscribeFamilies, readFamilies, () => true);
   const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq));
 
@@ -223,8 +278,11 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const toolsRef = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState(false);
 
-  // The controls, once: in the page, and again in the sheet the floating button opens.
-  const toolbar = (
+  // The controls, once: in the page, and again in the sheet the floating button
+  // opens. La boîte de tri ne paraît que dans la feuille : sur un écran large,
+  // le tableau porte ses colonnes et c'est d'elles qu'on trie ; sur téléphone
+  // il n'y a pas de colonnes, donc la boîte reste le seul moyen.
+  const toolbar = (withSort: boolean) => (
     <div className={styles.toolbar}>
       <div className={styles.search}>
         {manager && (
@@ -237,9 +295,9 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           type="search"
           placeholder={manager ? t("Un fonds de cette société…") : t("Un fonds, une société de gestion, un dépositaire")}
           aria-label={t("Rechercher")}
-          value={q}
+          value={draft}
           onChange={(e) => {
-            setQ(e.target.value);
+            setDraft(e.target.value);
             setTyping(true);
           }}
           onFocus={() => setTyping(true)}
@@ -282,15 +340,17 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         ))}
       </div>
       <Select className={styles.fixedSm} value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
-      <label className={styles.sort}>
-        {t("Tri")}
-        <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
-        {sort !== "categorie" && sort !== "nom" && (
-          <button type="button" className={styles.dir} onClick={() => setDesc(!desc)} aria-label={t(desc ? "Ordre décroissant" : "Ordre croissant")} title={t("Inverser l'ordre")}>
-            {desc ? "↓" : "↑"}
-          </button>
-        )}
-      </label>
+      {withSort && (
+        <label className={styles.sort}>
+          {t("Tri")}
+          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
+          {sort !== "categorie" && (
+            <button type="button" className={styles.dir} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
+              {asc ? "↑" : "↓"}
+            </button>
+          )}
+        </label>
+      )}
       <DensitySwitch className={styles.density} />
     </div>
   );
@@ -322,31 +382,34 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         )}
       </section>
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
-        <div className={styles.deskTools}>{toolbar}</div>
-        <FilterLine count={active + Number(Boolean(q))} summary={[q && `« ${q} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={() => setSheet(true)} />
+        <div className={styles.deskTools}>{toolbar(false)}</div>
+        <FilterLine count={active + Number(Boolean(draft))} summary={[draft && `« ${draft} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={() => setSheet(true)} />
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
-          {active > 0 || q ? ` ${t("correspondant aux filtres")}` : ""}
+          {active > 0 || draft ? ` ${t("correspondant aux filtres")}` : ""}
           {cat && <span className={styles.countHint}> : {t(BLURB[cat])}</span>}
-          {(active > 0 || q) && (
-            <button type="button" className={styles.clear} onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}>
+          {sort !== "categorie" && (
+            <button type="button" className={styles.clear} onClick={() => setSort("categorie")}>
+              {t("Par catégorie")}
+            </button>
+          )}
+          {(active > 0 || draft) && (
+            <button type="button" className={styles.clear} onClick={clearAll}>
               {t("Effacer")}
             </button>
           )}
         </div>
       </div>
       {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}
-      <FilterFab watch={toolsRef} onClick={() => setSheet(true)} count={active + Number(Boolean(q))} open={sheet} />
+      <FilterFab watch={toolsRef} onClick={() => setSheet(true)} count={active + Number(Boolean(draft))} open={sheet} />
       <Sheet open={sheet} onClose={() => setSheet(false)} title={t("Filtrer et trier")}>
-        <div className={styles.sheetTools}>
-          {toolbar}
-        </div>
+        <div className={styles.sheetTools}>{toolbar(true)}</div>
         <div className={styles.sheetFoot}>
           <span>
             <b>{filtered.length}</b> {t("fonds")}
           </span>
-          {(active > 0 || q) && (
-            <button type="button" className="btn sm ghost" onClick={() => update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined })}>
+          {(active > 0 || draft) && (
+            <button type="button" className="btn sm ghost" onClick={clearAll}>
               {t("Effacer")}
             </button>
           )}
@@ -369,16 +432,29 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             <table className={styles.tbl}>
               <thead>
                 <tr>
-                  <th>{t("Fonds")}</th>
-                  <th className={styles.hideSm}>{t("Société de gestion · dépositaire")}</th>
+                  {sortTh("nom", t("Fonds"))}
+                  {sortTh("gestion", t("Société de gestion · dépositaire"), styles.hideSm)}
                   <th className={styles.r}>
-                    {t("VL (FCFA)")} <Info term="vl" subtle />
+                    <button type="button" className={`${styles.sortTh} ${sort === "vl" ? styles.sortOn : ""}`} onClick={() => pickSort("vl")} title={sort === "vl" ? t("Inverser l'ordre") : t("Trier par cette colonne")}>
+                      {t("VL (FCFA)")}
+                      <i aria-hidden="true">{sort === "vl" ? (asc ? "↑" : "↓") : "↕"}</i>
+                    </button>{" "}
+                    <Info term="vl" subtle />
+                    <br />
+                    <button type="button" className={`${styles.sortTh} ${styles.sortThSub} ${sort === "date" ? styles.sortOn : ""}`} onClick={() => pickSort("date")} title={t("Trier par date de VL")}>
+                      {t("date")}
+                      <i aria-hidden="true">{sort === "date" ? (asc ? "↑" : "↓") : "↕"}</i>
+                    </button>
                   </th>
                   <th className={styles.r}>
-                    {t("Var.")} <Info term="variation_vl" subtle />
+                    <button type="button" className={`${styles.sortTh} ${sort === "var" ? styles.sortOn : ""}`} onClick={() => pickSort("var")} title={sort === "var" ? t("Inverser l'ordre") : t("Trier par cette colonne")}>
+                      {t("Var.")}
+                      <i aria-hidden="true">{sort === "var" ? (asc ? "↑" : "↓") : "↕"}</i>
+                    </button>{" "}
+                    <Info term="variation_vl" subtle />
                   </th>
-                  <th className={styles.r}>{t("12 mois")}</th>
-                  <th className={`${styles.r} ${styles.hideSm}`}>{t("Depuis l'origine")}</th>
+                  {sortTh("an", t("12 mois"), styles.r)}
+                  {sortTh("origine", t("Depuis l'origine"), `${styles.r} ${styles.hideSm}`)}
                   <th></th>
                 </tr>
               </thead>
