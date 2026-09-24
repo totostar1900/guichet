@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blocking, orderChecks } from "@/lib/domain/checks";
+import { translate } from "@/i18n/core";
 import type { Offer } from "@/lib/domain/types";
 
 const ota: Offer = { id: "o1", kind: "OTA", operation: "nouvelle_ligne", country: "Cameroun", countryName: "Cameroun", issuer: "État du Cameroun", title: "OTA 6,25 % 2028", isin: "CM1L", status: "published", blurb: "", documents: [], opensAt: "2026-09-01T09:00:00", deadlineAt: "2026-09-30T12:00:00", settleOn: "2026-10-02", maturityOn: "2028-10-02", lastCouponOn: null, nominal: 10_000, couponRate: 6.25, pricePct: 96, commissionPct: 0.5, minTitles: 100, version: 1 };
@@ -54,5 +55,36 @@ describe("le prix limite hors bornes", () => {
 
   it("dit l'unité attendue plutôt que « vérifiez l'unité »", () => {
     expect(blocking(orderChecks(bond, "achat", 100, 0.97))?.why).toContain("97 pour 97 %");
+  });
+});
+
+/**
+ * Et qu'il se traduise en entier.
+ *
+ * Le sens de l'écart était un mot glissé au milieu de la phrase. Le
+ * dictionnaire ne reconnaît que des phrases entières : il traduisait donc le
+ * début, laissait « soit 99 % au-dessous du dernier cours » en français, et le
+ * client anglophone lisait une phrase à moitié dans chaque langue.
+ */
+describe("le message hors bornes en anglais", () => {
+  const bond: Offer = { ...share, id: "m3", title: "ECMR 7,25 % 2031", instrument: "obligation", lastPrice: 97, ask: 97, bid: 96, lotSize: 1, nominal: 10_000 };
+
+  for (const [limit, sens] of [
+    [0.97, "below"],
+    [194, "above"],
+  ] as const) {
+    it(`se traduit entièrement (${sens})`, () => {
+      const fr = blocking(orderChecks(bond, "achat", 100, limit))!.text;
+      const en = translate("en", fr);
+      expect(en, "la phrase doit changer de langue").not.toBe(fr);
+      expect(en).toContain(sens);
+      // Aucun mot français ne survit au milieu de la phrase anglaise.
+      expect(en).not.toMatch(/soit|dernier cours|au-dess|bornes/);
+    });
+  }
+
+  it("traduit aussi l'explication", () => {
+    const why = blocking(orderChecks(bond, "achat", 100, 0.97))!.why;
+    expect(translate("en", why)).toContain("percentage of nominal");
   });
 });
