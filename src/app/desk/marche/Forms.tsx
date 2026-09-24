@@ -98,7 +98,7 @@ export function HideButton({ offerId, hidden }: { offerId: string; hidden: boole
   );
 }
 
-export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { distributed: boolean; entryFeePct: number; exitFeePct: number; minAmount: number; cutoff?: string; agreementRef?: string; settlementDays?: number } }) {
+export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { distributed: boolean; entryFeePct: number; exitFeePct: number; managementFeePct?: number; trailerPct?: number; minAmount: number; cutoff?: string; agreementRef?: string; settlementDays?: number } }) {
   const t = useT();
   const [state, action, pending] = useActionState<MarketResult | null, FormData>(updateFundTermsAction, null);
   return (
@@ -110,6 +110,12 @@ export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { dist
       <input name="agreementRef" defaultValue={fund.agreementRef ?? ""} placeholder={t("réf. convention")} aria-label={t("Référence de la convention")} className={styles.num} />
       <input name="entryFeePct" type="number" step="0.01" min={0} max={10} defaultValue={fund.entryFeePct} placeholder={t("entrée %")} aria-label={t("Droits d'entrée %")} className={styles.short} />
       <input name="exitFeePct" type="number" step="0.01" min={0} max={10} defaultValue={fund.exitFeePct} placeholder={t("sortie %")} aria-label={t("Droits de sortie %")} className={styles.short} />
+      {/* Les frais de gestion se lisent dans le prospectus du fonds : ils ne
+          s'inventent pas, et laissés vides la comparaison le dit plutôt que de
+          faire croire à un fonds gratuit. La rétrocession, elle, est ce que la
+          société de gestion nous reverse : elle ne paraît jamais au client. */}
+      <input name="managementFeePct" type="number" step="0.01" min={0} max={10} defaultValue={fund.managementFeePct ?? ""} placeholder={t("gestion %/an")} aria-label={t("Frais de gestion annuels %")} className={styles.short} />
+      <input name="trailerPct" type="number" step="0.01" min={0} max={10} defaultValue={fund.trailerPct ?? ""} placeholder={t("rétroc. %/an")} aria-label={t("Rétrocession sur encours %, desk seulement")} className={styles.short} />
       <input name="minAmount" type="number" step={1000} min={0} defaultValue={fund.minAmount} placeholder={t("minimum")} aria-label={t("Souscription minimale (FCFA)")} className={styles.num} />
       <input name="cutoff" defaultValue={fund.cutoff ?? ""} placeholder={t("centralisation (ex. mardi 12 h)")} aria-label={t("Centralisation")} className={styles.wide} />
       <button className="btn sm" type="submit" disabled={pending}>

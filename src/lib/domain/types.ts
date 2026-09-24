@@ -59,6 +59,22 @@ export interface FundTerms {
   agreementRef?: string;
   entryFeePct: number; // droits d'entrée, kept by the fund / manager (our retrocession is inside)
   exitFeePct: number;
+  /**
+   * Frais de gestion annuels, prélevés dans la valeur liquidative.
+   *
+   * Le client les paie sans les voir : la performance publiée en est déjà
+   * nette. C'est pourtant le coût qui pèse le plus sur une épargne gardée
+   * plusieurs années, bien davantage que les droits d'entrée qu'on affiche.
+   * Il se montre donc au client, à côté des autres.
+   */
+  managementFeePct?: number;
+  /**
+   * La part de ces frais de gestion qui revient au distributeur, chaque année.
+   *
+   * C'est notre revenu, pas une condition du fonds : le client ne paie rien de
+   * plus à cause d'elle, et elle ne le regarde pas. Elle ne paraît qu'au desk.
+   */
+  trailerPct?: number;
   minAmount: number; // FCFA, first subscription
   cutoff?: string; // "mardi 12 h pour la VL du jeudi"
   settlementDays?: number; // units delivered / cash paid J+n after the NAV

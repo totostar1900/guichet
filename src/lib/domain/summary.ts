@@ -256,6 +256,10 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
         ["VL", fmt(f.nav), `FCFA · ${fmtDate(f.navDate, false)}`],
         ["Variation", v != null ? signed(v) : "—", "dernière VL"],
         ["Ticket", open ? `${fmt(f.minAmount)} FCFA` : "sur demande"],
+        // Prélevés dans la valeur liquidative, donc invisibles : c'est pourtant
+        // ce qui décide de ce qu'un épargnant garde sur cinq ans. Non renseignés,
+        // on le dit plutôt que de laisser croire à un fonds sans frais.
+        ["Frais de gestion", f.managementFeePct != null ? `${fmtPct(f.managementFeePct, 2)}` : "non communiqués", f.managementFeePct != null ? "par an, prélevés dans la VL" : "demandez le prospectus"],
       ],
     };
   }

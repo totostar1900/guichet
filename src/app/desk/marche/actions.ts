@@ -125,6 +125,8 @@ const fundSchema = z.object({
   distributed: z.enum(["on", "off"]).default("off"),
   entryFeePct: z.coerce.number().min(0).max(10).default(0),
   exitFeePct: z.coerce.number().min(0).max(10).default(0),
+  managementFeePct: z.coerce.number().min(0).max(10).optional(),
+  trailerPct: z.coerce.number().min(0).max(10).optional(),
   minAmount: z.coerce.number().min(0).default(100_000),
   cutoff: z.string().max(120).optional(),
   agreementRef: z.string().max(80).optional(),
@@ -145,7 +147,7 @@ export async function updateFundTermsAction(_p: MarketResult | null, form: FormD
   if (!o || o.kind !== "FONDS" || !o.fund) return { ok: false, error: "Fonds introuvable." };
   const distributed = p.data.distributed === "on";
   if (distributed && !p.data.agreementRef) return { ok: false, error: "Indiquez la référence de la convention de distribution avant d'activer la souscription." };
-  const fund = { ...o.fund, distributed, entryFeePct: p.data.entryFeePct, exitFeePct: p.data.exitFeePct, minAmount: p.data.minAmount, cutoff: p.data.cutoff, agreementRef: p.data.agreementRef, settlementDays: p.data.settlementDays };
+  const fund = { ...o.fund, distributed, entryFeePct: p.data.entryFeePct, exitFeePct: p.data.exitFeePct, managementFeePct: p.data.managementFeePct, trailerPct: p.data.trailerPct, minAmount: p.data.minAmount, cutoff: p.data.cutoff, agreementRef: p.data.agreementRef, settlementDays: p.data.settlementDays };
   const next: typeof o = { ...o, fund, hidden: !distributed, commissionPct: fund.entryFeePct, pricedAt: new Date().toISOString(), version: o.version + 1 };
   const reason = approvalReason(next, o, await loadPolicy());
   if (reason && !isResponsable(desk)) {
@@ -160,7 +162,7 @@ export async function updateFundTermsAction(_p: MarketResult | null, form: FormD
     return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
   }
   await audit("offer.fund_terms", "offer", o.id, { before: { fund: o.fund, hidden: o.hidden }, after: { fund, hidden: !distributed } });
-  await r.logEvent({ kind: "desk", offerId: o.id, html: `OPCVM <b>${o.title}</b> ${distributed ? "ouvert à la souscription" : "retiré de la souscription"} · droits d'entrée ${fund.entryFeePct} % · sortie ${fund.exitFeePct} % · minimum ${fmt(fund.minAmount)} FCFA${fund.agreementRef ? ` · convention ${fund.agreementRef}` : ""} · par ${desk.name}` });
+  await r.logEvent({ kind: "desk", offerId: o.id, html: `OPCVM <b>${o.title}</b> ${distributed ? "ouvert à la souscription" : "retiré de la souscription"} · droits d'entrée ${fund.entryFeePct} % · sortie ${fund.exitFeePct} %${fund.managementFeePct != null ? ` · gestion ${fund.managementFeePct} %/an` : ""}${fund.trailerPct != null ? ` · rétrocession ${fund.trailerPct} %/an` : ""} · minimum ${fmt(fund.minAmount)} FCFA${fund.agreementRef ? ` · convention ${fund.agreementRef}` : ""} · par ${desk.name}` });
   revalidatePath("/");
   revalidatePath("/fonds");
   revalidatePath("/desk/marche");

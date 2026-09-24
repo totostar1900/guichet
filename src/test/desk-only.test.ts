@@ -56,6 +56,21 @@ describe("ce qui reste au desk", () => {
     });
   }
 
+  /**
+   * La rétrocession sur encours est notre revenu, pas une condition du fonds :
+   * le client ne paie rien de plus à cause d’elle et elle ne le regarde pas.
+   * Les frais de gestion, eux, sont à lui et se montrent. La garde tient la
+   * séparation, parce qu’un champ voisin se copie sans y penser.
+   */
+  it("la rétrocession ne quitte pas le desk", () => {
+    const leaks = files.filter((f) => !isDesk(f.path) && !f.path.startsWith("lib/domain/types") && f.text.includes("trailerPct")).map((f) => f.path);
+    expect(leaks, "ces fichiers ne sont pas au desk et citent trailerPct").toEqual([]);
+  });
+
+  it("les frais de gestion, eux, se montrent au client", () => {
+    // L’inverse de la règle au-dessus : ce chiffre doit atteindre le Guichet.
+    expect(files.some((f) => f.path.startsWith("app/fonds/") && f.text.includes("managementFeePct"))).toBe(true);
+  });
   it("le taux de service reste server-only", () => {
     // Un module server-only ne peut pas partir dans le paquet du navigateur,
     // même si quelqu'un l'importait depuis un composant client par erreur.

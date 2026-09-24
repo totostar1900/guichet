@@ -40,6 +40,7 @@ export interface FundRow {
   open: boolean; // open to subscription (the desk can close one)
   entryFeePct: number;
   exitFeePct: number;
+  managementFeePct?: number;
   minAmount: number;
   cutoff?: string;
   settlementDays?: number;
@@ -123,6 +124,7 @@ function FundTr({ r }: { r: FundRow }) {
       </td>
       <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
       <td className={`${styles.r} ${cls(r.perf1yPct)}`}>{signed(r.perf1yPct)}</td>
+      <td className={styles.r}>{r.managementFeePct != null ? fmtPct(r.managementFeePct, 2) : <span className="muted" title={t("Frais de gestion non renseignés : demandez le prospectus au desk.")}>—</span>}</td>
       <td className={`${styles.r} ${styles.hideSm} ${cls(r.perfSinceInceptionPct)}`}>
         {signed(r.perfSinceInceptionPct)}
         {r.inceptionDate && (
@@ -467,6 +469,10 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                     <Info term="variation_vl" subtle />
                   </th>
                   {sortTh("an", t("12 mois"), styles.r)}
+                  {/* Les frais de gestion sont prélevés dans la VL : la performance
+                      affichée en est déjà nette, mais c'est le coût qui décide de ce
+                      qu'un épargnant garde sur cinq ans, et personne ne le publie. */}
+                  <th className={styles.r}>{t("Frais/an")}</th>
                   {sortTh("origine", t("Depuis l'origine"), `${styles.r} ${styles.hideSm}`)}
                   <th></th>
                 </tr>
