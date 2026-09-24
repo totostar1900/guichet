@@ -2261,4 +2261,7 @@ export const EN_MORE: Record<string, string> = {
   "Aucun dossier ne répond à cette recherche.": "No file matches this search.",
   "Rien n'attend : tous les dossiers sont traités.": "Nothing is waiting: every file is handled.",
   "{n} autre(s) dossier(s), traités": "{n} other file(s), handled",
+  "Chaîne rompue à la ligne du {d} : à signaler": "Chain broken at the line of {d}: report it",
+  "Chaîne : pas assez de lignes pour vérifier": "Chain: not enough lines to verify",
+  "Chaîne intègre sur les {n} dernières lignes": "Chain sound over the last {n} lines",
 };

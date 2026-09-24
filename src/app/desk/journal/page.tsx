@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { diffRecords, FIELD_FR } from "@/lib/audit";
+import { chainState, type ChainState } from "@/lib/audit-chain";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
@@ -41,8 +42,16 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
   const t = await getT();
   await requireDesk("/desk/journal");
   const { entite = "" } = await searchParams;
-  const rows = await repo().listAudit({ entity: entite || undefined, limit: 200 });
-  const broken = rows.length > 1 && rows.some((a, i) => i < rows.length - 1 && a.prevHash !== rows[i + 1].hash);
+  // Ce qu'on montre et ce qu'on vérifie sont deux choses. La chaîne ne se lit
+  // que sur une suite continue : vérifier la liste filtrée revenait à comparer
+  // des lignes qui ne se suivent pas, et à crier à la rupture sans raison.
+  const [rows, chain] = await Promise.all([
+    repo().listAudit({ entity: entite || undefined, limit: 200 }),
+    repo()
+      .listAudit({ limit: 200 })
+      .then(chainState)
+      .catch(() => ({ state: "short", checked: 0 }) as ChainState),
+  ]);
   return (
     <>
       <DeskNav current="/desk/journal" />
@@ -53,7 +62,16 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
             {t("Chaque action métier laisse une ligne immuable : qui, quoi, l'enregistrement avant et après, le motif, l'adresse d'origine. Les lignes sont chaînées par empreinte : une ligne modifiée ou retirée casserait la chaîne.")}
           </p>
         </div>
-        <span className={`${styles.chain} ${broken ? styles.bad : styles.good}`}>{t(broken ? "Chaîne rompue : à signaler" : "Chaîne intègre")}</span>
+        {/* Le libellé ne promet que ce qui a été vérifié, et nomme la ligne en
+            cause quand il y en a une : une alerte qu'on ne peut pas suivre ne
+            sert à personne. */}
+        <span className={`${styles.chain} ${chain.state === "broken" ? styles.bad : styles.good}`}>
+          {chain.state === "broken"
+            ? t("Chaîne rompue à la ligne du {d} : à signaler", { d: fmtDateTime(chain.at) })
+            : chain.state === "short"
+              ? t("Chaîne : pas assez de lignes pour vérifier")
+              : t("Chaîne intègre sur les {n} dernières lignes", { n: String(chain.checked) })}
+        </span>
       </div>
       <nav className={styles.tabs} aria-label={t("Filtre")}>
         {ENTITIES.map(([k, label0]) => (
