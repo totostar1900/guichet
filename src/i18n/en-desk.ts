@@ -2306,4 +2306,6 @@ export const EN_MORE: Record<string, string> = {
   "tout voir": "see all",
   "sans contact": "no contact",
   "Aucun client ne répond à cette recherche.": "No client matches this search.",
+  "Deux mots se cumulent · un numéro se cherche par ses chiffres · palier:2 · canal:email · dossier:non · ordres:oui": "Two words narrow · a number is searched by its digits · palier:2 · canal:email · dossier:non · ordres:oui",
+  "non compris : {mots}": "not understood: {mots}",
 };

@@ -67,3 +67,15 @@
   color: var(--ink-3);
   text-decoration: line-through;
 }
+
+/* Ce que le champ sait faire, sous lui : la ligne est discrète tant qu'elle
+   n'a rien à signaler, et s'allume sur un mot-clef mal écrit. */
+.hint {
+  margin: calc(var(--s-2) * -1) 0 var(--s-4);
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+.hintWarn {
+  color: var(--warn);
+  font-weight: 500;
+}

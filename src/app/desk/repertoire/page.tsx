@@ -3,6 +3,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
+import { parsePeopleQuery, peopleMatch } from "@/lib/search/people";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +42,19 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
   const ordered = new Map<string, number>();
   for (const i of intents) if (i.clientId) ordered.set(i.clientId, (ordered.get(i.clientId) ?? 0) + 1);
 
-  const q = (sp.q ?? "").trim().toLowerCase();
+  const q = (sp.q ?? "").trim();
+  // La même recherche que la colonne des Dossiers, aux mots-clefs près : les
+  // accents et la casse ne comptent pas, chaque mot tapé doit répondre, un
+  // numéro se cherche par ses chiffres. « palier:2 dossier:non » est la
+  // question qu'aucune pastille seule ne pose.
+  const asked = parsePeopleQuery(q);
   const rows = contacts
-    .filter((c) => !q || [c.name, c.email, c.phone, c.segment].some((v) => (v ?? "").toLowerCase().includes(q)))
+    .filter((c) =>
+      peopleMatch(
+        { words: [c.name, c.email, c.segment], phone: c.phone, tier: c.tier ?? 1, whatsapp: c.whatsappOptIn, email: c.emailOptIn, file: withFile.has(c.id), orders: ordered.get(c.id) ?? 0 },
+        asked,
+      ),
+    )
     .filter((c) => !sp.palier || String(c.tier ?? 1) === sp.palier)
     .filter((c) => (sp.canal === "whatsapp" ? c.whatsappOptIn : sp.canal === "email" ? c.emailOptIn : sp.canal === "aucun" ? !c.whatsappOptIn && !c.emailOptIn : true))
     .sort((a, b) => (b.since ?? "").localeCompare(a.since ?? "") || a.name.localeCompare(b.name, "fr"));
@@ -82,7 +93,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
       </div>
 
       <form className={styles.filters} action="/desk/repertoire">
-        <input name="q" defaultValue={sp.q} placeholder={t("Un nom, une adresse, un numéro")} aria-label={t("Chercher")} />
+        <input name="q" defaultValue={sp.q} placeholder={t("Un nom, une adresse, un numéro")} aria-label={t("Chercher")} title={t("Deux mots se cumulent · un numéro se cherche par ses chiffres · palier:2 · canal:email · dossier:non · ordres:oui")} />
         {sp.palier && <input type="hidden" name="palier" value={sp.palier} />}
         {sp.canal && <input type="hidden" name="canal" value={sp.canal} />}
         <button className="btn sm" type="submit">
@@ -99,6 +110,15 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
           </Link>
         )}
       </form>
+      {/* Ce que le champ sait faire, écrit une fois sous lui : un mot-clef
+          qu'on ignore ne sert à personne, et un mot-clef mal écrit rendrait
+          zéro ligne sans dire pourquoi. */}
+      <p className={styles.hint}>
+        {t("Deux mots se cumulent · un numéro se cherche par ses chiffres · palier:2 · canal:email · dossier:non · ordres:oui")}
+        {asked.unknown.length > 0 && (
+          <b className={styles.hintWarn}> · {t("non compris : {mots}", { mots: asked.unknown.join(" ") })}</b>
+        )}
+      </p>
 
       <div className="panel">
         <div className="panel-h">
