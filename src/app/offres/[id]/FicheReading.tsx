@@ -108,8 +108,7 @@ async function Reference({ o }: { o: Offer }) {
           )}
           <div>{t("Investi dans le fonds")}</div>
           <div>{fmt(net)}</div>
-          <div className="tot">{t(`Parts (VL ${fmt(f.nav)} du ${fmtDate(f.navDate, false)})`)}</div>
-          <div>≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</div>
+
           {f.exitFeePct > 0 && (
             <>
               <div>{t("Frais du fonds à la sortie")}</div>
@@ -117,6 +116,12 @@ async function Reference({ o }: { o: Offer }) {
             </>
           )}
         </div>
+        <RefTotals
+          figures={[
+            { label: t("Investi dans le fonds"), value: <Amount value={net} />, note: f.entryFeePct > 0 ? t("après {p} de droits d'entrée", { p: fmtPct(f.entryFeePct, 2) }) : t("sans droits d'entrée") },
+            { label: t("Parts obtenues"), value: <span className="num">≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</span>, note: t(`VL ${fmt(f.nav)} du ${fmtDate(f.navDate, false)}`) },
+          ]}
+        />
       </>
     );
   }
