@@ -3,7 +3,6 @@
   position: sticky;
   top: calc(72px + env(safe-area-inset-top, 0px));
   max-height: calc(100vh - 96px);
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;

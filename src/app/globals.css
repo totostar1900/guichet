@@ -870,3 +870,35 @@ h3 {
     scroll-behavior: smooth;
   }
 }
+
+/* Un rail vertical : il défile de haut en bas, jamais de côté.
+
+   Poser « overflow-y: auto » suffit à faire basculer l'autre axe en « auto »
+   aussi, par une règle du CSS qu'on oublie : dès qu'un axe n'est plus
+   « visible », l'autre le devient. Un nom de modèle un peu long faisait donc
+   apparaître une barre horizontale dans une colonne de navigation, où il n'y
+   a rien à atteindre de côté. On la coupe, et le texte va à la ligne.
+
+   La barre verticale, elle, est légitime : elle reste, en fin. Écrite ici
+   plutôt que dans chaque feuille : les trois rails de l'application la
+   partagent, et une retouche les suit tous. */
+.rail-y {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+.rail-y > * {
+  overflow-wrap: anywhere;
+}
+.rail-y::-webkit-scrollbar {
+  width: 6px;
+}
+.rail-y::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 3px;
+}
+.rail-y::-webkit-scrollbar-track {
+  background: transparent;
+}

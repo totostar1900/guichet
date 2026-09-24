@@ -77,7 +77,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
       </div>
 
       <div className={styles.layout}>
-        <nav className={styles.types} aria-label={t("Modèles")}>
+        <nav className={`${styles.types} rail-y`} aria-label={t("Modèles")}>
           {kinds.map((kind) => (
             <div key={kind} className={styles.group}>
               <div className={`${styles.groupHead} ${styles[kind]}`} title={t(DOC_KIND_RULE[kind])}>

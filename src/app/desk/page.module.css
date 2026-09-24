@@ -195,7 +195,6 @@
   position: sticky;
   top: calc(72px + env(safe-area-inset-top, 0px));
   max-height: calc(100vh - 96px);
-  overflow-y: auto;
   border-left: 0;
   padding-left: 0;
 }

@@ -35,7 +35,6 @@
   position: sticky;
   top: 72px;
   max-height: calc(100vh - 96px);
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;

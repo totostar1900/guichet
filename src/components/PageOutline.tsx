@@ -27,7 +27,7 @@ export function PageOutline({ sections, label, meta, foot }: { sections: Section
   if (sections.length < 2) return null;
   return (
     <>
-      <nav className={styles.rail} aria-label={label}>
+      <nav className={`${styles.rail} rail-y`} aria-label={label}>
         <span className={styles.label}>{label}</span>
         {sections.map((s) => (
           <a key={s.id} href={`#${s.id}`} aria-current={s.id === active ? "true" : undefined}>
