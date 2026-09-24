@@ -2308,4 +2308,6 @@ export const EN_MORE: Record<string, string> = {
   "Aucun client ne répond à cette recherche.": "No client matches this search.",
   "Deux mots se cumulent · un numéro se cherche par ses chiffres · palier:2 · canal:email · dossier:non · ordres:oui": "Two words narrow · a number is searched by its digits · palier:2 · canal:email · dossier:non · ordres:oui",
   "non compris : {mots}": "not understood: {mots}",
+  "d'après le communiqué": "from the announcement",
+  "Laissé vide : un titre. À ne renseigner que si le communiqué fixe un minimum.": "Left blank: one security. Fill it in only if the announcement sets a minimum.",
 };

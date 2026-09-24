@@ -252,9 +252,16 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
                 <input name="minAmount" type="number" step="1000" defaultValue={offer?.fund?.minAmount ?? 1000000} />
               </label>
             ) : (
+              // Ce champ portait une valeur par défaut : 100 titres, soit un million
+              // de francs au nominal d'une OTA. Personne ne l'a jamais changée, et les
+              // cinq lignes du référentiel la portent toutes. Nous prêtions donc au
+              // marché un plancher qui venait de ce formulaire : ni la BEAC, ni un
+              // communiqué d'adjudication ne l'imposent. Le champ part vide ; le
+              // ticket se lit sur le communiqué, ou il n'y en a pas.
               <label className="field">
                 {tr("Ticket minimum (titres)")}
-                <input name="minTitles" type="number" defaultValue={offer?.minTitles ?? (kind === "BTA" ? 1 : kind === "ACTIONS" ? 10 : 100)} />
+                <input name="minTitles" type="number" min={1} defaultValue={offer?.minTitles ?? ""} placeholder={tr("d'après le communiqué")} />
+                <small className="muted">{tr("Laissé vide : un titre. À ne renseigner que si le communiqué fixe un minimum.")}</small>
               </label>
             )}
             <label className="field">
