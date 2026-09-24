@@ -1,0 +1,67 @@
+/* L'échéancier d'un ordre : replié par défaut, parce qu'il éclaire sans être
+   l'étape suivante. Ouvert, il tient sa hauteur et défile pour son compte : une
+   obligation à dix ans porte vingt lignes, et vingt lignes pousseraient le
+   bouton d'envoi hors de l'écran. */
+.wrap {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin-top: var(--s-4);
+}
+.wrap > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.wrap > summary small {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.wrap[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+.scroll {
+  max-height: 280px;
+  overflow: auto;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.tbl th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  text-align: left;
+  font-weight: 600;
+  padding: 8px var(--s-5);
+  /* border-collapse rattache le filet au tableau : il défilerait avec les lignes. */
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.tbl td {
+  padding: 8px var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+.tbl .total td {
+  border-bottom: 0;
+  font-weight: 600;
+}
+.note {
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}

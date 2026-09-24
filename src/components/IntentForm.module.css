@@ -507,3 +507,27 @@
   font-size: 0.78rem;
   line-height: 1.45;
 }
+
+/* Le décaissement : le seul chiffre que le client cherche dans ce formulaire.
+   Il se lit d'un coup d'œil, à la ligne, avant la phrase qui l'explique. */
+.outlay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-5);
+  margin-top: var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.outlay > span {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.outlay > b {
+  font-size: 1.22rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}

@@ -10,6 +10,8 @@ import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
 import { estimate } from "@/lib/domain/estimate";
 import { orderChecks } from "@/lib/domain/checks";
+import { marketBondCalc } from "@/lib/domain/status";
+import { OrderFlows } from "@/components/OrderFlows";
 import { Info } from "./Info";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
@@ -146,8 +148,16 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // à l’étape suivante, et ce qui part au desk. Saisie en titres, ou déduite d’une somme.
   const ordered = byCash ? qtyForCash(offer, type, parseAmount(cash), lim) : parse(amount);
   const est = estimate(offer, ordered);
+  // « ordered » porte des titres sur la cote et des francs au primaire, et
+  // `estimate` attend des francs : sur une ligne cotée son décaissement vaut
+  // zéro, ce qui grisait l'estimation d'un ordre parfaitement valable et
+  // privait le garde-fou du profil de son montant. Le compartiment décide.
+  const mktBond = market && offer.instrument === "obligation" && ordered > 0 ? marketBondCalc(offer, ordered * offer.nominal, lim ?? offer.ask ?? offer.lastPrice ?? 0) : null;
+  const outlay = market ? (mktBond?.outlay ?? (ordered > 0 ? ordered * unitPrice(offer, type, lim) : 0)) : (est.outlay ?? 0);
+  const sized = market ? ordered > 0 : est.ok;
+  const takes = type !== "vente" && type !== "cession" && type !== "rachat";
   // The outlay against the savings the client said they can invest this year: a word, and a confirmation past half of it.
-  const amountMark = investable != null && est.outlay ? amountFlag({ investable, kind: "equilibre", horizonYears: [0, 1], measures: { horizon: 0, tolerance: 0, knowledge: 0, capacity: 0 }, answers: {}, updatedAt: "" }, est.outlay) : null;
+  const amountMark = investable != null && outlay ? amountFlag({ investable, kind: "equilibre", horizonYears: [0, 1], measures: { horizon: 0, tolerance: 0, knowledge: 0, capacity: 0 }, answers: {}, updatedAt: "" }, outlay) : null;
   const amountWarn = amountMark?.level === "warn" ? amountMark[lang] : undefined;
   const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk) && (!amountWarn || amountOk);
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
@@ -315,7 +325,22 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           )}
         </div>
-        {needsAmount && <div className={`${styles.estimate} ${est.ok ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>}
+        {needsAmount && (
+          <>
+            {/* Le décaissement avait sa place au milieu d'une phrase, entre une
+                multiplication et une réserve sur le prix d'exécution. C'est le
+                seul chiffre que le client cherche : il prend sa ligne, en grand,
+                et la phrase passe dessous pour dire comment il est obtenu. */}
+            {sized && outlay > 0 && (
+              <div className={styles.outlay}>
+                <span>{t(takes ? "Total à décaisser" : "Total encaissé")}</span>
+                <b>{fmt(Math.round(outlay))} FCFA</b>
+              </div>
+            )}
+            <div className={`${styles.estimate} ${sized ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>
+            <OrderFlows offer={offer} quantity={market ? ordered : 0} amount={market ? 0 : ordered} limit={lim} type={type} />
+          </>
+        )}
         {checks.length > 0 && (
           <ul className={styles.checks} aria-live="polite">
             {checks.map((c) => (

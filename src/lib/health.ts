@@ -36,6 +36,26 @@ export async function bulletinsToReread(): Promise<MarketBulletin[]> {
   return all.filter((b) => b.status !== "ok" || !b.counts?.equities).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
 }
 
+/** Combien de séances une passe reprend : assez pour avancer, assez peu pour finir. */
+export const REREAD_BATCH = 6;
+
+/**
+ * L'ordre dans lequel on reprend les séances : la moins récemment relue
+ * d'abord.
+ *
+ * Par date de séance, les six plus anciennes passaient en tête à chaque fois.
+ * Quand elles ne s'améliorent pas, et une séance dont le PDF ne porte pas la
+ * ligne manquante ne s'améliorera jamais, elles repassaient indéfiniment et
+ * les vingt-six autres n'étaient jamais atteintes : le bouton ne pouvait pas
+ * vider sa propre liste.
+ *
+ * `ingestedAt` bouge à chaque lecture, y compris une relecture : trier
+ * dessus fait tourner la file sans rien stocker de plus. Une passe couvre du
+ * terrain neuf, et après un tour complet elle recommence, ce qui est juste :
+ * un lecteur corrigé mérite un nouvel essai sur tout le monde.
+ */
+export const rereadOrder = (list: MarketBulletin[]): MarketBulletin[] => [...list].sort((a, b) => a.ingestedAt.localeCompare(b.ingestedAt) || a.sessionDate.localeCompare(b.sessionDate));
+
 /**
  * Les écarts entre les lignes cotées publiées et le bulletin, sur la
  * dernière séance lue. Ce que le Guichet copie se vérifie ; ce qu'il cesse

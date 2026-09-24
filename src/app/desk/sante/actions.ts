@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { bulletinsToReread } from "@/lib/health";
+import { bulletinsToReread, REREAD_BATCH, rereadOrder } from "@/lib/health";
 import { ingestBoc } from "@/lib/market/boc";
 import { tradedSession } from "@/lib/domain/market";
 
@@ -12,8 +12,6 @@ export interface RereadResult {
   error?: string;
 }
 
-/** How many a single pass takes on: enough to make progress, short enough to finish. */
-const BATCH = 6;
 
 /**
  * Relit des bulletins laissés incomplets, depuis l'adresse d'origine gardée
@@ -27,7 +25,9 @@ export async function rereadAction(_prev: RereadResult | null, form: FormData): 
   const one = String(form.get("date") ?? "").trim();
 
   const pending = await bulletinsToReread();
-  const todo = one ? pending.filter((b) => b.sessionDate === one) : pending.slice(0, BATCH);
+  // Les moins récemment reprises, pas les plus anciennes : sinon les mêmes six
+  // repassent à chaque fois et le reste de la liste n'est jamais atteint.
+  const todo = one ? pending.filter((b) => b.sessionDate === one) : rereadOrder(pending).slice(0, REREAD_BATCH);
   if (todo.length === 0) return { error: "Aucun bulletin à relire." };
 
   let gained = 0;
@@ -53,6 +53,8 @@ export async function rereadAction(_prev: RereadResult | null, form: FormData): 
   if (cleared) parts.push(`${cleared} passé${cleared > 1 ? "s" : ""} en « ok »`);
   if (gained) parts.push(`${gained} gagne${gained > 1 ? "nt" : ""} des cours`);
   if (failed) parts.push(`${failed} en échec`);
+  // Le dire franchement : sans cela l'opérateur repasse, et repasse encore.
+  if (!gained && !cleared && !failed) parts.push("aucune n'a gagné de cours : le lecteur d'aujourd'hui ne fait pas mieux sur ces séances");
   if (rest) parts.push(`${rest} encore à reprendre`);
 
   await repo().logEvent({ kind: "desk", html: `<b>Bulletins relus</b> : ${parts.join(" · ")} · par ${desk.name}` });

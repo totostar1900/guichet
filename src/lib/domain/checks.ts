@@ -74,7 +74,14 @@ export function orderChecks(o: Offer, type: IntentType, amount: number | null | 
     if (limitPrice != null && ref > 0) {
       const dev = ((limitPrice - ref) / ref) * 100;
       const shown = isBond ? fmtPrice(ref) : `${fmt(ref)} FCFA`;
-      if (Math.abs(dev) > 30) out.push({ key: "limit-far", level: "block", text: `Prix limite à ${fmtPct(Math.abs(dev), 0)} du dernier cours (${shown}) : hors des bornes de cotation.`, why: "La BVMAC limite la variation d'un cours par séance ; un ordre trop éloigné du dernier cours ne serait pas exécuté. Vérifiez l'unité (FCFA par action, ou % du nominal pour une obligation)." });
+      // « à 99 % du dernier cours » se lit comme une fraction de ce cours, soit
+      // un prix parfaitement ordinaire, alors que le chiffre est un écart. Le
+      // message dit donc le prix saisi, puis de combien il s'écarte et dans quel
+      // sens : c'est en relisant sa propre saisie qu'on voit qu'on a tapé 0,97
+      // pour 97 %.
+      const entered = isBond ? fmtPrice(limitPrice) : `${fmt(limitPrice)} FCFA`;
+      const away = dev < 0 ? "au-dessous" : "au-dessus";
+      if (Math.abs(dev) > 30) out.push({ key: "limit-far", level: "block", text: `Prix limite ${entered}, soit ${fmtPct(Math.abs(dev), 0)} ${away} du dernier cours (${shown}) : hors des bornes de cotation.`, why: "La BVMAC limite la variation d'un cours par séance ; un ordre trop éloigné du dernier cours ne serait pas exécuté. Vérifiez l'unité : un prix d'obligation se saisit en pourcentage du nominal (97 pour 97 %, pas 0,97), celui d'une action en FCFA par action." });
       else if (type === "achat" ? dev < -10 : dev > 10) out.push({ key: "limit-away", level: "warn", text: `Prix limite ${type === "achat" ? "inférieur" : "supérieur"} de ${fmtPct(Math.abs(dev), 1)} au dernier cours (${shown}) : l'ordre peut rester non exécuté.`, why: "L'ordre ne s'exécute que si une contrepartie accepte ce prix. Plus la limite s'éloigne du cours, plus l'exécution est incertaine." });
       else if (type === "achat" ? dev > 10 : dev < -10) out.push({ key: "limit-gen", level: "warn", text: `Prix limite ${type === "achat" ? "supérieur" : "inférieur"} de ${fmtPct(Math.abs(dev), 1)} au dernier cours : l'exécution se fera au cours du marché.`, why: "Une limite généreuse protège contre l'absence d'exécution, pas contre un mauvais prix : le desk transmet au mieux." });
     }

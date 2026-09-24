@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
-import { bulletinsToReread, healthChecks, lineIssues } from "@/lib/health";
+import { bulletinsToReread, healthChecks, lineIssues, REREAD_BATCH } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
@@ -140,10 +140,10 @@ export default async function SantePage() {
             </span>
           </div>
           <p className={styles.p}>
-            {t("Chaque bulletin garde l'adresse de son PDF d'origine : une relecture le reprend tel quel, avec le lecteur d'aujourd'hui. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.")}
+            {t("Chaque bulletin garde l'adresse de son PDF d'origine : une relecture le reprend tel quel, avec le lecteur d'aujourd'hui. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier. Une passe prend les séances les moins récemment reprises : la liste tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. Elle ne s'améliorera d'ailleurs que le jour où le lecteur progresse.")}
           </p>
           <div className={styles.actions}>
-            <Reread action={rereadAction} label={t("Relire les plus anciens")} primary />
+            <Reread action={rereadAction} label={t("Reprendre {n} séances", { n: String(REREAD_BATCH) })} primary />
             <Link className="btn sm ghost" href="/desk/marche">
               {t("Marché")} →
             </Link>

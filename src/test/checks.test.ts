@@ -23,3 +23,36 @@ describe("order consistency", () => {
     expect(blocking(orderChecks(share, "achat", 10, 28_000))).toBeUndefined();
   });
 });
+
+/**
+ * Le message qui dit pourquoi un prix limite ne passe pas.
+ *
+ * Il portait un écart et le présentait comme une fraction : « Prix limite à
+ * 99 % du dernier cours (97 %) » se lit comme un prix de 96,03, c'est-à-dire un
+ * ordre parfaitement ordinaire qu'on refuse sans dire pourquoi. Et il ne
+ * montrait jamais ce que le client avait tapé, qui était 0,97.
+ */
+describe("le prix limite hors bornes", () => {
+  const bond: Offer = { ...share, id: "m2", title: "ECMR 7,25 % 2031", instrument: "obligation", lastPrice: 97, ask: 97, bid: 96, lotSize: 1, nominal: 10_000 };
+
+  it("montre le prix saisi, l'écart et son sens", () => {
+    // 0,97 tapé pour 97 % : l'erreur d'unité qui fait tout ce bruit.
+    const c = blocking(orderChecks(bond, "achat", 100, 0.97));
+    expect(c?.key).toBe("limit-far");
+    expect(c?.text).toContain("Prix limite 0,970 %");
+    expect(c?.text).toContain("99 % au-dessous");
+    expect(c?.text).toContain("(97 %)");
+    // Le sens se dit, et il change avec le signe de l'écart.
+    expect(blocking(orderChecks(bond, "achat", 100, 194))?.text).toContain("au-dessus");
+  });
+
+  it("ne se lit plus comme une fraction du dernier cours", () => {
+    const c = blocking(orderChecks(bond, "achat", 100, 0.97));
+    // « à 99 % du dernier cours » : la tournure qui décrivait un prix au lieu d'un écart.
+    expect(c?.text).not.toMatch(/à \d+ % du dernier cours/);
+  });
+
+  it("dit l'unité attendue plutôt que « vérifiez l'unité »", () => {
+    expect(blocking(orderChecks(bond, "achat", 100, 0.97))?.why).toContain("97 pour 97 %");
+  });
+});
