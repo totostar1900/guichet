@@ -5,6 +5,7 @@ import type { Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { daysBetween } from "@/lib/finance";
+import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import styles from "./page.module.css";
 
 /**
@@ -16,6 +17,7 @@ import styles from "./page.module.css";
  * savoir 101 % de quoi.
  */
 export function Kpis({ o }: { o: Offer }) {
+  const now = new Date();
   const dy = displayYield(o);
   const y = dy.pct;
   const yTxt = y != null ? `${dy.approx ? "≈ " : ""}${fmtPct(y, 2)}` : "—";
@@ -30,6 +32,11 @@ export function Kpis({ o }: { o: Offer }) {
       : o.kind === "FONDS" && o.fund
         ? [
             [o.fund.perf1yPct != null ? "Performance sur 12 mois" : `Depuis l'origine${o.fund.inceptionDate ? ` (${fmtDate(o.fund.inceptionDate)})` : ""}`, o.fund.perf1yPct != null ? `${o.fund.perf1yPct > 0 ? "+" : ""}${fmtPct(o.fund.perf1yPct, 2)}` : `${o.fund.perfSinceInceptionPct > 0 ? "+" : ""}${fmtPct(o.fund.perfSinceInceptionPct, 2)}`, true],
+            // Deux fonds ne se comparent pas sur douze mois quand l'un en a
+            // quatre et l'autre soixante : l'annualisé ramène les deux au même
+            // pas. Il ne paraît qu'au-delà de six mois de vie, sans quoi il
+            // extrapolerait un trimestre sur une année.
+            ...(fundAnnualPct(o.fund, now) != null ? ([["Rendement annualisé depuis l'origine", `${fundAnnualPct(o.fund, now)! > 0 ? "+" : ""}${fmtPct(fundAnnualPct(o.fund, now)!, 2)}`, false]] as [string, string, boolean][]) : []),
             ["Valeur liquidative (FCFA)", fmt(o.fund.nav), false],
             ["Catégorie", `${FUND_CATEGORY_LABEL[o.fund.category]} · ${FUND_FREQUENCY_LABEL[o.fund.frequency]}`, false],
           ]
@@ -59,7 +66,7 @@ export function Kpis({ o }: { o: Offer }) {
               ...(o.nominal ? ([["Nominal par titre (FCFA)", fmt(o.nominal), false]] as [string, string, boolean][]) : []),
             ];
   // Every card opens on tap: the number decomposed with this line's own figures.
-  const explains = explainKpis(o);
+  const explains = explainKpis(o, now);
   return (
     <div className={styles.kpis} data-coach="kpis">
       {items.map(([k, v, gold], i) => (

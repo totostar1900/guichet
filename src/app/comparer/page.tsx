@@ -1,3 +1,4 @@
+import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import Link from "next/link";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
@@ -7,7 +8,7 @@ import { MarketStrip } from "@/components/MarketStrip";
 import { repo } from "@/lib/data";
 import { displayStatus, displayYield, familyLabel, familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import { fmtDate, fmtPct, localIso } from "@/lib/format";
-import { tenorText, yearsBetween } from "@/lib/finance";
+import { tenorText } from "@/lib/finance";
 import { LinePicker, type PickLine } from "./LinePicker";
 import { CompareCharts } from "@/components/CompareCharts";
 import { compareLine } from "@/lib/domain/compare";
@@ -49,7 +50,7 @@ export default async function ComparerPage({ searchParams }: { searchParams: Pro
     // A fund's return is two figures: the recent one stays on the « Rendement » row, the one since inception gets its own row with the fund's age.
     if (o.kind === "FONDS" && o.fund) {
       const f = o.fund;
-      const recent = f.perf1yPct != null ? `${sg(f.perf1yPct)} · ${t("sur 12 mois")}` : f.perfSinceInceptionPct != null && yearsBetween(f.inceptionDate, localIso(now)) > 0.5 ? `${sg((Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / yearsBetween(f.inceptionDate, localIso(now))) - 1) * 100)} · ${t("par an depuis l'origine")}` : `· ${t("moins de six mois d'historique")}`;
+      const recent = f.perf1yPct != null ? `${sg(f.perf1yPct)} · ${t("sur 12 mois")}` : fundAnnualPct(f, now) != null ? `${sg(fundAnnualPct(f, now)!)} · ${t("par an depuis l'origine")}` : `· ${t("moins de six mois d'historique")}`;
       const rows: [string, string][] = [
         ["Rendement", recent],
         ["Depuis l'origine", `${sg(f.perfSinceInceptionPct, 1)} · ${t("créé le {d} · {age}", { d: fmtDate(f.inceptionDate), age: t(tenorText(f.inceptionDate, localIso(now))) })}`],

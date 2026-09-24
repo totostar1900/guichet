@@ -1,6 +1,7 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
 import { countdown, displayStatus, displayYield, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { typeOf } from "@/lib/registry";
+import { fundAnnualPct } from "./fund-perf";
 import { parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
@@ -51,12 +52,6 @@ const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" :
 const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
 const maturityNote = (o: Offer): string | undefined => (o.maturityOn && yearOnly(o) ? "année seule au BOC" : undefined);
 
-/** Annualised performance since inception : the only return a fund line can show from the BOC alone. */
-const fundAnnualPct = (f: NonNullable<Offer["fund"]>, now: Date): number | null => {
-  const years = (parseDate(localIso(now)).getTime() - parseDate(f.inceptionDate).getTime()) / (365.25 * 24 * 3600 * 1000);
-  if (!(years > 0.5) || f.perfSinceInceptionPct == null) return null;
-  return (Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / years) - 1) * 100;
-};
 const signed = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
 
 export interface Badge {

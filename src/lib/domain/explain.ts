@@ -1,8 +1,9 @@
 import type { Offer } from "./types";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "./market";
 import { displayYield, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
-import { bondCalc, btaCalc, tenorText } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
+import { bondCalc, btaCalc, daysBetween, tenorText } from "@/lib/finance";
+import { fundAnnualPct } from "./fund-perf";
+import { fmt, fmtDate, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import type { TermKey } from "@/lib/glossary";
 
 /**
@@ -66,8 +67,27 @@ export function explainKpis(o: Offer, now = new Date()): KpiExplanation[] {
   }
   if (o.kind === "FONDS" && o.fund) {
     const f = o.fund;
+    const annual = fundAnnualPct(f, now);
     return [
-      { key: "perf", title: f.perf1yPct != null ? "Performance sur 12 mois" : "Depuis l'origine", term: "vl", lines: [["VL il y a 12 mois → aujourd'hui", f.perf1yPct != null ? signed(f.perf1yPct) : "—"], [`Depuis l'origine${f.inceptionDate ? ` (${fmtDate(f.inceptionDate)})` : ""}`, `${signed(f.perfSinceInceptionPct)} · VL d'origine ${fmt(f.navOrigin)}`], ["Dernière VL", `${fmt(f.nav)} FCFA le ${fmtDate(f.navDate)}`]], caveats: ["Performance passée, nette des frais de gestion prélevés dans la VL ; ne préjuge pas de l'avenir.", f.entryFeePct ? `Frais d'entrée du fonds : ${fmtPct(f.entryFeePct, 2)}.` : "Sans frais d'entrée."] },
+      // La ligne des douze mois nomme ses deux dates. Le point de départ est la
+      // VL publiée la plus proche avant la date anniversaire, à quarante-cinq
+      // jours près : l'écart réel se lit ici plutôt que de se deviner.
+      { key: "perf", title: f.perf1yPct != null ? "Performance sur 12 mois" : "Depuis l'origine", term: "vl", lines: [[f.perf1yFrom ? `VL du ${fmtDate(f.perf1yFrom)} → ${fmtDate(f.navDate)} (${daysBetween(f.perf1yFrom, f.navDate)} jours)` : "VL il y a 12 mois → aujourd'hui", f.perf1yPct != null ? signed(f.perf1yPct) : "—"], [`Depuis l'origine${f.inceptionDate ? ` (${fmtDate(f.inceptionDate)})` : ""}`, `${signed(f.perfSinceInceptionPct)} · VL d'origine ${fmt(f.navOrigin)}`], ["Dernière VL", `${fmt(f.nav)} FCFA le ${fmtDate(f.navDate)}`]], caveats: ["Une variation, pas un taux annuel : la VL d'il y a un an comparée à la dernière.", "Performance passée, nette des frais de gestion prélevés dans la VL ; ne préjuge pas de l'avenir.", f.entryFeePct ? `Frais d'entrée du fonds : ${fmtPct(f.entryFeePct, 2)}.` : "Sans frais d'entrée."] },
+      ...(annual != null
+        ? [
+            {
+              key: "annualise" as const,
+              title: "Rendement annualisé depuis l'origine",
+              term: "vl" as const,
+              lines: [
+                ["Performance cumulée", `${signed(f.perfSinceInceptionPct)} · VL ${fmt(f.navOrigin)} → ${fmt(f.nav)}`],
+                ["Durée écoulée", `${tenorText(f.inceptionDate, localIso(now))} depuis le ${fmtDate(f.inceptionDate)}`],
+                ["Équivalent par an", signed(annual)],
+              ] as [string, string][],
+              caveats: ["Le taux constant qui, composé sur la durée, donnerait la même performance cumulée : c'est lui qui permet de comparer un fonds né l'an dernier avec un fonds né en 2019.", "Une moyenne, pas une promesse : les années qui la composent peuvent être très inégales."],
+            },
+          ]
+        : []),
       { key: "nav", title: "Valeur liquidative", term: "vl", lines: [["VL", `${fmt(f.nav)} FCFA par part`], ["Date", fmtDate(f.navDate)], ["Calculée", FUND_FREQUENCY_LABEL[f.frequency]], ["1 000 000 FCFA ≈", `${(1_000_000 / f.nav).toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts`]], caveats: ["Une souscription s'exécute à la prochaine VL, pas à celle-ci."] },
       { key: "category", title: "Catégorie", term: "opcvm", lines: [["Catégorie", FUND_CATEGORY_LABEL[f.category]], ["Société de gestion", o.issuer], ["Dépositaire", f.depositary ?? "—"]], caveats: ["La catégorie dit où le fonds investit (monétaire : titres courts ; obligataire : dette ; diversifié : mélange)."] },
     ];

@@ -63,16 +63,21 @@
 }
 .feedTable table {
   margin: 0;
+  /* « border-collapse: collapse » donne les filets au tableau et non aux
+     cellules : ils se peignent alors par-dessus un en-tête collé, et les lignes
+     semblent traverser l'en-tête en défilant. Séparés, chaque cellule porte le
+     sien, et l'en-tête couvre enfin ce qui passe dessous. */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 .feedTable thead th {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
+  /* Opaque, et sur sa propre couche : c'est ce qui masque les lignes qui
+     défilent dessous. Le filet lui appartient maintenant qu'il est séparé. */
   background: var(--surface);
-  /* border-collapse rattache le filet au tableau, pas à la cellule : il
-     défilerait avec les lignes. L’ombre interne, elle, suit l’en-tête. */
-  border-bottom: 0;
-  box-shadow: inset 0 -1px 0 var(--line);
+  border-bottom: 1px solid var(--line);
 }
 .ev {
   display: grid;

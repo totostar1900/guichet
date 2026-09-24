@@ -22,7 +22,10 @@ const DURATIONS: [Duration, string, number][] = [
   ["6m", "6 mois", 183],
   ["1a", "1 an", 365],
   ["3a", "3 ans", 1096],
-  ["origine", "Origine", Infinity],
+  // Pas « Origine » : cette borne est la première VL que nous ayons lue, pas la
+  // naissance du fonds. Le chiffre du bulletin, lui, court depuis la création,
+  // et les deux ne coïncident que pour un fonds aussi jeune que nos relevés.
+  ["origine", "Tout l'historique", Infinity],
 ];
 const REF = REF_AMOUNT;
 const MODES: ChartMode[] = ["vl", "rendement", "placement", "variations", "repli"];
@@ -133,7 +136,7 @@ export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark
         ))}
         {mode === "rendement" && (
           <span className={styles.windowPick}>
-            {t("fenêtre")}
+            <span title={t("La durée sur laquelle chaque point mesure : une fenêtre de 12 mois trace, à chaque date, le rendement des douze mois qui la précèdent. La période ci-dessous choisit les dates montrées, la fenêtre choisit ce que chacune mesure.")}>{t("fenêtre de calcul")}</span>
             {WINDOWS.map(([label, d]) => (
               <button key={d} type="button" className={windowDays === d ? styles.on : ""} aria-pressed={windowDays === d} disabled={!winOk(d)} onClick={() => update({ fenetre: d === 365 ? undefined : String(d) })}>
                 {t(label)}
@@ -161,6 +164,7 @@ export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark
         </label>
         <span className={styles.periodCount}>
           {t("{n} VL publiées sur la période", { n: window_.length })} · {fmtDate(a)} → {fmtDate(b)}
+          {duration === "origine" && !custom ? ` · ${t("depuis notre première VL lue, pas depuis la création du fonds")}` : ""}
         </span>
       </div>
 
