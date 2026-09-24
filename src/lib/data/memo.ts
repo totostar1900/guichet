@@ -67,6 +67,7 @@ const READS = new Set([
   "latestFundNavs",
   "listIssuerDocuments",
   "listNews",
+  "listCash",
 ]);
 
 /**
