@@ -1,0 +1,60 @@
+/* L'attente, pendant qu'une page se rend.
+   Des blocs de la forme de ce qui vient, et rien qui bouge vite : une page qui
+   scintille pendant deux cents millisecondes fatigue plus qu'un aplat calme.
+   Le mouvement s'arrête tout à fait pour qui a demandé moins d'animation. */
+.sk {
+  background: var(--surface-2);
+  border-radius: 6px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation: none;
+  }
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-6) 0;
+}
+.title {
+  height: 30px;
+  width: min(420px, 80%);
+}
+.line {
+  height: 13px;
+  width: 100%;
+}
+.half {
+  width: 55%;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--s-4);
+}
+.card {
+  height: 86px;
+}
+.block {
+  height: 190px;
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.row {
+  height: 44px;
+}

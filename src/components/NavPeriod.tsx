@@ -27,6 +27,13 @@ const DURATIONS: [Duration, string, number][] = [
   // et les deux ne coïncident que pour un fonds aussi jeune que nos relevés.
   ["origine", "Tout l'historique", Infinity],
 ];
+/**
+ * Le nom long ne tient pas sur un téléphone en portrait : six boutons dont
+ * un de seize caractères demandent environ 430 px quand l'écran en offre
+ * 343. Le mot court paraît sous 480 px, le long au-dessus ; « Tout » ne dit
+ * rien de faux à côté de 1 mois, 3 mois, 6 mois, 1 an et 3 ans.
+ */
+const SHORT: Partial<Record<Duration, string>> = { origine: "Tout" };
 const REF = REF_AMOUNT;
 const MODES: ChartMode[] = ["vl", "rendement", "placement", "variations", "repli"];
 const WINDOWS: [string, number][] = [
@@ -149,7 +156,14 @@ export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark
         <div className={styles.durations} role="group" aria-label={t("Durée")}>
           {DURATIONS.map(([k, label]) => (
             <button key={k} type="button" className={!custom && duration === k ? styles.on : ""} aria-pressed={!custom && duration === k} disabled={!available(k)} title={available(k) ? undefined : t("Historique trop court")} onClick={() => update({ periode: k === fallback ? undefined : k, du: undefined, au: undefined })}>
-              {t(label)}
+              {SHORT[k] ? (
+                <>
+                  <span className={styles.wide}>{t(label)}</span>
+                  <span className={styles.narrow}>{t(SHORT[k]!)}</span>
+                </>
+              ) : (
+                t(label)
+              )}
             </button>
           ))}
         </div>

@@ -414,3 +414,27 @@
 .keyBench {
   color: var(--gold-ink);
 }
+
+/* Le nom long et le nom court d'une durée : un seul paraît à la fois. Sous
+   480 px la rangée des six durées ne peut pas se comprimer (elle est une
+   grille de colonnes à largeur minimale, et chaque nom tient sur une ligne),
+   donc c'est le mot qui raccourcit, pas le bouton. */
+.narrow {
+  display: none;
+}
+@media (max-width: 480px) {
+  .wide {
+    display: none;
+  }
+  .narrow {
+    display: inline;
+  }
+  .durations {
+    width: 100%;
+  }
+  .durations > button {
+    min-width: 0;
+    padding: 5px 4px;
+    font-size: 0.74rem;
+  }
+}
