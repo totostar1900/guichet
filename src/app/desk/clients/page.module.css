@@ -406,3 +406,21 @@
   flex-wrap: wrap;
   gap: 6px;
 }
+
+/* La file de travail se cherche : à trois cents dossiers, on connaît le nom
+   qu'on veut bien avant de savoir où il est dans la liste. */
+.search {
+  display: flex;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.search input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+/* Ce que la file ne montre pas, dit en une ligne plutôt que passé sous silence. */
+.qnote {
+  padding: var(--s-3) var(--s-4);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}

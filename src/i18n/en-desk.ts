@@ -2254,4 +2254,11 @@ export const EN_MORE: Record<string, string> = {
   "Informations": "News",
   "Ordres": "Orders",
   "Personne ne répond à cette recherche.": "Nobody matches this search.",
+  "Un nom, une ville": "A name, a town",
+  "Chercher un dossier": "Search for a file",
+  "{n} dossier(s) pour « {q} »": "{n} file(s) for “{q}”",
+  "revenir à la file": "back to the queue",
+  "Aucun dossier ne répond à cette recherche.": "No file matches this search.",
+  "Rien n'attend : tous les dossiers sont traités.": "Nothing is waiting: every file is handled.",
+  "{n} autre(s) dossier(s), traités": "{n} other file(s), handled",
 };

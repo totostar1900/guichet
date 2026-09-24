@@ -7,6 +7,7 @@ import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LAB
 import { ReviewForm } from "./ReviewForm";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
 import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
+import { fileQueue } from "@/lib/kyc/queue";
 import { positionsFrom } from "@/lib/positions";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import styles from "./page.module.css";
@@ -20,7 +21,7 @@ export const metadata = { title: "Clients" };
 const ROLE = { representant: "Représentant", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
 const ORDER: Record<ClientFile["status"], number> = { soumis: 0, en_revue: 1, complements: 2, brouillon: 3, approuve: 4, en_cloture: 5, refuse: 6, clos: 7 };
 
-export default async function ClientsPage({ searchParams }: { searchParams: Promise<{ file?: string }> }) {
+export default async function ClientsPage({ searchParams }: { searchParams: Promise<{ file?: string; q?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
@@ -28,6 +29,17 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const docs = await r.listDocuments();
   const todo = files.filter((f) => f.status === "soumis" || f.status === "en_revue").length;
   const selected = files.find((f) => f.id === sp.file) ?? files.find((f) => f.status === "soumis" || f.status === "en_revue") ?? files[0];
+
+  // La colonne de gauche est une file de travail, pas un annuaire : elle montre
+  // ce qui attend une main. Tout le monde se trouve au Répertoire, qui ramène
+  // ici par le même lien. À trois cents dossiers, une colonne qui les porte tous
+  // ne se lit plus, et les urgents s'y perdent au milieu.
+  const q = (sp.q ?? "").trim();
+  // Le dossier ouvert reste dans la file même quand il n'y attend rien : sans
+  // cela, arriver du Répertoire sur un dossier approuvé le montrerait à droite
+  // sans rien à gauche, et on ne saurait plus où l'on est.
+  const queue = fileQueue(files, selected?.id, q);
+  const rest = files.length - queue.length;
   const [lang, fin, prefs, channels] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
@@ -52,7 +64,18 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
 
       <div className={styles.layout}>
         <aside className={styles.queue} data-coach="queue">
-          {files.map((f) => (
+          <form className={styles.search} action="/desk/clients">
+            <input name="q" defaultValue={sp.q} placeholder={t("Un nom, une ville")} aria-label={t("Chercher un dossier")} />
+            <button className="btn sm" type="submit">
+              {t("Chercher")}
+            </button>
+          </form>
+          {q && (
+            <div className={styles.qnote}>
+              {t("{n} dossier(s) pour « {q} »", { n: String(queue.length), q: sp.q ?? "" })} · <Link href="/desk/clients">{t("revenir à la file")}</Link>
+            </div>
+          )}
+          {queue.map((f) => (
             <Link key={f.id} href={`/desk/clients?file=${f.id}`} className={styles.qitem} aria-current={f.id === selected?.id ? "true" : undefined}>
               <div className={styles.meta}>
                 <span className={`${styles.st} ${styles[`st_${f.status}`]}`}>{t(STATUS_LABEL[f.status])}</span>
@@ -64,7 +87,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               </span>
             </Link>
           ))}
-          {files.length === 0 && <div className="empty">{t("Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte ».")}</div>}
+          {queue.length === 0 && <div className="empty">{t(files.length === 0 ? "Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte »." : q ? "Aucun dossier ne répond à cette recherche." : "Rien n'attend : tous les dossiers sont traités.")}</div>}
+          {!q && rest > 0 && (
+            <div className={styles.qnote}>
+              {t("{n} autre(s) dossier(s), traités", { n: String(rest) })} · <Link href="/desk/repertoire">{t("Répertoire")} →</Link>
+            </div>
+          )}
         </aside>
 
         {selected && (
