@@ -23,6 +23,8 @@ import { ReachLine } from "@/components/desk/ReachLine";
 import { CancelOrder } from "./CancelOrder";
 import { preparedMessages } from "@/lib/documents/messages";
 import { Compose } from "./Compose";
+import { Cash } from "./Cash";
+import { clientCash } from "./cash-actions";
 import { Messages } from "./Messages";
 import { CounterOffer } from "./CounterOffer";
 import { counterTerms, counterLapsed, defaultUntil, untilText } from "@/lib/domain/counter";
@@ -85,6 +87,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   // toujours, et l’écran ne proposait que WhatsApp. Certains clients ne lisent
   // que leur courrier.
   const mailTo = contact?.email ?? it.contactEmail;
+  const cash = await clientCash(it.clientId);
   const prepared = await preparedMessages(it.state, { client: it.clientName, ref: it.ref, ligne: o.title, montant: amountText, echeance: o.deadlineAt ? fmtDateTime(o.deadlineAt) : undefined, conseiller: (await getSession())?.name ?? COMPANY.name, societe: COMPANY.name }, await getLang());
   const asked = it.channel === "E-mail" ? "mail" : it.channel === "WhatsApp" ? "wa" : "tel";
 
@@ -246,6 +249,13 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
               )}
             </div>
           </div>
+
+          {/* Les espèces du client : ce que la maison lui doit, et à quoi c’est destiné. */}
+          {cash && (
+            <div className="panel">
+              <Cash intentId={it.id} ref_={it.ref} position={cash} />
+            </div>
+          )}
 
           <div className="panel">
             <Messages messages={messages} />

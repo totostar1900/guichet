@@ -400,3 +400,92 @@
 .composeLink {
   font-size: 0.8rem;
 }
+
+/* ---- Les espèces du client : trois chiffres, deux gestes ---- */
+.cash {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.cashHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+}
+.cashHead span {
+  font-size: 0.78rem;
+}
+.cashFigures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-9);
+}
+.cashFigures > div {
+  display: flex;
+  flex-direction: column;
+}
+.cashFigures span {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.cashFigures b {
+  font-size: 1.04rem;
+  font-variant-numeric: tabular-nums;
+}
+.cashFigures small {
+  font-size: 0.7rem;
+  color: var(--ink-3);
+}
+/* Sans destination : la couleur d'un fait qui demande un geste, pas d'une erreur. */
+.cashIdle b {
+  color: var(--warn);
+}
+.cashForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3);
+}
+.cashForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.74rem;
+}
+.cashForm input {
+  width: 9rem;
+}
+.cashWarn {
+  flex: 1 1 14rem;
+  color: var(--warn);
+  font-size: 0.8rem;
+}
+.cashOk {
+  color: var(--good);
+  font-size: 0.78rem;
+}
+.cashErr {
+  color: var(--crit);
+  font-size: 0.78rem;
+}
+.cashList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.cashList li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr auto;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: 5px 0;
+  font-size: 0.78rem;
+}
+.cashList b {
+  font-variant-numeric: tabular-nums;
+}

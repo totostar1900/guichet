@@ -49,6 +49,21 @@ export async function transitionIntent(form: FormData): Promise<void> {
       await r.logEvent({ kind: "system", intentId, html: `Document non généré (${type}) : ${e instanceof Error ? e.message : "erreur"}` });
     }
   }
+  // Le règlement d'un ordre sort les espèces : le journal l'inscrit lui-même,
+  // parce qu'une comptabilité qui dépend d'un geste finit par manquer celui-là.
+  // Le montant est celui que l'avis d'opéré imprime, pas une estimation ; si
+  // aucune provision n'a été inscrite, le solde passe en négatif et le desk voit
+  // qu'il lui manque une écriture, ce qui est exactement le service attendu.
+  if (state === "reglee" && offer && updated.clientId) {
+    try {
+      const { positionFor } = await import("@/lib/documents/position");
+      const paid = Math.round(Math.abs(positionFor(updated, offer).total));
+      const out = updated.type === "vente" || updated.type === "cession" || updated.type === "rachat";
+      if (paid > 0) await r.addCash({ userId: updated.clientId, amount: paid, kind: out ? "produit_vente" : "souscription", label: `${out ? "Produit de" : "Règlement de"} ${updated.ref} · ${offer.title}`, intentId: updated.id, createdBy: desk.name });
+    } catch (e) {
+      await r.logEvent({ kind: "system", intentId, html: `Mouvement d'espèces non inscrit pour ${updated.ref} : ${e instanceof Error ? e.message : "erreur"}` });
+    }
+  }
   if (offer) await notifyIntentUpdated(updated, offer, state, desk.name);
   revalidatePath("/desk");
   revalidatePath("/desk/documents");

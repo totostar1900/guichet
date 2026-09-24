@@ -2331,4 +2331,12 @@ export const EN_MORE: Record<string, string> = {
   "Parts obtenues": "Units obtained",
   "après {p} de droits d'entrée": "after {p} of entry fees",
   "sans droits d'entrée": "no entry fees",
+  "Espèces du client": "Client cash",
+  "Ce que la maison lui doit, et à quoi c'est destiné": "What the firm owes them, and what it is for",
+  "Solde": "Balance",
+  "Affecté à une opération": "Assigned to an operation",
+  "Sans destination": "No destination",
+  "Affectée jusqu'au": "Assigned until",
+  "Inscrire": "Record",
+  "Restituer": "Return",
 };

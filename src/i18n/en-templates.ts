@@ -589,4 +589,7 @@ export const EN_TEMPLATES: Record<string, string> = {
   "nos ordres : {s} servis, {m} non servis, {o} en cours": "our orders: {s} filled, {m} not filled, {o} open",
   "{m} FCFA échus depuis le {d}": "{m} FCFA fallen due since {d}",
   "et {n} autres": "and {n} more",
+  "Provision reçue pour {r}": "Funds received for {r}",
+  "{m} FCFA sans destination : à renvoyer sur le compte du client.": "{m} FCFA with no destination: to be returned to the client's account.",
+  "jusqu'au {d}": "until {d}",
 };
