@@ -1,5 +1,5 @@
 import type { Offer } from "./types";
-import { displayYield, marketAmortInput, marketBondInput } from "./status";
+import { displayYield, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
 import { typeOf } from "@/lib/registry";
 import { amortCalc, bondCalc, type BondResult, btaCalc, btaAmountForBonds } from "../finance";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "../format";
@@ -67,11 +67,9 @@ export function offerReference(o: Offer, now = new Date()): OfferReference | und
     const isBond = o.instrument === "obligation";
     const ref = o.ask ?? o.lastPrice ?? 0;
     const n = isBond ? 1000 : 100;
-    const ai = isBond ? marketAmortInput(o, now) : null;
-    const bi = isBond ? marketBondInput(o, now) : null;
-    if ((ai && ai.maturityOn > ai.settleOn) || (bi && bi.maturityOn > bi.settleOn)) {
-      const r = ai && ai.maturityOn > ai.settleOn ? amortCalc(ai, n * o.nominal, ref) : bondCalc(bi!, n * o.nominal, ref);
-      const settleOn = ai && ai.maturityOn > ai.settleOn ? ai.settleOn : bi!.settleOn;
+    const r = isBond ? marketBondCalc(o, n * o.nominal, ref, { now }) : null;
+    if (r) {
+      const settleOn = (marketAmortInput(o, now) ?? marketBondInput(o, now))!.settleOn;
       const dy = displayYield(o);
       return {
         title: `Pour ${fmt(n)} titres au cours vendeur`,

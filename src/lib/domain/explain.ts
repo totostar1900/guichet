@@ -1,6 +1,6 @@
 import type { Offer } from "./types";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "./market";
-import { displayYield, marketBondInput } from "./status";
+import { displayYield, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
 import { bondCalc, btaCalc, tenorText } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import type { TermKey } from "@/lib/glossary";
@@ -77,9 +77,11 @@ export function explainKpis(o: Offer, now = new Date()): KpiExplanation[] {
     const price = o.ask ?? o.lastPrice;
     if (bond) {
       const inp = marketBondInput(o, now);
-      const r = inp && price != null ? bondCalc(inp, o.nominal * 1000, price) : null;
+      // Le même moteur que la carte : l'échéancier exact quand le référentiel le porte.
+      const r = price != null ? marketBondCalc(o, o.nominal * 1000, price, { now }) : null;
+      const amorti = Boolean(marketAmortInput(o, now));
       return [
-        { key: "yield", title: dy.atPar ? "Taux nominal au pair" : "Rendement actuariel au cours", term: dy.atPar ? "pair" : "rendement_cours", lines: [["Coupon facial", `${fmtPct(o.couponRate ?? 0, 2)} du nominal restant`], ["Cours retenu", price != null ? `${fmtPrice(price)}${o.ask ? " (vendeur)" : " (dernier)"}` : "—"], ["Nominal restant par titre", `${fmt(o.nominal)} FCFA`], ["Règlement", inp ? `${fmtDate(inp.settleOn)} (T+${o.settlementDays ?? 3})` : "—"], ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"], ["Rendement", r ? `${dy.approx ? "≈ " : ""}${fmtPct(r.irr, 2)}` : "—"]], caveats: ["Au cours du jour : votre ordre s'exécute au prix du marché ou à votre limite.", brut, dy.approx ? "Échéance connue à l'année près : rendement approximatif." : "Échéancier exact de la fiche signalétique."] },
+        { key: "yield", title: dy.atPar ? "Taux nominal au pair" : "Rendement actuariel au cours", term: dy.atPar ? "pair" : "rendement_cours", lines: [["Coupon facial", `${fmtPct(o.couponRate ?? 0, 2)} du nominal restant`], ["Cours retenu", price != null ? `${fmtPrice(price)}${o.ask ? " (vendeur)" : " (dernier)"}` : "—"], ["Nominal restant par titre", `${fmt(o.nominal)} FCFA`], ["Remboursement", amorti ? "par tranches, jusqu'à l'échéance" : "en une fois, à l'échéance"], ["Règlement", inp ? `${fmtDate(inp.settleOn)} (T+${o.settlementDays ?? 3})` : "—"], ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"], ["Rendement", r ? `${dy.approx ? "≈ " : ""}${fmtPct(r.irr, 2)}` : "—"]], caveats: ["Au cours du jour : votre ordre s'exécute au prix du marché ou à votre limite.", brut, amorti ? "Le capital revient par tranches : la décote sur le cours se récupère plus vite, et le rendement annualisé dépasse le coupon." : "", dy.approx ? "Échéance connue à l'année près : rendement approximatif." : "Échéancier exact de la fiche signalétique."].filter(Boolean) },
         { key: "coupon", title: "Coupon facial", term: "coupon", lines: [["Taux", `${fmtPct(o.couponRate ?? 0, 2)} du nominal restant`], ["Par titre et par an", `${fmt(((o.couponRate ?? 0) / 100) * o.nominal)} FCFA`]], caveats: ["Sur une obligation amortissable, le nominal restant diminue à chaque remboursement partiel : le coupon en FCFA aussi."] },
         { key: "last", title: "Dernier cours", term: "cours", lines: [["Dernier cours", o.lastPrice != null ? `${fmtPrice(o.lastPrice)} du nominal` : "—"], ["Le", o.lastPriceOn ? fmtDate(o.lastPriceOn) : "—"], ["Acheteur / vendeur", `${o.bid != null ? fmtPrice(o.bid) : "—"} / ${o.ask != null ? fmtPrice(o.ask) : "—"}`]], caveats: ["Cours de clôture du Bulletin Officiel de la Cote, repris sans retraitement.", "Un marché étroit : un ordre peut rester non exécuté plusieurs séances."] },
       ];

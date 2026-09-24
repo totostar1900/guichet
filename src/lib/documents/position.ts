@@ -1,5 +1,6 @@
 import type { Intent, Offer } from "@/lib/domain/types";
 import { bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
+import { marketBondCalc } from "@/lib/domain/status";
 
 /**
  * The money lines every document prints for one intent on one offer.
@@ -92,10 +93,20 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
       d.setDate(d.getDate() + (offer.settlementDays ?? 3));
       return d.toISOString().slice(0, 10);
     })();
-    if (isBond && offer.couponRate != null && offer.maturityOn) {
-      const r = bondCalc({ nominal: offer.nominal, couponRate: offer.couponRate, settleOn, maturityOn: offer.maturityOn, lastCouponOn: offer.lastCouponOn }, n * offer.nominal, ref);
+    // Le même moteur que la fiche, au règlement de cet ordre : un relevé qui
+    // compte une obligation amortissable comme une « in fine » annonce un
+    // rendement que le client ne touchera pas.
+    const marketR = isBond ? marketBondCalc(offer, n * offer.nominal, ref, { settleOn }) : null;
+    if (marketR) {
+      const r = marketR;
       const gross = r.outlay;
       return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: n * r.pricePerTitle, accrued: r.accrued, accruedDays: r.accruedDays, commission: gross * com, total: sell ? -(gross * (1 - com)) : gross * (1 + com), irr: r.irr, schedule: r.flows };
+    }
+    if (isBond) {
+      // Une ligne arrivée à échéance n'a plus de flux devant elle : le principal
+      // seul, et surtout pas l'habit d'une action, que la branche suivante donne.
+      const p = n * ((offer.nominal * ref) / 100);
+      return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: p, accrued: 0, accruedDays: 0, commission: p * com, total: sell ? -(p * (1 - com)) : p * (1 + com), schedule: [] };
     }
     const principal = n * ref;
     return { label: `${n.toLocaleString("fr-FR")} actions`, units: n, unitWord: "actions", priceLabel: `${ref.toLocaleString("fr-FR")} FCFA`, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: principal * com, total: sell ? -(principal * (1 - com)) : principal * (1 + com), schedule: [] };

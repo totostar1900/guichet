@@ -1,5 +1,5 @@
 import type { Offer } from "./types";
-import { bondTerms, marketAmortInput, marketBondInput } from "./status";
+import { bondTerms, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
 import { amortCalc, bondCalc, btaAmountForBonds, btaCalc, couponDates, firstCouponDate, parseDate } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "../format";
 
@@ -153,9 +153,7 @@ export function backFacts(o: Offer, now: Date): BackFacts {
   lines.push(["Règlement", `T+${o.settlementDays ?? 3} · cotation continue`]);
   const n = isBond ? 1000 : 100;
   if (isBond) {
-    const ai = marketAmortInput(o);
-    const bi = marketBondInput(o);
-    const r = ai && ai.maturityOn > ai.settleOn ? amortCalc(ai, n * o.nominal, ref) : bi && bi.maturityOn > bi.settleOn ? bondCalc(bi, n * o.nominal, ref) : null;
+    const r = marketBondCalc(o, n * o.nominal, ref);
     if (r)
       return {
         lines,

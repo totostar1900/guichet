@@ -1,5 +1,5 @@
 import type { DisplayStatus, Offer } from "./types";
-import { amortCalc, type AmortInput, bondCalc, type BondInput, btaCalc, parseDate, yearsBetween } from "../finance";
+import { amortCalc, type AmortInput, bondCalc, type BondInput, type BondResult, btaCalc, parseDate, yearsBetween } from "../finance";
 import { localIso } from "../format";
 import { enabledTypes, getRegistry, typeOf, type MarketSegment, type ProductType } from "@/lib/registry";
 export type { MarketSegment } from "@/lib/registry";
@@ -99,22 +99,46 @@ export function tenorYears(o: Offer): number {
  * date. Without this a bond at par would show a yield far above its coupon.
  */
 /** Repayment schedule of a listed bond when its fiche signalétique is on file; settlement T+3 from today. */
-export function marketAmortInput(o: Offer, now = new Date()): AmortInput | null {
+export function marketAmortInput(o: Offer, now = new Date(), settleOn?: string): AmortInput | null {
   const t = bondTerms(o.isin);
   if (!t || o.instrument !== "obligation" || o.couponRate == null) return null;
   const settle = new Date(now);
   settle.setDate(settle.getDate() + (o.settlementDays ?? 3));
-  return { nominal: o.nominal, couponRate: o.couponRate, settleOn: localIso(settle), maturityOn: t.maturityOn, periodsPerYear: t.periodsPerYear, graceUntil: t.graceUntil, commissionPct: o.commissionPct };
+  return { nominal: o.nominal, couponRate: o.couponRate, settleOn: settleOn ?? localIso(settle), maturityOn: t.maturityOn, periodsPerYear: t.periodsPerYear, graceUntil: t.graceUntil, commissionPct: o.commissionPct };
+}
+
+/**
+ * Le calcul d'une obligation cotée, moteur compris.
+ *
+ * Une obligation d'État de la zone s'amortit : le capital revient par
+ * tranches, et le coupon suit le nominal qui reste. Quand le référentiel
+ * porte son échéancier, c'est celui-là qu'il faut ; sinon il ne reste que
+ * l'approximation « in fine », capital remboursé en une fois à l'échéance.
+ *
+ * Les deux donnent des rendements très différents sur le même titre : à 97 %
+ * d'un nominal qui revient vite, la décote se récupère sur une durée de vie
+ * moyenne courte et le rendement annualisé monte. Écrire ce choix une seule
+ * fois est donc la seule façon d'éviter que la carte annonce un chiffre et
+ * que le panneau censé l'expliquer en affiche un autre : c'est exactement ce
+ * qui arrivait, 10,91 % contre 9,18 % sur la même ligne.
+ */
+export function marketBondCalc(o: Offer, nominalAmount: number, pricePct: number, opts: { now?: Date; settleOn?: string } = {}): BondResult | null {
+  const now = opts.now ?? new Date();
+  const a = marketAmortInput(o, now, opts.settleOn);
+  if (a) return a.maturityOn > a.settleOn ? amortCalc(a, nominalAmount, pricePct) : null;
+  const b = marketBondInput(o, now, opts.settleOn);
+  if (!b || b.maturityOn <= b.settleOn) return null;
+  return bondCalc(b, nominalAmount, pricePct);
 }
 
 /** True when the BOC's year is all we know about the maturity (no fiche on file). */
 export const maturityIsGuess = (o: Offer): boolean => o.kind === "MARCHE" && o.instrument === "obligation" && !bondTerms(o.isin) && o.priceSource !== "desk" && Boolean(o.maturityOn?.endsWith("-12-31"));
 
-export function marketBondInput(o: Offer, now = new Date()): BondInput | null {
+export function marketBondInput(o: Offer, now = new Date(), on?: string): BondInput | null {
   if (o.instrument !== "obligation" || o.couponRate == null || !o.maturityOn) return null;
   const settle = new Date(now);
   settle.setDate(settle.getDate() + (o.settlementDays ?? 3));
-  const settleOn = localIso(settle);
+  const settleOn = on ?? localIso(settle);
   let last = o.lastCouponOn ?? undefined;
   if (!last) {
     const d = parseDate(o.maturityOn);
@@ -164,14 +188,14 @@ export function headlineYield(o: Offer): number | null {
       return (o.dividendPerShare / o.pricePerShare) * 100;
     case "MARCHE": {
       if (o.instrument === "obligation" && o.lastPrice != null) {
-        const a = marketAmortInput(o);
-        if (a) return a.maturityOn > a.settleOn ? amortCalc(a, o.nominal * 1000, o.ask ?? o.lastPrice).irr : null;
-        const b = marketBondInput(o);
-        if (!b || b.maturityOn <= b.settleOn) return null;
         // Only the year of maturity is printed in the BOC: with less than a year left the
         // guess (31/12) swings the yield by tens of points : better no figure than a wrong one.
-        if (maturityIsGuess(o) && yearsBetween(b.settleOn, b.maturityOn) < 1) return null;
-        return bondCalc(b, o.nominal * 1000, o.ask ?? o.lastPrice).irr;
+        // Le calcul, lui, reste possible : c'est la publication d'un rendement qu'on refuse.
+        if (maturityIsGuess(o)) {
+          const b = marketBondInput(o);
+          if (b && yearsBetween(b.settleOn, b.maturityOn) < 1) return null;
+        }
+        return marketBondCalc(o, o.nominal * 1000, o.ask ?? o.lastPrice)?.irr ?? null;
       }
       if (o.instrument === "action" && o.dividendPerShare && o.lastPrice) return (o.dividendPerShare / o.lastPrice) * 100;
       return null;

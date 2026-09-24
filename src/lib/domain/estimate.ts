@@ -1,5 +1,6 @@
 import type { Offer } from "./types";
 import { bondCalc, btaCalc } from "../finance";
+import { marketBondCalc } from "./status";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "../format";
 
 /**
@@ -48,7 +49,9 @@ export function estimate(o: Offer, amount: number): Estimate {
     const unit = isBond ? (o.nominal * ref) / 100 : ref;
     const n = Math.floor(amount / Math.max(unit, 1));
     if (o.lotSize && n < o.lotSize) return { ok: false, text: `Quantité minimale ${o.lotSize} : soit ${fmt(o.lotSize * unit)} FCFA au cours actuel.` };
-    const r = isBond && o.couponRate != null && o.maturityOn ? bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, n * o.nominal, ref) : undefined;
+    // Le moteur de la carte, et la date de règlement du marché (T+n depuis aujourd'hui) :
+    // « o.settleOn » est la date du primaire, elle n'a pas de sens sur une ligne cotée.
+    const r = isBond ? (marketBondCalc(o, n * o.nominal, ref) ?? undefined) : undefined;
     return { ok: n > 0, titles: n, outlay: r ? r.outlay : n * unit, text: n > 0 ? `≈ ${fmt(n)} ${isBond ? "titres" : "actions"} au cours de référence ${isBond ? fmtPrice(ref) : fmt(ref) + " FCFA"} · ${fmt(r ? r.outlay : n * unit)} FCFA${r?.accruedDays ? ` dont ${fmt(r.accrued)} de coupon couru` : ""} · règlement T+${o.settlementDays ?? 3} · le prix d'exécution dépend du marché` : "Montant inférieur à une unité." };
   }
   if (o.kind === "FONDS" && o.fund) {
