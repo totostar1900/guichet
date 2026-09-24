@@ -317,7 +317,13 @@ export interface Contact {
   segment: string;
   phone?: string; // E.164, e.g. +237687676767
   email?: string;
+  /** Consentement aux informations et opportunités, canal par canal ; le service n'en dépend pas. */
   whatsappOptIn: boolean;
+  emailOptIn?: boolean;
+  /** 0 visiteur identifié · 1 coordonnées connues · 2 compte-titres ouvert. */
+  tier?: 0 | 1 | 2;
+  /** Première connexion : la ligne du profil naît là. */
+  since?: string;
 }
 
 /** One line of the audit trail: who did what to which record, before/after, why, from where. Hash-chained, never edited. */
