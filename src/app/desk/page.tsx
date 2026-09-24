@@ -7,7 +7,8 @@ import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
-import { countdown, displayStatus, headlineYield, isActionable } from "@/lib/domain/status";
+import { countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
+import { TallTable } from "@/components/desk/TallTable";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/format";
@@ -27,7 +28,7 @@ export const metadata = { title: "Desk" };
 const FIRM = (i: Intent) => i.type === "ferme" || i.type === "cession";
 const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];
 
-export default async function DeskPage({ searchParams }: { searchParams: Promise<{ etat?: string; q?: string; ligne?: string; tri?: string; filtre?: string; depuis?: string; point?: string }> }) {
+export default async function DeskPage({ searchParams }: { searchParams: Promise<{ etat?: string; q?: string; ligne?: string; tri?: string; filtre?: string; depuis?: string; point?: string; bq?: string; genre?: string; btri?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
@@ -37,7 +38,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
   // Book: open offers, grouped by their deadline (an auction = one deadline per issuer).
   const noPrice = (o: (typeof offers)[number]) => o.pricePct == null && o.precountRate == null;
-  const live = offers.filter((o) => isActionable(displayStatus(o, now)) && o.kind !== "ACTIONS" && o.kind !== "MARCHE" && (sp.filtre !== "sans-prix" || noPrice(o)));
+  const live = offers.filter((o) => isActionable(displayStatus(o, now)) && o.kind !== "ACTIONS" && o.kind !== "MARCHE");
   const rows = live.map((o) => {
     const its = intents.filter((i) => i.offerId === o.id && OPEN_STATES.includes(i.state));
     const firm = its.filter(FIRM);
@@ -45,6 +46,46 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     const toFcfa = (i: Intent) => (i.amount ?? 0) * (o.kind === "RACHAT" ? o.nominal : 1);
     return { o, nF: firm.length, sF: firm.reduce((s, i) => s + toFcfa(i), 0), nA: soft.length, sA: soft.reduce((s, i) => s + toFcfa(i), 0) };
   });
+
+  // Le carnet se cherche et se trie, mais les quatre chiffres du haut, eux,
+  // restent ceux du carnet entier : un filtre est une façon de regarder, pas
+  // une façon de diminuer ce qui est engagé.
+  type BookRow = (typeof rows)[number];
+  const chip = (v: string) => rows.filter((x) => (v === "sans-prix" ? noPrice(x.o) : v === "fermes" ? x.nF > 0 : v === "sans-suite" ? x.nF + x.nA === 0 : true));
+  const kinds = [...new Set(live.map((o) => o.kind))].map((k) => ({ value: k, label: t(KIND_LABEL[k] ?? k) })).sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  const bsort = (sp.btri ?? "cloture").replace(/-$/, "");
+  const brev = (sp.btri ?? "").endsWith("-");
+  const CMP: Record<string, (a: BookRow, b: BookRow) => number> = {
+    cloture: (a, b) => parseDate(a.o.deadlineAt).getTime() - parseDate(b.o.deadlineAt).getTime(),
+    ligne: (a, b) => a.o.title.localeCompare(b.o.title, "fr"),
+    fermes: (a, b) => b.sF - a.sF || b.nF - a.nF,
+    appetits: (a, b) => b.sA - a.sA || b.nA - a.nA,
+    rendement: (a, b) => (headlineYield(b.o) ?? -Infinity) - (headlineYield(a.o) ?? -Infinity),
+  };
+  const book = chip(sp.filtre ?? "")
+    .filter((x) => !sp.genre || x.o.kind === sp.genre)
+    .filter((x) => textMatch(sp.bq, x.o.title, x.o.issuer, x.o.isin, t(KIND_LABEL[x.o.kind] ?? x.o.kind), x.o.sizeLabel))
+    .sort((a, b) => (CMP[bsort] ?? CMP.cloture)(a, b) * (brev ? -1 : 1));
+  // Trier depuis la colonne plutôt que depuis une boîte à part : l'en-tête
+  // est déjà le nom de ce qu'on veut trier. Un second clic inverse.
+  const bookHref = (tri: string) => {
+    const q = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
+    q.set("btri", tri);
+    return `/desk?${q}#offres`;
+  };
+  // Une fonction, pas un composant : un composant déclaré dans le rendu
+  // reperdrait son état à chaque passage, et le compilateur le refuse.
+  const sortTh = (k: string, label: string, right?: boolean) => {
+    const on = bsort === k;
+    return (
+      <th className={right ? "r" : undefined} aria-sort={on ? (brev ? "ascending" : "descending") : "none"}>
+        <Link href={bookHref(on && !brev ? `${k}-` : k)} className={`${styles.sortTh} ${on ? styles.sortOn : ""}`} title={on ? t("Inverser l'ordre") : t("Trier par cette colonne")}>
+          {label}
+          <i aria-hidden="true">{on ? (brev ? "▲" : "▼") : "↕"}</i>
+        </Link>
+      </th>
+    );
+  };
   const max = Math.max(...rows.map((x) => x.sF + x.sA), 1);
   const nextDeadline = live.map((o) => o.deadlineAt).sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime())[0];
   const totalF = rows.reduce((s, x) => s + x.sF, 0);
@@ -73,7 +114,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     <>
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
       <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
-      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-prix" ? String(live.length) : undefined} />}
+      {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-prix" ? String(book.length) : undefined} />}
 
       {/* Le carnet et son sommaire. Le rail est le même objet que sur les pages
           publiques : le desk se parcourt aussi, et il n’avait rien pour cela. */}
@@ -243,30 +284,42 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <div className="panel" id="offres">
           <div className="panel-h">
             <h2>{t("Carnet d'appétits : offres ouvertes")}</h2>
-            {sp.filtre === "sans-prix" && (
-              <span className={styles.filterTag}>
-                {t("{n} ligne(s) sans prix du desk", { n: String(live.length) })} · <Link href="/desk#offres">{t("Toutes")}</Link>
-              </span>
-            )}
             <span className="muted right" style={{ fontSize: ".8rem" }}>
-              {t("prises fermes en navy, appétits en or")}
+              {book.length === rows.length ? t("prises fermes en navy, appétits en or") : t("{k} sur {n} · prises fermes en navy, appétits en or", { k: book.length, n: rows.length })}
             </span>
           </div>
-          <div className="scroll-x">
+          <Suspense>
+            <Toolbar
+              inset
+              searchKey="bq"
+              placeholder={t("Ligne, émetteur, ISIN…")}
+              chipKey="filtre"
+              chips={[
+                { value: "", label: t("Toutes"), count: rows.length },
+                { value: "fermes", label: t("Avec prises fermes"), count: chip("fermes").length },
+                { value: "sans-suite", label: t("Sans intention"), count: chip("sans-suite").length },
+                { value: "sans-prix", label: t("Sans prix"), count: chip("sans-prix").length },
+              ]}
+              selects={[{ key: "genre", label: t("Type"), all: t("tous les types"), options: kinds }]}
+            />
+          </Suspense>
+          {/* Vingt lignes à la fois : au-delà, la boîte défile sous son en-tête,
+              et « Tout afficher » rend au tableau sa hauteur entière. */}
+          <TallTable total={book.length}>
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>{t("Ligne")}</th>
+                  {sortTh("ligne", t("Ligne"))}
                   <th>{t("Prix Purpose")}</th>
-                  <th className="r">{t("Prises fermes")}</th>
-                  <th className="r">{t("Appétits")}</th>
+                  {sortTh("fermes", t("Prises fermes"), true)}
+                  {sortTh("appetits", t("Appétits"), true)}
                   <th>{t("Volume")}</th>
-                  <th className="r">{t("Rendement publié")}</th>
-                  <th className="r">{t("Clôture")}</th>
+                  {sortTh("rendement", t("Rendement publié"), true)}
+                  {sortTh("cloture", t("Clôture"), true)}
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ o, nF, sF, nA, sA }) => (
+                {book.map(({ o, nF, sF, nA, sA }) => (
                   <tr key={o.id}>
                     <td>
                       <LineIdentity o={o} s={summarize(o, now, { fine: true })} href={`/offres/${o.id}`} />
@@ -301,18 +354,17 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                     </td>
                   </tr>
                 ))}
-                {rows.length === 0 && (
+                {book.length === 0 && (
                   <tr>
                     <td colSpan={7} className="muted">
-                      {t("Aucune offre ouverte.")}
+                      {rows.length === 0 ? t("Aucune offre ouverte.") : t("Aucune offre ne correspond à cette recherche.")}
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
+          </TallTable>
         </div>
-
         <div className="panel" id="diffusion">
           <div className="panel-h">
             <h2>{t("Diffusion")}</h2>

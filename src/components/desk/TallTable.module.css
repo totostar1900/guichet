@@ -1,0 +1,38 @@
+/* La boîte qui défile : dans les deux sens, en-tête collé, filets portés par
+   les cellules (voir la note de .feedTable : « collapse » les rattache au
+   tableau et ils passeraient par-dessus l'en-tête). */
+.box {
+  overflow: auto;
+}
+.box table {
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.box thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.box tbody td {
+  border-bottom: 1px solid var(--line);
+}
+
+.more {
+  display: block;
+  width: 100%;
+  padding: var(--s-3) var(--s-5);
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.more:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
