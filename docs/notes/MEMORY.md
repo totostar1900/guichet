@@ -21,3 +21,4 @@
 - [Bulletin parser](guichet-boc-parser.md) : pre-Nov-2025 3-line equity rows broke 31 sessions; window 2→4, capitalisation silence warns, 77 bulletins re-ingested, Santé › Bulletins à relire
 - [Search and sort](guichet-search-and-sort.md) : one people matcher for Dossiers + Répertoire (each word must match, phone by digits, palier:/canal:/dossier:/ordres:), sorting from column headers, draft-then-URL search, TallTable 20 rows, sticky header needs border-collapse: separate
 - [Fund numbers](guichet-fund-numbers.md) : « 12 mois » is a change not a rate (365-410 days), « origine » meant two bornes, annualised return lives once in src/lib/domain/fund-perf.ts
+- [Desk/Guichet split](guichet-desk-split.md) : one shared body per page (FicheReading, TitresBody, FondsBody, ComparerBody), DeskView context for client vs desk, desk reads at /desk/titres·fonds·comparer·lignes, read-only, robots.ts added
