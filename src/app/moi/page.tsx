@@ -16,6 +16,7 @@ import { FoldAll, FoldSection } from "@/components/Fold";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { TrustNudge } from "@/components/TrustNudge";
+import { Reinvest } from "@/components/Reinvest";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -102,6 +103,8 @@ export default async function MyPage() {
         </Link>
       </div>
       <TrustNudge />
+      {/* Ce qui est revenu et dort : la seule décision entre l’achat et le remboursement. */}
+      <Reinvest positions={positions} now={now} />
 
       <div className={styles.kpis}>
         <div>

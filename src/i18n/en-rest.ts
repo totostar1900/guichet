@@ -819,4 +819,6 @@ export const EN_REST: Record<string, string> = {
   "non communiqués": "not disclosed",
   "par an, prélevés dans la VL": "per year, taken inside the NAV",
   "demandez le prospectus": "ask for the prospectus",
+  "Replacer cette somme": "Put this back to work",
+  "Voir les fonds": "See the funds",
 };

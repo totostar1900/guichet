@@ -1,0 +1,31 @@
+/* Un rappel, pas une alerte : l'argent est revenu, rien ne va mal. La bande
+   emprunte donc le fond doré des choses qui méritent un regard, et pas le
+   rouge de ce qui bloque. */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  margin: var(--s-5) 0 0;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-soft);
+}
+.strip b {
+  display: block;
+  font-size: 0.92rem;
+}
+.strip small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-2);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}

@@ -587,4 +587,6 @@ export const EN_TEMPLATES: Record<string, string> = {
   "dernier échange le {d}": "last traded on {d}",
   "nos ordres : {p} % servis": "our orders: {p} % filled",
   "nos ordres : {s} servis, {m} non servis, {o} en cours": "our orders: {s} filled, {m} not filled, {o} open",
+  "{m} FCFA échus depuis le {d}": "{m} FCFA fallen due since {d}",
+  "et {n} autres": "and {n} more",
 };
