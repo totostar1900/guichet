@@ -7,7 +7,7 @@ import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LAB
 import { ReviewForm } from "./ReviewForm";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
 import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
-import { fileQueue } from "@/lib/kyc/queue";
+import { fileQueue, waiting } from "@/lib/kyc/queue";
 import { positionsFrom } from "@/lib/positions";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import styles from "./page.module.css";
@@ -40,6 +40,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   // sans rien à gauche, et on ne saurait plus où l'on est.
   const queue = fileQueue(files, selected?.id, q);
   const rest = files.length - queue.length;
+  // Le dossier ouvert garnit toujours la file, si bien que « rien n'attend » ne
+  // paraissait jamais : c'est le nombre de dossiers en attente qui le dit, pas le
+  // nombre de cartes affichées.
+  const attente = files.filter(waiting).length;
   const [lang, fin, prefs, channels] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
@@ -87,7 +91,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               </span>
             </Link>
           ))}
-          {queue.length === 0 && <div className="empty">{t(files.length === 0 ? "Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte »." : q ? "Aucun dossier ne répond à cette recherche." : "Rien n'attend : tous les dossiers sont traités.")}</div>}
+          {queue.length === 0 && <div className="empty">{t(files.length === 0 ? "Aucun dossier client. Un client démarre le sien depuis « Ouvrir un compte »." : "Aucun dossier ne répond à cette recherche.")}</div>}
+          {!q && files.length > 0 && attente === 0 && <div className={styles.qnote}>{t("Rien n'attend : tous les dossiers sont traités.")}</div>}
           {!q && rest > 0 && (
             <div className={styles.qnote}>
               {t("{n} autre(s) dossier(s), traités", { n: String(rest) })} · <Link href="/desk/repertoire">{t("Répertoire")} →</Link>
