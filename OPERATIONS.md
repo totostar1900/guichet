@@ -147,3 +147,17 @@ WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un 
 ## 9. Variables d'environnement (Vercel › Settings › Environment Variables)
 
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET` (sel des codes de preuve, des liens signés et des codes à quatre chiffres : ne pas le changer sans raison), `CRON_SECRET`, `NEXT_PUBLIC_APP_URL` (adresse publique, dans les liens envoyés ; les clés d'accès se lient au domaine réellement servi), `DESK_EMAILS` (amorçage seulement), `DESK_MFA` (vide = obligatoire), `INBOUND_SECRET`, `INTAKE_TRUSTED_SENDERS`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY` + `EMAIL_FROM`, `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` + `WHATSAPP_VERIFY_TOKEN`, `BOT_ENABLED`, `SETTLEMENT_BANK` + `SETTLEMENT_IBAN`, `NEWS_FEEDS` (flux RSS/Atom suivis en plus de celui de la BVMAC, séparés par des virgules), `VAPID_*` (notifications), `PHONE_OTP_*` (code par téléphone, facultatif), `OPENSANCTIONS_API_KEY` (facultatif). Voir `.env.example` pour le rôle de chacune. Le détail des services, des titulaires de compte et des coûts est dans desk › Documentation › « Plateformes, services et coûts ». Après un changement : *Redeploy*.
+
+### Renouveler une clef
+
+Aucune de ces clefs ne porte de date d'expiration : elles valent jusqu'à ce qu'on les révoque. Il n'y a donc rien à régler pour qu'elles expirent, et rien à fabriquer non plus : une expiration maison n'ajoute aucune sécurité et ajoute une façon de tomber en panne.
+
+**On renouvelle sans attendre** quand quelqu'un ayant accès à la console part, quand une clef a été collée là où elle n'aurait pas dû l'être (une conversation, un ticket, une capture d'écran, un document partagé), ou quand la consommation ne ressemble pas à l'activité. En dehors de ces cas, une fois par an suffit pour une clef qui ne vit que dans les variables d'environnement de Vercel et ne quitte jamais le serveur.
+
+**Le plafond de dépense protège mieux que la fréquence.** Une clef d'API qui fuit coûte de l'argent, et le robot répond à chaque message entrant : la facture suit les clients, pas nos propres gestes. Un plafond mensuel dans la console du fournisseur transforme une perte sans limite en une perte connue, quoi qu'il arrive à la clef. Renouveler tous les trois mois sans plafond ne protège rien pendant la fenêtre qui compte. Poser aussi une alerte de budget, pour l'apprendre avant que le plafond n'arrête le service en pleine journée.
+
+**Une clef par environnement.** Un poste de travail est l'endroit le plus probable d'une fuite : une clef pour la production, une autre pour le développement local, et l'on révoque l'une sans arrêter l'autre.
+
+**Ce que donne un renouvellement raté** : le service concerné s'arrête et le dit. Le robot affiche « Robot indisponible », l'envoi d'e-mails retombe sur le lien de Supabase, le code par téléphone annonce qu'un conseiller confirmera le numéro. Rien ne part de travers en silence, ce qui est la raison pour laquelle une rotation annuelle se tient sans risque.
+
+`AUTH_SECRET` fait exception et ne se renouvelle pas à la légère : il sale les codes de preuve, les liens signés, les jetons de désinscription et les codes à quatre chiffres. Le changer invalide tout cela d'un coup, et oblige chaque client à reprouver ses canaux.
