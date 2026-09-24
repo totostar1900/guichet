@@ -2275,4 +2275,13 @@ export const EN_MORE: Record<string, string> = {
   "Équivalent par an": "Equivalent per year",
   "Le taux constant qui, composé sur la durée, donnerait la même performance cumulée : c'est lui qui permet de comparer un fonds né l'an dernier avec un fonds né en 2019.": "The constant rate which, compounded over the elapsed time, would give the same cumulative performance: it is what lets a fund born last year be compared with one born in 2019.",
   "Une moyenne, pas une promesse : les années qui la composent peuvent être très inégales.": "An average, not a promise: the years behind it can be very uneven.",
+  "Regrouper par": "Group by",
+  "Regrouper les fonds": "Group the funds",
+  "rien": "nothing",
+  "Par an": "Per year",
+  "Var. · depuis l'origine": "Chg. · since inception",
+  "moins de six mois": "less than six months",
+  "{n} fonds · {m} ouvert(s)": "{n} funds · {m} open",
+  "Le taux constant qui, composé depuis la création, donnerait la performance cumulée": "The constant rate which, compounded since inception, would give the cumulative performance",
+  "dépositaire": "custodian",
 };

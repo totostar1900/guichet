@@ -136,3 +136,72 @@
   color: var(--warn);
   font-size: 0.7rem;
 }
+
+/* Ranger les fonds : deux liens et le retour à la liste, sur la ligne du tableau. */
+.groupPick {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  padding: 0 var(--s-5) var(--s-3);
+  font-size: 0.82rem;
+}
+.groupPick a {
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px var(--s-3);
+}
+.groupPick a:hover {
+  border-color: var(--line-2);
+}
+.groupOn {
+  border-color: var(--gold) !important;
+  background: var(--gold-soft);
+}
+
+/* La barre d'un groupe : elle tient toute la largeur et porte le pli. */
+.groupRow th {
+  padding: 0;
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+}
+.groupRow button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  width: 100%;
+  padding: var(--s-2) var(--s-4);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.groupRow svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  align-self: center;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+.chevOpen {
+  transform: rotate(0deg) !important;
+}
+.groupRow small {
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.groupNote {
+  margin-left: auto;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

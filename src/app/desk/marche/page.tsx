@@ -9,15 +9,24 @@ import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl } from "@/lib/market/boc";
 import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
+import { FundGroups, type FundGroup } from "./FundGroups";
+import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { deskFills, lineFills } from "@/lib/market/fill";
 import { FillRate } from "@/components/desk/FillRate";
 
 export const dynamic = "force-dynamic";
+
+/** Les deux rangements qui répondent à une question du desk, et le retour à la liste. */
+const GROUPINGS: [string, string][] = [
+  ["aucun", "rien"],
+  ["gestion", "société de gestion"],
+  ["depot", "dépositaire"],
+];
 export const metadata = { title: "Marché secondaire" };
 
-export default async function MarketPage({ searchParams }: { searchParams: Promise<{ filtre?: string; depuis?: string; point?: string }> }) {
+export default async function MarketPage({ searchParams }: { searchParams: Promise<{ filtre?: string; depuis?: string; point?: string; groupe?: string }> }) {
   const sp = await searchParams;
   const t = await getT();
   const r = repo();
@@ -38,8 +47,76 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
     if (o?.fund && (i.state === "confirmee" || i.state === "transmise")) pendingByManager.set(o.fund.manager, (pendingByManager.get(o.fund.manager) ?? 0) + 1);
   }
   const last = bulletins[0];
+  const now = new Date();
   const today = localIso(new Date());
   const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
+
+  // Quinze fonds à plat se lisent encore ; la question que le desk pose à
+  // cette table (qui gère quoi, et chez qui est-ce déposé) se parcourt alors
+  // colonne du milieu, ligne à ligne. Deux rangements la répondent d'un coup.
+  const by = sp.groupe === "gestion" || sp.groupe === "depot" ? sp.groupe : "aucun";
+  const groupOf = (o: Offer) => (by === "gestion" ? o.fund!.manager : o.fund!.depositary) || "—";
+  const fundRow = (o: Offer) => {
+    const fu = o.fund!;
+    const annual = fundAnnualPct(fu, now);
+    return (
+      <tr key={o.id} className={fu.distributed ? undefined : styles.hiddenRow}>
+        <td>
+          <b>
+            <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
+              {o.title}
+            </Link>
+          </b>
+          <br />
+          <small className="muted">{fu.distributed ? `ouvert · convention ${fu.agreementRef ?? "—"}` : "sur demande"}</small>
+        </td>
+        <td>
+          {fu.manager}
+          <br />
+          <small className="muted">{fu.depositary}</small>
+        </td>
+        <td>
+          {t(FUND_CATEGORY_LABEL[fu.category])}
+          <br />
+          <small className="muted">{t(FUND_FREQUENCY_LABEL[fu.frequency])}</small>
+        </td>
+        <td className="r num">
+          {fmt(fu.nav)}
+          <br />
+          <small className="muted">{fmtDate(fu.navDate)}</small>
+        </td>
+        <td className="r num">
+          {signed(fu.variationPct)}
+          <br />
+          <small className="muted">{signed(fu.perfSinceInceptionPct)}</small>
+        </td>
+        {/* Le cumulé depuis l'origine ne compare rien : un fonds né en mars et
+            un fonds né en 2019 n'ont pas couru la même distance. Ramené à
+            l'année, oui. Rien sous six mois de vie, on extrapolerait. */}
+        <td className="r num" title={t("Le taux constant qui, composé depuis la création, donnerait la performance cumulée")}>
+          {annual == null ? "—" : signed(annual)}
+          <br />
+          <small className="muted">{annual == null ? t("moins de six mois") : t("depuis le {d}", { d: fmtDate(fu.inceptionDate, false) })}</small>
+        </td>
+        <td>
+          <FundTermsForm offerId={o.id} fund={fu} />
+        </td>
+      </tr>
+    );
+  };
+  const groups: FundGroup[] = by === "aucun" ? [] : [...new Set(funds.map((o) => groupOf(o)))]
+    .sort((a, b2) => a.localeCompare(b2))
+    .map((label) => {
+      const rows = funds.filter((o) => groupOf(o) === label);
+      return {
+        id: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        label,
+        note: by === "gestion" ? [...new Set(rows.map((o) => o.fund!.depositary))].join(" · ") : [...new Set(rows.map((o) => o.fund!.manager))].join(" · "),
+        count: rows.length,
+        open: rows.filter((o) => o.fund?.distributed).length,
+        rows: <>{rows.map(fundRow)}</>,
+      };
+    });
 
   return (
     <>
@@ -227,6 +304,14 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
             {t("VL publiées par les sociétés de gestion agréées COSUMAF. Un fonds n'est proposé à la souscription qu'avec une convention de distribution : cochez « distribué », renseignez la référence, les droits et le minimum.")}
           </span>
         </div>
+        <div className={styles.groupPick} role="group" aria-label={t("Regrouper les fonds")}>
+          <span className="muted">{t("Regrouper par")}</span>
+          {GROUPINGS.map(([k, label]) => (
+            <Link key={k} href={`/desk/marche${k === "aucun" ? "" : `?groupe=${k}`}#opcvm`} className={by === k ? styles.groupOn : undefined}>
+              {t(label)}
+            </Link>
+          ))}
+        </div>
         {pendingByManager.size > 0 && (
           <div className={styles.managers}>
             {[...pendingByManager.entries()].map(([m, n]) => (
@@ -242,58 +327,24 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                 <th>{t("Société de gestion · dépositaire")}</th>
                 <th>{t("Catégorie")}</th>
                 <th className="r">VL</th>
-                <th className="r">{t("Var. · origine")}</th>
+                <th className="r">{t("Var. · depuis l'origine")}</th>
+                <th className="r">{t("Par an")}</th>
                 <th>{t("Conditions de distribution")}</th>
               </tr>
             </thead>
-            <tbody>
-              {funds.map((o) => {
-                const f = o.fund!;
-                return (
-                  <tr key={o.id} className={f.distributed ? undefined : styles.hiddenRow}>
-                    <td>
-                      <b>
-                        <Link href={`/offres/${o.id}`} style={{ textDecoration: "none" }}>
-                          {o.title}
-                        </Link>
-                      </b>
-                      <br />
-                      <small className="muted">{f.distributed ? `ouvert · convention ${f.agreementRef ?? "—"}` : "sur demande"}</small>
-                    </td>
-                    <td>
-                      {f.manager}
-                      <br />
-                      <small className="muted">{f.depositary}</small>
-                    </td>
-                    <td>
-                      {t(FUND_CATEGORY_LABEL[f.category])}
-                      <br />
-                      <small className="muted">{t(FUND_FREQUENCY_LABEL[f.frequency])}</small>
-                    </td>
-                    <td className="r num">
-                      {fmt(f.nav)}
-                      <br />
-                      <small className="muted">{fmtDate(f.navDate)}</small>
-                    </td>
-                    <td className="r num">
-                      {signed(f.variationPct)}
-                      <br />
-                      <small className="muted">{signed(f.perfSinceInceptionPct)}</small>
-                    </td>
-                    <td>
-                      <FundTermsForm offerId={o.id} fund={f} />
-                    </td>
-                  </tr>
-                );
-              })}
-              {funds.length === 0 && (
+            {funds.length === 0 ? (
+              <tbody>
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={7} className="muted">
                     {t("Aucun fonds : ils arrivent avec le premier bulletin ingéré.")}
                   </td>
                 </tr>
-              )}
-            </tbody>
+              </tbody>
+            ) : by === "aucun" ? (
+              <tbody>{funds.map(fundRow)}</tbody>
+            ) : (
+              <FundGroups groups={groups} cols={7} />
+            )}
           </table>
         </div>
       </div>
