@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
@@ -262,12 +262,13 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   return row;
 };
 
-type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean };
+type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean; email_opt_in?: boolean | null; tier?: number | null; created_at?: string | null };
 type CodeRow = { id: string; user_id: string | null; channel: ProofChannel; target: string; code_hash: string; expires_at: string; attempts: number; verified_at: string | null; created_at: string };
 const toCode = (r: CodeRow): ChannelCode => ({ id: r.id, userId: u(r.user_id), channel: r.channel, target: r.target, codeHash: r.code_hash, expiresAt: r.expires_at, attempts: r.attempts, verifiedAt: u(r.verified_at), createdAt: r.created_at });
 type DeviceRow = { id: string; user_id: string; kind: DeviceKind; name: string; credential_id: string | null; public_key: string | null; counter: number | null; secret_hash: string | null; failures: number; created_at: string; last_used_at: string | null };
 const toDevice = (r: DeviceRow): TrustedDevice => ({ id: r.id, userId: r.user_id, kind: r.kind, name: r.name, credentialId: u(r.credential_id), publicKey: u(r.public_key), counter: r.counter ?? undefined, secretHash: u(r.secret_hash), failures: r.failures, createdAt: r.created_at, lastUsedAt: u(r.last_used_at) });
-const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in });
+const PROFILE_COLS = "id, display_name, segment, phone, email, whatsapp_opt_in, email_opt_in, tier, created_at";
+const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in, emailOptIn: Boolean(r.email_opt_in), tier: (r.tier ?? 1) as 0 | 1 | 2, since: u(r.created_at) });
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
 const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
@@ -690,17 +691,21 @@ export const supabaseRepository: Repository = {
   },
 
   async listContacts() {
-    const { data, error } = await db().from("profiles").select("id, display_name, segment, phone, email, whatsapp_opt_in").eq("role", "client");
+    const { data, error } = await db().from("profiles").select(PROFILE_COLS).eq("role", "client");
     if (error) fail("listContacts", error);
     return (data as ProfileRow[]).map(toContact);
   },
   async getContact(id) {
-    const { data, error } = await db().from("profiles").select("id, display_name, segment, phone, email, whatsapp_opt_in").eq("id", id).maybeSingle();
+    const { data, error } = await db().from("profiles").select(PROFILE_COLS).eq("id", id).maybeSingle();
     if (error) fail("getContact", error);
     return data ? toContact(data as ProfileRow) : undefined;
   },
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
+    if (error) fail("setContactOptIn", error);
+  },
+  async setEmailOptIn(id, optIn) {
+    const { error } = await db().from("profiles").update({ email_opt_in: optIn, email_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);
     if (error) fail("setContactOptIn", error);
   },
   async listStaff() {
@@ -1046,6 +1051,19 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("quotes").select("*").eq("session_date", sessionDate);
     if (error) fail("quotesOn", error);
     return (data as QuoteRow[]).map(toQuote);
+  },
+  async quoteActivity(since) {
+    // Supabase rend mille lignes par appel : une année de séances en compte dix
+    // fois plus, et s'arrêter à la première page donnerait un taux calculé sur
+    // un dixième du marché, sans que rien ne le signale.
+    const out: QuoteActivity[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db().from("quotes").select("isin, session_date, volume_traded, value_traded, trades").gte("session_date", since).range(from, from + 999);
+      if (error) fail("quoteActivity", error);
+      const page = (data ?? []) as { isin: string; session_date: string; volume_traded: number; value_traded: string | number; trades: number }[];
+      out.push(...page.map((r) => ({ isin: r.isin, sessionDate: r.session_date, volumeTraded: Number(r.volume_traded ?? 0), valueTraded: Number(r.value_traded ?? 0), trades: Number(r.trades ?? 0) })));
+      if (page.length < 1000) return out;
+    }
   },
   async latestQuotes() {
     const { data, error } = await db().from("latest_quotes").select("*");

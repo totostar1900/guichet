@@ -5,7 +5,7 @@ import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
@@ -364,6 +364,10 @@ export const memoryRepository: Repository = {
     const c = store().contacts.find((x) => x.id === id);
     return c ? structuredClone(c) : undefined;
   },
+  async setEmailOptIn(id, optIn) {
+    const c = store().contacts.find((x) => x.id === id);
+    if (c) c.emailOptIn = optIn;
+  },
   async setContactOptIn(id, optIn) {
     const c = store().contacts.find((x) => x.id === id);
     if (c) c.whatsappOptIn = optIn;
@@ -655,6 +659,9 @@ export const memoryRepository: Repository = {
   },
   async quotesOn(sessionDate) {
     return structuredClone(store().quotes.filter((q) => q.sessionDate === sessionDate));
+  },
+  async quoteActivity(since) {
+    return store().quotes.filter((q) => q.sessionDate >= since).map((q) => ({ isin: q.isin, sessionDate: q.sessionDate, volumeTraded: q.volumeTraded, valueTraded: q.valueTraded, trades: q.trades }));
   },
   async latestQuotes() {
     const latest = new Map<string, Quote>();

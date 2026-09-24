@@ -1,7 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
 
 /**
@@ -50,6 +50,8 @@ export interface Repository {
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
+  /** Le consentement aux informations par courrier : le service n’en dépend pas. */
+  setEmailOptIn(id: string, optIn: boolean): Promise<void>;
   /** Desk team: who has desk access, at which level, with MFA or not. */
   listStaff(): Promise<StaffMember[]>;
   findProfileByEmail(email: string): Promise<StaffMember | undefined>;
@@ -131,6 +133,8 @@ export interface Repository {
   latestQuotes(): Promise<Quote[]>;
   /** Every line quoted at one session. */
   quotesOn(sessionDate: string): Promise<Quote[]>;
+  /** Les volumes échangés depuis une date, toutes lignes : de quoi calculer un taux de service. */
+  quoteActivity(since: string): Promise<QuoteActivity[]>;
   /** Idempotent on (fundKey, navDate). */
   upsertFundNavs(navs: FundNav[]): Promise<void>;
   listFundNavs(fundKey: string, limit?: number): Promise<FundNav[]>;

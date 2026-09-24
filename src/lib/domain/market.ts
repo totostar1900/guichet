@@ -38,6 +38,21 @@ export interface MarketBulletin {
  */
 export const tradedSession = (q: Pick<Quote, "volumeTraded" | "trades" | "status">): boolean => q.volumeTraded > 0 || q.trades > 0 || (q.status !== "" && q.status !== "NC");
 
+/**
+ * Une cotation réduite à ce qui dit si la ligne a traité.
+ *
+ * Le taux de service se calcule sur une année de séances, soit une dizaine
+ * de milliers de cotations. Les rapatrier entières pour n'en lire que trois
+ * colonnes coûterait une seconde à chaque ouverture de la page.
+ */
+export interface QuoteActivity {
+  isin: string;
+  sessionDate: string;
+  volumeTraded: number;
+  valueTraded: number;
+  trades: number;
+}
+
 export interface Quote {
   isin: string;
   sessionDate: string; // YYYY-MM-DD
