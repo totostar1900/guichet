@@ -7,6 +7,7 @@ import { fmt, fmtDate, fmtMillions } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { CounterAnswer } from "./CounterAnswer";
 import { ContactForm } from "./ContactForm";
+import { ConsentForm } from "./ConsentForm";
 import { PushToggle } from "@/components/PushToggle";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
@@ -162,6 +163,12 @@ export default async function MyPage() {
       <FoldSection group="moi" id="coordonnees" title={t("Mes coordonnées")} hint={!contact?.phone || !contact?.email ? `· ${t("à compléter")}` : "· WhatsApp ✓ · e-mail ✓"}>
       <div className="panel">
         <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
+        {/* Le consentement, à côté des coordonnées : c'est là qu'on se demande
+            qui peut nous écrire, pas trois panneaux plus loin. */}
+        <div className={styles.push}>
+          <b>{t("Informations et opportunités")}</b>
+          <ConsentForm whatsapp={Boolean(contact?.whatsappOptIn)} email={Boolean(contact?.emailOptIn)} hasPhone={Boolean(contact?.phone ?? s.phone)} hasEmail={Boolean(contact?.email ?? s.email)} />
+        </div>
         <div className={styles.push}>
           <b>{t("Alertes sur cet appareil")}</b>
           <PushToggle vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />

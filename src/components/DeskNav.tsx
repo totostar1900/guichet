@@ -20,6 +20,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     label: "Clients",
     tabs: [
       ["/desk/clients", "Dossiers"],
+      ["/desk/repertoire", "Répertoire"],
       ["/desk/messages", "Messages"],
     ],
   },

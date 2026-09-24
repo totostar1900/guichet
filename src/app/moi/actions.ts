@@ -61,6 +61,25 @@ export async function identityAction(_p: IdentityResult | null, form: FormData):
   return { ok: true, name, segment };
 }
 
+/**
+ * Ce que le client accepte de recevoir de notre initiative, canal par canal.
+ *
+ * Séparé des préférences : une préférence dit comment on nous joint le mieux,
+ * un consentement dit si l'on a le droit d'écrire. Les messages liés à ses
+ * ordres ne passent pas par là et ne se coupent pas : ils sont dus.
+ */
+export async function consentAction(channel: "whatsapp" | "email", on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  const s = await requireSession("/moi");
+  try {
+    if (channel === "email") await repo().setEmailOptIn(s.userId, on);
+    else await repo().setContactOptIn(s.userId, on);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
+  }
+  revalidatePath("/moi");
+  return { ok: true };
+}
+
 /** One preference at a time, saved as soon as it is touched: how the desk reaches you first, statements by e-mail. */
 export async function prefsAction(p: { reach?: "whatsapp" | "email" | "call"; statementsByEmail?: boolean }): Promise<{ ok: true } | { ok: false; error: string }> {
   const s = await requireSession("/moi");

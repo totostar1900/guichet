@@ -1,0 +1,69 @@
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-9);
+  margin-bottom: var(--s-7);
+  flex-wrap: wrap;
+}
+.head p {
+  max-width: 60ch;
+  margin: var(--s-4) 0 0;
+  font-size: 0.86rem;
+}
+.headLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.count {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+/* La barre de recherche et les filtres sur une ligne qui se replie. */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-6);
+}
+.filters input[name="q"] {
+  min-width: 16rem;
+  flex: 1 1 16rem;
+}
+.spacer {
+  flex: 1 1 var(--s-7);
+}
+.clear {
+  font-size: 0.8rem;
+}
+
+.wrap {
+  max-width: 24rem;
+}
+
+/* Le consentement : deux mots, l'un allumé, l'autre éteint. On lit d'un coup
+   d'œil qui peut recevoir quoi, ce qui est le but de la colonne. */
+.consents {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.consents span {
+  font-size: 0.72rem;
+  padding: 2px var(--s-3);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.yes {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.no {
+  background: var(--surface-2);
+  color: var(--ink-3);
+  text-decoration: line-through;
+}

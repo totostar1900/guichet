@@ -481,3 +481,19 @@
   flex-wrap: wrap;
   margin-top: var(--s-6);
 }
+
+/* Deux cases, et la phrase qui dit ce qu'elles ne coupent pas. */
+.consent {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+.consent label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  font-size: 0.9rem;
+}
+.consentOk {
+  color: var(--ink-2);
+}

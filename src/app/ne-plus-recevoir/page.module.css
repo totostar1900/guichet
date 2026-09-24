@@ -1,0 +1,29 @@
+/* Une page qu'on ouvre une fois, depuis un e-mail, souvent sur un téléphone :
+   une carte centrée, rien autour, et de quoi repartir. */
+.wrap {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  padding: var(--s-9) var(--s-7);
+}
+.card {
+  width: 100%;
+  max-width: 34rem;
+  padding: var(--s-9);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.card h1 {
+  margin: var(--s-4) 0 var(--s-6);
+  font-size: 1.5rem;
+}
+.card p {
+  margin: 0 0 var(--s-5);
+  line-height: 1.55;
+}
+.foot {
+  display: flex;
+  gap: var(--s-4);
+  margin-top: var(--s-7);
+}

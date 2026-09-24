@@ -120,5 +120,11 @@ export function documentSent(d: GeneratedDocument, o?: Offer): Message {
   return { subject: `${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}`, text };
 }
 
-export const emailHtml = (m: Message): string =>
-  `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.5;color:#14213A;max-width:640px"><div style="background:#0B2545;color:#fff;padding:14px 20px"><b style="letter-spacing:.14em;font-family:Georgia,serif">${COMPANY.name.toUpperCase()}</b><br><span style="color:#E0B65A;font-size:12px">${COMPANY.tagline}</span></div><div style="padding:20px;white-space:pre-line">${m.text.replace(/</g, "&lt;")}</div><div style="padding:0 20px 20px;font-size:11px;color:#7C8797">${COMPANY.legalName} · ${COMPANY.licence} · ${COMPANY.phone} · ${COMPANY.email}</div></div>`;
+/**
+ * L'enveloppe d'un e-mail. `optOut` : l'adresse qui coupe les envois
+ * d'information, présente sur ceux-là seulement. Un accusé de réception ou
+ * un avis d'opéré n'en porte pas, parce qu'ils ne se refusent pas : ils
+ * découlent d'un ordre que le client a passé.
+ */
+export const emailHtml = (m: Message, optOut?: string): string =>
+  `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.5;color:#14213A;max-width:640px"><div style="background:#0B2545;color:#fff;padding:14px 20px"><b style="letter-spacing:.14em;font-family:Georgia,serif">${COMPANY.name.toUpperCase()}</b><br><span style="color:#E0B65A;font-size:12px">${COMPANY.tagline}</span></div><div style="padding:20px;white-space:pre-line">${m.text.replace(/</g, "&lt;")}</div><div style="padding:0 20px 20px;font-size:11px;color:#7C8797">${COMPANY.legalName} · ${COMPANY.licence} · ${COMPANY.phone} · ${COMPANY.email}${optOut ? `<br><a href="${optOut}" style="color:#7C8797">Ne plus recevoir nos informations par e-mail</a>` : ""}</div></div>`;

@@ -6,6 +6,8 @@ import { fmtDateTime } from "@/lib/format";
 import { emailHtml, type Message } from "./compose";
 import { emailConfigured, sendEmail, sendWhatsAppTemplate, sendWhatsAppText, whatsappConfigured } from "./providers";
 import { pushConfigured, sendPush } from "./push";
+import { mayReceive } from "./consent";
+import { optOutUrl } from "@/lib/channels";
 
 /**
  * « Opportunité du moment » : one desk action fans out to every channel a
@@ -43,9 +45,16 @@ export async function planBroadcast(o: Offer, segment: string): Promise<Broadcas
   const alertedToday = new Set(notifications.filter((n) => n.kind === "opportunity" && new Date(n.createdAt).getTime() > since && n.status !== "failed").map((n) => n.contactName + "|" + n.to));
   const recipients: BroadcastPlan["recipients"] = [];
   let capped = 0;
+  // Les abonnements push d'abord : s'abonner depuis son téléphone est un
+  // consentement, et quelqu'un qui n'a que cela reste joignable.
+  const pushed = new Set((await r.listPushSubscriptions(contacts.map((c) => c.id))).map((p) => p.userId));
   for (const c of contacts) {
     const follower = followers.has(c.id);
     if (!follower && !matchesSegment(c, segment)) continue;
+    // Compter quelqu'un qui n'a consenti sur aucun canal, c'est annoncer au
+    // desk une portée qu'il n'a pas, et le laisser croire qu'il a prévenu.
+    const joignable = (c.phone && c.whatsappOptIn && mayReceive(c, "opportunity", "whatsapp")) || (c.email && mayReceive(c, "opportunity", "email")) || pushed.has(c.id);
+    if (!joignable) continue;
     const key = (to?: string) => c.name + "|" + (to ?? "");
     if ([c.phone, c.email].some((to) => to && alertedToday.has(key(to)))) {
       capped++;
@@ -110,19 +119,21 @@ export async function broadcastOpportunity(o: Offer, reason: string, segment: st
         return "push";
       });
     }
-    if (c.phone && c.whatsappOptIn) {
+    if (c.phone && c.whatsappOptIn && mayReceive(c, "opportunity", "whatsapp")) {
       const row = await record("whatsapp", c.phone, c.name, m);
       if (!whatsappConfigured()) {
         tally.skipped++;
         await r.updateNotification(row.id, { status: "skipped", error: "WhatsApp Cloud API non configuré" });
       } else await finish(row, () => (m.template && process.env.WA_FREEFORM !== "1" ? sendWhatsAppTemplate(c.phone!, m.template.name, m.template.params) : sendWhatsAppText(c.phone!, m.text)));
     }
-    if (c.email) {
+    // Le consentement, que ce chemin ne demandait pas : une opportunité partait
+    // à toute adresse connue, celles qui n'avaient rien demandé comprises.
+    if (c.email && mayReceive(c, "opportunity", "email")) {
       const row = await record("email", c.email, c.name, m);
       if (!emailConfigured()) {
         tally.skipped++;
         await r.updateNotification(row.id, { status: "skipped", error: "E-mail non configuré" });
-      } else await finish(row, () => sendEmail(c.email!, m.subject, emailHtml(m), m.text));
+      } else await finish(row, () => sendEmail(c.email!, m.subject, emailHtml(m, optOutUrl(c.id, "email")), m.text));
     }
   }
   await r.logEvent({ kind: "desk", offerId: o.id, html: `Opportunité du moment <b>${o.title}</b> diffusée par ${by} à ${tally.recipients} client${tally.recipients > 1 ? "s" : ""} : ${tally.sent} envoyé${tally.sent > 1 ? "s" : ""}, ${tally.queued} différé${tally.queued > 1 ? "s" : ""}, ${tally.skipped} en attente de configuration, ${tally.failed} en échec` });

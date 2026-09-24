@@ -150,3 +150,37 @@ export function readLineLink(token: string | undefined): string | null {
   if (!phone || !exp || Number(exp) < Date.now()) return null;
   return /^\+\d{8,15}$/.test(phone) ? phone : null;
 }
+
+/* ---------- ne plus recevoir : un lien qui marche sans compte ---------- */
+
+/**
+ * Se désinscrire ne doit pas demander de se connecter.
+ *
+ * Quelqu'un qui ne veut plus de nos messages n'a aucune raison de retrouver
+ * un mot de passe pour le dire, et l'obliger revient à ne pas lui laisser la
+ * porte ouverte. Le lien porte donc sa propre preuve : l'identifiant et le
+ * canal, signés du sel de la maison, valables un an.
+ *
+ * Il ne donne rien d'autre. Ouvrir ce lien coupe un envoi, il n'ouvre aucune
+ * session et ne montre aucune donnée.
+ */
+const OPTOUT_TTL_MS = 365 * 24 * 3600 * 1000;
+const optOutSign = (payload: string) => createHmac("sha256", pepper()).update(`optout|${payload}`).digest("base64url").slice(0, 27);
+
+export function signOptOut(userId: string, channel: "whatsapp" | "email"): string {
+  const payload = Buffer.from(`${userId}|${channel}|${Date.now() + OPTOUT_TTL_MS}`).toString("base64url");
+  return `${payload}.${optOutSign(payload)}`;
+}
+
+/** Ce qu'un jeton de désinscription prouve, ou rien quand il est forgé ou périmé. */
+export function readOptOut(token: string | undefined): { userId: string; channel: "whatsapp" | "email" } | null {
+  if (!token) return null;
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig || sig !== optOutSign(payload)) return null;
+  const [userId, channel, exp] = Buffer.from(payload, "base64url").toString().split("|");
+  if (!userId || !exp || Number(exp) < Date.now()) return null;
+  return channel === "whatsapp" || channel === "email" ? { userId, channel } : null;
+}
+
+/** L'adresse à poser au pied d'un message : un clic, et l'envoi s'arrête. */
+export const optOutUrl = (userId: string, channel: "whatsapp" | "email"): string => `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/ne-plus-recevoir?t=${signOptOut(userId, channel)}`;

@@ -4,6 +4,8 @@ import type { Contact, GeneratedDocument, Intent, IntentState, Notification, Not
 import { readSource } from "@/lib/intake/storage";
 import { positionsFrom } from "@/lib/positions";
 import { documentSent, emailHtml, intentReceived, intentUpdated, offerPublished, type Message } from "./compose";
+import { isPromotional, mayReceive } from "./consent";
+import { optOutUrl } from "@/lib/channels";
 import { emailConfigured, sendEmail, sendWhatsAppDocument, sendWhatsAppTemplate, sendWhatsAppText, whatsappConfigured } from "./providers";
 
 /**
@@ -16,12 +18,23 @@ interface Target {
   channel: NotifyChannel;
   to: string;
   name: string;
+  /** L’identifiant du client : le pied d’un message promotionnel en tire son lien de sortie. */
+  id?: string;
 }
 
-function targets(c: Contact, channels: NotifyChannel[]): Target[] {
+/**
+ * Les adresses joignables pour ce message.
+ *
+ * Le goulot par lequel passent tous les envois du desk, et donc le bon
+ * endroit pour la règle : un message de service part sur ce qu'on a, une
+ * information ou une opportunité seulement là où le client a dit oui.
+ * WhatsApp avait sa case depuis toujours, l'e-mail partait à toute adresse
+ * connue ; c'est cette asymétrie qui se referme ici.
+ */
+function targets(c: Contact, channels: NotifyChannel[], kind: NotifyKind): Target[] {
   const out: Target[] = [];
-  if (channels.includes("whatsapp") && c.phone && c.whatsappOptIn) out.push({ channel: "whatsapp", to: c.phone, name: c.name });
-  if (channels.includes("email") && c.email) out.push({ channel: "email", to: c.email, name: c.name });
+  if (channels.includes("whatsapp") && c.phone && c.whatsappOptIn && mayReceive(c, kind, "whatsapp")) out.push({ channel: "whatsapp", to: c.phone, name: c.name, id: c.id });
+  if (channels.includes("email") && c.email && mayReceive(c, kind, "email")) out.push({ channel: "email", to: c.email, name: c.name, id: c.id });
   return out;
 }
 
@@ -37,7 +50,9 @@ async function deliver(kind: NotifyKind, t: Target, m: Message, refs: { intentId
       else if (m.template && process.env.WA_FREEFORM !== "1") providerId = await sendWhatsAppTemplate(t.to, m.template.name, m.template.params);
       else providerId = await sendWhatsAppText(t.to, m.text);
     } else {
-      providerId = await sendEmail(t.to, m.subject, emailHtml(m), m.text, refs.pdf ? [{ filename: refs.pdf.filename, content: refs.pdf.bytes }] : []);
+      // Le lien de sortie, sur les messages qui partent de nous seulement : un
+      // avis d'opéré ne se refuse pas, il découle d'un ordre que le client a passé.
+      providerId = await sendEmail(t.to, m.subject, emailHtml(m, isPromotional(kind) && t.id ? optOutUrl(t.id, "email") : undefined), m.text, refs.pdf ? [{ filename: refs.pdf.filename, content: refs.pdf.bytes }] : []);
     }
     return r.updateNotification(row.id, { status: "sent", providerId, sentAt: new Date().toISOString() });
   } catch (e) {
@@ -68,7 +83,7 @@ export async function notifyOfferPublished(o: Offer, channels: string[], segment
   }
   for (const c of contacts) {
     const m = offerPublished(o, c.name.split(" ")[0]);
-    for (const t of targets(c, wanted)) {
+    for (const t of targets(c, wanted, "offer_published")) {
       const n = await deliver("offer_published", t, m, { offerId: o.id });
       tally[n.status === "sent" ? "sent" : n.status === "failed" ? "failed" : "skipped"] += 1;
     }
@@ -95,7 +110,7 @@ export async function notifyIntentReceived(i: Intent, o: Offer, estimate?: strin
   if (!c) return [];
   const m = intentReceived(i, o, estimate);
   const out: Notification[] = [];
-  for (const t of targets(c, ["whatsapp", "email"])) out.push(await deliver("intent_received", t, m, { intentId: i.id, offerId: o.id }));
+  for (const t of targets(c, ["whatsapp", "email"], "intent_received")) out.push(await deliver("intent_received", t, m, { intentId: i.id, offerId: o.id }));
   return out;
 }
 
@@ -104,7 +119,7 @@ export async function notifyIntentUpdated(i: Intent, o: Offer, state: IntentStat
   const c = await contactForIntent(i);
   if (!c) return;
   const m = intentUpdated(i, o, state, advisor);
-  for (const t of targets(c, ["whatsapp", "email"])) await deliver(state === "servie" || state === "non_servie" ? "results" : "intent_update", t, m, { intentId: i.id, offerId: o.id });
+  for (const t of targets(c, ["whatsapp", "email"], state === "servie" || state === "non_servie" ? "results" : "intent_update")) await deliver(state === "servie" || state === "non_servie" ? "results" : "intent_update", t, m, { intentId: i.id, offerId: o.id });
 }
 
 /** Sends a generated PDF to its client on one channel. */
@@ -117,7 +132,7 @@ export async function notifyDocument(d: GeneratedDocument, channel: NotifyChanne
   if (!c) return undefined;
   const o = await r.getOffer(i.offerId);
   const m = documentSent(d, o);
-  const [t] = targets(c, [channel]);
+  const [t] = targets(c, [channel], "document");
   if (!t) {
     return r.createNotification({ kind: "document", channel, to: "—", contactName: c.name, subject: m.subject, body: m.text, documentId: d.id, intentId: i.id, offerId: o?.id, status: "skipped", error: channel === "whatsapp" ? "Pas de numéro WhatsApp avec opt-in" : "Pas d'adresse e-mail" });
   }
@@ -134,7 +149,7 @@ export async function notifyClientDocument(d: GeneratedDocument, c: Contact, cha
   const r = repo();
   const o = d.offerId ? await r.getOffer(d.offerId) : undefined;
   const m = documentSent(d, o ?? undefined);
-  const [t] = targets(c, [channel]);
+  const [t] = targets(c, [channel], "document");
   if (!t) return r.createNotification({ kind: "document", channel, to: "—", contactName: c.name, subject: m.subject, body: m.text, documentId: d.id, intentId: d.intentId, offerId: d.offerId, status: "skipped", error: channel === "whatsapp" ? "Pas de numéro WhatsApp avec opt-in" : "Pas d'adresse e-mail" });
   const bytes = await readSource(d.fileKey);
   return deliver("document", t, m, { intentId: d.intentId, offerId: d.offerId, documentId: d.id, pdf: { bytes, filename: `${d.number}.pdf` } });
@@ -143,6 +158,6 @@ export async function notifyClientDocument(d: GeneratedDocument, c: Contact, cha
 /** A plain message to one contact on every channel they have (used by the followed-lines alerts). */
 export async function notifyRaw(kind: NotifyKind, c: Contact, m: { subject: string; text: string }, refs: { offerId?: string } = {}): Promise<Notification[]> {
   const out: Notification[] = [];
-  for (const t of targets(c, ["whatsapp", "email"])) out.push(await deliver(kind, t, { subject: m.subject, text: m.text }, refs));
+  for (const t of targets(c, ["whatsapp", "email"], kind)) out.push(await deliver(kind, t, { subject: m.subject, text: m.text }, refs));
   return out;
 }
