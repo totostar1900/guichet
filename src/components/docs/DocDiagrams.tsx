@@ -1,5 +1,6 @@
 import type { DiagramKind } from "@/data/docs/types";
 import { DOCUMENT_CHAIN } from "@/data/docs/chain";
+import figure from "@/app/desk/docs/docs.module.css";
 
 /**
  * The schemas of the documentation, drawn in SVG with the theme's tokens so
@@ -241,6 +242,24 @@ function wrap(text: string, n: number): string[] {
   }
   if (line.trim()) out.push(line.trim());
   return out;
+}
+
+/**
+ * Le cadre d'un schéma : la bordure, la marge, et surtout la taille.
+ *
+ * Un SVG sans largeur se replie à zéro pixel. Les pages de documentation le
+ * savaient et l'enveloppaient ; la page Documents du desk ne le savait pas, et
+ * le schéma y était invisible tout en étant parfaitement dessiné. La règle
+ * vaut donc pour tout le monde depuis un seul endroit, et un schéma posé
+ * ailleurs demain ne retombera pas dans le trou.
+ */
+export function DocFigure({ kind, lang, caption }: { kind: DiagramKind; lang: Lang; caption?: string }) {
+  return (
+    <figure className={figure.figure}>
+      <DocDiagram kind={kind} lang={lang} />
+      {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+  );
 }
 
 export function DocDiagram({ kind, lang }: { kind: DiagramKind; lang: Lang }) {

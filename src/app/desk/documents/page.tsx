@@ -14,7 +14,7 @@ import { BordereauButton, GenerateButton } from "./Buttons";
 import { markDocumentAction } from "./actions";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
-import { DocDiagram } from "@/components/docs/DocDiagrams";
+import { DocFigure } from "@/components/docs/DocDiagrams";
 import { DOCUMENT_CHAIN } from "@/data/docs/chain";
 
 export const dynamic = "force-dynamic";
@@ -301,7 +301,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
         {/* Le même schéma que la documentation, sur la même liste : il montre la
             suite, le tableau dessous ajoute le destinataire, et rien n'est écrit
             deux fois. */}
-        <DocDiagram kind="documents" lang={lang} />
+        <DocFigure kind="documents" lang={lang} />
         <div className="scroll-x">
           <table className="tbl">
             <thead>
