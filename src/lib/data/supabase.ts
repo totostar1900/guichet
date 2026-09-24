@@ -2,6 +2,7 @@ import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import type { CashEntry } from "@/lib/domain/cash";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -277,6 +278,14 @@ type AuditRow = { id: number; at: string; actor: string; actor_id: string | null
 const toAudit = (r: AuditRow): AuditEntry => ({ id: String(r.id), at: r.at, actor: r.actor, actorId: u(r.actor_id), action: r.action, entity: r.entity, entityId: r.entity_id, before: r.before ?? undefined, after: r.after ?? undefined, reason: u(r.reason), ip: u(r.ip), userAgent: u(r.user_agent), prevHash: u(r.prev_hash), hash: r.hash });
 type ApprovalRow = { id: string; kind: Approval["kind"]; entity_id: string; title: string; payload: Offer; reason: string; requested_by: string; requested_at: string; decided_by: string | null; decided_at: string | null; decision: Approval["decision"] | null; note: string | null };
 const toApproval = (r: ApprovalRow): Approval => ({ id: r.id, kind: r.kind, entityId: r.entity_id, title: r.title, payload: r.payload, reason: r.reason, requestedBy: r.requested_by, requestedAt: r.requested_at, decidedBy: u(r.decided_by), decidedAt: u(r.decided_at), decision: u(r.decision), note: u(r.note) });
+/**
+ * Un mouvement d'espèces. Le montant revient en chaîne depuis Postgres, parce
+ * qu'un numérique de précision ne tient pas toujours dans un nombre : on le
+ * convertit ici, une fois, plutôt qu'à chaque lecture.
+ */
+type CashRow = { id: string; user_id: string; at: string; amount: string | number; kind: CashEntry["kind"]; label: string; intent_id: string | null; due_by: string | null; created_by: string | null };
+const toCash = (r: CashRow): CashEntry => ({ id: r.id, userId: r.user_id, at: r.at, amount: Number(r.amount), kind: r.kind, label: r.label, intentId: u(r.intent_id), dueBy: u(r.due_by) });
+
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
 type NotifRow = {
@@ -798,6 +807,23 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("reference").delete().eq("kind", kind).eq("key", key);
     if (error) fail("deleteReference", error);
   },
+  // Le journal des espèces : la table est immuable, il n'y a donc ni mise à jour ni suppression.
+  async listCash(userId) {
+    const { data, error } = await db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true });
+    if (error) {
+      // Migration 0041 pas encore appliquée : un journal vide vaut mieux qu'une page en erreur.
+      if (/client_cash/.test(error.message)) return [];
+      fail("listCash", error);
+    }
+    return (data ?? []).map(toCash);
+  },
+  async addCash(entry) {
+    const row = { user_id: entry.userId, amount: entry.amount, kind: entry.kind, label: entry.label, intent_id: entry.intentId ?? null, due_by: entry.dueBy ?? null, created_by: entry.createdBy ?? null, ...(entry.at ? { at: entry.at } : {}) };
+    const { data, error } = await db().from("client_cash").insert(row).select("*").single();
+    if (error) fail("addCash", error);
+    return toCash(data);
+  },
+
   async listWatches(userId) {
     let q = db().from("watchlist").select("*").order("created_at", { ascending: false });
     if (userId) q = q.eq("user_id", userId);

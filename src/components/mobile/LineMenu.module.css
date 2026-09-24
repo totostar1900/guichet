@@ -1,10 +1,13 @@
 /* three bold gold dots, nothing around them */
+/* Un disque, pas trois points flottants : sur une carte, le geste vise une
+   cible, et une cible sans bord ne se voit qu'une fois qu'on sait qu'elle est
+   là. Le filet est discret, la surface suffit à la désigner. */
 .dots {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid transparent;
-  background: transparent;
+  border: 1px solid var(--line);
+  background: var(--surface);
   color: var(--gold);
   display: inline-flex;
   align-items: center;

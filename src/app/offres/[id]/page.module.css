@@ -245,18 +245,3 @@
 }
 
 /* the client's profile against this line: a quiet word by the status, never a wall */
-.profileMark {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--good);
-  text-decoration: none;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  padding: 3px 9px;
-  line-height: 1.3;
-  max-width: 100%;
-}
-.profileWarn {
-  color: var(--warn-ink, #9a5b00);
-  background: var(--warn-soft);
-}

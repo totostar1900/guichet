@@ -24,5 +24,5 @@ export default defineConfig({
   // seuls. Lancés tous ensemble, chacun n'a qu'une fraction du processeur, et
   // ils dépassent le plafond sans que rien ne soit cassé. Moitié des cœurs :
   // la suite finit plus vite qu'en se disputant la machine.
-  test: { include: ["src/**/*.test.ts", "src/**/*.test.tsx"], testTimeout: 90_000, hookTimeout: 90_000, maxWorkers: "50%", minWorkers: 1 },
+  test: { include: ["src/**/*.test.ts", "src/**/*.test.tsx"], testTimeout: 90_000, hookTimeout: 90_000, maxWorkers: "50%" },
 });

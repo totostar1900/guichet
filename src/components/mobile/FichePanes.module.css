@@ -59,6 +59,15 @@
     padding: 12px 14px;
     font-size: 0.9rem;
   }
+  .ctaSecond {
+    flex: 0 0 auto;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    border: 1px solid var(--navy);
+    background: var(--surface);
+    color: var(--navy);
+    font-weight: 600;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .cta {

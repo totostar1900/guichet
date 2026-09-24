@@ -2319,4 +2319,13 @@ export const EN_MORE: Record<string, string> = {
   "s'il est maintenu": "if it is maintained",
   "{n} actions au cours vendeur": "{n} shares at the ask",
   "règlement T+{n}": "settlement T+{n}",
+  "Votre profil financier : pas encore renseigné": "Your financial profile: not filled in yet",
+  "Cette ligne et votre profil": "This line and your profile",
+  "Répondre aux sept questions": "Answer the seven questions",
+  "Nous ne savons pas encore si cette ligne vous convient.": "We do not yet know whether this line suits you.",
+  "Sept questions, deux minutes : combien de temps vous pouvez laisser l'argent placé, ce qu'une baisse vous ferait, ce que vous pouvez placer cette année. Les fiches disent ensuite, d'un coup d'œil, si une ligne tient dans votre horizon.": "Seven questions, two minutes: how long you can leave the money invested, what a fall would mean to you, what you can invest this year. The line sheets then say, at a glance, whether a line fits within your horizon.",
+  "Vos réponses restent chez nous, elles ne servent qu'à vous prévenir ; vous pouvez les changer à tout moment, et une intention reste possible dans tous les cas.": "Your answers stay with us and serve only to warn you; you can change them at any time, and an intention remains possible in every case.",
+  "Ce n'est pas un refus : c'est un écart entre ce que cette ligne demande et ce que vous nous avez dit. Vous pouvez la déclarer quand même, en le confirmant dans le formulaire, et un conseiller en parlera avec vous avant toute transmission.": "This is not a refusal: it is a gap between what this line asks and what you told us. You can still declare it, by confirming so in the form, and an adviser will talk it through with you before anything is transmitted.",
+  "Sa durée tient dans l'horizon que vous nous avez donné. Cela ne dit rien du reste : le rendement n'est pas garanti, et les risques d'une ligne se lisent dans sa fiche.": "Its term fits within the horizon you gave us. That says nothing of the rest: the return is not guaranteed, and a line's risks are read on its sheet.",
+  "Le repère vient de vos réponses aux sept questions du profil. Si votre situation a changé, changez-les : les fiches suivront.": "The mark comes from your answers to the profile's seven questions. If your situation has changed, change them: the sheets will follow.",
 };

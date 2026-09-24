@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ListNav } from "@/components/ListNav";
+import { HorizonMark } from "@/components/HorizonMark";
 import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
@@ -98,18 +99,14 @@ export default async function OfferPage({ params, searchParams }: Props) {
             <LineIdentity o={o} s={summary} size="xl" as="h1" />
             <div className={styles.headActions}>
               <span className={`pill ${st}`} data-coach="status">{t(statusLabel(o, st))}</span>
-              {mark && (
-                <Link href="/moi/profil" className={`${styles.profileMark} ${mark.level === "warn" ? styles.profileWarn : ""}`} title={t("Votre profil financier")}>
-                  {mark[lang]}
-                </Link>
-              )}
+              {/* Le repère tient dans un rond : sa forme d'alerte prenait deux
+                  lignes dans l'en-tête, et il ne paraissait pas du tout à qui
+                  n'a pas de profil, donc rien ne disait qu'il en manquait un. */}
+              <HorizonMark level={mark?.level} text={mark?.[lang]} hasProfile={Boolean(fin)} />
               <div className={styles.headBtns}>
                 <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
                   {t("Fiche PDF")}
                 </a>
-                <Link className="btn sm ghost" href={`/comparer?a=${o.id}`}>
-                  {t("Comparer")}
-                </Link>
                 <WatchButton offerId={o.id} initial={watching} signedIn={Boolean(session)} />
                 <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${summary.subtitle} · ${summary.hero} ${summary.heroUnit ?? ""}`.trim() }} watching={watching} onFiche={false} pdf />
                 <CoachMarks id="fiche" replayLabel={t("Comment lire cette fiche ?")} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />

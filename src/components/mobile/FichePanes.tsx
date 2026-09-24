@@ -50,8 +50,11 @@ export function FicheSegments() {
 export function StickyAction({ label, href, secondaryHref, secondaryLabel }: { label: string; href: string; secondaryHref?: string; secondaryLabel?: string }) {
   return (
     <div className={styles.cta} data-coach="action">
+      {/* Il n'était qu'un « ghost » de petite taille à côté d'une action pleine
+          hauteur : il se lisait comme une note de bas de page. Même hauteur et un
+          contour franc, l'action gardant le poids. */}
       {secondaryHref && (
-        <a className="btn sm ghost" href={secondaryHref}>
+        <a className={`btn ${styles.ctaSecond}`} href={secondaryHref}>
           {secondaryLabel}
         </a>
       )}

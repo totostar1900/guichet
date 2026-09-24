@@ -4,6 +4,7 @@ import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import type { CashEntry } from "@/lib/domain/cash";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -87,6 +88,7 @@ interface Store {
   notifications: Notification[];
   inbound: InboundMessage[];
   watches: Watch[];
+  cash: CashEntry[];
   reference: ReferenceRow[];
   staff: StaffMember[];
   versions: OfferVersion[];
@@ -128,6 +130,7 @@ function store(): Store {
       notifications: [],
       inbound: seedInbound(),
       watches: [],
+      cash: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
       versions: [],
@@ -442,6 +445,14 @@ export const memoryRepository: Repository = {
       })
       .filter((r): r is ReferenceRow => r !== null);
     return done;
+  },
+  async listCash(userId) {
+    return structuredClone(store().cash.filter((c) => c.userId === userId).sort((a, b) => a.at.localeCompare(b.at)));
+  },
+  async addCash(entry) {
+    const row: CashEntry = { id: `cash-${store().cash.length + 1}`, at: entry.at ?? new Date().toISOString(), userId: entry.userId, amount: entry.amount, kind: entry.kind, label: entry.label, intentId: entry.intentId, dueBy: entry.dueBy };
+    store().cash.push(row);
+    return structuredClone(row);
   },
   async listWatches(userId) {
     return structuredClone(store().watches.filter((w) => !userId || w.userId === userId));

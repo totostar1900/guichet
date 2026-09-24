@@ -1,0 +1,43 @@
+/* L'étoile du suivi : même disque que le « ··· » d'à côté, pour que les deux
+   commandes de l'en-tête se lisent comme une paire et non comme deux objets
+   de familles différentes. */
+.star {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.star svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.star:hover,
+.star:focus-visible {
+  color: var(--gold-ink);
+  border-color: var(--gold-line);
+}
+.star:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+/* Suivie : l'étoile se remplit. C'est l'état, pas une couleur de plus. */
+.on {
+  color: var(--gold);
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+.on svg {
+  fill: currentColor;
+  stroke: none;
+}
