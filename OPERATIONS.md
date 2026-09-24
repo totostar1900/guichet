@@ -148,6 +148,12 @@ WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un 
 
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET` (sel des codes de preuve, des liens signés et des codes à quatre chiffres : ne pas le changer sans raison), `CRON_SECRET`, `NEXT_PUBLIC_APP_URL` (adresse publique, dans les liens envoyés ; les clés d'accès se lient au domaine réellement servi), `DESK_EMAILS` (amorçage seulement), `DESK_MFA` (vide = obligatoire), `INBOUND_SECRET`, `INTAKE_TRUSTED_SENDERS`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY` + `EMAIL_FROM`, `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` + `WHATSAPP_VERIFY_TOKEN`, `BOT_ENABLED`, `SETTLEMENT_BANK` + `SETTLEMENT_IBAN`, `NEWS_FEEDS` (flux RSS/Atom suivis en plus de celui de la BVMAC, séparés par des virgules), `VAPID_*` (notifications), `PHONE_OTP_*` (code par téléphone, facultatif), `OPENSANCTIONS_API_KEY` (facultatif). Voir `.env.example` pour le rôle de chacune. Le détail des services, des titulaires de compte et des coûts est dans desk › Documentation › « Plateformes, services et coûts ». Après un changement : *Redeploy*.
 
+### La chaîne d’audit
+
+Chaque ligne porte l’empreinte de la précédente. Deux actions simultanées pourraient lire la même dernière ligne et réclamer le même prédécesseur : l’index unique posé par la migration 0040 refuse la seconde, l’application relit et se remet à la suite. La chaîne reste une chaîne, chaque ligne n’ayant qu’un seul successeur.
+
+Le journal vérifie les 200 dernières lignes, sans filtre : changer d’onglet ne change pas le verdict. Une vraie rupture nomme la ligne en cause et sa date ; c’est elle et sa voisine qu’il faut regarder dans Supabase › Table `audit`, sans rien modifier, en prévenant le responsable.
+
 ### Renouveler une clef
 
 Aucune de ces clefs ne porte de date d'expiration : elles valent jusqu'à ce qu'on les révoque. Il n'y a donc rien à régler pour qu'elles expirent, et rien à fabriquer non plus : une expiration maison n'ajoute aucune sécurité et ajoute une façon de tomber en panne.

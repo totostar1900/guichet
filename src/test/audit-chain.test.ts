@@ -57,3 +57,30 @@ describe("la chaîne d'audit", () => {
     expect(chainState([line(1, "a")])).toEqual({ state: "short", checked: 1 });
   });
 });
+
+/**
+ * La course que l'index unique de la migration 0040 rend impossible.
+ *
+ * `logAudit` lit l'empreinte de la dernière ligne, puis insère. Deux actions
+ * simultanées lisaient la même et écrivaient le même `prev_hash` : deux lignes
+ * réclamant le même prédécesseur, donc une chaîne qui n'en est plus une, sans
+ * que personne ait touché à la base. C'est sa signature qu'on décrit ici, pour
+ * qu'on la reconnaisse si elle reparaissait.
+ */
+describe("deux lignes qui réclament le même prédécesseur", () => {
+  it("se voient comme une rupture", () => {
+    // d et c sont nées du même instant : toutes deux disent suivre b.
+    const course = [line(4, "d", "b"), line(3, "c", "b"), line(2, "b", "a"), line(1, "a")];
+    const r = chainState(course);
+    expect(r.state).toBe("broken");
+    // La plus récente est celle qui ne suit plus rien : c'est elle qu'on nomme.
+    if (r.state === "broken") expect(r.id).toBe("4");
+  });
+
+  it("laisse la chaîne saine quand la seconde a relu avant d'écrire", () => {
+    // Ce que fait la reprise : refusée par l'index, elle relit et se met à la
+    // suite de c au lieu de se mettre à côté.
+    const reprise = [line(4, "d", "c"), line(3, "c", "b"), line(2, "b", "a"), line(1, "a")];
+    expect(chainState(reprise).state).toBe("ok");
+  });
+});

@@ -1,0 +1,15 @@
+-- La course qui cassait la chaîne pour de bon.
+--
+-- `logAudit` lit l'empreinte de la dernière ligne, puis insère. Deux actions
+-- qui arrivent au même instant lisent la même, écrivent le même `prev_hash`,
+-- et la chaîne se rompt sans que personne ait touché à la base : deux lignes
+-- réclament le même prédécesseur, donc l'une des deux ne suit plus rien.
+--
+-- Cet index le rend impossible plutôt qu'improbable. La seconde insertion est
+-- refusée, l'application relit l'empreinte et recommence ; la chaîne reste une
+-- vraie chaîne, chaque ligne n'ayant qu'un seul successeur.
+--
+-- Partiel, car la toute première ligne n'a pas de prédécesseur, et une table
+-- vidée puis réamorcée en produirait une autre : Postgres accepte plusieurs
+-- NULL, et c'est exactement ce qu'on veut ici.
+create unique index if not exists audit_prev_hash_once on audit (prev_hash) where prev_hash is not null;

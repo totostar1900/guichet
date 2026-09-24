@@ -607,18 +607,37 @@ export const supabaseRepository: Repository = {
     if (error) return [];
     return (data as { offer_id: string; version: number; published_at: string; published_by_name: string | null; note: string | null; snapshot: Offer | null }[]).map((r) => ({ offerId: r.offer_id, version: r.version, publishedAt: r.published_at, publishedBy: u(r.published_by_name), note: u(r.note), snapshot: u(r.snapshot) }));
   },
+  /**
+   * Une ligne d'audit, chaînée à la précédente.
+   *
+   * Lire l'empreinte puis insérer laisse une fenêtre : deux actions
+   * simultanées lisent la même dernière ligne, écrivent le même `prev_hash`,
+   * et la chaîne se rompt sans que personne ait touché à la base. L'index
+   * unique de la migration 0040 refuse la seconde ; il ne reste qu'à relire
+   * et recommencer, ce que fait cette boucle.
+   *
+   * L'empreinte reste calculée ici et non dans une fonction SQL : elle porte
+   * sur `JSON.stringify`, dont l'ordre des clefs et l'échappement sont ceux
+   * de JavaScript. Les refaire en plpgsql donnerait deux calculs à tenir
+   * d'accord, et le jour où ils divergeraient la chaîne casserait vraiment.
+   */
   async logAudit(e) {
-    const { data: last } = await db().from("audit").select("hash").order("id", { ascending: false }).limit(1).maybeSingle();
-    const prevHash = (last as { hash: string } | null)?.hash;
-    const at = new Date().toISOString();
-    const hash = createHash("sha256").update((prevHash ?? "") + JSON.stringify({ at, ...e })).digest("hex");
-    const { data, error } = await db()
-      .from("audit")
-      .insert({ at, actor: e.actor, actor_id: e.actorId ?? null, action: e.action, entity: e.entity, entity_id: e.entityId, before: e.before ?? null, after: e.after ?? null, reason: e.reason ?? null, ip: e.ip ?? null, user_agent: e.userAgent ?? null, prev_hash: prevHash ?? null, hash })
-      .select("id")
-      .single();
-    if (error) fail("logAudit", error);
-    return { id: String((data as { id: number }).id), at, ...e, prevHash, hash };
+    for (let essai = 0; ; essai++) {
+      const { data: last } = await db().from("audit").select("hash").order("id", { ascending: false }).limit(1).maybeSingle();
+      const prevHash = (last as { hash: string } | null)?.hash;
+      const at = new Date().toISOString();
+      const hash = createHash("sha256").update((prevHash ?? "") + JSON.stringify({ at, ...e })).digest("hex");
+      const { data, error } = await db()
+        .from("audit")
+        .insert({ at, actor: e.actor, actor_id: e.actorId ?? null, action: e.action, entity: e.entity, entity_id: e.entityId, before: e.before ?? null, after: e.after ?? null, reason: e.reason ?? null, ip: e.ip ?? null, user_agent: e.userAgent ?? null, prev_hash: prevHash ?? null, hash })
+        .select("id")
+        .single();
+      if (!error) return { id: String((data as { id: number }).id), at, ...e, prevHash, hash };
+      // 23505 : quelqu'un a pris ce prédécesseur entre notre lecture et notre
+      // écriture. On relit et on se remet à la suite.
+      if (error.code !== "23505" || essai >= 4) fail("logAudit", error);
+      await new Promise((r) => setTimeout(r, 20 * (essai + 1)));
+    }
   },
   async listAudit(filter = {}) {
     let q = db().from("audit").select("*").order("id", { ascending: false }).limit(filter.limit ?? 100);
