@@ -49,7 +49,9 @@ export async function rereadAction(_prev: RereadResult | null, form: FormData): 
   }
 
   const rest = Math.max(0, pending.length - todo.length);
-  const parts = [`${todo.length} bulletin${todo.length > 1 ? "s" : ""} relu${todo.length > 1 ? "s" : ""}`];
+  // Nommer les séances reprises : depuis que la file tourne, « six relues » ne
+  // dit plus lesquelles, et c'est précisément ce qu'il faut pouvoir vérifier.
+  const parts = [`${todo.length} bulletin${todo.length > 1 ? "s" : ""} relu${todo.length > 1 ? "s" : ""} : ${todo.map((b) => b.sessionDate).join(", ")}`];
   if (cleared) parts.push(`${cleared} passé${cleared > 1 ? "s" : ""} en « ok »`);
   if (gained) parts.push(`${gained} gagne${gained > 1 ? "nt" : ""} des cours`);
   if (failed) parts.push(`${failed} en échec`);
