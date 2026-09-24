@@ -71,7 +71,7 @@ export function OrderFlows({ offer, quantity, amount, limit, type }: { offer: Of
  * titres ; `amount` porte les francs au primaire, où c'est une somme qu'on
  * soumet. Les deux arrivent, et chaque branche prend celui qui la concerne.
  */
-function orderFlows(o: Offer, quantity: number, amount: number, limit: number | null): CashFlow[] {
+export function orderFlows(o: Offer, quantity: number, amount: number, limit: number | null): CashFlow[] {
   try {
     if (o.kind === "MARCHE" && o.instrument === "obligation" && quantity > 0) {
       const ref = limit ?? o.ask ?? o.lastPrice ?? 0;

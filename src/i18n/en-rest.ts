@@ -802,4 +802,11 @@ export const EN_REST: Record<string, string> = {
   "mot": "word",
   "Aucun mot ne correspond.": "No word matches.",
   "Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.": "The glossary has its own search, an A → Z or by-category sort, and a grouping by category: debt securities, shares and companies, funds, your orders, the states of a line.",
+  "Ce que cette ligne vous verserait": "What this line would pay you",
+  "versements": "payments",
+  "versement": "payment",
+  "Total encaissé": "Total received",
+  "Coupon + capital": "Coupon + principal",
+  "Montants bruts, avant commission et avant fiscalité, en gardant la ligne jusqu'à l'échéance. Le prix d'exécution peut changer le décaissement, pas ces versements.": "Gross amounts, before commission and before tax, holding the line to maturity. The execution price can change the outlay, not these payments.",
+  "La BVMAC limite la variation d'un cours par séance ; un ordre trop éloigné du dernier cours ne serait pas exécuté. Vérifiez l'unité : un prix d'obligation se saisit en pourcentage du nominal (97 pour 97 %, pas 0,97), celui d'une action en FCFA par action.": "The BVMAC caps how far a price may move in a session; an order too far from the last price would not execute. Check the unit: a bond price is entered as a percentage of nominal (97 for 97 %, not 0.97), a share price in FCFA per share.",
 };
