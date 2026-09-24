@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setRegistry } from "@/lib/registry";
 import { BOND_TERMS } from "@/data/bond-terms";
-import { displayYield, marketBondCalc } from "@/lib/domain/status";
+import { displayYield, marketBondCalc, marketBondInput } from "@/lib/domain/status";
 import { explainKpis } from "@/lib/domain/explain";
 import { estimate } from "@/lib/domain/estimate";
 import type { Offer } from "@/lib/domain/types";
@@ -86,5 +86,35 @@ describe("le rendement d'une obligation cotée", () => {
     setRegistry({ bondTerms: new Map() });
     const soon = `${new Date().getFullYear()}-12-31`;
     expect(displayYield(line({ maturityOn: soon })).pct).toBeNull();
+  });
+});
+
+/**
+ * Le règlement tombe un jour ouvré.
+ *
+ * Il était compté en jours de calendrier : un ordre du jeudi réglait le
+ * dimanche. Deux jours de coupon couru de trop facturés au client, et une date
+ * de règlement impossible imprimée sur le bulletin d'ordre.
+ */
+describe("la date de règlement", () => {
+  const settleOf = (iso: string) => marketBondInput(line(), new Date(`${iso}T09:00:00Z`))!.settleOn;
+
+  it("saute le week-end", () => {
+    // Jeudi 24 sept. 2026 + 3 ouvrés = mardi 29, et non dimanche 27.
+    expect(settleOf("2026-09-24")).toBe("2026-09-29");
+    // Lundi + 3 = jeudi, aucune fin de semaine traversée.
+    expect(settleOf("2026-09-21")).toBe("2026-09-24");
+    // Vendredi + 3 = mercredi.
+    expect(settleOf("2026-09-25")).toBe("2026-09-30");
+  });
+
+  it("ne tombe jamais un samedi ni un dimanche", () => {
+    for (let i = 0; i < 14; i++) {
+      const d = new Date("2026-09-21T09:00:00Z");
+      d.setUTCDate(d.getUTCDate() + i);
+      const day = new Date(`${settleOf(d.toISOString().slice(0, 10))}T12:00:00Z`).getUTCDay();
+      expect(day, `règlement du ${d.toISOString().slice(0, 10)}`).toBeGreaterThan(0);
+      expect(day).toBeLessThan(6);
+    }
   });
 });

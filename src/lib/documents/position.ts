@@ -1,5 +1,6 @@
 import type { Intent, Offer } from "@/lib/domain/types";
-import { bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
+import { addBusinessDays, bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
+import { localIso } from "@/lib/format";
 import { marketBondCalc } from "@/lib/domain/status";
 
 /**
@@ -88,11 +89,7 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
     const sell = intent.type === "vente";
     const ref = intent.executedPrice ?? intent.limitPrice ?? (sell ? (offer.bid ?? offer.lastPrice ?? 0) : (offer.ask ?? offer.lastPrice ?? 0));
     const n = opts.unitsOverride ?? amount;
-    const settleOn = (() => {
-      const d = new Date(intent.createdAt);
-      d.setDate(d.getDate() + (offer.settlementDays ?? 3));
-      return d.toISOString().slice(0, 10);
-    })();
+    const settleOn = localIso(addBusinessDays(new Date(intent.createdAt), offer.settlementDays ?? 3));
     // Le même moteur que la fiche, au règlement de cet ordre : un relevé qui
     // compte une obligation amortissable comme une « in fine » annonce un
     // rendement que le client ne touchera pas.

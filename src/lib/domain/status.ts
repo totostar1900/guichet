@@ -1,5 +1,5 @@
 import type { DisplayStatus, Offer } from "./types";
-import { amortCalc, type AmortInput, bondCalc, type BondInput, type BondResult, btaCalc, parseDate, yearsBetween } from "../finance";
+import { addBusinessDays, amortCalc, type AmortInput, bondCalc, type BondInput, type BondResult, btaCalc, parseDate, yearsBetween } from "../finance";
 import { localIso } from "../format";
 import { enabledTypes, getRegistry, typeOf, type MarketSegment, type ProductType } from "@/lib/registry";
 export type { MarketSegment } from "@/lib/registry";
@@ -102,8 +102,7 @@ export function tenorYears(o: Offer): number {
 export function marketAmortInput(o: Offer, now = new Date(), settleOn?: string): AmortInput | null {
   const t = bondTerms(o.isin);
   if (!t || o.instrument !== "obligation" || o.couponRate == null) return null;
-  const settle = new Date(now);
-  settle.setDate(settle.getDate() + (o.settlementDays ?? 3));
+  const settle = addBusinessDays(now, o.settlementDays ?? 3);
   return { nominal: o.nominal, couponRate: o.couponRate, settleOn: settleOn ?? localIso(settle), maturityOn: t.maturityOn, periodsPerYear: t.periodsPerYear, graceUntil: t.graceUntil, commissionPct: o.commissionPct };
 }
 
@@ -136,8 +135,7 @@ export const maturityIsGuess = (o: Offer): boolean => o.kind === "MARCHE" && o.i
 
 export function marketBondInput(o: Offer, now = new Date(), on?: string): BondInput | null {
   if (o.instrument !== "obligation" || o.couponRate == null || !o.maturityOn) return null;
-  const settle = new Date(now);
-  settle.setDate(settle.getDate() + (o.settlementDays ?? 3));
+  const settle = addBusinessDays(now, o.settlementDays ?? 3);
   const settleOn = on ?? localIso(settle);
   let last = o.lastCouponOn ?? undefined;
   if (!last) {

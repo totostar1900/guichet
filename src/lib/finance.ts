@@ -239,7 +239,18 @@ export function amortCalc(b: AmortInput, nominalAmount: number, pricePct: number
   return { titles, accruedDays, accruedPerTitle, accrued: titles * accruedPerTitle, pricePerTitle, outlay, commission: (outlay * (b.commissionPct ?? 0)) / 100, gain, irr, flows };
 }
 
-/** The date n business days (Mon–Fri, holidays not known) after a moment. */
+/**
+ * Le règlement se compte en jours ouvrés, pas en jours de calendrier.
+ *
+ * T+3 sur un ordre passé jeudi règle le mardi suivant, pas le dimanche. Compté
+ * en jours de calendrier, la date de règlement se trompait d'un ou deux jours
+ * sur toute la fin de semaine, et avec elle le coupon couru facturé au client,
+ * qui court jusqu'au règlement et non jusqu'à la négociation.
+ *
+ * Les jours fériés ne sont pas connus ici : ils diffèrent d'un État de la zone
+ * à l'autre et demanderaient un calendrier tenu quelque part. Le week-end seul
+ * corrige déjà l'essentiel de l'écart.
+ */
 export function addBusinessDays(from: Date, n: number): Date {
   const d = new Date(from.getTime());
   let left = n;
