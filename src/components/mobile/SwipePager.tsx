@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory, type ListPeek } from "@/components/ListNav";
+import { neighbourReading } from "@/app/offres/[id]/neighbour";
 import styles from "./SwipePager.module.css";
 
 /**
@@ -96,6 +97,7 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       return null;
     }
   }, [raw, id]);
+  const [bodies, setBodies] = useState<Record<string, React.ReactNode>>({});
   const [hint, setHint] = useState(false);
   const [nudge, setNudge] = useState(false);
   // The neighbours: from the list memory for a fiche, from the page otherwise.
@@ -106,6 +108,30 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   const prevHref = resolve(prev);
   const nextHref = resolve(next);
   const ready = id ? Boolean(mem) : true;
+
+  /**
+   * Les deux fiches voisines, rendues et gardées.
+   *
+   * Demandées à l'ouverture et non au geste : quand le doigt part, elles sont
+   * déjà là, et c'est la vraie lecture qui glisse, pas une vignette. Seules les
+   * fiches en ont : le Guide, qui passe d'une leçon à l'autre par le même
+   * composant, garde sa vignette.
+   */
+  const wantIds = useMemo(() => (id ? [prevHref, nextHref].map((h) => h?.split("/").pop()).filter((x): x is string => Boolean(x)) : []), [id, prevHref, nextHref]);
+  const asked = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!ready || !window.matchMedia("(max-width: 760px)").matches) return;
+    for (const nid of wantIds) {
+      if (asked.current.has(nid)) continue;
+      asked.current.add(nid);
+      neighbourReading(nid)
+        .then((node) => setBodies((b) => (node ? { ...b, [nid]: node } : b)))
+        .catch(() => {
+          // la vignette reste : mieux vaut un résumé qu'un trou
+          asked.current.delete(nid);
+        });
+    }
+  }, [ready, wantIds]);
 
   // The neighbours are fetched ahead so the snap lands on a ready page; the first time, the page steps aside and a word says why.
   useEffect(() => {
@@ -227,19 +253,23 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
 
   // The step aside goes towards the next neighbour, or the previous one when there is no next.
   const nudgeDir = nudge ? (nextHref ? "next" : prevHref ? "prev" : null) : null;
+  // La vraie page voisine, quand elle est arrivée : la vignette lui laisse alors toute la place,
+  // sans marge à elle, pour que rien ne bouge au moment où la page prend le relais.
+  const prevBody = bodies[prevHref?.split("/").pop() ?? ""];
+  const nextBody = bodies[nextHref?.split("/").pop() ?? ""];
   return (
     <div ref={root} className={styles.pager}>
       <div ref={cur} className={`${styles.cur} ${nudgeDir === "next" ? styles.nudgeNext : nudgeDir === "prev" ? styles.nudgePrev : ""}`}>
         {children}
       </div>
       {ready && prev && (
-        <div className={`${styles.peek} ${styles.prev} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
-          <PeekBody n={prev} pos={`← ${prev.pos}`} go={t("Relâchez pour ouvrir")} />
+        <div className={`${styles.peek} ${styles.prev} ${prevBody ? styles.peekFull : ""} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
+          <PeekBody n={prev} pos={`← ${prev.pos}`} go={t("Relâchez pour ouvrir")} body={prevBody} />
         </div>
       )}
       {ready && next && (
-        <div className={`${styles.peek} ${styles.next} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
-          <PeekBody n={next} pos={`${next.pos} →`} go={t("Relâchez pour ouvrir")} />
+        <div className={`${styles.peek} ${styles.next} ${nextBody ? styles.peekFull : ""} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
+          <PeekBody n={next} pos={`${next.pos} →`} go={t("Relâchez pour ouvrir")} body={nextBody} />
         </div>
       )}
       <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">
@@ -259,8 +289,12 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
  * Une liste d'une autre session n'a peut-être rien de tout cela : le titre
  * seul reste alors, comme avant.
  */
-function PeekBody({ n, pos, go }: { n: Neighbour; pos: string; go: string }) {
+function PeekBody({ n, pos, go, body }: { n: Neighbour; pos: string; go: string; body?: React.ReactNode }) {
   const p = n.peek;
+  // La vraie lecture est là : elle remplace le résumé, et rien ne s'ajoute par-dessus.
+  // Sa barre de retour porte déjà « 2 / 45 » et « Suivante » : un second repère aurait
+  // disparu au relâchement, puisque la vraie page ne l'a pas.
+  if (body) return <div className={styles.peekPage}>{body}</div>;
   return (
     <div className={styles.peekBody}>
       <span className={styles.peekPos}>{pos}</span>

@@ -38,6 +38,26 @@
     pointer-events: none;
   }
   /* the words stay in view wherever the list was scrolled */
+  /* La vraie fiche du voisin : elle se lit du haut, et ce qui dépasse est coupé. */
+  .peekPage {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  /* Le repère de position flotte : dans le flux, il poussait la page d'une ligne
+     et tout redescendait au relâchement. */
+  .peekPage .peekPos {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    z-index: 2;
+  }
+  /* La page voisine porte ses propres marges, et son bord : la vignette n'ajoute ni l'une
+     ni l'autre. Au pixel près, ce qui entre est posé où la vraie page se posera. */
+  .peekFull {
+    padding: 0;
+    border: 0;
+  }
   .peekBody {
     position: sticky;
     top: 68px;
@@ -82,7 +102,13 @@
     opacity: 1;
     transform: none;
   }
-  .peek b {
+  /* Le titre du résumé, et lui seul.
+
+     « .peek b » attrapait aussi chaque gras de la fiche voisine, maintenant rendue
+     là pour de bon : les chiffres héritaient d'une hauteur de ligne de 1,25 au lieu
+     de 1,5 et perdaient quatre pixels chacun. La page entrait donc plus courte
+     qu'elle ne ressortait, et tout se replaçait au relâchement. */
+  .peekBody b {
     font-size: 1.15rem;
     line-height: 1.25;
     color: var(--ink);
