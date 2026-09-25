@@ -31,7 +31,6 @@ import { BarProbe } from "@/components/mobile/BarProbe";
 import { cookies, headers } from "next/headers";
 import { deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
-import { Suspense } from "react";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
@@ -96,9 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LangProvider lang={lang}>
         <AuthHashRedirect />
         <PaletteKeeper saved={account?.prefs} />
-        <Suspense>
-          <BarProbe />
-        </Suspense>
+        <BarProbe />
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons} issuers={issuersForClient(issuers)}>
         <TermSheetHost />
         <header className={styles.top}>
@@ -116,9 +113,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {t("démo · mémoire")}
                 </span>
               )}
-              <Suspense>
-                <LangSwitch />
-              </Suspense>
+              <LangSwitch />
               <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY } : undefined} />
               {menu}
             </div>

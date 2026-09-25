@@ -1,7 +1,6 @@
 import { IndexPulse } from "@/components/IndexPulse";
 import { fold } from "@/lib/text";
 import Link from "next/link";
-import { Suspense } from "react";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { getLang, getT } from "@/i18n/server";
@@ -71,9 +70,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
         <IndexPulse />
 
         <div data-coach="filters">
-          <Suspense>
-            <Toolbar placeholder={t("Une ligne, un émetteur, un mot")} chipKey="rubrique" chips={[{ value: "", label: t("Tout") }, ...RUBRICS.map((r) => ({ value: r, label: t(RUBRIC_LABEL[r]), count: all.filter((n) => n.rubric === r).length || undefined }))]} />
-          </Suspense>
+          <Toolbar placeholder={t("Une ligne, un émetteur, un mot")} chipKey="rubrique" chips={[{ value: "", label: t("Tout") }, ...RUBRICS.map((r) => ({ value: r, label: t(RUBRIC_LABEL[r]), count: all.filter((n) => n.rubric === r).length || undefined }))]} />
         </div>
 
         {featured && (

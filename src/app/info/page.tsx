@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { loadLessons } from "@/lib/reference";
 import { getRegistry } from "@/lib/registry";
@@ -64,11 +63,9 @@ export default async function InfoPage() {
           id="lecons"
           title={t("Huit leçons courtes")}
           aside={
-            <Suspense>
-              <Link className="btn sm" href="/info/aide" data-coach="info-aide">
-                {t("Aide : vos questions, nos réponses")} →
-              </Link>
-            </Suspense>
+            <Link className="btn sm" href="/info/aide" data-coach="info-aide">
+              {t("Aide : vos questions, nos réponses")} →
+            </Link>
           }
         >
         <div className={styles.lessons} data-coach="info-lessons">

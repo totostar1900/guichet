@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { Toolbar } from "@/components/ui/Toolbar";
@@ -68,18 +67,16 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     <>
       <DeskNav current="/desk/messages" badges={{ "/desk/messages": unread }} />
       {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} />}
-      <Suspense>
-        <Toolbar
-          placeholder={t("Nom, numéro, adresse, texte…")}
-          chipKey="etat"
-          chips={[
-            { value: "", label: t("Toutes"), count: all.length },
-            { value: "a_traiter", label: t("À traiter"), count: all.filter((t) => t.unread > 0).length },
-            { value: "traites", label: t("Traitées") },
-          ]}
-          selects={[{ key: "canal", label: t("Canal"), all: "tous", options: [{ value: "whatsapp", label: t("WhatsApp") }, { value: "email", label: t("E-mail") }] }]}
-        />
-      </Suspense>
+      <Toolbar
+        placeholder={t("Nom, numéro, adresse, texte…")}
+        chipKey="etat"
+        chips={[
+          { value: "", label: t("Toutes"), count: all.length },
+          { value: "a_traiter", label: t("À traiter"), count: all.filter((t) => t.unread > 0).length },
+          { value: "traites", label: t("Traitées") },
+        ]}
+        selects={[{ key: "canal", label: t("Canal"), all: "tous", options: [{ value: "whatsapp", label: t("WhatsApp") }, { value: "email", label: t("E-mail") }] }]}
+      />
 
       <div className={styles.layout} data-coach="inbox">
         <aside className={styles.list}>

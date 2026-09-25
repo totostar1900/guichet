@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useActionState, useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { useT } from "@/i18n/client";
 import { logout, logoutEverywhere } from "@/app/connexion/actions";
 import { identityAction, prefsAction, type IdentityResult } from "@/app/moi/actions";
@@ -220,9 +220,7 @@ export function AccountMenu(p: AccountProps) {
             <span>
               <b>{t("Langue")}</b>
             </span>
-            <Suspense>
-              <LangSwitch compact />
-            </Suspense>
+            <LangSwitch compact />
           </div>
           {p.vapidKey && (
             <div className={`${styles.pref} ${styles.prefCol}`}>

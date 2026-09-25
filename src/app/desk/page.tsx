@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { textMatch } from "@/lib/text";
 import { PageOutline } from "@/components/PageOutline";
@@ -170,23 +169,21 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {t("{n} au total · {m} à traiter", { n: intents.length, m: todo })}{shown.length !== intents.length ? ` · ${t(shown.length > 1 ? "{k} affichées" : "{k} affichée", { k: shown.length })}` : ""}
             </span>
           </div>
-          <Suspense>
-            <Toolbar
-              inset
-              placeholder={t("Réf., client, ligne, téléphone…")}
-              chipKey="etat"
-              chips={[
-                { value: "", label: t("Toutes"), count: intents.length },
-                { value: "recue", label: t("À traiter"), count: counts.recue },
-                { value: "confirmee", label: t("Confirmées"), count: counts.confirmee },
-                { value: "transmise", label: t("Transmises"), count: counts.transmise },
-                { value: "finie", label: t("Servies · réglées"), count: counts.finie },
-                { value: "annulee", label: t("Annulées"), count: counts.annulee },
-              ]}
-              selects={[{ key: "ligne", label: t("Ligne"), all: t("toutes les lignes"), options: lines }]}
-              sort={{ key: "tri", label: t("Tri"), options: [{ value: "recent", label: t("plus récent") }, { value: "ancien", label: t("plus ancien") }, { value: "montant", label: t("montant") }, { value: "client", label: t("client") }] }}
-            />
-          </Suspense>
+          <Toolbar
+            inset
+            placeholder={t("Réf., client, ligne, téléphone…")}
+            chipKey="etat"
+            chips={[
+              { value: "", label: t("Toutes"), count: intents.length },
+              { value: "recue", label: t("À traiter"), count: counts.recue },
+              { value: "confirmee", label: t("Confirmées"), count: counts.confirmee },
+              { value: "transmise", label: t("Transmises"), count: counts.transmise },
+              { value: "finie", label: t("Servies · réglées"), count: counts.finie },
+              { value: "annulee", label: t("Annulées"), count: counts.annulee },
+            ]}
+            selects={[{ key: "ligne", label: t("Ligne"), all: t("toutes les lignes"), options: lines }]}
+            sort={{ key: "tri", label: t("Tri"), options: [{ value: "recent", label: t("plus récent") }, { value: "ancien", label: t("plus ancien") }, { value: "montant", label: t("montant") }, { value: "client", label: t("client") }] }}
+          />
           <div className="scroll-x">
             <table className="tbl">
               <thead>
@@ -288,21 +285,19 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {book.length === rows.length ? t("prises fermes en navy, appétits en or") : t("{k} sur {n} · prises fermes en navy, appétits en or", { k: book.length, n: rows.length })}
             </span>
           </div>
-          <Suspense>
-            <Toolbar
-              inset
-              searchKey="bq"
-              placeholder={t("Ligne, émetteur, ISIN…")}
-              chipKey="filtre"
-              chips={[
-                { value: "", label: t("Toutes"), count: rows.length },
-                { value: "fermes", label: t("Avec prises fermes"), count: chip("fermes").length },
-                { value: "sans-suite", label: t("Sans intention"), count: chip("sans-suite").length },
-                { value: "sans-prix", label: t("Sans prix"), count: chip("sans-prix").length },
-              ]}
-              selects={[{ key: "genre", label: t("Type"), all: t("tous les types"), options: kinds }]}
-            />
-          </Suspense>
+          <Toolbar
+            inset
+            searchKey="bq"
+            placeholder={t("Ligne, émetteur, ISIN…")}
+            chipKey="filtre"
+            chips={[
+              { value: "", label: t("Toutes"), count: rows.length },
+              { value: "fermes", label: t("Avec prises fermes"), count: chip("fermes").length },
+              { value: "sans-suite", label: t("Sans intention"), count: chip("sans-suite").length },
+              { value: "sans-prix", label: t("Sans prix"), count: chip("sans-prix").length },
+            ]}
+            selects={[{ key: "genre", label: t("Type"), all: t("tous les types"), options: kinds }]}
+          />
           {/* Vingt lignes à la fois : au-delà, la boîte défile sous son en-tête,
               et « Tout afficher » rend au tableau sa hauteur entière. */}
           <TallTable total={book.length}>

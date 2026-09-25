@@ -1,6 +1,5 @@
 import { fold } from "@/lib/text";
 import Link from "next/link";
-import { Suspense } from "react";
 import { DeskNav } from "@/components/DeskNav";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { AUDIENCE_LABEL, DOCS, searchEntries, type Audience } from "@/data/docs";
@@ -54,9 +53,7 @@ export default async function DocsIndex({ searchParams }: { searchParams: Promis
       </div>
 
       <div data-coach="docs-search">
-        <Suspense>
-          <Toolbar placeholder={t("Un mot, une question, une page")} chipKey="pour" chips={[{ value: "", label: t("Tout") }, ...AUDIENCES.map((a) => ({ value: a, label: AUDIENCE_LABEL[a][lang], count: DOCS.filter((d) => d.audience.includes(a)).length }))]} />
-        </Suspense>
+        <Toolbar placeholder={t("Un mot, une question, une page")} chipKey="pour" chips={[{ value: "", label: t("Tout") }, ...AUDIENCES.map((a) => ({ value: a, label: AUDIENCE_LABEL[a][lang], count: DOCS.filter((d) => d.audience.includes(a)).length }))]} />
       </div>
 
       {q ? (

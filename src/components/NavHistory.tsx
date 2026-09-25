@@ -1,6 +1,5 @@
 import type { FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
-import { Suspense } from "react";
 import { NavPeriod } from "./NavPeriod";
 import styles from "./QuoteHistory.module.css";
 import { getT } from "@/i18n/server";
@@ -15,9 +14,7 @@ export async function NavHistory({ navs, benchmark }: { navs: FundNav[]; benchma
 
   return (
     <div className={styles.wrap}>
-      <Suspense>
-        <NavPeriod series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} benchmark={benchmark} />
-      </Suspense>
+      <NavPeriod series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} benchmark={benchmark} />
       <dl className={styles.frame}>
         <div>
           <dt>{t("Dernière VL")}</dt>

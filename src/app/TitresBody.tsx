@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { BackToTop } from "@/components/BackToTop";
 import { repo } from "@/lib/data";
@@ -22,9 +21,7 @@ export async function TitresBody() {
   return (
     <>
       <IndexPulse compact />
-      <Suspense>
-        <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
-      </Suspense>
+      <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
       <BackToTop />
     </>
   );

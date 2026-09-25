@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { ChapterLinks } from "@/app/desk/docs/Outline";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
@@ -56,9 +55,7 @@ export default async function ParcoursPage() {
             <span>{t("Les dix acteurs du parcours, dans l'ordre où votre argent les rencontre.")}</span>
           </div>
         </div>
-        <Suspense>
-          <Parcours sections={SECTIONS} lessons={lessons} />
-        </Suspense>
+        <Parcours sections={SECTIONS} lessons={lessons} />
         <BackToTop lift />
         <GuideBar pos={{ label: t("Le Guide · parcours") }} />
         <CoachMarks
