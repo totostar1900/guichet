@@ -4,7 +4,7 @@ import { fold } from "@/lib/text";
 import { useSearchCommit } from "@/lib/ui/commit-search";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
@@ -180,24 +180,40 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   // l'URL à chaque touche relançait le rendu de la page entre deux lettres,
   // et le champ retardait sur le clavier. La liste, elle, se refiltre tout de
   // suite : c'est `draft` qu'elle lit, pas l'adresse.
+  //
+  // L'attente compte. Au desk, la page se rend à chaque requête, et l'adresse
+  // met une seconde ou deux à changer : une écriture partie trois lettres plus
+  // tôt atterrissait après la suivante, et comme on ne se souvenait que de la
+  // dernière, elle passait pour une adresse venue d'ailleurs. Le champ reculait
+  // alors d'une lettre, parfois de trois. « corridor » tapé posément y devenait
+  // « corrid ».
+  //
+  // Deux corrections. L'écriture passe par une transition, donc on sait qu'une
+  // est en vol et on ne relit pas l'adresse pendant ce temps. Et la pause passe
+  // de 180 à 400 ms, plus longue que l'hésitation d'un doigt : une frappe posée
+  // ne déclenche plus un rendu complet par lettre.
   const [draft, setDraft] = useState(q);
   const pushed = useRef(q);
+  const [pushing, startPush] = useTransition();
   useEffect(() => {
     if (draft === pushed.current) return;
     const id = window.setTimeout(() => {
       pushed.current = draft;
-      update({ q: draft || undefined });
-    }, 180);
+      startPush(() => update({ q: draft || undefined }));
+    }, 400);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft]);
-  // Un retour arrière, un lien ouvert : l'adresse a changé sans nous.
+  // Un retour arrière, un lien ouvert : l'adresse a changé sans nous. Jamais
+  // pendant qu'une de nos écritures est en vol, sans quoi c'est la nôtre, en
+  // retard, qu'on prendrait pour celle d'un autre.
   useEffect(() => {
+    if (pushing) return;
     if (q !== pushed.current) {
       pushed.current = q;
       setDraft(q);
     }
-  }, [q]);
+  }, [q, pushing]);
   const setQ = (v: string) => {
     pushed.current = v;
     setDraft(v);
