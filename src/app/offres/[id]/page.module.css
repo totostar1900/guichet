@@ -223,10 +223,20 @@
     align-items: center;
     gap: 8px;
     width: 100%;
+    /* Sans retour à la ligne, la rangée de boutons ne pouvait pas descendre :
+       elle restait sur la ligne du cachet et rétrécissait jusqu'à déborder. */
+    flex-wrap: wrap;
   }
+  /* Sa propre ligne, pleine largeur, alignée sur le texte.
+
+     « width: 100% » ne suffisait pas : en élément de flex sans retour à la ligne,
+     la rangée se faisait comprimer à la place qui restait, 142 pixels. « Comment
+     lire cette fiche ? » passait alors dessous, décalé de 181 pixels vers la
+     droite au lieu de commencer au bord du texte, et la rangée débordait la carte
+     de cinq pixels. Une base de 100 % la fait descendre entière. */
   .headBtns {
     margin-left: 0;
-    width: 100%;
+    flex: 0 0 100%;
     justify-content: flex-start;
   }
   .sec {
