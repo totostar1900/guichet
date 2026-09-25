@@ -2355,4 +2355,12 @@ export const EN_MORE: Record<string, string> = {
   "au marché": "at market",
   "{n} titres à l'achat sans contrepartie": "{n} titles bid with no counterparty",
   "{n} titres à la vente sans contrepartie": "{n} titles offered with no counterparty",
+  "Un client connecté apprend qu'une contrepartie existe sur la ligne, sans nom ni prix": "A signed-in client learns that a counterparty exists on the line, with no name and no price",
+  "dire au client qu'une contrepartie existe": "tell the client a counterparty exists",
+  "Montrer les titres cherchés en face, et non seulement leur présence": "Show the titles sought on the other side, not only that someone is there",
+  "avec les quantités": "with quantities",
+  "À partir de combien d'ordres en face": "From how many orders on the other side",
+  "ordre(s) en face au minimum": "order(s) on the other side at least",
+  "Les clients connectés voient qu'une contrepartie existe.": "Signed-in clients see that a counterparty exists.",
+  "Le carnet reste au desk : le client n'en voit rien.": "The book stays with the desk : the client sees none of it.",
 };

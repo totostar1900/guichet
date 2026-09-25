@@ -2,7 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { useActionState } from "react";
-import { executeOrderAction, fundBordereauAction, ingestBocAction, settleOrderAction, toggleHiddenAction, updateFundTermsAction, updateQuoteAction, uploadBocAction, type MarketResult } from "./actions";
+import { executeOrderAction, fundBordereauAction, ingestBocAction, saveSignalPolicyAction, settleOrderAction, toggleHiddenAction, updateFundTermsAction, updateQuoteAction, uploadBocAction, type MarketResult } from "./actions";
 import styles from "./page.module.css";
 
 function Msg({ state }: { state: MarketResult | null }) {
@@ -118,6 +118,35 @@ export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { dist
       <input name="trailerPct" type="number" step="0.01" min={0} max={10} defaultValue={fund.trailerPct ?? ""} placeholder={t("rétroc. %/an")} aria-label={t("Rétrocession sur encours %, desk seulement")} className={styles.short} />
       <input name="minAmount" type="number" step={1000} min={0} defaultValue={fund.minAmount} placeholder={t("minimum")} aria-label={t("Souscription minimale (FCFA)")} className={styles.num} />
       <input name="cutoff" defaultValue={fund.cutoff ?? ""} placeholder={t("centralisation (ex. mardi 12 h)")} aria-label={t("Centralisation")} className={styles.wide} />
+      <button className="btn sm" type="submit" disabled={pending}>
+        {t(pending ? "…" : "Enregistrer")}
+      </button>
+      <Msg state={state} />
+    </form>
+  );
+}
+
+/**
+ * L'interrupteur du signal, sous le carnet qu'il publie.
+ *
+ * Il vit là plutôt que dans un écran de réglages parce que la question ne se
+ * pose qu'en regardant le carnet : ouvrir, c'est dire à un porteur qu'une
+ * contrepartie existe, et il faut avoir sous les yeux ce qu'on s'apprête à
+ * dire. Le responsable seul peut le toucher, et le refus vient du serveur.
+ */
+export function SignalForm({ p }: { p: { tell: boolean; minOrders: number; showDepth: boolean } }) {
+  const t = useT();
+  const [state, action, pending] = useActionState<MarketResult | null, FormData>(saveSignalPolicyAction, null);
+  return (
+    <form action={action} className={styles.inline}>
+      <label className={styles.check} title={t("Un client connecté apprend qu'une contrepartie existe sur la ligne, sans nom ni prix")}>
+        <input type="checkbox" name="tell" value="on" defaultChecked={p.tell} /> {t("dire au client qu'une contrepartie existe")}
+      </label>
+      <label className={styles.check} title={t("Montrer les titres cherchés en face, et non seulement leur présence")}>
+        <input type="checkbox" name="showDepth" value="on" defaultChecked={p.showDepth} /> {t("avec les quantités")}
+      </label>
+      <input name="minOrders" type="number" min={1} max={20} step={1} defaultValue={p.minOrders} aria-label={t("À partir de combien d'ordres en face")} className={styles.short} />
+      <small className="muted">{t("ordre(s) en face au minimum")}</small>
       <button className="btn sm" type="submit" disabled={pending}>
         {t(pending ? "…" : "Enregistrer")}
       </button>

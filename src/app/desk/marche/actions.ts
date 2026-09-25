@@ -6,7 +6,10 @@ import { ConflictError } from "@/lib/domain/types";
 import { isResponsable } from "@/lib/auth/types";
 import { audit } from "@/lib/audit";
 import { z } from "zod";
-import { requireDesk } from "@/lib/auth";
+import { requireDesk, requireResponsable } from "@/lib/auth";
+import { REF } from "@/lib/reference";
+import { SIGNAL_CLOSED, type SignalPolicy } from "@/lib/domain/crossing";
+import { loadSignalPolicy, SIGNAL_POLICY_KEY } from "@/lib/policy";
 import { repo } from "@/lib/data";
 import { generateForIntent, generateFundBordereau } from "@/lib/documents/generate";
 import { positionFor } from "@/lib/documents/position";
@@ -116,6 +119,41 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   revalidatePath("/desk");
   revalidatePath("/moi");
   return { ok: true, message: "Réglé : position mise à jour, avis d'opéré généré." };
+}
+
+const signalSchema = z.object({
+  tell: z.string().optional(),
+  showDepth: z.string().optional(),
+  minOrders: z.coerce.number().int().min(1).max(20),
+});
+
+/**
+ * Le signal d'appariement : ce que le client apprend du carnet interne.
+ *
+ * Une décision de maison, pas un réglage d'opérateur, d'où le responsable et
+ * l'audit. Elle publie l'existence des ordres d'autres clients, agrégée et sans
+ * nom, et elle ne se reprend pas discrètement : le journal en garde l'avant et
+ * l'après, et le jour où quelqu'un demandera depuis quand le Guichet le disait,
+ * la réponse sera écrite.
+ */
+export async function saveSignalPolicyAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+  const me = await requireResponsable("/desk/marche");
+  const p = signalSchema.safeParse(Object.fromEntries(form));
+  if (!p.success) return { ok: false, error: "Valeurs invalides." };
+  const next: SignalPolicy = { tell: p.data.tell === "on", minOrders: p.data.minOrders, showDepth: p.data.showDepth === "on" };
+  const before = await loadSignalPolicy();
+  const r = repo();
+  await r.upsertReference(REF.policy, SIGNAL_POLICY_KEY, next, me.name);
+  await audit("policy.update", "reference", `${REF.policy}/${SIGNAL_POLICY_KEY}`, { before, after: next });
+  await r.logEvent({
+    kind: "desk",
+    html: next.tell
+      ? `Signal d'appariement <b>ouvert</b> par ${me.name} : à partir de ${next.minOrders} ordre(s) en face, ${next.showDepth ? "avec" : "sans"} les quantités`
+      : `Signal d'appariement <b>fermé</b> par ${me.name} : le carnet reste au desk`,
+  });
+  revalidatePath("/desk/marche");
+  // Les fiches sont rendues à chaque requête : il n'y a pas de cache à reprendre.
+  return { ok: true, message: next.tell ? "Signal ouvert : les clients connectés voient qu'une contrepartie existe." : "Signal fermé : le carnet reste au desk." };
 }
 
 /* ---------------- OPCVM ---------------- */

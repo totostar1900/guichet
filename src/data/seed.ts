@@ -435,6 +435,45 @@ export const SEED_INTENTS: Intent[] = [
     createdAt: "2026-09-14T09:18:00",
     updatedAt: "2026-09-14T09:18:00",
   },
+  /* Deux clients qui se font face sur la même ligne cotée.
+
+     La démonstration ne portait aucun ordre de bourse, et l'appariement y était
+     donc invisible : le desk voyait un carnet vide et personne ne pouvait lire
+     l'écran qui compte. Ces deux ordres se répondent, 96,750 contre 97,250, et
+     le vendeur en offre moins que l'acheteur n'en demande : il reste de l'appétit
+     après l'appariement, ce qui montre les deux moitiés de l'écran d'un coup. */
+  {
+    id: "i-018",
+    ref: "PF-0915-018",
+    clientId: "c-assur",
+    offerId: "mkt-ecmr-2031",
+    offerVersion: 1,
+    clientName: "Assur-Vie Centrale",
+    clientSegment: "Personne morale · Douala",
+    type: "achat",
+    amount: 1_500,
+    limitPrice: 97.25,
+    channel: "E-mail",
+    state: "confirmee",
+    createdAt: "2026-09-15T10:05:00",
+    updatedAt: "2026-09-15T10:40:00",
+  },
+  {
+    id: "i-019",
+    ref: "PF-0916-019",
+    clientId: "c-mbaiki",
+    offerId: "mkt-ecmr-2031",
+    offerVersion: 1,
+    clientName: "Groupe Mbaïki SARL",
+    clientSegment: "Personne morale · Bangui",
+    type: "vente",
+    amount: 900,
+    limitPrice: 96.75,
+    channel: "WhatsApp",
+    state: "recue",
+    createdAt: "2026-09-16T08:30:00",
+    updatedAt: "2026-09-16T08:30:00",
+  },
 ];
 
 /** Intake queue : sources received this week, as the extractor would leave them. */

@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { repo } from "@/lib/data";
 import type { Offer } from "@/lib/domain/types";
+import { SIGNAL_CLOSED, type SignalPolicy } from "@/lib/domain/crossing";
 import { REF } from "@/lib/reference";
 
 /**
@@ -28,6 +29,29 @@ export const loadPolicy = cache(async (): Promise<ApprovalPolicy> => {
     return row ? { ...POLICY_DEFAULT, ...(row.data as Partial<ApprovalPolicy>) } : POLICY_DEFAULT;
   } catch {
     return POLICY_DEFAULT;
+  }
+});
+
+/**
+ * Le signal d'appariement : ce que le client apprend du carnet interne.
+ *
+ * Il est rangé avec la fenêtre déléguée parce que c'est la même nature de
+ * décision : une règle de maison que le responsable écrit dans l'application,
+ * et non un réglage d'opérateur.
+ *
+ * Fermé tant que personne ne l'a ouvert, y compris quand la table de référence
+ * est injoignable. Un signal qui s'allumerait sur une panne de lecture
+ * publierait le carnet par accident, et l'inverse ne coûte qu'un silence.
+ */
+export const SIGNAL_POLICY_KEY = "appariement";
+
+export const loadSignalPolicy = cache(async (): Promise<SignalPolicy> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const row = rows.find((r) => r.key === SIGNAL_POLICY_KEY);
+    return row ? { ...SIGNAL_CLOSED, ...(row.data as Partial<SignalPolicy>) } : SIGNAL_CLOSED;
+  } catch {
+    return SIGNAL_CLOSED;
   }
 });
 

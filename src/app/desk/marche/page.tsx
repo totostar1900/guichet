@@ -8,7 +8,10 @@ import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl } from "@/lib/market/boc";
-import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, UploadForm } from "./Forms";
+import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, SignalForm, UploadForm } from "./Forms";
+import { loadSignalPolicy } from "@/lib/policy";
+import { isResponsable } from "@/lib/auth/types";
+import { getSession } from "@/lib/auth";
 import { FundGroups, type FundGroup } from "./FundGroups";
 import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import styles from "./page.module.css";
@@ -32,7 +35,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const t = await getT();
   const r = repo();
-  const [offers, intents, bulletins, fills] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10), lineFills()]);
+  const [offers, intents, bulletins, fills, signal, me] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10), lineFills(), loadSignalPolicy(), getSession()]);
   // Ce que nos propres ordres sont devenus, ligne par ligne : à côté de ce que le marché offrait.
   const ours = deskFills(intents);
   const lastSession = bulletins.filter((b) => b.status === "ok").map((b) => b.sessionDate).sort().reverse()[0];
@@ -366,6 +369,12 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
           </span>
         </div>
         <CrossBook lines={book} fills={fills} />
+        {/* Ce que le Guichet en dit aujourd'hui, et qui peut en décider. */}
+        {isResponsable(me) ? (
+          <SignalForm p={signal} />
+        ) : (
+          <small className="muted">{signal.tell ? t("Les clients connectés voient qu'une contrepartie existe.") : t("Le carnet reste au desk : le client n'en voit rien.")}</small>
+        )}
       </div>
 
       <div className="panel">

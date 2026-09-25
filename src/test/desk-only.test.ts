@@ -71,6 +71,27 @@ describe("ce qui reste au desk", () => {
     // L’inverse de la règle au-dessus : ce chiffre doit atteindre le Guichet.
     expect(files.some((f) => f.path.startsWith("app/fonds/") && f.text.includes("managementFeePct"))).toBe(true);
   });
+  /**
+   * Le carnet d'appariements appartient au desk ; son signal, non.
+   *
+   * « crossings » et « matchLine » rendent des ordres nominatifs, portant la
+   * limite de chaque client, qui est sa position de négociation face à sa
+   * contrepartie. Le Guichet n'a le droit d'en lire qu'une chose, « facingSignal »,
+   * qui sort déjà agrégée et sans nom. La garde tient la séparation par les noms
+   * plutôt que par le module, parce que les deux vivent dans le même fichier : la
+   * règle de l'appariement y est écrite une fois, et le compte s'en déduit.
+   */
+  it("le carnet nominatif ne quitte pas le desk, son signal oui", () => {
+    const home = "lib/domain/crossing.ts";
+    for (const name of ["crossings", "matchLine", "crossOrder", "CrossOrder", "LineCrossing"]) {
+      const re = new RegExp(`\\b${name}\\b`);
+      const leaks = files.filter((f) => !isDesk(f.path) && f.path !== home && re.test(f.text)).map((f) => f.path);
+      expect(leaks, `ces fichiers ne sont pas au desk et citent ${name}`).toEqual([]);
+    }
+    // L'inverse de la règle : le signal, lui, doit bien atteindre le Guichet.
+    expect(files.some((f) => f.path === "app/offres/[id]/FicheReading.tsx" && f.text.includes("facingSignal"))).toBe(true);
+  });
+
   it("le taux de service reste server-only", () => {
     // Un module server-only ne peut pas partir dans le paquet du navigateur,
     // même si quelqu'un l'importait depuis un composant client par erreur.

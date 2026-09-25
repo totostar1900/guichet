@@ -821,4 +821,11 @@ export const EN_REST: Record<string, string> = {
   "demandez le prospectus": "ask for the prospectus",
   "Replacer cette somme": "Put this back to work",
   "Voir les fonds": "See the funds",
+  "Un ordre d'achat attend sur cette ligne": "One buy order is waiting on this line",
+  "Un ordre de vente attend sur cette ligne": "One sell order is waiting on this line",
+  "{n} ordres d'achat attendent sur cette ligne": "{n} buy orders are waiting on this line",
+  "{n} ordres de vente attendent sur cette ligne": "{n} sell orders are waiting on this line",
+  "pour {q} titres en tout": "for {q} titles in all",
+  "pour {q} actions en tout": "for {q} shares in all",
+  "Une ligne de la zone s'échange rarement : votre contrepartie est le plus souvent un autre client de la maison. Le desk vous met en rapport, et le prix se négocie.": "A line in the region trades rarely : your counterparty is most often another client of the firm. The desk puts you in touch, and the price is negotiated.",
 };

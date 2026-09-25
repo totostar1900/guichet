@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Cross, LineCrossing } from "@/lib/domain/crossing";
 import type { Offer } from "@/lib/domain/types";
 import type { LineFill } from "@/lib/market/fill";
-import { fmt, fmtPrice } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./CrossBook.module.css";
 
@@ -31,7 +31,9 @@ export async function CrossBook({ lines, fills }: { lines: { c: LineCrossing; o:
     <div className={styles.wrap}>
       {lines.map(({ c, o }) => {
         const bond = o.instrument === "obligation";
-        const price = (v: number) => (bond ? fmtPrice(v) : `${fmt(v)} FCFA`);
+        // Trois décimales même sur un compte rond : plancher, milieu et plafond se
+        // lisent l'un contre l'autre, et « 97 % » à côté de « 96,750 % » se compare mal.
+        const price = (v: number) => (bond ? fmtPct(v, 3) : `${fmt(v)} FCFA`);
         // La carte des taux de service est rangée par ISIN, pas par identifiant d'offre.
         const fill = o.isin ? fills?.get(o.isin) : undefined;
         const never = fill?.sessions ? fill.traded === 0 : false;

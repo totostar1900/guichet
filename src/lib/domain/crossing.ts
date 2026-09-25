@@ -71,6 +71,67 @@ export interface LineCrossing {
   restSell: number;
 }
 
+/**
+ * Ce qu'un client peut apprendre du carnet : une présence, jamais une personne.
+ *
+ * Le carnet lui-même appartient au desk. Il porte des noms, des références et
+ * des limites, et rien de tout cela ne se montre : la limite d'un client est sa
+ * position de négociation, et la publier le désarmerait devant sa contrepartie.
+ *
+ * Ce qui se montre, le jour où la maison le décide, est le fait brut qu'une
+ * contrepartie existe. C'est le seul renseignement qui change la décision d'un
+ * porteur, et c'est aussi le seul qui ne dise rien de personne. Le compte sort
+ * d'ici déjà agrégé, pour que le composant qui l'affiche n'ait jamais eu autre
+ * chose entre les mains.
+ */
+export interface FacingView {
+  side: CrossSide;
+  orders: number;
+  /** Les titres cherchés en face, ou rien quand la politique ne montre que la présence. */
+  qty: number | null;
+}
+
+/** La politique du signal : fermée par défaut, elle s'ouvre quand la maison a tranché. */
+export interface SignalPolicy {
+  /** Le client apprend-il qu'une contrepartie existe ? Fermée : le desk seul le voit. */
+  tell: boolean;
+  /** En dessous de ce nombre d'ordres en face, on ne dit rien. */
+  minOrders: number;
+  /** Montrer les titres cherchés, ou seulement qu'il y a quelqu'un. */
+  showDepth: boolean;
+}
+
+export const SIGNAL_CLOSED: SignalPolicy = { tell: false, minOrders: 1, showDepth: false };
+
+/**
+ * Ce qui attend en face, sur une ligne, pour un lecteur donné.
+ *
+ * Ses propres ordres n'en font pas partie : un client qui a passé un ordre de
+ * vente et lirait « un ordre de vente attend » se verrait lui-même, et croirait
+ * à une contrepartie là où il n'y a que son reflet.
+ */
+export function facingSignal(intents: Intent[], o: Offer, p: SignalPolicy, opts: { exceptClientId?: string } = {}): FacingView[] {
+  if (!p.tell) return [];
+  const tally = new Map<CrossSide, { orders: number; qty: number }>();
+  for (const i of intents) {
+    if (i.offerId !== o.id) continue;
+    if (opts.exceptClientId && i.clientId === opts.exceptClientId) continue;
+    const x = crossOrder(i, o);
+    if (!x) continue;
+    const v = tally.get(x.side) ?? { orders: 0, qty: 0 };
+    v.orders += 1;
+    v.qty += x.qty;
+    tally.set(x.side, v);
+  }
+  const out: FacingView[] = [];
+  for (const side of ["achat", "vente"] as CrossSide[]) {
+    const v = tally.get(side);
+    if (!v || v.orders < Math.max(1, p.minOrders)) continue;
+    out.push({ side, orders: v.orders, qty: p.showDepth ? v.qty : null });
+  }
+  return out;
+}
+
 /** L'ordre tel que l'appariement le lit, ou rien si la ligne ou l'ordre ne s'y prête pas. */
 export function crossOrder(i: Intent, o: Offer): CrossOrder | null {
   if (o.kind !== "MARCHE" || o.hidden) return null;

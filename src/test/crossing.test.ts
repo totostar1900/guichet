@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crossOrder, crossings, matchLine, type CrossOrder } from "@/lib/domain/crossing";
+import { crossOrder, crossings, facingSignal, matchLine, SIGNAL_CLOSED, type CrossOrder, type SignalPolicy } from "@/lib/domain/crossing";
 import type { Intent, Offer } from "@/lib/domain/types";
 
 /**
@@ -178,5 +178,53 @@ describe("le carnet de toutes les lignes", () => {
 
   it("ignore une intention dont la ligne n'existe plus", () => {
     expect(crossings([], [intent({})])).toEqual([]);
+  });
+});
+
+/**
+ * Le signal est la seule chose que le carnet laisse sortir, et un silence coûte
+ * moins qu'un mot de trop : chaque cas ici garde une porte fermée.
+ */
+describe("ce que le client apprend du carnet", () => {
+  const open: SignalPolicy = { tell: true, minOrders: 1, showDepth: false };
+  const deux = [intent({ id: "a", type: "achat", amount: 300, clientId: "c1" }), intent({ id: "b", type: "achat", amount: 200, clientId: "c2" })];
+
+  it("ne dit rien tant que la politique est fermée", () => {
+    expect(SIGNAL_CLOSED.tell).toBe(false);
+    expect(facingSignal(deux, line, SIGNAL_CLOSED)).toEqual([]);
+  });
+
+  it("dit la présence sans la quantité", () => {
+    expect(facingSignal(deux, line, open)).toEqual([{ side: "achat", orders: 2, qty: null }]);
+  });
+
+  it("dit la quantité quand la politique l'ouvre", () => {
+    expect(facingSignal(deux, line, { ...open, showDepth: true })).toEqual([{ side: "achat", orders: 2, qty: 500 }]);
+  });
+
+  it("se tait sous le seuil d'ordres", () => {
+    expect(facingSignal([deux[0]], line, { ...open, minOrders: 2 })).toEqual([]);
+    expect(facingSignal(deux, line, { ...open, minOrders: 2 })).toHaveLength(1);
+  });
+
+  it("ne montre pas au lecteur son propre ordre", () => {
+    expect(facingSignal(deux, line, open, { exceptClientId: "c1" })).toEqual([{ side: "achat", orders: 1, qty: null }]);
+    expect(facingSignal([deux[0]], line, open, { exceptClientId: "c1" })).toEqual([]);
+  });
+
+  it("ne compte ni les ordres partis ni les autres lignes", () => {
+    expect(facingSignal([intent({ state: "transmise" })], line, open)).toEqual([]);
+    expect(facingSignal([intent({ offerId: "m2" })], line, open)).toEqual([]);
+  });
+
+  it("annonce les deux sens, l'achat d'abord", () => {
+    const r = facingSignal([intent({ id: "a", type: "achat" }), intent({ id: "b", type: "vente" })], line, open);
+    expect(r.map((x) => x.side)).toEqual(["achat", "vente"]);
+  });
+
+  it("ne laisse sortir ni nom, ni référence, ni limite", () => {
+    const r = facingSignal([intent({ clientName: "Mme Abena", ref: "PF-9999", limitPrice: 96 })], line, { ...open, showDepth: true });
+    expect(Object.keys(r[0]).sort()).toEqual(["orders", "qty", "side"]);
+    expect(JSON.stringify(r)).not.toMatch(/Abena|PF-9999|96/);
   });
 });

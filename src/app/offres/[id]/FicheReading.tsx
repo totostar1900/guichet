@@ -20,6 +20,10 @@ import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { IssuerCard } from "./IssuerCard";
+import { CrossSignal } from "@/components/CrossSignal";
+import { facingSignal } from "@/lib/domain/crossing";
+import { loadSignalPolicy } from "@/lib/policy";
+import { getSession } from "@/lib/auth";
 import { issuerKey, resolveIssuer } from "@/data/issuer-registry";
 
 /**
@@ -265,7 +269,10 @@ export async function loadFiche(o: Offer) {
   // souvient de ses lectures pendant la requête, donc la demander ici ne la
   // relit pas pour le taux BTA de référence, qui la demande aussi.
   const r = repo();
-  const [, offers, company, issuer, quotes, navs, btaBenchmark] = await Promise.all([
+  // Le signal d'appariement part avec les autres lectures, et il ne lit rien du
+  // tout sur une ligne qui n'est pas cotée : le carnet n'existe que sur la cote.
+  const wantsFacing = o.kind === "MARCHE" && !o.hidden;
+  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session] = await Promise.all([
     loadIssuerRegistry(),
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
@@ -274,9 +281,23 @@ export async function loadFiche(o: Offer) {
     o.kind === "FONDS" && o.fund ? r.listFundNavs(o.fund.key, 2000) : [],
     // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
     o.kind === "FONDS" ? latestBta() : undefined,
+    wantsFacing ? loadSignalPolicy() : undefined,
+    wantsFacing ? getSession() : undefined,
   ]);
   const profile = resolveIssuer(o);
   const others = profile ? offers.filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })).slice(0, 8) : [];
+
+  // Ce qu'un lecteur connecté apprend du carnet : une présence, jamais une
+  // personne. Déconnecté, il n'apprend rien : le carnet n'est pas une vitrine.
+  //
+  // Le carnet ne se lit qu'une fois les deux conditions réunies. Tant que la
+  // politique est fermée, et c'est l'état par défaut, la fiche ne touche pas aux
+  // intentions du tout : la lecture groupée au-dessus ne porte que la politique
+  // et la session, qui sont l'une et l'autre gratuites, déjà demandées ailleurs
+  // dans la même requête. Ouverte, la lecture qui s'ajoute l'est aussi : le
+  // contexte de l'intention liste déjà les intentions pour un lecteur connecté,
+  // et le dépôt se souvient de ses lectures pendant la requête.
+  const facing = signalPolicy?.tell && session ? facingSignal(await r.listIntents(), o, signalPolicy, { exceptClientId: session.userId }) : [];
 
   const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
@@ -310,7 +331,7 @@ export async function loadFiche(o: Offer) {
           ["Règlement", fmtDate(o.settleOn)],
           [o.kind === "BTA" ? "Remboursement" : o.kind === "RACHAT" ? "Échéance initiale" : "Premier coupon", firstCoupon ? fmtDate(firstCoupon.toISOString().slice(0, 10)) : o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ];
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline };
+  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;
@@ -318,7 +339,7 @@ export type FicheData = Awaited<ReturnType<typeof loadFiche>>;
 /** Les sections de lecture, dans l'ordre où la fiche les montre. */
 export async function FicheReading({ o, data, mode = "client" }: { o: Offer; data: FicheData; mode?: FicheMode }) {
   const t = await getT();
-  const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline } = data;
+  const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing } = data;
   const base = mode === "desk" ? "/desk" : "";
   return (
     <>
@@ -330,6 +351,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <Kpis o={o} base={base} />
           <p className={styles.blurb}>{t(o.blurb)}</p>
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
+          <CrossSignal o={o} facing={facing} />
           <p className={styles.note}>
             {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.
           </p>

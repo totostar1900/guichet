@@ -1,0 +1,44 @@
+/* Un fait, pas une réclame.
+   Le bloc porte la couleur de ce qui est disponible et la discrétion de ce qui
+   n'est pas un conseil : un filet à gauche, aucune ombre, aucun arrondi de
+   carte. Sur une fiche qui compte déjà quatre volets, une carte de plus se
+   lirait comme une offre de la maison, et ce n'en est pas une. */
+.wrap {
+  border-left: 2px solid var(--good);
+  padding: var(--s-3) 0 var(--s-3) var(--s-5);
+  margin: var(--s-6) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.list > li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  line-height: 1.4;
+}
+.list b {
+  font-weight: 600;
+}
+/* Le geste reste au bout de la phrase, à sa taille : il suit le fait, il ne le
+   remplace pas. */
+.go {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.note {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  line-height: 1.45;
+  max-width: 62ch;
+}
