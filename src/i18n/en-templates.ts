@@ -592,4 +592,6 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Provision reçue pour {r}": "Funds received for {r}",
   "{m} FCFA sans destination : à renvoyer sur le compte du client.": "{m} FCFA with no destination: to be returned to the client's account.",
   "jusqu'au {d}": "until {d}",
+  "au prix de {p}": "at {p}",
+  "au cours {p}": "at {p}",
 };

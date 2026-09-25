@@ -10,6 +10,15 @@ describe("translate", () => {
     expect(translate("en", "actuariel · si servi à 93 %")).toBe("yield to maturity · if served at 93 %");
     expect(translate("en", "Trésor public de la République du Congo · abondement")).toBe("Public Treasury of the Republic of Congo · tap");
     expect(translate("en", "Étape {n} sur 5", { n: 2 })).toBe("Step 2 of 5");
+    // Le prix sous un chiffre de tête : la chaîne est bâtie avec le montant dedans, donc elle passe par une clef à trous.
+    expect(translate("en", "au prix de 80 000")).toBe("at 80 000");
+    expect(translate("en", "au prix de 80 000 FCFA")).toBe("at 80 000 FCFA");
+    expect(translate("en", "au cours 38 500 FCFA")).toBe("at 38 500 FCFA");
+    expect(translate("en", "au cours 97,25 %")).toBe("at 97,25 %");
+    // Les voisines ne doivent pas être avalées : la clef exacte et la clef plus longue gagnent.
+    expect(translate("en", "au cours de bourse")).toBe("at the market price");
+    expect(translate("en", "au prix de votre choix")).toBe("at the price of your choice");
+    expect(translate("en", "au cours de 97,25 %")).toBe("at a price of 97,25 %");
     expect(translate("en", "0 ordres à confirmer ou transmettre")).toBe("0 orders to confirm or transmit");
     expect(translate("en", "texte inconnu")).toBe("texte inconnu");
   });
