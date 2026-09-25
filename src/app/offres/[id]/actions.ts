@@ -2,7 +2,7 @@
 
 import type { NotifyChannel } from "@/lib/domain/types";
 import { loadRegistry } from "@/lib/reference";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -157,13 +157,34 @@ export interface LineCurve {
   unit: "nav";
   points: { x: string; y: number }[]; // ascending dates
 }
+
+/**
+ * La courbe d'un fonds, et ce qu'elle a cessé d'attendre.
+ *
+ * Elle appelait `loadRegistry()`, qui lit quatre tables du référentiel : les
+ * types, les termes obligataires, le glossaire et les leçons. Une courbe de VL
+ * n'utilise aucun des quatre. C'était la plus lente des trois lectures de cette
+ * fonction, et elle ne servait à rien : la carte se retournait sur
+ * « Courbe en cours de lecture… » pendant que le serveur lisait le glossaire.
+ *
+ * Ce qui reste est gardé une heure. Les VL paraissent au mieux chaque semaine,
+ * souvent moins : une heure de retard n'est pas une heure d'erreur, et la
+ * deuxième personne qui retourne la même carte ne paie plus la lecture.
+ */
+const readCurve = unstable_cache(
+  async (offerId: string): Promise<LineCurve | null> => {
+    const o = await repo().getOffer(offerId);
+    if (!o || o.kind !== "FONDS" || !o.fund) return null;
+    const navs = (await repo().listFundNavs(o.fund.key, 60)).sort((a, b) => a.navDate.localeCompare(b.navDate));
+    if (navs.length < 2) return null;
+    return { label: "Valeurs liquidatives", unit: "nav", points: navs.map((n) => ({ x: n.navDate, y: n.nav })) };
+  },
+  ["fund-curve"],
+  { revalidate: 3600 },
+);
+
 export async function fundCurve(offerId: string): Promise<LineCurve | null> {
-  await loadRegistry();
-  const o = await repo().getOffer(offerId);
-  if (!o || o.kind !== "FONDS" || !o.fund) return null;
-  const navs = (await repo().listFundNavs(o.fund.key, 60)).sort((a, b) => a.navDate.localeCompare(b.navDate));
-  if (navs.length < 2) return null;
-  return { label: "Valeurs liquidatives", unit: "nav", points: navs.map((n) => ({ x: n.navDate, y: n.nav })) };
+  return readCurve(offerId);
 }
 
 /* ---------- Proving the phone, inline in the intention form ---------- */

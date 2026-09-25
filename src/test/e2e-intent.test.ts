@@ -18,7 +18,8 @@ vi.mock("@/lib/auth", () => ({
   requireDesk: async () => current,
   authMode: () => "dev",
 }));
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+// « unstable_cache » rend la fonction telle quelle : le test mesure la lecture, pas le cache.
+vi.mock("next/cache", () => ({ revalidatePath: () => undefined, unstable_cache: (fn: unknown) => fn }));
 
 beforeAll(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_URL; // memory repository, .uploads on disk
