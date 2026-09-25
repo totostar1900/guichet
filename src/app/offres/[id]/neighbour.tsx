@@ -2,7 +2,12 @@
 
 import { repo } from "@/lib/data";
 import { FicheReading, loadFiche } from "./FicheReading";
+import { FicheHead } from "./FicheHead";
+import { ListNav } from "@/components/ListNav";
 import { FichePanes } from "@/components/mobile/FichePanes";
+import { summarize } from "@/lib/domain/summary";
+import { displayStatus } from "@/lib/domain/status";
+import styles from "./page.module.css";
 
 /**
  * La fiche d'à côté, rendue pour de bon.
@@ -27,8 +32,11 @@ export async function neighbourReading(offerId: string): Promise<React.ReactNode
   const o = await repo().getOffer(offerId);
   if (!o || o.hidden || o.status === "withdrawn") return null;
   const data = await loadFiche(o);
+  const now = new Date();
   return (
-    <FichePanes>
+    <FichePanes className={styles.main}>
+      <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
+      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} />
       <FicheReading o={o} data={data} />
     </FichePanes>
   );

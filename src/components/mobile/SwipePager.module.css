@@ -42,13 +42,21 @@
   .peekPage {
     height: 100%;
     overflow: hidden;
-    padding: 14px 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    position: relative;
   }
-  .peekPage > span {
-    flex: none;
+  /* Le repère de position flotte : dans le flux, il poussait la page d'une ligne
+     et tout redescendait au relâchement. */
+  .peekPage .peekPos {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    z-index: 2;
+  }
+  /* La page voisine porte ses propres marges, et son bord : la vignette n'ajoute ni l'une
+     ni l'autre. Au pixel près, ce qui entre est posé où la vraie page se posera. */
+  .peekFull {
+    padding: 0;
+    border: 0;
   }
   .peekBody {
     position: sticky;

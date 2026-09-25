@@ -253,19 +253,23 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
 
   // The step aside goes towards the next neighbour, or the previous one when there is no next.
   const nudgeDir = nudge ? (nextHref ? "next" : prevHref ? "prev" : null) : null;
+  // La vraie page voisine, quand elle est arrivée : la vignette lui laisse alors toute la place,
+  // sans marge à elle, pour que rien ne bouge au moment où la page prend le relais.
+  const prevBody = bodies[prevHref?.split("/").pop() ?? ""];
+  const nextBody = bodies[nextHref?.split("/").pop() ?? ""];
   return (
     <div ref={root} className={styles.pager}>
       <div ref={cur} className={`${styles.cur} ${nudgeDir === "next" ? styles.nudgeNext : nudgeDir === "prev" ? styles.nudgePrev : ""}`}>
         {children}
       </div>
       {ready && prev && (
-        <div className={`${styles.peek} ${styles.prev} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
-          <PeekBody n={prev} pos={`← ${prev.pos}`} go={t("Relâchez pour ouvrir")} body={bodies[prevHref?.split("/").pop() ?? ""]} />
+        <div className={`${styles.peek} ${styles.prev} ${prevBody ? styles.peekFull : ""} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
+          <PeekBody n={prev} pos={`← ${prev.pos}`} go={t("Relâchez pour ouvrir")} body={prevBody} />
         </div>
       )}
       {ready && next && (
-        <div className={`${styles.peek} ${styles.next} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
-          <PeekBody n={next} pos={`${next.pos} →`} go={t("Relâchez pour ouvrir")} body={bodies[nextHref?.split("/").pop() ?? ""]} />
+        <div className={`${styles.peek} ${styles.next} ${nextBody ? styles.peekFull : ""} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
+          <PeekBody n={next} pos={`${next.pos} →`} go={t("Relâchez pour ouvrir")} body={nextBody} />
         </div>
       )}
       <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">
@@ -287,14 +291,10 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
  */
 function PeekBody({ n, pos, go, body }: { n: Neighbour; pos: string; go: string; body?: React.ReactNode }) {
   const p = n.peek;
-  // La vraie lecture est là : elle remplace le résumé, et le repère de position reste au-dessus.
-  if (body)
-    return (
-      <div className={styles.peekPage}>
-        <span className={styles.peekPos}>{pos}</span>
-        {body}
-      </div>
-    );
+  // La vraie lecture est là : elle remplace le résumé, et rien ne s'ajoute par-dessus.
+  // Sa barre de retour porte déjà « 2 / 45 » et « Suivante » : un second repère aurait
+  // disparu au relâchement, puisque la vraie page ne l'a pas.
+  if (body) return <div className={styles.peekPage}>{body}</div>;
   return (
     <div className={styles.peekBody}>
       <span className={styles.peekPos}>{pos}</span>
