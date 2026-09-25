@@ -594,4 +594,9 @@ export const EN_TEMPLATES: Record<string, string> = {
   "jusqu'au {d}": "until {d}",
   "au prix de {p}": "at {p}",
   "au cours {p}": "at {p}",
+  "L'acheteur n'en demande que {n}.": "The buyer only wants {n}.",
+  "Le vendeur n'en offre que {n}.": "The seller only offers {n}.",
+  "La quotité de la ligne est de {n} titres.": "The line trades in lots of {n} titles.",
+  "L'acheteur ne va pas au-delà de {n}.": "The buyer goes no higher than {n}.",
+  "Le vendeur ne descend pas sous {n}.": "The seller goes no lower than {n}.",
 };

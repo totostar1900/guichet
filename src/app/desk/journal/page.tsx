@@ -25,6 +25,8 @@ const ACTION_FR: Record<string, string> = {
   "approval.request": "Approbation demandée",
   "approval.decide": "Approbation décidée",
   "policy.update": "Fenêtre déléguée",
+  "policy.cross": "Appariement",
+  "intent.cross": "Appariement exécuté",
 };
 const ENTITIES: [string, string][] = [
   ["", "Tout"],

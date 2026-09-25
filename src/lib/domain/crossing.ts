@@ -91,17 +91,26 @@ export interface FacingView {
   qty: number | null;
 }
 
-/** La politique du signal : fermée par défaut, elle s'ouvre quand la maison a tranché. */
-export interface SignalPolicy {
+/**
+ * Les deux décisions de la maison sur l'appariement, fermées l'une et l'autre.
+ *
+ * Dire et faire ne se décident pas ensemble. La maison peut vouloir que ses
+ * clients sachent qu'une contrepartie existe longtemps avant d'accepter
+ * d'apparier elle-même, et elle peut vouloir l'inverse : apparier en silence,
+ * sur demande, sans rien publier. Deux interrupteurs, donc, et non un.
+ */
+export interface CrossPolicy {
   /** Le client apprend-il qu'une contrepartie existe ? Fermée : le desk seul le voit. */
   tell: boolean;
   /** En dessous de ce nombre d'ordres en face, on ne dit rien. */
   minOrders: number;
   /** Montrer les titres cherchés, ou seulement qu'il y a quelqu'un. */
   showDepth: boolean;
+  /** Le desk peut-il enregistrer un appariement, ou seulement le lire ? */
+  execute: boolean;
 }
 
-export const SIGNAL_CLOSED: SignalPolicy = { tell: false, minOrders: 1, showDepth: false };
+export const CROSS_CLOSED: CrossPolicy = { tell: false, minOrders: 1, showDepth: false, execute: false };
 
 /**
  * Ce qui attend en face, sur une ligne, pour un lecteur donné.
@@ -110,7 +119,7 @@ export const SIGNAL_CLOSED: SignalPolicy = { tell: false, minOrders: 1, showDept
  * vente et lirait « un ordre de vente attend » se verrait lui-même, et croirait
  * à une contrepartie là où il n'y a que son reflet.
  */
-export function facingSignal(intents: Intent[], o: Offer, p: SignalPolicy, opts: { exceptClientId?: string } = {}): FacingView[] {
+export function facingSignal(intents: Intent[], o: Offer, p: CrossPolicy, opts: { exceptClientId?: string } = {}): FacingView[] {
   if (!p.tell) return [];
   const tally = new Map<CrossSide, { orders: number; qty: number }>();
   for (const i of intents) {
@@ -228,4 +237,69 @@ export function crossings(offers: Offer[], intents: Intent[]): LineCrossing[] {
   return [...perLine.entries()]
     .map(([offerId, orders]) => ({ offerId, ...matchLine(orders) }))
     .sort((a, b) => b.qty - a.qty || b.restBuy + b.restSell - (a.restBuy + a.restSell) || a.offerId.localeCompare(b.offerId));
+}
+
+/** Ce qu'il faut savoir d'une ligne pour juger un appariement : sa quotité, et rien d'autre. */
+export interface CrossLine {
+  lotSize?: number;
+}
+
+/**
+ * Ce qui empêche cet appariement, en toutes lettres, ou rien.
+ *
+ * La liste est rendue au lieu d'un simple refus parce qu'elle s'affiche : un
+ * bouton grisé sans raison fait chercher la panne dans l'application alors
+ * qu'elle est dans l'ordre. Elle est calculée ici, et non dans l'action, pour
+ * que les règles se relisent sans base de données et que l'écran annonce
+ * exactement ce que le serveur refusera.
+ *
+ * Deux règles méritent leur mot.
+ *
+ * Un ordre non confirmé ne s'apparie pas. « Reçue » veut dire que le client a
+ * demandé, pas qu'il a signé, et apparier pour lui l'engagerait sur un prix
+ * qu'il n'a pas vu.
+ *
+ * Le prix doit servir les deux. En dehors de la bande, l'un des deux clients
+ * obtient moins bien que ce qu'il avait posé comme limite, et la maison aurait
+ * décidé à sa place.
+ */
+/**
+ * Un refus, et le chiffre qui le fonde.
+ *
+ * La phrase garde son trou au lieu d'être assemblée ici, pour deux raisons. Un
+ * desk anglophone lit ses refus dans sa langue, et une phrase déjà cousue ne se
+ * traduit plus : le dictionnaire est rangé par clef, et « L'acheteur n'en demande
+ * que 900. » n'est la clef de rien. Et le chiffre sort brut, parce que l'habit
+ * d'un prix dépend de la ligne, pourcentage du nominal ou francs, ce que ce
+ * module n'a pas à savoir.
+ */
+export interface CrossBlock {
+  /** La phrase, avec « {n} » là où le chiffre va. */
+  key: string;
+  /** Un compte de titres, à écrire tel quel. */
+  qty?: number;
+  /** Un prix, que l'écran met dans l'habit de la ligne. */
+  price?: number;
+}
+
+export function crossCheck(buy: CrossOrder, sell: CrossOrder, qty: number, price: number, line: CrossLine = {}): CrossBlock[] {
+  const out: CrossBlock[] = [];
+  if (buy.side !== "achat" || sell.side !== "vente") out.push({ key: "Un appariement va d'un acheteur à un vendeur." });
+  if (buy.id === sell.id) out.push({ key: "Un ordre ne s'apparie pas avec lui-même." });
+  if (buy.clientId && sell.clientId && buy.clientId === sell.clientId) out.push({ key: "Les deux ordres sont du même client." });
+  if (buy.state !== "confirmee") out.push({ key: "L'ordre d'achat n'est pas confirmé." });
+  if (sell.state !== "confirmee") out.push({ key: "L'ordre de vente n'est pas confirmé." });
+  if (!Number.isInteger(qty) || qty <= 0) out.push({ key: "La quantité appariée se compte en titres entiers." });
+  else {
+    if (qty > buy.qty) out.push({ key: "L'acheteur n'en demande que {n}.", qty: buy.qty });
+    if (qty > sell.qty) out.push({ key: "Le vendeur n'en offre que {n}.", qty: sell.qty });
+    const lot = line.lotSize ?? 1;
+    if (lot > 1 && qty % lot !== 0) out.push({ key: "La quotité de la ligne est de {n} titres.", qty: lot });
+  }
+  if (!(price > 0)) out.push({ key: "Le prix d'exécution manque." });
+  else {
+    if (buy.limit != null && price > buy.limit) out.push({ key: "L'acheteur ne va pas au-delà de {n}.", price: buy.limit });
+    if (sell.limit != null && price < sell.limit) out.push({ key: "Le vendeur ne descend pas sous {n}.", price: sell.limit });
+  }
+  return out;
 }

@@ -47,3 +47,27 @@
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
+
+/* Le geste tient dans la dernière cellule du tableau : deux champs serrés et un
+   bouton, sur une ligne si la place le permet, sous elle sinon. */
+.exec {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.exec .num {
+  width: 6.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ok {
+  color: var(--good);
+  display: block;
+  margin-top: var(--s-1);
+}
+.err {
+  color: var(--crit);
+  display: block;
+  margin-top: var(--s-1);
+}

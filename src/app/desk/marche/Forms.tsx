@@ -2,7 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { useActionState } from "react";
-import { executeOrderAction, fundBordereauAction, ingestBocAction, saveSignalPolicyAction, settleOrderAction, toggleHiddenAction, updateFundTermsAction, updateQuoteAction, uploadBocAction, type MarketResult } from "./actions";
+import { executeOrderAction, fundBordereauAction, ingestBocAction, saveCrossPolicyAction, settleOrderAction, toggleHiddenAction, updateFundTermsAction, updateQuoteAction, uploadBocAction, type MarketResult } from "./actions";
 import styles from "./page.module.css";
 
 function Msg({ state }: { state: MarketResult | null }) {
@@ -134,11 +134,16 @@ export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { dist
  * contrepartie existe, et il faut avoir sous les yeux ce qu'on s'apprête à
  * dire. Le responsable seul peut le toucher, et le refus vient du serveur.
  */
-export function SignalForm({ p }: { p: { tell: boolean; minOrders: number; showDepth: boolean } }) {
+export function SignalForm({ p }: { p: { tell: boolean; minOrders: number; showDepth: boolean; execute: boolean } }) {
   const t = useT();
-  const [state, action, pending] = useActionState<MarketResult | null, FormData>(saveSignalPolicyAction, null);
+  const [state, action, pending] = useActionState<MarketResult | null, FormData>(saveCrossPolicyAction, null);
   return (
     <form action={action} className={styles.inline}>
+      {/* Faire, et dire : deux décisions, deux cases. La maison peut apparier en
+          silence, ou publier l'existence d'une contrepartie sans apparier encore. */}
+      <label className={styles.check} title={t("Le desk peut enregistrer un appariement : deux ordres servis ensemble, à un prix")}>
+        <input type="checkbox" name="execute" value="on" defaultChecked={p.execute} /> {t("le desk peut apparier")}
+      </label>
       <label className={styles.check} title={t("Un client connecté apprend qu'une contrepartie existe sur la ligne, sans nom ni prix")}>
         <input type="checkbox" name="tell" value="on" defaultChecked={p.tell} /> {t("dire au client qu'une contrepartie existe")}
       </label>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crossOrder, crossings, facingSignal, matchLine, SIGNAL_CLOSED, type CrossOrder, type SignalPolicy } from "@/lib/domain/crossing";
+import { crossCheck, crossOrder, crossings, facingSignal, matchLine, CROSS_CLOSED, type CrossOrder, type CrossPolicy } from "@/lib/domain/crossing";
 import type { Intent, Offer } from "@/lib/domain/types";
 
 /**
@@ -186,12 +186,12 @@ describe("le carnet de toutes les lignes", () => {
  * moins qu'un mot de trop : chaque cas ici garde une porte fermée.
  */
 describe("ce que le client apprend du carnet", () => {
-  const open: SignalPolicy = { tell: true, minOrders: 1, showDepth: false };
+  const open: CrossPolicy = { tell: true, minOrders: 1, showDepth: false, execute: false };
   const deux = [intent({ id: "a", type: "achat", amount: 300, clientId: "c1" }), intent({ id: "b", type: "achat", amount: 200, clientId: "c2" })];
 
   it("ne dit rien tant que la politique est fermée", () => {
-    expect(SIGNAL_CLOSED.tell).toBe(false);
-    expect(facingSignal(deux, line, SIGNAL_CLOSED)).toEqual([]);
+    expect(CROSS_CLOSED.tell).toBe(false);
+    expect(facingSignal(deux, line, CROSS_CLOSED)).toEqual([]);
   });
 
   it("dit la présence sans la quantité", () => {
@@ -226,5 +226,66 @@ describe("ce que le client apprend du carnet", () => {
     const r = facingSignal([intent({ clientName: "Mme Abena", ref: "PF-9999", limitPrice: 96 })], line, { ...open, showDepth: true });
     expect(Object.keys(r[0]).sort()).toEqual(["orders", "qty", "side"]);
     expect(JSON.stringify(r)).not.toMatch(/Abena|PF-9999|96/);
+  });
+});
+
+/**
+ * Ce qui empêche un appariement doit l'empêcher avant le geste, et le dire.
+ *
+ * Chaque cas ici garde un client de se voir engagé sur un prix qu'il n'a pas
+ * accepté : la confirmation, ses limites, sa quantité, et la quotité de la
+ * ligne. Le serveur repasse la même fonction, donc l'écran annonce exactement
+ * ce qu'il refusera.
+ */
+describe("ce qui empêche un appariement", () => {
+  const ok = { ...order("achat", 1_000, 97.25), state: "confirmee" as const, clientId: "c1" };
+  const okSell = { ...order("vente", 900, 96.75), state: "confirmee" as const, clientId: "c2" };
+
+  it("laisse passer un appariement propre", () => {
+    expect(crossCheck(ok, okSell, 900, 97)).toEqual([]);
+  });
+
+  it("refuse un ordre qui n'est pas confirmé", () => {
+    expect(crossCheck({ ...ok, state: "recue" }, okSell, 900, 97)).toContainEqual({ key: "L'ordre d'achat n'est pas confirmé." });
+    expect(crossCheck(ok, { ...okSell, state: "recue" }, 900, 97)).toContainEqual({ key: "L'ordre de vente n'est pas confirmé." });
+  });
+
+  it("refuse le même client des deux côtés", () => {
+    expect(crossCheck(ok, { ...okSell, clientId: "c1" }, 900, 97)).toContainEqual({ key: "Les deux ordres sont du même client." });
+  });
+
+  it("refuse plus de titres que l'un des deux n'en porte", () => {
+    expect(crossCheck(ok, okSell, 1_000, 97)).toContainEqual({ key: "Le vendeur n'en offre que {n}.", qty: 900 });
+    expect(crossCheck({ ...ok, qty: 500 }, okSell, 900, 97)).toContainEqual({ key: "L'acheteur n'en demande que {n}.", qty: 500 });
+  });
+
+  it("refuse une quantité qui n'est pas un compte de titres", () => {
+    expect(crossCheck(ok, okSell, 0, 97)).toContainEqual({ key: "La quantité appariée se compte en titres entiers." });
+    expect(crossCheck(ok, okSell, 12.5, 97)).toContainEqual({ key: "La quantité appariée se compte en titres entiers." });
+  });
+
+  it("respecte la quotité de la ligne", () => {
+    expect(crossCheck(ok, okSell, 95, 97, { lotSize: 10 })).toContainEqual({ key: "La quotité de la ligne est de {n} titres.", qty: 10 });
+    expect(crossCheck(ok, okSell, 900, 97, { lotSize: 10 })).toEqual([]);
+  });
+
+  it("refuse un prix hors de la bande, des deux côtés", () => {
+    expect(crossCheck(ok, okSell, 900, 97.5)).toContainEqual({ key: "L'acheteur ne va pas au-delà de {n}.", price: 97.25 });
+    expect(crossCheck(ok, okSell, 900, 96.5)).toContainEqual({ key: "Le vendeur ne descend pas sous {n}.", price: 96.75 });
+    // Les bornes elles-mêmes servent les deux : elles passent.
+    expect(crossCheck(ok, okSell, 900, 97.25)).toEqual([]);
+    expect(crossCheck(ok, okSell, 900, 96.75)).toEqual([]);
+  });
+
+  it("accepte tout prix quand les deux sont au marché, mais pas l'absence de prix", () => {
+    const a = { ...ok, limit: null };
+    const b = { ...okSell, limit: null };
+    expect(crossCheck(a, b, 900, 42)).toEqual([]);
+    expect(crossCheck(a, b, 900, 0)).toContainEqual({ key: "Le prix d'exécution manque." });
+  });
+
+  it("refuse deux ordres du même sens, et un ordre avec lui-même", () => {
+    expect(crossCheck(ok, { ...ok, id: "autre", clientId: "c2" }, 900, 97)).toContainEqual({ key: "Un appariement va d'un acheteur à un vendeur." });
+    expect(crossCheck(ok, { ...okSell, id: ok.id }, 900, 97)).toContainEqual({ key: "Un ordre ne s'apparie pas avec lui-même." });
   });
 });

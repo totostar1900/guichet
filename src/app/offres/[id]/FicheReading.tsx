@@ -22,7 +22,7 @@ import { getT } from "@/i18n/server";
 import { IssuerCard } from "./IssuerCard";
 import { CrossSignal } from "@/components/CrossSignal";
 import { facingSignal } from "@/lib/domain/crossing";
-import { loadSignalPolicy } from "@/lib/policy";
+import { loadCrossPolicy } from "@/lib/policy";
 import { getSession } from "@/lib/auth";
 import { issuerKey, resolveIssuer } from "@/data/issuer-registry";
 
@@ -281,7 +281,7 @@ export async function loadFiche(o: Offer) {
     o.kind === "FONDS" && o.fund ? r.listFundNavs(o.fund.key, 2000) : [],
     // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
     o.kind === "FONDS" ? latestBta() : undefined,
-    wantsFacing ? loadSignalPolicy() : undefined,
+    wantsFacing ? loadCrossPolicy() : undefined,
     wantsFacing ? getSession() : undefined,
   ]);
   const profile = resolveIssuer(o);

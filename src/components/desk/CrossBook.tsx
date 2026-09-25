@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { Cross, LineCrossing } from "@/lib/domain/crossing";
+import { crossCheck, type Cross, type LineCrossing } from "@/lib/domain/crossing";
+import { CrossExecute } from "./CrossExecute";
 import type { Offer } from "@/lib/domain/types";
 import type { LineFill } from "@/lib/market/fill";
 import { fmt, fmtPct } from "@/lib/format";
@@ -24,7 +25,7 @@ import styles from "./CrossBook.module.css";
  * n'a rien à apparier, et c'est précisément le renseignement utile : il dit où
  * aller chercher la contrepartie qui manque.
  */
-export async function CrossBook({ lines, fills }: { lines: { c: LineCrossing; o: Offer }[]; fills?: Map<string, LineFill> }) {
+export async function CrossBook({ lines, fills, canExecute = false }: { lines: { c: LineCrossing; o: Offer }[]; fills?: Map<string, LineFill>; canExecute?: boolean }) {
   const t = await getT();
   if (!lines.length) return <p className="muted">{t("Aucun ordre en attente sur une ligne cotée.")}</p>;
   return (
@@ -65,6 +66,7 @@ export async function CrossBook({ lines, fills }: { lines: { c: LineCrossing; o:
                       <th className="r">{t("Plancher")}</th>
                       <th className="r">{t("Milieu")}</th>
                       <th className="r">{t("Plafond")}</th>
+                      {canExecute && <th />}
                     </tr>
                   </thead>
                   <tbody>
@@ -84,6 +86,19 @@ export async function CrossBook({ lines, fills }: { lines: { c: LineCrossing; o:
                         <td className="r num">{x.low != null ? price(x.low) : <span className="muted">{t("au marché")}</span>}</td>
                         <td className="r num">{x.mid != null ? <b>{price(x.mid)}</b> : <span className="muted">—</span>}</td>
                         <td className="r num">{x.high != null ? price(x.high) : <span className="muted">{t("au marché")}</span>}</td>
+                        {canExecute && (
+                          <td>
+                            {/* Ce qui empêche l'appariement se dit en toutes lettres : un bouton
+                                grisé sans raison fait chercher la panne dans l'application alors
+                                qu'elle est dans l'ordre, et souvent à un clic de là. */}
+                            {(() => {
+                              const start = x.mid ?? x.low ?? x.high ?? o.lastPrice ?? 0;
+                              const wrong = crossCheck(x.buy, x.sell, x.qty, start, { lotSize: o.lotSize });
+                              if (wrong.length) return <small className="muted">{wrong.map((w) => t(w.key, { n: w.qty != null ? fmt(w.qty) : w.price != null ? price(w.price) : "" })).join(" ")}</small>;
+                              return <CrossExecute buyId={x.buy.id} sellId={x.sell.id} qty={x.qty} price={start} step={bond ? "0.001" : "1"} lot={o.lotSize ?? 1} />;
+                            })()}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

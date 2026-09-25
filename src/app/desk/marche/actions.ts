@@ -8,8 +8,8 @@ import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk, requireResponsable } from "@/lib/auth";
 import { REF } from "@/lib/reference";
-import { SIGNAL_CLOSED, type SignalPolicy } from "@/lib/domain/crossing";
-import { loadSignalPolicy, SIGNAL_POLICY_KEY } from "@/lib/policy";
+import { CROSS_CLOSED, crossCheck, crossOrder, type CrossPolicy } from "@/lib/domain/crossing";
+import { loadCrossPolicy, CROSS_POLICY_KEY } from "@/lib/policy";
 import { repo } from "@/lib/data";
 import { generateForIntent, generateFundBordereau } from "@/lib/documents/generate";
 import { positionFor } from "@/lib/documents/position";
@@ -124,6 +124,7 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
 const signalSchema = z.object({
   tell: z.string().optional(),
   showDepth: z.string().optional(),
+  execute: z.string().optional(),
   minOrders: z.coerce.number().int().min(1).max(20),
 });
 
@@ -136,24 +137,115 @@ const signalSchema = z.object({
  * l'après, et le jour où quelqu'un demandera depuis quand le Guichet le disait,
  * la réponse sera écrite.
  */
-export async function saveSignalPolicyAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+export async function saveCrossPolicyAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
   const me = await requireResponsable("/desk/marche");
   const p = signalSchema.safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: "Valeurs invalides." };
-  const next: SignalPolicy = { tell: p.data.tell === "on", minOrders: p.data.minOrders, showDepth: p.data.showDepth === "on" };
-  const before = await loadSignalPolicy();
+  const next: CrossPolicy = { tell: p.data.tell === "on", minOrders: p.data.minOrders, showDepth: p.data.showDepth === "on", execute: p.data.execute === "on" };
+  const before = await loadCrossPolicy();
   const r = repo();
-  await r.upsertReference(REF.policy, SIGNAL_POLICY_KEY, next, me.name);
-  await audit("policy.update", "reference", `${REF.policy}/${SIGNAL_POLICY_KEY}`, { before, after: next });
+  await r.upsertReference(REF.policy, CROSS_POLICY_KEY, next, me.name);
+  // Sa propre action, et non « policy.update » : le journal rangeait l'appariement
+  // sous « fenêtre déléguée », qui est une tout autre décision.
+  await audit("policy.cross", "reference", `${REF.policy}/${CROSS_POLICY_KEY}`, { before, after: next });
   await r.logEvent({
     kind: "desk",
-    html: next.tell
-      ? `Signal d'appariement <b>ouvert</b> par ${me.name} : à partir de ${next.minOrders} ordre(s) en face, ${next.showDepth ? "avec" : "sans"} les quantités`
-      : `Signal d'appariement <b>fermé</b> par ${me.name} : le carnet reste au desk`,
+    // Les deux décisions dans la même phrase : ce que le desk peut faire, et ce
+    // que le client en lit. Relues six mois plus tard, elles doivent se distinguer.
+    html: `Appariement par ${me.name} : le desk ${next.execute ? "<b>peut apparier</b>" : "est en <b>lecture seule</b>"}, signal ${next.tell ? `<b>ouvert</b> à partir de ${next.minOrders} ordre(s) en face, ${next.showDepth ? "avec" : "sans"} les quantités` : "<b>fermé</b>"}`,
   });
   revalidatePath("/desk/marche");
   // Les fiches sont rendues à chaque requête : il n'y a pas de cache à reprendre.
-  return { ok: true, message: next.tell ? "Signal ouvert : les clients connectés voient qu'une contrepartie existe." : "Signal fermé : le carnet reste au desk." };
+  return { ok: true, message: `${next.execute ? "Le desk peut apparier." : "Appariement en lecture seule."} ${next.tell ? "Les clients connectés voient qu'une contrepartie existe." : "Le carnet reste au desk."}` };
+}
+
+const crossSchema = z.object({
+  buyId: z.string().min(1),
+  sellId: z.string().min(1),
+  qty: z.coerce.number().int().positive(),
+  price: z.coerce.number().positive(),
+});
+
+/**
+ * Deux clients appariés, à un prix, en un seul geste.
+ *
+ * Les deux côtés bougent ensemble et ne peuvent pas ne pas bouger ensemble :
+ * c'est toute la raison de cette action. Exécuter chaque ordre séparément, avec
+ * les boutons qui existent déjà, laisserait passer deux prix différents sur un
+ * échange qui n'en a qu'un, et personne ne s'en apercevrait avant les avis
+ * d'opéré.
+ *
+ * Les deux passent par « transmise » avant « servie », comme tout ordre de
+ * bourse : l'appariement est une application portée au marché, et le journal
+ * doit pouvoir le raconter dans cet ordre.
+ *
+ * Le côté le plus gros est servi partiellement, et son reste se ferme avec lui :
+ * le modèle sait dire « servie à 60 % », il ne sait pas dire « servie à 60 % et
+ * toujours ouverte ». Le client garde donc à faire un nouvel ordre pour le
+ * reste, et l'écran le dit avant le geste plutôt qu'après.
+ *
+ * Le lien entre les deux vit dans le journal, chaque côté nommant la référence
+ * de l'autre : c'est la trace qu'un contrôle suivra, et elle n'a demandé aucune
+ * colonne de plus.
+ */
+export async function crossAction(_p: MarketResult | null, form: FormData): Promise<MarketResult> {
+  const desk = await requireDesk("/desk/marche");
+  const policy = await loadCrossPolicy();
+  if (!policy.execute) return { ok: false, error: "L'appariement est en lecture seule : un responsable doit l'ouvrir." };
+  const raw: Record<string, string> = {};
+  form.forEach((v, k) => {
+    if (typeof v === "string" && v.trim()) raw[k] = v.trim().replace(",", ".");
+  });
+  const p = crossSchema.safeParse(raw);
+  if (!p.success) return { ok: false, error: "Quantité et prix requis." };
+  const r = repo();
+  const intents = await r.listIntents();
+  const bi = intents.find((x) => x.id === p.data.buyId);
+  const si = intents.find((x) => x.id === p.data.sellId);
+  if (!bi || !si) return { ok: false, error: "Ordre introuvable." };
+  if (bi.offerId !== si.offerId) return { ok: false, error: "Les deux ordres ne portent pas la même ligne." };
+  const o = await r.getOffer(bi.offerId);
+  if (!o) return { ok: false, error: "Ligne introuvable." };
+  const buy = crossOrder(bi, o);
+  const sell = crossOrder(si, o);
+  if (!buy || !sell) return { ok: false, error: "Ces ordres ne sont plus appariables." };
+  // Un prix porte l'habit de sa ligne, jusque dans un refus : « 97.25 » se lit
+  // comme un nombre d'informaticien, « 97,250 % » comme le prix qu'on a saisi.
+  const shown = (v: number) => (o.instrument === "obligation" ? fmtPrice(v) : `${fmt(v)} FCFA`);
+  const wrong = crossCheck(buy, sell, p.data.qty, p.data.price, { lotSize: o.lotSize });
+  // Le serveur parle français au journal : l'écran, lui, a déjà traduit avant le geste.
+  if (wrong.length) return { ok: false, error: wrong.map((w) => w.key.replace("{n}", w.qty != null ? fmt(w.qty) : w.price != null ? shown(w.price) : "")).join(" ") };
+
+  const priceText = shown(p.data.price);
+  const both: [typeof bi, typeof si] = [bi, si];
+  for (const i of both) {
+    const other = i === bi ? si : bi;
+    const asked = positionFor(i, o).units;
+    await r.updateIntent(i.id, { state: "transmise" });
+    const updated = await r.updateIntent(i.id, {
+      state: "servie",
+      executedPrice: p.data.price,
+      servedUnits: p.data.qty,
+      allocationPct: Math.round((p.data.qty / Math.max(asked, 1)) * 100),
+    });
+    await r.logEvent({
+      kind: "desk",
+      intentId: i.id,
+      offerId: o.id,
+      html: `${i.ref} (${i.clientName}) : <b>apparié</b> avec ${other.ref} · ${fmt(p.data.qty)} / ${fmt(asked)} titres à ${priceText} · par ${desk.name}`,
+    });
+    await notifyIntentUpdated(updated, o, "servie", desk.name);
+  }
+  await audit("intent.cross", "intent", `${bi.id}+${si.id}`, {
+    after: { offerId: o.id, buy: bi.ref, sell: si.ref, qty: p.data.qty, price: p.data.price },
+    reason: `Appariement interne sur ${o.title}`,
+  });
+  revalidatePath("/desk/marche");
+  revalidatePath("/desk");
+  return {
+    ok: true,
+    message: `Apparié : ${fmt(p.data.qty)} titres à ${priceText} entre ${bi.ref} et ${si.ref}. Passez chaque côté en réglé après le règlement T+${o.settlementDays ?? 3}.`,
+  };
 }
 
 /* ---------------- OPCVM ---------------- */

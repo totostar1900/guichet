@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { repo } from "@/lib/data";
 import type { Offer } from "@/lib/domain/types";
-import { SIGNAL_CLOSED, type SignalPolicy } from "@/lib/domain/crossing";
+import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
 import { REF } from "@/lib/reference";
 
 /**
@@ -43,15 +43,15 @@ export const loadPolicy = cache(async (): Promise<ApprovalPolicy> => {
  * est injoignable. Un signal qui s'allumerait sur une panne de lecture
  * publierait le carnet par accident, et l'inverse ne coûte qu'un silence.
  */
-export const SIGNAL_POLICY_KEY = "appariement";
+export const CROSS_POLICY_KEY = "appariement";
 
-export const loadSignalPolicy = cache(async (): Promise<SignalPolicy> => {
+export const loadCrossPolicy = cache(async (): Promise<CrossPolicy> => {
   try {
     const rows = await repo().listReference(REF.policy);
-    const row = rows.find((r) => r.key === SIGNAL_POLICY_KEY);
-    return row ? { ...SIGNAL_CLOSED, ...(row.data as Partial<SignalPolicy>) } : SIGNAL_CLOSED;
+    const row = rows.find((r) => r.key === CROSS_POLICY_KEY);
+    return row ? { ...CROSS_CLOSED, ...(row.data as Partial<CrossPolicy>) } : CROSS_CLOSED;
   } catch {
-    return SIGNAL_CLOSED;
+    return CROSS_CLOSED;
   }
 });
 
