@@ -38,6 +38,18 @@
     pointer-events: none;
   }
   /* the words stay in view wherever the list was scrolled */
+  /* La vraie fiche du voisin : elle se lit du haut, et ce qui dépasse est coupé. */
+  .peekPage {
+    height: 100%;
+    overflow: hidden;
+    padding: 14px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .peekPage > span {
+    flex: none;
+  }
   .peekBody {
     position: sticky;
     top: 68px;
