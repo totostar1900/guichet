@@ -20,7 +20,9 @@
   .anim {
     transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  /* la sortie d'un glissement abouti : 180 ms, le temps exact avant que la page suivante soit demandée */
+  /* Un glissement abouti : 180 ms, le temps exact avant que la page suivante soit demandée.
+     La carte sortante et la vignette du voisin bougent ensemble, et c'est le seul mouvement :
+     la page qui arrive prend la place de la vignette sans rien rejouer. */
   .exit {
     transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -98,13 +100,6 @@
   .nudgePrevIn {
     animation: nudgePrevIn 1s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  /* l'entrée : 200 ms, contre 180 pour la sortie. Le mouvement complet tient en moins de 400 ms et se lit d'un trait. */
-  .fromRight {
-    animation: fromRight 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .fromLeft {
-    animation: fromLeft 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
   .hint {
     display: block;
     position: fixed;
@@ -167,27 +162,7 @@
     transform: translateX(calc(-100% + 38px));
   }
 }
-@keyframes fromRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-@keyframes fromLeft {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .fromRight,
-  .fromLeft {
-    animation: none;
-  }
   .anim,
   .exit,
   .hint {

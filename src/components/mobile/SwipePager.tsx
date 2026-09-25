@@ -2,7 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory } from "@/components/ListNav";
 import styles from "./SwipePager.module.css";
 
@@ -25,7 +25,6 @@ const SLOP = 10;
 const COMMIT = 0.3; // of the width
 const FLICK = 0.6; // px / ms
 const EXIT = 180; // ms : la sortie, et l'instant où la page suivante est demandée
-const ENTER_KEY = "guichet:swipeDir";
 
 export interface Neighbour {
   href: string;
@@ -69,9 +68,6 @@ const FULL = { kind: "full" } as const;
 // Le type public de `router.prefetch` n'expose pas encore l'option ; la valeur, elle, est bien celle que Next attend.
 type Prefetcher = { prefetch: (href: string, options?: typeof FULL) => void };
 
-// Le serveur ne peint pas : là, l'effet de mise en page n'a pas lieu d'être, et React le dirait.
-const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
-
 export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints, children }: { id?: string; prev?: Neighbour; next?: Neighbour; hintKey: string; hints: { next: string; prev: string }; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
@@ -99,7 +95,6 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       return null;
     }
   }, [raw, id]);
-  const [enter, setEnter] = useState<"left" | "right" | null>(null);
   const [hint, setHint] = useState(false);
   const [nudge, setNudge] = useState(false);
   // The neighbours: from the list memory for a fiche, from the page otherwise.
@@ -110,31 +105,6 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   const prevHref = resolve(prev);
   const nextHref = resolve(next);
   const ready = id ? Boolean(mem) : true;
-
-  /**
-   * Arriving from a swipe: slide in from the side the finger pointed to.
-   *
-   * La classe se posait une image après la première peinture, par
-   * `requestAnimationFrame`. Tant que la page mettait une seconde à venir, cela
-   * ne se voyait pas. Préchargée, elle arrive en vingt millisecondes : on la
-   * voyait alors en place, lisible, avant qu'elle ne saute au bord et revienne.
-   * C'est le sursaut qu'on prenait pour un défaut d'affichage.
-   *
-   * Un effet de mise en page se joue après le DOM et avant la peinture : la
-   * classe est donc là dès la première image, et l'animation part de sa
-   * première clef sans que rien ne se montre entre-temps.
-   */
-  useIsoLayoutEffect(() => {
-    let dir: string | null = null;
-    try {
-      dir = sessionStorage.getItem(ENTER_KEY);
-      if (dir) sessionStorage.removeItem(ENTER_KEY);
-    } catch {
-      // storage unavailable
-    }
-    // Sans direction, la page se montre telle quelle : une arrivée qui n'est pas un glissement n'anime rien.
-    setEnter(dir ? (dir === "1" ? "right" : "left") : null);
-  }, [id]);
 
   // The neighbours are fetched ahead so the snap lands on a ready page; the first time, the page steps aside and a word says why.
   useEffect(() => {
@@ -225,12 +195,16 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       const target = dir > 0 ? nextHref : prevHref;
       const commit = target && (Math.abs(done.dx) > w * COMMIT || Math.abs(done.vx) > FLICK);
       if (commit) {
+        // La vignette du voisin finit son chemin jusqu'au centre : c'est elle, et elle
+        // seule, qui fait le mouvement. La page qui arrive prend ensuite sa place sans
+        // rien rejouer. Elle glissait auparavant depuis le bord à son tour, refaisant le
+        // trajet que la vignette venait de faire : on voyait une page presque vide entrer,
+        // puis la vraie entrer par-dessus, deux fois le même geste.
         place(-dir * w, true, true);
         try {
-          sessionStorage.setItem(ENTER_KEY, String(dir));
           navigator.vibrate?.(8);
         } catch {
-          // storage or haptics unavailable
+          // haptics unavailable
         }
         window.setTimeout(() => router.push(target), reduced ? 0 : EXIT);
       } else {
@@ -254,7 +228,7 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   const nudgeDir = nudge ? (nextHref ? "next" : prevHref ? "prev" : null) : null;
   return (
     <div ref={root} className={styles.pager}>
-      <div ref={cur} className={`${styles.cur} ${enter === "right" ? styles.fromRight : enter === "left" ? styles.fromLeft : ""} ${nudgeDir === "next" ? styles.nudgeNext : nudgeDir === "prev" ? styles.nudgePrev : ""}`}>
+      <div ref={cur} className={`${styles.cur} ${nudgeDir === "next" ? styles.nudgeNext : nudgeDir === "prev" ? styles.nudgePrev : ""}`}>
         {children}
       </div>
       {ready && prev && (
