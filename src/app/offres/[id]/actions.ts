@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { switchBlock } from "@/lib/domain/switch";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
 import { normalizePhone, parseAmount, parseUnits } from "@/lib/format";
@@ -22,6 +23,7 @@ const schema = z.object({
   offerId: z.string().min(1),
   type: z.enum(["appetit", "ferme", "info", "rappel", "cession", "achat", "vente", "souscription", "rachat"]),
   limitPrice: z.string().optional(),
+  switchToOffer: z.string().optional(),
   amount: z.string().optional(),
   channel: z.enum(["WhatsApp", "Appel", "E-mail"]),
   firstName: z.string().max(60).optional(),
@@ -47,7 +49,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if (!session) return { ok: false, error: "Connectez-vous pour envoyer une intention." };
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { ok: false, error: "Formulaire incomplet : vérifiez le type et le canal." };
-  const { offerId, type, amount, channel, message, limitPrice } = parsed.data;
+  const { offerId, type, amount, channel, message, limitPrice, switchToOffer } = parsed.data;
   const firstName = (parsed.data.firstName ?? "").trim().replace(/\s+/g, " ");
   const lastName = (parsed.data.lastName ?? "").trim().replace(/\s+/g, " ");
   if (firstName.length < 2 || lastName.length < 2) return { ok: false, error: "Indiquez votre prénom et votre nom tels qu'ils figurent sur votre pièce d'identité." };
@@ -89,6 +91,16 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if ((type === "achat" || type === "vente" || type === "rachat") && !amt) return { ok: false, error: "Indiquez une quantité." };
   if (type === "souscription" && (!amt || (offer.fund && amt < offer.fund.minAmount))) return { ok: false, error: `Indiquez un montant (minimum ${fmt(offer.fund?.minAmount ?? 0)} FCFA).` };
   const limit = limitPrice ? Number(String(limitPrice).replace(",", ".")) : null;
+  // La destination d'un passage se contrôle ici, et pas seulement à l'écran : un
+  // fonds peut cesser d'être distribué entre le moment où la page s'affiche et
+  // celui où le client valide.
+  let switchTo: string | undefined;
+  if (switchToOffer && type === "rachat") {
+    const dest = await r.getOffer(switchToOffer);
+    const bad = switchBlock(offer, dest);
+    if (bad) return { ok: false, error: bad };
+    switchTo = switchToOffer;
+  }
   let held: number | undefined;
   if (type === "vente" || type === "rachat") {
     const [allIntents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
@@ -112,6 +124,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     type,
     amount: amt || null,
     limitPrice: limit && !isNaN(limit) ? limit : null,
+    switchToOfferId: switchTo,
     channel,
     contactPhone: contactPhone || undefined,
     contactEmail: contactEmail || undefined,

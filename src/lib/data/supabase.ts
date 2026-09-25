@@ -92,6 +92,8 @@ type IntentRow = {
   served_units: number | null;
   limit_price: number | null;
   executed_price: number | null;
+  switch_to_offer?: string | null;
+  switch_from_intent?: string | null;
   phone_verified?: boolean | null;
   profile_flag?: string | null;
   email_verified?: boolean | null;
@@ -181,6 +183,8 @@ function toIntent(r: IntentRow): Intent {
     allocationPct: r.allocation_pct === null ? undefined : Number(r.allocation_pct),
     servedUnits: r.served_units === null ? undefined : Number(r.served_units),
     limitPrice: r.limit_price === null ? null : Number(r.limit_price),
+    switchToOfferId: r.switch_to_offer ?? undefined,
+    switchFromIntentId: r.switch_from_intent ?? undefined,
     executedPrice: r.executed_price === null ? null : Number(r.executed_price),
     closedReason: u(r.closed_reason),
     counter: (r.counter as Intent["counter"]) ?? undefined,
@@ -476,6 +480,8 @@ export const supabaseRepository: Repository = {
       type: input.type,
       amount: input.amount ?? null,
       limit_price: input.limitPrice ?? null,
+      switch_to_offer: input.switchToOfferId ?? null,
+      switch_from_intent: input.switchFromIntentId ?? null,
       channel: input.channel,
       contact_phone: input.contactPhone ?? null,
       contact_email: input.contactEmail ?? null,
@@ -500,6 +506,15 @@ export const supabaseRepository: Repository = {
     if (error && /profile_flag/.test(error.message)) {
       // Migration 0028 not applied yet: the intent still leaves, the flag stays in the message.
       delete row.profile_flag;
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
+    if (error && /switch_(to_offer|from_intent)/.test(error.message)) {
+      // Migration 0042 pas encore appliquée : l'ordre part, et c'est le fil du
+      // passage qui attend. Un rachat sans destination vaut mieux qu'un rachat
+      // refusé, et le desk virera le produit au client comme il le faisait avant.
+      console.warn("[intents] migration 0042_intent_switch.sql manquante : le passage part sans son fil");
+      delete row.switch_to_offer;
+      delete row.switch_from_intent;
       ({ data, error } = await db().from("intents").insert(row).select("*").single());
     }
     if (error && /(phone|email)_verified/.test(error.message)) {
@@ -537,6 +552,8 @@ export const supabaseRepository: Repository = {
     if (patch.message !== undefined) row.message = patch.message ?? null;
     if (patch.amount !== undefined) row.amount = patch.amount;
     if (patch.limitPrice !== undefined) row.limit_price = patch.limitPrice;
+    if (patch.switchToOfferId !== undefined) row.switch_to_offer = patch.switchToOfferId;
+    if (patch.switchFromIntentId !== undefined) row.switch_from_intent = patch.switchFromIntentId;
     if (patch.counter !== undefined) row.counter = patch.counter ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);

@@ -222,6 +222,8 @@ export const memoryRepository: Repository = {
       phoneVerified: input.phoneVerified,
       emailVerified: input.emailVerified,
       profileFlag: input.profileFlag,
+      switchToOfferId: input.switchToOfferId,
+      switchFromIntentId: input.switchFromIntentId,
       createdAt: at,
       updatedAt: at,
     };

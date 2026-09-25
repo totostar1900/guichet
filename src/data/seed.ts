@@ -168,6 +168,95 @@ export const SEED_OFFERS: Offer[] = [
     sizeLabel: "10 Mds FCFA",
     version: 0,
   },
+  /* Deux fonds, et de quoi passer de l'un à l'autre.
+
+     L'étagère des OPCVM était vide dans la démonstration : aucun fonds, donc ni
+     comparaison, ni courbe, ni rachat, et le passage d'un fonds à l'autre n'avait
+     nulle part où se montrer. Deux suffisent, l'un calme et l'autre moins, avec
+     des droits de sortie sur le premier pour que le produit d'un rachat ne soit
+     pas exactement la valeur des parts. */
+  {
+    id: "fcp-monetaire",
+    kind: "FONDS",
+    operation: "secondaire",
+    country: "Cameroun",
+    countryName: "République du Cameroun",
+    issuer: "Corridor Asset Management",
+    title: "FCP Trésorerie Corridor",
+    isin: "CMFCP-MONETAIRE",
+    status: "published",
+    isExample: true,
+    blurb: "Exemple de fonds commun de placement agréé COSUMAF, dont la valeur liquidative est publiée au Bulletin Officiel de la Cote.",
+    documents: [],
+    opensAt: "2026-01-02T09:00:00",
+    deadlineAt: "2099-12-31T17:00:00",
+    settleOn: "2026-09-24",
+      lastCouponOn: null,
+    nominal: 0,
+    commissionPct: 0,
+    fund: {
+      key: "fcp-monetaire",
+      manager: "Corridor Asset Management",
+      depositary: "LCB Bank",
+      category: "M",
+      frequency: "hebdomadaire",
+      nav: 10820,
+      navDate: "2026-09-18",
+      navOrigin: 10000,
+      inceptionDate: "2021-04-01",
+      perfSinceInceptionPct: 8.2,
+      distributed: true,
+      agreementRef: "CONV-2026-001",
+      entryFeePct: 1,
+      exitFeePct: 0.5,
+      managementFeePct: 0.9,
+      minAmount: 100_000,
+      cutoff: "mardi 12 h pour la VL du jeudi",
+      settlementDays: 3,
+    },
+    version: 1,
+  },
+  {
+    id: "fcp-obligataire",
+    kind: "FONDS",
+    operation: "secondaire",
+    country: "Cameroun",
+    countryName: "République du Cameroun",
+    issuer: "Corridor Asset Management",
+    title: "FCP Obligations CEMAC",
+    isin: "CMFCP-OBLIGATAIRE",
+    status: "published",
+    isExample: true,
+    blurb: "Exemple de fonds commun de placement agréé COSUMAF, dont la valeur liquidative est publiée au Bulletin Officiel de la Cote.",
+    documents: [],
+    opensAt: "2026-01-02T09:00:00",
+    deadlineAt: "2099-12-31T17:00:00",
+    settleOn: "2026-09-24",
+      lastCouponOn: null,
+    nominal: 0,
+    commissionPct: 0,
+    fund: {
+      key: "fcp-obligataire",
+      manager: "Corridor Asset Management",
+      depositary: "LCB Bank",
+      category: "O",
+      frequency: "hebdomadaire",
+      nav: 12430,
+      navDate: "2026-09-18",
+      navOrigin: 10000,
+      inceptionDate: "2021-04-01",
+      perfSinceInceptionPct: 24.3,
+      distributed: true,
+      agreementRef: "CONV-2026-001",
+      entryFeePct: 1,
+      exitFeePct: 0,
+      managementFeePct: 1.35,
+      minAmount: 100_000,
+      cutoff: "mardi 12 h pour la VL du jeudi",
+      settlementDays: 3,
+    },
+    version: 1,
+  },
   /* Une adjudication encore ouverte.
 
      Toutes les lignes du primaire de la démonstration avaient leur clôture
@@ -477,6 +566,49 @@ export const SEED_INTENTS: Intent[] = [
      l'écran qui compte. Ces deux ordres se répondent, 96,750 contre 97,250, et
      le vendeur en offre moins que l'acheteur n'en demande : il reste de l'appétit
      après l'appariement, ce qui montre les deux moitiés de l'écran d'un coup. */
+  /* Le client détient des parts : sans elles, aucun rachat n'est possible et le
+     passage d'un fonds à l'autre reste une idée. Souscription réglée, parts
+     livrées : 2 000 000 FCFA nets des droits d'entrée, à la valeur liquidative. */
+  {
+    id: "i-021",
+    ref: "PF-0520-021",
+    clientId: "dev-client-g-nitcheu",
+    offerId: "fcp-monetaire",
+    offerVersion: 1,
+    clientName: "G. Nitcheu",
+    clientSegment: "Personne physique · Yaoundé",
+    type: "souscription",
+    amount: 2_000_000,
+    servedUnits: 183.02,
+    executedPrice: 10_820,
+    allocationPct: 100,
+    channel: "E-mail",
+    state: "reglee",
+    createdAt: "2026-05-20T10:00:00",
+    updatedAt: "2026-05-26T09:00:00",
+  },
+  /* Un passage en cours.
+
+     Le client a demandé une seule chose : quitter la trésorerie pour les
+     obligations. Le rachat est placé ; la souscription naîtra de son exécution,
+     pour le montant exact reçu, que personne ne connaît encore. C'est le seul
+     ordre de la démonstration qui porte une destination. */
+  {
+    id: "i-022",
+    ref: "PF-0924-022",
+    clientId: "dev-client-g-nitcheu",
+    offerId: "fcp-monetaire",
+    offerVersion: 1,
+    clientName: "G. Nitcheu",
+    clientSegment: "Personne physique · Yaoundé",
+    type: "rachat",
+    amount: 50,
+    switchToOfferId: "fcp-obligataire",
+    channel: "E-mail",
+    state: "transmise",
+    createdAt: "2026-09-24T11:20:00",
+    updatedAt: "2026-09-24T15:05:00",
+  },
   /* Un appétit qui ne tient qu'en dessous du prix annoncé.
 
      Sans lui, l'échelle du sondage n'aurait que des barreaux servis et ne

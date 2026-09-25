@@ -64,7 +64,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
     loadFiche(o),
     newsFor("offer", o.id).then((n) => n.length),
   ]);
-  const { channels, bridge, fin, mark, types, initial, held, qty, st, past } = ctx;
+  const { channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets } = ctx;
   const summary = summarize(o, new Date());
 
   // « À garder en tête » comes from the product type (desk-editable in the référentiel).
@@ -101,7 +101,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

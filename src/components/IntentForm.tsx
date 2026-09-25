@@ -94,7 +94,13 @@ function redemptionEstimate(o: Offer, units: number): string {
   return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number;  past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
+/** Un fonds que le client peut viser depuis celui-ci : la page les a déjà filtrés. */
+export interface SwitchTarget {
+  id: string;
+  title: string;
+}
+
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[];  past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -158,6 +164,8 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // Le sondage ne vit que sur le primaire obligataire, et seulement quand le client
   // annonce une demande : une information ou un rappel ne porte pas de condition.
   const survey = (offer.kind === "OTA" || offer.kind === "APE" || offer.kind === "BTA") && (type === "appetit" || type === "ferme");
+  // Le passage : sortir d'un fonds pour entrer dans un autre, en une instruction.
+  const canSwitch = offer.kind === "FONDS" && type === "rachat" && switchTargets.length > 0;
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
   const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
   const byCash = market && unit === "francs";
@@ -343,6 +351,29 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               ne répondait pas à sa question : à quel niveau cette demande tient-elle
               encore ? Le sens dépend du compartiment, et le mot avec : on paie un
               prix, on reçoit un taux. */}
+          {/* Où va le produit du rachat.
+
+              Sans ce choix, le client passait deux ordres sans rapport : un rachat,
+              puis une souscription s'il y pensait et quand il y pensait. Entre les
+              deux, son argent était sorti du marché et rien ne le lui rappelait.
+
+              Aucun montant n'est annoncé ici, parce qu'aucun n'est connu : il vaudra
+              les parts à la prochaine valeur liquidative, nette des droits de sortie,
+              et cette valeur se publie après. */}
+          {canSwitch && (
+            <label className="field">
+              {t("Replacer le produit dans (facultatif)")}
+              <select name="switchToOffer" defaultValue="">
+                <option value="">{t("non : virer le produit sur mon compte")}</option>
+                {switchTargets.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </select>
+              <small className="muted">{t("Le desk enchaîne la souscription dès le rachat exécuté, pour le montant exact reçu.")}</small>
+            </label>
+          )}
           {survey && (
             <label className="field">
               {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} :{" "}

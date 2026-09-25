@@ -9,6 +9,7 @@ import { z } from "zod";
 import { requireDesk, requireResponsable } from "@/lib/auth";
 import { REF } from "@/lib/reference";
 import { CROSS_CLOSED, crossCheck, crossOrder, type CrossPolicy } from "@/lib/domain/crossing";
+import { switchBlock, switchProceeds } from "@/lib/domain/switch";
 import { loadCrossPolicy, CROSS_POLICY_KEY } from "@/lib/policy";
 import { repo } from "@/lib/data";
 import { generateForIntent, generateFundBordereau } from "@/lib/documents/generate";
@@ -92,9 +93,70 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
   const unitsText = o.kind === "FONDS" ? `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL ${fmt(p.data.executedPrice)} FCFA` : `${fmt(units)} / ${fmt(asked)} à ${o.instrument === "obligation" ? fmtPrice(p.data.executedPrice) : fmt(p.data.executedPrice) + " FCFA"}`;
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>exécuté</b> ${unitsText} · par ${desk.name}` });
   await notifyIntentUpdated(updated, o, "servie", desk.name);
+
+  // Le second temps d'un passage.
+  //
+  // Le client a demandé une seule chose : quitter ce fonds pour un autre. Le
+  // montant, lui, n'était pas connu au moment où il le demandait : il vaut les
+  // parts rachetées à la valeur liquidative retenue, nette des droits de sortie.
+  // Il l'est maintenant, donc la souscription se crée maintenant, et non quand
+  // quelqu'un y repensera : c'est le temps hors marché que le passage sert à
+  // supprimer.
+  //
+  // Elle naît confirmée parce que le client a déjà dit oui à l'aller-retour, et
+  // que la faire attendre une seconde confirmation rouvrirait le trou qu'on vient
+  // de fermer. Ce qu'il n'a pas choisi, le montant, est le sien : tout le produit.
+  let switched = "";
+  if (updated.switchToOfferId) {
+    const dest = await r.getOffer(updated.switchToOfferId);
+    const bad = switchBlock(o, dest);
+    if (bad || !dest) {
+      await r.logEvent({
+        kind: "system",
+        intentId: i.id,
+        offerId: o.id,
+        html: `Passage impossible vers le fonds demandé : ${bad ?? "fonds introuvable"} · le produit reste à virer au client`,
+      });
+    } else {
+      const proceeds = switchProceeds(positionFor(updated, o, { unitsOverride: units, pricePct: undefined }).total);
+      if (proceeds > 0) {
+        const next = await r.createIntent({
+          offerId: dest.id,
+          type: "souscription",
+          amount: proceeds,
+          channel: updated.channel,
+          contactPhone: updated.contactPhone,
+          contactEmail: updated.contactEmail,
+          clientName: updated.clientName,
+          clientSegment: updated.clientSegment,
+          clientId: updated.clientId,
+          phoneVerified: updated.phoneVerified,
+          emailVerified: updated.emailVerified,
+          message: `Passage depuis ${o.title} (${updated.ref}).`,
+          switchFromIntentId: updated.id,
+        });
+        await r.updateIntent(next.id, { state: "confirmee" });
+        await r.logEvent({
+          kind: "desk",
+          intentId: next.id,
+          offerId: dest.id,
+          html: `${next.ref} (${next.clientName}) : <b>passage</b> depuis ${o.title} · ${fmt(proceeds)} FCFA · suite de ${updated.ref}`,
+        });
+        await r.logEvent({
+          kind: "desk",
+          intentId: i.id,
+          offerId: o.id,
+          html: `${updated.ref} : le produit part en souscription sur ${dest.title} (${next.ref})`,
+        });
+        switched = ` Le produit part en souscription sur ${dest.title} : ${next.ref}, ${fmt(proceeds)} FCFA.`;
+      }
+    }
+  }
+
   revalidatePath("/desk/marche");
   revalidatePath("/desk");
-  return { ok: true, message: o.kind === "FONDS" ? `Exécuté : ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts. Passez en réglé à réception de l'avis du dépositaire.` : `Exécuté : ${fmt(units)} unité(s). Passez l'ordre en réglé après le règlement T+${o.settlementDays ?? 3}.` };
+  revalidatePath("/moi");
+  return { ok: true, message: (o.kind === "FONDS" ? `Exécuté : ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts. Passez en réglé à réception de l'avis du dépositaire.` : `Exécuté : ${fmt(units)} unité(s). Passez l'ordre en réglé après le règlement T+${o.settlementDays ?? 3}.`) + switched };
 }
 
 /** Settlement of an executed market order → position, avis d'opéré. */

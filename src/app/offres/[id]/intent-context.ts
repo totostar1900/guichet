@@ -5,6 +5,7 @@ import type { IntentType, Offer } from "@/lib/domain/types";
 import type { Session } from "@/lib/auth/types";
 import type { ChannelStatus } from "@/lib/domain/types";
 import { positionsFrom } from "@/lib/positions";
+import { switchTargets as switchTargets_ } from "@/lib/domain/switch";
 import { fmt, fmtPct, fmtPrice } from "@/lib/format";
 import type { FinancialProfile } from "@/data/profile";
 
@@ -28,6 +29,8 @@ export interface IntentContext {
   qty?: number;
   st: ReturnType<typeof displayStatus>;
   past: boolean;
+  /** Passage : les fonds atteignables depuis celui-ci, vides ailleurs que sur un fonds. */
+  switchTargets: { id: string; title: string }[];
 }
 
 export type IntentSearch = { intent?: string; qty?: string; de?: string };
@@ -68,8 +71,11 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
   if (wantsHeld && session) {
     held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
   }
+  // Les fonds que le client peut viser depuis celui-ci : la liste est courte et se
+  // calcule sur des offres deja lues, donc elle ne coute aucune lecture de plus.
+  const switchTargets = o.kind === "FONDS" ? switchTargets_(o, allOffers).map((x) => ({ id: x.id, title: x.title })) : [];
   const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
-  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past };
+  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets };
 }
 
 /** The intention page for a line, with the type or quantity a caller pre-selects. */

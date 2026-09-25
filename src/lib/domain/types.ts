@@ -199,6 +199,10 @@ export interface Intent {
   closedReason?: string;
   /** D’autres conditions soumises au client : son acceptation les reporte sur l’ordre. */
   counter?: Counter;
+  /** Passage : sur un rachat, le fonds où le client veut replacer le produit. */
+  switchToOfferId?: string;
+  /** Passage : sur une souscription, le rachat dont elle emploie le produit. */
+  switchFromIntentId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -228,6 +232,9 @@ export interface NewIntentInput {
   phoneVerified?: boolean;
   emailVerified?: boolean;
   profileFlag?: string;
+  /** Passage : le fonds de destination (rachat), ou le rachat d'origine (souscription). */
+  switchToOfferId?: string;
+  switchFromIntentId?: string;
 }
 
 /* ---------------- Intake (À valider) ---------------- */

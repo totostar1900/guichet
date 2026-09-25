@@ -838,4 +838,13 @@ export const EN_REST: Record<string, string> = {
   "Sur un bon du Trésor, la condition est le taux précompté que vous acceptez au minimum : 5,5 pour 5,5 %.": "On a Treasury bill, the condition is the lowest discounted rate you accept : 5.5 for 5.5 %.",
   "Sur une obligation du primaire, la condition est le prix que vous acceptez au maximum, en pourcentage du nominal : 97 pour 97 %.": "On a primary bond, the condition is the highest price you accept, as a percentage of par : 97 for 97 %.",
   "Le desk porte la demande à l'émetteur avec sa condition. Elle reste utile : elle dit à quel niveau la demande de la place tient encore.": "The desk carries the demand to the issuer with its condition. It stays useful : it says at what level the market's demand still holds.",
+  "Replacer le produit dans (facultatif)": "Move the proceeds into (optional)",
+  "non : virer le produit sur mon compte": "no : transfer the proceeds to my account",
+  "Le desk enchaîne la souscription dès le rachat exécuté, pour le montant exact reçu.": "The desk chains the subscription as soon as the redemption is executed, for the exact amount received.",
+  "Le fonds de destination est introuvable.": "The destination fund cannot be found.",
+  "Un passage part d'un fonds.": "A switch starts from a fund.",
+  "Un passage arrive sur un fonds.": "A switch lands on a fund.",
+  "Le fonds de destination est le fonds de départ.": "The destination fund is the fund you are leaving.",
+  "Ce fonds n'est plus proposé.": "This fund is no longer offered.",
+  "Ce fonds n'est pas encore distribué par la maison.": "The firm does not distribute this fund yet.",
 };
