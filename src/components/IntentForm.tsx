@@ -5,7 +5,7 @@ import { useActionState, useRef, useState } from "react";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
 import type { ChannelStatus } from "@/lib/domain/types";
-import { normalizePhone } from "@/lib/format";
+import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
 import { estimate } from "@/lib/domain/estimate";
@@ -20,6 +20,8 @@ import styles from "./IntentForm.module.css";
 import { useLang, useT } from "@/i18n/client";
 import { amountFlag } from "@/data/profile";
 import { Amount } from "./Amount";
+import { RefTotals } from "./RefTotals";
+import { orderPlan, orderTotals } from "./OrderFlows";
 import { groupedInput } from "@/lib/ui/grouped";
 
 const DONE: Record<IntentType, (by: string) => string> = {
@@ -159,6 +161,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // Une seule quantité commande tout le reste : l’estimation, les contrôles, le passage
   // à l’étape suivante, et ce qui part au desk. Saisie en titres, ou déduite d’une somme.
   const ordered = byCash ? qtyForCash(offer, type, parseAmount(cash), lim) : parse(amount);
+  // Ce que l'ordre coûte, ce qu'il rend et à quel taux : les trois viennent du
+  // même calcul que l'échéancier, pour la quantité saisie plutôt que pour un
+  // montant de référence rond.
+  const plan = orderPlan(offer, market ? ordered : 0, market ? 0 : ordered, lim);
+  const totals = orderTotals(plan);
   const est = estimate(offer, ordered);
   // « ordered » porte des titres sur la cote et des francs au primaire, et
   // `estimate` attend des francs : sur une ligne cotée son décaissement vaut
@@ -336,19 +343,38 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         </div>
         {needsAmount && (
           <>
-            {/* Le décaissement avait sa place au milieu d'une phrase, entre une
-                multiplication et une réserve sur le prix d'exécution. C'est le
-                seul chiffre que le client cherche : il prend sa ligne, en grand,
-                et la phrase passe dessous pour dire comment il est obtenu. */}
-            {sized && outlay > 0 && (
-              <div className={styles.outlay}>
-                <span>{t(takes ? "Total à décaisser" : "Total encaissé")}</span>
-                <b>
-                  <Amount value={outlay} />
-                </b>
-              </div>
+            {/* Les trois chiffres que le client cherche, pour ce qu'il vient de
+                saisir : ce qu'il sort, ce qui lui revient, et le taux que cela
+                fait. C'est la bande du bloc de référence de la fiche, qui les
+                donne pour un montant rond ; ici ce sont les siens.
+
+                Le détail du calcul passe dans une bulle : une phrase qu'on lit
+                une fois pour vérifier, pas un chiffre qu'on suit. */}
+            {sized && outlay > 0 ? (
+              <RefTotals
+                figures={[
+                  {
+                    label: t(takes ? "Total à décaisser" : "Total encaissé"),
+                    value: (
+                      <>
+                        <Amount value={outlay} />
+                        <Info text={t(market ? marketEstimate(offer, ordered, type, lim) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)} label={t("Le calcul")} subtle />
+                      </>
+                    ),
+                  },
+                  ...(takes && totals.received > 0
+                    ? [{ label: t("Total à recevoir"), value: <Amount value={totals.received} />, note: t("{n} versement(s) jusqu'à l'échéance", { n: plan.flows.length }) }]
+                    : []),
+                ]}
+                rate={
+                  takes && totals.yieldPct != null
+                    ? { label: t(market ? "Rendement actuariel annuel brut à ce cours" : "Rendement actuariel annuel brut"), value: fmtPct(totals.yieldPct, 2), note: t(market ? "au cours de référence : le prix d'exécution le fera bouger" : "si la ligne est gardée jusqu'à l'échéance") }
+                    : undefined
+                }
+              />
+            ) : (
+              <div className={`${styles.estimate} ${styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type, lim) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>
             )}
-            <div className={`${styles.estimate} ${sized ? "" : styles.estimateOff}`}>{t(market ? marketEstimate(offer, ordered, type, lim) : offer.kind === "FONDS" && type === "rachat" ? redemptionEstimate(offer, parse(amount)) : est.text)}</div>
             <OrderFlows offer={offer} quantity={market ? ordered : 0} amount={market ? 0 : ordered} limit={lim} type={type} />
           </>
         )}

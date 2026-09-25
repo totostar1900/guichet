@@ -41,13 +41,13 @@ export function OrderFlows({ offer, quantity, amount, limit, type, settleOn }: {
           sommaire en « display: flex », ce qui efface le triangle natif sur
           WebKit, et la section n'avait alors plus rien qui dise qu'elle s'ouvre. */}
       <button type="button" className={styles.head} aria-expanded={open} aria-controls="order-flows" onClick={() => setOpen((v) => !v)}>
-        <svg className={`${styles.chev} ${open ? styles.chevOpen : ""}`} viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
         <span className={styles.headTitle}>{t("Ce que cette ligne vous verserait")}</span>
         <small>
           {flows.length} {t(flows.length > 1 ? "versements" : "versement")} · <Amount value={total} />
         </small>
+        <svg className={`${styles.chev} ${open ? styles.chevOpen : ""}`} viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </button>
       {open && (
         <div id="order-flows">
@@ -115,6 +115,8 @@ export interface OrderPlan {
   flows: CashFlow[];
   outlay: number;
   settleOn: string;
+  /** Le rendement actuariel de cet ordre-ci, pour la quantité saisie. */
+  yieldPct?: number;
 }
 
 export function orderPlan(o: Offer, quantity: number, amount: number, limit: number | null): OrderPlan {
@@ -125,18 +127,18 @@ export function orderPlan(o: Offer, quantity: number, amount: number, limit: num
       if (ref <= 0) return none;
       const r = marketBondCalc(o, quantity * o.nominal, ref);
       const inp = marketAmortInput(o) ?? marketBondInput(o);
-      return r ? { flows: r.flows, outlay: r.outlay, settleOn: inp?.settleOn ?? o.settleOn } : none;
+      return r ? { flows: r.flows, outlay: r.outlay, settleOn: inp?.settleOn ?? o.settleOn, yieldPct: r.irr } : none;
     }
     if ((o.kind === "OTA" || o.kind === "APE") && o.couponRate != null && o.maturityOn && amount > 0) {
       const price = o.servedPricePct ?? o.pricePct ?? 100;
       const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn }, amount, price);
-      return { flows: r.flows, outlay: r.outlay, settleOn: o.settleOn };
+      return { flows: r.flows, outlay: r.outlay, settleOn: o.settleOn, yieldPct: r.irr };
     }
     if (o.kind === "BTA" && o.precountRate != null && o.maturityOn && amount > 0) {
       // Un bon ne verse rien avant son terme : une seule ligne, et c'est déjà
       // l'information qui manque le plus, parce qu'on croit souvent à un coupon.
       const r = btaCalc({ nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn }, amount, o.precountRate);
-      return r.n > 0 ? { flows: [{ date: new Date(`${o.maturityOn}T12:00:00`), t: 0, amount: r.redemption, label: "Remboursement" }], outlay: r.outlay, settleOn: o.settleOn } : none;
+      return r.n > 0 ? { flows: [{ date: new Date(`${o.maturityOn}T12:00:00`), t: 0, amount: r.redemption, label: "Remboursement" }], outlay: r.outlay, settleOn: o.settleOn, yieldPct: r.yieldPct } : none;
     }
   } catch {
     // Un échéancier incomplet ne doit pas emporter le formulaire : sans flux,
@@ -147,3 +149,6 @@ export function orderPlan(o: Offer, quantity: number, amount: number, limit: num
 
 /** Les seuls versements, pour qui n'a que faire de la mise. */
 export const orderFlows = (o: Offer, quantity: number, amount: number, limit: number | null): CashFlow[] => orderPlan(o, quantity, amount, limit).flows;
+
+/** Ce que l'ordre rend, une fois posé : la mise, ce qui revient, et le taux. */
+export const orderTotals = (p: OrderPlan): { outlay: number; received: number; yieldPct?: number } => ({ outlay: p.outlay, received: p.flows.reduce((s, f) => s + f.amount, 0), yieldPct: p.yieldPct });

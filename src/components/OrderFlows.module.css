@@ -28,26 +28,28 @@
   font-weight: 600;
 }
 .headTitle {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 .head small {
   color: var(--ink-3);
   font-weight: 400;
   white-space: nowrap;
 }
+/* Au bout de la ligne, et vers le bas : on déroule une section, on n'ouvre
+   pas une branche. Ouverte, il se retourne. */
 .chev {
   width: 16px;
   height: 16px;
   flex: none;
+  margin-left: auto;
   fill: none;
   stroke: var(--ink-3);
   stroke-width: 2;
   stroke-linecap: round;
-  transform: rotate(-90deg);
   transition: transform 0.16s ease;
 }
 .chevOpen {
-  transform: rotate(0deg);
+  transform: rotate(180deg);
 }
 @media (prefers-reduced-motion: reduce) {
   .chev {

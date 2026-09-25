@@ -2339,4 +2339,8 @@ export const EN_MORE: Record<string, string> = {
   "Affectée jusqu'au": "Assigned until",
   "Inscrire": "Record",
   "Restituer": "Return",
+  "Total à recevoir": "Total to receive",
+  "Le calcul": "The working",
+  "{n} versement(s) jusqu'à l'échéance": "{n} payment(s) to maturity",
+  "au cours de référence : le prix d'exécution le fera bouger": "at the reference price: the execution price will move it",
 };
