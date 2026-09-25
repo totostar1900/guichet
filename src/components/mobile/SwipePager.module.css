@@ -102,7 +102,13 @@
     opacity: 1;
     transform: none;
   }
-  .peek b {
+  /* Le titre du résumé, et lui seul.
+
+     « .peek b » attrapait aussi chaque gras de la fiche voisine, maintenant rendue
+     là pour de bon : les chiffres héritaient d'une hauteur de ligne de 1,25 au lieu
+     de 1,5 et perdaient quatre pixels chacun. La page entrait donc plus courte
+     qu'elle ne ressortait, et tout se replaçait au relâchement. */
+  .peekBody b {
     font-size: 1.15rem;
     line-height: 1.25;
     color: var(--ink);
