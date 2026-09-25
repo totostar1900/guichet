@@ -57,15 +57,22 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </div>
     );
   }
-  const watching = session ? (await repo().listWatches(session.userId)).some((w) => w.offerId === id) : false;
-  const { channels, bridge, fin, mark, types, initial, held, qty, st, past } = await loadIntentContext(o, sp, session);
+  // Quatre lectures qui ne s'attendent pas : la veille du lecteur, le contexte
+  // de l'intention, le corps de la fiche, les actualités liées. Enchaînées, la
+  // page payait quatre allers-retours avant de commencer à se rendre, et c'est
+  // ce qu'on attendait en glissant d'une fiche à la suivante.
+  const [watching, ctx, fiche, relatedNews] = await Promise.all([
+    session ? repo().listWatches(session.userId).then((w) => w.some((x) => x.offerId === id)) : Promise.resolve(false),
+    loadIntentContext(o, sp, session),
+    loadFiche(o),
+    newsFor("offer", o.id).then((n) => n.length),
+  ]);
+  const { channels, bridge, fin, mark, types, initial, held, qty, st, past } = ctx;
   const summary = summarize(o, new Date());
-  const fiche = await loadFiche(o);
 
   // « À garder en tête » comes from the product type (desk-editable in the référentiel).
   // The walk-through speaks about this line, with its own numbers.
   const dyc = displayYield(o);
-  const relatedNews = (await newsFor("offer", o.id)).length;
   const coachStops = [
     {
       target: "hero",

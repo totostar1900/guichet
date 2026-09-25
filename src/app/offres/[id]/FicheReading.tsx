@@ -251,17 +251,32 @@ export async function loadFiche(o: Offer) {
   // voyager depuis la page, pour que les deux fiches ne puissent pas en
   // recevoir deux versions différentes.
   const st = displayStatus(o, new Date());
-  // Le registre des fiches publiées, installé avant la résolution : la page ne
-  // dépend pas de l’ordre dans lequel Next rend la mise en page et elle.
-  await loadIssuerRegistry();
+  // Ce que la fiche demande, tout en même temps.
+  //
+  // Ces lectures ne dépendent pas les unes des autres, et pourtant chacune
+  // attendait la précédente : six allers-retours en file, une seconde et demie
+  // au bout. C'est ce que le lecteur attendait en glissant d'une fiche à la
+  // suivante, la page étant rendue à chaque requête.
+  //
+  // Le registre des fiches publiées part avec les autres, et « resolveIssuer »
+  // ne le lit qu'une fois tout revenu : la page ne dépend donc toujours pas de
+  // l'ordre dans lequel Next rend la mise en page et elle. Les autres lignes de
+  // l'émetteur se filtrent après coup, sur une table déjà lue : le dépôt se
+  // souvient de ses lectures pendant la requête, donc la demander ici ne la
+  // relit pas pour le taux BTA de référence, qui la demande aussi.
+  const r = repo();
+  const [, offers, company, issuer, quotes, navs, btaBenchmark] = await Promise.all([
+    loadIssuerRegistry(),
+    r.listOffers(),
+    o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
+    o.kind === "MARCHE" && o.instrument === "obligation" ? issuerByIsin(o.isin) : undefined,
+    o.kind === "MARCHE" && o.priceSource === "boc" ? r.listQuotes(o.isin, 60) : [],
+    o.kind === "FONDS" && o.fund ? r.listFundNavs(o.fund.key, 2000) : [],
+    // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
+    o.kind === "FONDS" ? latestBta() : undefined,
+  ]);
   const profile = resolveIssuer(o);
-  const others = profile ? (await repo().listOffers()).filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })).slice(0, 8) : [];
-  const company = o.kind === "MARCHE" && o.instrument === "action" ? await companyByIsin(o.isin) : undefined;
-  const issuer = o.kind === "MARCHE" && o.instrument === "obligation" ? await issuerByIsin(o.isin) : undefined;
-  const quotes = o.kind === "MARCHE" && o.priceSource === "boc" ? await repo().listQuotes(o.isin, 60) : [];
-  const navs = o.kind === "FONDS" && o.fund ? await repo().listFundNavs(o.fund.key, 2000) : [];
-  // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
-  const btaBenchmark = o.kind === "FONDS" ? await latestBta() : undefined;
+  const others = profile ? offers.filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })).slice(0, 8) : [];
 
   const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
