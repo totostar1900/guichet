@@ -63,16 +63,24 @@ export async function FicheHead({
           <span className={`pill ${st}`} {...(coach ? { "data-coach": "status" } : {})}>
             {t(statusLabel(o, st))}
           </span>
-          {/* Le repère tient dans un rond : sa forme d'alerte prenait deux
+          {/* Les trois ronds ne se quittent pas.
+
+              Le repère tient dans un rond : sa forme d'alerte prenait deux
               lignes dans l'en-tête, et il ne paraissait pas du tout à qui
-              n'a pas de profil, donc rien ne disait qu'il en manquait un. */}
-          <HorizonMark level={horizon?.level} text={horizon?.text} hasProfile={horizon?.hasProfile ?? false} />
+              n'a pas de profil, donc rien ne disait qu'il en manquait un.
+              L'étoile et « ··· » sont de la même famille, et le téléphone les
+              séparait du repère d'une ligne. Groupés, ils passent ensemble à
+              la ligne suivante quand le cachet ne leur laisse plus la place,
+              au lieu de se couper en deux. */}
+          <div className={styles.headIcons}>
+            <HorizonMark level={horizon?.level} text={horizon?.text} hasProfile={horizon?.hasProfile ?? false} />
+            <WatchButton offerId={o.id} initial={watching} signedIn={signedIn} />
+            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} watching={watching} onFiche={false} pdf />
+          </div>
           <div className={styles.headBtns}>
             <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
               {t("Fiche PDF")}
             </a>
-            <WatchButton offerId={o.id} initial={watching} signedIn={signedIn} />
-            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} watching={watching} onFiche={false} pdf />
             <CoachMarks id="fiche" replayLabel={t("Comment lire cette fiche ?")} stops={stops} auto={!preview} inert={preview} />
           </div>
         </div>

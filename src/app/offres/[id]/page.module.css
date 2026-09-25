@@ -205,6 +205,18 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+/* Les trois ronds : ils passent à la ligne ensemble ou pas du tout.
+
+   Le cachet ne sait pas rétrécir, « Souscription ouverte » tient sur une seule
+   ligne. Sur un écran étroit, le dernier rond débordait donc et se retrouvait
+   seul en dessous. Sans retour à la ligne à l'intérieur, c'est la rangée entière
+   qui descend sous le cachet, les trois toujours côte à côte. */
+.headIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
 
 @media (max-width: 760px) {
   .back {
@@ -227,13 +239,12 @@
        elle restait sur la ligne du cachet et rétrécissait jusqu'à déborder. */
     flex-wrap: wrap;
   }
-  /* Sa propre ligne, pleine largeur, alignée sur le texte.
+  /* « Comment lire cette fiche ? » prend sa propre ligne, au bord du texte.
 
      « width: 100% » ne suffisait pas : en élément de flex sans retour à la ligne,
-     la rangée se faisait comprimer à la place qui restait, 142 pixels. « Comment
-     lire cette fiche ? » passait alors dessous, décalé de 181 pixels vers la
-     droite au lieu de commencer au bord du texte, et la rangée débordait la carte
-     de cinq pixels. Une base de 100 % la fait descendre entière. */
+     la rangée se faisait comprimer à la place qui restait, 142 pixels, et elle
+     débordait la carte de cinq pixels. Une base de 100 % la fait descendre
+     entière, sous le cachet et les trois ronds. */
   .headBtns {
     margin-left: 0;
     flex: 0 0 100%;
