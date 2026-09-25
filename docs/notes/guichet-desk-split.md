@@ -20,7 +20,7 @@ Decided and built 24 September 2026, after the report that a desk link jumped to
 | `src/app/TitresBody.tsx` | `/` | `/desk/titres` |
 | `src/app/fonds/FondsBody.tsx` | `/fonds` | `/desk/fonds` |
 | `src/app/comparer/ComparerBody.tsx` | `/comparer` | `/desk/comparer` |
-| `src/app/indice/IndiceBody.tsx` | `/indice` | `/desk/indice/apercu` (beside `/desk/indice`, the notes workshop) |
+| `src/app/indice/IndiceBody.tsx` | `/indice` | `/desk/indice/apercu`, the desk tab « Indice » ; `/desk/indice` is the notes workshop and its tab is now « Notes » |
 | `src/app/societes/SocietesBody.tsx` | `/societes` | `/desk/societes` |
 | `src/app/societes/[mnemo]/SocieteBody.tsx` | `/societes/[mnemo]` | `/desk/societes/[mnemo]` |
 
