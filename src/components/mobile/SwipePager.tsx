@@ -3,7 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory } from "@/components/ListNav";
+import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory, type ListPeek } from "@/components/ListNav";
 import styles from "./SwipePager.module.css";
 
 /**
@@ -30,6 +30,7 @@ export interface Neighbour {
   href: string;
   title: string;
   pos: string; // "3 / 12", "Fonds · 6"
+  peek?: ListPeek; // le haut de sa fiche, quand la liste le connaît
 }
 
 function ownsDrag(target: HTMLElement, root: HTMLElement): boolean {
@@ -98,8 +99,8 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   const [hint, setHint] = useState(false);
   const [nudge, setNudge] = useState(false);
   // The neighbours: from the list memory for a fiche, from the page otherwise.
-  const prev: Neighbour | null = id ? (mem && mem.i > 0 ? { href: `/offres/${mem.mem.ids[mem.i - 1]}`, title: mem.mem.titles?.[mem.i - 1] ?? "", pos: `${mem.i} / ${mem.mem.ids.length}` } : null) : (prevProp ?? null);
-  const next: Neighbour | null = id ? (mem && mem.i < mem.mem.ids.length - 1 ? { href: `/offres/${mem.mem.ids[mem.i + 1]}`, title: mem.mem.titles?.[mem.i + 1] ?? "", pos: `${mem.i + 2} / ${mem.mem.ids.length}` } : null) : (nextProp ?? null);
+  const prev: Neighbour | null = id ? (mem && mem.i > 0 ? { href: `/offres/${mem.mem.ids[mem.i - 1]}`, title: mem.mem.titles?.[mem.i - 1] ?? "", pos: `${mem.i} / ${mem.mem.ids.length}`, peek: mem.mem.peeks?.[mem.i - 1] } : null) : (prevProp ?? null);
+  const next: Neighbour | null = id ? (mem && mem.i < mem.mem.ids.length - 1 ? { href: `/offres/${mem.mem.ids[mem.i + 1]}`, title: mem.mem.titles?.[mem.i + 1] ?? "", pos: `${mem.i + 2} / ${mem.mem.ids.length}`, peek: mem.mem.peeks?.[mem.i + 1] } : null) : (nextProp ?? null);
   // A list neighbour opens as it was last shown: same filters, same sort, and its own scroll comes back with it.
   const resolve = (n: Neighbour | null) => (n ? (id ? n.href : (rememberedListUrl(n.href) ?? n.href)) : null);
   const prevHref = resolve(prev);
@@ -233,25 +234,46 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       </div>
       {ready && prev && (
         <div className={`${styles.peek} ${styles.prev} ${nudgeDir === "prev" ? styles.nudgePrevIn : ""}`} aria-hidden="true">
-          <div className={styles.peekBody}>
-            <span className={styles.peekPos}>← {prev.pos}</span>
-            <b>{prev.title}</b>
-            <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
-          </div>
+          <PeekBody n={prev} pos={`← ${prev.pos}`} go={t("Relâchez pour ouvrir")} />
         </div>
       )}
       {ready && next && (
         <div className={`${styles.peek} ${styles.next} ${nudgeDir === "next" ? styles.nudgeNextIn : ""}`} aria-hidden="true">
-          <div className={styles.peekBody}>
-            <span className={styles.peekPos}>{next.pos} →</span>
-            <b>{next.title}</b>
-            <span className={styles.peekGo}>{t("Relâchez pour ouvrir")}</span>
-          </div>
+          <PeekBody n={next} pos={`${next.pos} →`} go={t("Relâchez pour ouvrir")} />
         </div>
       )}
       <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">
         {t(nextHref ? hints.next : hints.prev)}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Ce que le doigt tire : le haut de la fiche voisine.
+ *
+ * Le cachet, le titre, l'émetteur, le chiffre de tête. C'est exactement ce que
+ * la vraie page montre en premier, si bien qu'au relâchement elle ne remplace
+ * pas une carte vide : elle complète ce qu'on lisait déjà.
+ *
+ * Une liste d'une autre session n'a peut-être rien de tout cela : le titre
+ * seul reste alors, comme avant.
+ */
+function PeekBody({ n, pos, go }: { n: Neighbour; pos: string; go: string }) {
+  const p = n.peek;
+  return (
+    <div className={styles.peekBody}>
+      <span className={styles.peekPos}>{pos}</span>
+      {p?.stamp && <span className={`pill ${p.tone ?? ""}`}>{p.stamp}</span>}
+      <b>{n.title}</b>
+      {p?.sub && <span className={styles.peekSub}>{p.sub}</span>}
+      {p?.hero && (
+        <span className={`${styles.peekHero} ${p.gold ? styles.peekGold : ""}`}>
+          <em>{p.hero}</em>
+          {p.unit && <i>{p.unit}</i>}
+        </span>
+      )}
+      <span className={styles.peekGo}>{go}</span>
     </div>
   );
 }

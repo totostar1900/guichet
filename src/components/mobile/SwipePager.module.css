@@ -87,6 +87,33 @@
     line-height: 1.25;
     color: var(--ink);
   }
+  /* Le sous-titre et le chiffre de tête : la vignette montre le haut de la fiche, pas un titre seul. */
+  .peekSub {
+    font-size: 0.86rem;
+    color: var(--ink-2);
+    line-height: 1.35;
+  }
+  .peekHero {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .peekHero em {
+    font-style: normal;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .peekGold em {
+    color: var(--gold-ink);
+  }
+  .peekHero i {
+    font-style: normal;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+  }
   /* the first-visit step aside: 38 px towards the neighbour and back, the neighbour following */
   .nudgeNext {
     animation: nudgeNext 1s cubic-bezier(0.2, 0.8, 0.2, 1);

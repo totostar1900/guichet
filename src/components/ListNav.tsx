@@ -24,11 +24,30 @@ export function rememberedListUrl(pathname: string): string | null {
   }
 }
 
+/**
+ * Le haut d'une fiche, tel que la liste le connaît déjà.
+ *
+ * C'est ce que la vignette montre pendant que le doigt tire. Elle n'avait
+ * qu'un titre, et se lisait comme une page blanche ; la liste, elle, a le
+ * cachet, le sous-titre et le chiffre de tête sous la main. Les textes sont
+ * rangés traduits : la vignette ne vit que le temps d'un geste, et la liste
+ * se réécrit à chaque visite.
+ */
+export interface ListPeek {
+  stamp?: string; // le cachet : « Souscription ouverte », « Clôturée »
+  tone?: string; // sa nuance, la même classe que sur la carte
+  sub?: string; // l'émetteur, la catégorie : la ligne sous le titre
+  hero?: string; // le chiffre de tête
+  unit?: string; // ce qu'il mesure
+  gold?: boolean; // un rendement sur lequel le client peut agir
+}
+
 export interface ListMemory {
   url: string; // pathname + query of the list as it was shown
   ids: string[]; // the lines in the order shown
   label: string; // "Toutes les offres" | "Tous les fonds"
   titles?: string[]; // same order: what the phone shows of the neighbour while the finger drags
+  peeks?: ListPeek[]; // same order again: the rest of that neighbour's head
 }
 
 

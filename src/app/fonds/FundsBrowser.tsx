@@ -301,7 +301,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const orderKey = rowsShown.map((r) => r.id).join(",");
   useEffect(() => {
-    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Tous les fonds", titles: rowsShown.map((r) => r.title) });
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Tous les fonds", titles: rowsShown.map((r) => r.title), peeks: rowsShown.map((r) => ({ stamp: t(r.open ? "Souscription ouverte" : "Information"), tone: r.open ? "open" : "quoted", sub: `${t(FUND_CATEGORY_LABEL[r.category])} · ${r.manager}`, hero: `VL ${fmt(r.nav)}`, unit: "FCFA" })) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listUrl, orderKey]);
   useListScroll(listUrl);

@@ -546,7 +546,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const orderKey = [...picks, ...rest].map(({ o }) => o.id).join(",");
   useEffect(() => {
-    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres", titles: [...picks, ...rest].map(({ o }) => o.title) });
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres", titles: [...picks, ...rest].map(({ o }) => o.title), peeks: [...picks, ...rest].map(({ s }) => ({ stamp: t(s.status), tone: s.statusClass, sub: t(s.subtitle), hero: s.hero, unit: s.heroUnit ? t(s.heroUnit) : undefined, gold: s.gold })) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listUrl, orderKey]);
   useListScroll(listUrl);
