@@ -15,6 +15,8 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { deskFills, lineFills } from "@/lib/market/fill";
 import { FillRate } from "@/components/desk/FillRate";
+import { CrossBook } from "@/components/desk/CrossBook";
+import { crossings } from "@/lib/domain/crossing";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,11 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
   const allLines = offers.filter((o) => o.kind === "MARCHE").sort((a, b) => (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.title.localeCompare(b.title));
   const lines = sp.filtre === "sans-cours" ? allLines.filter(stale) : allLines;
   const byId = new Map(offers.map((o) => [o.id, o]));
+  // Les clients qui se font face : le meme carnet d'ordres, lu par paires.
+  const book = crossings(offers, intents)
+    .map((c) => ({ c, o: byId.get(c.offerId) }))
+    .filter((x): x is { c: (typeof x)["c"]; o: Offer } => Boolean(x.o));
+  const crossable = book.reduce((t, x) => t + x.c.qty, 0);
   const orders = intents.filter((i) => (i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state !== "annulee").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const funds = offers.filter((o) => o.kind === "FONDS" && o.fund).sort((a, b) => Number(Boolean(b.fund?.distributed)) - Number(Boolean(a.fund?.distributed)) || a.title.localeCompare(b.title));
   const fundById = new Map(funds.map((o) => [o.id, o]));
@@ -347,6 +354,18 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
             )}
           </table>
         </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-h">
+          <h2>{t("Appariements possibles")}</h2>
+          <span className="muted right" style={{ fontSize: ".8rem" }}>
+            {crossable
+              ? t("{n} titres peuvent changer de main sans passer par le marché", { n: fmt(crossable) })
+              : t("le prix se négocie dans la bande : la maison ne le fixe pas")}
+          </span>
+        </div>
+        <CrossBook lines={book} fills={fills} />
       </div>
 
       <div className="panel">
