@@ -5,7 +5,7 @@ import styles from "./QuoteHistory.module.css";
 import { getT } from "@/i18n/server";
 
 /** NAV series of a fund as read in the bulletins, oldest to newest. Same look as the quote history. */
-export async function NavHistory({ navs, benchmark }: { navs: FundNav[]; benchmark?: { label: string; pct: number } }) {
+export async function NavHistory({ navs, benchmark, narrow }: { navs: FundNav[]; benchmark?: { label: string; pct: number }; narrow?: boolean }) {
   const t = await getT();
   if (navs.length === 0) return null;
   const latest = navs[0];
@@ -14,7 +14,7 @@ export async function NavHistory({ navs, benchmark }: { navs: FundNav[]; benchma
 
   return (
     <div className={styles.wrap}>
-      <NavPeriod series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} benchmark={benchmark} />
+      <NavPeriod series={series.map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }))} benchmark={benchmark} narrow={narrow} />
       <dl className={styles.frame}>
         <div>
           <dt>{t("Dernière VL")}</dt>

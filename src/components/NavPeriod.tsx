@@ -53,7 +53,7 @@ const shift = (iso: string, days: number) => {
 /** The published date closest to the one asked for. */
 const nearest = (dates: string[], iso: string) => dates.reduce((best, d) => (Math.abs(daysBetween(d, iso)) < Math.abs(daysBetween(best, iso)) ? d : best), dates[0]);
 
-export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark?: Benchmark }) {
+export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; benchmark?: Benchmark; narrow?: boolean }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -134,7 +134,7 @@ export function NavPeriod({ series, benchmark }: { series: NavPoint[]; benchmark
   })();
 
   return (
-    <div className={styles.period}>
+    <div className={`${styles.period} ${narrow ? styles.periodNarrow : ""}`}>
       <div className={styles.modes} role="group" aria-label={t("Graphique")} data-coach="fund-modes">
         {MODES.map((m) => (
           <button key={m} type="button" className={mode === m ? styles.on : ""} aria-pressed={mode === m} onClick={() => update({ graphe: m === "vl" ? undefined : m })}>

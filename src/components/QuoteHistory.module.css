@@ -183,6 +183,22 @@
   display: grid;
   gap: 12px;
 }
+/*
+ * Lue du desk, la même courbe est presque deux fois plus large que chez le
+ * client, et pour une raison qui n'a rien à voir avec elle : la fiche du
+ * client réserve 420 px à droite pour le formulaire d'intention, la page du
+ * desk n'a pas de formulaire et prend toute la largeur. Comme le panneau de
+ * chiffres à côté de la courbe est d'une largeur fixe (280 px), tout le
+ * surplus tombe sur la courbe : 546 px chez le client, un bon millier au desk.
+ *
+ * La lecture reprend donc la colonne pour laquelle elle a été dessinée. On
+ * plafonne le bloc entier et non la courbe seule, de sorte que la courbe et
+ * ses chiffres gardent leurs proportions l'un par rapport à l'autre.
+ */
+.periodNarrow {
+  /* Mesuré sur la fiche du client : 846 px pour le bloc, 546 pour la courbe. */
+  max-width: 846px;
+}
 .periodBar {
   display: flex;
   align-items: center;

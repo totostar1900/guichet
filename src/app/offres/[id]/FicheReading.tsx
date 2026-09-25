@@ -331,7 +331,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
         {navs.length > 0 && (
           <section className={styles.sec} data-pane="chiffres">
             <h3>{t("Valeurs liquidatives publiées")}</h3>
-            <NavHistory navs={navs} benchmark={btaBenchmark} />
+            <NavHistory navs={navs} benchmark={btaBenchmark} narrow={mode === "desk"} />
             <p className={styles.note}>{t("VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement.")} {o.fund?.distributed ? "" : t("Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore : dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion.")}</p>
           </section>
         )}
