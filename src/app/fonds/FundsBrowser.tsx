@@ -21,6 +21,7 @@ import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/d
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
 import { useT } from "@/i18n/client";
+import type { FundCurve } from "@/lib/domain/fund-curve";
 
 /** One fund as the browser needs it : flat, serialisable, computed on the server. */
 export interface FundRow {
@@ -45,6 +46,8 @@ export interface FundRow {
   cutoff?: string;
   settlementDays?: number;
   featured?: string; // the desk's reason when the fund is « À la une »
+  /** Les VL à dessiner au dos de la carte, lues avec la page. */
+  curve?: FundCurve;
 }
 
 type SortKey = "categorie" | "nom" | "gestion" | "vl" | "var" | "an" | "origine" | "date";

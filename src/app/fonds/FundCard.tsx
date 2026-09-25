@@ -8,7 +8,7 @@ import { useDeskView, useLineHref } from "@/components/DeskView";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
 import { CardBack } from "@/components/mobile/CardBack";
 import { fundBackFacts } from "@/lib/domain/back";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
@@ -30,7 +30,6 @@ export function FundCard({ r }: { r: FundRow }) {
   const compact = useDensity() === "compact";
   const href = useLineHref()(r.id);
   const desk = useDeskView();
-  const [turned, setTurned] = useState(false);
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const facts = useMemo(() => fundBackFacts(r), [r]);
@@ -44,7 +43,6 @@ export function FundCard({ r }: { r: FundRow }) {
     <SwipeActions
       id={r.id}
       turnRef={turn}
-      onTurn={setTurned}
       backHead={
         <div className={styles.corner}>
           <span className={`pill ${r.open ? "open" : "quoted"}`}>{t(r.open ? "Souscription ouverte" : "Information")}</span>
@@ -63,7 +61,7 @@ export function FundCard({ r }: { r: FundRow }) {
           </button>
         </div>
       }
-      back={<CardBack facts={facts} figures={compact ? figures : undefined} curveId={r.id} turned={turned} />}
+      back={<CardBack facts={facts} figures={compact ? figures : undefined} curve={r.curve} />}
     >
       <article className={`${styles.card} ${compact ? styles.compact : ""}`} style={{ ["--card-c" as string]: "var(--info)" }}>
         <div className={styles.head}>

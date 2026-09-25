@@ -4,6 +4,7 @@ import type { CashEntry } from "@/lib/domain/cash";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
+import type { FundCurve } from "@/lib/domain/fund-curve";
 
 /**
  * Single access point for offers, intents and the event log.
@@ -144,6 +145,8 @@ export interface Repository {
   /** Idempotent on (fundKey, navDate). */
   upsertFundNavs(navs: FundNav[]): Promise<void>;
   listFundNavs(fundKey: string, limit?: number): Promise<FundNav[]>;
+  /** Les courbes de plusieurs fonds en une lecture : la liste les emporte, les cartes n'ont plus à les demander. */
+  listFundCurves(keys: string[], points?: number): Promise<Map<string, FundCurve>>;
   /** Latest NAV of every fund. */
   latestFundNavs(): Promise<FundNav[]>;
 

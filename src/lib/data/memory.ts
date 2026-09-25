@@ -10,6 +10,7 @@ import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } fr
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
+import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 
 /** A few inbound messages so the desk inbox has something to answer in demo mode. */
 function seedInbound(): InboundMessage[] {
@@ -692,6 +693,14 @@ export const memoryRepository: Repository = {
   },
   async listFundNavs(fundKey, limit = 60) {
     return structuredClone(store().fundNavs.filter((n) => n.fundKey === fundKey).sort((a, b) => b.navDate.localeCompare(a.navDate)).slice(0, limit));
+  },
+  async listFundCurves(keys, points = 60) {
+    const out = new Map<string, FundCurve>();
+    for (const key of keys) {
+      const curve = fundCurveFrom(store().fundNavs.filter((n) => n.fundKey === key), points);
+      if (curve) out.set(key, curve);
+    }
+    return out;
   },
   async latestFundNavs() {
     const latest = new Map<string, FundNav>();

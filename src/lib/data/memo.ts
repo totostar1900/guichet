@@ -64,6 +64,7 @@ const READS = new Set([
   "quotesOn",
   "quoteActivity",
   "listFundNavs",
+  "listFundCurves",
   "latestFundNavs",
   "listIssuerDocuments",
   "listNews",

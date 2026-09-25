@@ -1,9 +1,8 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { useEffect, useRef, useState } from "react";
-import { fundCurve, type LineCurve } from "@/app/offres/[id]/actions";
 import { fmt, fmtDate } from "@/lib/format";
+import type { FundCurve } from "@/lib/domain/fund-curve";
 import type { BackFacts } from "@/lib/domain/back";
 import styles from "./CardBack.module.css";
 
@@ -16,21 +15,14 @@ import styles from "./CardBack.module.css";
  * In compact view the list's figures open it (minus the yield, which the
  * front already shows), since the front then shows only the title and the
  * yield. The first section keeps clear of the corner (status, dots, icon).
+ *
+ * La courbe d'un fonds arrive avec la page, déjà réduite aux valeurs et aux
+ * deux dates qui se dessinent. Elle était auparavant demandée au serveur au
+ * premier retournement : la carte s'ouvrait sur « Courbe en cours de lecture… »
+ * et il fallait attendre une lecture complète pour voir un trait.
  */
-export function CardBack({ facts, figures, curveId, turned }: { facts: BackFacts; figures?: [string, string, string?][]; curveId?: string; turned?: boolean }) {
+export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?: [string, string, string?][]; curve?: FundCurve }) {
   const t = useT();
-  // A fund keeps its NAV curve on the back, fetched the first time the card turns.
-  const [curve, setCurve] = useState<LineCurve | null | "loading" | "idle">("idle");
-  const asked = useRef(false);
-  useEffect(() => {
-    if (!curveId || !turned || asked.current) return;
-    asked.current = true;
-    const timer = window.setTimeout(() => setCurve((c) => (c === "idle" ? "loading" : c)), 0);
-    fundCurve(curveId)
-      .then((c) => setCurve(c))
-      .catch(() => setCurve(null));
-    return () => clearTimeout(timer);
-  }, [curveId, turned]);
   return (
     <div className={styles.back}>
       {figures && (
@@ -72,16 +64,15 @@ export function CardBack({ facts, figures, curveId, turned }: { facts: BackFacts
           ))}
         </div>
       )}
-      {curve !== "idle" && curve !== "loading" && curve && (
+      {curve && (
         <div className={styles.sec}>
           <div className={styles.lbl}>
-            {t(curve.label)}
-            <i>{curve.points.length} VL</i>
+            {t("Valeurs liquidatives")}
+            <i>{curve.ys.length} VL</i>
           </div>
           <Spark curve={curve} />
         </div>
       )}
-      {curve === "loading" && <div className={`${styles.sec} ${styles.muted}`}>{t("Courbe en cours de lecture…")}</div>}
       <div className={styles.sec}>
         <div className={styles.lbl}>{t(facts.reference.title)}</div>
         <div className={styles.calc}>
@@ -109,21 +100,21 @@ function fmtY(v: number): string {
 }
 
 /** A small line: the last point in gold with its value, the first and last dates underneath; the label steps aside from the edges and the line. */
-function Spark({ curve }: { curve: LineCurve }) {
-  const pts = curve.points;
-  const ys = pts.map((p) => p.y);
+function Spark({ curve }: { curve: FundCurve }) {
+  const t = useT();
+  const ys = curve.ys;
   const min = Math.min(...ys);
   const max = Math.max(...ys);
-  const x = (i: number) => PAD_L + (pts.length > 1 ? (i / (pts.length - 1)) * (W - PAD_L - PAD_R) : (W - PAD_L - PAD_R) / 2);
+  const x = (i: number) => PAD_L + (ys.length > 1 ? (i / (ys.length - 1)) * (W - PAD_L - PAD_R) : (W - PAD_L - PAD_R) / 2);
   const y = (v: number) => PAD_T + (1 - (max === min ? 0.5 : (v - min) / (max - min))) * (H - PAD_T - PAD_B);
-  const d = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
-  const lx = x(pts.length - 1);
-  const ly = y(pts[pts.length - 1].y);
-  const label = fmtY(pts[pts.length - 1].y);
+  const d = ys.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  const lx = x(ys.length - 1);
+  const ly = y(ys[ys.length - 1]);
+  const label = fmtY(ys[ys.length - 1]);
   const labelW = label.length * 5.6 + 6;
   // The value sits left of the dot, in whichever band the line leaves free over its last third: above its highest
   // point there when there is more room above, under its lowest point otherwise; never on the line, never on the dates.
-  const tail = pts.filter((_, i) => x(i) >= lx - labelW - 10).map((p) => y(p.y));
+  const tail = ys.filter((_, i) => x(i) >= lx - labelW - 10).map((v) => y(v));
   const topY = Math.min(...tail);
   const botY = Math.max(...tail);
   const roomAbove = topY - PAD_T;
@@ -131,17 +122,17 @@ function Spark({ curve }: { curve: LineCurve }) {
   const tx = Math.max(PAD_L + labelW, lx - 8);
   const ty = roomAbove >= roomBelow ? Math.max(PAD_T + 8, topY - 5) : Math.min(H - PAD_B - 2, botY + 12);
   return (
-    <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${curve.label} : ${label}`}>
+    <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${t("Valeurs liquidatives")} : ${label}`}>
       <path d={d} fill="none" stroke="var(--chart-out)" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={lx} cy={ly} r="3.5" fill="var(--gold)" stroke="var(--info-soft)" strokeWidth="1.5" />
       <text x={tx} y={ty} textAnchor="end" fontSize="9.5" fontWeight="700" fill="var(--gold-ink)" style={{ fontSize: 9.5 }}>
         {label}
       </text>
       <text x={PAD_L} y={H - 4} fontSize="8.5" fill="var(--ink-2)" style={{ fontSize: 8.5 }}>
-        {fmtDate(pts[0].x, false)}
+        {fmtDate(curve.from, false)}
       </text>
       <text x={W - PAD_R} y={H - 4} textAnchor="end" fontSize="8.5" fill="var(--ink-2)" style={{ fontSize: 8.5 }}>
-        {fmtDate(pts[pts.length - 1].x, false)}
+        {fmtDate(curve.to, false)}
       </text>
     </svg>
   );

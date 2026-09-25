@@ -9,6 +9,7 @@ import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
+import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 
 /**
  * Supabase-backed repository. Server-side only (uses the service role key when
@@ -1124,6 +1125,37 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("fund_navs").select("*").eq("fund_key", fundKey).order("nav_date", { ascending: false }).limit(limit);
     if (error) fail("listFundNavs", error);
     return (data as NavRow[]).map(toNav);
+  },
+  /**
+   * Les VL de plusieurs fonds, en une seule lecture paginée.
+   *
+   * PostgREST rend mille lignes au plus ; l'historique en compte davantage, donc
+   * on avance par tranches jusqu'à la fin. Trois colonnes suffisent : la courbe
+   * ne dessine que des valeurs et deux dates.
+   */
+  async listFundCurves(keys, points = 60) {
+    const out = new Map<string, FundCurve>();
+    if (!keys.length) return out;
+    const rows: { fund_key: string; nav_date: string; nav: string }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db().from("fund_navs").select("fund_key, nav_date, nav").in("fund_key", keys).order("nav_date", { ascending: true }).range(from, from + 999);
+      if (error) fail("listFundCurves", error);
+      const page = (data ?? []) as typeof rows;
+      rows.push(...page);
+      if (page.length < 1000) break;
+    }
+    const by = new Map<string, { navDate: string; nav: number }[]>();
+    for (const r of rows) {
+      const list = by.get(r.fund_key);
+      const one = { navDate: r.nav_date, nav: N(r.nav) };
+      if (list) list.push(one);
+      else by.set(r.fund_key, [one]);
+    }
+    for (const [key, list] of by) {
+      const curve = fundCurveFrom(list, points);
+      if (curve) out.set(key, curve);
+    }
+    return out;
   },
   async latestFundNavs() {
     const { data, error } = await db().from("latest_fund_navs").select("*").order("name");
