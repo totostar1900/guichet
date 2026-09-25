@@ -60,7 +60,7 @@ export function OrderFlows({ offer, quantity, amount, limit, type, settleOn }: {
           </div>
           {view === "chart" ? (
             <div className={styles.chart}>
-              <FlowsChart outlay={outlay} flows={flows} settleOn={settleOn ?? on} compact />
+              <FlowsChart outlay={outlay} flows={flows} settleOn={settleOn ?? on} scale={0.8} />
             </div>
           ) : (
             <div className={styles.scroll}>

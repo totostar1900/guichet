@@ -41,9 +41,15 @@ import { issuerKey, resolveIssuer } from "@/data/issuer-registry";
  */
 export type FicheMode = "client" | "desk";
 
-/** Read-only reference block at the published price. */
-async function Reference({ o }: { o: Offer }) {
+/**
+ * Read-only reference block at the published price.
+ *
+ * Le mode ne sert ici qu'a la taille du dessin : au desk, la page porte aussi
+ * le cycle de vie, les pieces et la piste d'audit, et le graphique se range.
+ */
+async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode }) {
   const t = await getT();
+  const chart = mode === "desk" ? 0.6 : 1;
   if ((o.kind === "OTA" || o.kind === "APE") && o.couponRate != null && o.maturityOn) {
     const price = o.servedPricePct ?? o.pricePct ?? 100;
     const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, 10_000_000, price);
@@ -65,7 +71,7 @@ async function Reference({ o }: { o: Offer }) {
           ]}
           rate={{ label: t("Rendement actuariel annuel brut"), value: fmtPct(r.irr, 2), note: t("si la ligne est gardée jusqu'à l'échéance") }}
         />
-        <FlowsChart r={r} settleOn={o.settleOn} />
+        <FlowsChart r={r} settleOn={o.settleOn} scale={chart} />
       </>
     );
   }
@@ -151,7 +157,7 @@ async function Reference({ o }: { o: Offer }) {
             ]}
             rate={{ label: t("Rendement actuariel annuel brut à ce cours"), value: fmtPct(r.irr, 2) }}
           />
-          <FlowsChart r={r} settleOn={settleOn} />
+          <FlowsChart r={r} settleOn={settleOn} scale={chart} />
           {terms ? (
             <p className={styles.note}>
               Échéancier : remboursement du capital en {terms.periodsPerYear === 1 ? "annuités" : terms.periodsPerYear === 2 ? "semestrialités" : "trimestrialités"} égales jusqu&apos;au {fmtDate(terms.maturityOn)}
@@ -315,7 +321,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
         </section>
 
         <section className={styles.sec} data-pane="chiffres">
-          <Reference o={o} />
+          <Reference o={o} mode={mode} />
           <p className={styles.note}>
             {t("Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact. Pour explorer d'autres prix ou durées, utilisez le")}{" "}
             {mode === "desk" ? t("simulateur") : <Link href="/info#simulateur">{t("simulateur")}</Link>}.

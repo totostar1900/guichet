@@ -111,7 +111,7 @@ export function Simulator() {
                 </>
               )}
             </div>
-            {r.titles > 0 && <FlowsChart r={r} settleOn={settle} compact />}
+            {r.titles > 0 && <FlowsChart r={r} settleOn={settle} scale={0.8} />}
           </>
         );
       })()}

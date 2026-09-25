@@ -12,7 +12,16 @@ import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
  * capital. One scale for in and out; hover a bar for the exact amount and the
  * running total (what has come back so far against what went out).
  */
-/** `compact`: the Guide simulator draws it a fifth smaller, labels included (the viewBox scales with the box). */
+/**
+ * `scale` : la largeur du dessin, 1 etant la pleine mesure.
+ *
+ * Le viewBox ne bouge pas, seule la boite retrecit : les barres, les dates et
+ * les montants suivent donc la meme reduction, ce qui est exactement ce qu'on
+ * veut. Le simulateur du Guide et l'echeancier sous un ordre en prennent huit
+ * dixiemes ; la ligne lue du desk six, parce que la page y porte aussi le
+ * cycle de vie, les pieces et la piste d'audit, et que le graphique ne doit
+ * pas en occuper la moitie.
+ */
 /**
  * Les versements d'une ligne, dessinés.
  *
@@ -21,7 +30,7 @@ import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
  * et le décaissement saisi. Le second passe donc « outlay » et « flows »
  * plutôt qu'un résultat entier, et le dessin ne change pas pour autant.
  */
-export function FlowsChart({ r, outlay, flows, settleOn, compact }: { r?: BondResult; outlay?: number; flows?: CashFlow[]; settleOn: string; compact?: boolean }) {
+export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?: BondResult; outlay?: number; flows?: CashFlow[]; settleOn: string; scale?: number }) {
   const t = useT();
   const [pins, setPins] = useState<string[]>([]);
   const out = r ? r.outlay : (outlay ?? 0);
@@ -55,7 +64,7 @@ export function FlowsChart({ r, outlay, flows, settleOn, compact }: { r?: BondRe
   const backBetween = iA >= 0 && iB >= 0 ? pts.slice(iA + 1, iB + 1).filter((p) => p.amount > 0).reduce((s, p) => s + p.amount, 0) : 0;
 
   return (
-    <div style={{ position: "relative", width: "100%", maxWidth: compact ? 614 : 768, margin: "8px auto 0" }}>
+    <div style={{ position: "relative", width: "100%", maxWidth: Math.round(768 * size), margin: "8px auto 0" }}>
       <svg className={`chart chartSm ${trackStyles.track}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} {...track.handlers}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
