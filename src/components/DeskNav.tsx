@@ -32,7 +32,8 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       // rendues par les mêmes composants, sans quitter le domaine du desk.
       ["/desk/titres", "Titres"],
       ["/desk/fonds", "Fonds"],
-      ["/desk/indice", "Indice"],
+      ["/desk/indice/apercu", "Indice"],
+      ["/desk/indice", "Notes"],
       ["/desk/societes", "Sociétés"],
       ["/desk/actualites", "Actualités"],
       ["/desk/robot", "Robot"],

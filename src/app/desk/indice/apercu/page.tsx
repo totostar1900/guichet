@@ -15,7 +15,7 @@ export default async function DeskIndicePage({ searchParams }: { searchParams: P
   await requireDesk("/desk/indice/apercu");
   return (
     <>
-      <DeskNav current="/desk/indice" />
+      <DeskNav current="/desk/indice/apercu" />
       <IndiceBody searchParams={searchParams} mode="desk" />
     </>
   );
