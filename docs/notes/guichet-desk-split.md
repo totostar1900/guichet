@@ -26,7 +26,9 @@ Decided and built 24 September 2026, after the report that a desk link jumped to
 
 **`src/components/DeskView.tsx`** is a client context, not a prop chain: `<DeskView>` around a body makes `useLineHref()` return `/desk/lignes/<id>` and `useDeskView()` true, which hides the client affordances (the `···` menu that follows, compares and shares, the card density switch, the coach marks). A **server** component cannot read it, so `FicheReading` and `ComparerBody` take `mode: "client" | "desk"` in clear instead.
 
-**Decisions the user made** (do not quietly revisit): desk reading lives at desk URLs, not at client paths on the desk host, so a copied link says what it is; the desk pages are **read only**, no intention form, an order is recorded through the desk's own screens; of the client affordances only **Comparer** follows. The Guide (`/info`) is not served on the desk host, so its two prose links render as plain text there and the KpiCard lesson button is hidden (`lessons={false}`).
+**Decisions the user made** (do not quietly revisit): desk reading lives at desk URLs, not at client paths on the desk host, so a copied link says what it is; the desk pages are **read only**, no intention form, an order is recorded through the desk's own screens; of the client affordances only **Comparer** follows.
+
+**The Guide reversed that, on the rule "link to what exists, do not rebuild it"** (25 September 2026): `/info` is served on the desk host through `DESK_HOST_ALLOW`, so every lesson link in the desk works in place, with the session kept. No desk copy of the Guide exists and none should: it would be a second text to keep in agreement. It is public content and the desk robots.txt disallows everything, so nothing new is exposed or indexed.
 
 **The deliberate outbounds**, each marked with ↗ and opening in a new tab: « Fiche client » on the desk line page, a note's public page and its PDF, a company's report PDF, and the index series CSV.
 
