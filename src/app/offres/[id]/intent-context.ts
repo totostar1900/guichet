@@ -33,14 +33,29 @@ export interface IntentContext {
 export type IntentSearch = { intent?: string; qty?: string; de?: string };
 
 export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Session | null): Promise<IntentContext> {
-  const channels = session ? await repo().getChannelStatus(session.userId) : undefined;
+  // Tout ce qu'il faut, en une fois.
+  //
+  // Les canaux du client, son profil financier, puis ses intentions et les
+  // lignes pour ce qu'il détient : trois allers-retours qui s'attendaient, et
+  // rien ne liait l'un à l'autre. La fonction tourne dans une fonction serveur
+  // aux États-Unis tandis que la base est ailleurs, donc chaque attente se paie
+  // en dizaines de millisecondes. C'est ce que le lecteur connecté attendait en
+  // ouvrant une fiche.
+  //
+  // Un lecteur anonyme ne lisait déjà rien de tout cela : pour lui, rien ne
+  // change.
+  const wantsHeld = Boolean(session) && (o.kind === "MARCHE" || o.kind === "FONDS");
+  const [{ readLineLink }, { profileFlag }, channels, fin, allIntents, allOffers] = await Promise.all([
+    import("@/lib/channels"),
+    import("@/data/profile"),
+    session ? repo().getChannelStatus(session.userId) : undefined,
+    session ? repo().getFinancialProfile(session.userId).catch(() => undefined) : undefined,
+    wantsHeld ? repo().listIntents() : [],
+    wantsHeld ? repo().listOffers() : [],
+  ]);
   // Came through the desk's WhatsApp link: that number is vouched for, the form asks for the e-mail code only.
-  const { readLineLink } = await import("@/lib/channels");
   const bridgedPhone = readLineLink(sp.de);
   const bridge = bridgedPhone && sp.de ? { phone: bridgedPhone, token: sp.de } : undefined;
-  // The client's financial profile against this line: a word by the status, a confirmation before an intention that leaves it.
-  const { profileFlag } = await import("@/data/profile");
-  const fin = session ? await repo().getFinancialProfile(session.userId).catch(() => undefined) : undefined;
   const tenorYears = o.maturityOn ? Math.max(0, (new Date(o.maturityOn).getTime() - new Date().getTime()) / (365.25 * 864e5)) : undefined;
   const equity = o.kind === "ACTIONS" || o.instrument === "action" || (o.kind === "FONDS" && o.fund?.category === "A");
   const mark = profileFlag(fin, { tenorYears, equity });
@@ -50,8 +65,7 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
   const initial = (types.includes(sp.intent as IntentType) ? sp.intent : types[0]) as IntentType;
   // What the signed-in client already holds on this line : caps sales / redemptions and pre-fills « tout vendre ».
   let held = 0;
-  if (session && (o.kind === "MARCHE" || o.kind === "FONDS")) {
-    const [allIntents, allOffers] = await Promise.all([repo().listIntents(), repo().listOffers()]);
+  if (wantsHeld && session) {
     held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
   }
   const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
