@@ -1,0 +1,54 @@
+/* Un ordre, pas un réglage : le bloc a la tenue d'un formulaire d'intention,
+   pas celle d'un panneau de préférences. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-6);
+}
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+.done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  border-left: 2px solid var(--good);
+  padding: var(--s-4) 0 var(--s-4) var(--s-5);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+/* L'arrêt se voit du premier coup d'œil : un versement récurrent facile à
+   prendre et difficile à arrêter se lit mal partout, et d'abord chez un
+   régulateur. */
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+}
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.what > small {
+  font-size: 0.75rem;
+}
+.ok {
+  color: var(--good);
+}
+.err {
+  color: var(--crit);
+}

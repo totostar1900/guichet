@@ -76,6 +76,15 @@ export interface FundTerms {
    */
   trailerPct?: number;
   minAmount: number; // FCFA, first subscription
+  /**
+   * Le minimum d une epargne programmee, quand la convention le distingue.
+   *
+   * Le minimum ci-dessus porte d ordinaire sur la premiere souscription. Un
+   * versement qui vient sur une position deja ouverte se negocie plus bas, et
+   * c est cette clause qui decide si un versement mensuel est a la portee d un
+   * salarie. Absente, c est le minimum d entree qui s applique.
+   */
+  minRecurring?: number;
   cutoff?: string; // "mardi 12 h pour la VL du jeudi"
   settlementDays?: number; // units delivered / cash paid J+n after the NAV
   registerNote?: string; // "compte-titres tenu par le dépositaire au nom du client"
@@ -203,6 +212,8 @@ export interface Intent {
   switchToOfferId?: string;
   /** Passage : sur une souscription, le rachat dont elle emploie le produit. */
   switchFromIntentId?: string;
+  /** Épargne programmée : l'instruction permanente qui a produit cet ordre. */
+  standingId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -235,6 +246,8 @@ export interface NewIntentInput {
   /** Passage : le fonds de destination (rachat), ou le rachat d'origine (souscription). */
   switchToOfferId?: string;
   switchFromIntentId?: string;
+  /** Épargne programmée : l'instruction permanente d'où vient ce versement. */
+  standingId?: string;
 }
 
 /* ---------------- Intake (À valider) ---------------- */

@@ -5,6 +5,7 @@ import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
+import type { StandingOrder } from "@/lib/domain/standing";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -90,6 +91,7 @@ interface Store {
   inbound: InboundMessage[];
   watches: Watch[];
   cash: CashEntry[];
+  standing: StandingOrder[];
   reference: ReferenceRow[];
   staff: StaffMember[];
   versions: OfferVersion[];
@@ -143,6 +145,7 @@ function store(): Store {
         { id: "desk-aline", name: "Aline", email: "aline@purposecapital.africa", role: "desk" },
       ],
       clientFiles: seedClientFiles(),
+      standing: [],
       bulletins: [],
       quotes: [],
       fundNavs: [],
@@ -157,6 +160,7 @@ function store(): Store {
   if (!g.__guichetStore.inbound) g.__guichetStore.inbound = seedInbound();
   if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
   if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = seedClientFiles();
+  if (!g.__guichetStore.standing) g.__guichetStore.standing = [];
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
   if (!g.__guichetStore.versions) g.__guichetStore.versions = [];
@@ -224,6 +228,7 @@ export const memoryRepository: Repository = {
       profileFlag: input.profileFlag,
       switchToOfferId: input.switchToOfferId,
       switchFromIntentId: input.switchFromIntentId,
+      standingId: input.standingId,
       createdAt: at,
       updatedAt: at,
     };
@@ -448,6 +453,29 @@ export const memoryRepository: Repository = {
       })
       .filter((r): r is ReferenceRow => r !== null);
     return done;
+  },
+  async listStandingOrders(userId) {
+    const s = store();
+    const all = s.standing ?? [];
+    return structuredClone(userId ? all.filter((x) => x.userId === userId) : all);
+  },
+  async createStandingOrder(input) {
+    const s = store();
+    s.standing ??= [];
+    const at = nowIso();
+    const tail = Array.from({ length: 4 }, () => "ACDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+    const d = new Date();
+    const ref = `EP-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${tail}`;
+    const it: StandingOrder = { id: uid(), ref, state: "active", createdAt: at, updatedAt: at, ...input };
+    s.standing.unshift(it);
+    return structuredClone(it);
+  },
+  async updateStandingOrder(id, patch) {
+    const s = store();
+    const it = (s.standing ?? []).find((x) => x.id === id);
+    if (!it) throw new Error(`Standing order ${id} not found`);
+    Object.assign(it, patch, { updatedAt: nowIso() });
+    return structuredClone(it);
   },
   async listCash(userId) {
     return structuredClone(store().cash.filter((c) => c.userId === userId).sort((a, b) => a.at.localeCompare(b.at)));

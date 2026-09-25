@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
+import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { NewsItem } from "@/lib/news/model";
@@ -94,6 +95,7 @@ type IntentRow = {
   executed_price: number | null;
   switch_to_offer?: string | null;
   switch_from_intent?: string | null;
+  standing_id?: string | null;
   phone_verified?: boolean | null;
   profile_flag?: string | null;
   email_verified?: boolean | null;
@@ -185,6 +187,7 @@ function toIntent(r: IntentRow): Intent {
     limitPrice: r.limit_price === null ? null : Number(r.limit_price),
     switchToOfferId: r.switch_to_offer ?? undefined,
     switchFromIntentId: r.switch_from_intent ?? undefined,
+    standingId: r.standing_id ?? undefined,
     executedPrice: r.executed_price === null ? null : Number(r.executed_price),
     closedReason: u(r.closed_reason),
     counter: (r.counter as Intent["counter"]) ?? undefined,
@@ -289,6 +292,59 @@ const toApproval = (r: ApprovalRow): Approval => ({ id: r.id, kind: r.kind, enti
  * convertit ici, une fois, plutôt qu'à chaque lecture.
  */
 type CashRow = { id: string; user_id: string; at: string; amount: string | number; kind: CashEntry["kind"]; label: string; intent_id: string | null; due_by: string | null; created_by: string | null };
+/** « EP-2610-K7Q4 » : le client la cite quand il parle de son versement mensuel. */
+function makeStandingRef(): string {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(2);
+  const tail = Array.from({ length: 4 }, () => "ACDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+  return `EP-${yy}${mm}-${tail}`;
+}
+
+type StandingRow = {
+  id: string;
+  ref: string;
+  user_id: string;
+  client_name: string;
+  client_segment: string;
+  offer_id: string;
+  amount: number;
+  day_of_month: number;
+  starts_on: string;
+  ends_on: string | null;
+  state: StandingOrder["state"];
+  on_blocked: StandingOrder["onBlocked"];
+  channel: StandingOrder["channel"];
+  contact_phone: string | null;
+  contact_email: string | null;
+  last_run_on: string | null;
+  stop_reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const toStanding = (r: StandingRow): StandingOrder => ({
+  id: r.id,
+  ref: r.ref,
+  userId: r.user_id,
+  clientName: r.client_name,
+  clientSegment: r.client_segment,
+  offerId: r.offer_id,
+  amount: Number(r.amount),
+  dayOfMonth: Number(r.day_of_month),
+  startsOn: String(r.starts_on).slice(0, 10),
+  endsOn: r.ends_on ? String(r.ends_on).slice(0, 10) : undefined,
+  state: r.state,
+  onBlocked: r.on_blocked,
+  channel: r.channel,
+  contactPhone: r.contact_phone ?? undefined,
+  contactEmail: r.contact_email ?? undefined,
+  lastRunOn: r.last_run_on ? String(r.last_run_on).slice(0, 10) : undefined,
+  stopReason: r.stop_reason ?? undefined,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+});
+
 const toCash = (r: CashRow): CashEntry => ({ id: r.id, userId: r.user_id, at: r.at, amount: Number(r.amount), kind: r.kind, label: r.label, intentId: u(r.intent_id), dueBy: u(r.due_by) });
 
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
@@ -482,6 +538,7 @@ export const supabaseRepository: Repository = {
       limit_price: input.limitPrice ?? null,
       switch_to_offer: input.switchToOfferId ?? null,
       switch_from_intent: input.switchFromIntentId ?? null,
+      standing_id: input.standingId ?? null,
       channel: input.channel,
       contact_phone: input.contactPhone ?? null,
       contact_email: input.contactEmail ?? null,
@@ -506,6 +563,13 @@ export const supabaseRepository: Repository = {
     if (error && /profile_flag/.test(error.message)) {
       // Migration 0028 not applied yet: the intent still leaves, the flag stays in the message.
       delete row.profile_flag;
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
+    if (error && /standing_id/.test(error.message)) {
+      // Migration 0043 pas encore appliquée : le versement part, et c'est son
+      // rattachement à l'instruction qui attend.
+      console.warn("[intents] migration 0043_standing_orders.sql manquante : le versement part sans son instruction");
+      delete row.standing_id;
       ({ data, error } = await db().from("intents").insert(row).select("*").single());
     }
     if (error && /switch_(to_offer|from_intent)/.test(error.message)) {
@@ -826,6 +890,47 @@ export const supabaseRepository: Repository = {
     if (error) fail("deleteReference", error);
   },
   // Le journal des espèces : la table est immuable, il n'y a donc ni mise à jour ni suppression.
+  async listStandingOrders(userId) {
+    let q = db().from("standing_orders").select("*").order("created_at", { ascending: false });
+    if (userId) q = q.eq("user_id", userId);
+    const { data, error } = await q;
+    if (error) {
+      // Migration 0043 pas encore appliquée : aucune épargne programmée plutôt qu'une page en erreur.
+      if (/standing_orders/.test(error.message)) return [];
+      fail("listStandingOrders", error);
+    }
+    return (data ?? []).map(toStanding);
+  },
+  async createStandingOrder(input) {
+    const row = {
+      ref: makeStandingRef(),
+      user_id: input.userId,
+      client_name: input.clientName,
+      client_segment: input.clientSegment,
+      offer_id: input.offerId,
+      amount: input.amount,
+      day_of_month: input.dayOfMonth,
+      starts_on: input.startsOn,
+      ends_on: input.endsOn ?? null,
+      on_blocked: input.onBlocked,
+      channel: input.channel,
+      contact_phone: input.contactPhone ?? null,
+      contact_email: input.contactEmail ?? null,
+    };
+    const { data, error } = await db().from("standing_orders").insert(row).select("*").single();
+    if (error) fail("createStandingOrder", error);
+    return toStanding(data);
+  },
+  async updateStandingOrder(id, patch) {
+    const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (patch.state !== undefined) row.state = patch.state;
+    if (patch.lastRunOn !== undefined) row.last_run_on = patch.lastRunOn;
+    if (patch.stopReason !== undefined) row.stop_reason = patch.stopReason;
+    if (patch.endsOn !== undefined) row.ends_on = patch.endsOn;
+    const { data, error } = await db().from("standing_orders").update(row).eq("id", id).select("*").single();
+    if (error) fail("updateStandingOrder", error);
+    return toStanding(data);
+  },
   async listCash(userId) {
     const { data, error } = await db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true });
     if (error) {

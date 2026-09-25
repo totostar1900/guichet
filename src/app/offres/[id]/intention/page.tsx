@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
 import { Kpis } from "../Kpis";
+import { StandingForm } from "@/components/Standing";
+import { recurringMinimum } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
@@ -56,6 +58,21 @@ export default async function IntentionPage({ params, searchParams }: Props) {
 
       <div className={styles.form} id="intention" data-coach="action">
         <IntentForm offer={o} types={c.types} initialType={c.initial} initialAmount={c.qty} held={c.held} switchTargets={c.switchTargets} past={c.past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={c.channels} bridge={c.bridge} profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined} investable={c.fin?.investable} />
+        {/* L'épargne programmée ne vit que sur un fonds ouvert : ailleurs, un
+            montant fixe ne tombe jamais juste sur un titre indivisible, et la
+            destination d'une adjudication n'existe pas encore au moment où on la
+            programmerait. */}
+        {o.kind === "FONDS" && o.fund?.distributed && !c.past && session && (
+          <div className={styles.note}>
+            <h2 style={{ fontSize: "1rem", marginBottom: 10 }}>{t("Ou programmer un versement chaque mois")}</h2>
+            <p className="muted" style={{ fontSize: ".85rem", marginBottom: 12 }}>
+              {t(
+                "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
+              )}
+            </p>
+            <StandingForm offerId={o.id} minimum={recurringMinimum(o)} />
+          </div>
+        )}
         {o.maturityOn && !c.past && (
           <div className={styles.note}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

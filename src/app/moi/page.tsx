@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
-import { fmt, fmtDate, fmtMillions } from "@/lib/format";
+import { fmt, fmtDate, fmtMillions, localIso } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { CounterAnswer } from "./CounterAnswer";
 import { ContactForm } from "./ContactForm";
@@ -17,6 +17,8 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
+import { StandingList } from "@/components/Standing";
+import { nextRun, STANDING_STATE_LABEL } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -41,6 +43,8 @@ export default async function MyPage() {
   const [myFile, contact, watches] = await Promise.all([r.getClientFileByUser(s.userId), r.getContact(s.userId), r.listWatches(s.userId)]);
   const followed = watches.map((w) => byOffer.get(w.offerId)).filter((o): o is NonNullable<typeof o> => Boolean(o));
   const now = new Date();
+  // Les versements programmés du lecteur : une poignée, lus avec le reste de la page.
+  const standing = await r.listStandingOrders(s.userId).catch(() => []);
   const positions = positionsFrom(mine, offers);
   const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
 
@@ -105,6 +109,31 @@ export default async function MyPage() {
       <TrustNudge />
       {/* Ce qui est revenu et dort : la seule décision entre l’achat et le remboursement. */}
       <Reinvest positions={positions} now={now} />
+
+      {standing.length > 0 && (
+        <section className={styles.sec}>
+          <h2>{t("Vos versements programmés")}</h2>
+          <StandingList
+            rows={standing.map((x) => {
+              const o = offers.find((y) => y.id === x.offerId);
+              return {
+                id: x.id,
+                ref: x.ref,
+                title: o?.title ?? x.offerId,
+                href: `/offres/${x.offerId}`,
+                amount: x.amount,
+                dayOfMonth: x.dayOfMonth,
+                state: x.state,
+                stateLabel: STANDING_STATE_LABEL[x.state],
+                next: nextRun(x, localIso(now)),
+                lastRunOn: x.lastRunOn,
+                endsOn: x.endsOn,
+                stopReason: x.stopReason,
+              };
+            })}
+          />
+        </section>
+      )}
 
       <div className={styles.kpis}>
         <div>

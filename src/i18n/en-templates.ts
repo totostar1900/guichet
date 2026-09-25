@@ -601,4 +601,9 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Le vendeur ne descend pas sous {n}.": "The seller goes no lower than {n}.",
   "Taux minimum {a} au-dessus du taux annoncé ({b}) : votre demande ne serait pas servie à ce niveau.": "Minimum rate {a} above the announced rate ({b}) : your demand would not be served at that level.",
   "Prix maximum {a} au-dessous du prix annoncé ({b}) : votre demande ne serait pas servie à ce niveau.": "Maximum price {a} below the announced price ({b}) : your demand would not be served at that level.",
+  "minimum {n}": "minimum {n}",
+  "le {d} de chaque mois": "on the {d} of each month",
+  "prochain versement le {d}": "next instalment on {d}",
+  "dernier versement le {d}": "last instalment on {d}",
+  "Le versement minimum sur ce fonds est de {n} FCFA.": "The minimum instalment on this fund is {n} FCFA.",
 };
