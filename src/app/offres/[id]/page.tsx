@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { ListNav } from "@/components/ListNav";
-import { HorizonMark } from "@/components/HorizonMark";
 import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
-import { WatchButton } from "@/components/WatchButton";
 import { FichePanes, StickyAction } from "@/components/mobile/FichePanes";
-import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { SwipePager } from "@/components/mobile/SwipePager";
-import { LineMenu } from "@/components/mobile/LineMenu";
 import { FicheReading, loadFiche } from "./FicheReading";
 import { FicheHead } from "./FicheHead";
 import { summarize } from "@/lib/domain/summary";
@@ -98,20 +94,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
       <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
       <FichePanes className={styles.main}>
         <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
-        <FicheHead o={o} s={summary} st={st} coach>
-          {/* Le repère tient dans un rond : sa forme d'alerte prenait deux
-              lignes dans l'en-tête, et il ne paraissait pas du tout à qui
-              n'a pas de profil, donc rien ne disait qu'il en manquait un. */}
-          <HorizonMark level={mark?.level} text={mark?.[lang]} hasProfile={Boolean(fin)} />
-          <div className={styles.headBtns}>
-            <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
-              {t("Fiche PDF")}
-            </a>
-            <WatchButton offerId={o.id} initial={watching} signedIn={Boolean(session)} />
-            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${summary.subtitle} · ${summary.hero} ${summary.heroUnit ?? ""}`.trim() }} watching={watching} onFiche={false} pdf />
-            <CoachMarks id="fiche" replayLabel={t("Comment lire cette fiche ?")} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />
-          </div>
-        </FicheHead>
+        <FicheHead o={o} s={summary} st={st} coach horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />
 
         <FicheReading o={o} data={fiche} />
       </FichePanes>

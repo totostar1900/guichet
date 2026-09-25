@@ -17,7 +17,15 @@ export interface CoachStop {
 
 const seenKey = (id: string) => `guichet:coach:${id}`;
 
-export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string; stops: CoachStop[]; auto?: boolean; replayLabel?: string }) {
+/**
+ * `inert` : le bouton paraît, et rien d'autre.
+ *
+ * La fiche voisine qui glisse sous le doigt rend le même haut de page, boutons
+ * compris, pour qu'aucune ligne n'apparaisse au relâchement. Mais deux visites
+ * guidées dans la même page écouteraient le même signal de rejeu et pourraient
+ * s'ouvrir seules ; celle de la vignette se contente donc de sa forme.
+ */
+export function CoachMarks({ id, stops, auto = true, replayLabel, inert = false }: { id: string; stops: CoachStop[]; auto?: boolean; replayLabel?: string; inert?: boolean }) {
   const [n, setN] = useState<number | null>(null);
   const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const t = useT();
@@ -25,13 +33,13 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
   const start = useCallback(() => setN(0), []);
   // The app menu (« ⋮ ») replays this walk-through: it finds the label on the replay button below.
   useEffect(() => {
-    if (!replayLabel) return;
+    if (inert || !replayLabel) return;
     const on = () => start();
     window.addEventListener("guichet:coach:replay", on);
     return () => window.removeEventListener("guichet:coach:replay", on);
-  }, [replayLabel, start]);
+  }, [inert, replayLabel, start]);
   useEffect(() => {
-    if (!auto) return;
+    if (inert || !auto) return;
     try {
       if (!localStorage.getItem(seenKey(id))) {
         // Wait for another walk-through (the first-visit screens) to close before starting this one.
@@ -45,7 +53,7 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
     } catch {
       // storage unavailable
     }
-  }, [auto, id, start]);
+  }, [auto, id, inert, start]);
 
   const finish = () => {
     try {
@@ -101,7 +109,7 @@ export function CoachMarks({ id, stops, auto = true, replayLabel }: { id: string
 
   if (n == null) {
     return replayLabel ? (
-      <button type="button" className={`btn sm ghost ${styles.replay}`} data-coach-replay={replayLabel} onClick={start}>
+      <button type="button" className={`btn sm ghost ${styles.replay}`} {...(inert ? {} : { "data-coach-replay": replayLabel, onClick: start })}>
         {replayLabel}
       </button>
     ) : null;

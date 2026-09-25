@@ -36,7 +36,7 @@ export async function neighbourReading(offerId: string): Promise<React.ReactNode
   return (
     <FichePanes className={styles.main}>
       <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
-      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} />
+      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} preview />
       <FicheReading o={o} data={data} />
     </FichePanes>
   );
