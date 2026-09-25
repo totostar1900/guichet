@@ -20,6 +20,10 @@
   .anim {
     transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  /* la sortie d'un glissement abouti : 180 ms, le temps exact avant que la page suivante soit demandée */
+  .exit {
+    transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
   /* the neighbour, as a card of the same shape: its place in the list and its title */
   .peek {
     display: block;
@@ -184,6 +188,7 @@
     animation: none;
   }
   .anim,
+  .exit,
   .hint {
     transition: none;
   }

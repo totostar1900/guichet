@@ -2,7 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory } from "@/components/ListNav";
 import styles from "./SwipePager.module.css";
 
@@ -24,6 +24,7 @@ const EDGE = 22;
 const SLOP = 10;
 const COMMIT = 0.3; // of the width
 const FLICK = 0.6; // px / ms
+const EXIT = 180; // ms : la sortie, et l'instant où la page suivante est demandée
 const ENTER_KEY = "guichet:swipeDir";
 
 export interface Neighbour {
@@ -68,6 +69,9 @@ const FULL = { kind: "full" } as const;
 // Le type public de `router.prefetch` n'expose pas encore l'option ; la valeur, elle, est bien celle que Next attend.
 type Prefetcher = { prefetch: (href: string, options?: typeof FULL) => void };
 
+// Le serveur ne peint pas : là, l'effet de mise en page n'a pas lieu d'être, et React le dirait.
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints, children }: { id?: string; prev?: Neighbour; next?: Neighbour; hintKey: string; hints: { next: string; prev: string }; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
@@ -107,8 +111,20 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   const nextHref = resolve(next);
   const ready = id ? Boolean(mem) : true;
 
-  // Arriving from a swipe: slide in from the side the finger pointed to (on the next frame, so the animation starts on its first keyframe).
-  useEffect(() => {
+  /**
+   * Arriving from a swipe: slide in from the side the finger pointed to.
+   *
+   * La classe se posait une image après la première peinture, par
+   * `requestAnimationFrame`. Tant que la page mettait une seconde à venir, cela
+   * ne se voyait pas. Préchargée, elle arrive en vingt millisecondes : on la
+   * voyait alors en place, lisible, avant qu'elle ne saute au bord et revienne.
+   * C'est le sursaut qu'on prenait pour un défaut d'affichage.
+   *
+   * Un effet de mise en page se joue après le DOM et avant la peinture : la
+   * classe est donc là dès la première image, et l'animation part de sa
+   * première clef sans que rien ne se montre entre-temps.
+   */
+  useIsoLayoutEffect(() => {
     let dir: string | null = null;
     try {
       dir = sessionStorage.getItem(ENTER_KEY);
@@ -116,9 +132,8 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
     } catch {
       // storage unavailable
     }
-    if (!dir) return;
-    const raf = requestAnimationFrame(() => setEnter(dir === "1" ? "right" : "left"));
-    return () => cancelAnimationFrame(raf);
+    // Sans direction, la page se montre telle quelle : une arrivée qui n'est pas un glissement n'anime rien.
+    setEnter(dir ? (dir === "1" ? "right" : "left") : null);
   }, [id]);
 
   // The neighbours are fetched ahead so the snap lands on a ready page; the first time, the page steps aside and a word says why.
@@ -155,9 +170,15 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
     const peekNext = el.querySelector<HTMLElement>(`.${styles.next}`);
     let d: { x0: number; y0: number; dx: number; lock: "h" | "v" | null; lastX: number; lastT: number; vx: number } | null = null;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const place = (dx: number, anim: boolean) => {
+    // « exit » est la sortie d'un glissement abouti : plus courte que le suivi du doigt,
+    // et de la même durée que l'attente avant de demander la page, pour qu'elle finisse
+    // son chemin au lieu d'être arrachée aux trois quarts.
+    const place = (dx: number, anim: boolean, exit = false) => {
       const w = el.clientWidth;
-      [card, peekPrev, peekNext].forEach((c) => c?.classList.toggle(styles.anim, anim && !reduced));
+      [card, peekPrev, peekNext].forEach((c) => {
+        c?.classList.toggle(styles.anim, anim && !reduced && !exit);
+        c?.classList.toggle(styles.exit, anim && !reduced && exit);
+      });
       card.style.transform = dx ? `translateX(${dx}px)` : "";
       if (peekPrev) peekPrev.style.transform = `translateX(${-w + dx}px)`;
       if (peekNext) peekNext.style.transform = `translateX(${w + dx}px)`;
@@ -204,14 +225,14 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
       const target = dir > 0 ? nextHref : prevHref;
       const commit = target && (Math.abs(done.dx) > w * COMMIT || Math.abs(done.vx) > FLICK);
       if (commit) {
-        place(-dir * w, true);
+        place(-dir * w, true, true);
         try {
           sessionStorage.setItem(ENTER_KEY, String(dir));
           navigator.vibrate?.(8);
         } catch {
           // storage or haptics unavailable
         }
-        window.setTimeout(() => router.push(target), reduced ? 0 : 200);
+        window.setTimeout(() => router.push(target), reduced ? 0 : EXIT);
       } else {
         place(0, true);
         window.setTimeout(() => el.classList.remove(styles.dragging), 280);
