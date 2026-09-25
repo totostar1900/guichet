@@ -1,6 +1,7 @@
 "use client";
 
 import { fold } from "@/lib/text";
+import { useDeskBase } from "@/components/DeskView";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Info } from "@/components/Info";
@@ -43,6 +44,7 @@ const SORT: [SortKey, string][] = [
 const num = (v?: number | null) => (v == null ? -Infinity : v);
 
 export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
+  const base = useDeskBase();
   const t = useT();
   const [q, setQ] = useState("");
   const [country, setCountry] = useState("");
@@ -177,7 +179,7 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
               {list.map((c) => (
                 <tr key={c.mnemo}>
                   <td className={styles.name}>
-                    <Link href={`/societes/${c.mnemo.toLowerCase()}`}>
+                    <Link href={`${base}/societes/${c.mnemo.toLowerCase()}`}>
                       <span className="cc" title={t(c.country)}>
                         {c.countryCode}
                       </span>{" "}
@@ -199,7 +201,7 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
                   </td>
                   <td className={styles.hideSm}>{t(c.sector)}</td>
                   <td className={styles.r}>
-                    <Link className="btn sm" href={`/societes/${c.mnemo.toLowerCase()}`}>
+                    <Link className="btn sm" href={`${base}/societes/${c.mnemo.toLowerCase()}`}>
                       {t("Analyse")}
                     </Link>
                   </td>

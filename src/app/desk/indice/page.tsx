@@ -45,7 +45,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
           <p className="muted">{t("Deux notes écrites seules à partir des bulletins lus : la trimestrielle, publique, faite pour un client ; la mensuelle, gardée au desk, qui sert au contrôle. Le robot les prépare, une personne les relit et les publie.")}</p>
         </div>
         <div className={styles.headLinks}>
-          <Link className="btn sm" href="/indice">
+          <Link className="btn sm" href="/desk/indice/apercu">
             {t("La page de l'indice")} →
           </Link>
           <Link className="btn sm ghost" href="/desk/documents?type=note_indice">
@@ -75,10 +75,10 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
           </div>
           <div className={styles.publish}>
             <a className="btn sm primary" href={`/indice/note/${quarter.quarter.key.toLowerCase()}`} target="_blank" rel="noreferrer">
-              {t("Lire la page publique")}
+              {t("Lire la page publique")} ↗
             </a>
             <a className="btn sm" href={`/indice/note/${quarter.quarter.key.toLowerCase()}/pdf`} target="_blank" rel="noreferrer">
-              {t("Le PDF")}
+              {t("Le PDF")} ↗
             </a>
             {qDoc ? (
               <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(qDoc.createdAt), who: qDoc.createdBy ?? "—" })}</span>
@@ -215,7 +215,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
                   {note.lines.map((l) => (
                     <tr key={l.mnemo}>
                       <td>
-                        <Link href={`/societes/${l.mnemo.toLowerCase()}?depuis=indice`}>
+                        <Link href={`/desk/societes/${l.mnemo.toLowerCase()}?depuis=indice`}>
                           <b>{l.mnemo}</b> · {l.name}
                         </Link>
                       </td>

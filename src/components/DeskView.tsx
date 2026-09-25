@@ -28,6 +28,13 @@ export function DeskView({ children }: { children: ReactNode }) {
 export const useDeskView = (): boolean => useContext(Ctx);
 
 /**
+ * Le préfixe des pages qui existent des deux côtés à la même adresse : les
+ * sociétés cotées, la comparaison. Une ligne, elle, ne se contente pas d'un
+ * préfixe (voir `useLineHref`), parce que le desk la lit sous un autre nom.
+ */
+export const useDeskBase = (): string => (useContext(Ctx) ? "/desk" : "");
+
+/**
  * Où mène une ligne : la fiche du client, ou la ligne au desk, qui porte la
  * même lecture plus les versions, le cycle de vie et la piste d'audit.
  */

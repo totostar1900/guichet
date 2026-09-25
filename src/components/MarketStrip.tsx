@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
-import { marketSiblings } from "@/lib/market/pages";
+import { deskSiblings, marketSiblings } from "@/lib/market/pages";
 import styles from "./MarketStrip.module.css";
 
 /**
@@ -11,9 +11,9 @@ import styles from "./MarketStrip.module.css";
  * Elle ne remplace pas les liens du texte, elle les complète : un lien dans
  * une phrase porte sa raison, une bande de pied porte la famille.
  */
-export async function MarketStrip({ current }: { current?: string }) {
+export async function MarketStrip({ current, mode = "client" }: { current?: string; mode?: "client" | "desk" }) {
   const t = await getT();
-  const pages = marketSiblings(current);
+  const pages = mode === "desk" ? deskSiblings(current) : marketSiblings(current);
   if (pages.length === 0) return null;
   return (
     <nav className={styles.strip} aria-label={t("Sur le même sujet")}>

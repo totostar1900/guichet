@@ -197,7 +197,7 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
       )}
       {cols.length === 2 && <CompareCharts lines={chartLines} benchmark={benchmark} />}
       {cols.length === 1 && <p className="muted">{t("Choisissez une seconde ligne pour comparer.")}</p>}
-      <MarketStrip current="comparer" />
+      <MarketStrip current="comparer" mode={mode} />
     </div>
   );
 }

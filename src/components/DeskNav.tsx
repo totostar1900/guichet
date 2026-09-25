@@ -33,6 +33,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/titres", "Titres"],
       ["/desk/fonds", "Fonds"],
       ["/desk/indice", "Indice"],
+      ["/desk/societes", "Sociétés"],
       ["/desk/actualites", "Actualités"],
       ["/desk/robot", "Robot"],
     ],
