@@ -34,7 +34,8 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", hint: "deux titres côte à côte, avec l'indice en repère" },
-  { key: "lecon", href: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
+  // Le Guide est servi sur les deux domaines : une seule adresse suffit.
+  { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
   { key: "actualites", href: "/actualites", label: "Actualités du marché", short: "Actualités", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
 ];

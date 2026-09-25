@@ -97,11 +97,9 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
           <p className={styles.lead}>{t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Le Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}</p>
         </div>
         <div className={styles.links}>
-          {!desk && (
-            <Link className="btn sm" href="/info/indice-bvmac">
-              {t("La leçon : comment le lire")}
-            </Link>
-          )}
+          <Link className="btn sm" href="/info/indice-bvmac">
+            {t("La leçon : comment le lire")}
+          </Link>
           <Link className="btn sm ghost" href={`${base}/comparer`}>
             {t("Comparer deux lignes")}
           </Link>
@@ -263,11 +261,9 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               <a className="btn sm primary" href="/indice/serie.csv" target={desk ? "_blank" : undefined} rel={desk ? "noreferrer" : undefined}>
                 {t("Télécharger la série (CSV)")}
               </a>
-              {!desk && (
-                <Link className="btn sm" href="/info/indice-bvmac">
-                  {t("La leçon")}
-                </Link>
-              )}
+              <Link className="btn sm" href="/info/indice-bvmac">
+                {t("La leçon")}
+              </Link>
               <Link className="btn sm ghost" href={`${base}/societes`}>
                 {t("Les sociétés cotées")}
               </Link>

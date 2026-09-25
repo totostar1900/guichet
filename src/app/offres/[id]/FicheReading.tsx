@@ -316,7 +316,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <p className={styles.blurb}>{t(o.blurb)}</p>
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
           <p className={styles.note}>
-            {t("Les risques d'une ligne se lisent dans le Guide :")} {mode === "desk" ? t("Les quatre risques, et ce qu'on peut faire") : <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>}.
+            {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.
           </p>
         </section>
 
@@ -324,7 +324,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <Reference o={o} mode={mode} />
           <p className={styles.note}>
             {t("Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact. Pour explorer d'autres prix ou durées, utilisez le")}{" "}
-            {mode === "desk" ? t("simulateur") : <Link href="/info#simulateur">{t("simulateur")}</Link>}.
+            <Link href="/info#simulateur">{t("simulateur")}</Link>.
           </p>
         </section>
 

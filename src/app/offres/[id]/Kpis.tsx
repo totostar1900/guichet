@@ -70,7 +70,7 @@ export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
   return (
     <div className={styles.kpis} data-coach="kpis">
       {items.map(([k, v, gold], i) => (
-        <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`${base}/comparer?a=${o.id}`} lessons={base === ""} coach={gold ? "hero" : undefined} />
+        <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`${base}/comparer?a=${o.id}`} coach={gold ? "hero" : undefined} />
       ))}
     </div>
   );
