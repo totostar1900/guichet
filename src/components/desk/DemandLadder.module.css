@@ -1,0 +1,15 @@
+/* Une échelle, et sa conclusion.
+   Le tableau reste un « tbl » ordinaire : il vit dans une page qui en compte
+   déjà plusieurs, et lui donner une grammaire à lui le ferait lire comme autre
+   chose qu'un état de la demande. */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.foot {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+}

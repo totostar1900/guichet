@@ -1,5 +1,6 @@
 import type { IntentType, Offer } from "./types";
 import { estimate } from "./estimate";
+import { surveyLimitBlock, surveyUnit } from "./survey";
 import { fmt, fmtPct, fmtPrice } from "@/lib/format";
 
 /**
@@ -28,6 +29,39 @@ export function orderChecks(o: Offer, type: IntentType, amount: number | null | 
   if (!amt) {
     if (type !== "appetit") out.push({ key: "amount", level: "block", text: "Indiquez un montant.", why: "Sans montant, le desk ne peut ni réserver la ligne ni préparer le bulletin." });
     return out;
+  }
+
+  // La condition d'un sondage : un prix maximum sur un OTA, un taux minimum sur
+  // un BTA. Elle se contrôle avant le montant parce qu'une unité fautive, 0,97
+  // pour 97 %, rend tout le reste du message absurde.
+  if (limitPrice != null && (o.kind === "OTA" || o.kind === "APE" || o.kind === "BTA")) {
+    const bad = surveyLimitBlock(o, limitPrice);
+    if (bad) {
+      out.push({
+        key: "survey-limit",
+        level: "block",
+        text: bad,
+        why: surveyUnit(o) === "taux" ? "Sur un bon du Trésor, la condition est le taux précompté que vous acceptez au minimum : 5,5 pour 5,5 %." : "Sur une obligation du primaire, la condition est le prix que vous acceptez au maximum, en pourcentage du nominal : 97 pour 97 %.",
+      });
+      return out;
+    }
+    // Une condition que le prix annoncé ne satisfait pas : la demande est
+    // recevable, elle ne serait simplement pas servie à ce niveau. C'est un
+    // avertissement, pas un refus : le prix de l'adjudication n'est pas connu.
+    const ref = surveyUnit(o) === "taux" ? o.precountRate : o.pricePct;
+    if (ref != null) {
+      const missed = surveyUnit(o) === "taux" ? limitPrice > ref : limitPrice < ref;
+      if (missed)
+        out.push({
+          key: "survey-away",
+          level: "warn",
+          text:
+            surveyUnit(o) === "taux"
+              ? `Taux minimum ${fmtPct(limitPrice, 2)} au-dessus du taux annoncé (${fmtPct(ref, 2)}) : votre demande ne serait pas servie à ce niveau.`
+              : `Prix maximum ${fmtPrice(limitPrice)} au-dessous du prix annoncé (${fmtPrice(ref)}) : votre demande ne serait pas servie à ce niveau.`,
+          why: "Le desk porte la demande à l'émetteur avec sa condition. Elle reste utile : elle dit à quel niveau la demande de la place tient encore.",
+        });
+    }
   }
 
   // Primary bonds, bills and IPOs: at least one title, then the issuer's minimum; the rest is rounded down.

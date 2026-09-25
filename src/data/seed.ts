@@ -168,6 +168,39 @@ export const SEED_OFFERS: Offer[] = [
     sizeLabel: "10 Mds FCFA",
     version: 0,
   },
+  /* Une adjudication encore ouverte.
+
+     Toutes les lignes du primaire de la démonstration avaient leur clôture
+     derrière elles, si bien qu'aucune ne montrait ce qu'un client fait avant une
+     adjudication : annoncer un montant, et la condition à laquelle il tient. Un
+     bon plutôt qu'une obligation, parce que la condition s'y dit en taux et que
+     c'est le sens le plus facile à prendre à l'envers. */
+  {
+    id: "cm-bta-26-2027",
+    kind: "BTA",
+    operation: "nouvelle_ligne",
+    country: "Cameroun",
+    countryName: "République du Cameroun",
+    issuer: "Trésor public de la République du Cameroun",
+    title: "BTA 26 semaines · 8 avr. 2027",
+    isin: "CM1300002014",
+    status: "published",
+    blurb:
+      "Bon à intérêts précomptés à six mois : vous payez moins que le nominal et recevez 1 000 000 FCFA par bon à l'échéance. Le taux est fixé à l'adjudication.",
+    documents: [],
+    opensAt: "2026-09-22T09:00:00",
+    deadlineAt: "2026-10-08T12:00:00",
+    resultsAt: "2026-10-08T15:00:00",
+    settleOn: "2026-10-12",
+    maturityOn: "2027-04-08",
+    nominal: 1_000_000,
+    precountRate: 4.75,
+    rateNote: "taux indicatif : fixé à l'adjudication",
+    commissionPct: 0,
+    minTitles: 1,
+    sizeLabel: "15 Mds FCFA",
+    version: 0,
+  },
   {
     id: "cg-bta-52-2027",
     kind: "BTA",
@@ -355,6 +388,7 @@ export const SEED_INTENTS: Intent[] = [
     clientSegment: "Personne physique · Douala",
     type: "ferme",
     amount: 25_000_000,
+    limitPrice: 95,
     channel: "WhatsApp",
     state: "confirmee",
     createdAt: "2026-09-14T08:12:00",
@@ -385,6 +419,7 @@ export const SEED_INTENTS: Intent[] = [
     clientSegment: "Diaspora · Paris",
     type: "ferme",
     amount: 50_000_000,
+    limitPrice: 94,
     channel: "E-mail",
     state: "transmise",
     createdAt: "2026-09-14T08:34:00",
@@ -442,6 +477,28 @@ export const SEED_INTENTS: Intent[] = [
      l'écran qui compte. Ces deux ordres se répondent, 96,750 contre 97,250, et
      le vendeur en offre moins que l'acheteur n'en demande : il reste de l'appétit
      après l'appariement, ce qui montre les deux moitiés de l'écran d'un coup. */
+  /* Un appétit qui ne tient qu'en dessous du prix annoncé.
+
+     Sans lui, l'échelle du sondage n'aurait que des barreaux servis et ne
+     montrerait pas ce qu'elle sert à voir : le niveau où la demande de la place
+     s'arrête. À 94 %, celui-ci ne serait pas servi, et c'est le renseignement
+     qu'on porte à l'émetteur. */
+  {
+    id: "i-020",
+    ref: "AP-0913-020",
+    clientId: "c-tontine",
+    offerId: "rca-ota-c-2028",
+    offerVersion: 1,
+    clientName: "Tontine Espoir",
+    clientSegment: "Groupement · Bafoussam",
+    type: "appetit",
+    amount: 10_000_000,
+    limitPrice: 93,
+    channel: "WhatsApp",
+    state: "recue",
+    createdAt: "2026-09-13T16:45:00",
+    updatedAt: "2026-09-13T16:45:00",
+  },
   {
     id: "i-018",
     ref: "PF-0915-018",

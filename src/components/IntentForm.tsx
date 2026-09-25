@@ -155,6 +155,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   };
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
   const market = offer.kind === "MARCHE";
+  // Le sondage ne vit que sur le primaire obligataire, et seulement quand le client
+  // annonce une demande : une information ou un rappel ne porte pas de condition.
+  const survey = (offer.kind === "OTA" || offer.kind === "APE" || offer.kind === "BTA") && (type === "appetit" || type === "ferme");
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
   const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
   const byCash = market && unit === "francs";
@@ -333,6 +336,27 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           ) : (
             <span />
+          )}
+          {/* La condition d'un sondage : ce que le client demande pour dire oui.
+
+              Un appétit disait un montant et s'arrêtait là, et porté à l'émetteur il
+              ne répondait pas à sa question : à quel niveau cette demande tient-elle
+              encore ? Le sens dépend du compartiment, et le mot avec : on paie un
+              prix, on reçoit un taux. */}
+          {survey && (
+            <label className="field">
+              {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} :{" "}
+              {t(offer.kind === "BTA" ? "% précompté" : "% du nominal")}
+              <input
+                name="limitPrice"
+                type="number"
+                step={offer.kind === "BTA" ? "0.01" : "0.001"}
+                placeholder={String((offer.kind === "BTA" ? offer.precountRate : offer.pricePct) ?? "")}
+                value={limit}
+                onChange={(e) => setLimit(e.target.value)}
+              />
+              <small className="muted">{t("Sans condition, votre demande tient quel que soit le résultat.")}</small>
+            </label>
           )}
           {market && (type === "achat" || type === "vente") && (
             <label className="field">

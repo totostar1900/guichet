@@ -9,6 +9,8 @@ import { summarize } from "@/lib/domain/summary";
 import { fmtDateTime } from "@/lib/format";
 import { FicheReading, loadFiche } from "@/app/offres/[id]/FicheReading";
 import { FichePanes } from "@/components/mobile/FichePanes";
+import { DemandLadder } from "@/components/desk/DemandLadder";
+import { demandLadder } from "@/lib/domain/survey";
 import { LifecycleForm } from "./LifecycleForm";
 import { DocumentsForm } from "./DocumentsForm";
 import { RestoreForm } from "./RestoreForm";
@@ -34,7 +36,16 @@ export default async function LigneHistoriquePage({ params }: Props) {
   const r = repo();
   const o = await r.getOffer(id);
   if (!o) notFound();
-  const [versions, trail, fiche] = await Promise.all([r.listOfferVersions(id), r.listAudit({ entity: "offer", entityId: id, limit: 100 }), loadFiche(o)]);
+  // Le sondage ne concerne que le primaire obligataire : ailleurs, la demande ne
+  // se pose pas en conditions mais en ordres, et le carnet s'en charge.
+  const wantsLadder = o.kind === "OTA" || o.kind === "APE" || o.kind === "BTA";
+  const [versions, trail, fiche, intents] = await Promise.all([
+    r.listOfferVersions(id),
+    r.listAudit({ entity: "offer", entityId: id, limit: 100 }),
+    loadFiche(o),
+    wantsLadder ? r.listIntents() : [],
+  ]);
+  const ladder = wantsLadder ? demandLadder(intents, o) : null;
   const s = summarize(o, new Date());
 
   return (
@@ -75,6 +86,18 @@ export default async function LigneHistoriquePage({ params }: Props) {
           </FichePanes>
         </div>
       </div>
+
+      {ladder && (
+        <div className="panel">
+          <div className="panel-h">
+            <h2>{t("Sondage : la demande et ses conditions")}</h2>
+            <span className="muted right" style={{ fontSize: ".8rem" }}>
+              {t("ce qu'on porte à l'émetteur : combien tient encore, et à quel niveau")}
+            </span>
+          </div>
+          <DemandLadder l={ladder} />
+        </div>
+      )}
 
       <div className={`panel ${styles.life}`}>
         <div className="panel-h">
