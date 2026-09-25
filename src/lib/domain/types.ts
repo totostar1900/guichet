@@ -530,6 +530,14 @@ export interface ReferenceRow<T = unknown> {
 export interface ClientPrefs {
   reach?: "whatsapp" | "email" | "call";
   statementsByEmail?: boolean;
+  /**
+   * L'apparence choisie sur un appareil, gardée au compte pour qu'elle suive
+   * ailleurs et survive à l'effacement d'un stockage de navigateur : Safari
+   * jette le localStorage d'un site ouvert il y a plus de sept jours.
+   */
+  palette?: string;
+  theme?: string;
+  lang?: "fr" | "en";
 }
 
 /* ---------------- Templates : the desk's wording, versioned ---------------- */

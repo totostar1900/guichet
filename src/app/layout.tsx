@@ -95,7 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <LangProvider lang={lang}>
         <AuthHashRedirect />
-        <PaletteKeeper />
+        <PaletteKeeper saved={account?.prefs} />
         <Suspense>
           <BarProbe />
         </Suspense>

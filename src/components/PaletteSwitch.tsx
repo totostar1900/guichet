@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import styles from "./PaletteSwitch.module.css";
 import { PALETTES, THEMES, P_KEY, T_KEY, P_COOKIE, T_COOKIE, YEAR } from "@/lib/palette";
+import { saveDisplay } from "@/lib/display-actions";
 
 
 /**
@@ -42,8 +43,14 @@ function apply(palette: string, theme: string) {
   } catch {
     // storage unavailable: the choice lasts for this page
   }
+  // Les deux témoins tout de suite, pour que le prochain rendu serveur timbre
+  // « html » sans attendre l'aller-retour.
   document.cookie = `${P_COOKIE}=${palette}; path=/; max-age=${YEAR}; samesite=lax`;
   document.cookie = `${T_COOKIE}=${theme}; path=/; max-age=${YEAR}; samesite=lax`;
+  // Puis le serveur les repose pour de bon : Safari plafonne à sept jours un
+  // témoin écrit par un script, et jette le stockage local au bout d'autant.
+  // Connecté, le choix va aussi au compte et suit l'appareil suivant.
+  void saveDisplay({ palette, theme });
   window.dispatchEvent(new Event(EVENT));
 }
 
@@ -78,11 +85,25 @@ export function PaletteSwitch({ lang }: { lang: "fr" | "en" }) {
 }
 
 
-/** After each navigation, <html> gets the device's choice again: a re-rendered layout may have reset its attributes. */
-export function PaletteKeeper() {
+/**
+ * Après chaque navigation, « html » reprend le choix de l'appareil : une mise
+ * en page rejouée a pu effacer ses attributs.
+ *
+ * Et au premier passage, si l'appareil ne sait plus rien alors que le compte,
+ * lui, se souvient, c'est le compte qui gagne et l'appareil qui réapprend.
+ * C'est le cas d'un téléphone dont Safari a jeté le stockage local, ou d'un
+ * appareil neuf : sans cela le lecteur retrouverait le thème par défaut en
+ * ayant pourtant choisi, une fois, sur un autre écran.
+ */
+export function PaletteKeeper({ saved }: { saved?: { palette?: string; theme?: string; lang?: string } }) {
   const path = usePathname();
   useEffect(() => {
     try {
+      const known = localStorage.getItem(P_KEY) ?? localStorage.getItem(T_KEY);
+      if (!known && saved && (saved.palette || saved.theme)) {
+        apply(saved.palette ?? "navy", saved.theme ?? "auto");
+        return;
+      }
       const p = localStorage.getItem(P_KEY) ?? "navy";
       const t = localStorage.getItem(T_KEY) ?? "auto";
       const r = document.documentElement;
@@ -93,6 +114,7 @@ export function PaletteKeeper() {
     } catch {
       // storage unavailable
     }
-  }, [path]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path, saved?.palette, saved?.theme]);
   return null;
 }
