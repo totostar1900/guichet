@@ -1,0 +1,72 @@
+/* Un rapport, pas un tableau de bord.
+   Le chiffre du haut est la réponse ; le tableau est la justification, et les
+   notes disent ce que le chiffre ne couvre pas. Rien n'y clignote : un
+   rendement remis à un épargnant n'a pas à se vendre. */
+.page {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-7) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.back {
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.lead {
+  color: var(--ink-2);
+  max-width: 62ch;
+  margin-top: calc(-1 * var(--s-5));
+}
+.head {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-6);
+}
+@media (max-width: 760px) {
+  .head {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.head > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-6);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.head span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.head b {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.head small {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+/* Le sens du gain se lit à la couleur, et se lit aussi au signe : une couleur
+   seule laisse de côté ceux qui ne la distinguent pas. */
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--crit);
+}
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 70ch;
+}

@@ -497,3 +497,10 @@
 .consentOk {
   color: var(--ink-2);
 }
+
+/* Le rapport de performance : un lien, pas une carte. Il repond a une question
+   que le client se pose deja, il n a pas a la lui vendre. */
+.reportLink {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
