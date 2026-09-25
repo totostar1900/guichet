@@ -33,7 +33,7 @@
 }
 /* Suivie : l'étoile se remplit. C'est l'état, pas une couleur de plus. */
 .on {
-  color: var(--gold);
+  color: var(--gold-ink);
   border-color: var(--gold-line);
   background: var(--gold-soft);
 }

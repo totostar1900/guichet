@@ -146,7 +146,7 @@
   place-items: center;
   font-size: 0.72rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--paper);
   background: var(--ink-3);
 }
 .you {
@@ -160,7 +160,7 @@
 }
 .market .num {
   background: var(--gold);
-  color: var(--chart-out);
+  color: var(--navy);
 }
 .back {
   border-top-color: var(--good);

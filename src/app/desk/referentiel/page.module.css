@@ -88,7 +88,7 @@
 }
 .tagNew {
   background: #dff1e6;
-  color: #2f7d4f;
+  color: #2d784c;
 }
 
 /* ---- forms ---- */
@@ -265,7 +265,7 @@
 }
 .flashOk {
   background: var(--good-soft, #dff1e6);
-  color: var(--good, #2f7d4f);
+  color: var(--good, #2d784c);
 }
 .flashDraft {
   background: var(--gold-soft);

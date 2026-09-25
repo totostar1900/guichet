@@ -63,9 +63,12 @@
     flex: 0 0 auto;
     padding: 12px 14px;
     font-size: 0.9rem;
-    border: 1px solid var(--navy);
+    /* Pas « --navy » : il ne bascule pas (c'est la couleur des bandeaux) et
+       tombait à 1,02:1 sur une surface sombre, c'est-à-dire invisible.
+       « --navy-text » est le jeton fait pour cet emploi : lui bascule. */
+    border: 1px solid var(--navy-text);
     background: var(--surface);
-    color: var(--navy);
+    color: var(--navy-text);
     font-weight: 600;
   }
 }

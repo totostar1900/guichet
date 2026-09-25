@@ -434,7 +434,7 @@
   height: 26px;
   border-radius: 50%;
   background: var(--good);
-  color: #fff;
+  color: var(--paper);
   display: grid;
   place-items: center;
   font-size: 0.86rem;

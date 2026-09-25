@@ -353,7 +353,7 @@
 }
 .checkOk i {
   background: var(--good);
-  color: #fff;
+  color: var(--paper);
 }
 .checkTodo i {
   border: 2px solid var(--gold);

@@ -19,15 +19,18 @@
   --line-2: #d1d5db;
   --ink: #111827;
   --ink-2: #4b5563;
-  --ink-3: #6b7280;
+  --ink-3: #676d7b;
   --on-navy: #ffffff;
   --on-navy-2: #b9c6da;
   --fill: #0b2545;
   --fill-ink: #ffffff;
   --hero: #0b2545;
-  --good: #1e7f4f;
+  /* Mesurées contre leur fond pâle : ces trois encres passaient à 3,9 et 4,3
+     pour un (1) sur quarante-huit pastilles de l'application. Assombries du
+     strict nécessaire pour tenir 4,5:1, la teinte reste la même à l'œil. */
+  --good: #1d7a4c;
   --good-soft: #e3f3ea;
-  --warn: #b4600a;
+  --warn: #a25609;
   --warn-soft: #fcebd6;
   --crit: #b3261e;
   --crit-soft: #fadcda;
@@ -41,7 +44,7 @@
   --select: #0b2545;
   --on-select: #ffffff;
   --zebra: #e6eaf1;
-  --neutral-soft: #e8ebf0;
+  --neutral-soft: #eef1f4;
   --chart-out: #0b2545;
   --chart-in: #b07f15; /* the gold of a chart line : 3.5:1 on white, still the brand's gold */
   /* the floating hint (tooltip, bubble) : a piece of the opposite world, so it always reads on the ground */
@@ -120,7 +123,7 @@
     --line-2: #3a4e6e;
     --ink: #eaeff6;
     --ink-2: #b5c0d0;
-    --ink-3: #8593a8;
+    --ink-3: #8c9bb2;
     --gold: #e0b65a;
     --gold-ink: #e0b65a;
     --gold-soft: #332c18;
@@ -147,7 +150,7 @@
     --select: #e0b65a;
     --on-select: #0b2545;
     --zebra: #22324f;
-    --neutral-soft: #25344d;
+    --neutral-soft: #24334b;
     --chart-out: #7fa8ee;
     --chart-in: #e0b65a;
     --tip-bg: #eaeff6;
@@ -202,7 +205,7 @@
   --line-2: #3a4e6e;
   --ink: #eaeff6;
   --ink-2: #b5c0d0;
-  --ink-3: #8593a8;
+  --ink-3: #8c9bb2;
   --gold: #e0b65a;
   --gold-ink: #e0b65a;
   --gold-soft: #332c18;
@@ -229,7 +232,7 @@
   --select: #e0b65a;
   --on-select: #0b2545;
   --zebra: #22324f;
-  --neutral-soft: #25344d;
+  --neutral-soft: #24334b;
   --chart-out: #7fa8ee;
   --chart-in: #e0b65a;
   --tip-bg: #eaeff6;
@@ -245,6 +248,10 @@
 }
 /* « Tamisé » : a real middle ground, read with the light inks : a blue-grey page, softer surfaces, the navy and the gold as in the light. */
 :root[data-theme="dim"] {
+  /* Ces trois-là sont mesurés, pas choisis : l'or porte une encre navy sur
+     vingt-sept pastilles, le gris tertiaire sert d'encre sur trois fonds
+     pâles, et le vert plein porte l'encre du papier. Aucun ne tenait 4,5:1
+     dans cet écran-ci, qui est le seul clair à redéfinir ses gris. */
   --paper: #dbe1ea;
   --surface: #e9edf3;
   --surface-2: #d2d9e4;
@@ -252,10 +259,13 @@
   --line-2: #a6b2c3;
   --ink: #141c2b;
   --ink-2: #364357;
-  --ink-3: #5a687d;
+  --ink-3: #4e5a6c;
   --zebra: #e1e6ee;
   --neutral-soft: #d9dfe8;
-  --gold: #a8780a;
+  /* Le vert plein porte l'encre du papier : à l'ombre d'un fond gris, il
+     faut qu'il reste assez sombre pour elle. */
+  --good: #1b7046;
+  --gold: #b5820b;
   --gold-ink: #6f5005;
   --gold-soft: #eadfbd;
   --gold-line: #c9b476;
