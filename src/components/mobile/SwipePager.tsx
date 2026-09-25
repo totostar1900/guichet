@@ -43,6 +43,31 @@ function ownsDrag(target: HTMLElement, root: HTMLElement): boolean {
   return false;
 }
 
+/**
+ * Précharger pour de bon.
+ *
+ * `router.prefetch(href)` ne rapporte presque rien sur une fiche : la route
+ * est rendue à chaque requête, et le préchargement par défaut ne va chercher
+ * que la coquille. Mesuré : 1 595 octets, contre 9 908 pour la charge que la
+ * navigation lit vraiment. Le voisin était donc annoncé mais pas prêt, et le
+ * glissement attendait la page entière : trois quarts de seconde à une
+ * seconde, chaque fois.
+ *
+ * « full » demande cette charge complète. Le glissement tombe alors à une
+ * vingtaine de millisecondes, parce qu'il n'y a plus rien à attendre.
+ *
+ * Ce que cela coûte : chaque fiche ouverte fait rendre ses deux voisines au
+ * serveur, qu'on y aille ou non. C'est le prix d'une lecture instantanée, et
+ * il se reprendrait en ne préchargeant que la suivante.
+ *
+ * La charge préchargée reste réutilisable cinq minutes (`staleTimes.static`).
+ * Les cours et les VL changent une fois par jour : cinq minutes ne se voient
+ * pas. L'étoile d'une ligne suivie, elle, peut retarder d'autant.
+ */
+const FULL = { kind: "full" } as const;
+// Le type public de `router.prefetch` n'expose pas encore l'option ; la valeur, elle, est bien celle que Next attend.
+type Prefetcher = { prefetch: (href: string, options?: typeof FULL) => void };
+
 export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints, children }: { id?: string; prev?: Neighbour; next?: Neighbour; hintKey: string; hints: { next: string; prev: string }; children: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
@@ -99,8 +124,9 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   // The neighbours are fetched ahead so the snap lands on a ready page; the first time, the page steps aside and a word says why.
   useEffect(() => {
     if (!ready || !window.matchMedia("(max-width: 760px)").matches) return;
-    if (prevHref) router.prefetch(prevHref);
-    if (nextHref) router.prefetch(nextHref);
+    const ahead = router as unknown as Prefetcher;
+    if (prevHref) ahead.prefetch(prevHref, FULL);
+    if (nextHref) ahead.prefetch(nextHref, FULL);
     try {
       const key = `guichet:hint:swipe:${hintKey}`;
       if (!localStorage.getItem(key) && (prevHref || nextHref)) {
