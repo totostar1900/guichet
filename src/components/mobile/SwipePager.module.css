@@ -98,11 +98,12 @@
   .nudgePrevIn {
     animation: nudgePrevIn 1s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  /* l'entrée : 200 ms, contre 180 pour la sortie. Le mouvement complet tient en moins de 400 ms et se lit d'un trait. */
   .fromRight {
-    animation: fromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: fromRight 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .fromLeft {
-    animation: fromLeft 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: fromLeft 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .hint {
     display: block;
