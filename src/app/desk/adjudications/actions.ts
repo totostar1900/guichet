@@ -6,11 +6,16 @@ import { requireDesk } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import { confirmable, millions, type NewAuctionResult } from "@/lib/market/auction-results";
+import { auctionReadingAvailable, readAuctionResult } from "@/lib/market/auction-extract";
+import { readSource } from "@/lib/intake/storage";
 
 export interface ResultOutcome {
   ok: boolean;
   error?: string;
   message?: string;
+  /** La lecture proposée par la machine : posée dans les champs, écrite nulle part. */
+  proposal?: Partial<NewAuctionResult>;
+  remarks?: string[];
 }
 
 /**
@@ -161,4 +166,35 @@ export async function reopenResultAction(form: FormData): Promise<void> {
   await audit("auction.reopen", "auction_result", id, { before: { confirmedBy: before.confirmedBy }, after: { confirmedBy: null } });
   await repo().logEvent({ kind: "desk", html: `Adjudication rouverte par ${desk.name} : <b>${before.instrument} ${before.tenor}</b>, séance du ${before.sessionOn}` });
   revalidatePath("/desk/adjudications");
+}
+
+/**
+ * La machine lit, la personne arrête.
+ *
+ * Rien n'est écrit ici. La lecture est renvoyée à l'écran, qui la pose dans les
+ * champs à côté de la pièce ouverte ; c'est « Enregistrer » qui la garde et
+ * « Confirmer » qui l'engage. La distinction est le sujet de tout l'écran : un
+ * chiffre lu de travers sur un scan, s'il devenait référence sans que personne
+ * ne l'ait regardé, se propagerait sans bruit à toutes les offres suivantes.
+ */
+export async function proposeResultAction(_prev: ResultOutcome | null, form: FormData): Promise<ResultOutcome> {
+  await requireDesk("/desk/adjudications");
+  if (!auctionReadingAvailable()) return { ok: false, error: "Lecture automatique indisponible : ANTHROPIC_API_KEY absente. Les chiffres se saisissent à la main." };
+  const id = String(form.get("id") ?? "");
+  const r = await repo().getAuctionResult(id);
+  if (!r) return { ok: false, error: "Séance introuvable." };
+  if (!r.fileKey) return { ok: false, error: "Le communiqué n'a pas été rapatrié : il n'y a rien à lire." };
+  try {
+    const bytes = await readSource(r.fileKey);
+    const hint = `Séance du ${r.sessionOn}, ${r.instrument}${r.tenor && r.tenor !== "—" ? ` ${r.tenor}` : ""}, ${r.country}.`;
+    const { proposal, remarks, seconds } = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint);
+    return {
+      ok: true,
+      message: `Lecture proposée en ${String(seconds).replace(".", ",")} s. Vérifiez chaque chiffre sur la pièce : rien n'est encore enregistré.`,
+      proposal,
+      remarks,
+    };
+  } catch (e) {
+    return { ok: false, error: `Lecture impossible : ${e instanceof Error ? e.message : "erreur"}` };
+  }
 }

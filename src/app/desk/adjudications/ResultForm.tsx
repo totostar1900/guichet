@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { SourceViewer } from "@/components/SourceViewer";
 import { useT } from "@/i18n/client";
 import { coverageOf, thin, type AuctionResult } from "@/lib/market/auction-results";
-import { confirmResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
+import { confirmResultAction, proposeResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
 import styles from "./page.module.css";
 
 /**
@@ -14,35 +14,96 @@ import styles from "./page.module.css";
  * Le communiqué est un scan : rien n'y est sélectionnable, et le taux se lit en
  * petits caractères sous un tampon. Il tient donc la moitié gauche de l'écran,
  * avec la main et la loupe, pendant que les champs restent visibles à droite.
- * C'est la même disposition qu'à « À valider », pour la même raison : recopier
- * de mémoire un chiffre lu dans un autre onglet est la façon la plus sûre de se
- * tromper de colonne.
+ * Recopier de mémoire un chiffre lu dans un autre onglet est la façon la plus
+ * sûre de se tromper de colonne.
  *
- * Les montants se saisissent en millions parce que le communiqué les imprime
- * ainsi ; ils se gardent en francs. La conversion est faite une fois, à
- * l'enregistrement, et jamais au regard de celui qui saisit.
+ * « Lire le communiqué » fait passer la machine avant la personne, et c'est tout
+ * ce qu'elle fait : la lecture arrive dans les champs et n'est écrite nulle
+ * part. Le desk la compare à la pièce ouverte à côté, corrige ce qui doit
+ * l'être, puis enregistre ou confirme. C'est pour cela que les champs sont
+ * tenus par l'écran plutôt que par le navigateur : une valeur par défaut ne
+ * change plus une fois posée, et la proposition n'aurait jamais paru.
  *
- * Enfin l'écran compte lui-même la couverture et le nombre de soumissionnaires
- * à côté du taux. Une séance servie à 6,97 % où une seule banque a soumissionné
- * n'est pas un prix de marché, et cette phrase doit être sous les yeux de celui
- * qui confirme, pas dans une note qu'il lira plus tard.
+ * Les montants se saisissent en millions, comme le communiqué les imprime, et
+ * se gardent en francs. La conversion se fait une fois, à l'enregistrement.
+ *
+ * Enfin la couverture et le nombre de soumissionnaires s'affichent à côté du
+ * taux. Une séance servie à 6,97 % où une seule banque a soumissionné n'est pas
+ * un prix de marché, et cette phrase doit être sous les yeux de celui qui
+ * confirme, pas dans une note qu'il lira plus tard.
  */
-export function ResultForm({ r, offerTitle }: { r: AuctionResult; offerTitle?: string }) {
+type Champs = Record<string, string>;
+
+const txt = (v: number | string | undefined | null): string => (v == null ? "" : String(v).replace(".", ","));
+const enM = (v: number | undefined): string => (v == null ? "" : txt(v / 1_000_000));
+
+const seedOf = (r: AuctionResult): Champs => ({
+  codeEmission: r.codeEmission ?? "",
+  tenor: r.tenor === "—" ? "" : r.tenor,
+  offerId: r.offerId ?? "",
+  networkSize: txt(r.networkSize),
+  bidders: txt(r.bidders),
+  announced: enM(r.announced),
+  bid: enM(r.bid),
+  served: enM(r.served),
+  coverage: txt(r.coverage),
+  rateMin: txt(r.rateMin),
+  rateMax: txt(r.rateMax),
+  rateLimit: txt(r.rateLimit),
+  rateAvg: txt(r.rateAvg),
+  priceMin: txt(r.priceMin),
+  priceMax: txt(r.priceMax),
+  priceLimit: txt(r.priceLimit),
+  priceAvg: txt(r.priceAvg),
+});
+
+/** La lecture de la machine, mise sous la forme des champs. */
+const proposedFields = (p: Partial<AuctionResult> | undefined): Champs => {
+  if (!p) return {};
+  const out: Champs = {
+    codeEmission: p.codeEmission ?? "",
+    tenor: p.tenor ?? "",
+    networkSize: txt(p.networkSize),
+    bidders: txt(p.bidders),
+    announced: enM(p.announced),
+    bid: enM(p.bid),
+    served: enM(p.served),
+    coverage: txt(p.coverage),
+  };
+  for (const k of ["rateMin", "rateMax", "rateLimit", "rateAvg", "priceMin", "priceMax", "priceLimit", "priceAvg"] as const) out[k] = txt(p[k]);
+  return out;
+};
+
+export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offerTitle?: string; canRead: boolean }) {
   const t = useT();
+  // Ce que le desk a tapé, et rien d'autre : la valeur affichée se calcule.
+  const [edits, setEdits] = useState<Champs>({});
   const [saved, save, saving] = useActionState<ResultOutcome | null, FormData>(saveResultAction, null);
   const [done, confirm, confirming] = useActionState<ResultOutcome | null, FormData>(confirmResultAction, null);
-  const state = done ?? saved;
+  const [read, propose, reading] = useActionState<ResultOutcome | null, FormData>(proposeResultAction, null);
+  const state = read ?? done ?? saved;
   const bill = r.instrument === "BTA";
   const couv = coverageOf(r);
   const mince = thin(r);
 
-  const num = (name: string, label: string, value: number | undefined, unit?: string, hint?: string) => (
+  // La valeur d'un champ, dans cet ordre : ce que le desk a tapé, sinon ce que
+  // la base porte, sinon ce que la machine propose. Une proposition ne recouvre
+  // donc jamais une saisie ni une valeur déjà enregistrée, et rien n'a besoin
+  // d'être recopié d'un état à l'autre : il n'y a qu'une source par cas.
+  const base = seedOf(r);
+  const propose_ = read?.ok ? proposedFields(read.proposal) : {};
+  const vals: Champs = {};
+  for (const k of Object.keys(base)) vals[k] = edits[k] ?? (base[k] || propose_[k] || "");
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setEdits((v) => ({ ...v, [k]: e.target.value }));
+
+  const num = (name: string, label: string, unit?: string, hint?: string) => (
     <label className={styles.field} key={name}>
       <span>
         {t(label)}
         {unit ? <em>{t(unit)}</em> : null}
       </span>
-      <input name={name} defaultValue={value ?? ""} inputMode="decimal" autoComplete="off" placeholder={hint ? t(hint) : undefined} />
+      <input name={name} value={vals[name] ?? ""} onChange={set(name)} inputMode="decimal" autoComplete="off" placeholder={hint ? t(hint) : undefined} />
     </label>
   );
 
@@ -83,25 +144,49 @@ export function ResultForm({ r, offerTitle }: { r: AuctionResult; offerTitle?: s
         </div>
 
         <div className={styles.fields}>
+          {/* La machine passe devant, et n'écrit rien. */}
+          <div className={styles.machine}>
+            <button className="btn sm" type="submit" formAction={propose} disabled={!canRead || !r.fileKey || reading} formNoValidate>
+              {t(reading ? "Lecture en cours…" : "Lire le communiqué")}
+            </button>
+            <small>
+              {canRead
+                ? t("La lecture se pose dans les champs. Rien n'est enregistré : vous vérifiez, puis vous confirmez.")
+                : t("Lecture automatique indisponible : les chiffres se saisissent à la main.")}
+            </small>
+          </div>
+
+          {state && (state.ok ? <div className={styles.ok}>{state.message}</div> : <div className={styles.err}>{state.error}</div>)}
+          {read?.remarks && read.remarks.length > 0 && (
+            <ul className={styles.remarks}>
+              {read.remarks.map((m) => (
+                <li key={m}>{m}</li>
+              ))}
+            </ul>
+          )}
+
           <fieldset>
             <legend>{t("La ligne")}</legend>
             <label className={styles.field}>
               <span>
-                {t("Code émission")}
-                <em>{t("exigé pour confirmer")}</em>
+                {t("Durée")}
+                <em>{t("exigée pour confirmer")}</em>
               </span>
-              <input name="codeEmission" defaultValue={r.codeEmission ?? ""} autoComplete="off" placeholder="CG1300001480" />
+              <input name="tenor" value={vals.tenor} onChange={set("tenor")} autoComplete="off" placeholder="52 semaines" />
             </label>
             <label className={styles.field}>
-              <span>{t("Durée")}</span>
-              <input name="tenor" defaultValue={r.tenor} autoComplete="off" />
+              <span>
+                {t("Code émission")}
+                <em>{t("pour rattacher à une ligne")}</em>
+              </span>
+              <input name="codeEmission" value={vals.codeEmission} onChange={set("codeEmission")} autoComplete="off" placeholder="CG1300001480" />
             </label>
             <label className={styles.field}>
               <span>
                 {t("Notre ligne")}
                 <em>{t("facultatif")}</em>
               </span>
-              <input name="offerId" defaultValue={r.offerId ?? ""} autoComplete="off" placeholder={t("identifiant de l'offre")} />
+              <input name="offerId" value={vals.offerId} onChange={set("offerId")} autoComplete="off" placeholder={t("identifiant de l'offre")} />
             </label>
             {offerTitle && (
               <p className={styles.linked}>
@@ -112,29 +197,19 @@ export function ResultForm({ r, offerTitle }: { r: AuctionResult; offerTitle?: s
 
           <fieldset>
             <legend>{t("La séance")}</legend>
-            {num("networkSize", "SVT du réseau", r.networkSize)}
-            {num("bidders", "SVT soumissionnaires", r.bidders)}
-            {num("announced", "Montant annoncé", r.announced == null ? undefined : r.announced / 1_000_000, "en millions")}
-            {num("bid", "Total des soumissions", r.bid == null ? undefined : r.bid / 1_000_000, "en millions")}
-            {num("served", "Total servi", r.served == null ? undefined : r.served / 1_000_000, "en millions")}
-            {num("coverage", "Taux de couverture", r.coverage, "%", "tel qu'imprimé")}
+            {num("networkSize", "SVT du réseau")}
+            {num("bidders", "SVT soumissionnaires")}
+            {num("announced", "Montant annoncé", "en millions")}
+            {num("bid", "Total des soumissions", "en millions")}
+            {num("served", "Total servi", "en millions")}
+            {num("coverage", "Taux de couverture", "%", "tel qu'imprimé")}
           </fieldset>
 
           <fieldset>
             <legend>{bill ? t("Les taux, précomptés") : t("Les prix, en % du nominal")}</legend>
             {bill
-              ? [
-                  num("rateMin", "Taux minimum", r.rateMin, "%"),
-                  num("rateMax", "Taux maximum", r.rateMax, "%"),
-                  num("rateLimit", "Taux limite", r.rateLimit, "%"),
-                  num("rateAvg", "Taux moyen pondéré", r.rateAvg, "%"),
-                ]
-              : [
-                  num("priceMin", "Prix minimum", r.priceMin, "%"),
-                  num("priceMax", "Prix maximum", r.priceMax, "%"),
-                  num("priceLimit", "Prix limite", r.priceLimit, "%"),
-                  num("priceAvg", "Prix moyen pondéré", r.priceAvg, "%"),
-                ]}
+              ? [num("rateMin", "Taux minimum", "%"), num("rateMax", "Taux maximum", "%"), num("rateLimit", "Taux limite", "%"), num("rateAvg", "Taux moyen pondéré", "%")]
+              : [num("priceMin", "Prix minimum", "%"), num("priceMax", "Prix maximum", "%"), num("priceLimit", "Prix limite", "%"), num("priceAvg", "Prix moyen pondéré", "%")]}
           </fieldset>
 
           {/* Ce que le chiffre vaut, dit à côté du chiffre. */}
@@ -146,10 +221,8 @@ export function ResultForm({ r, offerTitle }: { r: AuctionResult; offerTitle?: s
             </p>
           )}
 
-          {state && (state.ok ? <div className={styles.ok}>{state.message}</div> : <div className={styles.err}>{state.error}</div>)}
-
           <div className={styles.actions}>
-            <button className="btn" type="submit" formAction={save} disabled={saving || confirming}>
+            <button className="btn" type="submit" formAction={save} disabled={saving || confirming || reading}>
               {t(saving ? "Enregistrement…" : "Enregistrer la lecture")}
             </button>
             {r.confirmedBy ? (
@@ -157,7 +230,7 @@ export function ResultForm({ r, offerTitle }: { r: AuctionResult; offerTitle?: s
                 {t("Rouvrir")}
               </button>
             ) : (
-              <button className="btn primary" type="submit" formAction={confirm} disabled={saving || confirming}>
+              <button className="btn primary" type="submit" formAction={confirm} disabled={saving || confirming || reading}>
                 {t(confirming ? "…" : "Confirmer la séance")}
               </button>
             )}

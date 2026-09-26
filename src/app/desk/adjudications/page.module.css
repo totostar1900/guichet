@@ -241,3 +241,29 @@
     overflow: visible;
   }
 }
+
+/* La machine passe devant les champs, et dit ce qu'elle ne fait pas. */
+.machine {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+}
+.machine small {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+/* Ce que la lecture a vu de travers : au-dessus des champs, pas dans une note. */
+.remarks {
+  margin: 0;
+  padding: var(--s-4) var(--s-4) var(--s-4) var(--s-8);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}

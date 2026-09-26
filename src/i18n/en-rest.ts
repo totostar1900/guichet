@@ -987,4 +987,10 @@ export const EN_REST: Record<string, string> = {
   "à relire": "to read",
   "Séance mince : peu de soumissions": "Thin session: few bids",
   "Voir la table": "See the table",
+  "Lire le communiqué": "Read the communiqué",
+  "Lecture en cours…": "Reading…",
+  "La lecture se pose dans les champs. Rien n'est enregistré : vous vérifiez, puis vous confirmez.": "The reading lands in the fields. Nothing is saved: you check it, then you confirm.",
+  "Lecture automatique indisponible : les chiffres se saisissent à la main.": "Automatic reading unavailable: the figures are typed by hand.",
+  "exigée pour confirmer": "required to confirm",
+  "pour rattacher à une ligne": "to link it to a line",
 };

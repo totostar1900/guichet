@@ -4,6 +4,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
+import { auctionReadingAvailable } from "@/lib/market/auction-extract";
 import { ResultForm } from "./ResultForm";
 import styles from "./page.module.css";
 
@@ -69,7 +70,7 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
 
         <div className={styles.main}>
           {selected ? (
-            <ResultForm key={selected.id} r={selected} offerTitle={offer?.title} />
+            <ResultForm key={selected.id} r={selected} offerTitle={offer?.title} canRead={auctionReadingAvailable()} />
           ) : (
             <div className="empty">
               {t("Aucune séance. Le robot BEAC en dépose une dès qu'un Trésor publie ses résultats.")}
