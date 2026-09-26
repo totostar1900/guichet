@@ -23,7 +23,7 @@ const TABS = [
     href: "/marche",
     label: "Marché",
     menu: true,
-    match: (p: string) => p.startsWith("/marche") || p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs"),
+    match: (p: string) => p.startsWith("/marche") || p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs") || p.startsWith("/calendrier"),
   },
   { href: "/actualites", label: "Actualités", match: (p: string) => p.startsWith("/actualites") },
   { href: "/info", label: "Guide", match: (p: string) => p.startsWith("/info") || p.startsWith("/comparer") },

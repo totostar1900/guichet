@@ -1,0 +1,72 @@
+/* Un calendrier se lit par dates, pas par cartes.
+   Trois colonnes qui s'empilent au téléphone : quand, quoi, et ce qu'on peut en
+   faire. Aucune couleur d'alerte : une date qui approche n'est pas un danger. */
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-7) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+.lead {
+  color: var(--ink-2);
+  max-width: 64ch;
+  margin-top: calc(-1 * var(--s-5));
+}
+.page h2 {
+  font-size: 1rem;
+  margin-bottom: var(--s-5);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr auto;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--line);
+}
+.row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: var(--s-2);
+  }
+}
+.when,
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.when b {
+  font-variant-numeric: tabular-nums;
+}
+.when small,
+.what small {
+  font-size: 0.75rem;
+}
+.act {
+  justify-self: end;
+}
+@media (max-width: 640px) {
+  .act {
+    justify-self: start;
+  }
+}
+.note {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 68ch;
+}

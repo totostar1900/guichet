@@ -34,6 +34,9 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", hint: "deux titres côte à côte, avec l'indice en repère" },
+  // Le primaire de la zone, qui n'est pas la cote : les six Trésors, et le seul
+  // endroit où leurs séances se lisent ensemble.
+  { key: "calendrier", href: "/calendrier", label: "Le calendrier des adjudications", short: "Le calendrier", hint: "les séances des six Trésors, annoncées environ une semaine avant" },
   // Le Guide est servi sur les deux domaines : une seule adresse suffit.
   { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
@@ -53,6 +56,7 @@ export function currentMarketPage(path: string): string | undefined {
   if (path.startsWith("/indice")) return "indice";
   if (path.startsWith("/societes") || path.startsWith("/emetteurs")) return "societes";
   if (path.startsWith("/comparer")) return "comparer";
+  if (path.startsWith("/calendrier")) return "calendrier";
   if (path.startsWith("/info/indice-bvmac")) return "lecon";
   if (path.startsWith("/actualites")) return "actualites";
   if (path.startsWith("/marche")) return "marche";
