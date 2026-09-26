@@ -124,6 +124,8 @@ export async function GET(req: NextRequest) {
     .join("\n");
   let created = 0;
   let flagged = 0;
+  // Une pièce que la BEAC n'a pas rendue : la séance existe, son communiqué manque.
+  let sansPiece = 0;
 
   for (const a of next) {
     if (known.has(a.doc.title)) continue;
@@ -202,13 +204,27 @@ export async function GET(req: NextRequest) {
   // Les résultats d'une séance : le taux servi et les montants. Le robot les
   // signale, il ne les inscrit pas. Le chiffre qui atterrit sur une ligne engage
   // la maison devant ses clients, et il passe donc par une main, à Résultats.
+  // « pays » reprend l'historique d'un Trésor sans toucher aux cinq autres.
+  //
+  // Une reprise ne se fait pas d'un bloc : deux cent cinquante-trois séances,
+  // c'est autant de PDF à rapatrier chez une BEAC qui renvoie des 502 par
+  // intermittence, et un Trésor à la fois laisse voir ce qui a manqué avant de
+  // passer au suivant. Sans le paramètre, le robot regarde les six, ce qui est
+  // son travail quotidien.
+  const seuls = (req.nextUrl.searchParams.get("pays") ?? "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
   const results = rows
     .map(readBeacDoc)
     .filter(
-      (a) => a.kind === "resultats" && a.on && a.on >= from && a.on <= today,
+      (a) => a.kind === "resultats" && a.on && a.on >= from && a.on <= today && (!seuls.length || (a.country && seuls.includes(a.country))),
     );
   for (const a of results) {
-    if (seen.includes(a.doc.url)) continue;
+    // Le journal ne sert de mémoire que pour le passage quotidien : au-delà de
+    // cinq séances il ne garde plus chaque adresse, et c'est l'unicité de
+    // « source_url » en base qui empêche les doublons.
+    if (results.length <= 5 && seen.includes(a.doc.url)) continue;
     if (!a.on || !a.instrument || (a.instrument !== "BTA" && a.instrument !== "OTA") || !a.country) continue;
     // Ce que le robot sait : l'identité de la séance, lue dans le titre et la
     // colonne « pays ». Ce qu'il ne sait pas : les chiffres, qui sont à
@@ -226,16 +242,21 @@ export async function GET(req: NextRequest) {
       fileKey: await keep(a.doc.url, `${a.on}-resultats.pdf`),
     };
     await r.upsertAuctionResult(proposal);
-    await r.logEvent({
-      kind: "system",
-      html: `BEAC : résultats publiés pour ${beacLabel(a)}, séance du ${a.on} · <a href="${a.doc.url}" target="_blank" rel="noreferrer">le communiqué</a> · à relire dans Adjudications`,
-    });
+    if (!proposal.fileKey) sansPiece += 1;
+    // Une ligne par séance tant qu'elles se comptent : c'est la nouvelle du jour,
+    // et le desk la lit. Au-delà, c'est une reprise d'historique, et quatre-vingts
+    // lignes presque identiques n'apprennent rien que le résumé ne dise mieux.
+    if (results.length <= 5)
+      await r.logEvent({
+        kind: "system",
+        html: `BEAC : résultats publiés pour ${beacLabel(a)}, séance du ${a.on} · <a href="${a.doc.url}" target="_blank" rel="noreferrer">le communiqué</a> · à relire dans Adjudications`,
+      });
     flagged += 1;
   }
   if (flagged)
     await r.logEvent({
       kind: "system",
-      html: `BEAC : ${flagged} séance(s) déposée(s) dans « Adjudications », en attente de relecture`,
+      html: `BEAC : ${flagged} séance(s) déposée(s) dans « Adjudications »${seuls.length ? ` pour ${seuls.join(", ")}` : ""}, en attente de relecture${sansPiece ? ` · ${sansPiece} sans communiqué, à reprendre` : ""}`,
     });
   return NextResponse.json({
     ok: true,
@@ -245,5 +266,7 @@ export async function GET(req: NextRequest) {
     forthcoming: next.length,
     created,
     results: flagged,
+    sansPiece,
+    pays: seuls.length ? seuls : "toutes",
   });
 }

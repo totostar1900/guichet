@@ -197,3 +197,41 @@ describe("le comparable d'une séance à venir", () => {
     expect(nearestComparable(cible, [vieux], 400)?.daysBefore).toBe(250);
   });
 });
+
+/**
+ * Le mois s'abrège, et cinq séances en dépendaient.
+ *
+ * « COMMUNIQUE DES RESULTATS DE LEMISSION DES OTA 3 ANS_14 SEPT 2026_TRESOR DU
+ * CAMEROUN » : le Trésor camerounais écrit le mois en quatre lettres et sépare
+ * par des soulignés. Le lecteur attendait « septembre » en toutes lettres et un
+ * espace, et laissait donc tomber les cinq résultats du 14 septembre 2026, du
+ * 3 ans au 7 ans, c'est-à-dire une journée entière de la courbe camerounaise.
+ *
+ * Le silence était complet : la reprise annonçait quarante-et-une séances sur
+ * quarante-six sans dire lesquelles manquaient ni pourquoi.
+ */
+describe("la date, quelle que soit la main qui l'écrit", () => {
+  const lu = (titre: string) => readBeacDoc({ url: "https://beac.int/x.pdf", title: titre, country: "CAMEROUN", year: "2026" });
+
+  it("lit un mois abrégé, séparé par des soulignés", () => {
+    expect(lu("COMMUNIQUE DES RESULTATS DE LEMISSION DES OTA 3 ANS_14 SEPT 2026_TRESOR DU CAMEROUN").on).toBe("2026-09-14");
+  });
+
+  it("lit encore le mois en toutes lettres, comme avant", () => {
+    expect(lu("COMMUNIQUE DANNONCE DE LEMISSION DES BTA 26 SEMAINES DU LUNDI 21 SEPTEMBRE 2026").on).toBe("2026-09-21");
+  });
+
+  it("accepte le point de l'abréviation", () => {
+    expect(lu("RESULTATS OTA 5 ANS 3 DEC. 2025 TRESOR").on).toBe("2025-12-03");
+  });
+
+  it("ne confond pas juin et juillet, qui ne se séparent qu'à la quatrième lettre", () => {
+    expect(lu("RESULTATS BTA 26 SEMAINES 8 JUIN 2026").on).toBe("2026-06-08");
+    expect(lu("RESULTATS BTA 26 SEMAINES 8 JUIL 2026").on).toBe("2026-07-08");
+    expect(lu("RESULTATS BTA 26 SEMAINES 8 JUILLET 2026").on).toBe("2026-07-08");
+  });
+
+  it("garde l'ordinal du premier du mois", () => {
+    expect(lu("RESULTATS BTA 52 SEMAINES 1er NOVEMBRE 2025").on).toBe("2025-11-01");
+  });
+});

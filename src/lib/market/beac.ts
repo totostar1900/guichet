@@ -76,6 +76,21 @@ const flat = (s: string) =>
 
 const MONTHS = ["janvier", "fevrier", "mars", "avril", "mai", "juin", "juillet", "aout", "septembre", "octobre", "novembre", "decembre"];
 
+/**
+ * Un mois, écrit en entier ou abrégé.
+ *
+ * Les Trésors abrègent à leur guise : « septembre », « sept », « déc. ». Le
+ * motif accepte donc le nom complet ou n'importe quel préfixe assez long pour
+ * lever l'ambiguïté. Trois lettres y suffisent partout, sauf pour juin et
+ * juillet qui ne se séparent qu'à la quatrième.
+ */
+const mois = (m: string): string => {
+  const court = m.startsWith("jui") ? 4 : 3;
+  if (m.length <= court) return m;
+  const reste = m.slice(court);
+  return `${m.slice(0, court)}(?:${reste.split("").map((_, i) => reste.slice(0, i + 1)).join("|")})?`;
+};
+
 /** Les pays de la zone, tels que la colonne les écrit, y compris ses coquilles. */
 const COUNTRIES: [RegExp, Country][] = [
   [/cam(e|er)oun/, "Cameroun"],
@@ -133,8 +148,13 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
   // semaine, quand il est là, n'ajoute rien et se laisse ignorer.
   // « 1er novembre » : le premier du mois porte son ordinal, et l'oublier perdait
   // une annonce sur trente-huit, toujours la même, toujours en début de mois.
-  const dateMatch = f.match(new RegExp(`(\\d{1,2})\\s*(?:er|ere)?\\s+(${MONTHS.join("|")})\\s+(\\d{4})`));
-  const on = dateMatch ? `${dateMatch[3]}-${String(MONTHS.indexOf(dateMatch[2]) + 1).padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}` : undefined;
+  // Et le mois s'abrège. « _14 SEPT 2026_TRESOR DU CAMEROUN » : cinq résultats
+  // camerounais du 14 septembre 2026, une journée entière de la courbe, du 3 ans
+  // au 7 ans, tombaient parce que le lecteur attendait « septembre » en toutes
+  // lettres. Le préfixe suffit à désigner un mois sans ambiguïté, « juin » et
+  // « juillet » se séparant dès la quatrième lettre.
+  const dateMatch = f.match(new RegExp(`(\\d{1,2})\\s*(?:er|ere)?[\\s_]+(${MONTHS.map(mois).join("|")})\\.?[\\s_]+(\\d{4})`));
+  const on = dateMatch ? `${dateMatch[3]}-${String(MONTHS.findIndex((m) => m.startsWith(dateMatch[2])) + 1).padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}` : undefined;
 
   return { doc, kind, instrument, tenor, on, abondement: /abondement/.test(f), country: beacCountry(doc.country) || beacCountry(doc.title) };
 }
