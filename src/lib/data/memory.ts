@@ -762,9 +762,13 @@ export const memoryRepository: Repository = {
     const s = store();
     const now = new Date().toISOString();
     const i = s.auctionResults.findIndex((x) => x.sourceUrl === r.sourceUrl);
-    // La saisie ne réécrit pas ce que le desk a relu : une seconde lecture
-    // automatique du même communiqué ne doit pas effacer la confirmation.
-    const row = i >= 0 ? { ...s.auctionResults[i], ...r, confirmedBy: s.auctionResults[i].confirmedBy ?? r.confirmedBy, confirmedAt: s.auctionResults[i].confirmedAt ?? r.confirmedAt, updatedAt: now } : { ...r, id: uid(), createdAt: now, updatedAt: now };
+    // Un second passage du robot ne défait rien : ni la relecture du desk, ni la
+    // pièce déjà gardée. Le robot rend « undefined » quand la BEAC ne répond pas,
+    // et un champ vide ne remplace jamais un champ rempli.
+    const row =
+      i >= 0
+        ? { ...s.auctionResults[i], ...r, confirmedBy: s.auctionResults[i].confirmedBy ?? r.confirmedBy, confirmedAt: s.auctionResults[i].confirmedAt ?? r.confirmedAt, fileKey: r.fileKey ?? s.auctionResults[i].fileKey, updatedAt: now }
+        : { ...r, id: uid(), createdAt: now, updatedAt: now };
     if (i >= 0) s.auctionResults[i] = row;
     else s.auctionResults.push(row);
     return structuredClone(row);

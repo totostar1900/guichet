@@ -1356,14 +1356,27 @@ export const supabaseRepository: Repository = {
     return data ? toAuctionResult(data as AuctionResultRow) : undefined;
   },
   async upsertAuctionResult(r) {
-    // La relecture du desk survit à une seconde lecture du même communiqué :
-    // le robot repasse, la confirmation reste.
-    const { data: kept } = await db().from("auction_results").select("confirmed_by, confirmed_at").eq("source_url", r.sourceUrl).maybeSingle();
+    // Ce qu'un second passage du robot ne doit pas défaire.
+    //
+    // La relecture du desk d'abord : le robot repasse, la confirmation reste.
+    //
+    // La pièce ensuite, et celle-là s'est perdue pour de bon. Le robot rapatrie
+    // le communiqué et rend « undefined » quand la BEAC ne répond pas, ce qui
+    // arrive : elle renvoie des 502 par intermittence. Écrit tel quel, cet
+    // « undefined » devenait un null, et un passage malchanceux effaçait la
+    // référence d'un document déjà gardé. Une séance congolaise l'a perdue ainsi
+    // entre deux exécutions à quarante minutes d'intervalle, et l'écran de
+    // relecture n'avait plus rien à montrer.
+    //
+    // Un champ vide ne remplace donc jamais un champ rempli : le robot ajoute ce
+    // qu'il a, il ne retire pas ce qu'il n'a pas.
+    const { data: kept } = await db().from("auction_results").select("confirmed_by, confirmed_at, file_key").eq("source_url", r.sourceUrl).maybeSingle();
     const row = fromAuctionResult(r);
     if (kept?.confirmed_by) {
       row.confirmed_by = kept.confirmed_by;
       row.confirmed_at = kept.confirmed_at;
     }
+    if (kept?.file_key && !r.fileKey) row.file_key = kept.file_key;
     row.updated_at = new Date().toISOString();
     const { data, error } = await db().from("auction_results").upsert(row, { onConflict: "source_url" }).select("*").single();
     if (error) fail("upsertAuctionResult", error);
