@@ -122,10 +122,19 @@ export async function GET(req: NextRequest) {
   const seen = (await r.listEvents(400).catch(() => []))
     .map((e) => e.html)
     .join("\n");
+  // Ce que la table garde déjà : l'adresse du communiqué et le fichier, quand il
+  // a pu être rapatrié.
+  //
+  // Deux usages, et ils comptent autant l'un que l'autre. On ne retélécharge pas
+  // ce qui est là : reprendre un Trésor rapatriait quarante-six PDF à chaque
+  // passage, pour rien et sur le dos de la BEAC. Et on retente ce qui manque :
+  // un 502 au moment de la création laissait sinon une séance sans sa pièce pour
+  // toujours, puisque le passage suivant la reconnaissait et l'ignorait.
+  const gardees = new Map((await r.listAuctionResults({ limit: 2000 }).catch(() => [])).map((x) => [x.sourceUrl, x.fileKey]));
   let created = 0;
   let flagged = 0;
-  // Une pièce que la BEAC n'a pas rendue : la séance existe, son communiqué manque.
   let sansPiece = 0;
+  let reprises = 0;
 
   for (const a of next) {
     if (known.has(a.doc.title)) continue;
@@ -223,8 +232,10 @@ export async function GET(req: NextRequest) {
   for (const a of results) {
     // Le journal ne sert de mémoire que pour le passage quotidien : au-delà de
     // cinq séances il ne garde plus chaque adresse, et c'est l'unicité de
-    // « source_url » en base qui empêche les doublons.
-    if (results.length <= 5 && seen.includes(a.doc.url)) continue;
+    // « source_url » en base qui empêche les doublons. Une séance à qui il
+    // manque sa pièce n'est jamais passée : c'est sa seule chance d'en avoir une.
+    const dejaGardee = gardees.get(a.doc.url);
+    if (results.length <= 5 && seen.includes(a.doc.url) && dejaGardee) continue;
     if (!a.on || !a.instrument || (a.instrument !== "BTA" && a.instrument !== "OTA") || !a.country) continue;
     // Ce que le robot sait : l'identité de la séance, lue dans le titre et la
     // colonne « pays ». Ce qu'il ne sait pas : les chiffres, qui sont à
@@ -239,10 +250,12 @@ export async function GET(req: NextRequest) {
       abondement: a.abondement,
       sourceUrl: a.doc.url,
       sourceTitle: a.doc.title,
-      fileKey: await keep(a.doc.url, `${a.on}-resultats.pdf`),
+      // Déjà gardée : on n'y retouche pas. Absente : on retente, une fois de plus.
+      fileKey: dejaGardee ?? (await keep(a.doc.url, `${a.on}-resultats.pdf`)),
     };
     await r.upsertAuctionResult(proposal);
     if (!proposal.fileKey) sansPiece += 1;
+    else if (!dejaGardee && gardees.has(a.doc.url)) reprises += 1;
     // Une ligne par séance tant qu'elles se comptent : c'est la nouvelle du jour,
     // et le desk la lit. Au-delà, c'est une reprise d'historique, et quatre-vingts
     // lignes presque identiques n'apprennent rien que le résumé ne dise mieux.
@@ -256,7 +269,7 @@ export async function GET(req: NextRequest) {
   if (flagged)
     await r.logEvent({
       kind: "system",
-      html: `BEAC : ${flagged} séance(s) déposée(s) dans « Adjudications »${seuls.length ? ` pour ${seuls.join(", ")}` : ""}, en attente de relecture${sansPiece ? ` · ${sansPiece} sans communiqué, à reprendre` : ""}`,
+      html: `BEAC : ${flagged} séance(s) déposée(s) dans « Adjudications »${seuls.length ? ` pour ${seuls.join(", ")}` : ""}, en attente de relecture${sansPiece ? ` · ${sansPiece} sans communiqué, à reprendre` : ""}${reprises ? ` · ${reprises} communiqué(s) repris` : ""}`,
     });
   return NextResponse.json({
     ok: true,
@@ -267,6 +280,7 @@ export async function GET(req: NextRequest) {
     created,
     results: flagged,
     sansPiece,
+    reprises,
     pays: seuls.length ? seuls : "toutes",
   });
 }

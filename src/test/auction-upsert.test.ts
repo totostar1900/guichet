@@ -54,3 +54,33 @@ describe("un second passage du robot sur la même séance", () => {
     expect(b.fileKey).toBe("beac/x.pdf");
   });
 });
+
+/**
+ * La pièce se garde toujours, et se rattrape.
+ *
+ * Deux règles que le robot doit tenir ensemble. Ce qui est déjà gardé ne se
+ * retélécharge pas : reprendre un Trésor rapatriait quarante-six PDF à chaque
+ * passage, pour rien et sur le dos d'une BEAC qui répond mal. Et ce qui manque
+ * se retente : un 502 au moment de la création laissait sinon une séance sans
+ * sa pièce pour toujours, puisque le passage suivant la reconnaissait et
+ * l'ignorait. Le lien, lui, est en base dès la création et n'en bouge plus.
+ */
+describe("le communiqué d'une séance", () => {
+  const r = memoryRepository;
+
+  it("reste attaché à son adresse, qui ne se perd jamais", async () => {
+    const a = await r.upsertAuctionResult(seance({ sourceUrl: "https://beac.int/lien.pdf", fileKey: undefined }));
+    expect(a.sourceUrl).toBe("https://beac.int/lien.pdf");
+    // Sans fichier, la séance existe quand même : on sait où la reprendre.
+    expect(a.fileKey).toBeUndefined();
+  });
+
+  it("se rattrape au passage suivant quand la BEAC a fini par répondre", async () => {
+    const url = "https://beac.int/rattrape.pdf";
+    const a = await r.upsertAuctionResult(seance({ sourceUrl: url, fileKey: undefined }));
+    expect(a.fileKey).toBeUndefined();
+    const b = await r.upsertAuctionResult(seance({ sourceUrl: url, fileKey: "beac/rattrape.pdf" }));
+    expect(b.id).toBe(a.id);
+    expect(b.fileKey).toBe("beac/rattrape.pdf");
+  });
+});
