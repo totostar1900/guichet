@@ -65,6 +65,7 @@ Règles :
 - Les montants : donne le nombre tel qu'il est imprimé dans le tableau, et indique séparément l'unité annoncée par le document (« en millions de FCFA » en tête de tableau, le plus souvent). Ne convertis pas.
 - BTA : des taux, en pourcentage, précomptés. OTA : des prix, en pourcentage du nominal. Un document ne porte que l'une des deux familles ; laisse l'autre entièrement à null.
 - Le taux (ou prix) « limite » est celui auquel le Trésor a arrêté l'adjudication ; le « moyen pondéré » est la moyenne des soumissions servies. Ne confonds pas les deux, et ne recopie pas l'un dans l'autre s'il en manque un.
+- Les libellés « minimum » et « maximum » sont parfois inversés par le Trésor lui-même : un « prix maximum proposé » de 90,00 % au-dessus d'un « prix minimum proposé » de 97,00 % arrive. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
 - Le code d'émission ressemble à CG1300001480, CM1200002465, GQ2J00000081.
 - Si le document couvre plusieurs lignes, lis celle que la consigne désigne, et signale les autres dans remarks.
@@ -98,6 +99,29 @@ const Lecture = z.object({
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture : chiffre illisible, colonne absente, unité inhabituelle, plusieurs lignes dans le document"),
 });
 
+/**
+ * Deux bornes remises dans leur ordre, et le dire.
+ *
+ * Le Trésor congolais imprime « Prix maximum proposé 90,00 % » et « Prix
+ * minimum proposé 97,00 % » : ses deux libellés sont inversés par rapport aux
+ * nombres, systématiquement, sur toute sa série d'obligations. Vérifié sur les
+ * pièces du 21 juillet 2026 : le 4 ans porte max 90 / min 93, le 3 ans max 90 /
+ * min 97, et dans les deux cas la fourchette réelle des soumissions va du plus
+ * petit au plus grand des deux.
+ *
+ * La lecture reste littérale : les deux nombres sont ceux de la pièce, aucun
+ * n'est corrigé. Ce qui change est la case où ils tombent, et ces cases sont
+ * les nôtres : « priceMin » doit contenir le plus petit prix, sans quoi notre
+ * propre colonne ment et toute fourchette tracée dessus part à l'envers.
+ *
+ * La remarque garde la trace de l'écart, parce que le desk relit la pièce à
+ * côté de l'écran et doit comprendre pourquoi les deux ne se ressemblent pas.
+ */
+export const ordonner = (min: number | undefined, max: number | undefined, quoi: string, remarks: string[]): [number | undefined, number | undefined] => {
+  if (min == null || max == null || min <= max) return [min, max];
+  remarks.unshift(`La pièce annonce un ${quoi} « minimum » de ${min} supérieur à son « maximum » de ${max} : ses deux libellés sont inversés, et les deux bornes ont été remises dans leur ordre.`);
+  return [max, min];
+};
 export const auctionReadingAvailable = (): boolean => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 
 export interface AuctionReading {
@@ -177,6 +201,9 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
     remarks.unshift("Unité des montants non lue sur la pièce : ils sont repris tels quels, vérifiez l'ordre de grandeur.");
   }
 
+  const [priceMin, priceMax] = ordonner(nn(out.priceMin), nn(out.priceMax), "prix", remarks);
+  const [rateMin, rateMax] = ordonner(nn(out.rateMin), nn(out.rateMax), "taux", remarks);
+
   return {
     proposal: {
       codeEmission: nn(out.codeEmission),
@@ -190,12 +217,12 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
       served: toFrancs(out.served, out.amountsUnit),
       networkSize: nn(out.networkSize),
       bidders: nn(out.bidders),
-      rateMin: nn(out.rateMin),
-      rateMax: nn(out.rateMax),
+      rateMin,
+      rateMax,
       rateLimit: nn(out.rateLimit),
       rateAvg: nn(out.rateAvg),
-      priceMin: nn(out.priceMin),
-      priceMax: nn(out.priceMax),
+      priceMin,
+      priceMax,
       priceLimit: nn(out.priceLimit),
       priceAvg: nn(out.priceAvg),
       coverage: nn(out.coverage),

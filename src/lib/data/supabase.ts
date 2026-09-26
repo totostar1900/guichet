@@ -479,37 +479,53 @@ const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, fileKey: u(r.file_key), confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
+/**
+ * Une séance, mise en colonnes, sans toucher à ce dont on ne parle pas.
+ *
+ * La distinction qui compte ici est entre « la clef n'est pas là » et « la clef
+ * vaut rien ». Le formulaire du desk ne porte ni le communiqué ni la
+ * confirmation : ces clefs sont absentes de sa correction, et une absence doit
+ * laisser la colonne intacte. Écrite « ?? null », elle l'effaçait : enregistrer
+ * une lecture emportait le communiqué gardé, et l'aurait emporté avec la
+ * confirmation sur une séance déjà relue.
+ *
+ * Une clef présente mais vide, elle, efface pour de bon : c'est un champ que le
+ * desk a vidé, et il a le droit de le vider.
+ */
 const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown> => {
   const row: Record<string, unknown> = {};
-  const put = (col: string, v: unknown) => {
-    if (v !== undefined) row[col] = v;
+  const put = <K extends keyof NewAuctionResult>(col: string, key: K, conv?: (v: NonNullable<NewAuctionResult[K]>) => unknown) => {
+    if (!(key in r)) return;
+    const v = r[key];
+    row[col] = v === undefined || v === null ? null : conv ? conv(v as NonNullable<NewAuctionResult[K]>) : v;
   };
-  put("code_emission", r.codeEmission);
-  put("country", r.country);
-  put("instrument", r.instrument);
-  put("tenor", r.tenor);
-  put("session_on", r.sessionOn);
-  put("abondement", r.abondement);
-  put("announced", numOrNull(r.announced));
-  put("bid", numOrNull(r.bid));
-  put("served", numOrNull(r.served));
-  put("network_size", r.networkSize ?? null);
-  put("bidders", r.bidders ?? null);
-  put("rate_min", numOrNull(r.rateMin));
-  put("rate_max", numOrNull(r.rateMax));
-  put("rate_limit", numOrNull(r.rateLimit));
-  put("rate_avg", numOrNull(r.rateAvg));
-  put("price_min", numOrNull(r.priceMin));
-  put("price_max", numOrNull(r.priceMax));
-  put("price_limit", numOrNull(r.priceLimit));
-  put("price_avg", numOrNull(r.priceAvg));
-  put("coverage", numOrNull(r.coverage));
-  put("source_url", r.sourceUrl);
-  put("source_title", r.sourceTitle);
-  put("file_key", r.fileKey ?? null);
-  put("confirmed_by", r.confirmedBy ?? null);
-  put("confirmed_at", r.confirmedAt ?? null);
-  put("offer_id", r.offerId ?? null);
+  const num = (v: number) => (Number.isFinite(v) ? String(v) : null);
+  put("code_emission", "codeEmission");
+  put("country", "country");
+  put("instrument", "instrument");
+  put("tenor", "tenor");
+  put("session_on", "sessionOn");
+  put("abondement", "abondement");
+  put("announced", "announced", num);
+  put("bid", "bid", num);
+  put("served", "served", num);
+  put("network_size", "networkSize");
+  put("bidders", "bidders");
+  put("rate_min", "rateMin", num);
+  put("rate_max", "rateMax", num);
+  put("rate_limit", "rateLimit", num);
+  put("rate_avg", "rateAvg", num);
+  put("price_min", "priceMin", num);
+  put("price_max", "priceMax", num);
+  put("price_limit", "priceLimit", num);
+  put("price_avg", "priceAvg", num);
+  put("coverage", "coverage", num);
+  put("source_url", "sourceUrl");
+  put("source_title", "sourceTitle");
+  put("file_key", "fileKey");
+  put("confirmed_by", "confirmedBy");
+  put("confirmed_at", "confirmedAt");
+  put("offer_id", "offerId");
   return row;
 };
 

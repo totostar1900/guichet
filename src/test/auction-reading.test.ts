@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { auctionReadingAvailable, readingTrouble, toFrancs } = await import("@/lib/market/auction-extract");
+const { auctionReadingAvailable, ordonner, readingTrouble, toFrancs } = await import("@/lib/market/auction-extract");
 
 /**
  * Ce que la lecture assistée doit tenir, sans appeler le modèle.
@@ -92,5 +92,55 @@ describe("une lecture qui échoue", () => {
     const dit = readingTrouble("ECONNRESET");
     expect(dit).toMatch(/n'a pas abouti/);
     expect(dit).toMatch(/journal/);
+  });
+});
+
+/**
+ * Les deux bornes, remises dans leur ordre.
+ *
+ * Vérifié sur les pièces du Trésor congolais du 21 juillet 2026 : le 4 ans
+ * imprime « Prix maximum proposé 90,00 % » puis « Prix minimum proposé
+ * 93,00 % », et le 3 ans « maximum 90,00 % » puis « minimum 97,00 % ». Les
+ * libellés sont inversés par rapport aux nombres, systématiquement, et la
+ * fourchette réelle des soumissions va bien du plus petit au plus grand.
+ *
+ * La lecture reste littérale : aucun nombre n'est corrigé. Ce qui change est la
+ * case où il tombe, et ces cases sont les nôtres. « priceMin » doit contenir le
+ * plus petit prix, sans quoi notre propre colonne ment et toute fourchette
+ * tracée dessus part à l'envers.
+ */
+describe("un « minimum » au-dessus de son « maximum »", () => {
+  const remarques: string[] = [];
+  beforeEach(() => {
+    remarques.length = 0;
+  });
+
+  it("remet les deux bornes dans leur ordre", () => {
+    expect(ordonner(93, 90, "prix", remarques)).toEqual([90, 93]);
+    expect(ordonner(97, 90, "prix", remarques)).toEqual([90, 97]);
+  });
+
+  it("ne touche à rien quand la pièce est cohérente", () => {
+    expect(ordonner(6.5, 7, "taux", remarques)).toEqual([6.5, 7]);
+    expect(remarques).toHaveLength(0);
+  });
+
+  it("laisse passer l'égalité, qui n'est pas une inversion", () => {
+    expect(ordonner(90, 90, "prix", remarques)).toEqual([90, 90]);
+    expect(remarques).toHaveLength(0);
+  });
+
+  it("ne touche pas à une borne seule : il n'y a rien à comparer", () => {
+    expect(ordonner(93, undefined, "prix", remarques)).toEqual([93, undefined]);
+    expect(ordonner(undefined, 90, "prix", remarques)).toEqual([undefined, 90]);
+    expect(remarques).toHaveLength(0);
+  });
+
+  it("dit au desk ce qu'elle a fait, et pourquoi la pièce ne lui ressemble pas", () => {
+    ordonner(97, 90, "prix", remarques);
+    expect(remarques).toHaveLength(1);
+    expect(remarques[0]).toMatch(/97/);
+    expect(remarques[0]).toMatch(/90/);
+    expect(remarques[0]).toMatch(/inversés/);
   });
 });
