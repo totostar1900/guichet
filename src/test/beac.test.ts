@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beacLabel, forthcoming, parseBeacRows, readBeacDoc, type BeacDoc } from "@/lib/market/beac";
+import { beacLabel, forthcoming, nearestComparable, parseBeacRows, readBeacDoc, resultsFor, type BeacDoc } from "@/lib/market/beac";
 
 /**
  * Les six Trésors n'écrivent pas pareil, et c'est tout le problème.
@@ -121,5 +121,68 @@ describe("ce qui reste devant nous", () => {
 
   it("écrit un titre court et lisible", () => {
     expect(beacLabel(forthcoming(rows, "2026-09-26")[0])).toBe("BTA 13 semaines · Congo");
+  });
+});
+
+/**
+ * Une adjudication n'est finie que lorsque le Trésor publie ce qu'il a servi.
+ * L'appariement de l'annonce et des résultats se fait sur quatre choses qui ne
+ * varient pas d'un Trésor à l'autre : le pays, l'instrument, la durée, la date.
+ */
+describe("les résultats d'une séance", () => {
+  const annonce = readBeacDoc(doc("Communiqué dannonce BTA 52 semaines du 22 septembre 2026 - Congo"));
+  const resultat = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 22 septembre 2026 - Congo"));
+
+  it("retrouve les résultats de la bonne séance", () => {
+    expect(resultsFor(annonce, [resultat])?.doc.title).toContain("résultats");
+  });
+
+  it("ne confond pas deux séances voisines", () => {
+    const autreDate = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 15 septembre 2026 - Congo"));
+    const autreDuree = readBeacDoc(doc("Communiqué des résultats BTA 26 semaines du 22 septembre 2026 - Congo"));
+    const autrePays = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 22 septembre 2026 - Gabon", "Gabon"));
+    expect(resultsFor(annonce, [autreDate, autreDuree, autrePays])).toBeUndefined();
+  });
+
+  it("ne prend pas un abondement pour une ligne neuve", () => {
+    const abondement = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines abondement du 22 septembre 2026 - Congo"));
+    expect(resultsFor(annonce, [abondement])).toBeUndefined();
+  });
+});
+
+/**
+ * Le taux d'un bon sort de l'adjudication. L'indication affichée avant la séance
+ * se fonde donc sur ce que le marché vient de payer, et le choix du comparable
+ * doit être écrit : même durée, même émetteur d'abord, et rien de trop vieux.
+ */
+describe("le comparable d'une séance à venir", () => {
+  const cible = readBeacDoc(doc("Communiqué dannonce BTA 52 semaines du 22 septembre 2026 - Congo"));
+  const memePays = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 15 septembre 2026 - Congo"));
+  const voisinPlusRecent = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 18 septembre 2026 - Gabon", "Gabon"));
+
+  it("préfère le même émetteur, même s'il est un peu plus ancien", () => {
+    const c = nearestComparable(cible, [voisinPlusRecent, memePays]);
+    expect(c?.doc.country).toBe("Congo");
+    expect(c?.sameCountry).toBe(true);
+    expect(c?.daysBefore).toBe(7);
+  });
+
+  it("se rabat sur un voisin de la zone quand l'émetteur n'a rien de récent", () => {
+    const c = nearestComparable(cible, [voisinPlusRecent]);
+    expect(c?.sameCountry).toBe(false);
+    expect(c?.doc.country).toBe("Gabon");
+  });
+
+  it("ne rend rien d'une durée différente, ni d'une séance à venir", () => {
+    const autreDuree = readBeacDoc(doc("Communiqué des résultats BTA 26 semaines du 15 septembre 2026 - Congo"));
+    const apres = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 29 septembre 2026 - Congo"));
+    expect(nearestComparable(cible, [autreDuree, apres])).toBeUndefined();
+  });
+
+  it("laisse tomber un repère périmé", () => {
+    // Un taux servi il y a huit mois ne dit plus rien du marché d'aujourd'hui.
+    const vieux = readBeacDoc(doc("Communiqué des résultats BTA 52 semaines du 15 janvier 2026 - Congo"));
+    expect(nearestComparable(cible, [vieux])).toBeUndefined();
+    expect(nearestComparable(cible, [vieux], 400)?.daysBefore).toBe(250);
   });
 });

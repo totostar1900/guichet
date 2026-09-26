@@ -134,11 +134,22 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     };
   }
   if (o.kind === "BTA") {
+    // Le taux d'un bon sort de l'adjudication : l'émetteur ne l'impose pas, et la
+    // maison ne le décide pas non plus. Tant que la séance n'a pas eu lieu, le
+    // chiffre affiché est une indication, et il doit le dire partout où il paraît.
+    //
+    // « à 5,50 % précompté » se lit comme un taux acquis. Le client voyait donc un
+    // rendement présenté comme promis alors qu'il est le prix d'une enchère à
+    // laquelle il n'a pas encore participé. « Si adjugé à 5,50 % » dit la même
+    // chose sans promettre ce que personne ne garantit, et c'est déjà la manière
+    // dont l'obligation du primaire s'écrit deux blocs plus haut : « si servi à ».
+    const pending = o.precountRate == null || Boolean(o.rateNote);
+    const rateTxt = o.precountRate != null ? `${pending ? "si adjugé à" : "adjugé à"} ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer";
     return {
       ...base,
       hero: yTxt,
-      heroSub: o.precountRate != null ? `actuariel · à ${fmtPct(o.precountRate, 2)} précompté${o.rateNote ? " (indicatif)" : ""}` : "taux à fixer par le desk",
-      heroUnit: o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer",
+      heroSub: o.precountRate != null ? `actuariel · ${rateTxt}${pending ? " (indicatif)" : ""}` : "taux à fixer par le desk",
+      heroUnit: rateTxt,
       gold: !past,
       deadline: dl(o.deadlineAt),
       deadlineParts: dlParts(o.deadlineAt),
@@ -157,7 +168,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
         ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
       ],
       ledger: [
-        ["Rendement actuariel annuel", yTxt, o.precountRate != null ? `à ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer"],
+        ["Rendement actuariel annuel", yTxt, rateTxt],
         ["Clôture", dl(o.deadlineAt)],
         ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket", `${fmt(o.nominal)} FCFA`, "1 bon"],

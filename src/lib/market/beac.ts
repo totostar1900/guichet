@@ -140,6 +140,70 @@ export function forthcoming(docs: BeacDoc[], today: string): BeacAuction[] {
     .sort((a, b) => (a.on ?? "").localeCompare(b.on ?? "") || (a.country ?? "").localeCompare(b.country ?? ""));
 }
 
+/**
+ * Le communiqué des résultats d'une séance, quand la BEAC l'a publié.
+ *
+ * Une adjudication n'est pas finie quand elle se tient : elle est finie quand
+ * le Trésor publie ce qu'il a servi et à quel taux. C'est ce chiffre-là que le
+ * desk inscrit sur la ligne, et c'est lui que le client veut lire : « 7,00 %
+ * sur 5,34 milliards demandés » dit ce qu'une annonce ne dit pas.
+ *
+ * Une séance se reconnaît à quatre choses qui ne varient pas d'un Trésor à
+ * l'autre : le pays, l'instrument, la durée et la date. Le titre du document
+ * les porte toutes, donc l'appariement se fait sans ouvrir un seul PDF.
+ *
+ * Les résultats paraissent avec quelques jours de retard, parfois une semaine :
+ * une séance sans résultats n'est pas une anomalie, c'est le cours normal des
+ * choses, et l'écran ne l'annonce pas comme un manque.
+ */
+export function resultsFor(a: BeacAuction, all: BeacAuction[]): BeacAuction | undefined {
+  return all.find(
+    (r) =>
+      r.kind === "resultats" &&
+      r.on === a.on &&
+      r.instrument === a.instrument &&
+      r.tenor === a.tenor &&
+      r.country === a.country &&
+      r.abondement === a.abondement,
+  );
+}
+
+/**
+ * La séance déjà dépouillée sur laquelle un taux indicatif peut se fonder.
+ *
+ * Le taux d'un bon sort de l'adjudication : l'émetteur ne l'impose pas. Le
+ * chiffre que le desk affiche avant la séance est donc une indication, et une
+ * indication se fonde sur ce que le marché vient de payer, pas sur une
+ * intuition. Le bon comparable est la séance la plus récente de même durée et
+ * même émetteur ; à défaut, la même durée chez un voisin de la zone, ce qui
+ * reste un repère et doit se dire comme tel.
+ *
+ * Rien n'est rendu au-delà de la fenêtre : un taux servi il y a huit mois ne
+ * dit plus rien du marché d'aujourd'hui, et le silence vaut mieux qu'un repère
+ * périmé que personne ne penserait à vérifier.
+ */
+export interface Comparable {
+  doc: BeacAuction;
+  /** Même émetteur, ou seulement même durée ailleurs dans la zone. */
+  sameCountry: boolean;
+  /** Jours écoulés entre cette séance et celle qu'on prépare. */
+  daysBefore: number;
+}
+
+export function nearestComparable(target: BeacAuction, all: BeacAuction[], windowDays = 120): Comparable | undefined {
+  if (!target.on || !target.instrument || !target.tenor) return undefined;
+  const day = (d: string) => Date.parse(`${d}T00:00:00Z`);
+  const past = all
+    .filter((r) => r.kind === "resultats" && r.on && r.on < target.on! && r.instrument === target.instrument && r.tenor === target.tenor)
+    .map((r) => ({ doc: r, sameCountry: r.country === target.country, daysBefore: Math.round((day(target.on!) - day(r.on!)) / 86400000) }))
+    .filter((c) => c.daysBefore <= windowDays);
+  if (!past.length) return undefined;
+  // Le même émetteur d'abord, puis le plus récent : un voisin d'hier vaut mieux
+  // qu'un compatriote d'il y a trois mois, mais pas mieux qu'un compatriote d'hier.
+  past.sort((a, b) => Number(b.sameCountry) - Number(a.sameCountry) || a.daysBefore - b.daysBefore);
+  return past[0];
+}
+
 /** Le titre court qu'on affiche : « BTA 26 semaines · Cameroun ». */
 export function beacLabel(a: BeacAuction): string {
   const bits = [a.instrument, a.tenor].filter(Boolean).join(" ");

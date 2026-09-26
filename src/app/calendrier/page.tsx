@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { repo } from "@/lib/data";
 import { loadBeacAuctions } from "@/lib/market/beac-feed";
-import { beacLabel, BEAC_ANNONCES, type BeacAuction } from "@/lib/market/beac";
+import { beacLabel, resultsFor, BEAC_ANNONCES, type BeacAuction } from "@/lib/market/beac";
 import { daysBetween } from "@/lib/finance";
 import { fmtDate, localIso } from "@/lib/format";
 import type { Offer } from "@/lib/domain/types";
@@ -59,6 +59,7 @@ export default async function CalendrierPage() {
 
   const row = (a: BeacAuction, past: boolean) => {
     const o = past ? undefined : matching(a);
+    const res = resultsFor(a, feed.auctions);
     return (
       <li key={a.doc.url} className={styles.row}>
         <span className={styles.when}>
@@ -74,11 +75,20 @@ export default async function CalendrierPage() {
           </small>
         </span>
         <span className={styles.act}>
+          {/* Une adjudication n'est finie que lorsque le Trésor publie ce qu'il a
+              servi et à quel taux. Tant qu'il ne l'a pas fait, la place est vide :
+              quelques jours de retard sont le cours normal des choses, et l'annoncer
+              comme un manque apprendrait à lire un retard là où il n'y en a pas. */}
+          {res ? (
+            <a className="btn sm ghost" href={res.doc.url} target="_blank" rel="noreferrer">
+              {t("Résultats")}
+            </a>
+          ) : null}
           {o ? (
             <Link className="btn sm" href={`/offres/${o.id}`}>
               {t("Voir la ligne")}
             </Link>
-          ) : past ? null : (
+          ) : past || res ? null : (
             <small className="muted">{t("pas encore ouverte au Guichet")}</small>
           )}
         </span>
