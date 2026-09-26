@@ -55,9 +55,15 @@ describe("le nom d'une ligne dans la carte de son émetteur", () => {
     expect(designation("BTA 52 semaines", "État du Gabon")).toBe("BTA 52 semaines");
   });
 
-  it("se raccourcit pour le téléphone, l'année étant déjà sur le rail", () => {
-    expect(shorten("EOG MT 6,75 % NET 2024-2028-II")).toBe("EOG MT 6,75 % 28-II");
-    expect(shorten("EOG 6 % NET 2024-2027")).toBe("EOG 6 % 27");
+  it("se raccourcit pour le téléphone", () => {
+    expect(shorten("EOG MT 6,75 % NET 2024-2028-II")).toBe("EOG MT 6,75 % 24-28-II");
+    expect(shorten("EOG 6 % NET 2024-2027")).toBe("EOG 6 % 24-27");
+  });
+
+  it("garde l'année d'émission, sans quoi deux lignes portent le même nom", () => {
+    // L'État du Gabon a émis un 6,25 % en 2022 et un autre en 2023, tous deux
+    // remboursables en 2028 : ils se suivent sur la même page.
+    expect(shorten("EOG 6,25 % NET 2022-2028")).not.toBe(shorten("EOG 6,25 % NET 2023-2028"));
   });
 
   it("ne touche pas à ce qui ne suit pas la convention du bulletin", () => {

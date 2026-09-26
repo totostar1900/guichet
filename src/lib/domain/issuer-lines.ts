@@ -65,15 +65,19 @@ export function designation(title: string, issuer: string): string {
 }
 
 /**
- * « EOG MT 6,75 % NET 2024-2028-II » → « EOG MT 6,75 % 28-II ».
+ * « EOG MT 6,75 % NET 2024-2028-II » → « EOG MT 6,75 % 24-28-II ».
  *
  * Le couple d'années est la convention du bulletin : l'année d'émission et
- * l'année de remboursement. La seconde est déjà sur le rail et la première
- * n'aide personne à choisir, donc il n'en reste que deux chiffres, assez pour
- * retrouver la ligne dans le bulletin sans occuper la moitié de l'écran.
+ * l'année de remboursement. Deux chiffres chacune suffisent à retrouver la ligne
+ * sans occuper la moitié d'un écran de téléphone.
+ *
+ * L'année d'émission a d'abord sauté, puisque le rail porte déjà celle du
+ * remboursement. Mais l'État du Gabon a émis un 6,25 % en 2022 et un autre en
+ * 2023, tous deux remboursables en 2028 : sans l'année d'émission, deux lignes
+ * différentes portaient le même nom sur la même page. Elle reste.
  */
 export function shorten(d: string): string {
-  return d.replace(/\bNET\s+/i, "").replace(/\b\d{4}-(\d{4})\b/, (_m, end: string) => end.slice(2));
+  return d.replace(/\bNET\s+/i, "").replace(/\b(\d{4})-(\d{4})\b/, (_m, a: string, b: string) => `${a.slice(2)}-${b.slice(2)}`);
 }
 
 const coursOf = (o: Offer): string | undefined => {

@@ -285,7 +285,10 @@ export async function loadFiche(o: Offer) {
     wantsFacing ? getSession() : undefined,
   ]);
   const profile = resolveIssuer(o);
-  const others = profile ? offers.filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })).slice(0, 8) : [];
+  // Toutes ses lignes, sans plafond : l'État du Gabon en a seize, et un rayon
+  // coupé à huit en cachait sept sans le dire, sous un compte qui annonçait huit.
+  // La section les tient maintenant, rangées par échéance.
+  const others = profile ? offers.filter((x) => x.id !== o.id && !x.hidden && issuerKey(x) === profile.name).map((x) => ({ o: x, s: summarize(x, new Date()) })) : [];
 
   // Ce qu'un lecteur connecté apprend du carnet : une présence, jamais une
   // personne. Déconnecté, il n'apprend rien : le carnet n'est pas une vitrine.
