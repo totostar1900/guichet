@@ -67,6 +67,7 @@ Règles :
 - Le taux (ou prix) « limite » est celui auquel le Trésor a arrêté l'adjudication ; le « moyen pondéré » est la moyenne des soumissions servies. Ne confonds pas les deux, et ne recopie pas l'un dans l'autre s'il en manque un.
 - Les libellés « minimum » et « maximum » sont parfois inversés par le Trésor lui-même : un « prix maximum proposé » de 90,00 % au-dessus d'un « prix minimum proposé » de 97,00 % arrive. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
+- Le Trésor camerounais imprime parfois « Prix moyen pondéré (en FCFA) » suivi d'un montant par titre (9 899,45) plutôt qu'un pourcentage, et ajoute « Taux de rendement moyen pondéré » en pourcentage. Dans ce cas : priceAvg reste null, le montant va dans priceAvgFcfa, et le rendement dans yieldAvg.
 - Le code d'émission ressemble à CG1300001480, CM1200002465, GQ2J00000081.
 - Si le document couvre plusieurs lignes, lis celle que la consigne désigne, et signale les autres dans remarks.
 - Signale dans remarks tout ce qui gênerait une relecture : chiffre illisible, tampon, colonne absente, unité inhabituelle, incohérence entre deux chiffres du document.`;
@@ -94,7 +95,9 @@ const Lecture = z.object({
   priceMin: Pct,
   priceMax: Pct,
   priceLimit: Pct.describe("Prix limite en % du nominal (OTA)"),
-  priceAvg: Pct.describe("Prix moyen pondéré en % du nominal (OTA)"),
+  priceAvg: Pct.describe("Prix moyen pondéré en % du nominal (OTA). Si le document l'exprime en FCFA par titre (« Prix moyen pondéré (en FCFA) : 9 899,45 »), laisse ce champ null et mets la valeur dans priceAvgFcfa."),
+  priceAvgFcfa: Pct.describe("Prix moyen pondéré en FCFA par titre, quand le document l'exprime ainsi plutôt qu'en pourcentage ; null sinon"),
+  yieldAvg: Pct.describe("« Taux de rendement moyen pondéré » en %, quand le document l'imprime à côté des prix (Trésor camerounais) ; null sinon"),
   coverage: Pct.describe("Taux de couverture en %, tel qu'imprimé ; null s'il n'est pas imprimé"),
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture : chiffre illisible, colonne absente, unité inhabituelle, plusieurs lignes dans le document"),
 });
@@ -201,8 +204,22 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
     remarks.unshift("Unité des montants non lue sur la pièce : ils sont repris tels quels, vérifiez l'ordre de grandeur.");
   }
 
-  const [priceMin, priceMax] = ordonner(nn(out.priceMin), nn(out.priceMax), "prix", remarks);
+  // Un prix d'obligation est un pourcentage du nominal : il vit entre cinquante et
+  // cent trente. Au-delà, ce n'est pas un pourcentage, c'est autre chose, et la
+  // colonne ne doit pas l'accueillir : une seule valeur pareille fausse toute
+  // moyenne tracée dessus. Le nombre n'est pas perdu pour autant, il part en
+  // remarque, parce que c'est au desk de dire ce que la pièce voulait dire.
+  const pourcentage = (v: number | undefined, quoi: string): number | undefined => {
+    if (v == null || (v >= 50 && v <= 130)) return v;
+    remarks.unshift(`Le ${quoi} lu vaut ${v}, ce qui n'est pas un pourcentage du nominal : la pièce l'exprime autrement, et le champ reste vide en attendant votre lecture.`);
+    return undefined;
+  };
+  const [priceMin, priceMax] = ordonner(pourcentage(nn(out.priceMin), "prix minimum"), pourcentage(nn(out.priceMax), "prix maximum"), "prix", remarks);
   const [rateMin, rateMax] = ordonner(nn(out.rateMin), nn(out.rateMax), "taux", remarks);
+  // Le Trésor camerounais imprime le prix moyen en francs et le rendement à côté.
+  // Ni l'un ni l'autre n'a sa colonne ; les perdre serait pire que les dire.
+  if (out.priceAvgFcfa != null) remarks.unshift(`La pièce donne un prix moyen pondéré de ${out.priceAvgFcfa} FCFA par titre, qu'elle n'exprime pas en pourcentage : à convertir selon le nominal de la ligne.`);
+  if (out.yieldAvg != null) remarks.unshift(`La pièce imprime aussi un taux de rendement moyen pondéré de ${out.yieldAvg} %.`);
 
   return {
     proposal: {
@@ -223,8 +240,8 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
       rateAvg: nn(out.rateAvg),
       priceMin,
       priceMax,
-      priceLimit: nn(out.priceLimit),
-      priceAvg: nn(out.priceAvg),
+      priceLimit: pourcentage(nn(out.priceLimit), "prix limite"),
+      priceAvg: pourcentage(nn(out.priceAvg), "prix moyen pondéré"),
       coverage: nn(out.coverage),
     },
     remarks,
