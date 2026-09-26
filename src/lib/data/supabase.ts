@@ -6,6 +6,7 @@ import type { CashEntry } from "@/lib/domain/cash";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
@@ -460,6 +461,56 @@ const fromNav = (n: FundNav): NavRow => ({
   previous_date: n.previousDate ?? null, nav_origin: String(n.navOrigin), inception_date: n.inceptionDate, perf_since_inception_pct: String(n.perfSinceInceptionPct), variation_pct: numOrNull(n.variationPct),
   variation_monthly_pct: numOrNull(n.variationMonthlyPct), variation_quarterly_pct: numOrNull(n.variationQuarterlyPct), bulletin_no: n.bulletinNo, session_date: n.sessionDate,
 });
+
+// Les montants sont en francs côté application ; Postgres les rend en chaînes
+// parce que « numeric » ne tient pas dans un double, et « nn » les ramène.
+type AuctionResultRow = {
+  id: string; code_emission: string; country: AuctionResult["country"]; instrument: AuctionResult["instrument"]; tenor: string; session_on: string; abondement: boolean;
+  announced: string | null; bid: string | null; served: string | null; network_size: number | null; bidders: number | null;
+  rate_min: string | null; rate_max: string | null; rate_limit: string | null; rate_avg: string | null;
+  price_min: string | null; price_max: string | null; price_limit: string | null; price_avg: string | null;
+  coverage: string | null; source_url: string; source_title: string; confirmed_by: string | null; confirmed_at: string | null; offer_id: string | null; created_at: string; updated_at: string;
+};
+const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
+  id: r.id, codeEmission: r.code_emission, country: r.country, instrument: r.instrument, tenor: r.tenor, sessionOn: r.session_on, abondement: r.abondement,
+  announced: nn(r.announced), bid: nn(r.bid), served: nn(r.served), networkSize: u(r.network_size), bidders: u(r.bidders),
+  rateMin: nn(r.rate_min), rateMax: nn(r.rate_max), rateLimit: nn(r.rate_limit), rateAvg: nn(r.rate_avg),
+  priceMin: nn(r.price_min), priceMax: nn(r.price_max), priceLimit: nn(r.price_limit), priceAvg: nn(r.price_avg),
+  coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
+  createdAt: r.created_at, updatedAt: r.updated_at,
+});
+const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown> => {
+  const row: Record<string, unknown> = {};
+  const put = (col: string, v: unknown) => {
+    if (v !== undefined) row[col] = v;
+  };
+  put("code_emission", r.codeEmission);
+  put("country", r.country);
+  put("instrument", r.instrument);
+  put("tenor", r.tenor);
+  put("session_on", r.sessionOn);
+  put("abondement", r.abondement);
+  put("announced", numOrNull(r.announced));
+  put("bid", numOrNull(r.bid));
+  put("served", numOrNull(r.served));
+  put("network_size", r.networkSize ?? null);
+  put("bidders", r.bidders ?? null);
+  put("rate_min", numOrNull(r.rateMin));
+  put("rate_max", numOrNull(r.rateMax));
+  put("rate_limit", numOrNull(r.rateLimit));
+  put("rate_avg", numOrNull(r.rateAvg));
+  put("price_min", numOrNull(r.priceMin));
+  put("price_max", numOrNull(r.priceMax));
+  put("price_limit", numOrNull(r.priceLimit));
+  put("price_avg", numOrNull(r.priceAvg));
+  put("coverage", numOrNull(r.coverage));
+  put("source_url", r.sourceUrl);
+  put("source_title", r.sourceTitle);
+  put("confirmed_by", r.confirmedBy ?? null);
+  put("confirmed_at", r.confirmedAt ?? null);
+  put("offer_id", r.offerId ?? null);
+  return row;
+};
 
 type IssuerDocRow = { id: string; mnemo: string; kind: string; year: number | null; title: string; source_url: string; file_key: string | null; bytes: number | null; has_text: boolean | null; collected_at: string };
 const toIssuerDoc = (r: IssuerDocRow): IssuerDocument => ({ id: r.id, mnemo: r.mnemo, kind: r.kind, year: u(r.year), title: r.title, sourceUrl: r.source_url, fileKey: u(r.file_key), bytes: u(r.bytes), hasText: u(r.has_text), collectedAt: r.collected_at });
@@ -1283,6 +1334,44 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("latest_fund_navs").select("*").order("name");
     if (error) fail("latestFundNavs", error);
     return (data as NavRow[]).map(toNav);
+  },
+
+  async listAuctionResults(filter) {
+    const f = filter ?? {};
+    let q = db().from("auction_results").select("*").order("session_on", { ascending: false }).limit(f.limit ?? 200);
+    if (f.codeEmission) q = q.eq("code_emission", f.codeEmission);
+    if (f.instrument) q = q.eq("instrument", f.instrument);
+    if (f.tenor) q = q.eq("tenor", f.tenor);
+    if (f.country) q = q.eq("country", f.country);
+    if (f.confirmed === true) q = q.not("confirmed_by", "is", null);
+    if (f.confirmed === false) q = q.is("confirmed_by", null);
+    const { data, error } = await q;
+    if (error) fail("listAuctionResults", error);
+    return (data as AuctionResultRow[]).map(toAuctionResult);
+  },
+  async getAuctionResult(id) {
+    const { data, error } = await db().from("auction_results").select("*").eq("id", id).maybeSingle();
+    if (error) fail("getAuctionResult", error);
+    return data ? toAuctionResult(data as AuctionResultRow) : undefined;
+  },
+  async upsertAuctionResult(r) {
+    // La relecture du desk survit à une seconde lecture du même communiqué :
+    // le robot repasse, la confirmation reste.
+    const { data: kept } = await db().from("auction_results").select("confirmed_by, confirmed_at").eq("source_url", r.sourceUrl).maybeSingle();
+    const row = fromAuctionResult(r);
+    if (kept?.confirmed_by) {
+      row.confirmed_by = kept.confirmed_by;
+      row.confirmed_at = kept.confirmed_at;
+    }
+    row.updated_at = new Date().toISOString();
+    const { data, error } = await db().from("auction_results").upsert(row, { onConflict: "source_url" }).select("*").single();
+    if (error) fail("upsertAuctionResult", error);
+    return toAuctionResult(data as AuctionResultRow);
+  },
+  async updateAuctionResult(id, patch) {
+    const { data, error } = await db().from("auction_results").update({ ...fromAuctionResult(patch), updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
+    if (error) fail("updateAuctionResult", error);
+    return toAuctionResult(data as AuctionResultRow);
   },
 
   async listIssuerDocuments(mnemo) {

@@ -8,6 +8,7 @@ import type { CashEntry } from "@/lib/domain/cash";
 import type { StandingOrder } from "@/lib/domain/standing";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
@@ -103,6 +104,7 @@ interface Store {
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
+  auctionResults: AuctionResult[];
   news: NewsItem[];
   seq: number;
 }
@@ -150,6 +152,7 @@ function store(): Store {
       quotes: [],
       fundNavs: [],
       issuerDocs: [],
+      auctionResults: [],
       seq: 17,
     };
   }
@@ -171,6 +174,7 @@ function store(): Store {
   if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
+  if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
   if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
   return g.__guichetStore;
 }
@@ -739,6 +743,38 @@ export const memoryRepository: Repository = {
       if (!cur || n.navDate > cur.navDate) latest.set(n.fundKey, n);
     }
     return structuredClone([...latest.values()].sort((a, b) => a.name.localeCompare(b.name)));
+  },
+
+  async listAuctionResults(filter) {
+    const f = filter ?? {};
+    return structuredClone(
+      store()
+        .auctionResults.filter((r) => (!f.codeEmission || r.codeEmission === f.codeEmission) && (!f.instrument || r.instrument === f.instrument) && (!f.tenor || r.tenor === f.tenor) && (!f.country || r.country === f.country) && (f.confirmed === undefined || Boolean(r.confirmedBy) === f.confirmed))
+        .sort((a, b) => b.sessionOn.localeCompare(a.sessionOn))
+        .slice(0, f.limit ?? 200),
+    );
+  },
+  async getAuctionResult(id) {
+    const r = store().auctionResults.find((x) => x.id === id);
+    return r ? structuredClone(r) : undefined;
+  },
+  async upsertAuctionResult(r) {
+    const s = store();
+    const now = new Date().toISOString();
+    const i = s.auctionResults.findIndex((x) => x.sourceUrl === r.sourceUrl);
+    // La saisie ne réécrit pas ce que le desk a relu : une seconde lecture
+    // automatique du même communiqué ne doit pas effacer la confirmation.
+    const row = i >= 0 ? { ...s.auctionResults[i], ...r, confirmedBy: s.auctionResults[i].confirmedBy ?? r.confirmedBy, confirmedAt: s.auctionResults[i].confirmedAt ?? r.confirmedAt, updatedAt: now } : { ...r, id: uid(), createdAt: now, updatedAt: now };
+    if (i >= 0) s.auctionResults[i] = row;
+    else s.auctionResults.push(row);
+    return structuredClone(row);
+  },
+  async updateAuctionResult(id, patch) {
+    const s = store();
+    const i = s.auctionResults.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error("Résultat introuvable");
+    s.auctionResults[i] = { ...s.auctionResults[i], ...patch, updatedAt: new Date().toISOString() };
+    return structuredClone(s.auctionResults[i]);
   },
 
   async listIssuerDocuments(mnemo) {

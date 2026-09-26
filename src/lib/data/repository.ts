@@ -4,6 +4,7 @@ import type { CashEntry } from "@/lib/domain/cash";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
@@ -155,6 +156,21 @@ export interface Repository {
   listFundCurves(keys: string[], points?: number): Promise<Map<string, FundCurve>>;
   /** Latest NAV of every fund. */
   latestFundNavs(): Promise<FundNav[]>;
+
+  /**
+   * Les résultats des adjudications de la zone, séance par séance.
+   *
+   * Le filtre porte sur ce que le desk cherche vraiment : les séances d'une de
+   * nos lignes (« codeEmission »), ou les comparables d'une offre à venir
+   * (instrument et durée). La lecture rend les plus récentes d'abord, parce que
+   * c'est la dernière séance qui fait référence.
+   */
+  listAuctionResults(filter?: { codeEmission?: string; instrument?: AuctionResult["instrument"]; tenor?: string; country?: AuctionResult["country"]; confirmed?: boolean; limit?: number }): Promise<AuctionResult[]>;
+  getAuctionResult(id: string): Promise<AuctionResult | undefined>;
+  /** Idempotent sur l'URL du communiqué : la pièce est la séance, et on ne saisit pas deux fois la même. */
+  upsertAuctionResult(r: NewAuctionResult): Promise<AuctionResult>;
+  /** La relecture du desk, et le rattachement à une de nos lignes. */
+  updateAuctionResult(id: string, patch: Partial<NewAuctionResult>): Promise<AuctionResult>;
 
   /** Documents published by listed companies (collected from the BVMAC site). */
   listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;
