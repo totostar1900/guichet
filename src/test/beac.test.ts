@@ -119,6 +119,17 @@ describe("ce qui reste devant nous", () => {
     expect(forthcoming(rows, "2026-09-22")).toHaveLength(2);
   });
 
+  it("rend ce qui suit la date donnée, séance close comprise : c'est au robot de se garder", () => {
+    // Le contrat est « à partir de cette date », pas « à partir d'aujourd'hui ».
+    // Posé au mois précédent pour rattraper un jour manqué, le paramètre a fait
+    // tomber vingt annonces déjà clôturées dans « À valider », que le desk
+    // n'avait plus qu'à rejeter une par une. Le garde-fou est chez l'appelant,
+    // qui compare au jour même ; cette fonction ne ment pas sur ce qu'elle fait.
+    const vieilles = forthcoming(rows, "2026-08-01");
+    expect(vieilles.length).toBeGreaterThan(forthcoming(rows, "2026-09-26").length);
+    expect(vieilles.some((a) => (a.on ?? "") < "2026-09-26")).toBe(true);
+  });
+
   it("écrit un titre court et lisible", () => {
     expect(beacLabel(forthcoming(rows, "2026-09-26")[0])).toBe("BTA 13 semaines · Congo");
   });

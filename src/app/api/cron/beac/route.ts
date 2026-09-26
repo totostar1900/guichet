@@ -102,7 +102,14 @@ export async function GET(req: NextRequest) {
   // suivante. Sans le paramètre, le robot ne regarde que devant lui.
   const since = req.nextUrl.searchParams.get("depuis");
   const from = since && /^\d{4}-\d{2}-\d{2}$/.test(since) ? since : today;
-  const next = forthcoming(rows, from);
+  // Une séance close ne se dépose pas, quel que soit « depuis ».
+  //
+  // Le paramètre sert à rattraper un jour manqué, pas à remonter le temps. Posé
+  // au mois précédent, il a fait tomber vingt annonces d'août dans « À valider »,
+  // toutes clôturées, dont aucune ne pouvait être publiée : le desk n'avait plus
+  // qu'à les rejeter une par une. Le garde-fou tient ici plutôt que dans
+  // « forthcoming », dont le contrat est justement de rendre ce qui suit une date.
+  const next = forthcoming(rows, from).filter((a) => a.on && a.on >= today);
   // Toutes les séances déjà dépouillées : le taux indicatif d'un bon se fonde
   // sur ce que le marché vient de payer, et le desk doit avoir la pièce sous
   // les yeux plutôt qu'à chercher.
