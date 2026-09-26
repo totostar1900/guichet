@@ -18,12 +18,46 @@
   gap: 16px;
   align-items: start;
 }
+/* La file se borne à la hauteur de l'écran et défile toute seule : cent sources
+   poussaient la fiche hors de vue, et le desk remontait pour revenir au
+   formulaire qu'il était en train de remplir. */
 .queue {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-3);
   position: sticky;
   top: 78px;
+  max-height: calc(100vh - 98px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.inbox {
+  margin: 0;
+  padding: var(--s-4) 0;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  text-align: center;
+}
+/* Le classé se replie : atteignable pour republier une version ou rouvrir une
+   source, sans occuper la place de ce qui attend. */
+.filed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.filed summary {
+  cursor: pointer;
+  padding: var(--s-3) var(--s-2);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+}
+.filed summary span {
+  color: var(--gold-ink);
+  margin-left: var(--s-2);
 }
 .newBtn {
   justify-content: center;

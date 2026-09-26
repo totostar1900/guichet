@@ -26,6 +26,24 @@ const STATE_LABEL: Record<IntakeItem["state"], [string, string]> = {
   rejete: ["off", "Rejeté"],
 };
 
+
+/** Une ligne de la file : la source, son état, son titre, sa provenance. */
+function QueueItem({ q, current, label }: { q: IntakeItem; current: boolean; label: string }) {
+  const cls = STATE_LABEL[q.state][0];
+  return (
+    <Link href={`/desk/a-valider?item=${q.id}`} className={styles.qitem} aria-current={current ? "true" : undefined}>
+      <div className={styles.meta}>
+        <span className={`${styles.src} ${styles[`src_${q.source}`]}`}>{SOURCE_LABEL[q.source]}</span>
+        <span className={`${styles.st} ${styles[`st_${cls}`]}`}>
+          {label}
+          {q.state === "publie" && q.publishedAt ? ` · ${fmtDateTime(q.publishedAt)}` : ""}
+        </span>
+      </div>
+      <b>{q.title}</b>
+      <span className={styles.meta}>{q.fromLabel}</span>
+    </Link>
+  );
+}
 export default async function IntakePage({
   searchParams,
 }: {
@@ -39,6 +57,12 @@ export default async function IntakePage({
     (q) =>
       q.state === "a_valider" || q.state === "en_revue" || q.state === "bloque",
   );
+  // Publiées et rejetées : rien n'y attend le desk. Elles restent atteignables,
+  // parce qu'on republie une version et qu'on rouvre une source rejetée, mais
+  // elles cessent de pousser hors de l'écran ce qui reste à faire.
+  const classees = queue
+    .filter((q) => q.state === "publie" || q.state === "rejete")
+    .sort((a, b) => (b.publishedAt ?? b.receivedAt).localeCompare(a.publishedAt ?? a.receivedAt));
   const selectedId = sp.item ?? todo[0]?.id;
   const selected = selectedId
     ? queue.find((q) => q.id === selectedId)
@@ -70,36 +94,32 @@ export default async function IntakePage({
               )}
             </div>
           )}
-          {queue.map((q) => {
-            const [cls, label0] = STATE_LABEL[q.state];
-            const label = t(label0);
-            return (
-              <Link
-                key={q.id}
-                href={`/desk/a-valider?item=${q.id}`}
-                className={styles.qitem}
-                aria-current={
-                  q.id === selected?.id && !showNew ? "true" : undefined
-                }
-              >
-                <div className={styles.meta}>
-                  <span
-                    className={`${styles.src} ${styles[`src_${q.source}`]}`}
-                  >
-                    {SOURCE_LABEL[q.source]}
-                  </span>
-                  <span className={`${styles.st} ${styles[`st_${cls}`]}`}>
-                    {label}
-                    {q.state === "publie" && q.publishedAt
-                      ? ` · ${fmtDateTime(q.publishedAt)}`
-                      : ""}
-                  </span>
-                </div>
-                <b>{q.title}</b>
-                <span className={styles.meta}>{q.fromLabel}</span>
-              </Link>
-            );
-          })}
+          {todo.map((q) => (
+            <QueueItem
+              key={q.id}
+              q={q}
+              current={q.id === selected?.id && !showNew}
+              label={t(STATE_LABEL[q.state][1])}
+            />
+          ))}
+          {todo.length === 0 && classees.length > 0 && (
+            <p className={styles.inbox}>{t("Rien n'attend le desk.")}</p>
+          )}
+          {classees.length > 0 && (
+            <details className={styles.filed} open={classees.some((q) => q.id === selected?.id) && !showNew}>
+              <summary>
+                {t("Classées")} <span>{classees.length}</span>
+              </summary>
+              {classees.map((q) => (
+                <QueueItem
+                  key={q.id}
+                  q={q}
+                  current={q.id === selected?.id && !showNew}
+                  label={t(STATE_LABEL[q.state][1])}
+                />
+              ))}
+            </details>
+          )}
         </aside>
 
         <div className={styles.main}>
