@@ -187,10 +187,10 @@ export async function proposeResultAction(_prev: ResultOutcome | null, form: For
   try {
     const bytes = await readSource(r.fileKey);
     const hint = `Séance du ${r.sessionOn}, ${r.instrument}${r.tenor && r.tenor !== "—" ? ` ${r.tenor}` : ""}, ${r.country}.`;
-    const { proposal, remarks, seconds } = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint);
+    const { proposal, remarks, seconds, model } = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint);
     return {
       ok: true,
-      message: `Lecture proposée en ${String(seconds).replace(".", ",")} s. Vérifiez chaque chiffre sur la pièce : rien n'est encore enregistré.`,
+      message: `Lecture proposée en ${String(seconds).replace(".", ",")} s par ${model}. Vérifiez chaque chiffre sur la pièce : rien n'est encore enregistré.`,
       proposal,
       remarks,
     };

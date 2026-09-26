@@ -35,7 +35,26 @@ import { millions, type NewAuctionResult } from "./auction-results";
  *   avec une valeur lue.
  */
 
-const MODEL = "claude-opus-5";
+/**
+ * Le modèle qui lit, et pourquoi il se choisit de l'extérieur.
+ *
+ * Deux cent cinquante-trois communiqués à reprendre : à ce volume, le choix du
+ * modèle cesse d'être un détail de mise en œuvre pour devenir une ligne de
+ * dépense. Or la tâche d'ici est étroite. Recopier les nombres d'un tableau
+ * imprimé n'a pas grand-chose à voir avec lire un communiqué entier pour en
+ * tirer une offre, qui demande de comprendre un instrument, un calendrier et un
+ * barème, et c'est de cet extracteur-là que le réglage a été hérité.
+ *
+ * On ne tranche pas à l'avance : le modèle se pose par « AUCTION_READ_MODEL »,
+ * la même pièce se lit avec l'un puis avec l'autre, et les deux lectures se
+ * comparent à une transcription faite à la main. Ce qui compte n'est pas le
+ * nombre de champs justes mais la nature des écarts : un taux limite pris pour
+ * un taux moyen pondéré coûte plus cher que tout ce qu'on aurait économisé.
+ *
+ * Sans la variable, le modèle ne bouge pas : une valeur par défaut ne se change
+ * pas sur une intuition de coût.
+ */
+const MODEL = process.env.AUCTION_READ_MODEL || "claude-opus-5";
 
 const SYSTEM = `Tu lis des communiqués de résultats d'adjudication de titres publics de la CEMAC (BEAC, Trésors du Cameroun, Congo, Gabon, Guinée équatoriale, RCA, Tchad).
 
@@ -82,6 +101,8 @@ const Lecture = z.object({
 export const auctionReadingAvailable = (): boolean => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 
 export interface AuctionReading {
+  /** Le modèle qui a lu : sans lui, comparer deux lectures ne veut rien dire. */
+  model: string;
   /** Ce qui est proposé aux champs. Rien n'est écrit : c'est le desk qui enregistre. */
   proposal: Partial<NewAuctionResult>;
   remarks: string[];
@@ -162,6 +183,7 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
       coverage: nn(out.coverage),
     },
     remarks,
+    model: MODEL,
     seconds: Math.round((Date.now() - t0) / 100) / 10,
   };
 }

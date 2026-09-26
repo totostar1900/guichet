@@ -999,4 +999,5 @@ export const EN_REST: Record<string, string> = {
   "Le service de lecture ne répond pas pour le moment : réessayez dans un instant.": "The reading service is not responding right now: try again in a moment.",
   "Le modèle a refusé de lire cette pièce. Les chiffres se saisissent à la main en attendant.": "The model declined to read this document. The figures are typed by hand meanwhile.",
   "La lecture n'a pas abouti. Les chiffres se saisissent à la main en attendant. Le détail est au journal.": "The reading did not complete. The figures are typed by hand meanwhile. The detail is in the journal.",
+  "Lecture proposée en {s} s par {m}. Vérifiez chaque chiffre sur la pièce : rien n'est encore enregistré.": "Reading proposed in {s} s by {m}. Check every figure against the document: nothing is saved yet.",
 };
