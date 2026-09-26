@@ -4,7 +4,8 @@ import type { BondIssuer } from "@/data/issuers";
 import type { Company } from "@/data/companies";
 import type { Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
-import { COUNTRY_CODE } from "@/lib/domain/summary";
+import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
+import { issuerLadder, marketYields } from "@/lib/domain/issuer-lines";
 import { fmt } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./IssuerCard.module.css";
@@ -36,6 +37,17 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
   const website = profile?.website ?? company?.website ?? issuer?.website;
   const activity = profile?.activity ?? company?.activity ?? issuer?.activity;
   const source = profile?.source;
+  // La fiche qu'on lit garde sa place dans l'échelle : sans elle, la section se
+  // lit comme une liste d'autres possibilités alors que c'est un rayon où le
+  // client doit pouvoir se situer.
+  const years = others.length > 0 ? issuerLadder([{ o, s: summarize(o, new Date()) }, ...others], name, o.id) : [];
+  const priced = marketYields(years);
+  const lead =
+    priced === 0
+      ? t("Rangées par échéance. Le cours de ces lignes est au pair ou absent : le chiffre donné est le coupon inscrit au contrat.")
+      : priced === 1
+        ? t("Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Ailleurs le cours est au pair ou absent, et le chiffre donné est le coupon du contrat.")
+        : t("Rangées par échéance. {n} lignes affichent un rendement de marché : ce qu'un achat au cours du jour procure. Ailleurs le cours est au pair ou absent, et le chiffre donné est le coupon du contrat.", { n: String(priced) });
   return (
     <div className={styles.card}>
       <div className={styles.head}>
@@ -79,24 +91,71 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
           )}
         </p>
       )}
-      {others.length > 0 && (
+      {years.length > 0 && (
         <div className={styles.others}>
-          <h4>
-            {t("Ses autres lignes au Guichet")} <small>{others.length}</small>
-          </h4>
-          {others.map(({ o: x, s }) => (
-            <Link key={x.id} href={`/offres/${x.id}`} className={styles.other}>
-              <span>
-                <b>{x.title}</b>
-                <small>
-                  {s.kind} · {t(s.status)}
-                </small>
-              </span>
-              <em className={s.gold ? styles.gold : undefined}>
-                {s.hero}
-                {s.heroUnit ? ` ${s.heroUnit}` : ""}
-              </em>
-            </Link>
+          <div>
+            <h4>
+              {t("Ses autres lignes au Guichet")} <small>{others.length}</small>
+            </h4>
+            <p className={styles.lead}>{lead}</p>
+          </div>
+          <div className={styles.headWrap}>
+            <div />
+            <div className={styles.headRow}>
+              <span className={styles.cNom}>{t("Ligne")}</span>
+              <span className={styles.cEch}>{t("Échéance")}</span>
+              <span className={styles.cCours}>{t("Cours")}</span>
+              <span className={styles.cRdt}>{t("Rendement")}</span>
+            </div>
+          </div>
+          {years.map((y) => (
+            <div key={y.year || "sans"} className={styles.group}>
+              <div className={styles.year}>
+                <span>{y.year || t("Sans échéance")}</span>
+              </div>
+              <div className={styles.rows}>
+                {y.lines.map((l) => {
+                  const cells = (
+                    <>
+                      <span className={styles.cNom}>
+                        <b className={styles.longName} title={l.title}>
+                          {l.title}
+                        </b>
+                        <b className={styles.shortName} title={l.title}>
+                          {l.short}
+                        </b>
+                        {l.here && <small className={styles.hereTag}>{t("cette fiche")}</small>}
+                      </span>
+                      <span className={styles.cEch}>{l.day ?? (l.approx ? t("année seule") : "—")}</span>
+                      <span className={`${styles.cCours} ${l.price ? "" : styles.none}`}>{l.price ?? "—"}</span>
+                      <span className={styles.cRdt}>
+                        {l.basis === "aucun" ? (
+                          <b className={styles.none}>—</b>
+                        ) : l.basis === "coupon" ? (
+                          <>
+                            <b className={styles.plain}>{l.figure}</b> <small className={styles.qual}>{t("coupon")}</small>
+                          </>
+                        ) : (
+                          <>
+                            <b className={styles.gold}>{l.figure}</b>
+                            {l.price && <small className={styles.underFig}>{t("cours {p}", { p: l.price })}</small>}
+                          </>
+                        )}
+                      </span>
+                    </>
+                  );
+                  return l.here ? (
+                    <div key={l.id} className={`${styles.row} ${styles.hereRow}`}>
+                      {cells}
+                    </div>
+                  ) : (
+                    <Link key={l.id} href={`/offres/${l.id}`} className={styles.row}>
+                      {cells}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           ))}
           <Link href={`/?groupe=emetteur&q=${encodeURIComponent(name)}`} className={styles.all}>
             {t("Toutes ses lignes dans la liste")} →

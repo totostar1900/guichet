@@ -79,14 +79,14 @@ export function backFacts(o: Offer, now: Date): BackFacts {
         ["Dépôt", o.deadlineAt, hm(o.deadlineAt)],
         ["Résultats", o.resultsAt, undefined],
         ["Règlement", o.settleOn, undefined],
-        ["Remboursé", o.maturityOn, undefined],
+        ["Échéance", o.maturityOn, undefined],
       ]),
       reference: {
         title: `Pour 10 bons de ${fmt(o.nominal)} FCFA`,
         rows: [
           ["Prix d'achat par bon", fmt(r.pricePerBond)],
           [`Décaissement le ${fmtDate(o.settleOn, false)}`, `${fmt(r.outlay)} FCFA`],
-          [`Remboursé le ${fmtDate(o.maturityOn, false)}`, fmt(r.redemption)],
+          [`Remboursement le ${fmtDate(o.maturityOn, false)}`, fmt(r.redemption)],
           ["Intérêt (précompté)", `${fmt(r.gain)} FCFA`, true],
         ],
       },

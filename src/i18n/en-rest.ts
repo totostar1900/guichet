@@ -903,4 +903,13 @@ export const EN_REST: Record<string, string> = {
   "Le calendrier des adjudications": "The auction calendar",
   "Le calendrier": "The calendar",
   "les séances des six Trésors, annoncées environ une semaine avant": "the six Treasuries' sessions, announced about a week ahead",
+  "cette fiche": "this line",
+  "Sans échéance": "No maturity",
+  "année seule": "year only",
+  "Remboursement le {d}": "Redemption on {d}",
+  "Intérêts": "Interest",
+  "précomptés": "deducted up front",
+  "Rangées par échéance. Le cours de ces lignes est au pair ou absent : le chiffre donné est le coupon inscrit au contrat.": "Ordered by maturity. These lines are priced at par or not priced at all: the figure shown is the coupon written into the contract.",
+  "Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Ailleurs le cours est au pair ou absent, et le chiffre donné est le coupon du contrat.": "Ordered by maturity. One line shows a market yield: what a purchase at today's price produces. Elsewhere the price is at par or absent, and the figure shown is the contract's coupon.",
+  "Rangées par échéance. {n} lignes affichent un rendement de marché : ce qu'un achat au cours du jour procure. Ailleurs le cours est au pair ou absent, et le chiffre donné est le coupon du contrat.": "Ordered by maturity. {n} lines show a market yield: what a purchase at today's price produces. Elsewhere the price is at par or absent, and the figure shown is the contract's coupon.",
 };

@@ -94,7 +94,7 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
         <RefTotals
           figures={[
             { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t(`règlement le ${fmtDate(o.settleOn, false)}`) },
-            { label: t("Remboursé"), value: <Amount value={r.redemption} />, note: t(`le ${fmtDate(o.maturityOn, false)} · ${fmt(r.gain)} d'intérêt précompté`) },
+            { label: t("Remboursement"), value: <Amount value={r.redemption} />, note: t(`le ${fmtDate(o.maturityOn, false)} · ${fmt(r.gain)} d'intérêt précompté`) },
           ]}
           rate={{ label: t("Rendement actuariel annuel"), value: fmtPct(r.yieldPct, 2) }}
         />

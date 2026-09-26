@@ -163,14 +163,14 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       primary: past ? null : st === "upcoming" ? { label: "Me réserver", intent: "appetit" } : { label: "Prise ferme", intent: "ferme" },
       secondary: past ? { label: "Question", intent: "info" } : { label: "Appétit", intent: "appetit" },
       facts: [
-        ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
+        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket min.", `${fmt(o.nominal)} FCFA`],
-        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
+        ["Intérêts", "précomptés"],
       ],
       ledger: [
         ["Rendement actuariel annuel", yTxt, rateTxt],
         ["Clôture", dl(o.deadlineAt)],
-        ["Remboursé", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
+        ["Échéance", o.maturityOn ? fmtDate(o.maturityOn) : "—", tenor],
         ["Ticket", `${fmt(o.nominal)} FCFA`, "1 bon"],
       ],
     };

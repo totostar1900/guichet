@@ -89,7 +89,7 @@ describe("l'échelle d'espacement", () => {
     const off = offScale();
     // Le compte du 23 septembre 2026, jour où l'échelle a été nommée.
     // Il descend quand une feuille se range ; il ne remonte pas.
-    const LE_JOUR_OU = 574;
+    const LE_JOUR_OU = 573;
     const byValue = new Map<number, number>();
     for (const o of off) byValue.set(o.value, (byValue.get(o.value) ?? 0) + 1);
     const resume = [...byValue.entries()]
@@ -101,7 +101,7 @@ describe("l'échelle d'espacement", () => {
 
   it("compte les deux pas hérités séparément, pour les voir descendre", () => {
     const legacy = offScale().filter((o) => LEGACY.includes(o.value));
-    const LE_JOUR_OU = 310;
+    const LE_JOUR_OU = 309;
     expect(legacy.length, "14px et 18px sont les deux pas à retirer en passant, jamais en bloc").toBeLessThanOrEqual(LE_JOUR_OU);
   });
 });

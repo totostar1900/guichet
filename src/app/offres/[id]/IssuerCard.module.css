@@ -81,12 +81,13 @@
 }
 .others {
   border-top: 1px solid var(--gold-line);
-  padding-top: 10px;
+  padding-top: var(--s-5);
   display: flex;
   flex-direction: column;
+  gap: var(--s-5);
 }
 .others h4 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 0.66rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -98,44 +99,196 @@
   color: var(--gold-ink);
   margin-left: 4px;
 }
-.other {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0;
-  border-top: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
+/* Dit une fois ce que la colonne des chiffres contient, plutôt qu'à chaque ligne. */
+.lead {
+  margin: var(--s-1) 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--ink-3);
 }
-.other:first-of-type {
-  border-top: 0;
+
+/* Le rail des années : l'année une fois à gauche, un filet qui tient son groupe,
+   et chaque ligne réduite à son jour et son mois. */
+.headWrap,
+.group {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  column-gap: var(--s-5);
+  align-items: start;
 }
-.other > span {
+.year {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ink-3);
+  padding-top: var(--s-4);
+}
+.rows {
+  border-left: 1px solid var(--gold-line);
+  padding-left: var(--s-6);
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-.other b {
-  font-size: 0.86rem;
-  font-weight: 600;
+.headRow,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px 54px 126px;
+  column-gap: var(--s-6);
+  align-items: center;
 }
-.other small {
-  font-size: 0.72rem;
+.headRow {
+  align-items: end;
+  padding: 0 0 var(--s-2) var(--s-6);
+  border-bottom: 1px solid var(--ink-3);
+}
+.headRow span {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-3);
 }
-.other em {
-  font-style: normal;
-  font-weight: 800;
-  font-size: 0.92rem;
-  flex: none;
+.row {
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
 }
-.gold {
+.rows > .row:first-child {
+  border-top: 0;
+}
+.cNom {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  min-width: 0;
+}
+/* Un nom trop long pour la colonne se coupe plutôt que de passer à la ligne :
+   le titre entier reste au survol, et les chiffres gardent leur alignement. */
+.cNom b {
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hereRow .cNom b {
+  font-weight: 700;
+}
+.shortName {
+  display: none;
+}
+.hereTag {
+  flex: none;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--gold-ink);
 }
+.cEch {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+.cCours {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+  text-align: right;
+}
+.cRdt {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+/* Le doré est réservé au rendement qu'un achat procure vraiment ; le coupon,
+   qui est le taux du contrat et non un rendement de marché, reste en encre. */
+.cRdt .gold {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--gold-ink);
+}
+.cRdt .plain {
+  font-weight: 700;
+}
+.cRdt small {
+  font-size: 0.62rem;
+  color: var(--ink-3);
+}
+.none {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+/* Le cours sous le chiffre : le téléphone n'a pas de place pour sa colonne. */
+.underFig {
+  display: none;
+}
+/* La bande tient exactement dans la ligne : la déborder de huit pixels
+   faisait dépasser la section de sa carte, sans rien gagner. */
+.hereRow {
+  background: var(--gold-soft);
+  border-radius: 5px;
+}
 .all {
-  margin-top: 8px;
   font-size: 0.8rem;
   color: var(--gold-ink);
   align-self: flex-start;
+}
+
+@media (max-width: 640px) {
+  /* Le rail devient un filet en travers, et le tableau perd sa colonne des
+     cours, qui repasse sous le chiffre. Les noms prennent leur forme courte :
+     l'année est déjà sur le filet. */
+  .headWrap,
+  .group {
+    display: block;
+  }
+  .year {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-3) 0 var(--s-1);
+  }
+  .year::after {
+    content: "";
+    flex-grow: 1;
+    height: 1px;
+    background: var(--gold-line);
+  }
+  .rows {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .headRow {
+    padding-left: 0;
+  }
+  .headRow,
+  .row {
+    grid-template-columns: 56px minmax(0, 1fr) 82px;
+    column-gap: var(--s-4);
+  }
+  .row {
+    min-height: 44px;
+  }
+  .cEch {
+    order: 1;
+  }
+  .cNom {
+    order: 2;
+  }
+  .cCours {
+    display: none;
+  }
+  .cRdt {
+    order: 3;
+  }
+  .longName {
+    display: none;
+  }
+  .shortName {
+    display: block;
+  }
+  .qual,
+  .underFig {
+    display: block;
+  }
 }
