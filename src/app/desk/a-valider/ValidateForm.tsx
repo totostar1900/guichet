@@ -11,6 +11,7 @@ import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
 import { publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
+import { SourceViewer } from "./SourceViewer";
 import styles from "./page.module.css";
 
 type Snap = Record<string, string>;
@@ -159,7 +160,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             )}
             {item.fileName ? (
               item.mimeType === "application/pdf" ? (
-                <iframe className={styles.frame} src={`/desk/a-valider/source/${item.id}`} title={tr("Source PDF")} />
+                <SourceViewer src={`/desk/a-valider/source/${item.id}`} title={tr("Source PDF")} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className={styles.photo} src={`/desk/a-valider/source/${item.id}`} alt="Source" />

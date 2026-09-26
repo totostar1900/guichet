@@ -143,7 +143,10 @@ export async function GET(req: NextRequest) {
         // La date lue est celle de la séance. La clôture côté Guichet doit la
         // précéder, puisqu'il faut agréger et transmettre : c'est au desk de la
         // poser, et le champ part donc « à vérifier » plutôt que rempli d'office.
-        deadlineAt: a.on ? `${a.on}T12:00:00` : undefined,
+        // Minuit, qui vaut silence : le titre d'un communiqué ne porte jamais
+        // d'heure, et la poser au jugé ferait afficher au client une clôture que
+        // personne n'a écrite. Le desk la lit sur la pièce et la saisit.
+        deadlineAt: a.on ? `${a.on}T00:00:00` : undefined,
         official: true,
         confidence: {
           kind: "sure",

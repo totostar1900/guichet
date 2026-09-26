@@ -2388,4 +2388,12 @@ export const EN_MORE: Record<string, string> = {
   "ou mieux": "or better",
   "{f} FCFA fermes et {s} FCFA d'appétit, sur {n} demande(s).": "{f} FCFA firm and {s} FCFA of appetite, across {n} demand(s).",
   "Dont {u} FCFA sans condition.": "Of which {u} FCFA with no condition.",
+  "Réduire": "Zoom out",
+  "Ajuster": "Fit",
+  "Page précédente": "Previous page",
+  "Page suivante": "Next page",
+  "Plein écran": "Full screen",
+  "Chargement du document…": "Loading the document…",
+  "Le document ne s'affiche pas ici.": "The document cannot be shown here.",
+  "L'ouvrir dans un onglet": "Open it in a tab",
 };

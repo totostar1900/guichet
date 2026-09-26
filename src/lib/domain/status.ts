@@ -1,6 +1,6 @@
 import type { DisplayStatus, Offer } from "./types";
 import { addBusinessDays, amortCalc, type AmortInput, bondCalc, type BondInput, type BondResult, btaCalc, parseDate, yearsBetween } from "../finance";
-import { localIso } from "../format";
+import { fmtDate, localIso } from "../format";
 import { enabledTypes, getRegistry, typeOf, type MarketSegment, type ProductType } from "@/lib/registry";
 export type { MarketSegment } from "@/lib/registry";
 
@@ -99,6 +99,32 @@ export function tenorYears(o: Offer): number {
  * date. Without this a bond at par would show a yield far above its coupon.
  */
 /** Repayment schedule of a listed bond when its fiche signalétique is on file; settlement T+3 from today. */
+/**
+ * Comment le capital revient : « in fine », ou par tranches.
+ *
+ * La question décide de tout le reste et ne paraissait nulle part. Deux lignes
+ * de même taux et de même échéance ne se valent pas si l'une rend le capital
+ * d'un coup et l'autre par tranches : la seconde rend l'argent plus tôt, donc
+ * en risque moins, et son coupon décroît. Le client lisait deux fiches
+ * identiques.
+ *
+ * Le mot se déduit de ce qui construit déjà l'échéancier, et jamais d'un champ
+ * saisi à part : un libellé qui pourrait contredire le tableau des flux juste
+ * en dessous vaudrait moins que pas de libellé du tout. Le référentiel porte
+ * l'échéancier d'une ligne cotée, et lui seul : sans lui, un remboursement en
+ * une fois, ce que dit aussi le communiqué de toute adjudication du primaire.
+ */
+export function repaymentLabel(o: Offer): string | undefined {
+  if (o.kind === "FONDS" || o.kind === "ACTIONS" || o.kind === "APE") return undefined;
+  const t = bondTerms(o.isin);
+  if (t && o.instrument === "obligation" && o.couponRate != null) {
+    return t.graceUntil
+      ? `par tranches, après un différé jusqu'au ${fmtDate(t.graceUntil)}`
+      : "par tranches, à chaque échéance de coupon";
+  }
+  return "in fine : tout le capital à l'échéance";
+}
+
 export function marketAmortInput(o: Offer, now = new Date(), settleOn?: string): AmortInput | null {
   const t = bondTerms(o.isin);
   if (!t || o.instrument !== "obligation" || o.couponRate == null) return null;

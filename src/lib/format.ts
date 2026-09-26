@@ -106,3 +106,18 @@ export const money = (v: number): string => {
  * des liens que le code écrit. Ce que quelqu'un a tapé n'en fait pas partie.
  */
 export const escapeHtml = (s: string): string => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+/**
+ * Une date, avec son heure seulement si quelqu'un l'a donnée.
+ *
+ * Les communiqués ne se ressemblent pas : le Cameroun écrit « lundi 21 septembre
+ * 2026 avant 09 h 00 », le Congo écrit « mardi 22 septembre 2026 » et s'arrête
+ * là. Une fiche qui affiche une heure dans les deux cas en invente une, et un
+ * client qui arrive à 10 h sur une clôture qu'il croyait à midi ne se console pas
+ * en apprenant que le chiffre venait d'une valeur par défaut.
+ *
+ * Minuit tient lieu de silence : aucune séance ne se clôt à minuit, et c'est ce
+ * que pose l'ingestion quand le document ne dit rien. L'heure reparaît dès que
+ * le desk la lit sur la pièce et la saisit.
+ */
+export const fmtWhen = (iso: string): string => (/T00:00(:00)?/.test(iso) ? fmtDate(iso) : fmtDateTime(iso));

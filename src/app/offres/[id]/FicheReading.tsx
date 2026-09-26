@@ -9,14 +9,14 @@ import { Kpis } from "./Kpis";
 import { Amount } from "@/components/Amount";
 import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
-import { displayStatus, displayYield, marketAmortInput, marketBondInput } from "@/lib/domain/status";
+import { displayStatus, displayYield, marketAmortInput, marketBondInput, repaymentLabel } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
 import { bondTerms } from "@/lib/domain/status";
 import { amortCalc } from "@/lib/finance";
 import type { Offer } from "@/lib/domain/types";
 import { bondCalc, btaAmountForBonds, btaCalc, daysBetween, firstCouponDate } from "@/lib/finance";
 import { typeOf } from "@/lib/registry";
-import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice } from "@/lib/format";
+import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtWhen } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { IssuerCard } from "./IssuerCard";
@@ -303,6 +303,8 @@ export async function loadFiche(o: Offer) {
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : o.servedPricePct ? "Prix servi à l'adjudication" : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
+  // Comment le capital revient : la question décide du risque autant que le taux.
+  const repay = repaymentLabel(o);
   const timeline: [string, string][] =
     o.kind === "FONDS" && o.fund
       ? [
@@ -317,6 +319,7 @@ export async function loadFiche(o: Offer) {
           ["Cotation", "continue, jours ouvrés"],
           ["Règlement", `T+${o.settlementDays ?? 3}`],
           [o.instrument === "obligation" ? "Échéance" : "Dernier cours", o.instrument === "obligation" ? (o.maturityOn ? fmtDate(o.maturityOn) : "—") : o.lastPriceOn ? fmtDate(o.lastPriceOn) : "—"],
+          ...(repay ? ([["Remboursement", repay]] as [string, string][]) : []),
         ]
       : o.kind === "ACTIONS"
       ? [
@@ -326,9 +329,10 @@ export async function loadFiche(o: Offer) {
           ["Cotation", "BVMAC"],
         ]
       : [
-          ["Dépôt des offres", fmtDateTime(o.deadlineAt)],
-          ["Résultats", o.resultsAt ? fmtDateTime(o.resultsAt) : "—"],
+          ["Dépôt des offres", fmtWhen(o.deadlineAt)],
+          ["Résultats", o.resultsAt ? fmtWhen(o.resultsAt) : "—"],
           ["Règlement", fmtDate(o.settleOn)],
+          ...(repay ? ([["Remboursement", repay]] as [string, string][]) : []),
           [o.kind === "BTA" ? "Remboursement" : o.kind === "RACHAT" ? "Échéance initiale" : "Premier coupon", firstCoupon ? fmtDate(firstCoupon.toISOString().slice(0, 10)) : o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ];
   return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing };

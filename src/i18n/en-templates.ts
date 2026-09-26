@@ -611,4 +611,5 @@ export const EN_TEMPLATES: Record<string, string> = {
   "{n} flux sont comptés à leur date d'échéance : l'application connaît la date à laquelle l'émetteur doit payer, elle ne constate pas l'encaissement sur votre compte.": "{n} flows are counted on their due date : the application knows when the issuer is due to pay, it does not observe the money landing in your account.",
   "{n} ligne(s) ne sont pas comptées ici, faute de cours publié : {m} FCFA y sont versés. Une obligation du primaire gardée jusqu'à son terme ne se cote pas, et l'application préfère ne rien dire plutôt que de lui donner une valeur qu'elle n'a pas.": "{n} line(s) are not counted here, for want of a published price : {m} FCFA are paid into them. A primary bond held to its term is not quoted, and the application would rather say nothing than give it a value it does not have.",
   "dans {n} jours": "in {n} days",
+  "page {n} sur {m}": "page {n} of {m}",
 };
