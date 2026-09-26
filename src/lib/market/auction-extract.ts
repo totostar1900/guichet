@@ -130,22 +130,40 @@ const nn = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
 export async function readAuctionResult(pdfBase64: string, hint?: string): Promise<AuctionReading> {
   const t0 = Date.now();
   const client = new Anthropic();
-  const response = await client.messages.parse({
+  const requete = (reflechi: boolean) => ({
     model: MODEL,
     max_tokens: 8000,
-    thinking: { type: "adaptive" },
+    ...(reflechi ? { thinking: { type: "adaptive" as const } } : {}),
     system: SYSTEM,
     messages: [
       {
-        role: "user",
+        role: "user" as const,
         content: [
-          { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdfBase64 } },
-          { type: "text", text: `Lis les résultats de cette séance.${hint ? ` Consigne du desk : ${hint}` : ""}` },
+          { type: "document" as const, source: { type: "base64" as const, media_type: "application/pdf" as const, data: pdfBase64 } },
+          { type: "text" as const, text: `Lis les résultats de cette séance.${hint ? ` Consigne du desk : ${hint}` : ""}` },
         ],
       },
     ],
     output_config: { format: zodOutputFormat(Lecture) },
   });
+
+  /**
+   * La réflexion adaptative, quand le modèle la prend.
+   *
+   * Le réglage vient de l'extracteur de communiqués, qui tourne sur un modèle
+   * qui l'accepte. Posé sur un modèle économique, l'appel est refusé d'emblée :
+   * « adaptive thinking is not supported on this model ». Tenir une liste des
+   * modèles qui l'acceptent vieillirait mal ; on essaie donc, et ce refus précis,
+   * et lui seul, fait recommencer sans elle. Toute autre erreur remonte.
+   */
+  let response;
+  try {
+    response = await client.messages.parse(requete(true));
+  } catch (e) {
+    const m = e instanceof Error ? e.message : String(e);
+    if (!/adaptive thinking is not supported/i.test(m)) throw e;
+    response = await client.messages.parse(requete(false));
+  }
 
   if (response.stop_reason === "refusal") throw new Error("Lecture refusée par le modèle.");
   const out = response.parsed_output;
