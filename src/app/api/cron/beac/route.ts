@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { localIso } from "@/lib/format";
+import { saveSource } from "@/lib/intake/storage";
 import {
   BEAC_ANNONCES,
   beacLabel,
@@ -99,12 +100,38 @@ export async function GET(req: NextRequest) {
 
   for (const a of next) {
     if (known.has(a.doc.title)) continue;
+
+    // Le communiqué lui-même, gardé avec la fiche.
+    //
+    // Le desk valide en lisant le document, pas son titre : le montant, le
+    // nominal et les dates y sont, et rien de tout cela n'est dans la ligne du
+    // tableau de la BEAC. Un lien suffirait aujourd'hui et plus dans deux ans :
+    // une adresse se déplace, un site se refait, et la pièce qui fonde une offre
+    // publiée doit rester lisible aussi longtemps que l'offre. On garde donc
+    // l'original octet pour octet, comme le fait déjà le bulletin de la cote.
+    let fileName: string | undefined;
+    try {
+      const pdf = await fetch(a.doc.url, {
+        headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0)" },
+      });
+      if (pdf.ok) {
+        const bytes = new Uint8Array(await pdf.arrayBuffer());
+        const key = `beac/${a.doc.url.split("/").pop() ?? `${a.on}-${a.instrument}.pdf`}`;
+        await saveSource(key, bytes, "application/pdf");
+        fileName = key;
+      }
+    } catch {
+      // Le communiqué garde son adresse dans la fiche : la séance ne se perd pas
+      // parce que le fichier n'a pas pu être rapatrié.
+    }
     await r.createIntake({
       source: "pdf",
       title: a.doc.title,
       fromLabel: `BEAC · Annonces et Communiqués · ${a.doc.country}`,
       receivedAt: new Date().toISOString(),
       state: "a_valider",
+      fileName,
+      mimeType: fileName ? "application/pdf" : undefined,
       rawText: `Communiqué publié par la BEAC : ${a.doc.url}`,
       draft: {
         kind: a.instrument,

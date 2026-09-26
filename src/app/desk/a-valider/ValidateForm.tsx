@@ -73,6 +73,8 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
 
   const v = (k: string, fallback?: unknown) => snap[k] ?? (fallback == null ? "" : String(fallback));
   // The product type (registry) decides the storage kind, the free fields and the checklist.
+  // Une source déposée par un robot porte l'adresse d'où elle vient dans son texte.
+  const sourceUrl = item.rawText?.match(/https?:\/\/\S+/)?.[0];
   const types = enabledTypes().filter((t) => t.segment === "primaire");
   const typeKey = v("typeKey", d.typeKey ?? (d.kind ? legacyTypeKey({ kind: d.kind, instrument: undefined }) : "OTA"));
   const type = typeByKey(typeKey) ?? types[0];
@@ -141,6 +143,20 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
         <div className={styles.vCols}>
           <div>
             <h3>{tr("Source (original conservé)")}</h3>
+            {/* L'adresse d'où la pièce vient, quand la source en a une.
+
+                Le document est gardé ici octet pour octet, et c'est lui qui fait foi ;
+                mais un relecteur veut parfois remonter au site de l'émetteur, pour
+                vérifier qu'il n'y a pas eu de rectificatif depuis. Le lien reste donc
+                visible même quand le fichier est là, au lieu de disparaître dès qu'on
+                a réussi à le rapatrier. */}
+            {sourceUrl && (
+              <p className={styles.sourceLink}>
+                <a href={sourceUrl} target="_blank" rel="noreferrer">
+                  {tr("Ouvrir le document chez l'émetteur")} ↗
+                </a>
+              </p>
+            )}
             {item.fileName ? (
               item.mimeType === "application/pdf" ? (
                 <iframe className={styles.frame} src={`/desk/a-valider/source/${item.id}`} title={tr("Source PDF")} />

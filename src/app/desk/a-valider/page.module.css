@@ -406,3 +406,9 @@
   background: var(--surface);
   color: var(--ink);
 }
+
+/* Le chemin vers la piece d'origine : discret, mais jamais absent. */
+.sourceLink {
+  font-size: 0.8rem;
+  margin-bottom: var(--s-4);
+}
