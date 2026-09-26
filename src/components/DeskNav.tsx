@@ -28,6 +28,9 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     label: "Marché",
     tabs: [
       ["/desk/marche", "Cotes & VL"],
+      // La mémoire du marché primaire : ce que les six Trésors ont payé, séance
+      // par séance. Le taux indicatif d'un bon s'y fonde.
+      ["/desk/adjudications", "Adjudications"],
       // La lecture, à côté de la saisie : les mêmes listes que le Guichet,
       // rendues par les mêmes composants, sans quitter le domaine du desk.
       ["/desk/titres", "Titres"],

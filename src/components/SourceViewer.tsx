@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
-import styles from "./page.module.css";
+import styles from "./SourceViewer.module.css";
 
 /**
  * Le communiqué, lu de près.

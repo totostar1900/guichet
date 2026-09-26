@@ -465,18 +465,18 @@ const fromNav = (n: FundNav): NavRow => ({
 // Les montants sont en francs côté application ; Postgres les rend en chaînes
 // parce que « numeric » ne tient pas dans un double, et « nn » les ramène.
 type AuctionResultRow = {
-  id: string; code_emission: string; country: AuctionResult["country"]; instrument: AuctionResult["instrument"]; tenor: string; session_on: string; abondement: boolean;
+  id: string; code_emission: string | null; country: AuctionResult["country"]; instrument: AuctionResult["instrument"]; tenor: string; session_on: string; abondement: boolean;
   announced: string | null; bid: string | null; served: string | null; network_size: number | null; bidders: number | null;
   rate_min: string | null; rate_max: string | null; rate_limit: string | null; rate_avg: string | null;
   price_min: string | null; price_max: string | null; price_limit: string | null; price_avg: string | null;
-  coverage: string | null; source_url: string; source_title: string; confirmed_by: string | null; confirmed_at: string | null; offer_id: string | null; created_at: string; updated_at: string;
+  coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null; offer_id: string | null; created_at: string; updated_at: string;
 };
 const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
-  id: r.id, codeEmission: r.code_emission, country: r.country, instrument: r.instrument, tenor: r.tenor, sessionOn: r.session_on, abondement: r.abondement,
+  id: r.id, codeEmission: u(r.code_emission), country: r.country, instrument: r.instrument, tenor: r.tenor, sessionOn: r.session_on, abondement: r.abondement,
   announced: nn(r.announced), bid: nn(r.bid), served: nn(r.served), networkSize: u(r.network_size), bidders: u(r.bidders),
   rateMin: nn(r.rate_min), rateMax: nn(r.rate_max), rateLimit: nn(r.rate_limit), rateAvg: nn(r.rate_avg),
   priceMin: nn(r.price_min), priceMax: nn(r.price_max), priceLimit: nn(r.price_limit), priceAvg: nn(r.price_avg),
-  coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
+  coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, fileKey: u(r.file_key), confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
 const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown> => {
@@ -506,6 +506,7 @@ const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown
   put("coverage", numOrNull(r.coverage));
   put("source_url", r.sourceUrl);
   put("source_title", r.sourceTitle);
+  put("file_key", r.fileKey ?? null);
   put("confirmed_by", r.confirmedBy ?? null);
   put("confirmed_at", r.confirmedAt ?? null);
   put("offer_id", r.offerId ?? null);

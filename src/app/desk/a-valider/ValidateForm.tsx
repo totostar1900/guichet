@@ -11,7 +11,8 @@ import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
 import { publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
-import { SourceViewer } from "./SourceViewer";
+import { SourceViewer } from "@/components/SourceViewer";
+import { referenceLine, type RateReference } from "@/lib/market/auction-results";
 import styles from "./page.module.css";
 
 type Snap = Record<string, string>;
@@ -62,7 +63,34 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
   );
 }
 
-export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer }) {
+/**
+ * Ce que la dernière séance comparable a payé, sous le champ qu'on remplit.
+ *
+ * Un taux indicatif n'est pas une opinion de la maison : c'est une lecture du
+ * marché avant que l'enchère ne tranche. Le champ partait pourtant d'une valeur
+ * par défaut, et personne n'avait sous les yeux de quoi la discuter.
+ *
+ * La couverture et le nombre de soumissionnaires viennent avec le taux, et non
+ * dans une note à côté. Une séance servie à 6,97 % où une seule banque a
+ * soumissionné 2,50 % du montant annoncé n'est pas un prix de marché ; sans cette
+ * phrase-là, le desk s'ancre sur un chiffre qu'une seule contrepartie a posé.
+ */
+function Reference({ r, tr }: { r?: RateReference; tr: (s: string, v?: Record<string, string>) => string }) {
+  if (!r)
+    return (
+      <small className={styles.refNone}>{tr("Aucune séance comparable relue : le chiffre reste à apprécier, et à défendre.")}</small>
+    );
+  return (
+    <small className={`${styles.ref} ${r.thin ? styles.refThin : ""}`}>
+      {tr(r.unit === "taux" ? "Dernière séance comparable : {v} %" : "Dernier prix comparable : {v} %", { v: r.proposed.toFixed(2).replace(".", ",") })}
+      <em>{referenceLine(r)}</em>
+      {r.also.length > 0 && (
+        <em>{tr("Avant elle : {l}", { l: r.also.map((a) => `${a.sessionOn} ${(a.rateAvg ?? a.rateLimit ?? a.priceAvg ?? a.priceLimit ?? 0).toFixed(2).replace(".", ",")} %`).join(" · ") })}</em>
+      )}
+    </small>
+  );
+}
+export function ValidateForm({ item, offer, reference }: { item: IntakeItem; offer?: Offer; reference?: RateReference }) {
   const tr = useT();
   const d = item.draft;
   const [snap, setSnap] = useState<Snap>({});
@@ -236,7 +264,8 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
             {kind === "BTA" ? (
               <label className="field">
                 {tr("Taux précompté indicatif (%)")}
-                <input name="precountRate" type="number" step="0.05" defaultValue={offer?.precountRate ?? 5.5} />
+                <input name="precountRate" type="number" step="0.05" defaultValue={offer?.precountRate ?? reference?.proposed ?? 5.5} />
+                <Reference r={reference} tr={tr} />
               </label>
             ) : kind === "ACTIONS" || kind === "RACHAT" ? (
               <label className="field">
@@ -256,6 +285,7 @@ export function ValidateForm({ item, offer }: { item: IntakeItem; offer?: Offer 
               <label className="field">
                 {tr("Prix Purpose (% du nominal)")}
                 <input name="pricePct" type="number" step="0.5" defaultValue={offer?.pricePct && !offer.priceNote ? offer.pricePct : 95} />
+                <Reference r={reference} tr={tr} />
               </label>
             )}
             <input type="hidden" name="commissionPct" value="0" />

@@ -32,8 +32,15 @@ import type { Country, OfferKind } from "@/lib/domain/types";
 /** Une séance, telle que le communiqué de résultats la publie. */
 export interface AuctionResult {
   id: string;
-  /** Le code d'émission du Trésor : c'est lui qui relie la séance à une de nos lignes. */
-  codeEmission: string;
+  /**
+   * Le code d'émission du Trésor : c'est lui qui relie la séance à une de nos lignes.
+   *
+   * Vide tant que personne n'a lu le communiqué. L'index de la BEAC donne le
+   * pays, l'instrument, la durée et la date ; le code, lui, est imprimé à
+   * l'intérieur d'un scan. Il est donc facultatif à la proposition et exigé à
+   * la confirmation, faute de quoi la séance ne se rattache à rien.
+   */
+  codeEmission?: string;
   country: Country;
   instrument: Extract<OfferKind, "BTA" | "OTA">;
   /** « 26 semaines », « 3 ans » : tel que le Trésor l'écrit, normalisé. */
@@ -60,6 +67,8 @@ export interface AuctionResult {
   coverage?: number;
   sourceUrl: string;
   sourceTitle: string;
+  /** Le communiqué gardé octet pour octet : une adresse chez la BEAC ne se lira plus dans deux ans. */
+  fileKey?: string;
   /** Vide : la lecture automatique n'a pas été relue, et le chiffre ne sert de référence à rien. */
   confirmedBy?: string;
   confirmedAt?: string;
@@ -141,6 +150,14 @@ export interface RateReference {
  * lecture devenue référence se propagerait sans bruit à toutes les offres
  * suivantes.
  */
+/** Une séance relue de bout en bout : c'est elle seule qui fait référence. */
+export const confirmable = (r: Pick<AuctionResult, "codeEmission" | "instrument" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit">): string | null => {
+  if (!r.codeEmission?.trim()) return "Le code d'émission du Trésor, lu sur le communiqué.";
+  if (r.instrument === "BTA" && r.rateAvg == null && r.rateLimit == null) return "Le taux limite ou le taux moyen pondéré.";
+  if (r.instrument === "OTA" && r.priceAvg == null && r.priceLimit == null) return "Le prix limite ou le prix moyen pondéré.";
+  return null;
+};
+
 export function referenceRate(
   target: { country: Country; instrument: AuctionResult["instrument"]; tenor: string; on: string },
   history: AuctionResult[],

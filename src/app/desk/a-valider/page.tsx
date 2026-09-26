@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
+import { referenceRate, type RateReference } from "@/lib/market/auction-results";
+import { tenorOf } from "@/lib/market/beac";
 import type { IntakeItem } from "@/lib/domain/types";
 import { extractionAvailable } from "@/lib/intake/extract";
 import { fmtDateTime } from "@/lib/format";
@@ -70,6 +72,19 @@ export default async function IntakePage({
   const offer = selected?.offerId
     ? await r.getOffer(selected.offerId)
     : undefined;
+
+  // Ce que le marché vient de payer sur le même produit. Le desk fixait un taux
+  // indicatif devant un champ pré-rempli à 5,5 %, sans rien pour s'y appuyer :
+  // le chiffre sortait d'une valeur par défaut, pas d'une adjudication. Seules
+  // les séances relues comptent, sans quoi une faute de lecture sur un scan
+  // deviendrait la référence de toutes les offres suivantes.
+  const draft = selected?.draft;
+  const tenor = draft?.title ? tenorOf(draft.title) : undefined;
+  let reference: RateReference | undefined;
+  if (draft && tenor && draft.country && draft.deadlineAt && (draft.kind === "BTA" || draft.kind === "OTA")) {
+    const history = await r.listAuctionResults({ confirmed: true, instrument: draft.kind, tenor, limit: 60 });
+    reference = referenceRate({ country: draft.country, instrument: draft.kind, tenor, on: draft.deadlineAt.slice(0, 10) }, history);
+  }
   const showNew = sp.nouveau === "1" || (!selected && queue.length === 0);
 
   return (
@@ -131,7 +146,7 @@ export default async function IntakePage({
           {showNew ? (
             <NewSourceForm extraction={extractionAvailable()} />
           ) : selected ? (
-            <ValidateForm key={selected.id} item={selected} offer={offer} />
+            <ValidateForm key={selected.id} item={selected} offer={offer} reference={reference} />
           ) : (
             <div className="empty">
               {t("Sélectionnez une source ou déposez-en une nouvelle.")}

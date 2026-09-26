@@ -11,6 +11,7 @@ import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
 import { displayStatus, displayYield, marketAmortInput, marketBondInput, repaymentLabel } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
+import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { bondTerms } from "@/lib/domain/status";
 import { amortCalc } from "@/lib/finance";
 import type { Offer } from "@/lib/domain/types";
@@ -272,7 +273,7 @@ export async function loadFiche(o: Offer) {
   // Le signal d'appariement part avec les autres lectures, et il ne lit rien du
   // tout sur une ligne qui n'est pas cotée : le carnet n'existe que sur la cote.
   const wantsFacing = o.kind === "MARCHE" && !o.hidden;
-  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session] = await Promise.all([
+  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances] = await Promise.all([
     loadIssuerRegistry(),
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
@@ -283,6 +284,9 @@ export async function loadFiche(o: Offer) {
     o.kind === "FONDS" ? latestBta() : undefined,
     wantsFacing ? loadCrossPolicy() : undefined,
     wantsFacing ? getSession() : undefined,
+    // La séance d'adjudication de cette ligne, si quelqu'un l'a relue. Le code
+    // d'émission du Trésor est notre ISIN : c'est lui qui fait le lien.
+    o.kind === "BTA" || o.kind === "OTA" || o.kind === "APE" ? r.listAuctionResults({ codeEmission: o.isin, confirmed: true, limit: 1 }) : [],
   ]);
   const profile = resolveIssuer(o);
   // Toutes ses lignes, sans plafond : l'État du Gabon en a seize, et un rayon
@@ -338,15 +342,62 @@ export async function loadFiche(o: Offer) {
           ...(repay ? ([["Remboursement", repay]] as [string, string][]) : []),
           [o.kind === "BTA" ? "Remboursement" : o.kind === "RACHAT" ? "Échéance initiale" : "Premier coupon", firstCoupon ? fmtDate(firstCoupon.toISOString().slice(0, 10)) : o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ];
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing };
+  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0] };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;
 
 /** Les sections de lecture, dans l'ordre où la fiche les montre. */
+/**
+ * Ce que la séance a payé, une fois l'enchère passée.
+ *
+ * Avant l'adjudication, la fiche annonce un taux indicatif et le dit. Après,
+ * le chiffre existe : le Trésor publie son taux limite, son taux moyen pondéré,
+ * ce qu'il a servi et combien de spécialistes ont soumissionné. Le client qui a
+ * passé un ordre a le droit de lire la même pièce que nous.
+ *
+ * La couverture et le nombre de soumissionnaires accompagnent le taux. Une
+ * séance couverte à 2,50 % par un seul établissement ne dit pas la même chose
+ * qu'une séance couverte deux fois par huit : le taux seul le cacherait.
+ *
+ * Rien ne s'affiche tant qu'une personne n'a pas relu le communiqué. Un chiffre
+ * lu de travers sur un scan et publié d'office serait pire que pas de chiffre.
+ */
+function Seance({ r, t }: { r: AuctionResult; t: (s: string, v?: Record<string, string>) => string }) {
+  const h = headline(r);
+  const couv = coverageOf(r);
+  const lignes: [string, string][] = [];
+  if (h) lignes.push([h.unit === "taux" ? "Taux moyen pondéré" : "Prix moyen pondéré", `${h.value.toFixed(2).replace(".", ",")} %`]);
+  if (r.rateLimit != null) lignes.push(["Taux limite", `${r.rateLimit.toFixed(2).replace(".", ",")} %`]);
+  if (r.priceLimit != null) lignes.push(["Prix limite", `${r.priceLimit.toFixed(2).replace(".", ",")} %`]);
+  if (r.bidders != null) lignes.push(["Soumissionnaires", `${r.bidders}${r.networkSize != null ? ` sur ${r.networkSize}` : ""}`]);
+  if (couv != null) lignes.push(["Taux de couverture", `${couv.toFixed(2).replace(".", ",")} %`]);
+  if (r.served != null) lignes.push(["Montant servi", `${fmt(r.served)} FCFA`]);
+  if (!lignes.length) return null;
+  return (
+    <section className={styles.sec} data-pane="essentiel">
+      <h3>{t("Résultat de la séance")}</h3>
+      <div className={styles.tl}>
+        {lignes.map(([k, v]) => (
+          <div key={k}>
+            <span>{t(k)}</span>
+            <b>{v}</b>
+          </div>
+        ))}
+      </div>
+      <p className="muted" style={{ fontSize: ".78rem", marginTop: 8 }}>
+        {t("Séance du {d}, telle que le Trésor l'a publiée.", { d: fmtDate(r.sessionOn) })}
+        {thin(r) ? ` ${t("Peu de soumissions : le taux sorti engage surtout ceux qui ont soumissionné.")}` : ""}{" "}
+        <a href={r.sourceUrl} target="_blank" rel="noreferrer">
+          {t("Le communiqué")} ↗
+        </a>
+      </p>
+    </section>
+  );
+}
 export async function FicheReading({ o, data, mode = "client" }: { o: Offer; data: FicheData; mode?: FicheMode }) {
   const t = await getT();
-  const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing } = data;
+  const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance } = data;
   const base = mode === "desk" ? "/desk" : "";
   return (
     <>
@@ -415,6 +466,8 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
             ))}
           </div>
         </section>
+
+        {seance && <Seance r={seance} t={t} />}
 
         <section className={styles.sec} data-pane="docs">
           <h3>{t("Documents")}</h3>

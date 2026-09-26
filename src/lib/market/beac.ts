@@ -52,6 +52,21 @@ export interface BeacAuction {
   country?: Country;
 }
 
+/**
+ * « 52 SEMAINES » → « 52 semaines ». La durée, normalisée.
+ *
+ * C'est elle qui apparie une séance à venir avec celles qui l'ont précédée :
+ * un bon à 26 semaines et un bon à 52 semaines sont deux produits, et leurs
+ * taux ne se comparent pas. Les Trésors l'écrivent au singulier, au pluriel,
+ * en capitales ; ce qui sort d'ici s'écrit d'une seule façon.
+ */
+export function tenorOf(text: string): string | undefined {
+  const m = flat(text).match(/(\d+)\s*(semaines?|ans?|mois)/);
+  if (!m) return undefined;
+  const unite = m[2].replace(/s$/, "");
+  return `${m[1]} ${unite}${Number(m[1]) > 1 && unite !== "mois" ? "s" : ""}`;
+}
+
 /** Sans accents, sans casse : la seule forme où les six Trésors se ressemblent. */
 const flat = (s: string) =>
   s
@@ -112,8 +127,7 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
   const ota = /\bota\b/.test(f) || /obligations? du tresor assimilables?/.test(f);
   const instrument: OfferKind | undefined = bta ? "BTA" : ota ? "OTA" : undefined;
 
-  const tenorMatch = f.match(/(\d+)\s*(semaines?|ans?|mois)/);
-  const tenor = tenorMatch ? `${tenorMatch[1]} ${tenorMatch[2].replace(/s$/, "") + (Number(tenorMatch[1]) > 1 && tenorMatch[2] !== "mois" ? "s" : "")}` : undefined;
+  const tenor = tenorOf(doc.title);
 
   // « du 22 septembre 2026 », « DU LUNDI 21 SEPTEMBRE 2026 » : le jour de la
   // semaine, quand il est là, n'ajoute rien et se laisse ignorer.

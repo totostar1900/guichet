@@ -11,6 +11,7 @@ import {
   parseBeacRows,
   readBeacDoc,
 } from "@/lib/market/beac";
+import type { NewAuctionResult } from "@/lib/market/auction-results";
 
 /**
  * Les adjudications de la zone, prises à la source qui les publie toutes.
@@ -25,6 +26,12 @@ import {
  * arrivent les courriels, et le desk fait le reste : c'est la même relecture
  * pour la même nature d'information, et la BEAC devient une source de plus, non
  * un second chemin qui contournerait le premier.
+ *
+ * Les séances déjà dépouillées suivent le même principe, vers « Adjudications » :
+ * le robot y dépose l'identité de la séance, qu'il lit dans le titre, et laisse
+ * les chiffres vides. Ils sont à l'intérieur d'un scan, et une lecture que
+ * personne n'a relue deviendrait sinon la référence de toutes les offres
+ * suivantes.
  *
  * Il ne réécrit jamais une fiche déjà déposée. Le titre d'un communiqué est
  * unique chez la BEAC, et c'est lui qui sert de clef : un robot qui reposerait
@@ -62,6 +69,19 @@ export async function GET(req: NextRequest) {
       { status: 502 },
     );
   }
+
+  /** Le communiqué, gardé octet pour octet. Une adresse chez la BEAC se déplace ; le chiffre, lui, sert de référence des années. */
+  const keep = async (url: string, fallback: string): Promise<string | undefined> => {
+    try {
+      const pdf = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0)" } });
+      if (!pdf.ok) return undefined;
+      const key = `beac/${url.split("/").pop() ?? fallback}`;
+      await saveSource(key, new Uint8Array(await pdf.arrayBuffer()), "application/pdf");
+      return key;
+    } catch {
+      return undefined;
+    }
+  };
 
   const rows = parseBeacRows(html);
   if (!rows.length) {
@@ -109,21 +129,9 @@ export async function GET(req: NextRequest) {
     // une adresse se déplace, un site se refait, et la pièce qui fonde une offre
     // publiée doit rester lisible aussi longtemps que l'offre. On garde donc
     // l'original octet pour octet, comme le fait déjà le bulletin de la cote.
-    let fileName: string | undefined;
-    try {
-      const pdf = await fetch(a.doc.url, {
-        headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0)" },
-      });
-      if (pdf.ok) {
-        const bytes = new Uint8Array(await pdf.arrayBuffer());
-        const key = `beac/${a.doc.url.split("/").pop() ?? `${a.on}-${a.instrument}.pdf`}`;
-        await saveSource(key, bytes, "application/pdf");
-        fileName = key;
-      }
-    } catch {
-      // Le communiqué garde son adresse dans la fiche : la séance ne se perd pas
-      // parce que le fichier n'a pas pu être rapatrié.
-    }
+    // Le communiqué garde son adresse dans la fiche même si le fichier n'a pas pu
+    // être rapatrié : la séance ne se perd pas pour autant.
+    const fileName = await keep(a.doc.url, `${a.on}-${a.instrument}.pdf`);
     await r.createIntake({
       source: "pdf",
       title: a.doc.title,
@@ -194,16 +202,33 @@ export async function GET(req: NextRequest) {
     );
   for (const a of results) {
     if (seen.includes(a.doc.url)) continue;
+    if (!a.on || !a.instrument || (a.instrument !== "BTA" && a.instrument !== "OTA") || !a.country) continue;
+    // Ce que le robot sait : l'identité de la séance, lue dans le titre et la
+    // colonne « pays ». Ce qu'il ne sait pas : les chiffres, qui sont à
+    // l'intérieur d'un scan, et le code d'émission, qui est à côté d'eux. La
+    // ligne part donc vide et non confirmée, et ne sert de référence à rien
+    // jusqu'à ce qu'une personne l'ait relue.
+    const proposal: NewAuctionResult = {
+      country: a.country,
+      instrument: a.instrument,
+      tenor: a.tenor ?? "—",
+      sessionOn: a.on,
+      abondement: a.abondement,
+      sourceUrl: a.doc.url,
+      sourceTitle: a.doc.title,
+      fileKey: await keep(a.doc.url, `${a.on}-resultats.pdf`),
+    };
+    await r.upsertAuctionResult(proposal);
     await r.logEvent({
       kind: "system",
-      html: `BEAC : résultats publiés pour ${beacLabel(a)}, séance du ${a.on} · <a href="${a.doc.url}" target="_blank" rel="noreferrer">le communiqué</a>`,
+      html: `BEAC : résultats publiés pour ${beacLabel(a)}, séance du ${a.on} · <a href="${a.doc.url}" target="_blank" rel="noreferrer">le communiqué</a> · à relire dans Adjudications`,
     });
     flagged += 1;
   }
   if (flagged)
     await r.logEvent({
       kind: "system",
-      html: `BEAC : ${flagged} séance(s) dont les résultats sont publiés, à inscrire depuis Résultats`,
+      html: `BEAC : ${flagged} séance(s) déposée(s) dans « Adjudications », en attente de relecture`,
     });
   return NextResponse.json({
     ok: true,

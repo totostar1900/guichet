@@ -1,0 +1,243 @@
+.page {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--s-7);
+  align-items: start;
+}
+/* La liste se borne comme celle de « À valider » : mille séances ne doivent pas
+   pousser hors de vue le formulaire qu'on est en train de remplir. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  position: sticky;
+  top: 78px;
+  max-height: calc(100vh - 98px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.blurb {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.list h3 {
+  margin: var(--s-2) 0 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.list h3 span,
+.filed summary span {
+  color: var(--gold-ink);
+  margin-left: var(--s-2);
+}
+.empty {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.row[aria-current="true"] {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+.row b {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.when {
+  font-variant-numeric: tabular-nums;
+}
+.todo {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.filed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.filed summary {
+  cursor: pointer;
+  padding: var(--s-3) var(--s-2);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+}
+
+.main {
+  min-width: 0;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+.head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.head p {
+  margin: var(--s-1) 0 0;
+  font-size: 0.78rem;
+}
+.pill {
+  flex: none;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: var(--s-1) var(--s-4);
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+.pill.todo {
+  color: var(--gold-ink);
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+}
+.pill.done {
+  color: var(--ink-2);
+  background: var(--panel);
+}
+
+/* La pièce à gauche, les champs à droite : recopier de mémoire un chiffre lu
+   dans un autre onglet est la façon la plus sûre de se tromper de colonne. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: var(--s-7);
+  align-items: start;
+}
+.doc {
+  min-width: 0;
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.fields fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.fields legend {
+  padding: 0;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  align-items: center;
+  gap: var(--s-4);
+}
+.field > span {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.field em {
+  display: block;
+  font-style: normal;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+.field input {
+  width: 100%;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.linked {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+/* Ce que le chiffre vaut, à côté du chiffre : une séance à un soumissionnaire
+   n'informe que sur ce soumissionnaire. */
+.weight {
+  margin: 0;
+  padding: var(--s-4);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 0.76rem;
+  color: var(--ink-2);
+}
+.weight.warn {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+}
+.ok,
+.err {
+  margin: 0;
+  padding: var(--s-4);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+.ok {
+  background: var(--panel);
+  color: var(--ink-2);
+}
+.err {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+}
+.actions {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1000px) {
+  .page,
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .list {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}

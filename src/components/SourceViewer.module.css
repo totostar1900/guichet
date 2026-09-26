@@ -1,0 +1,75 @@
+/* Le communiqué, lu de près.
+
+   La boîte défile dans les deux sens et la page vit dedans : c'est ce défilement
+   que la main déplace, plutôt qu'une transformation du canevas, pour que la
+   molette et le clavier continuent de marcher comme partout ailleurs. */
+.viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+.viewerBar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+}
+.zoomTxt {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  min-width: 3.4em;
+  text-align: center;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--ink-2);
+}
+.viewerOpen {
+  margin-left: auto;
+}
+.viewerBox {
+  position: relative;
+  height: 460px;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  /* Le curseur dit l'outil choisi : sans cela, personne ne devine qu'une page se prend. */
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+.grabbing {
+  cursor: grabbing;
+}
+.viewerCanvas {
+  display: block;
+  margin: 0 auto;
+  /* Le canevas ne se sélectionne pas : un glissement déplace la page, il ne
+     surligne pas une image. */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.viewerWait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+}
+
+.hand {
+  cursor: grab;
+}
+/* La flèche laisse le navigateur faire : viser, sélectionner là où il y a du
+   texte, défiler à la molette sans que le glissement s'en mêle. */
+.arrow {
+  cursor: default;
+}
+.tools {
+  display: inline-flex;
+  gap: var(--s-1);
+}
