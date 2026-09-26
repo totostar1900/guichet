@@ -1,4 +1,4 @@
-import { fmtDate, fmtPrice } from "../format";
+import { fmtDate, fmtPrice, localIso } from "../format";
 import { displayYield, maturityIsGuess } from "./status";
 import type { OfferSummary } from "./summary";
 import type { Offer } from "./types";
@@ -48,13 +48,21 @@ export interface IssuerLine {
    * « coupon » : le taux inscrit au contrat, faute de prix de marché.
    */
   basis: "rendement" | "coupon" | "aucun";
+  /** L'emprunteur l'a déjà remboursée : elle descend au bas de l'échelle. */
+  past: boolean;
   /** La fiche qu'on est en train de lire : elle garde sa place dans l'échelle. */
   here: boolean;
 }
 
 export interface IssuerYear {
-  /** L'année d'échéance ; vide pour ce qui n'en a pas (une action, un fonds). */
+  /** L'année d'échéance ; vide sur les deux groupes qui n'en portent pas. */
   year: string;
+  /**
+   * « annee » : une année à venir, celle du rail.
+   * « sans » : ce qui n'a pas d'échéance, une action ou un fonds.
+   * « echues » : ce que l'emprunteur a déjà remboursé.
+   */
+  kind: "annee" | "sans" | "echues";
   lines: IssuerLine[];
 }
 
@@ -90,21 +98,41 @@ const coursOf = (o: Offer): string | undefined => {
   return o.servedPricePct != null ? fmtPrice(o.servedPricePct) : undefined;
 };
 
-/** Les lignes d'un émetteur, groupées par année d'échéance, la plus proche d'abord. */
-export function issuerLadder(rows: { o: Offer; s: OfferSummary }[], issuer: string, hereId: string): IssuerYear[] {
+/**
+ * Les lignes d'un émetteur, groupées par année d'échéance, la plus proche d'abord.
+ *
+ * Trois étages, dans cet ordre : les années à venir, ce qui n'a pas d'échéance,
+ * et les lignes échues.
+ *
+ * Les échues descendent parce qu'une ligne remboursée n'a plus rien à donner :
+ * la BVMAC continue de l'imprimer un moment, et elle ouvrait l'échelle avec un
+ * rang mort, sans cours ni rendement, là où le lecteur cherche la prochaine
+ * échéance. Elles ne disparaissent pas pour autant : un client qui en détient
+ * encore doit retrouver sa ligne. Entre elles, la plus récemment remboursée
+ * d'abord, qui est celle dont on parle encore.
+ *
+ * Leur date porte son année, contrairement aux autres : leur rail dit « échues »
+ * et non une année, donc plus rien ne la porterait.
+ */
+export function issuerLadder(rows: { o: Offer; s: OfferSummary }[], issuer: string, hereId: string, now = new Date()): IssuerYear[] {
+  const today = localIso(now);
   const lines = rows
     .map(({ o, s }) => {
       const approx = maturityIsGuess(o);
       const title = designation(o.title, issuer);
+      const past = Boolean(o.maturityOn && o.maturityOn < today);
+      const kind: IssuerYear["kind"] = past ? "echues" : o.maturityOn ? "annee" : "sans";
       return {
+        kind,
         key: o.maturityOn ?? "9999-99-99",
-        year: o.maturityOn ? o.maturityOn.slice(0, 4) : "",
+        year: kind === "annee" ? o.maturityOn!.slice(0, 4) : "",
         line: {
           id: o.id,
           title,
           short: shorten(title),
-          day: o.maturityOn && !approx ? fmtDate(o.maturityOn, false) : undefined,
+          day: !o.maturityOn ? undefined : past ? (approx ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn)) : approx ? undefined : fmtDate(o.maturityOn, false),
           approx,
+          past,
           price: coursOf(o),
           figure: s.hero,
           basis: s.yieldPct == null ? "aucun" : displayYield(o).atPar ? "coupon" : "rendement",
@@ -112,13 +140,19 @@ export function issuerLadder(rows: { o: Offer; s: OfferSummary }[], issuer: stri
         } satisfies IssuerLine,
       };
     })
-    .sort((a, b) => a.key.localeCompare(b.key) || a.line.title.localeCompare(b.line.title));
+    .sort((a, b) => {
+      const rank = { annee: 0, sans: 1, echues: 2 };
+      if (rank[a.kind] !== rank[b.kind]) return rank[a.kind] - rank[b.kind];
+      // Les échues remontent le temps : la dernière remboursée en tête.
+      const d = a.kind === "echues" ? b.key.localeCompare(a.key) : a.key.localeCompare(b.key);
+      return d || a.line.title.localeCompare(b.line.title);
+    });
 
   const out: IssuerYear[] = [];
-  for (const { year, line } of lines) {
+  for (const { kind, year, line } of lines) {
     const last = out[out.length - 1];
-    if (last && last.year === year) last.lines.push(line);
-    else out.push({ year, lines: [line] });
+    if (last && last.kind === kind && last.year === year) last.lines.push(line);
+    else out.push({ year, kind, lines: [line] });
   }
   return out;
 }

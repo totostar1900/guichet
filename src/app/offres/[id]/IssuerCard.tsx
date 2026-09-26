@@ -109,9 +109,9 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
             </div>
           </div>
           {years.map((y) => (
-            <div key={y.year || "sans"} className={styles.group}>
+            <div key={y.year || y.kind} className={`${styles.group} ${y.kind === "echues" ? styles.spent : ""}`}>
               <div className={styles.year}>
-                <span>{y.year || t("Sans échéance")}</span>
+                <span className={y.kind === "annee" ? undefined : styles.tag}>{y.kind === "annee" ? y.year : y.kind === "sans" ? t("Sans échéance") : t("Échues")}</span>
               </div>
               <div className={styles.rows}>
                 {y.lines.map((l) => {

@@ -80,26 +80,26 @@ describe("l'échelle des échéances", () => {
   ].map(row);
 
   it("range de la plus proche à la plus lointaine, et groupe par année", () => {
-    const y = issuerLadder(lignes, "État du Gabon", "ici");
+    const y = issuerLadder(lignes, "État du Gabon", "ici", now);
     expect(y.map((g) => g.year)).toEqual(["2027", "2031"]);
     expect(y[0].lines.map((l) => l.id)).toEqual(["ici", "b", "c"]);
   });
 
   it("garde la fiche qu'on lit à sa place, marquée", () => {
-    const y = issuerLadder(lignes, "État du Gabon", "ici");
+    const y = issuerLadder(lignes, "État du Gabon", "ici", now);
     const ici = y[0].lines.find((l) => l.id === "ici");
     expect(ici?.here).toBe(true);
     expect(y.flatMap((g) => g.lines).filter((l) => l.here)).toHaveLength(1);
   });
 
   it("ne répète pas l'année sur chaque ligne : il reste le jour et le mois", () => {
-    const y = issuerLadder(lignes, "État du Gabon", "ici");
+    const y = issuerLadder(lignes, "État du Gabon", "ici", now);
     expect(y[0].lines[0].day).toMatch(/29/);
     expect(y[0].lines[0].day).not.toMatch(/2027/);
   });
 
   it("sépare le rendement de marché du coupon du contrat", () => {
-    const y = issuerLadder(lignes, "État du Gabon", "ici");
+    const y = issuerLadder(lignes, "État du Gabon", "ici", now);
     const traitee = y[0].lines.find((l) => l.id === "c");
     const jamais = y[0].lines.find((l) => l.id === "b");
     expect(traitee?.basis).toBe("rendement");
@@ -107,7 +107,7 @@ describe("l'échelle des échéances", () => {
   });
 
   it("ne donne un cours qu'à la ligne qui a réellement changé de mains", () => {
-    const y = issuerLadder(lignes, "État du Gabon", "ici");
+    const y = issuerLadder(lignes, "État du Gabon", "ici", now);
     // Le bulletin imprime 100 % pour une ligne qui n'a pas traité : ce n'est pas
     // un prix de marché, et l'afficher lui en donnerait la couleur.
     expect(y[0].lines.find((l) => l.id === "b")?.price).toBeUndefined();
@@ -118,22 +118,67 @@ describe("l'échelle des échéances", () => {
     // Trois des huit gabonaises cotent au pair : elles ont un cours, et leur
     // rendement reste leur coupon. Compter les cours en annoncerait cinq.
     const auPair = eog({ id: "pair", title: "État du Gabon · EOG 7 % NET 2024-2029", maturityOn: "2029-07-01", couponRate: 7, lastPrice: 100, lastTradedOn: "2026-09-25" });
-    const y = issuerLadder([...lignes, row(auPair)], "État du Gabon", "ici");
+    const y = issuerLadder([...lignes, row(auPair)], "État du Gabon", "ici", now);
     expect(y.flatMap((g) => g.lines).filter((l) => l.price)).toHaveLength(2);
     expect(marketYields(y)).toBe(1);
   });
 
   it("met au bout ce qui n'a pas d'échéance, sous son propre libellé", () => {
     const action = eog({ id: "act", kind: "ACTIONS", instrument: undefined, title: "État du Gabon · Une action", maturityOn: undefined, pricePerShare: 1000 });
-    const y = issuerLadder([...lignes, row(action)], "État du Gabon", "ici");
-    expect(y[y.length - 1].year).toBe("");
+    const y = issuerLadder([...lignes, row(action)], "État du Gabon", "ici", now);
+    expect(y[y.length - 1].kind).toBe("sans");
     expect(y[y.length - 1].lines.map((l) => l.id)).toEqual(["act"]);
+  });
+});
+
+/**
+ * Ce que le Gabon a déjà remboursé.
+ *
+ * La BVMAC imprime encore une ligne échue un moment après son remboursement.
+ * Rangée par date, elle ouvrait l'échelle : un rang mort, sans cours ni
+ * rendement, exactement là où le lecteur cherche la prochaine échéance. Elle
+ * descend au bas, sans disparaître : un client qui la détient encore doit la
+ * retrouver.
+ */
+describe("les lignes échues", () => {
+  // EOG 6,00 % NET 2021-2026 : remboursée le 4 juin 2026, le bulletin l'imprime encore.
+  const echue = eog({ id: "echue", title: "État du Gabon · EOG 6,00 % NET 2021-2026", maturityOn: "2026-06-04" });
+  const vieille = eog({ id: "vieille", title: "État du Gabon · EOG 5 % NET 2019-2024", isin: "GA0000099998", maturityOn: "2024-11-20" });
+  const avenir = eog({ id: "avenir", title: "État du Gabon · EOG 7 % NET 2024-2030", maturityOn: "2030-07-01", couponRate: 7 });
+
+  it("descendent sous les années à venir", () => {
+    const y = issuerLadder([row(echue), row(avenir)], "État du Gabon", "ici", now);
+    expect(y.map((g) => g.kind)).toEqual(["annee", "echues"]);
+    expect(y[0].year).toBe("2030");
+  });
+
+  it("se rangent de la plus récemment remboursée à la plus ancienne", () => {
+    const y = issuerLadder([row(vieille), row(echue), row(avenir)], "État du Gabon", "ici", now);
+    expect(y[y.length - 1].lines.map((l) => l.id)).toEqual(["echue", "vieille"]);
+  });
+
+  it("portent leur année, leur rail ne la disant plus", () => {
+    const y = issuerLadder([row(echue)], "État du Gabon", "ici", now);
+    const l = y[0].lines[0];
+    expect(l.past).toBe(true);
+    expect(l.day).toContain("2026");
+  });
+
+  it("passent après ce qui n'a pas d'échéance, qui est vivant", () => {
+    const action = eog({ id: "act", kind: "ACTIONS", instrument: undefined, title: "État du Gabon · Une action", maturityOn: undefined, pricePerShare: 1000 });
+    const y = issuerLadder([row(echue), row(action), row(avenir)], "État du Gabon", "ici", now);
+    expect(y.map((g) => g.kind)).toEqual(["annee", "sans", "echues"]);
+  });
+
+  it("n'annoncent aucun rendement : il n'y a plus rien à gagner", () => {
+    const y = issuerLadder([row(echue)], "État du Gabon", "ici", now);
+    expect(y[0].lines[0].basis).toBe("aucun");
   });
 
   it("se tait sur le jour quand le bulletin ne donne que l'année", () => {
     // « NET 2024-2029 » : le BOC n'imprime pas le jour, la fiche stocke le 31/12.
     const floue = eog({ id: "floue", title: "État du Gabon · EOG 6 % NET 2024-2029", isin: "GA0000099999", maturityOn: "2029-12-31" });
-    const y = issuerLadder([row(floue)], "État du Gabon", "ici");
+    const y = issuerLadder([row(floue)], "État du Gabon", "ici", now);
     const l = y[0].lines[0];
     expect(l.approx).toBe(true);
     expect(l.day).toBeUndefined();

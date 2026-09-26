@@ -122,6 +122,15 @@
   color: var(--ink-3);
   padding-top: var(--s-4);
 }
+/* « Échues » et « Sans échéance » ne tiennent pas sur la largeur d'une année :
+   plus petits, en capitales, ils se rangent sans pousser la colonne. */
+.tag {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
 .rows {
   border-left: 1px solid var(--gold-line);
   padding-left: var(--s-6);
@@ -234,6 +243,16 @@
   align-self: flex-start;
 }
 
+/* Une ligne remboursée reste pour qui la détient encore, pas pour qui choisit :
+   son rail quitte le doré et son nom passe en encre secondaire. */
+.spent .rows {
+  border-left-color: var(--line);
+}
+.spent .cNom b {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
 @media (max-width: 640px) {
   /* Le rail devient un filet en travers, et le tableau perd sa colonne des
      cours, qui repasse sous le chiffre. Les noms prennent leur forme courte :
@@ -257,6 +276,9 @@
   .rows {
     border-left: 0;
     padding-left: 0;
+  }
+  .spent .year::after {
+    background: var(--line);
   }
   .headRow {
     padding-left: 0;
