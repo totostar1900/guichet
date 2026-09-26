@@ -150,9 +150,24 @@ export interface RateReference {
  * lecture devenue référence se propagerait sans bruit à toutes les offres
  * suivantes.
  */
-/** Une séance relue de bout en bout : c'est elle seule qui fait référence. */
-export const confirmable = (r: Pick<AuctionResult, "codeEmission" | "instrument" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit">): string | null => {
-  if (!r.codeEmission?.trim()) return "Le code d'émission du Trésor, lu sur le communiqué.";
+/**
+ * Ce qu'une séance doit porter pour cesser d'être une proposition.
+ *
+ * Deux choses, et deux seulement : sa durée et son chiffre. C'est de quoi la
+ * placer sur une courbe et de quoi en faire une référence, ce à quoi la table
+ * sert. La durée est exigée parce que la moitié des titres de la BEAC ne la
+ * porte pas, cent trente-deux sur deux cent cinquante-trois : elle est dans le
+ * communiqué, et sans elle la séance ne se compare à rien.
+ *
+ * Le code d'émission ne l'est plus. Il sert à rattacher la séance à une de nos
+ * lignes, ce qui n'a de sens que pour les lignes que nous distribuons : une
+ * poignée. L'exiger partout obligeait à le relever sur chaque séance gabonaise
+ * ou tchadienne que nous ne distribuerons jamais, et doublait le coût d'une
+ * reprise d'historique pour un rattachement dont personne ne se servirait.
+ */
+export const confirmable = (r: Pick<AuctionResult, "tenor" | "instrument" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit">): string | null => {
+  const tenor = r.tenor?.trim();
+  if (!tenor || tenor === "—") return "La durée de la séance, lue sur le communiqué : sans elle, elle ne se compare à rien.";
   if (r.instrument === "BTA" && r.rateAvg == null && r.rateLimit == null) return "Le taux limite ou le taux moyen pondéré.";
   if (r.instrument === "OTA" && r.priceAvg == null && r.priceLimit == null) return "Le prix limite ou le prix moyen pondéré.";
   return null;

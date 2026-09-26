@@ -26,30 +26,39 @@ const seance = (over: Partial<AuctionResult>): AuctionResult => ({
 });
 
 describe("confirmer une séance", () => {
-  it("réclame le code d'émission : sans lui, la séance ne se rattache à rien", () => {
-    expect(confirmable(seance({ rateAvg: 6.97 }))).toMatch(/code d'émission/);
-    expect(confirmable(seance({ codeEmission: "  ", rateAvg: 6.97 }))).toMatch(/code d'émission/);
+  it("réclame la durée : sans elle, la séance ne se compare à rien", () => {
+    // Cent trente-deux titres de résultats sur deux cent cinquante-trois ne la
+    // portent pas. Elle est dans le communiqué, et c'est l'axe d'une courbe.
+    expect(confirmable(seance({ tenor: "—", rateAvg: 6.97 }))).toMatch(/durée/);
+    expect(confirmable(seance({ tenor: "   ", rateAvg: 6.97 }))).toMatch(/durée/);
   });
 
   it("réclame un chiffre : une séance sans taux ne dit rien", () => {
-    expect(confirmable(seance({ codeEmission: "CG1300001480" }))).toMatch(/taux/i);
+    expect(confirmable(seance({}))).toMatch(/taux/i);
   });
 
   it("accepte le taux limite quand le moyen pondéré n'est pas imprimé", () => {
-    expect(confirmable(seance({ codeEmission: "CG1300001480", rateLimit: 7 }))).toBeNull();
+    expect(confirmable(seance({ rateLimit: 7 }))).toBeNull();
   });
 
   it("attend un prix pour une obligation, pas un taux", () => {
-    const ota = seance({ instrument: "OTA", tenor: "3 ans", codeEmission: "CG2A00000668", rateAvg: 6 });
+    const ota = seance({ instrument: "OTA", tenor: "3 ans", rateAvg: 6 });
     expect(confirmable(ota)).toMatch(/[Pp]rix/);
     expect(confirmable({ ...ota, priceAvg: 90 })).toBeNull();
+  });
+
+  it("n'exige plus le code d'émission, qui ne sert qu'au rattachement", () => {
+    // Le relever sur chaque séance gabonaise que nous ne distribuons pas
+    // doublait le coût d'une reprise d'historique, pour un lien inutilisé.
+    expect(confirmable(seance({ rateAvg: 6.97 }))).toBeNull();
+    expect(confirmable(seance({ codeEmission: undefined, rateAvg: 6.97 }))).toBeNull();
   });
 
   it("laisse passer ce que tous les Trésors n'impriment pas", () => {
     // Ni couverture, ni nombre de soumissionnaires, ni montants : la séance se
     // confirme quand même. Exiger l'exhaustivité reviendrait à refuser la moitié
     // des communiqués de la zone.
-    expect(confirmable(seance({ codeEmission: "CG1300001480", rateAvg: 6.97 }))).toBeNull();
+    expect(confirmable(seance({ rateAvg: 6.97 }))).toBeNull();
   });
 });
 

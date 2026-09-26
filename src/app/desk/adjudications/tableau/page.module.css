@@ -1,0 +1,149 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.head h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.head p {
+  margin: var(--s-1) 0 0;
+  font-size: 0.8rem;
+  max-width: 62ch;
+}
+
+/* Ce que vaut la tranche affichée, avant qu'on en tire quoi que ce soit. */
+.band {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.band div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.band span {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band b {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Zéro séance relue : la moyenne n'existe pas, et le chiffre ne doit pas
+   ressembler à une mesure. */
+.none {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.warn {
+  margin: 0;
+  padding: var(--s-4);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+  font-size: 0.78rem;
+}
+
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.filter span {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.table th,
+.table td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--ink-3);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.r {
+  text-align: right;
+}
+.sortTh {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: inherit;
+  text-decoration: none;
+}
+.sortTh i {
+  font-style: normal;
+  opacity: 0.45;
+}
+.sortOn {
+  color: var(--gold-ink);
+}
+.sortOn i {
+  opacity: 1;
+}
+/* Le doré ne va qu'au taux, qui est un rendement ; un prix reste en encre. */
+.gold {
+  color: var(--gold-ink);
+  font-weight: 700;
+}
+/* Une séance pas encore relue n'est pas une donnée : elle se lit en retrait. */
+.draft td {
+  color: var(--ink-3);
+}
+.ok {
+  color: var(--ink-2);
+}
+.todo {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}

@@ -43,7 +43,8 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
       <div className={styles.page}>
         <aside className={styles.list} aria-label={t("Séances")}>
           <p className={styles.blurb}>
-            {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}
+            {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
+            <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
           </p>
 
           <h3>
