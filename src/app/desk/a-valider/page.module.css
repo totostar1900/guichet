@@ -453,8 +453,7 @@
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
-  /* La main dit qu'on peut prendre la page ; sans elle, personne ne le devine. */
-  cursor: grab;
+  /* Le curseur dit l'outil choisi : sans cela, personne ne devine qu'une page se prend. */
   touch-action: none;
   overscroll-behavior: contain;
 }
@@ -475,4 +474,17 @@
   display: grid;
   place-items: center;
   font-size: 0.85rem;
+}
+
+.hand {
+  cursor: grab;
+}
+/* La flèche laisse le navigateur faire : viser, sélectionner là où il y a du
+   texte, défiler à la molette sans que le glissement s'en mêle. */
+.arrow {
+  cursor: default;
+}
+.tools {
+  display: inline-flex;
+  gap: var(--s-1);
 }

@@ -37,6 +37,13 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(0);
   const [zoom, setZoom] = useState(1.4);
+  // Un quart de tour à la fois : les communiqués arrivent parfois couchés, et
+  // certains scanners les rendent à l'envers.
+  const [rot, setRot] = useState(0);
+  // La main déplace la page ; la flèche rend le curseur ordinaire, pour viser un
+  // détail ou laisser le navigateur faire ce qu'il fait d'habitude. Le lecteur
+  // natif offrait les deux, et les reprendre ne coûte qu'un état.
+  const [tool, setTool] = useState<"main" | "fleche">("main");
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const [grabbing, setGrabbing] = useState(false);
@@ -70,7 +77,7 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
     // Le rendu suit la densité de l'écran : sur un portable récent, une page
     // peinte à un pour un se lit floue, et un scan flou ne se valide pas.
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const vp = p.getViewport({ scale: zoom * dpr });
+    const vp = p.getViewport({ scale: zoom * dpr, rotation: rot });
     el.width = vp.width;
     el.height = vp.height;
     el.style.width = `${vp.width / dpr}px`;
@@ -80,7 +87,7 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, el.width, el.height);
     await p.render({ canvasContext: ctx, viewport: vp, canvas: el }).promise;
-  }, [page, zoom]);
+  }, [page, zoom, rot]);
 
   useEffect(() => {
     if (state === "ready") void draw();
@@ -88,7 +95,7 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
 
   const onDown = (e: React.PointerEvent) => {
     const box = wrap.current;
-    if (!box) return;
+    if (!box || tool !== "main") return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     drag.current = { x: e.clientX, y: e.clientY, left: box.scrollLeft, top: box.scrollTop };
     setGrabbing(true);
@@ -136,6 +143,32 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
         <button type="button" className="btn sm ghost" onClick={() => setZoom(1.4)}>
           {t("Ajuster")}
         </button>
+        <span className={styles.tools} role="group" aria-label={t("Outil")}>
+          <button
+            type="button"
+            className={`btn sm ${tool === "main" ? "" : "ghost"}`}
+            aria-pressed={tool === "main"}
+            onClick={() => setTool("main")}
+            title={t("Déplacer la page")}
+          >
+            ✋
+          </button>
+          <button
+            type="button"
+            className={`btn sm ${tool === "fleche" ? "" : "ghost"}`}
+            aria-pressed={tool === "fleche"}
+            onClick={() => setTool("fleche")}
+            title={t("Curseur ordinaire")}
+          >
+            ⤢
+          </button>
+        </span>
+        <button type="button" className="btn sm ghost" onClick={() => setRot((r) => (r + 270) % 360)} title={t("Pivoter à gauche")} aria-label={t("Pivoter à gauche")}>
+          ↺
+        </button>
+        <button type="button" className="btn sm ghost" onClick={() => setRot((r) => (r + 90) % 360)} title={t("Pivoter à droite")} aria-label={t("Pivoter à droite")}>
+          ↻
+        </button>
         {pages > 1 && (
           <span className={styles.pager}>
             <button type="button" className="btn sm ghost" onClick={() => setPage((n) => Math.max(1, n - 1))} disabled={page <= 1} aria-label={t("Page précédente")}>
@@ -153,7 +186,7 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
       </div>
       <div
         ref={wrap}
-        className={`${styles.viewerBox} ${grabbing ? styles.grabbing : ""}`}
+        className={`${styles.viewerBox} ${tool === "main" ? styles.hand : styles.arrow} ${grabbing ? styles.grabbing : ""}`}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -170,6 +203,6 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
 }
 
 interface PdfPage {
-  getViewport: (o: { scale: number }) => { width: number; height: number };
+  getViewport: (o: { scale: number; rotation?: number }) => { width: number; height: number };
   render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown; canvas: HTMLCanvasElement }) => { promise: Promise<void> };
 }

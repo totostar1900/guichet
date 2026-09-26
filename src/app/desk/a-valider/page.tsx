@@ -12,7 +12,12 @@ import { getT } from "@/i18n/server";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "À valider" };
 
-const SOURCE_LABEL: Record<IntakeItem["source"], string> = { mail: "E-mail", pdf: "PDF", photo: "Photo", texte: "Texte" };
+const SOURCE_LABEL: Record<IntakeItem["source"], string> = {
+  mail: "E-mail",
+  pdf: "PDF",
+  photo: "Photo",
+  texte: "Texte",
+};
 const STATE_LABEL: Record<IntakeItem["state"], [string, string]> = {
   a_valider: ["new", "À valider"],
   en_revue: ["review", "En revue"],
@@ -21,37 +26,73 @@ const STATE_LABEL: Record<IntakeItem["state"], [string, string]> = {
   rejete: ["off", "Rejeté"],
 };
 
-export default async function IntakePage({ searchParams }: { searchParams: Promise<{ item?: string; nouveau?: string }> }) {
+export default async function IntakePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ item?: string; nouveau?: string }>;
+}) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const queue = await r.listIntake();
-  const todo = queue.filter((q) => q.state === "a_valider" || q.state === "en_revue" || q.state === "bloque");
+  const todo = queue.filter(
+    (q) =>
+      q.state === "a_valider" || q.state === "en_revue" || q.state === "bloque",
+  );
   const selectedId = sp.item ?? todo[0]?.id;
-  const selected = selectedId ? queue.find((q) => q.id === selectedId) : undefined;
-  const offer = selected?.offerId ? await r.getOffer(selected.offerId) : undefined;
+  const selected = selectedId
+    ? queue.find((q) => q.id === selectedId)
+    : undefined;
+  const offer = selected?.offerId
+    ? await r.getOffer(selected.offerId)
+    : undefined;
   const showNew = sp.nouveau === "1" || (!selected && queue.length === 0);
 
   return (
     <>
-      <DeskNav current="/desk/a-valider" badges={{ "/desk/a-valider": todo.length }} />
+      <DeskNav
+        current="/desk/a-valider"
+        badges={{ "/desk/a-valider": todo.length }}
+      />
 
       <div className={styles.intake}>
         <aside className={styles.queue} aria-label={t("File d'entrée")}>
-          <Link href="/desk/a-valider?nouveau=1" className={`btn ${styles.newBtn}`}>
+          <Link
+            href="/desk/a-valider?nouveau=1"
+            className={`btn ${styles.newBtn}`}
+          >
             {t("+ Nouvelle source")}
           </Link>
-          {!extractionAvailable() && <div className={styles.noApi}>{t("Extraction automatique désactivée : ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.")}</div>}
+          {!extractionAvailable() && (
+            <div className={styles.noApi}>
+              {t(
+                "Extraction automatique désactivée : ajoutez ANTHROPIC_API_KEY dans .env.local. Les champs se remplissent à la main.",
+              )}
+            </div>
+          )}
           {queue.map((q) => {
             const [cls, label0] = STATE_LABEL[q.state];
             const label = t(label0);
             return (
-              <Link key={q.id} href={`/desk/a-valider?item=${q.id}`} className={styles.qitem} aria-current={q.id === selected?.id && !showNew ? "true" : undefined}>
+              <Link
+                key={q.id}
+                href={`/desk/a-valider?item=${q.id}`}
+                className={styles.qitem}
+                aria-current={
+                  q.id === selected?.id && !showNew ? "true" : undefined
+                }
+              >
                 <div className={styles.meta}>
-                  <span className={`${styles.src} ${styles[`src_${q.source}`]}`}>{SOURCE_LABEL[q.source]}</span>
+                  <span
+                    className={`${styles.src} ${styles[`src_${q.source}`]}`}
+                  >
+                    {SOURCE_LABEL[q.source]}
+                  </span>
                   <span className={`${styles.st} ${styles[`st_${cls}`]}`}>
                     {label}
-                    {q.state === "publie" && q.publishedAt ? ` · ${fmtDateTime(q.publishedAt)}` : ""}
+                    {q.state === "publie" && q.publishedAt
+                      ? ` · ${fmtDateTime(q.publishedAt)}`
+                      : ""}
                   </span>
                 </div>
                 <b>{q.title}</b>
@@ -62,7 +103,20 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
         </aside>
 
         <div className={styles.main}>
-          {showNew ? <NewSourceForm extraction={extractionAvailable()} /> : selected ? <ValidateForm item={selected} offer={offer} /> : <div className="empty">{t("Sélectionnez une source ou déposez-en une nouvelle.")}</div>}
+          {/* Une clef par fiche : sans elle, React garde le meme formulaire d une
+              source a l autre. Les champs non controles conservent alors la valeur
+              tapee sur la precedente, et « Publier » aurait pose le taux d une ligne
+              sur une autre. Ce n etait pas un affichage en retard, c etait une
+              publication fausse a un clic. */}
+          {showNew ? (
+            <NewSourceForm extraction={extractionAvailable()} />
+          ) : selected ? (
+            <ValidateForm key={selected.id} item={selected} offer={offer} />
+          ) : (
+            <div className="empty">
+              {t("Sélectionnez une source ou déposez-en une nouvelle.")}
+            </div>
+          )}
         </div>
       </div>
     </>
