@@ -993,4 +993,10 @@ export const EN_REST: Record<string, string> = {
   "Lecture automatique indisponible : les chiffres se saisissent à la main.": "Automatic reading unavailable: the figures are typed by hand.",
   "exigée pour confirmer": "required to confirm",
   "pour rattacher à une ligne": "to link it to a line",
+  "Le compte Anthropic n'a plus de crédit : la lecture automatique est suspendue. Les chiffres se saisissent à la main en attendant.": "The Anthropic account is out of credit: automatic reading is suspended. The figures are typed by hand meanwhile.",
+  "La clef Anthropic n'est pas acceptée. Les chiffres se saisissent à la main en attendant.": "The Anthropic key is not accepted. The figures are typed by hand meanwhile.",
+  "Trop de lectures à la fois : réessayez dans un instant.": "Too many readings at once: try again in a moment.",
+  "Le service de lecture ne répond pas pour le moment : réessayez dans un instant.": "The reading service is not responding right now: try again in a moment.",
+  "Le modèle a refusé de lire cette pièce. Les chiffres se saisissent à la main en attendant.": "The model declined to read this document. The figures are typed by hand meanwhile.",
+  "La lecture n'a pas abouti. Les chiffres se saisissent à la main en attendant. Le détail est au journal.": "The reading did not complete. The figures are typed by hand meanwhile. The detail is in the journal.",
 };

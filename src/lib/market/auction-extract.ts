@@ -165,3 +165,23 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
     seconds: Math.round((Date.now() - t0) / 100) / 10,
   };
 }
+
+/**
+ * Ce qui a empêché la lecture, dit au desk plutôt qu'au développeur.
+ *
+ * Les pannes d'ici ne se ressemblent pas et n'appellent pas la même chose : un
+ * compte sans crédit se recharge, une clef refusée se remplace, un service
+ * encombré s'attend. Dans les trois cas la conduite à tenir est la même pour la
+ * séance en cours, et c'est elle qu'il faut dire : les chiffres se saisissent à
+ * la main, la relecture n'est pas bloquée.
+ */
+export function readingTrouble(brut: string): string {
+  const s = brut.toLowerCase();
+  const main = "Les chiffres se saisissent à la main en attendant.";
+  if (s.includes("credit balance") || s.includes("billing")) return `Le compte Anthropic n'a plus de crédit : la lecture automatique est suspendue. ${main}`;
+  if (s.includes("401") || s.includes("authentication") || s.includes("invalid x-api-key")) return `La clef Anthropic n'est pas acceptée. ${main}`;
+  if (s.includes("429") || s.includes("rate_limit")) return "Trop de lectures à la fois : réessayez dans un instant.";
+  if (s.includes("overloaded") || s.includes("529") || s.includes("503")) return "Le service de lecture ne répond pas pour le moment : réessayez dans un instant.";
+  if (s.includes("refusée par le modèle")) return `Le modèle a refusé de lire cette pièce. ${main}`;
+  return `La lecture n'a pas abouti. ${main} Le détail est au journal.`;
+}

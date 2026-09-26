@@ -6,7 +6,7 @@ import { requireDesk } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import { confirmable, millions, type NewAuctionResult } from "@/lib/market/auction-results";
-import { auctionReadingAvailable, readAuctionResult } from "@/lib/market/auction-extract";
+import { auctionReadingAvailable, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
 import { readSource } from "@/lib/intake/storage";
 
 export interface ResultOutcome {
@@ -195,6 +195,13 @@ export async function proposeResultAction(_prev: ResultOutcome | null, form: For
       remarks,
     };
   } catch (e) {
-    return { ok: false, error: `Lecture impossible : ${e instanceof Error ? e.message : "erreur"}` };
+    // Le détail technique part au journal, où il se retrouve ; l'écran reçoit
+    // une phrase qui dit quoi faire. Recracher la réponse brute de l'API dans le
+    // formulaire apprend au desk à ne plus lire ses propres messages.
+    const brut = e instanceof Error ? e.message : String(e);
+    await repo()
+      .logEvent({ kind: "system", html: `Lecture d'adjudication refusée (séance du ${r.sessionOn}, ${r.instrument} ${r.tenor}) : ${brut.slice(0, 400).replace(/</g, "&lt;")}` })
+      .catch(() => {});
+    return { ok: false, error: readingTrouble(brut) };
   }
 }
