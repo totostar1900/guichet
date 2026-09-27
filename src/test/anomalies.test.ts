@@ -44,6 +44,20 @@ describe("les anomalies", () => {
     expect(anomalies([s({ id: "m", rateAvg: 6, bid: 1e9, served: 2e9 })])[0].quoi).toContain("supérieur aux soumissions");
   });
 
+  /**
+   * Le code du Trésor porte le préfixe ISO de son pays, et la colonne « pays »
+   * de l index de la BEAC vient d ailleurs que le scan : les deux se
+   * contrôlent l un l autre sans rien coûter.
+   */
+  it("voient un code dont le préfixe ne répond pas au pays", () => {
+    const a = anomalies([s({ id: "p", country: "Tchad", codeEmission: "GA1200001699", rateAvg: 6 })]);
+    expect(a[0].quoi).toContain("préfixe GA");
+  });
+
+  it("laissent passer un code qui répond à son pays", () => {
+    expect(anomalies([s({ country: "Gabon", codeEmission: "GA1200001699", rateAvg: 6 })])).toEqual([]);
+  });
+
   it("voient une séance du 1er janvier", () => {
     expect(anomalies([s({ id: "j", sessionOn: "2025-01-01", rateAvg: 6.5 })])[0].quoi).toContain("1er janvier");
   });

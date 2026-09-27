@@ -36,6 +36,23 @@ export interface Anomalie {
 const n = (v: number | undefined) => (v == null ? null : Number(v));
 
 /**
+ * Le préfixe d'un code d'émission, et le Trésor qu'il désigne.
+ *
+ * « CG2J00000875 » est congolais, « GA1100002227 » gabonais : les deux
+ * premières lettres sont le code ISO du pays, et la BEAC ne s'en écarte pas.
+ * La colonne « pays » de son index vient d'ailleurs que le code, qui est lu
+ * dans le scan : les deux se contrôlent donc l'un l'autre, gratuitement.
+ */
+const PREFIXE: Record<string, AuctionResult["country"]> = {
+  CM: "Cameroun",
+  CG: "Congo",
+  GA: "Gabon",
+  TD: "Tchad",
+  CF: "RCA",
+  GQ: "Guinée éq.",
+};
+
+/**
  * Les montants d'une séance à plusieurs lignes, tous identiques.
  *
  * Le 14 septembre 2026, les cinq lignes camerounaises de trois à sept ans
@@ -101,6 +118,13 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
     const soumis = n(r.bid);
     if (servi != null && soumis != null && servi > soumis * 1.001) {
       out.push({ ...base, quoi: `servi ${Math.round(servi / 1e6)} M supérieur aux soumissions ${Math.round(soumis / 1e6)} M`, verifier: "les deux montants sur la pièce, et leur unité" });
+    }
+
+    // Le code dit un Trésor, la colonne de la BEAC en dit un autre.
+    const prefixe = r.codeEmission?.trim().slice(0, 2).toUpperCase();
+    const dit = prefixe ? PREFIXE[prefixe] : undefined;
+    if (dit && dit !== r.country) {
+      out.push({ ...base, quoi: `code ${r.codeEmission} : préfixe ${prefixe}, or la séance est rangée sous ${r.country}`, verifier: "le pays de la séance, ou le code lu sur le communiqué voisin" });
     }
 
     // Une séance du 1er janvier n'existe pas : c'est une date mal lue.
