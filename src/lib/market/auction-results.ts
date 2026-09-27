@@ -81,6 +81,18 @@ export interface AuctionResult {
   couponRate?: number;
   /** L'échéance imprimée : la durée annoncée compare, l'échéance calcule. */
   maturityOn?: string;
+  /**
+   * Le dernier passage du lecteur automatique, qu'il en ait tiré quelque chose
+   * ou non.
+   *
+   * Vide veut dire « jamais lue », et c'est ce que la file regarde. Le déduire
+   * de « updated_at » était faux : le robot d'ingestion réécrit chaque ligne à
+   * chacun de ses passages, et cent vingt communiqués parfaitement lisibles
+   * sont ainsi passés pour déjà tentés sans avoir jamais été ouverts.
+   */
+  readAt?: string;
+  /** Le modèle de ce passage : comparer deux campagnes suppose de savoir laquelle vient de qui. */
+  readModel?: string;
   /** Tel que le Trésor le publie, jamais recalculé. */
   coverage?: number;
   sourceUrl: string;

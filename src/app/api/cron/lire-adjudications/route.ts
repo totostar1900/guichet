@@ -80,8 +80,13 @@ export async function GET(req: NextRequest) {
   const n = Math.min(Math.max(Number(p.get("n") ?? 6), 1), 12);
   const r = repo();
 
-  /** Le robot est déjà passé sur cette séance : les deux horodatages le disent. */
-  const dejaTentee = (x: AuctionResult) => Date.parse(x.updatedAt) > Date.parse(x.createdAt) + 60_000;
+  /**
+   * Le robot est déjà passé sur cette pièce : elle porte sa marque de lecture.
+   *
+   * Une séance déjà chiffrée compte aussi comme lue, même sans marque : elle
+   * vient d'avant la colonne, et la rouvrir n'apprendrait rien.
+   */
+  const dejaTentee = (x: AuctionResult) => Boolean(x.readAt) || x.rateAvg != null || x.rateLimit != null || x.priceAvg != null || x.priceLimit != null;
 
   /**
    * Une séance est « à lire » quand elle a sa pièce, pas encore son chiffre, et
@@ -127,7 +132,12 @@ export async function GET(req: NextRequest) {
       // donne sans ambiguïté : la lecture du scan ne les redéfinit pas. Seuls
       // les chiffres, la durée et le code d'émission entrent ici.
       const seul = <T,>(lu: T | undefined) => (complement ? undefined : lu);
+      // La marque s'écrit que la lecture ait donné quelque chose ou non : une
+      // pièce dont on ne tire rien est un fait à retenir, pas une tentative à
+      // recommencer indéfiniment.
       await r.updateAuctionResult(x.id, {
+        readAt: new Date().toISOString(),
+        readModel: model,
         codeEmission: x.codeEmission ?? proposal.codeEmission,
         tenor: x.tenor && x.tenor !== "—" ? x.tenor : (proposal.tenor ?? x.tenor),
         announced: seul(proposal.announced),
