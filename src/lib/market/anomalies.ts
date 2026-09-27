@@ -1,4 +1,5 @@
 import type { AuctionResult } from "./auction-results";
+import { priceOf, vieRestante, ytm } from "./yield";
 
 /**
  * Ce que la table attrape et qu'un formulaire ne montre pas.
@@ -181,6 +182,40 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
 
     // Une séance du 1er janvier n'existe pas : c'est une date mal lue.
     if (/-01-01$/.test(r.sessionOn)) out.push({ ...base, quoi: { key: "séance datée du 1er janvier" }, verifier: "la date imprimée en tête du communiqué" });
+
+    /**
+     * Le rendement imprimé ne suit pas du prix et du coupon imprimés.
+     *
+     * Trois nombres que le Trésor pose côte à côte sur la même pièce se
+     * déduisent l'un de l'autre. Notre calcul reproduit le rendement camerounais
+     * à moins d'un point de base sur dix des treize séances où il figure, et les
+     * avis d'annonce congolais confirment l'échéancier en toutes lettres :
+     * « Remboursement : In fine », intérêts annuels. Un écart de plus de quinze
+     * points de base ne vient donc pas de nous, et l'un des trois nombres est à
+     * relire sur la pièce.
+     */
+    if (r.yieldAvg != null && r.couponRate != null) {
+      const p = priceOf(r);
+      const vie = vieRestante(r);
+      const calcule = p && vie ? ytm(p.pct, r.couponRate, vie.years) : undefined;
+      const bp = calcule == null ? 0 : Math.round((calcule - r.yieldAvg) * 100);
+      if (p && calcule != null && Math.abs(bp) > 15) {
+        out.push({
+          ...base,
+          quoi: {
+            key: "rendement imprimé {y} %, or le prix {p} et le coupon {c} % en donnent {z} % : {bp} points de base d'écart",
+            params: {
+              y: r.yieldAvg.toLocaleString("fr-FR", { minimumFractionDigits: 2 }),
+              p: p.pct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }),
+              c: r.couponRate.toLocaleString("fr-FR", { minimumFractionDigits: 2 }),
+              z: calcule.toLocaleString("fr-FR", { maximumFractionDigits: 2 }),
+              bp: Math.abs(bp),
+            },
+          },
+          verifier: "les trois nombres sur la pièce : le prix moyen, le taux facial et le taux de rendement",
+        });
+      }
+    }
 
     // Plus de soumissionnaires que de spécialistes dans le réseau.
     if (r.bidders != null && r.networkSize != null && r.bidders > r.networkSize) {

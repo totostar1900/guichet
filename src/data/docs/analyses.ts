@@ -93,6 +93,14 @@ export const ANALYSES: DocPage = {
           type: "note",
           kind: "rule",
           text: l(
+            "Le capital se rembourse en une fois, et ce n'est plus une hypothèse. L'avis d'annonce du Trésor congolais, qui n'est pas le communiqué de résultats, porte « Remboursement : In fine » et « les intérêts sont payés annuellement » : vérifié sur trois avis, dont deux abondements et une ligne neuve. De son côté le Trésor camerounais imprime son propre taux de rendement, et notre calcul le retrouve à moins d'un point de base sur dix des treize séances où les deux figurent. Les rendements congolais à court terme, de 15 à 17 % sur dix-huit mois, ne sont donc pas un artefact de l'échéancier supposé : ils sont ce que le marché a demandé à cette signature.",
+            "The principal is repaid in one instalment, and this is no longer an assumption. The Congolese Treasury's announcement notice, which is not the results communiqué, carries “Remboursement : In fine” and “les intérêts sont payés annuellement”: checked on three notices, two of them taps and one a new line. The Cameroonian Treasury, for its part, prints its own yield, and our computation reproduces it to within one basis point on ten of the thirteen sessions where both appear. The short-dated Congolese yields, 15 to 17 % over eighteen months, are therefore not an artefact of the assumed schedule: they are what the market asked of that signature.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "rule",
+          text: l(
             "La durée annoncée nomme la ligne, l'échéance imprimée la date. Un abondement porte la durée qu'avait la ligne à son émission : « OTA-3 ans 6,50 % 27-JUIN-2027 », adjugée le 21 juillet 2026, a onze mois devant elle et non trois ans. Le rendement s'actualise donc sur l'échéance dès que le communiqué la porte, et le point se pose sur la courbe à cette vie restante : un abondement de six ans à dix-huit mois de son terme appartient au court. Sur les deux cent quarante-neuf séances, quarante-sept se déplacent, et les plus grands écarts sont tous des abondements : sept cent cinquante-neuf points de base sur le 4 ans congolais du 21 juillet 2026.",
             "The announced tenor names the line, the printed maturity dates it. A tap carries the tenor the line had when it was first issued: “OTA-3 ans 6.50 % 27-JUIN-2027”, auctioned on 21 July 2026, has eleven months ahead of it, not three years. The yield is therefore discounted to the maturity date whenever the communiqué carries one, and the point sits on the curve at that remaining life: a six-year tap eighteen months from its term belongs to the short end. Of the two hundred and forty-nine sessions, forty-seven move, and the largest gaps are all taps: seven hundred and fifty-nine basis points on the Congolese 4-year of 21 July 2026.",
           ),
@@ -273,8 +281,8 @@ export const ANALYSES: DocPage = {
           type: "list",
           items: [
             l(
-              "L'échéancier réel des obligations. Beaucoup s'amortissent par tranches après un différé, ce qui raccourcit la durée de vie moyenne et relève le rendement. Tant que le communiqué ne le dit pas, le calcul suppose un remboursement in fine et le déclare.",
-              "The real repayment schedule of bonds. Many amortise in instalments after a grace period, which shortens average life and raises the yield. While the communiqué does not say, the computation assumes a bullet repayment and declares it.",
+              "La couverture des avis d'annonce. C'est là, et non sur le communiqué de résultats, que le Trésor écrit les modalités de son emprunt. La BEAC n'en garde qu'une fenêtre glissante : sur nos quatre séances congolaises en question, aucune n'y figurait encore. L'échéancier d'une ligne précise se vérifie donc tant que son avis est en ligne, et pas après.",
+              "The coverage of announcement notices. That, and not the results communiqué, is where the Treasury writes the terms of its borrowing. BEAC keeps only a rolling window: of the four Congolese sessions in question, none was still listed. The schedule of a given line can therefore be checked while its notice is online, and not after.",
             ),
             l(
               "La pondération de l'indice. La note méthodologique de la BVMAC reste à obtenir ; la fraîcheur se compte donc en composantes.",

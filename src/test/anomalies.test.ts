@@ -143,3 +143,38 @@ describe("les anomalies", () => {
     expect(a[0].gravite).toBe("confirmee");
   });
 });
+
+describe("le rendement imprimé contre le prix imprimé", () => {
+  /**
+   * Trois nombres posés côte à côte sur la même pièce se déduisent l'un de
+   * l'autre. Notre calcul retrouve le rendement camerounais à moins d'un point
+   * de base sur dix des treize séances où il figure, et les avis d'annonce
+   * congolais écrivent « Remboursement : In fine ». Un écart de cent points de
+   * base ne vient donc pas de nous.
+   */
+  it("signale une séance dont les trois nombres ne se répondent pas", () => {
+    const [a] = anomalies([
+      s({ id: "x", country: "Cameroun", instrument: "OTA", tenor: "6 ans", sessionOn: "2021-06-16", maturityOn: "2027-06-17", priceAvg: 99.17, couponRate: 6, yieldAvg: 7.17 }),
+    ]);
+    expect(a.quoi.key).toContain("rendement imprimé");
+    expect(a.quoi.params!.bp).toBeGreaterThan(90);
+    expect(a.verifier).toContain("taux de rendement");
+  });
+
+  it("se tait sur un écart d'arrondi, qui n'apprend rien à personne", () => {
+    // Cameroun, 14 septembre 2026, 4 ans : imprimé 7,68 %, calculé 7,68 %.
+    expect(
+      anomalies([
+        s({ id: "y", country: "Cameroun", instrument: "OTA", tenor: "4 ans", sessionOn: "2026-09-14", maturityOn: "2030-09-16", priceAvg: 96, couponRate: 6.5, yieldAvg: 7.68 }),
+      ]),
+    ).toHaveLength(0);
+  });
+
+  it("ne dit rien quand le Trésor n'imprime pas de rendement", () => {
+    expect(
+      anomalies([
+        s({ id: "z", country: "Congo", instrument: "OTA", tenor: "6 ans", sessionOn: "2026-09-15", maturityOn: "2028-03-31", priceAvg: 90.59, couponRate: 6 }),
+      ]),
+    ).toHaveLength(0);
+  });
+});

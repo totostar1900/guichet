@@ -179,6 +179,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les motifs sautent aux yeux.": "None of these patterns says a figure is wrong: they say it contradicts itself or its neighbour. What is already confirmed comes first, having entered the desk's references. One session at a time, none of these anomalies shows; ranged in a column, the patterns leap out.",
   "un bon servi à un prix, sans taux": "a bill served at a price, with no rate",
   "une obligation servie à un taux, sans prix": "a bond served at a rate, with no price",
+  "rendement imprimé {y} %, or le prix {p} et le coupon {c} % en donnent {z} % : {bp} points de base d'écart": "printed yield {y} %, yet the price {p} and the coupon {c} % give {z} %: {bp} basis points apart",
   "séance datée du 1er janvier": "session dated 1 January",
   "l'instrument de la séance, ou la colonne lue": "the session's instrument, or the column read",
   "la colonne d'où vient le chiffre retenu, et celles des deux bornes": "the column the retained figure came from, and those of the two bounds",
