@@ -2,7 +2,7 @@
  * Confirmer en lot des séances d'adjudication lues par la machine.
  *
  *   node scripts/confirmer-adjudications.mjs Gabon RCA
- *   node scripts/confirmer-adjudications.mjs Gabon RCA --ecrire --par "Prénom Nom"
+ *   node scripts/confirmer-adjudications.mjs Gabon RCA --ecrire --par "Prénom Nom" --compte vous@exemple.com
  *
  * Ce que confirmer veut dire, et pourquoi ce script est long.
  *
@@ -29,8 +29,12 @@
  *   faute de lecture produirait. Ce qu'il écarte n'est pas rejeté, il est
  *   laissé au desk.
  *
- *   Il signe d'un nom, exigé par « --par ». Une confirmation anonyme n'en est
- *   pas une, et le journal d'audit sert à savoir qui a arrêté quel chiffre.
+ *   Il signe, et de deux façons, parce que l'application en fait deux. La
+ *   séance porte le nom affiché de la personne (« --par »), comme le fait
+ *   l'écran de relecture ; le journal d'audit porte l'adresse du compte
+ *   (« --compte »), comme le fait audit(). Les confondre rendrait le journal
+ *   illisible au moment précis où on le lirait : quand quelqu'un demandera qui
+ *   a arrêté ce chiffre.
  *
  * La trace : une seule entrée d'audit pour le lot, qui dit que c'en était un.
  * Écrire quatre-vingt-quatorze entrées ferait croire à quatre-vingt-quatorze
@@ -45,14 +49,18 @@ import { createHash } from "node:crypto";
 const args = process.argv.slice(2);
 const ecrire = args.includes("--ecrire");
 const par = args.includes("--par") ? args[args.indexOf("--par") + 1] : undefined;
-const pays = args.filter((a) => !a.startsWith("--") && a !== par);
+// Le journal d'audit nomme un compte, la séance nomme une personne : les
+// cinquante-sept confirmations déjà faites portent « Test Toto » sur la séance
+// et l'adresse du compte au journal.
+const compte = args.includes("--compte") ? args[args.indexOf("--compte") + 1] : undefined;
+const pays = args.filter((a) => !a.startsWith("--") && a !== par && a !== compte);
 
 if (!pays.length) {
-  console.error('usage : node scripts/confirmer-adjudications.mjs <Pays> [Pays...] [--ecrire --par "Prénom Nom"]');
+  console.error('usage : node scripts/confirmer-adjudications.mjs <Pays> [Pays...] [--ecrire --par "Prénom Nom" --compte vous@exemple.com]');
   process.exit(1);
 }
-if (ecrire && !par) {
-  console.error('« --ecrire » demande « --par "Prénom Nom" » : une confirmation sans nom n\'en est pas une.');
+if (ecrire && (!par || !compte)) {
+  console.error('« --ecrire » demande « --par "Prénom Nom" » et « --compte vous@exemple.com » : la séance porte le nom, le journal porte le compte.');
   process.exit(1);
 }
 
@@ -146,7 +154,7 @@ const aEcrire = classe.propre.map((x) => x.r);
 
 if (!ecrire) {
   console.log(`Essai à blanc : rien n'a été écrit. ${aEcrire.length} séances seraient confirmées.`);
-  console.log('Pour les écrire : ajoutez --ecrire --par "Prénom Nom".');
+  console.log('Pour les écrire : ajoutez --ecrire --par "Prénom Nom" --compte vous@exemple.com.');
   process.exit(0);
 }
 
@@ -172,7 +180,7 @@ if (!faits.length) process.exit(1);
 const dernier = await fetch(`${URL_}/rest/v1/audit?select=hash&order=id.desc&limit=1`, { headers: head }).then((r) => r.json());
 const prevHash = dernier[0]?.hash;
 const e = {
-  actor: par,
+  actor: compte,
   action: "auction.confirm.lot",
   entity: "auction_result",
   entityId: `${pays.join("-").toLowerCase()}-${at.slice(0, 10)}`,
