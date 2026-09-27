@@ -36,7 +36,7 @@ export const ANALYSES: DocPage = {
             "They produce no advice and carry no recommendation. A curve states the cost of sovereign money at each horizon; what is made of it for a client belongs to the relationship, not to the measurement.",
           ),
         },
-        { type: "link", href: "/desk/courbe", label: l("La courbe des taux", "The yield curve"), hint: l("Une durée, un point, par Trésor.", "One tenor, one point, per Treasury.") },
+        { type: "link", href: "/desk/courbe", label: l("La courbe des taux", "The yield curve"), hint: l("Une ligne, un point, par Trésor.", "One line, one point, per Treasury.") },
         { type: "link", href: "/desk/analyses", label: l("Le dossier d'analyses", "The analysis file"), hint: l("Pression, exécution, liquidité, fraîcheur, pont.", "Pressure, execution, liquidity, freshness, bridge.") },
         { type: "link", href: "/desk/adjudications/tableau", label: l("Toutes les séances", "Every session"), hint: l("La table de contrôle de la relecture.", "The control table of the review.") },
       ],
@@ -93,6 +93,14 @@ export const ANALYSES: DocPage = {
           type: "note",
           kind: "rule",
           text: l(
+            "La durée annoncée nomme la ligne, l'échéance imprimée la date. Un abondement porte la durée qu'avait la ligne à son émission : « OTA-3 ans 6,50 % 27-JUIN-2027 », adjugée le 21 juillet 2026, a onze mois devant elle et non trois ans. Le rendement s'actualise donc sur l'échéance dès que le communiqué la porte, et le point se pose sur la courbe à cette vie restante : un abondement de six ans à dix-huit mois de son terme appartient au court. Sur les deux cent quarante-neuf séances, quarante-sept se déplacent, et les plus grands écarts sont tous des abondements : sept cent cinquante-neuf points de base sur le 4 ans congolais du 21 juillet 2026.",
+            "The announced tenor names the line, the printed maturity dates it. A tap carries the tenor the line had when it was first issued: “OTA-3 ans 6.50 % 27-JUIN-2027”, auctioned on 21 July 2026, has eleven months ahead of it, not three years. The yield is therefore discounted to the maturity date whenever the communiqué carries one, and the point sits on the curve at that remaining life: a six-year tap eighteen months from its term belongs to the short end. Of the two hundred and forty-nine sessions, forty-seven move, and the largest gaps are all taps: seven hundred and fifty-nine basis points on the Congolese 4-year of 21 July 2026.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "rule",
+          text: l(
             "Un prix d'obligation sans coupon ne donne aucun rendement. Le même 95,00 % peut valoir 7 % comme 12 % selon ce que la ligne paie : le combler par un coupon moyen donnerait une courbe lisse et fausse, dont personne ne verrait qu'elle est fausse. La séance reste alors sans point, et la page compte le trou.",
             "A bond price without a coupon gives no yield. The same 95.00 % can be 7 % or 12 % depending on what the line pays: filling it with an average coupon would give a smooth, false curve that nobody could see was false. The session then has no point, and the page counts the gap.",
           ),
@@ -125,8 +133,8 @@ export const ANALYSES: DocPage = {
               "It uses only sessions reviewed by a person. An automatic reading can carry a 7.00 % misread from a scan; as a curve point it would propagate to every indication the desk gives.",
             ),
             l(
-              "Une durée, un point, le plus récent. Deux séances de même durée à quinze jours d'écart ne se moyennent pas : la plus récente est le marché, l'autre est de l'histoire, et l'histoire se lit dans une série.",
-              "One tenor, one point, the most recent. Two sessions of the same tenor a fortnight apart are not averaged: the later one is the market, the other is history, and history is read in a series.",
+              "Une ligne, un point, le plus récent. Deux séances de la même ligne à quinze jours d'écart ne se moyennent pas : la plus récente est le marché, l'autre est de l'histoire, et l'histoire se lit dans une série. C'est bien la ligne qui compte et non son nom, deux abondements pouvant s'appeler « 6 ans » le même mois sans partager une échéance.",
+              "One line, one point, the most recent. Two sessions of the same line a fortnight apart are not averaged: the later one is the market, the other is history, and history is read in a series. It is the line that counts and not its name, two taps being able to share the label « 6 ans » in the same month without sharing a maturity date.",
             ),
             l(
               "Une séance représentative passe devant une séance récente. Un bon servi à un seul soumissionnaire dit ce que cette contrepartie voulait, pas ce que le marché demandait ; le point est tracé creux.",

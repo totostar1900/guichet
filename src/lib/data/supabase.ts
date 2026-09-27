@@ -464,7 +464,7 @@ const fromNav = (n: FundNav): NavRow => ({
 
 // Les montants sont en francs côté application ; Postgres les rend en chaînes
 // parce que « numeric » ne tient pas dans un double, et « nn » les ramène.
-type AuctionResultRow = {
+export type AuctionResultRow = {
   id: string; code_emission: string | null; country: AuctionResult["country"]; instrument: AuctionResult["instrument"]; tenor: string; session_on: string; abondement: boolean;
   announced: string | null; bid: string | null; served: string | null; network_size: number | null; bidders: number | null;
   rate_min: string | null; rate_max: string | null; rate_limit: string | null; rate_avg: string | null;
@@ -472,7 +472,14 @@ type AuctionResultRow = {
   yield_avg: string | null; yield_limit: string | null; coupon_rate: string | null; maturity_on: string | null; read_at: string | null; read_model: string | null; anomalies_vues: string[] | null;
   coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null; offer_id: string | null; created_at: string; updated_at: string;
 };
-const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
+/**
+ * Une séance de la base, mise en objet du domaine.
+ *
+ * Exportée parce que les scripts de relecture la lisent aussi : un outil qui
+ * refait la conversion de son côté finit par lire autre chose que l'écran, et
+ * c'est exactement ce qu'une vérification ne doit pas faire.
+ */
+export const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   id: r.id, codeEmission: u(r.code_emission), country: r.country, instrument: r.instrument, tenor: r.tenor, sessionOn: r.session_on, abondement: r.abondement,
   announced: nn(r.announced), bid: nn(r.bid), served: nn(r.served), networkSize: u(r.network_size), bidders: u(r.bidders),
   rateMin: nn(r.rate_min), rateMax: nn(r.rate_max), rateLimit: nn(r.rate_limit), rateAvg: nn(r.rate_avg),

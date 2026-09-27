@@ -90,6 +90,16 @@ export interface Curve {
 
 const days = (a: string, b: string): number => Math.round((Date.parse(a) - Date.parse(b)) / 86_400_000);
 
+/**
+ * L'abscisse mise en mots : un nombre et son unité, pas une phrase.
+ *
+ * Sous l'année, les mois se lisent mieux que les décimales : « 11 mois » dit ce
+ * que « 0,9 an » oblige à convertir de tête. Au-delà, une décimale suffit, un
+ * abondement se posant à 1,5 an et non à 1,54.
+ */
+export const horizon = (years: number): { n: number; unit: "mois" | "ans" } =>
+  years < 1 ? { n: Math.max(1, Math.round(years * 12)), unit: "mois" } : { n: Math.round(years * 10) / 10, unit: "ans" };
+
 /** Sous deux points, une courbe n'est pas une courbe : c'est une observation. */
 export const MIN_POINTS = 2;
 

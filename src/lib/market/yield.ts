@@ -205,10 +205,13 @@ export function ytm(pricePct: number, couponPct: number, years: number): number 
  * quel que soit le Trésor qui l'imprime. On retient alors le prix limite, qui
  * est pied de coupon, et on le déclare.
  *
- * Le haut de la fourchette se reconnaît à sa valeur et non à son étiquette : le
- * Trésor congolais imprime « maximum 90,00 » et « minimum 95,00 », et lire la
- * borne par son nom faisait passer une moyenne parfaitement normale pour un
- * prix coupon inclus.
+ * Le haut de la fourchette se reconnaît à sa valeur et non à son étiquette,
+ * parce que le Trésor congolais imprime « maximum » avant « minimum » et que
+ * ses deux nombres vont dans l'autre sens. Aucune séance stockée n'est dans ce
+ * désordre, l'ingestion triant déjà : c'est donc une protection et non une
+ * correction. Elle a sa place ici quand même, une fonction de domaine n'ayant
+ * pas à dépendre d'un tri fait dans un autre fichier pour que onze rendements
+ * gabonais restent justes.
  */
 export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax">): { pct: number; assumed?: Assumption } | undefined {
   const haut = r.priceMin != null && r.priceMax != null ? Math.max(r.priceMin, r.priceMax) : (r.priceMax ?? r.priceMin);

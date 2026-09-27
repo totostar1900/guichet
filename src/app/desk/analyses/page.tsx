@@ -11,7 +11,8 @@ import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
 import { cribler } from "@/lib/market/anomalies";
 import { anomalieVueAction } from "./actions";
 import { bridge } from "@/lib/market/bridge";
-import { buildCurve, MIN_POINTS, serie } from "@/lib/market/curve";
+import { buildCurve, horizon, MIN_POINTS, serie } from "@/lib/market/curve";
+import { tenorYears } from "@/lib/market/yield";
 import { freshness, liquidity } from "@/lib/market/liquidity";
 import styles from "./page.module.css";
 
@@ -165,11 +166,19 @@ export default async function AnalysesPage() {
                       <b>{c.country}</b>
                       <em>{t("{n} points · le plus ancien à {j} jours", { n: c.points.length, j: c.oldestDays })}</em>
                       <div className={styles.pts}>
-                        {c.points.map((p) => (
-                          <span key={p.tenor}>
-                            {p.tenor.replace(" semaines", " sem.")} <b>{pct(p.yield.pct, 2)}</b>
-                          </span>
-                        ))}
+                        {c.points.map((p) => {
+                          // L'écart ne se voit que sur un abondement : ailleurs
+                          // l'étiquette et l'horizon disent la même chose, et
+                          // répéter l'un sous l'autre ne ferait que du bruit.
+                          const h = horizon(p.years);
+                          const ecarte = Math.abs((tenorYears(p.tenor) ?? p.years) - p.years) > 0.15;
+                          return (
+                            <span key={p.from.id}>
+                              {p.tenor.replace(" semaines", " sem.")}
+                              {ecarte && <em className="muted">{` (${h.n.toLocaleString("fr-FR")} ${t(h.unit)})`}</em>} <b>{pct(p.yield.pct, 2)}</b>
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

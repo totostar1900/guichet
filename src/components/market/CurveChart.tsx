@@ -1,6 +1,6 @@
 import { getT } from "@/i18n/server";
 import type { Country } from "@/lib/domain/types";
-import type { CountryCurve } from "@/lib/market/curve";
+import { horizon, type CountryCurve, type CurvePoint } from "@/lib/market/curve";
 import styles from "./CurveChart.module.css";
 
 /**
@@ -70,9 +70,16 @@ export async function CurveChart({ countries, height = 280, ariaLabel }: { count
   const X = (annees: number) => P.l + ((Math.log(annees) - x0) / (x1 - x0 || 1)) * (W - P.l - P.r);
   const Y = (v: number) => H - P.b - ((v - lo) / (hi - lo || 1)) * (H - P.t - P.b);
 
-  // Les abscisses sont les durées réellement adjugées, pas une graduation
-  // inventée : une courbe de la zone ne passe pas par des points qui n'existent pas.
-  const durees = [...new Map(pts.map((p) => [p.tenor, p])).values()].sort((a, b) => a.years - b.years);
+  // Les abscisses sont les horizons réellement adjugés, pas une graduation
+  // inventée : une courbe de la zone ne passe pas par des points qui n'existent
+  // pas. Le dédoublonnage se fait sur l'horizon affiché et non sur l'étiquette
+  // du produit, deux abondements pouvant s'appeler « 6 ans » sans se poser au
+  // même endroit.
+  const mot = (p: CurvePoint) => {
+    const { n, unit } = horizon(p.years);
+    return `${n.toLocaleString("fr-FR")} ${t(unit)}`;
+  };
+  const durees = [...new Map(pts.map((p) => [mot(p), p])).values()].sort((a, b) => a.years - b.years);
 
   /**
    * Les durées qui portent une étiquette.
@@ -88,7 +95,7 @@ export async function CurveChart({ countries, height = 280, ariaLabel }: { count
   for (let i = durees.length - 1; i >= 0; i--) {
     const x = X(durees[i].years);
     if (droite - x < ECART) continue;
-    nommees.add(durees[i].tenor);
+    nommees.add(mot(durees[i]));
     droite = x;
   }
   const grille = ticks(lo, hi);
@@ -109,11 +116,11 @@ export async function CurveChart({ countries, height = 280, ariaLabel }: { count
         {durees.map((d) => {
           const x = X(d.years);
           return (
-            <g key={d.tenor}>
+            <g key={mot(d)}>
               <line x1={x} y1={P.t} x2={x} y2={H - P.b} className={styles.grid} />
-              {nommees.has(d.tenor) && (
+              {nommees.has(mot(d)) && (
                 <text x={x} y={H - P.b + 16} textAnchor="middle" className={styles.tick}>
-                  {d.tenor.replace(" semaines", " sem.").replace(" ans", " ans")}
+                  {mot(d)}
                 </text>
               )}
             </g>
@@ -127,8 +134,8 @@ export async function CurveChart({ countries, height = 280, ariaLabel }: { count
             <g key={c.country}>
               {c.points.length > 1 && <polyline points={c.points.map((p) => `${X(p.years)},${Y(p.yield.pct)}`).join(" ")} fill="none" stroke={couleur} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />}
               {c.points.map((p) => (
-                <circle key={p.tenor} cx={X(p.years)} cy={Y(p.yield.pct)} r={4} fill={p.thin ? "var(--surface)" : couleur} stroke={couleur} strokeWidth={2}>
-                  <title>{`${c.country} · ${p.tenor} · ${pct(p.yield.pct)} · séance du ${p.from.sessionOn}${p.thin ? " · séance mince" : ""}`}</title>
+                <circle key={p.from.id} cx={X(p.years)} cy={Y(p.yield.pct)} r={4} fill={p.thin ? "var(--surface)" : couleur} stroke={couleur} strokeWidth={2}>
+                  <title>{`${c.country} · ${p.tenor} · ${t("{d} à courir", { d: mot(p) })} · ${pct(p.yield.pct)} · ${t("séance du {d}", { d: p.from.sessionOn })}${p.thin ? ` · ${t("séance mince")}` : ""}`}</title>
                 </circle>
               ))}
               <text x={X(bout.years) + 9} y={Y(bout.yield.pct) + 3.5} className={styles.name} fill={couleur}>

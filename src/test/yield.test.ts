@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AuctionResult } from "@/lib/market/auction-results";
-import { buildCurve, serie, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
+import { buildCurve, horizon, serie, spreadComparable, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
 import { actuarialFromDiscount, auctionYield, priceOf, tenorDays, tenorYears, vieRestante, yieldMissing, ytm } from "@/lib/market/yield";
 
 /**
@@ -169,12 +169,12 @@ describe("le prix", () => {
   });
 
   /**
-   * Le Trésor congolais imprime « maximum 90,00 » et « minimum 95,00 ».
+   * Le Trésor congolais imprime « maximum 90,00 » puis « minimum 95,00 ».
    *
-   * Lire la borne haute par son étiquette faisait passer un prix moyen de 90,59
-   * pour un prix coupon inclus, retenait 90,00 à sa place, et écrivait une
-   * hypothèse fausse sous un chiffre juste. La maison triait déjà ses bornes
-   * ailleurs : ici aussi, c'est la valeur qui décide, pas le nom.
+   * Aucune séance n'arrive ici dans ce désordre, l'ingestion triant déjà ses
+   * bornes : ce cliquet garde une porte plutôt qu'il n'en répare une. Il vaut
+   * la peine parce que onze rendements gabonais reposent sur cette comparaison,
+   * et qu'ils dépendraient sinon d'un tri fait dans un autre fichier.
    */
   it("trie les bornes au lieu de croire leurs étiquettes", () => {
     expect(priceOf({ priceMin: 95, priceMax: 90, priceLimit: 90, priceAvg: 90.59 })).toEqual({ pct: 90.59 });
@@ -354,6 +354,75 @@ describe("l'écart entre deux Trésors", () => {
     const [e] = spreads(c, "Congo", "Cameroun");
     expect(e.apart).toBe(43);
     expect(e.apart).toBeGreaterThan(SPREAD_COMPARABLE_DAYS);
+  });
+
+  /**
+   * Un « 3 ans » n'est pas comparable à un « 3 ans ».
+   *
+   * Un abondement congolais à onze mois du terme contre une obligation
+   * camerounaise à trois ans pleins portent la même étiquette et deux horizons
+   * sans rapport. L'écart qu'on en tirerait ne dirait rien d'une signature :
+   * l'appariement se fait donc sur la vie restante.
+   */
+  it("n'apparie pas deux étiquettes identiques à des horizons différents", () => {
+    expect(spreadComparable(3, 3.01)).toBe(true);
+    expect(spreadComparable(0.93, 3)).toBe(false);
+    const c = buildCurve(
+      [
+        relue({ id: "cgab", country: "Congo", instrument: "OTA", tenor: "3 ans", sessionOn: "2026-09-15", maturityOn: "2027-08-15", priceAvg: 90, couponRate: 6 }),
+        relue({ id: "cm3", country: "Cameroun", instrument: "OTA", tenor: "3 ans", sessionOn: "2026-09-15", maturityOn: "2029-09-15", priceAvg: 95, couponRate: 6 }),
+      ],
+      { on: "2026-09-25" },
+    );
+    expect(spreads(c, "Congo", "Cameroun")).toHaveLength(0);
+  });
+});
+
+describe("la courbe passée à la vie restante", () => {
+  /**
+   * Deux abondements peuvent s'appeler « 6 ans » le même mois.
+   *
+   * Le dédoublonnage se faisait par étiquette : le second point écrasait le
+   * premier, et la courbe perdait une observation sans rien dire. C'est
+   * l'échéance qui identifie la ligne.
+   */
+  it("garde deux abondements de même nom quand leurs échéances diffèrent", () => {
+    const c = buildCurve(
+      [
+        relue({ id: "a", country: "Congo", instrument: "OTA", tenor: "6 ans", sessionOn: "2026-09-15", maturityOn: "2028-03-31", priceAvg: 90, couponRate: 6 }),
+        relue({ id: "b", country: "Congo", instrument: "OTA", tenor: "6 ans", sessionOn: "2026-09-08", maturityOn: "2031-03-31", priceAvg: 90, couponRate: 6 }),
+      ],
+      { on: "2026-09-25" },
+    );
+    const pts = c.countries[0].points;
+    expect(pts).toHaveLength(2);
+    // Et ils ne se posent pas au même endroit, ce qui est tout l'intérêt.
+    expect(pts[0].years).toBeLessThan(2);
+    expect(pts[1].years).toBeGreaterThan(4);
+  });
+
+  it("fond bien deux séances de la même ligne, en gardant la plus récente", () => {
+    const c = buildCurve(
+      [
+        relue({ id: "vieux", country: "Congo", instrument: "OTA", tenor: "6 ans", sessionOn: "2026-08-15", maturityOn: "2028-03-31", priceAvg: 88, couponRate: 6 }),
+        relue({ id: "recent", country: "Congo", instrument: "OTA", tenor: "6 ans", sessionOn: "2026-09-15", maturityOn: "2028-03-31", priceAvg: 90, couponRate: 6 }),
+      ],
+      { on: "2026-09-25" },
+    );
+    expect(c.countries[0].points).toHaveLength(1);
+    expect(c.countries[0].points[0].from.id).toBe("recent");
+  });
+
+  /**
+   * L'abscisse mise en mots.
+   *
+   * Sous l'année les mois se lisent mieux que les décimales, et au-delà une
+   * décimale suffit : un abondement se pose à 1,5 an, pas à 1,54.
+   */
+  it("nomme l'horizon en mois sous l'année et en années au-delà", () => {
+    expect(horizon(0.93)).toEqual({ n: 11, unit: "mois" });
+    expect(horizon(1.54)).toEqual({ n: 1.5, unit: "ans" });
+    expect(horizon(5)).toEqual({ n: 5, unit: "ans" });
   });
 });
 
