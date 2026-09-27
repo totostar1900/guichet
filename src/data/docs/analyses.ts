@@ -83,6 +83,14 @@ export const ANALYSES: DocPage = {
         },
         {
           type: "note",
+          kind: "warn",
+          text: l(
+            "Le Trésor gabonais publie deux conventions de prix dans le même tableau sans le dire : ses « prix minimum », « maximum » et « limite » sont pied de coupon, son « Prix Moyen Pondéré » inclut le coupon couru. D'où une moyenne au-dessus de son propre maximum, sur onze séances vérifiées une par une. Le rendement retient donc le prix limite dès que la moyenne dépasse le maximum : actualiser un prix coupon inclus comme un prix nu écrase le rendement de tout le couru, soit plus de cent points de base sur une obligation à cinq ans.",
+            "The Gabonese Treasury publishes two price conventions in the same table without saying so: its minimum, maximum and limit prices are clean, its weighted average price includes accrued coupon. Hence an average above its own maximum, on eleven sessions checked one by one. The yield therefore uses the limit price whenever the average exceeds the maximum: discounting a dirty price as a clean one crushes the yield by the whole accrued coupon, more than a hundred basis points on a five-year bond.",
+          ),
+        },
+        {
+          type: "note",
           kind: "rule",
           text: l(
             "Un prix d'obligation sans coupon ne donne aucun rendement. Le même 95,00 % peut valoir 7 % comme 12 % selon ce que la ligne paie : le combler par un coupon moyen donnerait une courbe lisse et fausse, dont personne ne verrait qu'elle est fausse. La séance reste alors sans point, et la page compte le trou.",
