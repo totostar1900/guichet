@@ -537,7 +537,7 @@ export default async function AnalysesPage() {
                       <td>
                         {a.instrument} {a.tenor}
                       </td>
-                      <td className={styles.wrap}>{t(a.quoi.key, a.quoi.params)}</td>
+                      <td className={styles.wrap}>{t(a.quoi.key, a.quoi.params ? Object.fromEntries(Object.entries(a.quoi.params).map(([k, v]) => [k, typeof v === "string" ? t(v) : v])) : undefined)}</td>
                       <td className={styles.wrap}>
                         <span className="muted">{t(a.verifier)}</span>
                       </td>

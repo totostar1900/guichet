@@ -59,6 +59,16 @@ describe("les anomalies", () => {
     expect(anomalies([s({ country: "Gabon", codeEmission: "GA1200001699", rateAvg: 6 })])).toEqual([]);
   });
 
+  /**
+   * Le Tchad du 24 janvier 2024 porte un servi de 16 678 630 millions, soit
+   * seize mille milliards : l unité a été lue de travers. Le chiffre est bien
+   * un nombre dans la bonne colonne, et rien d autre ne l arrêtait.
+   */
+  it("voient un montant hors de toute échelle", () => {
+    const a = anomalies([s({ id: "u", rateAvg: 6, served: 16_678_630e6 })]);
+    expect(a[0].quoi.key).toContain("hors de toute échelle");
+  });
+
   it("voient une séance du 1er janvier", () => {
     expect(anomalies([s({ id: "j", sessionOn: "2025-01-01", rateAvg: 6.5 })])[0].quoi.key).toContain("1er janvier");
   });

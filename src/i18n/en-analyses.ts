@@ -197,4 +197,9 @@ export const EN_ANALYSES: Record<string, string> = {
   "code {code} : préfixe {p}, or la séance est rangée sous {pays}": "code {code}: prefix {p}, yet the session is filed under {pays}",
   "{n} soumissionnaires pour un réseau de {m}": "{n} bidders for a network of {m}",
   "{n} lignes portent le même annoncé, le même soumis et le même servi": "{n} lines carry the same announced, bid and allotted amounts",
+  "{champ} de {v} Md : hors de toute échelle pour la zone": "{champ} of {v} bn: off any scale for the zone",
+  "l unité annoncée en tête du tableau : millions, milliers ou francs": "the unit announced at the head of the table: millions, thousands or francs",
+  "montant annoncé": "amount announced",
+  "total des soumissions": "total bid",
+  "total servi": "total allotted",
 };

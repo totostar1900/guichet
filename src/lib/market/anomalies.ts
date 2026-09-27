@@ -145,6 +145,21 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
       });
     }
 
+    // Un montant hors de toute échelle : la plus grosse adjudication de la zone
+    // se compte en dizaines de milliards, pas en milliers. Au-delà, l unité a
+    // été lue de travers, et le chiffre traverserait la chaîne sans surprendre
+    // personne puisqu il est bien un nombre dans la bonne colonne.
+    const PLAFOND = 500e9;
+    for (const [champ, v] of [["montant annoncé", n(r.announced)], ["total des soumissions", n(r.bid)], ["total servi", n(r.served)]] as const) {
+      if (v != null && v > PLAFOND) {
+        out.push({
+          ...base,
+          quoi: { key: "{champ} de {v} Md : hors de toute échelle pour la zone", params: { champ, v: Math.round(v / 1e9).toLocaleString("fr-FR") } },
+          verifier: "l unité annoncée en tête du tableau : millions, milliers ou francs",
+        });
+      }
+    }
+
     // Une séance du 1er janvier n'existe pas : c'est une date mal lue.
     if (/-01-01$/.test(r.sessionOn)) out.push({ ...base, quoi: { key: "séance datée du 1er janvier" }, verifier: "la date imprimée en tête du communiqué" });
 
