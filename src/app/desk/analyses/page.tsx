@@ -537,7 +537,7 @@ export default async function AnalysesPage() {
                       <td>
                         {a.instrument} {a.tenor}
                       </td>
-                      <td className={styles.wrap}>{t(a.quoi)}</td>
+                      <td className={styles.wrap}>{t(a.quoi.key, a.quoi.params)}</td>
                       <td className={styles.wrap}>
                         <span className="muted">{t(a.verifier)}</span>
                       </td>
@@ -554,7 +554,7 @@ export default async function AnalysesPage() {
             </div>
             <p className={styles.note}>
               {t(
-                "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les six sautent aux yeux.",
+                "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les motifs sautent aux yeux.",
               )}
             </p>
           </section>

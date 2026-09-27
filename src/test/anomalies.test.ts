@@ -29,7 +29,7 @@ describe("les anomalies", () => {
     // Le Trésor gabonais publie un prix moyen au-dessus de son propre maximum.
     const a = anomalies([s({ id: "g", instrument: "OTA", tenor: "4 ans", priceMin: 88, priceMax: 91.5, priceLimit: 91.5, priceAvg: 93.7937 })]);
     expect(a).toHaveLength(1);
-    expect(a[0].quoi).toContain("hors de la fourchette");
+    expect(a[0].quoi.key).toContain("hors de la fourchette");
   });
 
   it("ne crient pas sur une fourchette respectée", () => {
@@ -37,11 +37,11 @@ describe("les anomalies", () => {
   });
 
   it("voient un bon servi à un prix", () => {
-    expect(anomalies([s({ id: "b", priceAvg: 91 })])[0].quoi).toContain("bon servi à un prix");
+    expect(anomalies([s({ id: "b", priceAvg: 91 })])[0].quoi.key).toContain("bon servi à un prix");
   });
 
   it("voient un servi supérieur aux soumissions", () => {
-    expect(anomalies([s({ id: "m", rateAvg: 6, bid: 1e9, served: 2e9 })])[0].quoi).toContain("supérieur aux soumissions");
+    expect(anomalies([s({ id: "m", rateAvg: 6, bid: 1e9, served: 2e9 })])[0].quoi.key).toContain("supérieur aux soumissions");
   });
 
   /**
@@ -51,7 +51,8 @@ describe("les anomalies", () => {
    */
   it("voient un code dont le préfixe ne répond pas au pays", () => {
     const a = anomalies([s({ id: "p", country: "Tchad", codeEmission: "GA1200001699", rateAvg: 6 })]);
-    expect(a[0].quoi).toContain("préfixe GA");
+    expect(a[0].quoi.key).toContain("préfixe");
+    expect(a[0].quoi.params).toMatchObject({ p: "GA", pays: "Tchad" });
   });
 
   it("laissent passer un code qui répond à son pays", () => {
@@ -59,11 +60,13 @@ describe("les anomalies", () => {
   });
 
   it("voient une séance du 1er janvier", () => {
-    expect(anomalies([s({ id: "j", sessionOn: "2025-01-01", rateAvg: 6.5 })])[0].quoi).toContain("1er janvier");
+    expect(anomalies([s({ id: "j", sessionOn: "2025-01-01", rateAvg: 6.5 })])[0].quoi.key).toContain("1er janvier");
   });
 
   it("voient plus de soumissionnaires que le réseau n'en compte", () => {
-    expect(anomalies([s({ id: "r", rateAvg: 6, bidders: 25, networkSize: 21 })])[0].quoi).toContain("réseau de 21");
+    const reseau = anomalies([s({ id: "r", rateAvg: 6, bidders: 25, networkSize: 21 })])[0];
+    expect(reseau.quoi.key).toContain("réseau");
+    expect(reseau.quoi.params).toMatchObject({ n: 25, m: 21 });
   });
 
   /**
@@ -78,7 +81,8 @@ describe("les anomalies", () => {
     );
     const a = anomalies(cinq);
     expect(a).toHaveLength(1);
-    expect(a[0].quoi).toContain("5 lignes");
+    expect(a[0].quoi.key).toContain("lignes portent le même");
+    expect(a[0].quoi.params).toMatchObject({ n: 5 });
   });
 
   it("laissent tranquille une séance dont les lignes diffèrent", () => {

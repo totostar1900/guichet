@@ -26,8 +26,14 @@ export interface Anomalie {
   pays: AuctionResult["country"];
   instrument: AuctionResult["instrument"];
   tenor: string;
-  /** Ce qui se contredit, en une phrase. */
-  quoi: string;
+  /**
+   * Ce qui se contredit : une clef et ses valeurs, mises en mots par la page.
+   *
+   * Les nombres voyagent en paramètres plutôt que collés dans la phrase, sans
+   * quoi la phrase n'est la clef de rien et sort en français sur un écran
+   * anglais, avec des points à la place des virgules.
+   */
+  quoi: { key: string; params?: Record<string, string | number> };
   /** Ce qu'il faut regarder sur la pièce. */
   verifier: string;
   gravite: GraviteAnomalie;
@@ -80,7 +86,7 @@ function montantsRepetes(rows: AuctionResult[]): Anomalie[] {
       pays: t.country,
       instrument: t.instrument,
       tenor: lot.map((r) => r.tenor).join(", "),
-      quoi: `${lot.length} lignes portent le même annoncé, le même soumis et le même servi`,
+      quoi: { key: "{n} lignes portent le même annoncé, le même soumis et le même servi", params: { n: lot.length } },
       verifier: "un total de séance recopié sur chaque ligne, plutôt que des lignes réellement identiques",
       gravite: lot.some((r) => r.confirmedBy) ? "confirmee" : "attente",
     });
@@ -102,37 +108,49 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
     const hi = n(r.priceMax) ?? n(r.rateMax);
     const retenu = n(r.priceAvg) ?? n(r.priceLimit) ?? n(r.rateAvg) ?? n(r.rateLimit);
     if (lo != null && hi != null && retenu != null && (retenu < Math.min(lo, hi) - 0.01 || retenu > Math.max(lo, hi) + 0.01)) {
-      out.push({ ...base, quoi: `chiffre retenu ${retenu} hors de la fourchette publiée ${Math.min(lo, hi)}–${Math.max(lo, hi)}`, verifier: "la colonne d'où vient le chiffre retenu, et celles des deux bornes" });
+      out.push({
+        ...base,
+        quoi: { key: "chiffre retenu {v} hors de la fourchette publiée {lo}–{hi}", params: { v: retenu.toLocaleString("fr-FR", { maximumFractionDigits: 4 }), lo: Math.min(lo, hi).toLocaleString("fr-FR", { maximumFractionDigits: 4 }), hi: Math.max(lo, hi).toLocaleString("fr-FR", { maximumFractionDigits: 4 }) } },
+        verifier: "la colonne d'où vient le chiffre retenu, et celles des deux bornes",
+      });
     }
 
     // Un bon se sert à un taux, une obligation à un prix.
     if (r.instrument === "BTA" && (n(r.priceAvg) ?? n(r.priceLimit)) != null && (n(r.rateAvg) ?? n(r.rateLimit)) == null) {
-      out.push({ ...base, quoi: "un bon servi à un prix, sans taux", verifier: "l'instrument de la séance, ou la colonne lue" });
+      out.push({ ...base, quoi: { key: "un bon servi à un prix, sans taux" }, verifier: "l'instrument de la séance, ou la colonne lue" });
     }
     if (r.instrument === "OTA" && (n(r.rateAvg) ?? n(r.rateLimit)) != null && (n(r.priceAvg) ?? n(r.priceLimit)) == null) {
-      out.push({ ...base, quoi: "une obligation servie à un taux, sans prix", verifier: "l'instrument de la séance, ou la colonne lue" });
+      out.push({ ...base, quoi: { key: "une obligation servie à un taux, sans prix" }, verifier: "l'instrument de la séance, ou la colonne lue" });
     }
 
     // Les montants doivent s'ordonner.
     const servi = n(r.served);
     const soumis = n(r.bid);
     if (servi != null && soumis != null && servi > soumis * 1.001) {
-      out.push({ ...base, quoi: `servi ${Math.round(servi / 1e6)} M supérieur aux soumissions ${Math.round(soumis / 1e6)} M`, verifier: "les deux montants sur la pièce, et leur unité" });
+      out.push({
+        ...base,
+        quoi: { key: "servi {a} M supérieur aux soumissions {b} M", params: { a: Math.round(servi / 1e6).toLocaleString("fr-FR"), b: Math.round(soumis / 1e6).toLocaleString("fr-FR") } },
+        verifier: "les deux montants sur la pièce, et leur unité",
+      });
     }
 
     // Le code dit un Trésor, la colonne de la BEAC en dit un autre.
     const prefixe = r.codeEmission?.trim().slice(0, 2).toUpperCase();
     const dit = prefixe ? PREFIXE[prefixe] : undefined;
     if (dit && dit !== r.country) {
-      out.push({ ...base, quoi: `code ${r.codeEmission} : préfixe ${prefixe}, or la séance est rangée sous ${r.country}`, verifier: "le pays de la séance, ou le code lu sur le communiqué voisin" });
+      out.push({
+        ...base,
+        quoi: { key: "code {code} : préfixe {p}, or la séance est rangée sous {pays}", params: { code: r.codeEmission ?? "", p: prefixe ?? "", pays: r.country } },
+        verifier: "le pays de la séance, ou le code lu sur le communiqué voisin",
+      });
     }
 
     // Une séance du 1er janvier n'existe pas : c'est une date mal lue.
-    if (/-01-01$/.test(r.sessionOn)) out.push({ ...base, quoi: "séance datée du 1er janvier", verifier: "la date imprimée en tête du communiqué" });
+    if (/-01-01$/.test(r.sessionOn)) out.push({ ...base, quoi: { key: "séance datée du 1er janvier" }, verifier: "la date imprimée en tête du communiqué" });
 
     // Plus de soumissionnaires que de spécialistes dans le réseau.
     if (r.bidders != null && r.networkSize != null && r.bidders > r.networkSize) {
-      out.push({ ...base, quoi: `${r.bidders} soumissionnaires pour un réseau de ${r.networkSize}`, verifier: "les deux nombres, souvent voisins sur la pièce" });
+      out.push({ ...base, quoi: { key: "{n} soumissionnaires pour un réseau de {m}", params: { n: r.bidders, m: r.networkSize } }, verifier: "les deux nombres, souvent voisins sur la pièce" });
     }
   }
 

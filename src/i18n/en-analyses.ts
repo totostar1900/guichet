@@ -172,7 +172,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "Ce qui se contredit": "What contradicts",
   "Ce qu'il faut vérifier sur la pièce": "What to check on the document",
   "déjà confirmée": "already confirmed",
-  "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les six sautent aux yeux.": "None of these patterns says a figure is wrong: they say it contradicts itself or its neighbour. What is already confirmed comes first, having entered the desk's references. One session at a time, none of these anomalies shows; ranged in a column, all six leap out.",
+  "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les motifs sautent aux yeux.": "None of these patterns says a figure is wrong: they say it contradicts itself or its neighbour. What is already confirmed comes first, having entered the desk's references. One session at a time, none of these anomalies shows; ranged in a column, the patterns leap out.",
   "un bon servi à un prix, sans taux": "a bill served at a price, with no rate",
   "une obligation servie à un taux, sans prix": "a bond served at a rate, with no price",
   "séance datée du 1er janvier": "session dated 1 January",
@@ -192,4 +192,9 @@ export const EN_ANALYSES: Record<string, string> = {
   "Le niveau publié repose donc sur des cours du jour.": "The published level therefore rests on same-day prices.",
   "Brouillon de note": "Draft for a note",
   "Courbe en CSV": "Curve as CSV",
+  "chiffre retenu {v} hors de la fourchette publiée {lo}–{hi}": "retained figure {v} outside the published range {lo}–{hi}",
+  "servi {a} M supérieur aux soumissions {b} M": "allotted {a} M exceeds the {b} M bid",
+  "code {code} : préfixe {p}, or la séance est rangée sous {pays}": "code {code}: prefix {p}, yet the session is filed under {pays}",
+  "{n} soumissionnaires pour un réseau de {m}": "{n} bidders for a network of {m}",
+  "{n} lignes portent le même annoncé, le même soumis et le même servi": "{n} lines carry the same announced, bid and allotted amounts",
 };
