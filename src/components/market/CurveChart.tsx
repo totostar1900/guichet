@@ -1,3 +1,4 @@
+import { getT } from "@/i18n/server";
 import type { Country } from "@/lib/domain/types";
 import type { CountryCurve } from "@/lib/market/curve";
 import styles from "./CurveChart.module.css";
@@ -48,7 +49,8 @@ function ticks(min: number, max: number, n = 4): number[] {
   return out;
 }
 
-export function CurveChart({ countries, height = 280, ariaLabel }: { countries: CountryCurve[]; height?: number; ariaLabel: string }) {
+export async function CurveChart({ countries, height = 280, ariaLabel }: { countries: CountryCurve[]; height?: number; ariaLabel: string }) {
+  const t = await getT();
   const pts = countries.flatMap((c) => c.points);
   if (!pts.length) return null;
 
@@ -122,7 +124,7 @@ export function CurveChart({ countries, height = 280, ariaLabel }: { countries: 
         })}
       </svg>
       <figcaption className={styles.cap}>
-        Rendement actuariel annuel, en pourcentage, par durée. Un point creux signale une séance mince, servie à un ou deux soumissionnaires ou non couverte : le chiffre est vrai, il n&apos;est pas représentatif.
+        {t("Rendement actuariel annuel, en pourcentage, par durée. Un point creux signale une séance mince, servie à un ou deux soumissionnaires ou non couverte : le chiffre est vrai, il n'est pas représentatif.")}
       </figcaption>
     </figure>
   );

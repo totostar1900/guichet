@@ -37,12 +37,25 @@ export const VN_OTA = 10_000;
 
 export type YieldOrigin = "imprimé" | "prix et coupon" | "taux précompté";
 
+/**
+ * Une hypothèse, sous forme de clef et de paramètres.
+ *
+ * Elle s'affiche dans les deux langues, et ce module ne connaît pas le
+ * dictionnaire : un module de domaine qui traduirait ses propres phrases
+ * cesserait d'être un module de domaine. Il dit donc ce qu'il a supposé, la
+ * page le met en mots.
+ */
+export interface Assumption {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
 export interface AuctionYield {
   /** Le rendement actuariel annuel, en %. */
   pct: number;
   origin: YieldOrigin;
   /** Ce qui a été supposé pour l'obtenir. Vide quand le Trésor a imprimé le chiffre. */
-  assumptions: string[];
+  assumptions: Assumption[];
 }
 
 export const YIELD_ORIGIN_LABEL: Record<YieldOrigin, string> = {
@@ -131,11 +144,14 @@ export function ytm(pricePct: number, couponPct: number, years: number): number 
 }
 
 /** Le prix d'une obligation en % du nominal, y compris quand le Trésor l'écrit en francs. */
-export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa">): { pct: number; assumed?: string } | undefined {
+export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa">): { pct: number; assumed?: Assumption } | undefined {
   const direct = r.priceAvg ?? r.priceLimit;
   if (direct != null) return { pct: direct };
   if (r.priceAvgFcfa != null) {
-    return { pct: (r.priceAvgFcfa / VN_OTA) * 100, assumed: `prix converti depuis ${r.priceAvgFcfa.toLocaleString("fr-FR")} F par titre, sur une valeur nominale de ${VN_OTA.toLocaleString("fr-FR")} F` };
+    return {
+      pct: (r.priceAvgFcfa / VN_OTA) * 100,
+      assumed: { key: "prix converti depuis {f} F par titre, sur une valeur nominale de {vn} F", params: { f: r.priceAvgFcfa.toLocaleString("fr-FR"), vn: VN_OTA.toLocaleString("fr-FR") } },
+    };
   }
   return undefined;
 }
@@ -152,7 +168,7 @@ type YieldInput = Pick<AuctionResult, "instrument" | "tenor" | "yieldAvg" | "yie
  */
 export function auctionYield(r: YieldInput): AuctionYield | undefined {
   if (r.yieldAvg != null) return { pct: r.yieldAvg, origin: "imprimé", assumptions: [] };
-  if (r.yieldLimit != null) return { pct: r.yieldLimit, origin: "imprimé", assumptions: ["rendement au prix limite, faute du moyen pondéré"] };
+  if (r.yieldLimit != null) return { pct: r.yieldLimit, origin: "imprimé", assumptions: [{ key: "rendement au prix limite, faute du moyen pondéré" }] };
 
   if (r.instrument === "BTA") {
     const d = r.rateAvg ?? r.rateLimit;
@@ -160,7 +176,7 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
     if (d == null || jours == null) return undefined;
     const y = actuarialFromDiscount(d, jours);
     if (y == null) return undefined;
-    return { pct: y, origin: "taux précompté", assumptions: [`escompte exact/360 sur ${jours} jours, capitalisation exact/365`] };
+    return { pct: y, origin: "taux précompté", assumptions: [{ key: "escompte exact/360 sur {j} jours, capitalisation exact/365", params: { j: jours } }] };
   }
 
   const p = priceOf(r);
@@ -168,7 +184,7 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
   if (!p || r.couponRate == null || annees == null) return undefined;
   const y = ytm(p.pct, r.couponRate, annees);
   if (y == null) return undefined;
-  const hyp = [`coupon annuel de ${r.couponRate.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} %, capital remboursé in fine`];
+  const hyp: Assumption[] = [{ key: "coupon annuel de {c} %, capital remboursé in fine", params: { c: r.couponRate.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) } }];
   if (p.assumed) hyp.push(p.assumed);
   return { pct: y, origin: "prix et coupon", assumptions: hyp };
 }

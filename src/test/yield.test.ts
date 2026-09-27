@@ -104,7 +104,7 @@ describe("le prix", () => {
     const p = priceOf({ priceAvgFcfa: 9899.45 });
     expect(p!.pct).toBeCloseTo(98.9945, 4);
     // L'espace du français est insécable : on cherche la phrase, pas le nombre formaté.
-    expect(p!.assumed).toContain("valeur nominale");
+    expect(p!.assumed!.key).toContain("valeur nominale");
   });
 
   it("préfère un pourcentage imprimé à une conversion", () => {
@@ -122,13 +122,13 @@ describe("le rendement d'une séance", () => {
     const y = auctionYield({ instrument: "BTA", tenor: "52 semaines", rateAvg: 6.97 });
     expect(y!.origin).toBe("taux précompté");
     expect(y!.pct).toBeCloseTo(7.6, 1);
-    expect(y!.assumptions.join(" ")).toContain("360");
+    expect(y!.assumptions.map((h) => h.key).join(" ")).toContain("360");
   });
 
   it("calcule une obligation, et déclare l'échéancier supposé", () => {
     const y = auctionYield({ instrument: "OTA", tenor: "5 ans", priceAvg: 95, couponRate: 6.25 });
     expect(y!.origin).toBe("prix et coupon");
-    expect(y!.assumptions.join(" ")).toContain("in fine");
+    expect(y!.assumptions.map((h) => h.key).join(" ")).toContain("in fine");
   });
 
   /**

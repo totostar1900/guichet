@@ -44,7 +44,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
   const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
   const origines = new Map<string, number>();
   for (const c of courbe.countries) for (const p of c.points) origines.set(p.yield.origin, (origines.get(p.yield.origin) ?? 0) + 1);
-  const hypotheses = [...new Set(courbe.countries.flatMap((c) => c.points.flatMap((p) => p.yield.assumptions)))];
+  const hypotheses = [...new Map(courbe.countries.flatMap((c) => c.points.flatMap((p) => p.yield.assumptions)).map((h) => [`${h.key}|${JSON.stringify(h.params ?? {})}`, h])).values()];
   // Un coupon relevé par le robot après la confirmation d'une séance : le point
   // compte, et la personne qui a signé la séance ne l'a pas vu passer.
   const aVerifier = courbe.countries.flatMap((c) => c.points.filter((p) => p.toVerify));
@@ -212,7 +212,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
           {hypotheses.length > 0 && (
             <p className={styles.hyp}>
               <b>{t("Ce qui a été supposé")} : </b>
-              {hypotheses.join(" · ")}.
+              {hypotheses.map((h) => t(h.key, h.params)).join(" · ")}.
             </p>
           )}
         </section>
@@ -231,7 +231,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
                     <th>{t("Durée")}</th>
                     <th className="r">{t("Rendement")}</th>
                     <th className="r">{t("Contre {p}", { p: ref! })}</th>
-                    <th className="r">{t("Écart")}</th>
+                    <th className="r">{t("Écart de rendement")}</th>
                     <th>{t("Séances distantes de")}</th>
                   </tr>
                 </thead>
