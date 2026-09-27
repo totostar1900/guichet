@@ -65,6 +65,23 @@ describe("les filtres", () => {
    * que l écran regardait, et restait « à lire » pour toujours : c est la ligne
    * TD2A00001246, lue quatre fois par un desk qui voyait toujours le même mot.
    */
+  /**
+   * On n invente pas le milieu. Une moyenne de bornes n est pas un prix servi,
+   * et la poser sur la courbe fabriquerait le chiffre que le Trésor a choisi de
+   * ne pas publier.
+   */
+  it("rendent la fourchette sans en tirer un chiffre", () => {
+    const [row] = [s({ id: "td", country: "Tchad", instrument: "OTA", tenor: "2 ans", priceMin: 90, priceMax: 91 })].map(toRow);
+    expect(row.chiffre).toBeNull();
+    expect(row.plage).toEqual({ lo: 90, hi: 91, unit: "prix" });
+  });
+
+  it("ne rendent pas de fourchette quand un chiffre servi existe", () => {
+    const [row] = [s({ id: "cg", instrument: "BTA", rateAvg: 7, rateMin: 6.5, rateMax: 7.5 })].map(toRow);
+    expect(row.chiffre).toBe(7);
+    expect(row.plage).toBeNull();
+  });
+
   it("comptent une fourchette publiée comme une lecture", () => {
     const tchad = s({ id: "td", country: "Tchad", instrument: "OTA", tenor: "2 ans", priceMin: 90, priceMax: 91, announced: 15e9, bidders: 3 });
     expect(applyFilter([tchad], { etat: "a-relire" }).map((r) => r.id)).toEqual(["td"]);

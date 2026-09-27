@@ -1,4 +1,4 @@
-import { coverageOf, etatSeance, headline, thin, type AuctionResult } from "./auction-results";
+import { coverageOf, etatSeance, fourchette, headline, thin, type AuctionResult } from "./auction-results";
 
 /**
  * La table des séances : ce qu'on y range, ce qu'on y trie, ce qu'on en sort.
@@ -33,13 +33,15 @@ export interface TableRow {
   r: AuctionResult;
   chiffre: number | null;
   unite: "taux" | "prix" | null;
+  /** Ce que la séance publie quand elle ne publie pas de chiffre servi. */
+  plage: { lo: number; hi: number; unit: "taux" | "prix" } | null;
   couverture: number | null;
   mince: boolean;
 }
 
 export const toRow = (r: AuctionResult): TableRow => {
   const h = headline(r);
-  return { r, chiffre: h?.value ?? null, unite: h?.unit ?? null, couverture: coverageOf(r) ?? null, mince: thin(r) };
+  return { r, chiffre: h?.value ?? null, unite: h?.unit ?? null, plage: h ? null : (fourchette(r) ?? null), couverture: coverageOf(r) ?? null, mince: thin(r) };
 };
 
 const has = (v: string | undefined) => Boolean(v && v !== "tout");

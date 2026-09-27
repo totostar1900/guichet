@@ -176,7 +176,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   </tr>
                 </thead>
                 <tbody>
-                {rows.map(({ r: x, chiffre, unite, couverture, mince }) => (
+                {rows.map(({ r: x, chiffre, unite, plage, couverture, mince }) => (
                   <tr key={x.id} className={x.confirmedBy ? undefined : styles.draft}>
                     <td>
                       <Link href={`/desk/adjudications?s=${x.id}`}>{fmtDate(x.sessionOn)}</Link>
@@ -185,7 +185,18 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     <td>{x.instrument}</td>
                     <td>{x.tenor}</td>
                     <td className={`${styles.r} ${unite === "taux" ? styles.gold : ""}`}>
-                      {chiffre == null ? "—" : pct(chiffre)}
+                      {chiffre != null ? (
+                        pct(chiffre)
+                      ) : plage ? (
+                        // Le Trésor n'a publié qu'un intervalle : on le montre tel
+                        // quel plutôt que d'en prendre le milieu, qui serait un
+                        // chiffre que personne n'a servi.
+                        <span className={styles.plage} title={t("Fourchette publiée : le Trésor n'imprime ni limite ni moyenne pondérée.")}>
+                          {`${pct(plage.lo)} – ${pct(plage.hi)}`}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
                       {mince && chiffre != null ? <em title={t("Séance mince : peu de soumissions")}> ·</em> : null}
                     </td>
                     <td className={styles.r}>{pct(couverture, 0)}</td>

@@ -170,3 +170,12 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
+
+/* Une fourchette n'est pas un chiffre servi : elle se lit plus petite, en
+   encre secondaire, pour qu'on ne la compare pas d'un coup d'œil à la colonne
+   des taux. */
+.plage {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}

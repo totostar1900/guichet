@@ -183,4 +183,6 @@ export const EN_ANALYSES: Record<string, string> = {
   "les deux nombres, souvent voisins sur la pièce": "the two numbers, often adjacent on the document",
   "un total de séance recopié sur chaque ligne, plutôt que des lignes réellement identiques": "a session total copied onto every line, rather than lines that are genuinely identical",
   "le pays de la séance, ou le code lu sur le communiqué voisin": "the session's country, or the code read off the neighbouring communiqué",
+  "fourchette publiée": "published range",
+  "Fourchette publiée : le Trésor n'imprime ni limite ni moyenne pondérée.": "Published range: the Treasury prints neither a limit nor a weighted average.",
 };

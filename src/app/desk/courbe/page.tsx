@@ -289,7 +289,10 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
                       <td>{g.country}</td>
                       <td>{g.instrument}</td>
                       <td>{g.tenor}</td>
-                      <td>{t(g.why)}</td>
+                      <td>
+                        {t(g.why)}
+                        {g.publie ? <span className="muted">{` · ${t("fourchette publiée")} ${g.publie}`}</span> : null}
+                      </td>
                       <td>
                         <Link className="btn sm ghost" href={`/desk/adjudications?s=${g.id}`}>
                           {t("Compléter")}

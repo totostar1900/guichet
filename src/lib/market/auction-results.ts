@@ -130,6 +130,25 @@ export function headline(r: AuctionResult): { value: number; unit: "taux" | "pri
   return v == null ? undefined : { value: v, unit: "prix" };
 }
 
+/**
+ * La fourchette publiée, quand c'est tout ce que le Trésor publie.
+ *
+ * Ce n'est pas un repli sur « headline » : c'est autre chose. Un chiffre servi
+ * se pose sur une courbe, un intervalle ne s'y pose pas, et les confondre
+ * reviendrait à inventer le milieu que le Trésor a choisi de taire. La table
+ * l'affiche, la courbe l'écarte, et les deux ont raison.
+ *
+ * Les bornes sortent déjà remises dans l'ordre par la lecture : le Congo et le
+ * Tchad inversent tous deux leurs propres libellés.
+ */
+export function fourchette(r: Pick<AuctionResult, "instrument" | "rateMin" | "rateMax" | "priceMin" | "priceMax">): { lo: number; hi: number; unit: "taux" | "prix" } | undefined {
+  const [a, b, unit] = r.instrument === "BTA" ? [r.rateMin, r.rateMax, "taux" as const] : [r.priceMin, r.priceMax, "prix" as const];
+  if (a == null && b == null) return undefined;
+  const lo = Math.min(a ?? b!, b ?? a!);
+  const hi = Math.max(a ?? b!, b ?? a!);
+  return { lo, hi, unit };
+}
+
 /** Le taux de couverture : celui du Trésor, sinon celui que les montants donnent. */
 export function coverageOf(r: AuctionResult): number | undefined {
   if (r.coverage != null) return r.coverage;

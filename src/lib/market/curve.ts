@@ -1,5 +1,5 @@
 import type { Country } from "@/lib/domain/types";
-import { completedAfterConfirmation, thin, type AuctionResult } from "./auction-results";
+import { completedAfterConfirmation, fourchette, thin, type AuctionResult } from "./auction-results";
 import { auctionYield, tenorYears, yieldMissing, type AuctionYield } from "./yield";
 
 /**
@@ -68,6 +68,8 @@ export interface CurveGap {
   tenor: string;
   on: string;
   why: string;
+  /** La fourchette publiée, quand le Trésor n'imprime pas de chiffre servi. */
+  publie?: string;
   id: string;
 }
 
@@ -111,7 +113,19 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
     const annees = tenorYears(r.tenor);
     const y = auctionYield(r);
     if (!y || annees == null) {
-      gaps.push({ country: r.country, instrument: r.instrument, tenor: r.tenor, on: r.sessionOn, why: yieldMissing(r) ?? "rendement indisponible", id: r.id });
+      const f = fourchette(r);
+      gaps.push({
+        country: r.country,
+        instrument: r.instrument,
+        tenor: r.tenor,
+        on: r.sessionOn,
+        why: yieldMissing(r) ?? "rendement indisponible",
+        // Ce que la séance publie tout de même : une fourchette n'est pas un
+        // point, mais ce n'est pas rien, et le desk doit savoir qu'il ne
+        // trouvera pas de chiffre servi sur la pièce.
+        publie: f ? `${f.lo.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} – ${f.hi.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} %` : undefined,
+        id: r.id,
+      });
       continue;
     }
     const p: CurvePoint = { country: r.country, tenor: r.tenor, years: annees, yield: y, from: r, ageDays: days(on, r.sessionOn), thin: thin(r), toVerify: completedAfterConfirmation(r) };
