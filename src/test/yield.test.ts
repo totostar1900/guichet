@@ -195,6 +195,32 @@ describe("la courbe", () => {
     expect(c.countries[0].points[0].from.id).toBe("vieille");
   });
 
+  /**
+   * Le coupon arrivé après la signature.
+   *
+   * La colonne est née après que cinquante-sept séances eurent été relues. Le
+   * robot peut la remplir, sans quoi la courbe reste sans obligations ; ce qui
+   * tient la règle des quatre yeux n'est pas l'abstention mais la trace, et
+   * les deux horodatages la portent déjà.
+   */
+  it("marque un point dont un champ est entré après la confirmation", () => {
+    const apres = relue({
+      id: "tard",
+      country: "Gabon",
+      instrument: "OTA",
+      tenor: "5 ans",
+      priceAvg: 95,
+      couponRate: 6.25,
+      confirmedAt: "2026-09-16T10:00:00Z",
+      updatedAt: "2026-09-27T08:00:00Z",
+    });
+    const tot = relue({ id: "tot", country: "Gabon", instrument: "OTA", tenor: "3 ans", priceAvg: 96, couponRate: 6, confirmedAt: "2026-09-16T10:00:00Z", updatedAt: "2026-09-16T10:00:20Z" });
+    const c = buildCurve([apres, tot], { on: "2026-09-27" });
+    const pts = c.countries[0].points;
+    expect(pts.find((p) => p.from.id === "tard")!.toVerify).toBe(true);
+    expect(pts.find((p) => p.from.id === "tot")!.toVerify).toBe(false);
+  });
+
   it("garde l'âge du point le plus vieux : une courbe ne vaut pas mieux que lui", () => {
     const c = buildCurve(lot, { on: "2026-09-25" });
     expect(c.countries.find((x) => x.country === "Cameroun")!.oldestDays).toBe(53);

@@ -37,14 +37,36 @@ export async function GET(req: NextRequest) {
 
   const p = req.nextUrl.searchParams;
   const pays = p.get("pays") ?? undefined;
+  /**
+   * « complement » : une seconde passe pour les colonnes nées après la
+   * première. Le coupon et le rendement imprimé n'existaient pas quand ces
+   * séances ont été lues, et sans coupon une obligation ne se pose sur aucune
+   * courbe. La passe ne remplit que du vide, comme l'autre.
+   */
+  const complement = p.get("mode") === "complement";
   const n = Math.min(Math.max(Number(p.get("n") ?? 6), 1), 12);
   const r = repo();
 
   /** Une séance est « à lire » quand elle a sa pièce et pas encore son chiffre. */
   const aLire = (x: AuctionResult) => Boolean(x.fileKey) && !x.confirmedBy && x.rateAvg == null && x.rateLimit == null && x.priceAvg == null && x.priceLimit == null;
 
+  /**
+   * Une séance est « à compléter » quand elle porte déjà ses chiffres mais pas
+   * le coupon qui les rend comparables.
+   *
+   * Elle touche aussi les séances relues, et c'est délibéré. Le coupon manque
+   * surtout là : le relever à la main sur chacune est le travail que la lecture
+   * assistée existe pour éviter. Ce qui protège la règle des quatre yeux n'est
+   * pas l'abstention mais la trace : « updated_at » postérieur à
+   * « confirmed_at » dit qu'un champ est entré après l'attestation, la courbe
+   * le porte sur le point, et la personne qui a signé la séance retrouve la
+   * sienne dans une file de vérification.
+   */
+  const aCompleter = (x: AuctionResult) =>
+    Boolean(x.fileKey) && x.instrument === "OTA" && x.couponRate == null && x.yieldAvg == null && (x.priceAvg != null || x.priceLimit != null || x.priceAvgFcfa != null);
+
   const toutes = await r.listAuctionResults({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
-  const file = toutes.filter(aLire).sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
+  const file = toutes.filter(complement ? aCompleter : aLire).sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
   const paquet = file.slice(0, n);
 
   const faites: string[] = [];
@@ -57,23 +79,29 @@ export async function GET(req: NextRequest) {
       // Le pays, l'instrument et la date viennent de l'index de la BEAC, qui les
       // donne sans ambiguïté : la lecture du scan ne les redéfinit pas. Seuls
       // les chiffres, la durée et le code d'émission entrent ici.
+      const seul = <T,>(lu: T | undefined) => (complement ? undefined : lu);
       await r.updateAuctionResult(x.id, {
-        codeEmission: proposal.codeEmission,
-        tenor: proposal.tenor && proposal.tenor !== "—" ? proposal.tenor : x.tenor,
-        announced: proposal.announced,
-        bid: proposal.bid,
-        served: proposal.served,
-        networkSize: proposal.networkSize,
-        bidders: proposal.bidders,
-        rateMin: proposal.rateMin,
-        rateMax: proposal.rateMax,
-        rateLimit: proposal.rateLimit,
-        rateAvg: proposal.rateAvg,
-        priceMin: proposal.priceMin,
-        priceMax: proposal.priceMax,
-        priceLimit: proposal.priceLimit,
-        priceAvg: proposal.priceAvg,
-        coverage: proposal.coverage,
+        codeEmission: x.codeEmission ?? proposal.codeEmission,
+        tenor: x.tenor && x.tenor !== "—" ? x.tenor : (proposal.tenor ?? x.tenor),
+        announced: seul(proposal.announced),
+        bid: seul(proposal.bid),
+        served: seul(proposal.served),
+        networkSize: seul(proposal.networkSize),
+        bidders: seul(proposal.bidders),
+        rateMin: seul(proposal.rateMin),
+        rateMax: seul(proposal.rateMax),
+        rateLimit: seul(proposal.rateLimit),
+        rateAvg: seul(proposal.rateAvg),
+        priceMin: seul(proposal.priceMin),
+        priceMax: seul(proposal.priceMax),
+        priceLimit: seul(proposal.priceLimit),
+        priceAvg: seul(proposal.priceAvg),
+        coverage: seul(proposal.coverage),
+        priceAvgFcfa: proposal.priceAvgFcfa,
+        yieldAvg: proposal.yieldAvg,
+        yieldLimit: proposal.yieldLimit,
+        couponRate: proposal.couponRate,
+        maturityOn: proposal.maturityOn,
       });
       faites.push(`${x.sessionOn} ${x.instrument} ${x.tenor}`);
       if (remarks.length) {
@@ -90,8 +118,8 @@ export async function GET(req: NextRequest) {
   if (faites.length)
     await r.logEvent({
       kind: "system",
-      html: `Lecture automatique : ${faites.length} séance(s) remplie(s)${pays ? ` pour ${pays}` : ""}, en attente de relecture par le desk`,
+      html: `${complement ? "Complément automatique (coupon, rendement)" : "Lecture automatique"} : ${faites.length} séance(s) remplie(s)${pays ? ` pour ${pays}` : ""}, en attente de relecture par le desk`,
     });
 
-  return NextResponse.json({ ok: true, pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
+  return NextResponse.json({ ok: true, mode: complement ? "complement" : "lecture", pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
 }

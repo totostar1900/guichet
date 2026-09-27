@@ -45,6 +45,9 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
   const origines = new Map<string, number>();
   for (const c of courbe.countries) for (const p of c.points) origines.set(p.yield.origin, (origines.get(p.yield.origin) ?? 0) + 1);
   const hypotheses = [...new Set(courbe.countries.flatMap((c) => c.points.flatMap((p) => p.yield.assumptions)))];
+  // Un coupon relevé par le robot après la confirmation d'une séance : le point
+  // compte, et la personne qui a signé la séance ne l'a pas vu passer.
+  const aVerifier = courbe.countries.flatMap((c) => c.points.filter((p) => p.toVerify));
 
   // L'écart ne se calcule qu'entre deux Trésors réellement présents : le
   // premier porte le plus de points, et c'est lui qui sert de référence.
@@ -113,6 +116,10 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
             <b className={courbe.gaps.length ? styles.warnb : undefined}>{courbe.gaps.length}</b>
           </div>
           <div>
+            <span>{t("À vérifier")}</span>
+            <b className={aVerifier.length ? styles.warnb : undefined}>{aVerifier.length}</b>
+          </div>
+          <div>
             <span>{t("Point le plus ancien")}</span>
             <b>{courbe.countries.length ? t("{n} j", { n: Math.max(...courbe.countries.map((c) => c.oldestDays)) }) : "—"}</b>
           </div>
@@ -177,13 +184,31 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
                         <Link href={`/desk/adjudications?s=${p.from.id}`}>{fmtDate(p.from.sessionOn)}</Link>
                       </td>
                       <td className="r">{t("{n} j", { n: p.ageDays })}</td>
-                      <td>{p.thin ? <span className="st annulee">{t("séance mince")}</span> : <span className="muted">{t("{n} soumissionnaires", { n: p.from.bidders ?? "—" })}</span>}</td>
+                      <td>
+                        {p.thin ? <span className="st annulee">{t("séance mince")}</span> : <span className="muted">{t("{n} soumissionnaires", { n: p.from.bidders ?? "—" })}</span>}
+                        {p.toVerify && (
+                          <>
+                            {" "}
+                            <span className="st transmise" title={t("Un champ est entré après la confirmation : le plus souvent le coupon, relevé par le robot. Rouvrez la séance et vérifiez-le sur la pièce.")}>
+                              {t("à vérifier")}
+                            </span>
+                          </>
+                        )}
+                      </td>
                     </tr>
                   )),
                 )}
               </tbody>
             </table>
           </div>
+          {aVerifier.length > 0 && (
+            <p className={styles.verif}>
+              {t(
+                "{n} points portent un champ entré après la confirmation de leur séance, le plus souvent le coupon relevé par le robot une fois la colonne créée. Le rendement compte, et la personne qui a signé la séance ne l'a pas vu : rouvrez-la et vérifiez ce chiffre sur la pièce.",
+                { n: String(aVerifier.length) },
+              )}
+            </p>
+          )}
           {hypotheses.length > 0 && (
             <p className={styles.hyp}>
               <b>{t("Ce qui a été supposé")} : </b>

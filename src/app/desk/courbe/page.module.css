@@ -123,3 +123,14 @@
   margin: 0;
   font-size: 0.8rem;
 }
+
+/* Une file de travail, pas une note de bas de page : elle nomme un geste, et
+   elle disparaît quand le geste est fait. */
+.verif {
+  margin: 0;
+  padding: var(--s-5) var(--panel-inset);
+  border-top: 1px solid var(--line);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 0.78rem;
+}

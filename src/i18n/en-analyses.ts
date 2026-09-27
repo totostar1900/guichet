@@ -141,4 +141,8 @@ export const EN_ANALYSES: Record<string, string> = {
   "Une note qui sort passe par Publications, où elle prend un numéro, une version et une trace au journal.":
     "A note that goes out passes through Publications, where it takes a number, a version and a trace in the journal.",
   "Notes de marché": "Market notes",
+  "À vérifier": "To check",
+  "à vérifier": "to check",
+  "Un champ est entré après la confirmation : le plus souvent le coupon, relevé par le robot. Rouvrez la séance et vérifiez-le sur la pièce.": "A field arrived after the confirmation: most often the coupon, picked up by the robot. Reopen the session and check it against the document.",
+  "{n} points portent un champ entré après la confirmation de leur séance, le plus souvent le coupon relevé par le robot une fois la colonne créée. Le rendement compte, et la personne qui a signé la séance ne l'a pas vu : rouvrez-la et vérifiez ce chiffre sur la pièce.": "{n} points carry a field entered after their session was confirmed, most often the coupon picked up by the robot once the column existed. The yield counts, and the person who signed the session did not see it: reopen it and check that figure against the document.",
 };

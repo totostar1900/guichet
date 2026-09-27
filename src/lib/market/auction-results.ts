@@ -159,6 +159,22 @@ export const etatSeance = (r: Pick<AuctionResult, "confirmedBy" | "rateAvg" | "r
   return chiffre == null ? "a_lire" : "a_relire";
 };
 
+/**
+ * Un champ est entré après que quelqu'un a signé.
+ *
+ * La colonne « rendement » et le coupon sont nés après que cinquante-sept
+ * séances eurent été relues. Les remplir par la machine rendait la courbe
+ * possible ; les remplir en silence aurait fait passer sous l'attestation d'une
+ * personne un chiffre qu'elle n'a pas vu. La base porte déjà la réponse, et
+ * elle ne coûte pas une colonne : une mise à jour postérieure à la
+ * confirmation se lit dans les deux horodatages.
+ *
+ * Le point reste utilisable. Ce qui change est qu'il se présente comme à
+ * vérifier, et qu'il se compte.
+ */
+export const completedAfterConfirmation = (r: Pick<AuctionResult, "confirmedAt" | "updatedAt">): boolean =>
+  Boolean(r.confirmedAt) && Date.parse(r.updatedAt) > Date.parse(r.confirmedAt!) + 60_000;
+
 const days = (a: string, b: string): number => Math.round((Date.parse(a) - Date.parse(b)) / 86_400_000);
 
 export interface RateReference {

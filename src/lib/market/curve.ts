@@ -1,5 +1,5 @@
 import type { Country } from "@/lib/domain/types";
-import { thin, type AuctionResult } from "./auction-results";
+import { completedAfterConfirmation, thin, type AuctionResult } from "./auction-results";
 import { auctionYield, tenorYears, yieldMissing, type AuctionYield } from "./yield";
 
 /**
@@ -44,6 +44,12 @@ export interface CurvePoint {
   ageDays: number;
   /** La séance est mince : le point est tracé, et signalé. */
   thin: boolean;
+  /**
+   * Un champ est arrivé après la confirmation : le plus souvent le coupon,
+   * relevé par le robot une fois la colonne créée. Le point compte, et la
+   * personne qui a confirmé la séance ne l'a pas vu passer.
+   */
+  toVerify: boolean;
 }
 
 export interface CountryCurve {
@@ -108,7 +114,7 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
       gaps.push({ country: r.country, instrument: r.instrument, tenor: r.tenor, on: r.sessionOn, why: yieldMissing(r) ?? "rendement indisponible", id: r.id });
       continue;
     }
-    const p: CurvePoint = { country: r.country, tenor: r.tenor, years: annees, yield: y, from: r, ageDays: days(on, r.sessionOn), thin: thin(r) };
+    const p: CurvePoint = { country: r.country, tenor: r.tenor, years: annees, yield: y, from: r, ageDays: days(on, r.sessionOn), thin: thin(r), toVerify: completedAfterConfirmation(r) };
     const cle = `${r.country}|${r.tenor}`;
     parCle.set(cle, [...(parCle.get(cle) ?? []), p]);
   }
