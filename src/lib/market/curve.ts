@@ -1,6 +1,6 @@
 import type { Country } from "@/lib/domain/types";
 import { completedAfterConfirmation, fourchette, thin, type AuctionResult } from "./auction-results";
-import { auctionYield, vieRestante, yieldMissing, type AuctionYield } from "./yield";
+import { auctionYield, tenorYears, vieRestante, yieldMissing, type AuctionYield } from "./yield";
 
 /**
  * La courbe des taux de la zone, construite sur ce qui est relu.
@@ -99,6 +99,20 @@ const days = (a: string, b: string): number => Math.round((Date.parse(a) - Date.
  */
 export const horizon = (years: number): { n: number; unit: "mois" | "ans" } =>
   years < 1 ? { n: Math.max(1, Math.round(years * 12)), unit: "mois" } : { n: Math.round(years * 10) / 10, unit: "ans" };
+
+/**
+ * Le point ne se pose pas où son étiquette l'annonce : c'est un abondement.
+ *
+ * L'écart se mesure en proportion de la durée annoncée et non en mois, parce
+ * que la même règle doit couvrir treize semaines et dix ans. Un dixième de la
+ * durée : neuf jours sur un bon à treize semaines, quatre mois sur un dix ans.
+ * Les arrondis de calendrier, eux, valent quelques jours et ne déclenchent
+ * jamais rien.
+ */
+export function abonde(p: Pick<CurvePoint, "tenor" | "years">): boolean {
+  const annonce = tenorYears(p.tenor);
+  return annonce != null && Math.abs(annonce - p.years) > annonce * 0.1;
+}
 
 /** Sous deux points, une courbe n'est pas une courbe : c'est une observation. */
 export const MIN_POINTS = 2;

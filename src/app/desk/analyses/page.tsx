@@ -11,8 +11,7 @@ import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
 import { cribler } from "@/lib/market/anomalies";
 import { anomalieVueAction } from "./actions";
 import { bridge } from "@/lib/market/bridge";
-import { buildCurve, horizon, MIN_POINTS, serie } from "@/lib/market/curve";
-import { tenorYears } from "@/lib/market/yield";
+import { abonde, buildCurve, horizon, MIN_POINTS, serie } from "@/lib/market/curve";
 import { freshness, liquidity } from "@/lib/market/liquidity";
 import styles from "./page.module.css";
 
@@ -171,7 +170,7 @@ export default async function AnalysesPage() {
                           // l'étiquette et l'horizon disent la même chose, et
                           // répéter l'un sous l'autre ne ferait que du bruit.
                           const h = horizon(p.years);
-                          const ecarte = Math.abs((tenorYears(p.tenor) ?? p.years) - p.years) > 0.15;
+                          const ecarte = abonde(p);
                           return (
                             <span key={p.from.id}>
                               {p.tenor.replace(" semaines", " sem.")}

@@ -103,13 +103,29 @@ export function tenorYears(tenor: string | undefined): number | undefined {
  * présente pas comme un chiffre calculé sur une date lue.
  */
 export function vieRestante(r: Pick<AuctionResult, "tenor"> & Partial<Pick<AuctionResult, "sessionOn" | "maturityOn">>): { years: number; from: "échéance" | "durée annoncée" } | undefined {
-  if (r.maturityOn && r.sessionOn) {
-    const j = (Date.parse(r.maturityOn) - Date.parse(r.sessionOn)) / 86_400_000;
-    // Une échéance passée ou aberrante ne dit rien : on retombe sur l'étiquette.
-    if (Number.isFinite(j) && j > 30 && j < 40 * 366) return { years: j / 365, from: "échéance" };
-  }
+  const j = joursRestants(r);
+  if (j != null) return { years: j / 365, from: "échéance" };
   const t = tenorYears(r.tenor);
   return t == null ? undefined : { years: t, from: "durée annoncée" };
+}
+
+/**
+ * Les jours qui restent, quand l'échéance imprimée en dit quelque chose.
+ *
+ * Le plancher est d'un jour et non d'un mois. Le Trésor gabonais abonde ses
+ * bons à treize semaines : le 22 juillet 2026, deux de ses quatre lignes
+ * arrivaient à terme vingt-trois et trente-sept jours plus tard. Un plancher
+ * d'un mois les renvoyait à leur étiquette et les posait à trois mois, ce qui
+ * est le défaut même qu'on cherchait à corriger.
+ *
+ * Reste le plafond, qui écarte une date manifestement mal lue. Une échéance
+ * seulement douteuse n'est pas le sujet de cette fonction : elle n'a qu'une
+ * date, là où le crible d'anomalies a la pièce et la séance entière.
+ */
+function joursRestants(r: Partial<Pick<AuctionResult, "sessionOn" | "maturityOn">>): number | undefined {
+  if (!r.maturityOn || !r.sessionOn) return undefined;
+  const j = (Date.parse(r.maturityOn) - Date.parse(r.sessionOn)) / 86_400_000;
+  return Number.isFinite(j) && j >= 1 && j < 40 * 366 ? j : undefined;
 }
 
 /**
@@ -246,11 +262,18 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
 
   if (r.instrument === "BTA") {
     const d = r.rateAvg ?? r.rateLimit;
-    const jours = tenorDays(r.tenor);
+    // Un bon s'abonde comme une obligation : le Trésor gabonais en a adjugé
+    // quatre lignes de treize semaines le même jour, dont deux à vingt-trois et
+    // trente-sept jours du terme. L'escompte se compte sur ces jours-là, sans
+    // quoi le point se poserait à une durée et se calculerait sur une autre.
+    const restants = joursRestants(r);
+    const jours = restants != null ? Math.round(restants) : tenorDays(r.tenor);
     if (d == null || jours == null) return undefined;
     const y = actuarialFromDiscount(d, jours);
     if (y == null) return undefined;
-    return { pct: y, origin: "taux précompté", assumptions: [{ key: "escompte exact/360 sur {j} jours, capitalisation exact/365", params: { j: jours } }] };
+    const hyp: Assumption[] = [{ key: "escompte exact/360 sur {j} jours, capitalisation exact/365", params: { j: jours } }];
+    if (restants == null) hyp.push({ key: "durée annoncée retenue faute d'échéance imprimée" });
+    return { pct: y, origin: "taux précompté", assumptions: hyp };
   }
 
   const p = priceOf(r);

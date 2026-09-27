@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AuctionResult } from "@/lib/market/auction-results";
-import { buildCurve, horizon, serie, spreadComparable, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
+import { abonde, buildCurve, horizon, serie, spreadComparable, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
 import { actuarialFromDiscount, auctionYield, priceOf, tenorDays, tenorYears, vieRestante, yieldMissing, ytm } from "@/lib/market/yield";
 
 /**
@@ -76,6 +76,21 @@ describe("la vie restante", () => {
    */
   it("ignore une échéance antérieure à la séance", () => {
     expect(vieRestante({ tenor: "5 ans", sessionOn: "2026-07-21", maturityOn: "2024-06-27" })!.from).toBe("durée annoncée");
+  });
+
+  /**
+   * Un bon aussi peut n'avoir que trois semaines devant lui.
+   *
+   * Le Trésor gabonais a adjugé quatre lignes de bons à treize semaines le
+   * 22 juillet 2026, dont deux abondements arrivant à terme les 14 et 28 août.
+   * Un plancher d'un mois, posé pour écarter les dates aberrantes, renvoyait
+   * celle du 14 août à son étiquette et posait le point à trois mois : le
+   * défaut même qu'on corrigeait.
+   */
+  it("accepte une échéance à trois semaines, qui est celle d'un bon abondé", () => {
+    const v = vieRestante({ tenor: "13 semaines", sessionOn: "2026-07-22", maturityOn: "2026-08-14" });
+    expect(v!.from).toBe("échéance");
+    expect(Math.round(v!.years * 365)).toBe(23);
   });
 
   it("ne dit rien quand ni l'échéance ni l'étiquette ne se lisent", () => {
@@ -200,6 +215,21 @@ describe("le rendement d'une séance", () => {
     expect(y!.origin).toBe("taux précompté");
     expect(y!.pct).toBeCloseTo(7.6, 1);
     expect(y!.assumptions.map((h) => h.key).join(" ")).toContain("360");
+    // Sans échéance imprimée, la durée annoncée sert, et le dit.
+    expect(y!.assumptions.map((h) => h.key).join(" ")).toContain("durée annoncée");
+  });
+
+  /**
+   * L'escompte d'un bon abondé se compte sur ce qu'il lui reste.
+   *
+   * L'écart de rendement est petit, un escompte étant déjà annualisé. Ce n'est
+   * pas le sujet : un point posé à vingt-trois jours et calculé sur
+   * quatre-vingt-onze ne parle pas du même titre en abscisse et en ordonnée.
+   */
+  it("compte l'escompte d'un bon sur les jours qui restent", () => {
+    const y = auctionYield({ instrument: "BTA", tenor: "13 semaines", sessionOn: "2026-07-22", maturityOn: "2026-08-14", rateAvg: 6 });
+    expect(y!.assumptions[0].params!.j).toBe(23);
+    expect(y!.assumptions.map((h) => h.key).join(" ")).not.toContain("durée annoncée");
   });
 
   it("calcule une obligation, et déclare l'échéancier supposé", () => {
@@ -423,6 +453,22 @@ describe("la courbe passée à la vie restante", () => {
     expect(horizon(0.93)).toEqual({ n: 11, unit: "mois" });
     expect(horizon(1.54)).toEqual({ n: 1.5, unit: "ans" });
     expect(horizon(5)).toEqual({ n: 5, unit: "ans" });
+  });
+
+  /**
+   * L'abondement se juge en proportion, pas en mois.
+   *
+   * Un seuil fixe de deux mois signalait le 6 ans congolais à dix-huit mois du
+   * terme et laissait passer le bon à treize semaines abondé à trente-sept
+   * jours. Un dixième de la durée annoncée couvre les deux échelles, et laisse
+   * passer les arrondis de calendrier, qui valent quelques jours.
+   */
+  it("reconnaît un abondement sur un bon comme sur une obligation", () => {
+    expect(abonde({ tenor: "13 semaines", years: 37 / 365 })).toBe(true);
+    expect(abonde({ tenor: "6 ans", years: 1.54 })).toBe(true);
+    expect(abonde({ tenor: "13 semaines", years: 91 / 365 })).toBe(false);
+    // 5,0027 années exact/365 pour cinq années civiles : un 29 février, pas un abondement.
+    expect(abonde({ tenor: "5 ans", years: 5.0027 })).toBe(false);
   });
 });
 
