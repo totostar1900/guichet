@@ -1,4 +1,5 @@
 import type { Country } from "@/lib/domain/types";
+import { completerDepuisAvis, rembourseInFine, type EmissionLine } from "./emission-notices";
 import { completedAfterConfirmation, fourchette, thin, type AuctionResult } from "./auction-results";
 import { auctionYield, tenorYears, vieRestante, yieldMissing, type AuctionYield } from "./yield";
 
@@ -76,6 +77,14 @@ export interface CurveGap {
   why: string;
   /** La fourchette publiée, quand le Trésor n'imprime pas de chiffre servi. */
   publie?: string;
+  /**
+   * Une phrase recopiée de la pièce, montrée telle quelle.
+   *
+   * « why » est une clef de dictionnaire ; ceci ne l'est pas. Les mots du
+   * Trésor se citent dans sa langue, et les traduire leur ferait dire autre
+   * chose.
+   */
+  cite?: string;
   id: string;
 }
 
@@ -124,6 +133,15 @@ export interface CurveOptions {
   windowDays?: number;
   /** Restreindre à un Trésor. */
   country?: Country;
+  /**
+   * Les modalités connues des lignes empruntées, tirées des avis d'annonce.
+   *
+   * Elles servent à deux choses : combler un coupon que le communiqué de
+   * résultats n'imprime pas, et écarter une ligne dont l'échéancier n'est pas
+   * celui que le calcul sait faire. Sans elles la courbe se construit comme
+   * avant, en déclarant l'in fine comme une hypothèse.
+   */
+  lines?: EmissionLine[];
 }
 
 export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curve {
@@ -139,7 +157,35 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
 
   const gaps: CurveGap[] = [];
   const parCle = new Map<string, CurvePoint[]>();
-  for (const r of fenetre) {
+  const lignes = opts.lines ?? [];
+  for (const brut of fenetre) {
+    /**
+     * Un échéancier que le calcul ne sait pas faire n'est pas une hypothèse à
+     * déclarer, c'est un point à ne pas tracer.
+     *
+     * Les six Trésors de la zone remboursent in fine, vérifié sur leurs avis,
+     * et le jour où l'un d'eux amortira par tranches ce sera écrit là. Mieux
+     * vaut alors un trou nommé sur la courbe qu'un rendement actualisé sur le
+     * mauvais échéancier, qui ressemblerait à tous les autres.
+     */
+    const ligne = brut.codeEmission ? lignes.find((l) => l.codeEmission === brut.codeEmission!.trim()) : undefined;
+    if (ligne && rembourseInFine(ligne.redemption) === false) {
+      gaps.push({
+        country: brut.country,
+        instrument: brut.instrument,
+        tenor: brut.tenor,
+        on: brut.sessionOn,
+        why: "l'avis d'annonce donne un autre échéancier : le calcul actualise un capital rendu en une fois",
+        cite: ligne.redemption,
+        id: brut.id,
+      });
+      continue;
+    }
+
+    // Ce que l'avis apporte ne remplace jamais ce que la séance porte : c'est le
+    // communiqué de résultats qui fait foi sur sa propre séance.
+    const comble = completerDepuisAvis(brut, lignes);
+    const r = comble ? { ...brut, couponRate: comble.couponRate, maturityOn: comble.maturityOn } : brut;
     const vie = vieRestante(r);
     const annees = vie?.years;
     const y = auctionYield(r);
@@ -159,7 +205,13 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
       });
       continue;
     }
-    const p: CurvePoint = { country: r.country, tenor: r.tenor, years: annees, yield: y, from: r, ageDays: days(on, r.sessionOn), thin: thin(r), toVerify: completedAfterConfirmation(r) };
+    // Un chiffre venu de l'avis se déclare, comme tout ce qui n'est pas sur la
+    // pièce qu'on regarde : le desk relit le communiqué de résultats à côté de
+    // l'écran et ne doit pas y chercher en vain un coupon qui n'y est pas.
+    const rendement = comble
+      ? { ...y, assumptions: [...y.assumptions, { key: "coupon et échéance repris de l'avis d'annonce de la ligne {code}", params: { code: comble.depuis.codeEmission } }] }
+      : y;
+    const p: CurvePoint = { country: r.country, tenor: r.tenor, years: annees, yield: rendement, from: r, ageDays: days(on, r.sessionOn), thin: thin(r), toVerify: completedAfterConfirmation(r) };
     // L'échéance identifie la ligne ; l'étiquette ne la distingue pas, deux
     // abondements de deux lignes pouvant s'appeler « 6 ans » le même mois.
     const cle = `${r.country}|${r.maturityOn ?? r.tenor}`;

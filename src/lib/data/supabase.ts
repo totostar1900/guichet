@@ -7,6 +7,7 @@ import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
+import type { EmissionNotice, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
@@ -488,6 +489,70 @@ export const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, fileKey: u(r.file_key), confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
+type EmissionNoticeRow = {
+  id: string; source_url: string; source_title: string; file_key: string | null;
+  country: string; instrument: string; tenor: string | null; session_on: string; abondement: boolean;
+  code_emission: string | null; maturity_on: string | null; coupon_rate: string | null; redemption: string | null;
+  nominal_unit: string | null; issue_volume: string | null; settle_on: string | null;
+  read_at: string | null; read_model: string | null; remarks: string[] | null;
+  confirmed_by: string | null; confirmed_at: string | null; created_at: string; updated_at: string;
+};
+
+/**
+ * Un avis d'annonce, mis en objet du domaine.
+ *
+ * Exporté pour la même raison que son voisin des séances : un script de
+ * relecture qui referait la conversion de son côté finirait par lire autre
+ * chose que l'écran.
+ */
+export const toEmissionNotice = (r: EmissionNoticeRow): EmissionNotice => ({
+  id: r.id, sourceUrl: r.source_url, sourceTitle: r.source_title, fileKey: u(r.file_key),
+  country: r.country as EmissionNotice["country"], instrument: r.instrument as EmissionNotice["instrument"],
+  tenor: u(r.tenor), sessionOn: r.session_on, abondement: r.abondement,
+  codeEmission: u(r.code_emission), maturityOn: u(r.maturity_on), couponRate: nn(r.coupon_rate),
+  redemption: u(r.redemption), nominalUnit: nn(r.nominal_unit), issueVolume: nn(r.issue_volume), settleOn: u(r.settle_on),
+  readAt: u(r.read_at), readModel: u(r.read_model), remarks: r.remarks ?? [],
+  confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at),
+  createdAt: r.created_at, updatedAt: r.updated_at,
+});
+
+/**
+ * Un avis, mis en colonnes, sans toucher à ce dont on ne parle pas.
+ *
+ * Même règle que pour les séances, et pour la même raison : « undefined » veut
+ * dire « non fourni » et saute la colonne. Un partiel construit avec un
+ * helper qui rend « undefined » pour « ne change pas » écrivait autrefois un
+ * null, et effaçait précisément le champ qu'on voulait garder.
+ */
+const fromEmissionNotice = (n: Partial<NewEmissionNotice>): Record<string, unknown> => {
+  const row: Record<string, unknown> = {};
+  const put = (col: string, key: keyof NewEmissionNotice) => {
+    if (!(key in n) || n[key] === undefined) return;
+    row[col] = n[key];
+  };
+  put("source_url", "sourceUrl");
+  put("source_title", "sourceTitle");
+  put("file_key", "fileKey");
+  put("country", "country");
+  put("instrument", "instrument");
+  put("tenor", "tenor");
+  put("session_on", "sessionOn");
+  put("abondement", "abondement");
+  put("code_emission", "codeEmission");
+  put("maturity_on", "maturityOn");
+  put("coupon_rate", "couponRate");
+  put("redemption", "redemption");
+  put("nominal_unit", "nominalUnit");
+  put("issue_volume", "issueVolume");
+  put("settle_on", "settleOn");
+  put("read_at", "readAt");
+  put("read_model", "readModel");
+  put("remarks", "remarks");
+  put("confirmed_by", "confirmedBy");
+  put("confirmed_at", "confirmedAt");
+  return row;
+};
+
 /**
  * Une séance, mise en colonnes, sans toucher à ce dont on ne parle pas.
  *
@@ -1419,6 +1484,40 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("auction_results").upsert(row, { onConflict: "source_url" }).select("*").single();
     if (error) fail("upsertAuctionResult", error);
     return toAuctionResult(data as AuctionResultRow);
+  },
+  async listEmissionNotices(filter) {
+    let q = db().from("emission_notices").select("*").order("session_on", { ascending: false });
+    if (filter?.codeEmission) q = q.eq("code_emission", filter.codeEmission);
+    if (filter?.country) q = q.eq("country", filter.country);
+    if (filter?.confirmed === true) q = q.not("confirmed_by", "is", null);
+    if (filter?.confirmed === false) q = q.is("confirmed_by", null);
+    const { data, error } = await q.limit(filter?.limit ?? 500);
+    if (error) fail("listEmissionNotices", error);
+    return (data ?? []).map((x) => toEmissionNotice(x as EmissionNoticeRow));
+  },
+  async upsertEmissionNotice(n) {
+    // Ce qu'un second passage du robot ne doit pas défaire : la relecture du
+    // desk, et la pièce déjà rapatriée. La BEAC renvoie des 502 par
+    // intermittence, et un passage malchanceux ne doit pas effacer un document
+    // qu'un passage heureux avait gardé.
+    const { data: kept } = await db().from("emission_notices").select("confirmed_by, confirmed_at, file_key").eq("source_url", n.sourceUrl).maybeSingle();
+    const row = fromEmissionNotice(n);
+    if (kept?.confirmed_by) {
+      row.confirmed_by = kept.confirmed_by;
+      row.confirmed_at = kept.confirmed_at;
+    }
+    if (kept?.file_key && !n.fileKey) row.file_key = kept.file_key;
+    row.updated_at = new Date().toISOString();
+    const { data, error } = await db().from("emission_notices").upsert(row, { onConflict: "source_url" }).select("*").single();
+    if (error) fail("upsertEmissionNotice", error);
+    return toEmissionNotice(data as EmissionNoticeRow);
+  },
+  async updateEmissionNotice(id, patch) {
+    const row = fromEmissionNotice(patch);
+    row.updated_at = new Date().toISOString();
+    const { data, error } = await db().from("emission_notices").update(row).eq("id", id).select("*").single();
+    if (error) fail("updateEmissionNotice", error);
+    return toEmissionNotice(data as EmissionNoticeRow);
   },
   async reopenAuctionResult(id) {
     const { data, error } = await db().from("auction_results").update({ confirmed_by: null, confirmed_at: null, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();

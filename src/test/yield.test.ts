@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AuctionResult } from "@/lib/market/auction-results";
 import { abonde, buildCurve, horizon, serie, spreadComparable, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
+import { emissionLines, type EmissionNotice } from "@/lib/market/emission-notices";
 import { actuarialFromDiscount, auctionYield, priceOf, tenorDays, tenorYears, vieRestante, yieldMissing, ytm } from "@/lib/market/yield";
 
 /**
@@ -469,6 +470,78 @@ describe("la courbe passée à la vie restante", () => {
     expect(abonde({ tenor: "13 semaines", years: 91 / 365 })).toBe(false);
     // 5,0027 années exact/365 pour cinq années civiles : un 29 février, pas un abondement.
     expect(abonde({ tenor: "5 ans", years: 5.0027 })).toBe(false);
+  });
+});
+
+describe("la courbe et les avis d'annonce", () => {
+  const avis = (over: Partial<EmissionNotice>): EmissionNotice => ({
+    id: over.id ?? "a1",
+    sourceUrl: `https://beac.int/${over.id ?? "a1"}.pdf`,
+    sourceTitle: "Communiqué d'annonce",
+    country: "Congo",
+    instrument: "OTA",
+    sessionOn: "2026-09-01",
+    abondement: false,
+    remarks: [],
+    confirmedBy: "Desk",
+    confirmedAt: "2026-09-28T10:00:00Z",
+    createdAt: "2026-09-28T10:00:00Z",
+    updatedAt: "2026-09-28T10:00:00Z",
+    ...over,
+  });
+
+  /**
+   * Beaucoup de communiqués de résultats n'impriment pas le coupon, et la
+   * séance restait alors un trou sur la courbe. L'avis de la même ligne le
+   * porte, et le code d'émission les relie.
+   */
+  it("comble un coupon absent et gagne un point", () => {
+    const seance = relue({ id: "cg", country: "Congo", instrument: "OTA", tenor: "3 ans", codeEmission: "CG2J00000867", sessionOn: "2026-09-15", maturityOn: "2029-09-15", priceAvg: 90 });
+    expect(buildCurve([seance], { on: "2026-09-25" }).gaps).toHaveLength(1);
+
+    const lignes = emissionLines([avis({ codeEmission: "CG2J00000867", couponRate: 6, redemption: "In fine" })]);
+    const c = buildCurve([seance], { on: "2026-09-25", lines: lignes });
+    expect(c.gaps).toHaveLength(0);
+    const [pt] = c.countries[0].points;
+    expect(pt.yield.pct).toBeGreaterThan(9);
+    // Ce qui ne vient pas de la pièce regardée se déclare.
+    expect(pt.yield.assumptions.map((h) => h.key).join(" ")).toContain("avis d'annonce");
+  });
+
+  /**
+   * La vraie raison d'être allé chercher ces documents.
+   *
+   * Tant que le remboursement était supposé in fine, une ligne amortie par
+   * tranches aurait été actualisée comme les autres et son rendement aurait été
+   * faux de plusieurs centaines de points de base, sans que rien ne le signale.
+   * Un trou nommé vaut mieux qu'un chiffre faux qui ressemble aux autres.
+   */
+  it("refuse de tracer une ligne dont l'échéancier n'est pas celui du calcul", () => {
+    const seance = relue({ id: "x", country: "Congo", instrument: "OTA", tenor: "5 ans", codeEmission: "CG2B00000001", sessionOn: "2026-09-15", maturityOn: "2031-09-15", priceAvg: 90, couponRate: 6 });
+    const lignes = emissionLines([avis({ codeEmission: "CG2B00000001", couponRate: 6, redemption: "Amortissement constant après un différé de deux ans" })]);
+    const c = buildCurve([seance], { on: "2026-09-25", lines: lignes });
+    expect(c.countries).toHaveLength(0);
+    expect(c.gaps[0].why).toContain("échéancier");
+    // Les mots du Trésor se citent, ils ne se traduisent pas.
+    expect(c.gaps[0].cite).toContain("Amortissement");
+  });
+
+  it("trace normalement quand l'avis confirme l'in fine", () => {
+    const seance = relue({ id: "y", country: "Congo", instrument: "OTA", tenor: "5 ans", codeEmission: "CG2B00000002", sessionOn: "2026-09-15", maturityOn: "2031-09-15", priceAvg: 90, couponRate: 6 });
+    const lignes = emissionLines([avis({ codeEmission: "CG2B00000002", redemption: "In fine" })]);
+    expect(buildCurve([seance], { on: "2026-09-25", lines: lignes }).countries[0].points).toHaveLength(1);
+  });
+
+  /**
+   * Les deux pièces sont du même Trésor, mais c'est le communiqué de résultats
+   * qui fait foi sur sa propre séance.
+   */
+  it("ne laisse pas l'avis écraser un coupon imprimé sur la séance", () => {
+    const seance = relue({ id: "z", country: "Congo", instrument: "OTA", tenor: "3 ans", codeEmission: "CG2J00000867", sessionOn: "2026-09-15", maturityOn: "2029-09-15", priceAvg: 90, couponRate: 6 });
+    const lignes = emissionLines([avis({ codeEmission: "CG2J00000867", couponRate: 9, redemption: "In fine" })]);
+    const [pt] = buildCurve([seance], { on: "2026-09-25", lines: lignes }).countries[0].points;
+    expect(pt.from.couponRate).toBe(6);
+    expect(pt.yield.assumptions.map((h) => h.key).join(" ")).not.toContain("avis d'annonce");
   });
 });
 

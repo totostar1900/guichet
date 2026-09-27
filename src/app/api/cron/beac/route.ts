@@ -271,8 +271,50 @@ export async function GET(req: NextRequest) {
       kind: "system",
       html: `BEAC : ${flagged} séance(s) déposée(s) dans « Adjudications »${seuls.length ? ` pour ${seuls.join(", ")}` : ""}, en attente de relecture${sansPiece ? ` · ${sansPiece} sans communiqué, à reprendre` : ""}${reprises ? ` · ${reprises} communiqué(s) repris` : ""}`,
     });
+
+  /**
+   * Les avis d'annonce, ramassés dans le même passage.
+   *
+   * Un avis paraît avant sa séance : la fenêtre regarde donc aussi devant, et
+   * c'est délibéré. La BEAC ne garde ses avis qu'un temps, et sur les quatre
+   * séances congolaises dont le rendement a posé question, aucun n'était plus en
+   * ligne quand nous avons su qu'il nous fallait. Ce qui n'est pas ramassé
+   * aujourd'hui ne se rattrape pas.
+   */
+  const avisGardes = new Map((await r.listEmissionNotices({ limit: 2000 }).catch(() => [])).map((x) => [x.sourceUrl, x.fileKey]));
+  let avisPoses = 0;
+  let avisSansPiece = 0;
+  const avis = rows
+    .map(readBeacDoc)
+    .filter((a) => a.kind === "annonce" && a.on && a.on >= from && (!seuls.length || (a.country && seuls.includes(a.country))));
+  for (const a of avis) {
+    if (!a.on || !a.country || (a.instrument !== "BTA" && a.instrument !== "OTA")) continue;
+    const dejaGardee = avisGardes.get(a.doc.url);
+    // Déjà ramassé avec sa pièce : rien à refaire. Sans sa pièce : on retente.
+    if (avisGardes.has(a.doc.url) && dejaGardee) continue;
+    const fileKey = dejaGardee ?? (await keep(a.doc.url, `${a.on}-annonce.pdf`));
+    await r.upsertEmissionNotice({
+      country: a.country,
+      instrument: a.instrument,
+      tenor: a.tenor,
+      sessionOn: a.on,
+      abondement: a.abondement,
+      sourceUrl: a.doc.url,
+      sourceTitle: a.doc.title,
+      fileKey,
+    });
+    if (!fileKey) avisSansPiece += 1;
+    avisPoses += 1;
+  }
+  if (avisPoses)
+    await r.logEvent({
+      kind: "system",
+      html: `BEAC : ${avisPoses} avis d'annonce ramassé(s)${seuls.length ? ` pour ${seuls.join(", ")}` : ""} · les modalités s'y lisent, pas sur les résultats${avisSansPiece ? ` · ${avisSansPiece} sans pièce, à reprendre` : ""}`,
+    });
   return NextResponse.json({
     ok: true,
+    avis: avisPoses,
+    avisSansPiece,
     day: today,
     from,
     rows: rows.length,

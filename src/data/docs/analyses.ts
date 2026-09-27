@@ -93,6 +93,22 @@ export const ANALYSES: DocPage = {
           type: "note",
           kind: "rule",
           text: l(
+            "Deux documents par séance, et ils ne disent pas les mêmes choses. Le communiqué de résultats donne les prix, les montants et la couverture : qui a acheté quoi. L'avis d'annonce, publié une semaine avant, donne ce qu'est le titre : l'échéance, le taux facial, la valeur nominale, le volume émis, et la mention « Remboursement » qui décide de la façon dont un prix s'actualise. Les deux sont ramassés et relus, et se rejoignent par le code d'émission. Quand l'avis porte un coupon que le communiqué de résultats n'imprime pas, la séance donne enfin un point de courbe, et le chiffre repris est déclaré comme venant de l'avis.",
+            "Two documents per session, and they do not say the same things. The results communiqué gives prices, amounts and cover: who bought what. The announcement notice, published a week earlier, gives what the security is: maturity, coupon rate, nominal value, issue volume, and the “Remboursement” line that decides how a price is discounted. Both are collected and reviewed, and they meet through the issue code. When the notice carries a coupon the results communiqué does not print, the session finally yields a curve point, and the figure taken is declared as coming from the notice.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "Une ligne dont l'avis annonce autre chose qu'un remboursement in fine ne donne pas de point. Le calcul actualise un capital rendu en une fois ; un amortissement par tranches après différé raccourcit la durée de vie moyenne et relève le rendement, et l'actualiser comme les autres produirait un chiffre faux qui ressemblerait à tous les autres. La séance figure alors parmi les trous, avec la phrase du Trésor citée telle quelle.",
+            "A line whose notice announces anything other than repayment in fine yields no point. The computation discounts a principal repaid in one instalment; amortisation in instalments after a grace period shortens average life and raises the yield, and discounting it like the others would produce a false figure that looked like all the rest. The session then appears among the gaps, with the Treasury's own wording quoted as it stands.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "rule",
+          text: l(
             "Le capital se rembourse en une fois, et ce n'est plus une hypothèse. L'avis d'annonce du Trésor congolais, qui n'est pas le communiqué de résultats, porte « Remboursement : In fine » et « les intérêts sont payés annuellement » : vérifié sur trois avis, dont deux abondements et une ligne neuve. De son côté le Trésor camerounais imprime son propre taux de rendement, et notre calcul le retrouve à moins d'un point de base sur dix des treize séances où les deux figurent. Les rendements congolais à court terme, de 15 à 17 % sur dix-huit mois, ne sont donc pas un artefact de l'échéancier supposé : ils sont ce que le marché a demandé à cette signature.",
             "The principal is repaid in one instalment, and this is no longer an assumption. The Congolese Treasury's announcement notice, which is not the results communiqué, carries “Remboursement : In fine” and “les intérêts sont payés annuellement”: checked on three notices, two of them taps and one a new line. The Cameroonian Treasury, for its part, prints its own yield, and our computation reproduces it to within one basis point on ten of the thirteen sessions where both appear. The short-dated Congolese yields, 15 to 17 % over eighteen months, are therefore not an artefact of the assumed schedule: they are what the market asked of that signature.",
           ),
@@ -281,8 +297,8 @@ export const ANALYSES: DocPage = {
           type: "list",
           items: [
             l(
-              "La couverture des avis d'annonce. C'est là, et non sur le communiqué de résultats, que le Trésor écrit les modalités de son emprunt. La BEAC n'en garde qu'une fenêtre glissante : sur nos quatre séances congolaises en question, aucune n'y figurait encore. L'échéancier d'une ligne précise se vérifie donc tant que son avis est en ligne, et pas après.",
-              "The coverage of announcement notices. That, and not the results communiqué, is where the Treasury writes the terms of its borrowing. BEAC keeps only a rolling window: of the four Congolese sessions in question, none was still listed. The schedule of a given line can therefore be checked while its notice is online, and not after.",
+              "L'antériorité des avis d'annonce. Ils sont désormais ramassés chaque jour, ce qui règle la suite ; il n'en reste pas moins que la BEAC n'en garde qu'une fenêtre glissante, et que les avis des séances plus anciennes ne sont plus en ligne. Les modalités d'une ligne ancienne restent donc supposées, et c'est le communiqué de résultats qui doit alors porter le coupon.",
+              "How far back the announcement notices go. They are now collected daily, which settles the future; BEAC nonetheless keeps only a rolling window, and notices for older sessions are no longer online. The terms of an older line therefore remain assumed, and the results communiqué must carry the coupon in that case.",
             ),
             l(
               "La pondération de l'indice. La note méthodologique de la BVMAC reste à obtenir ; la fraîcheur se compte donc en composantes.",

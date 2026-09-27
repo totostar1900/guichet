@@ -291,6 +291,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
                       <td>{g.tenor}</td>
                       <td>
                         {t(g.why)}
+                        {g.cite ? <span className="muted">{` · « ${g.cite} »`}</span> : null}
                         {g.publie ? <span className="muted">{` · ${t("fourchette publiée")} ${g.publie}`}</span> : null}
                       </td>
                       <td>

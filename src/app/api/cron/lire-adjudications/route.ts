@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { repo } from "@/lib/data";
 import { readSource } from "@/lib/intake/storage";
 import { auctionReadingAvailable, modeleDemande, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
+import { readEmissionNotice } from "@/lib/market/notice-extract";
 import type { AuctionResult } from "@/lib/market/auction-results";
 
 /**
@@ -60,6 +61,18 @@ export async function GET(req: NextRequest) {
    * postérieure à la confirmation.
    */
   const restaure = p.get("mode") === "restaure";
+
+  /**
+   * « avis » : lire les communiqués d'annonce plutôt que les résultats.
+   *
+   * C'est l'autre document de la BEAC, celui qui porte les modalités de
+   * l'emprunt : l'échéance, le taux facial, la valeur nominale, et la mention
+   * « Remboursement » qui décide de la façon dont un prix s'actualise. Il se lit
+   * à part parce qu'il ne dit rien des mêmes choses : lui demander un tableau de
+   * soumissions n'aurait pas de sens, et mêler les deux consignes ferait deux
+   * lecteurs médiocres au lieu d'un bon de chaque.
+   */
+  const avis = p.get("mode") === "avis";
   /**
    * Reprendre une pièce dont un passage précédent n'a rien tiré.
    *
@@ -109,6 +122,55 @@ export async function GET(req: NextRequest) {
    */
   const aCompleter = (x: AuctionResult) =>
     Boolean(x.fileKey) && x.instrument === "OTA" && x.couponRate == null && x.yieldAvg == null && (x.priceAvg != null || x.priceLimit != null || x.priceAvgFcfa != null);
+
+  if (avis) {
+    const tous = await r.listEmissionNotices({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
+    // Un avis est « à lire » quand il a sa pièce et pas encore sa marque.
+    const fileAvis = tous
+      .filter((x) => Boolean(x.fileKey) && (retente || !x.readAt))
+      .sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
+    const paquetAvis = fileAvis.slice(0, n);
+    const faitsAvis: string[] = [];
+    const rateesAvis: { avis: string; raison: string }[] = [];
+    const modelesAvis = new Set<string>();
+    for (const x of paquetAvis) {
+      try {
+        const bytes = await readSource(x.fileKey!);
+        const hint = `Avis pour la séance du ${x.sessionOn}, ${x.instrument}${x.tenor ? ` ${x.tenor}` : ""}, ${x.country}.`;
+        const { proposal, remarks, model } = await readEmissionNotice(Buffer.from(bytes).toString("base64"), hint, modele);
+        modelesAvis.add(model);
+        // Le pays, l'instrument et la date viennent de l'index de la BEAC, qui
+        // les donne sans ambiguïté : la lecture du scan ne les redéfinit pas.
+        await r.updateEmissionNotice(x.id, {
+          readAt: new Date().toISOString(),
+          readModel: model,
+          codeEmission: proposal.codeEmission,
+          maturityOn: proposal.maturityOn,
+          couponRate: proposal.couponRate,
+          redemption: proposal.redemption,
+          nominalUnit: proposal.nominalUnit,
+          issueVolume: proposal.issueVolume,
+          settleOn: proposal.settleOn,
+          tenor: x.tenor ?? proposal.tenor,
+          remarks,
+        });
+        faitsAvis.push(`${x.sessionOn} ${x.country} ${x.tenor ?? ""}`.trim());
+      } catch (e) {
+        rateesAvis.push({ avis: `${x.sessionOn} ${x.country}`, raison: readingTrouble(e instanceof Error ? e.message : String(e)) });
+      }
+    }
+    return NextResponse.json({
+      ok: true,
+      mode: "avis",
+      retente,
+      modeles: [...modelesAvis],
+      pays: pays ?? "toutes",
+      lus: faitsAvis.length,
+      restants: fileAvis.length - paquetAvis.length,
+      faits: faitsAvis,
+      ratees: rateesAvis,
+    });
+  }
 
   const toutes = await r.listAuctionResults({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
   /** Une séance dont ni le taux ni le prix ne subsistent, alors que la pièce est là. */

@@ -5,6 +5,7 @@ import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
+import type { EmissionNotice, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
@@ -174,6 +175,20 @@ export interface Repository {
   updateAuctionResult(id: string, patch: Partial<NewAuctionResult>): Promise<AuctionResult>;
   /** Le seul effacement légitime de la table : la séance repasse « à relire ». */
   reopenAuctionResult(id: string): Promise<AuctionResult>;
+
+  /**
+   * Les avis d'annonce de la BEAC : les modalités de l'emprunt, que le
+   * communiqué de résultats ne porte jamais.
+   *
+   * C'est là que le Trésor écrit « Remboursement : In fine », le taux facial,
+   * la valeur nominale et le volume émis. Une ligne par document, le
+   * regroupement par code d'émission se faisant dans le domaine.
+   */
+  listEmissionNotices(filter?: { codeEmission?: string; country?: EmissionNotice["country"]; confirmed?: boolean; limit?: number }): Promise<EmissionNotice[]>;
+  /** Idempotent sur l'adresse du document : la pièce est l'avis. */
+  upsertEmissionNotice(n: NewEmissionNotice): Promise<EmissionNotice>;
+  /** Un champ « undefined » n'est pas fourni et ne touche pas la colonne. */
+  updateEmissionNotice(id: string, patch: Partial<NewEmissionNotice>): Promise<EmissionNotice>;
 
   /** Documents published by listed companies (collected from the BVMAC site). */
   listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;

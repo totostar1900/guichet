@@ -9,6 +9,7 @@ import type { StandingOrder } from "@/lib/domain/standing";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
+import type { EmissionNotice, NewEmissionNotice } from "@/lib/market/emission-notices";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
@@ -105,6 +106,8 @@ interface Store {
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
   auctionResults: AuctionResult[];
+  /** Les avis d annonce : les modalites de l emprunt, que le communique de resultats ne porte pas. */
+  emissionNotices: EmissionNotice[];
   news: NewsItem[];
   seq: number;
 }
@@ -153,6 +156,7 @@ function store(): Store {
       fundNavs: [],
       issuerDocs: [],
       auctionResults: [],
+      emissionNotices: [],
       seq: 17,
     };
   }
@@ -175,6 +179,7 @@ function store(): Store {
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
+  if (!g.__guichetStore.emissionNotices) g.__guichetStore.emissionNotices = [];
   if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
   return g.__guichetStore;
 }
@@ -757,6 +762,49 @@ export const memoryRepository: Repository = {
   async getAuctionResult(id) {
     const r = store().auctionResults.find((x) => x.id === id);
     return r ? structuredClone(r) : undefined;
+  },
+  async listEmissionNotices(filter) {
+    const s = store();
+    const tout = [...s.emissionNotices]
+      .filter((n) => (filter?.codeEmission ? n.codeEmission === filter.codeEmission : true))
+      .filter((n) => (filter?.country ? n.country === filter.country : true))
+      .filter((n) => (filter?.confirmed === undefined ? true : Boolean(n.confirmedBy) === filter.confirmed))
+      .sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
+    return tout.slice(0, filter?.limit ?? 500);
+  },
+  async upsertEmissionNotice(n) {
+    const s = store();
+    const at = new Date().toISOString();
+    const i = s.emissionNotices.findIndex((x) => x.sourceUrl === n.sourceUrl);
+    if (i < 0) {
+      const neuf: EmissionNotice = { id: String(++s.seq), remarks: [], ...n, createdAt: at, updatedAt: at };
+      s.emissionNotices.push(neuf);
+      return neuf;
+    }
+    const avant = s.emissionNotices[i];
+    // La confirmation reste, et une pièce absente n'efface pas une pièce gardée.
+    const fusion: EmissionNotice = {
+      ...avant,
+      ...Object.fromEntries(Object.entries(n).filter(([, v]) => v !== undefined)),
+      fileKey: n.fileKey ?? avant.fileKey,
+      confirmedBy: avant.confirmedBy ?? n.confirmedBy,
+      confirmedAt: avant.confirmedBy ? avant.confirmedAt : n.confirmedAt,
+      updatedAt: at,
+    };
+    s.emissionNotices[i] = fusion;
+    return fusion;
+  },
+  async updateEmissionNotice(id, patch) {
+    const s = store();
+    const i = s.emissionNotices.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error("avis d'annonce introuvable");
+    const fusion: EmissionNotice = {
+      ...s.emissionNotices[i],
+      ...Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)),
+      updatedAt: new Date().toISOString(),
+    };
+    s.emissionNotices[i] = fusion;
+    return fusion;
   },
   async upsertAuctionResult(r) {
     const s = store();

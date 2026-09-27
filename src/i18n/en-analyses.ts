@@ -180,6 +180,8 @@ export const EN_ANALYSES: Record<string, string> = {
   "un bon servi à un prix, sans taux": "a bill served at a price, with no rate",
   "une obligation servie à un taux, sans prix": "a bond served at a rate, with no price",
   "rendement imprimé {y} %, or le prix {p} et le coupon {c} % en donnent {z} % : {bp} points de base d'écart": "printed yield {y} %, yet the price {p} and the coupon {c} % give {z} %: {bp} basis points apart",
+  "coupon et échéance repris de l'avis d'annonce de la ligne {code}": "coupon and maturity taken from the announcement notice of line {code}",
+  "l'avis d'annonce donne un autre échéancier : le calcul actualise un capital rendu en une fois": "the announcement notice gives a different repayment schedule: the computation discounts a principal repaid in one instalment",
   "séance datée du 1er janvier": "session dated 1 January",
   "l'instrument de la séance, ou la colonne lue": "the session's instrument, or the column read",
   "la colonne d'où vient le chiffre retenu, et celles des deux bornes": "the column the retained figure came from, and those of the two bounds",
