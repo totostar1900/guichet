@@ -1,20 +1,22 @@
+/* Trois volets, deux poignées. Les largeurs sont des variables : la poignée
+   les écrit, le navigateur les retient, et la maquette ne tranche pas à la
+   place du desk une question qui dépend du scan qu'il est en train de lire. */
 .page {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: var(--s-7);
-  align-items: start;
+  grid-template-columns: var(--liste, 300px) auto minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: stretch;
+  height: calc(100vh - 118px);
+  min-height: 520px;
 }
 /* La liste se borne comme celle de « À valider » : mille séances ne doivent pas
    pousser hors de vue le formulaire qu'on est en train de remplir. */
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
-  position: sticky;
-  top: 78px;
-  max-height: calc(100vh - 98px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  gap: var(--s-4);
+  min-width: 0;
+  min-height: 0;
 }
 .blurb {
   margin: 0;
@@ -94,6 +96,8 @@
 
 .main {
   min-width: 0;
+  min-height: 0;
+  overflow: auto;
 }
 .form {
   display: flex;
@@ -138,9 +142,9 @@
    dans un autre onglet est la façon la plus sûre de se tromper de colonne. */
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  gap: var(--s-7);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto var(--champs, 360px);
+  gap: var(--s-5);
+  align-items: stretch;
 }
 .doc {
   min-width: 0;
@@ -166,26 +170,130 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.field {
+/* Deux champs par rangée : un volet de trois cent soixante pixels porte deux
+   colonnes de nombres courts sans que rien ne se serre. */
+.fields fieldset {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  align-items: center;
-  gap: var(--s-4);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4) var(--s-5);
 }
+.fields legend {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.field.large {
+  grid-column: 1 / -1;
+}
+/* Le libellé tient sur une ligne : l'unité est descendue dans la boîte, et ce
+   qui dépasse se retrouve au survol plutôt que sur une seconde rangée. */
 .field > span {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .field em {
-  display: block;
   font-style: normal;
-  font-size: 0.68rem;
   color: var(--ink-3);
 }
-.field input {
-  width: 100%;
+.box {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.box:focus-within {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px var(--info-soft);
+}
+.box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: var(--s-4);
+  font: inherit;
+  font-size: 0.82rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  background: transparent;
+  color: var(--ink);
+}
+.box input:focus {
+  outline: 0;
+}
+.box.txt input {
+  text-align: left;
+  font-variant-numeric: normal;
+}
+/* L'unité qualifie le nombre, pas le libellé : elle vit contre lui. */
+.unite {
+  display: grid;
+  place-items: center;
+  padding: 0 var(--s-4);
+  background: var(--surface-2);
+  border-left: 1px solid var(--line);
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+/* La machine vient de poser cette valeur, et personne ne l'a encore vérifiée. */
+.box.lu {
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+}
+.box.lu input {
+  color: var(--gold-ink);
+  font-weight: 600;
+}
+
+/* Les trois chiffres qu'on regarde avant de signer, déduits et non saisis. */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface);
+}
+/* Le filet entre deux chiffres est une bordure et non un espace d un pixel :
+   l échelle d espacement n a pas de pas d un pixel, et n a pas à en gagner un
+   pour un trait. */
+.strip div + div {
+  border-left: 1px solid var(--line);
+}
+.strip div {
+  padding: var(--s-4);
+  min-width: 0;
+}
+.strip span {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.strip b {
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+.strip b.gold {
+  color: var(--gold-ink);
+}
+.strip b.crit {
+  color: var(--crit);
 }
 .linked {
   margin: 0;
@@ -234,11 +342,17 @@
   .page,
   .split {
     grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+  }
+  .main {
+    overflow: visible;
   }
   .list {
-    position: static;
-    max-height: none;
-    overflow: visible;
+    max-height: 60vh;
+  }
+  .fields fieldset {
+    grid-template-columns: 1fr;
   }
 }
 

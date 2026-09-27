@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { Poignee } from "@/components/desk/Poignee";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
+import { etatSeance, thin } from "@/lib/market/auction-results";
 import { auctionReadingAvailable } from "@/lib/market/auction-extract";
 import { ResultForm } from "./ResultForm";
+import { SessionList, type LigneSeance } from "./SessionList";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +37,18 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
   const aRelire = all.filter((x) => !x.confirmedBy);
   const relues = all.filter((x) => x.confirmedBy);
   const selected = sp.s ? all.find((x) => x.id === sp.s) : aRelire[0];
+  // La liste ne reçoit que ce qu'elle affiche : deux cent quarante-neuf séances
+  // entières traverseraient le réseau pour trois colonnes.
+  const lignes: LigneSeance[] = all.map((x) => ({
+    id: x.id,
+    on: x.sessionOn,
+    pays: x.country,
+    instrument: x.instrument,
+    tenor: x.tenor,
+    code: x.codeEmission,
+    etat: etatSeance(x),
+    mince: thin(x),
+  }));
   const offer = selected?.offerId ? await r.getOffer(selected.offerId) : undefined;
 
   return (
@@ -47,26 +61,10 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
             {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
             <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
           </p>
-
-          <h3>
-            {t("À relire")} <span>{aRelire.length}</span>
-          </h3>
-          {aRelire.length === 0 && <p className={styles.empty}>{t("Rien à relire.")}</p>}
-          {aRelire.map((x) => (
-            <Row key={x.id} x={x} current={x.id === selected?.id} label={t("À relire")} />
-          ))}
-
-          {relues.length > 0 && (
-            <details className={styles.filed} open={relues.some((x) => x.id === selected?.id)}>
-              <summary>
-                {t("Relues")} <span>{relues.length}</span>
-              </summary>
-              {relues.map((x) => (
-                <Row key={x.id} x={x} current={x.id === selected?.id} label="" />
-              ))}
-            </details>
-          )}
+          <SessionList rows={lignes} current={selected?.id} />
         </aside>
+
+        <Poignee variable="--liste" min={240} max={520} memoire="adj.liste" libelle="Régler la largeur de la liste" />
 
         <div className={styles.main}>
           {selected ? (
@@ -79,28 +77,5 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
         </div>
       </div>
     </>
-  );
-}
-
-/** Une séance dans la liste : ce qu'elle est, et ce que son chiffre vaut. */
-function Row({ x, current, label }: { x: AuctionResult; current: boolean; label: string }) {
-  const h = headline(x);
-  const couv = coverageOf(x);
-  return (
-    <Link href={`/desk/adjudications?s=${x.id}`} className={styles.row} aria-current={current ? "true" : undefined}>
-      <div className={styles.meta}>
-        <span className={styles.when}>{x.sessionOn}</span>
-        {label && <span className={styles.todo}>{label}</span>}
-      </div>
-      <b>
-        {x.instrument} {x.tenor}
-      </b>
-      <span className={styles.meta}>
-        {x.country}
-        {h ? ` · ${h.value.toFixed(2).replace(".", ",")} %` : ""}
-        {couv != null ? ` · ${couv.toFixed(0)} %` : ""}
-        {thin(x) && h ? " · mince" : ""}
-      </span>
-    </Link>
   );
 }

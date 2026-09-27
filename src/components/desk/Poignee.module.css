@@ -1,0 +1,34 @@
+/* Cinq pixels de large, et une zone de saisie plus généreuse que sa trace :
+   viser un filet à la souris est un exercice, pas une commande. */
+.poignee {
+  position: relative;
+  width: 5px;
+  align-self: stretch;
+  min-height: 120px;
+  border-radius: 3px;
+  background: var(--line);
+  cursor: col-resize;
+  touch-action: none;
+}
+.poignee::after {
+  content: "";
+  position: absolute;
+  inset: 0 -5px;
+}
+.poignee:hover,
+.poignee:focus-visible,
+.poignee[data-tire="1"] {
+  background: var(--gold);
+  outline: none;
+}
+.poignee:focus-visible {
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+/* Sur un écran étroit la grille se replie en une colonne : une poignée
+   verticale n'y règle plus rien. */
+@media (max-width: 1000px) {
+  .poignee {
+    display: none;
+  }
+}

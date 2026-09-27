@@ -60,21 +60,19 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
       </th>
     );
   };
-  const filtre = (name: string, label: string, options: (string | [string, string])[]) => (
-    <label className={styles.filter}>
-      <span>{t(label)}</span>
-      <select name={name} defaultValue={sp[name] ?? "tout"}>
-        <option value="tout">{t("tout")}</option>
-        {options.map((o) => {
-          const [v, l] = Array.isArray(o) ? o : [o, o];
-          return (
-            <option key={v} value={v}>
-              {t(l)}
-            </option>
-          );
-        })}
-      </select>
-    </label>
+  // La commande seule : son titre est l'en-tête au-dessus d'elle.
+  const filtre = (name: string, options: (string | [string, string])[], tout = "tout") => (
+    <select name={name} defaultValue={sp[name] ?? "tout"} aria-label={t(name)}>
+      <option value="tout">{t(tout)}</option>
+      {options.map((o) => {
+        const [v, l] = Array.isArray(o) ? o : [o, o];
+        return (
+          <option key={v} value={v}>
+            {t(l)}
+          </option>
+        );
+      })}
+    </select>
   );
 
   return (
@@ -132,39 +130,15 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
           </p>
         )}
 
-        <form className={styles.filters} method="get">
-          {filtre("pays", "Trésor", distinct(all, (x) => x.country))}
-          {filtre("instrument", "Instrument", distinct(all, (x) => x.instrument))}
-          {filtre("duree", "Durée", distinct(all, (x) => x.tenor))}
-          {filtre("etat", "État", [
-            ["a-lire", "À lire"],
-            ["a-relire", "À relire"],
-            ["relues", "Relues"],
-          ])}
-          <label className={styles.filter}>
-            <span>{t("Du")}</span>
-            <input type="date" name="du" defaultValue={sp.du ?? ""} />
-          </label>
-          <label className={styles.filter}>
-            <span>{t("Au")}</span>
-            <input type="date" name="au" defaultValue={sp.au ?? ""} />
-          </label>
-          <input type="hidden" name="tri" value={tri} />
-          <button className="btn sm" type="submit">
-            {t("Filtrer")}
-          </button>
-          <Link className="btn sm ghost" href="/desk/adjudications/tableau">
-            {t("Tout")}
-          </Link>
-        </form>
-
         {rows.length === 0 ? (
           <div className="empty">{t("Aucune séance ne répond à ces filtres.")}</div>
         ) : (
           <TallTable total={rows.length}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
+            <form method="get" className={styles.filtrage}>
+              <input type="hidden" name="tri" value={tri} />
+              <table className={styles.table}>
+                <thead>
+                  <tr>
                   {th("date", "Séance")}
                   {th("pays", "Trésor")}
                   {th("instrument", "Instr.")}
@@ -174,9 +148,34 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   {th("soumis", "Soumis.", true)}
                   {th("servi", "Servi", true)}
                   {th("etat", "État")}
-                </tr>
-              </thead>
-              <tbody>
+                  </tr>
+                  {/* Chaque commande sous la colonne qu'elle resserre. */}
+                  <tr className={styles.filters}>
+                    <th>
+                      <input type="date" name="du" defaultValue={sp.du ?? ""} aria-label={t("Du")} />
+                      <input type="date" name="au" defaultValue={sp.au ?? ""} aria-label={t("Au")} />
+                    </th>
+                    <th>{filtre("pays", distinct(all, (x) => x.country), "tous")}</th>
+                    <th>{filtre("instrument", distinct(all, (x) => x.instrument), "tous")}</th>
+                    <th>{filtre("duree", distinct(all, (x) => x.tenor), "toutes")}</th>
+                    <th colSpan={4} className={styles.r}>
+                      <button className="btn sm" type="submit">
+                        {t("Filtrer")}
+                      </button>{" "}
+                      <Link className="btn sm ghost" href="/desk/adjudications/tableau">
+                        {t("Tout")}
+                      </Link>
+                    </th>
+                    <th>
+                      {filtre("etat", [
+                        ["a-lire", "À lire"],
+                        ["a-relire", "À relire"],
+                        ["relues", "Relues"],
+                      ], "tous")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
                 {rows.map(({ r: x, chiffre, unite, couverture, mince }) => (
                   <tr key={x.id} className={x.confirmedBy ? undefined : styles.draft}>
                     <td>
@@ -200,8 +199,9 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </form>
           </TallTable>
         )}
       </div>

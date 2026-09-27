@@ -3,8 +3,10 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { SourceViewer } from "@/components/SourceViewer";
+import { Poignee } from "@/components/desk/Poignee";
 import { useT } from "@/i18n/client";
 import { coverageOf, etatSeance, thin, type AuctionResult } from "@/lib/market/auction-results";
+import { auctionYield, YIELD_ORIGIN_LABEL } from "@/lib/market/yield";
 import { confirmResultAction, proposeResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
 import styles from "./page.module.css";
 
@@ -86,6 +88,9 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
   const couv = coverageOf(r);
   const mince = thin(r);
   const etat = etatSeance(r);
+  // Le rendement se déduit des champs enregistrés : il dit tout de suite si la
+  // séance servira de point sur la courbe, ou pourquoi elle n'en donnera pas.
+  const rdt = auctionYield(r);
 
   // La valeur d'un champ, dans cet ordre : ce que le desk a tapé, sinon ce que
   // la base porte, sinon ce que la machine propose. Une proposition ne recouvre
@@ -98,15 +103,29 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setEdits((v) => ({ ...v, [k]: e.target.value }));
 
-  const num = (name: string, label: string, unit?: string, hint?: string) => (
-    <label className={styles.field} key={name}>
-      <span>
-        {t(label)}
-        {unit ? <em>{t(unit)}</em> : null}
-      </span>
-      <input name={name} value={vals[name] ?? ""} onChange={set(name)} inputMode="decimal" autoComplete="off" placeholder={hint ? t(hint) : undefined} />
-    </label>
-  );
+  /**
+   * Un champ : le libellé sur une ligne, l'unité dans la boîte.
+   *
+   * « lu » distingue ce que la machine vient de proposer de ce que la base
+   * portait déjà : la boîte passe au doré, et le desk voit d'un coup d'œil ce
+   * qu'il lui reste à vérifier sur la pièce.
+   */
+  const champ = (name: string, label: string, unit?: string, aide?: string, texte = false) => {
+    const lu = !edits[name] && !base[name] && Boolean(propose_[name]);
+    return (
+      <label className={`${styles.field} ${texte ? styles.large : ""}`} key={name}>
+        <span title={aide ? `${t(label)} · ${t(aide)}` : t(label)}>
+          {t(label)}
+          {aide ? <em> · {t(aide)}</em> : null}
+        </span>
+        <div className={`${styles.box} ${texte ? styles.txt : ""} ${lu ? styles.lu : ""}`}>
+          <input name={name} value={vals[name] ?? ""} onChange={set(name)} inputMode={texte ? undefined : "decimal"} autoComplete="off" />
+          {unit ? <span className={styles.unite}>{t(unit)}</span> : null}
+        </div>
+      </label>
+    );
+  };
+  const num = champ;
 
   return (
     <form className={styles.form}>
@@ -144,7 +163,27 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
           )}
         </div>
 
+        <Poignee variable="--champs" min={280} max={560} memoire="adj.champs" depuisLaDroite libelle="Régler la largeur des champs" />
+
         <div className={styles.fields}>
+          {/* Ce qu'on regarde avant de signer, déduit et non saisi. */}
+          <div className={styles.strip}>
+            <div>
+              <span>{t("Couverture")}</span>
+              <b className={couv != null && couv < 100 ? styles.crit : undefined}>{couv == null ? "—" : `${(couv / 100).toFixed(2).replace(".", ",")} ×`}</b>
+            </div>
+            <div>
+              <span>{t("Soumissionnaires")}</span>
+              <b>{r.bidders == null ? "—" : `${r.bidders}${r.networkSize ? ` / ${r.networkSize}` : ""}`}</b>
+            </div>
+            <div>
+              <span>{t("Rendement")}</span>
+              <b className={styles.gold} title={rdt ? t(YIELD_ORIGIN_LABEL[rdt.origin]) : undefined}>
+                {rdt ? `${rdt.pct.toFixed(2).replace(".", ",")} %` : "—"}
+              </b>
+            </div>
+          </div>
+
           {/* La machine passe devant, et n'écrit rien. */}
           <div className={styles.machine}>
             <button className="btn sm" type="submit" formAction={propose} disabled={!canRead || !r.fileKey || reading} formNoValidate>
@@ -168,27 +207,9 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
 
           <fieldset>
             <legend>{t("La ligne")}</legend>
-            <label className={styles.field}>
-              <span>
-                {t("Durée")}
-                <em>{t("exigée pour confirmer")}</em>
-              </span>
-              <input name="tenor" value={vals.tenor} onChange={set("tenor")} autoComplete="off" placeholder="52 semaines" />
-            </label>
-            <label className={styles.field}>
-              <span>
-                {t("Code émission")}
-                <em>{t("pour rattacher à une ligne")}</em>
-              </span>
-              <input name="codeEmission" value={vals.codeEmission} onChange={set("codeEmission")} autoComplete="off" placeholder="CG1300001480" />
-            </label>
-            <label className={styles.field}>
-              <span>
-                {t("Notre ligne")}
-                <em>{t("facultatif")}</em>
-              </span>
-              <input name="offerId" value={vals.offerId} onChange={set("offerId")} autoComplete="off" placeholder={t("identifiant de l'offre")} />
-            </label>
+            {champ("tenor", "Durée", undefined, "exigée pour confirmer", true)}
+            {champ("codeEmission", "Code émission", undefined, "pour rattacher à une ligne", true)}
+            {champ("offerId", "Notre ligne", undefined, "facultatif", true)}
             {offerTitle && (
               <p className={styles.linked}>
                 {t("Rattachée à")} <Link href={`/desk/lignes/${r.offerId}`}>{offerTitle}</Link>

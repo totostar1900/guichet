@@ -63,23 +63,36 @@
   font-size: 0.78rem;
 }
 
-.filters {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--s-5);
-  flex-wrap: wrap;
+/* La rangée des filtres se colle sous celle des titres : on garde les deux
+   sous les yeux en descendant dans deux cent quarante-neuf lignes. Le décalage
+   vaut la hauteur de la rangée de titres. */
+.filtrage {
+  display: contents;
 }
-.filter {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
+.table tr.filters th {
+  top: 27px;
+  z-index: 3;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line-2);
+  padding: var(--s-2) var(--s-4);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
 }
-.filter span {
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+.table tr.filters select,
+.table tr.filters input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.7rem;
+  color: var(--ink);
+}
+.table tr.filters input + input {
+  margin-top: var(--s-1);
 }
 
 .table {

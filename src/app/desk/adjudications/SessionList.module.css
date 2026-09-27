@@ -1,0 +1,182 @@
+.bloc {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Quatre onglets plutôt que deux titres : l'état d'une séance est la première
+   chose qu'on cherche, et il devient ici une prise plutôt qu'une étiquette. */
+.onglets {
+  display: flex;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.onglets button {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.68rem;
+  padding: var(--s-3) var(--s-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.onglets button + button {
+  border-left: 1px solid var(--line);
+}
+.onglets button span {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.onglets button[aria-selected="true"] {
+  background: var(--navy);
+  color: var(--on-navy);
+  font-weight: 600;
+}
+.onglets button[aria-selected="true"] span {
+  color: var(--on-navy-2);
+}
+
+.cherche {
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.corps {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* « border-collapse: separate » est la condition d'un en-tête collé : sans
+   elle, un thead sticky perd ses filets. La maison l'a déjà appris ailleurs. */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.76rem;
+}
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-2);
+  text-align: left;
+  padding: var(--s-3) var(--s-5);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.table th i {
+  font-style: normal;
+  opacity: 0.4;
+}
+.table th[aria-sort="none"] i {
+  opacity: 0.25;
+}
+.table th:not([aria-sort="none"]) {
+  color: var(--gold-ink);
+}
+.table th:not([aria-sort="none"]) i {
+  opacity: 1;
+}
+.table td {
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--ink);
+}
+.table td small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.66rem;
+}
+.table tr:hover td {
+  background: var(--surface-2);
+}
+
+/* La séance ouverte : un fond, et un filet doré au bord, qui la retrouve d'un
+   coup d'œil quand on revient de la table des séances. */
+.table tr[aria-selected="true"] td {
+  background: var(--gold-soft);
+}
+.table tr[aria-selected="true"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.jour {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.jour a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+.jour a:hover {
+  text-decoration: underline;
+}
+
+.etat {
+  display: inline-block;
+  padding: 0 var(--s-3);
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.relue {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.a_relire {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.a_lire {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+.mince {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--crit);
+}
+
+.vide {
+  margin: 0;
+  padding: var(--s-7) var(--s-5);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
