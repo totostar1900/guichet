@@ -58,8 +58,13 @@ export default async function AnalysesPage() {
   const liq = liquidity(activite, cotes);
   const frais = liq ? freshness(liq) : undefined;
   const ponts = liq ? bridge(seances, liq.lines) : [];
-  const dernierIndice = [...bulletins].reverse().find((b) => b.indexValue != null);
-  const premierIndice = bulletins.find((b) => b.indexValue != null);
+  // Par comparaison de dates, et non par l'ordre du dépôt : celui-ci rend les
+  // bulletins du plus récent au plus ancien, et s'y fier avait interverti les
+  // deux bornes, donnant une hausse de quinze pour cent pour une baisse de
+  // treize.
+  const avecIndice = bulletins.filter((b) => b.indexValue != null);
+  const dernierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate > m.sessionDate ? b : m), undefined);
+  const premierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate < m.sessionDate ? b : m), undefined);
 
   /** Ce qui peut sortir du desk, et ce qui n'est pas encore assez solide pour cela. */
   const sortie = (ok: boolean, raison: string) => (ok ? <span className="st reglee">{t("publiable")}</span> : <span className="st transmise" title={t(raison)}>{t("interne")}</span>);
@@ -339,11 +344,10 @@ export default async function AnalysesPage() {
               </div>
               <p className={styles.strong}>
                 {frais.stale.length > 0
-                  ? t("{n} composantes sur {m} n'avaient pas traité depuis plus de {s} jours : {liste}. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.", {
-                      n: String(frais.stale.length),
+                  ? t("Sur {m} composantes du panier, {liste} n'avaient pas traité depuis plus de {s} jours. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.", {
                       m: String(frais.total),
                       s: String(frais.seuilDays),
-                      liste: frais.stale.map((s) => `${s.mnemo} (${s.staleDays ?? "—"} j)`).join(", "),
+                      liste: frais.stale.map((s) => `${s.mnemo} (${s.staleDays ?? "—"} jours)`).join(", "),
                     })
                   : t("Toutes les composantes ont traité dans la semaine : le niveau publié repose sur des cours frais.")}
               </p>

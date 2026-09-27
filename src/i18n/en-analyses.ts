@@ -115,8 +115,8 @@ export const EN_ANALYSES: Record<string, string> = {
   "Composantes traitées ce jour-là": "Components traded that day",
   "Par séance, sur {n}": "Per session, over {n}",
   "Plus longue dormance": "Longest dormancy",
-  "{n} composantes sur {m} n'avaient pas traité depuis plus de {s} jours : {liste}. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.":
-    "{n} components out of {m} had not traded for more than {s} days: {liste}. The index is not wrong, it is computed on stale prices, and this is the sentence that must accompany the published level.",
+  "Sur {m} composantes du panier, {liste} n'avaient pas traité depuis plus de {s} jours. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.":
+    "Of the {m} components in the basket, {liste} had not traded for more than {s} days. The index is not wrong, it is computed on stale prices, and this is the sentence that must accompany the published level.",
   "Toutes les composantes ont traité dans la semaine : le niveau publié repose sur des cours frais.": "Every component traded within the week: the published level rests on fresh prices.",
   "Le compte se fait en nombre de composantes et non en capitalisation, faute d'une pondération publiée par la bourse. L'approximation va dans le sens de la prudence : une grosse ligne dormante pèse plus que ce compte ne le montre.":
     "The count is in components and not in capitalisation, for want of a weighting published by the exchange. The approximation errs on the safe side: a large dormant line weighs more than this count shows.",
