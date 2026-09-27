@@ -42,6 +42,25 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
     const s = trading.get(p.date);
     return { ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined, titles: s?.titles ?? 0, amount: s?.amount ?? 0, trades: s?.trades ?? 0 };
   });
+  /**
+   * Depuis quand chaque valeur du panier n'a plus traité.
+   *
+   * Tiré des historiques déjà chargés : la dernière séance où la ligne a changé
+   * de mains, contre la dernière séance lue. Une valeur qui n'a jamais traité
+   * sur la période n'a pas une dormance de zéro, elle n'en a pas, et elle
+   * compte comme dormante.
+   */
+  const SEUIL_DORMANCE = 7;
+  const dernierJour = stats.points.at(-1)?.date;
+  const dormances = histories
+    .map(({ w, quotes }) => {
+      const derniere = [...quotes].reverse().find((q) => (q.trades ?? 0) > 0 || (q.volumeTraded ?? 0) > 0)?.sessionDate;
+      const jours = derniere && dernierJour ? Math.round((Date.parse(dernierJour) - Date.parse(derniere)) / 86_400_000) : undefined;
+      return { mnemo: w.mnemo, jours };
+    })
+    .sort((a, b) => (b.jours ?? 9999) - (a.jours ?? 9999));
+  const dormantes = dormances.filter((d) => (d.jours ?? 9999) > SEUIL_DORMANCE);
+
   const lastCount = (quotes: { sharesTotal?: number; sharesFloat?: number }[], k: "sharesTotal" | "sharesFloat") => [...quotes].reverse().find((q) => (q[k] ?? 0) > 0)?.[k];
   const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0, variationPct: q.variationPct })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
   // the sessions table : moved sessions by default, every session on demand, one share or all, fifty per page
@@ -153,6 +172,18 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
                 </dd>
               </div>
             </dl>
+
+            {/* La fraîcheur du panier, à côté du niveau qu'elle qualifie. */}
+            {dormances.length > 0 && (
+              <p className={styles.fraicheur}>
+                {t("Sur les {m} valeurs du panier, {n} ont traité dans la semaine.", { m: String(dormances.length), n: String(dormances.length - dormantes.length) })}{" "}
+                {dormantes.length > 0
+                  ? t("{liste} : leur cours est celui de leur dernière transaction, et l'indice le reprend tel quel.", {
+                      liste: dormantes.map((d) => (d.jours == null ? t("{m}, aucune transaction sur la période", { m: d.mnemo }) : t("{m}, il y a {j} jours", { m: d.mnemo, j: String(d.jours) }))).join(" · "),
+                    })
+                  : t("Le niveau publié repose donc sur des cours du jour.")}
+              </p>
+            )}
           </section>
 
           <section className="panel" id="courbe">

@@ -298,3 +298,16 @@ tfoot .when {
   background: var(--gold-soft);
   border-color: var(--gold-line);
 }
+
+/* La fraîcheur du panier, sous le niveau qu'elle qualifie. Elle ne crie pas :
+   un indice calculé sur des cours qui datent n'est pas un indice faux, et la
+   phrase explique le niveau plutôt qu'elle ne le dément. */
+.fraicheur {
+  margin: var(--s-6) 0 0;
+  padding: var(--s-5);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}

@@ -185,4 +185,9 @@ export const EN_ANALYSES: Record<string, string> = {
   "le pays de la séance, ou le code lu sur le communiqué voisin": "the session's country, or the code read off the neighbouring communiqué",
   "fourchette publiée": "published range",
   "Fourchette publiée : le Trésor n'imprime ni limite ni moyenne pondérée.": "Published range: the Treasury prints neither a limit nor a weighted average.",
+  "Sur les {m} valeurs du panier, {n} ont traité dans la semaine.": "Of the {m} shares in the basket, {n} traded within the week.",
+  "{liste} : leur cours est celui de leur dernière transaction, et l'indice le reprend tel quel.": "{liste}: their price is the one from their last trade, and the index carries it as it stands.",
+  "{m}, il y a {j} jours": "{m}, {j} days ago",
+  "{m}, aucune transaction sur la période": "{m}, no trade over the period",
+  "Le niveau publié repose donc sur des cours du jour.": "The published level therefore rests on same-day prices.",
 };
