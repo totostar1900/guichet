@@ -108,9 +108,20 @@ export default async function AnalysesPage() {
               )}
             </p>
           </div>
-          <Link className="btn sm ghost" href="/desk/docs/analyses">
-            {t("Méthodologie")}
-          </Link>
+          <div className={styles.emporter}>
+            {/* Entre la page et la note, il restait une recopie à la main : c est
+                l endroit exact où un chiffre se déforme et où une date d observation
+                se perd. */}
+            <a className="btn sm" href="/desk/analyses/export">
+              {t("Brouillon de note")}
+            </a>
+            <a className="btn sm ghost" href="/desk/analyses/export?format=csv">
+              {t("Courbe en CSV")}
+            </a>
+            <Link className="btn sm ghost" href="/desk/docs/analyses">
+              {t("Méthodologie")}
+            </Link>
+          </div>
         </header>
 
         <div className={styles.band}>

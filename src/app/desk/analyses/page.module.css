@@ -195,3 +195,10 @@
   white-space: normal;
   min-width: 22ch;
 }
+
+.emporter {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  align-items: center;
+}

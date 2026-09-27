@@ -190,4 +190,6 @@ export const EN_ANALYSES: Record<string, string> = {
   "{m}, il y a {j} jours": "{m}, {j} days ago",
   "{m}, aucune transaction sur la période": "{m}, no trade over the period",
   "Le niveau publié repose donc sur des cours du jour.": "The published level therefore rests on same-day prices.",
+  "Brouillon de note": "Draft for a note",
+  "Courbe en CSV": "Curve as CSV",
 };
