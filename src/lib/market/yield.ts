@@ -83,10 +83,33 @@ export function tenorDays(tenor: string | undefined): number | undefined {
   return undefined;
 }
 
-/** La durée en années : l'abscisse d'un point de courbe. */
+/** La durée annoncée, en années. Elle nomme le produit ; elle ne le date pas. */
 export function tenorYears(tenor: string | undefined): number | undefined {
   const d = tenorDays(tenor);
   return d == null ? undefined : d / 365;
+}
+
+/**
+ * Ce qu'il reste à courir, qui est la seule durée qui compte pour un prix.
+ *
+ * La durée annoncée est celle de la ligne à sa naissance : un abondement d'une
+ * obligation à six ans peut n'avoir que dix-huit mois devant lui, et le
+ * communiqué congolais du 15 septembre 2026 le dit en toutes lettres. Actualiser
+ * son prix sur six ans donne un rendement faux de plusieurs centaines de points
+ * de base.
+ *
+ * L'échéance imprimée passe donc devant l'étiquette, et la fonction dit
+ * laquelle des deux a servi : un chiffre calculé sur une durée supposée ne se
+ * présente pas comme un chiffre calculé sur une date lue.
+ */
+export function vieRestante(r: Pick<AuctionResult, "tenor"> & Partial<Pick<AuctionResult, "sessionOn" | "maturityOn">>): { years: number; from: "échéance" | "durée annoncée" } | undefined {
+  if (r.maturityOn && r.sessionOn) {
+    const j = (Date.parse(r.maturityOn) - Date.parse(r.sessionOn)) / 86_400_000;
+    // Une échéance passée ou aberrante ne dit rien : on retombe sur l'étiquette.
+    if (Number.isFinite(j) && j > 30 && j < 40 * 366) return { years: j / 365, from: "échéance" };
+  }
+  const t = tenorYears(r.tenor);
+  return t == null ? undefined : { years: t, from: "durée annoncée" };
 }
 
 /**
@@ -122,15 +145,33 @@ export function actuarialFromDiscount(discountPct: number, days: number): number
  * relève le rendement. Tant que le communiqué ne dit pas l'échéancier, cette
  * hypothèse est déclarée avec le chiffre au lieu d'être tue.
  */
+/** Une semaine, en années : en deçà, un coupon est réputé détaché. */
+const COUPON_DETACHE = 7 / 365;
+
 export function ytm(pricePct: number, couponPct: number, years: number): number | undefined {
   if (!Number.isFinite(pricePct) || pricePct <= 0) return undefined;
   if (!Number.isFinite(couponPct) || couponPct < 0) return undefined;
-  const n = Math.round(years);
-  if (!Number.isFinite(n) || n < 1 || Math.abs(years - n) > 0.2) return undefined;
+  if (!Number.isFinite(years) || years <= 0 || years > 40) return undefined;
+  /**
+   * Les coupons restants se comptent à rebours depuis l'échéance.
+   *
+   * Un abondement ne tombe pas sur un anniversaire : il reste onze mois à un
+   * titre de trois ans, et son dernier coupon vient avec le capital. Compter
+   * les flux en partant de la fin les place aux bonnes dates, et le cas entier
+   * s'y retrouve inchangé.
+   *
+   * La tolérance d'une semaine n'est pas un détail. Cinq années civiles valent
+   * 5,0027 années exact/365, un 29 février s'étant glissé dedans, et compter
+   * par excès ajoutait un sixième coupon tombant le lendemain de la séance :
+   * un coupon déjà détaché, que l'acheteur ne touche pas, et qui faisait passer
+   * le rendement de 7,49 % à 9,15 %. Un flux situé dans les sept jours avant
+   * l'horizon est donc réputé détaché.
+   */
+  const n = Math.max(1, Math.ceil(years - COUPON_DETACHE));
   const ecart = (y: number) => {
     let v = 0;
-    for (let t = 1; t <= n; t++) v += couponPct / (1 + y) ** t;
-    return v + 100 / (1 + y) ** n - pricePct;
+    for (let k = 0; k < n; k++) v += couponPct / (1 + y) ** (years - k);
+    return v + 100 / (1 + y) ** years - pricePct;
   };
   let lo = -0.9;
   let hi = 3;
@@ -160,12 +201,18 @@ export function ytm(pricePct: number, couponPct: number, years: number): number 
  * 5 juillet 2023 où tout fut servi au limite.
  *
  * La règle qui en sort ne nomme pas le Gabon, et c'est voulu : une moyenne
- * au-dessus du maximum n'est pas une moyenne de la même chose, quel que soit
- * le Trésor qui l'imprime. On retient alors le prix limite, qui est pied de
- * coupon, et on le déclare.
+ * au-dessus du haut de la fourchette n'est pas une moyenne de la même chose,
+ * quel que soit le Trésor qui l'imprime. On retient alors le prix limite, qui
+ * est pied de coupon, et on le déclare.
+ *
+ * Le haut de la fourchette se reconnaît à sa valeur et non à son étiquette : le
+ * Trésor congolais imprime « maximum 90,00 » et « minimum 95,00 », et lire la
+ * borne par son nom faisait passer une moyenne parfaitement normale pour un
+ * prix coupon inclus.
  */
-export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMax">): { pct: number; assumed?: Assumption } | undefined {
-  const horsBornes = r.priceAvg != null && r.priceMax != null && r.priceAvg > r.priceMax + 0.01;
+export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax">): { pct: number; assumed?: Assumption } | undefined {
+  const haut = r.priceMin != null && r.priceMax != null ? Math.max(r.priceMin, r.priceMax) : (r.priceMax ?? r.priceMin);
+  const horsBornes = r.priceAvg != null && haut != null && r.priceAvg > haut + 0.01;
   if (horsBornes && r.priceLimit != null) {
     return { pct: r.priceLimit, assumed: { key: "prix limite retenu : le prix moyen publié dépasse le maximum proposé et inclut donc le coupon couru" } };
   }
@@ -180,7 +227,7 @@ export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "pric
   return undefined;
 }
 
-type YieldInput = Pick<AuctionResult, "instrument" | "tenor" | "yieldAvg" | "yieldLimit" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "priceAvgFcfa" | "couponRate">;
+type YieldInput = Partial<Pick<AuctionResult, "sessionOn" | "maturityOn">> & Pick<AuctionResult, "instrument" | "tenor" | "yieldAvg" | "yieldLimit" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax" | "couponRate">;
 
 /**
  * Le rendement d'une séance, par le meilleur chemin disponible.
@@ -204,11 +251,16 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
   }
 
   const p = priceOf(r);
-  const annees = tenorYears(r.tenor);
-  if (!p || r.couponRate == null || annees == null) return undefined;
-  const y = ytm(p.pct, r.couponRate, annees);
+  const vie = vieRestante(r);
+  if (!p || r.couponRate == null || vie == null) return undefined;
+  const y = ytm(p.pct, r.couponRate, vie.years);
   if (y == null) return undefined;
   const hyp: Assumption[] = [{ key: "coupon annuel de {c} %, capital remboursé in fine", params: { c: r.couponRate.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) } }];
+  hyp.push(
+    vie.from === "échéance"
+      ? { key: "{n} ans à courir jusqu'à l'échéance imprimée", params: { n: vie.years.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) } }
+      : { key: "durée annoncée retenue faute d'échéance imprimée" },
+  );
   if (p.assumed) hyp.push(p.assumed);
   return { pct: y, origin: "prix et coupon", assumptions: hyp };
 }
@@ -222,7 +274,7 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
  */
 export function yieldMissing(r: YieldInput): string | undefined {
   if (auctionYield(r)) return undefined;
-  if (!tenorDays(r.tenor)) return "durée absente ou illisible";
+  if (!vieRestante(r)) return "durée absente ou illisible";
   if (r.instrument === "BTA") return "ni taux moyen pondéré ni taux limite";
   if (!priceOf(r)) return "ni prix moyen pondéré ni prix limite";
   if (r.couponRate == null) return "coupon absent : le prix seul ne donne pas de rendement";

@@ -1,6 +1,6 @@
 import type { Country } from "@/lib/domain/types";
 import { completedAfterConfirmation, fourchette, thin, type AuctionResult } from "./auction-results";
-import { auctionYield, tenorYears, yieldMissing, type AuctionYield } from "./yield";
+import { auctionYield, vieRestante, yieldMissing, type AuctionYield } from "./yield";
 
 /**
  * La courbe des taux de la zone, construite sur ce qui est relu.
@@ -36,7 +36,13 @@ import { auctionYield, tenorYears, yieldMissing, type AuctionYield } from "./yie
 export interface CurvePoint {
   country: Country;
   tenor: string;
-  /** L'abscisse : la durée en années. */
+  /**
+   * L'abscisse : ce qu'il reste à courir, et non la durée d'origine.
+   *
+   * Une courbe des taux porte des rendements par maturité. Un abondement d'une
+   * obligation à six ans qui n'a plus que dix-huit mois devant lui appartient au
+   * court, quel que soit le nom de la ligne.
+   */
   years: number;
   yield: AuctionYield;
   from: AuctionResult;
@@ -110,7 +116,8 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
   const gaps: CurveGap[] = [];
   const parCle = new Map<string, CurvePoint[]>();
   for (const r of fenetre) {
-    const annees = tenorYears(r.tenor);
+    const vie = vieRestante(r);
+    const annees = vie?.years;
     const y = auctionYield(r);
     if (!y || annees == null) {
       const f = fourchette(r);
@@ -129,11 +136,13 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
       continue;
     }
     const p: CurvePoint = { country: r.country, tenor: r.tenor, years: annees, yield: y, from: r, ageDays: days(on, r.sessionOn), thin: thin(r), toVerify: completedAfterConfirmation(r) };
-    const cle = `${r.country}|${r.tenor}`;
+    // L'échéance identifie la ligne ; l'étiquette ne la distingue pas, deux
+    // abondements de deux lignes pouvant s'appeler « 6 ans » le même mois.
+    const cle = `${r.country}|${r.maturityOn ?? r.tenor}`;
     parCle.set(cle, [...(parCle.get(cle) ?? []), p]);
   }
 
-  // Une durée, un point : le plus récent des représentatifs, sinon le plus récent.
+  // Une ligne, un point : le plus récent des représentatifs, sinon le plus récent.
   const retenus: CurvePoint[] = [];
   for (const groupe of parCle.values()) {
     const tri = [...groupe].sort((a, b) => b.from.sessionOn.localeCompare(a.from.sessionOn));
@@ -166,6 +175,12 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
  * mais un écart de date. L'écart porte donc toujours le nombre de jours qui
  * sépare les deux séances, et l'écran refuse de le présenter comme une mesure
  * au-delà d'un mois.
+ *
+ * Le deuxième piège est l'horizon. L'appariement se faisait par étiquette, et
+ * un « 3 ans » congolais à onze mois du terme contre un « 3 ans » camerounais à
+ * trois ans pleins ne dit rien d'une signature. Les points s'apparient donc sur
+ * la vie restante, à un quart d'année ou dix pour cent près, et le plus proche
+ * gagne. L'étiquette sert encore à nommer la ligne, plus à la comparer.
  */
 export interface Spread {
   tenor: string;
@@ -180,12 +195,17 @@ export interface Spread {
 
 export const SPREAD_COMPARABLE_DAYS = 30;
 
+/** Deux horizons comparables : un quart d'année, ou dix pour cent du plus court. */
+export const spreadComparable = (a: number, b: number): boolean => Math.abs(a - b) <= Math.max(0.25, 0.1 * Math.min(a, b));
+
 export function spreads(curve: Curve, a: Country, b: Country): Spread[] {
   const pa = curve.countries.find((c) => c.country === a)?.points ?? [];
   const pb = curve.countries.find((c) => c.country === b)?.points ?? [];
   const out: Spread[] = [];
   for (const x of pa) {
-    const y = pb.find((p) => p.tenor === x.tenor);
+    const y = pb
+      .filter((p) => spreadComparable(p.years, x.years))
+      .sort((m, n) => Math.abs(m.years - x.years) - Math.abs(n.years - x.years))[0];
     if (!y) continue;
     out.push({
       tenor: x.tenor,

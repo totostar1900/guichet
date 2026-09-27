@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AuctionResult } from "@/lib/market/auction-results";
 import { buildCurve, serie, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
-import { actuarialFromDiscount, auctionYield, priceOf, tenorDays, tenorYears, yieldMissing, ytm } from "@/lib/market/yield";
+import { actuarialFromDiscount, auctionYield, priceOf, tenorDays, tenorYears, vieRestante, yieldMissing, ytm } from "@/lib/market/yield";
 
 /**
  * Le rendement, et ce qu'il ne faut jamais lui faire dire.
@@ -44,6 +44,42 @@ describe("les durées", () => {
   it("donnent une abscisse en années", () => {
     expect(tenorYears("52 semaines")).toBeCloseTo(0.997, 2);
     expect(tenorYears("5 ans")).toBeCloseTo(5, 5);
+  });
+});
+
+describe("la vie restante", () => {
+  /**
+   * L'étiquette nomme la ligne, l'échéance la date.
+   *
+   * « OTA-3 ans 6,50 % 27-JUIN-2027 », adjugée le 21 juillet 2026 : le titre
+   * s'appelle trois ans parce que c'est la durée de la ligne à son émission, et
+   * il lui restait onze mois. Le communiqué congolais du 15 septembre 2026 écrit
+   * même « par abondement » en toutes lettres. Actualiser sur l'étiquette
+   * donnait 7,66 % là où la pièce dit 10,5 % : trois cents points de base sur un
+   * chiffre affiché.
+   */
+  it("prend l'échéance imprimée avant l'étiquette, et dit laquelle", () => {
+    const v = vieRestante({ tenor: "3 ans", sessionOn: "2026-07-21", maturityOn: "2027-06-27" });
+    expect(v!.from).toBe("échéance");
+    expect(v!.years).toBeCloseTo(0.93, 2);
+  });
+
+  it("retombe sur l'étiquette quand l'échéance manque, et le dit aussi", () => {
+    const v = vieRestante({ tenor: "3 ans", sessionOn: "2026-07-21" });
+    expect(v!.from).toBe("durée annoncée");
+    expect(v!.years).toBeCloseTo(3, 5);
+  });
+
+  /**
+   * Une échéance déjà passée n'est pas une vie restante négative : c'est une
+   * lecture douteuse, et l'étiquette vaut mieux qu'un nombre absurde.
+   */
+  it("ignore une échéance antérieure à la séance", () => {
+    expect(vieRestante({ tenor: "5 ans", sessionOn: "2026-07-21", maturityOn: "2024-06-27" })!.from).toBe("durée annoncée");
+  });
+
+  it("ne dit rien quand ni l'échéance ni l'étiquette ne se lisent", () => {
+    expect(vieRestante({ tenor: "—", sessionOn: "2026-07-21" })).toBeUndefined();
   });
 });
 
@@ -93,9 +129,17 @@ describe("le rendement à l'échéance", () => {
     expect(v).toBeCloseTo(95, 6);
   });
 
-  it("refuse une durée qui n'est pas un nombre d'années", () => {
-    expect(ytm(95, 6, 0.5)).toBeUndefined();
+  /**
+   * Une demi-année n'est plus un refus : c'est la vie restante d'un abondement,
+   * et la refuser laissait un trou sur la courbe là où la pièce donnait un
+   * chiffre. Ce qui reste refusé est l'absurde.
+   */
+  it("accepte une durée brisée et refuse l'absurde", () => {
+    expect(ytm(95, 6, 0.5)).toBeGreaterThan(6);
     expect(ytm(0, 6, 5)).toBeUndefined();
+    expect(ytm(95, 6, 0)).toBeUndefined();
+    expect(ytm(95, 6, -1)).toBeUndefined();
+    expect(ytm(95, 6, 99)).toBeUndefined();
   });
 });
 
@@ -124,6 +168,22 @@ describe("le prix", () => {
     expect(priceOf({ priceMax: 95, priceLimit: 91, priceAvg: 93 })).toEqual({ pct: 93 });
   });
 
+  /**
+   * Le Trésor congolais imprime « maximum 90,00 » et « minimum 95,00 ».
+   *
+   * Lire la borne haute par son étiquette faisait passer un prix moyen de 90,59
+   * pour un prix coupon inclus, retenait 90,00 à sa place, et écrivait une
+   * hypothèse fausse sous un chiffre juste. La maison triait déjà ses bornes
+   * ailleurs : ici aussi, c'est la valeur qui décide, pas le nom.
+   */
+  it("trie les bornes au lieu de croire leurs étiquettes", () => {
+    expect(priceOf({ priceMin: 95, priceMax: 90, priceLimit: 90, priceAvg: 90.59 })).toEqual({ pct: 90.59 });
+    // Le cas gabonais reste attrapé : 93,79 dépasse le haut réel de la fourchette.
+    const ga = priceOf({ priceMin: 88, priceMax: 91.5, priceLimit: 91.5, priceAvg: 93.7937 });
+    expect(ga!.pct).toBe(91.5);
+    expect(ga!.assumed!.key).toContain("coupon couru");
+  });
+
   it("préfère un pourcentage imprimé à une conversion", () => {
     expect(priceOf({ priceAvg: 95, priceAvgFcfa: 9899.45 })).toEqual({ pct: 95 });
   });
@@ -146,6 +206,29 @@ describe("le rendement d'une séance", () => {
     const y = auctionYield({ instrument: "OTA", tenor: "5 ans", priceAvg: 95, couponRate: 6.25 });
     expect(y!.origin).toBe("prix et coupon");
     expect(y!.assumptions.map((h) => h.key).join(" ")).toContain("in fine");
+  });
+
+  /**
+   * L'abondement du 21 juillet 2026, sur la pièce.
+   *
+   * « CG2J00000578 OTA-3 ans 6,50 % 27-JUIN-2027 ». Le calcul sur l'étiquette
+   * donnait 7,66 %, celui sur l'échéance 10,5 %. Le second est le rendement
+   * qu'un acheteur a réellement obtenu, et c'est celui qui doit sortir d'ici.
+   */
+  it("actualise un abondement sur ce qu'il lui reste à courir", () => {
+    const y = auctionYield({ instrument: "OTA", tenor: "3 ans", sessionOn: "2026-07-21", maturityOn: "2027-06-27", priceAvg: 97, couponRate: 6.5 });
+    expect(y!.pct).toBeCloseTo(10.5, 0);
+    expect(y!.assumptions.map((h) => h.key).join(" ")).toContain("échéance imprimée");
+    // Le chiffre qu'on affichait, et qu'aucune pièce ne portait.
+    expect(auctionYield({ instrument: "OTA", tenor: "3 ans", priceAvg: 97, couponRate: 6.5 })!.pct).toBeCloseTo(7.66, 1);
+  });
+
+  it("garde le résultat entier quand la vie restante tombe juste", () => {
+    // Un titre à cinq ans pleins ne change pas de rendement parce que le calcul
+    // sait désormais compter les années brisées.
+    expect(ytm(95, 6.25, 5)).toBeCloseTo(7.4853, 3);
+    const y = auctionYield({ instrument: "OTA", tenor: "5 ans", sessionOn: "2026-09-15", maturityOn: "2031-09-15", priceAvg: 95, couponRate: 6.25 });
+    expect(y!.pct).toBeCloseTo(7.4853, 2);
   });
 
   /**
