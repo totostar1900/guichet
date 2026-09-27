@@ -121,7 +121,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
           </div>
           <div>
             <span>{t("Point le plus ancien")}</span>
-            <b>{courbe.countries.length ? t("{n} j", { n: Math.max(...courbe.countries.map((c) => c.oldestDays)) }) : "—"}</b>
+            <b>{courbe.countries.length ? t("{n} jours", { n: Math.max(...courbe.countries.map((c) => c.oldestDays)) }) : "—"}</b>
           </div>
         </div>
 
@@ -132,7 +132,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
         ) : (
           <section className="panel">
             <div className="panel-h">
-              <h2>{t("Au {d}", { d: fmtDate(on) })}</h2>
+              <h2>{t("Le marché au {d}", { d: fmtDate(on) })}</h2>
               <span className="muted">{t("{n} Trésors · fenêtre de {f} jours", { n: String(tracables.length), f: String(fenetre) })}</span>
             </div>
             <div className={styles.chart}>
@@ -183,7 +183,7 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
                       <td>
                         <Link href={`/desk/adjudications?s=${p.from.id}`}>{fmtDate(p.from.sessionOn)}</Link>
                       </td>
-                      <td className="r">{t("{n} j", { n: p.ageDays })}</td>
+                      <td className="r">{t("{n} jours", { n: p.ageDays })}</td>
                       <td>
                         {p.thin ? <span className="st annulee">{t("séance mince")}</span> : <span className="muted">{t("{n} soumissionnaires", { n: p.from.bidders ?? "—" })}</span>}
                         {p.toVerify && (
@@ -248,10 +248,10 @@ export default async function CourbePage({ searchParams }: { searchParams: Promi
                         </td>
                         <td>
                           {l.apart <= SPREAD_COMPARABLE_DAYS ? (
-                            <span className="st reglee">{t("{n} j", { n: l.apart })}</span>
+                            <span className="st reglee">{t("{n} jours", { n: l.apart })}</span>
                           ) : (
                             <span className="st transmise" title={t("Au-delà d'un mois, l'écart est daté et non mesuré.")}>
-                              {t("{n} j, écart daté", { n: l.apart })}
+                              {t("{n} jours, écart daté", { n: l.apart })}
                             </span>
                           )}
                         </td>

@@ -26,7 +26,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "Séances relues dans la fenêtre": "Reviewed sessions in the window",
   "Sans rendement": "Without a yield",
   "Point le plus ancien": "Oldest point",
-  "Au {d}": "At {d}",
+  "Le marché au {d}": "The market at {d}",
   "{n} Trésors · fenêtre de {f} jours": "{n} Treasuries · {f}-day window",
   "Pas assez de séances relues dans cette fenêtre pour tracer une courbe : il en faut au moins deux durées pour un même Trésor. Élargissez la fenêtre, ou relisez des séances.":
     "Not enough reviewed sessions in this window to draw a curve: one Treasury needs at least two tenors. Widen the window, or review more sessions.",
@@ -41,7 +41,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "Le classement que le marché fait lui-même, à durée égale.": "The ranking the market makes for itself, at equal tenor.",
   "Contre {p}": "Against {p}",
   "Séances distantes de": "Sessions apart by",
-  "{n} j, écart daté": "{n} d, dated gap",
+  "{n} jours, écart daté": "{n} days, dated gap",
   "Au-delà d'un mois, l'écart est daté et non mesuré.": "Beyond a month the gap is dated, not measured.",
   "Ce qui manque à la courbe": "What the curve is missing",
   "{n} séances relues qui ne donnent pas de point": "{n} reviewed sessions that give no point",
@@ -63,7 +63,6 @@ export const EN_ANALYSES: Record<string, string> = {
   "calcul impossible sur ces valeurs": "computation impossible on these values",
   "séance mince": "thin session",
   "{n} soumissionnaires": "{n} bidders",
-  "{n} j": "{n} d",
   "{n} jours": "{n} days",
 
   /* ---------- le dossier ---------- */
@@ -78,7 +77,7 @@ export const EN_ANALYSES: Record<string, string> = {
   publiable: "publishable",
   interne: "internal",
   "La courbe souveraine": "The sovereign curve",
-  "{n} points · le plus ancien à {j} j": "{n} points · oldest at {j} d",
+  "{n} points · le plus ancien à {j} jours": "{n} points · oldest at {j} days",
   "Ouvrir la courbe": "Open the curve",
   "{n} séances relues ne donnent pas de point, faute de coupon ou de durée": "{n} reviewed sessions give no point, for want of a coupon or a tenor",
   "Pas encore deux durées relues pour un même Trésor sur l'année écoulée.": "Not yet two reviewed tenors for one Treasury over the past year.",

@@ -120,7 +120,7 @@ export default async function AnalysesPage() {
                     <div key={c.country} className={styles.tile}>
                       <span className={styles.dot} style={{ background: COUNTRY_COLOR[c.country] }} aria-hidden="true" />
                       <b>{c.country}</b>
-                      <em>{t("{n} points · le plus ancien à {j} j", { n: c.points.length, j: c.oldestDays })}</em>
+                      <em>{t("{n} points · le plus ancien à {j} jours", { n: c.points.length, j: c.oldestDays })}</em>
                       <div className={styles.pts}>
                         {c.points.map((p) => (
                           <span key={p.tenor}>
@@ -334,7 +334,7 @@ export default async function AnalysesPage() {
                 </div>
                 <div>
                   <span>{t("Plus longue dormance")}</span>
-                  <b className={frais.worstDays > 30 ? styles.crit : undefined}>{t("{n} j", { n: frais.worstDays })}</b>
+                  <b className={frais.worstDays > 30 ? styles.crit : undefined}>{t("{n} jours", { n: frais.worstDays })}</b>
                 </div>
               </div>
               <p className={styles.strong}>
