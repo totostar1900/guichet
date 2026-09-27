@@ -29,6 +29,10 @@
  *   faute de lecture produirait. Ce qu'il écarte n'est pas rejeté, il est
  *   laissé au desk.
  *
+ *   Et il ne retient pas ce qui a déjà été vérifié sur la pièce : un motif
+ *   rangé dans « anomalies_vues » a été regardé par quelqu'un, et le
+ *   redemander apprendrait au desk que le crible ne veut rien dire.
+ *
  *   Il signe, et de deux façons, parce que l'application en fait deux. La
  *   séance porte le nom affiché de la personne (« --par »), comme le fait
  *   l'écran de relecture ; le journal d'audit porte l'adresse du compte
@@ -83,6 +87,19 @@ const n = (x) => (x == null ? null : Number(x));
  * une impossibilité arithmétique. Aucun ne prétend dire qu'un chiffre est
  * juste : seulement qu'il ne se contredit pas lui-même.
  */
+/**
+ * Un motif déjà vérifié sur la pièce.
+ *
+ * Le rangement se fait par clef de motif, avec ses trous : on compare donc sur
+ * la partie fixe de la clef, la seule qui ne dépende pas des nombres de la
+ * séance.
+ */
+const dejaVu = (r, motif) =>
+  (r.anomalies_vues ?? []).some((k) => {
+    const fixe = k.replace(/\{[a-z]+\}/gi, "·").split("·").map((x) => x.trim()).filter((x) => x.length > 3);
+    return fixe.length > 0 && fixe.every((x) => motif.includes(x));
+  });
+
 function cribler(r) {
   const taux = n(r.rate_avg) ?? n(r.rate_limit) ?? n(r.rate_min) ?? n(r.rate_max);
   const prix = n(r.price_avg) ?? n(r.price_limit) ?? n(r.price_min) ?? n(r.price_max);
@@ -122,7 +139,8 @@ function cribler(r) {
   if (lo != null && hi != null && retenu != null && (retenu < Math.min(lo, hi) - 0.01 || retenu > Math.max(lo, hi) + 0.01)) {
     motifs.push(`chiffre retenu ${retenu} hors de la fourchette publiée ${Math.min(lo, hi)}-${Math.max(lo, hi)}`);
   }
-  return { etat: motifs.length ? "a-regarder" : "propre", motifs, taux, prix };
+  const restants = motifs.filter((m) => !dejaVu(r, m));
+  return { etat: restants.length ? "a-regarder" : "propre", motifs: restants, vus: motifs.length - restants.length, taux, prix };
 }
 
 const ligne = (r, c) => `  ${r.session_on} ${String(r.country).padEnd(11)} ${r.instrument} ${String(r.tenor).padEnd(13)} ${(c.taux ?? c.prix) != null ? String(c.taux ?? c.prix).padStart(8) + " %" : "         —"}`;
@@ -138,7 +156,10 @@ for (const r of mien) {
 console.log(`${mien.length} séances non confirmées pour ${pays.join(", ")}\n`);
 console.log(`  ✓ ${classe.propre.length} passent le crible`);
 console.log(`  ? ${classe["a-regarder"].length} demandent un œil sur la pièce`);
-console.log(`  · ${classe["sans-chiffre"].length} sans chiffre publié, et ${classe.ecarte.length} sans durée : non confirmables\n`);
+const vus = mien.reduce((n, r) => n + (cribler(r).vus ?? 0), 0);
+console.log(`  · ${classe["sans-chiffre"].length} sans chiffre publié, et ${classe.ecarte.length} sans durée : non confirmables`);
+if (vus) console.log(`  · ${vus} contradictions déjà vérifiées sur la pièce, qui ne retiennent plus rien`);
+console.log();
 
 for (const x of classe["a-regarder"]) console.log(ligne(x.r, x.c) + "  → " + x.c.motifs.join(" · "));
 if (classe["a-regarder"].length) console.log();
