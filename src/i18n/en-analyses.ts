@@ -206,4 +206,5 @@ export const EN_ANALYSES: Record<string, string> = {
   "La pièce dit cela": "The document says so",
   "La contradiction vient de la pièce : la ranger, et la compter à part.": "The contradiction comes from the document: file it, and count it separately.",
   "prix limite retenu : le prix moyen publié dépasse le maximum proposé et inclut donc le coupon couru": "limit price used: the published average exceeds the maximum proposed and therefore includes accrued coupon",
+  "Rien n'attend : les {n} contradictions trouvées ont toutes été vérifiées sur leur communiqué, et viennent des Trésors eux-mêmes.": "Nothing is waiting: all {n} contradictions found have been checked against their communiqué, and come from the Treasuries themselves.",
 };

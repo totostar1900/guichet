@@ -513,7 +513,7 @@ export default async function AnalysesPage() {
         )}
 
         {/* 6 bis. Ce qu'une colonne montre et qu'un formulaire cache. */}
-        {trouvailles.length > 0 && (
+        {(trouvailles.length > 0 || crible.vues > 0) && (
           <section className="panel">
             <div className="panel-h">
               <h2>{t("Ce que la table a attrapé")}</h2>
@@ -522,6 +522,13 @@ export default async function AnalysesPage() {
                 {crible.vues > 0 ? ` · ${t("{n} vérifiées sur la pièce", { n: String(crible.vues) })}` : ""}
               </span>
             </div>
+            {trouvailles.length === 0 ? (
+              <div className={styles.pb}>
+                <p className={styles.strong}>
+                  {t("Rien n'attend : les {n} contradictions trouvées ont toutes été vérifiées sur leur communiqué, et viennent des Trésors eux-mêmes.", { n: String(crible.vues) })}
+                </p>
+              </div>
+            ) : (
             <div className="scroll-x">
               <table className="tbl">
                 <thead>
@@ -566,6 +573,7 @@ export default async function AnalysesPage() {
                 </tbody>
               </table>
             </div>
+            )}
             <p className={styles.note}>
               {t(
                 "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les motifs sautent aux yeux.",
