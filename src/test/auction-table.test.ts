@@ -56,6 +56,26 @@ describe("les filtres", () => {
    * pièce en croyant que rien ne s'enregistrait, parce que l'écran lui
    * renvoyait le même mot dans les deux cas.
    */
+  /**
+   * Le Trésor tchadien ne publie qu une fourchette.
+   *
+   * Ni prix limite ni prix moyen pondéré : son communiqué donne les montants,
+   * la couverture, et « Prix maximum proposé 90,00 % / Prix minimum proposé
+   * 91,00 % ». Une séance entièrement lue n avait donc aucun des quatre champs
+   * que l écran regardait, et restait « à lire » pour toujours : c est la ligne
+   * TD2A00001246, lue quatre fois par un desk qui voyait toujours le même mot.
+   */
+  it("comptent une fourchette publiée comme une lecture", () => {
+    const tchad = s({ id: "td", country: "Tchad", instrument: "OTA", tenor: "2 ans", priceMin: 90, priceMax: 91, announced: 15e9, bidders: 3 });
+    expect(applyFilter([tchad], { etat: "a-relire" }).map((r) => r.id)).toEqual(["td"]);
+    expect(applyFilter([tchad], { etat: "a-lire" })).toEqual([]);
+  });
+
+  it("comptent une pièce ouverte sans résultat comme lue, pas comme à lire", () => {
+    const rien = s({ id: "vide", readAt: "2026-09-27T10:00:00Z" });
+    expect(applyFilter([rien], { etat: "a-relire" }).map((r) => r.id)).toEqual(["vide"]);
+  });
+
   it("séparent les trois états d'une séance", () => {
     expect(applyFilter(rows, { etat: "relues" }).map((r) => r.id)).toEqual(["cg", "cm"]);
     expect(applyFilter(rows, { etat: "a-relire" }).map((r) => r.id)).toEqual(["td"]);

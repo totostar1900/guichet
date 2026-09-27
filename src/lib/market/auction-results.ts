@@ -165,10 +165,27 @@ export function thin(r: AuctionResult): boolean {
  */
 export type EtatSeance = "a_lire" | "a_relire" | "relue";
 
-export const etatSeance = (r: Pick<AuctionResult, "confirmedBy" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit">): EtatSeance => {
+/**
+ * Tout ce qu'une lecture peut rapporter, et pas seulement ce que la courbe sait
+ * employer.
+ *
+ * Le Trésor tchadien ne publie ni prix limite ni prix moyen pondéré : son
+ * communiqué donne les montants, la couverture, et une fourchette de prix. Une
+ * séance tchadienne entièrement lue n'avait donc aucun des quatre champs que
+ * l'écran regardait, et restait « à lire » pour toujours. C'est l'origine de la
+ * ligne TD2A00001246, lue quatre fois de suite par un desk qui voyait toujours
+ * le même mot.
+ */
+const champsLus = (r: Pick<AuctionResult, "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "rateMin" | "rateMax" | "priceMin" | "priceMax" | "yieldAvg" | "announced" | "bidders">) =>
+  r.rateAvg ?? r.rateLimit ?? r.priceAvg ?? r.priceLimit ?? r.rateMin ?? r.rateMax ?? r.priceMin ?? r.priceMax ?? r.yieldAvg ?? r.announced ?? r.bidders;
+
+export const etatSeance = (
+  r: Pick<AuctionResult, "confirmedBy" | "readAt" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "rateMin" | "rateMax" | "priceMin" | "priceMax" | "yieldAvg" | "announced" | "bidders">,
+): EtatSeance => {
   if (r.confirmedBy) return "relue";
-  const chiffre = r.rateAvg ?? r.rateLimit ?? r.priceAvg ?? r.priceLimit;
-  return chiffre == null ? "a_lire" : "a_relire";
+  // Une pièce ouverte dont on n'a rien tiré n'est pas « à lire » : elle a été
+  // lue, et ce qu'il faut en dire est qu'elle attend une personne.
+  return champsLus(r) == null && !r.readAt ? "a_lire" : "a_relire";
 };
 
 /**
@@ -231,11 +248,16 @@ export interface RateReference {
  * ou tchadienne que nous ne distribuerons jamais, et doublait le coût d'une
  * reprise d'historique pour un rattachement dont personne ne se servirait.
  */
-export const confirmable = (r: Pick<AuctionResult, "tenor" | "instrument" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit">): string | null => {
+export const confirmable = (r: Pick<AuctionResult, "tenor" | "instrument" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "rateMin" | "rateMax" | "priceMin" | "priceMax">): string | null => {
   const tenor = r.tenor?.trim();
   if (!tenor || tenor === "—") return "La durée de la séance, lue sur le communiqué : sans elle, elle ne se compare à rien.";
-  if (r.instrument === "BTA" && r.rateAvg == null && r.rateLimit == null) return "Le taux limite ou le taux moyen pondéré.";
-  if (r.instrument === "OTA" && r.priceAvg == null && r.priceLimit == null) return "Le prix limite ou le prix moyen pondéré.";
+  if (r.instrument === "BTA" && r.rateAvg == null && r.rateLimit == null && r.rateMin == null && r.rateMax == null) return "Le taux limite, le taux moyen pondéré, ou la fourchette publiée.";
+  // Le Trésor tchadien n'imprime qu'une fourchette : exiger de lui un prix
+  // moyen pondéré revient à lui demander un chiffre qu'il ne publie pas, et à
+  // condamner ses séances à ne jamais être arrêtées. La fourchette est ce
+  // qu'il a publié, et elle suffit à confirmer ; elle ne suffira pas à poser un
+  // point sur la courbe, et c'est la courbe qui le dira.
+  if (r.instrument === "OTA" && r.priceAvg == null && r.priceLimit == null && r.priceMin == null && r.priceMax == null) return "Le prix limite, le prix moyen pondéré, ou la fourchette publiée.";
   return null;
 };
 
