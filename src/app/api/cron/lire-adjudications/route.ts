@@ -60,11 +60,26 @@ export async function GET(req: NextRequest) {
    * postérieure à la confirmation.
    */
   const restaure = p.get("mode") === "restaure";
+  /**
+   * Reprendre une pièce dont un passage précédent n'a rien tiré.
+   *
+   * Par défaut non : une pièce illisible le reste, et la reproposer à chaque
+   * passage coûte une lecture pour rien, indéfiniment. On ne la rouvre que
+   * lorsqu'on a une raison, et cette raison est extérieure au robot.
+   */
+  const retente = p.get("retente") === "1";
   const n = Math.min(Math.max(Number(p.get("n") ?? 6), 1), 12);
   const r = repo();
 
-  /** Une séance est « à lire » quand elle a sa pièce et pas encore son chiffre. */
-  const aLire = (x: AuctionResult) => Boolean(x.fileKey) && !x.confirmedBy && x.rateAvg == null && x.rateLimit == null && x.priceAvg == null && x.priceLimit == null;
+  /** Le robot est déjà passé sur cette séance : les deux horodatages le disent. */
+  const dejaTentee = (x: AuctionResult) => Date.parse(x.updatedAt) > Date.parse(x.createdAt) + 60_000;
+
+  /**
+   * Une séance est « à lire » quand elle a sa pièce, pas encore son chiffre, et
+   * qu'on n'a pas déjà essayé.
+   */
+  const aLire = (x: AuctionResult) =>
+    Boolean(x.fileKey) && !x.confirmedBy && x.rateAvg == null && x.rateLimit == null && x.priceAvg == null && x.priceLimit == null && (retente || !dejaTentee(x));
 
   /**
    * Une séance est « à compléter » quand elle porte déjà ses chiffres mais pas
@@ -84,7 +99,9 @@ export async function GET(req: NextRequest) {
   const toutes = await r.listAuctionResults({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
   /** Une séance dont ni le taux ni le prix ne subsistent, alors que la pièce est là. */
   const videe = (x: AuctionResult) => Boolean(x.fileKey) && x.rateAvg == null && x.rateLimit == null && x.priceAvg == null && x.priceLimit == null;
-  const file = toutes.filter(restaure ? videe : complement ? aCompleter : aLire).sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
+  const file = toutes
+    .filter(restaure ? videe : complement ? aCompleter : aLire)
+    .sort((a, b) => Number(dejaTentee(a)) - Number(dejaTentee(b)) || b.sessionOn.localeCompare(a.sessionOn));
   const paquet = file.slice(0, n);
 
   const faites: string[] = [];
@@ -139,5 +156,5 @@ export async function GET(req: NextRequest) {
       html: `${complement ? "Complément automatique (coupon, rendement)" : "Lecture automatique"} : ${faites.length} séance(s) remplie(s)${pays ? ` pour ${pays}` : ""}, en attente de relecture par le desk`,
     });
 
-  return NextResponse.json({ ok: true, mode: restaure ? "restaure" : complement ? "complement" : "lecture", pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
+  return NextResponse.json({ ok: true, mode: restaure ? "restaure" : complement ? "complement" : "lecture", retente, pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
 }
