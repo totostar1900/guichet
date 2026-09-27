@@ -44,6 +44,22 @@ export async function GET(req: NextRequest) {
    * courbe. La passe ne remplit que du vide, comme l'autre.
    */
   const complement = p.get("mode") === "complement";
+  /**
+   * « restaure » : relire une séance dont les chiffres ont disparu, confirmée
+   * ou non.
+   *
+   * Le cas s'est présenté le 27 septembre 2026 : une mise à jour partielle a
+   * écrit null sur trente et une obligations, dont vingt-trois relues. Les
+   * deux autres passes les écartent, l'une parce qu'elle ne prend que ce qui
+   * n'est pas confirmé, l'autre parce qu'elle ne cherche que le coupon.
+   *
+   * Des champs vides ne se recouvrent pas : les remplir depuis le communiqué
+   * gardé au dépôt ne détruit rien, et c'est exactement ce à quoi sert de
+   * garder la pièce. La signature reste, et la mention « à vérifier »
+   * apparaît d'elle-même sur la courbe, puisque la mise à jour est
+   * postérieure à la confirmation.
+   */
+  const restaure = p.get("mode") === "restaure";
   const n = Math.min(Math.max(Number(p.get("n") ?? 6), 1), 12);
   const r = repo();
 
@@ -66,7 +82,9 @@ export async function GET(req: NextRequest) {
     Boolean(x.fileKey) && x.instrument === "OTA" && x.couponRate == null && x.yieldAvg == null && (x.priceAvg != null || x.priceLimit != null || x.priceAvgFcfa != null);
 
   const toutes = await r.listAuctionResults({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
-  const file = toutes.filter(complement ? aCompleter : aLire).sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
+  /** Une séance dont ni le taux ni le prix ne subsistent, alors que la pièce est là. */
+  const videe = (x: AuctionResult) => Boolean(x.fileKey) && x.rateAvg == null && x.rateLimit == null && x.priceAvg == null && x.priceLimit == null;
+  const file = toutes.filter(restaure ? videe : complement ? aCompleter : aLire).sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
   const paquet = file.slice(0, n);
 
   const faites: string[] = [];
@@ -121,5 +139,5 @@ export async function GET(req: NextRequest) {
       html: `${complement ? "Complément automatique (coupon, rendement)" : "Lecture automatique"} : ${faites.length} séance(s) remplie(s)${pays ? ` pour ${pays}` : ""}, en attente de relecture par le desk`,
     });
 
-  return NextResponse.json({ ok: true, mode: complement ? "complement" : "lecture", pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
+  return NextResponse.json({ ok: true, mode: restaure ? "restaure" : complement ? "complement" : "lecture", pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
 }
