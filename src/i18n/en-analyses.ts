@@ -205,4 +205,5 @@ export const EN_ANALYSES: Record<string, string> = {
   "{n} vérifiées sur la pièce": "{n} checked against the document",
   "La pièce dit cela": "The document says so",
   "La contradiction vient de la pièce : la ranger, et la compter à part.": "The contradiction comes from the document: file it, and count it separately.",
+  "prix limite retenu : le prix moyen publié dépasse le maximum proposé et inclut donc le coupon couru": "limit price used: the published average exceeds the maximum proposed and therefore includes accrued coupon",
 };

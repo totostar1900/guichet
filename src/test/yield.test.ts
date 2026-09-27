@@ -107,6 +107,23 @@ describe("le prix", () => {
     expect(p!.assumed!.key).toContain("valeur nominale");
   });
 
+  /**
+   * Le Trésor gabonais publie deux conventions dans le même tableau : ses prix
+   * minimum, maximum et limite sont pied de coupon, son prix moyen pondéré
+   * inclut le couru. Une moyenne au-dessus du maximum proposé n est pas une
+   * moyenne de la même chose, et l actualiser comme un prix pied de coupon
+   * écraserait le rendement de tout le coupon couru.
+   */
+  it("écarte un prix moyen qui dépasse le maximum proposé", () => {
+    const p = priceOf({ priceMax: 91.5, priceLimit: 91.5, priceAvg: 93.7937 });
+    expect(p!.pct).toBe(91.5);
+    expect(p!.assumed!.key).toContain("coupon couru");
+  });
+
+  it("garde le prix moyen quand il tient dans les bornes", () => {
+    expect(priceOf({ priceMax: 95, priceLimit: 91, priceAvg: 93 })).toEqual({ pct: 93 });
+  });
+
   it("préfère un pourcentage imprimé à une conversion", () => {
     expect(priceOf({ priceAvg: 95, priceAvgFcfa: 9899.45 })).toEqual({ pct: 95 });
   });

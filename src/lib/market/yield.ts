@@ -143,9 +143,33 @@ export function ytm(pricePct: number, couponPct: number, years: number): number 
   return ((lo + hi) / 2) * 100;
 }
 
-/** Le prix d'une obligation en % du nominal, y compris quand le Trésor l'écrit en francs. */
-export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa">): { pct: number; assumed?: Assumption } | undefined {
-  const direct = r.priceAvg ?? r.priceLimit;
+/**
+ * Le prix d'une obligation en % du nominal, pied de coupon.
+ *
+ * « Pied de coupon » est tout le sujet. Le rendement s'actualise sur un prix
+ * qui n'inclut pas le coupon couru ; lui en donner un qui l'inclut gonfle le
+ * prix et écrase le rendement d'autant.
+ *
+ * Le Trésor gabonais publie les deux conventions dans le même tableau sans le
+ * dire : ses « prix minimum », « maximum » et « limite » sont pied de coupon,
+ * son « Prix Moyen Pondéré » inclut le couru. Onze séances le montraient,
+ * toutes signalées comme une moyenne au-dessus de son propre maximum, ce qui
+ * est impossible entre grandeurs comparables. Vérifié sur cinq d'entre elles :
+ * l'écart au prix limite vaut le coupon couru depuis la dernière échéance
+ * annuelle, à quelques centièmes près, et à quatre millièmes sur la séance du
+ * 5 juillet 2023 où tout fut servi au limite.
+ *
+ * La règle qui en sort ne nomme pas le Gabon, et c'est voulu : une moyenne
+ * au-dessus du maximum n'est pas une moyenne de la même chose, quel que soit
+ * le Trésor qui l'imprime. On retient alors le prix limite, qui est pied de
+ * coupon, et on le déclare.
+ */
+export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMax">): { pct: number; assumed?: Assumption } | undefined {
+  const horsBornes = r.priceAvg != null && r.priceMax != null && r.priceAvg > r.priceMax + 0.01;
+  if (horsBornes && r.priceLimit != null) {
+    return { pct: r.priceLimit, assumed: { key: "prix limite retenu : le prix moyen publié dépasse le maximum proposé et inclut donc le coupon couru" } };
+  }
+  const direct = horsBornes ? r.priceLimit : (r.priceAvg ?? r.priceLimit);
   if (direct != null) return { pct: direct };
   if (r.priceAvgFcfa != null) {
     return {
