@@ -35,6 +35,11 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       // cents autres ne sont pas le même travail, et l'une ne se cache pas
       // derrière un lien au bas de l'autre.
       ["/desk/adjudications/tableau", "Séances"],
+      // Les deux sorties du travail de relecture : ce que la série dessine, et
+      // ce qu'on en tire. Elles ne se rangent pas avec les cotes : leur matière
+      // est le marché primaire, relu séance par séance.
+      ["/desk/courbe", "Courbe"],
+      ["/desk/analyses", "Analyses"],
       // La lecture, à côté de la saisie : les mêmes listes que le Guichet,
       // rendues par les mêmes composants, sans quitter le domaine du desk.
       ["/desk/titres", "Titres"],

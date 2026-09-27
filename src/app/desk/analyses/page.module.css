@@ -1,0 +1,164 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.head h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.head p {
+  margin: var(--s-1) 0 0;
+  font-size: 0.8rem;
+  max-width: 76ch;
+}
+
+.band {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.band div,
+.kpis div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.band span,
+.kpis span {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band b,
+.kpis b {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+.warnb {
+  color: var(--warn);
+}
+.crit {
+  color: var(--crit);
+}
+
+.pb {
+  padding: var(--panel-inset);
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-2);
+  margin: 0 0 var(--s-6);
+}
+
+/* Une tuile par Trésor : le nom, l'âge de sa courbe, ses points. La pastille
+   reprend la couleur du graphique, le nom reste la vraie identité. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--s-5);
+}
+.tile {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.tile b {
+  font-size: 0.9rem;
+}
+.tile em {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: var(--ink-3);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.pts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin-top: var(--s-2);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.pts span {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-5);
+  color: var(--ink-2);
+}
+.pts b {
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+.bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+  min-width: 90px;
+}
+.bar i {
+  display: block;
+  height: 100%;
+}
+
+.note {
+  margin: 0;
+  padding: var(--s-5) var(--panel-inset);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+.pb .note {
+  padding: var(--s-5) 0 0;
+}
+
+/* La phrase qui doit accompagner un niveau publié : elle se copie telle
+   quelle, donc elle se lit comme une phrase et non comme une légende. */
+.strong {
+  margin: 0 0 var(--s-5);
+  padding: var(--s-5);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+  font-size: 0.82rem;
+}
+
+.steps {
+  margin: 0;
+  padding-left: var(--s-8);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+.steps li {
+  margin: 0 0 var(--s-4);
+}

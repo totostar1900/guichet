@@ -1,0 +1,125 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.head h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.head p {
+  margin: var(--s-1) 0 0;
+  font-size: 0.8rem;
+  max-width: 70ch;
+}
+
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.filter span {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.band {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.band div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.band span {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band b {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+.none {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.warnb {
+  color: var(--warn);
+}
+
+.chart {
+  padding: var(--s-7);
+}
+
+.warn {
+  margin: 0;
+  padding: var(--s-4);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+  font-size: 0.78rem;
+}
+
+/* La pastille de couleur reprend celle de la courbe : le tableau et le
+   graphique se lisent l'un par l'autre, et le nom reste la vraie identité. */
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: var(--s-3);
+  vertical-align: baseline;
+}
+
+/* Imprimé par le Trésor, ou calculé par nous : la distinction est le sujet de
+   la colonne, elle ne peut pas se lire en encre grise uniforme. */
+.printed {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--good);
+}
+.computed {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.hyp {
+  margin: 0;
+  padding: var(--s-5) var(--panel-inset);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+
+.method {
+  margin: 0;
+  font-size: 0.8rem;
+}
