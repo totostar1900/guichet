@@ -79,7 +79,10 @@ function montantsRepetes(rows: AuctionResult[]): Anomalie[] {
     if (lot.length < 3) continue;
     const memes = new Set(lot.map((r) => `${r.announced}|${r.bid}|${r.served}`));
     if (memes.size !== 1) continue;
-    const [t] = lot;
+    // L anomalie porte l identifiant d une des lignes du groupe : il doit être
+    // toujours le même, sans quoi la ranger sur une séance ne la range pas, et
+    // le panneau la redemande au passage suivant dans un autre ordre.
+    const [t] = [...lot].sort((x, y) => x.id.localeCompare(y.id));
     out.push({
       id: t.id,
       quand: t.sessionOn,
