@@ -90,6 +90,16 @@ export interface AuctionResult {
    * chacun de ses passages, et cent vingt communiqués parfaitement lisibles
    * sont ainsi passés pour déjà tentés sans avoir jamais été ouverts.
    */
+  /**
+   * Les motifs d'anomalie vérifiés sur la pièce.
+   *
+   * La contradiction vient de la source et notre lecture est fidèle : le Gabon
+   * publie un prix moyen au-dessus de son propre maximum, le Tchad un servi
+   * supérieur aux soumissions. Sans moyen de le noter, le panneau afficherait
+   * les mêmes seize lignes indéfiniment, ce qui est la façon la plus sûre de le
+   * rendre invisible.
+   */
+  anomaliesVues?: string[];
   readAt?: string;
   /** Le modèle de ce passage : comparer deux campagnes suppose de savoir laquelle vient de qui. */
   readModel?: string;

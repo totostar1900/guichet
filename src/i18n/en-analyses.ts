@@ -202,4 +202,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "montant annoncé": "amount announced",
   "total des soumissions": "total bid",
   "total servi": "total allotted",
+  "{n} vérifiées sur la pièce": "{n} checked against the document",
+  "La pièce dit cela": "The document says so",
+  "La contradiction vient de la pièce : la ranger, et la compter à part.": "The contradiction comes from the document: file it, and count it separately.",
 };

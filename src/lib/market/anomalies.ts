@@ -94,6 +94,22 @@ function montantsRepetes(rows: AuctionResult[]): Anomalie[] {
   return out;
 }
 
+/**
+ * Ce qu'une séance a déjà fait vérifier.
+ *
+ * Une anomalie rangée ne disparaît pas du monde : elle sort du panneau et se
+ * compte à part. Si le crible trouve plus tard un autre motif sur la même
+ * séance, celui-là se signalera, n'ayant pas été vu.
+ */
+const vue = (r: AuctionResult, key: string) => (r.anomaliesVues ?? []).includes(key);
+
+export interface Crible {
+  /** Ce qui attend encore un œil. */
+  restent: Anomalie[];
+  /** Ce qui a été vérifié sur la pièce : la source se contredit, la lecture est fidèle. */
+  vues: number;
+}
+
 export function anomalies(rows: AuctionResult[]): Anomalie[] {
   const out: Anomalie[] = [...montantsRepetes(rows)];
 
@@ -171,4 +187,15 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
 
   // Ce qui est déjà entré dans les références passe devant.
   return out.sort((a, b) => (a.gravite === b.gravite ? b.quand.localeCompare(a.quand) : a.gravite === "confirmee" ? -1 : 1));
+}
+
+/** Le crible complet : ce qui reste à voir, et le compte de ce qui a été vu. */
+export function cribler(rows: AuctionResult[]): Crible {
+  const parId = new Map(rows.map((r) => [r.id, r]));
+  const toutes = anomalies(rows);
+  const restent = toutes.filter((a) => {
+    const r = parId.get(a.id);
+    return !r || !vue(r, a.quoi.key);
+  });
+  return { restent, vues: toutes.length - restent.length };
 }

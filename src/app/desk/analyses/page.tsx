@@ -8,7 +8,8 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
 import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
-import { anomalies } from "@/lib/market/anomalies";
+import { cribler } from "@/lib/market/anomalies";
+import { anomalieVueAction } from "./actions";
 import { bridge } from "@/lib/market/bridge";
 import { buildCurve, MIN_POINTS, serie } from "@/lib/market/curve";
 import { freshness, liquidity } from "@/lib/market/liquidity";
@@ -86,7 +87,8 @@ export default async function AnalysesPage() {
     .map((r) => ({ on: r.sessionOn, v: r.bid! / r.announced!, couleur: COUNTRY_COLOR[r.country] }))
     .sort((a, b) => a.on.localeCompare(b.on));
 
-  const trouvailles = anomalies(seances);
+  const crible = cribler(seances);
+  const trouvailles = crible.restent;
 
   const dernierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate > m.sessionDate ? b : m), undefined);
   const premierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate < m.sessionDate ? b : m), undefined);
@@ -515,7 +517,10 @@ export default async function AnalysesPage() {
           <section className="panel">
             <div className="panel-h">
               <h2>{t("Ce que la table a attrapé")}</h2>
-              <span className="muted">{t("{n} séances qui se contredisent", { n: String(trouvailles.length) })}</span>
+              <span className="muted">
+                {t("{n} séances qui se contredisent", { n: String(trouvailles.length) })}
+                {crible.vues > 0 ? ` · ${t("{n} vérifiées sur la pièce", { n: String(crible.vues) })}` : ""}
+              </span>
             </div>
             <div className="scroll-x">
               <table className="tbl">
@@ -545,7 +550,16 @@ export default async function AnalysesPage() {
                         {a.gravite === "confirmee" ? <span className="st annulee">{t("déjà confirmée")}</span> : <span className="st transmise">{t("en attente")}</span>}{" "}
                         <Link className="btn sm ghost" href={`/desk/adjudications?s=${a.id}`}>
                           {t("Ouvrir")}
-                        </Link>
+                        </Link>{" "}
+                        {/* Le geste qui manque à un signal : pouvoir dire qu'on a
+                            regardé. Sans lui le panneau se répète et cesse d'être lu. */}
+                        <form action={anomalieVueAction} className={styles.vu}>
+                          <input type="hidden" name="id" value={a.id} />
+                          <input type="hidden" name="motif" value={a.quoi.key} />
+                          <button className="btn sm ghost" type="submit" title={t("La contradiction vient de la pièce : la ranger, et la compter à part.")}>
+                            {t("La pièce dit cela")}
+                          </button>
+                        </form>
                       </td>
                     </tr>
                   ))}

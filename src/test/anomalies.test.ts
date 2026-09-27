@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AuctionResult } from "@/lib/market/auction-results";
-import { anomalies } from "@/lib/market/anomalies";
+import { anomalies, cribler } from "@/lib/market/anomalies";
 
 /**
  * Ce que la table attrape et qu'un formulaire ne montre pas.
@@ -22,6 +22,32 @@ const s = (over: Partial<AuctionResult>): AuctionResult => ({
   createdAt: "2026-09-27T10:00:00Z",
   updatedAt: "2026-09-27T10:00:00Z",
   ...over,
+});
+
+/**
+ * Un signal qu on ne peut pas éteindre cesse d être lu.
+ *
+ * La plupart de ces contradictions appartiennent aux Trésors : le Gabon publie
+ * un prix moyen au-dessus de son propre maximum, le Tchad un servi supérieur
+ * aux soumissions. Quelqu un ouvre la pièce, constate, et doit pouvoir le noter,
+ * sans quoi le panneau répète les mêmes lignes jusqu à devenir invisible.
+ */
+describe("le crible", () => {
+  const faux = () => s({ id: "g", instrument: "OTA", tenor: "4 ans", priceMin: 88, priceMax: 91.5, priceAvg: 93.79 });
+
+  it("range ce qui a été vérifié sur la pièce, et le compte", () => {
+    const motif = anomalies([faux()])[0].quoi.key;
+    const c = cribler([{ ...faux(), anomaliesVues: [motif] }]);
+    expect(c.restent).toEqual([]);
+    expect(c.vues).toBe(1);
+  });
+
+  it("signale quand même un motif que personne n a vu sur la même séance", () => {
+    const deux = { ...faux(), sessionOn: "2025-01-01", anomaliesVues: ["chiffre retenu {v} hors de la fourchette publiée {lo}–{hi}"] };
+    const c = cribler([deux]);
+    expect(c.restent.map((x) => x.quoi.key)).toEqual(["séance datée du 1er janvier"]);
+    expect(c.vues).toBe(1);
+  });
 });
 
 describe("les anomalies", () => {
