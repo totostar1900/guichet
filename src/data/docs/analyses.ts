@@ -75,6 +75,14 @@ export const ANALYSES: DocPage = {
         },
         {
           type: "note",
+          kind: "info",
+          text: l(
+            "Le Trésor tchadien ne publie ni prix limite ni prix moyen pondéré : sa pièce donne les montants, la couverture, et une fourchette de prix. Quarante-cinq de ses quarante-neuf séances sont dans ce cas. La table affiche alors l'intervalle tel quel, et la courbe l'écarte : une moyenne de bornes n'est pas un prix servi, et la poser fabriquerait le chiffre que le Trésor a choisi de ne pas publier.",
+            "The Chadian Treasury publishes neither a limit price nor a weighted average: its document gives the amounts, the cover, and a price range. Forty-five of its forty-nine sessions are like this. The table then shows the interval as it stands, and the curve leaves it out: an average of bounds is not a price served, and posting it would manufacture the very figure the Treasury chose not to publish.",
+          ),
+        },
+        {
+          type: "note",
           kind: "rule",
           text: l(
             "Un prix d'obligation sans coupon ne donne aucun rendement. Le même 95,00 % peut valoir 7 % comme 12 % selon ce que la ligne paie : le combler par un coupon moyen donnerait une courbe lisse et fausse, dont personne ne verrait qu'elle est fausse. La séance reste alors sans point, et la page compte le trou.",
@@ -166,6 +174,13 @@ export const ANALYSES: DocPage = {
         {
           type: "p",
           text: l(
+            "Elle figure aussi sous le niveau sur la page publique de l'indice, où elle protège le lecteur plutôt que le desk : « Sur les sept valeurs du panier, six ont traité dans la semaine. » La phrase explique le niveau, elle ne le dément pas.",
+            "It also sits under the level on the public index page, where it protects the reader rather than the desk: “Of the seven shares in the basket, six traded within the week.” The sentence explains the level, it does not contradict it.",
+          ),
+        },
+        {
+          type: "p",
+          text: l(
             "La fraîcheur se compte en nombre de composantes et non en capitalisation, faute d'une pondération publiée par la bourse. L'approximation va dans le sens de la prudence : une grosse ligne dormante pèse plus que ce compte ne le montre. Elle se lèvera avec la note méthodologique de la BVMAC.",
             "Freshness is counted in components and not in capitalisation, for want of a weighting published by the exchange. The approximation errs on the safe side: a large dormant line weighs more than this count shows. It will be lifted with the BVMAC methodology note.",
           ),
@@ -205,6 +220,10 @@ export const ANALYSES: DocPage = {
             l("Une personne ouvre la séance, la pièce à côté, vérifie chaque chiffre, relève le coupon si l'obligation en porte un, puis confirme. La séance passe à « relue » et devient utilisable.", "A person opens the session with the document beside it, checks every figure, notes the coupon if the bond carries one, then confirms. The session becomes “reviewed” and usable."),
             l("La courbe et le dossier d'analyses se recalculent seuls : aucune saisie ne s'y fait, et aucun chiffre n'y est recopié à la main.", "The curve and the analysis file recompute on their own: nothing is typed there, and no figure is copied by hand."),
             l("Avant de publier, on lit la colonne « publiable / interne » de chaque panneau. Une mesure interne ne sort pas telle quelle, et la raison se lève par du travail, pas par une décision.", "Before publishing, read each panel's “publishable / internal” column. An internal measurement does not leave as it stands, and the reason is lifted by work, not by a decision."),
+            l(
+              "« Brouillon de note » sur la page d'analyses écrit la matière : un paragraphe par panneau publiable, chaque réserve attachée à son chiffre plutôt qu'en bas de page, et la liste de ce qui n'a pas été repris avec la raison. « Courbe en CSV » donne les points à qui veut refaire un calcul.",
+              "“Draft for a note” on the analysis page writes the material: one paragraph per publishable panel, each caveat attached to its figure rather than in a footnote, and the list of what was left out with the reason. “Curve as CSV” gives the points to whoever wants to redo a computation.",
+            ),
             l("Une note qui sort passe par Publications, où elle prend un numéro, une version et une trace au journal.", "A note that goes out passes through Publications, where it takes a number, a version and a trace in the journal."),
           ],
         },
@@ -246,8 +265,12 @@ export const ANALYSES: DocPage = {
               "The index weighting. The BVMAC methodology note is still to obtain; freshness is therefore counted in components.",
             ),
             l(
-              "La couverture de la série. Une large part des communiqués de résultats publiés par la BEAC n'est pas encore ingérée, et la page de courbe affiche ce qu'elle a plutôt que de laisser croire qu'elle a tout.",
-              "The coverage of the series. A large share of the results communiqués published by the BEAC is not yet ingested, and the curve page shows what it has rather than letting it pass for everything.",
+              "La couverture de la série. Les deux cent quarante-neuf communiqués des six Trésors sont ingérés et lus ; cent quatre-vingt-treize portent un taux ou un prix dont on peut tirer un rendement, les autres ne publient qu'une fourchette ou étaient des adjudications désertes. Seules les séances relues entrent dans la courbe.",
+              "The coverage of the series. All 249 communiqués from the six Treasuries are ingested and read; 193 carry a rate or a price a yield can be built from, the rest publish only a range or were deserted auctions. Only reviewed sessions enter the curve.",
+            ),
+            l(
+              "Ce qu'une lecture a rapporté se marque sur la séance elle-même (« read_at », « read_model »), et non au fil des horodatages. Le déduire d'une mise à jour était faux : le robot d'ingestion réécrit chaque ligne à chacun de ses passages, et cent vingt-sept communiqués parfaitement lisibles sont ainsi passés pour déjà tentés sans avoir jamais été ouverts.",
+              "What a reading returned is marked on the session itself (read_at, read_model), not inferred from timestamps. Deducing it from an update was wrong: the ingestion robot rewrites every row on each pass, and 127 perfectly legible communiqués were thereby taken for already tried without ever having been opened.",
             ),
           ],
         },
