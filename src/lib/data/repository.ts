@@ -170,7 +170,10 @@ export interface Repository {
   /** Idempotent sur l'URL du communiqué : la pièce est la séance, et on ne saisit pas deux fois la même. */
   upsertAuctionResult(r: NewAuctionResult): Promise<AuctionResult>;
   /** La relecture du desk, et le rattachement à une de nos lignes. */
+  /** Un champ « undefined » n'est pas fourni et ne touche pas la colonne : pour effacer, voir reopenAuctionResult. */
   updateAuctionResult(id: string, patch: Partial<NewAuctionResult>): Promise<AuctionResult>;
+  /** Le seul effacement légitime de la table : la séance repasse « à relire ». */
+  reopenAuctionResult(id: string): Promise<AuctionResult>;
 
   /** Documents published by listed companies (collected from the BVMAC site). */
   listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;

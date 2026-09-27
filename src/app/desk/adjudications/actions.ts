@@ -162,7 +162,7 @@ export async function reopenResultAction(form: FormData): Promise<void> {
   const id = String(form.get("id") ?? "");
   const before = await repo().getAuctionResult(id);
   if (!before?.confirmedBy) return;
-  await repo().updateAuctionResult(id, { confirmedBy: undefined, confirmedAt: undefined });
+  await repo().reopenAuctionResult(id);
   await audit("auction.reopen", "auction_result", id, { before: { confirmedBy: before.confirmedBy }, after: { confirmedBy: null } });
   await repo().logEvent({ kind: "desk", html: `Adjudication rouverte par ${desk.name} : <b>${before.instrument} ${before.tenor}</b>, séance du ${before.sessionOn}` });
   revalidatePath("/desk/adjudications");

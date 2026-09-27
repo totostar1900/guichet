@@ -496,10 +496,15 @@ const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
  */
 const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown> => {
   const row: Record<string, unknown> = {};
+  // « undefined » veut dire « non fourni » et ne touche pas la colonne ; seul
+  // un « null » écrit efface. La clef absente et la clef à « undefined » sont
+  // la même chose pour qui écrit le code, et les traiter différemment a coûté
+  // trente et une obligations : un helper qui rend « undefined » pour « ne
+  // change pas » posait la clef, et la colonne partait à null.
   const put = <K extends keyof NewAuctionResult>(col: string, key: K, conv?: (v: NonNullable<NewAuctionResult[K]>) => unknown) => {
-    if (!(key in r)) return;
+    if (!(key in r) || r[key] === undefined) return;
     const v = r[key];
-    row[col] = v === undefined || v === null ? null : conv ? conv(v as NonNullable<NewAuctionResult[K]>) : v;
+    row[col] = v === null ? null : conv ? conv(v as NonNullable<NewAuctionResult[K]>) : v;
   };
   const num = (v: number) => (Number.isFinite(v) ? String(v) : null);
   put("code_emission", "codeEmission");
@@ -1403,6 +1408,11 @@ export const supabaseRepository: Repository = {
     row.updated_at = new Date().toISOString();
     const { data, error } = await db().from("auction_results").upsert(row, { onConflict: "source_url" }).select("*").single();
     if (error) fail("upsertAuctionResult", error);
+    return toAuctionResult(data as AuctionResultRow);
+  },
+  async reopenAuctionResult(id) {
+    const { data, error } = await db().from("auction_results").update({ confirmed_by: null, confirmed_at: null, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
+    if (error) fail("reopenAuctionResult", error);
     return toAuctionResult(data as AuctionResultRow);
   },
   async updateAuctionResult(id, patch) {

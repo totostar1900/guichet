@@ -777,7 +777,20 @@ export const memoryRepository: Repository = {
     const s = store();
     const i = s.auctionResults.findIndex((x) => x.id === id);
     if (i < 0) throw new Error("Résultat introuvable");
-    s.auctionResults[i] = { ...s.auctionResults[i], ...patch, updatedAt: new Date().toISOString() };
+    // Même règle que la base : « undefined » veut dire « non fourni ». Un
+    // « ...patch » nu écraserait un champ existant par undefined, et le dépôt
+    // en mémoire mentirait sur ce que fait le vrai.
+    const fourni = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+    s.auctionResults[i] = { ...s.auctionResults[i], ...fourni, updatedAt: new Date().toISOString() };
+    return structuredClone(s.auctionResults[i]);
+  },
+
+  async reopenAuctionResult(id) {
+    const s = store();
+    const i = s.auctionResults.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error("Résultat introuvable");
+    const { confirmedBy: _by, confirmedAt: _at, ...reste } = s.auctionResults[i];
+    s.auctionResults[i] = { ...reste, updatedAt: new Date().toISOString() };
     return structuredClone(s.auctionResults[i]);
   },
 
