@@ -1,4 +1,4 @@
-import { coverageOf, headline, thin, type AuctionResult } from "./auction-results";
+import { coverageOf, etatSeance, headline, thin, type AuctionResult } from "./auction-results";
 
 /**
  * La table des séances : ce qu'on y range, ce qu'on y trie, ce qu'on en sort.
@@ -50,8 +50,9 @@ export function applyFilter(rows: AuctionResult[], f: TableFilter): AuctionResul
       (!has(f.pays) || r.country === f.pays) &&
       (!has(f.instrument) || r.instrument === f.instrument) &&
       (!has(f.duree) || r.tenor === f.duree) &&
-      (f.etat !== "relues" || Boolean(r.confirmedBy)) &&
-      (f.etat !== "a-relire" || !r.confirmedBy) &&
+      (f.etat !== "relues" || etatSeance(r) === "relue") &&
+      (f.etat !== "a-relire" || etatSeance(r) === "a_relire") &&
+      (f.etat !== "a-lire" || etatSeance(r) === "a_lire") &&
       (!f.du || r.sessionOn >= f.du) &&
       (!f.au || r.sessionOn <= f.au),
   );

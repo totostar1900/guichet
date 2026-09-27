@@ -5,6 +5,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
+import { etatSeance } from "@/lib/market/auction-results";
 import { applyFilter, distinct, sortRows, summarise, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
 import styles from "./page.module.css";
 
@@ -78,7 +79,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <DeskNav current="/desk/adjudications" badges={{ "/desk/adjudications": all.filter((x) => !x.confirmedBy).length }} />
+      <DeskNav current="/desk/adjudications/tableau" badges={{ "/desk/adjudications": all.filter((x) => !x.confirmedBy).length }} />
 
       <div className={styles.page}>
         <header className={styles.head}>
@@ -136,6 +137,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
           {filtre("instrument", "Instrument", distinct(all, (x) => x.instrument))}
           {filtre("duree", "Durée", distinct(all, (x) => x.tenor))}
           {filtre("etat", "État", [
+            ["a-lire", "À lire"],
             ["a-relire", "À relire"],
             ["relues", "Relues"],
           ])}
@@ -190,7 +192,12 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     <td className={styles.r}>{pct(couverture, 0)}</td>
                     <td className={styles.r}>{x.bidders ?? "—"}</td>
                     <td className={styles.r}>{x.served == null ? "—" : `${fmt(Math.round(x.served / 1_000_000))} M`}</td>
-                    <td>{x.confirmedBy ? <span className={styles.ok}>{t("relue")}</span> : <span className={styles.todo}>{t("à relire")}</span>}</td>
+                    <td>
+                      {(() => {
+                        const e = etatSeance(x);
+                        return e === "relue" ? <span className={styles.ok}>{t("relue")}</span> : e === "a_relire" ? <span className={styles.todo}>{t("à relire")}</span> : <span className={styles.vide}>{t("à lire")}</span>;
+                      })()}
+                    </td>
                   </tr>
                 ))}
               </tbody>

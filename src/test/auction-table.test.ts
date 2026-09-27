@@ -30,13 +30,15 @@ describe("les filtres", () => {
   const rows = [
     relue({ id: "cg", country: "Congo", rateAvg: 6.97 }),
     relue({ id: "cm", country: "Cameroun", rateAvg: 5.5 }),
+    // Lue par la machine, pas encore confirmée par une personne.
+    s({ id: "td", country: "Tchad", rateAvg: 7.1 }),
     s({ id: "ga", country: "Gabon", tenor: "3 ans", instrument: "OTA" }),
   ];
 
   it("regardent la zone entière tant qu'on ne demande rien", () => {
     // Un Trésor ne se lit pas seul : c'est la comparaison qui porte le sens.
-    expect(applyFilter(rows, {})).toHaveLength(3);
-    expect(applyFilter(rows, { pays: "tout" })).toHaveLength(3);
+    expect(applyFilter(rows, {})).toHaveLength(4);
+    expect(applyFilter(rows, { pays: "tout" })).toHaveLength(4);
   });
 
   it("resserrent sur un Trésor, un instrument, une durée", () => {
@@ -45,9 +47,19 @@ describe("les filtres", () => {
     expect(applyFilter(rows, { duree: "3 ans" }).map((r) => r.id)).toEqual(["ga"]);
   });
 
-  it("séparent ce qui est relu de ce qui ne l'est pas", () => {
+  /**
+   * Trois états, pas deux.
+   *
+   * « Pas confirmée » recouvrait deux situations qui n'ont rien à voir : une
+   * séance dont personne n'a encore lu le communiqué, et une séance lue dont
+   * les chiffres attendent un second regard. Le desk a lu quatre fois la même
+   * pièce en croyant que rien ne s'enregistrait, parce que l'écran lui
+   * renvoyait le même mot dans les deux cas.
+   */
+  it("séparent les trois états d'une séance", () => {
     expect(applyFilter(rows, { etat: "relues" }).map((r) => r.id)).toEqual(["cg", "cm"]);
-    expect(applyFilter(rows, { etat: "a-relire" }).map((r) => r.id)).toEqual(["ga"]);
+    expect(applyFilter(rows, { etat: "a-relire" }).map((r) => r.id)).toEqual(["td"]);
+    expect(applyFilter(rows, { etat: "a-lire" }).map((r) => r.id)).toEqual(["ga"]);
   });
 
   it("bornent les dates aux deux bouts, bornes comprises", () => {

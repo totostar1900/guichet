@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
+import { TallTable } from "@/components/desk/TallTable";
 import { DocMap } from "@/components/docs/DocMap";
 import { docStats } from "@/lib/documents/stats";
 import { COMPANIES } from "@/data/companies";
@@ -59,7 +60,7 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
           <h2>{t("Bulletins Officiels de la Cote")}</h2>
           <span className="muted">{t("{n} séances lues · {k} PDF conservés (bucket « sources », boc/BOC-AAAAMMJJ.pdf) · la source BVMAC reste en lien", { n: String(bulletins.length), k: String(kept) })}</span>
         </div>
-        <div className="scroll-x">
+        <TallTable total={bulletins.length}>
           <table className="tbl">
             <thead>
               <tr>
@@ -104,7 +105,7 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
               )}
             </tbody>
           </table>
-        </div>
+        </TallTable>
         {bulletins.length >= 60 && sp.n !== "tous" && (
           <p className={styles.more}>
             <Link href="/desk/depot?n=tous">{t("Toutes les séances")} →</Link>

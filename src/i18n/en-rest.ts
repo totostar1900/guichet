@@ -956,7 +956,6 @@ export const EN_REST: Record<string, string> = {
   "Rouvrir": "Reopen",
   "Confirmer la séance": "Confirm the session",
   "Confirmée : ce taux sert de référence aux indications du desk.": "Confirmed: this rate is the reference behind the desk's indications.",
-  "Tant qu'elle n'est pas confirmée, cette lecture ne sert de référence à aucune offre.": "Until it is confirmed, this reading is the reference for no offer.",
   "Aucune séance comparable relue : le chiffre reste à apprécier, et à défendre.": "No comparable session has been read: the figure remains a judgement, and must be defended.",
   "Dernière séance comparable : {v} %": "Last comparable session: {v} %",
   "Dernier prix comparable : {v} %": "Last comparable price: {v} %",
@@ -1000,4 +999,8 @@ export const EN_REST: Record<string, string> = {
   "Le modèle a refusé de lire cette pièce. Les chiffres se saisissent à la main en attendant.": "The model declined to read this document. The figures are typed by hand meanwhile.",
   "La lecture n'a pas abouti. Les chiffres se saisissent à la main en attendant. Le détail est au journal.": "The reading did not complete. The figures are typed by hand meanwhile. The detail is in the journal.",
   "Lecture proposée en {s} s par {m}. Vérifiez chaque chiffre sur la pièce : rien n'est encore enregistré.": "Reading proposed in {s} s by {m}. Check every figure against the document: nothing is saved yet.",
+  "À lire": "To read",
+  "à lire": "to read",
+  "Lue et enregistrée. Tant qu'une personne ne l'a pas confirmée, elle ne sert de référence à aucune offre.": "Read and saved. Until a person confirms it, it is the reference for no offer.",
+  "Rien n'a encore été lu sur cette pièce.": "Nothing has been read from this document yet.",
 };

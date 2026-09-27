@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { SourceViewer } from "@/components/SourceViewer";
 import { useT } from "@/i18n/client";
-import { coverageOf, thin, type AuctionResult } from "@/lib/market/auction-results";
+import { coverageOf, etatSeance, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { confirmResultAction, proposeResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
 import styles from "./page.module.css";
 
@@ -85,6 +85,7 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
   const bill = r.instrument === "BTA";
   const couv = coverageOf(r);
   const mince = thin(r);
+  const etat = etatSeance(r);
 
   // La valeur d'un champ, dans cet ordre : ce que le desk a tapé, sinon ce que
   // la base porte, sinon ce que la machine propose. Une proposition ne recouvre
@@ -125,7 +126,7 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
           </p>
         </div>
         <span className={`${styles.pill} ${r.confirmedBy ? styles.done : styles.todo}`}>
-          {r.confirmedBy ? t("Relue par {n}", { n: r.confirmedBy }) : t("À relire")}
+          {etat === "relue" ? t("Relue par {n}", { n: r.confirmedBy ?? "" }) : etat === "a_relire" ? t("À relire") : t("À lire")}
         </span>
       </header>
 
@@ -236,9 +237,11 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
             )}
           </div>
           <p className="muted">
-            {r.confirmedBy
+            {etat === "relue"
               ? t("Confirmée : ce taux sert de référence aux indications du desk.")
-              : t("Tant qu'elle n'est pas confirmée, cette lecture ne sert de référence à aucune offre.")}
+              : etat === "a_relire"
+                ? t("Lue et enregistrée. Tant qu'une personne ne l'a pas confirmée, elle ne sert de référence à aucune offre.")
+                : t("Rien n'a encore été lu sur cette pièce.")}
           </p>
         </div>
       </div>

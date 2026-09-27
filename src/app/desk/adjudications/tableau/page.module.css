@@ -147,3 +147,13 @@
   text-transform: uppercase;
   color: var(--gold-ink);
 }
+
+/* Rien n'a encore été lu : ni doré comme ce qui attend une relecture, ni encre
+   comme ce qui est acquis. */
+.vide {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}

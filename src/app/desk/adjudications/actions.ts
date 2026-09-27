@@ -171,9 +171,13 @@ export async function reopenResultAction(form: FormData): Promise<void> {
 /**
  * La machine lit, la personne arrête.
  *
- * Rien n'est écrit ici. La lecture est renvoyée à l'écran, qui la pose dans les
- * champs à côté de la pièce ouverte ; c'est « Enregistrer » qui la garde et
- * « Confirmer » qui l'engage. La distinction est le sujet de tout l'écran : un
+ * La lecture enregistre ce qu'elle a lu, et ne remplit que ce qui est vide. Le
+ * robot de lecture en masse le faisait depuis le début ; l'écran, lui, ne gardait
+ * rien, et une séance tchadienne a été lue plusieurs fois de suite sans que sa
+ * ligne cesse d'être vide. Deux chemins pour un même geste, deux comportements :
+ * c'était l'incohérence, pas le malentendu.
+ *
+ * Ce qui reste intouché est la confirmation, et c'est là qu'est la barrière : un
  * chiffre lu de travers sur un scan, s'il devenait référence sans que personne
  * ne l'ait regardé, se propagerait sans bruit à toutes les offres suivantes.
  */
@@ -188,9 +192,31 @@ export async function proposeResultAction(_prev: ResultOutcome | null, form: For
     const bytes = await readSource(r.fileKey);
     const hint = `Séance du ${r.sessionOn}, ${r.instrument}${r.tenor && r.tenor !== "—" ? ` ${r.tenor}` : ""}, ${r.country}.`;
     const { proposal, remarks, seconds, model } = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint);
+    // Seuls les champs vides se remplissent : ce que le desk a corrigé reste.
+    const vide = <T,>(actuel: T | null | undefined, lu: T | undefined) => (actuel == null ? lu : undefined);
+    await repo().updateAuctionResult(id, {
+      codeEmission: r.codeEmission ?? proposal.codeEmission,
+      tenor: r.tenor && r.tenor !== "—" ? r.tenor : (proposal.tenor ?? r.tenor),
+      announced: vide(r.announced, proposal.announced),
+      bid: vide(r.bid, proposal.bid),
+      served: vide(r.served, proposal.served),
+      networkSize: vide(r.networkSize, proposal.networkSize),
+      bidders: vide(r.bidders, proposal.bidders),
+      rateMin: vide(r.rateMin, proposal.rateMin),
+      rateMax: vide(r.rateMax, proposal.rateMax),
+      rateLimit: vide(r.rateLimit, proposal.rateLimit),
+      rateAvg: vide(r.rateAvg, proposal.rateAvg),
+      priceMin: vide(r.priceMin, proposal.priceMin),
+      priceMax: vide(r.priceMax, proposal.priceMax),
+      priceLimit: vide(r.priceLimit, proposal.priceLimit),
+      priceAvg: vide(r.priceAvg, proposal.priceAvg),
+      coverage: vide(r.coverage, proposal.coverage),
+    });
+    revalidatePath("/desk/adjudications");
+    revalidatePath("/desk/adjudications/tableau");
     return {
       ok: true,
-      message: `Lecture proposée en ${String(seconds).replace(".", ",")} s par ${model}. Vérifiez chaque chiffre sur la pièce : rien n'est encore enregistré.`,
+      message: `Lue en ${String(seconds).replace(".", ",")} s par ${model} et enregistrée. Vérifiez chaque chiffre sur la pièce, puis confirmez.`,
       proposal,
       remarks,
     };

@@ -121,6 +121,26 @@ export function thin(r: AuctionResult): boolean {
   return c != null && c < 100;
 }
 
+/**
+ * Où en est une séance, en trois états et non en deux.
+ *
+ * Lire et relire sont deux gestes, et l'écran les confondait sous un seul mot.
+ * Le desk pressait « Lire le communiqué », voyait la pastille afficher toujours
+ * « à relire », et recommençait : la machine avait bien lu, mais la pastille ne
+ * parle que de la relecture, qui n'a pas eu lieu. En anglais c'était pire, « to
+ * read » répondant à un bouton « read ».
+ *
+ * Trois états, donc, qui suivent exactement la donnée : rien dans les champs,
+ * des chiffres que personne n'a vérifiés, une séance arrêtée par une personne.
+ */
+export type EtatSeance = "a_lire" | "a_relire" | "relue";
+
+export const etatSeance = (r: Pick<AuctionResult, "confirmedBy" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit">): EtatSeance => {
+  if (r.confirmedBy) return "relue";
+  const chiffre = r.rateAvg ?? r.rateLimit ?? r.priceAvg ?? r.priceLimit;
+  return chiffre == null ? "a_lire" : "a_relire";
+};
+
 const days = (a: string, b: string): number => Math.round((Date.parse(a) - Date.parse(b)) / 86_400_000);
 
 export interface RateReference {
