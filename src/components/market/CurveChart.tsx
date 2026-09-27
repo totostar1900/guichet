@@ -73,6 +73,24 @@ export async function CurveChart({ countries, height = 280, ariaLabel }: { count
   // Les abscisses sont les durées réellement adjugées, pas une graduation
   // inventée : une courbe de la zone ne passe pas par des points qui n'existent pas.
   const durees = [...new Map(pts.map((p) => [p.tenor, p])).values()].sort((a, b) => a.years - b.years);
+
+  /**
+   * Les durées qui portent une étiquette.
+   *
+   * On part du bout, qui se lit en premier et ne cède jamais, et on remonte :
+   * une durée garde son étiquette si elle laisse de la place à celle déjà
+   * retenue. Dans l'autre sens, sur une échelle log, tout le long finissait
+   * par céder et l'axe s'arrêtait de compter au milieu de la courbe.
+   */
+  const ECART = 42;
+  const nommees = new Set<string>();
+  let droite = Number.POSITIVE_INFINITY;
+  for (let i = durees.length - 1; i >= 0; i--) {
+    const x = X(durees[i].years);
+    if (droite - x < ECART) continue;
+    nommees.add(durees[i].tenor);
+    droite = x;
+  }
   const grille = ticks(lo, hi);
 
   return (
@@ -88,17 +106,14 @@ export async function CurveChart({ countries, height = 280, ariaLabel }: { count
         ))}
         <path d={`M${P.l} ${P.t}V${H - P.b}H${W - P.r}`} className={styles.axis} />
 
-        {durees.map((d, i) => {
+        {durees.map((d) => {
           const x = X(d.years);
-          // Deux durées voisines sur une échelle log se marchent dessus :
-          // l'étiquette cède plutôt que de se superposer.
-          const precedent = i > 0 ? X(durees[i - 1].years) : -99;
           return (
             <g key={d.tenor}>
               <line x1={x} y1={P.t} x2={x} y2={H - P.b} className={styles.grid} />
-              {x - precedent > 44 && (
+              {nommees.has(d.tenor) && (
                 <text x={x} y={H - P.b + 16} textAnchor="middle" className={styles.tick}>
-                  {d.tenor.replace(" semaines", " sem.").replace(" ans", " a")}
+                  {d.tenor.replace(" semaines", " sem.").replace(" ans", " ans")}
                 </text>
               )}
             </g>
