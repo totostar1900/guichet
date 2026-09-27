@@ -219,8 +219,22 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
     remarks.unshift(`Le ${quoi} lu vaut ${v}, ce qui n'est pas un pourcentage du nominal : la pièce l'exprime autrement, et le champ reste vide en attendant votre lecture.`);
     return undefined;
   };
+  /**
+   * Un taux nul, ou négatif, n'est pas un taux.
+   *
+   * Une case vide d'un tableau scanné se lit volontiers « 0 ». Le chiffre
+   * traverserait alors toute la chaîne sans surprendre personne : il est bien
+   * un nombre, il est bien dans la bonne colonne, et il dirait qu'un Trésor de
+   * la zone s'est financé gratuitement. Aucune adjudication de la CEMAC n'est
+   * jamais sortie sous un pour cent.
+   */
+  const taux = (v: number | undefined, quoi: string): number | undefined => {
+    if (v == null || v >= 0.5) return v;
+    remarks.unshift(`Le ${quoi} lu vaut ${v} : une adjudication ne sort pas à ce niveau, et une case vide se lit volontiers « 0 ». Le champ reste vide en attendant votre lecture.`);
+    return undefined;
+  };
   const [priceMin, priceMax] = ordonner(pourcentage(nn(out.priceMin), "prix minimum"), pourcentage(nn(out.priceMax), "prix maximum"), "prix", remarks);
-  const [rateMin, rateMax] = ordonner(nn(out.rateMin), nn(out.rateMax), "taux", remarks);
+  const [rateMin, rateMax] = ordonner(taux(nn(out.rateMin), "taux minimum"), taux(nn(out.rateMax), "taux maximum"), "taux", remarks);
   // Le Trésor camerounais imprime le prix moyen en francs et le rendement à côté.
   // Ni l'un ni l'autre n'a sa colonne ; les perdre serait pire que les dire.
   if (out.priceAvgFcfa != null) remarks.unshift(`La pièce donne un prix moyen pondéré de ${out.priceAvgFcfa} FCFA par titre : il est converti en pourcentage sur une valeur nominale de 10 000 F, vérifiez que c'est bien celle de la ligne.`);
@@ -245,17 +259,17 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
       bidders: nn(out.bidders),
       rateMin,
       rateMax,
-      rateLimit: nn(out.rateLimit),
-      rateAvg: nn(out.rateAvg),
+      rateLimit: taux(nn(out.rateLimit), "taux limite"),
+      rateAvg: taux(nn(out.rateAvg), "taux moyen pondéré"),
       priceMin,
       priceMax,
       priceLimit: pourcentage(nn(out.priceLimit), "prix limite"),
       priceAvg: pourcentage(nn(out.priceAvg), "prix moyen pondéré"),
       coverage: nn(out.coverage),
       priceAvgFcfa: nn(out.priceAvgFcfa),
-      yieldAvg: nn(out.yieldAvg),
-      yieldLimit: nn(out.yieldLimit),
-      couponRate: nn(out.couponRate),
+      yieldAvg: taux(nn(out.yieldAvg), "taux de rendement moyen pondéré"),
+      yieldLimit: taux(nn(out.yieldLimit), "taux de rendement au prix limite"),
+      couponRate: taux(nn(out.couponRate), "taux d'intérêt facial"),
       maturityOn: nn(out.maturityOn),
     },
     remarks,
