@@ -162,3 +162,36 @@
 .steps li {
   margin: 0 0 var(--s-4);
 }
+
+/* La légende d'une série : la couleur ne porte jamais seule l'identité, le nom
+   est à côté et le compte de séances dit ce que la ligne vaut. */
+.legende {
+  display: flex;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+  margin: var(--s-5) 0 0;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+}
+.legende span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.legende i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.legende b {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+/* Une phrase dans une cellule se replie : sans quoi trois motifs poussent une
+   barre de défilement sous une table qu'on lit de haut en bas. */
+.wrap {
+  white-space: normal;
+  min-width: 22ch;
+}

@@ -1,0 +1,25 @@
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.grille {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+/* Le seuil de couverture : au-dessus le Trésor choisit, en dessous il subit.
+   Il se distingue d'une graduation, sans quoi il n'est qu'un trait de plus. */
+.seuil {
+  stroke: var(--gold);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.axe {
+  fill: none;
+  stroke: var(--line-2);
+  stroke-width: 1;
+}
+.tick {
+  font-size: 10px;
+  fill: var(--ink-3);
+}

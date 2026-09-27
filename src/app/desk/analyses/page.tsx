@@ -2,13 +2,15 @@ import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { TallTable } from "@/components/desk/TallTable";
 import { COUNTRY_COLOR } from "@/components/market/CurveChart";
+import { Barres, SerieTemps } from "@/components/market/Traces";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
 import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
+import { anomalies } from "@/lib/market/anomalies";
 import { bridge } from "@/lib/market/bridge";
-import { buildCurve, MIN_POINTS } from "@/lib/market/curve";
+import { buildCurve, MIN_POINTS, serie } from "@/lib/market/curve";
 import { freshness, liquidity } from "@/lib/market/liquidity";
 import styles from "./page.module.css";
 
@@ -63,6 +65,29 @@ export default async function AnalysesPage() {
   // deux bornes, donnant une hausse de quinze pour cent pour une baisse de
   // treize.
   const avecIndice = bulletins.filter((b) => b.indexValue != null);
+  /**
+   * Les durées les mieux suivies, jusqu'à trois.
+   *
+   * On ne choisit pas « 26 semaines » d'avance : la durée qui porte l'histoire
+   * n'est pas la même selon le Trésor, et elle changera avec les reprises. On
+   * prend celles qui ont le plus de séances relues, ce qui revient à prendre
+   * celles qui ont quelque chose à raconter.
+   */
+  const suivies = [...new Map(relues.map((r) => [`${r.country}|${r.tenor}`, r])).values()]
+    .map((r) => ({ pays: r.country, tenor: r.tenor, pts: serie(seances, r.country, r.tenor) }))
+    .filter((x) => x.pts.length >= 4)
+    .sort((a, b) => b.pts.length - a.pts.length)
+    .slice(0, 3);
+
+  // La couverture, séance par séance, dans l'ordre : c'est la mesure la plus
+  // dure du jeu et elle ne se lit que sur la durée.
+  const couvertures = relues
+    .filter((r) => r.announced && r.bid != null)
+    .map((r) => ({ on: r.sessionOn, v: r.bid! / r.announced!, couleur: COUNTRY_COLOR[r.country] }))
+    .sort((a, b) => a.on.localeCompare(b.on));
+
+  const trouvailles = anomalies(seances);
+
   const dernierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate > m.sessionDate ? b : m), undefined);
   const premierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate < m.sessionDate ? b : m), undefined);
 
@@ -147,12 +172,56 @@ export default async function AnalysesPage() {
           </div>
         </section>
 
+        {/* 1 bis. Le reprix : la courbe dit le marché d'un jour, la série dit son histoire. */}
+        {suivies.length > 0 && (
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Le reprix du marché")}</h2>
+              <span className="muted">{sortie(suivies[0].pts.length >= 8, "Une série se publie à partir de huit séances relues : en dessous, elle raconte le hasard des lectures faites.")}</span>
+            </div>
+            <div className={styles.pb}>
+              <SerieTemps
+                traces={suivies.map((x, i) => ({
+                  couleur: [COUNTRY_COLOR[x.pays], "#a16207", "#6d28d9"][i] ?? COUNTRY_COLOR[x.pays],
+                  points: x.pts.map((p) => ({ on: p.on, v: p.pct })),
+                  creux: (p) => Boolean(x.pts.find((q) => q.on === p.on)?.thin),
+                  aire: i === 0,
+                }))}
+                ariaLabel={t("Rendement de chaque durée suivie, dans le temps")}
+              />
+              <div className={styles.legende}>
+                {suivies.map((x, i) => (
+                  <span key={`${x.pays}-${x.tenor}`}>
+                    <i style={{ background: [COUNTRY_COLOR[x.pays], "#a16207", "#6d28d9"][i] ?? COUNTRY_COLOR[x.pays] }} />
+                    {x.pays} · {x.tenor} <b>({x.pts.length})</b>
+                  </span>
+                ))}
+              </div>
+              <p className={styles.note}>
+                {t(
+                  "Un point creux signale une séance mince. L'abscisse est la date réelle et non le rang : des séances réparties sur sept ans ne sont pas des pas réguliers, et les espacer également ferait croire à une cadence que le marché n'a pas eue.",
+                )}
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* 2. La pression : la mesure la plus dure du jeu, et la plus simple. */}
         <section className="panel">
           <div className="panel-h">
             <h2>{t("La pression de la demande")}</h2>
             <span className="muted">{sortie(pression.some((p) => p.n >= 5), "Une moyenne annuelle demande au moins cinq séances relues dans l'année.")}</span>
           </div>
+          {couvertures.length > 2 && (
+            <div className={styles.pb}>
+              <Barres points={couvertures} seuil={1} decimales={1} ariaLabel={t("Couverture de chaque séance relue")} />
+              <p className={styles.note}>
+                {t(
+                  "Une barre par séance relue, dans l'ordre chronologique : l'axe compte les séances, il ne mesure pas le temps. Le trait doré est la couverture de un, seuil du service intégral.",
+                )}
+              </p>
+            </div>
+          )}
           <div className="scroll-x">
             <table className="tbl">
               <thead>
@@ -342,6 +411,27 @@ export default async function AnalysesPage() {
                   <b className={frais.worstDays > 30 ? styles.crit : undefined}>{t("{n} jours", { n: frais.worstDays })}</b>
                 </div>
               </div>
+              {liq && liq.bySession.length > 2 && (
+                <>
+                  <SerieTemps
+                    traces={[{ couleur: COUNTRY_COLOR.Cameroun, points: avecIndice.map((b) => ({ on: b.sessionDate, v: b.indexValue! })), aire: true, marques: false }]}
+                    unite=""
+                    decimales={0}
+                    height={170}
+                    ariaLabel={t("Niveau de l'indice, séance par séance")}
+                  />
+                  <Barres
+                    points={liq.bySession.map((x) => ({ on: x.date, v: x.traded, couleur: x.traded === 0 ? "var(--crit)" : COUNTRY_COLOR.Congo }))}
+                    height={120}
+                    unite=""
+                    decimales={0}
+                    ariaLabel={t("Lignes traitées à chaque séance")}
+                  />
+                  <p className={styles.note}>
+                    {t("En haut le niveau publié, en bas le nombre de lignes qui ont traité ce jour-là. Les barres rouges sont les séances où rien ne s'est échangé sur toute la cote.")}
+                  </p>
+                </>
+              )}
               <p className={styles.strong}>
                 {frais.stale.length > 0
                   ? t("Sur {m} composantes du panier, {liste} n'avaient pas traité depuis plus de {s} jours. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.", {
@@ -404,6 +494,56 @@ export default async function AnalysesPage() {
             <p className={styles.note}>
               {t(
                 "L'écart est en points de prix et jamais en rendement : un écart de rendement demanderait le coupon des deux côtés. Une ligne qui n'a jamais traité n'a pas de prix de marché, et l'écart mesure alors la distance entre un prix payé et un prix reporté.",
+              )}
+            </p>
+          </section>
+        )}
+
+        {/* 6 bis. Ce qu'une colonne montre et qu'un formulaire cache. */}
+        {trouvailles.length > 0 && (
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Ce que la table a attrapé")}</h2>
+              <span className="muted">{t("{n} séances qui se contredisent", { n: String(trouvailles.length) })}</span>
+            </div>
+            <div className="scroll-x">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>{t("Séance")}</th>
+                    <th>{t("Trésor")}</th>
+                    <th>{t("Durée")}</th>
+                    <th>{t("Ce qui se contredit")}</th>
+                    <th>{t("Ce qu'il faut vérifier sur la pièce")}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trouvailles.slice(0, 20).map((a, i) => (
+                    <tr key={`${a.id}-${i}`}>
+                      <td>{fmtDate(a.quand)}</td>
+                      <td>{a.pays}</td>
+                      <td>
+                        {a.instrument} {a.tenor}
+                      </td>
+                      <td className={styles.wrap}>{t(a.quoi)}</td>
+                      <td className={styles.wrap}>
+                        <span className="muted">{t(a.verifier)}</span>
+                      </td>
+                      <td>
+                        {a.gravite === "confirmee" ? <span className="st annulee">{t("déjà confirmée")}</span> : <span className="st transmise">{t("en attente")}</span>}{" "}
+                        <Link className="btn sm ghost" href={`/desk/adjudications?s=${a.id}`}>
+                          {t("Ouvrir")}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className={styles.note}>
+              {t(
+                "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les six sautent aux yeux.",
               )}
             </p>
           </section>
