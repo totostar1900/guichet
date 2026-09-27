@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { repo } from "@/lib/data";
 import { readSource } from "@/lib/intake/storage";
-import { auctionReadingAvailable, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
+import { auctionReadingAvailable, modeleDemande, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
 import type { AuctionResult } from "@/lib/market/auction-results";
 
 /**
@@ -68,6 +68,15 @@ export async function GET(req: NextRequest) {
    * lorsqu'on a une raison, et cette raison est extérieure au robot.
    */
   const retente = p.get("retente") === "1";
+  /**
+   * « modele » : lire cette fournée avec un autre modèle que celui de la
+   * maison, sans toucher à la configuration ni au bouton du desk. Les scans
+   * gabonais n'ont aucune couche de texte et les tchadiens en ont une
+   * brouillée : un modèle plus fort y voit peut-être ce qu'un modèle
+   * économique laisse en blanc, et c'est une question qui se tranche par
+   * l'expérience, pas par une opinion.
+   */
+  const modele = modeleDemande(p.get("modele"));
   const n = Math.min(Math.max(Number(p.get("n") ?? 6), 1), 12);
   const r = repo();
 
@@ -105,12 +114,15 @@ export async function GET(req: NextRequest) {
   const paquet = file.slice(0, n);
 
   const faites: string[] = [];
+  /** Les modèles réellement employés : comparer deux lectures suppose de savoir d'où chacune vient. */
+  const lus = new Set<string>();
   const ratees: { seance: string; raison: string }[] = [];
   for (const x of paquet) {
     try {
       const bytes = await readSource(x.fileKey!);
       const hint = `Séance du ${x.sessionOn}, ${x.instrument}${x.tenor && x.tenor !== "—" ? ` ${x.tenor}` : ""}, ${x.country}.`;
-      const { proposal, remarks } = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint);
+      const { proposal, remarks, model } = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint, modele);
+      lus.add(model);
       // Le pays, l'instrument et la date viennent de l'index de la BEAC, qui les
       // donne sans ambiguïté : la lecture du scan ne les redéfinit pas. Seuls
       // les chiffres, la durée et le code d'émission entrent ici.
@@ -156,5 +168,5 @@ export async function GET(req: NextRequest) {
       html: `${complement ? "Complément automatique (coupon, rendement)" : "Lecture automatique"} : ${faites.length} séance(s) remplie(s)${pays ? ` pour ${pays}` : ""}, en attente de relecture par le desk`,
     });
 
-  return NextResponse.json({ ok: true, mode: restaure ? "restaure" : complement ? "complement" : "lecture", retente, pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
+  return NextResponse.json({ ok: true, mode: restaure ? "restaure" : complement ? "complement" : "lecture", retente, modeles: [...lus], pays: pays ?? "toutes", lues: faites.length, restantes: file.length - paquet.length, faites, ratees });
 }

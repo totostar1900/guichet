@@ -159,11 +159,21 @@ export const toFrancs = (v: number | null, unit: "millions" | "milliers" | "fran
 
 const nn = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
 
-export async function readAuctionResult(pdfBase64: string, hint?: string): Promise<AuctionReading> {
+/**
+ * Le modèle d'un appel : celui qu'on demande, sinon celui de la maison.
+ *
+ * Seuls les modèles Claude sont acceptés, et la forme est vérifiée ici plutôt
+ * que crue sur parole : la route est déjà derrière un secret, mais une valeur
+ * qui vient d'une adresse ne se transmet pas telle quelle à un appel facturé.
+ */
+export const modeleDemande = (v: string | null | undefined): string | undefined => (v && /^claude-[a-z0-9.-]{3,60}$/.test(v) ? v : undefined);
+
+export async function readAuctionResult(pdfBase64: string, hint?: string, modele?: string): Promise<AuctionReading> {
   const t0 = Date.now();
   const client = new Anthropic();
+  const choisi = modele ?? MODEL;
   const requete = (reflechi: boolean) => ({
-    model: MODEL,
+    model: choisi,
     max_tokens: 8000,
     ...(reflechi ? { thinking: { type: "adaptive" as const } } : {}),
     system: SYSTEM,
@@ -273,7 +283,7 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
       maturityOn: nn(out.maturityOn),
     },
     remarks,
-    model: MODEL,
+    model: choisi,
     seconds: Math.round((Date.now() - t0) / 100) / 10,
   };
 }
