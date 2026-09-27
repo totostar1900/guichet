@@ -68,6 +68,8 @@ Règles :
 - Les libellés « minimum » et « maximum » sont parfois inversés par le Trésor lui-même : un « prix maximum proposé » de 90,00 % au-dessus d'un « prix minimum proposé » de 97,00 % arrive. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
 - Le Trésor camerounais imprime parfois « Prix moyen pondéré (en FCFA) » suivi d'un montant par titre (9 899,45) plutôt qu'un pourcentage, et ajoute « Taux de rendement moyen pondéré » en pourcentage. Dans ce cas : priceAvg reste null, le montant va dans priceAvgFcfa, et le rendement dans yieldAvg.
+- Le taux d'intérêt facial de l'obligation (« taux nominal », « taux d'intérêt », « coupon ») est la clef du rendement : relève-le dès qu'il est imprimé, en pourcentage annuel. Un prix sans coupon ne dit rien.
+- L'échéance (« date d'échéance », « remboursement le ») se recopie en ISO quand elle est imprimée.
 - Le code d'émission ressemble à CG1300001480, CM1200002465, GQ2J00000081.
 - Si le document couvre plusieurs lignes, lis celle que la consigne désigne, et signale les autres dans remarks.
 - Signale dans remarks tout ce qui gênerait une relecture : chiffre illisible, tampon, colonne absente, unité inhabituelle, incohérence entre deux chiffres du document.`;
@@ -98,6 +100,9 @@ const Lecture = z.object({
   priceAvg: Pct.describe("Prix moyen pondéré en % du nominal (OTA). Si le document l'exprime en FCFA par titre (« Prix moyen pondéré (en FCFA) : 9 899,45 »), laisse ce champ null et mets la valeur dans priceAvgFcfa."),
   priceAvgFcfa: Pct.describe("Prix moyen pondéré en FCFA par titre, quand le document l'exprime ainsi plutôt qu'en pourcentage ; null sinon"),
   yieldAvg: Pct.describe("« Taux de rendement moyen pondéré » en %, quand le document l'imprime à côté des prix (Trésor camerounais) ; null sinon"),
+  yieldLimit: Pct.describe("Taux de rendement au prix limite, en %, quand le document l'imprime ; null sinon"),
+  couponRate: Pct.describe("Taux d'intérêt facial de l'obligation en % annuel (« taux nominal », « coupon ») ; null s'il n'est pas imprimé"),
+  maturityOn: z.string().nullable().describe("Date d'échéance de la ligne, ISO YYYY-MM-DD, quand le document l'imprime ; null sinon"),
   coverage: Pct.describe("Taux de couverture en %, tel qu'imprimé ; null s'il n'est pas imprimé"),
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture : chiffre illisible, colonne absente, unité inhabituelle, plusieurs lignes dans le document"),
 });
@@ -218,8 +223,12 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
   const [rateMin, rateMax] = ordonner(nn(out.rateMin), nn(out.rateMax), "taux", remarks);
   // Le Trésor camerounais imprime le prix moyen en francs et le rendement à côté.
   // Ni l'un ni l'autre n'a sa colonne ; les perdre serait pire que les dire.
-  if (out.priceAvgFcfa != null) remarks.unshift(`La pièce donne un prix moyen pondéré de ${out.priceAvgFcfa} FCFA par titre, qu'elle n'exprime pas en pourcentage : à convertir selon le nominal de la ligne.`);
-  if (out.yieldAvg != null) remarks.unshift(`La pièce imprime aussi un taux de rendement moyen pondéré de ${out.yieldAvg} %.`);
+  if (out.priceAvgFcfa != null) remarks.unshift(`La pièce donne un prix moyen pondéré de ${out.priceAvgFcfa} FCFA par titre : il est converti en pourcentage sur une valeur nominale de 10 000 F, vérifiez que c'est bien celle de la ligne.`);
+  // Un prix d'obligation sans coupon ne donne aucun rendement : le dire ici
+  // évite au desk de chercher plus tard pourquoi le point manque à la courbe.
+  if (out.instrument === "OTA" && out.couponRate == null && (out.priceAvg != null || out.priceLimit != null || out.priceAvgFcfa != null)) {
+    remarks.unshift("Le taux d'intérêt facial n'a pas été trouvé sur la pièce : sans lui, ce prix ne donnera pas de rendement et la séance ne se posera pas sur la courbe.");
+  }
 
   return {
     proposal: {
@@ -243,6 +252,11 @@ export async function readAuctionResult(pdfBase64: string, hint?: string): Promi
       priceLimit: pourcentage(nn(out.priceLimit), "prix limite"),
       priceAvg: pourcentage(nn(out.priceAvg), "prix moyen pondéré"),
       coverage: nn(out.coverage),
+      priceAvgFcfa: nn(out.priceAvgFcfa),
+      yieldAvg: nn(out.yieldAvg),
+      yieldLimit: nn(out.yieldLimit),
+      couponRate: nn(out.couponRate),
+      maturityOn: nn(out.maturityOn),
     },
     remarks,
     model: MODEL,

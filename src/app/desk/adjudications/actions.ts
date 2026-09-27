@@ -211,6 +211,11 @@ export async function proposeResultAction(_prev: ResultOutcome | null, form: For
       priceLimit: vide(r.priceLimit, proposal.priceLimit),
       priceAvg: vide(r.priceAvg, proposal.priceAvg),
       coverage: vide(r.coverage, proposal.coverage),
+      priceAvgFcfa: vide(r.priceAvgFcfa, proposal.priceAvgFcfa),
+      yieldAvg: vide(r.yieldAvg, proposal.yieldAvg),
+      yieldLimit: vide(r.yieldLimit, proposal.yieldLimit),
+      couponRate: vide(r.couponRate, proposal.couponRate),
+      maturityOn: vide(r.maturityOn, proposal.maturityOn),
     });
     revalidatePath("/desk/adjudications");
     revalidatePath("/desk/adjudications/tableau");

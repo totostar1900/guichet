@@ -468,14 +468,16 @@ type AuctionResultRow = {
   id: string; code_emission: string | null; country: AuctionResult["country"]; instrument: AuctionResult["instrument"]; tenor: string; session_on: string; abondement: boolean;
   announced: string | null; bid: string | null; served: string | null; network_size: number | null; bidders: number | null;
   rate_min: string | null; rate_max: string | null; rate_limit: string | null; rate_avg: string | null;
-  price_min: string | null; price_max: string | null; price_limit: string | null; price_avg: string | null;
+  price_min: string | null; price_max: string | null; price_limit: string | null; price_avg: string | null; price_avg_fcfa: string | null;
+  yield_avg: string | null; yield_limit: string | null; coupon_rate: string | null; maturity_on: string | null;
   coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null; offer_id: string | null; created_at: string; updated_at: string;
 };
 const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   id: r.id, codeEmission: u(r.code_emission), country: r.country, instrument: r.instrument, tenor: r.tenor, sessionOn: r.session_on, abondement: r.abondement,
   announced: nn(r.announced), bid: nn(r.bid), served: nn(r.served), networkSize: u(r.network_size), bidders: u(r.bidders),
   rateMin: nn(r.rate_min), rateMax: nn(r.rate_max), rateLimit: nn(r.rate_limit), rateAvg: nn(r.rate_avg),
-  priceMin: nn(r.price_min), priceMax: nn(r.price_max), priceLimit: nn(r.price_limit), priceAvg: nn(r.price_avg),
+  priceMin: nn(r.price_min), priceMax: nn(r.price_max), priceLimit: nn(r.price_limit), priceAvg: nn(r.price_avg), priceAvgFcfa: nn(r.price_avg_fcfa),
+  yieldAvg: nn(r.yield_avg), yieldLimit: nn(r.yield_limit), couponRate: nn(r.coupon_rate), maturityOn: u(r.maturity_on),
   coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, fileKey: u(r.file_key), confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
@@ -519,6 +521,11 @@ const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown
   put("price_max", "priceMax", num);
   put("price_limit", "priceLimit", num);
   put("price_avg", "priceAvg", num);
+  put("price_avg_fcfa", "priceAvgFcfa", num);
+  put("yield_avg", "yieldAvg", num);
+  put("yield_limit", "yieldLimit", num);
+  put("coupon_rate", "couponRate", num);
+  put("maturity_on", "maturityOn");
   put("coverage", "coverage", num);
   put("source_url", "sourceUrl");
   put("source_title", "sourceTitle");

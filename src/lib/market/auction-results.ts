@@ -63,6 +63,24 @@ export interface AuctionResult {
   priceMax?: number;
   priceLimit?: number;
   priceAvg?: number;
+  /**
+   * Le prix moyen quand le Trésor l'écrit en francs par titre, et non en
+   * pourcentage : le camerounais imprime « 9 899,45 ». La conversion se fait
+   * dans le code, sur une valeur nominale de 10 000 F, déclarée comme
+   * hypothèse partout où elle sert.
+   */
+  priceAvgFcfa?: number;
+  /**
+   * Le rendement, quand le Trésor l'imprime lui-même. C'est la meilleure des
+   * sources : elle ne suppose rien. Tout le reste se calcule, et se dit
+   * calculé (src/lib/market/yield.ts).
+   */
+  yieldAvg?: number;
+  yieldLimit?: number;
+  /** Le taux d'intérêt facial : sans lui, un prix d'obligation ne donne aucun rendement. */
+  couponRate?: number;
+  /** L'échéance imprimée : la durée annoncée compare, l'échéance calcule. */
+  maturityOn?: string;
   /** Tel que le Trésor le publie, jamais recalculé. */
   coverage?: number;
   sourceUrl: string;
