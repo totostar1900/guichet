@@ -172,29 +172,37 @@ export function actuarialFromDiscount(discountPct: number, days: number): number
 /** Une semaine, en années : en deçà, un coupon est réputé détaché. */
 const COUPON_DETACHE = 7 / 365;
 
+/**
+ * Les dates des flux restants, en années, de la plus lointaine à la plus proche.
+ *
+ * Les coupons restants se comptent à rebours depuis l'échéance. Un abondement
+ * ne tombe pas sur un anniversaire : il reste onze mois à un titre de trois
+ * ans, et son dernier coupon vient avec le capital. Compter les flux en partant
+ * de la fin les place aux bonnes dates, et le cas entier s'y retrouve inchangé.
+ *
+ * La tolérance d'une semaine n'est pas un détail. Cinq années civiles valent
+ * 5,0027 années exact/365, un 29 février s'étant glissé dedans, et compter par
+ * excès ajoutait un sixième coupon tombant le lendemain de la séance : un
+ * coupon déjà détaché, que l'acheteur ne touche pas, et qui faisait passer le
+ * rendement de 7,49 % à 9,15 %. Un flux situé dans les sept jours avant
+ * l'horizon est donc réputé détaché.
+ *
+ * Exportée parce que le dépouillement en zéro-coupon a besoin exactement des
+ * mêmes dates : deux copies de cette règle dériveraient en silence.
+ */
+export function fluxRestants(years: number): number[] {
+  const n = Math.max(1, Math.ceil(years - COUPON_DETACHE));
+  return Array.from({ length: n }, (_, k) => years - k);
+}
+
 export function ytm(pricePct: number, couponPct: number, years: number): number | undefined {
   if (!Number.isFinite(pricePct) || pricePct <= 0) return undefined;
   if (!Number.isFinite(couponPct) || couponPct < 0) return undefined;
   if (!Number.isFinite(years) || years <= 0 || years > 40) return undefined;
-  /**
-   * Les coupons restants se comptent à rebours depuis l'échéance.
-   *
-   * Un abondement ne tombe pas sur un anniversaire : il reste onze mois à un
-   * titre de trois ans, et son dernier coupon vient avec le capital. Compter
-   * les flux en partant de la fin les place aux bonnes dates, et le cas entier
-   * s'y retrouve inchangé.
-   *
-   * La tolérance d'une semaine n'est pas un détail. Cinq années civiles valent
-   * 5,0027 années exact/365, un 29 février s'étant glissé dedans, et compter
-   * par excès ajoutait un sixième coupon tombant le lendemain de la séance :
-   * un coupon déjà détaché, que l'acheteur ne touche pas, et qui faisait passer
-   * le rendement de 7,49 % à 9,15 %. Un flux situé dans les sept jours avant
-   * l'horizon est donc réputé détaché.
-   */
-  const n = Math.max(1, Math.ceil(years - COUPON_DETACHE));
+  const flux = fluxRestants(years);
   const ecart = (y: number) => {
     let v = 0;
-    for (let k = 0; k < n; k++) v += couponPct / (1 + y) ** (years - k);
+    for (const t of flux) v += couponPct / (1 + y) ** t;
     return v + 100 / (1 + y) ** years - pricePct;
   };
   let lo = -0.9;

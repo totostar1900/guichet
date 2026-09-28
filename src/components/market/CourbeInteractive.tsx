@@ -54,6 +54,10 @@ export interface PointCourbe {
   code?: string;
   /** L'âge de la séance au jour d'observation : une courbe ne vaut pas mieux que son point le plus vieux. */
   age: number;
+  /** La ligne était-elle remboursée au jour d'observation ? */
+  echue?: boolean;
+  /** Le coupon annuel en % du nominal, zéro pour un bon : il sert au dépouillement. */
+  coupon?: number;
 }
 export interface CourbePays {
   pays: Country;
@@ -66,7 +70,7 @@ type Choix = "tous" | "cemac" | Country;
 interface Serie {
   nom: string;
   couleur: string;
-  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string; id?: string; echue?: boolean }[];
+  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string; id?: string; echue?: boolean; coupon?: number }[];
   gros?: boolean;
 }
 

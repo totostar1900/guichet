@@ -178,6 +178,9 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
            * posé à trois mois et n'existe plus depuis vingt et un.
            */
           echue: p.from.maturityOn ? p.from.maturityOn < leJour : undefined,
+          /* Le coupon, pour le dépouillement en zéro-coupon. Zéro pour un bon,
+             qui est zéro-coupon par construction. */
+          coupon: p.from.couponRate ?? 0,
         };
       }),
     }));

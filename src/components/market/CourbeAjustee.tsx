@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { CEMAC_COLOR, COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { derniereParDuree, poids, type Minces } from "@/lib/market/lecture-b";
+import { depouiller } from "@/lib/market/zero-coupon";
 import { abouti, ajuster, tauxCourt, type Ajustement, type Refus } from "@/lib/market/nelson-siegel";
 import { useT } from "@/i18n/client";
 import type { CourbePays, Fenetre } from "./CourbeInteractive";
@@ -48,7 +49,7 @@ type Choix = "tous" | "cemac" | string;
 interface Serie {
   nom: string;
   couleur: string;
-  obs: { annees: number; pct: number; mot: string; age?: number; mince?: boolean; poids: number }[];
+  obs: { annees: number; pct: number; ytmPct: number; ecartPb: number; mot: string; age?: number; mince?: boolean; poids: number }[];
   fit?: Ajustement;
   /** Pourquoi il n'y a pas d'ajustement : un écran qui ne le dit pas a l'air en panne. */
   refus?: Refus;
@@ -66,23 +67,43 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
   const [demiVie, setDemiVie] = useState<number>(180);
   const [minces, setMinces] = useState<Minces>("sous-ponderer");
   const [lambdaZone, setLambdaZone] = useState(true);
+  const [zeroCoupon, setZeroCoupon] = useState(false);
   const [voirPoints, setVoirPoints] = useState(true);
   const [voirBande, setVoirBande] = useState(true);
   const boite = useRef<HTMLDivElement | null>(null);
   const [vise, setVise] = useState<number | null>(null);
 
-  /** La lecture B, puis les poids : la même préparation pour tout le monde. */
+  /**
+   * La lecture B, le dépouillement s'il est demandé, puis les poids.
+   *
+   * Le dépouillement se fait ici, par Trésor, et jamais sur un mélange : un
+   * taux zéro-coupon est propre à une signature, et actualiser les coupons
+   * d'une obligation camerounaise sur une courbe qui mêle le Congo à quinze
+   * pour cent n'aurait aucun sens.
+   */
   const preparer = useMemo(
-    () => (p: CourbePays) =>
-      derniereParDuree(p.points).map((q) => ({
-        annees: q.annees,
-        pct: q.pct,
-        mot: q.mot,
-        age: q.age,
-        mince: q.mince,
-        poids: poids(q, { demiVieJours: demiVie || undefined, minces }),
-      })),
-    [demiVie, minces],
+    () => (p: CourbePays) => {
+      const gardes = derniereParDuree(p.points);
+      const spots = zeroCoupon
+        ? new Map(
+            depouiller(gardes.map((q) => ({ annees: q.annees, ytmPct: q.pct, couponPct: q.coupon ?? 0 }))).map((s) => [s.annees, s]),
+          )
+        : undefined;
+      return gardes.map((q) => {
+        const s = spots?.get(q.annees);
+        return {
+          annees: q.annees,
+          pct: s ? s.spotPct : q.pct,
+          ytmPct: q.pct,
+          ecartPb: s?.ecartPb ?? 0,
+          mot: q.mot,
+          age: q.age,
+          mince: q.mince,
+          poids: poids(q, { demiVieJours: demiVie || undefined, minces }),
+        };
+      });
+    },
+    [demiVie, minces, zeroCoupon],
   );
 
   /**
@@ -243,6 +264,20 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
         </div>
 
         <div className={styles.grp}>
+          <span className={styles.etiq} id="aj-mesure">
+            {t("Ce qu'on ajuste")}
+          </span>
+          <div className={styles.seg} role="group" aria-labelledby="aj-mesure">
+            <button type="button" aria-pressed={!zeroCoupon} onClick={() => setZeroCoupon(false)} title={t("Le rendement à l'échéance dépend du coupon du titre : deux titres de même échéance et de coupons différents n'ont pas le même.")}>
+              {t("le rendement actuariel")}
+            </button>
+            <button type="button" aria-pressed={zeroCoupon} onClick={() => setZeroCoupon(true)} title={t("Le taux auquel un franc reçu à cette durée s'actualise. Il ne dépend que de la durée, et c'est lui qu'on appelle une courbe des taux.")}>
+              {t("le taux zéro-coupon")}
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.grp}>
           <span className={styles.etiq} id="aj-voir">
             {t("Afficher")}
           </span>
@@ -372,6 +407,20 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
           </div>
         )}
       </div>
+
+      {zeroCoupon && (
+        <p className={styles.note}>
+          {t(
+            "Les taux tracés sont dépouillés : chaque obligation à coupon est ramenée au taux zéro-coupon de son échéance, ses coupons intermédiaires étant actualisés sur la courbe du même Trésor. Un bon passe tel quel, il est zéro-coupon par construction.",
+          )}{" "}
+          {(() => {
+            const bouges = series.flatMap((s) => s.obs).filter((o) => o.ecartPb !== 0);
+            if (!bouges.length) return t("Aucun titre affiché n'a plus d'un flux à venir : le dépouillement ne déplace rien ici.");
+            const pire = bouges.reduce((m, o) => (Math.abs(o.ecartPb) > Math.abs(m.ecartPb) ? o : m));
+            return t("{n} titres déplacés, au plus de {p} points de base, à {d}.", { n: bouges.length, p: pire.ecartPb, d: pire.mot });
+          })()}
+        </p>
+      )}
 
       {/* Les paramètres, en clair : une courbe ajustée qui ne montre pas ses
           coefficients demande une confiance qu'elle n'a pas méritée. */}
