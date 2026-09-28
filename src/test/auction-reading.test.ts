@@ -98,18 +98,22 @@ describe("une lecture qui échoue", () => {
 /**
  * Les deux bornes, remises dans leur ordre.
  *
- * Vérifié sur les pièces du Trésor congolais du 21 juillet 2026 : le 4 ans
- * imprime « Prix maximum proposé 90,00 % » puis « Prix minimum proposé
- * 93,00 % », et le 3 ans « maximum 90,00 % » puis « minimum 97,00 % ». Les
- * libellés sont inversés par rapport aux nombres, systématiquement, et la
- * fourchette réelle des soumissions va bien du plus petit au plus grand.
+ * Vérifié pièce en main : le Congo du 21 juillet 2026 imprime « Prix maximum
+ * proposé 90,00 % » puis « Prix minimum proposé 93,00 % », et le Tchad du
+ * 19 août 2026 « maximum 90,00 % » puis « minimum 91,00 % ».
+ *
+ * Ce ne sont pas des libellés inversés. Un émetteur ne pense pas en prix mais
+ * en coût : à 90 il reçoit 90 et remboursera 100, à 91 il reçoit 91. La
+ * proposition à 90 est celle qui lui coûte le plus, et c'est elle qu'il nomme
+ * « maximum ». Deux façons de nommer coexistent dans la zone : le Cameroun et
+ * le Gabon nomment par le prix, le Congo et le Tchad par le coût.
  *
  * La lecture reste littérale : aucun nombre n'est corrigé. Ce qui change est la
  * case où il tombe, et ces cases sont les nôtres. « priceMin » doit contenir le
  * plus petit prix, sans quoi notre propre colonne ment et toute fourchette
  * tracée dessus part à l'envers.
  */
-describe("un « minimum » au-dessus de son « maximum »", () => {
+describe("des bornes nommées du côté de l'émetteur", () => {
   const remarques: string[] = [];
   beforeEach(() => {
     remarques.length = 0;
@@ -125,7 +129,7 @@ describe("un « minimum » au-dessus de son « maximum »", () => {
     expect(remarques).toHaveLength(0);
   });
 
-  it("laisse passer l'égalité, qui n'est pas une inversion", () => {
+  it("laisse passer l'égalité, qui ne dit rien d'une convention", () => {
     expect(ordonner(90, 90, "prix", remarques)).toEqual([90, 90]);
     expect(remarques).toHaveLength(0);
   });
@@ -136,11 +140,22 @@ describe("un « minimum » au-dessus de son « maximum »", () => {
     expect(remarques).toHaveLength(0);
   });
 
-  it("dit au desk ce qu'elle a fait, et pourquoi la pièce ne lui ressemble pas", () => {
+  it("rend les deux nombres de la pièce, et dit depuis quelle place elle nomme", () => {
     ordonner(97, 90, "prix", remarques);
     expect(remarques).toHaveLength(1);
     expect(remarques[0]).toMatch(/97/);
     expect(remarques[0]).toMatch(/90/);
-    expect(remarques[0]).toMatch(/inversés/);
+    // Ce qui compte est la raison, non l'accusation : le Trésor nomme en coût.
+    expect(remarques[0]).toMatch(/émetteur|coûteux/);
+    expect(remarques[0]).not.toMatch(/inversés/);
+  });
+
+  /**
+   * Le Tchad du 19 août 2026, ligne TD2A00001246 : « maximum 90,00 % » puis
+   * « minimum 91,00 % ». Un point de prix d'écart, dans l'autre sens.
+   */
+  it("range le Tchad comme le Congo, sur un seul point d'écart", () => {
+    expect(ordonner(91, 90, "prix", remarques)).toEqual([90, 91]);
+    expect(remarques[0]).toMatch(/90/);
   });
 });

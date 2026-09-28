@@ -65,7 +65,7 @@ Règles :
 - Les montants : donne le nombre tel qu'il est imprimé dans le tableau, et indique séparément l'unité annoncée par le document (« en millions de FCFA » en tête de tableau, le plus souvent). Ne convertis pas.
 - BTA : des taux, en pourcentage, précomptés. OTA : des prix, en pourcentage du nominal. Un document ne porte que l'une des deux familles ; laisse l'autre entièrement à null.
 - Le taux (ou prix) « limite » est celui auquel le Trésor a arrêté l'adjudication ; le « moyen pondéré » est la moyenne des soumissions servies. Ne confonds pas les deux, et ne recopie pas l'un dans l'autre s'il en manque un.
-- Les libellés « minimum » et « maximum » sont parfois inversés par le Trésor lui-même : un « prix maximum proposé » de 90,00 % au-dessus d'un « prix minimum proposé » de 97,00 % arrive. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
+- Certains Trésors nomment leurs bornes du côté de l'émetteur, en coût plutôt qu'en prix : « prix maximum proposé 90,00 % » au-dessus de « prix minimum proposé 93,00 % » est normal chez eux, la proposition la moins chère à l'achat étant la plus coûteuse pour le Trésor. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
 - Le Trésor camerounais imprime parfois « Prix moyen pondéré (en FCFA) » suivi d'un montant par titre (9 899,45) plutôt qu'un pourcentage, et ajoute « Taux de rendement moyen pondéré » en pourcentage. Dans ce cas : priceAvg reste null, le montant va dans priceAvgFcfa, et le rendement dans yieldAvg.
 - Le taux d'intérêt facial de l'obligation (« taux nominal », « taux d'intérêt », « coupon ») est la clef du rendement : relève-le dès qu'il est imprimé, en pourcentage annuel. Un prix sans coupon ne dit rien.
@@ -108,26 +108,35 @@ const Lecture = z.object({
 });
 
 /**
- * Deux bornes remises dans leur ordre, et le dire.
+ * Deux bornes rangées par leur valeur, et pourquoi elles arrivent dans l'autre sens.
  *
- * Le Trésor congolais imprime « Prix maximum proposé 90,00 % » et « Prix
- * minimum proposé 97,00 % » : ses deux libellés sont inversés par rapport aux
- * nombres, systématiquement, sur toute sa série d'obligations. Vérifié sur les
- * pièces du 21 juillet 2026 : le 4 ans porte max 90 / min 93, le 3 ans max 90 /
- * min 97, et dans les deux cas la fourchette réelle des soumissions va du plus
- * petit au plus grand des deux.
+ * Le Trésor congolais imprime « Prix maximum proposé 90,00 % » au-dessus de
+ * « Prix minimum proposé 93,00 % », et le Trésor tchadien fait de même. Nous
+ * appelions cela des libellés inversés, ce qui accusait le Trésor d'une faute
+ * de saisie systématique et envoyait le desk chercher une erreur inexistante.
+ *
+ * L'explication est plus simple : un émetteur ne pense pas en prix, il pense en
+ * coût. À 90 il reçoit 90 et remboursera 100 ; à 93 il reçoit 93. La
+ * proposition à 90 est celle qui lui coûte le plus, et c'est elle qu'il nomme
+ * « maximum ». Le libellé est juste, pris du côté de celui qui paie.
+ *
+ * Deux façons de nommer coexistent donc dans la zone, vérifiées pièce en main :
+ * le Cameroun et le Gabon nomment par le prix, minimum sous maximum ; le Congo
+ * et le Tchad nomment par le coût, maximum en face du prix le plus bas.
  *
  * La lecture reste littérale : les deux nombres sont ceux de la pièce, aucun
  * n'est corrigé. Ce qui change est la case où ils tombent, et ces cases sont
  * les nôtres : « priceMin » doit contenir le plus petit prix, sans quoi notre
  * propre colonne ment et toute fourchette tracée dessus part à l'envers.
  *
- * La remarque garde la trace de l'écart, parce que le desk relit la pièce à
- * côté de l'écran et doit comprendre pourquoi les deux ne se ressemblent pas.
+ * La remarque garde la trace, parce que le desk relit la pièce à côté de
+ * l'écran et doit comprendre pourquoi les deux ne se ressemblent pas.
  */
 export const ordonner = (min: number | undefined, max: number | undefined, quoi: string, remarks: string[]): [number | undefined, number | undefined] => {
   if (min == null || max == null || min <= max) return [min, max];
-  remarks.unshift(`La pièce annonce un ${quoi} « minimum » de ${min} supérieur à son « maximum » de ${max} : ses deux libellés sont inversés, et les deux bornes ont été remises dans leur ordre.`);
+  remarks.unshift(
+    `La pièce nomme ses bornes du côté de l'émetteur : son ${quoi} « maximum » de ${max} est le plus coûteux pour lui, donc le plus bas, et son « minimum » de ${min} le plus haut. Les deux nombres sont ceux de la pièce ; ils ont été rangés par leur valeur.`,
+  );
   return [max, min];
 };
 export const auctionReadingAvailable = (): boolean => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
