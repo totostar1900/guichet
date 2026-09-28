@@ -148,6 +148,22 @@ export async function GET(req: NextRequest) {
         const hint = `Avis pour la séance du ${x.sessionOn}, ${x.instrument}${x.tenor ? ` ${x.tenor}` : ""}, ${x.country}.`;
         const { proposal, remarks, model } = await readEmissionNotice(Buffer.from(bytes).toString("base64"), hint, modele);
         modelesAvis.add(model);
+
+        /**
+         * La durée vient de la pièce, et non du nom de son fichier.
+         *
+         * L'index de la BEAC tire la durée du titre du document, saisi à la
+         * main, et se trompe : deux avis sur trois cent soixante-sept annoncent
+         * une durée que leur document dément trois fois, dans sa désignation,
+         * dans son code d'émission et dans son échéance. Zéro cas inverse. Ce
+         * qui est imprimé sur la pièce passe donc devant, et l'écart se range en
+         * remarque : une erreur de l'index ne se corrige pas comme une erreur de
+         * lecture, et le desk doit pouvoir la voir.
+         */
+        const duree = proposal.tenor ?? x.tenor;
+        if (proposal.tenor && x.tenor && proposal.tenor !== x.tenor) {
+          remarks.unshift(`Durée « ${proposal.tenor} » sur la pièce, là où l'index de la BEAC annonce « ${x.tenor} » : c'est le document qui fait foi, l'index tirant la sienne du titre du fichier.`);
+        }
         // Le pays, l'instrument et la date viennent de l'index de la BEAC, qui
         // les donne sans ambiguïté : la lecture du scan ne les redéfinit pas.
         /**
@@ -168,8 +184,7 @@ export async function GET(req: NextRequest) {
           nominalUnit: proposal.nominalUnit ?? null,
           issueVolume: proposal.issueVolume ?? null,
           settleOn: proposal.settleOn ?? null,
-          // La durée vient de l'index de la BEAC, qui la donne sans ambiguïté.
-          tenor: x.tenor ?? proposal.tenor ?? null,
+          tenor: duree ?? null,
           remarks,
         });
         faitsAvis.push(`${x.sessionOn} ${x.country} ${x.tenor ?? ""}`.trim());
