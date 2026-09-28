@@ -77,14 +77,15 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
   const boite = useRef<HTMLDivElement | null>(null);
 
   const tous = useMemo(() => pays.flatMap((p) => p.points), [pays]);
-  const echelle = useMemo(() => {
+  /**
+   * L'abscisse est calculée sur tous les points, y compris ceux qu'on ne
+   * regarde pas : les horizons gardent leur place d'un Trésor à l'autre, et
+   * c'est ce qui permet de comparer en basculant entre deux sélections.
+   */
+  const abscisse = useMemo(() => {
     if (!tous.length) return null;
     const xs = tous.map((p) => Math.log(p.annees));
-    const ys = tous.map((p) => p.pct);
-    const x0 = Math.min(...xs);
-    const x1 = Math.max(...xs);
-    const marge = (Math.max(...ys) - Math.min(...ys)) * 0.14 || 0.6;
-    return { x0, x1, lo: Math.min(...ys) - marge, hi: Math.max(...ys) + marge };
+    return { x0: Math.min(...xs), x1: Math.max(...xs) };
   }, [tous]);
 
   /**
@@ -122,7 +123,25 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
     return brutes.filter((s) => s.points.length > 0);
   }, [choix, pays, cemac, t]);
 
-  if (!echelle) return null;
+  /**
+   * L'ordonnée suit ce qu'on regarde.
+   *
+   * Calculée sur toute la zone, elle écrasait le Cameroun contre l'axe dès que
+   * le Congo montait à dix-sept pour cent : cent seize points de base d'écart
+   * entre trois mois et sept ans devenaient une ligne droite. Une courbe qu'on
+   * a choisi de lire seule se lit à sa propre échelle.
+   */
+  const ordonnee = useMemo(() => {
+    const ys = series.flatMap((s) => s.points.map((p) => p.pct));
+    if (!ys.length) return null;
+    // Un demi-point de part et d'autre au minimum : une série presque plate ne
+    // doit pas se retrouver étirée sur toute la hauteur par une marge nulle.
+    const marge = Math.max((Math.max(...ys) - Math.min(...ys)) * 0.14, 0.25);
+    return { lo: Math.min(...ys) - marge, hi: Math.max(...ys) + marge };
+  }, [series]);
+
+  if (!abscisse || !ordonnee) return null;
+  const echelle = { ...abscisse, ...ordonnee };
   const X = (a: number) => P.l + ((Math.log(a) - echelle.x0) / (echelle.x1 - echelle.x0 || 1)) * (W - P.l - P.r);
   const Y = (v: number) => H - P.b - ((v - echelle.lo) / (echelle.hi - echelle.lo || 1)) * (H - P.t - P.b);
 

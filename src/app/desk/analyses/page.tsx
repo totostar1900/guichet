@@ -5,6 +5,8 @@ import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
 import { CourbeInteractive, type CourbePays } from "@/components/market/CourbeInteractive";
+import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
+import { PressionDemande } from "@/components/market/PressionDemande";
 import { PointsCourbe } from "@/components/market/PointsCourbe";
 import { COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { Barres, SerieTemps } from "@/components/market/Traces";
@@ -89,7 +91,7 @@ export default async function AnalysesPage() {
   // dure du jeu et elle ne se lit que sur la durée.
   const couvertures = relues
     .filter((r) => r.announced && r.bid != null)
-    .map((r) => ({ on: r.sessionOn, v: r.bid! / r.announced!, couleur: COUNTRY_COLOR[r.country] }))
+    .map((r) => ({ on: r.sessionOn, v: r.bid! / r.announced!, pays: r.country }))
     .sort((a, b) => a.on.localeCompare(b.on));
 
   const crible = cribler(seances);
@@ -125,16 +127,24 @@ export default async function AnalysesPage() {
   }));
   /** Un Trésor qui ne porte qu'un point : au tableau, pas sur le tracé. */
   const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
-  /** La référence des écarts : le Trésor le mieux garni, faute d'un souverain de place. */
-  const reference = tracables[0]?.country;
-  const ecarts = reference
-    ? tracables.slice(1).flatMap((c) =>
-        spreads(courbe, c.country, reference).map((e) => {
-          const h = horizon(e.years);
-          return { contre: c.country, tenor: e.tenor, horizon: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`, bp: e.bp, apart: e.apart };
-        }),
-      )
-    : [];
+/**
+   * Toutes les paires, calculées une fois.
+   *
+   * Un seul Trésor de référence répondait à une question que personne ne pose :
+   * le desk compare deux signatures qu'il a en tête. Les paires sont donc toutes
+   * préparées ici, et l'écran choisit laquelle regarder. Le sens inverse ne se
+   * calcule pas, l'écart n'étant qu'un signe à changer.
+   */
+  const comparables: Record<string, Ecart[]> = {};
+  for (const [i, a] of tracables.entries())
+    for (const b of tracables.slice(i + 1)) {
+      const lignes = spreads(courbe, a.country, b.country).map((e) => {
+        const h = horizon(e.years);
+        return { horizon: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`, annees: e.years, bp: e.bp, apart: e.apart };
+      });
+      if (lignes.length) comparables[`${a.country}|${b.country}`] = lignes;
+    }
+  const nbEcarts = Object.values(comparables).reduce((n, l) => n + l.length, 0);
 
   /**
    * Le rail, et ce qu'il compte.
@@ -292,39 +302,10 @@ export default async function AnalysesPage() {
           }
         >
           <div className="panel-h">
-            <h2>{t("L'écart entre Trésors, contre {p}", { p: reference ?? "—" })}</h2>
-            <span className="muted">{t("{n} comparaisons", { n: ecarts.length })}</span>
+            <h2>{t("L'écart entre Trésors")}</h2>
+            <span className="muted">{t("{n} comparaisons", { n: nbEcarts })}</span>
           </div>
-          {ecarts.length ? (
-            <TallTable total={ecarts.length}>
-              <thead>
-                <tr>
-                  <th>{t("Trésor")}</th>
-                  <th>{t("Horizon")}</th>
-                  <th className="r">{t("Écart")}</th>
-                  <th className="r">{t("Jours entre séances")}</th>
-                  <th>{t("Lecture")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ecarts.map((e) => (
-                  <tr key={`${e.contre}|${e.tenor}`}>
-                    <td>
-                      <span className={styles.dot} style={{ background: COUNTRY_COLOR[e.contre] }} aria-hidden="true" /> {e.contre}
-                    </td>
-                    <td>{e.horizon}</td>
-                    <td className="r">
-                      <b>{`${e.bp > 0 ? "+" : ""}${e.bp} pb`}</b>
-                    </td>
-                    <td className="r">{t("{n} jours", { n: e.apart })}</td>
-                    <td>{e.apart > SPREAD_COMPARABLE_DAYS ? <span className="st annulee">{t("écart daté, pas mesuré")}</span> : <span className="st reglee">{t("comparable")}</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </TallTable>
-          ) : (
-            <div className="empty">{t("Pas encore deux Trésors portant un même horizon.")}</div>
-          )}
+          <EcartTresors pays={pourLaCourbe} comparables={comparables} seuilJours={SPREAD_COMPARABLE_DAYS} />
         </Bloc>
 
         {/* 4. Ce qui manque, compté et nommé plutôt que comblé. */}
@@ -391,10 +372,34 @@ export default async function AnalysesPage() {
           <Bloc
             id="reprix"
             note={
-            <Commentaire registre="lecture" titre="Ce qu'on cherche ici">
-              <p>{t("Le retournement, et sa date. Une courbe se lit à un instant ; c'est la série qui dit si le niveau d'aujourd'hui est un accident de séance ou une tendance installée.")}</p>
-              <p>{t("Un décrochage sur une seule durée signale un besoin ponctuel ; un décalage de toutes les durées ensemble signale un changement de perception de la signature.")}</p>
-            </Commentaire>
+            <>
+              <Commentaire registre="methode" titre="Comment cette figure est construite">
+                <p>
+                  {t(
+                    "Chaque point est une séance d'adjudication relue, et son ordonnée est le rendement calculé pour cette séance, par les mêmes trois chemins que la courbe : imprimé par le Trésor, calculé du prix et du coupon, ou converti depuis un taux précompté.",
+                  )}
+                </p>
+                <p>
+                  {t(
+                    "Les durées suivies sont les trois les mieux garnies de la série : celles qui reviennent assez souvent pour qu'une ligne veuille dire quelque chose. Une durée sous quatre séances n'est pas tracée.",
+                  )}
+                </p>
+                <p>
+                  {t(
+                    "L'abscisse est la date réelle et non le rang. Ce n'est pas un cours de bourse : il n'y a rien entre deux points, et les intervalles sont irréguliers parce que le calendrier du Trésor l'est. Un point creux signale une séance mince, servie à un ou deux soumissionnaires.",
+                  )}
+                </p>
+              </Commentaire>
+              <Commentaire registre="lecture" titre="Ce qu'on en fait">
+                <p>{t("Le retournement, et sa date. Une courbe se lit à un instant ; c'est la série qui dit si le niveau d'aujourd'hui est un accident de séance ou une tendance installée.")}</p>
+                <p>{t("Un décrochage sur une seule durée signale un besoin ponctuel ; un décalage de toutes les durées ensemble signale un changement de perception de la signature.")}</p>
+                <p>
+                  {t(
+                    "C'est la figure qui sert à répondre « est-ce cher ? » avant une séance : on indique un prix contre la dernière séance comparable, et cette série dit si cette dernière séance était elle-même une exception.",
+                  )}
+                </p>
+              </Commentaire>
+            </>
           }
           >
             <div className="panel-h">
@@ -446,7 +451,7 @@ export default async function AnalysesPage() {
           </div>
           {couvertures.length > 2 && (
             <div className={styles.pb}>
-              <Barres points={couvertures} seuil={1} seuilMot={t("100 % · la demande couvre l'offre")} decimales={1} ariaLabel={t("Couverture de chaque séance relue")} />
+              <PressionDemande seances={couvertures} />
               <p className={styles.note}>
                 {t(
                   "Une barre par séance relue, dans l'ordre chronologique : l'axe compte les séances, il ne mesure pas le temps. Le trait doré est la couverture de un, seuil du service intégral.",

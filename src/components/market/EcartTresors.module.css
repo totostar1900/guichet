@@ -1,0 +1,133 @@
+/* L'écart entre deux Trésors : deux choix, un graphique, et le rappel
+   permanent que deux séances éloignées mesurent le calendrier. */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-6);
+  align-items: flex-end;
+  padding: var(--s-6) var(--s-7);
+  margin-bottom: var(--s-7);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.grp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.grp label {
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.grp select {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.contre {
+  padding-bottom: var(--s-5);
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+.inverser {
+  margin-bottom: var(--s-1);
+}
+
+.fig {
+  position: relative;
+}
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.grille {
+  stroke: var(--line);
+}
+.axe {
+  fill: none;
+  stroke: var(--line-2);
+}
+/* Le zéro sépare une prime d'une décote : il ne se confond pas avec une graduation. */
+.zero {
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+}
+.zeroMot {
+  font-size: 10px;
+  font-weight: 800;
+  fill: var(--ink-3);
+}
+.tick {
+  font-size: 11px;
+  fill: var(--ink-3);
+}
+.valeur {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--ink-2);
+}
+
+.bulle {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  min-width: 160px;
+  padding: var(--s-5) var(--s-6);
+  border-radius: 8px;
+  background: #0d1526;
+  color: #fff;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  box-shadow: 0 6px 22px rgba(4, 10, 22, 0.32);
+}
+.bulleTitre {
+  margin-bottom: var(--s-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #c8d4e6;
+}
+.bulleLigne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-7);
+  font-variant-numeric: tabular-nums;
+}
+.bulleNote {
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid #24324a;
+  color: #9fb0c9;
+  font-size: 0.68rem;
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-7);
+  margin-top: var(--s-5);
+  font-size: 0.74rem;
+  color: var(--ink-2);
+}
+.legende i {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: var(--s-3);
+  vertical-align: -1px;
+}
+.hachure {
+  background: repeating-linear-gradient(45deg, var(--line-2), var(--line-2) 2px, var(--surface) 2px, var(--surface) 5px);
+  border: 1px solid var(--line-2);
+}

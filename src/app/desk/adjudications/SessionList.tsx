@@ -125,11 +125,14 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
                   // par-dessus l'un ni en travers de l'autre.
                   if ((e.target as HTMLElement).closest("a")) return;
                   if (window.getSelection()?.toString()) return;
-                  router.push(`/desk/adjudications?s=${r.id}`);
+                  // « scroll: false » : Next ramène la page en haut à chaque
+                  // navigation, et on relit vingt communiqués de suite sans vouloir
+                  // remonter vingt fois.
+                  router.push(`/desk/adjudications?s=${r.id}`, { scroll: false });
                 }}
               >
                 <td className={styles.jour}>
-                  <Link href={`/desk/adjudications?s=${r.id}`}>{fmtDate(r.on)}</Link>
+                  <Link href={`/desk/adjudications?s=${r.id}`} scroll={false}>{fmtDate(r.on)}</Link>
                   <small>{r.code ?? "—"}</small>
                 </td>
                 <td>
