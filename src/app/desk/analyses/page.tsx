@@ -14,7 +14,8 @@ import { COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { Barres, SerieTemps } from "@/components/market/Traces";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
+import { intlLocale } from "@/i18n/core";
 import { fmt, fmtDate } from "@/lib/format";
 import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
 import { cribler } from "@/lib/market/anomalies";
@@ -48,6 +49,7 @@ const AN = 365;
 export default async function AnalysesPage({ searchParams }: { searchParams: Promise<{ le?: string }> }) {
   await requireDesk("/desk/analyses");
   const t = await getT();
+  const lang = await getLang();
   const sp = await searchParams;
   const r = repo();
   // Deux ans de cotations : assez pour qu'une ligne dormante se voie, et le
@@ -71,6 +73,20 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * transmet pas telle quelle à un calcul, et une date future n'aurait pas de
    * sens pour une courbe.
    */
+  /**
+   * Le mot d'un horizon : « 1,7 ans » ou « 1.7 years », et le singulier au
+   * singulier.
+   *
+   * Le nombre était formaté en fr-FR pour tout le monde, ce qui donnait la
+   * virgule décimale française dans une phrase anglaise. L'unité était toujours
+   * au pluriel, ce qui donnait « 1 years », et « 1 ans » côté français.
+   */
+  const motHorizon = (h: { n: number; unit: "mois" | "ans" }) => {
+    const n = h.n.toLocaleString(intlLocale(lang));
+    if (h.unit === "mois") return h.n === 1 ? t("1 mois") : t("{n} mois", { n });
+    return h.n === 1 ? t("1 an") : t("{n} ans", { n });
+  };
+
   const aujourdHui = new Date().toISOString().slice(0, 10);
   const demandee = sp.le && /^\d{4}-\d{2}-\d{2}$/.test(sp.le) && sp.le < aujourdHui ? sp.le : undefined;
   const leJour = demandee ?? aujourdHui;
@@ -143,7 +159,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
         return {
           id: p.from.id,
           annees: p.years,
-          mot: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`,
+          mot: motHorizon(h),
           pct: p.yield.pct,
           origine: p.yield.origin,
           hypotheses: p.yield.assumptions.map((a) => t(a.key, a.params)),
@@ -198,7 +214,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     for (const b of tracables.slice(i + 1)) {
       const lignes = spreads(courbe, a.country, b.country).map((e) => {
         const h = horizon(e.years);
-        return { horizon: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`, annees: e.years, bp: e.bp, apart: e.apart };
+        return { horizon: motHorizon(h), annees: e.years, bp: e.bp, apart: e.apart };
       });
       if (lignes.length) comparables[`${a.country}|${b.country}`] = lignes;
     }

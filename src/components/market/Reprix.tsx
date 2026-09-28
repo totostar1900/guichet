@@ -108,7 +108,7 @@ export function Reprix({ series }: { series: SerieDuree[] }) {
       {/* Ce qu'un trait coupé veut dire : le dire vaut mieux que de laisser croire à une panne. */}
       <p className={styles.note}>
         {t(
-          "Un trait s'interrompt là où le Trésor n'a pas publié de séance pendant plus d'un an : le Cameroun est ainsi absent de l'index de la BEAC entre 2022 et 2024. Relier ces points dessinerait une progression que personne n'a observée.",
+          "Le trait passe en pointillé là où le Trésor n'a pas adjugé cette durée pendant plus d'un an. Le Cameroun à vingt-six semaines n'a rien adjugé du 29 septembre 2021 au 19 mai 2025 : mille trois cent vingt-huit jours, et neuf séances camerounaises dans l'intervalle, toutes relues, aucune sur cette durée. Un trait plein d'un bout à l'autre dessinerait une montée régulière de 2,47 à 7,27 pour cent que personne n'a observée ; pas de trait du tout détacherait des points qui appartiennent à la même série. Le pointillé dit les deux : ces points se suivent, et ce qui est entre eux n'a pas été mesuré.",
         )}
       </p>
     </div>

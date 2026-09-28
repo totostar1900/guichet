@@ -19,8 +19,18 @@ import { describe, expect, it } from "vitest";
 
 const SURVEILLES = ["src/app/desk/analyses", "src/components/market", "src/components/desk"];
 
-/** Une chaîne qui ressemble à du français : un accent, ou un mot-outil courant. */
-const duFrancais = (s: string) => /[àâäéèêëîïôöùûüçœ]/i.test(s) || /\b(le|la|les|des|une|qui|que|pour|dans|sur|avec|sans|plus|entre|chaque|tous|toutes)\b/i.test(s);
+/**
+ * Une chaîne qui ressemble à du français : un accent, ou un mot-outil courant.
+ *
+ * « il y a 3 mois » n'a ni l'un ni l'autre, et le contrôle l'a laissée passer :
+ * l'écran rendait « il y a 3 months », le traducteur découpant la phrase pour
+ * traduire ce qu'il reconnaît. Les marqueurs ajoutés ne sont pas des mots
+ * anglais, ce qui est la seule condition pour qu'ils n'appellent pas à tort.
+ */
+const duFrancais = (s: string) =>
+  /[àâäéèêëîïôöùûüçœ]/i.test(s) ||
+  /\b(le|la|les|des|une|qui|que|pour|dans|sur|avec|sans|plus|entre|chaque|tous|toutes)\b/i.test(s) ||
+  /\b(il y a|aucun|aucune|ans|mois|jours|selon|depuis|vers|leur|leurs|cette|cet|ces|son|ses|nous|vous)\b/i.test(s);
 
 const fichiers = (cible: string): string[] => {
   const out: string[] = [];
