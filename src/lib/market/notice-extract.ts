@@ -44,7 +44,7 @@ Règles :
 - « Remboursement » se recopie mot pour mot, dans la langue du document : « In fine », ou la phrase entière quand le Trésor décrit un amortissement par tranches, avec son éventuel différé. Ne résume pas, ne traduis pas, ne remplace pas par un mot-clef.
 - Le code d'émission ressemble à CG2K00000187, CM1200002465, GQ2J00000081. Il est souvent suivi de la désignation, du taux et de l'échéance sur la même ligne : « CG2K00000187 OTA 4 ans 6,20% - 01 FEVR 2028 ».
 - Les dates se recopient en ISO AAAA-MM-JJ.
-- Les montants : donne le nombre tel qu'il est imprimé, et indique séparément l'unité annoncée par le document. « Volume d'émission (en millions de FCFA) : 15 000 » donne issueVolume 15000 et amountsUnit « millions ». Ne convertis pas.
+- Les montants : donne le nombre tel qu'il est imprimé, et indique séparément l'unité annoncée par le document. « Volume d'émission (en millions de FCFA) : 15 000 » donne issueVolume 15000 et amountsUnit « millions ». Ne convertis pas. L'unité est presque toujours annoncée entre parenthèses dans le libellé lui-même : lis-la là, et ne laisse amountsUnit à null que si le libellé n'en porte vraiment aucune.
 - La valeur nominale unitaire est presque toujours imprimée en francs (10 000) et non en millions : c'est un champ à part, nominalUnit, et son unité est le franc.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
 - Sur certains scans, la colonne des libellés et celle des valeurs ne sont pas alignées : une valeur peut se trouver une ligne plus haut ou plus bas que son libellé. Apparie par le sens et non par la position. Trois repères sûrs : une valeur nominale unitaire vaut 1 000 000 F pour un bon et 10 000 F pour une obligation ; un volume d'émission est beaucoup plus grand qu'un nominal unitaire ; et « Forme des titres » vaut toujours quelque chose comme « Titres dématérialisés ». Si l'appariement ligne à ligne contredit ces repères, c'est que les colonnes ont glissé : signale-le dans remarks.
@@ -162,11 +162,41 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
    * l'avis camerounais du 4 août 2021 donnait soixante-six titres, ce qui n'est
    * pas une adjudication mais une paire de champs échangés.
    */
-  const volume = toFrancs(out.issueVolume, out.amountsUnit);
+  let volume = toFrancs(out.issueVolume, out.amountsUnit);
+
+  /**
+   * Une adjudication de la zone lève entre un milliard et cent milliards.
+   *
+   * Hors de ces bornes, ce n'est pas un volume : c'est une unité non lue, le
+   * tableau étant libellé « en millions de FCFA » sans que ce soit toujours
+   * relevé, et « 15 000 » devient alors quinze mille francs au lieu de quinze
+   * milliards. Le nombre part en remarque avec l'unité lue plutôt que dans la
+   * colonne, parce qu'un blanc se voit et qu'un volume faux d'un facteur mille
+   * se confond avec un volume juste.
+   */
+  if (volume != null && (volume < 1e8 || volume > 1e13)) {
+    remarks.unshift(
+      `Volume d'émission lu ${out.issueVolume?.toLocaleString("fr-FR")} ${out.amountsUnit ?? "sans unité annoncée"}, soit ${volume.toLocaleString("fr-FR")} F : hors de toute échelle pour une adjudication de la zone, qui lève entre un et cent milliards. Le champ reste vide en attendant votre lecture.`,
+    );
+    volume = undefined;
+  }
+
+  /**
+   * Et le rapport des deux, qui attrape ce que l'échelle laisse passer.
+   *
+   * Un volume plausible sur un nominal mal lu donne un nombre de titres
+   * absurde : c'est la signature d'un scan dont les colonnes ont glissé, comme
+   * l'avis camerounais du 4 août 2021 où le nominal et le volume avaient été
+   * échangés.
+   */
   if (volume != null && nominalUnit != null && nominalUnit > 0 && volume / nominalUnit < 1_000) {
     remarks.unshift(
       `Volume d'émission de ${volume.toLocaleString("fr-FR")} F pour un nominal unitaire de ${nominalUnit.toLocaleString("fr-FR")} F, soit ${Math.round(volume / nominalUnit).toLocaleString("fr-FR")} titres : les deux champs sont probablement échangés, les colonnes du scan ayant glissé.`,
     );
+  }
+
+  if (out.issueVolume != null && out.amountsUnit == null) {
+    remarks.unshift("Unité du volume non lue sur la pièce : ces tableaux se libellent presque toujours « en millions de FCFA », et le nombre est repris tel quel.");
   }
 
   if (out.redemption == null) remarks.unshift("Aucune mention de remboursement lue sur l'avis : c'est pourtant ce que ce document est seul à porter.");
