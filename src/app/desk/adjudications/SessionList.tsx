@@ -55,7 +55,14 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
   // La séance ouverte se montre d'elle-même : arriver depuis la table des
   // séances ou depuis un lien ne doit pas obliger à la chercher dans la liste.
   useEffect(() => {
-    courante.current?.scrollIntoView({ block: "center" });
+    // On défile la liste, et elle seule : « scrollIntoView » remonte tous les
+    // parents défilants, la page comprise, et choisir une séance faisait sauter
+    // l'écran alors que la liste a son propre défilement.
+    const ligne = courante.current;
+    const boite = ligne?.closest<HTMLElement>("[data-defile]");
+    if (!ligne || !boite) return;
+    const haut = ligne.offsetTop - boite.clientHeight / 2 + ligne.clientHeight / 2;
+    boite.scrollTo({ top: Math.max(0, haut) });
   }, [current]);
 
   const vues = useMemo(() => {
@@ -96,7 +103,7 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
         <input className={styles.cherche} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Trésor, durée, code…")} aria-label={t("Chercher une séance")} autoComplete="off" />
       </div>
 
-      <div className={styles.corps}>
+      <div className={styles.corps} data-defile>
         <table className={styles.table}>
           <thead>
             <tr>

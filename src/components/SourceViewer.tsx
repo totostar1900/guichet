@@ -42,6 +42,10 @@ import styles from "./SourceViewer.module.css";
  * page n'a pas de texte, et l'outil flèche se grise plutôt que de promettre une
  * sélection impossible.
  */
+/** Le grossissement d'usine : la largeur à laquelle une page tient sans qu'on la déplace. */
+const ZOOM_USINE = 1.1;
+const MEMOIRE_ZOOM = "source.zoom";
+
 export function SourceViewer({ src, title, fill }: { src: string; title: string; fill?: boolean }) {
   const t = useT();
   const wrap = useRef<HTMLDivElement | null>(null);
@@ -52,7 +56,28 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
   const lib = useRef<PdfLib | null>(null);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(0);
-  const [zoom, setZoom] = useState(1.4);
+  /**
+   * Le grossissement appartient à la personne, pas à la pièce.
+   *
+   * Chaque séance sélectionnée remonte un visualiseur neuf : sans mémoire, on
+   * refait le même réglage à chaque communiqué, vingt fois de suite. La lecture
+   * est gardée, un navigateur pouvant refuser le stockage sans prévenir.
+   */
+  const [zoom, setZoom] = useState(() => {
+    try {
+      const v = Number(localStorage.getItem(MEMOIRE_ZOOM));
+      return Number.isFinite(v) && v >= 0.5 && v <= 4 ? v : ZOOM_USINE;
+    } catch {
+      return ZOOM_USINE;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(MEMOIRE_ZOOM, String(zoom));
+    } catch {
+      // Un navigateur qui refuse le stockage ne doit pas casser la lecture.
+    }
+  }, [zoom]);
   // Un quart de tour à la fois : les communiqués arrivent parfois couchés, et
   // certains scanners les rendent à l'envers.
   const [rot, setRot] = useState(0);
@@ -190,7 +215,7 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
         <button type="button" className="btn sm ghost" onClick={() => setZoom((z) => Math.min(4, z * 1.15))} aria-label={t("Agrandir")}>
           +
         </button>
-        <button type="button" className="btn sm ghost" onClick={() => setZoom(1.4)}>
+        <button type="button" className="btn sm ghost" onClick={() => setZoom(ZOOM_USINE)}>
           {t("Ajuster")}
         </button>
         <span className={styles.tools} role="group" aria-label={t("Outil")}>
