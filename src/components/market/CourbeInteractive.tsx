@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import type { Country } from "@/lib/domain/types";
 import { CEMAC_COLOR, COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { consolide } from "@/lib/market/zone";
+import { LectureCourbe } from "./LectureCourbe";
 import { useT } from "@/i18n/client";
 import styles from "./CourbeInteractive.module.css";
 
@@ -65,7 +66,7 @@ type Choix = "tous" | "cemac" | Country;
 interface Serie {
   nom: string;
   couleur: string;
-  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string; id?: string }[];
+  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string; id?: string; echue?: boolean }[];
   gros?: boolean;
 }
 
@@ -452,6 +453,15 @@ export function CourbeInteractive({
           </span>
         )}
       </div>
+
+      {/* Ce que les trois réglages viennent de faire au sens du chiffre. */}
+      <LectureCourbe
+        points={series.flatMap((se) => se.points).map((p) => ({ annees: p.annees, mot: p.mot, age: p.age ?? 0, on: p.on, echue: p.echue, mince: p.mince }))}
+        fenetreMot={fenetres[profondeur]?.mot ?? ""}
+        observeLe={observeLe}
+        vue={choix === "tous" ? t("Tous les Trésors") : choix === "cemac" ? t("CEMAC consolidée") : choix}
+        zone={choix === "cemac"}
+      />
     </div>
   );
 }

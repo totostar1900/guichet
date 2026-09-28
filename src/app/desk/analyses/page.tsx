@@ -169,6 +169,14 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
           on: fmtDate(p.from.sessionOn),
           code: p.from.codeEmission,
           age: p.ageDays,
+          /**
+           * La ligne était-elle remboursée au jour d'observation ?
+           *
+           * Elle ne se déduit pas du point : l'abscisse est la vie restante au
+           * jour de la séance. Un bon à trois mois adjugé il y a deux ans est
+           * posé à trois mois et n'existe plus depuis vingt et un.
+           */
+          echue: p.from.maturityOn ? p.from.maturityOn < leJour : undefined,
         };
       }),
     }));

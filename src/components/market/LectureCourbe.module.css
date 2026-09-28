@@ -1,0 +1,46 @@
+/* La lecture de la figure : un texte, pas un encadré d'alerte. Il se lit après
+   le graphique et avant la table, à l'endroit où l'on se demande ce qu'on
+   vient de voir. */
+.lecture {
+  margin-top: var(--s-6);
+  padding: var(--s-6) var(--s-7);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--navy);
+  border-radius: 8px;
+}
+.lecture h3 {
+  margin: 0 0 var(--s-5);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.lecture ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.lecture li {
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.lecture b {
+  color: var(--ink);
+  font-weight: 650;
+}
+/* La portée de la figure, dite d'un mot : c'est le seul jugement du bloc. */
+.portee {
+  display: inline-block;
+  padding: var(--s-1) var(--s-4);
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
