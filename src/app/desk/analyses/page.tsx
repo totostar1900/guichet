@@ -405,8 +405,7 @@ export default async function AnalysesPage() {
               <SerieTemps
                 traces={suivies.map((x, i) => ({
                   couleur: [COUNTRY_COLOR[x.pays], "#a16207", "#6d28d9"][i] ?? COUNTRY_COLOR[x.pays],
-                  points: x.pts.map((p) => ({ on: p.on, v: p.pct })),
-                  creux: (p) => Boolean(x.pts.find((q) => q.on === p.on)?.thin),
+                  points: x.pts.map((p) => ({ on: p.on, v: p.pct, creux: p.thin })),
                   aire: i === 0,
                   // Le nom au bout de la ligne : l'œil est déjà là, il n'a pas à
                   // repartir vers une légende pour savoir de qui il s'agit.

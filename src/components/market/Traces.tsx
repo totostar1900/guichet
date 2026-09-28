@@ -69,9 +69,13 @@ function Bulle({ x, y, titre, lignes, note }: { x: number; y: number; titre: str
 
 export interface Trace {
   couleur: string;
-  points: { on: string; v: number }[];
-  /** Un point creux : la séance est mince, le chiffre est vrai mais pas représentatif. */
-  creux?: (p: { on: string; v: number }) => boolean;
+  /**
+   * Un point creux dit une séance mince : le chiffre est vrai, il n'est pas
+   * représentatif. C'est une propriété du point et non une règle à appliquer,
+   * et cela compte : un prédicat est une fonction, et une fonction ne traverse
+   * pas la frontière serveur/client.
+   */
+  points: { on: string; v: number; creux?: boolean }[];
   aire?: boolean;
   /** Une série longue se lit mieux sans ses marques : deux cent soixante points font un collier. */
   marques?: boolean;
@@ -167,7 +171,7 @@ export function SerieTemps({
             <g key={i}>
               {t.aire && <polygon points={`${P.l},${H - P.b} ${d} ${(W - P.r).toFixed(1)},${H - P.b}`} fill={t.couleur} opacity={0.1} />}
               <polyline points={d} fill="none" stroke={t.couleur} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-              {t.marques !== false && pts.map((p) => <circle key={p.on + p.v} cx={X(p.on)} cy={Y(p.v)} r={3.2} fill={t.creux?.(p) ? "var(--surface)" : t.couleur} stroke={t.couleur} strokeWidth={2} />)}
+              {t.marques !== false && pts.map((p) => <circle key={p.on + p.v} cx={X(p.on)} cy={Y(p.v)} r={3.2} fill={p.creux ? "var(--surface)" : t.couleur} stroke={t.couleur} strokeWidth={2} />)}
               {/* Le nom au bout de la ligne : l'œil est déjà là, il n'a pas à repartir vers une légende. */}
               {t.nom && (
                 <text x={X(pts[pts.length - 1].on) - 4} y={Y(pts[pts.length - 1].v) - 8} textAnchor="end" className={styles.nom} fill={t.couleur}>
