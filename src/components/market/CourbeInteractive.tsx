@@ -108,8 +108,18 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
   }, [pays]);
 
   const series = useMemo((): Serie[] => {
-    if (choix === "cemac") return [{ nom: t("CEMAC"), couleur: CEMAC_COLOR, points: cemac, gros: true }];
-    return pays.filter((p) => choix === "tous" || choix === p.pays).map((p) => ({ nom: p.pays, couleur: COUNTRY_COLOR[p.pays], points: p.points }));
+    const brutes: Serie[] =
+      choix === "cemac"
+        ? [{ nom: t("CEMAC"), couleur: CEMAC_COLOR, points: cemac, gros: true }]
+        : pays.filter((p) => choix === "tous" || choix === p.pays).map((p) => ({ nom: p.pays, couleur: COUNTRY_COLOR[p.pays], points: p.points }));
+    /**
+     * Une série vide ne se trace pas, et surtout ne se nomme pas.
+     *
+     * La vue consolidée n'existe qu'aux horizons portés par deux Trésors au
+     * moins : le jour où aucun ne se recouvre, elle est vide, et chercher son
+     * dernier point pour y poser une étiquette faisait tomber la page entière.
+     */
+    return brutes.filter((s) => s.points.length > 0);
   }, [choix, pays, cemac, t]);
 
   if (!echelle) return null;
@@ -179,6 +189,12 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
           </div>
         </div>
       </div>
+
+      {!series.length && (
+        <div className="empty">
+          {choix === "cemac" ? t("Aucun horizon n'est porté par deux Trésors à la fois : il n'y a pas de niveau de zone à consolider.") : t("Aucun point à tracer pour ce choix.")}
+        </div>
+      )}
 
       <div className={styles.fig} ref={boite} onPointerMove={bouger} onPointerLeave={() => setSurvol(null)}>
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className={styles.svg}>

@@ -232,6 +232,8 @@ export const EN_ANALYSES: Record<string, string> = {
   "100 % · la demande couvre l'offre": "100 % · demand covers supply",
   "Niveau de l'indice": "Index level",
   "Lignes traitées, séance par séance": "Lines traded, session by session",
+  "Aucun horizon n'est porté par deux Trésors à la fois : il n'y a pas de niveau de zone à consolider.": "No horizon is carried by two Treasuries at once: there is no zone level to consolidate.",
+  "Aucun point à tracer pour ce choix.": "No point to plot for this choice.",
   "séance datée du 1er janvier": "session dated 1 January",
   "l'instrument de la séance, ou la colonne lue": "the session's instrument, or the column read",
   "la colonne d'où vient le chiffre retenu, et celles des deux bornes": "the column the retained figure came from, and those of the two bounds",
