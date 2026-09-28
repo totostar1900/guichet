@@ -1,0 +1,113 @@
+/* La table des points : on l'interroge, on ne la lit pas de haut en bas. */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-7);
+  align-items: flex-end;
+  padding: var(--s-6) var(--s-7);
+  margin-bottom: var(--s-7);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.grp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.grp label {
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.grp select,
+.grp input {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+}
+/* Vingt lignes se parcourent ; au-delà, la table défile dans sa propre boîte
+   plutôt que de pousser le reste de la page hors de vue. */
+.corps {
+  max-height: 420px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+/* « border-collapse: separate » est la condition d'un en-tête collé : sans
+   elle, un thead sticky perd ses filets. La maison l'a déjà appris ailleurs. */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.78rem;
+}
+.table th,
+.table td {
+  padding: var(--s-4) var(--s-5);
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.table th i {
+  font-style: normal;
+  opacity: 0.45;
+  margin-left: var(--s-2);
+}
+.table td:global(.r),
+.table th:global(.r) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.table tbody tr:hover td {
+  background: var(--gold-soft);
+}
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+.chip {
+  margin-left: var(--s-3);
+  padding: 0 var(--s-3);
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+.sup {
+  color: var(--gold-ink);
+  font-style: normal;
+}
+.vide {
+  margin: 0;
+  padding: var(--s-8);
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}

@@ -45,3 +45,7 @@ next-env.d.ts
 
 # fichiers sources déposés en mode démo
 .uploads/
+
+# Maquettes de travail, servies par le serveur de développement pour que
+# leurs scripts tournent ; elles ne font pas partie du produit.
+public/maquette/

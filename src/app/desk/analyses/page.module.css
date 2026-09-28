@@ -207,3 +207,54 @@
 .vu {
   display: inline;
 }
+
+/* ── La page réunie : le rail, le fil de lecture, le commentaire ──
+
+   La courbe et les analyses étaient deux écrans, et personne ne lisait le
+   premier sans le second : un rendement congolais à seize pour cent ne se
+   comprend qu'à côté d'une couverture tombée sous cent, et le chemin entre les
+   deux pages était exactement l'endroit où l'on renonçait à vérifier. */
+.avecRail {
+  display: grid;
+  grid-template-columns: 212px minmax(0, 1fr);
+  gap: var(--s-9);
+  align-items: start;
+}
+/* Chaque section est sa propre rangée : son contenu, et sa note à côté d'elle.
+   Une note rangée en pied de page se lit après coup, c'est-à-dire jamais, le
+   lecteur ayant déjà tiré sa conclusion du graphique. */
+.sec {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 332px;
+  gap: var(--s-8);
+  align-items: start;
+  margin-bottom: var(--s-7);
+}
+/* Collée dans sa propre rangée : la note suit tant qu'on lit sa section, puis
+   s'en va avec elle. */
+.sec > aside {
+  position: sticky;
+  top: var(--s-7);
+}
+.sec > section {
+  scroll-margin-top: var(--s-7);
+}
+/* Sous 1400 px le commentaire passe sous son contenu plutôt que de l'écraser ;
+   sous 1040 px le rail disparaît, la table des matières ne valant rien sur un
+   écran où l'on défile de toute façon. */
+@media (max-width: 1400px) {
+  .sec {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sec > aside {
+    position: static;
+  }
+}
+@media (max-width: 1040px) {
+  .avecRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .avecRail > nav {
+    display: none;
+  }
+}

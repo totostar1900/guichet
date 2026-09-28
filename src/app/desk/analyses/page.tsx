@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { TallTable } from "@/components/desk/TallTable";
-import { COUNTRY_COLOR } from "@/components/market/CurveChart";
+import { Bloc } from "@/components/desk/Bloc";
+import { Commentaire } from "@/components/desk/Commentaire";
+import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
+import { CourbeInteractive, type CourbePays } from "@/components/market/CourbeInteractive";
+import { PointsCourbe } from "@/components/market/PointsCourbe";
+import { COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { Barres, SerieTemps } from "@/components/market/Traces";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -11,7 +16,7 @@ import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
 import { cribler } from "@/lib/market/anomalies";
 import { anomalieVueAction } from "./actions";
 import { bridge } from "@/lib/market/bridge";
-import { abonde, buildCurve, horizon, MIN_POINTS, serie } from "@/lib/market/curve";
+import { abonde, buildCurve, horizon, MIN_POINTS, serie, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
 import { freshness, liquidity } from "@/lib/market/liquidity";
 import styles from "./page.module.css";
 
@@ -90,6 +95,69 @@ export default async function AnalysesPage() {
   const crible = cribler(seances);
   const trouvailles = crible.restent;
 
+  /**
+   * La courbe mise en forme pour le client.
+   *
+   * On ne traverse pas le réseau avec des séances entières : un point de courbe
+   * en porte une complète, et vingt points feraient passer vingt communiqués
+   * pour tracer vingt cercles. Ce qui part est ce qui s'affiche.
+   */
+  const pourLaCourbe: CourbePays[] = tracables.map((c) => ({
+    pays: c.country,
+    plusVieux: c.oldestDays,
+    derniere: c.latest,
+    points: c.points.map((p) => {
+      const h = horizon(p.years);
+      return {
+        id: p.from.id,
+        annees: p.years,
+        mot: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`,
+        pct: p.yield.pct,
+        origine: p.yield.origin,
+        hypotheses: p.yield.assumptions.map((a) => t(a.key, a.params)),
+        etiquette: p.tenor,
+        abondement: abonde(p),
+        mince: p.thin,
+        on: fmtDate(p.from.sessionOn),
+        code: p.from.codeEmission,
+      };
+    }),
+  }));
+  /** Un Trésor qui ne porte qu'un point : au tableau, pas sur le tracé. */
+  const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
+  /** La référence des écarts : le Trésor le mieux garni, faute d'un souverain de place. */
+  const reference = tracables[0]?.country;
+  const ecarts = reference
+    ? tracables.slice(1).flatMap((c) =>
+        spreads(courbe, c.country, reference).map((e) => {
+          const h = horizon(e.years);
+          return { contre: c.country, tenor: e.tenor, horizon: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`, bp: e.bp, apart: e.apart };
+        }),
+      )
+    : [];
+
+  /**
+   * Le rail, et ce qu'il compte.
+   *
+   * Une pastille ne se pose que sur ce qui attend quelqu'un : les
+   * contradictions non rangées et les séances relues qui ne donnent pas de
+   * point. Le reste est de la lecture, pas une file d'attente.
+   */
+  const railSections: SectionRail[] = [
+    { id: "courbe", titre: "La courbe des taux", groupe: "Le prix" },
+    { id: "points", titre: "Chaque point, et d'où il vient", groupe: "Le prix" },
+    { id: "ecarts", titre: "L'écart entre Trésors", groupe: "Le prix" },
+    { id: "trous", titre: "Ce qui manque à la courbe", groupe: "Le prix", alerte: courbe.gaps.length },
+    { id: "reprix", titre: "Le reprix du marché", groupe: "Les volumes" },
+    { id: "pression", titre: "La pression de la demande", groupe: "Les volumes" },
+    { id: "programme", titre: "L'exécution du programme", groupe: "Les volumes" },
+    { id: "liquidite", titre: "La liquidité du secondaire", groupe: "Le secondaire" },
+    { id: "fraicheur", titre: "La fraîcheur de l'indice", groupe: "Le secondaire" },
+    { id: "pont", titre: "Le pont primaire / secondaire", groupe: "Le secondaire" },
+    { id: "anomalies", titre: "Ce que la table a attrapé", groupe: "Avant de publier", alerte: trouvailles.length },
+    { id: "publier", titre: "Avant de publier", groupe: "Avant de publier" },
+  ];
+
   const dernierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate > m.sessionDate ? b : m), undefined);
   const premierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate < m.sessionDate ? b : m), undefined);
 
@@ -149,53 +217,186 @@ export default async function AnalysesPage() {
           </div>
         </div>
 
-        {/* 1. La courbe : elle a sa page, et ce panneau n'en est que la porte. */}
-        <section className="panel">
+        {/* Douze sections : le rail en donne la carte, et porte le compte de ce
+            qui reste ouvert pour qu'on l'apprenne du haut de la page. */}
+        <div className={styles.avecRail}>
+        <RailAnalyse sections={railSections} />
+        <div>
+        {/* 1. La courbe elle-même. Elle avait sa page ; cette page était la porte
+            qu'on ne franchissait pas, et les chiffres qui l'expliquent vivaient
+            derrière. */}
+        <Bloc
+          id="courbe"
+          note={
+            <>
+              <Commentaire registre="lecture" titre="Ce que dit la courbe aujourd'hui">
+                <p>
+                  {t(
+                    "Une courbe plate demande peu pour la durée : le marché ne fait presque pas payer le temps à cette signature. Une courbe inversée demande davantage pour le court que pour le long, et cela se lit d'une seule façon : un besoin de trésorerie immédiat.",
+                  )}
+                </p>
+                <p>{t("Le texte de cette note se rédige avant publication : ce qui est écrit ici part au client avec le graphique.")}</p>
+              </Commentaire>
+              <Commentaire registre="methode" titre="Ce que la mesure ne dit pas">
+                <p>
+                  {t(
+                    "Le rendement s'actualise sur la vie restante et non sur la durée annoncée : un abondement de six ans à dix-huit mois de son terme appartient au court. Les avis d'annonce confirment un remboursement in fine sur les six Trésors.",
+                  )}
+                </p>
+                <p>{t("La vue CEMAC est une moyenne des Trésors présents à chaque horizon : un niveau de zone, jamais un taux auquel quiconque emprunte.")}</p>
+              </Commentaire>
+            </>
+          }
+        >
           <div className="panel-h">
-            <h2>{t("La courbe souveraine")}</h2>
+            <h2>{t("La courbe des taux de la zone")}</h2>
             <span className="muted">{sortie(tracables.length >= 2, "Une courbe se publie quand deux Trésors au moins portent chacun deux durées relues.")}</span>
           </div>
           <div className={styles.pb}>
             {tracables.length ? (
-              <>
-                <div className={styles.tiles}>
-                  {tracables.map((c) => (
-                    <div key={c.country} className={styles.tile}>
-                      <span className={styles.dot} style={{ background: COUNTRY_COLOR[c.country] }} aria-hidden="true" />
-                      <b>{c.country}</b>
-                      <em>{t("{n} points · le plus ancien à {j} jours", { n: c.points.length, j: c.oldestDays })}</em>
-                      <div className={styles.pts}>
-                        {c.points.map((p) => {
-                          // L'écart ne se voit que sur un abondement : ailleurs
-                          // l'étiquette et l'horizon disent la même chose, et
-                          // répéter l'un sous l'autre ne ferait que du bruit.
-                          const h = horizon(p.years);
-                          const ecarte = abonde(p);
-                          return (
-                            <span key={p.from.id}>
-                              {p.tenor.replace(" semaines", " sem.")}
-                              {ecarte && <em className="muted">{` (${h.n.toLocaleString("fr-FR")} ${t(h.unit)})`}</em>} <b>{pct(p.yield.pct, 2)}</b>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className={styles.note}>
-                  <Link href="/desk/courbe">{t("Ouvrir la courbe")} →</Link>
-                  {courbe.gaps.length > 0 && <span className="muted">{` · ${t("{n} séances relues ne donnent pas de point, faute de coupon ou de durée", { n: String(courbe.gaps.length) })}`}</span>}
-                </p>
-              </>
+              <CourbeInteractive pays={pourLaCourbe} ariaLabel={t("Courbe des rendements souverains de la CEMAC par durée")} />
             ) : (
               <div className="empty">{t("Pas encore deux durées relues pour un même Trésor sur l'année écoulée.")}</div>
             )}
+            {isoles.length > 0 && (
+              <p className={styles.note}>
+                {t("Un seul point pour {p} : c'est une observation, pas une courbe, et elle n'est pas tracée. Le tableau ci-dessous la porte quand même.", {
+                  p: isoles.map((c) => `${c.country} (${c.points[0].tenor})`).join(", "),
+                })}
+              </p>
+            )}
           </div>
-        </section>
+        </Bloc>
+
+        {/* 2. Chaque point et son origine. Pas de commentaire : c'est une table de
+            référence, qu'on interroge et qu'on ne lit pas de haut en bas. */}
+        <Bloc id="points">
+          <div className="panel-h">
+            <h2>{t("Chaque point, et d'où il vient")}</h2>
+            <span className="muted">{t("{n} points", { n: pourLaCourbe.reduce((n, c) => n + c.points.length, 0) })}</span>
+          </div>
+          <PointsCourbe pays={pourLaCourbe} />
+        </Bloc>
+
+        {/* 3. Les écarts entre Trésors. */}
+        <Bloc
+          id="ecarts"
+          note={
+            <Commentaire registre="alerte" titre="Un écart daté n'est pas un écart de crédit">
+              <p>
+                {t(
+                  "Deux séances distantes de six semaines donnent un écart qui mesure le calendrier et non la signature. Chaque ligne porte donc le nombre de jours qui sépare les deux séances, et au-delà d'un mois l'écran refuse de le présenter comme une mesure.",
+                )}
+              </p>
+            </Commentaire>
+          }
+        >
+          <div className="panel-h">
+            <h2>{t("L'écart entre Trésors, contre {p}", { p: reference ?? "—" })}</h2>
+            <span className="muted">{t("{n} comparaisons", { n: ecarts.length })}</span>
+          </div>
+          {ecarts.length ? (
+            <TallTable total={ecarts.length}>
+              <thead>
+                <tr>
+                  <th>{t("Trésor")}</th>
+                  <th>{t("Horizon")}</th>
+                  <th className="r">{t("Écart")}</th>
+                  <th className="r">{t("Jours entre séances")}</th>
+                  <th>{t("Lecture")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ecarts.map((e) => (
+                  <tr key={`${e.contre}|${e.tenor}`}>
+                    <td>
+                      <span className={styles.dot} style={{ background: COUNTRY_COLOR[e.contre] }} aria-hidden="true" /> {e.contre}
+                    </td>
+                    <td>{e.horizon}</td>
+                    <td className="r">
+                      <b>{`${e.bp > 0 ? "+" : ""}${e.bp} pb`}</b>
+                    </td>
+                    <td className="r">{t("{n} jours", { n: e.apart })}</td>
+                    <td>{e.apart > SPREAD_COMPARABLE_DAYS ? <span className="st annulee">{t("écart daté, pas mesuré")}</span> : <span className="st reglee">{t("comparable")}</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </TallTable>
+          ) : (
+            <div className="empty">{t("Pas encore deux Trésors portant un même horizon.")}</div>
+          )}
+        </Bloc>
+
+        {/* 4. Ce qui manque, compté et nommé plutôt que comblé. */}
+        <Bloc
+          id="trous"
+          note={
+            <Commentaire registre="lecture" titre="Un trou nommé vaut mieux qu'un chiffre faux">
+              <p>
+                {t(
+                  "Un prix d'obligation sans coupon ne dit rien : le même 90,00 % peut valoir 7 % comme 16 % selon ce que la ligne paie. Le combler par un coupon moyen donnerait une courbe lisse et fausse, dont personne ne verrait qu'elle est fausse.",
+                )}
+              </p>
+              <p>{t("Une ligne dont l'avis d'annonce donne un autre échéancier ne donne pas de point non plus : le calcul ne sait pas faire cet échéancier-là.")}</p>
+            </Commentaire>
+          }
+        >
+          <div className="panel-h">
+            <h2>{t("Ce qui manque à la courbe")}</h2>
+            <span className="muted">{t("{n} séances relues sans rendement", { n: courbe.gaps.length })}</span>
+          </div>
+          {courbe.gaps.length ? (
+            <TallTable total={courbe.gaps.length}>
+              <thead>
+                <tr>
+                  <th>{t("Séance")}</th>
+                  <th>{t("Trésor")}</th>
+                  <th>{t("Instr.")}</th>
+                  <th>{t("Durée")}</th>
+                  <th>{t("Pourquoi")}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {courbe.gaps.map((g) => (
+                  <tr key={g.id}>
+                    <td>{fmtDate(g.on)}</td>
+                    <td>
+                      <span className={styles.dot} style={{ background: COUNTRY_COLOR[g.country] }} aria-hidden="true" /> {g.country}
+                    </td>
+                    <td>{g.instrument}</td>
+                    <td>{g.tenor}</td>
+                    <td>
+                      {t(g.why)}
+                      {/* Les mots du Trésor se citent dans sa langue : les traduire leur ferait dire autre chose. */}
+                      {g.cite ? <span className="muted">{` · « ${g.cite} »`}</span> : null}
+                      {g.publie ? <span className="muted">{` · ${t("fourchette publiée")} ${g.publie}`}</span> : null}
+                    </td>
+                    <td>
+                      <Link className="btn sm ghost" href={`/desk/adjudications?s=${g.id}`}>
+                        {t("Compléter")}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </TallTable>
+          ) : (
+            <div className="empty">{t("Aucune séance relue ne reste sans rendement.")}</div>
+          )}
+        </Bloc>
 
         {/* 1 bis. Le reprix : la courbe dit le marché d'un jour, la série dit son histoire. */}
         {suivies.length > 0 && (
-          <section className="panel">
+          <Bloc
+            id="reprix"
+            note={
+            <Commentaire registre="lecture" titre="Ce qu'on cherche ici">
+              <p>{t("Le retournement, et sa date. Une courbe se lit à un instant ; c'est la série qui dit si le niveau d'aujourd'hui est un accident de séance ou une tendance installée.")}</p>
+              <p>{t("Un décrochage sur une seule durée signale un besoin ponctuel ; un décalage de toutes les durées ensemble signale un changement de perception de la signature.")}</p>
+            </Commentaire>
+          }
+          >
             <div className="panel-h">
               <h2>{t("Le reprix du marché")}</h2>
               <span className="muted">{sortie(suivies[0].pts.length >= 8, "Une série se publie à partir de huit séances relues : en dessous, elle raconte le hasard des lectures faites.")}</span>
@@ -224,11 +425,19 @@ export default async function AnalysesPage() {
                 )}
               </p>
             </div>
-          </section>
+          </Bloc>
         )}
 
         {/* 2. La pression : la mesure la plus dure du jeu, et la plus simple. */}
-        <section className="panel">
+        <Bloc
+          id="pression"
+          note={
+            <Commentaire registre="lecture" titre="Ce qu'il faut croiser">
+              <p>{t("La ligne des 100 % sépare une adjudication couverte d'une qui ne l'est pas. Une année passée sous cette ligne se paie sur le taux des séances suivantes.")}</p>
+              <p>{t("Une couverture qui tombe pendant que le nombre de soumissionnaires tient signale un problème de prix ; les deux qui tombent ensemble signalent un problème de liquidité bancaire.")}</p>
+            </Commentaire>
+          }
+        >
           <div className="panel-h">
             <h2>{t("La pression de la demande")}</h2>
             <span className="muted">{sortie(pression.some((p) => p.n >= 5), "Une moyenne annuelle demande au moins cinq séances relues dans l'année.")}</span>
@@ -278,10 +487,17 @@ export default async function AnalysesPage() {
               "Les deux colonnes du milieu se lisent ensemble : une couverture qui tombe pendant que la part servie monte vers cent pour cent dit que le Trésor ne trie plus, il prend ce qui se présente.",
             )}
           </p>
-        </section>
+        </Bloc>
 
         {/* 3. L'exécution : publiable le jour où la série est complète, pas avant. */}
-        <section className="panel">
+        <Bloc
+          id="programme"
+          note={
+            <Commentaire registre="lecture" titre="Ce qu'une sous-exécution veut dire">
+              <p>{t("Un Trésor qui lève moins que son programme a soit renoncé à payer le prix demandé, soit trouvé ailleurs : avances, bancaire, bailleurs. Les deux se lisent pareil ici, et pas du tout dans une note de crédit.")}</p>
+            </Commentaire>
+          }
+        >
           <div className="panel-h">
             <h2>{t("L'exécution du programme d'émission")}</h2>
             <span className="muted">{sortie(false, "Calculée sur les séances relevées, qui ne sont pas le programme annuel d'un Trésor.")}</span>
@@ -320,11 +536,18 @@ export default async function AnalysesPage() {
               </tbody>
             </table>
           </div>
-        </section>
+        </Bloc>
 
         {/* 4. La liquidité : aucune donnée nouvelle, et la mesure qui qualifie tout le reste. */}
         {liq && (
-          <section className="panel">
+          <Bloc
+            id="liquidite"
+            note={
+            <Commentaire registre="alerte" titre="Le chiffre qui relativise tout le reste">
+              <p>{t("Une courbe construite sur le primaire décrit ce que le Trésor paie à l'émission, pas ce qu'un investisseur peut obtenir en sortant. Tant que la part traitée reste faible, tout rendement cité ici est un rendement à conserver jusqu'à l'échéance, et cela se dit au client.")}</p>
+            </Commentaire>
+          }
+          >
             <div className="panel-h">
               <h2>{t("La liquidité du marché secondaire")}</h2>
               <span className="muted">{sortie(true, "")}</span>
@@ -397,12 +620,19 @@ export default async function AnalysesPage() {
                 m: String(liq.lines.filter((l) => l.instrument === "obligation").length),
               })}
             </p>
-          </section>
+          </Bloc>
         )}
 
         {/* 5. La fraîcheur : le chiffre à porter à côté du niveau de l'indice. */}
         {frais && dernierIndice && (
-          <section className="panel">
+          <Bloc
+            id="fraicheur"
+            note={
+            <Commentaire registre="lecture" titre="Le seuil qui compte">
+              <p>{t("Au-delà de soixante jours, un point cesse de décrire le marché d'aujourd'hui. Il reste tracé, parce que le retirer donnerait une courbe plus courte sans la rendre plus vraie, mais une note publiée doit porter la date de son point le plus ancien.")}</p>
+            </Commentaire>
+          }
+          >
             <div className="panel-h">
               <h2>{t("La fraîcheur de l'indice")}</h2>
               <span className="muted">{sortie(true, "")}</span>
@@ -466,12 +696,19 @@ export default async function AnalysesPage() {
                 {t("Le compte se fait en nombre de composantes et non en capitalisation, faute d'une pondération publiée par la bourse. L'approximation va dans le sens de la prudence : une grosse ligne dormante pèse plus que ce compte ne le montre.")}
               </p>
             </div>
-          </section>
+          </Bloc>
         )}
 
         {/* 6. Le pont : la mesure la plus utile au client, et la plus exigeante en prudence. */}
         {ponts.length > 0 && (
-          <section className="panel">
+          <Bloc
+            id="pont"
+            note={
+            <Commentaire registre="methode" titre="Pourquoi ce pont compte">
+              <p>{t("C'est la seule mesure qui dise si le prix d'adjudication tient une fois le titre dans les mains du marché. Un écart durable entre les deux dit que l'adjudication ne se fait pas au prix du marché.")}</p>
+            </Commentaire>
+          }
+          >
             <div className="panel-h">
               <h2>{t("Le pont primaire / secondaire")}</h2>
               <span className="muted">{sortie(false, "Coupons et maturités diffèrent des deux côtés : l'écart en points de prix se commente, il ne se publie pas seul.")}</span>
@@ -517,12 +754,20 @@ export default async function AnalysesPage() {
                 "L'écart est en points de prix et jamais en rendement : un écart de rendement demanderait le coupon des deux côtés. Une ligne qui n'a jamais traité n'a pas de prix de marché, et l'écart mesure alors la distance entre un prix payé et un prix reporté.",
               )}
             </p>
-          </section>
+          </Bloc>
         )}
 
         {/* 6 bis. Ce qu'une colonne montre et qu'un formulaire cache. */}
         {(trouvailles.length > 0 || crible.vues > 0) && (
-          <section className="panel">
+          <Bloc
+            id="anomalies"
+            note={
+            <Commentaire registre="alerte" titre="Ce qui reste ouvert">
+              <p>{t("Chaque motif dit qu'un chiffre se contredit, jamais qu'il est faux : la décision appartient à qui ouvrira le communiqué. Une contradiction vérifiée sur la pièce se range, et cesse de compter.")}</p>
+              <p>{t("Un signal qu'on ne peut pas éteindre cesse d'être lu, et c'est le seul risque qui compte pour ce panneau.")}</p>
+            </Commentaire>
+          }
+          >
             <div className="panel-h">
               <h2>{t("Ce que la table a attrapé")}</h2>
               <span className="muted">
@@ -587,11 +832,13 @@ export default async function AnalysesPage() {
                 "Aucun de ces motifs ne dit qu'un chiffre est faux : ils disent qu'il se contredit, lui-même ou son voisin. Ce qui est déjà confirmé passe devant, étant entré dans les références du desk. Une séance à la fois, aucune de ces anomalies ne se voit ; rangées en colonne, les motifs sautent aux yeux.",
               )}
             </p>
-          </section>
+          </Bloc>
         )}
 
         {/* 7. Sortir du desk : la règle, écrite une fois. */}
-        <section className="panel">
+        <Bloc
+          id="publier"
+        >
           <div className="panel-h">
             <h2>{t("Avant de publier")}</h2>
             <span className="muted">{t("la règle, et non un usage")}</span>
@@ -611,7 +858,9 @@ export default async function AnalysesPage() {
               <Link href="/desk/adjudications/tableau">{t("Toutes les séances")} →</Link>
             </p>
           </div>
-        </section>
+        </Bloc>
+        </div>
+        </div>
       </div>
     </>
   );

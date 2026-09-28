@@ -36,7 +36,7 @@ export const ANALYSES: DocPage = {
             "They produce no advice and carry no recommendation. A curve states the cost of sovereign money at each horizon; what is made of it for a client belongs to the relationship, not to the measurement.",
           ),
         },
-        { type: "link", href: "/desk/courbe", label: l("La courbe des taux", "The yield curve"), hint: l("Une ligne, un point, par Trésor.", "One line, one point, per Treasury.") },
+        { type: "link", href: "/desk/analyses#courbe", label: l("La courbe des taux", "The yield curve"), hint: l("Une ligne, un point, par Trésor.", "One line, one point, per Treasury.") },
         { type: "link", href: "/desk/analyses", label: l("Le dossier d'analyses", "The analysis file"), hint: l("Pression, exécution, liquidité, fraîcheur, pont.", "Pressure, execution, liquidity, freshness, bridge.") },
         { type: "link", href: "/desk/adjudications/tableau", label: l("Toutes les séances", "Every session"), hint: l("La table de contrôle de la relecture.", "The control table of the review.") },
       ],

@@ -1,0 +1,80 @@
+/* Le rail suit la lecture sans la retenir : il tient en haut de l'écran,
+   défile pour son compte quand il dépasse, et ne prend jamais la place du
+   contenu. */
+.rail {
+  position: sticky;
+  top: var(--s-7);
+  align-self: start;
+  max-height: calc(100vh - var(--s-10));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--s-3);
+}
+.titre {
+  margin: 0 0 var(--s-5) var(--s-5);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+/* Les sections se groupent par ce qu'elles répondent : le prix, les volumes,
+   le secondaire, puis ce qu'il faut vérifier avant de publier. Douze entrées
+   d'affilée ne se lisent pas ; quatre familles de trois, oui. */
+.groupe {
+  margin: var(--s-7) 0 var(--s-3) var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.rail > div:first-child .groupe {
+  margin-top: var(--s-3);
+  padding-top: 0;
+  border-top: 0;
+}
+.lien {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink-2);
+  font-size: 0.77rem;
+  line-height: 1.35;
+}
+.lien:hover {
+  background: var(--surface-2);
+}
+.lien[aria-current="true"] {
+  background: var(--gold-soft);
+  border-left-color: var(--gold);
+  color: var(--ink);
+  font-weight: 650;
+}
+.no {
+  min-width: 14px;
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.lien[aria-current="true"] .no {
+  color: var(--gold-ink);
+}
+/* Ce qui reste ouvert se compte ici : on l'apprend du haut de la page, sans
+   avoir descendu sept mille pixels pour le découvrir. */
+.compte {
+  margin-left: auto;
+  padding: 0 var(--s-4);
+  border-radius: 999px;
+  background: var(--crit-soft, #fee2e2);
+  color: var(--crit-ink, #b91c1c);
+  font-size: 0.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
