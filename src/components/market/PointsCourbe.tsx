@@ -26,12 +26,20 @@ type Abondements = "inclus" | "seuls" | "exclus";
 export function PointsCourbe({ pays }: { pays: CourbePays[] }) {
   const t = useT();
   const [tri, setTri] = useState<{ col: Colonne; rev: boolean }>({ col: "annees", rev: false });
-  const [origine, setOrigine] = useState<Origine>("toutes");
+  const [origineVoulue, setOrigine] = useState<Origine>("toutes");
   const [abond, setAbond] = useState<Abondements>("inclus");
   const [q, setQ] = useState("");
 
   const tous = useMemo(() => pays.flatMap((p) => p.points.map((x) => ({ ...x, pays: p.pays }))), [pays]);
   const origines = useMemo(() => [...new Set(tous.map((p) => p.origine))], [tous]);
+  /**
+   * L'origine choisie doit figurer parmi celles qu'on propose.
+   *
+   * La liste dépend de la date d'observation, le choix non : après un recul,
+   * l'origine retenue pouvait avoir disparu. Le menu s'affichait alors vide et
+   * la table annonçait qu'aucun point ne répond à cette recherche.
+   */
+  const origine: Origine = origineVoulue === "toutes" || origines.includes(origineVoulue) ? origineVoulue : "toutes";
 
   const vues = useMemo(() => {
     const mots = q.trim().toLowerCase().split(/\s+/).filter(Boolean);

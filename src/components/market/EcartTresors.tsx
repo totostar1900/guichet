@@ -39,8 +39,19 @@ const P = { l: 56, r: 24, t: 20, b: 44 };
 export function EcartTresors({ pays, comparables, seuilJours }: { pays: CourbePays[]; comparables: Record<string, Ecart[]>; seuilJours: number }) {
   const t = useT();
   const noms = pays.map((p) => p.pays);
-  const [a, setA] = useState<Country>(noms[0]);
-  const [b, setB] = useState<Country>(noms[1] ?? noms[0]);
+  const [aVoulu, setA] = useState<Country>(noms[0]);
+  const [bVoulu, setB] = useState<Country>(noms[1] ?? noms[0]);
+  /**
+   * Les deux Trésors comparés doivent figurer parmi ceux qu'on propose.
+   *
+   * La liste dépend de la date d'observation, le choix non : après un recul
+   * d'un an, « select » gardait une valeur absente de ses options. Le navigateur
+   * n'affiche alors aucune sélection et la figure annonce que ces deux Trésors
+   * ne portent aucun horizon en commun. C'est vrai, et ce n'est pas la question
+   * posée.
+   */
+  const a = noms.includes(aVoulu) ? aVoulu : noms[0];
+  const b = noms.includes(bVoulu) ? bVoulu : (noms[1] ?? noms[0]);
   const [vise, setVise] = useState<number | null>(null);
   const boite = useRef<HTMLDivElement | null>(null);
 
@@ -81,7 +92,8 @@ export function EcartTresors({ pays, comparables, seuilJours }: { pays: CourbePa
 
   return (
     <div>
-      <div className={styles.filtres}>
+      {/* Deux menus vides et un bouton qui n'inverse rien valent moins que rien. */}
+      <div className={styles.filtres} hidden={!noms.length}>
         {choix(a, setA, "ecart-a", "Trésor")}
         <span className={styles.contre}>{t("contre")}</span>
         {choix(b, setB, "ecart-b", "Référence")}
@@ -97,7 +109,9 @@ export function EcartTresors({ pays, comparables, seuilJours }: { pays: CourbePa
         </button>
       </div>
 
-      {a === b ? (
+      {!noms.length ? (
+        <div className="empty">{t("Aucun Trésor ne porte deux durées relues à cette date : il n'y a pas d'écart à mesurer.")}</div>
+      ) : a === b ? (
         <div className="empty">{t("Choisissez deux Trésors différents.")}</div>
       ) : !ecarts.length || !echelle ? (
         <div className="empty">{t("Ces deux Trésors ne portent aucun horizon en commun sur la fenêtre observée.")}</div>

@@ -187,3 +187,22 @@
   opacity: 0.6;
   vertical-align: 2px !important;
 }
+
+/* La sortie du vide : un geste dans la phrase qui le nomme, pas un bouton
+   posé à côté. Il reprend le trait du lien, pas celui d'une commande, parce
+   qu'il répare une situation au lieu d'en proposer une. */
+.elargir {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.elargir:hover {
+  text-decoration-thickness: 2px;
+}

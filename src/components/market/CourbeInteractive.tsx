@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import type { Country } from "@/lib/domain/types";
 import { CEMAC_COLOR, COUNTRY_COLOR } from "@/lib/market/couleurs";
+import { consolide } from "@/lib/market/zone";
 import { useT } from "@/i18n/client";
 import styles from "./CourbeInteractive.module.css";
 
@@ -100,15 +101,32 @@ export function CourbeInteractive({
 }) {
   const t = useT();
   /**
-   * La profondeur par défaut est la plus courte qui montre déjà tout.
+   * La profondeur d'ouverture est la plus courte qui montre quelque chose.
    *
-   * Mesuré : à quatre-vingt-dix jours comme à un an, la zone donne les mêmes
-   * points. Commencer court et proposer d'aller plus loin vaut mieux que
-   * l'inverse, parce qu'une courbe des taux dit le coût de l'argent aujourd'hui.
+   * À la date du jour, quatre-vingt-dix jours et un an donnent les mêmes points,
+   * et commencer court vaut mieux, parce qu'une courbe des taux dit le coût de
+   * l'argent aujourd'hui. Mais cette mesure ne vaut que pour aujourd'hui : à une
+   * date reculée, la fenêtre courte est souvent vide quand la suivante est
+   * garnie. Ouvrir sur la première garnie donne la fenêtre courte là où elle
+   * existe, et une courbe plutôt qu'un vide partout ailleurs.
+   *
+   * Un choix explicite du lecteur est gardé tel quel, même s'il ne donne rien :
+   * l'écran doit dire « cette fenêtre est vide », pas en changer sans le dire.
    */
-  const [profondeur, setProfondeur] = useState(0);
+  const [choisie, setChoisie] = useState<number | null>(null);
+  const premiereGarnie = Math.max(0, fenetres.findIndex((f) => f.pays.length > 0));
+  const profondeur = choisie ?? premiereGarnie;
+  const setProfondeur = setChoisie;
   const pays = fenetres[profondeur]?.pays ?? [];
-  const [choix, setChoix] = useState<Choix>("tous");
+  const [voulu, setChoix] = useState<Choix>("tous");
+  /**
+   * Le Trésor choisi doit exister dans ce qu'on regarde.
+   *
+   * Choisir le Gabon puis reculer la date d'observation d'un an gardait une
+   * sélection qui ne désigne plus rien : la figure se vidait sans dire pourquoi,
+   * et le bouton restait allumé sur un Trésor absent de la rangée.
+   */
+  const choix: Choix = voulu === "tous" || voulu === "cemac" || pays.some((p) => p.pays === voulu) ? voulu : "tous";
   const [survol, setSurvol] = useState<{ x: number; y: number; horizon: string; lignes: { nom: string; couleur: string; pct: number }[]; note?: string } | null>(null);
   const boite = useRef<HTMLDivElement | null>(null);
 
@@ -125,33 +143,8 @@ export function CourbeInteractive({
     return { x0: Math.min(...xs), x1: Math.max(...xs) };
   }, [tous]);
 
-  /**
-   * La zone consolidée : à chaque horizon, la moyenne des Trésors présents.
-   *
-   * Un horizon porté par un seul Trésor n'est pas une moyenne de zone, c'est ce
-   * Trésor : il est donc écarté plutôt que recopié sous un autre nom.
-   */
-  const cemac = useMemo((): Serie["points"] => {
-    const par = new Map<string, { annees: number; mot: string; v: number[]; ages: number[] }>();
-    for (const p of pays)
-      for (const q of p.points) {
-        const e = par.get(q.mot) ?? { annees: q.annees, mot: q.mot, v: [], ages: [] };
-        e.v.push(q.pct);
-        e.ages.push(q.age);
-        par.set(q.mot, e);
-      }
-    return [...par.values()]
-      .filter((e) => e.v.length > 1)
-      .map((e) => ({
-        annees: e.annees,
-        mot: e.mot,
-        pct: e.v.reduce((a, b) => a + b, 0) / e.v.length,
-        n: e.v.length,
-        // Une moyenne n'est pas plus fraîche que le plus ancien des prix qu'elle moyenne.
-        age: Math.max(...e.ages),
-      }))
-      .sort((a, b) => a.annees - b.annees);
-  }, [pays]);
+  /* La règle vit dans la bibliothèque, où elle se teste : voir consolide(). */
+  const cemac = useMemo((): Serie["points"] => consolide(pays), [pays]);
 
   const series = useMemo((): Serie[] => {
     const brutes: Serie[] =
@@ -185,8 +178,17 @@ export function CourbeInteractive({
     return { lo: Math.min(...ys) - marge, hi: Math.max(...ys) + marge };
   }, [series]);
 
-  if (!abscisse || !ordonnee) return null;
-  const echelle = { ...abscisse, ...ordonnee };
+  /**
+   * Le vide efface la figure, jamais les commandes.
+   *
+   * Un « return null » ici emportait le sélecteur de Trésor, celui de
+   * profondeur et celui de la date : les trois commandes par lesquelles on
+   * était arrivé là, et les seules par lesquelles on pouvait en repartir.
+   */
+  const vide = !abscisse || !ordonnee;
+  /** La première fenêtre plus large qui porte quelque chose, s'il en existe une. */
+  const plusLarge = fenetres.findIndex((f, i) => i > profondeur && f.pays.length > 0);
+  const echelle = { x0: abscisse?.x0 ?? 0, x1: abscisse?.x1 ?? 1, lo: ordonnee?.lo ?? 0, hi: ordonnee?.hi ?? 1 };
   const X = (a: number) => P.l + ((Math.log(a) - echelle.x0) / (echelle.x1 - echelle.x0 || 1)) * (W - P.l - P.r);
   const Y = (v: number) => H - P.b - ((v - echelle.lo) / (echelle.hi - echelle.lo || 1)) * (H - P.t - P.b);
 
@@ -210,6 +212,7 @@ export function CourbeInteractive({
     const x = ((e.clientX - r.left) / r.width) * W;
     if (x < P.l || x > W - P.r || !series.length) return setSurvol(null);
     const vise = Math.exp(echelle.x0 + ((x - P.l) / (W - P.l - P.r)) * (echelle.x1 - echelle.x0));
+    if (vide) return;
     const proches = series
       .map((se) => ({ se, p: se.points.reduce((m, q) => (Math.abs(Math.log(q.annees) - Math.log(vise)) < Math.abs(Math.log(m.annees) - Math.log(vise)) ? q : m)) }))
       .sort((a, b) => b.p.pct - a.p.pct);
@@ -278,12 +281,27 @@ export function CourbeInteractive({
         )}
       </div>
 
-      {!series.length && (
+      {vide && (
         <div className="empty">
-          {choix === "cemac" ? t("Aucun horizon n'est porté par deux Trésors à la fois : il n'y a pas de niveau de zone à consolider.") : t("Aucun point à tracer pour ce choix.")}
+          {!pays.length
+            ? t("Aucune séance relue dans les {f} qui précèdent cette date.", { f: fenetres[profondeur]?.mot ?? "" })
+            : choix === "cemac"
+              ? t("Aucun horizon n'est porté par deux Trésors à la fois : il n'y a pas de niveau de zone à consolider.")
+              : t("Aucun point à tracer pour ce choix.")}
+          {/* La sortie est un geste, pas une phrase : la première fenêtre qui a
+              quelque chose, nommée par sa durée. */}
+          {!pays.length && plusLarge >= 0 && (
+            <>
+              {" "}
+              <button type="button" className={styles.elargir} onClick={() => setProfondeur(plusLarge)}>
+                {t("élargir à {f}", { f: fenetres[plusLarge].mot })}
+              </button>
+            </>
+          )}
         </div>
       )}
 
+      {!vide && (
       <div className={styles.fig} ref={boite} onPointerMove={bouger} onPointerLeave={() => setSurvol(null)}>
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className={styles.svg}>
           {graduations.map((v) => (
@@ -380,6 +398,7 @@ export function CourbeInteractive({
           </div>
         )}
       </div>
+      )}
 
       <div className={styles.legende}>
         {series.map((se) => (

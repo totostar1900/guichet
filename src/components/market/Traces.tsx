@@ -208,6 +208,27 @@ export function SerieTemps({
           return (
             <g key={i}>
               {t.aire && <polygon points={`${P.l},${H - P.b} ${d} ${(W - P.r).toFixed(1)},${H - P.b}`} fill={t.couleur} opacity={0.1} />}
+              {/* Le pont par-dessus le silence : il relie sans affirmer. Sans lui,
+                  les points d'avant le trou sont orphelins et l'œil ne les rattache
+                  plus à la série ; plein, il dessinerait une progression que
+                  personne n'a observée. */}
+              {morceaux.slice(1).map((m, k) => {
+                const avant = morceaux[k][morceaux[k].length - 1];
+                const apres = m[0];
+                return (
+                  <line
+                    key={`pont-${k}`}
+                    x1={X(avant.on)}
+                    y1={Y(avant.v)}
+                    x2={X(apres.on)}
+                    y2={Y(apres.v)}
+                    stroke={t.couleur}
+                    strokeWidth={1.5}
+                    strokeDasharray="3 5"
+                    opacity={0.45}
+                  />
+                );
+              })}
               {morceaux.map((m, k) =>
                 m.length > 1 ? (
                   <polyline key={k} points={m.map((p) => `${X(p.on).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ")} fill="none" stroke={t.couleur} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
