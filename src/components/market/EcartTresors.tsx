@@ -175,7 +175,24 @@ export function EcartTresors({ pays, comparables, seuilJours }: { pays: CourbePa
             </svg>
 
             {vise != null && (
-              <div className={styles.bulle} style={{ left: `${Math.min(((P.l + vise * ((W - P.l - P.r) / ecarts.length)) / W) * 100 + 2, 70)}%`, top: "6%" }}>
+              <div
+                className={styles.bulle}
+                style={(() => {
+                  /**
+                   * La bulle se range à côté de la barre visée, du côté libre.
+                   *
+                   * Posée sur la barre, elle cache le sommet, c'est-à-dire la
+                   * valeur qu'on vient lire. Écrêtée à droite, elle désignait
+                   * une autre barre que celle survolée.
+                   */
+                  const pas = (W - P.l - P.r) / ecarts.length;
+                  const centre = ((P.l + vise * pas + pas / 2) / W) * 100;
+                  const bp = ecarts[vise].bp;
+                  const cote = centre < 62 ? { left: `${centre + 3}%` } : { right: `${100 - centre + 3}%` };
+                  /* Une barre positive monte : la bulle descend, et l'inverse. */
+                  return { ...cote, top: bp >= 0 ? "52%" : "6%" };
+                })()}
+              >
                 <div className={styles.bulleTitre}>{ecarts[vise].horizon}</div>
                 <div className={styles.bulleLigne}>
                   <span>{t("Écart")}</span>

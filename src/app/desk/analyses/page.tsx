@@ -103,14 +103,6 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
   // treize.
   const avecIndice = bulletins.filter((b) => b.indexValue != null);
   /**
-   * Les durées les mieux suivies, jusqu'à trois.
-   *
-   * On ne choisit pas « 26 semaines » d'avance : la durée qui porte l'histoire
-   * n'est pas la même selon le Trésor, et elle changera avec les reprises. On
-   * prend celles qui ont le plus de séances relues, ce qui revient à prendre
-   * celles qui ont quelque chose à raconter.
-   */
-/**
    * Toutes les séries, et l'écran choisit.
    *
    * Prendre d'office les trois mieux garnies revenait à montrer deux Trésors
@@ -453,7 +445,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                 </p>
                 <p>
                   {t(
-                    "Les durées suivies sont les trois les mieux garnies de la série : celles qui reviennent assez souvent pour qu'une ligne veuille dire quelque chose. Une durée sous quatre séances n'est pas tracée.",
+                    "Aucune durée n'est choisie d'avance : la figure porte tous les couples Trésor-durée qui comptent au moins deux séances relues, et le sélecteur donne pour chacun son nombre de séances. Celles qui en ont moins de quatre restent proposées, en grisé : savoir qu'une durée n'en a que deux est une information, ne pas la voir n'en est pas une.",
                   )}
                 </p>
                 <p>
@@ -481,7 +473,12 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
           >
             <div className="panel-h">
               <h2>{t("Ce que chaque durée a payé, séance après séance")}</h2>
-              <span className="muted">{sortie((suivies[0]?.points.length ?? 0) >= 8, "Une série se publie à partir de huit séances relues : en dessous, elle raconte le hasard des lectures faites.")}</span>
+              <span className="muted">
+                {sortie(
+                  suivies.some((x) => x.points.length >= 8),
+                  "Une série se publie à partir de huit séances relues : aucune des séries proposées ne les atteint, celles qu'on voit racontent le hasard des lectures faites.",
+                )}
+              </span>
             </div>
             <div className={styles.pb}>
               <Reprix series={suivies} />
