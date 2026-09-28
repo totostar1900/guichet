@@ -132,15 +132,23 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
   }
 
   /**
-   * La valeur nominale est de dix mille francs sur toute la zone.
+   * La valeur nominale dépend de l'instrument, et de lui seul.
    *
-   * Un avis qui en annoncerait une autre ne serait pas une erreur à corriger
-   * mais une nouvelle à signaler : toute la conversion des prix imprimés en
-   * francs repose sur ce nombre.
+   * Les six Trésors de la zone émettent leurs bons à un million de francs
+   * l'unité et leurs obligations à dix mille, sans exception relevée à ce jour.
+   * Une première version attendait dix mille partout et posait une remarque sur
+   * quatre-vingt-cinq bons parfaitement ordinaires : un signal qu'on ne peut pas
+   * éteindre cesse d'être lu.
+   *
+   * Ce qui reste signalé est un écart à l'usage de son propre instrument, parce
+   * que toute conversion d'un prix imprimé en francs repose sur ce nombre.
    */
+  const attendu = out.instrument === "BTA" ? 1_000_000 : out.instrument === "OTA" ? 10_000 : undefined;
   const nominalUnit = nn(out.nominalUnit);
-  if (nominalUnit != null && nominalUnit !== 10_000) {
-    remarks.unshift(`Valeur nominale unitaire de ${nominalUnit.toLocaleString("fr-FR")} F, là où la zone émet à 10 000 F : à vérifier sur la pièce, la conversion des prix en dépend.`);
+  if (nominalUnit != null && attendu != null && nominalUnit !== attendu) {
+    remarks.unshift(
+      `Valeur nominale unitaire de ${nominalUnit.toLocaleString("fr-FR")} F, là où un ${out.instrument} de la zone s'émet à ${attendu.toLocaleString("fr-FR")} F : à vérifier sur la pièce, la conversion des prix en dépend.`,
+    );
   }
 
   if (out.redemption == null) remarks.unshift("Aucune mention de remboursement lue sur l'avis : c'est pourtant ce que ce document est seul à porter.");

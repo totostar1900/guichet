@@ -32,7 +32,15 @@ import type { AuctionResult } from "./auction-results";
  * rendement, et l'écran doit compter ces trous plutôt que de les combler.
  */
 
-/** La valeur nominale d'une obligation du Trésor dans la zone. */
+/**
+ * La valeur nominale d'une obligation du Trésor dans la zone.
+ *
+ * Dix mille francs pour une obligation, et un million pour un bon : les avis
+ * d'annonce des six Trésors le disent tous, sans exception relevée. La
+ * constante porte donc OTA dans son nom et ne sert qu'aux prix d'obligations.
+ * Le jour où un Trésor exprimerait le prix d'un bon en francs par titre, il
+ * faudra un million ici, et pas dix mille.
+ */
 export const VN_OTA = 10_000;
 
 export type YieldOrigin = "imprimé" | "prix et coupon" | "taux précompté";
