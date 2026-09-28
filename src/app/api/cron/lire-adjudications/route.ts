@@ -161,6 +161,19 @@ export async function GET(req: NextRequest) {
          * lecture, et le desk doit pouvoir la voir.
          */
         const duree = proposal.tenor ?? x.tenor;
+        /**
+         * L instrument aussi vient de la piece.
+         *
+         * Meme constat que pour la duree, et sur la meme source : l index a
+         * range sous « OTA 3 ans » un avis gabonais intitule « EMISSION DE BONS
+         * DU TRESOR », dont la designation dit « Bons du Tresor a 13 semaines »
+         * et le code GA11 est celui des bons a treize semaines. Trois temoins
+         * du meme document contre un nom de fichier.
+         */
+        const instrument = proposal.instrument ?? x.instrument;
+        if (proposal.instrument && proposal.instrument !== x.instrument) {
+          remarks.unshift(`Instrument « ${proposal.instrument} » sur la piece, la ou l index de la BEAC annonce « ${x.instrument} » : c est le document qui fait foi.`);
+        }
         if (proposal.tenor && x.tenor && proposal.tenor !== x.tenor) {
           remarks.unshift(`Durée « ${proposal.tenor} » sur la pièce, là où l'index de la BEAC annonce « ${x.tenor} » : c'est le document qui fait foi, l'index tirant la sienne du titre du fichier.`);
         }
@@ -185,6 +198,7 @@ export async function GET(req: NextRequest) {
           issueVolume: proposal.issueVolume ?? null,
           settleOn: proposal.settleOn ?? null,
           tenor: duree ?? null,
+          instrument,
           remarks,
         });
         faitsAvis.push(`${x.sessionOn} ${x.country} ${x.tenor ?? ""}`.trim());
