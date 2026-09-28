@@ -331,3 +331,30 @@ export function referenceLine(ref: RateReference): string {
   if (ref.thin) bits.push("séance mince, à prendre avec réserve");
   return bits.join(" · ");
 }
+
+/**
+ * Les deux bornes rangées par leur valeur, quelle que soit la porte d'entrée.
+ *
+ * Un bon et une obligation emploient le même canevas dans deux sens opposés.
+ * Pour un bon, la borne est un taux : le plus grand nombre est aussi le plus
+ * coûteux pour l'émetteur, et les deux façons de nommer coïncident. Pour une
+ * obligation, la borne est un prix : à 90 l'émetteur reçoit 90 et remboursera
+ * 100, à 95 il reçoit 95, donc le prix le plus BAS est celui qu'il nomme
+ * « maximum ». Le Congo et le Tchad nomment ainsi, le Cameroun et le Gabon
+ * nomment par le prix.
+ *
+ * Nos colonnes, elles, n'ont qu'un sens : « min » porte le plus petit nombre.
+ * La normalisation vivait dans le lecteur automatique et nulle part ailleurs,
+ * si bien qu'une saisie à la main entrait à l'envers sans que rien ne le voie.
+ * Elle est ici pour que toutes les portes y passent.
+ *
+ * Les bornes ne sont pas décoratives : priceOf() se sert de la borne haute pour
+ * décider si un prix moyen inclut le coupon couru, et onze rendements publiés
+ * en dépendent, pour un écart moyen de cent cinquante et un points de base.
+ */
+export function rangerBornes<T extends Partial<Pick<AuctionResult, "rateMin" | "rateMax" | "priceMin" | "priceMax">>>(p: T): T {
+  const out = { ...p };
+  if (out.rateMin != null && out.rateMax != null && out.rateMin > out.rateMax) [out.rateMin, out.rateMax] = [out.rateMax, out.rateMin];
+  if (out.priceMin != null && out.priceMax != null && out.priceMin > out.priceMax) [out.priceMin, out.priceMax] = [out.priceMax, out.priceMin];
+  return out;
+}

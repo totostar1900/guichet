@@ -5,7 +5,7 @@ import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
-import { confirmable, millions, type NewAuctionResult } from "@/lib/market/auction-results";
+import { confirmable, millions, rangerBornes, type NewAuctionResult } from "@/lib/market/auction-results";
 import { auctionReadingAvailable, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
 import { auctionYield } from "@/lib/market/yield";
 import { readSource } from "@/lib/intake/storage";
@@ -115,12 +115,20 @@ const patchFrom = (d: z.infer<typeof schema>): Partial<NewAuctionResult> => ({
   offerId: d.offerId || undefined,
 });
 
+/**
+ * Ce qui entre par le formulaire passe par le même rangement que la lecture.
+ *
+ * Le lecteur automatique rangeait les bornes, la saisie à la main non : la
+ * séance tchadienne du 5 août 2026 est entrée avec priceMin 91 et priceMax 90.
+ */
+const patchRange = (d: z.infer<typeof schema>) => rangerBornes(patchFrom(d));
+
 /** Garde la lecture en cours. Elle ne sert de référence à rien tant qu'elle n'est pas confirmée. */
 export async function saveResultAction(_prev: ResultOutcome | null, form: FormData): Promise<ResultOutcome> {
   await requireDesk("/desk/adjudications");
   const p = read(form);
   if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
-  await repo().updateAuctionResult(p.data.id, patchFrom(p.data));
+  await repo().updateAuctionResult(p.data.id, patchRange(p.data));
   revalidatePath("/desk/adjudications");
   return { ok: true, message: "Lecture enregistrée. Elle ne sert pas encore de référence." };
 }
@@ -139,7 +147,7 @@ export async function confirmResultAction(_prev: ResultOutcome | null, form: For
   const r = repo();
   const before = await r.getAuctionResult(p.data.id);
   if (!before) return { ok: false, error: "Séance introuvable." };
-  const patch = patchFrom(p.data);
+  const patch = patchRange(p.data);
   const manque = confirmable({ ...before, ...patch });
   if (manque) return { ok: false, error: `Il manque : ${manque}` };
   const after = await r.updateAuctionResult(p.data.id, { ...patch, confirmedBy: desk.name, confirmedAt: new Date().toISOString() });

@@ -132,10 +132,24 @@ const Lecture = z.object({
  * La remarque garde la trace, parce que le desk relit la pièce à côté de
  * l'écran et doit comprendre pourquoi les deux ne se ressemblent pas.
  */
-export const ordonner = (min: number | undefined, max: number | undefined, quoi: string, remarks: string[]): [number | undefined, number | undefined] => {
+export const ordonner = (min: number | undefined, max: number | undefined, quoi: "prix" | "taux", remarks: string[]): [number | undefined, number | undefined] => {
   if (min == null || max == null || min <= max) return [min, max];
+  /**
+   * L'ambiguïté n'existe que pour un prix.
+   *
+   * Un prix bas coûte cher à l'émetteur : les deux façons de nommer s'opposent,
+   * et une inversion est une convention, pas une faute.
+   *
+   * Un taux haut coûte cher à l'émetteur ET est le plus grand nombre : les deux
+   * façons de nommer coïncident. Un « taux minimum » supérieur au « taux
+   * maximum » n'est donc jamais une convention. C'est une faute de lecture, et
+   * la ranger sous le libellé de la convention détruirait le seul signal qui
+   * permettait de l'attraper.
+   */
   remarks.unshift(
-    `La pièce nomme ses bornes du côté de l'émetteur : son ${quoi} « maximum » de ${max} est le plus coûteux pour lui, donc le plus bas, et son « minimum » de ${min} le plus haut. Les deux nombres sont ceux de la pièce ; ils ont été rangés par leur valeur.`,
+    quoi === "prix"
+      ? `La pièce nomme ses bornes du côté de l'émetteur : son prix « maximum » de ${max} est le plus coûteux pour lui, donc le plus bas, et son « minimum » de ${min} le plus haut. Les deux nombres sont ceux de la pièce ; ils ont été rangés par leur valeur.`
+      : `Le taux « minimum » lu vaut ${min} et le « maximum » ${max}. Pour un taux, les deux façons de nommer coïncident : le plus haut est à la fois le plus grand nombre et le plus coûteux pour l'émetteur. Ce n'est donc pas une convention mais probablement une erreur de lecture : rouvrez la pièce avant de confirmer.`,
   );
   return [max, min];
 };
