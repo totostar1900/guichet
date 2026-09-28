@@ -206,3 +206,11 @@
 .elargir:hover {
   text-decoration-thickness: 2px;
 }
+
+/* La séance sous le nom du Trésor : un horizon ne dit pas quand il a été payé. */
+.bulleDate {
+  display: block;
+  font-style: normal;
+  font-size: 0.68rem;
+  opacity: 0.72;
+}

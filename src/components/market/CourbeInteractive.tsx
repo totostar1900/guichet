@@ -127,7 +127,7 @@ export function CourbeInteractive({
    * et le bouton restait allumé sur un Trésor absent de la rangée.
    */
   const choix: Choix = voulu === "tous" || voulu === "cemac" || pays.some((p) => p.pays === voulu) ? voulu : "tous";
-  const [survol, setSurvol] = useState<{ x: number; y: number; horizon: string; lignes: { nom: string; couleur: string; pct: number }[]; note?: string } | null>(null);
+  const [survol, setSurvol] = useState<{ x: number; y: number; horizon: string; lignes: { nom: string; couleur: string; pct: number; on?: string; n: number }[]; note?: string } | null>(null);
   const boite = useRef<HTMLDivElement | null>(null);
 
   const tous = useMemo(() => pays.flatMap((p) => p.points), [pays]);
@@ -138,10 +138,19 @@ export function CourbeInteractive({
    * c'est ce qui permet de comparer en basculant entre deux sélections.
    */
   const abscisse = useMemo(() => {
-    if (!tous.length) return null;
-    const xs = tous.map((p) => Math.log(p.annees));
+    /**
+     * Le filigrane est dans l'échelle parce qu'il est dans le dessin.
+     *
+     * Calculée sans lui, elle le rejetait hors de la zone de tracé : la courbe
+     * du jour descend à un mois, une courbe de 2021 s'arrête à trois, et le
+     * premier point du filigrane tombait à x = -130 pour une zone qui commence
+     * à 54, donc par-dessus les graduations de l'axe.
+     */
+    const dessines = [...tous, ...(aujourdhui?.flatMap((c) => c.points) ?? [])];
+    if (!dessines.length) return null;
+    const xs = dessines.map((p) => Math.log(p.annees));
     return { x0: Math.min(...xs), x1: Math.max(...xs) };
-  }, [tous]);
+  }, [tous, aujourdhui]);
 
   /* La règle vit dans la bibliothèque, où elle se teste : voir consolide(). */
   const cemac = useMemo((): Serie["points"] => consolide(pays), [pays]);
@@ -213,16 +222,37 @@ export function CourbeInteractive({
     if (x < P.l || x > W - P.r || !series.length) return setSurvol(null);
     const vise = Math.exp(echelle.x0 + ((x - P.l) / (W - P.l - P.r)) * (echelle.x1 - echelle.x0));
     if (vide) return;
+    /**
+     * Le suivi vise un horizon, et non « le point le plus proche de chaque
+     * série ».
+     *
+     * L'ancienne règle donnait à chaque série son point le moins éloigné, si
+     * loin fût-il : neuf horizons sur treize n'étant portés que par un seul
+     * Trésor, la bulle alignait trois prix et un écart en points de base là où
+     * un seul avait adjugé. Et le « reduce » rendant le premier minimum, parmi
+     * dix-huit points gabonais à trois mois dix-sept ne pouvaient jamais être
+     * désignés.
+     */
+    const cible = series.flatMap((se) => se.points).reduce((m, q) => (Math.abs(Math.log(q.annees) - Math.log(vise)) < Math.abs(Math.log(m.annees) - Math.log(vise)) ? q : m));
     const proches = series
-      .map((se) => ({ se, p: se.points.reduce((m, q) => (Math.abs(Math.log(q.annees) - Math.log(vise)) < Math.abs(Math.log(m.annees) - Math.log(vise)) ? q : m)) }))
+      .map((se) => {
+        const ici = se.points.filter((q) => q.mot === cible.mot);
+        if (!ici.length) return undefined;
+        // La plus récente, et le nombre de séances derrière elle : à une même
+        // durée, un Trésor a pu adjuger vingt fois.
+        const recente = ici.reduce((m, q) => ((q.age ?? Number.POSITIVE_INFINITY) < (m.age ?? Number.POSITIVE_INFINITY) ? q : m));
+        return { se, p: recente, n: ici.length };
+      })
+      .filter((x): x is { se: Serie; p: Serie["points"][number]; n: number } => x !== undefined)
       .sort((a, b) => b.p.pct - a.p.pct);
+    if (!proches.length) return setSurvol(null);
     const ref = proches[0].p;
     const ecart = proches.length > 1 ? Math.round((proches[0].p.pct - proches[proches.length - 1].p.pct) * 100) : undefined;
     setSurvol({
       x: X(ref.annees),
       y: Y(ref.pct),
       horizon: ref.mot,
-      lignes: proches.map(({ se, p }) => ({ nom: se.nom, couleur: se.couleur, pct: p.pct })),
+      lignes: proches.map(({ se, p, n }) => ({ nom: se.nom, couleur: se.couleur, pct: p.pct, on: p.on, n })),
       note: [
         ecart != null ? t("écart de {n} points de base entre {a} et {b}", { n: ecart, a: proches[0].se.nom, b: proches[proches.length - 1].se.nom }) : undefined,
         ref.abondement ? t("abondement : étiquette « {e} »", { e: ref.etiquette ?? "" }) : undefined,
@@ -384,12 +414,16 @@ export function CourbeInteractive({
                 ? { left: `${(survol.x / W) * 100 + 2.5}%`, top: `${Math.max(2, (survol.y / H) * 100 - 6)}%` }
                 : { right: `${100 - (survol.x / W) * 100 + 2.5}%`, top: `${Math.max(2, (survol.y / H) * 100 - 6)}%` }
             }>
-            <div className={styles.bulleTitre}>{t("{h} à courir", { h: survol.horizon })}</div>
+            {/* « à courir » mettait au présent une durée mesurée au jour de la
+                séance : la plupart de ces lignes sont remboursées depuis. */}
+            <div className={styles.bulleTitre}>{t("horizon {h}", { h: survol.horizon })}</div>
             {survol.lignes.map((l) => (
               <div key={l.nom} className={styles.bulleLigne}>
                 <span>
                   <i style={{ background: l.couleur }} aria-hidden="true" />
                   {l.nom}
+                  {/* La séance, parce qu'un horizon ne dit pas quand il a été payé. */}
+                  {l.on && <em className={styles.bulleDate}>{l.n > 1 ? t("{d}, la plus récente de {n}", { d: l.on, n: l.n }) : l.on}</em>}
                 </span>
                 <b>{l.pct.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</b>
               </div>
