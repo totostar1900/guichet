@@ -4,6 +4,7 @@ import { TallTable } from "@/components/desk/TallTable";
 import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
+import { CourbeAjustee } from "@/components/market/CourbeAjustee";
 import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
 import { DateObservation } from "@/components/market/DateObservation";
 import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
@@ -237,6 +238,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    */
   const railSections: SectionRail[] = [
     { id: "courbe", titre: "La courbe des taux", groupe: "Le prix" },
+    { id: "ajustee", titre: "La courbe ajustée", groupe: "Le prix" },
     { id: "points", titre: "Chaque point, et d'où il vient", groupe: "Le prix" },
     { id: "ecarts", titre: "L'écart entre Trésors", groupe: "Le prix" },
     { id: "trous", titre: "Ce qui manque à la courbe", groupe: "Le prix", alerte: courbe.gaps.length },
@@ -365,6 +367,66 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             )}
           </div>
         </Bloc>
+
+        {/* 1 ter. La courbe ajustée. Elle s'ajoute et ne remplace pas : ce qui
+            contrôle un modèle est l'écart entre lui et les points observés, et
+            on ne contrôle pas ce qu'on ne voit plus. */}
+        {tracables.length > 0 && (
+          <Bloc
+            id="ajustee"
+            note={
+              <>
+                <Commentaire registre="methode" titre="Ce que cette courbe fait de plus">
+                  <p>
+                    {t(
+                      "La figure du dessus relie les points observés par des segments. Entre six mois et trois ans, un segment affirme une droite là où la théorie et l'observation donnent une courbe ; et à quatre ans, où personne n'a adjugé, elle ne dit rien. Celle-ci donne un taux à n'importe quelle durée, et dit combien il tient.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Le modèle est celui de Nelson et Siegel, en usage dans les banques centrales : un niveau long, une pente qui s'éteint avec la durée, une courbure et l'endroit où elle se place. À cet endroit fixé, le modèle est linéaire, et l'ajustement se résout exactement par moindres carrés pondérés plutôt que par un optimiseur qui pourrait diverger.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Un point par Trésor et par durée, la séance la plus récente : c'est la lecture retenue par la maison. Sans elle, dix-huit séances gabonaises à trois mois pèseraient dix-huit fois dans l'ajustement et la courbe s'accrocherait au court terme.",
+                    )}
+                  </p>
+                </Commentaire>
+                <Commentaire registre="alerte" titre="Ce qu'une courbe ajustée ne rend pas vrai">
+                  <p>
+                    {t(
+                      "Elle interpole, elle ne crée pas d'observation. Une durée que personne n'a adjugée reste une durée que personne n'a adjugée : le trait y passe en pointillé, la valeur est grisée, et l'intervalle s'élargit. C'est le seul endroit de la page où un chiffre est produit plutôt que lu, et il porte son incertitude avec lui.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Elle est ajustée sur des adjudications du primaire, qui portent une concession d'émission : elle dit ce que le Trésor a payé pour placer, et non où le papier s'échange.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "La courbure empruntée à la zone est une hypothèse assumée : elle suppose que le coût du temps a la même forme pour six signatures d'une même monnaie, et que seuls le niveau et la pente les séparent. C'est ce que l'observation soutient au court terme, où deux Trésors se tiennent à moins de vingt points de base, et non au delà de deux ans, où ils s'écartent de plusieurs centaines.",
+                    )}
+                  </p>
+                </Commentaire>
+              </>
+            }
+          >
+            <div className="panel-h">
+              <h2>{t("La courbe ajustée")}</h2>
+              <span className="muted">{sortie(false, "Un chiffre produit par un modèle ne sort pas du desk sans la lettre de méthodologie qui le décrit.")}</span>
+            </div>
+            <div className={styles.pb}>
+              <CourbeAjustee
+                fenetres={fenetres}
+                observeLe={demandee ? fmtDate(demandee) : undefined}
+                choixDate={<DateObservation ancres={ancres} courant={leJour} />}
+                ariaLabel={t("Courbe des rendements souverains ajustée par le modèle de Nelson-Siegel")}
+              />
+            </div>
+          </Bloc>
+        )}
 
         {/* 2. Chaque point et son origine. Pas de commentaire : c'est une table de
             référence, qu'on interroge et qu'on ne lit pas de haut en bas. */}
