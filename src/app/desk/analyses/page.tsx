@@ -3,6 +3,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { TallTable } from "@/components/desk/TallTable";
 import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
+import { Poignee } from "@/components/desk/Poignee";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
 import { CourbeAjustee } from "@/components/market/CourbeAjustee";
 import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
@@ -316,8 +317,11 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
 
         {/* Douze sections : le rail en donne la carte, et porte le compte de ce
             qui reste ouvert pour qu'on l'apprenne du haut de la page. */}
-        <div className={styles.avecRail}>
+        <div className={`${styles.avecRail} grille-analyses`}>
         <RailAnalyse sections={railSections} />
+        {/* Le rail se règle : une table à six colonnes et un commentaire qu'on
+            rédige ne veulent pas de la place au même moment. */}
+        <Poignee variable="--rail" min={150} max={340} memoire="ana.rail" libelle="Régler la largeur du rail" />
         <div>
         {/* 1. La courbe elle-même. Elle avait sa page ; cette page était la porte
             qu'on ne franchissait pas, et les chiffres qui l'expliquent vivaient
@@ -934,12 +938,13 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
               </div>
             ) : (
             <div className="scroll-x">
-              <table className="tbl">
+              <table className={`tbl ${styles.crible}`}>
                 <thead>
                   <tr>
                     <th>{t("Séance")}</th>
                     <th>{t("Trésor")}</th>
                     <th>{t("Durée")}</th>
+                    <th>{t("Code")}</th>
                     <th>{t("Ce qui se contredit")}</th>
                     <th>{t("Ce qu'il faut vérifier sur la pièce")}</th>
                     <th></th>
@@ -953,6 +958,8 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                       <td>
                         {a.instrument} {a.tenor}
                       </td>
+                      {/* Le code qu'on cherche des yeux, le communiqué à la main. */}
+                      <td className={styles.code}>{a.code ?? "—"}</td>
                       <td className={styles.wrap}>{t(a.quoi.key, a.quoi.params ? Object.fromEntries(Object.entries(a.quoi.params).map(([k, v]) => [k, typeof v === "string" ? t(v) : v])) : undefined)}</td>
                       <td className={styles.wrap}>
                         <span className="muted">{t(a.verifier)}</span>

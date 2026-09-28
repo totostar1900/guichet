@@ -27,6 +27,8 @@ export interface Anomalie {
   pays: AuctionResult["country"];
   instrument: AuctionResult["instrument"];
   tenor: string;
+  /** Le code d'émission : c'est lui qu'on cherche des yeux, le communiqué à la main. */
+  code?: string;
   /**
    * Ce qui se contredit : une clef et ses valeurs, mises en mots par la page.
    *
@@ -130,6 +132,7 @@ function doublons(rows: AuctionResult[]): Anomalie[] {
         pays: r.country,
         instrument: r.instrument,
         tenor: r.tenor,
+        code: r.codeEmission,
         gravite: r.confirmedBy ? "confirmee" : "attente",
         quoi: { key: "{n} enregistrements pour le code {code} et cette même séance", params: { n: l.length, code: r.codeEmission?.trim() ?? "" } },
         verifier: "les deux adresses : la BEAC publie parfois la même pièce deux fois",
@@ -159,6 +162,7 @@ function dureeContreCode(rows: AuctionResult[]): Anomalie[] {
       pays: r.country,
       instrument: r.instrument,
       tenor: r.tenor,
+      code: r.codeEmission,
       gravite: r.confirmedBy ? "confirmee" : "attente",
       quoi: { key: "durée « {d} », mais le préfixe {k} vaut « {attendu} » sur {sur} de ses {total} séances", params: { d, k, attendu: attendu.duree, sur: attendu.sur, total: attendu.total } },
       verifier: "la durée en tête du communiqué, et le code lui-même, qui est parfois le fautif",
@@ -226,7 +230,7 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
   const out: Anomalie[] = [...montantsRepetes(rows), ...doublons(rows), ...dureeContreCode(rows)];
 
   for (const r of rows) {
-    const base = { id: r.id, quand: r.sessionOn, pays: r.country, instrument: r.instrument, tenor: r.tenor, gravite: (r.confirmedBy ? "confirmee" : "attente") as GraviteAnomalie };
+    const base = { id: r.id, quand: r.sessionOn, pays: r.country, instrument: r.instrument, tenor: r.tenor, code: r.codeEmission, gravite: (r.confirmedBy ? "confirmee" : "attente") as GraviteAnomalie };
 
     // Le chiffre retenu hors de la fourchette publiée. Vérifié sur la pièce
     // gabonaise du 7 février 2024 : la lecture est exacte, c'est le Trésor qui

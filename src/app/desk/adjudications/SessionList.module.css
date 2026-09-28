@@ -1,7 +1,10 @@
 .bloc {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  /* C est elle qui cede la place : le panneau des anomalies et le lot gardent
+     leur hauteur, la liste prend ce qui reste et defile en elle-meme. */
+  flex: 1 1 auto;
+  min-height: 120px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);

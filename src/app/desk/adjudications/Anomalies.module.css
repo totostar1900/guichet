@@ -2,6 +2,10 @@
    reste visible, le détail s'ouvre : on relit une séance à la fois, et un
    panneau permanent finit par ne plus se voir. */
 .bloc {
+  /* Dans une colonne a hauteur fixe, tout enfant se laisse ecraser par defaut :
+     la boite disparaissait des que la liste des seances grandissait. Elle ne
+     retrecit plus, c est la liste qui cede et defile. */
+  flex: 0 0 auto;
   margin-bottom: var(--s-5);
   border: 1px solid var(--line-2);
   border-radius: 8px;
@@ -50,7 +54,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 44vh;
+  max-height: min(40vh, 340px);
   overflow-y: auto;
 }
 .liste li + li {

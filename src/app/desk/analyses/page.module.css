@@ -216,8 +216,10 @@
    deux pages était exactement l'endroit où l'on renonçait à vérifier. */
 .avecRail {
   display: grid;
-  grid-template-columns: 212px minmax(0, 1fr);
-  gap: var(--s-9);
+  /* Trois colonnes réglables : le rail, ce qui reste, et le commentaire, dont
+     la largeur est portée par « --note » que chaque section lit par héritage. */
+  grid-template-columns: var(--rail, 212px) auto minmax(0, 1fr);
+  gap: var(--s-6);
   align-items: start;
 }
 /* Chaque section est sa propre rangée : son contenu, et sa note à côté d'elle.
@@ -225,8 +227,8 @@
    lecteur ayant déjà tiré sa conclusion du graphique. */
 .sec {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 332px;
-  gap: var(--s-8);
+  grid-template-columns: minmax(0, 1fr) auto var(--note, 332px);
+  gap: var(--s-6);
   align-items: start;
   margin-bottom: var(--s-7);
 }
@@ -272,4 +274,20 @@
 }
 .figTitre:first-child {
   margin-top: 0;
+}
+
+/* La table du crible porte une colonne de plus, celle du code. Sa police
+   descend à celle du rail : sur un écran de desk, quelques centièmes de rem
+   rendent la largeur d'une colonne sans rien coûter à la lecture. */
+.crible {
+  font-size: 0.77rem;
+}
+.crible th {
+  font-size: 0.62rem;
+}
+/* Un code se lit caractère par caractère : chiffres de même largeur, et pas de
+   retour à la ligne au milieu. */
+.code {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

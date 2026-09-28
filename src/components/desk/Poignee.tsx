@@ -30,6 +30,7 @@ export function Poignee({
   max,
   memoire,
   depuisLaDroite = false,
+  porte,
   libelle,
 }: {
   /** La variable CSS que la grille lit, « --liste » par exemple. */
@@ -40,14 +41,25 @@ export function Poignee({
   memoire: string;
   /** Le volet est à droite de la poignée : sa largeur se mesure depuis le bord droit. */
   depuisLaDroite?: boolean;
+  /**
+   * L'ancêtre qui portera la variable, quand ce n'est pas le parent.
+   *
+   * Une poignée vit parfois dans une rangée qui se répète, alors que la largeur
+   * qu'elle règle vaut pour toute la page. Elle écrit alors plus haut, et les
+   * variables CSS héritant, toutes les rangées suivent d'un coup. La géométrie
+   * reste locale : on mesure sur la rangée qu'on tire.
+   */
+  porte?: string;
   libelle: string;
 }) {
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
+  /** Où la variable se pose : l'ancêtre visé, sinon le parent. */
+  const cible = useCallback(() => (porte ? ref.current?.closest<HTMLElement>(porte) : ref.current?.parentElement) ?? null, [porte]);
 
   const poser = useCallback(
     (px: number) => {
-      const grille = ref.current?.parentElement;
+      const grille = cible();
       if (!grille) return;
       const v = Math.round(Math.min(max, Math.max(min, px)));
       grille.style.setProperty(variable, `${v}px`);
@@ -57,7 +69,7 @@ export function Poignee({
         // navigation privée, stockage refusé : la largeur vaut pour cette visite
       }
     },
-    [variable, min, max, memoire],
+    [variable, min, max, memoire, cible],
   );
 
   // Au montage seulement : la largeur retenue s'applique avant le premier
@@ -65,11 +77,11 @@ export function Poignee({
   useEffect(() => {
     try {
       const s = localStorage.getItem(memoire);
-      if (s && Number.isFinite(Number(s))) ref.current?.parentElement?.style.setProperty(variable, `${Number(s)}px`);
+      if (s && Number.isFinite(Number(s))) cible()?.style.setProperty(variable, `${Number(s)}px`);
     } catch {
       // idem
     }
-  }, [variable, memoire]);
+  }, [variable, memoire, cible]);
 
   const largeur = (clientX: number) => {
     const grille = ref.current?.parentElement?.getBoundingClientRect();
@@ -103,7 +115,7 @@ export function Poignee({
         // n'est pas une commande, c'est un ornement.
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
         e.preventDefault();
-        const grille = ref.current?.parentElement;
+        const grille = cible();
         const actuel = parseInt(grille?.style.getPropertyValue(variable) || "", 10);
         const base = Number.isFinite(actuel) ? actuel : (min + max) / 2;
         const pas = e.key === "ArrowRight" ? 16 : -16;

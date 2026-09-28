@@ -382,6 +382,8 @@ export const EN_ANALYSES: Record<string, string> = {
   "taux moyen {a} au-dessus du taux limite {b}": "average rate {a} above the cut-off rate {b}",
   "{n} enregistrements pour le code {code} et cette même séance": "{n} records for code {code} on this same session",
   "durée « {d} », mais le préfixe {k} vaut « {attendu} » sur {sur} de ses {total} séances": "maturity “{d}”, but prefix {k} means “{attendu}” on {sur} of its {total} sessions",
+  "Régler la largeur du rail": "Adjust the rail width",
+  "Régler la largeur du commentaire": "Adjust the commentary width",
   "séance datée du 1er janvier": "session dated 1 January",
   "l'instrument de la séance, ou la colonne lue": "the session's instrument, or the column read",
   "la colonne d'où vient le chiffre retenu, et celles des deux bornes": "the column the retained figure came from, and those of the two bounds",
