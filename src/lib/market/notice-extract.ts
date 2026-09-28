@@ -47,6 +47,8 @@ Règles :
 - Les montants : donne le nombre tel qu'il est imprimé, et indique séparément l'unité annoncée par le document. « Volume d'émission (en millions de FCFA) : 15 000 » donne issueVolume 15000 et amountsUnit « millions ». Ne convertis pas.
 - La valeur nominale unitaire est presque toujours imprimée en francs (10 000) et non en millions : c'est un champ à part, nominalUnit, et son unité est le franc.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
+- Sur certains scans, la colonne des libellés et celle des valeurs ne sont pas alignées : une valeur peut se trouver une ligne plus haut ou plus bas que son libellé. Apparie par le sens et non par la position. Trois repères sûrs : une valeur nominale unitaire vaut 1 000 000 F pour un bon et 10 000 F pour une obligation ; un volume d'émission est beaucoup plus grand qu'un nominal unitaire ; et « Forme des titres » vaut toujours quelque chose comme « Titres dématérialisés ». Si l'appariement ligne à ligne contredit ces repères, c'est que les colonnes ont glissé : signale-le dans remarks.
+- Pour un bon du Trésor, il n'y a pas de coupon : la ligne « Rendement » y dit que les intérêts sont précomptés. Laisse couponRate à null plutôt que d'y mettre un nombre voisin.
 - Signale dans remarks tout ce qui gênerait une relecture : champ illisible, tampon, mention de remboursement absente, plusieurs lignes dans le même avis, date incohérente.`;
 
 const Lecture = z.object({
@@ -151,6 +153,22 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
     );
   }
 
+  /**
+   * Un volume d'émission se compte en milliers de titres, au minimum.
+   *
+   * Le contrôle ne dépend pas du lecteur, et c'est tout son intérêt : sur un
+   * scan dont les colonnes glissent, l'appariement peut être faux sans que rien
+   * dans les nombres eux-mêmes ne détonne. Le rapport des deux, lui, détonne :
+   * l'avis camerounais du 4 août 2021 donnait soixante-six titres, ce qui n'est
+   * pas une adjudication mais une paire de champs échangés.
+   */
+  const volume = toFrancs(out.issueVolume, out.amountsUnit);
+  if (volume != null && nominalUnit != null && nominalUnit > 0 && volume / nominalUnit < 1_000) {
+    remarks.unshift(
+      `Volume d'émission de ${volume.toLocaleString("fr-FR")} F pour un nominal unitaire de ${nominalUnit.toLocaleString("fr-FR")} F, soit ${Math.round(volume / nominalUnit).toLocaleString("fr-FR")} titres : les deux champs sont probablement échangés, les colonnes du scan ayant glissé.`,
+    );
+  }
+
   if (out.redemption == null) remarks.unshift("Aucune mention de remboursement lue sur l'avis : c'est pourtant ce que ce document est seul à porter.");
 
   return {
@@ -163,7 +181,7 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
       couponRate,
       redemption: nn(out.redemption)?.trim(),
       nominalUnit,
-      issueVolume: toFrancs(out.issueVolume, out.amountsUnit),
+      issueVolume: volume,
       settleOn: isoDate(out.settleOn),
       abondement: nn(out.abondement) ?? undefined,
     },

@@ -125,9 +125,18 @@ export async function GET(req: NextRequest) {
 
   if (avis) {
     const tous = await r.listEmissionNotices({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
+    /**
+     * « avis=<id> » : relire cette pièce-là, et elle seule.
+     *
+     * « retente=1 » rouvre toute la file, ce qui est l'outil d'une reprise et
+     * non d'une vérification. Quand une consigne de lecture vient de changer, on
+     * veut la voir agir sur la pièce qui l'a motivée, sans repasser deux cents
+     * documents ni attendre son tour dans une file triée par date.
+     */
+    const seul = p.get("avis");
     // Un avis est « à lire » quand il a sa pièce et pas encore sa marque.
     const fileAvis = tous
-      .filter((x) => Boolean(x.fileKey) && (retente || !x.readAt))
+      .filter((x) => Boolean(x.fileKey) && (seul ? x.id === seul : retente || !x.readAt))
       .sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
     const paquetAvis = fileAvis.slice(0, n);
     const faitsAvis: string[] = [];
