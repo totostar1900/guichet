@@ -4,8 +4,10 @@ import { Poignee } from "@/components/desk/Poignee";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { etatSeance, thin } from "@/lib/market/auction-results";
+import { confirmable, etatSeance, thin } from "@/lib/market/auction-results";
+import { auctionYield } from "@/lib/market/yield";
 import { auctionReadingAvailable } from "@/lib/market/auction-extract";
+import { ConfirmerEnLot } from "./ConfirmerEnLot";
 import { ResultForm } from "./ResultForm";
 import { SessionList, type LigneSeance } from "./SessionList";
 import styles from "./page.module.css";
@@ -51,6 +53,20 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
   }));
   const offer = selected?.offerId ? await r.getOffer(selected.offerId) : undefined;
 
+  /**
+   * Ce que le lot signerait vraiment, compté avant de l'annoncer.
+   *
+   * Recevables, parce qu'une séance sans chiffre ni code sera refusée et ne
+   * doit pas gonfler le nombre du bouton. Muettes, parce qu'une fourchette se
+   * signe et ne donne aucun rendement. Et les points de courbe, qui sont la
+   * seule raison de signer : une ligne, un point, l'échéance faisant foi.
+   */
+  const lotBta = aRelire.filter((x) => x.instrument === "BTA" && !confirmable(x) && x.codeEmission);
+  const avecRdt = lotBta.filter((x) => auctionYield(x));
+  const cle = (x: (typeof all)[number]) => `${x.country}|${x.maturityOn ?? x.tenor}`;
+  const deja = new Set(relues.filter((x) => auctionYield(x)).map(cle));
+  const pointsGagnes = new Set(avecRdt.map(cle).filter((k) => !deja.has(k))).size;
+
   return (
     <>
       <DeskNav current="/desk/adjudications" badges={{ "/desk/adjudications": aRelire.length }} />
@@ -61,6 +77,7 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
             {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
             <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
           </p>
+          <ConfirmerEnLot instrument="BTA" enAttente={lotBta.length} muettes={lotBta.length - avecRdt.length} pointsGagnes={pointsGagnes} />
           <SessionList rows={lignes} current={selected?.id} />
         </aside>
 

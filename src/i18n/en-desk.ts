@@ -1,6 +1,18 @@
 /** English for the client journeys (fiche, intention, login, my space, info) and the desk. Keyed by the French text. */
 export const EN_MORE: Record<string, string> = {
   /* ---------- fiche ---------- */
+  "{n} séances {i} attendent une signature.": "{n} {i} sessions are waiting for a signature.",
+  "Les confirmer ajoute {p} point(s) à la courbe.": "Confirming them adds {p} point(s) to the curve.",
+  "Aucune n'ajoutera de point à la courbe.": "None of them will add a point to the curve.",
+  "Confirmer les {n} {i}": "Confirm the {n} {i}",
+  "Signer {n} séances d'un coup": "Signing {n} sessions at once",
+  "{n} séances passent de « à relire » à « relue », sous votre nom.": "{n} sessions move from “to review” to “reviewed”, under your name.",
+  "À partir de là, leurs taux fondent les indications du desk et entrent dans la courbe.": "From then on, their rates underpin the desk's indications and enter the curve.",
+  "{n} d'entre elles ne publient qu'une fourchette : elles seront signées et ne donneront aucun rendement.": "{n} of them publish only a range: they will be signed and will yield nothing.",
+  "Toutes donnent un rendement calculable.": "All of them give a computable yield.",
+  "Chaque séance écrit son entrée au journal d'audit, comme une confirmation unitaire.": "Each session writes its own audit log entry, exactly as a single confirmation does.",
+  "Une séance signée par erreur se rouvre séance par séance, depuis sa fiche.": "A session signed by mistake is reopened one at a time, from its own record.",
+  "Signer les {n}": "Sign the {n}",
   "Toutes les offres": "All offers",
   "exemple": "example",
   "Fiche PDF": "PDF sheet",

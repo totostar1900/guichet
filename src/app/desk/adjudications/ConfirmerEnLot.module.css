@@ -1,0 +1,27 @@
+/* Le lot vit au-dessus de la liste, là où l'on voit la file et pas une séance. */
+.lot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  margin-bottom: var(--s-5);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.quoi {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.erreur {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--crit-ink, #b91c1c);
+}
+.fait {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+}

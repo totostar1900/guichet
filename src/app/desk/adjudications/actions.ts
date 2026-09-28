@@ -7,6 +7,7 @@ import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import { confirmable, millions, type NewAuctionResult } from "@/lib/market/auction-results";
 import { auctionReadingAvailable, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
+import { auctionYield } from "@/lib/market/yield";
 import { readSource } from "@/lib/intake/storage";
 
 export interface ResultOutcome {
@@ -154,6 +155,66 @@ export async function confirmResultAction(_prev: ResultOutcome | null, form: For
   revalidatePath("/desk/adjudications");
   revalidatePath("/desk/a-valider");
   return { ok: true, message: "Séance confirmée : elle sert maintenant de référence." };
+}
+
+/**
+ * Confirme toute une file, par le même chemin qu'une séance seule.
+ *
+ * La session du desk est exigée comme ailleurs, la recevabilité est vérifiée
+ * séance par séance, et chaque confirmation écrit son entrée au journal sous le
+ * nom du signataire. Seul le nombre de clics change.
+ *
+ * Une séance irrecevable est comptée et nommée, elle n'annule pas les autres.
+ */
+export async function confirmBatchAction(_prev: ResultOutcome | null, form: FormData): Promise<ResultOutcome> {
+  const desk = await requireDesk("/desk/adjudications");
+  const instrument = String(form.get("instrument") ?? "");
+  if (instrument !== "BTA" && instrument !== "OTA") return { ok: false, error: "Instrument inconnu." };
+  const pays = String(form.get("pays") ?? "");
+
+  const r = repo();
+  const attente = (await r.listAuctionResults({ limit: 1000 })).filter(
+    (x) => !x.confirmedBy && x.instrument === instrument && (!pays || x.country === pays),
+  );
+
+  let signees = 0;
+  let muettes = 0;
+  const refusees: string[] = [];
+  for (const avant of attente) {
+    const manque = confirmable(avant) ?? (avant.codeEmission ? null : "le code d'émission");
+    if (manque) {
+      refusees.push(`${avant.country} ${avant.sessionOn}`);
+      continue;
+    }
+    const after = await r.updateAuctionResult(avant.id, { confirmedBy: desk.name, confirmedAt: new Date().toISOString() });
+    if (!auctionYield(after)) muettes += 1;
+    signees += 1;
+    /* Une entrée par séance : un lot ne doit pas laisser une trace plus pauvre
+       qu'un geste unitaire, sans quoi la relecture en lot serait un moyen de
+       signer moins visiblement. */
+    await audit("auction.confirm", "auction_result", after.id, {
+      before: { confirmedBy: null },
+      after: { confirmedBy: desk.name, rateAvg: after.rateAvg ?? null, priceAvg: after.priceAvg ?? null },
+      reason: `Confirmation en lot : ${after.country}, ${after.instrument} ${after.tenor}, séance du ${after.sessionOn}`,
+    });
+  }
+
+  if (signees) {
+    await r.logEvent({
+      kind: "desk",
+      html: `<b>${signees} séance(s) ${instrument}</b> confirmées en lot par ${desk.name}${pays ? ` (${pays})` : ""}${muettes ? ` · ${muettes} ne donnent pas de rendement` : ""}`,
+    });
+  }
+  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/analyses");
+  if (!signees) return { ok: false, error: refusees.length ? `Aucune séance signée : ${refusees.length} irrecevable(s).` : "Aucune séance en attente pour ce choix." };
+  return {
+    ok: true,
+    message:
+      `${signees} séance(s) confirmées.` +
+      (muettes ? ` ${muettes} ne publient qu'une fourchette et ne donneront aucun rendement.` : "") +
+      (refusees.length ? ` ${refusees.length} écartée(s), faute de chiffre ou de code : ${refusees.slice(0, 4).join(", ")}${refusees.length > 4 ? "…" : ""}.` : ""),
+  };
 }
 
 /** Défait la confirmation, quand la relecture s'est trompée de colonne. */
