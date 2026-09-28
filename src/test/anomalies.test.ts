@@ -161,6 +161,39 @@ describe("le rendement imprimé contre le prix imprimé", () => {
     expect(a.verifier).toContain("taux de rendement");
   });
 
+  /**
+   * La convention du Trésor n'est pas une contradiction de la pièce.
+   *
+   * Le Trésor camerounais actualise son rendement imprimé sur la durée
+   * annoncée et non sur ce qu'il reste à courir : son 3 ans du 21 août 2019, à
+   * deux ans et neuf mois du terme, donne 4,365 % sur trois ans pleins, et il
+   * imprime 4,36 %. Sans cet essai, chacun de ses abondements serait signalé
+   * pour rien, et un panneau qui crie sans motif cesse d'être lu.
+   */
+  it("se tait quand la durée annoncée explique le chiffre du Trésor", () => {
+    expect(
+      anomalies([
+        s({ id: "cm19", country: "Cameroun", instrument: "OTA", tenor: "3 ans", sessionOn: "2019-08-21", maturityOn: "2022-05-24", priceAvgFcfa: 9899.45, couponRate: 4, yieldAvg: 4.36 }),
+      ]),
+    ).toHaveLength(0);
+  });
+
+  /**
+   * Ce qu'aucune convention n'explique reste signalé.
+   *
+   * Le 16 juin 2021, la pièce imprime « Prix d'intérêt moyen pondéré 99,17 % »
+   * et « Taux de rendement 7,17 % », là où ce prix et ce coupon en donnent
+   * 6,17 sur six ans pleins comme sur la vie restante. Notre lecture est exacte,
+   * vérifiée sur le scan : la contradiction appartient au Trésor.
+   */
+  it("signale ce que ni l'une ni l'autre convention n'explique", () => {
+    const [a] = anomalies([
+      s({ id: "cm21", country: "Cameroun", instrument: "OTA", tenor: "6 ans", sessionOn: "2021-06-16", maturityOn: "2027-06-18", priceAvg: 99.17, couponRate: 6, yieldAvg: 7.17 }),
+    ]);
+    expect(a.quoi.key).toContain("rendement imprimé");
+    expect(a.quoi.params!.bp).toBeGreaterThan(90);
+  });
+
   it("se tait sur un écart d'arrondi, qui n'apprend rien à personne", () => {
     // Cameroun, 14 septembre 2026, 4 ans : imprimé 7,68 %, calculé 7,68 %.
     expect(

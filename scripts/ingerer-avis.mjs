@@ -25,12 +25,20 @@ const arg = (n) => {
   return i > 0 ? process.argv[i + 1] : undefined;
 };
 
-/** Le repli d'accents de storageKey(), pour écrire la pièce là où le dépôt la relira. */
-const replie = (s) =>
+/**
+ * La règle de storageKey(), recopiée au caractère près.
+ *
+ * Recopiée et non importée : son module porte « server-only » et refuse de se
+ * charger hors de Next. Une première version de cette copie ne remplaçait que
+ * les caractères non ASCII, un par un, et déposait dix-sept avis de Guinée
+ * équatoriale là où l'application ne serait jamais allée les chercher. Le
+ * cliquet src/test/storage-key.test.ts compare désormais les deux.
+ */
+const storageKey = (s) =>
   s
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\x20-\x7e]/g, "-");
+    .replace(/[^a-zA-Z0-9._\-/]+/g, "-");
 
 const res = await fetch(BEAC_ANNONCES, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0; +https://guichet.purposecapital.africa)" } });
 if (!res.ok) {
@@ -55,7 +63,7 @@ for (const a of avis) {
     const pdf = await fetch(a.doc.url, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0)" } }).catch(() => null);
     if (pdf?.ok) {
       const key = `beac/${a.on}-annonce-${a.country}-${(a.tenor ?? "").replace(/\s+/g, "")}-${a.doc.url.split("/").pop()}`.slice(0, 200);
-      const up = await fetch(`${U}/storage/v1/object/sources/${replie(key)}`, {
+      const up = await fetch(`${U}/storage/v1/object/sources/${storageKey(key)}`, {
         method: "POST",
         headers: { apikey: K, Authorization: `Bearer ${K}`, "Content-Type": "application/pdf", "x-upsert": "true" },
         body: Buffer.from(await pdf.arrayBuffer()),
@@ -97,7 +105,7 @@ console.log(`\n${tous.filter((x) => x.fileKey && !x.readAt).length} avis à lire
 
 for (const x of file) {
   try {
-    const obj = await fetch(`${U}/storage/v1/object/sources/${replie(x.fileKey)}`, { headers: { apikey: K, Authorization: `Bearer ${K}` } });
+    const obj = await fetch(`${U}/storage/v1/object/sources/${storageKey(x.fileKey)}`, { headers: { apikey: K, Authorization: `Bearer ${K}` } });
     if (!obj.ok) throw new Error(`dépôt ${obj.status}`);
     const b64 = Buffer.from(await obj.arrayBuffer()).toString("base64");
     const hint = `Avis pour la séance du ${x.sessionOn}, ${x.instrument}${x.tenor ? ` ${x.tenor}` : ""}, ${x.country}.`;

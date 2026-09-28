@@ -203,6 +203,25 @@ describe("le prix", () => {
   it("préfère un pourcentage imprimé à une conversion", () => {
     expect(priceOf({ priceAvg: 95, priceAvgFcfa: 9899.45 })).toEqual({ pct: 95 });
   });
+
+  /**
+   * Un moyen pondéré reste un moyen pondéré, même écrit en francs.
+   *
+   * L'ordre est un ordre de confiance : la moyenne de ce qui a été servi passe
+   * devant la borne à laquelle le Trésor a arrêté l'adjudication. Lire le
+   * moyen en francs après le limite en pourcentage revenait à préférer une
+   * borne à une moyenne pour une raison de mise en page. Sur la séance
+   * camerounaise du 21 août 2019, cela valait quarante points de base.
+   */
+  it("fait passer le moyen pondéré en francs devant le prix limite", () => {
+    const p = priceOf({ priceLimit: 98, priceAvgFcfa: 9899.45 });
+    expect(p!.pct).toBeCloseTo(98.9945, 4);
+    expect(p!.assumed!.key).toContain("converti");
+  });
+
+  it("dit qu'il s'est rabattu sur le limite quand il n'a que lui", () => {
+    expect(priceOf({ priceLimit: 98 })!.assumed!.key).toContain("faute de prix moyen pondéré");
+  });
 });
 
 describe("le rendement d'une séance", () => {

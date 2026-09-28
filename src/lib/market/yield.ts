@@ -235,14 +235,26 @@ export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "pric
   if (horsBornes && r.priceLimit != null) {
     return { pct: r.priceLimit, assumed: { key: "prix limite retenu : le prix moyen publié dépasse le maximum proposé et inclut donc le coupon couru" } };
   }
-  const direct = horsBornes ? r.priceLimit : (r.priceAvg ?? r.priceLimit);
-  if (direct != null) return { pct: direct };
+  if (horsBornes) return r.priceLimit != null ? { pct: r.priceLimit } : undefined;
+
+  /**
+   * L'ordre est un ordre de confiance, et l'unité n'y entre pas.
+   *
+   * Le moyen pondéré est la moyenne de ce qui a été servi ; le limite n'est que
+   * la borne à laquelle le Trésor a arrêté l'adjudication. Le second ne sert
+   * qu'à défaut du premier, ce que les hypothèses disent déjà en toutes lettres
+   * ailleurs. Le Trésor camerounais écrivant parfois son moyen pondéré en francs
+   * par titre, le lire après le prix limite revenait à préférer une borne à une
+   * moyenne pour une raison de mise en page.
+   */
+  if (r.priceAvg != null) return { pct: r.priceAvg };
   if (r.priceAvgFcfa != null) {
     return {
       pct: (r.priceAvgFcfa / VN_OTA) * 100,
       assumed: { key: "prix converti depuis {f} F par titre, sur une valeur nominale de {vn} F", params: { f: r.priceAvgFcfa.toLocaleString("fr-FR"), vn: VN_OTA.toLocaleString("fr-FR") } },
     };
   }
+  if (r.priceLimit != null) return { pct: r.priceLimit, assumed: { key: "prix limite retenu, faute de prix moyen pondéré" } };
   return undefined;
 }
 

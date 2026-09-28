@@ -17,12 +17,18 @@ const U = v("NEXT_PUBLIC_SUPABASE_URL");
 const K = v("SUPABASE_SERVICE_ROLE_KEY");
 const h = { apikey: K, Authorization: `Bearer ${K}` };
 
-/** Le repli d'accents de storageKey(). */
-const replie = (s) =>
+/**
+ * La règle de storageKey(), recopiée au caractère près.
+ *
+ * Recopiée et non importée : son module porte « server-only ». Le cliquet
+ * src/test/storage-key.test.ts compare les deux sur les chaînes qui les
+ * sépareraient, « Guinée éq. » en tête.
+ */
+const storageKey = (s) =>
   s
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\x20-\x7e]/g, "-");
+    .replace(/[^a-zA-Z0-9._\-/]+/g, "-");
 
 const out = "C:/Users/Nitch/AppData/Local/Temp/claude/C--Users-Nitch-OneDrive---PURPOSE-CAPITAL-MyChamaProject/019a269f-b7b0-4c63-adce-cddb7ad5ce48/scratchpad/verif";
 fs.mkdirSync(out, { recursive: true });
@@ -33,7 +39,7 @@ for (const id of process.argv.slice(2)) {
     console.log(`${id} : aucune pièce`);
     continue;
   }
-  let res = await fetch(`${U}/storage/v1/object/sources/${replie(r.file_key)}`, { headers: h });
+  let res = await fetch(`${U}/storage/v1/object/sources/${storageKey(r.file_key)}`, { headers: h });
   if (!res.ok) res = await fetch(`${U}/storage/v1/object/sources/${r.file_key}`, { headers: h });
   if (!res.ok) {
     console.log(`${id} : dépôt ${res.status} pour ${r.file_key}`);

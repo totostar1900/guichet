@@ -1,5 +1,5 @@
 import type { AuctionResult } from "./auction-results";
-import { priceOf, vieRestante, ytm } from "./yield";
+import { priceOf, tenorYears, vieRestante, ytm } from "./yield";
 
 /**
  * Ce que la table attrape et qu'un formulaire ne montre pas.
@@ -198,8 +198,23 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
       const p = priceOf(r);
       const vie = vieRestante(r);
       const calcule = p && vie ? ytm(p.pct, r.couponRate, vie.years) : undefined;
-      const bp = calcule == null ? 0 : Math.round((calcule - r.yieldAvg) * 100);
-      if (p && calcule != null && Math.abs(bp) > 15) {
+      /**
+       * La convention du Trésor, essayée avant de crier.
+       *
+       * Le Trésor camerounais actualise sur la durée annoncée et non sur ce
+       * qu'il reste à courir : son 3 ans du 21 août 2019, à deux ans et neuf
+       * mois du terme, donne 4,365 % sur trois ans pleins, et il imprime 4,36 %.
+       * Sans cet essai, chacun de ses abondements serait signalé pour rien, et
+       * un panneau qui crie sans motif cesse d'être lu.
+       */
+      const annonce = tenorYears(r.tenor);
+      const surEtiquette = p && annonce != null ? ytm(p.pct, r.couponRate, annonce) : undefined;
+      const ecart = (x: number | undefined) => (x == null ? undefined : Math.round((x - r.yieldAvg!) * 100));
+      const bpVie = ecart(calcule);
+      const bpEtiquette = ecart(surEtiquette);
+      const explique = [bpVie, bpEtiquette].some((x) => x != null && Math.abs(x) <= 15);
+      const bp = bpVie ?? 0;
+      if (p && calcule != null && !explique) {
         out.push({
           ...base,
           quoi: {
