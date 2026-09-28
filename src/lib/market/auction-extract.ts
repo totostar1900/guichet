@@ -146,12 +146,24 @@ export const ordonner = (min: number | undefined, max: number | undefined, quoi:
    * la ranger sous le libellé de la convention détruirait le seul signal qui
    * permettait de l'attraper.
    */
+  if (quoi === "prix") {
+    remarks.unshift(
+      `La pièce nomme ses bornes du côté de l'émetteur : son prix « maximum » de ${max} est le plus coûteux pour lui, donc le plus bas, et son « minimum » de ${min} le plus haut. Les deux nombres sont ceux de la pièce ; ils ont été rangés par leur valeur.`,
+    );
+    return [max, min];
+  }
+  /**
+   * Un taux inversé ne se range pas : on refuse de deviner.
+   *
+   * Ranger rendrait la faute plausible, et le desk confirmerait une fourchette
+   * bien ordonnée sans rouvrir la pièce. Les deux nombres partent dans la
+   * remarque, les champs restent vides, et une personne les replace. C'est la
+   * règle déjà appliquée ici au zéro qui n'est pas un taux.
+   */
   remarks.unshift(
-    quoi === "prix"
-      ? `La pièce nomme ses bornes du côté de l'émetteur : son prix « maximum » de ${max} est le plus coûteux pour lui, donc le plus bas, et son « minimum » de ${min} le plus haut. Les deux nombres sont ceux de la pièce ; ils ont été rangés par leur valeur.`
-      : `Le taux « minimum » lu vaut ${min} et le « maximum » ${max}. Pour un taux, les deux façons de nommer coïncident : le plus haut est à la fois le plus grand nombre et le plus coûteux pour l'émetteur. Ce n'est donc pas une convention mais probablement une erreur de lecture : rouvrez la pièce avant de confirmer.`,
+    `Le taux « minimum » lu vaut ${min} et le « maximum » ${max}, ce qui est impossible : pour un taux, le plus haut est à la fois le plus grand nombre et le plus coûteux pour l'émetteur, et les deux façons de nommer coïncident. Ce n'est pas une convention mais une erreur de lecture. Les deux champs restent vides : rouvrez la pièce et saisissez-les.`,
   );
-  return [max, min];
+  return [undefined, undefined];
 };
 export const auctionReadingAvailable = (): boolean => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 

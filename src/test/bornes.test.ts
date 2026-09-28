@@ -50,14 +50,16 @@ describe("les deux bornes d'une séance", () => {
       expect(remarques[0]).toContain("du côté de l'émetteur");
     });
 
-    it("n'invoque jamais la convention pour un taux, qui n'en a pas", () => {
+    it("refuse de ranger un taux inversé, et laisse les champs vides", () => {
       /* Pour un taux, les deux façons de nommer coïncident : une inversion est
-         une faute de lecture, et la ranger sous le libellé de la convention
-         détruirait le seul signal qui permettait de l'attraper. */
+         une faute de lecture. La ranger la rendrait plausible, et le desk
+         confirmerait une fourchette bien ordonnée sans rouvrir la pièce. */
       const remarques: string[] = [];
-      expect(ordonner(7.2, 6.4, "taux", remarques)).toEqual([6.4, 7.2]);
+      expect(ordonner(7.2, 6.4, "taux", remarques)).toEqual([undefined, undefined]);
       expect(remarques[0]).not.toContain("du côté de l'émetteur");
       expect(remarques[0]).toContain("erreur de lecture");
+      expect(remarques[0]).toContain("7.2");
+      expect(remarques[0]).toContain("6.4");
     });
 
     it("ne dit rien quand il n'y a rien à dire", () => {
