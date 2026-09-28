@@ -79,7 +79,25 @@ export interface Fenetre {
   pays: CourbePays[];
 }
 
-export function CourbeInteractive({ fenetres, ariaLabel }: { fenetres: Fenetre[]; ariaLabel: string }) {
+export function CourbeInteractive({
+  fenetres,
+  ariaLabel,
+  aujourdhui,
+  observeLe,
+  choixDate,
+}: {
+  fenetres: Fenetre[];
+  ariaLabel: string;
+  /**
+   * La courbe du jour, quand on en regarde une passée : elle est tracée en
+   * filigrane derrière, parce qu'une courbe passée seule ne dit rien. Dix pour
+   * cent à trois ans en 2023 n'est ni cher ni bon marché tant qu'on ignore ce
+   * que c'est aujourd'hui.
+   */
+  aujourdhui?: CourbePays[];
+  observeLe?: string;
+  choixDate?: React.ReactNode;
+}) {
   const t = useT();
   /**
    * La profondeur par défaut est la plus courte qui montre déjà tout.
@@ -236,6 +254,8 @@ export function CourbeInteractive({ fenetres, ariaLabel }: { fenetres: Fenetre[]
           </div>
         </div>
 
+        {choixDate}
+
         <div className={styles.grp}>
           <span className={styles.etiq} id="courbe-profondeur">
             {t("Profondeur")}
@@ -252,6 +272,7 @@ export function CourbeInteractive({ fenetres, ariaLabel }: { fenetres: Fenetre[]
         {/* L'âge du plus vieux point, en clair : une courbe datée doit avoir l'air datée. */}
         {vieux > 0 && (
           <p className={`${styles.age} ${vieux > 90 ? styles.ageVieux : ""}`}>
+            {observeLe ? `${t("au {d}", { d: observeLe })} · ` : ""}
             {t("point le plus ancien : {n} jours", { n: vieux })}
           </p>
         )}
@@ -286,6 +307,23 @@ export function CourbeInteractive({ fenetres, ariaLabel }: { fenetres: Fenetre[]
           <path d={`M${P.l} ${P.t}V${H - P.b}H${W - P.r}`} className={styles.axe} />
 
           {survol && <line x1={survol.x} y1={P.t} x2={survol.x} y2={H - P.b} className={styles.suivi} />}
+
+          {/* Le présent en filigrane : un repère, pas une série qu'on lit. */}
+          {aujourdhui?.map((c) => {
+            const pts = choix === "tous" || choix === c.pays ? c.points : [];
+            if (pts.length < 2) return null;
+            return (
+              <polyline
+                key={`fantome-${c.pays}`}
+                points={pts.map((p) => `${X(p.annees)},${Y(p.pct)}`).join(" ")}
+                fill="none"
+                stroke={COUNTRY_COLOR[c.pays]}
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                opacity={0.3}
+              />
+            );
+          })}
 
           {series.map((se) => (
             <g key={se.nom}>
@@ -345,6 +383,12 @@ export function CourbeInteractive({ fenetres, ariaLabel }: { fenetres: Fenetre[]
           <i className={styles.creux} aria-hidden="true" />
           {t("séance mince : tracée, non représentative")}
         </span>
+        {aujourdhui && aujourdhui.length > 0 && (
+          <span className="muted">
+            <i className={styles.fantome} aria-hidden="true" />
+            {t("la courbe d'aujourd'hui, pour repère")}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
 import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
+import { DateObservation } from "@/components/market/DateObservation";
 import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
 import { PressionDemande } from "@/components/market/PressionDemande";
 import { PointsCourbe } from "@/components/market/PointsCourbe";
@@ -43,9 +44,10 @@ const AN = 365;
  * relues n'est pas fausse, elle est fragile, et la différence entre les deux
  * se perd exactement au moment où on la copie dans une note.
  */
-export default async function AnalysesPage() {
+export default async function AnalysesPage({ searchParams }: { searchParams: Promise<{ le?: string }> }) {
   await requireDesk("/desk/analyses");
   const t = await getT();
+  const sp = await searchParams;
   const r = repo();
   // Deux ans de cotations : assez pour qu'une ligne dormante se voie, et le
   // calcul part d'une date et non d'un horodatage, que la règle de pureté
@@ -61,7 +63,33 @@ export default async function AnalysesPage() {
   ]);
 
   const relues = seances.filter((s) => s.confirmedBy);
-  const courbe = buildCurve(seances, { windowDays: AN });
+  /**
+   * La date d'observation : aujourd'hui, ou celle que l'adresse demande.
+   *
+   * Elle est validée plutôt que crue : une chaîne venue d'une adresse ne se
+   * transmet pas telle quelle à un calcul, et une date future n'aurait pas de
+   * sens pour une courbe.
+   */
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  const demandee = sp.le && /^\d{4}-\d{2}-\d{2}$/.test(sp.le) && sp.le < aujourdHui ? sp.le : undefined;
+  const leJour = demandee ?? aujourdHui;
+  /** Les reculs qu'un desk demande : le trimestre, l'année, puis les années pleines. */
+  const recul = (mois: number) => {
+    const d = new Date(aujourdHui);
+    d.setMonth(d.getMonth() - mois);
+    return d.toISOString().slice(0, 10);
+  };
+  const ancres = [
+    { cle: "aujourdhui", mot: t("Aujourd'hui"), le: aujourdHui },
+    { cle: "m3", mot: t("il y a 3 mois"), le: recul(3) },
+    { cle: "m6", mot: t("il y a 6 mois"), le: recul(6) },
+    { cle: "a1", mot: t("il y a 1 an"), le: recul(12) },
+    { cle: "a2", mot: t("il y a 2 ans"), le: recul(24) },
+    { cle: "a3", mot: t("il y a 3 ans"), le: recul(36) },
+    { cle: "a5", mot: t("il y a 5 ans"), le: recul(60) },
+  ];
+
+  const courbe = buildCurve(seances, { windowDays: AN, on: leJour });
   const tracables = courbe.countries.filter((c) => c.points.length >= MIN_POINTS);
   const pression = pressureByYear(relues);
   const programme = programByYear(relues);
@@ -128,6 +156,8 @@ export default async function AnalysesPage() {
       }),
     }));
   const pourLaCourbe = habiller(tracables);
+  /** La courbe du jour, tracée en filigrane derrière une courbe passée. */
+  const courbeDuJour = demandee ? habiller(buildCurve(seances, { windowDays: 90 }).countries.filter((c) => c.points.length >= MIN_POINTS)) : undefined;
 
   /**
    * Quatre profondeurs, construites une fois.
@@ -150,7 +180,7 @@ export default async function AnalysesPage() {
     { jours: 1825, mot: t("5 ans") },
   ].map((f) => ({
     ...f,
-    pays: habiller(buildCurve(seances, { windowDays: f.jours }).countries.filter((c) => c.points.length >= MIN_POINTS)),
+    pays: habiller(buildCurve(seances, { windowDays: f.jours, on: leJour }).countries.filter((c) => c.points.length >= MIN_POINTS)),
   }));
   /** Un Trésor qui ne porte qu'un point : au tableau, pas sur le tracé. */
   const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
@@ -291,7 +321,13 @@ export default async function AnalysesPage() {
           </div>
           <div className={styles.pb}>
             {tracables.length ? (
-              <CourbeInteractive fenetres={fenetres} ariaLabel={t("Courbe des rendements souverains de la CEMAC par durée")} />
+              <CourbeInteractive
+                fenetres={fenetres}
+                aujourdhui={courbeDuJour}
+                observeLe={demandee ? fmtDate(demandee) : undefined}
+                choixDate={<DateObservation ancres={ancres} courant={leJour} />}
+                ariaLabel={t("Courbe des rendements souverains de la CEMAC par durée")}
+              />
             ) : (
               <div className="empty">{t("Pas encore deux durées relues pour un même Trésor sur l'année écoulée.")}</div>
             )}

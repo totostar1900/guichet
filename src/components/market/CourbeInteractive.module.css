@@ -177,3 +177,13 @@
   color: var(--crit-ink, #b91c1c);
   font-weight: 700;
 }
+
+/* Le filigrane du présent : un repère derrière la courbe passée. */
+.fantome {
+  width: 16px !important;
+  height: 0 !important;
+  border-top: 2px dashed var(--ink-3);
+  background: none !important;
+  opacity: 0.6;
+  vertical-align: 2px !important;
+}
