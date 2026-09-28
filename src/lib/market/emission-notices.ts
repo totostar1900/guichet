@@ -61,6 +61,17 @@ export interface EmissionNotice {
 export type NewEmissionNotice = Omit<EmissionNotice, "id" | "createdAt" | "updatedAt" | "remarks"> & { remarks?: string[] };
 
 /**
+ * Un correctif d'avis, où un null explicite efface.
+ *
+ * « undefined » saute la colonne, ce qui protège un complément. Mais une
+ * relecture lit la pièce entière et fait autorité sur elle : quand une garde
+ * refuse un volume hors d'échelle, le champ doit être effacé et non laissé tel
+ * quel, sans quoi la garde parle dans le vide et la valeur qu'on vient de juger
+ * fausse survit à son propre rejet.
+ */
+export type EmissionNoticePatch = { [K in keyof NewEmissionNotice]?: NewEmissionNotice[K] | null };
+
+/**
  * Le capital rendu en une fois, ou non.
  *
  * La colonne garde la phrase du Trésor plutôt qu'un booléen, et c'est ici qu'on

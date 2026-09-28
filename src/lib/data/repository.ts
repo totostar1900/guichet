@@ -5,7 +5,7 @@ import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
-import type { EmissionNotice, NewEmissionNotice } from "@/lib/market/emission-notices";
+import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
@@ -187,8 +187,12 @@ export interface Repository {
   listEmissionNotices(filter?: { codeEmission?: string; country?: EmissionNotice["country"]; confirmed?: boolean; limit?: number }): Promise<EmissionNotice[]>;
   /** Idempotent sur l'adresse du document : la pièce est l'avis. */
   upsertEmissionNotice(n: NewEmissionNotice): Promise<EmissionNotice>;
-  /** Un champ « undefined » n'est pas fourni et ne touche pas la colonne. */
-  updateEmissionNotice(id: string, patch: Partial<NewEmissionNotice>): Promise<EmissionNotice>;
+  /**
+   * Un champ « undefined » n'est pas fourni et ne touche pas la colonne ; un
+   * null écrit l'efface. Une relecture complète se sert du second, puisqu'elle
+   * fait autorité sur la pièce qu'elle vient de lire.
+   */
+  updateEmissionNotice(id: string, patch: EmissionNoticePatch): Promise<EmissionNotice>;
 
   /** Documents published by listed companies (collected from the BVMAC site). */
   listIssuerDocuments(mnemo?: string): Promise<IssuerDocument[]>;

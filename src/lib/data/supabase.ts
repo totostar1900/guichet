@@ -7,7 +7,7 @@ import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
-import type { EmissionNotice, NewEmissionNotice } from "@/lib/market/emission-notices";
+import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
@@ -524,7 +524,7 @@ export const toEmissionNotice = (r: EmissionNoticeRow): EmissionNotice => ({
  * helper qui rend « undefined » pour « ne change pas » écrivait autrefois un
  * null, et effaçait précisément le champ qu'on voulait garder.
  */
-const fromEmissionNotice = (n: Partial<NewEmissionNotice>): Record<string, unknown> => {
+const fromEmissionNotice = (n: EmissionNoticePatch): Record<string, unknown> => {
   const row: Record<string, unknown> = {};
   const put = (col: string, key: keyof NewEmissionNotice) => {
     if (!(key in n) || n[key] === undefined) return;

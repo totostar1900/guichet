@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EmissionNotice } from "@/lib/market/emission-notices";
+import { memoryRepository } from "@/lib/data/memory";
+import type { NewEmissionNotice } from "@/lib/market/emission-notices";
 import { completerDepuisAvis, emissionLines, rembourseInFine } from "@/lib/market/emission-notices";
 
 /**
@@ -122,5 +124,56 @@ describe("ce qu'un avis apporte à une séance", () => {
   it("ne dit rien sans code d'émission, qui est le seul lien entre les deux pièces", () => {
     expect(completerDepuisAvis({ codeEmission: undefined, couponRate: undefined, maturityOn: undefined }, lignes)).toBeUndefined();
     expect(completerDepuisAvis({ codeEmission: "  ", couponRate: undefined, maturityOn: undefined }, lignes)).toBeUndefined();
+  });
+});
+
+describe("les deux sens du vide, dans le dépôt", () => {
+  /**
+   * La maison a payé le premier piège trente et une séances : « undefined »
+   * dans un partiel écrivait un null et effaçait ce qu'on voulait garder. La
+   * règle posée alors a créé l'inverse sur les avis.
+   */
+  const notice = (): NewEmissionNotice => ({
+    sourceUrl: "https://beac.int/avis-x.pdf",
+    sourceTitle: "Communiqué d'annonce",
+    country: "Gabon",
+    instrument: "BTA",
+    tenor: "26 semaines",
+    sessionOn: "2024-01-17",
+    abondement: false,
+    fileKey: "beac/avis-x.pdf",
+  });
+
+  it("saute la colonne sur undefined, qui veut dire « non fourni »", async () => {
+    const r = memoryRepository;
+    const n = await r.upsertEmissionNotice({ ...notice(), issueVolume: 15_000_000_000, nominalUnit: 1_000_000 });
+    const apres = await r.updateEmissionNotice(n.id, { readAt: "2026-09-28T10:00:00Z", couponRate: undefined });
+    expect(apres.issueVolume).toBe(15_000_000_000);
+    expect(apres.nominalUnit).toBe(1_000_000);
+  });
+
+  /**
+   * Et l'efface sur un null écrit.
+   *
+   * C'est ce dont une relecture a besoin : elle lit la pièce entière et fait
+   * autorité sur elle. Une garde qui refuse un volume hors d'échelle doit
+   * pouvoir le retirer, sans quoi elle parle dans le vide.
+   */
+  it("efface la colonne sur un null écrit, dont une relecture a besoin", async () => {
+    const r = memoryRepository;
+    const n = await r.upsertEmissionNotice({ ...notice(), issueVolume: 17_500_000, nominalUnit: 1_000_000 });
+    const apres = await r.updateEmissionNotice(n.id, { issueVolume: null, nominalUnit: 1_000_000 });
+    expect(apres.issueVolume).toBeUndefined();
+    expect(apres.nominalUnit).toBe(1_000_000);
+  });
+
+  it("ne laisse pas un second passage du robot défaire une relecture", async () => {
+    const r = memoryRepository;
+    const n = await r.upsertEmissionNotice(notice());
+    await r.updateEmissionNotice(n.id, { confirmedBy: "Desk", confirmedAt: "2026-09-28T10:00:00Z" });
+    const repasse = await r.upsertEmissionNotice({ ...notice(), fileKey: undefined });
+    expect(repasse.confirmedBy).toBe("Desk");
+    // Ni effacer une pièce qu'il n'a pas su rapatrier.
+    expect(repasse.fileKey).toBe("beac/avis-x.pdf");
   });
 });

@@ -9,7 +9,7 @@ import type { StandingOrder } from "@/lib/domain/standing";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
-import type { EmissionNotice, NewEmissionNotice } from "@/lib/market/emission-notices";
+import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
@@ -798,9 +798,11 @@ export const memoryRepository: Repository = {
     const s = store();
     const i = s.emissionNotices.findIndex((x) => x.id === id);
     if (i < 0) throw new Error("avis d'annonce introuvable");
+    // Un null écrit efface, comme chez Supabase : il devient « undefined » dans
+    // l'objet du domaine, qui n'a pas de null.
     const fusion: EmissionNotice = {
       ...s.emissionNotices[i],
-      ...Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)),
+      ...Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined).map(([k, v]) => [k, v === null ? undefined : v])),
       updatedAt: new Date().toISOString(),
     };
     s.emissionNotices[i] = fusion;

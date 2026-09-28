@@ -150,17 +150,26 @@ export async function GET(req: NextRequest) {
         modelesAvis.add(model);
         // Le pays, l'instrument et la date viennent de l'index de la BEAC, qui
         // les donne sans ambiguïté : la lecture du scan ne les redéfinit pas.
+        /**
+         * Une relecture fait autorité sur la pièce qu'elle vient de lire.
+         *
+         * D'où les null explicites : ce que cette lecture ne rend pas doit
+         * disparaître. Une garde qui refuse un volume hors d'échelle rendrait
+         * « undefined », la colonne ne serait pas touchée, et la valeur qu'on
+         * vient de juger fausse survivrait à son propre rejet.
+         */
         await r.updateEmissionNotice(x.id, {
           readAt: new Date().toISOString(),
           readModel: model,
-          codeEmission: proposal.codeEmission,
-          maturityOn: proposal.maturityOn,
-          couponRate: proposal.couponRate,
-          redemption: proposal.redemption,
-          nominalUnit: proposal.nominalUnit,
-          issueVolume: proposal.issueVolume,
-          settleOn: proposal.settleOn,
-          tenor: x.tenor ?? proposal.tenor,
+          codeEmission: proposal.codeEmission ?? null,
+          maturityOn: proposal.maturityOn ?? null,
+          couponRate: proposal.couponRate ?? null,
+          redemption: proposal.redemption ?? null,
+          nominalUnit: proposal.nominalUnit ?? null,
+          issueVolume: proposal.issueVolume ?? null,
+          settleOn: proposal.settleOn ?? null,
+          // La durée vient de l'index de la BEAC, qui la donne sans ambiguïté.
+          tenor: x.tenor ?? proposal.tenor ?? null,
           remarks,
         });
         faitsAvis.push(`${x.sessionOn} ${x.country} ${x.tenor ?? ""}`.trim());
