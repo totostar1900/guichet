@@ -64,7 +64,7 @@ type Choix = "tous" | "cemac" | Country;
 interface Serie {
   nom: string;
   couleur: string;
-  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string }[];
+  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string; id?: string }[];
   gros?: boolean;
 }
 
@@ -330,9 +330,11 @@ export function CourbeInteractive({
               {se.points.length > 1 && (
                 <polyline points={se.points.map((p) => `${X(p.annees)},${Y(p.pct)}`).join(" ")} fill="none" stroke={se.couleur} strokeWidth={se.gros ? 3 : 2} strokeLinejoin="round" strokeLinecap="round" />
               )}
-              {se.points.map((p) => (
+              {se.points.map((p, i) => (
                 <circle
-                  key={p.mot}
+                  /* Deux lignes différentes tombent au même horizon arrondi :
+                     l'identifiant de séance les sépare, le libellé non. */
+                  key={p.id ?? `${se.nom}-${i}`}
                   cx={X(p.annees)}
                   cy={Y(p.pct)}
                   r={se.gros ? 5 : 4}
@@ -356,7 +358,14 @@ export function CourbeInteractive({
         </svg>
 
         {survol && (
-          <div className={styles.bulle} style={{ left: `${Math.min((survol.x / W) * 100 + 2, 74)}%`, top: `${Math.max(2, (survol.y / H) * 100 - 6)}%` }}>
+          <div className={styles.bulle} style={
+              /* À côté du trait de suivi et jamais dessus : posée dessus, elle couvre
+                 les points voisins, c est-à-dire ceux qu on compare. Elle bascule
+                 du côté où il reste de la place. */
+              (survol.x / W) * 100 < 62
+                ? { left: `${(survol.x / W) * 100 + 2.5}%`, top: `${Math.max(2, (survol.y / H) * 100 - 6)}%` }
+                : { right: `${100 - (survol.x / W) * 100 + 2.5}%`, top: `${Math.max(2, (survol.y / H) * 100 - 6)}%` }
+            }>
             <div className={styles.bulleTitre}>{t("{h} à courir", { h: survol.horizon })}</div>
             {survol.lignes.map((l) => (
               <div key={l.nom} className={styles.bulleLigne}>

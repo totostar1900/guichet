@@ -8,6 +8,7 @@ import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/m
 import { DateObservation } from "@/components/market/DateObservation";
 import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
 import { PressionDemande } from "@/components/market/PressionDemande";
+import { Reprix, type SerieDuree } from "@/components/market/Reprix";
 import { PointsCourbe } from "@/components/market/PointsCourbe";
 import { COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { Barres, SerieTemps } from "@/components/market/Traces";
@@ -109,11 +110,19 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * prend celles qui ont le plus de séances relues, ce qui revient à prendre
    * celles qui ont quelque chose à raconter.
    */
-  const suivies = [...new Map(relues.map((r) => [`${r.country}|${r.tenor}`, r])).values()]
-    .map((r) => ({ pays: r.country, tenor: r.tenor, pts: serie(seances, r.country, r.tenor) }))
-    .filter((x) => x.pts.length >= 4)
-    .sort((a, b) => b.pts.length - a.pts.length)
-    .slice(0, 3);
+/**
+   * Toutes les séries, et l'écran choisit.
+   *
+   * Prendre d'office les trois mieux garnies revenait à montrer deux Trésors
+   * sur six sans le dire : le Gabon et le Cameroun, parce qu'ils ont le plus de
+   * séances relues sur une même durée. Celles qui n'ont pas assez de séances
+   * partent quand même, grisées : savoir qu'une durée n'en a que deux est une
+   * information, ne pas la voir n'en est pas une.
+   */
+  const suivies: SerieDuree[] = [...new Map(relues.map((r) => [`${r.country}|${r.tenor}`, r])).values()]
+    .map((r) => ({ pays: r.country, tenor: r.tenor, points: serie(seances, r.country, r.tenor).map((x) => ({ on: x.on, v: x.pct, creux: x.thin })) }))
+    .filter((x) => x.points.length >= 2)
+    .sort((a, b) => b.points.length - a.points.length);
 
   // La couverture, séance par séance, dans l'ordre : c'est la mesure la plus
   // dure du jeu et elle ne se lit que sur la durée.
@@ -215,7 +224,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     { id: "points", titre: "Chaque point, et d'où il vient", groupe: "Le prix" },
     { id: "ecarts", titre: "L'écart entre Trésors", groupe: "Le prix" },
     { id: "trous", titre: "Ce qui manque à la courbe", groupe: "Le prix", alerte: courbe.gaps.length },
-    { id: "reprix", titre: "Le reprix du marché", groupe: "Les volumes" },
+    { id: "reprix", titre: "Ce que chaque durée a payé", groupe: "Les volumes" },
     { id: "pression", titre: "La pression de la demande", groupe: "Les volumes" },
     { id: "programme", titre: "L'exécution du programme", groupe: "Les volumes" },
     { id: "liquidite", titre: "La liquidité du secondaire", groupe: "Le secondaire" },
@@ -461,39 +470,21 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                     "C'est la figure qui sert à répondre « est-ce cher ? » avant une séance : on indique un prix contre la dernière séance comparable, et cette série dit si cette dernière séance était elle-même une exception.",
                   )}
                 </p>
+                <p>
+                  {t(
+                    "Une séance mince, marquée d'un point creux, est une séance servie à un ou deux soumissionnaires seulement, ou qui n'a pas trouvé preneur pour tout le montant annoncé. Son chiffre est vrai : c'est bien ce qui s'est payé. Il n'est pas représentatif, parce qu'il dit ce qu'une ou deux contreparties voulaient ce jour-là, et non ce que le marché demandait.",
+                  )}
+                </p>
               </Commentaire>
             </>
           }
           >
             <div className="panel-h">
-              <h2>{t("Le reprix du marché")}</h2>
-              <span className="muted">{sortie(suivies[0].pts.length >= 8, "Une série se publie à partir de huit séances relues : en dessous, elle raconte le hasard des lectures faites.")}</span>
+              <h2>{t("Ce que chaque durée a payé, séance après séance")}</h2>
+              <span className="muted">{sortie((suivies[0]?.points.length ?? 0) >= 8, "Une série se publie à partir de huit séances relues : en dessous, elle raconte le hasard des lectures faites.")}</span>
             </div>
             <div className={styles.pb}>
-              <SerieTemps
-                traces={suivies.map((x, i) => ({
-                  couleur: [COUNTRY_COLOR[x.pays], "#a16207", "#6d28d9"][i] ?? COUNTRY_COLOR[x.pays],
-                  points: x.pts.map((p) => ({ on: p.on, v: p.pct, creux: p.thin })),
-                  aire: i === 0,
-                  // Le nom au bout de la ligne : l'œil est déjà là, il n'a pas à
-                  // repartir vers une légende pour savoir de qui il s'agit.
-                  nom: `${x.pays} ${x.tenor.replace(" semaines", " sem.")}`,
-                }))}
-                ariaLabel={t("Rendement de chaque durée suivie, dans le temps")}
-              />
-              <div className={styles.legende}>
-                {suivies.map((x, i) => (
-                  <span key={`${x.pays}-${x.tenor}`}>
-                    <i style={{ background: [COUNTRY_COLOR[x.pays], "#a16207", "#6d28d9"][i] ?? COUNTRY_COLOR[x.pays] }} />
-                    {x.pays} · {x.tenor} <b>({x.pts.length})</b>
-                  </span>
-                ))}
-              </div>
-              <p className={styles.note}>
-                {t(
-                  "Un point creux signale une séance mince. L'abscisse est la date réelle et non le rang : des séances réparties sur sept ans ne sont pas des pas réguliers, et les espacer également ferait croire à une cadence que le marché n'a pas eue.",
-                )}
-              </p>
+              <Reprix series={suivies} />
             </div>
           </Bloc>
         )}

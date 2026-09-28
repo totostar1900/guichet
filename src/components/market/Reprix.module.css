@@ -1,0 +1,77 @@
+/* Le choix des séries : un Trésor par groupe, ses durées en regard, et le
+   nombre de séances sur chacune. Savoir qu'une durée n'a que deux séances est
+   une information ; ne pas la voir du tout n'en est pas une. */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-7);
+  padding: var(--s-6) var(--s-7);
+  margin-bottom: var(--s-7);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.grp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.etiq {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.etiq i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.durees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.durees button {
+  appearance: none;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.73rem;
+  padding: var(--s-2) var(--s-5);
+  white-space: nowrap;
+}
+.durees button[aria-pressed="true"] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--on-navy);
+  font-weight: 650;
+}
+/* Une durée trop peu fournie reste visible : c'est une information sur la
+   série, pas un défaut à cacher. */
+.durees button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.durees button span {
+  margin-left: var(--s-2);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+.note {
+  margin: var(--s-5) 0 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 88ch;
+}

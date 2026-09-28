@@ -48,10 +48,20 @@ const jour = (iso: string) => {
 };
 const nb = (v: number, d: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
 
-/** La bulle sombre, posée en pour cent pour suivre la figure quelle que soit sa largeur rendue. */
+/**
+ * La bulle sombre, posée à côté du trait de suivi et jamais dessus.
+ *
+ * Sur le trait, elle couvre les points voisins — c'est-à-dire précisément ceux
+ * qu'on est en train de comparer. Elle se range donc à droite du curseur, et
+ * bascule à gauche quand la droite manque de place.
+ */
 function Bulle({ x, y, titre, lignes, note }: { x: number; y: number; titre: string; lignes: { nom?: string; couleur?: string; valeur: string }[]; note?: string }) {
+  const aDroite = x < 62;
   return (
-    <div className={styles.bulle} style={{ left: `${Math.min(Math.max(x, 2), 72)}%`, top: `${Math.max(2, y)}%` }}>
+    <div
+      className={styles.bulle}
+      style={aDroite ? { left: `${x + 2.5}%`, top: `${Math.max(2, y)}%` } : { right: `${100 - x + 2.5}%`, top: `${Math.max(2, y)}%` }}
+    >
       <div className={styles.bulleTitre}>{titre}</div>
       {lignes.map((l, i) => (
         <div key={i} className={styles.bulleLigne}>
@@ -97,6 +107,7 @@ export function SerieTemps({
   decimales = 1,
   ariaLabel,
   reperes = 6,
+  trouJours = 365,
 }: {
   traces: Trace[];
   height?: number;
@@ -105,6 +116,14 @@ export function SerieTemps({
   ariaLabel: string;
   /** Combien de dates porter en abscisse. Deux bornes ne situent rien au milieu. */
   reperes?: number;
+  /**
+   * Au-delà de ce silence, la ligne se coupe.
+   *
+   * La série camerounaise à 26 semaines saute de septembre 2021 à mai 2025 :
+   * reliés par un segment droit, ces deux points racontent une progression
+   * régulière de deux à sept pour cent qui n'a jamais été observée.
+   */
+  trouJours?: number;
 }) {
   const boite = useRef<HTMLDivElement | null>(null);
   const [vise, setVise] = useState<{ x: number; y: number; on: string; lignes: { nom?: string; couleur: string; valeur: string }[] } | null>(null);
@@ -136,14 +155,21 @@ export function SerieTemps({
     const px = ((e.clientX - r.left) / r.width) * W;
     if (px < P.l || px > W - P.r) return setVise(null);
     const quand = x0 + ((px - P.l) / (W - P.l - P.r)) * (x1 - x0);
-    // Le point le plus proche dans le temps, série par série.
+    /**
+     * Le point le plus proche, mais seulement s'il est vraiment là.
+     *
+     * Chercher le plus proche sans limite affichait un Cameroun de 2021 en
+     * survolant 2023, à un endroit où la courbe ne trace rien : le curseur
+     * inventait une valeur que la figure ne montrait pas.
+     */
+    const tolerance = ((x1 - x0) / 40) * 1 || 86_400_000;
     const proches = traces
-      .map((t) => ({ t, p: t.points.reduce((m, q) => (Math.abs(Date.parse(q.on) - quand) < Math.abs(Date.parse(m.on) - quand) ? q : m)) }))
-      .filter((x) => x.p);
+      .map((t) => ({ t, p: t.points.length ? t.points.reduce((m, q) => (Math.abs(Date.parse(q.on) - quand) < Math.abs(Date.parse(m.on) - quand) ? q : m)) : undefined }))
+      .filter((x): x is { t: Trace; p: { on: string; v: number; creux?: boolean } } => Boolean(x.p) && Math.abs(Date.parse(x.p!.on) - quand) <= tolerance);
     if (!proches.length) return setVise(null);
     const ref = proches.reduce((m, q) => (Math.abs(Date.parse(q.p.on) - quand) < Math.abs(Date.parse(m.p.on) - quand) ? q : m));
     setVise({
-      x: (X(ref.p.on) / W) * 100 + 1.5,
+      x: (X(ref.p.on) / W) * 100,
       y: (Y(ref.p.v) / H) * 100 - 8,
       on: ref.p.on,
       lignes: proches.map(({ t, p }) => ({ nom: t.nom, couleur: t.couleur, valeur: `${nb(p.v, decimales)}${unite ? ` ${unite}` : ""}` })),
@@ -167,10 +193,26 @@ export function SerieTemps({
         {traces.map((t, i) => {
           const pts = [...t.points].sort((a, b) => a.on.localeCompare(b.on));
           const d = pts.map((p) => `${X(p.on).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ");
+          /**
+           * Les morceaux continus : on coupe là où le marché s'est tu. Un trait
+           * qui traverse quatre ans de silence dessine une progression que
+           * personne n'a observée.
+           */
+          const morceaux: (typeof pts)[] = [];
+          for (const q of pts) {
+            const dernier = morceaux[morceaux.length - 1];
+            const precedent = dernier?.[dernier.length - 1];
+            if (!precedent || (Date.parse(q.on) - Date.parse(precedent.on)) / 86_400_000 > trouJours) morceaux.push([q]);
+            else dernier.push(q);
+          }
           return (
             <g key={i}>
               {t.aire && <polygon points={`${P.l},${H - P.b} ${d} ${(W - P.r).toFixed(1)},${H - P.b}`} fill={t.couleur} opacity={0.1} />}
-              <polyline points={d} fill="none" stroke={t.couleur} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              {morceaux.map((m, k) =>
+                m.length > 1 ? (
+                  <polyline key={k} points={m.map((p) => `${X(p.on).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ")} fill="none" stroke={t.couleur} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+                ) : null,
+              )}
               {t.marques !== false && pts.map((p) => <circle key={p.on + p.v} cx={X(p.on)} cy={Y(p.v)} r={3.2} fill={p.creux ? "var(--surface)" : t.couleur} stroke={t.couleur} strokeWidth={2} />)}
               {/* Le nom au bout de la ligne : l'œil est déjà là, il n'a pas à repartir vers une légende. */}
               {t.nom && (
@@ -281,7 +323,7 @@ export function Barres({
       </svg>
       {vise != null && (
         <Bulle
-          x={((P.l + vise * pas + bw / 2) / W) * 100 + 1.5}
+          x={((P.l + vise * pas + bw / 2) / W) * 100}
           y={(Y(points[vise].v) / H) * 100 - 8}
           titre={jour(points[vise].on)}
           lignes={[{ couleur: points[vise].couleur, valeur: `${nb(points[vise].v, decimales)}${unite}` }]}

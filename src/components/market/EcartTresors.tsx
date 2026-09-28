@@ -149,7 +149,7 @@ export function EcartTresors({ pays, comparables, seuilJours }: { pays: CourbePa
                       const bas = Math.max(Y(0), Y(e.bp));
                       const date = e.apart > seuilJours;
                       return (
-                        <g key={e.horizon}>
+                        <g key={`${e.horizon}-${i}`}>
                           <rect
                             x={P.l + i * pas + pas * 0.24}
                             y={haut}
