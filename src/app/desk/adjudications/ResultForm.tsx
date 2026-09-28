@@ -152,7 +152,7 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
       <div className={styles.split}>
         <div className={styles.doc}>
           {r.fileKey ? (
-            <SourceViewer src={`/desk/adjudications/source/${r.id}`} title={t("Communiqué de résultats")} />
+            <SourceViewer src={`/desk/adjudications/source/${r.id}`} title={t("Communiqué de résultats")} fill />
           ) : (
             <p className="muted">
               {t("Le communiqué n'a pas pu être rapatrié.")}{" "}

@@ -94,12 +94,20 @@
   border-top: 1px solid var(--line);
 }
 
+/* Le volet central ne défile pas lui-même : il tient la hauteur, et ce sont le
+   scan et les champs qui défilent chacun de son côté. Sans cela, descendre dans
+   le formulaire emportait le communiqué hors de vue, alors que les avoir côte à
+   côte n'a d'autre but que de lire l'un en remplissant l'autre. */
 .main {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .form {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--s-5);
@@ -141,15 +149,28 @@
 /* La pièce à gauche, les champs à droite : recopier de mémoire un chiffre lu
    dans un autre onglet est la façon la plus sûre de se tromper de colonne. */
 .split {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto var(--champs, 360px);
   gap: var(--s-5);
   align-items: stretch;
 }
+/* Le scan prend toute la hauteur qu'on lui laisse : un communiqué se lit en
+   petits caractères, et chaque pixel rendu est un chiffre de moins à deviner. */
 .doc {
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
+/* Les champs défilent pour leur compte. La gouttière à droite laisse la barre
+   de défilement sans qu'elle mange le dernier caractère d'un nombre. */
 .fields {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--s-3);
   display: flex;
   flex-direction: column;
   gap: var(--s-5);

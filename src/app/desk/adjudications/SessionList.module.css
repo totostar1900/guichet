@@ -180,3 +180,14 @@
   font-size: 0.78rem;
   color: var(--ink-3);
 }
+
+/* Toute la ligne mène à la séance : elle en a l'air, elle est large, et ne
+   répondre que sur la date se paie d'un clic perdu à chaque essai. Le lien de
+   la date reste, parce que c'est lui qui donne le clavier, le clic du milieu et
+   le menu contextuel ; la ligne ne sert que la souris. */
+.cliquable {
+  cursor: pointer;
+}
+.cliquable:hover td {
+  background: var(--gold-soft);
+}

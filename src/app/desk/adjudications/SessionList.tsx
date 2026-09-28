@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { fmtDate } from "@/lib/format";
 import type { EtatSeance } from "@/lib/market/auction-results";
@@ -45,6 +46,7 @@ type Colonne = "date" | "ligne" | "etat";
 
 export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: string }) {
   const t = useT();
+  const router = useRouter();
   const [onglet, setOnglet] = useState<EtatSeance | "tout">("tout");
   const [q, setQ] = useState("");
   const [tri, setTri] = useState<{ col: Colonne; rev: boolean }>({ col: "date", rev: false });
@@ -105,7 +107,20 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
           </thead>
           <tbody>
             {vues.map((r) => (
-              <tr key={r.id} ref={r.id === current ? courante : undefined} aria-selected={r.id === current}>
+              <tr
+                key={r.id}
+                ref={r.id === current ? courante : undefined}
+                aria-selected={r.id === current}
+                className={styles.cliquable}
+                onClick={(e) => {
+                  // Le lien de la date fait son travail tout seul, et une
+                  // sélection de texte n'est pas un clic : on ne navigue ni
+                  // par-dessus l'un ni en travers de l'autre.
+                  if ((e.target as HTMLElement).closest("a")) return;
+                  if (window.getSelection()?.toString()) return;
+                  router.push(`/desk/adjudications?s=${r.id}`);
+                }}
+              >
                 <td className={styles.jour}>
                   <Link href={`/desk/adjudications?s=${r.id}`}>{fmtDate(r.on)}</Link>
                   <small>{r.code ?? "—"}</small>

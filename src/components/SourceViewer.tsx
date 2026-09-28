@@ -28,12 +28,28 @@ import styles from "./SourceViewer.module.css";
  *
  * Et le curseur dit ce qu'on peut faire : main ouverte au repos, fermée pendant
  * le déplacement. Sans cela, personne ne devine qu'une image se prend.
+ *
+ * Le texte, quand il y en a. Peindre une page sur un canevas donne une image, et
+ * une image ne se sélectionne pas : l'outil flèche rendait le curseur ordinaire
+ * au-dessus de quelque chose qui n'avait rien à offrir. pdf.js sait rendre la
+ * couche de texte par-dessus le dessin, transparente, calée sur les mêmes
+ * coordonnées, et c'est elle qu'on attrape pour copier un code d'émission
+ * plutôt que de le recopier à la main, ce qui est précisément là où se glissent
+ * les fautes.
+ *
+ * Reste que la plupart de ces communiqués sont des scans purs, sans un caractère
+ * dedans. Le dire vaut mieux que de laisser chercher : la barre annonce que la
+ * page n'a pas de texte, et l'outil flèche se grise plutôt que de promettre une
+ * sélection impossible.
  */
-export function SourceViewer({ src, title }: { src: string; title: string }) {
+export function SourceViewer({ src, title, fill }: { src: string; title: string; fill?: boolean }) {
   const t = useT();
   const wrap = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
+  const couche = useRef<HTMLDivElement | null>(null);
   const doc = useRef<{ numPages: number; getPage: (n: number) => Promise<PdfPage> } | null>(null);
+  /** La bibliothèque, gardée pour rendre la couche de texte après le dessin. */
+  const lib = useRef<PdfLib | null>(null);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(0);
   const [zoom, setZoom] = useState(1.4);
@@ -45,6 +61,14 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
   // natif offrait les deux, et les reprendre ne coûte qu'un état.
   const [tool, setTool] = useState<"main" | "fleche">("main");
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
+  /**
+   * La page porte-t-elle du texte ?
+   *
+   * « undefined » tant qu'on ne l'a pas rendue : on ne dit pas qu'une page est
+   * muette avant de l'avoir regardée. La réponse vaut pour la page affichée, un
+   * document pouvant mêler une couverture saisie et des annexes scannées.
+   */
+  const [duTexte, setDuTexte] = useState<boolean | undefined>(undefined);
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const [grabbing, setGrabbing] = useState(false);
 
@@ -58,6 +82,7 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
         const d = await pdfjs.getDocument({ data: bytes }).promise;
         if (!alive) return;
         doc.current = d as unknown as { numPages: number; getPage: (n: number) => Promise<PdfPage> };
+        lib.current = pdfjs as unknown as PdfLib;
         setPages(d.numPages);
         setState("ready");
       } catch {
@@ -87,6 +112,31 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, el.width, el.height);
     await p.render({ canvasContext: ctx, viewport: vp, canvas: el }).promise;
+
+    /**
+     * La couche de texte, posée par-dessus le dessin.
+     *
+     * Elle est transparente et calée sur la page rendue à l'échelle de l'écran,
+     * et non sur celle du canevas, qui est multipliée par la densité de pixels :
+     * les deux confondues, la sélection tombe à côté des mots.
+     */
+    const boite = couche.current;
+    const bib = lib.current;
+    if (!boite || !bib) return;
+    boite.replaceChildren();
+    boite.style.width = `${vp.width / dpr}px`;
+    boite.style.height = `${vp.height / dpr}px`;
+    try {
+      const contenu = await p.getTextContent();
+      const mots = contenu.items.filter((i): i is PdfTextItem => typeof (i as PdfTextItem).str === "string" && (i as PdfTextItem).str.trim() !== "");
+      setDuTexte(mots.length > 0);
+      if (!mots.length) return;
+      await new bib.TextLayer({ textContentSource: contenu, container: boite, viewport: p.getViewport({ scale: zoom, rotation: rot }) }).render();
+    } catch {
+      // Une page sans couche de texte n'est pas une panne : c'est un scan, et
+      // c'est le cas de la plupart des communiqués de la zone.
+      setDuTexte(false);
+    }
   }, [page, zoom, rot]);
 
   useEffect(() => {
@@ -131,7 +181,7 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
   }
 
   return (
-    <div className={styles.viewer}>
+    <div className={`${styles.viewer} ${fill ? styles.fill : ""}`}>
       <div className={styles.viewerBar}>
         <button type="button" className="btn sm ghost" onClick={() => setZoom((z) => Math.max(0.5, z * 0.85))} aria-label={t("Réduire")}>
           −
@@ -158,11 +208,15 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
             className={`btn sm ${tool === "fleche" ? "" : "ghost"}`}
             aria-pressed={tool === "fleche"}
             onClick={() => setTool("fleche")}
-            title={t("Curseur ordinaire")}
+            disabled={duTexte === false}
+            title={duTexte === false ? t("Cette page est un scan : elle ne porte aucun texte à sélectionner.") : t("Sélectionner le texte")}
           >
             ⤢
           </button>
         </span>
+        {/* Dire qu'une page est muette vaut mieux que de laisser chercher : la
+            plupart de ces communiqués sont des scans purs. */}
+        {duTexte === false && <span className={styles.scanTxt}>{t("scan, sans texte")}</span>}
         <button type="button" className="btn sm ghost" onClick={() => setRot((r) => (r + 270) % 360)} title={t("Pivoter à gauche")} aria-label={t("Pivoter à gauche")}>
           ↺
         </button>
@@ -195,14 +249,26 @@ export function SourceViewer({ src, title }: { src: string; title: string }) {
         role="img"
         aria-label={title}
       >
-        <canvas ref={canvas} className={styles.viewerCanvas} />
+        {/* La page et son texte se superposent, d'où le calage : même origine,
+            mêmes dimensions, et la couche par-dessus pour qu'on l'attrape. */}
+        <div className={styles.feuille}>
+          <canvas ref={canvas} className={styles.viewerCanvas} />
+          <div ref={couche} className={`${styles.couche} ${tool === "fleche" ? styles.couchePrise : ""}`} aria-hidden="true" />
+        </div>
         {state === "loading" && <p className={`muted ${styles.viewerWait}`}>{t("Chargement du document…")}</p>}
       </div>
     </div>
   );
 }
 
+interface PdfTextItem {
+  str: string;
+}
 interface PdfPage {
   getViewport: (o: { scale: number; rotation?: number }) => { width: number; height: number };
   render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown; canvas: HTMLCanvasElement }) => { promise: Promise<void> };
+  getTextContent: () => Promise<{ items: ({ str: string } | Record<string, unknown>)[] }>;
+}
+interface PdfLib {
+  TextLayer: new (o: { textContentSource: unknown; container: HTMLElement; viewport: unknown }) => { render: () => Promise<void> };
 }
