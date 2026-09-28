@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { millions } from "./auction-results";
+import { tenorDays } from "./yield";
 import type { NewEmissionNotice } from "./emission-notices";
 
 /**
@@ -43,7 +44,9 @@ Règles :
 - « Rendement : 6,20 % du nominal » est le TAUX FACIAL de l'emprunt, c'est-à-dire le coupon, et non un rendement de marché. Mets-le dans couponRate. Le mot « rendement » sur ces avis ne désigne jamais autre chose.
 - « Remboursement » se recopie mot pour mot, dans la langue du document : « In fine », ou la phrase entière quand le Trésor décrit un amortissement par tranches, avec son éventuel différé. Ne résume pas, ne traduis pas, ne remplace pas par un mot-clef.
 - Le code d'émission ressemble à CG2K00000187, CM1200002465, GQ2J00000081. Il est souvent suivi de la désignation, du taux et de l'échéance sur la même ligne : « CG2K00000187 OTA 4 ans 6,20% - 01 FEVR 2028 ».
-- Les dates se recopient en ISO AAAA-MM-JJ.
+- Les dates se recopient en ISO AAAA-MM-JJ. Attention aux mois français abrégés : JANV janvier, FEVR février, MARS mars, AVRI avril, MAI mai, JUIN juin, JUIL juillet, AOUT août, SEPT septembre, OCTO octobre, NOVE novembre, DECE décembre.
+- L'échéance est imprimée deux fois : dans la ligne du code d'émission (« CG2J00000503 OTA-3 ans 5,90% - 01 OCTO 2027 ») et dans une ligne « Échéance » à elle seule. Recopie celle de la ligne « Échéance », qui est le champ dédié. Si les deux diffèrent, signale-le dans remarks en citant les deux dates : il arrive que le Trésor se contredise sur sa propre pièce.
+- Une échéance ne tombe jamais au-delà de la durée annoncée. Un abondement rouvre une ligne existante et lui laisse donc moins de temps que sa durée d'origine, jamais plus. Si la date que tu lis dépasse la durée annoncée, relis-la : c'est presque toujours un mois mal déchiffré.
 - Les montants : donne le nombre tel qu'il est imprimé, et indique séparément l'unité annoncée par le document. « Volume d'émission (en millions de FCFA) : 15 000 » donne issueVolume 15000 et amountsUnit « millions ». Ne convertis pas. L'unité est presque toujours annoncée entre parenthèses dans le libellé lui-même : lis-la là, et ne laisse amountsUnit à null que si le libellé n'en porte vraiment aucune.
 - La valeur nominale unitaire est presque toujours imprimée en francs (10 000) et non en millions : c'est un champ à part, nominalUnit, et son unité est le franc.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
@@ -199,6 +202,30 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
     remarks.unshift("Unité du volume non lue sur la pièce : ces tableaux se libellent presque toujours « en millions de FCFA », et le nombre est repris tel quel.");
   }
 
+  /**
+   * Une échéance au-delà de la durée annoncée n'existe pas.
+   *
+   * Un abondement rouvre une ligne déjà émise : il lui reste moins de temps que
+   * sa durée d'origine, jamais plus. Une date qui dépasse est donc mal lue, et
+   * c'est presque toujours un mois déchiffré de travers, « 01 mai » pris pour
+   * le 1er juillet sur l'avis camerounais du 29 janvier 2024.
+   *
+   * La date reste en base : elle est peut-être juste et l'étiquette fausse,
+   * comme sur les deux avis où l'index de la BEAC annonçait une durée que le
+   * document dément. Ce qui compte est qu'elle ne passe pas en silence.
+   */
+  const maturityOn = isoDate(out.maturityOn);
+  const annonce = tenorDays(nn(out.tenor));
+  if (maturityOn && annonce != null && hint) {
+    const seance = hint.match(/\b(\d{4}-\d{2}-\d{2})\b/)?.[1];
+    const jours = seance ? (Date.parse(maturityOn) - Date.parse(seance)) / 86_400_000 : undefined;
+    if (jours != null && jours > annonce + 45) {
+      remarks.unshift(
+        `Échéance au ${maturityOn}, soit ${Math.round(jours)} jours après la séance, là où la durée annoncée en compte ${annonce} : un abondement raccourcit la vie restante, il ne l'allonge jamais. L'une des deux est mal lue.`,
+      );
+    }
+  }
+
   if (out.redemption == null) remarks.unshift("Aucune mention de remboursement lue sur l'avis : c'est pourtant ce que ce document est seul à porter.");
 
   return {
@@ -207,7 +234,7 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
       codeEmission: nn(out.codeEmission)?.trim(),
       instrument: nn(out.instrument) ?? undefined,
       tenor: nn(out.tenor) ?? undefined,
-      maturityOn: isoDate(out.maturityOn),
+      maturityOn,
       couponRate,
       redemption: nn(out.redemption)?.trim(),
       nominalUnit,
