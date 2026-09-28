@@ -7,6 +7,8 @@ import { getT } from "@/i18n/server";
 import { confirmable, etatSeance, thin } from "@/lib/market/auction-results";
 import { auctionYield } from "@/lib/market/yield";
 import { auctionReadingAvailable } from "@/lib/market/auction-extract";
+import { cribler } from "@/lib/market/anomalies";
+import { Anomalies, type LigneAnomalie } from "./Anomalies";
 import { ConfirmerEnLot } from "./ConfirmerEnLot";
 import { ResultForm } from "./ResultForm";
 import { SessionList, type LigneSeance } from "./SessionList";
@@ -61,6 +63,26 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
    * signe et ne donne aucun rendement. Et les points de courbe, qui sont la
    * seule raison de signer : une ligne, un point, l'échéance faisant foi.
    */
+  /**
+   * Le crible, mis en mots ici.
+   *
+   * Une anomalie voyage en clef et paramètres pour que la phrase se traduise ;
+   * elle se résout donc au dernier moment, et le client ne reçoit que du texte.
+   */
+  const crible = cribler(all);
+  const parId = new Map(all.map((x) => [x.id, x]));
+  const anomalies: LigneAnomalie[] = crible.restent.map((a) => ({
+    id: a.id,
+    quand: a.quand,
+    pays: a.pays,
+    instrument: a.instrument,
+    tenor: a.tenor,
+    code: parId.get(a.id)?.codeEmission,
+    dit: t(a.quoi.key, a.quoi.params),
+    verifier: a.verifier,
+    confirmee: a.gravite === "confirmee",
+  }));
+
   const lotBta = aRelire.filter((x) => x.instrument === "BTA" && !confirmable(x) && x.codeEmission);
   const avecRdt = lotBta.filter((x) => auctionYield(x));
   const cle = (x: (typeof all)[number]) => `${x.country}|${x.maturityOn ?? x.tenor}`;
@@ -77,6 +99,7 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
             {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
             <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
           </p>
+          <Anomalies lignes={anomalies} vues={crible.vues} courante={selected?.id} />
           <ConfirmerEnLot instrument="BTA" enAttente={lotBta.length} muettes={lotBta.length - avecRdt.length} pointsGagnes={pointsGagnes} />
           <SessionList rows={lignes} current={selected?.id} />
         </aside>

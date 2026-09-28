@@ -83,7 +83,8 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
   const [saved, save, saving] = useActionState<ResultOutcome | null, FormData>(saveResultAction, null);
   const [done, confirm, confirming] = useActionState<ResultOutcome | null, FormData>(confirmResultAction, null);
   const [read, propose, reading] = useActionState<ResultOutcome | null, FormData>(proposeResultAction, null);
-  const state = read ?? done ?? saved;
+  /* Chaque retour s'affiche auprès du bouton qui le produit : plus rien à arbitrer. */
+  const ecrit = done ?? saved;
   const bill = r.instrument === "BTA";
   const couv = coverageOf(r);
   const mince = thin(r);
@@ -196,7 +197,7 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
             </small>
           </div>
 
-          {state && (state.ok ? <div className={styles.ok}>{state.message}</div> : <div className={styles.err}>{state.error}</div>)}
+          {read && (read.ok ? <div className={styles.ok}>{read.message}</div> : <div className={styles.err}>{read.error}</div>)}
           {read?.remarks && read.remarks.length > 0 && (
             <ul className={styles.remarks}>
               {read.remarks.map((m) => (
@@ -242,6 +243,8 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
               {mince ? ` · ${t("séance mince : le taux est celui d'une contrepartie, pas du marché")}` : ""}
             </p>
           )}
+
+          {ecrit && (ecrit.ok ? <div className={styles.ok}>{ecrit.message}</div> : <div className={styles.err}>{ecrit.error}</div>)}
 
           <div className={styles.actions}>
             <button className="btn" type="submit" formAction={save} disabled={saving || confirming || reading}>

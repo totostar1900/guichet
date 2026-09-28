@@ -1,0 +1,104 @@
+/* La file des anomalies, repliée au-dessus de la liste des séances. Le compte
+   reste visible, le détail s'ouvre : on relit une séance à la fois, et un
+   panneau permanent finit par ne plus se voir. */
+.bloc {
+  margin-bottom: var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.tete {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  text-align: left;
+  padding: var(--s-4) var(--s-5);
+}
+.compte {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 var(--s-2);
+  height: 20px;
+  border-radius: 999px;
+  background: var(--crit, #b91c1c);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.deja {
+  font-style: normal;
+  color: var(--ink-3);
+  margin-left: var(--s-3);
+}
+.chevron {
+  margin-left: auto;
+  color: var(--ink-3);
+}
+.liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 44vh;
+  overflow-y: auto;
+}
+.liste li + li {
+  border-top: 1px solid var(--line);
+}
+.liste a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  text-decoration: none;
+  color: inherit;
+}
+.liste a:hover {
+  background: var(--surface-2);
+}
+.ici a {
+  background: var(--surface-2);
+  box-shadow: inset 3px 0 0 var(--navy);
+}
+.quand {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.relue {
+  font-style: normal;
+  margin-left: var(--s-3);
+  padding: 0 var(--s-3);
+  border-radius: 999px;
+  background: var(--crit-soft, #fee2e2);
+  color: var(--crit-ink, #b91c1c);
+  font-weight: 700;
+  font-size: 0.68rem;
+}
+.quoi {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.verifier {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.rien {
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}

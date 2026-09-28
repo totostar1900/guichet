@@ -118,5 +118,64 @@ export const SOURCES: DocPage = {
         { type: "note", kind: "info", text: l("Aujourd'hui, sur le carnet, dit chaque matin si le bulletin attendu est là ; s'il manque ou a échoué, les deux outils de réparation sont sous la tuile : relancer la lecture, ou déposer le PDF reçu par e-mail.", "Today, on the carnet, says every morning whether the expected bulletin is in; if it is missing or failed, the two repair tools sit under the tile: relaunch the reading, or drop the PDF received by e-mail.") },
       ],
     },
+    {
+      id: "codes",
+      title: l("Le code d'émission, et la durée qu'il porte", "The issue code, and the maturity it carries"),
+      blocks: [
+        {
+          type: "lead",
+          text: l(
+            "La BEAC codifie ses lignes et ne publie pas sa table. Nous l'avons reconstituée à partir de nos propres séances, et elle sert de troisième témoin : une séance dont la durée contredit son propre code a tort quelque part, soit sur la durée, soit sur le code.",
+            "The BEAC codifies its lines and does not publish its table. We rebuilt it from our own sessions, and it serves as a third witness: a session whose maturity contradicts its own code is wrong somewhere, either on the maturity or on the code.",
+          ),
+        },
+        {
+          type: "p",
+          text: l(
+            "Un code se lit en trois morceaux. Les deux premières lettres sont le pays, au code ISO : CM, CG, GA, TD, CF, GQ. Les deux caractères suivants disent l'instrument et la durée. Le reste est un numéro de ligne, et un suffixe « /MN » marque une tranche complémentaire, c'est-à-dire un abondement.",
+            "A code reads in three parts. The first two letters are the country, in ISO code: CM, CG, GA, TD, CF, GQ. The next two characters give the instrument and the maturity. The rest is a line number, and a “/MN” suffix marks a further tranche, that is, a tap.",
+          ),
+        },
+        {
+          type: "table",
+          head: [l("Préfixe", "Prefix"), l("Instrument", "Instrument"), l("Durée", "Maturity"), l("Exemple", "Example")],
+          rows: [
+            [l("11", "11"), l("BTA", "BTA"), l("13 semaines", "13 weeks"), l("GA1100001807", "GA1100001807")],
+            [l("12", "12"), l("BTA", "BTA"), l("26 semaines", "26 weeks"), l("CG1200001267", "CG1200001267")],
+            [l("13", "13"), l("BTA", "BTA"), l("52 semaines", "52 weeks"), l("GA1300000955", "GA1300000955")],
+            [l("2A", "2A"), l("OTA", "OTA"), l("2 ans", "2 years"), l("CG2A00000403", "CG2A00000403")],
+            [l("2J", "2J"), l("OTA", "OTA"), l("3 ans", "3 years"), l("GA2J00000507", "GA2J00000507")],
+            [l("2K", "2K"), l("OTA", "OTA"), l("4 ans", "4 years"), l("CG2K00000203", "CG2K00000203")],
+            [l("2B", "2B"), l("OTA", "OTA"), l("5 ans", "5 years"), l("GA2B00000216", "GA2B00000216")],
+            [l("2L", "2L"), l("OTA", "OTA"), l("6 ans", "6 years"), l("CG2L00000046", "CG2L00000046")],
+            [l("2C", "2C"), l("OTA", "OTA"), l("7 ans", "7 years"), l("GA2C00000157", "GA2C00000157")],
+            [l("2D", "2D"), l("OTA", "OTA"), l("10 ans", "10 years"), l("CM2D00000013", "CM2D00000013")],
+          ],
+        },
+        {
+          type: "note",
+          kind: "rule",
+          text: l(
+            "L'échelle n'est pas écrite en dur : elle se dérive du dépôt à chaque passage du crible, chaque préfixe recevant la durée que la majorité de ses séances lui donne, et un préfixe vu moins de trois fois ne comptant pas. Elle suit ainsi la source : un Trésor qui ouvre une durée l'y inscrit de lui-même dès que trois séances la portent. Le tableau ci-dessus est donc un état, pas une loi.",
+            "The scale is not hard-coded: it is derived from the repository on every pass of the sieve, each prefix taking the maturity that most of its sessions give it, and a prefix seen fewer than three times not counting. It therefore follows the source: a Treasury that opens a maturity writes it in by itself as soon as three sessions carry it. The table above is a state of affairs, not a law.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "Un désaccord n'accuse pas la durée plutôt que le code. Sur les sept relevés, cinq ont le nom du communiqué du côté de la durée : c'est alors le code qui est mal transcrit, et un code plus long que ceux du même Trésor le trahit. Les deux qui ont pièce et code contre elles sont les seules quasi certaines.",
+            "A disagreement does not accuse the maturity rather than the code. Of the seven found, five have the communiqué's own name on the maturity's side: there it is the code that was mistranscribed, and a code longer than that Treasury's others gives it away. The two with both the piece and the code against them are the only near-certain ones.",
+          ),
+        },
+        {
+          type: "p",
+          text: l(
+            "Une durée fausse ne se rattrape nulle part en aval : le point se pose à la mauvaise abscisse et son taux précompté se convertit sur le mauvais nombre de jours. Elle est rattrapée quand l'échéance est imprimée, celle-ci passant avant l'étiquette, et pas autrement.",
+            "A wrong maturity is caught nowhere downstream: the point lands on the wrong abscissa and its discount rate converts on the wrong day count. It is caught when the redemption date is printed, that date coming before the label, and not otherwise.",
+          ),
+        },
+      ],
+    },
   ],
 };

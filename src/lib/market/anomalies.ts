@@ -59,6 +59,114 @@ const PREFIXE: Record<string, AuctionResult["country"]> = {
   GQ: "Guinée éq.",
 };
 
+/** Les deux caractères qui suivent le pays : « 12 », « 2A ». Ils portent la durée. */
+export const prefixeDuree = (code?: string): string | undefined => code?.trim().toUpperCase().match(/^[A-Z]{2}([0-9][0-9A-Z])/)?.[1];
+
+/** Une durée ramenée à une forme comparable : « 13 semaines » et « 13 SEMAINES » sont une. */
+export const dureeNormale = (tenor?: string): string | undefined => {
+  if (!tenor) return undefined;
+  const t = tenor.toLowerCase();
+  const sem = t.match(/(\d{1,3})\s*semaine/);
+  if (sem) return `${sem[1]} semaines`;
+  const ans = t.match(/(\d{1,2})[,.]?(\d)?\s*an/);
+  if (ans) return `${ans[1]}${ans[2] ? `,${ans[2]}` : ""} ans`;
+  const mois = t.match(/(\d{1,2})\s*mois/);
+  if (mois) return `${mois[1]} mois`;
+  return t.trim() || undefined;
+};
+
+/**
+ * L'échelle des préfixes, dérivée du dépôt plutôt qu'écrite de mémoire.
+ *
+ * La BEAC codifie ses lignes et ne publie pas sa table. On la reconstitue par
+ * la majorité : chaque préfixe reçoit la durée que la plupart de ses séances
+ * lui donnent. Un préfixe vu moins de trois fois ne prouve rien et n'entre pas
+ * dans l'échelle, ce qui évite qu'une séance isolée se contredise elle-même.
+ *
+ * Dérivée plutôt qu'écrite, l'échelle suit la source : un Trésor qui ouvre une
+ * durée l'y inscrit de lui-même dès que trois séances la portent.
+ */
+export function echelleDesPrefixes(rows: Pick<AuctionResult, "codeEmission" | "tenor">[]): Map<string, { duree: string; sur: number; total: number }> {
+  const compte = new Map<string, Map<string, number>>();
+  for (const r of rows) {
+    const k = prefixeDuree(r.codeEmission);
+    const d = dureeNormale(r.tenor);
+    if (!k || !d) continue;
+    const e = compte.get(k) ?? new Map<string, number>();
+    e.set(d, (e.get(d) ?? 0) + 1);
+    compte.set(k, e);
+  }
+  const out = new Map<string, { duree: string; sur: number; total: number }>();
+  for (const [k, m] of compte) {
+    const total = [...m.values()].reduce((a, b) => a + b, 0);
+    if (total < 3) continue;
+    const [duree, sur] = [...m.entries()].sort((a, b) => b[1] - a[1])[0];
+    out.set(k, { duree, sur, total });
+  }
+  return out;
+}
+
+/**
+ * Deux enregistrements pour un même code et une même séance.
+ *
+ * La BEAC publie parfois la même pièce à deux adresses, dont une version
+ * française séparée, et c'est l'adresse qui sert de clef d'unicité. Un doublon
+ * compte deux fois dans toute moyenne pondérée par les montants.
+ */
+function doublons(rows: AuctionResult[]): Anomalie[] {
+  const par = new Map<string, AuctionResult[]>();
+  for (const r of rows) {
+    if (!r.codeEmission) continue;
+    const k = `${r.codeEmission.trim()}|${r.sessionOn}`;
+    par.set(k, [...(par.get(k) ?? []), r]);
+  }
+  const out: Anomalie[] = [];
+  for (const [, l] of par) {
+    if (l.length < 2) continue;
+    for (const r of l)
+      out.push({
+        id: r.id,
+        quand: r.sessionOn,
+        pays: r.country,
+        instrument: r.instrument,
+        tenor: r.tenor,
+        gravite: r.confirmedBy ? "confirmee" : "attente",
+        quoi: { key: "{n} enregistrements pour le code {code} et cette même séance", params: { n: l.length, code: r.codeEmission?.trim() ?? "" } },
+        verifier: "les deux adresses : la BEAC publie parfois la même pièce deux fois",
+      });
+  }
+  return out;
+}
+
+/**
+ * La durée enregistrée contre celle que son propre code annonce.
+ *
+ * Une durée fausse ne se rattrape nulle part en aval : le point se pose à la
+ * mauvaise abscisse et son taux précompté se convertit sur le mauvais nombre de
+ * jours. L'échéance imprimée la rattrape quand elle existe, pas autrement.
+ */
+function dureeContreCode(rows: AuctionResult[]): Anomalie[] {
+  const echelle = echelleDesPrefixes(rows);
+  const out: Anomalie[] = [];
+  for (const r of rows) {
+    const k = prefixeDuree(r.codeEmission);
+    const d = dureeNormale(r.tenor);
+    const attendu = k ? echelle.get(k) : undefined;
+    if (!k || !d || !attendu || d === attendu.duree) continue;
+    out.push({
+      id: r.id,
+      quand: r.sessionOn,
+      pays: r.country,
+      instrument: r.instrument,
+      tenor: r.tenor,
+      gravite: r.confirmedBy ? "confirmee" : "attente",
+      quoi: { key: "durée « {d} », mais le préfixe {k} vaut « {attendu} » sur {sur} de ses {total} séances", params: { d, k, attendu: attendu.duree, sur: attendu.sur, total: attendu.total } },
+      verifier: "la durée en tête du communiqué, et le code lui-même, qui est parfois le fautif",
+    });
+  }
+  return out;
+}
+
 /**
  * Les montants d'une séance à plusieurs lignes, tous identiques.
  *
@@ -115,7 +223,7 @@ export interface Crible {
 }
 
 export function anomalies(rows: AuctionResult[]): Anomalie[] {
-  const out: Anomalie[] = [...montantsRepetes(rows)];
+  const out: Anomalie[] = [...montantsRepetes(rows), ...doublons(rows), ...dureeContreCode(rows)];
 
   for (const r of rows) {
     const base = { id: r.id, quand: r.sessionOn, pays: r.country, instrument: r.instrument, tenor: r.tenor, gravite: (r.confirmedBy ? "confirmee" : "attente") as GraviteAnomalie };
@@ -132,6 +240,51 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
         ...base,
         quoi: { key: "chiffre retenu {v} hors de la fourchette publiée {lo}–{hi}", params: { v: retenu.toLocaleString("fr-FR", { maximumFractionDigits: 4 }), lo: Math.min(lo, hi).toLocaleString("fr-FR", { maximumFractionDigits: 4 }), hi: Math.max(lo, hi).toLocaleString("fr-FR", { maximumFractionDigits: 4 }) } },
         verifier: "la colonne d'où vient le chiffre retenu, et celles des deux bornes",
+      });
+    }
+
+    /**
+     * Nos colonnes n'ont qu'un sens : « min » porte le plus petit nombre.
+     *
+     * Une pièce nommée du côté du coût se range à l'entrée, une obligation à
+     * 90 coûtant plus cher à l'émetteur qu'une à 95. Une ligne qui échappe à ce
+     * rangement est entrée par une autre porte que le lecteur automatique.
+     */
+    if (n(r.priceMin) != null && n(r.priceMax) != null && n(r.priceMin)! > n(r.priceMax)!) {
+      out.push({
+        ...base,
+        quoi: { key: "prix minimum {a} au-dessus du maximum {b} : les colonnes sont échangées", params: { a: r.priceMin!, b: r.priceMax! } },
+        verifier: "rien sur la pièce : les deux nombres sont justes, il suffit de les remettre dans l'ordre",
+      });
+    }
+    if (n(r.rateMin) != null && n(r.rateMax) != null && n(r.rateMin)! > n(r.rateMax)!) {
+      out.push({
+        ...base,
+        quoi: { key: "taux minimum {a} au-dessus du maximum {b}, ce qui n'est jamais une convention", params: { a: r.rateMin!, b: r.rateMax! } },
+        verifier: "les deux bornes sur la pièce : pour un taux, le plus haut est aussi le plus coûteux, et les deux façons de nommer coïncident",
+      });
+    }
+
+    /**
+     * Le moyen ne peut pas être pire que le limite.
+     *
+     * Le prix limite est celui du dernier soumissionnaire servi, donc le plus
+     * bas des retenus, et le moyen pondéré est leur moyenne : moyen >= limite.
+     * Pour un bon, la borne étant un taux, le sens s'inverse. Contrôle interne,
+     * qui ne demande aucune source extérieure.
+     */
+    if (r.instrument === "OTA" && n(r.priceAvg) != null && n(r.priceLimit) != null && n(r.priceAvg)! < n(r.priceLimit)! - 0.01) {
+      out.push({
+        ...base,
+        quoi: { key: "prix moyen {a} sous le prix limite {b}", params: { a: r.priceAvg!, b: r.priceLimit! } },
+        verifier: "les deux colonnes : la moyenne des servis ne peut pas être sous le dernier servi",
+      });
+    }
+    if (r.instrument === "BTA" && n(r.rateAvg) != null && n(r.rateLimit) != null && n(r.rateAvg)! > n(r.rateLimit)! + 0.01) {
+      out.push({
+        ...base,
+        quoi: { key: "taux moyen {a} au-dessus du taux limite {b}", params: { a: r.rateAvg!, b: r.rateLimit! } },
+        verifier: "les deux colonnes : la moyenne des servis ne peut pas dépasser le dernier servi",
       });
     }
 
