@@ -163,3 +163,17 @@
   border: 2px solid var(--ink-3);
   vertical-align: 0 !important;
 }
+
+/* L'âge du plus vieux point, en clair : une courbe des taux dit le coût de
+   l'argent aujourd'hui, et une courbe datée doit avoir l'air datée. */
+.age {
+  margin: 0 0 var(--s-4) auto;
+  align-self: flex-end;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.ageVieux {
+  color: var(--crit-ink, #b91c1c);
+  font-weight: 700;
+}

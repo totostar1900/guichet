@@ -50,6 +50,8 @@ export interface PointCourbe {
   mince: boolean;
   on: string;
   code?: string;
+  /** L'âge de la séance au jour d'observation : une courbe ne vaut pas mieux que son point le plus vieux. */
+  age: number;
 }
 export interface CourbePays {
   pays: Country;
@@ -62,7 +64,7 @@ type Choix = "tous" | "cemac" | Country;
 interface Serie {
   nom: string;
   couleur: string;
-  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number }[];
+  points: { annees: number; mot: string; pct: number; mince?: boolean; abondement?: boolean; etiquette?: string; n?: number; age?: number; on?: string }[];
   gros?: boolean;
 }
 
@@ -70,13 +72,30 @@ const W = 900;
 const H = 330;
 const P = { l: 54, r: 104, t: 18, b: 46 };
 
-export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ariaLabel: string }) {
+export interface Fenetre {
+  jours: number;
+  /** Ce que la profondeur s'appelle : « 3 mois », « 2 ans ». */
+  mot: string;
+  pays: CourbePays[];
+}
+
+export function CourbeInteractive({ fenetres, ariaLabel }: { fenetres: Fenetre[]; ariaLabel: string }) {
   const t = useT();
+  /**
+   * La profondeur par défaut est la plus courte qui montre déjà tout.
+   *
+   * Mesuré : à quatre-vingt-dix jours comme à un an, la zone donne les mêmes
+   * points. Commencer court et proposer d'aller plus loin vaut mieux que
+   * l'inverse, parce qu'une courbe des taux dit le coût de l'argent aujourd'hui.
+   */
+  const [profondeur, setProfondeur] = useState(0);
+  const pays = fenetres[profondeur]?.pays ?? [];
   const [choix, setChoix] = useState<Choix>("tous");
   const [survol, setSurvol] = useState<{ x: number; y: number; horizon: string; lignes: { nom: string; couleur: string; pct: number }[]; note?: string } | null>(null);
   const boite = useRef<HTMLDivElement | null>(null);
 
   const tous = useMemo(() => pays.flatMap((p) => p.points), [pays]);
+  const vieux = useMemo(() => (tous.length ? Math.max(...tous.map((p) => p.age)) : 0), [tous]);
   /**
    * L'abscisse est calculée sur tous les points, y compris ceux qu'on ne
    * regarde pas : les horizons gardent leur place d'un Trésor à l'autre, et
@@ -95,16 +114,24 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
    * Trésor : il est donc écarté plutôt que recopié sous un autre nom.
    */
   const cemac = useMemo((): Serie["points"] => {
-    const par = new Map<string, { annees: number; mot: string; v: number[] }>();
+    const par = new Map<string, { annees: number; mot: string; v: number[]; ages: number[] }>();
     for (const p of pays)
       for (const q of p.points) {
-        const e = par.get(q.mot) ?? { annees: q.annees, mot: q.mot, v: [] };
+        const e = par.get(q.mot) ?? { annees: q.annees, mot: q.mot, v: [], ages: [] };
         e.v.push(q.pct);
+        e.ages.push(q.age);
         par.set(q.mot, e);
       }
     return [...par.values()]
       .filter((e) => e.v.length > 1)
-      .map((e) => ({ annees: e.annees, mot: e.mot, pct: e.v.reduce((a, b) => a + b, 0) / e.v.length, n: e.v.length }))
+      .map((e) => ({
+        annees: e.annees,
+        mot: e.mot,
+        pct: e.v.reduce((a, b) => a + b, 0) / e.v.length,
+        n: e.v.length,
+        // Une moyenne n'est pas plus fraîche que le plus ancien des prix qu'elle moyenne.
+        age: Math.max(...e.ages),
+      }))
       .sort((a, b) => a.annees - b.annees);
   }, [pays]);
 
@@ -175,12 +202,13 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
       y: Y(ref.pct),
       horizon: ref.mot,
       lignes: proches.map(({ se, p }) => ({ nom: se.nom, couleur: se.couleur, pct: p.pct })),
-      note:
-        ecart != null
-          ? t("écart de {n} points de base entre {a} et {b}", { n: ecart, a: proches[0].se.nom, b: proches[proches.length - 1].se.nom })
-          : ref.abondement
-            ? t("abondement : étiquette « {e} »", { e: ref.etiquette ?? "" })
-            : undefined,
+      note: [
+        ecart != null ? t("écart de {n} points de base entre {a} et {b}", { n: ecart, a: proches[0].se.nom, b: proches[proches.length - 1].se.nom }) : undefined,
+        ref.abondement ? t("abondement : étiquette « {e} »", { e: ref.etiquette ?? "" }) : undefined,
+        ref.age != null && ref.age > 90 ? t("séance vieille de {n} jours", { n: ref.age }) : undefined,
+      ]
+        .filter(Boolean)
+        .join(" · ") || undefined,
     });
   };
 
@@ -207,6 +235,26 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
             ))}
           </div>
         </div>
+
+        <div className={styles.grp}>
+          <span className={styles.etiq} id="courbe-profondeur">
+            {t("Profondeur")}
+          </span>
+          <div className={styles.seg} role="group" aria-labelledby="courbe-profondeur">
+            {fenetres.map((f, i) => (
+              <button key={f.jours} type="button" aria-pressed={profondeur === i} onClick={() => setProfondeur(i)}>
+                {f.mot}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* L'âge du plus vieux point, en clair : une courbe datée doit avoir l'air datée. */}
+        {vieux > 0 && (
+          <p className={`${styles.age} ${vieux > 90 ? styles.ageVieux : ""}`}>
+            {t("point le plus ancien : {n} jours", { n: vieux })}
+          </p>
+        )}
       </div>
 
       {!series.length && (
@@ -245,7 +293,21 @@ export function CourbeInteractive({ pays, ariaLabel }: { pays: CourbePays[]; ari
                 <polyline points={se.points.map((p) => `${X(p.annees)},${Y(p.pct)}`).join(" ")} fill="none" stroke={se.couleur} strokeWidth={se.gros ? 3 : 2} strokeLinejoin="round" strokeLinecap="round" />
               )}
               {se.points.map((p) => (
-                <circle key={p.mot} cx={X(p.annees)} cy={Y(p.pct)} r={se.gros ? 5 : 4} fill={p.mince ? "var(--surface)" : se.couleur} stroke={se.couleur} strokeWidth={2} />
+                <circle
+                  key={p.mot}
+                  cx={X(p.annees)}
+                  cy={Y(p.pct)}
+                  r={se.gros ? 5 : 4}
+                  fill={p.mince ? "var(--surface)" : se.couleur}
+                  stroke={se.couleur}
+                  strokeWidth={2}
+                  /* Le point pâlit avec les mois : un prix de dix-huit mois n'est
+                     pas un prix d'aujourd'hui, et cela doit se voir sans lire une
+                     colonne. */
+                  opacity={p.age == null ? 1 : Math.max(0.35, 1 - p.age / 900)}
+                >
+                  <title>{`${se.nom} · ${p.mot} · ${p.pct.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %${p.on ? ` · ${t("séance du {d}", { d: p.on })}` : ""}`}</title>
+                </circle>
               ))}
               {/* Le nom au bout de la ligne : l'œil est déjà là, il n'a pas à repartir vers une légende. */}
               <text x={X(se.points[se.points.length - 1].annees) + 10} y={Y(se.points[se.points.length - 1].pct) + 4} className={styles.nom} fill={se.couleur}>

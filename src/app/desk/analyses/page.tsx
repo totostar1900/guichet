@@ -4,7 +4,7 @@ import { TallTable } from "@/components/desk/TallTable";
 import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
-import { CourbeInteractive, type CourbePays } from "@/components/market/CourbeInteractive";
+import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
 import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
 import { PressionDemande } from "@/components/market/PressionDemande";
 import { PointsCourbe } from "@/components/market/PointsCourbe";
@@ -104,26 +104,53 @@ export default async function AnalysesPage() {
    * en porte une complète, et vingt points feraient passer vingt communiqués
    * pour tracer vingt cercles. Ce qui part est ce qui s'affiche.
    */
-  const pourLaCourbe: CourbePays[] = tracables.map((c) => ({
-    pays: c.country,
-    plusVieux: c.oldestDays,
-    derniere: c.latest,
-    points: c.points.map((p) => {
-      const h = horizon(p.years);
-      return {
-        id: p.from.id,
-        annees: p.years,
-        mot: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`,
-        pct: p.yield.pct,
-        origine: p.yield.origin,
-        hypotheses: p.yield.assumptions.map((a) => t(a.key, a.params)),
-        etiquette: p.tenor,
-        abondement: abonde(p),
-        mince: p.thin,
-        on: fmtDate(p.from.sessionOn),
-        code: p.from.codeEmission,
-      };
-    }),
+  const habiller = (cs: typeof tracables): CourbePays[] =>
+    cs.map((c) => ({
+      pays: c.country,
+      plusVieux: c.oldestDays,
+      derniere: c.latest,
+      points: c.points.map((p) => {
+        const h = horizon(p.years);
+        return {
+          id: p.from.id,
+          annees: p.years,
+          mot: `${h.n.toLocaleString("fr-FR")} ${t(h.unit)}`,
+          pct: p.yield.pct,
+          origine: p.yield.origin,
+          hypotheses: p.yield.assumptions.map((a) => t(a.key, a.params)),
+          etiquette: p.tenor,
+          abondement: abonde(p),
+          mince: p.thin,
+          on: fmtDate(p.from.sessionOn),
+          code: p.from.codeEmission,
+          age: p.ageDays,
+        };
+      }),
+    }));
+  const pourLaCourbe = habiller(tracables);
+
+  /**
+   * Quatre profondeurs, construites une fois.
+   *
+   * Mesuré sur la série : à quatre-vingt-dix jours comme à un an, la zone donne
+   * les mêmes vingt points, tout ce qui a été adjugé récemment tenant dans un
+   * trimestre. Ce n'est qu'au-delà que les points arrivent, et en nombre :
+   * trente à deux ans, soixante-trois à cinq ans, dont trente-neuf pour le seul
+   * Gabon. La courbe est donc maigre parce que les Trésors ont peu émis
+   * récemment, pas parce que nous jetons des données.
+   *
+   * La profondeur se demande plutôt qu'elle ne s'impose : une courbe des taux
+   * dit le coût de l'argent aujourd'hui, et un prix de dix-huit mois n'en est
+   * pas un.
+   */
+  const fenetres: Fenetre[] = [
+    { jours: 90, mot: t("3 mois") },
+    { jours: 365, mot: t("1 an") },
+    { jours: 730, mot: t("2 ans") },
+    { jours: 1825, mot: t("5 ans") },
+  ].map((f) => ({
+    ...f,
+    pays: habiller(buildCurve(seances, { windowDays: f.jours }).countries.filter((c) => c.points.length >= MIN_POINTS)),
   }));
   /** Un Trésor qui ne porte qu'un point : au tableau, pas sur le tracé. */
   const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
@@ -264,7 +291,7 @@ export default async function AnalysesPage() {
           </div>
           <div className={styles.pb}>
             {tracables.length ? (
-              <CourbeInteractive pays={pourLaCourbe} ariaLabel={t("Courbe des rendements souverains de la CEMAC par durée")} />
+              <CourbeInteractive fenetres={fenetres} ariaLabel={t("Courbe des rendements souverains de la CEMAC par durée")} />
             ) : (
               <div className="empty">{t("Pas encore deux durées relues pour un même Trésor sur l'année écoulée.")}</div>
             )}
