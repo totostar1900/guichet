@@ -408,6 +408,9 @@ export default async function AnalysesPage() {
                   points: x.pts.map((p) => ({ on: p.on, v: p.pct })),
                   creux: (p) => Boolean(x.pts.find((q) => q.on === p.on)?.thin),
                   aire: i === 0,
+                  // Le nom au bout de la ligne : l'œil est déjà là, il n'a pas à
+                  // repartir vers une légende pour savoir de qui il s'agit.
+                  nom: `${x.pays} ${x.tenor.replace(" semaines", " sem.")}`,
                 }))}
                 ariaLabel={t("Rendement de chaque durée suivie, dans le temps")}
               />
@@ -444,7 +447,7 @@ export default async function AnalysesPage() {
           </div>
           {couvertures.length > 2 && (
             <div className={styles.pb}>
-              <Barres points={couvertures} seuil={1} decimales={1} ariaLabel={t("Couverture de chaque séance relue")} />
+              <Barres points={couvertures} seuil={1} seuilMot={t("100 % · la demande couvre l'offre")} decimales={1} ariaLabel={t("Couverture de chaque séance relue")} />
               <p className={styles.note}>
                 {t(
                   "Une barre par séance relue, dans l'ordre chronologique : l'axe compte les séances, il ne mesure pas le temps. Le trait doré est la couverture de un, seuil du service intégral.",
@@ -664,6 +667,9 @@ export default async function AnalysesPage() {
               </div>
               {liq && liq.bySession.length > 2 && (
                 <>
+                  {/* Deux grandeurs sans rapport, un niveau et un compte : collées,
+                      elles se lisaient comme un seul graphique à deux étages. */}
+                  <p className={styles.figTitre}>{t("Niveau de l'indice")}</p>
                   <SerieTemps
                     traces={[{ couleur: COUNTRY_COLOR.Cameroun, points: avecIndice.map((b) => ({ on: b.sessionDate, v: b.indexValue! })), aire: true, marques: false }]}
                     unite=""
@@ -671,6 +677,7 @@ export default async function AnalysesPage() {
                     height={170}
                     ariaLabel={t("Niveau de l'indice, séance par séance")}
                   />
+                  <p className={styles.figTitre}>{t("Lignes traitées, séance par séance")}</p>
                   <Barres
                     points={liq.bySession.map((x) => ({ on: x.date, v: x.traded, couleur: x.traded === 0 ? "var(--crit)" : COUNTRY_COLOR.Congo }))}
                     height={120}

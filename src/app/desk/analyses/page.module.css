@@ -258,3 +258,18 @@
     display: none;
   }
 }
+
+/* Le titre d'une figure, et l'air qui la sépare de la suivante. Un niveau
+   d'indice et un compte de lignes traitées sont deux grandeurs sans rapport :
+   collées, elles se lisaient comme un seul graphique à deux étages. */
+.figTitre {
+  margin: var(--s-9) 0 var(--s-4);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.figTitre:first-child {
+  margin-top: 0;
+}
