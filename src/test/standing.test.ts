@@ -42,6 +42,8 @@ const ordre = (over: Partial<StandingOrder> = {}): StandingOrder => ({
   clientSegment: "particulier",
   offerId: "f1",
   amount: 100_000,
+  source: "virement",
+  minAmount: 0,
   dayOfMonth: 5,
   startsOn: "2026-01-05",
   state: "active",

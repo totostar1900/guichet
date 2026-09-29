@@ -10,8 +10,23 @@ import { EN_NEWS } from "./en-news";
 import { EN_DOCS } from "./en-docs";
 import { EN_PARCOURS } from "./en-parcours";
 import { EN_ANALYSES } from "./en-analyses";
+import { EN_ENCAISSEMENTS } from "./en-encaissements";
 
-const EN: Record<string, string> = { ...EN_BASE, ...EN_MORE, ...EN_CONTENT, ...EN_LESSONS, ...EN_REST, ...EN_PROSE, ...EN_TEMPLATES, ...EN_DATA, ...EN_NEWS, ...EN_DOCS, ...EN_PARCOURS, ...EN_ANALYSES };
+const EN: Record<string, string> = {
+  ...EN_BASE,
+  ...EN_MORE,
+  ...EN_CONTENT,
+  ...EN_LESSONS,
+  ...EN_REST,
+  ...EN_PROSE,
+  ...EN_TEMPLATES,
+  ...EN_DATA,
+  ...EN_NEWS,
+  ...EN_DOCS,
+  ...EN_PARCOURS,
+  ...EN_ANALYSES,
+  ...EN_ENCAISSEMENTS,
+};
 
 /**
  * Two languages, one source: French is written in the code, English is a

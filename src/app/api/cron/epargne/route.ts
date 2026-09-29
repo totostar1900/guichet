@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
-import { instalmentLabel, isDue, standingBlock } from "@/lib/domain/standing";
+import { instalmentLabel, isDue, reinvestLabel, reinvestissementDu, standingBlock } from "@/lib/domain/standing";
+import { cashPosition } from "@/lib/domain/cash";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 
 /**
@@ -25,6 +26,21 @@ import { notifyIntentUpdated } from "@/lib/notify/dispatch";
  * en soit sorti ou non : deux versements le même mois seraient un prélèvement
  * que le client n'a pas demandé, et c'est la faute à ne pas commettre.
  *
+ * ─── Les deux sources ──────────────────────────────────────────────────────
+ *
+ * Il exécute aussi les instructions de RÉINVESTISSEMENT, et celles-là ne
+ * regardent pas le calendrier : c'est l'argent réellement encaissé qui les
+ * déclenche, et le montant est ce qui est arrivé. Un robot qui placerait une
+ * échéance non encaissée engagerait un argent que la maison n'a pas reçu, et
+ * un robot qui attendrait le 5 du mois laisserait le coupon dormir, ce que la
+ * politique des espèces interdit.
+ *
+ * Le disponible se lit au journal, jamais dans l'échéancier : c'est le solde
+ * qui n'attend aucune autre opération. Le versement le consomme en s'inscrivant
+ * au journal en regard de l'ordre produit, de sorte qu'un second passage le
+ * lendemain ne trouve plus rien à placer. L'idempotence est là, dans la
+ * comptabilité, et non dans une date de dernier passage.
+ *
  * À appeler chaque jour, avec « Authorization: Bearer <CRON_SECRET> ».
  */
 export async function GET(req: NextRequest) {
@@ -39,6 +55,19 @@ export async function GET(req: NextRequest) {
   let placed = 0;
   let skipped = 0;
   let ended = 0;
+  let reinvested = 0;
+
+  /* Le disponible d'un client, lu une fois : plusieurs instructions peuvent
+     viser la même poche, et deux lectures indépendantes la placeraient deux
+     fois. Ce que le tour consomme se retranche au fur et à mesure. */
+  const disponibles = new Map<string, number>();
+  const disponible = async (userId: string): Promise<number> => {
+    if (!disponibles.has(userId)) {
+      const [entries, tous] = await Promise.all([r.listCash(userId), r.listIntents()]);
+      disponibles.set(userId, cashPosition(entries, tous.filter((i) => i.clientId === userId)).idle);
+    }
+    return disponibles.get(userId) ?? 0;
+  };
 
   for (const s of orders) {
     if (s.state !== "active") continue;
@@ -51,10 +80,75 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
+    /**
+     * Le réinvestissement : ce qui est arrivé, pas ce qu'un calendrier annonce.
+     *
+     * Il ne consomme pas le mois : un client qui touche deux coupons en juin
+     * les réinvestit tous les deux, et rien ne justifierait de faire attendre
+     * le second jusqu'en juillet.
+     */
+    if (s.source === "encaissements") {
+      const poche = await disponible(s.userId);
+      const { montant } = reinvestissementDu(s, poche);
+      if (montant <= 0) continue;
+      const o = byId.get(s.offerId);
+      const wrong = standingBlock(o, { amount: montant, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
+      if (wrong.length) {
+        const why = wrong.join(" ");
+        if (s.onBlocked === "arreter") {
+          await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
+          await r.logEvent({ kind: "system", html: `Réinvestissement ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+          skipped += 1;
+        }
+        // Sinon on ne consomme rien : l'argent reste au journal et retentera demain.
+        continue;
+      }
+      const intent = await r.createIntent({
+        offerId: s.offerId,
+        type: "souscription",
+        amount: montant,
+        channel: s.channel,
+        contactPhone: s.contactPhone,
+        contactEmail: s.contactEmail,
+        clientName: s.clientName,
+        clientSegment: s.clientSegment,
+        clientId: s.userId,
+        message: reinvestLabel(s, today, montant),
+        standingId: s.id,
+      });
+      const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+      /* L'argent quitte la poche en s'inscrivant au journal en regard de
+         l'ordre : c'est cette écriture, et non une date, qui empêche un second
+         passage de replacer la même somme. */
+      await r.addCash({
+        userId: s.userId,
+        amount: montant,
+        kind: "souscription",
+        label: reinvestLabel(s, today, montant),
+        intentId: intent.id,
+        createdBy: "robot",
+      });
+      disponibles.set(s.userId, poche - montant);
+      await r.updateStandingOrder(s.id, { lastRunOn: today });
+      await r.logEvent({
+        kind: "intent",
+        intentId: intent.id,
+        offerId: s.offerId,
+        html: `${intent.ref} (${s.clientName}) : <b>réinvestissement</b> de ${fmt(montant)} FCFA encaissés sur ${o?.title ?? s.offerId} · ${s.ref}`,
+      });
+      try {
+        await notifyIntentUpdated(confirmed, o!, "confirmee");
+      } catch {
+        // Un message qui ne part pas ne doit pas empêcher le versement suivant.
+      }
+      reinvested += 1;
+      continue;
+    }
+
     if (!isDue(s, today)) continue;
 
     const o = byId.get(s.offerId);
-    const wrong = standingBlock(o, { amount: s.amount, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn });
+    const wrong = standingBlock(o, { amount: s.amount, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
     if (wrong.length) {
       const why = wrong.join(" ");
       if (s.onBlocked === "arreter") {
@@ -101,5 +195,5 @@ export async function GET(req: NextRequest) {
     placed += 1;
   }
 
-  return NextResponse.json({ ok: true, day: today, placed, skipped, ended, considered: orders.length });
+  return NextResponse.json({ ok: true, day: today, placed, reinvested, skipped, ended, considered: orders.length });
 }

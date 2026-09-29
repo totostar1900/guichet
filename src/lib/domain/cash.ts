@@ -56,6 +56,23 @@ export interface CashEntry {
   intentId?: string;
   /** La date au-delà de laquelle l'affectation ne tient plus. */
   dueBy?: string;
+  /**
+   * La clef du flux d'échéancier que ce mouvement encaisse, s'il en encaisse un.
+   *
+   * Elle s'écrit au moment de l'enregistrement, et c'est elle qui permet de
+   * dire « reçu » plutôt que « échu ». Rapprocher après coup par montant et par
+   * date confondrait deux coupons du même jour sur deux lignes voisines, et une
+   * comptabilité qui devine n'est pas une comptabilité. Voir `encaissement.ts`.
+   */
+  flowKey?: string;
+  /**
+   * La période de droits de garde que ce mouvement règle, « 2026-T3 ».
+   *
+   * Elle rend la facturation idempotente : un avis émis deux fois pour le même
+   * trimestre serait un double prélèvement, et personne ne le verrait passer.
+   * Voir `garde.ts`.
+   */
+  feePeriod?: string;
 }
 
 export interface CashPosition {

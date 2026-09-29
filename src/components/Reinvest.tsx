@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Position } from "@/lib/positions";
+import type { CashEntry } from "@/lib/domain/cash";
+import { bilan, suivre, type FluxSuivi, type LigneTenue } from "@/lib/domain/encaissement";
 import { fmt, fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./Reinvest.module.css";
 
 /**
- * Ce qui est revenu récemment, et l'occasion de le replacer.
+ * Ce qui est revenu, et l'occasion de le replacer.
  *
  * Un coupon échu s'oublie. Il tombe sur un compte en banque, se mêle au reste
  * et cesse de rapporter, alors que la ligne qui l'a versé, elle, continue. Sur
@@ -13,55 +15,105 @@ import styles from "./Reinvest.module.css";
  * que le client ait à prendre entre l'achat et le remboursement, et rien ne la
  * lui rappelait.
  *
- * Deux précautions de langage, parce qu'elles disent ce que l'application sait.
+ * ─── Ce qui a changé, et pourquoi c'est le service ─────────────────────────
  *
- * Elle connaît la date d'échéance d'un flux, pas son arrivée : il n'y a pas
- * encore de journal des espèces. Le texte dit donc « échu », qui est vérifié,
- * jamais « reçu », qui ne l'est pas.
+ * Cette bande disait « échu », jamais « reçu ». C'était honnête : l'application
+ * connaissait la date d'un flux et pas son arrivée, et ce mot prudent tenait
+ * lieu de comptabilité. Mais un client lisait « 180 000 FCFA échus depuis le
+ * 14 mars » sans savoir si l'argent était là, ce qui est précisément la seule
+ * chose qu'il voulait savoir.
  *
- * Et elle ne recommande aucune ligne. Elle rappelle une somme et une date, puis
- * ouvre les listes. Choisir pour le client demanderait un agrément que la
- * maison n'a pas.
+ * Le journal des espèces répond maintenant, et la bande porte deux phrases là
+ * où elle en portait une :
+ *
+ *   REÇU    : un mouvement du journal porte cette échéance. L'argent est là, et
+ *             c'est la somme qu'un réinvestissement peut engager.
+ *   ATTENDU : l'échéance est passée et rien n'est arrivé. Le dire est un
+ *             service : le client apprend que l'émetteur lui doit quelque chose.
+ *
+ * Les additionner perdrait exactement ce qu'on vient de gagner. Elles restent
+ * donc deux, et « reçu » est la seule qui porte un bouton : proposer de
+ * replacer un argent qui n'est pas arrivé serait mentir.
+ *
+ * Et elle ne recommande aucune ligne. Elle rappelle une somme, puis ouvre les
+ * listes. Choisir pour le client demanderait un agrément que la maison n'a pas.
  */
-export async function Reinvest({ positions, days = 120, now = new Date() }: { positions: Position[]; days?: number; now?: Date }) {
+export async function Reinvest({
+  positions,
+  entries = [],
+  days = 120,
+  now = new Date(),
+}: {
+  positions: Position[];
+  /** Le journal du client : sans lui, la bande ne sait que dire « échu ». */
+  entries?: CashEntry[];
+  days?: number;
+  now?: Date;
+}) {
   const t = await getT();
-  const flows = recentlyPaid(positions, days, now);
-  if (!flows.length) return null;
-  const total = flows.reduce((s, f) => s + f.amount, 0);
-  const since = flows.map((f) => f.date).sort()[0];
+  const { recus, attendus } = fluxDeLaBande(positions, entries, days, now);
+  if (!recus.length && !attendus.length) return null;
+  const b = bilan([...recus, ...attendus]);
+
+  const trois = (l: FluxSuivi[]) =>
+    l
+      .slice(0, 3)
+      .map((f) => `${t(f.label)} · ${f.titre} · ${fmtDate(f.date, false)}`)
+      .join(" · ") + (l.length > 3 ? ` · ${t("et {n} autres", { n: String(l.length - 3) })}` : "");
+
   return (
-    <div className={styles.strip}>
-      <div>
-        <b>{t("{m} FCFA échus depuis le {d}", { m: fmt(Math.round(total)), d: fmtDate(since) })}</b>
-        <small>
-          {flows
-            .slice(0, 3)
-            .map((f) => `${t(f.label)} · ${f.title} · ${fmtDate(f.date, false)}`)
-            .join(" · ")}
-          {flows.length > 3 ? ` · ${t("et {n} autres", { n: String(flows.length - 3) })}` : ""}
-        </small>
-      </div>
-      <div className={styles.acts}>
-        <Link className="btn sm primary" href="/">
-          {t("Replacer cette somme")}
-        </Link>
-        <Link className="btn sm" href="/fonds">
-          {t("Voir les fonds")}
-        </Link>
-      </div>
+    <div className={styles.bloc}>
+      {recus.length > 0 && (
+        <div className={styles.strip}>
+          <div>
+            <b>{t("{m} FCFA reçus et disponibles", { m: fmt(Math.round(b.encaisse)) })}</b>
+            <small>{trois(recus)}</small>
+          </div>
+          <div className={styles.acts}>
+            <Link className="btn sm primary" href="/">
+              {t("Replacer cette somme")}
+            </Link>
+            <Link className="btn sm" href="/moi/reinvestir">
+              {t("Réinvestir automatiquement")}
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {attendus.length > 0 && (
+        <div className={`${styles.strip} ${styles.attente}`}>
+          <div>
+            <b>{t("{m} FCFA échus et pas encore reçus", { m: fmt(Math.round(b.attendu)) })}</b>
+            <small>
+              {trois(attendus)}
+              {b.retardMax >= 1 ? ` · ${t("le plus ancien depuis {n} jours", { n: b.retardMax })}` : ""}
+            </small>
+          </div>
+          <div className={styles.acts}>
+            {/* Aucun bouton : il n'y a rien à replacer tant que rien n'est
+                arrivé, et le proposer serait mentir. */}
+            <span className={styles.note}>{t("L'émetteur doit encore ces sommes, et le desk les suit.")}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/** Les flux échus depuis moins de `days` jours, le plus récent d'abord. */
-export function recentlyPaid(positions: Position[], days: number, now = new Date()): { date: string; amount: number; label: string; title: string }[] {
-  const floor = new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
-  const today = now.toISOString().slice(0, 10);
-  return positions
-    .flatMap((p) => p.paid.map((f) => ({ ...f, title: p.offer.title })))
-    // Un flux daté d'aujourd'hui ou d'hier n'a pas encore atteint le compte du
-    // client : le rappeler le jour même ferait passer l'application pour mal
-    // informée, ce qu'elle serait.
-    .filter((f) => f.date >= floor && f.date < today && f.amount > 0)
-    .sort((a, b) => b.date.localeCompare(a.date));
+/**
+ * Les deux listes de la bande : ce qui est arrivé, ce qui se fait attendre.
+ *
+ * La fenêtre porte sur la date d'échéance et non sur celle de l'encaissement :
+ * c'est l'événement que le client a en tête. Un flux daté d'aujourd'hui n'y
+ * paraît pas comme attendu, parce qu'il n'a pas encore pu atteindre son compte
+ * et que le signaler en retard ferait passer l'application pour mal informée.
+ */
+export function fluxDeLaBande(positions: Position[], entries: CashEntry[], days: number, now = new Date()): { recus: FluxSuivi[]; attendus: FluxSuivi[] } {
+  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const depuis = new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+  const dans = suivre(lignes, entries, now).filter((f) => f.date >= depuis && f.amount > 0);
+  return {
+    recus: dans.filter((f) => f.etat === "encaisse").sort((a, b) => b.date.localeCompare(a.date)),
+    attendus: dans.filter((f) => f.etat === "attendu" && (f.retardJours ?? 0) >= 1).sort((a, b) => b.date.localeCompare(a.date)),
+  };
 }

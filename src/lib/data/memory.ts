@@ -478,7 +478,9 @@ export const memoryRepository: Repository = {
     const tail = Array.from({ length: 4 }, () => "ACDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
     const d = new Date();
     const ref = `EP-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${tail}`;
-    const it: StandingOrder = { id: uid(), ref, state: "active", createdAt: at, updatedAt: at, ...input };
+    /* Une instruction sans source vient d'un virement : c'était la seule façon
+       d'alimenter avant que le réinvestissement existe. */
+    const it: StandingOrder = { id: uid(), ref, state: "active", createdAt: at, updatedAt: at, ...input, source: input.source ?? "virement", minAmount: input.minAmount ?? 0 };
     s.standing.unshift(it);
     return structuredClone(it);
   },

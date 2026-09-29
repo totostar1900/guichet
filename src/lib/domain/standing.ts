@@ -34,6 +34,26 @@ import type { Offer } from "./types";
 export type StandingState = "active" | "suspendue" | "terminee" | "annulee";
 export type OnBlocked = "passer" | "arreter";
 
+/**
+ * D'où vient l'argent du versement, et par quoi il se déclenche.
+ *
+ * VIREMENT : ce qui existait. Le client vire, le jour du mois décide, et le
+ * montant est fixé à la signature.
+ *
+ * ENCAISSEMENTS : le réinvestissement des coupons. C'est un encaissement
+ * réellement porté au journal qui déclenche, jamais le calendrier, et le
+ * montant est ce qui est arrivé, jamais une somme choisie d'avance. Placer un
+ * montant fixe engagerait un argent que la maison n'a pas reçu ; attendre un
+ * jour du mois laisserait le coupon dormir, ce que la politique des espèces
+ * interdit précisément.
+ *
+ * Les deux partagent tout le reste, et c'est pourquoi ils partagent une table :
+ * une destination fixée à la signature, un état, et ce qu'on fait quand
+ * l'exécution est impossible, décidé par le client d'avance. Leur donner deux
+ * machines aurait fait diverger deux choses qui doivent se comporter pareil.
+ */
+export type StandingSource = "virement" | "encaissements";
+
 export interface StandingOrder {
   id: string;
   ref: string;
@@ -42,8 +62,13 @@ export interface StandingOrder {
   clientSegment: string;
   /** La destination, fixée à la signature. */
   offerId: string;
+  /** Le montant d'un versement par virement. Zéro pour un réinvestissement : c'est l'encaissement qui décide. */
   amount: number;
-  /** 1 à 28. */
+  /** D'où vient l'argent, et par quoi le versement se déclenche. */
+  source: StandingSource;
+  /** En deçà, on ne place rien et on attend : un ordre dérisoire coûte plus qu'il ne rapporte. */
+  minAmount: number;
+  /** 1 à 28. Sans objet pour un réinvestissement, que l'encaissement déclenche. */
   dayOfMonth: number;
   startsOn: string;
   endsOn?: string;
@@ -65,6 +90,8 @@ export interface NewStandingOrder {
   clientSegment: string;
   offerId: string;
   amount: number;
+  source?: StandingSource;
+  minAmount?: number;
   dayOfMonth: number;
   startsOn: string;
   endsOn?: string;
@@ -97,9 +124,17 @@ export function recurringMinimum(o: Offer): number {
   return o.fund?.minRecurring ?? o.fund?.minAmount ?? 0;
 }
 
-/** Ce qui empêche cette instruction, en toutes lettres, ou rien. */
-export function standingBlock(o: Offer | undefined, i: { amount: number; dayOfMonth: number; startsOn: string; endsOn?: string }): string[] {
+/**
+ * Ce qui empêche cette instruction, en toutes lettres, ou rien.
+ *
+ * Un réinvestissement ne se juge pas sur le même montant : le sien n'est connu
+ * qu'au moment où le coupon tombe. Ce qui se vérifie à la signature est la
+ * destination et le calendrier ; le montant se vérifie à l'exécution, contre ce
+ * qui est réellement arrivé.
+ */
+export function standingBlock(o: Offer | undefined, i: { amount: number; dayOfMonth: number; startsOn: string; endsOn?: string; source?: StandingSource }): string[] {
   const out: string[] = [];
+  const surEncaissements = i.source === "encaissements";
   if (!o) {
     out.push("La destination est introuvable.");
     return out;
@@ -113,10 +148,11 @@ export function standingBlock(o: Offer | undefined, i: { amount: number; dayOfMo
     const min = recurringMinimum(o);
     // La phrase garde son trou pour le dictionnaire : les clefs a placeholder se
     // reconnaissent sur le texte deja interpole et rendent la phrase anglaise.
-    if (min > 0 && i.amount < min) out.push(`Le versement minimum sur ce fonds est de ${min.toLocaleString("fr-FR")} FCFA.`);
+    if (!surEncaissements && min > 0 && i.amount < min) out.push(`Le versement minimum sur ce fonds est de ${min.toLocaleString("fr-FR")} FCFA.`);
   }
-  if (!(i.amount > 0)) out.push("Le montant du versement manque.");
-  if (!Number.isInteger(i.dayOfMonth) || i.dayOfMonth < 1 || i.dayOfMonth > 28) out.push("Le jour du versement va du 1 au 28 : tous les mois ont ces jours-là.");
+  if (!surEncaissements && !(i.amount > 0)) out.push("Le montant du versement manque.");
+  if (!surEncaissements && (!Number.isInteger(i.dayOfMonth) || i.dayOfMonth < 1 || i.dayOfMonth > 28))
+    out.push("Le jour du versement va du 1 au 28 : tous les mois ont ces jours-là.");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(i.startsOn)) out.push("La date de départ manque.");
   if (i.endsOn && i.endsOn < i.startsOn) out.push("La fin ne peut pas précéder le départ.");
   return out;
@@ -163,4 +199,43 @@ export function nextRun(s: StandingOrder, today: string): string | null {
 /** Le libellé porté par l'ordre produit : le client doit le reconnaître sur son relevé. */
 export function instalmentLabel(s: StandingOrder, on: string): string {
   return `Épargne programmée ${s.ref} · versement du ${on}`;
+}
+
+/** Celui d'un réinvestissement, qui nomme sa source plutôt qu'un calendrier. */
+export function reinvestLabel(s: StandingOrder, on: string, montant: number): string {
+  return `Réinvestissement ${s.ref} · ${montant.toLocaleString("fr-FR")} FCFA encaissés au ${on}`;
+}
+
+/**
+ * Un réinvestissement est-il exécutable, et de combien ?
+ *
+ * Il ne se demande pas « quel jour sommes-nous » mais « qu'est-ce qui est
+ * arrivé ». Le montant est l'argent disponible, c'est-à-dire encaissé et
+ * n'attendant aucune autre opération ; le plancher évite un ordre dérisoire,
+ * dont les frais mangeraient le coupon.
+ *
+ * Le robot ne choisit toujours rien : le client a fixé la destination et le
+ * plancher à la signature, et le montant vient du marché, pas du desk.
+ */
+export function reinvestissementDu(s: StandingOrder, disponible: number): { montant: number; raison?: string } {
+  if (s.state !== "active") return { montant: 0, raison: "l'instruction n'est pas active" };
+  if (s.source !== "encaissements") return { montant: 0, raison: "cette instruction est alimentée par virement" };
+  if (disponible <= 0) return { montant: 0, raison: "rien n'est encore encaissé" };
+  if (disponible < s.minAmount) return { montant: 0, raison: "sous le plancher fixé à la signature" };
+  return { montant: disponible };
+}
+
+/**
+ * L'argent inoccupé qu'une instruction de réinvestissement réclame.
+ *
+ * Sans cela, le desk verrait « à restituer » sur un coupon que le robot va
+ * placer le lendemain, et le lui renverrait. La politique des espèces ne dit
+ * pas qu'un franc doit repartir, elle dit qu'un franc doit avoir une
+ * destination : une instruction active en est une.
+ */
+export function reclameParReinvestissement(idle: number, instructions: StandingOrder[]): number {
+  const vivantes = instructions.filter((s) => s.state === "active" && s.source === "encaissements");
+  if (!vivantes.length) return 0;
+  const plancher = Math.min(...vivantes.map((s) => s.minAmount));
+  return idle >= plancher ? idle : 0;
 }

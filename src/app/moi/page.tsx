@@ -40,7 +40,14 @@ export default async function MyPage() {
   // A line no longer listed (back to draft, withdrawn) still exists: the history keeps its name and its fiche.
   const missing = [...new Set(mine.map((i) => i.offerId).filter((id) => !byOffer.has(id)))];
   for (const o of await Promise.all(missing.map((id) => r.getOffer(id).catch(() => undefined)))) if (o) byOffer.set(o.id, o);
-  const [myFile, contact, watches] = await Promise.all([r.getClientFileByUser(s.userId), r.getContact(s.userId), r.listWatches(s.userId)]);
+  /* Le journal des espèces part avec le reste : sans lui, la bande des coupons
+     ne sait dire que « échu », et c'est la question qu'elle existe pour fermer. */
+  const [myFile, contact, watches, cash] = await Promise.all([
+    r.getClientFileByUser(s.userId),
+    r.getContact(s.userId),
+    r.listWatches(s.userId),
+    r.listCash(s.userId).catch(() => []),
+  ]);
   const followed = watches.map((w) => byOffer.get(w.offerId)).filter((o): o is NonNullable<typeof o> => Boolean(o));
   const now = new Date();
   // Les versements programmés du lecteur : une poignée, lus avec le reste de la page.
@@ -114,7 +121,7 @@ export default async function MyPage() {
         </p>
       )}
       {/* Ce qui est revenu et dort : la seule décision entre l’achat et le remboursement. */}
-      <Reinvest positions={positions} now={now} />
+      <Reinvest positions={positions} entries={cash} now={now} />
 
       {standing.length > 0 && (
         <section className={styles.sec}>
@@ -129,6 +136,8 @@ export default async function MyPage() {
                 href: `/offres/${x.offerId}`,
                 amount: x.amount,
                 dayOfMonth: x.dayOfMonth,
+                source: x.source,
+                minAmount: x.minAmount,
                 state: x.state,
                 stateLabel: STANDING_STATE_LABEL[x.state],
                 next: nextRun(x, localIso(now)),

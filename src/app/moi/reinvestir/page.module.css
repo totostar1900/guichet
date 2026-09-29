@@ -1,0 +1,172 @@
+/* Replacer ses coupons : une page de décision, pas un tableau de bord. */
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--s-8) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+.fil {
+  font-size: 0.8rem;
+}
+.page h1 {
+  margin: 0 0 var(--s-4);
+  font-size: 1.4rem;
+}
+.chapeau {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+.sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.sec h2 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+/* Quatre chiffres, et deux d'entre eux ne doivent jamais s'additionner. */
+.band {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-1);
+  margin: 0;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.band > div {
+  background: var(--surface);
+  padding: var(--s-5) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.band dt {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.band span {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.champ > span {
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+.champ select,
+.champ input[type="number"] {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 34rem;
+}
+.champ small {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 62ch;
+}
+.radios {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  font-size: 0.85rem;
+}
+.radios label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.pied {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+/* La confirmation se tient à côté du bouton qui l'a produite : rendue en haut
+   de l'écran, elle ne se voit pas. */
+.ok {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--good, #1b4d3e);
+  background: var(--good-soft, #e4efe9);
+  border: 1px solid var(--good, #1b4d3e);
+  border-radius: 5px;
+  padding: var(--s-3) var(--s-5);
+}
+.ko {
+  font-size: 0.8rem;
+  color: var(--crit-ink, #b91c1c);
+}
+.vide {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+
+.steps {
+  margin: 0;
+  padding-left: var(--s-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+.note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 68ch;
+}

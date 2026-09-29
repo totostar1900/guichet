@@ -73,6 +73,76 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
   return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}.` };
 }
 
+const reinvestSchema = z.object({
+  offerId: z.string().min(1),
+  minAmount: z.coerce.number().min(0).default(0),
+  onBlocked: z.enum(["passer", "arreter"]).default("passer"),
+});
+
+/**
+ * Le client demande que ses coupons soient replacés.
+ *
+ * C'est la même instruction permanente que l'épargne programmée, à une chose
+ * près, et cette chose est tout : elle n'a pas de montant. Le client ne peut
+ * pas savoir ce qu'un coupon rapportera, et lui faire choisir une somme
+ * d'avance reviendrait soit à laisser dormir le reste, soit à engager un argent
+ * qui n'est pas arrivé. Ce qui se place est ce qui est encaissé.
+ *
+ * Elle ne se déclenche donc pas au calendrier mais à l'encaissement, constaté
+ * par une personne au journal des espèces. Tant que rien n'est arrivé, rien ne
+ * part, et c'est une garantie plutôt qu'une limite.
+ *
+ * Le plancher est la seule somme que le client fixe : en deçà, on attend le
+ * coupon suivant plutôt que de passer un ordre dont les frais mangeraient le
+ * produit.
+ */
+export async function createReinvestAction(_p: StandingResult | null, form: FormData): Promise<StandingResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Connectez-vous pour programmer un réinvestissement." };
+  const p = reinvestSchema.safeParse(Object.fromEntries(form));
+  if (!p.success) return { ok: false, error: "Destination requise." };
+  const r = repo();
+  const o = await r.getOffer(p.data.offerId);
+  /* Le montant se vérifiera à l'exécution, contre ce qui est réellement arrivé :
+     ici on ne contrôle que la destination. */
+  const wrong = standingBlock(o, { amount: 0, dayOfMonth: 1, startsOn: localIso(new Date()), source: "encaissements" });
+  if (wrong.length) return { ok: false, error: wrong.join(" ") };
+
+  const [channels, existing] = await Promise.all([r.getChannelStatus(session.userId), r.listStandingOrders(session.userId)]);
+  // Deux instructions sur la même poche se disputeraient le même encaissement.
+  if (existing.some((s) => s.state === "active" && s.source === "encaissements")) {
+    return { ok: false, error: "Un réinvestissement est déjà en place. Arrêtez-le avant d'en programmer un autre." };
+  }
+
+  const s = await r.createStandingOrder({
+    userId: session.userId,
+    clientName: session.name,
+    clientSegment: session.segment ?? "",
+    offerId: p.data.offerId,
+    /* Zéro, et la base l'exige pour cette source : le montant d'un
+       réinvestissement n'existe pas avant que le coupon tombe. */
+    amount: 0,
+    source: "encaissements",
+    minAmount: p.data.minAmount,
+    /* Sans objet : c'est l'encaissement qui déclenche, jamais le calendrier. */
+    dayOfMonth: 1,
+    startsOn: localIso(new Date()),
+    onBlocked: p.data.onBlocked,
+    channel: channels?.phoneVerifiedAt && channels.phone ? "WhatsApp" : "E-mail",
+    contactPhone: channels?.phone,
+    contactEmail: channels?.email ?? session.email,
+  });
+  await r.logEvent({
+    kind: "intent",
+    offerId: p.data.offerId,
+    html: `${s.ref} (${s.clientName}) : <b>réinvestissement des encaissements</b> sur ${o?.title ?? p.data.offerId}${s.minAmount ? ` · à partir de ${fmt(s.minAmount)} FCFA` : ""}`,
+  });
+  await audit("standing.reinvest", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, minAmount: s.minAmount, source: s.source } });
+  revalidatePath("/moi");
+  revalidatePath("/moi/reinvestir");
+  return { ok: true, message: `Réinvestissement en place sur ${o?.title ?? "cette ligne"}. Référence ${s.ref}.` };
+}
+
 /**
  * L'arrêt, qui doit être au moins aussi simple que la signature.
  *

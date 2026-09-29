@@ -13,6 +13,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk", "Carnet"],
       ["/desk/a-valider", "À valider"],
       ["/desk/resultats", "Résultats"],
+      ["/desk/encaissements", "Encaissements"],
       ["/desk/documents", "Documents"],
     ],
   },

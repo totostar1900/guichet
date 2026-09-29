@@ -27,5 +27,28 @@
 .acts {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--s-3);
+}
+
+/* Deux bandes, deux natures : l'une porte de l'argent arrivé, l'autre une
+   créance sur l'émetteur. Les empiler sans les distinguer reviendrait à les
+   additionner, ce qu'on cherche justement à ne plus faire. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.bloc .strip + .strip {
+  margin-top: 0;
+}
+/* Ce qui se fait attendre n'est pas une bonne nouvelle et n'en prend pas la
+   couleur ; ce n'est pas une panne non plus et n'en prend pas le rouge. */
+.attente {
+  border-color: var(--line-2);
+  background: var(--surface-2);
+}
+.note {
+  font-size: 0.74rem;
+  color: var(--ink-3);
 }

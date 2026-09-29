@@ -1,0 +1,105 @@
+/* La file des encaissements : une liste de travail, pas un tableau de bord. */
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--s-8) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.head h1 {
+  margin: 0 0 var(--s-3);
+  font-size: 1.35rem;
+}
+.head p {
+  margin: 0;
+  max-width: 68ch;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.band {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-1);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+@media (max-width: 760px) {
+  .band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.band > div {
+  background: var(--surface);
+  padding: var(--s-5) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.band span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band b {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Un chiffre qui appelle quelqu'un ne se lit pas comme les autres. */
+.warn {
+  color: var(--warn-ink, #92400e);
+}
+.crit {
+  color: var(--crit-ink, #b91c1c);
+}
+
+.pb {
+  padding: var(--s-6) var(--s-7) var(--s-7);
+}
+.steps {
+  margin: 0;
+  padding-left: var(--s-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 78ch;
+}
+
+/* Le geste et sa réponse, côte à côte : un retour rendu loin du bouton qui
+   l'a produit ne se voit pas. */
+.encaisser {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.ok {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--good, #1b4d3e);
+  background: var(--good-soft, #e4efe9);
+  border: 1px solid var(--good, #1b4d3e);
+  border-radius: 5px;
+  padding: var(--s-2) var(--s-4);
+}
+/* « Déjà portée » est une bonne nouvelle, pas une panne : la teinte le dit. */
+.ko {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}

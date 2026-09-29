@@ -82,6 +82,10 @@ export interface StandingRow {
   href: string;
   amount: number;
   dayOfMonth: number;
+  /** D'où vient l'argent : un virement mensuel, ou les encaissements du client. */
+  source?: "virement" | "encaissements";
+  /** Le plancher d'un réinvestissement, en deçà duquel on attend le coupon suivant. */
+  minAmount?: number;
   state: string;
   stateLabel: string;
   next: string | null;
@@ -100,13 +104,24 @@ export function StandingList({ rows }: { rows: StandingRow[] }) {
       {rows.map((s) => (
         <div key={s.id} className={styles.item}>
           <div className={styles.what}>
+            {/* Un réinvestissement n'a ni montant ni jour du mois : afficher
+                « 0 FCFA le 1 de chaque mois » décrirait une instruction que
+                personne n'a donnée. Il dit donc ce qu'il fait vraiment. */}
             <b>
-              {fmt(s.amount)} FCFA · {t("le {d} de chaque mois", { d: String(s.dayOfMonth) })}
+              {s.source === "encaissements"
+                ? t("Vos encaissements, replacés dès qu'ils arrivent")
+                : `${fmt(s.amount)} FCFA · ${t("le {d} de chaque mois", { d: String(s.dayOfMonth) })}`}
             </b>
             <Link href={s.href}>{s.title}</Link>
             <small className="muted">
               <span className="mono">{s.ref}</span>
-              {s.next ? ` · ${t("prochain versement le {d}", { d: fmtDate(s.next) })}` : ""}
+              {s.source === "encaissements"
+                ? s.minAmount
+                  ? ` · ${t("à partir de {m} FCFA encaissés", { m: fmt(s.minAmount) })}`
+                  : ` · ${t("quel que soit le montant")}`
+                : s.next
+                  ? ` · ${t("prochain versement le {d}", { d: fmtDate(s.next) })}`
+                  : ""}
               {s.endsOn ? ` · ${t("jusqu'au {d}", { d: fmtDate(s.endsOn) })}` : ""}
               {s.lastRunOn ? ` · ${t("dernier versement le {d}", { d: fmtDate(s.lastRunOn) })}` : ""}
               {s.stopReason ? ` · ${s.stopReason}` : ""}

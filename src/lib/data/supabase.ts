@@ -293,7 +293,20 @@ const toApproval = (r: ApprovalRow): Approval => ({ id: r.id, kind: r.kind, enti
  * qu'un numérique de précision ne tient pas toujours dans un nombre : on le
  * convertit ici, une fois, plutôt qu'à chaque lecture.
  */
-type CashRow = { id: string; user_id: string; at: string; amount: string | number; kind: CashEntry["kind"]; label: string; intent_id: string | null; due_by: string | null; created_by: string | null };
+type CashRow = {
+  id: string;
+  user_id: string;
+  at: string;
+  amount: string | number;
+  kind: CashEntry["kind"];
+  label: string;
+  intent_id: string | null;
+  due_by: string | null;
+  /** L'échéance encaissée, et la période d'avis réglée : les deux garde-fous d'unicité de la migration 0051. */
+  flow_key?: string | null;
+  fee_period?: string | null;
+  created_by: string | null;
+};
 /** « EP-2610-K7Q4 » : le client la cite quand il parle de son versement mensuel. */
 function makeStandingRef(): string {
   const d = new Date();
@@ -311,6 +324,8 @@ type StandingRow = {
   client_segment: string;
   offer_id: string;
   amount: number;
+  source: StandingOrder["source"];
+  min_amount: number;
   day_of_month: number;
   starts_on: string;
   ends_on: string | null;
@@ -333,6 +348,10 @@ const toStanding = (r: StandingRow): StandingOrder => ({
   clientSegment: r.client_segment,
   offerId: r.offer_id,
   amount: Number(r.amount),
+  /* Les lignes écrites avant la migration 0051 n'ont pas de source : elles
+     viennent toutes d'un virement, qui était la seule façon d'alimenter. */
+  source: r.source ?? "virement",
+  minAmount: Number(r.min_amount ?? 0),
   dayOfMonth: Number(r.day_of_month),
   startsOn: String(r.starts_on).slice(0, 10),
   endsOn: r.ends_on ? String(r.ends_on).slice(0, 10) : undefined,
@@ -347,7 +366,18 @@ const toStanding = (r: StandingRow): StandingOrder => ({
   updatedAt: r.updated_at,
 });
 
-const toCash = (r: CashRow): CashEntry => ({ id: r.id, userId: r.user_id, at: r.at, amount: Number(r.amount), kind: r.kind, label: r.label, intentId: u(r.intent_id), dueBy: u(r.due_by) });
+const toCash = (r: CashRow): CashEntry => ({
+  id: r.id,
+  userId: r.user_id,
+  at: r.at,
+  amount: Number(r.amount),
+  kind: r.kind,
+  label: r.label,
+  intentId: u(r.intent_id),
+  dueBy: u(r.due_by),
+  flowKey: u(r.flow_key),
+  feePeriod: u(r.fee_period),
+});
 
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
@@ -1064,6 +1094,8 @@ export const supabaseRepository: Repository = {
       client_segment: input.clientSegment,
       offer_id: input.offerId,
       amount: input.amount,
+      source: input.source ?? "virement",
+      min_amount: input.minAmount ?? 0,
       day_of_month: input.dayOfMonth,
       starts_on: input.startsOn,
       ends_on: input.endsOn ?? null,
@@ -1096,7 +1128,20 @@ export const supabaseRepository: Repository = {
     return (data ?? []).map(toCash);
   },
   async addCash(entry) {
-    const row = { user_id: entry.userId, amount: entry.amount, kind: entry.kind, label: entry.label, intent_id: entry.intentId ?? null, due_by: entry.dueBy ?? null, created_by: entry.createdBy ?? null, ...(entry.at ? { at: entry.at } : {}) };
+    const row = {
+      user_id: entry.userId,
+      amount: entry.amount,
+      kind: entry.kind,
+      label: entry.label,
+      intent_id: entry.intentId ?? null,
+      due_by: entry.dueBy ?? null,
+      /* L'unicité est en base : deux clics sur le même bouton ne créditent pas
+         deux fois, et deux avis du même trimestre ne prélèvent pas deux fois. */
+      flow_key: entry.flowKey ?? null,
+      fee_period: entry.feePeriod ?? null,
+      created_by: entry.createdBy ?? null,
+      ...(entry.at ? { at: entry.at } : {}),
+    };
     const { data, error } = await db().from("client_cash").insert(row).select("*").single();
     if (error) fail("addCash", error);
     return toCash(data);
