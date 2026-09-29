@@ -449,4 +449,64 @@ export const EN_ANALYSES: Record<string, string> = {
   "La contradiction vient de la pièce : la ranger, et la compter à part.": "The contradiction comes from the document: file it, and count it separately.",
   "prix limite retenu : le prix moyen publié dépasse le maximum proposé et inclut donc le coupon couru": "limit price used: the published average exceeds the maximum proposed and therefore includes accrued coupon",
   "Rien n'attend : les {n} contradictions trouvées ont toutes été vérifiées sur leur communiqué, et viennent des Trésors eux-mêmes.": "Nothing is waiting: all {n} contradictions found have been checked against their communiqué, and come from the Treasuries themselves.",
+
+  /* ---------- une figure, deux visions ----------
+     The distinction the whole section exists to carry: « les données » is a
+     representation of what was paid, « la courbe » is what a model deduces
+     from it. The English keeps the two verbs apart, "paid" against "deduces",
+     because a reader who takes one for the other takes a produced figure for
+     an observed one. */
+  "Les données, ou la courbe": "The data, or the curve",
+  "une figure, deux visions": "one figure, two views",
+  "Les données": "The data",
+  "La courbe": "The curve",
+  "Voir les données": "See the data",
+  "Relier les points": "Join the points",
+  "taux instantané": "instantaneous rate",
+  "une séance par durée": "one session per maturity",
+  "dans la profondeur retenue": "within the depth selected",
+  "vraies, non représentatives": "true, not representative",
+  "une séance, pas une valeur de courbe": "a session, not a curve value",
+  "observations relues · publiable": "reviewed observations · publishable",
+  "produit par un modèle · interne": "produced by a model · internal",
+  "{n} séances s'empilent": "{n} sessions are stacked",
+  "à {d}, la plus courte séance": "at {d}, the shortest session",
+  "Les séances relues et la courbe qu'un modèle en déduit, par durée": "Reviewed sessions and the curve a model deduces from them, by maturity",
+  "la courbe déduite, sur les durées observées": "the deduced curve, over the observed maturities",
+  "des segments entre les points, sans modèle": "segments between the points, no model",
+  "Aucune séance relue à cette date et dans cette profondeur.": "No reviewed session at this date and within this depth.",
+  "Aucune séance relue à cette date : il n'y a rien à tracer.": "No reviewed session at this date: there is nothing to plot.",
+  "Le taux à durée nulle : il se lit sous la plus courte séance, et c'est donc une extrapolation.":
+    "The rate at zero maturity: it is read below the shortest session, and is therefore an extrapolation.",
+  "Voici ce que {p} a payé : {n} séances relues sur {d} durées, de {a} % à {d1} à {b} % à {d2}. La plus récente a {j} jours, et aucun modèle n'intervient.":
+    "Here is what {p} paid: {n} reviewed sessions across {d} maturities, from {a} % at {d1} to {b} % at {d2}. The most recent is {j} days old, and no model is involved.",
+  "Voici ce que les {n} Trésors regardés ont payé : {s} séances relues sur {d} durées, de {a} % à {b} %. La plus récente a {j} jours, et aucun modèle n'intervient.":
+    "Here is what the {n} Treasuries on screen paid: {s} reviewed sessions across {d} maturities, from {a} % to {b} %. The most recent is {j} days old, and no model is involved.",
+  "Voici ce que le modèle déduit pour {p} : {a} % à {d1} et {b} % à {d2}. Il s'écarte de {e} points de base des {n} observations retenues.":
+    "Here is what the model deduces for {p}: {a} % at {d1} and {b} % at {d2}. It sits {e} basis points away from the {n} observations retained.",
+  "Le modèle ne déduit rien pour {p} : {r}. Ses observations, elles, sont là.": "The model deduces nothing for {p}: {r}. Its observations, however, are there.",
+  "Aucun des {n} Trésors regardés ne porte assez de durées pour qu'un modèle en déduise une courbe.":
+    "None of the {n} Treasuries on screen carries enough maturities for a model to deduce a curve.",
+  "Le modèle déduit une courbe pour {a} des {n} Trésors regardés, le mieux ajusté étant {p} à {e} points de base sur {d} durées distinctes.":
+    "The model deduces a curve for {a} of the {n} Treasuries on screen, the best fitted being {p} at {e} basis points across {d} distinct maturities.",
+  "Ce qui a été payé, séance par séance. Aucun modèle : chaque point est une adjudication relue, posée à la vie restante de sa ligne. Plusieurs séances peuvent occuper la même durée.":
+    "What was paid, session by session. No model: each point is a reviewed auction, placed at the remaining life of its line. Several sessions may occupy the same maturity.",
+  "Ce que le modèle en déduit. Une séance par durée, pondérée par son âge, et une forme de Nelson-Siegel passée à travers. Elle donne un taux à n'importe quelle durée, y compris celles que personne n'a adjugées.":
+    "What the model deduces from it. One session per maturity, weighted by its age, with a Nelson-Siegel shape fitted through. It gives a rate at any maturity, including those nobody has auctioned.",
+  "Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir. Ce n'est pas une page manquante : les observations sont là, c'est le modèle qui refuse.":
+    "Three coefficients require at least four distinct maturities, and more to hold. This is not a missing page: the observations are there, it is the model that declines.",
+  "Chaque réglage ci-dessus change le sens du chiffre, et pas seulement son allure. La vision des données les ignore : elle n'a rien à pondérer, puisqu'elle ne déduit rien.":
+    "Every setting above changes what the figure means, not merely how it looks. The data view ignores them: it has nothing to weight, since it deduces nothing.",
+  "Cette figure n'est pas une courbe des taux : c'est la donnée, posée. Un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe, et c'est pourquoi on peut les délier.":
+    "This figure is not a yield curve: it is the data, laid out. A segment between two points already asserts a straight line where the price of time makes a curve, which is why they can be unjoined.",
+  "La vision des données pose chaque séance relue à la vie restante de sa ligne, et n'en déduit rien : plusieurs séances peuvent occuper la même durée, et les voir s'empiler est une information. La vision de la courbe ne garde qu'une séance par durée, la pondère par son âge et passe une forme de Nelson-Siegel à travers, ce qui donne un taux à n'importe quelle durée.":
+    "The data view places each reviewed session at the remaining life of its line and deduces nothing from it: several sessions may occupy the same maturity, and seeing them stack up is information. The curve view keeps one session per maturity, weights it by its age and fits a Nelson-Siegel shape through, which gives a rate at any maturity.",
+  "Les porter dans une même figure ne les mélange pas : la phrase de tête change de verbe, le sceau change de régime, les quatre chiffres changent de grandeurs et le tracé change de nature. Les réglages de méthode s'endorment dans la vision des données plutôt que d'en disparaître, parce que leur absence dirait qu'ils n'existent pas quand leur sommeil dit qu'ils ne s'appliquent pas là.":
+    "Carrying both in one figure does not blend them: the lead sentence changes verb, the seal changes regime, the four figures change quantities and the plot changes nature. The method settings fall asleep in the data view rather than disappearing from it, because their absence would say they do not exist where their sleep says they do not apply there.",
+  "Relier les points reste un interrupteur, et c'est voulu : un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe. Le pouvoir de les délier est ce qui empêche la représentation de se faire passer pour une courbe des taux.":
+    "Joining the points remains a switch, and deliberately so: a segment between two points already asserts a straight line where the price of time makes a curve. Being able to unjoin them is what stops the representation passing itself off as a yield curve.",
+  "Un Trésor sans courbe n'est pas une page blanche. Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir : quand le modèle refuse, les observations sont là et la figure renvoie vers la vision qui les montre. Sans cela, la fusion retirerait au Trésor le plus maigre la seule figure qu'il avait.":
+    "A Treasury without a curve is not a blank page. Three coefficients require at least four distinct maturities, and more to hold: when the model declines, the observations are there and the figure points to the view that shows them. Without that, the merge would take from the thinnest Treasury the only figure it had.",
+  "Reculer la date d'observation reconstruit la figure telle qu'elle aurait été à cette date, avec les données telles que nous les tenons aujourd'hui. Ce n'est pas ce que nous savions alors : une séance ancienne relue la semaine dernière y paraît. Une date maigre dit d'abord l'état de notre relecture, et non l'état du marché de ce jour-là.":
+    "Moving the observation date back rebuilds the figure as it would have stood on that date, with the data as we hold it today. It is not what we knew then: an old session reviewed last week appears in it. A thin date speaks first of the state of our review, not of the state of the market that day.",
 };

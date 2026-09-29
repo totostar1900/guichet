@@ -7,6 +7,7 @@ import { Poignee } from "@/components/desk/Poignee";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
 import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CourbeAjustee } from "@/components/market/CourbeAjustee";
+import { CourbeFusion } from "@/components/market/CourbeFusion";
 import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
 import { DateObservation } from "@/components/market/DateObservation";
 import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
@@ -256,6 +257,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * point. Le reste est de la lecture, pas une file d'attente.
    */
   const railSections: SectionRail[] = [
+    { id: "fusion", titre: "Les données, ou la courbe", groupe: "Le prix" },
     { id: "courbe", titre: "La courbe des taux", groupe: "Le prix" },
     { id: "ajustee", titre: "La courbe ajustée", groupe: "Le prix" },
     { id: "points", titre: "Chaque point, et d'où il vient", groupe: "Le prix" },
@@ -338,6 +340,69 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             rédige ne veulent pas de la place au même moment. */}
         <Poignee variable="--rail" min={150} max={340} memoire="ana.rail" libelle="Régler la largeur du rail" />
         <div>
+        {/* 0. La figure fusionnée, qui remplacera les deux suivantes.
+            Nous portions deux figures côte à côte et le desk les lisait toutes
+            deux comme des courbes des taux. Elles n'en sont qu'une : la première
+            pose les séances et relie les points, ce qui est une représentation
+            de la donnée ; la seconde passe un modèle à travers, ce qui est une
+            déduction. Celle-ci porte les deux visions et dit laquelle on
+            regarde, au lieu de laisser supposer qu'il n'y en a qu'une.
+            Les deux anciennes restent le temps de vérifier qu'elles se
+            reproduisent à l'identique : on ne retire pas une figure avant
+            d'avoir éprouvé celle qui la remplace. */}
+        {tracables.length > 0 && (
+          <Bloc
+            id="fusion"
+            note={
+              <>
+                <Commentaire registre="methode" titre="Pourquoi deux visions et non deux figures">
+                  <p>
+                    {t(
+                      "La vision des données pose chaque séance relue à la vie restante de sa ligne, et n'en déduit rien : plusieurs séances peuvent occuper la même durée, et les voir s'empiler est une information. La vision de la courbe ne garde qu'une séance par durée, la pondère par son âge et passe une forme de Nelson-Siegel à travers, ce qui donne un taux à n'importe quelle durée.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Les porter dans une même figure ne les mélange pas : la phrase de tête change de verbe, le sceau change de régime, les quatre chiffres changent de grandeurs et le tracé change de nature. Les réglages de méthode s'endorment dans la vision des données plutôt que d'en disparaître, parce que leur absence dirait qu'ils n'existent pas quand leur sommeil dit qu'ils ne s'appliquent pas là.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Relier les points reste un interrupteur, et c'est voulu : un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe. Le pouvoir de les délier est ce qui empêche la représentation de se faire passer pour une courbe des taux.",
+                    )}
+                  </p>
+                </Commentaire>
+                <Commentaire registre="alerte" titre="Ce qu'un refus veut dire">
+                  <p>
+                    {t(
+                      "Un Trésor sans courbe n'est pas une page blanche. Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir : quand le modèle refuse, les observations sont là et la figure renvoie vers la vision qui les montre. Sans cela, la fusion retirerait au Trésor le plus maigre la seule figure qu'il avait.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Reculer la date d'observation reconstruit la figure telle qu'elle aurait été à cette date, avec les données telles que nous les tenons aujourd'hui. Ce n'est pas ce que nous savions alors : une séance ancienne relue la semaine dernière y paraît. Une date maigre dit d'abord l'état de notre relecture, et non l'état du marché de ce jour-là.",
+                    )}
+                  </p>
+                </Commentaire>
+              </>
+            }
+          >
+            <div className="panel-h">
+              <h2>{t("Les données, ou la courbe")}</h2>
+              <span className="muted">{t("une figure, deux visions")}</span>
+            </div>
+            <div className={styles.pb}>
+              <CourbeFusion
+                fenetres={fenetres}
+                observeLe={demandee ? fmtDate(demandee) : undefined}
+                choixDate={<DateObservation ancres={ancres} courant={leJour} />}
+                beacReleve={beacReleve}
+                ariaLabel={t("Les séances relues et la courbe qu'un modèle en déduit, par durée")}
+              />
+            </div>
+          </Bloc>
+        )}
+
         {/* 1. La courbe elle-même. Elle avait sa page ; cette page était la porte
             qu'on ne franchissait pas, et les chiffres qui l'expliquent vivaient
             derrière. */}
