@@ -277,3 +277,25 @@
   color: var(--ink-3);
   line-height: 1.5;
 }
+
+/* La note du filigrane : elle porte la date et la méthode de la BEAC, sans
+   lesquelles une courbe posée derrière la nôtre affirme sur aujourd'hui. */
+.beacNote {
+  margin: var(--s-5) 0 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.beacNote i {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2px dashed var(--ink-3);
+  vertical-align: 4px;
+  margin-right: var(--s-3);
+  opacity: 0.7;
+}
+.beacNote b {
+  color: var(--ink-2);
+  font-weight: 650;
+}

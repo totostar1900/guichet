@@ -344,6 +344,21 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                     "Le rendement s'actualise sur la vie restante et non sur la durée annoncée : un abondement de six ans à dix-huit mois de son terme appartient au court. Les avis d'annonce confirment un remboursement in fine sur les six Trésors.",
                   )}
                 </p>
+                <p>
+                  {t(
+                    "Pourquoi la vie restante et non la durée annoncée : une courbe des taux répond à la question « que coûte l'argent pour N années, à partir d'aujourd'hui ». Un investisseur qui place à dix-huit mois a le choix entre un bon neuf à dix-huit mois et une obligation de sept ans qui arrive à terme dans dix-huit mois. Les deux lui rendent son capital le même jour, chez le même État, dans la même monnaie : ils doivent se payer au même taux, sans quoi il y aurait un arbitrage à faire. Ils appartiennent donc au même point de la courbe.",
+                  )}
+                </p>
+                <p>
+                  {t(
+                    "L'étiquette « 7 ans » dit quand le titre est né, pas ce qu'il offre aujourd'hui. Une courbe rangée par durée d'émission décrit un portefeuille ; rangée par vie restante, elle décrit un prix qu'on peut payer. Et le calcul suit : actualiser sept ans de flux sur un titre remboursé dans dix-huit mois donnerait un rendement qui ne correspond à aucun placement possible.",
+                  )}
+                </p>
+                <p>
+                  {t(
+                    "Ce n'est pas un cas d'école dans cette zone : les Trésors abondent des lignes anciennes plutôt que d'en ouvrir, et quarante-sept de nos deux cent quarante-neuf séances se déplacent quand on les range par leur échéance, jusqu'à sept cent cinquante-neuf points de base.",
+                  )}
+                </p>
                 <p>{t("La vue CEMAC est une moyenne des Trésors présents à chaque horizon : un niveau de zone, jamais un taux auquel quiconque emprunte.")}</p>
               </Commentaire>
             </>

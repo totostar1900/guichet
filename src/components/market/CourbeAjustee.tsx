@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CEMAC_COLOR, COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { derniereParDuree, poids, type Minces } from "@/lib/market/lecture-b";
 import { depouiller } from "@/lib/market/zero-coupon";
@@ -44,6 +45,9 @@ const P = { l: 56, r: 104, t: 18, b: 46 };
 /** Les durées auxquelles un desk demande un taux, qu'elles aient été adjugées ou non. */
 const USUELS = [0.25, 0.5, 1, 2, 3, 5, 7, 10];
 
+/** Une date en clair, dans la langue du lecteur, sans passer par le serveur. */
+const fmtJour = (iso: string) => new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+
 type Choix = "tous" | "cemac" | string;
 
 interface Serie {
@@ -70,6 +74,7 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
   const [zeroCoupon, setZeroCoupon] = useState(false);
   const [voirPoints, setVoirPoints] = useState(true);
   const [voirBande, setVoirBande] = useState(true);
+  const [voirBeac, setVoirBeac] = useState(true);
   const boite = useRef<HTMLDivElement | null>(null);
   const [vise, setVise] = useState<number | null>(null);
 
@@ -131,17 +136,34 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
       });
   }, [choix, pays, preparer, zone, lambdaZone, t]);
 
+  /**
+   * Les courbes de la BEAC qui correspondent à ce qu'on regarde.
+   *
+   * En vue de zone il n'y en a pas : elle ne consolide pas, et inventer une
+   * moyenne de ses trois Trésors pour la lui attribuer serait lui prêter un
+   * chiffre qu'elle ne publie pas.
+   */
+  const beac = useMemo(() => {
+    if (!voirBeac || choix === "cemac") return [];
+    return Object.entries(BEAC_COURBE.pays)
+      .filter(([p]) => (choix === "tous" ? pays.some((x) => x.pays === p) : choix === p))
+      .map(([p, pts]) => ({ nom: p, couleur: COUNTRY_COLOR[p as keyof typeof COUNTRY_COLOR] ?? CEMAC_COLOR, pts }));
+  }, [voirBeac, choix, pays]);
+
   const tous = series.flatMap((s) => s.obs);
   const echelle = useMemo(() => {
     if (!tous.length) return null;
-    const xs = tous.map((o) => Math.log(o.annees));
+    /* Le filigrane est dans l'échelle parce qu'il est dans le dessin : la BEAC
+       va jusqu'à quinze ans là où nous nous arrêtons à sept. */
+    const xs = [...tous.map((o) => Math.log(o.annees)), ...beac.flatMap((b) => b.pts.map((q) => Math.log(q.annees)))];
     const ys = [
       ...tous.map((o) => o.pct),
+      ...beac.flatMap((b) => b.pts.map((q) => q.pct)),
       ...series.flatMap((s) => (s.fit ? USUELS.filter((u) => u >= s.fit!.borne.court && u <= s.fit!.borne.long).map((u) => s.fit!.taux(u)) : [])),
     ];
     const marge = Math.max((Math.max(...ys) - Math.min(...ys)) * 0.16, 0.3);
     return { x0: Math.min(...xs), x1: Math.max(...xs), lo: Math.min(...ys) - marge, hi: Math.max(...ys) + marge };
-  }, [tous, series]);
+  }, [tous, series, beac]);
 
   if (!echelle) {
     return (
@@ -288,6 +310,9 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
             <button type="button" aria-pressed={voirBande} onClick={() => setVoirBande((v) => !v)}>
               {t("l'intervalle à 95 %")}
             </button>
+            <button type="button" aria-pressed={voirBeac} onClick={() => setVoirBeac((v) => !v)} disabled={choix === "cemac"}>
+              {t("la courbe de la BEAC")}
+            </button>
           </div>
         </div>
       </div>
@@ -313,6 +338,20 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
             </g>
           ))}
           <path d={`M${P.l} ${P.t}V${H - P.b}H${W - P.r}`} className={styles.axe} />
+
+          {/* Le filigrane de la BEAC, derrière : ce n'est pas une mesure de la
+              même chose, et il ne doit jamais couvrir la nôtre. */}
+          {beac.map((b) => (
+            <polyline
+              key={`beac-${b.nom}`}
+              points={b.pts.map((q) => `${X(q.annees).toFixed(1)},${Y(q.pct).toFixed(1)}`).join(" ")}
+              fill="none"
+              stroke={b.couleur}
+              strokeWidth={1.5}
+              strokeDasharray="2 5"
+              opacity={0.45}
+            />
+          ))}
 
           {series.map((se) => {
             if (!se.fit) return null;
@@ -407,6 +446,27 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
           </div>
         )}
       </div>
+
+      {beac.length > 0 && (
+        <p className={styles.beacNote}>
+          <i aria-hidden="true" />
+          {t(
+            "En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée au {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.",
+            { n: BEAC_COURBE.numero, d: fmtJour(BEAC_COURBE.arreteLe), r: fmtJour(BEAC_COURBE.releveLe) },
+          )}{" "}
+          <b>
+            {t(
+              "Son abscisse est la durée d'émission, la nôtre la vie restante : chez elle une obligation émise à sept ans reste posée à « 7 ans » toute sa vie, chez nous elle glisse vers la gauche en approchant de son terme.",
+            )}
+          </b>{" "}
+          {t(
+            "Et son univers est l'encours quand le nôtre est la dernière séance adjugée : elle dit ce que la dette vivante coûte en moyenne, nous ce que le marché a facturé. Les deux sont justes et ne répondent pas à la même question.",
+          )}{" "}
+          <a href={BEAC_COURBE.source} target="_blank" rel="noreferrer">
+            {t("sa pièce")}
+          </a>
+        </p>
+      )}
 
       {zeroCoupon && (
         <p className={styles.note}>
