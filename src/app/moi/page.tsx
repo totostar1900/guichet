@@ -17,6 +17,7 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
+import { AvisGardeList } from "@/components/AvisGardeList";
 import { StandingList } from "@/components/Standing";
 import { nextRun, STANDING_STATE_LABEL } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
@@ -52,6 +53,10 @@ export default async function MyPage() {
   const now = new Date();
   // Les versements programmés du lecteur : une poignée, lus avec le reste de la page.
   const standing = await r.listStandingOrders(s.userId).catch(() => []);
+  /* Les avis de droits de garde : un frais qu on ne voit qu au releve bancaire
+     est un frais qu on subit ; celui dont on lit le detail est un frais qu on
+     verifie. */
+  const avisGarde = await r.listCustodyNotices({ userId: s.userId }).catch(() => []);
   const positions = positionsFrom(mine, offers);
   const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
 
@@ -122,6 +127,15 @@ export default async function MyPage() {
       )}
       {/* Ce qui est revenu et dort : la seule décision entre l’achat et le remboursement. */}
       <Reinvest positions={positions} entries={cash} now={now} />
+
+      {/* Ce que la conservation a coûté, ouvrable ligne à ligne. Un avis à zéro
+          paraît comme les autres : son absence se lirait comme un oubli. */}
+      {avisGarde.length > 0 && (
+        <section className={styles.sec}>
+          <h2>{t("Vos droits de garde")}</h2>
+          <AvisGardeList avis={avisGarde} />
+        </section>
+      )}
 
       {standing.length > 0 && (
         <section className={styles.sec}>

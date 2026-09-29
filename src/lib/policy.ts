@@ -3,6 +3,7 @@ import { cache } from "react";
 import { repo } from "@/lib/data";
 import type { Offer } from "@/lib/domain/types";
 import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
+import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { REF } from "@/lib/reference";
 
 /**
@@ -52,6 +53,31 @@ export const loadCrossPolicy = cache(async (): Promise<CrossPolicy> => {
     return row ? { ...CROSS_CLOSED, ...(row.data as Partial<CrossPolicy>) } : CROSS_CLOSED;
   } catch {
     return CROSS_CLOSED;
+  }
+});
+
+/**
+ * Le barème des droits de garde : une décision de maison, pas un réglage.
+ *
+ * Il se range avec le signal d'appariement et la fenêtre déléguée parce que
+ * c'est la même nature de chose : une règle que le responsable écrit dans
+ * l'application, et dont l'absence a un sens.
+ *
+ * Fermé tant que personne ne l'a ouvert, y compris quand la table de référence
+ * est injoignable. Un barème qui s'ouvrirait sur une panne de lecture
+ * prélèverait par accident, et l'inverse ne coûte qu'un trimestre à zéro. Il
+ * n'y a pas de tarif par défaut, parce qu'un tarif par défaut serait un
+ * prélèvement décidé par le code.
+ */
+export const GARDE_POLICY_KEY = "droits-de-garde";
+
+export const loadBaremeGarde = cache(async (): Promise<BaremeGarde> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const row = rows.find((r) => r.key === GARDE_POLICY_KEY);
+    return row ? { ...BAREME_FERME, ...(row.data as Partial<BaremeGarde>) } : BAREME_FERME;
+  } catch {
+    return BAREME_FERME;
   }
 });
 

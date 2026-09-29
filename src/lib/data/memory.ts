@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
 import type { StandingOrder } from "@/lib/domain/standing";
+import type { AvisGarde } from "@/lib/domain/garde";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
@@ -95,6 +96,8 @@ interface Store {
   watches: Watch[];
   cash: CashEntry[];
   standing: StandingOrder[];
+  /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
+  avisGarde: AvisGarde[];
   reference: ReferenceRow[];
   staff: StaffMember[];
   versions: OfferVersion[];
@@ -153,6 +156,7 @@ function store(): Store {
       ],
       clientFiles: seedClientFiles(),
       standing: [],
+      avisGarde: [],
       bulletins: [],
       quotes: [],
       fundNavs: [],
@@ -482,6 +486,23 @@ export const memoryRepository: Repository = {
        d'alimenter avant que le réinvestissement existe. */
     const it: StandingOrder = { id: uid(), ref, state: "active", createdAt: at, updatedAt: at, ...input, source: input.source ?? "virement", minAmount: input.minAmount ?? 0 };
     s.standing.unshift(it);
+    return structuredClone(it);
+  },
+  async listCustodyNotices(q) {
+    const s = store();
+    s.avisGarde ??= [];
+    const out = s.avisGarde.filter((a) => (!q?.userId || a.userId === q.userId) && (!q?.period || a.period === q.period));
+    return structuredClone(out.sort((a, b) => b.period.localeCompare(a.period)));
+  },
+  async createCustodyNotice(input) {
+    const s = store();
+    s.avisGarde ??= [];
+    // Un avis par client et par période : la base le garantit, la mémoire aussi.
+    if (s.avisGarde.some((a) => a.userId === input.userId && a.period === input.period)) throw new Error("Avis déjà émis pour cette période");
+    const d = new Date();
+    const tail = Array.from({ length: 4 }, () => "ACDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+    const it: AvisGarde = { id: uid(), ref: `DG-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${tail}`, issuedAt: nowIso(), ...input };
+    s.avisGarde.unshift(it);
     return structuredClone(it);
   },
   async updateStandingOrder(id, patch) {

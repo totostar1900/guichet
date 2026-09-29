@@ -92,4 +92,83 @@ export const EN_ENCAISSEMENTS: Record<string, string> = {
   "Connectez-vous pour programmer un réinvestissement.": "Sign in to set up a reinvestment.",
   "Un réinvestissement est déjà en place. Arrêtez-le avant d'en programmer un autre.":
     "A reinvestment is already in place. Stop it before setting up another.",
+
+  /* ---------- les droits de garde ----------
+     "Barème" is rendered "schedule" rather than "scale" because the house has
+     not set it yet, and a closed schedule charges nothing: the English has to
+     carry that a missing tariff is a decision, not an omission. */
+  "Droits de garde": "Custody fees",
+  "Vos droits de garde": "Your custody fees",
+  "Conserver des titres pour un client est un service rendu tous les jours. Le calcul, l'avis et le prélèvement sont ici ; le prix appartient à la maison, et tant qu'il n'est pas arrêté rien n'est facturé.":
+    "Holding securities for a client is a service rendered every day. The calculation, the statement and the charge are here; the price belongs to the firm, and until it is set nothing is charged.",
+  "Le barème": "The fee schedule",
+  ouvert: "open",
+  fermé: "closed",
+  "{b} points de base par an sur l'assiette de conservation, plancher {p} FCFA par trimestre, franchise {f} FCFA.":
+    "{b} basis points a year on the custody base, floor {p} FCFA a quarter, allowance {f} FCFA.",
+  "Aucun tarif n'est arrêté, et rien n'est facturé.": "No tariff has been set, and nothing is charged.",
+  "Le calcul tourne quand même : la prévisualisation ci-dessous montre ce que chaque client devrait, et les avis s'émettent à zéro. Poser un taux ici est une décision de maison, pas un réglage.":
+    "The calculation still runs: the preview below shows what each client would owe, and statements are issued at zero. Setting a rate here is a decision for the firm, not a setting.",
+  "La période": "The period",
+  "On facture un trimestre clos, jamais celui qui court : une période en cours changerait encore, et un avis doit rester ce qu'il disait le jour de son émission.":
+    "We bill a closed quarter, never the one under way: a current period would still change, and a statement must remain what it said on the day it was issued.",
+  "Clients avec des titres": "Clients holding securities",
+  "Assiette moyenne": "Average base",
+  "Avis déjà émis": "Statements already issued",
+  "Reste à émettre": "Left to issue",
+  "À prélever": "To charge",
+  "Ce que chaque client devrait": "What each client would owe",
+  "prévisualisation : rien n'est écrit tant qu'on n'émet pas": "preview: nothing is written until you issue",
+  "Aucun client ne tenait de titres pendant cette période.": "No client held securities during this period.",
+  Brut: "Gross",
+  Dû: "Owed",
+  plancher: "floor",
+  "calculé au prorata des jours gardés": "pro-rated over the days held",
+  "avis émis": "statement issued",
+  "à émettre": "to issue",
+  "barème fermé": "fee schedule closed",
+  "sous la franchise": "below the allowance",
+  "aucune ligne gardée": "no line held",
+  "Émettre est irréversible : un avis ne se retire pas, et un prélèvement se répare par un mouvement inverse au journal plutôt que par un effacement. Un avis à zéro s'émet quand même : il dit au client que sa conservation a été calculée et ne lui coûte rien, et il empêche qu'un barème ouvert plus tard rattrape un trimestre déjà arrêté.":
+    "Issuing is irreversible: a statement cannot be withdrawn, and a charge is repaired by an opposite ledger entry rather than by deletion. A statement at zero is issued all the same: it tells the client their custody was calculated and costs them nothing, and it stops a schedule opened later from reaching back into a quarter already closed.",
+  "Taux annuel": "Annual rate",
+  "En points de base de l'assiette. Zéro ferme le barème : plus rien n'est dû, par aucun chemin.":
+    "In basis points of the base. Zero closes the schedule: nothing is owed, by any route.",
+  "Plancher par période": "Floor per period",
+  "Appliqué à ce qui est déjà dû, jamais à ce qui ne l'est pas. Un barème fermé ne le déclenche pas.":
+    "Applied to what is already owed, never to what is not. A closed schedule never triggers it.",
+  "Franchise d'assiette": "Base allowance",
+  "En deçà de cette assiette moyenne, la période ne se facture pas : l'avis coûterait plus qu'il ne réclame.":
+    "Below this average base the period is not billed: the statement would cost more than it claims.",
+  "Exonérer les fonds": "Exempt funds",
+  "Un fonds porte déjà ses frais de gestion dans sa valeur liquidative : le facturer ici ferait payer deux fois la même conservation.":
+    "A fund already carries its management fees in its net asset value: billing it here would charge twice for the same custody.",
+  "Arrêter ce barème": "Set this schedule",
+  "Émission…": "Issuing…",
+  "Émettre {n} avis et prélever {m} FCFA": "Issue {n} statements and charge {m} FCFA",
+  "Émettre {n} avis, sans prélèvement": "Issue {n} statements, with no charge",
+  "Barème invalide : un taux en points de base, un plancher et une franchise en francs.":
+    "Invalid schedule: a rate in basis points, a floor and an allowance in francs.",
+  "Tous les avis de cette période sont déjà émis.": "All statements for this period have already been issued.",
+
+  /* ---------- l'avis, côté client ---------- */
+  "sans frais": "no charge",
+  "La maison n'applique pas de droits de garde sur cette période : votre conservation ne vous a rien coûté.":
+    "The firm charges no custody fees for this period: your holdings cost you nothing.",
+  "Votre encours moyen est resté sous la franchise : la période n'est pas facturée.":
+    "Your average holdings stayed below the allowance: the period is not billed.",
+  "Aucune ligne facturable sur cette période.": "No billable line in this period.",
+  Assiette: "Base",
+  "Jours gardés": "Days held",
+  Part: "Share",
+  "valorisée au dernier cours": "valued at the last price",
+  "valorisée au nominal, faute de cours": "valued at par, for want of a price",
+  exonérée: "exempt",
+  "Taux appliqué : {b} points de base par an, au prorata des jours réellement gardés.":
+    "Rate applied: {b} basis points a year, pro-rated over the days actually held.",
+  "Le plancher de {m} FCFA par trimestre s'est appliqué.": "The floor of {m} FCFA a quarter was applied.",
+  "Les parts de fonds sont exonérées : leurs frais sont déjà pris dans la valeur liquidative.":
+    "Fund units are exempt: their fees are already taken in the net asset value.",
+  "Les lignes grisées n'ont pas été facturées : exonérées, ou entrées après la fin de la période.":
+    "Greyed lines were not billed: exempt, or acquired after the period ended.",
 };

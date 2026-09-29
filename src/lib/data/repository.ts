@@ -1,6 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
+import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
@@ -88,6 +89,15 @@ export interface Repository {
   listCash(userId: string): Promise<CashEntry[]>;
   /** Un mouvement s'ajoute, il ne se modifie pas : une correction est un mouvement inverse. */
   addCash(entry: Omit<CashEntry, "id" | "at"> & { at?: string; createdBy?: string }): Promise<CashEntry>;
+
+  /** Les avis de droits de garde émis : ceux d'un client, ou tous ceux d'une période. */
+  listCustodyNotices(q?: { userId?: string; period?: string }): Promise<AvisGarde[]>;
+  /**
+   * Un avis s'émet une fois par client et par période, et la base le garantit :
+   * un double prélèvement est l'erreur que personne ne voit passer, parce
+   * qu'elle ressemble à un fonctionnement normal.
+   */
+  createCustodyNotice(input: Omit<AvisGarde, "id" | "ref" | "issuedAt">): Promise<AvisGarde>;
 
   /** Les épargnes programmées : toutes pour le robot mensuel, celles d'un client pour sa page. */
   listStandingOrders(userId?: string): Promise<StandingOrder[]>;

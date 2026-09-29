@@ -110,6 +110,68 @@ export interface Droits {
   plancherApplique: boolean;
 }
 
+/**
+ * Une position, telle que ce module a besoin de la voir.
+ *
+ * Décrite en structure plutôt qu'importée : le module reste sans dépendance, et
+ * un test l'éprouve sans monter un portefeuille entier.
+ */
+export interface PositionGardee {
+  intent: { id: string; createdAt: string };
+  offer: { title: string; kind: string; settleOn?: string; maturityOn?: string };
+  nominalAmount: number;
+  marketValue?: number;
+}
+
+/**
+ * Ce qu'une position devient aux yeux de la garde.
+ *
+ * L'entrée en conservation est le règlement, pas la commande : la maison ne
+ * garde rien tant que le titre n'est pas livré. À défaut de date de règlement
+ * sur la ligne, la date de l'ordre sert de repli, ce qui est prudent dans le
+ * bon sens : elle est antérieure, donc jamais à l'avantage de la maison.
+ *
+ * La sortie est l'échéance. Un titre remboursé n'est plus gardé, et continuer à
+ * le facturer serait facturer un service qui n'est plus rendu.
+ */
+export function positionGardee(p: PositionGardee): LigneGardee {
+  const jour = (iso: string) => iso.slice(0, 10);
+  return {
+    intentId: p.intent.id,
+    titre: p.offer.title,
+    nature: p.offer.kind,
+    depuis: jour(p.offer.settleOn ?? p.intent.createdAt),
+    jusqua: p.offer.maturityOn ? jour(p.offer.maturityOn) : undefined,
+    /* Le cours quand la ligne en a un, le nominal sinon : une obligation
+       primaire tenue jusqu'à l'échéance n'a pas de cours, et facturer sur son
+       nominal doit se dire plutôt que se supposer. */
+    assiette: p.marketValue ?? p.nominalAmount,
+    origine: p.marketValue != null ? "cours" : "nominal",
+  };
+}
+
+/** Un avis émis, tel qu'il se garde : ce qu'il disait le jour de son émission. */
+export interface AvisGarde {
+  id: string;
+  ref: string;
+  userId: string;
+  clientName: string;
+  period: string;
+  periodFrom: string;
+  periodTo: string;
+  bareme: BaremeGarde;
+  lignes: DroitLigne[];
+  assietteMoyenne: number;
+  brut: number;
+  du: number;
+  raison?: string;
+  plancher: boolean;
+  /** Le mouvement du journal qui l'a prélevé, quand il y a eu prélèvement. */
+  cashId?: string;
+  issuedAt: string;
+  issuedBy: string;
+}
+
 const AN = 365;
 const jourDe = (iso: string) => iso.slice(0, 10);
 const enJours = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
@@ -123,6 +185,13 @@ export function trimestreDe(iso: string): Periode {
   const debut = new Date(Date.UTC(an, m0, 1));
   const fin = new Date(Date.UTC(an, m0 + 3, 0));
   return { cle: `${an}-T${t}`, du: debut.toISOString().slice(0, 10), au: fin.toISOString().slice(0, 10) };
+}
+
+/** Les bornes d'un trimestre depuis son nom, « 2026-T3 ». */
+export function periodeDeCle(cle: string): Periode | undefined {
+  const m = /^(\d{4})-T([1-4])$/.exec(cle);
+  if (!m) return undefined;
+  return trimestreDe(new Date(Date.UTC(Number(m[1]), (Number(m[2]) - 1) * 3, 15)).toISOString().slice(0, 10));
 }
 
 /** Le trimestre qui précède celui de cette date : on facture une période close. */

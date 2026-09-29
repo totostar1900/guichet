@@ -1,0 +1,106 @@
+/* Un frais qu'on peut ouvrir et lire ligne à ligne est un frais qu'on vérifie. */
+.liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.avis {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.avis summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding: var(--s-5) var(--s-6);
+  cursor: pointer;
+  list-style: none;
+}
+.avis summary::-webkit-details-marker {
+  display: none;
+}
+.periode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-size: 0.9rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.periode small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.montant {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-1);
+  font-variant-numeric: tabular-nums;
+}
+.montant b {
+  font-size: 0.95rem;
+}
+.montant small {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+/* Rien à payer n'est pas rien à dire : le chiffre existe, il vaut zéro. */
+.gratuit {
+  color: var(--good, #1b4d3e);
+  font-weight: 650;
+}
+
+.detail {
+  padding: 0 var(--s-6) var(--s-6);
+  border-top: 1px solid var(--line);
+}
+.raison {
+  margin: var(--s-5) 0 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.detail table {
+  width: 100%;
+  margin-top: var(--s-5);
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.detail th {
+  text-align: left;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line-2);
+}
+.detail td {
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  vertical-align: top;
+}
+.detail td small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+/* Une ligne non facturée paraît, grisée : l'absence se lirait comme un oubli. */
+.hors {
+  opacity: 0.55;
+}
+.pied {
+  margin: var(--s-5) 0 0;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+}

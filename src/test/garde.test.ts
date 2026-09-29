@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BAREME_FERME, baremeOuvert, droitsDeGarde, joursGardes, trimestreDe, trimestrePrecedent, type BaremeGarde, type LigneGardee } from "@/lib/domain/garde";
+import { BAREME_FERME, baremeOuvert, droitsDeGarde, joursGardes, positionGardee, trimestreDe, trimestrePrecedent, type BaremeGarde, type LigneGardee } from "@/lib/domain/garde";
 
 /**
  * Les droits de garde, et le prélèvement qu'on ne veut pas voir arriver seul.
@@ -114,6 +114,42 @@ describe("les exonérations", () => {
     const d = droitsDeGarde([ligne({ nature: "FONDS" }), ligne({ intentId: "i2" })], OUVERT, T3);
     expect(d.lignes).toHaveLength(2);
     expect(d.lignes.find((l) => l.nature === "FONDS")).toMatchObject({ exoneree: true, brut: 0 });
+  });
+});
+
+describe("ce qu'une position devient aux yeux de la garde", () => {
+  const pos = (over: Record<string, unknown> = {}) =>
+    positionGardee({
+      intent: { id: "i1", createdAt: "2026-02-10T09:00:00Z" },
+      offer: { title: "Cameroun 2030", kind: "OTA", settleOn: "2026-02-14", maturityOn: "2030-02-14" },
+      nominalAmount: 10_000_000,
+      ...over,
+    } as Parameters<typeof positionGardee>[0]);
+
+  it("compte la garde à partir du règlement, pas de la commande", () => {
+    /* La maison ne garde rien tant que le titre n'est pas livré. */
+    expect(pos().depuis).toBe("2026-02-14");
+  });
+
+  it("retombe sur la date de l'ordre quand le règlement manque", () => {
+    /* Elle est antérieure, donc jamais à l'avantage de la maison. */
+    expect(pos({ offer: { title: "X", kind: "FONDS" } }).depuis).toBe("2026-02-10");
+  });
+
+  it("arrête la garde à l'échéance", () => {
+    expect(pos().jusqua).toBe("2030-02-14");
+    expect(pos({ offer: { title: "X", kind: "FONDS", settleOn: "2026-02-14" } }).jusqua).toBeUndefined();
+  });
+
+  it("dit d'où vient son assiette, un nominal n'étant pas un prix", () => {
+    expect(pos()).toMatchObject({ assiette: 10_000_000, origine: "nominal" });
+    expect(pos({ marketValue: 9_400_000 })).toMatchObject({ assiette: 9_400_000, origine: "cours" });
+  });
+
+  it("laisse un cours à zéro être un cours", () => {
+    /* Une ligne radiée vaut zéro, ce qui n'est pas la même chose que ne pas
+       avoir de cours : facturer son nominal serait facturer ce qu'elle valait. */
+    expect(pos({ marketValue: 0 })).toMatchObject({ assiette: 0, origine: "cours" });
   });
 });
 

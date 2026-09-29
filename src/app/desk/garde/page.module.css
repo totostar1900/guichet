@@ -1,0 +1,198 @@
+/* Les droits de garde : un calcul, un verrou, et un geste irréversible. */
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--s-8) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.head h1 {
+  margin: 0 0 var(--s-3);
+  font-size: 1.35rem;
+}
+.head p {
+  margin: 0;
+  max-width: 72ch;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+/* L'état du verrou se voit avant de se lire : un barème ouvert prélève. */
+.ferme {
+  box-shadow: inset 3px 0 0 var(--line-2);
+}
+.ouvert {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.etat {
+  margin: 0 0 var(--s-6);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 76ch;
+}
+.etat b {
+  color: var(--ink);
+}
+
+.pb {
+  padding: var(--s-6) var(--s-7) var(--s-7);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.champs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-6);
+}
+@media (max-width: 760px) {
+  .champs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.champ > span {
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+.champ input {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.champ small {
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.case {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  font-size: 0.85rem;
+}
+.case span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.case small {
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 68ch;
+}
+
+.pied {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+/* La réponse se tient auprès du bouton qui l'a produite. */
+.ok {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--good, #1b4d3e);
+  background: var(--good-soft, #e4efe9);
+  border: 1px solid var(--good, #1b4d3e);
+  border-radius: 5px;
+  padding: var(--s-3) var(--s-5);
+}
+.ko {
+  font-size: 0.78rem;
+  color: var(--crit-ink, #b91c1c);
+}
+
+.onglets {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  overflow: hidden;
+  margin-bottom: var(--s-5);
+}
+.onglets a {
+  padding: var(--s-4) var(--s-6);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-right: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.onglets a:last-child {
+  border-right: 0;
+}
+.actif {
+  background: var(--navy);
+  color: var(--on-navy) !important;
+  font-weight: 650;
+}
+
+.band {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-1);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+@media (max-width: 760px) {
+  .band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.band > div {
+  background: var(--surface);
+  padding: var(--s-5) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.band span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band b {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Une somme qui va réellement quitter le compte d'un client. */
+.chiffre {
+  color: var(--gold-ink, #8a6708);
+}
+
+.pm {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+.wrap {
+  white-space: normal;
+  max-width: 34ch;
+}
+.note {
+  margin: var(--s-5) 0 0;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+  max-width: 82ch;
+}

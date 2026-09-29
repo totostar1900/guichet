@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
+import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
@@ -307,6 +308,55 @@ type CashRow = {
   fee_period?: string | null;
   created_by: string | null;
 };
+/** « DG-2610-K7Q4 » : le client la cite quand il parle de son avis de garde. */
+function makeAvisRef(): string {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(2);
+  const tail = Array.from({ length: 4 }, () => "ACDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+  return `DG-${yy}${mm}-${tail}`;
+}
+
+type AvisRow = {
+  id: string;
+  ref: string;
+  user_id: string;
+  client_name: string;
+  period: string;
+  period_from: string;
+  period_to: string;
+  bareme: BaremeGarde;
+  lignes: DroitLigne[];
+  assiette_moyenne: string | number;
+  brut: string | number;
+  du: string | number;
+  raison: string | null;
+  plancher: boolean;
+  cash_id: string | null;
+  issued_at: string;
+  issued_by: string;
+};
+
+const toAvis = (r: AvisRow): AvisGarde => ({
+  id: r.id,
+  ref: r.ref,
+  userId: r.user_id,
+  clientName: r.client_name,
+  period: r.period,
+  periodFrom: String(r.period_from).slice(0, 10),
+  periodTo: String(r.period_to).slice(0, 10),
+  bareme: r.bareme,
+  lignes: r.lignes ?? [],
+  assietteMoyenne: Number(r.assiette_moyenne),
+  brut: Number(r.brut),
+  du: Number(r.du),
+  raison: r.raison ?? undefined,
+  plancher: Boolean(r.plancher),
+  cashId: r.cash_id ?? undefined,
+  issuedAt: r.issued_at,
+  issuedBy: r.issued_by,
+});
+
 /** « EP-2610-K7Q4 » : le client la cite quand il parle de son versement mensuel. */
 function makeStandingRef(): string {
   const d = new Date();
@@ -1145,6 +1195,41 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("client_cash").insert(row).select("*").single();
     if (error) fail("addCash", error);
     return toCash(data);
+  },
+
+  async listCustodyNotices(q) {
+    let sel = db().from("custody_notices").select("*").order("period", { ascending: false });
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    if (q?.period) sel = sel.eq("period", q.period);
+    const { data, error } = await sel;
+    if (error) {
+      // Migration 0051 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/custody_notices/.test(error.message)) return [];
+      fail("listCustodyNotices", error);
+    }
+    return (data ?? []).map(toAvis);
+  },
+  async createCustodyNotice(input) {
+    const row = {
+      ref: makeAvisRef(),
+      user_id: input.userId,
+      client_name: input.clientName,
+      period: input.period,
+      period_from: input.periodFrom,
+      period_to: input.periodTo,
+      bareme: input.bareme,
+      lignes: input.lignes,
+      assiette_moyenne: input.assietteMoyenne,
+      brut: input.brut,
+      du: input.du,
+      raison: input.raison ?? null,
+      plancher: input.plancher,
+      cash_id: input.cashId ?? null,
+      issued_by: input.issuedBy,
+    };
+    const { data, error } = await db().from("custody_notices").insert(row).select("*").single();
+    if (error) fail("createCustodyNotice", error);
+    return toAvis(data);
   },
 
   async listWatches(userId) {
