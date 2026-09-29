@@ -154,3 +154,48 @@
   display: grid;
   gap: 6px;
 }
+
+/* La porte Google : un bouton blanc bordé, la convention que tout le monde
+   reconnaît, mais aux arêtes de la maison plutôt qu'aux coins ronds. */
+.google {
+  margin-top: var(--s-8);
+}
+.google button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-6);
+  padding: var(--s-7) var(--s-8);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.google button:hover {
+  border-color: var(--ink-3);
+}
+.google svg {
+  flex: none;
+}
+/* « ou » : un filet coupé par un mot, pas une barre grise. */
+.ou {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  margin: var(--s-8) 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ou::before,
+.ou::after {
+  content: "";
+  flex-grow: 1;
+  height: 1px;
+  background: var(--line);
+}

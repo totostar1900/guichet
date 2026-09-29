@@ -11,6 +11,11 @@
  * never apologises.
  */
 export const EN_CONSOLE: Record<string, string> = {
+  /* ---------- la porte Google ---------- */
+  "Continuer avec Google": "Continue with Google",
+  "La connexion par Google n'a pas abouti. Le code par e-mail ci-dessous fonctionne toujours.":
+    "Signing in with Google did not go through. The e-mail code below still works.",
+
   /* ---------- la bande et la console ----------
      « Mon espace », « Dossier complet », « aucune échéance connue »,
      « Analyses », « En savoir plus », « Suivre » et « Déclarer une intention »

@@ -44,6 +44,36 @@ export async function verifyCode(_prev: LoginState, form: FormData): Promise<Log
   redirect(next);
 }
 
+/* ---------- Supabase : Google ---------- */
+
+/**
+ * La porte Google. Supabase ne redirige pas lui-même : il rend l'URL de
+ * consentement, et c'est nous qui y envoyons le navigateur.
+ *
+ * Le flux est PKCE : `signInWithOAuth` dépose le vérificateur dans un cookie,
+ * ce qui ne marche que dans une action serveur ou un gestionnaire de route,
+ * jamais dans un composant serveur. Google revient ensuite sur
+ * /auth/callback?code=…, qui sait déjà l'échanger contre une session.
+ *
+ * L'adresse rendue par Google est vérifiée par Google : elle vaut le canal
+ * prouvé qu'un code par e-mail établit, et le client n'a rien à retenir.
+ */
+export async function googleLogin(form: FormData): Promise<void> {
+  const next = safeNext(form.get("next"));
+  if (authMode() !== "supabase") redirect(`/connexion?erreur=google&next=${encodeURIComponent(next)}`);
+  // Le retour se fait sur l'hôte qui a demandé : le desk garde sa propre session.
+  const host = (await headers()).get("host");
+  const base = isDeskHost(host) ? deskOrigin() : (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
+  const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+  const sb = await supabaseAuthClient();
+  const { data, error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${base}/auth/callback?next=${encodeURIComponent(next)}`, skipBrowserRedirect: true },
+  });
+  if (error || !data?.url) redirect(`/connexion?erreur=google&next=${encodeURIComponent(next)}`);
+  redirect(data.url);
+}
+
 /* ---------- Supabase : téléphone (SMS ou WhatsApp selon le fournisseur configuré) ---------- */
 
 export async function sendPhoneCode(_prev: LoginState, form: FormData): Promise<LoginState> {

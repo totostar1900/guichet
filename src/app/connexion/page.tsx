@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { authMode, getSession } from "@/lib/auth";
 import { COMPANY } from "@/lib/config";
 import { EmailOtpForm } from "./EmailOtpForm";
-import { devLogin } from "./actions";
+import { devLogin, googleLogin } from "./actions";
 import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -27,10 +27,33 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="eyebrow">{COMPANY.name}</div>
         <h1 className="display">{t("Se connecter")}</h1>
         {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
+        {erreur === "google" && <p className={styles.notice}>{t("La connexion par Google n'a pas abouti. Le code par e-mail ci-dessous fonctionne toujours.")}</p>}
         <DeviceSignIn next={next} />
         {mode === "supabase" ? (
           <>
             <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>
+            {/* La porte Google est proposée avant le code : elle est plus courte,
+                et l'adresse qu'elle rend est déjà vérifiée par Google. Elle ne
+                paraît que si le fournisseur est activé côté Supabase. */}
+            {process.env.GOOGLE_OAUTH_ENABLED === "1" && (
+              <>
+                <form action={googleLogin} className={styles.google}>
+                  <input type="hidden" name="next" value={next} />
+                  <button type="submit">
+                    <svg viewBox="0 0 48 48" aria-hidden="true" width="16" height="16">
+                      <path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-4H24v7.5h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.7 45 24z" />
+                      <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.9-12.5-9.2l-7.1 5.5C8.1 41 15.4 46 24 46z" />
+                      <path fill="#FBBC05" d="M11.5 28.3A13.4 13.4 0 0 1 10.8 24c0-1.5.3-3 .7-4.3l-7.1-5.6A22 22 0 0 0 2 24c0 3.6.9 6.9 2.4 9.9z" />
+                      <path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.6C13.3 14.2 18.2 10.3 24 10.3z" />
+                    </svg>
+                    {t("Continuer avec Google")}
+                  </button>
+                </form>
+                <div className={styles.ou}>
+                  <span>{t("ou")}</span>
+                </div>
+              </>
+            )}
             <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
             <p className={styles.discover}>
               {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
