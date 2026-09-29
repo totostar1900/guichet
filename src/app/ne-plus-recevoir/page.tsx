@@ -59,7 +59,7 @@ export default async function OptOutPage({ searchParams }: { searchParams: Promi
           <Link className="btn sm" href="/moi">
             {t("Mon espace")}
           </Link>
-          <Link className="btn sm ghost" href="/">
+          <Link className="btn sm ghost" href="/titres">
             {t("Le Guichet")}
           </Link>
         </div>

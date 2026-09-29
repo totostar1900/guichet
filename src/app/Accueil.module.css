@@ -1,0 +1,376 @@
+/* L'accueil public : la direction claire du système de design.
+   Rayon zéro, des filets plutôt que des boîtes, une seule surface pleine. */
+.page {
+  display: flex;
+  flex-direction: column;
+}
+
+/* L'ouverture : sept colonnes de texte, cinq pour la figure, un filet entre. */
+.ouverture {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: start;
+  padding: var(--s-11) 0 var(--s-11);
+}
+.dire {
+  grid-column: span 7;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
+  min-width: 0;
+}
+.agrement {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.dire h1 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(2.4rem, 5.4vw, 4.2rem);
+  line-height: 1.04;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  text-wrap: balance;
+}
+.chapeau {
+  margin: 0;
+  font-size: 1.06rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+  max-width: 54ch;
+}
+/* Deux gestes collés : ils sont liés, un écart entre eux n'aurait aucun sens. */
+.gestes {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  padding-top: var(--s-6);
+}
+.gestes a {
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: var(--s-7) var(--s-10);
+  border-radius: 0;
+}
+.principal {
+  background: var(--navy);
+  color: var(--on-navy, #fff);
+  border: 1px solid var(--navy);
+}
+.second {
+  color: var(--ink);
+  border: 1px solid var(--navy);
+  border-left: 0;
+}
+.nominatif {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.nominatif b {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+/* La figure : pas de carte, un filet à gauche. */
+.figure {
+  grid-column: span 5;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+  padding-left: var(--s-11);
+  border-left: 1px solid var(--line);
+  min-width: 0;
+}
+.figTete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+}
+.figTete b {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.figTete span {
+  font-size: 0.7rem;
+  color: var(--ink-3);
+}
+.figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.figPied {
+  margin: 0;
+  padding-top: var(--s-7);
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+/* Les preuves : quatre colonnes réglées, jamais quatre cartes. */
+.preuves {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--navy);
+  border-bottom: 1px solid var(--line);
+}
+.preuves > div {
+  padding: var(--s-9) var(--s-9) var(--s-10) 0;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.preuves b {
+  /* Manrope et ses chiffres tabulaires : l application n a pas de chasse
+     fixe, et en ouvrir une pour quatre nombres coutait une police entiere. */
+  font-size: 2.1rem;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+.preuves em {
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+.preuves small {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* Les trois familles de services. */
+.familles {
+  padding-top: var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-10);
+}
+.tete {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: end;
+}
+.tete h2 {
+  grid-column: span 7;
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(1.8rem, 3.4vw, 2.9rem);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.tete p {
+  grid-column: 9 / span 4;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--ink-3);
+}
+.grille3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--navy);
+}
+.famille {
+  padding: var(--s-10) var(--s-10) var(--s-11) 0;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+  min-width: 0;
+}
+.etiquette {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.famille h3 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.famille p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.services {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--s-3);
+}
+.services a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-6);
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--line);
+  text-decoration: none;
+  font-size: 0.83rem;
+}
+.services i {
+  font-style: normal;
+  font-size: 0.68rem;
+  color: var(--gold-ink);
+}
+
+/* La seule surface pleine de la page. */
+.verifie {
+  margin-top: var(--s-11);
+  background: var(--navy);
+  padding: var(--s-11) var(--s-11) calc(var(--s-11) + var(--s-4));
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+}
+.verifie h2 {
+  grid-column: span 4;
+  margin: 0 0 var(--s-7);
+  font-family: var(--font-titre);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  line-height: 1.08;
+  font-weight: 400;
+  color: var(--on-navy, #fff);
+}
+.verifieDit {
+  grid-column: span 4;
+  margin: 0;
+  font-size: 0.87rem;
+  line-height: 1.7;
+  color: #b5c0d0;
+  grid-row: 2;
+}
+.garanties {
+  grid-column: 6 / span 7;
+  grid-row: 1 / span 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-10) var(--s-10);
+}
+.garanties > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-top: var(--s-7);
+  border-top: 1px solid #1e3a5f;
+}
+.garanties b {
+  font-size: 0.84rem;
+  color: var(--on-navy, #fff);
+}
+.garanties span {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #9fb0c9;
+}
+
+/* L'appel final. */
+.entrer {
+  padding: var(--s-11) 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: center;
+}
+.entrer div {
+  grid-column: span 7;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.entrer h2 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  font-weight: 400;
+}
+.entrer p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+.entrer a {
+  grid-column: 9 / span 4;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: var(--s-8) var(--s-9);
+  background: var(--navy);
+  color: var(--on-navy, #fff);
+}
+
+/* Au téléphone, tout retombe sur une colonne : la grille de douze ne tient pas
+   sous 900 px, et la forcer produirait des colonnes de six caractères. */
+@media (max-width: 900px) {
+  .ouverture,
+  .tete,
+  .entrer,
+  .verifie {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-10);
+  }
+  .dire,
+  .figure,
+  .tete h2,
+  .tete p,
+  .entrer div,
+  .entrer a,
+  .verifie h2,
+  .verifieDit,
+  .garanties {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .figure {
+    padding-left: 0;
+    border-left: 0;
+    padding-top: var(--s-9);
+    border-top: 1px solid var(--line);
+  }
+  .preuves,
+  .grille3,
+  .garanties {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .verifie {
+    padding: var(--s-10) var(--s-9);
+  }
+}
+@media (max-width: 560px) {
+  .preuves,
+  .grille3,
+  .garanties {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .famille,
+  .preuves > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}

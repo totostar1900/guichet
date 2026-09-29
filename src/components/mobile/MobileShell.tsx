@@ -10,7 +10,7 @@ import { Sheet } from "./Sheet";
 import { MARKET_PAGES, currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
-import { isFundsSection, isTitresSection, listForFiche } from "@/lib/nav-section";
+import { isFundsSection, isTitresSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -127,7 +127,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
 
   const t = useT();
   const tabs: Tab[] = [
-    { href: "/", label: t("Titres"), icon: I.guichet, match: isTitresSection },
+    { href: TITRES, label: t("Titres"), icon: I.guichet, match: isTitresSection },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: isFundsSection },
     { href: "/marche", label: t("Marché"), icon: I.actualites, match: isMarketPath, sheet: true },
     { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },

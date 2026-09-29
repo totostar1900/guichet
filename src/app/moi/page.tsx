@@ -114,7 +114,7 @@ export default async function MyPage() {
         <Link href="/moi/securite" className="btn">
           {t("Sécurité")}
         </Link>
-        <Link href="/" className="btn">
+        <Link href="/titres" className="btn">
           {t("Voir les offres")}
         </Link>
       </div>

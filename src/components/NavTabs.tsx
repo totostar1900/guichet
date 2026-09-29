@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
-import { isFundsSection, isTitresSection } from "@/lib/nav-section";
+import { isFundsSection, isTitresSection, TITRES } from "@/lib/nav-section";
 
 const TABS = [
-  { href: "/", label: "Titres", match: isTitresSection },
+  { href: TITRES, label: "Titres", match: isTitresSection },
   { href: "/fonds", label: "Fonds", match: isFundsSection },
   // « Marché » porte l'environnement BVMAC : l'indice, les sociétés, les notes.
   // Les actualités gardent leur onglet : elles couvrent cinq rubriques, dont la BVMAC

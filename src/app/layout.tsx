@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { Manrope } from "next/font/google";
+import { Instrument_Serif, Manrope } from "next/font/google";
 import "./globals.css";
 import "./palettes.css";
 import styles from "./layout.module.css";
@@ -34,6 +34,16 @@ import { LEGAL_VERSION } from "@/data/legal";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
+/**
+ * La seconde famille, et la seule.
+ *
+ * L app a longtemps tenu sur une police unique, et le disait : « every face is
+ * the same family now ». Un titre en serif a fort contraste est ce qui donne a
+ * l accueil son caractere, et c est la seule chose que Manrope ne sait pas
+ * faire. Elle ne sert qu aux titres : les chiffres restent en Manrope, avec
+ * ses chiffres tabulaires, plutot que d ouvrir une troisieme famille.
+ */
+const titre = Instrument_Serif({ subsets: ["latin"], weight: ["400"], variable: "--font-titre", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: `${PRODUCT.name} · ${COMPANY.name}`, template: `%s · ${PRODUCT.name}` },
@@ -86,7 +96,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} className={ui.variable} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value)}>
+    <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value)}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT }} />

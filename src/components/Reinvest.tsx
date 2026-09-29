@@ -70,7 +70,7 @@ export async function Reinvest({
             <small>{trois(recus)}</small>
           </div>
           <div className={styles.acts}>
-            <Link className="btn sm primary" href="/">
+            <Link className="btn sm primary" href="/titres">
               {t("Replacer cette somme")}
             </Link>
             <Link className="btn sm" href="/moi/reinvestir">

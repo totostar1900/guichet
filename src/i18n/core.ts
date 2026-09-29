@@ -11,6 +11,7 @@ import { EN_DOCS } from "./en-docs";
 import { EN_PARCOURS } from "./en-parcours";
 import { EN_ANALYSES } from "./en-analyses";
 import { EN_ENCAISSEMENTS } from "./en-encaissements";
+import { EN_ACCUEIL } from "./en-accueil";
 
 const EN: Record<string, string> = {
   ...EN_BASE,
@@ -26,6 +27,7 @@ const EN: Record<string, string> = {
   ...EN_PARCOURS,
   ...EN_ANALYSES,
   ...EN_ENCAISSEMENTS,
+  ...EN_ACCUEIL,
 };
 
 /**

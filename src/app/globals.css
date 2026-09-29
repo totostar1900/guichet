@@ -110,7 +110,11 @@
   /* La marge interieure d'un panneau, celle que son en-tete pose deja. */
   --panel-inset: var(--s-7);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
-  /* Legacy aliases : every face is the same family now. */
+  /* La seconde famille, et la seule : un serif a fort contraste pour les
+     titres de l accueil et des pages qui presentent. Manrope tient tout le
+     reste, chiffres compris, avec ses chiffres tabulaires. */
+  --font-titre: "Instrument Serif", Georgia, "Times New Roman", serif;
+  /* Legacy aliases : hors des titres, tout est de la meme famille. */
   --font-display: var(--font-ui);
   --font-mono: var(--font-ui);
 }

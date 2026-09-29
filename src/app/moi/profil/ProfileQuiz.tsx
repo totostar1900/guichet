@@ -221,7 +221,7 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
               {t("Garder ce profil dans mon dossier")}
             </Link>
           ) : (
-            <Link href="/" className="btn primary">
+            <Link href="/titres" className="btn primary">
               {t("Voir les lignes")}
             </Link>
           )}

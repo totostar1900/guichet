@@ -98,7 +98,7 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
                 </Link>
               )}
               {(r.chapter === "lignes" || r.chapter === "intentions") && (
-                <Link className="btn sm primary" href="/">
+                <Link className="btn sm primary" href="/titres">
                   {t("Voir les lignes")}
                 </Link>
               )}
