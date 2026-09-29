@@ -33,9 +33,10 @@
 -- disait ce jour-là, même si la position a bougé depuis. Il se garde donc,
 -- avec son détail ligne à ligne et le barème qui l'a produit.
 --
--- Le barème, lui, n'est pas ici : il vit dans « reference », kind « garde »,
--- avec les étages de confirmation du référentiel. C'est une décision de maison,
--- et elle se prend là où les décisions de maison se prennent.
+-- Le barème, lui, n'est pas ici : il vit dans « reference », kind « policy »,
+-- clef « droits-de-garde », à côté de la fenêtre déléguée et du signal
+-- d'appariement. C'est une décision de maison, et elle se prend là où les
+-- décisions de maison se prennent. Absent, il est fermé, et rien n'est dû.
 
 alter table client_cash add column if not exists flow_key text;
 alter table client_cash add column if not exists fee_period text;
@@ -93,10 +94,15 @@ alter table custody_notices enable row level security;
 --
 -- Elle n'a pas de table à elle, et c'est un choix. Réinvestir un coupon est une
 -- épargne programmée dont la source est le compte du client plutôt qu'un
--- virement : même destination fixée à la signature, même jour du mois, même
--- décision d'avance sur ce qu'on fait quand l'exécution est impossible. Lui
--- donner sa propre table aurait dupliqué le robot, les états, les garde-fous,
--- et fait diverger deux machines qui doivent se comporter pareil.
+-- virement : même destination fixée à la signature, même état, même décision
+-- d'avance sur ce qu'on fait quand l'exécution est impossible. Lui donner sa
+-- propre table aurait dupliqué le robot, les états, les garde-fous, et fait
+-- diverger deux machines qui doivent se comporter pareil.
+--
+-- Ce qu'elle ne partage pas est son déclencheur, et « day_of_month » lui est
+-- donc sans objet : un versement par virement part le jour dit, un
+-- réinvestissement part quand le coupon arrive. Attendre le 5 du mois
+-- laisserait l'argent dormir, ce que la politique des espèces interdit.
 --
 -- « source » dit d'où vient l'argent. « virement » est ce qui existait : le
 -- client vire chaque mois. « encaissements » est le service 6 : on ne place que
