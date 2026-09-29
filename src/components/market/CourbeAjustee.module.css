@@ -360,3 +360,53 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Le nom de la BEAC au bout de son trait : une mesure d'un autre ne se déguise
+   pas en la nôtre, et la couleur du Trésor n'appartient qu'à nos chiffres. */
+.beacBout {
+  fill: var(--ink-3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Quatre traits, quatre sens : la légende est le dictionnaire de la figure. */
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-7);
+  margin-top: var(--s-5);
+  font-size: 0.74rem;
+  color: var(--ink-2);
+}
+.legende span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.trPlein {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+}
+.trTirets {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2px dashed var(--ink-2);
+}
+.trBeac {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2px dotted var(--ink-3);
+}
+.trRond {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--ink-2);
+}

@@ -451,17 +451,29 @@ export function CourbeAjustee({
 
           {/* Le filigrane de la BEAC, derrière : ce n'est pas une mesure de la
               même chose, et il ne doit jamais couvrir la nôtre. */}
-          {beac.map((b) => (
-            <polyline
-              key={`beac-${b.nom}`}
-              points={b.pts.map((q) => `${X(q.annees).toFixed(1)},${Y(q.pct).toFixed(1)}`).join(" ")}
-              fill="none"
-              stroke={b.couleur}
-              strokeWidth={1.5}
-              strokeDasharray="2 5"
-              opacity={0.45}
-            />
-          ))}
+          {/* La couleur du Trésor n'appartient qu'à nos chiffres : la BEAC passe
+              au gris et porte son nom, sans quoi trois pointillés de la même
+              teinte disent trois choses différentes sans les distinguer. */}
+          {beac.map((b) => {
+            const bout = b.pts[b.pts.length - 1];
+            return (
+              <g key={`beac-${b.nom}`}>
+                <polyline
+                  points={b.pts.map((q) => `${X(q.annees).toFixed(1)},${Y(q.pct).toFixed(1)}`).join(" ")}
+                  fill="none"
+                  stroke="var(--ink-3)"
+                  strokeWidth={1.5}
+                  strokeDasharray="1 4"
+                  strokeLinecap="round"
+                />
+                {bout && (
+                  <text x={X(bout.annees) + 6} y={Y(bout.pct) + 4} className={styles.beacBout}>
+                    {t("BEAC")}
+                  </text>
+                )}
+              </g>
+            );
+          })}
 
           {series.map((se) => {
             if (!se.fit) return null;
@@ -556,6 +568,37 @@ export function CourbeAjustee({
           </div>
         )}
       </div>
+
+      {/* Quatre traits, quatre sens : sans dictionnaire, on croit voir deux fois
+          la même chose. */}
+      {series.length > 0 && (
+        <div className={styles.legende}>
+          {ajustables.length > 0 && (
+            <span>
+              <i className={styles.trPlein} style={{ background: ajustables.length === 1 ? ajustables[0].couleur : "var(--ink-2)" }} aria-hidden="true" />
+              {t("notre courbe, sur les durées observées")}
+            </span>
+          )}
+          {ajustables.some((se) => se.fit!.borne.long < Math.exp(echelle.x1) || se.fit!.borne.court > Math.exp(echelle.x0)) && (
+            <span>
+              <i className={styles.trTirets} style={{ borderTopColor: ajustables.length === 1 ? ajustables[0].couleur : "var(--ink-2)" }} aria-hidden="true" />
+              {t("la nôtre encore, extrapolée : aucune séance à ces durées")}
+            </span>
+          )}
+          {voirPoints && (
+            <span>
+              <i className={styles.trRond} style={{ borderColor: series.length === 1 ? series[0].couleur : "var(--ink-2)" }} aria-hidden="true" />
+              {t("une séance relue ; creuse, une séance mince")}
+            </span>
+          )}
+          {beac.length > 0 && (
+            <span>
+              <i className={styles.trBeac} aria-hidden="true" />
+              {t("la BEAC, par durée d'émission")}
+            </span>
+          )}
+        </div>
+      )}
 
       {beac.length > 0 && beacReleve && (
         <p className={`${styles.beacNote} ${jours(beacReleve.mois) > 100 ? styles.beacVieux : ""}`}>
