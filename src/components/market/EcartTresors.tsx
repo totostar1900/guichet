@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import type { Country } from "@/lib/domain/types";
 import { COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { useT } from "@/i18n/client";
-import type { CourbePays } from "./CourbeInteractive";
+import type { CourbePays } from "@/lib/market/courbe-vue";
 import styles from "./EcartTresors.module.css";
 
 /**

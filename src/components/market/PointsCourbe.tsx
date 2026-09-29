@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { useT } from "@/i18n/client";
-import type { CourbePays } from "./CourbeInteractive";
+import type { CourbePays } from "@/lib/market/courbe-vue";
 import styles from "./PointsCourbe.module.css";
 
 /**

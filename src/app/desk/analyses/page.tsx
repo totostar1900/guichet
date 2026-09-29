@@ -6,9 +6,8 @@ import { Commentaire } from "@/components/desk/Commentaire";
 import { Poignee } from "@/components/desk/Poignee";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
 import { BEAC_COURBE } from "@/data/beac-courbe";
-import { CourbeAjustee } from "@/components/market/CourbeAjustee";
 import { CourbeFusion } from "@/components/market/CourbeFusion";
-import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
+import type { CourbePays, Fenetre } from "@/lib/market/courbe-vue";
 import { DateObservation } from "@/components/market/DateObservation";
 import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
 import { PressionDemande } from "@/components/market/PressionDemande";
@@ -104,6 +103,15 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     if (h.unit === "mois") return h.n === 1 ? t("1 mois") : t("{n} mois", { n });
     return h.n === 1 ? t("1 an") : t("{n} ans", { n });
   };
+
+  /**
+   * La date de valeur de la courbe de la BEAC, en clair.
+   *
+   * Elle se lisait « 2026-07 » au milieu d'une phrase. Une date qu'on ne lit
+   * pas est une date qu'on ne vérifie pas, et celle-ci dit à quel mois remonte
+   * la seule mesure extérieure que la page porte.
+   */
+  const beacMois = new Date(`${beacReleve.mois}-01`).toLocaleDateString(intlLocale(lang), { year: "numeric", month: "long" });
 
   const aujourdHui = new Date().toISOString().slice(0, 10);
   const demandee = sp.le && /^\d{4}-\d{2}-\d{2}$/.test(sp.le) && sp.le < aujourdHui ? sp.le : undefined;
@@ -257,9 +265,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * point. Le reste est de la lecture, pas une file d'attente.
    */
   const railSections: SectionRail[] = [
-    { id: "fusion", titre: "Les données, ou la courbe", groupe: "Le prix" },
-    { id: "courbe", titre: "La courbe des taux", groupe: "Le prix" },
-    { id: "ajustee", titre: "La courbe ajustée", groupe: "Le prix" },
+    { id: "fusion", titre: "Courbe des taux & Données", groupe: "Le prix" },
     { id: "points", titre: "Chaque point, et d'où il vient", groupe: "Le prix" },
     { id: "ecarts", titre: "L'écart entre Trésors", groupe: "Le prix" },
     { id: "trous", titre: "Ce qui manque à la courbe", groupe: "Le prix", alerte: courbe.gaps.length },
@@ -340,165 +346,113 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             rédige ne veulent pas de la place au même moment. */}
         <Poignee variable="--rail" min={150} max={340} memoire="ana.rail" libelle="Régler la largeur du rail" />
         <div>
-        {/* 0. La figure fusionnée, qui remplacera les deux suivantes.
-            Nous portions deux figures côte à côte et le desk les lisait toutes
-            deux comme des courbes des taux. Elles n'en sont qu'une : la première
-            pose les séances et relie les points, ce qui est une représentation
-            de la donnée ; la seconde passe un modèle à travers, ce qui est une
-            déduction. Celle-ci porte les deux visions et dit laquelle on
-            regarde, au lieu de laisser supposer qu'il n'y en a qu'une.
-            Les deux anciennes restent le temps de vérifier qu'elles se
-            reproduisent à l'identique : on ne retire pas une figure avant
-            d'avoir éprouvé celle qui la remplace. */}
+        {/* 0. La figure du prix, et la seule.
+            Nous en portions trois : les séances reliées par des segments, la
+            courbe ajustée, et celle-ci. Les deux premières se lisaient toutes
+            deux comme des courbes des taux alors que la première est une
+            représentation de la donnée et la seconde une déduction. Celle-ci
+            porte les deux visions et dit laquelle on regarde ; les deux autres
+            sont retirées, leurs commentaires fondus ici.
+
+            Cinq notes et non six : deux disaient la même limite avec d'autres
+            mots. Une note qu'on relit sans y apprendre est une note qu'on cesse
+            d'ouvrir, et le rail en portait douze. Celles qui ne changent pas
+            d'une semaine à l'autre s'ouvrent repliées. */}
         {tracables.length > 0 && (
           <Bloc
             id="fusion"
             note={
               <>
-                <Commentaire registre="methode" titre="Pourquoi deux visions et non deux figures">
+                <Commentaire registre="lecture" titre="Ce que dit la courbe aujourd'hui">
                   <p>
                     {t(
-                      "La vision des données pose chaque séance relue à la vie restante de sa ligne, et n'en déduit rien : plusieurs séances peuvent occuper la même durée, et les voir s'empiler est une information. La vision de la courbe ne garde qu'une séance par durée, la pondère par son âge et passe une forme de Nelson-Siegel à travers, ce qui donne un taux à n'importe quelle durée.",
+                      "Une courbe plate demande peu pour la durée : le marché ne fait presque pas payer le temps à cette signature. Une courbe inversée demande davantage pour le court que pour le long, et cela se lit d'une seule façon : un besoin de trésorerie immédiat.",
                     )}
                   </p>
-                  <p>
-                    {t(
-                      "Les porter dans une même figure ne les mélange pas : la phrase de tête change de verbe, le sceau change de régime, les quatre chiffres changent de grandeurs et le tracé change de nature. Les réglages de méthode s'endorment dans la vision des données plutôt que d'en disparaître, parce que leur absence dirait qu'ils n'existent pas quand leur sommeil dit qu'ils ne s'appliquent pas là.",
-                    )}
-                  </p>
-                  <p>
-                    {t(
-                      "Relier les points reste un interrupteur, et c'est voulu : un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe. Le pouvoir de les délier est ce qui empêche la représentation de se faire passer pour une courbe des taux.",
-                    )}
-                  </p>
+                  <p>{t("Le texte de cette note se rédige avant publication : ce qui est écrit ici part au client avec le graphique.")}</p>
                 </Commentaire>
-                <Commentaire registre="alerte" titre="Ce qu'un refus veut dire">
-                  <p>
-                    {t(
-                      "Un Trésor sans courbe n'est pas une page blanche. Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir : quand le modèle refuse, les observations sont là et la figure renvoie vers la vision qui les montre. Sans cela, la fusion retirerait au Trésor le plus maigre la seule figure qu'il avait.",
-                    )}
-                  </p>
-                  <p>
-                    {t(
-                      "Reculer la date d'observation reconstruit la figure telle qu'elle aurait été à cette date, avec les données telles que nous les tenons aujourd'hui. Ce n'est pas ce que nous savions alors : une séance ancienne relue la semaine dernière y paraît. Une date maigre dit d'abord l'état de notre relecture, et non l'état du marché de ce jour-là.",
-                    )}
-                  </p>
-                </Commentaire>
-              </>
-            }
-          >
-            <div className="panel-h">
-              <h2>{t("Les données, ou la courbe")}</h2>
-              <span className="muted">{t("une figure, deux visions")}</span>
-            </div>
-            <div className={styles.pb}>
-              <CourbeFusion
-                fenetres={fenetres}
-                observeLe={demandee ? fmtDate(demandee) : undefined}
-                choixDate={<DateObservation ancres={ancres} courant={leJour} />}
-                beacReleve={beacReleve}
-                ariaLabel={t("Les séances relues et la courbe qu'un modèle en déduit, par durée")}
-              />
-            </div>
-          </Bloc>
-        )}
 
-        {/* 1. La courbe elle-même. Elle avait sa page ; cette page était la porte
-            qu'on ne franchissait pas, et les chiffres qui l'expliquent vivaient
-            derrière. */}
-        <Bloc
-          id="courbe"
-          note={
-            <>
-              <Commentaire registre="lecture" titre="Ce que dit la courbe aujourd'hui">
-                <p>
-                  {t(
-                    "Une courbe plate demande peu pour la durée : le marché ne fait presque pas payer le temps à cette signature. Une courbe inversée demande davantage pour le court que pour le long, et cela se lit d'une seule façon : un besoin de trésorerie immédiat.",
-                  )}
-                </p>
-                <p>{t("Le texte de cette note se rédige avant publication : ce qui est écrit ici part au client avec le graphique.")}</p>
-              </Commentaire>
-              <Commentaire registre="methode" titre="Ce que la mesure ne dit pas">
-                <p>
-                  {t(
-                    "Le rendement s'actualise sur la vie restante et non sur la durée annoncée : un abondement de six ans à dix-huit mois de son terme appartient au court. Les avis d'annonce confirment un remboursement in fine sur les six Trésors.",
-                  )}
-                </p>
-                <p>
-                  {t(
-                    "Pourquoi la vie restante et non la durée annoncée : une courbe des taux répond à la question « que coûte l'argent pour N années, à partir d'aujourd'hui ». Un investisseur qui place à dix-huit mois a le choix entre un bon neuf à dix-huit mois et une obligation de sept ans qui arrive à terme dans dix-huit mois. Les deux lui rendent son capital le même jour, chez le même État, dans la même monnaie : ils doivent se payer au même taux, sans quoi il y aurait un arbitrage à faire. Ils appartiennent donc au même point de la courbe.",
-                  )}
-                </p>
-                <p>
-                  {t(
-                    "L'étiquette « 7 ans » dit quand le titre est né, pas ce qu'il offre aujourd'hui. Une courbe rangée par durée d'émission décrit un portefeuille ; rangée par vie restante, elle décrit un prix qu'on peut payer. Et le calcul suit : actualiser sept ans de flux sur un titre remboursé dans dix-huit mois donnerait un rendement qui ne correspond à aucun placement possible.",
-                  )}
-                </p>
-                <p>
-                  {t(
-                    "Ce n'est pas un cas d'école dans cette zone : les Trésors abondent des lignes anciennes plutôt que d'en ouvrir, et quarante-sept de nos deux cent quarante-neuf séances se déplacent quand on les range par leur échéance, jusqu'à sept cent cinquante-neuf points de base.",
-                  )}
-                </p>
-                <p>{t("La vue CEMAC est une moyenne des Trésors présents à chaque horizon : un niveau de zone, jamais un taux auquel quiconque emprunte.")}</p>
-              </Commentaire>
-            </>
-          }
-        >
-          <div className="panel-h">
-            <h2>{t("La courbe des taux de la zone")}</h2>
-            <span className="muted">{sortie(tracables.length >= 2, "Une courbe se publie quand deux Trésors au moins portent chacun deux durées relues.")}</span>
-          </div>
-          <div className={styles.pb}>
-            {tracables.length ? (
-              <CourbeInteractive
-                fenetres={fenetres}
-                aujourdhui={courbeDuJour}
-                observeLe={demandee ? fmtDate(demandee) : undefined}
-                choixDate={<DateObservation ancres={ancres} courant={leJour} />}
-                ariaLabel={t("Courbe des rendements souverains de la CEMAC par durée")}
-              />
-            ) : (
-              <div className="empty">{t("Pas encore deux durées relues pour un même Trésor sur l'année écoulée.")}</div>
-            )}
-            {isoles.length > 0 && (
-              <p className={styles.note}>
-                {t("Un seul point pour {p} : c'est une observation, pas une courbe, et elle n'est pas tracée. Le tableau ci-dessous la porte quand même.", {
-                  p: isoles.map((c) => `${c.country} (${c.points[0].tenor})`).join(", "),
-                })}
-              </p>
-            )}
-          </div>
-        </Bloc>
-
-        {/* 1 ter. La courbe ajustée. Elle s'ajoute et ne remplace pas : ce qui
-            contrôle un modèle est l'écart entre lui et les points observés, et
-            on ne contrôle pas ce qu'on ne voit plus. */}
-        {tracables.length > 0 && (
-          <Bloc
-            id="ajustee"
-            note={
-              <>
-                <Commentaire registre="methode" titre="Ce que cette courbe fait de plus">
+                <Commentaire registre="methode" titre="Les deux visions, et ce qui les sépare">
                   <p>
                     {t(
-                      "La figure du dessus relie les points observés par des segments. Entre six mois et trois ans, un segment affirme une droite là où la théorie et l'observation donnent une courbe ; et à quatre ans, où personne n'a adjugé, elle ne dit rien. Celle-ci donne un taux à n'importe quelle durée, et dit combien il tient.",
+                      "Les données posent chaque séance relue à la vie restante de sa ligne et n'en déduisent rien : plusieurs séances peuvent occuper la même durée, et les voir s'empiler est une information. La courbe ne garde qu'une séance par durée, la pondère par son âge et passe une forme de Nelson-Siegel à travers, ce qui donne un taux à n'importe quelle durée, y compris celles que personne n'a adjugées.",
                     )}
                   </p>
                   <p>
                     {t(
-                      "Le modèle est celui de Nelson et Siegel, en usage dans les banques centrales : un niveau long, une pente qui s'éteint avec la durée, une courbure et l'endroit où elle se place. À cet endroit fixé, le modèle est linéaire, et l'ajustement se résout exactement par moindres carrés pondérés plutôt que par un optimiseur qui pourrait diverger.",
+                      "Le modèle est celui en usage dans les banques centrales : un niveau long, une pente qui s'éteint avec la durée, une courbure et l'endroit où elle se place. Cet endroit fixé, le modèle est linéaire, et l'ajustement se résout exactement par moindres carrés pondérés plutôt que par un optimiseur qui pourrait diverger.",
                     )}
                   </p>
                   <p>
                     {t(
-                      "Un point par Trésor et par durée, la séance la plus récente : c'est la lecture retenue par la maison. Sans elle, dix-huit séances gabonaises à trois mois pèseraient dix-huit fois dans l'ajustement et la courbe s'accrocherait au court terme.",
+                      "La distinction se répète en quatre endroits, pour qu'une seule marque ne suffise pas à la perdre : la phrase de tête change de verbe, le sceau change de régime, les quatre chiffres changent de grandeurs, le tracé change de nature. Les réglages de méthode s'endorment du côté des données plutôt que d'en disparaître : leur absence dirait qu'ils n'existent pas, leur sommeil dit qu'ils ne s'appliquent pas là.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Relier les points est un interrupteur, et c'est voulu : un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe. Pouvoir les délier est ce qui empêche la représentation de se faire passer pour une courbe des taux.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "La vue CEMAC ne dit pas la même chose des deux côtés, et c'est assumé : côté données, la moyenne des Trésors présents à chaque horizon ; côté courbe, un ajustement sur tous leurs points. Ni l'une ni l'autre n'est un taux auquel quiconque emprunte.",
                     )}
                   </p>
                 </Commentaire>
-                <Commentaire registre="alerte" titre="Ce qu'une courbe ajustée ne rend pas vrai">
+
+                <Commentaire registre="methode" titre="Pourquoi la vie restante et non la durée annoncée" replieParDefaut>
                   <p>
                     {t(
-                      "Elle interpole, elle ne crée pas d'observation. Une durée que personne n'a adjugée reste une durée que personne n'a adjugée : le trait y passe en pointillé, la valeur est grisée, et l'intervalle s'élargit. C'est le seul endroit de la page où un chiffre est produit plutôt que lu, et il porte son incertitude avec lui.",
+                      "Une courbe des taux répond à la question « que coûte l'argent pour N années, à partir d'aujourd'hui ». Un investisseur qui place à dix-huit mois a le choix entre un bon neuf à dix-huit mois et une obligation de sept ans qui arrive à terme dans dix-huit mois. Les deux lui rendent son capital le même jour, chez le même État, dans la même monnaie : ils doivent se payer au même taux, sans quoi il y aurait un arbitrage à faire. Ils appartiennent donc au même point de la courbe.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "L'étiquette « 7 ans » dit quand le titre est né, pas ce qu'il offre aujourd'hui. Une courbe rangée par durée d'émission décrit un portefeuille ; rangée par vie restante, elle décrit un prix qu'on peut payer. Et le calcul suit : actualiser sept ans de flux sur un titre remboursé dans dix-huit mois donnerait un rendement qui ne correspond à aucun placement possible.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Ce n'est pas un cas d'école dans cette zone : les Trésors abondent des lignes anciennes plutôt que d'en ouvrir, et quarante-sept de nos deux cent quarante-neuf séances se déplacent quand on les range par leur échéance, jusqu'à sept cent cinquante-neuf points de base. Les avis d'annonce confirment un remboursement in fine sur les six Trésors.",
+                    )}
+                  </p>
+                </Commentaire>
+
+                {/* La courbe posée en filigrane est la mesure d'un autre, faite
+                    autrement : sans sa méthode ni sa date de valeur, la
+                    superposition se lit comme un écart alors qu'elle compare
+                    deux grandeurs différentes. */}
+                <Commentaire registre="methode" titre="La courbe de la BEAC, et ce qu'elle mesure" replieParDefaut>
+                  <p>
+                    {t(
+                      "Elle paraît chaque mois page 5 des « Statistiques Mensuelles du Marché des valeurs du Trésor de la CEMAC », pour trois Trésors seulement : Cameroun, Congo, Gabon. Ce sont exactement les trois que nos propres données permettent d'ajuster, ce qui confirme de l'extérieur notre constat de disponibilité.",
+                    )}
+                  </p>
+                  <p>
+                    {t("Le filigrane affiché porte le bulletin n° {n}, arrêté en {d} : c'est sa date de valeur, et elle est écrite sous son nom au bout de son trait.", {
+                      n: beacReleve.numero,
+                      d: beacMois,
+                    })}{" "}
+                    {t(
+                      "Elle paraît une fois par mois avec environ deux mois de retard. Au delà de cent jours, la figure cesse de la présenter comme un repère sur aujourd'hui et le dit en clair.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Elle est publiée comme un graphique, sans table et sans note de méthode. Ces chiffres ne sont donc pas recopiés d'une source chiffrée : ils sont relevés dans le tracé vectoriel du PDF et ramenés en pour cent par les graduations de l'axe, dont les positions sont elles aussi dans le document. Rien n'est estimé à l'œil, et l'échelle se vérifie : les cinq graduations retenues sont colinéaires à 10,825 pixels par point de pourcentage.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Deux différences, sans lesquelles la superposition ment. Son abscisse est la durée d'émission, la nôtre la vie restante : chez elle une obligation émise à sept ans reste posée à « 7 ans » toute sa vie, chez nous elle glisse vers la gauche en approchant de son terme, et les deux axes ne coïncident que pour un titre neuf. Son univers est l'encours, le nôtre la dernière séance adjugée : elle dit ce que la dette vivante coûte en moyenne, nous ce que le marché a facturé. Les deux sont justes et ne répondent pas à la même question.",
+                    )}
+                  </p>
+                </Commentaire>
+
+                <Commentaire registre="alerte" titre="Ce qu'une courbe déduite ne rend pas vrai">
+                  <p>
+                    {t(
+                      "Elle interpole, elle ne crée pas d'observation. Une durée que personne n'a adjugée reste une durée que personne n'a adjugée : la valeur est grisée et l'intervalle s'élargit. C'est le seul endroit de la page où un chiffre est produit plutôt que lu, et il porte son incertitude avec lui.",
                     )}
                   </p>
                   <p>
@@ -511,21 +465,31 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                       "La courbure empruntée à la zone est une hypothèse assumée : elle suppose que le coût du temps a la même forme pour six signatures d'une même monnaie, et que seuls le niveau et la pente les séparent. C'est ce que l'observation soutient au court terme, où deux Trésors se tiennent à moins de vingt points de base, et non au delà de deux ans, où ils s'écartent de plusieurs centaines.",
                     )}
                   </p>
+                  <p>
+                    {t(
+                      "Un refus n'est pas une page blanche. Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir : quand le modèle refuse, les observations sont là et la figure renvoie vers la vision qui les montre.",
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      "Reculer la date d'observation reconstruit la figure telle qu'elle aurait été à cette date, avec les données telles que nous les tenons aujourd'hui. Ce n'est pas ce que nous savions alors : une séance ancienne relue la semaine dernière y paraît. Une date maigre dit d'abord l'état de notre relecture, et non l'état du marché de ce jour-là.",
+                    )}
+                  </p>
                 </Commentaire>
               </>
             }
           >
             <div className="panel-h">
-              <h2>{t("La courbe ajustée")}</h2>
-              <span className="muted">{sortie(false, "Un chiffre produit par un modèle ne sort pas du desk sans la lettre de méthodologie qui le décrit.")}</span>
+              <h2>{t("Courbe des taux & Données")}</h2>
+              <span className="muted">{t("une figure, deux visions")}</span>
             </div>
             <div className={styles.pb}>
-              <CourbeAjustee
+              <CourbeFusion
                 fenetres={fenetres}
                 observeLe={demandee ? fmtDate(demandee) : undefined}
                 choixDate={<DateObservation ancres={ancres} courant={leJour} />}
                 beacReleve={beacReleve}
-                ariaLabel={t("Courbe des rendements souverains ajustée par le modèle de Nelson-Siegel")}
+                ariaLabel={t("Les séances relues et la courbe qu'un modèle en déduit, par durée")}
               />
             </div>
           </Bloc>

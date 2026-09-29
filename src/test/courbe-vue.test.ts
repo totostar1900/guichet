@@ -1,22 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { renderToStaticMarkup } from "react-dom/server";
-import { CourbeAjustee, coupeAu, serieBeacDe } from "@/components/market/CourbeAjustee";
-import type { CourbePays, Fenetre } from "@/components/market/CourbeInteractive";
+import { coupeAu, serieBeacDe } from "@/lib/market/courbe-vue";
 
 /**
- * Compter ce que la figure dessine, au lieu de relire son filtre.
+ * Les deux règles du filigrane, éprouvées sans monter un rendu.
  *
- * Le desk voyait trois courbes de la BEAC avec un seul Trésor sélectionné, et
- * deux lectures du filtre m'ont donné tort. Le filtre était juste ; c'était
- * l'échelle. La BEAC allant jusqu'à quinze ans, l'axe y allait aussi, et notre
- * courbe s'y trouvait extrapolée sur huit ans d'un trait aussi large que le
- * reste. Trois lignes traversaient la figure, et le desk décrivait exactement
- * ce qu'il voyait.
- *
- * Un rendu statique reste sur la vue d'ensemble : on ne peut pas cliquer. Les
- * deux règles qui décident sont donc sorties du composant, et éprouvées
- * directement — c'est le cas d'un Trésor choisi qui avait échappé.
+ * Elles vivaient dans un composant, où seul un rendu statique les atteignait :
+ * celui-ci restait sur la vue d'ensemble, et c'est exactement le cas d'un
+ * Trésor choisi qui a échappé à deux relectures. Les figures étant fondues en
+ * une, ces règles ont quitté le composant pour un module que rien n'empêche de
+ * lire.
  */
+
 const releve = {
   numero: 60,
   mois: "2026-07",
@@ -30,13 +24,14 @@ const releve = {
 
 describe("la courbe de la BEAC derrière la nôtre", () => {
   it("ne paraît pas en vue d'ensemble : il n'y a pas de Trésor affiché", () => {
+    /* Six écarts à la fois ne se lisent pas, et ce qu'on regarde en superposant
+       est l'écart d'un Trésor avec lui-même. */
     expect(serieBeacDe("tous", releve)).toBeUndefined();
     expect(serieBeacDe("cemac", releve)).toBeUndefined();
   });
 
   it("ne rend que celle du Trésor affiché", () => {
-    const s = serieBeacDe("Cameroun", releve);
-    expect(s?.pays).toBe("Cameroun");
+    expect(serieBeacDe("Cameroun", releve)?.pays).toBe("Cameroun");
   });
 
   it("ne rend rien pour un Trésor que la BEAC ne publie pas", () => {
@@ -53,33 +48,6 @@ describe("la courbe de la BEAC derrière la nôtre", () => {
     expect(coupeAu(pts, 7).map((q) => q.annees)).toEqual([0.25, 1, 3, 7]);
     expect(coupeAu(pts, 15)).toHaveLength(6);
     expect(coupeAu(pts, 0.1)).toEqual([]);
-  });
-});
-
-/** Un Trésor qui s'arrête à sept ans, comme le Cameroun aujourd'hui. */
-const pt = (annees: number, pct: number, mot: string) => ({
-  id: mot, annees, mot, pct, origine: "imprimé", hypotheses: [], etiquette: mot, abondement: false, mince: false, on: "1 janvier 2026", age: 10, coupon: 0,
-});
-const paysDe = (pays: string): CourbePays =>
-  ({
-    pays,
-    derniere: "2026-09-15",
-    points: [pt(0.25, 6.9, "3 mois"), pt(0.5, 7.1, "6 mois"), pt(1, 7.4, "12 mois"), pt(3, 7.8, "3 ans"), pt(5, 8, "5 ans"), pt(7, 8.2, "7 ans")],
-  }) as unknown as CourbePays;
-const fenetres: Fenetre[] = [{ jours: 365, mot: "1 an", pays: ["Cameroun", "Congo", "Gabon"].map(paysDe) }];
-
-describe("la figure, telle qu'elle sort", () => {
-  const html = renderToStaticMarkup(<CourbeAjustee fenetres={fenetres} ariaLabel="courbe" beacReleve={releve} />);
-
-  it("ne trace aucune ligne discontinue en vue d'ensemble", () => {
-    /* Ni BEAC, ni extrapolation : ce sont les trois lignes que le desk voyait. */
-    expect(html).not.toMatch(/stroke-dasharray/);
-  });
-
-  it("n'extrapole plus notre courbe en la traçant", () => {
-    /* Une ligne invite à la lire ; la table porte la valeur, grisée, avec sa
-       bande, et c'est là qu'elle appartient. */
-    expect(html).not.toMatch(/stroke-dasharray="4 4"/);
   });
 });
 
@@ -114,5 +82,19 @@ describe("l'ordre des points d'un tracé", () => {
     /* La preuve par l'absurde : sans rangement, le trait revient en arrière. */
     const brut = Object.entries({ 0.25: 6.55, 1: 8.44, 2: 9.45, 1.5: 9.08 }).map(([a, pct]) => ({ annees: Number(a), pct }));
     expect(remonte(brut)).toBe(true);
+  });
+});
+
+/**
+ * La date de valeur du filigrane se lit, ou elle ne se vérifie pas.
+ *
+ * Elle sortait « 2026-07 » au milieu d'une phrase française. Le champ reste au
+ * format du dépôt ; c'est l'écran qui le met en mots, et ce contrôle fixe le
+ * format que l'écran attend.
+ */
+describe("le mois d'arrêté du relevé", () => {
+  it("s'écrit comme un mois de dépôt, pour que l'écran le mette en mots", () => {
+    expect(releve.mois).toMatch(/^\d{4}-\d{2}$/);
+    expect(new Date(`${releve.mois}-01`).getUTCMonth()).toBe(6);
   });
 });

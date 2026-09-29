@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CourbeFusion } from "@/components/market/CourbeFusion";
-import type { CourbePays, Fenetre } from "@/components/market/CourbeInteractive";
+import type { CourbePays, Fenetre } from "@/lib/market/courbe-vue";
 
 /**
  * Deux visions dans une figure : éprouver que ce sont bien deux.
@@ -90,6 +90,32 @@ describe("les données ne déduisent rien", () => {
   it("se range du régime publiable, n'ayant rien produit", () => {
     expect(html).toMatch(/observations relues/);
     expect(html).not.toMatch(/produit par un modèle/);
+  });
+
+  it("porte son propre tableau, de mêmes colonnes et d'autres grandeurs", () => {
+    /* La figure ajustée avait un tableau sous elle ; la fusion en garde un des
+       deux côtés, sans quoi la vision des données paraîtrait la moins servie
+       des deux alors qu'elle est la seule à ne rien produire. */
+    expect(html).toMatch(/Durée restante/);
+    expect(html).toMatch(/séances, de/);
+  });
+});
+
+describe("le tableau des données ne comble aucune case", () => {
+  /* Trois Trésors regardés ensemble : le Tchad n'a rien à trois mois, et la
+     case porte un tiret là où la courbe aurait produit un chiffre. C'est la
+     différence entre les deux visions, mise en colonnes. */
+  const html = rendu({ visionParDefaut: "faits", tresorParDefaut: "tous" });
+
+  it("laisse un tiret plutôt qu'une valeur produite", () => {
+    expect(html).toMatch(/la vision des données n&#x27;en invente pas/);
+  });
+
+  it("ne publie jamais de durée usuelle non adjugée", () => {
+    /* « 10 ans » est une durée usuelle que personne n'a adjugée ici : elle a
+       une ligne du côté de la courbe, aucune du côté des données. */
+    expect(rendu({ visionParDefaut: "modele", tresorParDefaut: "Cameroun" })).toMatch(/10 ans/);
+    expect(html).not.toMatch(/10 ans/);
   });
 });
 

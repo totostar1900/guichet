@@ -8,8 +8,7 @@ import { abouti, ajuster, tauxCourt, type Ajustement, type Refus } from "@/lib/m
 import { consolide } from "@/lib/market/zone";
 import { LectureCourbe } from "./LectureCourbe";
 import { useT } from "@/i18n/client";
-import { coupeAu, serieBeacDe, type ReleveBeacVu } from "./CourbeAjustee";
-import type { CourbePays, Fenetre } from "./CourbeInteractive";
+import { coupeAu, serieBeacDe, type CourbePays, type Fenetre, type ReleveBeacVu } from "@/lib/market/courbe-vue";
 import styles from "./CourbeFusion.module.css";
 
 /**
@@ -82,6 +81,16 @@ interface Serie {
 
 /** Une date en clair, dans la langue du lecteur, sans passer par le serveur. */
 const fmtJour = (iso: string) => new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+
+/**
+ * Le mois d'arrêté en clair : « juillet 2026 », et non « 2026-07 ».
+ *
+ * C'est la date de valeur de la courbe posée en filigrane, et elle se lisait
+ * en code machine au milieu d'une phrase. Une date qu'on ne lit pas est une
+ * date qu'on ne vérifie pas.
+ */
+const fmtMois = (mois: string, court = false) =>
+  new Date(`${mois}-01`).toLocaleDateString(undefined, { year: "numeric", month: court ? "short" : "long" });
 
 /** L'âge d'un mois arrêté, en jours : c'est lui qui décide de la péremption. */
 const jours = (mois: string) => Math.max(0, Math.round((Date.now() - Date.parse(`${mois}-01`)) / 86_400_000));
@@ -631,9 +640,16 @@ export function CourbeFusion({
                     strokeDasharray="1 4"
                     strokeLinecap="round"
                   />
-                  {bout && (
-                    <text x={X(bout.annees) + 6} y={Y(bout.pct) + 4} className={styles.beacBout}>
-                      {t("BEAC")}
+                  {/* Le nom, et la date de valeur sous lui : une courbe posée
+                      derrière la nôtre sans sa date affirme sur aujourd'hui. */}
+                  {bout && beacReleve && (
+                    <text x={X(bout.annees) + 6} y={Y(bout.pct)} className={styles.beacBout}>
+                      <tspan x={X(bout.annees) + 6} dy={0}>
+                        {t("BEAC")}
+                      </tspan>
+                      <tspan x={X(bout.annees) + 6} dy={11} className={styles.beacDate}>
+                        {fmtMois(beacReleve.mois, true)}
+                      </tspan>
                     </text>
                   )}
                 </g>
@@ -827,7 +843,7 @@ export function CourbeFusion({
           <i aria-hidden="true" />
           {t("En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée en {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.", {
             n: beacReleve.numero,
-            d: beacReleve.mois,
+            d: fmtMois(beacReleve.mois),
             r: fmtJour(beacReleve.releveLe),
           })}{" "}
           {jours(beacReleve.mois) > 100 && <b>{t("Ce relevé a {n} jours : ce n'est plus un repère sur aujourd'hui.", { n: jours(beacReleve.mois) })}</b>}{" "}
@@ -910,6 +926,72 @@ export function CourbeFusion({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Le tableau des données : même forme que celui des durées usuelles, et
+          des grandeurs qui ne se confondent pas avec les siennes. Une durée que
+          personne n'a adjugée n'y a pas de ligne, là où la courbe en produirait
+          une : c'est la différence entre les deux visions, mise en colonnes.
+          Quand plusieurs séances occupent une durée, la fourchette le dit, et
+          le taux affiché est celui de la plus récente. */}
+      {!modele && tous.length > 0 && (
+        <div className={styles.usuels}>
+          <table>
+            <thead>
+              <tr>
+                <th>{t("Durée restante")}</th>
+                {series.map((se) => (
+                  <th key={se.nom} className="r">
+                    <span className={styles.dot} style={{ background: se.couleur }} aria-hidden="true" /> {se.nom}
+                  </th>
+                ))}
+                <th className="r">{t("Séance")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...new Map(tous.map((o) => [o.mot, o.annees])).entries()]
+                .sort((a, b) => a[1] - b[1])
+                .map(([motDuree]) => {
+                  const ici = tous.filter((o) => o.mot === motDuree);
+                  const recent = ici.reduce((m, o) => ((o.age ?? 0) < (m.age ?? 0) ? o : m));
+                  return (
+                    <tr key={motDuree}>
+                      <td>{motDuree}</td>
+                      {series.map((se) => {
+                        const siens = se.obs.filter((o) => o.mot === motDuree);
+                        if (!siens.length)
+                          return (
+                            <td key={se.nom} className={`r ${styles.hors}`} title={t("Aucune séance de ce Trésor à cette durée : la vision des données n'en invente pas.")}>
+                              —
+                            </td>
+                          );
+                        const frais = siens.reduce((m, o) => ((o.age ?? 0) < (m.age ?? 0) ? o : m));
+                        const bas = Math.min(...siens.map((o) => o.pct));
+                        const haut = Math.max(...siens.map((o) => o.pct));
+                        return (
+                          <td key={se.nom} className="r">
+                            <b>
+                              {pc(frais.pct)} %{frais.mince && <span className={styles.pm}> {t("mince")}</span>}
+                            </b>
+                            {siens.length > 1 && <span className={styles.pm}> · {t("{n} séances, de {a} à {b} %", { n: siens.length, a: pc(bas), b: pc(haut) })}</span>}
+                          </td>
+                        );
+                      })}
+                      <td className="r">
+                        <span className={styles.pm}>{recent.on ?? "—"}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+          <p className={styles.note}>
+            {t(
+              "Le taux affiché est celui de la séance la plus récente à cette durée ; quand plusieurs s'y empilent, la fourchette de toutes les séances retenues suit. Un tiret n'est pas une valeur manquante : ce Trésor n'a rien adjugé à cette durée, et aucun chiffre n'est produit pour combler la case.",
+            )}
+            {observeLe ? ` ${t("Observée le {d}.", { d: observeLe })}` : ""}
+          </p>
         </div>
       )}
 
