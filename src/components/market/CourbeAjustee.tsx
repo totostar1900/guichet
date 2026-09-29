@@ -78,14 +78,19 @@ export function serieBeacDe(choix: string, releve?: { series: { pays: string; po
 }
 
 /**
- * Le trait de la BEAC coupé au cadre, qui est celui de nos observations.
+ * Le trait de la BEAC, coupé au cadre et rangé dans l'ordre des durées.
  *
- * L'inverse a été essayé et coûtait cher : elle va jusqu'à quinze ans quand
- * nous nous arrêtons à sept, l'axe allait donc à quinze, et notre courbe s'y
- * trouvait extrapolée sur huit ans d'un trait aussi large que le reste. Trois
- * lignes traversaient la figure.
+ * Coupé, parce que le cadre est celui de nos observations : elle va jusqu'à
+ * quinze ans quand nous nous arrêtons à sept, et étirer l'axe jusqu'à elle
+ * revenait à dessiner huit ans d'extrapolation de notre propre courbe.
+ *
+ * Rangé, parce qu'une polyligne se trace dans l'ordre de ses points. Une série
+ * arrivée en désordre n'y dessine pas une courbe mais un aller-retour, et la
+ * semence arrivait en désordre : Object.entries rend les clefs entières avant
+ * les fractionnaires. Le tracé ne s'en remet donc à personne.
  */
-export const coupeAu = <T extends { annees: number }>(pts: T[], borne: number): T[] => pts.filter((q) => q.annees <= borne + 1e-9);
+export const coupeAu = <T extends { annees: number }>(pts: T[], borne: number): T[] =>
+  pts.filter((q) => q.annees <= borne + 1e-9).sort((a, b) => a.annees - b.annees);
 
 /** Le relevé de la BEAC, tel que la page le donne. */
 export interface ReleveBeacVu {

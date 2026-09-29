@@ -40,7 +40,19 @@ export interface CourbeBeac {
   pays: Record<string, { annees: number; pct: number }[]>;
 }
 
-const serie = (o: Record<number, number>) => Object.entries(o).map(([a, pct]) => ({ annees: Number(a), pct }));
+/**
+ * Les durées, rangées : Object.entries ne les rend pas dans l'ordre écrit.
+ *
+ * Il rend d'abord les clefs entières en ordre numérique croissant, puis les
+ * autres dans leur ordre d'insertion. « { 0.25, 0.5, 1, 1.5, 2 } » ressort donc
+ * « 1, 2, 0.25, 0.5, 1.5 », et une polyligne tracée dans cet ordre court
+ * jusqu'au bout, revient d'un bond à l'extrême gauche et repart. C'est ce qui
+ * dessinait trois courbes de la BEAC là où il n'y en a qu'une.
+ */
+const serie = (o: Record<number, number>) =>
+  Object.entries(o)
+    .map(([a, pct]) => ({ annees: Number(a), pct }))
+    .sort((x, y) => x.annees - y.annees);
 
 export const BEAC_COURBE: CourbeBeac = {
   arreteLe: "2026-07-31",

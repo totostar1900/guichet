@@ -82,3 +82,37 @@ describe("la figure, telle qu'elle sort", () => {
     expect(html).not.toMatch(/stroke-dasharray="4 4"/);
   });
 });
+
+/**
+ * Une polyligne se trace dans l'ordre de ses points.
+ *
+ * C'est le défaut que trois relectures n'ont pas vu. Les durées de la semence
+ * étaient écrites « { 0.25, 0.5, 1, 1.5, 2 } », et Object.entries rend les
+ * clefs entières avant les fractionnaires : la série sortait 1, 2, 3 … 15 puis
+ * 0,25, 0,5, 1,5, 3,5. Le trait courait jusqu'au bout, revenait d'un bond à
+ * l'extrême gauche et repartait. Trois lignes traversaient la figure là où le
+ * code n'en dessine qu'une.
+ */
+describe("l'ordre des points d'un tracé", () => {
+  const remonte = (pts: { annees: number }[]) => pts.some((p, i) => i > 0 && p.annees < pts[i - 1].annees);
+
+  it("la semence de la BEAC est rangée, quelle que soit l'écriture de ses clefs", async () => {
+    const { BEAC_COURBE } = await import("@/data/beac-courbe");
+    for (const [pays, pts] of Object.entries(BEAC_COURBE.pays)) {
+      expect(remonte(pts), `${pays} remonte vers la gauche`).toBe(false);
+    }
+  });
+
+  it("le tracé range ce qu'on lui donne, même en désordre", () => {
+    /* Aucune source ne doit pouvoir imposer un aller-retour à la figure. */
+    const desordre = [{ annees: 1 }, { annees: 3 }, { annees: 0.25 }, { annees: 2 }];
+    expect(coupeAu(desordre, 7).map((q) => q.annees)).toEqual([0.25, 1, 2, 3]);
+    expect(remonte(coupeAu(desordre, 7))).toBe(false);
+  });
+
+  it("le désordre aurait bien produit un retour vers la gauche", () => {
+    /* La preuve par l'absurde : sans rangement, le trait revient en arrière. */
+    const brut = Object.entries({ 0.25: 6.55, 1: 8.44, 2: 9.45, 1.5: 9.08 }).map(([a, pct]) => ({ annees: Number(a), pct }));
+    expect(remonte(brut)).toBe(true);
+  });
+});
