@@ -28,7 +28,7 @@ interface Screen {
 
 const Art1 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
-    <rect x="30" y="30" width="240" height="120" rx="14" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" className={styles.draw} />
+    <rect x="30" y="30" width="240" height="120" rx="0" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" className={styles.draw} />
     <g className={styles.pop}>
       <circle cx="90" cy="90" r="26" fill="#d4a63c" />
       <text x="90" y="97" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0d2b5b">
@@ -36,25 +36,25 @@ const Art1 = () => (
       </text>
     </g>
     <g className={styles.rise2}>
-      <rect x="140" y="62" width="110" height="12" rx="6" fill="rgba(255,255,255,.35)" />
-      <rect x="140" y="84" width="80" height="12" rx="6" fill="rgba(255,255,255,.25)" />
-      <rect x="140" y="106" width="95" height="12" rx="6" fill="rgba(255,255,255,.25)" />
+      <rect x="140" y="62" width="110" height="12" rx="0" fill="rgba(255,255,255,.35)" />
+      <rect x="140" y="84" width="80" height="12" rx="0" fill="rgba(255,255,255,.25)" />
+      <rect x="140" y="106" width="95" height="12" rx="0" fill="rgba(255,255,255,.25)" />
     </g>
   </svg>
 );
 const Art2 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
-      <rect x="30" y="34" width="240" height="112" rx="12" fill="#fff" />
+      <rect x="30" y="34" width="240" height="112" rx="0" fill="#fff" />
       <text x="48" y="70" fontSize="26" fontWeight="800" fill="#8a6a1d">
         11,26 %
       </text>
       <text x="48" y="90" fontSize="10" fill="#6b7386">
         actuariel · si servi à 94 %
       </text>
-      <rect x="48" y="104" width="60" height="8" rx="4" fill="#e3e7ee" />
-      <rect x="120" y="104" width="60" height="8" rx="4" fill="#e3e7ee" />
-      <rect x="192" y="104" width="60" height="8" rx="4" fill="#e3e7ee" />
+      <rect x="48" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
+      <rect x="120" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
+      <rect x="192" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
     </g>
     <g className={styles.pop}>
       <circle cx="236" cy="62" r="14" fill="#0d2b5b" />
@@ -64,7 +64,7 @@ const Art2 = () => (
     </g>
     {/* the bubble a touch on « i » opens: kept inside the drawing, its text short enough for the box */}
     <g className={styles.rise3}>
-      <rect x="118" y="122" width="164" height="44" rx="8" fill="#fff4d6" />
+      <rect x="118" y="122" width="164" height="44" rx="0" fill="#fff4d6" />
       <text x="128" y="140" fontSize="9" fontWeight="700" fill="#8a6a1d">
         Rendement actuariel
       </text>
@@ -77,17 +77,17 @@ const Art2 = () => (
 const Art3 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
-      <rect x="40" y="26" width="220" height="30" rx="8" fill="#fff" />
+      <rect x="40" y="26" width="220" height="30" rx="0" fill="#fff" />
       <text x="52" y="46" fontSize="11" fill="#16213a">
         10 000 000 FCFA
       </text>
-      <rect x="40" y="66" width="220" height="30" rx="8" fill="#fff" />
+      <rect x="40" y="66" width="220" height="30" rx="0" fill="#fff" />
       <text x="52" y="86" fontSize="11" fill="#6b7386">
         +237 6 87 67 67 67
       </text>
     </g>
     <g className={styles.rise2}>
-      <rect x="40" y="110" width="220" height="34" rx="17" fill="#d4a63c" />
+      <rect x="40" y="110" width="220" height="34" rx="0" fill="#d4a63c" />
       <text x="150" y="132" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0d2b5b">
         Déclarer une intention
       </text>
@@ -112,7 +112,7 @@ const Art4 = () => (
     </g>
     <path d="M128 80h44" stroke="#d4a63c" strokeWidth="3" strokeDasharray="6 6" className={styles.pulse} />
     <g className={styles.pop}>
-      <rect x="110" y="120" width="80" height="26" rx="13" fill="#2f7d4f" />
+      <rect x="110" y="120" width="80" height="26" rx="0" fill="#2f7d4f" />
       <text x="150" y="137" textAnchor="middle" fontSize="10" fontWeight="800" fill="#fff">
         On vous rappelle
       </text>
@@ -127,7 +127,7 @@ const Art5 = () => (
       ["Relevé du 30 sept. · PDF", 94],
     ].map(([label, y], k) => (
       <g key={label} className={k === 0 ? styles.rise : k === 1 ? styles.rise2 : styles.rise3}>
-        <rect x="40" y={y} width="220" height="24" rx="6" fill="#fff" />
+        <rect x="40" y={y} width="220" height="24" rx="0" fill="#fff" />
         <text x="52" y={Number(y) + 16} fontSize="10" fill="#16213a">
           {label}
         </text>

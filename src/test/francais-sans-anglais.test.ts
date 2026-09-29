@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -17,7 +17,15 @@ import { describe, expect, it } from "vitest";
  * Cette liste s'allonge quand un écran est mis à niveau.
  */
 
-const SURVEILLES = ["src/app/desk/analyses", "src/components/market", "src/components/desk"];
+/**
+ * Un dossier, ou un fichier isolé.
+ *
+ * L'accueil public ne vit pas dans un dossier à lui : c'est « Accueil.tsx » à
+ * la racine de src/app, à côté de vingt écrans qui traînent leur dette. Le
+ * surveiller par son dossier allumerait toute l'application ; le surveiller
+ * par son nom le garde propre sans exiger le reste.
+ */
+const SURVEILLES = ["src/app/desk/analyses", "src/components/market", "src/components/desk", "src/app/Accueil.tsx"];
 
 /**
  * Une chaîne qui ressemble à du français : un accent, ou un mot-outil courant.
@@ -30,9 +38,18 @@ const SURVEILLES = ["src/app/desk/analyses", "src/components/market", "src/compo
 const duFrancais = (s: string) =>
   /[àâäéèêëîïôöùûüçœ]/i.test(s) ||
   /\b(le|la|les|des|une|qui|que|pour|dans|sur|avec|sans|plus|entre|chaque|tous|toutes)\b/i.test(s) ||
-  /\b(il y a|aucun|aucune|ans|mois|jours|selon|depuis|vers|leur|leurs|cette|cet|ces|son|ses|nous|vous)\b/i.test(s);
+  /\b(il y a|aucun|aucune|ans|mois|jours|selon|depuis|vers|leur|leurs|cette|cet|ces|son|ses|nous|vous)\b/i.test(s) ||
+  /* Troisième passe, ajoutée le 29 septembre 2026. « Ouvrir un compte-titres »
+     n'a ni accent ni aucun des mots ci-dessus, et s'affichait en français sur
+     l'écran anglais du nouvel accueil : c'était le bouton principal de la page.
+     Ces articles et auxiliaires sont ce qui manquait, et aucun n'est un mot
+     anglais, ce qui reste la seule condition pour qu'ils n'appellent pas à
+     tort. */
+  /\b(un|du|au|aux|et|ni|est|sont|ne|pas|votre|vos|notre|nos|mon|ma|mes)\b/i.test(s);
 
 const fichiers = (cible: string): string[] => {
+  const racine = path.join(process.cwd(), cible);
+  if (!statSync(racine).isDirectory()) return [racine];
   const out: string[] = [];
   (function marche(d: string) {
     for (const e of readdirSync(d, { withFileTypes: true })) {
@@ -40,7 +57,7 @@ const fichiers = (cible: string): string[] => {
       if (e.isDirectory()) marche(p);
       else if (/\.tsx?$/.test(e.name)) out.push(p);
     }
-  })(path.join(process.cwd(), cible));
+  })(racine);
   return out;
 };
 

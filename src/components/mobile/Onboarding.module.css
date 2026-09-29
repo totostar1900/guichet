@@ -2,20 +2,23 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(11, 37, 69, 0.55);
+  /* Un voile plus froid et plus dense, qui désature ce qu'il couvre. */
+  background: rgba(6, 18, 38, 0.86);
+  backdrop-filter: saturate(0.7) blur(3px);
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: var(--s-7);
 }
+/* Pas d'ombre portée : le voile détache déjà, et une ombre adoucit. */
 .card {
   width: min(420px, 100%);
   background: var(--navy);
   color: var(--on-navy);
-  border-radius: 18px;
-  padding: 18px 20px 20px;
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: var(--s-7) var(--s-8) var(--s-8);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
 }
 .skip {
   align-self: flex-end;
@@ -23,9 +26,12 @@
   background: none;
   color: var(--on-navy-2);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: var(--s-2) var(--s-3);
 }
 .art {
   display: grid;
@@ -37,11 +43,14 @@
   height: 178px;
   overflow: visible;
 }
+/* Le serif à fort contraste, sans graisse : la même règle que partout. */
 .card h2 {
-  margin: 4px 0 6px;
-  font-size: 1.15rem;
-  font-weight: 800;
-  line-height: 1.3;
+  margin: var(--s-5) 0 var(--s-5);
+  font-family: var(--font-titre);
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
   text-wrap: balance;
   color: var(--on-navy);
 }
@@ -52,20 +61,22 @@
   color: var(--on-navy-2);
   min-height: 5.5em;
 }
+/* Des traits, pas des points : une barre de progression segmentée, de deux
+   pixels, comme le rail du site et les barres de la présentation. */
 .dots {
   display: flex;
-  gap: 6px;
-  margin: 14px 0;
+  gap: var(--s-2);
+  margin: var(--s-7) 0;
 }
 .dots i {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.3);
-  transition: width 0.3s;
+  width: 22px;
+  height: 2px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 0.25s;
 }
 .dots .on {
-  width: 20px;
+  width: 22px;
   background: var(--gold);
 }
 .next {
@@ -149,7 +160,7 @@
   width: 200px;
   height: 300px;
   margin: 0 auto;
-  border-radius: 18px;
+  border-radius: 0;
   border: 3px solid rgba(255, 255, 255, 0.35);
   overflow: hidden;
   background: #fff;

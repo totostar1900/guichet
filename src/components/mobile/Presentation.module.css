@@ -2,7 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: 70;
-  background: rgba(6, 14, 30, 0.72);
+  background: rgba(6, 18, 38, 0.86);
+  backdrop-filter: saturate(0.7) blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,9 +16,9 @@
   max-height: calc(100vh - 48px);
   background: var(--surface);
   color: var(--ink);
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -31,11 +32,12 @@
   gap: 4px;
   z-index: 3;
 }
+/* Deux pixels, comme le rail de progression du site : c'est la même idée. */
 .bars i {
   flex: 1;
-  height: 3px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.25);
+  height: 2px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.18);
   overflow: hidden;
 }
 .bars i b {
@@ -55,19 +57,22 @@
     width: 100%;
   }
 }
+/* Passer n'est pas un bouton plein : un filet clair, en petites capitales. */
 .skip {
   position: absolute;
-  top: 18px;
+  top: 16px;
   right: 16px;
   z-index: 3;
-  border: 0;
-  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
   color: #fff;
   font: inherit;
-  font-size: 0.76rem;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: var(--s-4) var(--s-7);
+  border-radius: 0;
   cursor: pointer;
 }
 .scene {
@@ -82,25 +87,32 @@
   display: flex;
   flex-direction: column;
 }
+/* L'étiquette : petites capitales très espacées, comme partout ailleurs. */
 .kick {
-  font-size: 0.64rem;
-  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold);
-  font-weight: 800;
+  font-weight: 700;
 }
+/* Le titre prend le serif à fort contraste, et perd sa graisse : c'est le
+   contraste de la fonte qui porte, la graisse le tuerait. */
 .pic h2 {
-  font-size: 1.5rem;
-  line-height: 1.15;
-  margin: 10px 0 8px;
-  font-weight: 800;
+  font-family: var(--font-titre);
+  font-size: 2rem;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  margin: var(--s-6) 0 var(--s-5);
+  font-weight: 400;
   color: #fff;
+  text-wrap: balance;
 }
 .pic p {
-  font-size: 0.9rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #b5c0d0;
   margin: 0;
+  max-width: 44ch;
 }
 .art {
   flex: 1;
@@ -114,82 +126,89 @@
   width: 100%;
   max-height: 240px;
 }
+/* Un bloc d'or, pas une gélule : même géométrie que les boutons du site. */
 .cta {
   align-self: flex-start;
   border: 0;
   background: var(--gold);
   color: var(--navy);
   font: inherit;
-  font-weight: 800;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 0.88rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  padding: var(--s-6) var(--s-9);
+  border-radius: 0;
+  font-size: 0.8rem;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: var(--s-4);
 }
 .steps {
-  padding: 26px 26px 22px;
+  padding: var(--s-10) var(--s-10) var(--s-9);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+  border-left: 1px solid var(--line);
 }
 .steps h3 {
-  margin: 0 0 4px;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
+  margin: 0 0 var(--s-6);
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--navy);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-3);
+  font-weight: 700;
 }
+/* Chaque étape est une ligne réglée, pas une carte : un filet la sépare de la
+   suivante, et l'étape courante s'allume par un trait d'or à gauche. */
 .step {
   display: flex;
-  gap: 12px;
+  gap: var(--s-7);
   align-items: flex-start;
   text-align: left;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid transparent;
+  padding: var(--s-7) var(--s-6);
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  box-shadow: inset 2px 0 0 transparent;
   background: transparent;
   color: var(--ink-3);
   font: inherit;
   font-size: 0.86rem;
   line-height: 1.4;
   cursor: pointer;
-  transition: background 0.3s, border-color 0.3s;
+  transition: box-shadow 0.25s, color 0.25s;
 }
+/* Le numéro n'est plus une pastille : un chiffre nu, aligné, qui se dore
+   quand son étape s'allume. Un carré à la place d'un rond aurait été un rond
+   déguisé. */
 .step i {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1.5px solid var(--line-2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  width: 18px;
+  display: inline-block;
   font-style: normal;
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.66rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  padding-top: 2px;
   flex: none;
 }
 .step b {
   display: block;
   color: var(--ink-2);
+  font-weight: 650;
 }
 .step.on {
-  background: var(--gold-soft);
-  border-color: var(--gold);
+  box-shadow: inset 2px 0 0 var(--gold);
   color: var(--ink);
 }
 .step.on i {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--navy);
+  color: var(--gold-ink);
 }
 .step.on b {
   color: var(--ink);
 }
 .doneStep i {
-  background: var(--line-2);
-  border-color: var(--line-2);
-  color: var(--ink-2);
+  color: var(--line-2);
 }
 .deskCta {
   margin-top: auto;

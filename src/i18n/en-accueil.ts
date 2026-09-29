@@ -14,7 +14,11 @@ export const EN_ACCUEIL: Record<string, string> = {
   "Le marché des titres publics de la CEMAC, ouvert à qui veut y placer.": "The CEMAC government securities market, open to whoever wants to invest in it.",
   "Bons et obligations des six Trésors, fonds de la zone, actions cotées à la BVMAC. Vous voyez les prix réellement adjugés, ce qu'ils rapportent, et ce qu'on ne sait pas encore.":
     "Bills and bonds from the six Treasuries, funds of the zone, shares listed on the BVMAC. You see the prices actually awarded, what they yield, and what is not yet known.",
+  "Ouvrir un compte-titres": "Open a securities account",
   "Voir les neuf services": "See the nine services",
+  /* Sans accent ni mot-outil de la première liste, celle-ci passait sous le
+     cliquet et s'affichait en français sur l'écran anglais. */
+  "Pourquoi il n'y a pas de courbe ici": "Why there is no curve here",
   "À votre nom, jamais au nôtre : les titres sont inscrits nominativement au dépositaire. Ouverture en ligne, pièces signées en ligne.":
     "In your name, never in ours: securities are registered in your own name at the depositary. Account opened online, documents signed online.",
 

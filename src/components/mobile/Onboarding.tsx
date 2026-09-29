@@ -21,7 +21,7 @@ const SLIDES = [
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
         <g className={styles.a1}>
-          <rect x="20" y="40" width="160" height="34" rx="8" fill="#fff" opacity=".95" />
+          <rect x="20" y="40" width="160" height="34" rx="0" fill="#fff" opacity=".95" />
           <rect x="30" y="50" width="70" height="6" rx="3" fill="#0b2545" />
           <rect x="30" y="61" width="40" height="5" rx="2" fill="#b8860b" />
           <text x="170" y="62" textAnchor="end" fontSize="13" fontWeight="800" fill="#8a6408">
@@ -29,7 +29,7 @@ const SLIDES = [
           </text>
         </g>
         <g className={styles.a2}>
-          <rect x="20" y="84" width="160" height="34" rx="8" fill="#fff" opacity=".8" />
+          <rect x="20" y="84" width="160" height="34" rx="0" fill="#fff" opacity=".8" />
           <rect x="30" y="94" width="80" height="6" rx="3" fill="#0b2545" />
           <rect x="30" y="105" width="40" height="5" rx="2" fill="#b8860b" />
           <text x="170" y="106" textAnchor="end" fontSize="13" fontWeight="800" fill="#8a6408">
@@ -37,7 +37,7 @@ const SLIDES = [
           </text>
         </g>
         <g className={styles.a3}>
-          <rect x="20" y="128" width="160" height="34" rx="8" fill="#fff" opacity=".65" />
+          <rect x="20" y="128" width="160" height="34" rx="0" fill="#fff" opacity=".65" />
           <rect x="30" y="138" width="60" height="6" rx="3" fill="#0b2545" />
           <rect x="30" y="149" width="40" height="5" rx="2" fill="#b8860b" />
           <text x="170" y="150" textAnchor="end" fontSize="13" fontWeight="800" fill="#8a6408">
@@ -52,15 +52,15 @@ const SLIDES = [
     text: "Titres réunit le marché primaire (vous souscrivez auprès de l'émetteur pendant une fenêtre) et le marché secondaire (vous achetez à un autre investisseur au cours du jour) : deux interrupteurs en haut de la page. Les fonds, souscrits à la prochaine valeur liquidative, ont leur propre page.",
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
-        <rect x="10" y="60" width="55" height="50" rx="8" fill="#fff" />
+        <rect x="10" y="60" width="55" height="50" rx="0" fill="#fff" />
         <text x="37" y="90" textAnchor="middle" fontSize="9" fontWeight="800" fill="#0b2545">
           PRIMAIRE
         </text>
-        <rect x="72" y="60" width="55" height="50" rx="8" fill="#fff" opacity=".85" />
+        <rect x="72" y="60" width="55" height="50" rx="0" fill="#fff" opacity=".85" />
         <text x="99" y="90" textAnchor="middle" fontSize="9" fontWeight="800" fill="#0b2545">
           SECONDAIRE
         </text>
-        <rect x="134" y="60" width="55" height="50" rx="8" fill="#fff" opacity=".7" />
+        <rect x="134" y="60" width="55" height="50" rx="0" fill="#fff" opacity=".7" />
         <text x="161" y="90" textAnchor="middle" fontSize="9" fontWeight="800" fill="#0b2545">
           FONDS
         </text>
@@ -77,15 +77,15 @@ const SLIDES = [
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
         <g fontSize="9" fontWeight="700" fill="#0b2545">
-          <rect x="10" y="70" width="34" height="26" rx="6" fill="#b8860b" />
+          <rect x="10" y="70" width="34" height="26" rx="0" fill="#b8860b" />
           <text x="27" y="87" textAnchor="middle">
             Vous
           </text>
-          <rect x="83" y="70" width="34" height="26" rx="6" fill="#fff" />
+          <rect x="83" y="70" width="34" height="26" rx="0" fill="#fff" />
           <text x="100" y="87" textAnchor="middle">
             Desk
           </text>
-          <rect x="156" y="70" width="34" height="26" rx="6" fill="#fff" />
+          <rect x="156" y="70" width="34" height="26" rx="0" fill="#fff" />
           <text x="173" y="87" textAnchor="middle">
             Trésor
           </text>
@@ -104,7 +104,7 @@ const SLIDES = [
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
         <g className={styles.a1}>
-          <rect x="16" y="28" width="168" height="52" rx="8" fill="#fbf1da" stroke="#b8860b" strokeWidth="1.5" />
+          <rect x="16" y="28" width="168" height="52" rx="0" fill="#fbf1da" stroke="#b8860b" strokeWidth="1.5" />
           <text x="26" y="42" fontSize="7" fontWeight="800" fill="#8a6408" letterSpacing="1">
             À LA UNE
           </text>
@@ -117,14 +117,14 @@ const SLIDES = [
           </text>
         </g>
         <g className={styles.a2}>
-          <rect x="16" y="90" width="168" height="34" rx="8" fill="#fff" opacity=".9" />
+          <rect x="16" y="90" width="168" height="34" rx="0" fill="#fff" opacity=".9" />
           <rect x="26" y="99" width="18" height="6" rx="3" fill="#2a5db0" />
           <rect x="50" y="99" width="90" height="6" rx="3" fill="#0b2545" />
           <rect x="26" y="111" width="30" height="5" rx="2" fill="#b8860b" />
           <rect x="60" y="111" width="80" height="5" rx="2" fill="#c9d3e3" />
         </g>
         <g className={styles.a3}>
-          <rect x="16" y="132" width="168" height="34" rx="8" fill="#fff" opacity=".7" />
+          <rect x="16" y="132" width="168" height="34" rx="0" fill="#fff" opacity=".7" />
           <rect x="26" y="141" width="18" height="6" rx="3" fill="#b4600a" />
           <rect x="50" y="141" width="70" height="6" rx="3" fill="#0b2545" />
           <rect x="26" y="153" width="30" height="5" rx="2" fill="#b8860b" />
@@ -154,8 +154,8 @@ const SLIDES = [
     text: "Une question sur une ligne, un doute sur un chiffre : le bouton « Information » de chaque fiche ouvre la conversation. Les avis et relevés arrivent aussi là.",
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
-        <rect x="55" y="30" width="90" height="110" rx="14" fill="#fff" />
-        <rect x="70" y="50" width="60" height="8" rx="4" fill="#0b2545" />
+        <rect x="55" y="30" width="90" height="110" rx="0" fill="#fff" />
+        <rect x="70" y="50" width="60" height="8" rx="0" fill="#0b2545" />
         <rect x="70" y="66" width="40" height="6" rx="3" fill="#b8860b" />
         <rect x="70" y="92" width="60" height="6" rx="3" fill="#e5e7eb" />
         <rect x="70" y="104" width="46" height="6" rx="3" fill="#e5e7eb" />

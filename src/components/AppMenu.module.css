@@ -36,10 +36,13 @@
   inset: 0;
   z-index: 70;
 }
+/* Le même voile froid que la présentation et l'accompagnement : les trois
+   surcouches de la maison se ressemblent, ou elles se contredisent. */
 .coachDim {
   position: absolute;
   inset: 0;
-  background: rgba(11, 37, 69, 0.55);
+  background: rgba(6, 18, 38, 0.86);
+  backdrop-filter: saturate(0.7) blur(3px);
 }
 .coachTip {
   position: absolute;
@@ -48,37 +51,43 @@
   width: min(320px, calc(100vw - 28px));
   background: var(--surface);
   color: var(--ink);
-  border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+  border-radius: 0;
+  border: 1px solid var(--line-2);
+  padding: var(--s-7) var(--s-8);
   display: grid;
-  gap: 8px;
-  font-size: 0.86rem;
-  line-height: 1.45;
+  gap: var(--s-5);
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
+/* La pointe garde son filet : sans lui, elle flotte détachée de sa bulle. */
 .coachTip::before {
   content: "";
   position: absolute;
   top: -7px;
   right: 22px;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   background: var(--surface);
+  border-top: 1px solid var(--line-2);
+  border-left: 1px solid var(--line-2);
   transform: rotate(45deg);
 }
 .coachTip b {
-  font-size: 1rem;
-  line-height: 1.25;
+  font-family: var(--font-titre);
+  font-size: 1.32rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 .coachTip > span {
   color: var(--ink-2);
 }
 .coachEyebrow {
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold-ink);
-  font-weight: 800;
+  font-weight: 700;
 }
 .coachFoot {
   display: flex;
