@@ -22,6 +22,7 @@ import { intlLocale } from "@/i18n/core";
 import { fmt, fmtDate } from "@/lib/format";
 import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
 import { cribler } from "@/lib/market/anomalies";
+import { compteDansLesResultats } from "@/lib/market/auction-results";
 import { anomalieVueAction } from "./actions";
 import { bridge } from "@/lib/market/bridge";
 import { abonde, buildCurve, horizon, MIN_POINTS, serie, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
@@ -68,7 +69,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     r.latestQuotes().catch(() => []),
   ]);
 
-  const relues = seances.filter((s) => s.confirmedBy);
+  const relues = seances.filter((s) => compteDansLesResultats(s) && s.confirmedBy);
   /**
    * Le relevé de la BEAC : celui du dépôt, sinon la semence du code.
    *

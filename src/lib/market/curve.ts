@@ -1,6 +1,6 @@
 import type { Country } from "@/lib/domain/types";
 import { completerDepuisAvis, rembourseInFine, type EmissionLine } from "./emission-notices";
-import { completedAfterConfirmation, fourchette, thin, type AuctionResult } from "./auction-results";
+import { aUnPrixDExecution, completedAfterConfirmation, compteDansLesResultats, fourchette, thin, type AuctionResult } from "./auction-results";
 import { auctionYield, tenorYears, vieRestante, yieldMissing, type AuctionYield } from "./yield";
 
 /**
@@ -149,6 +149,8 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
   const windowDays = opts.windowDays ?? 180;
 
   const fenetre = rows.filter((r) => {
+    // Une pièce écartée n'est pas un résultat : ni relue, ni à relire, rangée.
+    if (!compteDansLesResultats(r)) return false;
     if (!r.confirmedBy) return false;
     if (opts.country && r.country !== opts.country) return false;
     const age = days(on, r.sessionOn);
@@ -177,6 +179,34 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
         on: brut.sessionOn,
         why: "l'avis d'annonce donne un autre échéancier : le calcul actualise un capital rendu en une fois",
         cite: ligne.redemption,
+        id: brut.id,
+      });
+      continue;
+    }
+
+    /**
+     * Une adjudication qui n'a rien servi n'a pas de prix d'exécution.
+     *
+     * Le Trésor a refusé ce qu'on lui demandait : soit personne n'a soumis,
+     * soit les offres sont venues et il n'en a pris aucune. Le taux qui
+     * subsiste parfois sur ces séances est le taux DEMANDÉ par le marché, et
+     * le tracer publierait un prix que personne n'a accepté.
+     *
+     * La séance n'est pas écartée pour autant : c'est un vrai résultat, et
+     * elle continue de compter dans la pression de la demande et dans
+     * l'exécution du programme. Seul son point de courbe n'existe pas, et le
+     * trou se nomme ici plutôt que de disparaître.
+     */
+    if (!aUnPrixDExecution(brut)) {
+      gaps.push({
+        country: brut.country,
+        instrument: brut.instrument,
+        tenor: brut.tenor,
+        on: brut.sessionOn,
+        why:
+          brut.bid === 0
+            ? "adjudication déserte : personne n'a soumis, il n'y a pas de prix"
+            : "aucun titre servi : le Trésor a refusé les offres, il n'y a pas de prix d'exécution",
         id: brut.id,
       });
       continue;

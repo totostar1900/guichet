@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { Poignee } from "@/components/desk/Poignee";
+import { compteDansLesResultats } from "@/lib/market/auction-results";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
@@ -38,8 +39,11 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
   const sp = await searchParams;
   const r = repo();
   const all = await r.listAuctionResults({ limit: 300 });
-  const aRelire = all.filter((x) => !x.confirmedBy);
-  const relues = all.filter((x) => x.confirmedBy);
+  // Une pièce écartée n'attend personne et n'atteste de rien : elle sort des
+  // deux files, et se retrouve par son propre onglet.
+  const resultats = all.filter(compteDansLesResultats);
+  const aRelire = resultats.filter((x) => !x.confirmedBy);
+  const relues = resultats.filter((x) => x.confirmedBy);
   const selected = sp.s ? all.find((x) => x.id === sp.s) : aRelire[0];
   // La liste ne reçoit que ce qu'elle affiche : deux cent quarante-neuf séances
   // entières traverseraient le réseau pour trois colonnes.

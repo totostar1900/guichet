@@ -406,3 +406,67 @@
   font-size: 0.74rem;
   line-height: 1.45;
 }
+
+/* La pièce rangée : ni le vert de ce qui est fait, ni le rouge de ce qui
+   bloque. Elle est de côté, et sa teinte le dit sans alarmer. */
+.range {
+  background: var(--surface-2);
+  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+}
+.ecarteBloc {
+  margin-top: var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  border-left: 3px solid var(--line-2);
+  border-radius: 0 7px 7px 0;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.ecarteMot {
+  margin: 0;
+  color: var(--ink-2);
+}
+.ecarteBloc p {
+  margin: 0;
+}
+.ecarteForm {
+  margin-top: var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  font-size: 0.8rem;
+}
+.ecarteForm label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.ecarteForm label span {
+  font-weight: 650;
+}
+.ecarteForm select,
+.ecarteForm input {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: var(--s-3) var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.ecarteActions {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.ecarteForm p {
+  margin: 0;
+}

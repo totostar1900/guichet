@@ -393,6 +393,33 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
     if (r.bidders != null && r.networkSize != null && r.bidders > r.networkSize) {
       out.push({ ...base, quoi: { key: "{n} soumissionnaires pour un réseau de {m}", params: { n: r.bidders, m: r.networkSize } }, verifier: "les deux nombres, souvent voisins sur la pièce" });
     }
+
+    /**
+     * Rien servi, et pourtant un prix.
+     *
+     * Une adjudication qui n'a rien attribué n'a pas de prix d'exécution : le
+     * Trésor a refusé ce qu'on lui demandait. Un taux ou un prix qui subsiste
+     * là-dessus se lit de deux façons, et seule la pièce tranche. Ou bien il
+     * décrit les SOUMISSIONS, ce que le marché demandait, et il n'a rien à
+     * faire dans une colonne de résultat. Ou bien le servi est faux, et c'est
+     * le montant qu'il faut corriger.
+     *
+     * Le cas se compte sur une main et il était passé inaperçu : la séance
+     * produisait un point de courbe à un prix que personne n'avait payé.
+     */
+    if (r.served === 0) {
+      const prix = r.rateAvg ?? r.rateLimit ?? r.priceAvg ?? r.priceLimit ?? r.yieldAvg ?? r.yieldLimit;
+      if (prix != null) {
+        out.push({
+          ...base,
+          quoi: {
+            key: "aucun titre servi, et pourtant un prix publié de {p} : un taux demandé n'est pas un taux payé",
+            params: { p: prix.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) },
+          },
+          verifier: "si ce chiffre décrit les soumissions plutôt que l'attribution, ou si le montant servi est faux",
+        });
+      }
+    }
   }
 
   // Ce qui est déjà entré dans les références passe devant.

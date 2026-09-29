@@ -5,7 +5,7 @@ import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
-import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
+import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
@@ -193,7 +193,14 @@ export interface Repository {
   upsertAuctionResult(r: NewAuctionResult): Promise<AuctionResult>;
   /** La relecture du desk, et le rattachement à une de nos lignes. */
   /** Un champ « undefined » n'est pas fourni et ne touche pas la colonne : pour effacer, voir reopenAuctionResult. */
-  updateAuctionResult(id: string, patch: Partial<NewAuctionResult>): Promise<AuctionResult>;
+  /**
+   * Un champ absent ne touche pas sa colonne ; un `null` écrit l'efface.
+   *
+   * La distinction était déjà celle du mappeur, qui la documente en toutes
+   * lettres, mais le type ne la portait pas : effacer une confirmation en
+   * écartant une pièce ne se disait pas. Elle se dit maintenant.
+   */
+  updateAuctionResult(id: string, patch: PatchAuctionResult): Promise<AuctionResult>;
   /** Le seul effacement légitime de la table : la séance repasse « à relire ». */
   reopenAuctionResult(id: string): Promise<AuctionResult>;
 

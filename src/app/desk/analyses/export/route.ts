@@ -6,6 +6,7 @@ import { toCsv } from "@/lib/reporting";
 import { localIso } from "@/lib/format";
 import { pressureByYear } from "@/lib/market/auction-stats";
 import { brief, briefTexte } from "@/lib/market/brief";
+import { compteDansLesResultats } from "@/lib/market/auction-results";
 import { buildCurve, MIN_POINTS } from "@/lib/market/curve";
 import { freshness, liquidity } from "@/lib/market/liquidity";
 
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
     r.quoteActivity(ilYADeuxAns.toISOString().slice(0, 10)).catch(() => []),
     r.latestQuotes().catch(() => []),
   ]);
-  const relues = seances.filter((x) => x.confirmedBy);
+  const relues = seances.filter((x) => compteDansLesResultats(x) && x.confirmedBy);
   const curve = buildCurve(seances, { on, windowDays: 365 });
   const liq = liquidity(activite, cotes);
   const frais = liq ? freshness(liq) : undefined;

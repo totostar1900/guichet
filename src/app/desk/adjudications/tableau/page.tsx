@@ -5,7 +5,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
-import { etatSeance } from "@/lib/market/auction-results";
+import { compteDansLesResultats, etatSeance } from "@/lib/market/auction-results";
 import { applyFilter, distinct, sortRows, summarise, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
 import styles from "./page.module.css";
 
@@ -77,7 +77,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <DeskNav current="/desk/adjudications/tableau" badges={{ "/desk/adjudications": all.filter((x) => !x.confirmedBy).length }} />
+      <DeskNav current="/desk/adjudications/tableau" badges={{ "/desk/adjudications": all.filter((x) => compteDansLesResultats(x) && !x.confirmedBy).length }} />
 
       <div className={styles.page}>
         <header className={styles.head}>

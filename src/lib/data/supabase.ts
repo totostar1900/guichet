@@ -7,7 +7,7 @@ import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
-import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
+import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -551,7 +551,9 @@ export type AuctionResultRow = {
   rate_min: string | null; rate_max: string | null; rate_limit: string | null; rate_avg: string | null;
   price_min: string | null; price_max: string | null; price_limit: string | null; price_avg: string | null; price_avg_fcfa: string | null;
   yield_avg: string | null; yield_limit: string | null; coupon_rate: string | null; maturity_on: string | null; read_at: string | null; read_model: string | null; anomalies_vues: string[] | null;
-  coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null; offer_id: string | null; created_at: string; updated_at: string;
+  coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null;
+  set_aside_reason?: string | null; set_aside_by?: string | null; set_aside_at?: string | null;
+  offer_id: string | null; created_at: string; updated_at: string;
 };
 /**
  * Une séance de la base, mise en objet du domaine.
@@ -567,6 +569,9 @@ export const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   priceMin: nn(r.price_min), priceMax: nn(r.price_max), priceLimit: nn(r.price_limit), priceAvg: nn(r.price_avg), priceAvgFcfa: nn(r.price_avg_fcfa),
   yieldAvg: nn(r.yield_avg), yieldLimit: nn(r.yield_limit), couponRate: nn(r.coupon_rate), maturityOn: u(r.maturity_on), readAt: u(r.read_at), readModel: u(r.read_model), anomaliesVues: u(r.anomalies_vues),
   coverage: nn(r.coverage), sourceUrl: r.source_url, sourceTitle: r.source_title, fileKey: u(r.file_key), confirmedBy: u(r.confirmed_by), confirmedAt: u(r.confirmed_at), offerId: u(r.offer_id),
+  /* Les trois colonnes de la migration 0052 : absentes avant elle, et une
+     séance sans elles est simplement une séance qui n'est pas écartée. */
+  setAsideReason: u(r.set_aside_reason), setAsideBy: u(r.set_aside_by), setAsideAt: u(r.set_aside_at),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
 type EmissionNoticeRow = {
@@ -646,7 +651,7 @@ const fromEmissionNotice = (n: EmissionNoticePatch): Record<string, unknown> => 
  * Une clef présente mais vide, elle, efface pour de bon : c'est un champ que le
  * desk a vidé, et il a le droit de le vider.
  */
-const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown> => {
+const fromAuctionResult = (r: PatchAuctionResult): Record<string, unknown> => {
   const row: Record<string, unknown> = {};
   // « undefined » veut dire « non fourni » et ne touche pas la colonne ; seul
   // un « null » écrit efface. La clef absente et la clef à « undefined » sont
@@ -692,6 +697,10 @@ const fromAuctionResult = (r: Partial<NewAuctionResult>): Record<string, unknown
   put("file_key", "fileKey");
   put("confirmed_by", "confirmedBy");
   put("confirmed_at", "confirmedAt");
+  /* Un null ecrit remet la seance dans la file : la mise a l ecart se defait. */
+  put("set_aside_reason", "setAsideReason");
+  put("set_aside_by", "setAsideBy");
+  put("set_aside_at", "setAsideAt");
   put("offer_id", "offerId");
   return row;
 };

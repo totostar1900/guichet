@@ -5,7 +5,7 @@ import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
-import { confirmable, millions, rangerBornes, type NewAuctionResult } from "@/lib/market/auction-results";
+import { confirmable, millions, MOTIFS_ECART, rangerBornes, type NewAuctionResult } from "@/lib/market/auction-results";
 import { auctionReadingAvailable, readAuctionResult, readingTrouble } from "@/lib/market/auction-extract";
 import { auctionYield } from "@/lib/market/yield";
 import { readSource } from "@/lib/intake/storage";
@@ -223,6 +223,67 @@ export async function confirmBatchAction(_prev: ResultOutcome | null, form: Form
       (muettes ? ` ${muettes} ne publient qu'une fourchette et ne donneront aucun rendement.` : "") +
       (refusees.length ? ` ${refusees.length} écartée(s), faute de chiffre ou de code : ${refusees.slice(0, 4).join(", ")}${refusees.length > 4 ? "…" : ""}.` : ""),
   };
+}
+
+/**
+ * Ranger une pièce qui n'est pas un résultat.
+ *
+ * Elle ne se supprime pas : le communiqué archivé, son lien et sa ligne
+ * restent. Elle quitte la file de relecture, les analyses et la courbe, et se
+ * retrouve par son propre onglet, avec le motif de sa mise à l'écart.
+ *
+ * Le motif est le point : « ce n'est pas un résultat » est une information qui
+ * doit survivre à celui qui l'a constatée. Une case à cocher l'aurait perdue.
+ *
+ * Une séance déjà relue s'écarte aussi, et sa confirmation tombe avec elle :
+ * une attestation posée sur une pièce qui n'est pas un résultat n'atteste de
+ * rien.
+ */
+export async function setAsideResultAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/adjudications");
+  const id = String(form.get("id") ?? "");
+  const motif = String(form.get("motif") ?? "").trim();
+  const precision = String(form.get("precision") ?? "").trim();
+  if (!id || !(MOTIFS_ECART as readonly string[]).includes(motif)) return;
+  const before = await repo().getAuctionResult(id);
+  if (!before || before.setAsideAt) return;
+  const raison = precision ? `${motif} · ${precision}` : motif;
+  await repo().updateAuctionResult(id, {
+    setAsideReason: raison,
+    setAsideBy: desk.name,
+    setAsideAt: new Date().toISOString(),
+    confirmedBy: null,
+    confirmedAt: null,
+  });
+  await audit("auction.setAside", "auction_result", id, {
+    before: { confirmedBy: before.confirmedBy ?? null, setAsideAt: null },
+    after: { setAsideReason: raison, setAsideBy: desk.name },
+    reason: raison,
+  });
+  await repo().logEvent({
+    kind: "desk",
+    html: `Pièce <b>écartée</b> par ${desk.name} : ${before.instrument} ${before.tenor} ${before.country}, séance du ${before.sessionOn} · ${raison}`,
+  });
+  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/analyses");
+}
+
+/** La remettre dans la file : une mise à l'écart qui ne se défait pas n'a pas sa place. */
+export async function restoreResultAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/adjudications");
+  const id = String(form.get("id") ?? "");
+  const before = await repo().getAuctionResult(id);
+  if (!before?.setAsideAt) return;
+  /* Elle revient « à relire », jamais « relue » : la confirmation est tombée en
+     l'écartant, et la faire renaître signerait à la place de quelqu'un. */
+  await repo().updateAuctionResult(id, { setAsideReason: null, setAsideBy: null, setAsideAt: null });
+  await audit("auction.restore", "auction_result", id, { before: { setAsideReason: before.setAsideReason ?? null }, after: { setAsideAt: null } });
+  await repo().logEvent({
+    kind: "desk",
+    html: `Pièce <b>remise dans la file</b> par ${desk.name} : ${before.instrument} ${before.tenor} ${before.country}, séance du ${before.sessionOn}`,
+  });
+  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/analyses");
 }
 
 /** Défait la confirmation, quand la relecture s'est trompée de colonne. */

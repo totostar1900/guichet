@@ -36,12 +36,18 @@ export interface LigneSeance {
   mince: boolean;
 }
 
-const MOT: Record<EtatSeance, string> = { a_lire: "à lire", a_relire: "à relire", relue: "relue" };
+const MOT: Record<EtatSeance, string> = { a_lire: "à lire", a_relire: "à relire", relue: "relue", ecartee: "écartée" };
+/**
+ * « Toutes » veut dire toutes les séances de travail, et les écartées n en sont
+ * pas : ce sont des pièces rangées, qui encombreraient une file de relecture.
+ * Elles ont leur propre onglet, pour qu on puisse les retrouver et les remettre.
+ */
 const ONGLETS: { clef: EtatSeance | "tout"; mot: string }[] = [
   { clef: "tout", mot: "Toutes" },
   { clef: "a_lire", mot: "À lire" },
   { clef: "a_relire", mot: "À relire" },
   { clef: "relue", mot: "Relues" },
+  { clef: "ecartee", mot: "Écartées" },
 ];
 type Colonne = "date" | "ligne" | "etat";
 
@@ -69,7 +75,7 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
   const vues = useMemo(() => {
     const mots = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
     const gardees = rows.filter((r) => {
-      if (onglet !== "tout" && r.etat !== onglet) return false;
+      if (onglet === "tout" ? r.etat === "ecartee" : r.etat !== onglet) return false;
       if (!mots.length) return true;
       const foin = `${r.on} ${r.pays} ${r.instrument} ${r.tenor} ${r.code ?? ""}`.toLowerCase();
       // Chaque mot doit être présent : c'est le même comportement que la

@@ -112,12 +112,89 @@ export interface AuctionResult {
   /** Vide : la lecture automatique n'a pas été relue, et le chiffre ne sert de référence à rien. */
   confirmedBy?: string;
   confirmedAt?: string;
+  /**
+   * Pourquoi cette pièce a été mise de côté, quand elle l'a été, et par qui.
+   *
+   * Une séance écartée n'est ni relue ni à relire : c'est un troisième état, et
+   * il porte un motif plutôt qu'une case à cocher. « Ce n'est pas un résultat »
+   * est une information qui doit survivre à celui qui l'a constaté.
+   *
+   * La pièce reste entière : la ligne, le communiqué et son lien ne bougent
+   * pas. C'est réversible, et ce doit l'être : une mise à l'écart qui ne se
+   * défait pas n'a pas sa place dans une table que plusieurs mains tiennent.
+   */
+  setAsideReason?: string;
+  setAsideBy?: string;
+  setAsideAt?: string;
   offerId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type NewAuctionResult = Omit<AuctionResult, "id" | "createdAt" | "updatedAt">;
+
+/**
+ * Ce qu une mise à jour peut porter.
+ *
+ * Un champ absent ne touche pas sa colonne, un `null` écrit l efface. Le
+ * mappeur du dépôt le fait depuis toujours et le documente ; le type, lui, ne
+ * le disait pas, et écarter une pièce en effaçant sa confirmation ne se
+ * formulait pas.
+ */
+export type PatchAuctionResult = { [K in keyof NewAuctionResult]?: NewAuctionResult[K] | null };
+
+/**
+ * Les motifs d'une mise à l'écart, en liste fermée.
+ *
+ * Le premier a donné naissance au mécanisme : la BEAC publie ses avis
+ * d'annonce et ses communiqués de résultats sous des adresses voisines, et
+ * l'un des premiers s'est retrouvé dans la table des résultats. Son titre
+ * disait « résultats », son URL disait « annonce », et seule la donnée
+ * tranchait : un montant annoncé, et rien d'autre.
+ *
+ * Aucune règle automatique ne pouvait le faire, et les deux évidentes ont été
+ * essayées. « L'URL dit annonce » attrape douze pièces dont onze sont de vrais
+ * résultats, publiés dans des communiqués qui annoncent et résultent à la
+ * fois. « Aucun chiffre de résultat » décrit exactement une séance pas encore
+ * lue. C'est donc une décision de personne, et ce qu'on garde est son motif.
+ */
+export const MOTIFS_ECART = [
+  "avis d'annonce, pas un résultat",
+  "doublon d'une séance déjà saisie",
+  "pièce illisible ou tronquée",
+  "hors périmètre",
+] as const;
+export type MotifEcart = (typeof MOTIFS_ECART)[number];
+
+/**
+ * Cette séance compte-t-elle parmi les résultats ?
+ *
+ * Un seul prédicat, parce que le filtre vivait recopié dans une dizaine
+ * d'endroits : la courbe, les analyses, l'export, le tableau, le badge du rail.
+ * Dix conditions finissent par diverger, et celle qui diverge est celle qu'on
+ * oublie.
+ */
+export const compteDansLesResultats = (r: Pick<AuctionResult, "setAsideAt">): boolean => !r.setAsideAt;
+
+/**
+ * Cette séance a-t-elle un prix d'exécution ?
+ *
+ * Une adjudication qui n'a rien servi n'en a pas : le Trésor a refusé ce qu'on
+ * lui demandait. Le taux qui subsiste sur une telle séance est le taux DEMANDÉ
+ * par le marché, jamais un taux payé, et le porter sur la courbe publierait un
+ * prix que personne n'a accepté.
+ *
+ * Ce n'est pas un drapeau que quelqu'un pose : c'est un fait que la donnée
+ * énonce déjà. D'où une règle, et non une mise à l'écart. La séance reste un
+ * vrai résultat, publié par son Trésor : elle compte dans la pression de la
+ * demande et dans l'exécution du programme, et elle ne donne pas de point.
+ *
+ * Les retirer des volumes embellirait les années : mesuré sur le dépôt, la
+ * couverture de 2025 passerait de 0,67 à 0,72 et celle de 2026 de 0,71 à 0,76.
+ * Une adjudication déserte est un fait sur la demande, et l'écarter là serait
+ * cacher ce que le marché a dit.
+ */
+export const aUnPrixDExecution = (r: Pick<AuctionResult, "served">): boolean => r.served !== 0;
 
 /** Le communiqué imprime « 15 000 » pour quinze milliards. La conversion se fait une fois. */
 export const millions = (m: number): number => m * 1_000_000;
@@ -192,7 +269,9 @@ export function thin(r: AuctionResult): boolean {
  * Trois états, donc, qui suivent exactement la donnée : rien dans les champs,
  * des chiffres que personne n'a vérifiés, une séance arrêtée par une personne.
  */
-export type EtatSeance = "a_lire" | "a_relire" | "relue";
+/* « écartée » s'ajoute aux trois autres et les précède toutes : une pièce
+   rangée n'est plus ni à lire, ni à relire, ni relue. */
+export type EtatSeance = "a_lire" | "a_relire" | "relue" | "ecartee";
 
 /**
  * Tout ce qu'une lecture peut rapporter, et pas seulement ce que la courbe sait
@@ -209,8 +288,11 @@ const champsLus = (r: Pick<AuctionResult, "rateAvg" | "rateLimit" | "priceAvg" |
   r.rateAvg ?? r.rateLimit ?? r.priceAvg ?? r.priceLimit ?? r.rateMin ?? r.rateMax ?? r.priceMin ?? r.priceMax ?? r.yieldAvg ?? r.announced ?? r.bidders;
 
 export const etatSeance = (
-  r: Pick<AuctionResult, "confirmedBy" | "readAt" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "rateMin" | "rateMax" | "priceMin" | "priceMax" | "yieldAvg" | "announced" | "bidders">,
+  r: Pick<AuctionResult, "confirmedBy" | "setAsideAt" | "readAt" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "rateMin" | "rateMax" | "priceMin" | "priceMax" | "yieldAvg" | "announced" | "bidders">,
 ): EtatSeance => {
+  /* L'écart passe avant tout : une pièce qui n'est pas un résultat n'a pas
+     d'état de lecture, elle est rangée. */
+  if (r.setAsideAt) return "ecartee";
   if (r.confirmedBy) return "relue";
   // Une pièce ouverte dont on n'a rien tiré n'est pas « à lire » : elle a été
   // lue, et ce qu'il faut en dire est qu'elle attend une personne.

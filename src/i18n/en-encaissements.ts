@@ -171,4 +171,37 @@ export const EN_ENCAISSEMENTS: Record<string, string> = {
     "Fund units are exempt: their fees are already taken in the net asset value.",
   "Les lignes grisées n'ont pas été facturées : exonérées, ou entrées après la fin de la période.":
     "Greyed lines were not billed: exempt, or acquired after the period ended.",
+
+  /* ---------- les pièces écartées, et les séances sans prix ----------
+     Two ways of not counting, and the English must keep them apart. A piece
+     "set aside" should never have been in the results at all; a session that
+     allotted nothing is a genuine result whose *price* does not exist. Hence
+     "set aside" for the first and "no execution price" for the second. */
+  "Ce n'est pas un résultat": "This is not a result",
+  "Pièce écartée": "Document set aside",
+  "écartée": "set aside",
+  "Écarter cette pièce": "Set this document aside",
+  "Remettre dans la file": "Put it back in the queue",
+  "Pourquoi cette pièce n'est pas un résultat": "Why this document is not a result",
+  "Précision, si elle aide le prochain lecteur": "A note, if it helps the next reader",
+  "Elle ne compte ni dans la file de relecture, ni dans les analyses, ni dans la courbe. Le communiqué reste archivé et son lien fonctionne.":
+    "It counts in neither the review queue, nor the analyses, nor the curve. The communiqué stays archived and its link still works.",
+  "Rien n'est supprimé : la ligne et le communiqué restent, et le geste se défait d'un bouton.":
+    "Nothing is deleted: the row and the communiqué stay, and the action is undone with one button.",
+  "Rangée : cette pièce n'est pas un résultat, et ne compte nulle part.": "Filed: this document is not a result, and counts nowhere.",
+
+  /* Les motifs, en liste fermée. */
+  "avis d'annonce, pas un résultat": "announcement notice, not a result",
+  "doublon d'une séance déjà saisie": "duplicate of a session already recorded",
+  "pièce illisible ou tronquée": "document unreadable or truncated",
+  "hors périmètre": "out of scope",
+
+  /* Les deux trous nommés, et l'anomalie qui les accompagne. */
+  "aucun titre servi : le Trésor a refusé les offres, il n'y a pas de prix d'exécution":
+    "no securities allotted: the Treasury declined the bids, there is no execution price",
+  "adjudication déserte : personne n'a soumis, il n'y a pas de prix": "deserted auction: nobody bid, there is no price",
+  "aucun titre servi, et pourtant un prix publié de {p} : un taux demandé n'est pas un taux payé":
+    "no securities allotted, yet a published price of {p}: a rate asked is not a rate paid",
+  "si ce chiffre décrit les soumissions plutôt que l'attribution, ou si le montant servi est faux":
+    "whether this figure describes the bids rather than the allotment, or whether the amount allotted is wrong",
 };

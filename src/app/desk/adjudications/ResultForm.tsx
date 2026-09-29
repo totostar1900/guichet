@@ -7,6 +7,7 @@ import { Poignee } from "@/components/desk/Poignee";
 import { useT } from "@/i18n/client";
 import { coverageOf, etatSeance, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { auctionYield, YIELD_ORIGIN_LABEL } from "@/lib/market/yield";
+import { Ecarter } from "./Ecarter";
 import { confirmResultAction, proposeResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
 import styles from "./page.module.css";
 
@@ -145,8 +146,14 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
             </a>
           </p>
         </div>
-        <span className={`${styles.pill} ${r.confirmedBy ? styles.done : styles.todo}`}>
-          {etat === "relue" ? t("Relue par {n}", { n: r.confirmedBy ?? "" }) : etat === "a_relire" ? t("À relire") : t("À lire")}
+        <span className={`${styles.pill} ${etat === "ecartee" ? styles.range : r.confirmedBy ? styles.done : styles.todo}`}>
+          {etat === "ecartee"
+            ? t("Écartée")
+            : etat === "relue"
+              ? t("Relue par {n}", { n: r.confirmedBy ?? "" })
+              : etat === "a_relire"
+                ? t("À relire")
+                : t("À lire")}
         </span>
       </header>
 
@@ -260,8 +267,15 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
               </button>
             )}
           </div>
+
+          {/* Le troisieme geste : ni lire, ni confirmer, mais constater que
+              cette piece n en est pas une. Il vit en dehors du formulaire de
+              saisie parce qu il ne sauve aucun champ. */}
+          <Ecarter id={r.id} ecartee={etat === "ecartee"} motif={r.setAsideReason} par={r.setAsideBy} />
           <p className="muted">
-            {etat === "relue"
+            {etat === "ecartee"
+              ? t("Rangée : cette pièce n'est pas un résultat, et ne compte nulle part.")
+              : etat === "relue"
               ? t("Confirmée : ce taux sert de référence aux indications du desk.")
               : etat === "a_relire"
                 ? t("Lue et enregistrée. Tant qu'une personne ne l'a pas confirmée, elle ne sert de référence à aucune offre.")
