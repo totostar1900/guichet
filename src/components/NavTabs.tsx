@@ -6,9 +6,22 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
-import { isFundsSection, isTitresSection, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isFundsSection, isTitresSection, TITRES } from "@/lib/nav-section";
 
+/**
+ * Deux axes, et le second manquait.
+ *
+ * « Titres, Fonds, Marché » range par INSTRUMENT : c est le bon axe pour
+ * choisir. Apres son premier achat un client pense par INTENTION, et rien ne
+ * portait cet axe. « Mon espace » est le seul onglet qui le porte, et il passe
+ * donc en tete pour qui est connecte : on ne revient pas parcourir un
+ * catalogue, on revient agir.
+ *
+ * Il ne parait pas a qui ne l est pas : un visiteur n a pas d espace.
+ */
 const TABS = [
+  { href: "/", label: "Mon espace", match: isEspaceSection, connecte: true },
+  { href: "/services", label: "Services", match: (p: string) => p.startsWith("/services") },
   { href: TITRES, label: "Titres", match: isTitresSection },
   { href: "/fonds", label: "Fonds", match: isFundsSection },
   // « Marché » porte l'environnement BVMAC : l'indice, les sociétés, les notes.
@@ -31,7 +44,7 @@ const TABS = [
 ];
 
 /** `mode`: "client" hides the Desk tab (the desk has its own host), "desk" keeps only it, "all" is the one-host setup. */
-export function NavTabs({ counts, mode = "all" }: { counts?: { titres: number; fonds: number }; mode?: "all" | "client" | "desk" }) {
+export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: { titres: number; fonds: number }; mode?: "all" | "client" | "desk"; connecte?: boolean }) {
   const path = usePathname();
   const t = useT();
   // Le menu retient la page sur laquelle il s'est ouvert : changer de page le referme
@@ -58,7 +71,10 @@ export function NavTabs({ counts, mode = "all" }: { counts?: { titres: number; f
     };
   }, [open]);
 
-  const tabs = mode === "client" ? TABS.filter((x) => x.href !== "/desk") : mode === "desk" ? TABS.filter((x) => x.href === "/desk") : TABS;
+  /* « Mon espace » ne parait qu a qui en a un : un visiteur n a pas d espace,
+     et lui montrer l onglet serait lui promettre une page vide. */
+  const ouverts = TABS.filter((x) => !x.connecte || connecte);
+  const tabs = mode === "client" ? ouverts.filter((x) => x.href !== "/desk") : mode === "desk" ? ouverts.filter((x) => x.href === "/desk") : ouverts;
 
   return (
     <nav className={styles.tabs} aria-label="Sections">

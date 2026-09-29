@@ -21,7 +21,9 @@ import { isFundsSection, isTitresSection, listForFiche, TITRES } from "@/lib/nav
  */
 export const LAST_LIST_KEY = "guichet:lastList";
 
-const ROOTS = ["/", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites"];
+// Une racine ne porte pas de flèche de retour : c'est une destination du dock.
+// « /titres » en est une depuis que « / » est devenu la console.
+const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites"];
 
 type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; /** l'onglet lève une feuille au lieu d'ouvrir une page */ sheet?: boolean };
 
@@ -130,7 +132,10 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
     { href: TITRES, label: t("Titres"), icon: I.guichet, match: isTitresSection },
     { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: isFundsSection },
     { href: "/marche", label: t("Marché"), icon: I.actualites, match: isMarketPath, sheet: true },
-    { href: "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
+    // Connecté, « Mon espace » ouvre la console : la même porte que sur le
+    // rail de bureau. Déconnecté, « / » est la page d'accueil publique et
+    // l'onglet doit mener au compte, donc il reste sur /moi.
+    { href: signedIn ? "/" : "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => (signedIn && p === "/") || p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
     { href: "/info", label: t("Guide"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
   ];
 

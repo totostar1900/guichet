@@ -116,7 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <em>{PRODUCT.name}</em> · {PRODUCT.tagline}
               </span>
             </Link>
-            <NavTabs counts={navCounts} mode={navMode} />
+            <NavTabs counts={navCounts} mode={navMode} connecte={Boolean(session)} />
             <div className={styles.right}>
               {backend === "memory" && (
                 <span className={styles.backend} title={t("Aucun backend configuré : données de démonstration en mémoire")}>

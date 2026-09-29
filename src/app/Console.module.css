@@ -1,0 +1,281 @@
+/* La console : dense, réglée, sans une seule carte.
+   Le site public respire, la console travaille. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-10);
+  padding-bottom: var(--s-10);
+}
+
+.bonjour {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-9);
+  flex-wrap: wrap;
+}
+.bonjour h1 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.canaux {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--good);
+}
+.canauxManque {
+  color: var(--gold-ink);
+}
+
+/* Une section s'ouvre sur un trait navy : le seul endroit où la marque règle. */
+.tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-7);
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--navy);
+  margin-bottom: var(--s-7);
+}
+.tete b {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+.tete span,
+.tete a {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+.tete a {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+/* Ce qui attend : au plus trois, et celle qui porte de l'argent se distingue. */
+.attentes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-7);
+}
+.attente {
+  padding: var(--s-8) var(--s-8) var(--s-8);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  min-width: 0;
+}
+.arrive {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+.annonce {
+  border-color: var(--gold-line);
+}
+.attente > span:first-child {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.arrive > span:first-child {
+  color: var(--gold);
+}
+.attente b {
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.arrive b {
+  color: #fff;
+}
+.attente p {
+  margin: 0;
+  flex-grow: 1;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.arrive p {
+  color: #b5c0d0;
+}
+.attente a {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: var(--s-5) var(--s-8);
+  background: var(--navy);
+  color: #fff;
+}
+.arrive a {
+  background: var(--gold);
+  color: var(--navy);
+}
+.retard a {
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+}
+
+/* Les services : une grille de quatre, en filets, chacun portant son état. */
+.services {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}
+.service {
+  padding: var(--s-7) var(--s-8) var(--s-8) 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  text-decoration: none;
+  min-width: 0;
+}
+.etat {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.etat i {
+  width: 5px;
+  height: 5px;
+  flex: none;
+}
+.etat span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.enPlace i {
+  background: var(--good);
+}
+.enPlace span {
+  color: var(--good);
+}
+.aActiver i {
+  background: var(--gold);
+}
+.aActiver span {
+  color: var(--gold-ink);
+}
+.indisponible i {
+  background: var(--line-2);
+}
+.indisponible span {
+  color: var(--ink-3);
+}
+.service b {
+  font-size: 0.86rem;
+  color: var(--ink);
+}
+.service small {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* Le portefeuille et le marché passent après : ils se consultent. */
+.bas {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+}
+.pf {
+  grid-column: span 7;
+  min-width: 0;
+}
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-9);
+}
+.chiffres > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.chiffres span {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.chiffres b {
+  font-size: 1.32rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+}
+.chiffres small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.marche {
+  grid-column: span 5;
+  min-width: 0;
+}
+.cote {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-7);
+  padding: var(--s-5) 0;
+  border-bottom: 1px solid var(--line-leger, var(--line));
+  font-size: 0.8rem;
+}
+.cote span:first-child {
+  flex-grow: 1;
+  color: var(--ink-2);
+  min-width: 0;
+}
+.cote b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.vide {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+
+@media (max-width: 1000px) {
+  .services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .attentes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bas {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-10);
+  }
+  .pf,
+  .marche {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 620px) {
+  .services,
+  .chiffres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .service {
+    border-right: 0;
+  }
+}

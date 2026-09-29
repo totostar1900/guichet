@@ -1,0 +1,285 @@
+/* Mes services : une ligne réglée par service, l'état à gauche, le geste à
+   droite. Jamais une carte : neuf cartes se valent toutes, neuf lignes se
+   parcourent. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-10);
+  padding-bottom: var(--s-10);
+}
+.tete {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: end;
+  padding-top: var(--s-9);
+}
+.tete h1 {
+  grid-column: span 6;
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.tete p {
+  grid-column: 8 / span 5;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+/* Le compte des trois états : un service qu'on ne sait pas offert n'existe pas. */
+.comptes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--navy);
+  border-bottom: 1px solid var(--line);
+}
+.compte {
+  padding: var(--s-7) var(--s-8) var(--s-8) 0;
+  border-right: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-6);
+  min-width: 0;
+}
+.compte b {
+  font-size: 1.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.compte span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.compte em {
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+.compte small {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+
+.liste {
+  border-top: 1px solid var(--navy);
+}
+.ligne {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-9);
+  padding: var(--s-8) 0;
+  border-bottom: 1px solid var(--line);
+}
+.etat {
+  width: 118px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding-top: 3px;
+}
+.etat i {
+  width: 5px;
+  height: 5px;
+  flex: none;
+}
+.etat span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.enPlace i {
+  background: var(--good);
+}
+.enPlace span {
+  color: var(--good);
+}
+.aActiver i {
+  background: var(--gold);
+}
+.aActiver span {
+  color: var(--gold-ink);
+}
+.indisponible i {
+  background: var(--line-2);
+}
+.indisponible span {
+  color: var(--ink-3);
+}
+.num {
+  width: 32px;
+  flex: none;
+  padding-top: 3px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-ink);
+}
+.quoi {
+  width: 232px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.quoi b {
+  font-size: 0.92rem;
+  letter-spacing: -0.005em;
+}
+.quoi small {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.dit {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-top: 1px;
+  min-width: 0;
+}
+.dit p {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.6;
+}
+.dit small {
+  font-size: 0.77rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+.geste {
+  flex: none;
+  align-self: center;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: var(--s-5) var(--s-8);
+  white-space: nowrap;
+}
+.gPrincipal {
+  background: var(--navy);
+  color: #fff;
+  border: 1px solid var(--navy);
+}
+.gSecond {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+}
+.gDiscret {
+  background: var(--surface-2);
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+}
+
+/* Là où le besoin naît : une page de services ne suffit jamais. */
+.contexte {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+}
+.contexte > div:first-child {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.contexte h2 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.15;
+}
+.contexte > div:first-child p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+.quand {
+  grid-column: 6 / span 7;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.quandLigne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-8);
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.quandLigne > span:first-child {
+  width: 210px;
+  flex: none;
+  color: var(--ink-3);
+}
+.quandLigne > span:nth-child(2) {
+  flex-grow: 1;
+  min-width: 0;
+}
+.quandLigne em {
+  flex: none;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  padding: var(--s-4) var(--s-7);
+  border: 1px solid var(--line-2);
+  color: var(--navy);
+}
+
+@media (max-width: 1040px) {
+  .ligne {
+    flex-wrap: wrap;
+    gap: var(--s-6) var(--s-7);
+  }
+  .quoi,
+  .dit {
+    width: auto;
+    flex: 1 1 260px;
+  }
+  .geste {
+    align-self: flex-start;
+  }
+}
+@media (max-width: 860px) {
+  .tete,
+  .contexte {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-9);
+  }
+  .tete h1,
+  .tete p,
+  .contexte > div,
+  .quand {
+    grid-column: 1 / -1;
+  }
+  .comptes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .compte {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .quandLigne {
+    flex-wrap: wrap;
+    gap: var(--s-4);
+  }
+  .quandLigne > span:first-child {
+    width: auto;
+    flex: 1 1 100%;
+  }
+}

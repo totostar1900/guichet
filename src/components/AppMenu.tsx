@@ -79,6 +79,7 @@ const D = {
   marks: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16h.01",
   tour: "M4 12h6M4 6h12M4 18h9M17 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0",
   cards: "M3 4h18v7H3zM3 14h18v7H3z",
+  services: "M4 5h6v5H4zM14 5h6v5h-6zM4 14h6v5H4zM14 14h6v5h-6z",
   bell: "M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0",
   shield: "M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6zM9 12l2 2 4-4",
   out: "M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 16l4-4-4-4M19 12H9",
@@ -319,6 +320,13 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       <b>{t("Premiers pas")}</b>
                       <small>{t("six écrans")}</small>
                     </button>
+                    {/* Le rail de bureau porte « Services » ; sur le téléphone
+                        le dock est plein à cinq, et la porte est ici. */}
+                    <Link className={styles.tile} href={signedIn ? "/moi/services" : "/services"} onClick={close}>
+                      <Icon d={D.services} />
+                      <b>{t("Les services")}</b>
+                      <small>{signedIn ? t("les neuf, avec leur état") : t("les neuf, et leur limite")}</small>
+                    </Link>
                     <Link className={styles.tile} href="/info/aide" onClick={close}>
                       <Icon d={D.help} />
                       <b>{t("Aide")}</b>
