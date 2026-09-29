@@ -167,12 +167,18 @@ export function CourbeAjustee({
    * moyenne de ses trois Trésors pour la lui attribuer serait lui prêter un
    * chiffre qu'elle ne publie pas.
    */
+  /**
+   * Le filigrane ne paraît que devant un seul Trésor.
+   *
+   * Les deux courbes ne mesurent pas la même chose, et ce qu'on regarde en les
+   * superposant est l'écart d'un Trésor avec lui-même. En vue d'ensemble il n'y
+   * a pas de Trésor affiché, et six écarts à la fois ne se lisent pas.
+   */
   const beac = useMemo(() => {
-    if (!voirBeac || choix === "cemac") return [];
-    return (beacReleve?.series ?? [])
-      .filter((s) => (choix === "tous" ? pays.some((x) => x.pays === s.pays) : choix === s.pays))
-      .map((s) => ({ nom: s.pays, couleur: COUNTRY_COLOR[s.pays as keyof typeof COUNTRY_COLOR] ?? CEMAC_COLOR, pts: s.points }));
-  }, [voirBeac, choix, pays, beacReleve]);
+    if (!voirBeac || choix === "tous" || choix === "cemac") return [];
+    const sien = (beacReleve?.series ?? []).find((s) => s.pays === choix);
+    return sien ? [{ nom: sien.pays, couleur: COUNTRY_COLOR[sien.pays as keyof typeof COUNTRY_COLOR] ?? CEMAC_COLOR, pts: sien.points }] : [];
+  }, [voirBeac, choix, beacReleve]);
 
   const tous = series.flatMap((s) => s.obs);
   const echelle = useMemo(() => {
@@ -392,7 +398,17 @@ export function CourbeAjustee({
             <button type="button" aria-pressed={voirBande} onClick={() => setVoirBande((v) => !v)}>
               {t("l'intervalle à 95 %")}
             </button>
-            <button type="button" aria-pressed={voirBeac} onClick={() => setVoirBeac((v) => !v)} disabled={choix === "cemac" || !beacReleve}>
+            <button
+              type="button"
+              aria-pressed={voirBeac && beac.length > 0}
+              onClick={() => setVoirBeac((v) => !v)}
+              disabled={choix === "tous" || choix === "cemac" || !beacReleve}
+              title={
+                choix === "tous" || choix === "cemac"
+                  ? t("La BEAC ne se compare qu'à un Trésor à la fois : les deux courbes ne mesurent pas la même chose, et ce qu'on regarde en les superposant est l'écart d'un Trésor avec lui-même.")
+                  : undefined
+              }
+            >
               {t("la courbe de la BEAC")}
             </button>
           </div>

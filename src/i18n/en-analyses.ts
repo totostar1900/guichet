@@ -412,6 +412,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "Aucun des {n} Trésors regardés ne porte assez de durées pour qu'une courbe existe.": "None of the {n} Treasuries on screen carries enough maturities for a curve to exist.",
   "{a} des {n} Trésors regardés s'ajustent, le mieux étant {p} à {e} points de base sur {d} durées distinctes.": "{a} of the {n} Treasuries on screen fit, the best being {p} at {e} basis points on {d} distinct maturities.",
   "jours": "days",
+  "La BEAC ne se compare qu'à un Trésor à la fois : les deux courbes ne mesurent pas la même chose, et ce qu'on regarde en les superposant est l'écart d'un Trésor avec lui-même.": "The BEAC compares to one Treasury at a time: the two curves do not measure the same thing, and what one looks at by superimposing them is a Treasury's gap with itself.",
   "séance datée du 1er janvier": "session dated 1 January",
   "l'instrument de la séance, ou la colonne lue": "the session's instrument, or the column read",
   "la colonne d'où vient le chiffre retenu, et celles des deux bornes": "the column the retained figure came from, and those of the two bounds",
