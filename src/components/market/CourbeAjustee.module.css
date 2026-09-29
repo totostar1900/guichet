@@ -308,3 +308,55 @@
 .beacVieux b {
   color: inherit;
 }
+
+/* La phrase avant la figure : on la lit en une seconde, la courbe en trente. */
+.tete {
+  margin: 0 0 var(--s-5);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+  text-wrap: balance;
+}
+/* Les quatre chiffres qui décident si l'on peut se servir de la figure. */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-1);
+  margin: 0 0 var(--s-6);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.kpis > div {
+  background: var(--surface);
+  padding: var(--s-4) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.kpis dt {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.kpis dd {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.kpis span {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+@media (max-width: 720px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

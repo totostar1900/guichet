@@ -219,6 +219,64 @@ export function CourbeAjustee({
 
   const ajustables = series.filter((s) => s.fit);
 
+  /**
+   * Les quatre chiffres qui décident si l'on peut se servir de la figure.
+   *
+   * Ils s'adaptent à la sélection : un seul Trésor donne les siens, plusieurs
+   * donnent le compte de ceux qui s'ajustent et le meilleur écart. Une moyenne
+   * de quatre Trésors ne voudrait rien dire.
+   */
+  const tousPoints = series.flatMap((se) => se.obs);
+  const frais = tousPoints.length ? Math.min(...tousPoints.map((o) => o.age ?? 0)) : undefined;
+  const durees = new Set(tousPoints.map((o) => o.mot)).size;
+  const seul = series.length === 1 ? series[0] : undefined;
+  const meilleur = ajustables.length ? ajustables.reduce((m, x) => (x.fit!.rmsePb < m.fit!.rmsePb ? x : m)) : undefined;
+
+  const kpis: { mot: string; valeur: string; sous: string }[] = [
+    seul?.fit
+      ? { mot: "Taux court", valeur: `${pc(tauxCourt(seul.fit))} %`, sous: t("au jour le jour, implicite") }
+      : { mot: "Trésors tracés", valeur: `${ajustables.length} / ${series.length}`, sous: t("ajustés sur ceux qu'on regarde") },
+    { mot: "Point le plus frais", valeur: frais == null ? "—" : `${frais} ${t("jours")}`, sous: t("depuis la séance") },
+    { mot: "Durées observées", valeur: String(durees), sous: t("durées distinctes, une séance chacune") },
+    meilleur?.fit
+      ? { mot: "Écart aux points", valeur: `${Math.round(meilleur.fit.rmsePb)} pb`, sous: seul ? t("sur {n} observations", { n: seul.obs.length }) : t("le meilleur, {p}", { p: meilleur.nom }) }
+      : { mot: "Écart aux points", valeur: "—", sous: t("aucun ajustement") },
+  ];
+
+  /**
+   * La phrase avant la figure.
+   *
+   * On lit une phrase en une seconde et une courbe en trente : la plupart du
+   * temps la phrase suffit, et quand elle ne suffit pas elle dit au moins si la
+   * courbe mérite les trente secondes.
+   */
+  const tete = (() => {
+    if (seul?.fit) {
+      const f = seul.fit;
+      const court = f.taux(Math.max(0.25, f.borne.court));
+      const longAns = Math.min(7, f.borne.long);
+      return t("{p} paie {a} % à {d1} et {b} % à {d2}. Sa courbe s'ajuste à {e} points de base sur {n} durées, la plus récente datant de {j} jours.", {
+        p: seul.nom,
+        a: pc(court),
+        d1: mot(Math.max(0.25, f.borne.court)),
+        b: pc(f.taux(longAns)),
+        d2: mot(longAns),
+        e: Math.round(f.rmsePb),
+        n: seul.obs.length,
+        j: frais ?? 0,
+      });
+    }
+    if (seul) return t("{p} n'a pas de courbe ici : {r}", { p: seul.nom, r: t(seul.refus ?? "pas d'ajustement") });
+    if (!ajustables.length) return t("Aucun des {n} Trésors regardés ne porte assez de durées pour qu'une courbe existe.", { n: series.length });
+    return t("{a} des {n} Trésors regardés s'ajustent, le mieux étant {p} à {e} points de base sur {d} durées distinctes.", {
+      a: ajustables.length,
+      n: series.length,
+      p: meilleur!.nom,
+      e: Math.round(meilleur!.fit!.rmsePb),
+      d: durees,
+    });
+  })();
+
   return (
     <div>
       <div className={styles.filtres}>
@@ -340,6 +398,18 @@ export function CourbeAjustee({
           </div>
         </div>
       </div>
+
+      {/* Quatre faits en langue courante avant qu'on touche au graphique. */}
+      <p className={styles.tete}>{tete}</p>
+      <dl className={styles.kpis}>
+        {kpis.map((k) => (
+          <div key={k.mot}>
+            <dt>{t(k.mot)}</dt>
+            <dd>{k.valeur}</dd>
+            <span>{k.sous}</span>
+          </div>
+        ))}
+      </dl>
 
       <div className={styles.fig} ref={boite} onPointerMove={bouger} onPointerLeave={() => setVise(null)}>
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className={styles.svg}>
