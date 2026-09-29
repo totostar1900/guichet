@@ -61,6 +61,32 @@ interface Serie {
   refus?: Refus;
 }
 
+/**
+ * La courbe de la BEAC qui se pose derrière celle d'un Trésor, s'il y en a une.
+ *
+ * Elle ne paraît que devant un seul Trésor : les deux courbes ne mesurent pas
+ * la même chose, et ce qu'on regarde en les superposant est l'écart d'un Trésor
+ * avec lui-même. En vue d'ensemble il n'y a pas de Trésor affiché, et six
+ * écarts à la fois ne se lisent pas.
+ *
+ * Exportée pour être éprouvée : un rendu statique reste sur la vue d'ensemble,
+ * et c'est justement le cas d'un Trésor choisi qui a échappé à deux relectures.
+ */
+export function serieBeacDe(choix: string, releve?: { series: { pays: string; points: { annees: number; pct: number }[] }[] }) {
+  if (choix === "tous" || choix === "cemac") return undefined;
+  return releve?.series.find((s) => s.pays === choix);
+}
+
+/**
+ * Le trait de la BEAC coupé au cadre, qui est celui de nos observations.
+ *
+ * L'inverse a été essayé et coûtait cher : elle va jusqu'à quinze ans quand
+ * nous nous arrêtons à sept, l'axe allait donc à quinze, et notre courbe s'y
+ * trouvait extrapolée sur huit ans d'un trait aussi large que le reste. Trois
+ * lignes traversaient la figure.
+ */
+export const coupeAu = <T extends { annees: number }>(pts: T[], borne: number): T[] => pts.filter((q) => q.annees <= borne + 1e-9);
+
 /** Le relevé de la BEAC, tel que la page le donne. */
 export interface ReleveBeacVu {
   numero: number;
@@ -175,20 +201,27 @@ export function CourbeAjustee({
    * a pas de Trésor affiché, et six écarts à la fois ne se lisent pas.
    */
   const beac = useMemo(() => {
-    if (!voirBeac || choix === "tous" || choix === "cemac") return [];
-    const sien = (beacReleve?.series ?? []).find((s) => s.pays === choix);
+    if (!voirBeac) return [];
+    const sien = serieBeacDe(choix, beacReleve);
     return sien ? [{ nom: sien.pays, couleur: COUNTRY_COLOR[sien.pays as keyof typeof COUNTRY_COLOR] ?? CEMAC_COLOR, pts: sien.points }] : [];
   }, [voirBeac, choix, beacReleve]);
 
   const tous = series.flatMap((s) => s.obs);
   const echelle = useMemo(() => {
     if (!tous.length) return null;
-    /* Le filigrane est dans l'échelle parce qu'il est dans le dessin : la BEAC
-       va jusqu'à quinze ans là où nous nous arrêtons à sept. */
-    const xs = [...tous.map((o) => Math.log(o.annees)), ...beac.flatMap((b) => b.pts.map((q) => Math.log(q.annees)))];
+    /**
+     * C'est notre courbe qui commande le cadre, puisque c'est la nôtre qu'on
+     * publie. La BEAC y est invitée et s'y coupe.
+     *
+     * L'inverse a été essayé et coûtait cher : elle va jusqu'à quinze ans quand
+     * nous nous arrêtons à sept, l'axe allait donc à quinze, et notre courbe
+     * s'y trouvait extrapolée sur huit ans, d'un trait aussi large que le reste.
+     */
+    const xs = tous.map((o) => Math.log(o.annees));
+    const borneHaute = Math.max(...tous.map((o) => o.annees));
     const ys = [
       ...tous.map((o) => o.pct),
-      ...beac.flatMap((b) => b.pts.map((q) => q.pct)),
+      ...beac.flatMap((b) => coupeAu(b.pts, borneHaute).map((q) => q.pct)),
       ...series.flatMap((s) => (s.fit ? USUELS.filter((u) => u >= s.fit!.borne.court && u <= s.fit!.borne.long).map((u) => s.fit!.taux(u)) : [])),
     ];
     const marge = Math.max((Math.max(...ys) - Math.min(...ys)) * 0.16, 0.3);
@@ -455,11 +488,14 @@ export function CourbeAjustee({
               au gris et porte son nom, sans quoi trois pointillés de la même
               teinte disent trois choses différentes sans les distinguer. */}
           {beac.map((b) => {
-            const bout = b.pts[b.pts.length - 1];
+            const dedans = coupeAu(b.pts, Math.exp(echelle.x1));
+            const bout = dedans[dedans.length - 1];
             return (
               <g key={`beac-${b.nom}`}>
                 <polyline
-                  points={b.pts.map((q) => `${X(q.annees).toFixed(1)},${Y(q.pct).toFixed(1)}`).join(" ")}
+                  points={coupeAu(b.pts, Math.exp(echelle.x1))
+                    .map((q) => `${X(q.annees).toFixed(1)},${Y(q.pct).toFixed(1)}`)
+                    .join(" ")}
                   fill="none"
                   stroke="var(--ink-3)"
                   strokeWidth={1.5}
@@ -494,12 +530,9 @@ export function CourbeAjustee({
                 )}
                 {/* Hors des durées observées, le trait se met en pointillé : au delà,
                     ce n'est plus de l'interpolation, c'est une extrapolation. */}
-                {grille.filter((a) => a < f.borne.court).length > 1 && (
-                  <polyline points={trace([...grille.filter((a) => a < f.borne.court), f.borne.court])} fill="none" stroke={se.couleur} strokeWidth={1.5} strokeDasharray="4 4" opacity={0.6} />
-                )}
-                {grille.filter((a) => a > f.borne.long).length > 1 && (
-                  <polyline points={trace([f.borne.long, ...grille.filter((a) => a > f.borne.long)])} fill="none" stroke={se.couleur} strokeWidth={1.5} strokeDasharray="4 4" opacity={0.6} />
-                )}
+                {/* L'extrapolation ne se trace plus : une ligne invite à la lire,
+                    quand une case grisée à ± trente-deux points de base dans la
+                    table dit la même chose sans le laisser croire. */}
                 {dedans.length > 1 && <polyline points={trace(dedans)} fill="none" stroke={se.couleur} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />}
               </g>
             );
@@ -577,12 +610,6 @@ export function CourbeAjustee({
             <span>
               <i className={styles.trPlein} style={{ background: ajustables.length === 1 ? ajustables[0].couleur : "var(--ink-2)" }} aria-hidden="true" />
               {t("notre courbe, sur les durées observées")}
-            </span>
-          )}
-          {ajustables.some((se) => se.fit!.borne.long < Math.exp(echelle.x1) || se.fit!.borne.court > Math.exp(echelle.x0)) && (
-            <span>
-              <i className={styles.trTirets} style={{ borderTopColor: ajustables.length === 1 ? ajustables[0].couleur : "var(--ink-2)" }} aria-hidden="true" />
-              {t("la nôtre encore, extrapolée : aucune séance à ces durées")}
             </span>
           )}
           {voirPoints && (
