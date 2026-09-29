@@ -299,3 +299,12 @@
   color: var(--ink-2);
   font-weight: 650;
 }
+
+/* Un relevé trop vieux n'est plus un repère sur aujourd'hui : la note le dit,
+   et se teinte pour qu'on ne la lise pas comme une note ordinaire. */
+.beacVieux {
+  color: var(--crit-ink, #b91c1c);
+}
+.beacVieux b {
+  color: inherit;
+}

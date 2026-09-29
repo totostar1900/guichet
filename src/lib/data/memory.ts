@@ -10,6 +10,7 @@ import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
+import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
@@ -108,6 +109,7 @@ interface Store {
   auctionResults: AuctionResult[];
   /** Les avis d annonce : les modalites de l emprunt, que le communique de resultats ne porte pas. */
   emissionNotices: EmissionNotice[];
+  beacCurves: BeacCurveRow[];
   news: NewsItem[];
   seq: number;
 }
@@ -157,6 +159,7 @@ function store(): Store {
       issuerDocs: [],
       auctionResults: [],
       emissionNotices: [],
+      beacCurves: [],
       seq: 17,
     };
   }
@@ -763,6 +766,15 @@ export const memoryRepository: Repository = {
     const r = store().auctionResults.find((x) => x.id === id);
     return r ? structuredClone(r) : undefined;
   },
+  async latestBeacCurve() {
+    const derniere = [...store().beacCurves].sort((a, b) => b.mois.localeCompare(a.mois))[0];
+    return derniere ? structuredClone(derniere) : undefined;
+  },
+  async saveBeacCurve(c) {
+    const s = store();
+    s.beacCurves = [...s.beacCurves.filter((x) => x.numero !== c.numero), structuredClone(c)];
+  },
+
   async listEmissionNotices(filter) {
     const s = store();
     const tout = [...s.emissionNotices]

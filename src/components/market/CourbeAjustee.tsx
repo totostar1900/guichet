@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CEMAC_COLOR, COUNTRY_COLOR } from "@/lib/market/couleurs";
 import { derniereParDuree, poids, type Minces } from "@/lib/market/lecture-b";
 import { depouiller } from "@/lib/market/zero-coupon";
@@ -48,6 +47,9 @@ const USUELS = [0.25, 0.5, 1, 2, 3, 5, 7, 10];
 /** Une date en clair, dans la langue du lecteur, sans passer par le serveur. */
 const fmtJour = (iso: string) => new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
+/** L'âge d'un mois arrêté, en jours : c'est lui qui décide de la péremption. */
+const jours = (mois: string) => Math.max(0, Math.round((Date.now() - Date.parse(`${mois}-01`)) / 86_400_000));
+
 type Choix = "tous" | "cemac" | string;
 
 interface Serie {
@@ -59,7 +61,29 @@ interface Serie {
   refus?: Refus;
 }
 
-export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { fenetres: Fenetre[]; ariaLabel: string; observeLe?: string; choixDate?: React.ReactNode }) {
+/** Le relevé de la BEAC, tel que la page le donne. */
+export interface ReleveBeacVu {
+  numero: number;
+  mois: string;
+  source: string;
+  releveLe: string;
+  series: { pays: string; points: { annees: number; pct: number }[] }[];
+}
+
+export function CourbeAjustee({
+  fenetres,
+  ariaLabel,
+  observeLe,
+  choixDate,
+  beacReleve,
+}: {
+  fenetres: Fenetre[];
+  ariaLabel: string;
+  observeLe?: string;
+  choixDate?: React.ReactNode;
+  /** Le relevé de la BEAC, posé en filigrane. Absent, la figure s'en passe. */
+  beacReleve?: ReleveBeacVu;
+}) {
   const t = useT();
   const [choisie, setChoisie] = useState<number | null>(null);
   const premiereGarnie = Math.max(0, fenetres.findIndex((f) => f.pays.length > 0));
@@ -145,10 +169,10 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
    */
   const beac = useMemo(() => {
     if (!voirBeac || choix === "cemac") return [];
-    return Object.entries(BEAC_COURBE.pays)
-      .filter(([p]) => (choix === "tous" ? pays.some((x) => x.pays === p) : choix === p))
-      .map(([p, pts]) => ({ nom: p, couleur: COUNTRY_COLOR[p as keyof typeof COUNTRY_COLOR] ?? CEMAC_COLOR, pts }));
-  }, [voirBeac, choix, pays]);
+    return (beacReleve?.series ?? [])
+      .filter((s) => (choix === "tous" ? pays.some((x) => x.pays === s.pays) : choix === s.pays))
+      .map((s) => ({ nom: s.pays, couleur: COUNTRY_COLOR[s.pays as keyof typeof COUNTRY_COLOR] ?? CEMAC_COLOR, pts: s.points }));
+  }, [voirBeac, choix, pays, beacReleve]);
 
   const tous = series.flatMap((s) => s.obs);
   const echelle = useMemo(() => {
@@ -310,7 +334,7 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
             <button type="button" aria-pressed={voirBande} onClick={() => setVoirBande((v) => !v)}>
               {t("l'intervalle à 95 %")}
             </button>
-            <button type="button" aria-pressed={voirBeac} onClick={() => setVoirBeac((v) => !v)} disabled={choix === "cemac"}>
+            <button type="button" aria-pressed={voirBeac} onClick={() => setVoirBeac((v) => !v)} disabled={choix === "cemac" || !beacReleve}>
               {t("la courbe de la BEAC")}
             </button>
           </div>
@@ -447,13 +471,16 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
         )}
       </div>
 
-      {beac.length > 0 && (
-        <p className={styles.beacNote}>
+      {beac.length > 0 && beacReleve && (
+        <p className={`${styles.beacNote} ${jours(beacReleve.mois) > 100 ? styles.beacVieux : ""}`}>
           <i aria-hidden="true" />
           {t(
-            "En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée au {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.",
-            { n: BEAC_COURBE.numero, d: fmtJour(BEAC_COURBE.arreteLe), r: fmtJour(BEAC_COURBE.releveLe) },
+            "En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée en {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.",
+            { n: beacReleve.numero, d: beacReleve.mois, r: fmtJour(beacReleve.releveLe) },
           )}{" "}
+          {/* La péremption se dit : elle paraît une fois par mois avec environ
+              deux mois de retard, au delà ce n'est plus un repère sur aujourd'hui. */}
+          {jours(beacReleve.mois) > 100 && <b>{t("Ce relevé a {n} jours : ce n'est plus un repère sur aujourd'hui.", { n: jours(beacReleve.mois) })}</b>}{" "}
           <b>
             {t(
               "Son abscisse est la durée d'émission, la nôtre la vie restante : chez elle une obligation émise à sept ans reste posée à « 7 ans » toute sa vie, chez nous elle glisse vers la gauche en approchant de son terme.",
@@ -462,7 +489,7 @@ export function CourbeAjustee({ fenetres, ariaLabel, observeLe, choixDate }: { f
           {t(
             "Et son univers est l'encours quand le nôtre est la dernière séance adjugée : elle dit ce que la dette vivante coûte en moyenne, nous ce que le marché a facturé. Les deux sont justes et ne répondent pas à la même question.",
           )}{" "}
-          <a href={BEAC_COURBE.source} target="_blank" rel="noreferrer">
+          <a href={beacReleve.source} target="_blank" rel="noreferrer">
             {t("sa pièce")}
           </a>
         </p>

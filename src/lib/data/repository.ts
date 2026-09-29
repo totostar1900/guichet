@@ -13,6 +13,17 @@ import type { FundCurve } from "@/lib/domain/fund-curve";
  * Single access point for offers, intents and the event log.
  * Two implementations: in-memory (seed, dev without backend) and Supabase.
  */
+/** Un relevé de la courbe de la BEAC, tel qu'il est rangé. */
+export interface BeacCurveRow {
+  numero: number;
+  /** Le mois arrêté, en AAAA-MM : la date de la courbe, pas celle du relevé. */
+  mois: string;
+  source: string;
+  releveLe: string;
+  /** Les durées sont des durées d'ÉMISSION, pas des vies restantes. */
+  series: { pays: string; points: { annees: number; pct: number }[] }[];
+}
+
 export interface Repository {
   listOffers(): Promise<Offer[]>;
   getOffer(id: string): Promise<Offer | undefined>;
@@ -184,6 +195,17 @@ export interface Repository {
    * la valeur nominale et le volume émis. Une ligne par document, le
    * regroupement par code d'émission se faisant dans le domaine.
    */
+  /**
+   * La courbe que la BEAC publie, relevée dans son bulletin mensuel.
+   *
+   * Elle sert de repère à côté de la nôtre et jamais de source de chiffres :
+   * son abscisse est la durée d'émission quand la nôtre est la vie restante, et
+   * son univers l'encours quand le nôtre est la dernière séance.
+   */
+  latestBeacCurve(): Promise<BeacCurveRow | undefined>;
+  /** Idempotent sur le numéro : un bulletin ne se republie pas. */
+  saveBeacCurve(c: BeacCurveRow): Promise<void>;
+
   listEmissionNotices(filter?: { codeEmission?: string; country?: EmissionNotice["country"]; confirmed?: boolean; limit?: number }): Promise<EmissionNotice[]>;
   /** Idempotent sur l'adresse du document : la pièce est l'avis. */
   upsertEmissionNotice(n: NewEmissionNotice): Promise<EmissionNotice>;

@@ -1485,6 +1485,20 @@ export const supabaseRepository: Repository = {
     if (error) fail("upsertAuctionResult", error);
     return toAuctionResult(data as AuctionResultRow);
   },
+  async latestBeacCurve() {
+    const { data, error } = await db().from("beac_curves").select("*").order("mois", { ascending: false }).limit(1).maybeSingle();
+    if (error) fail("latestBeacCurve", error);
+    if (!data) return undefined;
+    return { numero: data.numero, mois: data.mois, source: data.source, releveLe: data.releve_le, series: data.series };
+  },
+
+  async saveBeacCurve(c) {
+    const { error } = await db()
+      .from("beac_curves")
+      .upsert({ numero: c.numero, mois: c.mois, source: c.source, releve_le: c.releveLe, series: c.series, updated_at: new Date().toISOString() }, { onConflict: "numero" });
+    if (error) fail("saveBeacCurve", error);
+  },
+
   async listEmissionNotices(filter) {
     let q = db().from("emission_notices").select("*").order("session_on", { ascending: false });
     if (filter?.codeEmission) q = q.eq("code_emission", filter.codeEmission);

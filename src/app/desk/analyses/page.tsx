@@ -5,6 +5,7 @@ import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { Poignee } from "@/components/desk/Poignee";
 import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
+import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CourbeAjustee } from "@/components/market/CourbeAjustee";
 import { CourbeInteractive, type CourbePays, type Fenetre } from "@/components/market/CourbeInteractive";
 import { DateObservation } from "@/components/market/DateObservation";
@@ -68,6 +69,20 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
   ]);
 
   const relues = seances.filter((s) => s.confirmedBy);
+  /**
+   * Le relevé de la BEAC : celui du dépôt, sinon la semence du code.
+   *
+   * Le robot le rafraîchit chaque mois. Avant son premier passage la semence
+   * évite que la figure soit nue ; après, le dépôt gagne toujours.
+   */
+  const beacDepot = await r.latestBeacCurve();
+  const beacReleve = beacDepot ?? {
+    numero: BEAC_COURBE.numero,
+    mois: BEAC_COURBE.arreteLe.slice(0, 7),
+    source: BEAC_COURBE.source,
+    releveLe: BEAC_COURBE.releveLe,
+    series: Object.entries(BEAC_COURBE.pays).map(([pays, points]) => ({ pays, points })),
+  };
   /**
    * La date d'observation : aujourd'hui, ou celle que l'adresse demande.
    *
@@ -444,6 +459,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                 fenetres={fenetres}
                 observeLe={demandee ? fmtDate(demandee) : undefined}
                 choixDate={<DateObservation ancres={ancres} courant={leJour} />}
+                beacReleve={beacReleve}
                 ariaLabel={t("Courbe des rendements souverains ajustée par le modèle de Nelson-Siegel")}
               />
             </div>
