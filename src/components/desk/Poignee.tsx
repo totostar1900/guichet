@@ -31,6 +31,7 @@ export function Poignee({
   memoire,
   depuisLaDroite = false,
   porte,
+  className,
   libelle,
 }: {
   /** La variable CSS que la grille lit, « --liste » par exemple. */
@@ -50,6 +51,8 @@ export function Poignee({
    * reste locale : on mesure sur la rangée qu'on tire.
    */
   porte?: string;
+  /** Une classe de placement, quand la poignée n'est pas un enfant de grille. */
+  className?: string;
   libelle: string;
 }) {
   const t = useT();
@@ -92,13 +95,15 @@ export function Poignee({
   return (
     <div
       ref={ref}
-      className={styles.poignee}
+      className={className ? `${styles.poignee} ${className}` : styles.poignee}
       role="separator"
       aria-orientation="vertical"
       aria-label={t(libelle)}
       tabIndex={0}
       onPointerDown={(e) => {
         e.preventDefault();
+        /* Une poignée posée dans un en-tête qui trie ne doit pas trier. */
+        e.stopPropagation();
         e.currentTarget.setPointerCapture(e.pointerId);
         e.currentTarget.dataset.tire = "1";
       }}
@@ -110,6 +115,7 @@ export function Poignee({
         delete e.currentTarget.dataset.tire;
         e.currentTarget.releasePointerCapture(e.pointerId);
       }}
+      onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => {
         // Au clavier aussi : une poignée qu'on ne peut que tirer à la souris
         // n'est pas une commande, c'est un ornement.

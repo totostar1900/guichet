@@ -384,6 +384,8 @@ export const EN_ANALYSES: Record<string, string> = {
   "durée « {d} », mais le préfixe {k} vaut « {attendu} » sur {sur} de ses {total} séances": "maturity “{d}”, but prefix {k} means “{attendu}” on {sur} of its {total} sessions",
   "Régler la largeur du rail": "Adjust the rail width",
   "Régler la largeur du commentaire": "Adjust the commentary width",
+  "Régler la largeur de la colonne Séance": "Adjust the width of the Session column",
+  "Régler la largeur de la colonne Ligne": "Adjust the width of the Line column",
   "séance datée du 1er janvier": "session dated 1 January",
   "l'instrument de la séance, ou la colonne lue": "the session's instrument, or the column read",
   "la colonne d'où vient le chiffre retenu, et celles des deux bornes": "the column the retained figure came from, and those of the two bounds",

@@ -77,9 +77,26 @@
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.76rem;
+  /* Sans « fixed », le navigateur répartit les colonnes au contenu et ignore
+     les largeurs déclarées : c'est lui qui trancherait, pas le desk. */
+  table-layout: fixed;
+}
+.colSeance {
+  width: var(--col-seance, 104px);
+}
+.colLigne {
+  width: var(--col-ligne, 116px);
+}
+/* Une colonne rétrécie coupe plutôt qu'elle ne pousse : c'est le desk qui
+   décide de ce qu'il veut voir en entier. */
+.table td,
+.table td small {
+  overflow-wrap: anywhere;
 }
 .table th {
   position: sticky;
+  /* La tirette se pose sur le bord droit de l'en-tête. */
+  padding-right: var(--s-6);
   top: 0;
   z-index: 2;
   background: var(--surface);
@@ -193,4 +210,21 @@
 }
 .cliquable:hover td {
   background: var(--gold-soft);
+}
+
+/* La tirette d'une colonne : la poignée de la maison, posée sur le bord droit
+   d'un en-tête plutôt qu'entre deux volets d'une grille. */
+.tirette {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 0 !important;
+  align-self: auto !important;
+  background: transparent;
+}
+.tirette:hover,
+.tirette:focus-visible,
+.tirette[data-tire="1"] {
+  background: var(--gold);
 }

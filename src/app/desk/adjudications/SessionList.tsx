@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Poignee } from "@/components/desk/Poignee";
 import { useT } from "@/i18n/client";
 import { fmtDate } from "@/lib/format";
 import type { EtatSeance } from "@/lib/market/auction-results";
@@ -81,12 +82,20 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
   }, [rows, onglet, q, tri]);
 
   const compte = (c: EtatSeance | "tout") => (c === "tout" ? rows.length : rows.filter((r) => r.etat === c).length);
-  const th = (col: Colonne, mot: string) => (
+  /**
+   * Un en-tête trie, et porte la poignée de sa colonne.
+   *
+   * La largeur d'une colonne vaut « pointeur moins bord gauche de l'en-tête »,
+   * c'est-à-dire exactement ce que la poignée calcule sur son parent. La
+   * variable, elle, se pose sur la table, qui la lit pour ses trois colonnes.
+   */
+  const th = (col: Colonne, mot: string, largeur?: { variable: string; min: number; max: number; memoire: string; libelle: string }) => (
     <th
       aria-sort={tri.col === col ? (tri.rev ? "ascending" : "descending") : "none"}
       onClick={() => setTri((v) => (v.col === col ? { col, rev: !v.rev } : { col, rev: false }))}
     >
       {t(mot)} <i aria-hidden="true">{tri.col === col ? (tri.rev ? "▲" : "▼") : "↕"}</i>
+      {largeur && <Poignee {...largeur} porte=".table-seances" className={styles.tirette} />}
     </th>
   );
 
@@ -104,11 +113,18 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
       </div>
 
       <div className={styles.corps} data-defile>
-        <table className={styles.table}>
+        <table className={`${styles.table} table-seances`}>
+          {/* Les largeurs vivent ici : trois colonnes déclarées une fois, et la
+              dernière prend ce qui reste. */}
+          <colgroup>
+            <col className={styles.colSeance} />
+            <col className={styles.colLigne} />
+            <col />
+          </colgroup>
           <thead>
             <tr>
-              {th("date", "Séance")}
-              {th("ligne", "Ligne")}
+              {th("date", "Séance", { variable: "--col-seance", min: 72, max: 220, memoire: "adj.col.seance", libelle: "Régler la largeur de la colonne Séance" })}
+              {th("ligne", "Ligne", { variable: "--col-ligne", min: 72, max: 260, memoire: "adj.col.ligne", libelle: "Régler la largeur de la colonne Ligne" })}
               {th("etat", "État")}
             </tr>
           </thead>

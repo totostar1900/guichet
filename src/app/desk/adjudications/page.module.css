@@ -343,9 +343,13 @@
   border-radius: 6px;
   font-size: 0.78rem;
 }
+/* Un enregistrement qui a eu lieu se voit. Le gris de panneau se confondait
+   avec le formulaire, et le desk cliquait deux fois faute de reponse. */
 .ok {
-  background: var(--panel);
-  color: var(--ink-2);
+  background: var(--good-soft);
+  border: 1px solid var(--good);
+  color: var(--good);
+  font-weight: 700;
 }
 .err {
   background: var(--gold-soft);
