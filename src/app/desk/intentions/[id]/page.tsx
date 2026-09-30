@@ -8,7 +8,7 @@ import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { orderChecks } from "@/lib/domain/checks";
 import { estimate } from "@/lib/domain/estimate";
-import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
+import { avancement, INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL, STATE_EFFECT, STATE_FINAL, STATE_PASSAGE } from "@/lib/domain/intent";
 import { summarize } from "@/lib/domain/summary";
 import type { Intent, IntentState } from "@/lib/domain/types";
 import { fmt, fmtDateTime, fmtMillions } from "@/lib/format";
@@ -90,6 +90,20 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   const cash = await clientCash(it.clientId);
   const prepared = await preparedMessages(it.state, { client: it.clientName, ref: it.ref, ligne: o.title, montant: amountText, echeance: o.deadlineAt ? fmtDateTime(o.deadlineAt) : undefined, conseiller: (await getSession())?.name ?? COMPANY.name, societe: COMPANY.name }, await getLang());
   const asked = it.channel === "E-mail" ? "mail" : it.channel === "WhatsApp" ? "wa" : "tel";
+  // Le desk traite une file, pas une fiche : la même liste que le carnet, dans
+  // l'ordre d'arrivée, pour passer à la suivante sans repasser par la liste.
+  const pile = intents.filter((x) => nextStates(x.state, x.type).length > 0).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const rang = pile.findIndex((x) => x.id === it.id);
+  const precedente = rang > 0 ? pile[rang - 1] : undefined;
+  const suivante = rang >= 0 && rang < pile.length - 1 ? pile[rang + 1] : undefined;
+  // Un ordre n'a jamais huit gestes possibles à la fois : il en a un qui le fait
+  // avancer, et deux issues qui le détournent. Le bloc dit lequel.
+  const avance = marketExec ? [] : avancement(next);
+  // Ce que l'argent donne, à côté du montant demandé : décaissement pour un achat,
+  // produit pour une cession. Ni le signe de l'estimation ni le genre de la ligne
+  // ne disent le sens : le type de l'intention, lui, le dit.
+  const sort = it.type === "vente" || it.type === "rachat" || it.type === "cession";
+  const espece = est?.ok && est.outlay != null ? Math.abs(est.outlay) : undefined;
 
   return (
     <>
@@ -104,6 +118,32 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
 
       <div className={styles.layout}>
         <div className={styles.main}>
+          {/* La file, pas la fiche : où l'on en est, et la suivante sans repasser par la liste. */}
+          {rang >= 0 && pile.length > 1 && (
+            <div className={styles.pile}>
+              <span>{t("{n} sur {total} à traiter", { n: String(rang + 1), total: String(pile.length) })}</span>
+              <div className={styles.pileTrack} aria-hidden="true">
+                {pile.map((x, i) => (
+                  <i key={x.id} className={i === rang ? styles.pileHere : i < rang ? styles.pileDone : undefined} />
+                ))}
+              </div>
+              {precedente ? (
+                <Link className="btn ghost" href={`/desk/intentions/${precedente.id}`}>
+                  {t("← Précédente")}
+                </Link>
+              ) : (
+                <span className={styles.pileOff}>{t("← Précédente")}</span>
+              )}
+              {suivante ? (
+                <Link className="btn ghost" href={`/desk/intentions/${suivante.id}`}>
+                  {t("Suivante →")}
+                </Link>
+              ) : (
+                <span className={styles.pileOff}>{t("Suivante →")}</span>
+              )}
+            </div>
+          )}
+
           <div className="panel">
             <div className="panel-h">
               <h2>
@@ -118,6 +158,26 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                   {counterTerms(it.counter, it, o)} · {t(counterLapsed(it.counter, now) ? "caduque depuis le {d}" : "jusqu’au {d}", { d: untilText(it.counter) })}
                 </span>
               )}
+            </div>
+            {/* La demande du client, en premier et en grand : le montant et le prix
+                étaient l'un dans un titre, l'autre au fond d'une liste de définitions. */}
+            <div className={styles.demande}>
+              <div className={styles.fort}>
+                <span>{t("Montant demandé")}</span>
+                <b>{amountText}</b>
+              </div>
+              <div className={styles.fort}>
+                <span>{t(it.limitPrice != null ? "Prix limite du client" : "Prix")}</span>
+                <b>{it.limitPrice != null ? (o.instrument === "obligation" ? `${it.limitPrice} %` : `${fmt(it.limitPrice)} FCFA`) : t("au prix publié")}</b>
+              </div>
+              <div className={styles.fort}>
+                <span>{t(sort ? "Produit estimé" : "Décaissement estimé")}</span>
+                <b>{espece != null ? `${fmt(espece)} FCFA` : "—"}</b>
+              </div>
+              <div className={styles.fort}>
+                <span>{t("Clôture")}</span>
+                <b>{o.deadlineAt ? fmtDateTime(o.deadlineAt) : s.deadline || "—"}</b>
+              </div>
             </div>
             <div className={styles.line}>
               <LineIdentity o={o} s={s} href={`/desk/lignes/${o.id}`} size="lg" />
@@ -144,12 +204,6 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 <>
                   <dt>{t("Au prix publié")}</dt>
                   <dd>{t(est.text)}</dd>
-                </>
-              )}
-              {it.limitPrice != null && (
-                <>
-                  <dt>{t("Prix limite du client")}</dt>
-                  <dd>{o.instrument === "obligation" ? `${it.limitPrice} % du nominal` : `${fmt(it.limitPrice)} FCFA`}</dd>
                 </>
               )}
               <dt>{t("Contrôles")}</dt>
@@ -207,46 +261,95 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
             </dl>
           </div>
 
+          {/* Trois natures, trois étages. Le bloc mettait sur une seule rangée les
+              passages d'état, l'exécution marché, la contre-proposition, la clôture,
+              un lien de consultation, la messagerie et le bouton d'appel : de la
+              navigation et un message à côté d'un acte irréversible. Consulter n'est
+              pas décider, et parler n'est pas décider non plus. */}
           <div className="panel">
             <div className="panel-h">
               <h2>{t("Décision")}</h2>
-              <span className="muted" style={{ fontSize: ".8rem" }}>
-                {t("chaque passage est journalisé et produit ses documents")}
-              </span>
             </div>
-            <div className={styles.actions}>
-              {marketExec && (
-                <Link className="btn primary" href="/desk/marche">
-                  Exécuter (Marché)
-                </Link>
-              )}
-              {next
-                .filter((st) => st !== "annulee" && st !== "contre_proposee" && !marketExec)
-                .map((st) => (
-                  <form key={st} action={transitionIntent}>
+
+            {marketExec && (
+              <div className={styles.passage}>
+                <span className={styles.passageEtat}>{t("Le passage")}</span>
+                <b>{t("Exécuter sur le marché")}</b>
+                <span className={styles.passageQuoi}>{t("L’ordre est au carnet : son exécution se fait à la cote, puis le résultat revient ici pour être porté.")}</span>
+                <span className={styles.passageGeste}>
+                  <Link className="btn primary" href="/desk/marche">
+                    {t("Ouvrir le marché")}
+                  </Link>
+                </span>
+              </div>
+            )}
+
+            {avance.map((st) => (
+              <div key={st} className={styles.passage}>
+                <span className={styles.passageEtat}>
+                  {t("Le passage")}
+                  <em>
+                    {t(INTENT_STATE_LABEL[it.state]).toLowerCase()} → {t(INTENT_STATE_LABEL[st]).toLowerCase()}
+                  </em>
+                </span>
+                <b>{t(STATE_PASSAGE[st] ?? STATE_ACTION_LABEL[st] ?? INTENT_STATE_LABEL[st])}</b>
+                {STATE_EFFECT[st] && <span className={styles.passageQuoi}>{t(STATE_EFFECT[st]!)}</span>}
+                <span className={styles.passageGeste}>
+                  <form action={transitionIntent}>
                     <input type="hidden" name="intentId" value={it.id} />
                     <input type="hidden" name="state" value={st} />
-                    <button className={`btn ${st === "transmise" || st === "confirmee" ? "primary" : st === "annulee" ? "ghost" : ""}`} type="submit">
-                      {STATE_ACTION_LABEL[st] ?? INTENT_STATE_LABEL[st]}
+                    <button className="btn primary" type="submit">
+                      {t(STATE_ACTION_LABEL[st] ?? INTENT_STATE_LABEL[st])}
                     </button>
                   </form>
-                ))}
-              {/* Proposer d’autres conditions : un formulaire, pas un bouton. L’ordre ne bouge
-                  qu’au oui du client, et l’écran montre la phrase qu’il recevra. */}
-              {next.includes("contre_proposee") && !marketExec && <CounterOffer intent={it} offer={o} defaultUntil={defaultUntil(o, now)} now={now.toISOString()} />}
-              {/* Clore sans suite a sa propre forme : un motif, une relecture, la phrase que le client lira. */}
-              {next.includes("annulee") && <CancelOrder intentId={it.id} ref_={it.ref} clientName={it.clientName} offerTitle={o.title} />}
-              {next.length === 0 && <span className="muted">{t("Intention terminée : plus aucun passage possible.")}</span>}
-              <Link className="btn ghost" href={`/desk/lignes/${o.id}`}>
-                {t("Voir la fiche")}
-              </Link>
-              {/* le canal demandé passe devant et porte la mention : c’est là que le client attend */}
-              <Compose intentId={it.id} messages={prepared} phone={it.contactPhone} email={mailTo} subject={`${o.title} · votre ordre ${it.ref}`} asked={asked} />
-              {asked === "tel" && it.contactPhone && (
-                <a className="btn" href={`tel:${it.contactPhone.replace(/[^\d+]/g, "")}`}>
-                  {t("Appeler")} <em className={styles.asked}> · {t("demandé")}</em>
-                </a>
-              )}
+                  {STATE_FINAL.has(st) && <small className={styles.ferme}>{t("Ce passage ne se reprend pas.")}</small>}
+                </span>
+              </div>
+            ))}
+
+            {avance.length === 0 && !marketExec && (
+              <div className={styles.passage}>
+                <span className={styles.passageEtat}>{t("Le passage")}</span>
+                <b>{t(next.length === 0 ? "Aucun : cet ordre est arrivé au bout de son chemin." : "Aucun tant que le client n’a pas répondu.")}</b>
+              </div>
+            )}
+
+            {/* Ce qui s'ouvre s'ouvre dans le flux et pousse la page : aucune liste ne
+                flotte par-dessus l'écran, donc aucune ne peut passer derrière. */}
+            {(next.includes("contre_proposee") || next.includes("annulee") || next.includes("recue")) && !marketExec && (
+              <div className={styles.issues}>
+                <span className={styles.etage}>{t("Une autre issue")}</span>
+                <div className={styles.issuesGestes}>
+                  {next.includes("recue") && (
+                    <form action={transitionIntent}>
+                      <input type="hidden" name="intentId" value={it.id} />
+                      <input type="hidden" name="state" value="recue" />
+                      <button className="btn" type="submit">
+                        {t(STATE_ACTION_LABEL.recue!)}
+                      </button>
+                    </form>
+                  )}
+                  {/* Proposer d’autres conditions : un formulaire, pas un bouton. L’ordre ne bouge
+                      qu’au oui du client, et l’écran montre la phrase qu’il recevra. */}
+                  {next.includes("contre_proposee") && <CounterOffer intent={it} offer={o} defaultUntil={defaultUntil(o, now)} now={now.toISOString()} />}
+                  {/* Clore sans suite a sa propre forme : un motif, une relecture, la phrase que le client lira. */}
+                  {next.includes("annulee") && <CancelOrder intentId={it.id} ref_={it.ref} clientName={it.clientName} offerTitle={o.title} />}
+                </div>
+              </div>
+            )}
+
+            {/* Parler n'est pas décider : le même étage accompagne les deux précédents. */}
+            <div className={styles.parler}>
+              <span className={styles.etage}>{t("Parler au client")}</span>
+              <div className={styles.issuesGestes}>
+                {/* le canal demandé passe devant et porte la mention : c’est là que le client attend */}
+                <Compose intentId={it.id} messages={prepared} phone={it.contactPhone} email={mailTo} subject={`${o.title} · votre ordre ${it.ref}`} asked={asked} />
+                {asked === "tel" && it.contactPhone && (
+                  <a className="btn" href={`tel:${it.contactPhone.replace(/[^\d+]/g, "")}`}>
+                    {t("Appeler")} <em className={styles.asked}> · {t("demandé")}</em>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 

@@ -114,13 +114,6 @@
 .track .done {
   background: var(--good);
 }
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 16px 14px;
-  align-items: center;
-}
 .msgs {
   list-style: none;
   margin: 0;
@@ -488,4 +481,141 @@
 }
 .cashList b {
   font-variant-numeric: tabular-nums;
+}
+
+/* La file, pas la fiche : le desk traite des demandes l'une apres l'autre. */
+.pile {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  padding: var(--s-5) var(--s-7);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.pileTrack {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+  min-width: 6rem;
+}
+.pileTrack i {
+  flex: 1;
+  height: 4px;
+  min-width: 2px;
+  background: var(--line);
+}
+.pileTrack i.pileDone {
+  background: var(--line-2);
+}
+.pileTrack i.pileHere {
+  background: var(--gold);
+}
+.pileOff {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  padding-inline: var(--s-4);
+}
+
+/* La demande du client, en tete et en chiffres. Le montant etait dans un titre,
+   le prix au fond d'une liste de definitions : aucun des deux ne se lisait. */
+.demande {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s-4) var(--s-9);
+  padding-block: var(--s-6) var(--s-7);
+  border-bottom: 1px solid var(--line);
+}
+.fort {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.fort span {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.fort b {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etage 1 : le passage du moment. Un seul acte, nomme, avec ce qu'il produit
+   ecrit dessous, et la mention quand il ne se reprend pas. */
+.passage {
+  display: grid;
+  gap: var(--s-4);
+  padding-block: var(--s-8);
+  background: var(--gold-soft);
+  border-left: 3px solid var(--gold);
+  border-bottom: 1px solid var(--line);
+}
+.passageEtat {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold-ink);
+}
+.passageEtat em {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.passage > b {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.passageQuoi {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 60ch;
+}
+.passageGeste {
+  display: flex;
+  align-items: center;
+  gap: var(--s-8);
+  flex-wrap: wrap;
+  padding-top: var(--s-2);
+}
+.ferme {
+  font-size: 0.76rem;
+  color: var(--gold-ink);
+}
+
+/* Etage 2 : les autres issues. Ce qui s'ouvre s'ouvre dans le flux et pousse la
+   page : rien ne flotte, donc rien ne peut passer derriere. */
+.issues,
+.parler {
+  display: grid;
+  gap: var(--s-5);
+  padding-block: var(--s-7);
+}
+.issues {
+  border-bottom: 1px solid var(--line);
+}
+.etage {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.issuesGestes {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-5);
+  flex-wrap: wrap;
 }

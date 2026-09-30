@@ -70,6 +70,36 @@ export function nextStates(state: IntentState, type: IntentType): IntentState[] 
   }
 }
 
+/**
+ * Le passage nommé comme un acte, et ce qu’il produit. « Chaque passage est
+ * journalisé et produit ses documents » était vrai et inutile : posée une fois
+ * pour les cinq cas, la phrase ne disait à personne ce que CE bouton allait
+ * faire. Ici chaque état porte la sienne.
+ */
+export const STATE_PASSAGE: Partial<Record<IntentState, string>> = {
+  confirmee: "Confirmer l’ordre au nom du client",
+  transmise: "Transmettre l’ordre au marché",
+  servie: "Porter le résultat : servie",
+  non_servie: "Porter le résultat : non servie",
+  reglee: "Constater le règlement",
+  recue: "Revenir à l’ordre d’origine",
+};
+
+export const STATE_EFFECT: Partial<Record<IntentState, string>> = {
+  confirmee: "Le bordereau est édité et versé au dossier, l’ordre entre au carnet, et le client est prévenu sur le canal qu’il a demandé.",
+  transmise: "La demande part avec celles des autres investisseurs. Une fois partie, elle ne se retire plus : le prix retenu et le montant servi ne dépendent plus de la maison.",
+  servie: "Le montant servi et le prix se portent tels qu’ils sont publiés : c’est ce chiffre qui fonde l’avis d’opéré et le rendement que le client lira.",
+  non_servie: "La séance n’a rien servi sur cette demande. Le client en est informé, et rien n’est débité.",
+  reglee: "Les espèces sont débitées, les titres inscrits au nom du client au dépositaire, et l’avis d’opéré part avec le relevé. L’ordre est alors clos.",
+  recue: "L’ordre reprend les conditions que le client avait envoyées, et la contre-proposition est abandonnée.",
+};
+
+/** Les deux passages qui sortent de la maison : après eux, on ne revient pas. */
+export const STATE_FINAL = new Set<IntentState>(["transmise", "reglee"]);
+
+/** Le passage qui fait avancer l’ordre, distingué des deux issues qui le détournent. */
+export const avancement = (next: IntentState[]): IntentState[] => next.filter((st) => st !== "annulee" && st !== "contre_proposee" && st !== "recue");
+
 export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
   confirmee: "Confirmer",
   contre_proposee: "Proposer d’autres conditions",
