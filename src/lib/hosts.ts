@@ -33,3 +33,18 @@ export const clientOrigin = (): string => (process.env.NEXT_PUBLIC_APP_URL ?? ""
 export const DESK_HOST_ALLOW = ["/desk", "/connexion", "/auth", "/api", "/moi/securite", "/info", "/manifest.webmanifest", "/sw.js", "/icon", "/apple-icon", "/opengraph-image", "/robots.txt", "/sitemap.xml"];
 
 export const deskHostServes = (path: string): boolean => DESK_HOST_ALLOW.some((p) => path === p || path.startsWith(p + "/") || (p.endsWith("icon") && path.startsWith(p)));
+
+/**
+ * Cette adresse appartient-elle au desk ?
+ *
+ * ELLE EXIGE LA BARRE, et c'est une boucle de redirections qui l'a appris.
+ * Le proxy lisait `path.startsWith("/desk")` : « /deskonaute » était donc une
+ * adresse du desk pour lui, et il l'envoyait sur le hôte du desk. Là,
+ * `deskHostServes` la découpait autrement, ne la servait pas, et la renvoyait
+ * au hôte client, qui la renvoyait au desk. Un navigateur y tournait jusqu'à
+ * rendre les armes, et rien dans le code ne disait que les deux fonctions ne
+ * lisaient pas le même chemin.
+ *
+ * Une adresse du desk est « /desk », ou quelque chose sous « /desk/ ».
+ */
+export const isDeskPath = (path: string): boolean => path === "/desk" || path.startsWith("/desk/");

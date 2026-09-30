@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { clientOrigin, deskHostServes, deskOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
+import { clientOrigin, deskHostServes, deskOrigin, deskSplit, isDeskHost, isDeskPath } from "@/lib/hosts";
 import { estPublic } from "@/lib/porte";
 
 /**
@@ -15,7 +15,9 @@ import { estPublic } from "@/lib/porte";
  */
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  const wantsDesk = path.startsWith("/desk");
+  // « /desk » ou sous « /desk/ », jamais « /deskonaute » : lu autrement que
+  // deskHostServes, il faisait rebondir l'adresse entre les deux hôtes.
+  const wantsDesk = isDeskPath(path);
   // La porte. Une adresse qui n'est pas sur la colonne vertébrale publique
   // demande une connexion, quelle qu'elle soit.
   const ferme = !estPublic(path);
