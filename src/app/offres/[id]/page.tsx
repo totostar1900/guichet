@@ -19,7 +19,8 @@ import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { intentHref, loadIntentContext } from "./intent-context";
 import { COMPANY, PRODUCT } from "@/lib/config";
-import { ApercuPartage, identite } from "./ApercuPartage";
+import { ApercuPartage } from "./ApercuPartage";
+import { identite } from "./identite";
 
 export const dynamic = "force-dynamic";
 
@@ -41,8 +42,7 @@ export async function generateMetadata({ params }: Props) {
   const o = await repo().getOffer((await params).id);
   if (!o) return { title: "Offre" };
   const id = identite(o);
-  const titre = [id.nature, id.duree].filter(Boolean).join(", ");
-  const title = `${titre} · ${id.emetteur}`;
+  const title = `${id.nom} · ${id.emetteur}`;
   const description = `La fiche de cette ligne sur le Guichet : son émetteur, sa nature, son échéance. ${COMPANY.name}, ${COMPANY.licence.split(" · ")[0].replace(/^S/, "s")}.`;
   return { title, description, openGraph: { title, description, type: "article", siteName: `${PRODUCT.name} · ${COMPANY.name}` }, twitter: { card: "summary_large_image", title, description } };
 }

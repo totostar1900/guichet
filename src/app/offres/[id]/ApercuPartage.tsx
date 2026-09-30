@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
+import { identite } from "./identite";
 import styles from "./ApercuPartage.module.css";
 
 /**
@@ -17,39 +18,6 @@ import styles from "./ApercuPartage.module.css";
  *
  * ELLE VEND EXACTEMENT CE QU'ELLE RETIENT.
  */
-
-/** Le nom d'une nature, sans taux ni montant. Le même que celui de la bande. */
-const NATURE: Record<string, string> = {
-  BTA: "Bon du Trésor",
-  OTA: "Obligation du Trésor",
-  APE: "Obligation",
-  ACTIONS: "Action",
-  FONDS: "Part de fonds",
-  RACHAT: "Obligation",
-  MARCHE: "Obligation",
-};
-
-/** La durée en mots, sans date : « 26 semaines », « 7 ans », ou rien. */
-function duree(o: Offer): string {
-  if (!o.maturityOn || !o.settleOn) return "";
-  const j = Math.round((Date.parse(o.maturityOn) - Date.parse(o.settleOn)) / 86400000);
-  if (!Number.isFinite(j) || j <= 0) return "";
-  if (j < 400) return `${Math.round(j / 7)} semaines`;
-  const a = Math.round(j / 365);
-  return a > 1 ? `${a} ans` : "1 an";
-}
-
-/**
- * L'identité d'une ligne, sans un chiffre de marché.
- *
- * `offer.title` porte le coupon (« OTA 5,6 % 2033 ») : le mettre en titre
- * d'une page qui retient les taux annulerait la page. La carte de partage lit
- * la même fonction, pour que l'aperçu envoyé dans une conversation dise
- * exactement ce que la page dira.
- */
-export function identite(o: Offer): { nature: string; duree: string; emetteur: string } {
-  return { nature: NATURE[o.kind] ?? "Ligne", duree: duree(o), emetteur: o.issuer || o.countryName };
-}
 
 export async function ApercuPartage({ offer }: { offer: Offer }) {
   const t = await getT();
