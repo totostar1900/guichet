@@ -11,6 +11,11 @@
  * not headings.
  */
 export const EN_ACCUEIL2: Record<string, string> = {
+  /* ---------- la connexion, quand elle ouvre un compte ---------- */
+  "Ouvrir votre compte-titres": "Open your securities account",
+  "Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.":
+    "First step: receive a code to prove your address. Your file opens right after, and you fill it in at your own pace.",
+
   /* ---------- l'aperçu d'une ligne partagée ---------- */
   "Quelqu'un vous a partagé cette ligne. Voici ce qu'elle est.": "Someone shared this line with you. Here is what it is.",
   "Ce qui se lit avec un compte": "What is readable with an account",
