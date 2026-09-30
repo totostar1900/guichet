@@ -11,6 +11,18 @@
  * not headings.
  */
 export const EN_ACCUEIL2: Record<string, string> = {
+  /* ---------- l'aperçu d'une ligne partagée ---------- */
+  "Quelqu'un vous a partagé cette ligne. Voici ce qu'elle est.": "Someone shared this line with you. Here is what it is.",
+  "Ce qui se lit avec un compte": "What is readable with an account",
+  "Échéancier des flux": "Schedule of payments",
+  /* Le script des clefs manquantes la comptait « déjà connue » : le résolveur
+     trouve un gabarit qui la renvoie en français. Elle s'écrit donc en clair. */
+  "Dernier prix servi": "Last price awarded",
+  "Le prix, le rendement et l'échéancier sont réservés aux titulaires d'un compte. L'ouverture prend dix minutes, depuis ce téléphone.":
+    "The price, the yield and the schedule are reserved for account holders. Opening one takes ten minutes, from this phone.",
+  "J'ai déjà un compte": "I already have an account",
+  "Adjudication, puis cote BVMAC": "Auction, then the BVMAC exchange",
+
   /* ---------- la page « Risques et limites » ----------
      Son texte vit dans src/data/risques.ts, bilingue : il n'y a ici que la
      charpente de la page. */

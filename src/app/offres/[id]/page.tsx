@@ -19,19 +19,32 @@ import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { intentHref, loadIntentContext } from "./intent-context";
 import { COMPANY, PRODUCT } from "@/lib/config";
+import { ApercuPartage, identite } from "./ApercuPartage";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string; de?: string }> };
 
-/** The title and the description a messaging app shows under a shared line, beside the drawn image: the figures, then who we are. */
+/**
+ * Ce qu'une messagerie montre sous un lien partagé.
+ *
+ * Elle portait les chiffres : le rendement, la clôture, le ticket. Une carte
+ * de partage est lue par le robot de WhatsApp, qui n'a pas de session : elle
+ * publiait donc en clair ce que la page retient maintenant, et par un canal
+ * que personne ne contrôle. Elle dit désormais l'identité de la ligne, la même
+ * que la page, et ce qui s'y trouve.
+ *
+ * Le titre suit la même règle : `offer.title` porte le coupon (« OTA 5,6 %
+ * 2033 »), et il est remplacé par la nature et la durée.
+ */
 export async function generateMetadata({ params }: Props) {
   const o = await repo().getOffer((await params).id);
   if (!o) return { title: "Offre" };
-  const s = summarize(o, new Date());
-  const bits = [`${o.kind === "FONDS" ? "VL " : ""}${s.hero} ${s.heroSub}`, s.deadline && s.deadline !== "continue" ? `clôture ${s.deadline}` : s.deadline === "continue" ? "cotation continue" : "", s.minimum !== "—" ? `ticket ${s.minimum}` : ""].filter(Boolean);
-  const description = `${bits.join(" · ")}. ${COMPANY.name}, ${COMPANY.licence.split(" · ")[0].replace(/^S/, "s")}.`;
-  return { title: o.title, description, openGraph: { title: o.title, description, type: "article", siteName: `${PRODUCT.name} · ${COMPANY.name}` }, twitter: { card: "summary_large_image", title: o.title, description } };
+  const id = identite(o);
+  const titre = [id.nature, id.duree].filter(Boolean).join(", ");
+  const title = `${titre} · ${id.emetteur}`;
+  const description = `La fiche de cette ligne sur le Guichet : son émetteur, sa nature, son échéance. ${COMPANY.name}, ${COMPANY.licence.split(" · ")[0].replace(/^S/, "s")}.`;
+  return { title, description, openGraph: { title, description, type: "article", siteName: `${PRODUCT.name} · ${COMPANY.name}` }, twitter: { card: "summary_large_image", title, description } };
 }
 
 
@@ -41,6 +54,10 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const [t, lang] = await Promise.all([getT(), getLang()]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
+  /* La fiche est la seule adresse du catalogue restée devant la porte, parce
+     qu'un lien partagé par WhatsApp doit continuer de travailler. Déconnecté,
+     elle rend l'identité de la ligne et nomme ce qu'elle retient. */
+  if (!session) return <ApercuPartage offer={o} />;
   if (o.status === "withdrawn" && !isDesk(session)) {
     return (
       <div className={styles.page}>
