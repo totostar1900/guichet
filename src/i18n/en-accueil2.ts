@@ -22,6 +22,29 @@ export const EN_ACCUEIL2: Record<string, string> = {
   "Séance relue, sans prix publié": "Session reviewed, with no price published",
   "{b} demandé, {s} servi": "{b} bid, {s} awarded",
 
+  /* ---------- la page du portefeuille ---------- */
+  "depuis l'origine, coupons reçus compris": "since inception, coupons received included",
+  "Versé à ce jour": "Paid in to date",
+  "Ce que vous avez versé, ce qui vous est revenu": "What you paid in, what came back to you",
+  "Le rapport de performance": "The performance report",
+  "Les versements et les retours cumulés, mois par mois, et la valeur du jour": "Payments in and returns, cumulative month by month, and today's value",
+  "Ce que vous avez versé": "What you paid in",
+  "Ce qui vous est revenu": "What came back to you",
+  "La valeur du jour": "Today's value",
+  "La valeur d'une ligne n'est connue qu'au dernier cours publié : la page ne trace donc pas de valeur passée.":
+    "A line's value is only known at its last published price: this page therefore draws no past value.",
+  "Par type d'actif": "By asset type",
+  "aucune part n'est jugée : la maison exécute, elle ne conseille pas de répartition": "no share is judged: the firm executes, it does not advise on allocation",
+  "Obligations d'entreprise": "Corporate bonds",
+  Espèces: "Cash",
+  "Vos lignes": "Your lines",
+  "Pas encore de valorisation": "No valuation yet",
+  "Une ligne est tenue sans cours publié : {m} FCFA y sont versés, et elle reste hors de ce total.":
+    "One line is held with no published price: {m} FCFA are paid into it, and it stays outside this total.",
+  "{n} lignes sont tenues sans cours publié : {m} FCFA y sont versés, et elles restent hors de ce total.":
+    "{n} lines are held with no published price: {m} FCFA are paid into them, and they stay outside this total.",
+  "sans échéance": "no maturity",
+
   /* ---------- la bande à deux onglets, et le compteur ---------- */
   Portefeuille: "Portfolio",
   "À décider": "To decide",

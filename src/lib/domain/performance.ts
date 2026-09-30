@@ -31,6 +31,10 @@ import { daysBetween } from "@/lib/finance";
  */
 
 /** Un mouvement du point de vue du client : négatif quand il paie. */
+/** Le libellé du point de valorisation ajouté en fin de série : il sert au taux,
+    jamais à une courbe, parce qu il n est pas un mouvement d argent. */
+export const VALEUR_DU_JOUR = "Valeur du jour";
+
 export interface MoneyFlow {
   date: string;
   amount: number;
@@ -180,7 +184,7 @@ export function linePerformance(
   }
 
   const valued = position?.marketValue ?? 0;
-  if (valued > 0) flows.push({ date: today, amount: valued, label: "Valeur du jour" });
+  if (valued > 0) flows.push({ date: today, amount: valued, label: VALEUR_DU_JOUR });
 
   // Tout est là quand il ne reste rien à valoriser, ou quand ce qui reste a un
   // cours. Des titres encore détenus sans cours, et le compte est incomplet.

@@ -279,3 +279,333 @@
     border-right: 0;
   }
 }
+
+/* ---------- La valeur, en tête ---------- */
+.valeur {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  row-gap: var(--s-9);
+  align-items: end;
+}
+.grand {
+  grid-column: span 6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.etiquette {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.grand > b {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.grand > b em {
+  font-style: normal;
+  font-size: 0.4em;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.gain {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+.gain b {
+  font-variant-numeric: tabular-nums;
+}
+.gain small {
+  color: var(--ink-3);
+}
+.bon {
+  color: var(--good);
+}
+.moins {
+  color: var(--crit);
+}
+.faits {
+  grid-column: 8 / span 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--s-8);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-7);
+}
+.faits span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.faits small {
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.faits b {
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.dispo small,
+.dispo b {
+  color: var(--gold-ink);
+}
+
+/* ---------- La courbe ---------- */
+.courbe {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.repere {
+  fill: var(--ink-3);
+  font-size: 12px;
+  font-family: inherit;
+}
+.legende {
+  display: flex;
+  align-items: center;
+  gap: var(--s-9);
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.legende span {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.legende small {
+  flex-basis: 100%;
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.tVerse,
+.tRecu,
+.tValeur {
+  width: 18px;
+  height: 2px;
+  display: inline-block;
+  flex: none;
+}
+.tVerse {
+  background: var(--ink-3);
+}
+.tRecu {
+  background: var(--good);
+}
+.tValeur {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2.6px solid var(--gold);
+  background: var(--paper);
+}
+
+/* ---------- Par famille ---------- */
+.barre {
+  display: flex;
+  height: 12px;
+  gap: 2px;
+}
+.barre i {
+  height: 12px;
+  min-width: 3px;
+}
+.familles {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.familles > div {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}
+.familles i {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  display: inline-block;
+}
+.familles b {
+  flex-grow: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.familles span {
+  width: 120px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.part {
+  color: var(--ink-3);
+}
+/* Quatre teintes plus un gris : elles se séparent par la clarté autant que par
+   la teinte, et se lisent donc aussi en niveaux de gris. */
+.etat {
+  background: var(--gold);
+}
+.entreprise {
+  background: #7fa6d8;
+}
+.actions {
+  background: #c98fb0;
+}
+.fonds {
+  background: var(--good);
+}
+.especes {
+  background: var(--ink-3);
+}
+
+/* ---------- Les lignes ---------- */
+.lignes {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.lignes a {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  padding: var(--s-7) 0;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+.lignes a:hover {
+  background: var(--surface-2);
+}
+.quoi {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.quoi b {
+  font-size: 0.87rem;
+  font-weight: 600;
+}
+.quoi small {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+.qte,
+.val,
+.flux {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.84rem;
+}
+.qte {
+  width: 110px;
+  color: var(--ink-2);
+}
+.val {
+  width: 130px;
+  font-weight: 600;
+}
+.flux {
+  width: 150px;
+  color: var(--ink-3);
+}
+
+/* ---------- La bande des services ---------- */
+.bandeServices {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: var(--s-7) var(--s-9);
+  text-decoration: none;
+  color: inherit;
+}
+.bandeServices:hover {
+  border-color: var(--line-2);
+}
+.bandeServices b {
+  font-size: 0.88rem;
+}
+.bandeServices span {
+  flex-grow: 1;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.bandeServices em {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+@media (max-width: 900px) {
+  .valeur {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grand,
+  .faits {
+    grid-column: 1 / -1;
+  }
+  .faits {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--s-7);
+  }
+  .familles > div {
+    flex-wrap: wrap;
+    gap: var(--s-5) var(--s-6);
+  }
+  .familles b {
+    flex-basis: calc(100% - 20px);
+  }
+  .familles span {
+    width: auto;
+    flex-grow: 1;
+    text-align: left;
+  }
+  .qte,
+  .flux {
+    display: none;
+  }
+}
+
+/* Ce qui reste hors du total : une mention, jamais une alerte. Une ligne sans
+   cours n'est pas un incident, c'est un marché qui n'a pas traité. */
+.horsTotal {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: var(--s-5);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--gold-ink);
+}
+.sansCours {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+/* Le chiffre absent se nomme : une phrase à la place du nombre, dans la même
+   graisse mais sans les chiffres tabulaires, qui n'ont rien à aligner ici. */
+.sansValeur {
+  font-family: var(--font-titre);
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+  line-height: 1.1;
+  font-weight: 400;
+  color: var(--ink-2);
+}

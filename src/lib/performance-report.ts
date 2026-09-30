@@ -1,5 +1,5 @@
 import type { Intent, Offer } from "@/lib/domain/types";
-import { linePerformance, portfolioPerformance, type PortfolioPerformance } from "@/lib/domain/performance";
+import { linePerformance, portfolioPerformance, type MoneyFlow, type PortfolioPerformance } from "@/lib/domain/performance";
 import { positionFor } from "@/lib/documents/position";
 import { positionsFrom } from "@/lib/positions";
 import { localIso } from "@/lib/format";
@@ -17,6 +17,22 @@ import { localIso } from "@/lib/format";
  * par bulletin de souscription.
  */
 export function buildPerformance(intents: Intent[], offers: Offer[], now = new Date()): PortfolioPerformance {
+  return buildPerformanceParts(intents, offers, now).perf;
+}
+
+/**
+ * Le rapport ET les mouvements qui le fondent.
+ *
+ * La courbe du portefeuille a besoin des flux, que le rapport jetait après les
+ * avoir agrégés. Les recalculer ailleurs aurait donné deux assemblages du même
+ * argent, donc deux occasions de diverger ; il n'y en a qu'un, et il rend les
+ * deux.
+ *
+ * Le point de valorisation reste dedans, nommé : c'est au lecteur de la courbe
+ * de l'écarter, parce que c'est lui qui sait qu'il ne dessine que des
+ * mouvements.
+ */
+export function buildPerformanceParts(intents: Intent[], offers: Offer[], now = new Date()): { perf: PortfolioPerformance; mouvements: MoneyFlow[] } {
   const today = localIso(now);
   const byId = new Map(offers.map((o) => [o.id, o]));
   const positions = positionsFrom(intents, offers, now);
@@ -40,5 +56,5 @@ export function buildPerformance(intents: Intent[], offers: Offer[], now = new D
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x));
 
-  return portfolioPerformance(parts);
+  return { perf: portfolioPerformance(parts), mouvements: parts.flatMap((p) => p.flows) };
 }
