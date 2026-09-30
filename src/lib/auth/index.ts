@@ -4,8 +4,10 @@ import { cache } from "react";
 import { readDevSession } from "./dev";
 import { isDesk, isResponsable, type Session } from "./types";
 import { clientOrigin } from "@/lib/hosts";
+import { estEssai } from "@/lib/essai";
 
-export const authMode = (): "supabase" | "dev" => (process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "dev");
+// Sur la branche d essai, connexion de developpement : voir src/lib/essai.ts.
+export const authMode = (): "supabase" | "dev" => (!estEssai() && process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "dev");
 
 /** Current session, or null. Cached per request. Tier 2 comes from an approved KYC file. */
 export const getSession = cache(async (): Promise<Session | null> => {

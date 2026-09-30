@@ -1,6 +1,7 @@
 import brut from "./reference.json";
 import type { Offer } from "@/lib/domain/types";
 import type { AuctionResult } from "@/lib/market/auction-results";
+import { estEssai } from "@/lib/essai";
 
 /**
  * Les données de marché de la production, versées dans le jeu de départ.
@@ -36,11 +37,6 @@ const aTout = (o: Brut, clefs: string[]): boolean => clefs.every((c) => o[c] !==
 const offresBonnes = offresBrutes.filter((o) => aTout(o, ["id", "kind", "title", "issuer", "country", "deadlineAt", "settleOn"]));
 const seancesBonnes = seancesBrutes.filter((s) => aTout(s, ["id", "country", "instrument", "sessionOn"]));
 
-/* Un semis amputé se voit tout de suite, plutôt qu'en cherchant une liste vide. */
-if (process.env.GUICHET_SEMIS === "reference" && (offresBonnes.length < offresBrutes.length || seancesBonnes.length < seancesBrutes.length)) {
-  console.warn(`Semis de référence incomplet : ${offresBrutes.length - offresBonnes.length} ligne(s) et ${seancesBrutes.length - seancesBonnes.length} séance(s) écartées, faute de champs indispensables. Relancer scripts/semis-reference.mjs.`);
-}
-
 /**
  * Le semis dense est un CHOIX, jamais le défaut.
  *
@@ -51,9 +47,14 @@ if (process.env.GUICHET_SEMIS === "reference" && (offresBonnes.length < offresBr
  * s'allume donc à la demande, et `npm run dev:memory` l'allume pour le
  * développement local comme pour l'essai.
  */
-export const semisDense = (): boolean => process.env.GUICHET_SEMIS === "reference";
+export const semisDense = (): boolean => process.env.GUICHET_SEMIS === "reference" || estEssai();
 
 export const REF_OFFERS: Offer[] = semisDense() ? (offresBonnes as unknown as Offer[]) : [];
 export const REF_AUCTIONS: AuctionResult[] = semisDense() ? (seancesBonnes as unknown as AuctionResult[]) : [];
 /** Le jour où le semis a été relevé, pour que l'essai puisse le dire. */
 export const REF_LE = (brut as { genere?: string }).genere ?? "";
+
+/* Un semis amputé se voit tout de suite, plutôt qu'en cherchant une liste vide. */
+if (semisDense() && (offresBonnes.length < offresBrutes.length || seancesBonnes.length < seancesBrutes.length)) {
+  console.warn(`Semis de référence incomplet : ${offresBrutes.length - offresBonnes.length} ligne(s) et ${seancesBrutes.length - seancesBonnes.length} séance(s) écartées, faute de champs indispensables. Relancer scripts/semis-reference.mjs.`);
+}

@@ -1,6 +1,7 @@
 import "server-only";
 import type { Repository } from "./repository";
 import { memoryRepository } from "./memory";
+import { estEssai } from "@/lib/essai";
 import { memoRepo } from "./memo";
 
 /**
@@ -26,4 +27,5 @@ export function repo(): Repository {
   return wrapped;
 }
 
-export const backendName = (): "supabase" | "memory" => (process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "memory");
+// Sur la branche d essai, memoire quoi que disent les variables : voir src/lib/essai.ts.
+export const backendName = (): "supabase" | "memory" => (!estEssai() && process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "memory");
