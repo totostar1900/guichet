@@ -21,9 +21,9 @@ import { isEspaceSection, isFundsSection, isTitresSection, TITRES } from "@/lib/
  */
 const TABS = [
   { href: "/", label: "Mon espace", match: isEspaceSection, connecte: true },
-  { href: "/services", label: "Services", match: (p: string) => p.startsWith("/services") },
-  { href: TITRES, label: "Titres", match: isTitresSection },
-  { href: "/fonds", label: "Fonds", match: isFundsSection },
+  { href: "/moi/services", label: "Services", match: (p: string) => p.startsWith("/moi/services"), connecte: true },
+  { href: TITRES, label: "Titres", match: isTitresSection, connecte: true },
+  { href: "/fonds", label: "Fonds", match: isFundsSection, connecte: true },
   // « Marché » porte l'environnement BVMAC : l'indice, les sociétés, les notes.
   // Les actualités gardent leur onglet : elles couvrent cinq rubriques, dont la BVMAC
   // n'est qu'une, et elles se collectent indépendamment de ce que nous publions.
@@ -36,11 +36,17 @@ const TABS = [
     href: "/marche",
     label: "Marché",
     menu: true,
+    connecte: true,
     match: (p: string) => p.startsWith("/marche") || p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs") || p.startsWith("/calendrier"),
   },
-  { href: "/actualites", label: "Actualités", match: (p: string) => p.startsWith("/actualites") },
-  { href: "/info", label: "Guide", match: (p: string) => p.startsWith("/info") || p.startsWith("/comparer") },
-  { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk") },
+  { href: "/actualites", label: "Actualités", match: (p: string) => p.startsWith("/actualites"), connecte: true },
+  { href: "/info", label: "Guide", match: (p: string) => (p.startsWith("/info") && !p.startsWith("/info/risques")) || p.startsWith("/comparer") },
+  /* Les deux adresses qu'un visiteur peut lire en plus du guide. Elles ne
+     paraissent qu'à lui : connecté, les publications vivent dans le menu
+     « Marché » et les risques au pied de page. */
+  { href: "/indice/notes", label: "Publications", match: (p: string) => p.startsWith("/indice/note"), visiteur: true },
+  { href: "/info/risques", label: "Risques et limites", match: (p: string) => p.startsWith("/info/risques"), visiteur: true },
+  { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk"), connecte: true },
 ];
 
 /** `mode`: "client" hides the Desk tab (the desk has its own host), "desk" keeps only it, "all" is the one-host setup. */
@@ -71,9 +77,10 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: {
     };
   }, [open]);
 
-  /* « Mon espace » ne parait qu a qui en a un : un visiteur n a pas d espace,
-     et lui montrer l onglet serait lui promettre une page vide. */
-  const ouverts = TABS.filter((x) => !x.connecte || connecte);
+  /* La bande dit ce que le lecteur peut ouvrir, et rien d'autre. Tout est
+     derrière la porte sauf le guide, les publications et les risques : montrer
+     « Titres » à un visiteur serait l'envoyer sur un mur de connexion. */
+  const ouverts = TABS.filter((x) => (connecte ? !x.visiteur : !x.connecte));
   const tabs = mode === "client" ? ouverts.filter((x) => x.href !== "/desk") : mode === "desk" ? ouverts.filter((x) => x.href === "/desk") : ouverts;
 
   return (
@@ -82,7 +89,7 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: {
         const link = (
           <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
             {t(tab.label)}
-            {counts && tab.href === "/" && <b className={styles.count}>{counts.titres}</b>}
+            {counts && tab.href === TITRES && <b className={styles.count}>{counts.titres}</b>}
             {counts && tab.href === "/fonds" && <b className={styles.count}>{counts.fonds}</b>}
           </Link>
         );

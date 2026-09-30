@@ -22,6 +22,7 @@ export const EN_CONSOLE: Record<string, string> = {
      sont déjà traduits ailleurs : une clef répétée écraserait l'autre au
      spread, et celle-ci est la dernière étalée. */
   Services: "Services",
+  "Risques et limites": "Risks and limits",
   "Bonjour {p}": "Hello {p}",
   "Dossier à compléter": "File to complete",
   "Ce qui vous attend": "What is waiting for you",

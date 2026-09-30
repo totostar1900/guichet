@@ -321,12 +321,16 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       <small>{t("six écrans")}</small>
                     </button>
                     {/* Le rail de bureau porte « Services » ; sur le téléphone
-                        le dock est plein à cinq, et la porte est ici. */}
-                    <Link className={styles.tile} href={signedIn ? "/moi/services" : "/services"} onClick={close}>
-                      <Icon d={D.services} />
-                      <b>{t("Les services")}</b>
-                      <small>{signedIn ? t("les neuf, avec leur état") : t("les neuf, et leur limite")}</small>
-                    </Link>
+                        le dock est plein à cinq, et la porte est ici. Elle ne
+                        s'ouvre qu'à qui est connecté : les services ne se
+                        présentent plus avant. */}
+                    {signedIn && (
+                      <Link className={styles.tile} href="/moi/services" onClick={close}>
+                        <Icon d={D.services} />
+                        <b>{t("Les services")}</b>
+                        <small>{t("les neuf, avec leur état")}</small>
+                      </Link>
+                    )}
                     <Link className={styles.tile} href="/info/aide" onClick={close}>
                       <Icon d={D.help} />
                       <b>{t("Aide")}</b>

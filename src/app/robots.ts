@@ -13,13 +13,17 @@ export const dynamic = "force-dynamic";
  * répondent à qui les demande ; il n'y a aucune raison de les voir paraître
  * dans un moteur à côté du Guichet.
  *
- * Le Guichet, lui, se laisse lire en entier sauf l'espace du client et ce qui
- * n'a de sens que pour une main déjà connectée.
+ * Le Guichet s'est refermé : tout demande une connexion sauf une colonne
+ * vertébrale mince, et ce fichier dit la même chose que `src/lib/porte.ts`.
+ * Autoriser ici une adresse que la porte ferme ne l'ouvrirait pas : cela
+ * remplirait seulement un moteur de liens vers un mur de connexion.
  */
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const host = (await headers()).get("host");
   if (isDeskHost(host)) return { rules: [{ userAgent: "*", disallow: "/" }] };
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/moi/", "/api/", "/auth/", "/ne-plus-recevoir", "/connexion"] }],
+    // La porte tient une liste blanche, ce fichier aussi : « disallow: / » ferme
+    // tout, et chaque ligne autorisée rouvre une branche de la colonne.
+    rules: [{ userAgent: "*", allow: ["/$", "/info/", "/indice/notes", "/indice/note/", "/offres/", "/ouvrir-un-compte"], disallow: "/" }],
   };
 }
