@@ -8,11 +8,14 @@ import { getT } from "@/i18n/server";
 /**
  * Le compte, dans la barre de bureau.
  *
- * Au large : le nom, le segment, la pastille des initiales, tout cela menant
- * à l’espace du client. Sous 900 px, c’est-à-dire sur un téléphone couché, le
- * nom ne tient plus et la pastille seule ne menait nulle part : elle ouvre
- * alors la même feuille que le portrait, coordonnées, préférences et sortie
- * comprises. Un compte, un endroit, quelle que soit l’orientation.
+ * LA PASTILLE OUVRE LE COMPTE, À TOUTE LARGEUR. Elle ne le faisait que sous
+ * 900 px : au large, elle menait au portefeuille, et le profil, la sécurité et
+ * les pièces n'étaient atteignables que par la feuille « ⋮ ». Un même axe tenu
+ * par deux surfaces n'est tenu par aucune, et c'est exactement ce qui rendait
+ * les réglages du compte introuvables sur un écran de bureau.
+ *
+ * Le nom reste un lien vers le portefeuille : il nomme la personne, et la
+ * personne veut le plus souvent revoir ce qu'elle possède.
  */
 export async function UserMenu({ session, deskUi, account }: { session: Session | null; deskUi?: boolean; account?: AccountProps }) {
   const t = await getT();

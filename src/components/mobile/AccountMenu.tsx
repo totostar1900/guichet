@@ -120,6 +120,21 @@ export function AccountMenu(p: AccountProps) {
     { key: "securite", icon: D.shield, label: t("Sécurité"), sub: t("canaux prouvés, appareils, code"), href: "/moi/securite" },
     { key: "pieces", icon: D.papers, label: t("Mes coordonnées et pièces"), sub: p.kycStatus && KYC_HINT[p.kycStatus] ? t(KYC_HINT[p.kycStatus]) : t("adresse, pièce d'identité, RIB, dossier"), href: p.kycStatus ? "/ouvrir-un-compte" : "/moi#coordonnees" },
   ];
+  /**
+   * Comprendre, et nous joindre.
+   *
+   * Ces quatre-là ne vivaient que dans la feuille « ⋮ » : sur un écran de
+   * bureau, ils n'existaient donc pas pour qui n'avait pas trouvé les trois
+   * points. Ce ne sont pas des réglages de compte, mais ils relèvent du même
+   * axe, ma relation avec la maison, et l'on ne les habite pas : on les ouvre
+   * une fois.
+   */
+  const comprendre: { key: string; icon: string; label: string; sub: string; href: string }[] = [
+    { key: "guide", icon: D.espace, label: t("Le Guide"), sub: t("aide · glossaire · leçons"), href: "/info" },
+    { key: "aide", icon: D.papers, label: t("Aide"), sub: t("les questions qu'on nous pose"), href: "/info/aide" },
+    { key: "risques", icon: D.shield, label: t("Risques et limites"), sub: t("ce que chaque opération engage"), href: "/info/risques" },
+    { key: "mentions", icon: D.compte, label: t("Mentions"), sub: t("agrément COSUMAF"), href: "/info/mentions" },
+  ];
   const soon: { key: string; icon: string; label: string; sub: string }[] = [
     { key: "compte", icon: D.compte, label: t("Mon compte-titres"), sub: t("dossier d'ouverture, relevés") },
     { key: "famille", icon: D.famille, label: t("Mes proches"), sub: t("un compte pour un enfant, une tontine") },
@@ -203,6 +218,20 @@ export function AccountMenu(p: AccountProps) {
         <div className={styles.group}>{t("Chez vous")}</div>
         <div className={styles.rows}>
           {mine.map((r) => (
+            <Link key={r.key} href={r.href} className={styles.row} onClick={close}>
+              <Icon d={r.icon} />
+              <span>
+                <b>{r.label}</b>
+                <small>{r.sub}</small>
+              </span>
+              <i aria-hidden="true">›</i>
+            </Link>
+          ))}
+        </div>
+
+        <div className={styles.group}>{t("Comprendre et nous joindre")}</div>
+        <div className={styles.rows}>
+          {comprendre.map((r) => (
             <Link key={r.key} href={r.href} className={styles.row} onClick={close}>
               <Icon d={r.icon} />
               <span>

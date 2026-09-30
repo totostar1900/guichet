@@ -76,15 +76,13 @@
   background: rgba(224, 182, 90, 0.15);
 }
 
-/* La feuille du compte remplace le nom et la pastille sous 900 px. */
+/* La pastille ouvre le compte, a toute largeur.
+   Elle ne le faisait que sous 900 px : au large, elle menait au portefeuille, et
+   le profil, la securite et les pieces n etaient atteignables que par le « ⋮ ».
+   Un meme axe tenu par deux surfaces n est tenu par aucune. */
 .compact {
-  display: none;
+  display: inline-flex;
 }
-@media (max-width: 900px) {
-  .compact {
-    display: inline-flex;
-  }
-  .full {
-    display: none;
-  }
+.full {
+  display: none;
 }
