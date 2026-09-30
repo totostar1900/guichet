@@ -33,8 +33,13 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: 
             {COUNTRY_CODE[o.country]}
           </span>
         )}
-        <span className={styles.isin}>{o.isin}</span>
+        {/* Qui émet passe avant la référence. Le commentaire de ce composant
+            annonçait cet ordre depuis toujours, le balisage rendait l'inverse :
+            on lisait « OTA 6,50 % · CF0000018421 » avant de savoir de quel
+            Trésor il s'agit, et l'ISIN ne sert qu'à passer un ordre en banque,
+            jamais à reconnaître une ligne. */}
         <span className={styles.issuer}>{t(s.subtitle)}</span>
+        <span className={styles.isin}>{o.isin}</span>
       </div>
       {s.badges.length > 0 && (
         <div className={styles.badges}>

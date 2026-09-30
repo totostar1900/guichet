@@ -50,6 +50,14 @@ export interface FundRow {
   curve?: FundCurve;
 }
 
+/**
+ * Les mêmes trois vues que les titres, sous la même clef d'URL et les mêmes
+ * trois mots. La page n'en offrait aucune : un tableau sur grand écran, des
+ * cartes sur téléphone, et le lecteur n'avait pas le choix. Deux listes qui
+ * s'apprennent séparément sont deux apprentissages.
+ */
+type Vue = "table" | "list" | "cards";
+
 type SortKey = "categorie" | "nom" | "gestion" | "vl" | "var" | "an" | "origine" | "date";
 const SORT: [SortKey, string][] = [
   ["categorie", "par catégorie"],
@@ -150,6 +158,47 @@ function FundTr({ r }: { r: FundRow }) {
 }
 
 /**
+ * Une rangée de la vue Liste : le fonds d'un trait, sans colonnes.
+ *
+ * Elle porte ce qui décide et rien d'autre : le nom, la catégorie, la
+ * PÉRIODICITÉ DE LA VL, la société de gestion, la valeur liquidative avec sa
+ * date, et les douze mois. La périodicité est là parce qu'elle dit dans combien
+ * de temps une souscription sera centralisée, et à quelle VL : sans elle on
+ * lit un prix sans savoir quand on l'obtient.
+ */
+function FundLi({ r }: { r: FundRow }) {
+  const t = useT();
+  const href = useLineHref()(r.id);
+  const desk = useDeskView();
+  return (
+    <li className={styles.li}>
+      <span className={styles.liName}>
+        <Link href={href}>{r.title}</Link>
+        <small>
+          {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])} · {r.manager}
+        </small>
+      </span>
+      <span className={styles.liNav}>
+        <b>{fmt(r.nav)}</b>
+        <small className="muted">
+          {t("au")} {fmtDate(r.navDate, false)}
+        </small>
+      </span>
+      <span className={`${styles.liPerf} ${cls(r.perf1yPct)}`}>
+        <b>{signed(r.perf1yPct)}</b>
+        <small className="muted">{t("12 mois")}</small>
+      </span>
+      <span className={styles.rowBtns}>
+        <Link className="btn sm ghost" href={href}>
+          {t(desk ? "Voir la ligne" : "Voir la fiche")}
+        </Link>
+        {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />}
+      </span>
+    </li>
+  );
+}
+
+/**
  * La même liste des deux côtés.
  *
  * Rien n'est recopié : les rangées, les cartes, les filtres et le tri sont
@@ -171,6 +220,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const freq = (sp.get("vl") ?? "") as FundNav["frequency"] | "";
   const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
   const asc = (sp.get("sens") ?? NATURAL[sort]) === "asc";
+  const vueChoisie = sp.get("vue") as Vue | null;
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
     for (const [k, v] of Object.entries(patch)) {
@@ -308,6 +358,10 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   // The controls are not frozen any more: once they scroll out above, a floating « Filtrer · Trier » brings them back over the list.
   const phone = usePhone();
+  // Le téléphone garde sa carte par défaut, l'ordinateur son tableau : c'est ce
+  // que la page faisait déjà. Ce qui change est qu'un choix explicite l'emporte,
+  // et qu'il tient dans l'adresse comme sur les titres.
+  const vue: Vue = vueChoisie ?? (phone ? "cards" : "table");
   const sep = useDistinction();
   const toolsRef = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState(false);
@@ -432,6 +486,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               {t("Effacer")}
             </button>
           )}
+          <div className={styles.seg} role="group" aria-label={t("Affichage")}>
+            {(["table", "list", "cards"] as Vue[]).map((v) => (
+              <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
+                {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}
@@ -453,14 +514,21 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       </Sheet>
 
-      {rowsShown.length > 0 && phone && (
+      {rowsShown.length > 0 && vue === "cards" && (
         <section className={styles.cards} data-coach="fonds-table" data-sep={sep} ref={searchList}>
           {rowsShown.map((r) => (
             <FundCard key={r.id} r={r} />
           ))}
         </section>
       )}
-      {rowsShown.length > 0 && !phone && (
+      {rowsShown.length > 0 && vue === "list" && (
+        <ul className={styles.list} data-coach="fonds-table" ref={searchList as React.RefObject<HTMLUListElement>}>
+          {rowsShown.map((r) => (
+            <FundLi key={r.id} r={r} />
+          ))}
+        </ul>
+      )}
+      {rowsShown.length > 0 && vue === "table" && (
         <section className={styles.group} data-coach="fonds-table">
           <div className="scroll-x">
             <table className={styles.tbl}>

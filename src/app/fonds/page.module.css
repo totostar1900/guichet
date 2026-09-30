@@ -602,6 +602,95 @@
   gap: 14px;
 }
 
+/* Le sélecteur d'affichage, copié au trait près de celui des titres : deux
+   listes qui se ressemblent doivent se commander pareil. */
+.seg {
+  margin-left: auto;
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 3px;
+  background: var(--surface);
+}
+.seg button {
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  padding: 5px var(--s-6);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.seg button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+/* La vue Liste : un fonds d'un trait, sans colonnes. */
+.list {
+  list-style: none;
+  margin: var(--s-5) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-9);
+  padding: var(--s-6) var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+.liName {
+  display: grid;
+  gap: var(--s-1);
+  flex-grow: 1;
+  min-width: 0;
+}
+.liName a {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+.liName a:hover {
+  text-decoration: underline;
+}
+.liName small {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.liNav,
+.liPerf {
+  display: grid;
+  gap: var(--s-1);
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.liNav {
+  width: 7rem;
+}
+.liPerf {
+  width: 5.5rem;
+}
+.liNav b,
+.liPerf b {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.liNav small,
+.liPerf small {
+  font-size: 0.72rem;
+}
+@media (max-width: 760px) {
+  .li {
+    flex-wrap: wrap;
+    gap: var(--s-4) var(--s-7);
+  }
+  .liName {
+    flex-basis: 100%;
+  }
+}
+
 /* the phone: the toolbar lives in the sheet, the page shows the « Filtres · Tri » line */
 @media (max-width: 760px) {
   .deskTools {
