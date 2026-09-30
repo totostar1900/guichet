@@ -1,5 +1,6 @@
 import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
+import { REF_AUCTIONS, REF_OFFERS } from "@/data/reference";
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
@@ -122,7 +123,9 @@ const g = globalThis as unknown as { __guichetStore?: Store };
 function store(): Store {
   if (!g.__guichetStore) {
     g.__guichetStore = {
-      offers: structuredClone(SEED_OFFERS),
+      /* Les lignes de la production quand le semis de référence est là, le jeu
+         de démonstration sinon : on juge mal une densité qu'on n'a pas. */
+      offers: structuredClone(REF_OFFERS.length ? REF_OFFERS : SEED_OFFERS),
       intents: structuredClone(SEED_INTENTS),
       events: [
         { id: "e1", at: "2026-09-14T09:18:00", kind: "intent", html: "<b>Prise ferme</b> reçue de J.-P. O. sur OTA 6,25 % · 16 sept. 2028 · 10 000 000 FCFA · réf. PF-0914-017" },
@@ -161,7 +164,7 @@ function store(): Store {
       quotes: [],
       fundNavs: [],
       issuerDocs: [],
-      auctionResults: [],
+      auctionResults: structuredClone(REF_AUCTIONS),
       emissionNotices: [],
       beacCurves: [],
       seq: 17,
