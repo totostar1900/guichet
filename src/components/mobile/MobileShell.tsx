@@ -10,7 +10,7 @@ import { Sheet } from "./Sheet";
 import { MARKET_PAGES, currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
-import { isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -31,6 +31,13 @@ const I = {
   guichet: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M4 7h16M4 12h16M4 17h10" />
+    </svg>
+  ),
+  // Trader : une courbe qui monte vers une flèche, donc le geste et non l'objet.
+  trader: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 17l5-6 4 4 6-9" />
+      <path d="M14 6h6v6" />
     </svg>
   ),
   fonds: (
@@ -138,14 +145,18 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
    * de section.
    */
   const tabs: Tab[] = [
-    { href: "/", label: t("Portefeuille"), icon: I.moi, match: (p) => p === "/" || p.startsWith("/moi") },
+    { href: "/", label: t("Portefeuille"), icon: I.moi, match: isEspaceSection },
+    // Trader entre au dock : sans lui, les neuf services n'ont pas de porte sur
+    // téléphone, et c'est là que la plupart des clients lisent.
+    { href: "/trader", label: t("Trader"), icon: I.trader, match: (p) => p.startsWith("/trader") },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, sheet: true },
     // Le compteur porte les gestes, et la pastille dit combien. À zéro il mène
-    // quand même à la console : ce qui ne demande rien n'a pas d'urgence, mais
+    // quand même au portefeuille : ce qui ne demande rien n'a pas d'urgence, mais
     // la porte reste ouverte. Le compte, lui, vit déjà dans la barre du haut :
     // lui donner un cinquième siège serait une porte de plus vers la même pièce.
+    // Le Guide descend au menu « ⋮ », avec l'aide : on l'ouvre une fois, on ne
+    // l'habite pas, et un dock à cinq ne se vise plus au pouce.
     { href: "/#a-decider", label: t("À décider"), icon: I.fonds, match: () => false, badge: pendingCount },
-    { href: "/info", label: t("Guide"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
   ];
 
   return (

@@ -33,13 +33,19 @@ export const isFundsSection = (path: string): boolean => path.startsWith("/fonds
 export const isTitresSection = (path: string): boolean => path.startsWith(TITRES) || (path.startsWith("/offres") && !path.startsWith(FUND_FICHE));
 
 /**
- * L'espace du client : tout ce qui n'existe qu'une fois connecté.
+ * Le siège « Portefeuille » : ce que je possède, et ce qui en découle.
  *
- * La racine en fait partie, parce qu'un client connecté y trouve sa console.
- * Un visiteur n'y voit aucun onglet s'allumer, et c'est juste : il n'a pas
- * d'espace.
+ * La racine en fait partie, parce qu'un client connecté y trouve son
+ * portefeuille. Un visiteur n'y voit aucun onglet s'allumer, et c'est juste :
+ * il n'a rien à y voir.
+ *
+ * Il ne prend pas tout ce qui vit sous /moi. Le profil, la sécurité et la
+ * réclamation y vivent aussi et disent QUI JE SUIS, pas ce que j'ai : ils
+ * appartiennent au compte. La ligne de partage est la possession, jamais le
+ * préfixe de l'adresse.
  */
-export const isEspaceSection = (path: string): boolean => path === "/" || path.startsWith("/moi");
+const AU_COMPTE = ["/moi/profil", "/moi/securite", "/moi/reclamation"];
+export const isEspaceSection = (path: string): boolean => (path === "/" || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
 
 /**
  * La section « Marché », qui a absorbé le catalogue.

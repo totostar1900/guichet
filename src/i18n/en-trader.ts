@@ -13,6 +13,13 @@ export const EN_TRADER: Record<string, string> = {
     "Each move states where it stands, what it does for you right now with your own figures, and its steps in order. None describes a service in general.",
   "Allons-y": "Let's go",
   Trader: "Trader",
+
+  /* ---------- la barre à quatre sièges ---------- */
+  "Les pages de {s}": "The pages of {s}",
+  "La performance": "Performance",
+  Réinvestir: "Reinvest",
+  "le rendement pondéré par les flux, depuis l'origine": "the money-weighted return, since inception",
+  "où remettre un coupon ou un remboursement qui vient de tomber": "where to put back a coupon or a redemption that has just landed",
   /* « Portefeuille » et « Automatique » sont déjà traduits ailleurs : les
      redire ici en ferait deux vérités, et la dernière chargée gagnerait. */
   "Portefeuille › Espèces": "Portfolio › Cash",
