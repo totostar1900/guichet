@@ -23,7 +23,7 @@ export default async function SecurityPage() {
       <div className={styles.head}>
         <div>
           <div className="eyebrow">
-            <Link href="/moi">{t("Mon espace")}</Link> › {t("Sécurité")}
+            <Link href="/">{t("Portefeuille")}</Link> › {t("Sécurité")}
           </div>
           <h1 className="display">{t("Sécurité")}</h1>
           <p className={styles.lead}>{t("Deux canaux prouvés, e-mail et téléphone, et les appareils qui vous ouvrent le Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.")}</p>

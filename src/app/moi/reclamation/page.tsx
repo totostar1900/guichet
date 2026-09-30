@@ -34,7 +34,7 @@ export default async function ComplaintPage() {
       <div className={styles.head}>
         <div>
           <div className="eyebrow">
-            <Link href="/moi">{t("Mon espace")}</Link> › {t("Réclamation")}
+            <Link href="/">{t("Portefeuille")}</Link> › {t("Réclamation")}
           </div>
           <h1 className="display">{t("Déposer une réclamation")}</h1>
           <p className={styles.lead}>{t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}</p>

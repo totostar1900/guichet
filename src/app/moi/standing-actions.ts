@@ -69,7 +69,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
     html: `${s.ref} (${s.clientName}) : <b>épargne programmée</b> de ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois sur ${o?.title ?? p.data.offerId}`,
   });
   await audit("standing.create", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, amount: s.amount, dayOfMonth: s.dayOfMonth, endsOn: s.endsOn } });
-  revalidatePath("/moi");
+  revalidatePath("/");
   return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}.` };
 }
 
@@ -138,7 +138,7 @@ export async function createReinvestAction(_p: StandingResult | null, form: Form
     html: `${s.ref} (${s.clientName}) : <b>réinvestissement des encaissements</b> sur ${o?.title ?? p.data.offerId}${s.minAmount ? ` · à partir de ${fmt(s.minAmount)} FCFA` : ""}`,
   });
   await audit("standing.reinvest", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, minAmount: s.minAmount, source: s.source } });
-  revalidatePath("/moi");
+  revalidatePath("/");
   revalidatePath("/moi/reinvestir");
   return { ok: true, message: `Réinvestissement en place sur ${o?.title ?? "cette ligne"}. Référence ${s.ref}.` };
 }
@@ -162,6 +162,6 @@ export async function stopStandingAction(_p: StandingResult | null, form: FormDa
   await r.updateStandingOrder(s.id, { state: "annulee", stopReason: "arrêté par le client" });
   await r.logEvent({ kind: "intent", offerId: s.offerId, html: `${s.ref} (${s.clientName}) : épargne programmée <b>arrêtée</b> par le client` });
   await audit("standing.stop", "standing", s.id, { before: { state: s.state }, after: { state: "annulee" } });
-  revalidatePath("/moi");
+  revalidatePath("/");
   return { ok: true, message: "Versement arrêté. Rien ne partira le mois prochain." };
 }

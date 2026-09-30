@@ -23,7 +23,7 @@ export default async function ProfilPage() {
   return (
     <div className={styles.wrap}>
       <div className="eyebrow">
-        {s ? <Link href="/moi">{t("Mon espace")}</Link> : <Link href="/info">{t("Guide")}</Link>} › {t("Mon profil financier")}
+        {s ? <Link href="/">{t("Portefeuille")}</Link> : <Link href="/info">{t("Guide")}</Link>} › {t("Mon profil financier")}
       </div>
       {!s && (
         <p className={styles.guestNote}>

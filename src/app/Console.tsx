@@ -11,6 +11,7 @@ import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
 import { famillesDuPortefeuille, NOM_FAMILLE, type Famille } from "@/lib/domain/familles-actifs";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
+import { Releve } from "./moi/Releve";
 import styles from "./Console.module.css";
 
 /**
@@ -228,7 +229,8 @@ export async function Console({ session }: { session: Session }) {
         <section>
           <div className={styles.tete}>
             <b>{t("Vos lignes")}</b>
-            <Link href="/moi">{t("Le relevé")} →</Link>
+            {/* Le relevé est plus bas sur cette page, il n'est plus ailleurs. */}
+            <a href="#releve">{t("Le relevé")} ↓</a>
           </div>
           <div className={styles.lignes}>
             {positions.map((p) => (
@@ -255,6 +257,13 @@ export async function Console({ session }: { session: Session }) {
         <span>{t("{a} en place · {b} à activer", { a: compte.en_place, b: compte.a_activer })}</span>
         <em>→</em>
       </Link>
+
+      {/* 7. LE RELEVÉ, qui était une page à lui seul sous /moi. Il posait la
+          même question que tout ce qui précède, « qu'est-ce que je possède »,
+          et deux pages pour une question sont une de trop : on ne savait jamais
+          laquelle ouvrir. Ses six sections arrivent repliées : le portefeuille
+          garde au repos la longueur qu'il avait. */}
+      <Releve session={session} />
 
     </div>
   );

@@ -115,7 +115,7 @@ export function AccountMenu(p: AccountProps) {
   };
 
   const mine: { key: string; icon: string; label: string; sub: string; href: string }[] = [
-    { key: "espace", icon: D.espace, label: t(p.desk ? "Le desk" : "Mon espace"), sub: t(p.desk ? "intentions, lignes, documents" : "intentions, positions, documents"), href: p.desk ? "/desk" : "/moi" },
+    { key: "espace", icon: D.espace, label: t(p.desk ? "Le desk" : "Portefeuille"), sub: t(p.desk ? "intentions, lignes, documents" : "intentions, positions, documents"), href: p.desk ? "/desk" : "/" },
     { key: "profil", icon: D.profil, label: t("Mon profil financier"), sub: t("horizon, tolérance, connaissance, capacité"), href: "/moi/profil" },
     { key: "securite", icon: D.shield, label: t("Sécurité"), sub: t("canaux prouvés, appareils, code"), href: "/moi/securite" },
     { key: "pieces", icon: D.papers, label: t("Mes coordonnées et pièces"), sub: p.kycStatus && KYC_HINT[p.kycStatus] ? t(KYC_HINT[p.kycStatus]) : t("adresse, pièce d'identité, RIB, dossier"), href: p.kycStatus ? "/ouvrir-un-compte" : "/moi#coordonnees" },

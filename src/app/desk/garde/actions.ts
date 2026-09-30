@@ -135,7 +135,7 @@ export async function emettreAvis(_p: GardeResult | null, form: FormData): Promi
     html: `<b>Droits de garde ${periode.cle}</b> : ${emis} avis émis, ${fmt(preleve)} FCFA prélevés · par ${escapeHtml(me.name)}`,
   });
   revalidatePath("/desk/garde");
-  revalidatePath("/moi");
+  revalidatePath("/");
   return {
     ok: true,
     message: preleve > 0 ? `${emis} avis émis, ${fmt(preleve)} FCFA prélevés.` : `${emis} avis émis. Le barème étant fermé, rien n'a été prélevé.`,

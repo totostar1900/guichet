@@ -71,6 +71,6 @@ export async function porterAuJournal(_p: EncaissementResult | null, form: FormD
     return { ok: false, error: "Cette échéance est déjà portée au journal." };
   }
   revalidatePath("/desk/encaissements");
-  revalidatePath("/moi");
+  revalidatePath("/");
   return { ok: true, message: `${fmt(amount)} FCFA inscrits au journal du client.` };
 }

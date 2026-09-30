@@ -34,7 +34,7 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
     return (
       <div className={styles.done}>
         <b>{state.message}</b>
-        <Link href="/moi">{t("Voir mes versements programmés")} →</Link>
+        <Link href="/">{t("Voir mes versements programmés")} →</Link>
       </div>
     );
   }

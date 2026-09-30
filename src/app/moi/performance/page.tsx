@@ -47,8 +47,8 @@ export default async function PerformancePage() {
   if (!p.lines.length) {
     return (
       <div className={styles.page}>
-        <Link href="/moi" className={styles.back}>
-          ← {t("Mon espace")}
+        <Link href="/" className={styles.back}>
+          ← {t("Portefeuille")}
         </Link>
         <h1 className="display">{t("Ce que votre épargne a rapporté")}</h1>
         <p className="muted">{t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}</p>
@@ -61,8 +61,8 @@ export default async function PerformancePage() {
 
   return (
     <div className={styles.page}>
-      <Link href="/moi" className={styles.back}>
-        ← {t("Mon espace")}
+      <Link href="/" className={styles.back}>
+        ← {t("Portefeuille")}
       </Link>
       <h1 className="display">{t("Ce que votre épargne a rapporté")}</h1>
       <p className={styles.lead}>

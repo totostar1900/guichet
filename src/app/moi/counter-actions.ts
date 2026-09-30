@@ -44,7 +44,7 @@ export async function answerCounter(form: FormData): Promise<void> {
     await audit("intent.counter.refused", "intent", intentId, { before: it.counter, after: { state: "recue" }, reason: lapsed ? "échéance dépassée" : "refus du client" });
     await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>${lapsed ? "caduque" : "refusée"}</b>${terms ? ` · ${terms}` : ""}` });
     if (offer && !lapsed) await notifyIntentUpdated(updated, offer, "recue");
-    revalidatePath("/moi");
+    revalidatePath("/");
     revalidatePath("/desk");
     return;
   }
@@ -59,6 +59,6 @@ export async function answerCounter(form: FormData): Promise<void> {
   await audit("intent.counter.accepted", "intent", intentId, { before: { amount: it.amount, limitPrice: it.limitPrice }, after: { amount: updated.amount, limitPrice: updated.limitPrice }, reason: terms });
   await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>acceptée</b>${terms ? ` · ${terms}` : ""}` });
   if (offer) await notifyIntentUpdated(updated, offer, "confirmee");
-  revalidatePath("/moi");
+  revalidatePath("/");
   revalidatePath("/desk");
 }

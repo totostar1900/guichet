@@ -67,7 +67,7 @@ export default async function ReinvestirPage() {
   return (
     <div className={styles.page}>
       <nav className={styles.fil}>
-        <Link href="/moi">{t("Mon espace")}</Link>
+        <Link href="/">{t("Portefeuille")}</Link>
       </nav>
       <header>
         <h1>{t("Réinvestir vos encaissements")}</h1>

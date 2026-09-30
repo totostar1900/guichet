@@ -41,7 +41,7 @@ export function ComplaintForm({ ops, phoneProven, phone, email }: { ops: { ref: 
           </label>
           {prep && !prep.ok && <p className={styles.err}>{prep.error}</p>}
           <div className={styles.foot}>
-            <Link className="btn sm ghost" href="/moi">
+            <Link className="btn sm ghost" href="/">
               {t("Annuler")}
             </Link>
             <button type="submit" className="btn sm primary" disabled={preparing}>

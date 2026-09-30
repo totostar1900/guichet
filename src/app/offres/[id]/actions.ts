@@ -160,7 +160,7 @@ export async function toggleWatch(offerId: string, on: boolean): Promise<{ ok: b
     return { ok: false, watching: false }; // table missing (migration 0014) : the button stays off
   }
   revalidatePath(`/offres/${offerId}`);
-  revalidatePath("/moi");
+  revalidatePath("/");
   return { ok: true, watching: on };
 }
 
@@ -178,7 +178,7 @@ export async function checkPhoneProof(rawPhone: string, code: string): Promise<P
   const res = await confirmPhoneProof(session.userId, rawPhone, code);
   if (res.ok) {
     revalidatePath(`/offres`);
-    revalidatePath("/moi");
+    revalidatePath("/");
   }
   return res;
 }

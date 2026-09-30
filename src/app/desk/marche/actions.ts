@@ -155,7 +155,7 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
 
   revalidatePath("/desk/marche");
   revalidatePath("/desk");
-  revalidatePath("/moi");
+  revalidatePath("/");
   return { ok: true, message: (o.kind === "FONDS" ? `Exécuté : ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts. Passez en réglé à réception de l'avis du dépositaire.` : `Exécuté : ${fmt(units)} unité(s). Passez l'ordre en réglé après le règlement T+${o.settlementDays ?? 3}.`) + switched };
 }
 
@@ -179,7 +179,7 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   await notifyIntentUpdated(updated, o, "reglee", desk.name);
   revalidatePath("/desk/marche");
   revalidatePath("/desk");
-  revalidatePath("/moi");
+  revalidatePath("/");
   return { ok: true, message: "Réglé : position mise à jour, avis d'opéré généré." };
 }
 

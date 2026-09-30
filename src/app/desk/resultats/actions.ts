@@ -49,7 +49,7 @@ export async function applySettlementAction(_p: ResultsOutcome | null, form: For
     revalidatePath("/desk");
     revalidatePath("/desk/resultats");
     revalidatePath("/desk/documents");
-    revalidatePath("/moi");
+    revalidatePath("/");
     return { ok: true, message: `Règlement confirmé : ${n} ordre${n > 1 ? "s" : ""} réglé${n > 1 ? "s" : ""}, avis d'opéré générés.` };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Échec." };
