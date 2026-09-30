@@ -35,11 +35,11 @@ export async function UserMenu({ session, deskUi, account }: { session: Session 
           <AccountMenu {...account} />
         </span>
       )}
-      <Link href={t(deskUi ? "/desk" : "/moi")} className={styles.who}>
+      <Link href={deskUi ? "/desk" : "/"} className={styles.who}>
         <b>{session.name}</b>
         <span>{deskUi ? "Desk" : t(session.segment)}</span>
       </Link>
-      <Link href={t(deskUi ? "/desk" : "/moi")} className={`${styles.avatar} ${deskUi ? styles.desk : ""} ${account ? styles.full : ""}`} title={session.email ?? session.segment}>
+      <Link href={deskUi ? "/desk" : "/"} className={`${styles.avatar} ${deskUi ? styles.desk : ""} ${account ? styles.full : ""}`} title={session.email ?? session.segment}>
         {initials}
       </Link>
       {session.role === "client" && session.tier < 2 && (
