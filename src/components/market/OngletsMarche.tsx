@@ -22,7 +22,7 @@ const ONGLETS = [
   { href: "/marche", label: "Vue d'ensemble", match: (p: string) => p === "/marche" },
   { href: TITRES, label: "Titres", match: isTitresSection },
   { href: "/fonds", label: "Fonds", match: isFundsSection },
-  { href: "/calendrier", label: "Séances", match: (p: string) => p.startsWith("/calendrier") },
+  { href: "/calendrier", label: "Adjudications", match: (p: string) => p.startsWith("/calendrier") },
   { href: "/indice", label: "Indice et analyses", match: (p: string) => p.startsWith("/indice") || p.startsWith("/societes") || p.startsWith("/emetteurs") },
 ];
 

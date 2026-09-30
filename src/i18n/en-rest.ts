@@ -902,6 +902,7 @@ export const EN_REST: Record<string, string> = {
   "Les annonces de la BEAC ne répondent pas en ce moment : cette page ne peut rien affirmer sur les séances à venir.": "BEAC's announcements are not responding right now : this page cannot state anything about upcoming sessions.",
   "Le calendrier des adjudications": "The auction calendar",
   "Le calendrier": "The calendar",
+  "Les adjudications des six Trésors": "The six Treasuries' auctions",
   "les séances des six Trésors, annoncées environ une semaine avant": "the six Treasuries' sessions, announced about a week ahead",
   "cette fiche": "this line",
   "Sans échéance": "No maturity",

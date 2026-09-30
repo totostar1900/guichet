@@ -135,7 +135,7 @@ export default async function CalendrierPage() {
   return (
     <div className={styles.page}>
       <OngletsMarche />
-      <h1 className="display">{t("Calendrier des adjudications")}</h1>
+      <h1 className="display">{t("Adjudications")}</h1>
       <p className={styles.lead}>
         {t("Les séances d'émission des six Trésors de la CEMAC, reprises des annonces de la BEAC. Une adjudication s'annonce environ une semaine avant sa séance : cette page suit ce rythme.")}
       </p>

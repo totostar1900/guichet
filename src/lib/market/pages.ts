@@ -36,7 +36,11 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", hint: "deux titres côte à côte, avec l'indice en repère" },
   // Le primaire de la zone, qui n'est pas la cote : les six Trésors, et le seul
   // endroit où leurs séances se lisent ensemble.
-  { key: "calendrier", href: "/calendrier", label: "Le calendrier des adjudications", short: "Le calendrier", hint: "les séances des six Trésors, annoncées environ une semaine avant" },
+  //
+  // « Séances » puis « Le calendrier » nommaient le contenant et non l'opération :
+  // un calendrier porte n'importe quoi. « Adjudications » est le mot que la maison
+  // emploie déjà partout ailleurs, et c'est le geste lui-même.
+  { key: "calendrier", href: "/calendrier", label: "Les adjudications des six Trésors", short: "Adjudications", hint: "les séances des six Trésors, annoncées environ une semaine avant" },
   // Le Guide est servi sur les deux domaines : une seule adresse suffit.
   { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
