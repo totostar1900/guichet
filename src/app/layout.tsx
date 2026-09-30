@@ -29,7 +29,7 @@ import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
 import { PaletteKeeper } from "@/components/PaletteSwitch";
 import { BarProbe } from "@/components/mobile/BarProbe";
 import { cookies, headers } from "next/headers";
-import { deskSplit, isDeskHost } from "@/lib/hosts";
+import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
@@ -46,6 +46,17 @@ const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "8
 const titre = Instrument_Serif({ subsets: ["latin"], weight: ["400"], variable: "--font-titre", display: "swap" });
 
 export const metadata: Metadata = {
+  /**
+   * L'origine des adresses absolues d'une carte de partage.
+   *
+   * Sans elle, Next la devine, et en production elle tombait sur l'hôte du
+   * desk : chaque ligne partagée sur WhatsApp portait une image hébergée sur
+   * « desk.purposecapital.africa », que le proxy renvoyait ensuite vers le
+   * hôte client. Cela marchait par accident, cela montrait une adresse qui ne
+   * regarde personne, et cela dépendait d'une redirection dans la main d'un
+   * robot. Tout ce qui se partage vit sur le hôte client : il est nommé ici.
+   */
+  metadataBase: new URL(clientOrigin() || "http://localhost:3000"),
   title: { default: `${PRODUCT.name} · ${COMPANY.name}`, template: `%s · ${PRODUCT.name}` },
   description: "Opportunités et instruments financiers en CEMAC : titres publics, BVMAC, opérations de marché.",
   applicationName: "Guichet",
