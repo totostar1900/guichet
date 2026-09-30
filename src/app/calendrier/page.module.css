@@ -70,3 +70,14 @@
   line-height: 1.5;
   max-width: 68ch;
 }
+
+/* Ce que le desk a lu de la séance : la seule ligne de la rangée qui soit de
+   nous, donc la seule qui porte l'or. */
+.lue {
+  color: var(--ink-2);
+}
+.lue b {
+  color: var(--gold-ink);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}

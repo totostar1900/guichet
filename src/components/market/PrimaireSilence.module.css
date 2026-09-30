@@ -1,0 +1,53 @@
+/* Un creux nommé : une bande à filet d'or, jamais une alerte. Le silence du
+   marché primaire est un fait du marché, pas un incident de la plateforme, et
+   le rouge lui donnerait un sens qu'il n'a pas. */
+.bande {
+  display: flex;
+  align-items: center;
+  gap: var(--s-9);
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--gold-line);
+  border-left-width: 2px;
+  border-left-color: var(--gold);
+  padding: var(--s-8) var(--s-9);
+  margin-bottom: var(--s-9);
+}
+.dire {
+  flex-grow: 1;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.etiquette {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.dire b {
+  font-size: 0.95rem;
+}
+.dire p {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.geste {
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  padding: var(--s-6) var(--s-9);
+  white-space: nowrap;
+}
+.geste:hover {
+  border-color: var(--ink-3);
+}

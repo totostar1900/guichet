@@ -3,7 +3,7 @@ import { repo } from "@/lib/data";
 import { loadBeacAuctions } from "@/lib/market/beac-feed";
 import { beacLabel, resultsFor, BEAC_ANNONCES, type BeacAuction } from "@/lib/market/beac";
 import { daysBetween } from "@/lib/finance";
-import { fmtDate, localIso } from "@/lib/format";
+import { fmt, fmtDate, localIso } from "@/lib/format";
 import type { Offer } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -42,7 +42,7 @@ export async function generateMetadata() {
 export default async function CalendrierPage() {
   const t = await getT();
   const today = localIso(new Date());
-  const [feed, offers] = await Promise.all([loadBeacAuctions(), repo().listOffers()]);
+  const [feed, offers, lues] = await Promise.all([loadBeacAuctions(), repo().listOffers(), repo().listAuctionResults({ limit: 2000 }).catch(() => [])]);
   const annonces = feed.auctions.filter((a) => a.kind === "annonce" && a.on);
   const devant = annonces.filter((a) => a.on! >= today).sort((a, b) => a.on!.localeCompare(b.on!));
   const passees = annonces.filter((a) => a.on! < today).sort((a, b) => b.on!.localeCompare(a.on!)).slice(0, 8);
@@ -57,9 +57,28 @@ export default async function CalendrierPage() {
     return near.length === 1 ? near[0] : undefined;
   };
 
+  /**
+   * Ce que NOUS avons lu de cette séance.
+   *
+   * La page renvoyait au communiqué de la BEAC et s'arrêtait là : un PDF scanné
+   * à ouvrir soi-même, alors que le desk a relu la séance et que le chiffre est
+   * en base. Le lecteur avait le document, nous avions la lecture, et les deux
+   * ne se rencontraient pas.
+   *
+   * Le rapprochement se fait sur le pays, le compartiment et la date, à trois
+   * jours près : le communiqué d'annonce porte la date de séance, et le
+   * dépouillement la reprend parfois au lendemain. Au-delà, ce serait deviner,
+   * et on préfère ne rien dire.
+   */
+  const lueDe = (a: BeacAuction) =>
+    a.on && a.country && a.instrument
+      ? lues.find((x) => !x.setAsideAt && x.confirmedBy && x.country === a.country && x.instrument === a.instrument && Math.abs(daysBetween(a.on!, x.sessionOn)) <= 3)
+      : undefined;
+
   const row = (a: BeacAuction, past: boolean) => {
     const o = past ? undefined : matching(a);
     const res = resultsFor(a, feed.auctions);
+    const lue = past ? lueDe(a) : undefined;
     return (
       <li key={a.doc.url} className={styles.row}>
         <span className={styles.when}>
@@ -68,6 +87,22 @@ export default async function CalendrierPage() {
         </span>
         <span className={styles.what}>
           <b>{beacLabel(a)}</b>
+          {/* Ce que la séance a payé, quand le desk l'a relue. Le taux d'un bon
+              est précompté, une obligation se sert à un prix : les deux ne se
+              mélangent pas, et l'étiquette le dit plutôt que de laisser croire
+              à un taux là où il y a un prix. */}
+          {lue ? (
+            <small className={styles.lue}>
+              {lue.instrument === "BTA" && lue.rateAvg != null ? (
+                <b>{t("Taux moyen servi {v}", { v: `${lue.rateAvg.toFixed(2).replace(".", ",")} %` })}</b>
+              ) : lue.priceAvg != null ? (
+                <b>{t("Prix moyen servi {v}", { v: `${lue.priceAvg.toFixed(3).replace(".", ",")} %` })}</b>
+              ) : (
+                <b>{t("Séance relue, sans prix publié")}</b>
+              )}
+              {lue.served != null && lue.bid != null && lue.served > 0 ? <span className="muted"> · {t("{b} demandé, {s} servi", { b: fmt(lue.bid), s: fmt(lue.served) })}</span> : null}
+            </small>
+          ) : null}
           <small className="muted">
             <a href={a.doc.url} target="_blank" rel="noreferrer">
               {t("Communiqué de la BEAC")}

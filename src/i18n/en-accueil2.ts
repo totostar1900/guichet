@@ -11,6 +11,17 @@
  * not headings.
  */
 export const EN_ACCUEIL2: Record<string, string> = {
+  /* ---------- le creux du primaire, et ce que le desk a lu d'une séance ---------- */
+  "Aucune séance d'adjudication n'est ouverte en ce moment.": "No auction session is open at the moment.",
+  "La dernière séance de la zone s'est tenue le {d}. Les Trésors annoncent par vagues, souvent une semaine avant la séance : le calendrier suit ce rythme et vous préviendra dès la prochaine annonce.":
+    "The last session of the zone was held on {d}. The Treasuries announce in waves, often a week before the session: the calendar follows that rhythm and will tell you from the next announcement.",
+  "Les Trésors annoncent par vagues, souvent une semaine avant la séance : le calendrier suit ce rythme et vous préviendra dès la prochaine annonce.":
+    "The Treasuries announce in waves, often a week before the session: the calendar follows that rhythm and will tell you from the next announcement.",
+  "Taux moyen servi {v}": "Average rate awarded {v}",
+  "Prix moyen servi {v}": "Average price awarded {v}",
+  "Séance relue, sans prix publié": "Session reviewed, with no price published",
+  "{b} demandé, {s} servi": "{b} bid, {s} awarded",
+
   /* ---------- la connexion, quand elle ouvre un compte ---------- */
   "Ouvrir votre compte-titres": "Open your securities account",
   "Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.":
