@@ -31,6 +31,8 @@ import { BarProbe } from "@/components/mobile/BarProbe";
 import { cookies, headers } from "next/headers";
 import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
+import { ADecider } from "@/components/ADecider";
+import { compterAttentes } from "@/lib/domain/contexte-client";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
@@ -100,7 +102,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const onDeskHost = isDeskHost(hdrs.get("host"));
   const deskUi = desk && (!deskSplit() || onDeskHost);
   const navMode = deskSplit() ? (onDeskHost ? "desk" : "client") : "all";
-  const [account, profile] = session ? await Promise.all([accountLine(session.userId), desk ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined)]) : [undefined, undefined];
+  const [account, profile, attentes] = session
+    ? await Promise.all([accountLine(session.userId), desk ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined), desk ? 0 : compterAttentes(session.userId)])
+    : [undefined, undefined, 0];
   const security = desk ? undefined : account?.security;
   // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
   const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
@@ -129,6 +133,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <NavTabs counts={navCounts} mode={navMode} connecte={Boolean(session)} />
             <div className={styles.right}>
+              {/* Ce qui attend une décision, visible depuis n'importe quelle page. */}
+              {session && !desk && <ADecider n={attentes} />}
               {backend === "memory" && (
                 <span className={styles.backend} title={t("Aucun backend configuré : données de démonstration en mémoire")}>
                   {t("démo · mémoire")}

@@ -10,7 +10,7 @@ import { Sheet } from "./Sheet";
 import { MARKET_PAGES, currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
-import { isFundsSection, isTitresSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -23,7 +23,7 @@ export const LAST_LIST_KEY = "guichet:lastList";
 
 // Une racine ne porte pas de flèche de retour : c'est une destination du dock.
 // « /titres » en est une depuis que « / » est devenu la console.
-const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites"];
+const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites", "/marche"];
 
 type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; /** l'onglet lève une feuille au lieu d'ouvrir une page */ sheet?: boolean };
 
@@ -128,14 +128,23 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
   };
 
   const t = useT();
+  /**
+   * Quatre destinations, et c'est la même règle que la bande de l'écran large.
+   *
+   * Le dock portait cinq onglets rangés par instrument. Un client se connecte
+   * pour voir ce qu'il a et pour traiter : le portefeuille et le marché
+   * suffisent à porter les deux, « À décider » porte les gestes, et le compte
+   * porte le reste. Titres et Fonds tiennent sous « Marché », en deux onglets
+   * de section.
+   */
   const tabs: Tab[] = [
-    { href: TITRES, label: t("Titres"), icon: I.guichet, match: isTitresSection },
-    { href: "/fonds", label: t("Fonds"), icon: I.fonds, match: isFundsSection },
-    { href: "/marche", label: t("Marché"), icon: I.actualites, match: isMarketPath, sheet: true },
-    // Connecté, « Mon espace » ouvre la console : la même porte que sur le
-    // rail de bureau. Déconnecté, « / » est la page d'accueil publique et
-    // l'onglet doit mener au compte, donc il reste sur /moi.
-    { href: signedIn ? "/" : "/moi", label: t("Mon espace"), icon: I.moi, match: (p) => (signedIn && p === "/") || p.startsWith("/moi") || p.startsWith("/ouvrir-un-compte") || p.startsWith("/connexion"), badge: pendingCount },
+    { href: "/", label: t("Portefeuille"), icon: I.moi, match: (p) => p === "/" || p.startsWith("/moi") },
+    { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, sheet: true },
+    // Le compteur porte les gestes, et la pastille dit combien. À zéro il mène
+    // quand même à la console : ce qui ne demande rien n'a pas d'urgence, mais
+    // la porte reste ouverte. Le compte, lui, vit déjà dans la barre du haut :
+    // lui donner un cinquième siège serait une porte de plus vers la même pièce.
+    { href: "/#a-decider", label: t("À décider"), icon: I.fonds, match: () => false, badge: pendingCount },
     { href: "/info", label: t("Guide"), icon: I.apprendre, match: (p) => p.startsWith("/info") || p.startsWith("/comparer") },
   ];
 

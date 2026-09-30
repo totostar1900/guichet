@@ -22,6 +22,13 @@ export const EN_ACCUEIL2: Record<string, string> = {
   "Séance relue, sans prix publié": "Session reviewed, with no price published",
   "{b} demandé, {s} servi": "{b} bid, {s} awarded",
 
+  /* ---------- la bande à deux onglets, et le compteur ---------- */
+  Portefeuille: "Portfolio",
+  "À décider": "To decide",
+  "{n} décisions vous attendent": "{n} decisions are waiting for you",
+  "Vue d'ensemble": "Overview",
+  "Indice et analyses": "Index and analysis",
+
   /* ---------- la connexion, quand elle ouvre un compte ---------- */
   "Ouvrir votre compte-titres": "Open your securities account",
   "Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.":

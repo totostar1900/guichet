@@ -8,6 +8,7 @@ import { quarters } from "@/lib/market/index-quarter";
 import { loadCompanies } from "@/lib/reference";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { OngletsMarche } from "@/components/market/OngletsMarche";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Le marché" };
@@ -40,6 +41,7 @@ export default async function MarchePage() {
 
   return (
     <>
+      <OngletsMarche />
       <header className={styles.head}>
         <div className="eyebrow">BVMAC · {t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}</div>
         <h1 className="display">{t("Le marché")}</h1>

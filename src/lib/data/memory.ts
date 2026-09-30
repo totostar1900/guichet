@@ -123,9 +123,19 @@ const g = globalThis as unknown as { __guichetStore?: Store };
 function store(): Store {
   if (!g.__guichetStore) {
     g.__guichetStore = {
-      /* Les lignes de la production quand le semis de référence est là, le jeu
-         de démonstration sinon : on juge mal une densité qu'on n'a pas. */
-      offers: structuredClone(REF_OFFERS.length ? REF_OFFERS : SEED_OFFERS),
+      /**
+       * Les lignes de la production S'AJOUTENT au jeu de démonstration, elles
+       * ne le remplacent pas.
+       *
+       * Les remplacer a vidé le portefeuille du client de démonstration d'un
+       * coup : ses intentions citent les identifiants du jeu de départ, et sans
+       * les lignes correspondantes elles ne se rattachent plus à rien.
+       * L'environnement d'essai montrait alors cent une lignes au catalogue et
+       * un portefeuille vide, ce qui est exactement l'écran qu'on ne voulait
+       * pas juger. Le jeu de démonstration passe donc en premier et garde la
+       * main sur les identifiants qu'il porte.
+       */
+      offers: structuredClone(REF_OFFERS.length ? [...SEED_OFFERS, ...REF_OFFERS.filter((o) => !SEED_OFFERS.some((s) => s.id === o.id))] : SEED_OFFERS),
       intents: structuredClone(SEED_INTENTS),
       events: [
         { id: "e1", at: "2026-09-14T09:18:00", kind: "intent", html: "<b>Prise ferme</b> reçue de J.-P. O. sur OTA 6,25 % · 16 sept. 2028 · 10 000 000 FCFA · réf. PF-0914-017" },

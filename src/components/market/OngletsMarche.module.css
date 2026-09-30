@@ -1,0 +1,42 @@
+/* Les onglets d'une section : un filet sous la rangée, un trait actif de deux
+   pixels sous l'onglet courant. Le transparent de même épaisseur sur les autres
+   empêche la rangée de sauter d'un pixel au changement. */
+.onglets {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-9);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-9);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.onglets::-webkit-scrollbar {
+  display: none;
+}
+.onglet {
+  padding: var(--s-6) 0 var(--s-6);
+  border-bottom: 2px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.onglet:hover {
+  color: var(--ink);
+}
+.onglet[aria-current="page"] {
+  color: var(--ink);
+  border-bottom-color: var(--accent, var(--navy));
+}
+
+@media (max-width: 760px) {
+  .onglets {
+    gap: var(--s-8);
+    margin-bottom: var(--s-8);
+  }
+  .onglet {
+    font-size: 0.78rem;
+  }
+}

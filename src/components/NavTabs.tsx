@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
-import { isEspaceSection, isFundsSection, isTitresSection, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isMarcheSection } from "@/lib/nav-section";
 
 /**
  * Deux axes, et le second manquait.
@@ -20,27 +20,28 @@ import { isEspaceSection, isFundsSection, isTitresSection, TITRES } from "@/lib/
  * Il ne parait pas a qui ne l est pas : un visiteur n a pas d espace.
  */
 const TABS = [
-  { href: "/", label: "Mon espace", match: isEspaceSection, connecte: true },
-  { href: "/moi/services", label: "Services", match: (p: string) => p.startsWith("/moi/services"), connecte: true },
-  { href: TITRES, label: "Titres", match: isTitresSection, connecte: true },
-  { href: "/fonds", label: "Fonds", match: isFundsSection, connecte: true },
-  // « Marché » porte l'environnement BVMAC : l'indice, les sociétés, les notes.
-  // Les actualités gardent leur onglet : elles couvrent cinq rubriques, dont la BVMAC
-  // n'est qu'une, et elles se collectent indépendamment de ce que nous publions.
-  //
-  // C'est le seul onglet à ouvrir un menu, parce que c'est le seul à porter une
-  // famille de pages plutôt qu'une page. La bande « Sur le même sujet » dit la
-  // même famille au pied de chaque article : elle sert celui qui vient de lire,
-  // le menu sert celui qui cherche, et les deux se lisent dans MARKET_PAGES.
-  {
-    href: "/marche",
-    label: "Marché",
-    menu: true,
-    connecte: true,
-    match: (p: string) => p.startsWith("/marche") || p.startsWith("/societes") || p.startsWith("/indice") || p.startsWith("/emetteurs") || p.startsWith("/calendrier"),
-  },
-  { href: "/actualites", label: "Actualités", match: (p: string) => p.startsWith("/actualites"), connecte: true },
-  { href: "/info", label: "Guide", match: (p: string) => (p.startsWith("/info") && !p.startsWith("/info/risques")) || p.startsWith("/comparer") },
+  /**
+   * DEUX ONGLETS, ET PAS SIX.
+   *
+   * La bande rangeait par TYPE D'INSTRUMENT : Titres, Fonds, Marché, Actualités.
+   * C'est l'axe d'un catalogue, et il demande de savoir ce qu'on cherche avant
+   * de servir. Un client se connecte pour deux choses, voir ce qu'il a et
+   * traiter ; tout le reste est un moyen. « Titres » et « Fonds » occupaient
+   * deux sièges pour deux façons d'acheter la même chose : ils tiennent
+   * maintenant sous « Marché », en deux onglets de section, parce qu'un fonds
+   * ne se lit pas comme une ligne mais s'achète au même endroit.
+   *
+   * Le Guide, les actualités et les services quittent la bande pour le menu du
+   * compte : ce sont des destinations qu'on ouvre, pas des axes qu'on habite.
+   */
+  { href: "/", label: "Portefeuille", match: isEspaceSection, connecte: true },
+  // Le seul onglet à ouvrir un menu, parce que c'est le seul à porter une
+  // famille de pages plutôt qu'une page : les titres, les fonds, les séances
+  // annoncées, l'indice, les sociétés, les analyses. La bande « Sur le même
+  // sujet » dit la même famille au pied de chaque article, et les deux se
+  // lisent dans MARKET_PAGES.
+  { href: "/marche", label: "Marché", menu: true, connecte: true, match: isMarcheSection },
+  { href: "/info", label: "Guide", match: (p: string) => (p.startsWith("/info") && !p.startsWith("/info/risques")) || p.startsWith("/comparer"), visiteur: true },
   /* Les deux adresses qu'un visiteur peut lire en plus du guide. Elles ne
      paraissent qu'à lui : connecté, les publications vivent dans le menu
      « Marché » et les risques au pied de page. */
@@ -89,8 +90,9 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: {
         const link = (
           <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
             {t(tab.label)}
-            {counts && tab.href === TITRES && <b className={styles.count}>{counts.titres}</b>}
-            {counts && tab.href === "/fonds" && <b className={styles.count}>{counts.fonds}</b>}
+            {/* Le compte de « Marché » est celui de tout ce qui s'achète : les
+                deux chiffres tenaient sous deux onglets, ils tiennent sous un. */}
+            {counts && tab.href === "/marche" && <b className={styles.count}>{counts.titres + counts.fonds}</b>}
           </Link>
         );
         if (!tab.menu) return link;

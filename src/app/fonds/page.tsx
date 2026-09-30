@@ -1,4 +1,5 @@
 import { FondsBody } from "./FondsBody";
+import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -9,5 +10,10 @@ export async function generateMetadata() {
 }
 
 export default async function FondsPage() {
-  return <FondsBody />;
+  return (
+    <>
+      <OngletsMarche />
+      <FondsBody />
+    </>
+  );
 }

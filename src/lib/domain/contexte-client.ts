@@ -1,0 +1,89 @@
+import "server-only";
+import { cache } from "react";
+import { repo } from "@/lib/data";
+import { loadBeacAuctions } from "@/lib/market/beac-feed";
+import type { BeacAuction } from "@/lib/market/beac";
+import { positionsFrom } from "@/lib/positions";
+import { cashPosition } from "@/lib/domain/cash";
+import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
+import { attentesDuClient, type ContexteClient } from "@/lib/domain/services";
+import { getT } from "@/i18n/server";
+import { fmt, fmtDate, localIso } from "@/lib/format";
+
+/**
+ * Ce que la maison sait d'un client, assemblé une fois.
+ *
+ * TROIS ENDROITS LE DEMANDAIENT, chacun le fabriquait. La console, la page des
+ * services, et maintenant le compteur « À décider » de la bande, qui paraît sur
+ * toutes les pages. Trois assemblages veulent dire trois occasions de diverger,
+ * et un compteur qui annoncerait deux décisions devant une page qui en montre
+ * trois est pire que pas de compteur du tout.
+ *
+ * `cache` de React fait le reste : la bande et la page se rendent dans la même
+ * requête, donc l'assemblage coûte une fois pour les deux. Le seul appel
+ * réseau, les annonces de la BEAC, porte déjà son propre cache d'une heure.
+ */
+export const contexteDuClient = cache(async (userId: string): Promise<ContexteClient> => {
+  const t = await getT();
+  const r = repo();
+  const aujourdHui = localIso(new Date());
+
+  const [intents, offers, cash, standing, avis, feed] = await Promise.all([
+    r.listIntents(),
+    r.listOffers(),
+    r.listCash(userId).catch(() => []),
+    r.listStandingOrders(userId).catch(() => []),
+    r.listCustodyNotices({ userId }).catch(() => []),
+    loadBeacAuctions().catch(() => ({ auctions: [] as BeacAuction[] })),
+  ]);
+
+  const mine = intents.filter((i) => i.clientId === userId);
+  const positions = positionsFrom(mine, offers);
+  const poche = cashPosition(cash, mine);
+  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const b = bilan(suivre(lignes, cash));
+  const part = positions.find((p) => p.offer.kind === "FONDS");
+  const action = positions.find((p) => p.offer.kind === "ACTIONS");
+  const reinv = standing.find((x) => x.state === "active" && x.source === "encaissements");
+  const epargne = standing.find((x) => x.state === "active" && x.source === "virement");
+  const devant = feed.auctions
+    .filter((a) => a.kind === "annonce" && a.on && a.on >= aujourdHui)
+    .sort((a, b2) => a.on!.localeCompare(b2.on!))[0];
+
+  return {
+    lignes: positions.length,
+    partsDeFonds: part ? { titre: part.offer.title, parts: part.units } : undefined,
+    fondsOuverts: offers.filter((o) => o.kind === "FONDS" && o.fund?.distributed && !o.hidden).length,
+    actions: action ? { titre: action.offer.title, n: action.units } : undefined,
+    disponible: poche.idle,
+    attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
+    reinvestissement: reinv
+      ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount, dernier: reinv.lastRunOn ? { montant: 0, le: fmtDate(reinv.lastRunOn) } : undefined }
+      : undefined,
+    epargne: epargne ? { montant: epargne.amount, jour: epargne.dayOfMonth, destination: offers.find((o) => o.id === epargne.offerId)?.title ?? epargne.offerId } : undefined,
+    garde: avis[0] ? { periode: avis[0].period, du: avis[0].du } : undefined,
+    prochaineSeance: devant
+      ? { pays: devant.country ?? t("la zone"), quoi: [devant.instrument, devant.tenor].filter(Boolean).join(" ") || t("une séance"), le: fmtDate(devant.on!) }
+      : undefined,
+    moisDHistorique: positions.length ? 12 : 0,
+    appariementExecutable: false,
+  };
+});
+
+/**
+ * Combien de décisions attendent ce client.
+ *
+ * Le même calcul que la page, jamais un raccourci : un compteur qui compte
+ * autrement que la liste qu'il ouvre ment deux fois, une fois dans la bande et
+ * une fois quand on clique.
+ */
+export const compterAttentes = cache(async (userId: string): Promise<number> => {
+  try {
+    const ctx = await contexteDuClient(userId);
+    // Le formateur ne sert qu'aux libellés, dont on ne garde ici que le compte.
+    return attentesDuClient(ctx, fmt).length;
+  } catch {
+    // Le compteur ne fait jamais tomber une page : sans chiffre, pas de pastille.
+    return 0;
+  }
+});

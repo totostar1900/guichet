@@ -7,6 +7,7 @@ import { fmt, fmtDate, localIso } from "@/lib/format";
 import type { Offer } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { OngletsMarche } from "@/components/market/OngletsMarche";
 
 export const dynamic = "force-dynamic";
 
@@ -133,6 +134,7 @@ export default async function CalendrierPage() {
 
   return (
     <div className={styles.page}>
+      <OngletsMarche />
       <h1 className="display">{t("Calendrier des adjudications")}</h1>
       <p className={styles.lead}>
         {t("Les séances d'émission des six Trésors de la CEMAC, reprises des annonces de la BEAC. Une adjudication s'annonce environ une semaine avant sa séance : cette page suit ce rythme.")}

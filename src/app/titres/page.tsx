@@ -1,4 +1,5 @@
 import { TitresBody } from "../TitresBody";
+import { OngletsMarche } from "@/components/market/OngletsMarche";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Titres" };
@@ -13,5 +14,10 @@ export const metadata = { title: "Titres" };
  * garde tout son rôle, à « /titres ».
  */
 export default async function TitresPage() {
-  return <TitresBody />;
+  return (
+    <>
+      <OngletsMarche />
+      <TitresBody />
+    </>
+  );
 }

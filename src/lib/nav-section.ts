@@ -41,5 +41,25 @@ export const isTitresSection = (path: string): boolean => path.startsWith(TITRES
  */
 export const isEspaceSection = (path: string): boolean => path === "/" || path.startsWith("/moi");
 
+/**
+ * La section « Marché », qui a absorbé le catalogue.
+ *
+ * « Titres » et « Fonds » tenaient deux sièges dans la bande pour deux façons
+ * d'acheter au même endroit. Ils sont maintenant deux onglets DE SECTION, sous
+ * un seul siège, avec les séances annoncées, l'indice, les sociétés et le
+ * calendrier. La règle vit ici pour que la bande de l'écran large et celle du
+ * téléphone ne puissent pas en tenir deux versions.
+ */
+export const isMarcheSection = (path: string): boolean =>
+  path.startsWith("/marche") ||
+  isTitresSection(path) ||
+  isFundsSection(path) ||
+  path.startsWith("/societes") ||
+  path.startsWith("/indice") ||
+  path.startsWith("/emetteurs") ||
+  path.startsWith("/calendrier") ||
+  path.startsWith("/actualites") ||
+  path.startsWith("/comparer");
+
 /** Vers quelle liste remonter depuis une fiche, faute de liste mémorisée. */
 export const listForFiche = (path: string): string => (path.startsWith(FUND_FICHE) ? "/fonds" : TITRES);
