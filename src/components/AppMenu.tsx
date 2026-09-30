@@ -325,7 +325,7 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                         s'ouvre qu'à qui est connecté : les services ne se
                         présentent plus avant. */}
                     {signedIn && (
-                      <Link className={styles.tile} href="/moi/services" onClick={close}>
+                      <Link className={styles.tile} href="/trader" onClick={close}>
                         <Icon d={D.services} />
                         <b>{t("Les services")}</b>
                         <small>{t("les neuf, avec leur état")}</small>

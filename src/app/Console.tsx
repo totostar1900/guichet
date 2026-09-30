@@ -250,7 +250,7 @@ export async function Console({ session }: { session: Session }) {
       )}
 
       {/* 6. Les services, en bande : leurs gestes vivent sur l'objet concerné. */}
-      <Link className={styles.bandeServices} href="/moi/services">
+      <Link className={styles.bandeServices} href="/trader">
         <b>{t("Vos services")}</b>
         <span>{t("{a} en place · {b} à activer", { a: compte.en_place, b: compte.a_activer })}</span>
         <em>→</em>

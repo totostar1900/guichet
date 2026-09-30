@@ -99,7 +99,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "06",
           cle: "reinvestissement",
           nom: "Réinvestissement",
-          ou: "Mon espace › Espèces",
+          ou: "Portefeuille › Espèces",
           href: "/moi/reinvestir",
           phrase: {
             key: "Vos encaissements partent vers {d} dès qu'ils atteignent {m} FCFA.",
@@ -113,7 +113,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "06",
           cle: "reinvestissement",
           nom: "Réinvestissement",
-          ou: "Mon espace › Espèces",
+          ou: "Portefeuille › Espèces",
           href: "/moi/reinvestir",
           phrase:
             c.disponible > 0
@@ -130,8 +130,8 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "03",
           cle: "epargne",
           nom: "Épargne programmée",
-          ou: "Mon espace › Services",
-          href: "/moi/services",
+          ou: "Trader",
+          href: "/trader",
           phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
           sinon: c.epargne.prochain
             ? { key: "Prochain versement le {d}. Arrêtable d'un bouton, sans motif à donner.", params: { d: c.epargne.prochain } }
@@ -155,9 +155,13 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "07",
           cle: "garde",
           nom: "Conservation et tenue de compte",
-          ou: "Mon espace › Portefeuille",
+          ou: "Portefeuille",
           href: "/moi",
-          phrase: { key: "{n} lignes inscrites à votre nom au dépositaire.", params: { n: c.lignes } },
+          // « 1 lignes inscrites » se lisait sur la première page qu'un client
+          // ouvre. Deux clefs plutôt qu'une règle de pluriel : le dictionnaire
+          // est indexé par le français, et une règle de pluriel française ne
+          // vaut pas pour l'anglais.
+          phrase: c.lignes === 1 ? { key: "1 ligne inscrite à votre nom au dépositaire." } : { key: "{n} lignes inscrites à votre nom au dépositaire.", params: { n: c.lignes } },
           sinon: c.garde
             ? c.garde.du > 0
               ? { key: "Avis du {p} : {m} FCFA de droits de garde.", params: { p: c.garde.periode, m: c.garde.du } }
@@ -275,7 +279,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           cle: "appariement",
           nom: "Appariement des intentions",
           ou: "Automatique",
-          href: "/moi/services",
+          href: "/trader",
           phrase: { key: "Quand une intention inverse existe en interne, elle vous est signalée avant toute sortie sur le marché." },
         })
       : ferme({
@@ -283,7 +287,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           cle: "appariement",
           nom: "Appariement des intentions",
           ou: "Automatique",
-          href: "/moi/services",
+          href: "/trader",
           phrase: { key: "La maison détecte une intention inverse et vous la signale." },
           sinon: { key: "L'exécution d'un appariement attend une décision de la maison : aujourd'hui, le signal seul." },
         }),
@@ -292,6 +296,72 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1, indisponible: 2 };
   return out.sort((a, b) => rang[a.etat] - rang[b.etat]);
 }
+
+/**
+ * Ce qu'il faut faire, dans l'ordre, pour prendre un service.
+ *
+ * L'état dit où l'on en est, la phrase dit ce que ça donne : ni l'un ni l'autre
+ * ne dit ce qu'il va falloir FAIRE. C'est ce qui manquait pour qu'un client
+ * décide, et c'est la seule chose ici qui ne dépende pas de son compte : une
+ * procédure est la même pour tout le monde.
+ *
+ * Les numéros sont légitimes ici, et seulement ici : il y a une vraie séquence,
+ * chaque étape attend la précédente. Ailleurs, une liste numérotée promet un
+ * ordre qui n'existe pas, et la maison pose une figure au trait à la place.
+ *
+ * Les étapes disent le marché et non « le Trésor » : la même procédure sert une
+ * adjudication, une ligne de la cote et un fonds, et nommer le Trésor la
+ * rendrait fausse deux fois sur trois.
+ */
+export const ETAPES: Record<string, string[]> = {
+  primaire: [
+    "Choisir la séance annoncée, sur le calendrier des adjudications.",
+    "Dire le montant, et le taux auquel vous seriez preneur si vous en voulez un.",
+    "Le desk confirme, édite le bordereau et transmet la demande avec celles des autres investisseurs.",
+    "Le dépouillement dit le montant servi et le prix ; les titres sont ensuite inscrits à votre nom au dépositaire.",
+  ],
+  actions: [
+    "Choisir la ligne à la cote de la BVMAC.",
+    "Dire la quantité, et un prix limite si vous ne voulez pas acheter à n'importe quel cours.",
+    "Le desk porte l'ordre au carnet.",
+    "L'exécution revient avec son prix, et le règlement suit à la date du marché.",
+  ],
+  fonds: [
+    "Choisir le fonds, sa catégorie et la périodicité de sa valeur liquidative.",
+    "Dire le montant à souscrire.",
+    "La VL retenue à la centralisation fixe le nombre exact de parts : il n'est donc connu qu'après.",
+  ],
+  garde: [
+    "Rien à activer : la conservation commence avec votre première ligne.",
+    "Les titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif.",
+    "Le relevé et les avis d'opéré suivent chaque mouvement ; les droits de garde sont appelés par période.",
+  ],
+  reinvestissement: [
+    "Un coupon ou un remboursement arrive sur votre poche.",
+    "Fixer une destination et un plancher, une fois : en dessous du plancher, rien ne part.",
+    "À chaque encaissement, l'ordre se prépare tout seul et vous est présenté avant de partir.",
+  ],
+  epargne: [
+    "Fixer le montant, le jour du mois et la destination.",
+    "Signer une fois : c'est cette signature qui vaut pour les prélèvements suivants.",
+    "Le versement part chaque mois sans qu'on y revienne, et s'arrête au premier mot de votre part.",
+  ],
+  sondage: [
+    "Une séance est annoncée, environ une semaine avant sa tenue.",
+    "Dire le taux auquel vous seriez preneur, sans engagement : ce n'est pas un ordre.",
+    "Le desk en tient compte quand l'ordre se forme, et revient vers vous avant la clôture.",
+  ],
+  passage: [
+    "Partir d'une part que vous détenez et qui est rachetable.",
+    "Choisir le fonds d'arrivée.",
+    "Le rachat et la souscription se signent ensemble, et les deux VL retenues sont dites avant la signature.",
+  ],
+  appariement: [
+    "Ouvrir le signal, fermé par défaut : sans lui, rien n'est rapproché.",
+    "Une intention de sens inverse peut alors croiser la vôtre.",
+    "Le desk vous prévient avant tout rapprochement : il ne se fait jamais dans votre dos.",
+  ],
+};
 
 /** Le compte des trois états : un service qu'on ne sait pas offert n'existe pas. */
 export function compteDesEtats(services: ServiceVu[]): Record<EtatService, number> {

@@ -157,15 +157,43 @@
   line-height: 1.55;
   color: var(--ink-3);
 }
+/* Les étapes : la seule liste numérotée de la maison, parce que c'est la seule
+   vraie séquence. Ailleurs, un numéro promet un ordre qui n'existe pas. */
+.etapes {
+  margin: var(--s-3) 0 0;
+  padding: 0 0 0 var(--s-8);
+  display: grid;
+  gap: var(--s-2);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.etapes li::marker {
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
 .geste {
   flex: none;
   align-self: center;
+  display: grid;
+  gap: var(--s-1);
+  text-align: center;
   font-size: 0.72rem;
   font-weight: 650;
   letter-spacing: 0.06em;
   text-decoration: none;
   padding: var(--s-5) var(--s-8);
   white-space: nowrap;
+}
+/* La destination, nommée sous la commande : « Allons-y » seul ne dit pas où. */
+.geste em {
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
 }
 .gPrincipal {
   background: var(--navy);
