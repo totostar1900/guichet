@@ -16,7 +16,11 @@ let wrapped: Repository | undefined;
  */
 export function repo(): Repository {
   if (wrapped) return wrapped;
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  // Une seule autorité sur le choix du dépôt. La ligne testait la variable
+  // d'environnement pendant que « backendName » testait aussi la branche : les
+  // deux pouvaient répondre autrement, et l'essai aurait alors écrit dans la
+  // production que sa garde lui interdit.
+  if (backendName() === "supabase") {
     // Lazy import keeps the seed-only path free of the Supabase client.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { supabaseRepository } = require("./supabase") as typeof import("./supabase");
