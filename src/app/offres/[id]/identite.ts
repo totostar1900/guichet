@@ -34,8 +34,20 @@ function duree(o: Offer): string {
   return a > 1 ? `${a} ans` : "1 an";
 }
 
-export function identite(o: Offer): { nature: string; duree: string; emetteur: string; nom: string } {
+/**
+ * Où la ligne se traite. C'est une disponibilité, pas une donnée de marché.
+ *
+ * Seuls les bons et les obligations du Trésor passent par une adjudication ;
+ * une obligation d'entreprise cotée n'en vient pas, et la carte de partage
+ * d'une BDEAC l'annonçait pourtant « adjudication ». Le reste va sur la cote.
+ */
+export const marcheDe = (o: Offer): string => (o.kind === "FONDS" ? "OPCVM" : o.kind === "BTA" || o.kind === "OTA" ? "Adjudication" : "Cote BVMAC");
+
+/** La famille, pour la pastille de la bande : elle suit le même partage. */
+export const familleDe = (o: Offer): "tresor" | "cote" | "fonds" => (o.kind === "FONDS" ? "fonds" : o.kind === "BTA" || o.kind === "OTA" ? "tresor" : "cote");
+
+export function identite(o: Offer): { nature: string; duree: string; emetteur: string; nom: string; marche: string } {
   const nature = NATURE[o.kind] ?? "Ligne";
   const d = duree(o);
-  return { nature, duree: d, emetteur: o.issuer || o.countryName, nom: [nature, d].filter(Boolean).join(", ") };
+  return { nature, duree: d, emetteur: o.issuer || o.countryName, nom: [nature, d].filter(Boolean).join(", "), marche: marcheDe(o) };
 }

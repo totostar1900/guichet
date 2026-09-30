@@ -22,12 +22,11 @@ import styles from "./ApercuPartage.module.css";
 export async function ApercuPartage({ offer }: { offer: Offer }) {
   const t = await getT();
   const id = identite(offer);
-  const marche = offer.kind === "FONDS" ? "OPCVM" : offer.kind === "ACTIONS" ? "Cote BVMAC" : "Adjudication, puis cote BVMAC";
 
   const faits: { quoi: string; dit: string }[] = [
-    { quoi: t("Émetteur"), dit: offer.issuer || offer.countryName },
+    { quoi: t("Émetteur"), dit: id.emetteur },
     { quoi: t("Nature"), dit: t(id.nature) },
-    { quoi: t("Marché"), dit: t(marche) },
+    { quoi: t("Marché"), dit: t(id.marche) },
   ];
   if (offer.maturityOn) faits.push({ quoi: t("Échéance"), dit: t(fmtDate(offer.maturityOn)) });
   if (offer.kind === "OTA" || offer.kind === "APE") faits.push({ quoi: t("Remboursement"), dit: t("In fine") });

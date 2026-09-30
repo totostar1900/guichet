@@ -59,7 +59,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     );
   }
   const q = identite(o);
-  const ou = o.kind === "FONDS" ? "OPCVM" : o.kind === "ACTIONS" ? "COTE BVMAC" : "ADJUDICATION";
 
   return new ImageResponse(
     <div style={{ width: "100%", height: "100%", background: NAVY, color: "white", display: "flex", flexDirection: "column", padding: "56px 64px 48px", fontFamily: family, position: "relative" }}>
@@ -70,7 +69,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <span style={{ color: GOLD, marginLeft: 14, fontWeight: 500 }}>{PRODUCT.name}</span>
         </div>
         <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, background: "rgba(255,255,255,0.14)", padding: "8px 16px" }}>
-          {`${ou} · ${COUNTRY_CODE[o.country] ?? o.country}`.toUpperCase()}
+          {`${q.marche} · ${COUNTRY_CODE[o.country] ?? o.country}`.toUpperCase()}
         </span>
       </div>
 

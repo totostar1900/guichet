@@ -5,6 +5,7 @@ import { derniereParDuree } from "@/lib/market/lecture-b";
 import { abouti, ajuster, type Ajustement } from "@/lib/market/nelson-siegel";
 import { getT } from "@/i18n/server";
 import { BandeInstruments, type LigneVitrine } from "@/components/accueil/BandeInstruments";
+import { familleDe, identite } from "./offres/[id]/identite";
 import type { Offer } from "@/lib/domain/types";
 import styles from "./Accueil.module.css";
 
@@ -43,36 +44,6 @@ const P = { l: 40, r: 15, t: 20, b: 58 };
 /** Ce que la bande peut porter avant de devenir une liste qu'on ne lit plus. */
 const MAX_BANDE = 18;
 
-/** Le nom d'une nature d'instrument, sans son taux ni son montant. */
-const NATURE: Record<string, string> = {
-  BTA: "Bon du Trésor",
-  OTA: "Obligation du Trésor",
-  APE: "Obligation",
-  ACTIONS: "Action",
-  FONDS: "Part de fonds",
-  RACHAT: "Obligation",
-  MARCHE: "Obligation",
-};
-
-/** Trois familles : elles décident de la pastille et du marché affiché. */
-const famille = (o: Offer): LigneVitrine["famille"] => (o.kind === "FONDS" ? "fonds" : o.kind === "ACTIONS" ? "cote" : "tresor");
-const OU: Record<LigneVitrine["famille"], string> = { tresor: "Adjudication", cote: "Cote BVMAC", fonds: "OPCVM" };
-
-/**
- * La durée d'une ligne, dite en mots, sans date.
- *
- * L'échéance exacte serait une donnée de marché ; « 7 ans » est l'identité de
- * la ligne, ce qui la fait reconnaître sans rien apprendre sur les prix.
- */
-function duree(o: Offer): string {
-  if (!o.maturityOn || !o.settleOn) return "";
-  const j = Math.round((Date.parse(o.maturityOn) - Date.parse(o.settleOn)) / 86400000);
-  if (!Number.isFinite(j) || j <= 0) return "";
-  if (j < 400) return `${Math.round(j / 7)} semaines`;
-  const a = Math.round(j / 365);
-  return a > 1 ? `${a} ans` : "1 an";
-}
-
 export async function Accueil() {
   const t = await getT();
   const [offres, seances] = await Promise.all([
@@ -92,11 +63,14 @@ export async function Accueil() {
   const vivantes = offres.filter((o) => !o.hidden && o.status !== "draft" && !o.isExample);
   const par = (f: LigneVitrine["famille"]): LigneVitrine[] =>
     vivantes
-      .filter((o) => famille(o) === f)
-      // Une ligne d'État se nomme par son pays : « Trésor public de la
-      // République centrafricaine » ne tient pas dans une colonne et se répète
-      // à chaque ligne. Un émetteur privé, lui, garde son nom.
-      .map((o) => ({ emetteur: (f === "tresor" ? o.countryName : o.issuer) || o.issuer || o.countryName, nature: NATURE[o.kind] ?? "Ligne", duree: duree(o), marche: OU[f], famille: f }));
+      .filter((o) => familleDe(o) === f)
+      .map((o) => {
+        const q = identite(o);
+        // Une ligne d'État se nomme par son pays : « Trésor public de la
+        // République centrafricaine » ne tient pas dans une colonne et se
+        // répète à chaque ligne. Un émetteur privé, lui, garde son nom.
+        return { emetteur: (f === "tresor" ? o.countryName : q.emetteur) || q.emetteur, nature: q.nature, duree: q.duree, marche: q.marche, famille: f };
+      });
   const paquets = [par("tresor"), par("cote"), par("fonds")];
   const lignes: LigneVitrine[] = [];
   for (let i = 0; lignes.length < MAX_BANDE && paquets.some((p) => p[i]); i++) {
