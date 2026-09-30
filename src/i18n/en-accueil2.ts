@@ -11,6 +11,19 @@
  * not headings.
  */
 export const EN_ACCUEIL2: Record<string, string> = {
+  /* ---------- la page « Risques et limites » ----------
+     Son texte vit dans src/data/risques.ts, bilingue : il n'y a ici que la
+     charpente de la page. */
+  "Information réglementaire": "Regulatory information",
+  "Cette page dit ce que chaque opération engage, ce qu'elle laisse ouvert, et quels risques elle porte. Elle se lit avant d'ouvrir un compte, et elle reste accessible à tout moment.":
+    "This page states what each operation commits, what it leaves open, and which risks it carries. It is there to be read before opening an account, and it stays available at any time.",
+  "Les sections de cette page": "The sections of this page",
+  "Ce qu'il faut retenir": "What to take away",
+  "Ce qui relève de vous": "What is yours to decide",
+  "Ce qui relève de nous": "What is ours to do",
+  "Pour nous écrire": "To write to us",
+  "Le Guide · risques et limites": "The Guide · risks and limits",
+
   /* ---------- les mots dessinés dans la présentation ---------- */
   "actuariel · si servi à 94 %": "actuarial · if awarded at 94 %",
   "ce que rapporte la ligne, par an": "what the line returns, per year",

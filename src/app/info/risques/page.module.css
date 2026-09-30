@@ -1,0 +1,243 @@
+/* Risques et limites : un document long, donc un rail à gauche et du texte à
+   droite, comme la page Analyses du desk. La mesure de lecture reste courte :
+   c'est une page qu'on lit vraiment, pas une page qu'on parcourt. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-11);
+  padding-bottom: var(--respiration);
+}
+
+.tete {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  row-gap: var(--s-9);
+  align-items: end;
+  padding-top: var(--s-10);
+}
+.tete > div:first-child {
+  grid-column: span 7;
+}
+.chapeau {
+  grid-column: 9 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.chapeau p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.72;
+  color: var(--ink-2);
+}
+.chapeau span {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.corps {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: start;
+}
+
+/* Le rail nomme les étages ; il ne suit pas la lecture, parce qu'un repère qui
+   bouge tout seul fait douter de l'endroit où l'on est. */
+.rail {
+  grid-column: span 3;
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--navy);
+}
+.rail a {
+  padding: var(--s-6) 0 var(--s-6) var(--s-6);
+  border-left: 2px solid transparent;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-decoration: none;
+  color: var(--ink-2);
+}
+.rail a:hover {
+  border-left-color: var(--gold);
+  color: var(--navy);
+}
+
+.texte {
+  grid-column: 5 / span 8;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  min-width: 0;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+  /* La barre du téléphone se fige en haut : une ancre doit s'arrêter dessous. */
+  scroll-margin-top: 92px;
+}
+.section h2 {
+  margin: 0;
+  padding-bottom: var(--s-7);
+  border-bottom: 1px solid var(--navy);
+  font-family: var(--font-titre);
+  font-size: clamp(1.5rem, 2.8vw, 2.15rem);
+  line-height: 1.12;
+  font-weight: 400;
+  color: var(--navy);
+}
+.section p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--ink);
+  max-width: 66ch;
+}
+.apres {
+  color: var(--ink-2) !important;
+}
+
+/* L'encadré doré : la phrase qu'on retient si on ne lit que ça. */
+.retenir {
+  background: var(--gold-soft);
+  border-left: 2px solid var(--gold);
+  padding: var(--s-8) var(--s-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.retenir span {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+/* Une limite par ligne : le geste à gauche, ce qu'il engage à droite. */
+.lignes {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.lignes > div {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-10);
+  padding: var(--s-8) 0;
+  border-bottom: 1px solid var(--line);
+}
+.lignes b {
+  width: 228px;
+  flex: none;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.lignes p {
+  font-size: 0.88rem;
+  line-height: 1.72;
+  color: var(--ink-2);
+}
+
+/* Le partage des rôles : deux colonnes face à face, ouvertes par deux traits
+   de couleur différente pour qu'on voie tout de suite qu'elles s'opposent. */
+.partage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--s-10);
+}
+.vous,
+.nous {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.vous {
+  border-top: 1px solid var(--navy);
+}
+.nous {
+  border-top: 1px solid var(--gold);
+}
+.partage span {
+  padding: var(--s-7) 0 var(--s-5);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.vous span {
+  color: var(--navy);
+}
+.nous span {
+  color: var(--gold-ink);
+}
+.partage em {
+  font-style: normal;
+  padding: var(--s-6) 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.ecrire {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: var(--s-9) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.ecrire span {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ecrire b {
+  font-size: 0.95rem;
+}
+.ecrire small {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+@media (max-width: 900px) {
+  .tete,
+  .corps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tete > div:first-child,
+  .chapeau,
+  .rail,
+  .texte {
+    grid-column: 1 / -1;
+  }
+  /* Le rail devient un sommaire en tête : collé en haut d'un téléphone, il
+     mangerait le tiers de l'écran. */
+  .rail {
+    position: static;
+  }
+  .texte {
+    gap: var(--s-11);
+  }
+  .lignes > div {
+    flex-direction: column;
+    gap: var(--s-4);
+  }
+  .lignes b {
+    width: auto;
+  }
+  .partage {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-10);
+  }
+}
