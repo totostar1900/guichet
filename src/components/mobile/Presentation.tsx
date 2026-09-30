@@ -42,7 +42,13 @@ const Art1 = () => (
     </g>
   </svg>
 );
-const Art2 = () => (
+/* Les mots dessinés dans une scène passent par le dictionnaire comme les
+   autres : ils restaient en français sur l'écran anglais, parce qu'une
+   constante hors du composant ne pouvait pas appeler `t`. Chaque scène est
+   donc un composant à part entière. */
+const Art2 = () => {
+  const t = useT();
+  return (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
       <rect x="30" y="34" width="240" height="112" rx="0" fill="#fff" />
@@ -50,7 +56,7 @@ const Art2 = () => (
         11,26 %
       </text>
       <text x="48" y="90" fontSize="10" fill="#6b7386">
-        actuariel · si servi à 94 %
+        {t("actuariel · si servi à 94 %")}
       </text>
       <rect x="48" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
       <rect x="120" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
@@ -66,15 +72,18 @@ const Art2 = () => (
     <g className={styles.rise3}>
       <rect x="118" y="122" width="164" height="44" rx="0" fill="#fff4d6" />
       <text x="128" y="140" fontSize="9" fontWeight="700" fill="#8a6a1d">
-        Rendement actuariel
+        {t("Rendement actuariel")}
       </text>
       <text x="128" y="154" fontSize="8" fill="#4a5266">
-        ce que rapporte la ligne, par an
+        {t("ce que rapporte la ligne, par an")}
       </text>
     </g>
   </svg>
-);
-const Art3 = () => (
+  );
+};
+const Art3 = () => {
+  const t = useT();
+  return (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
       <rect x="40" y="26" width="220" height="30" rx="0" fill="#fff" />
@@ -89,7 +98,7 @@ const Art3 = () => (
     <g className={styles.rise2}>
       <rect x="40" y="110" width="220" height="34" rx="0" fill="#d4a63c" />
       <text x="150" y="132" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0d2b5b">
-        Déclarer une intention
+        {t("Déclarer une intention")}
       </text>
     </g>
     <g className={styles.pop}>
@@ -97,8 +106,11 @@ const Art3 = () => (
       <path d="M145 164l4 4 7-7" fill="none" stroke="#2f7d4f" strokeWidth="2" />
     </g>
   </svg>
-);
-const Art4 = () => (
+  );
+};
+const Art4 = () => {
+  const t = useT();
+  return (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
       <circle cx="90" cy="80" r="34" fill="#fff" />
@@ -114,12 +126,15 @@ const Art4 = () => (
     <g className={styles.pop}>
       <rect x="110" y="120" width="80" height="26" rx="0" fill="#2f7d4f" />
       <text x="150" y="137" textAnchor="middle" fontSize="10" fontWeight="800" fill="#fff">
-        On vous rappelle
+        {t("On vous rappelle")}
       </text>
     </g>
   </svg>
-);
-const Art5 = () => (
+  );
+};
+const Art5 = () => {
+  const t = useT();
+  return (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     {[
       ["Intention reçue", 30],
@@ -129,20 +144,23 @@ const Art5 = () => (
       <g key={label} className={k === 0 ? styles.rise : k === 1 ? styles.rise2 : styles.rise3}>
         <rect x="40" y={y} width="220" height="24" rx="0" fill="#fff" />
         <text x="52" y={Number(y) + 16} fontSize="10" fill="#16213a">
-          {label}
+          {t(String(label))}
         </text>
         <path d={`M232 ${Number(y) + 12}l4 4 8-8`} fill="none" stroke="#2f7d4f" strokeWidth="2.5" strokeDasharray="40" className={styles.tick} />
       </g>
     ))}
     {/* the one « Commencer » of the last screen: drawn in the picture, and a real button (the scene listens for data-start) */}
     <g className={`${styles.pop} ${styles.start}`} data-start role="button" tabIndex={0}>
-      <rect x="40" y="130" width="220" height="30" rx="15" fill="#d4a63c" />
+      {/* Le dernier coin rond de la présentation : le reste est net depuis la
+          passe « moderne, tranchant » ; celui-ci était dessiné dans le SVG. */}
+      <rect x="40" y="130" width="220" height="30" rx="0" fill="#d4a63c" />
       <text x="150" y="150" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0d2b5b">
-        Commencer
+        {t("Commencer")}
       </text>
     </g>
   </svg>
-);
+  );
+};
 
 const SCREENS: Screen[] = [
   { kick: "Guichet · Purpose Capital", title: "Le marché de la CEMAC, sur votre téléphone.", text: "Obligations des Trésors, actions cotées à la BVMAC, fonds : tout ce qui se place dans la zone, au même endroit.", art: <Art1 /> },
@@ -169,7 +187,11 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
   // Once per device, on a client page, after a moment; « Premiers pas » waits for this one to close.
   useEffect(() => {
     if (force) return;
-    if (path.startsWith("/desk") || path.startsWith("/connexion") || path.startsWith("/auth")) return;
+    // « / » ne la lève plus d'elle-même. Pour un visiteur, la racine EST la
+    // présentation, et la couvrir d'une seconde annule les deux : la page porte
+    // son propre bouton « Visite guidée ». Pour un client, la racine est sa
+    // console, et il n'a plus rien à se faire présenter.
+    if (path === "/" || path.startsWith("/desk") || path.startsWith("/connexion") || path.startsWith("/auth")) return;
     const timer = setTimeout(() => {
       try {
         if (!localStorage.getItem(SEEN)) setOpen(true);

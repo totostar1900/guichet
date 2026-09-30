@@ -1,376 +1,710 @@
-/* L'accueil public : la direction claire du système de design.
-   Rayon zéro, des filets plutôt que des boîtes, une seule surface pleine. */
+/* L'accueil public : clair, aéré, et jamais une suite de blocs de même hauteur.
+   Le rythme alterne : ouverture asymétrique, bande pleine largeur, lignes
+   réglées, une seule surface navy, un appareil qui déborde, un moment
+   typographique. C'est ce qui distingue une page qui vend d'une page qui
+   travaille. */
 .page {
   display: flex;
   flex-direction: column;
+  gap: var(--respiration);
+  padding-bottom: var(--respiration);
+}
+/* Les sections pleine largeur sortent de la gouttière de la page. */
+.page > section {
+  padding-left: 0;
+  padding-right: 0;
 }
 
-/* L'ouverture : sept colonnes de texte, cinq pour la figure, un filet entre. */
+/* ---------- Ouverture : sept colonnes contre quatre ---------- */
 .ouverture {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--s-9);
   align-items: start;
-  padding: var(--s-11) 0 var(--s-11);
+  padding-top: var(--s-11);
 }
 .dire {
   grid-column: span 7;
   display: flex;
   flex-direction: column;
-  gap: var(--s-9);
-  min-width: 0;
+  gap: var(--s-10);
 }
 .agrement {
   font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gold-ink);
 }
 .dire h1 {
   margin: 0;
   font-family: var(--font-titre);
-  font-size: clamp(2.4rem, 5.4vw, 4.2rem);
+  font-size: clamp(2.4rem, 5.4vw, 4.75rem);
   line-height: 1.04;
   font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--navy);
   text-wrap: balance;
 }
-.chapeau {
-  margin: 0;
-  font-size: 1.06rem;
-  line-height: 1.65;
-  color: var(--ink-2);
-  max-width: 54ch;
-}
-/* Deux gestes collés : ils sont liés, un écart entre eux n'aurait aucun sens. */
 .gestes {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  gap: var(--s-6);
   flex-wrap: wrap;
-  padding-top: var(--s-6);
 }
-.gestes a {
+.principal,
+.second,
+.orBouton {
+  display: inline-block;
   font-size: 0.82rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-decoration: none;
-  padding: var(--s-7) var(--s-10);
-  border-radius: 0;
+  white-space: nowrap;
 }
 .principal {
   background: var(--navy);
-  color: var(--on-navy, #fff);
+  color: #ffffff;
   border: 1px solid var(--navy);
+  padding: var(--s-7) var(--s-10);
 }
+/* L'encre suit le thème, pas la marque : le navy ne s'éclaircit jamais, et sur
+   une surface sombre il disparaîtrait dans son propre fond. */
 .second {
+  background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--navy);
-  border-left: 0;
+  border: 1px solid var(--line-2);
+  padding: var(--s-7) var(--s-10);
 }
-.nominatif {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--ink-3);
+.second:hover {
+  border-color: var(--ink-3);
 }
-.nominatif b {
-  color: var(--ink);
-  font-weight: 650;
+.orBouton {
+  background: var(--gold);
+  color: var(--navy);
+  border: 1px solid var(--gold);
+  padding: var(--s-7) var(--s-9);
 }
 
-/* La figure : pas de carte, un filet à gauche. */
-.figure {
-  grid-column: span 5;
-  margin: 0;
+.cote {
+  grid-column: 9 / span 4;
   display: flex;
   flex-direction: column;
-  gap: var(--s-7);
-  padding-left: var(--s-11);
-  border-left: 1px solid var(--line);
-  min-width: 0;
+  gap: var(--s-10);
+  padding-top: var(--s-3);
 }
-.figTete {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-6);
-}
-.figTete b {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.figTete span {
-  font-size: 0.7rem;
-  color: var(--ink-3);
-}
-.figure svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.figPied {
+.chapeau {
   margin: 0;
-  padding-top: var(--s-7);
-  border-top: 1px solid var(--line);
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: var(--ink-3);
+  font-size: 1.1rem;
+  line-height: 1.68;
+  color: var(--ink-2);
 }
-
-/* Les preuves : quatre colonnes réglées, jamais quatre cartes. */
-.preuves {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.acces {
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid var(--navy);
+}
+.acces span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-7) 0;
   border-bottom: 1px solid var(--line);
 }
-.preuves > div {
-  padding: var(--s-9) var(--s-9) var(--s-10) 0;
-  border-right: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  min-width: 0;
+.acces b {
+  font-size: 0.83rem;
 }
-.preuves b {
-  /* Manrope et ses chiffres tabulaires : l application n a pas de chasse
-     fixe, et en ouvrir une pour quatre nombres coutait une police entiere. */
-  font-size: 2.1rem;
-  font-weight: 400;
-  letter-spacing: -0.03em;
-  color: var(--navy);
-  font-variant-numeric: tabular-nums;
-}
-.preuves em {
-  font-style: normal;
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-.preuves small {
-  font-size: 0.75rem;
+.acces small {
+  font-size: 0.76rem;
   line-height: 1.5;
   color: var(--ink-3);
 }
 
-/* Les trois familles de services. */
-.familles {
-  padding-top: var(--s-11);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-10);
-}
-.tete {
+/* ---------- Les verbes : des lignes réglées, une figure par ligne ---------- */
+.verbes {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--s-9);
-  align-items: end;
+  align-items: start;
 }
-.tete h2 {
-  grid-column: span 7;
+.verbesTete {
+  grid-column: span 4;
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+.verbesTete h2,
+.coupDire h2,
+.analysesDire h2 {
   margin: 0;
   font-family: var(--font-titre);
   font-size: clamp(1.8rem, 3.4vw, 2.9rem);
-  line-height: 1.08;
+  line-height: 1.1;
   font-weight: 400;
   letter-spacing: -0.015em;
+  color: var(--navy);
+  text-wrap: balance;
 }
-.tete p {
-  grid-column: 9 / span 4;
+.verbesTete p {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.65;
-  color: var(--ink-3);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--ink-2);
 }
-.grille3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--navy);
-}
-.famille {
-  padding: var(--s-10) var(--s-10) var(--s-11) 0;
-  border-right: 1px solid var(--line);
+.verbesListe {
+  grid-column: 6 / span 7;
   display: flex;
   flex-direction: column;
-  gap: var(--s-7);
+  border-top: 1px solid var(--navy);
+}
+.verbe {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-10);
+  padding: var(--s-10) 0;
+  border-bottom: 1px solid var(--line);
+}
+.verbe > div {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
   min-width: 0;
+}
+.verbe b {
+  font-family: var(--font-titre);
+  font-size: 1.55rem;
+  line-height: 1.18;
+  font-weight: 400;
+}
+.verbe p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+/* La figure remplace le numéro : une liste numérotée promet un ordre qui
+   n'existe pas entre cinq gestes indépendants. */
+.figure {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
+}
+
+/* ---------- Les publications : la seule surface pleine ---------- */
+.analyses {
+  background: var(--navy);
+  color: var(--on-navy);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: center;
+  padding: var(--respiration) var(--s-11);
+  margin: 0 calc(-1 * var(--s-11));
+}
+.analysesDire {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+.analysesDire h2 {
+  color: var(--on-navy);
+}
+.analysesDire p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--on-navy-2);
+}
+.etiquetteOr {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-line);
+}
+.analysesFigure {
+  grid-column: 6 / span 7;
+  min-width: 0;
+}
+.analysesFigure svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.repere {
+  fill: var(--on-navy-2);
+  font-size: 13px;
+  font-family: inherit;
+}
+.axeNom {
+  fill: var(--on-navy-2);
+  font-size: 12px;
+  letter-spacing: 1.6px;
+  font-family: inherit;
+}
+.axeNote {
+  fill: var(--tip-ink-3);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+/* ---------- Le coup d'oeil : l'appareil déborde par la droite ---------- */
+.coupDoeil {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  align-items: center;
+  overflow: hidden;
+}
+.coupDire {
+  grid-column: span 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
 }
 .etiquette {
   font-size: 0.66rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gold-ink);
 }
-.famille h3 {
+.coupListe {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--navy);
+}
+.coupListe span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-7) 0;
+  border-bottom: 1px solid var(--line);
+}
+.coupListe b {
+  font-size: 0.86rem;
+}
+.coupListe small {
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+.appareils {
+  grid-column: 7 / span 6;
+  position: relative;
+  height: 640px;
+  min-width: 0;
+}
+.appareilFond {
+  position: absolute;
+  left: 236px;
+  top: 64px;
+  width: 300px;
+  height: 540px;
+  background: #16233a;
+  border: 1px solid #2a3c58;
+  opacity: 0.55;
+}
+/* L'appareil porte le thème nuit en dur : c'est une image de l'espace
+   connecté, pas un morceau de la page claire. */
+.appareil {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 320px;
+  height: 600px;
+  box-sizing: border-box;
+  background: #0e1928;
+  border: 1px solid #2a3c58;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.appTop {
+  height: 46px;
+  flex: none;
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--s-6);
+}
+.appTop span {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+.appTop b {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+}
+.appTop em {
+  font-style: normal;
+  font-size: 0.6rem;
+  color: #e0b65a;
+}
+.appTop i {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #e0b65a;
+  color: var(--navy);
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.appCorps {
+  padding: var(--s-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.appTete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+.appTete b {
+  font-family: var(--font-titre);
+  font-size: 1.7rem;
+  font-weight: 400;
+  color: #eaeff6;
+}
+.appTete span,
+.appEtiquette {
+  font-size: 0.53rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.appTete span {
+  color: #e0b65a;
+}
+.appEtiquette {
+  color: #8c9bb2;
+}
+.appAttente {
+  background: #332c18;
+  border-left: 2px solid #e0b65a;
+  padding: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.appAttente > span {
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e0b65a;
+}
+.appAttente b {
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: #eaeff6;
+  font-variant-numeric: tabular-nums;
+}
+.appAttente b em {
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #8c9bb2;
+}
+.appAttente small {
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: #b5c0d0;
+}
+.appAttente i {
+  align-self: flex-start;
+  margin-top: var(--s-2);
+  font-style: normal;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: #e0b65a;
+  padding: var(--s-3) var(--s-6);
+}
+.appSeance {
+  border: 1px solid #2a3c58;
+  padding: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.appSeance span {
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8c9bb2;
+}
+.appSeance small {
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: #b5c0d0;
+}
+.appService {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid #213349;
+}
+.appService b {
+  flex-grow: 1;
+  font-size: 0.71rem;
+  color: #eaeff6;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appService em {
+  font-style: normal;
+  font-size: 0.53rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.pastilleBon,
+.pastilleOr {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  display: inline-block;
+}
+.pastilleBon {
+  background: #5cc48c;
+}
+.pastilleOr {
+  background: #e0b65a;
+}
+.motBon {
+  color: #5cc48c;
+}
+.motOr {
+  color: #e0b65a;
+}
+
+/* ---------- Le moment typographique : une fois, sans chiffre ---------- */
+.moment {
+  background: var(--surface);
+  border-top: 1px solid var(--gold-line);
+  border-bottom: 1px solid var(--line);
+  padding: var(--respiration) var(--s-11);
+  margin: 0 calc(-1 * var(--s-11));
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-9);
+  row-gap: var(--s-10);
+  align-items: center;
+}
+.moment h2 {
+  grid-column: span 8;
   margin: 0;
   font-family: var(--font-titre);
-  font-size: 1.35rem;
+  font-size: clamp(2rem, 4.2vw, 3.9rem);
+  line-height: 1.07;
   font-weight: 400;
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  text-wrap: balance;
 }
-.famille p {
+.moment > div {
+  grid-column: 10 / span 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+  align-items: flex-start;
+}
+.moment p {
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.65;
   color: var(--ink-2);
 }
-.services {
+
+/* ---------- Ouvrir un compte ---------- */
+.entrer {
   display: flex;
   flex-direction: column;
-  padding-top: var(--s-3);
 }
-.services a {
+.entrerTete {
   display: flex;
   align-items: baseline;
-  gap: var(--s-6);
-  padding: var(--s-5) 0;
-  border-top: 1px solid var(--line);
-  text-decoration: none;
-  font-size: 0.83rem;
+  gap: var(--s-9);
+  flex-wrap: wrap;
+  padding-bottom: var(--s-8);
+  border-bottom: 1px solid var(--navy);
 }
-.services i {
-  font-style: normal;
-  font-size: 0.68rem;
-  color: var(--gold-ink);
+.entrerTete h2 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(1.6rem, 2.8vw, 2.15rem);
+  line-height: 1.12;
+  font-weight: 400;
+  color: var(--navy);
 }
-
-/* La seule surface pleine de la page. */
-.verifie {
-  margin-top: var(--s-11);
-  background: var(--navy);
-  padding: var(--s-11) var(--s-11) calc(var(--s-11) + var(--s-4));
+.entrerTete span {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.etapes {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: var(--s-9);
 }
-.verifie h2 {
-  grid-column: span 4;
-  margin: 0 0 var(--s-7);
-  font-family: var(--font-titre);
-  font-size: clamp(1.6rem, 3vw, 2.5rem);
-  line-height: 1.08;
-  font-weight: 400;
-  color: var(--on-navy, #fff);
+.etape {
+  padding: var(--s-10) var(--s-10) var(--s-10) 0;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  min-width: 0;
 }
-.verifieDit {
-  grid-column: span 4;
+.etape b {
+  font-size: 1rem;
+}
+.etape p {
   margin: 0;
-  font-size: 0.87rem;
+  font-size: 0.84rem;
   line-height: 1.7;
-  color: #b5c0d0;
-  grid-row: 2;
+  color: var(--ink-2);
 }
-.garanties {
-  grid-column: 6 / span 7;
-  grid-row: 1 / span 2;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s-10) var(--s-10);
+.portes {
+  margin-top: var(--s-11);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: var(--s-10) var(--s-10);
+  display: flex;
+  align-items: center;
+  gap: var(--s-10);
+  flex-wrap: wrap;
 }
-.garanties > div {
+.portes > div:first-child {
+  flex-grow: 1;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
-  padding-top: var(--s-7);
-  border-top: 1px solid #1e3a5f;
 }
-.garanties b {
-  font-size: 0.84rem;
-  color: var(--on-navy, #fff);
-}
-.garanties span {
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: #9fb0c9;
-}
-
-/* L'appel final. */
-.entrer {
-  padding: var(--s-11) 0;
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--s-9);
-  align-items: center;
-}
-.entrer div {
-  grid-column: span 7;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-6);
-}
-.entrer h2 {
-  margin: 0;
+.portes b {
   font-family: var(--font-titre);
-  font-size: clamp(1.6rem, 3vw, 2.5rem);
-  line-height: 1.1;
+  font-size: 1.55rem;
+  line-height: 1.18;
   font-weight: 400;
+  color: var(--navy);
 }
-.entrer p {
-  margin: 0;
-  font-size: 0.92rem;
+.portes > div:first-child span {
+  font-size: 0.84rem;
   color: var(--ink-2);
 }
-.entrer a {
-  grid-column: 9 / span 4;
-  text-align: center;
+.portesListe {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.portesListe > span {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  border: 1px solid var(--line-2);
+  padding: var(--s-6) var(--s-8);
   font-size: 0.82rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-decoration: none;
-  padding: var(--s-8) var(--s-9);
-  background: var(--navy);
-  color: var(--on-navy, #fff);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.portesListe svg {
+  flex: none;
 }
 
-/* Au téléphone, tout retombe sur une colonne : la grille de douze ne tient pas
-   sous 900 px, et la forcer produirait des colonnes de six caractères. */
-@media (max-width: 900px) {
-  .ouverture,
-  .tete,
-  .entrer,
-  .verifie {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-10);
+/* ---------- Les largeurs qui tombent ---------- */
+@media (max-width: 1100px) {
+  .appareils {
+    height: 560px;
   }
-  .dire,
-  .figure,
-  .tete h2,
-  .tete p,
-  .entrer div,
-  .entrer a,
-  .verifie h2,
-  .verifieDit,
-  .garanties {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-  .figure {
-    padding-left: 0;
-    border-left: 0;
-    padding-top: var(--s-9);
-    border-top: 1px solid var(--line);
-  }
-  .preuves,
-  .grille3,
-  .garanties {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .verifie {
-    padding: var(--s-10) var(--s-9);
+  .appareilFond {
+    display: none;
   }
 }
-@media (max-width: 560px) {
-  .preuves,
-  .grille3,
-  .garanties {
+@media (max-width: 900px) {
+  .page {
+    gap: var(--s-11);
+    padding-bottom: var(--s-11);
+  }
+  .ouverture,
+  .verbes,
+  .analyses,
+  .coupDoeil,
+  .moment {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-11);
+  }
+  .dire,
+  .cote,
+  .verbesTete,
+  .verbesListe,
+  .analysesDire,
+  .analysesFigure,
+  .coupDire,
+  .appareils,
+  .moment h2,
+  .moment > div {
+    grid-column: 1 / -1;
+  }
+  .verbesTete {
+    position: static;
+  }
+  .analyses,
+  .moment {
+    padding-left: var(--s-9);
+    padding-right: var(--s-9);
+    margin-left: calc(-1 * var(--s-9));
+    margin-right: calc(-1 * var(--s-9));
+  }
+  .verbe {
+    gap: var(--s-8);
+    padding: var(--s-9) 0;
+  }
+  .verbe b {
+    font-size: 1.3rem;
+  }
+  .etapes {
     grid-template-columns: minmax(0, 1fr);
   }
-  .famille,
-  .preuves > div {
+  .etape {
+    padding: var(--s-9) 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+  /* L'appareil ne déborde plus : il se centre et se pose. */
+  .appareils {
+    height: 620px;
+    display: flex;
+    justify-content: center;
+  }
+  .appareil {
+    position: static;
+  }
+  .portesListe {
+    width: 100%;
   }
 }

@@ -102,6 +102,11 @@
   --s-9: 24px;
   --s-10: 32px;
   --s-11: 40px;
+  /* Le pas du site public, et le seul au-dessus de l'echelle. Une page qui
+     vend respire plus large qu'une page qui travaille : c'est cet ecart qui
+     distingue les deux, et il porte donc un nom plutot que de se reecrire a la
+     main a chaque section. */
+  --respiration: 88px;
   /* La barre du telephone : tout ce qui se fige en haut d'une page doit se
      figer sous elle, sinon il se fige derriere, invisible. */
   --mobile-bar: 52px;

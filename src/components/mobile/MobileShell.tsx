@@ -178,7 +178,11 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
 
       {!deskHost && <MarketChips />}
 
-      {!deskHost && (
+      {/* Le dock ne parait qu a qui est entre. Tout ce qu il porte demande une
+          connexion : le montrer a un visiteur serait lui offrir quatre portes
+          fermees sous le pouce. Devant la porte, la page se suffit, avec son
+          menu « ⋮ » et ses propres appels a l action. */}
+      {!deskHost && signedIn && (
       <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         {tabs.map((tab) => {
           const face = (
