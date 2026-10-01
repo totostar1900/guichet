@@ -485,3 +485,17 @@
 .appareils small {
   font-size: 0.74rem;
 }
+
+/* Le rattachement : une ligne, pas un panneau. Le choix et son enregistrement
+   tiennent côte à côte, et « Le desk » est la première option parce que c'est
+   la valeur par défaut de la maison. */
+.conseillerForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  align-items: end;
+}
+.conseillerForm select {
+  flex-grow: 1;
+  min-width: 0;
+}

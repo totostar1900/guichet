@@ -14,7 +14,7 @@ import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
 import { ReachLine } from "@/components/desk/ReachLine";
-import { removeClientDeviceAction } from "./actions";
+import { removeClientDeviceAction, setAdvisorAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Clients" };
@@ -40,12 +40,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const q = (sp.q ?? "").trim();
   const queue = clientDirectory(files, q);
   const attente = files.filter(waiting).length;
-  const [lang, fin, prefs, channels, devices] = await Promise.all([
+  const [lang, fin, prefs, channels, devices, equipe, conseiller] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getChannelStatus(selected.userId).catch(() => undefined) : undefined,
     selected ? r.listDevices(selected.userId).catch(() => []) : [],
+    r.listStaff().catch(() => []),
+    selected ? r.findAdvisor(selected.userId).catch(() => undefined) : undefined,
   ]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id || (d.clientId === selected.userId && (d.type === "coupon" || d.type === "reclamation" || d.type === "releve" || d.type === "attestation"))) : [];
   const now = new Date();
@@ -199,6 +201,33 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     Le desk ne peut pas en ajouter un, ce qui reviendrait à se
                     donner sa clef ; il peut en reprendre une, ce qui ferme une
                     porte et n'en ouvre aucune. */}
+                {/* LE CONSEILLER, ET LE REPLI QUI N'EST PAS UN MANQUE.
+                    « Le desk » est une valeur du menu, pas une case vide :
+                    sans rattachement, le client voit le desk sur sa carte et
+                    le desk répond. Un conseiller sans numéro reste enregistré
+                    ici mais ne s'affiche pas chez le client, parce qu'une carte
+                    qui mène par WhatsApp ne doit pas nommer quelqu'un qu'on ne
+                    peut pas joindre par là. */}
+                <h3>{t("Conseiller")}</h3>
+                <form action={setAdvisorAction} className={styles.conseillerForm}>
+                  <input type="hidden" name="userId" value={selected.userId} />
+                  <input type="hidden" name="clientName" value={selected.identity.name} />
+                  <label className="lab" htmlFor="advisorId">
+                    {t("Qui suit ce client")}
+                  </label>
+                  <select id="advisorId" name="advisorId" defaultValue={conseiller?.id ?? ""}>
+                    <option value="">{t("Le desk, sans nom")}</option>
+                    {equipe.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                        {m.phone ? "" : ` · ${t("sans numéro, invisible chez le client")}`}
+                      </option>
+                    ))}
+                  </select>
+                  <button className="btn sm" type="submit">
+                    {t("Enregistrer")}
+                  </button>
+                </form>
                 <h3>{t("Appareils de confiance")}</h3>
                 {devices.length === 0 ? (
                   <p className="muted">{t("Aucun appareil enregistré : ce client entre par un code à chaque fois.")}</p>

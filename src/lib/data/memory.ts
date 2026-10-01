@@ -88,6 +88,8 @@ interface Store {
   channels: Map<string, ChannelStatus>;
   consents: Map<string, { version: string; at: string }>;
   profiles: Map<string, FinancialProfile>;
+  /** Le conseiller rattaché, par client. */
+  advisors: Map<string, string>;
   prefs: Map<string, ClientPrefs>;
   templateTexts: TemplateText[];
   codes: ChannelCode[];
@@ -149,6 +151,7 @@ function store(): Store {
       channels: new Map(),
       consents: new Map(),
       profiles: new Map(),
+      advisors: new Map(),
       prefs: new Map(),
       templateTexts: [],
       codes: [],
@@ -422,6 +425,17 @@ export const memoryRepository: Repository = {
     if (s) return structuredClone(s);
     const c = store().contacts.find((x) => x.email?.toLowerCase() === email.toLowerCase());
     return c ? { id: c.id, name: c.name, email: c.email, phone: c.phone, role: "desk" } : undefined;
+  },
+  async findAdvisor(userId) {
+    const id = (store().advisors ??= new Map()).get(userId); // un sac vivant depuis un rechargement peut précéder la carte
+    if (!id) return undefined;
+    const s = store().staff.find((x) => x.id === id);
+    return s ? structuredClone(s) : undefined;
+  },
+  async setAdvisor(userId, advisorId) {
+    const m = (store().advisors ??= new Map());
+    if (advisorId) m.set(userId, advisorId);
+    else m.delete(userId);
   },
   async setRole(userId, role, by) {
     const st = store();

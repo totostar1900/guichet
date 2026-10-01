@@ -8,6 +8,7 @@ import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, ETAPES, servicesDuClient, type ContexteClient, type EtatService } from "@/lib/domain/services";
 import { getT } from "@/i18n/server";
+import { ConseillerCard } from "./ConseillerCard";
 import { fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 
@@ -43,16 +44,21 @@ export default async function TraderPage() {
   const r = repo();
   const aujourdHui = localIso(new Date());
 
-  const [intents, offers, cash, standing, avis, feed] = await Promise.all([
+  const [intents, offers, cash, standing, avis, feed, advisor, dossier] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(s.userId).catch(() => []),
     r.listStandingOrders(s.userId).catch(() => []),
     r.listCustodyNotices({ userId: s.userId }).catch(() => []),
     loadBeacAuctions().catch(() => ({ auctions: [] as BeacAuction[] })),
+    r.findAdvisor(s.userId).catch(() => undefined),
+    r.getClientFileByUser(s.userId).catch(() => undefined),
   ]);
 
   const mine = intents.filter((i) => i.clientId === s.userId);
+  // La dernière intention par la date, pas par l'ordre de la table : une
+  // lecture qui suppose un tri que personne ne garantit finit par mentir.
+  const derniere = [...mine].sort((a, b2) => b2.createdAt.localeCompare(a.createdAt))[0]?.ref;
   const positions = positionsFrom(mine, offers);
   const poche = cashPosition(cash, mine);
   const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
@@ -126,6 +132,8 @@ export default async function TraderPage() {
           </div>
         ))}
       </section>
+
+      <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: positions.length, derniere }} />
 
       <section className={styles.liste}>
         {services.map((sv) => (

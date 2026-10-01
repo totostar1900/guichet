@@ -74,6 +74,9 @@ export interface Repository {
   findProfileByEmail(email: string): Promise<StaffMember | undefined>;
   setRole(userId: string, role: StaffRole | "client", by: string): Promise<void>;
   markMfaEnrolled(userId: string): Promise<void>;
+  /** Le membre de l'équipe qui suit ce client. Absent : le desk répond. */
+  findAdvisor(userId: string): Promise<StaffMember | undefined>;
+  setAdvisor(userId: string, advisorId: string | undefined): Promise<void>;
   /** Reference data the desk edits in the app (product types, bond terms, companies, issuers, glossary). */
   listReference(kind: string): Promise<ReferenceRow[]>;
   upsertReference(kind: string, key: string, data: unknown, by?: string): Promise<void>;

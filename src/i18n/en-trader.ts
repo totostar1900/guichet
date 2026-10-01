@@ -18,6 +18,30 @@ export const EN_TRADER: Record<string, string> = {
   "Les alertes ne sont pas encore ouvertes ici : vos messages arrivent sur WhatsApp et par e-mail.":
     "Alerts are not open here yet: your messages arrive on WhatsApp and by e-mail.",
   "Envoyer un essai": "Send a test",
+
+  /* ---------- « Votre conseiller » dans Trader ---------- */
+  "Votre conseiller": "Your adviser",
+  "Le desk du Guichet": "The Guichet desk",
+  "Répond sur WhatsApp en journée, du lundi au vendredi.": "Answers on WhatsApp during the day, Monday to Friday.",
+  "La personne disponible au desk vous répond, sur WhatsApp en journée.": "Whoever is free at the desk answers you, on WhatsApp during the day.",
+  "Le message part avec": "The message carries",
+  "Vous le relisez et le modifiez avant d'envoyer.": "You read it over and change it before sending.",
+  "compte {compte}": "account {compte}",
+  "{n} lignes au dépositaire": "{n} lines at the depository",
+  "dernière intention {ref}": "last intention {ref}",
+  "Bonjour, je suis {nom}, compte {compte}.": "Hello, this is {nom}, account {compte}.",
+  "Bonjour, je suis {nom}.": "Hello, this is {nom}.",
+  "Ma dernière intention porte la référence {ref}.": "My last intention carries reference {ref}.",
+  "Écrire un e-mail": "Send an e-mail",
+  "Appeler le {tel}": "Call {tel}",
+  /* « Écrire sur WhatsApp », « Appeler », « Conseiller » et « Enregistrer »
+     vivent déjà dans en-desk.ts et en-rest.ts : une seconde traduction en
+     ferait deux vérités. */
+
+  /* ---------- le rattachement, vu du desk ---------- */
+  "Qui suit ce client": "Who follows this client",
+  "Le desk, sans nom": "The desk, unnamed",
+  "sans numéro, invisible chez le client": "no number, hidden from the client",
   "Essai envoyé : la notification doit arriver dans quelques secondes.": "Test sent: the notification should arrive within a few seconds.",
 
   /* ---------- revoir son profil d'investisseur ---------- */

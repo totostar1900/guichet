@@ -130,6 +130,46 @@ export async function autoScreenAction(_p: ReviewResult | null, form: FormData):
  * Elle se journalise deux fois, à l'audit et au flux : retirer la clef de
  * quelqu'un se lit dans son dossier, et porte un nom.
  */
+/**
+ * Nommer le conseiller d'un client, ou le retirer.
+ *
+ * Le rattachement est facultatif : « Le desk » est une valeur, pas un vide à
+ * remplir. Une maison qui n'affecte personne fonctionne, et la carte du client
+ * dit alors que le desk répond.
+ *
+ * LE RÔLE SE VÉRIFIE AVANT D'ÉCRIRE. La liste du formulaire vient du serveur,
+ * mais un formulaire se rejoue avec l'identifiant qu'on veut : sans ce contrôle,
+ * on rattacherait un client à un autre client, dont le numéro partirait alors
+ * dans un lien WhatsApp affiché à un tiers.
+ */
+export async function setAdvisorAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/clients");
+  const userId = String(form.get("userId") ?? "");
+  const advisorId = String(form.get("advisorId") ?? "").trim();
+  if (!userId) return;
+  const r = repo();
+  const equipe = await r.listStaff();
+  const choisi = advisorId ? equipe.find((x) => x.id === advisorId) : undefined;
+  if (advisorId && !choisi) return;
+  const avant = await r.findAdvisor(userId);
+  if (avant?.id === choisi?.id) return;
+  await r.setAdvisor(userId, choisi?.id);
+  await audit("client.advisor", "profile", userId, {
+    before: avant ? { advisorId: avant.id, name: avant.name } : null,
+    after: choisi ? { advisorId: choisi.id, name: choisi.name } : null,
+    reason: `rattachement modifié depuis le desk par ${desk.name}`,
+  });
+  const porteur = String(form.get("clientName") ?? "").trim();
+  await r.logEvent({
+    kind: "desk",
+    html: choisi
+      ? `Conseiller <b>${choisi.name}</b> rattaché par ${desk.name}${porteur ? ` à ${porteur}` : ""}`
+      : `Rattachement <b>retiré</b> par ${desk.name}${porteur ? ` chez ${porteur}` : ""} : le desk répond`,
+  });
+  revalidatePath("/desk/clients");
+  revalidatePath("/trader");
+}
+
 export async function removeClientDeviceAction(form: FormData): Promise<void> {
   const desk = await requireDesk("/desk/clients");
   const id = String(form.get("deviceId") ?? "");

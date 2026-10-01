@@ -43,6 +43,7 @@ const READS = new Set([
   "getContact",
   "listStaff",
   "findProfileByEmail",
+  "findAdvisor",
   "listReference",
   "listWatches",
   "getPrefs",

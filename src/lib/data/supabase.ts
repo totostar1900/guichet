@@ -1080,6 +1080,22 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("profiles").upsert({ id: userId, role, role_set_by: by, role_set_at: new Date().toISOString() }, { onConflict: "id" });
     if (error) fail("setRole", error);
   },
+  async findAdvisor(userId) {
+    const { data, error } = await db().from("profiles").select("advisor_id").eq("id", userId).maybeSingle();
+    if (error) fail("findAdvisor", error);
+    const id = (data as { advisor_id: string | null } | null)?.advisor_id;
+    if (!id) return undefined;
+    // LE RÔLE EST VÉRIFIÉ ICI, pas seulement à l'affectation : un profil peut
+    // perdre son accès au desk sans que les clients qu'il suivait bougent, et
+    // un ancien membre ne doit pas rester affiché comme conseiller.
+    const { data: a, error: e } = await db().from("profiles").select(STAFF_COLS).eq("id", id).in("role", ["desk", "responsable"]).maybeSingle();
+    if (e) fail("findAdvisor", e);
+    return a ? toStaff(a as StaffRow) : undefined;
+  },
+  async setAdvisor(userId, advisorId) {
+    const { error } = await db().from("profiles").update({ advisor_id: advisorId ?? null }).eq("id", userId);
+    if (error) fail("setAdvisor", error);
+  },
   async markMfaEnrolled(userId) {
     const { error } = await db().from("profiles").update({ mfa_enrolled_at: new Date().toISOString() }).eq("id", userId);
     if (error) fail("markMfaEnrolled", error);
