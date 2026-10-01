@@ -109,9 +109,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
   const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
+  /* LA SURFACE, ET POURQUOI C'EST LA SESSION QUI LA DIT.
+     Le système de design décrit la vitrine devant la porte et l'espace de
+     travail derrière, et « la porte » est la connexion : un visiteur est devant,
+     un client connecté et le desk sont derrière. Ce n'est donc pas la route qui
+     décide, et c'est voulu : si la vitrine se jugeait par la liste blanche de
+     porte.ts, un client connecté qui ouvre « Risques et limites » verrait le
+     thème basculer en cours de navigation. */
+  const surface = session ? "travail" : "vitrine";
+
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} security={security} profile={profile?.kind} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value)}>
+    <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT }} />

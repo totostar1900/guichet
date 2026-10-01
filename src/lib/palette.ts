@@ -18,11 +18,33 @@ export const T_COOKIE = "guichet_theme";
 export const YEAR = 60 * 60 * 24 * 365;
 
 /** The script the layout inlines in <head>: applies the device's choice before the first paint; localStorage is the truth, the cookies follow it. */
-export const PALETTE_BOOT = `(function(){try{var p=localStorage.getItem("${P_KEY}"),t=localStorage.getItem("${T_KEY}"),r=document.documentElement;if(p&&p!=="navy")r.setAttribute("data-palette",p);else r.removeAttribute("data-palette");if(t==="light"||t==="dim"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme");if(p&&document.cookie.indexOf("${P_COOKIE}="+p)<0)document.cookie="${P_COOKIE}="+p+"; path=/; max-age=${YEAR}; samesite=lax";if(t&&document.cookie.indexOf("${T_COOKIE}="+t)<0)document.cookie="${T_COOKIE}="+t+"; path=/; max-age=${YEAR}; samesite=lax";}catch(e){}})();`;
+export const PALETTE_BOOT = `(function(){try{var p=localStorage.getItem("${P_KEY}"),t=localStorage.getItem("${T_KEY}"),r=document.documentElement;if(p&&p!=="navy")r.setAttribute("data-palette",p);else r.removeAttribute("data-palette");if(t==="light"||t==="dim"||t==="dark")r.setAttribute("data-theme",t);else r.setAttribute("data-theme",r.getAttribute("data-defaut")||"light");if(p&&document.cookie.indexOf("${P_COOKIE}="+p)<0)document.cookie="${P_COOKIE}="+p+"; path=/; max-age=${YEAR}; samesite=lax";if(t&&document.cookie.indexOf("${T_COOKIE}="+t)<0)document.cookie="${T_COOKIE}="+t+"; path=/; max-age=${YEAR}; samesite=lax";}catch(e){}})();`;
 
-/** What the server puts on <html> from the cookies: the same attributes the boot script would set. */
-export function paletteAttrs(palette?: string, theme?: string): { "data-palette"?: string; "data-theme"?: string } {
-  const out: { "data-palette"?: string; "data-theme"?: string } = {};
+/**
+ * LA SURFACE DECIDE, ET L UTILISATEUR PEUT ENCORE CHANGER (decide le 2026-10-02).
+ *
+ * Le systeme de design decrit deux surfaces : vitrine CLAIRE devant la porte,
+ * espace de travail en NUIT derriere. Ni l une ni l autre n etait implementee :
+ * l application suivait le reglage du systeme d exploitation, et c est ainsi que
+ * les titres de la page d accueil se sont retrouves a 1,15:1 pour tout visiteur
+ * dont l OS est en sombre, sans que personne ne le voie.
+ *
+ * « auto » veut donc dire « selon la surface », et non « selon l OS ». Un choix
+ * explicite de l utilisateur passe toujours devant : on lui donne un defaut qui
+ * a du sens, on ne lui retire pas la main.
+ *
+ * Le defaut voyage aussi en « data-defaut », parce que le script d amorcage et
+ * le commutateur en ont besoin cote navigateur : sans lui, « auto » ne saurait
+ * pas vers quoi revenir.
+ */
+export type Surface = "vitrine" | "travail";
+
+export const themeDeSurface = (s: Surface): "light" | "dark" => (s === "travail" ? "dark" : "light");
+
+/** What the server puts on <html> from the cookies and the surface. */
+export function paletteAttrs(palette?: string, theme?: string, surface: Surface = "vitrine"): { "data-palette"?: string; "data-theme": string; "data-defaut": string } {
+  const defaut = themeDeSurface(surface);
+  const out: { "data-palette"?: string; "data-theme": string; "data-defaut": string } = { "data-theme": defaut, "data-defaut": defaut };
   if (palette && palette !== "navy" && PALETTES.some((p) => p.key === palette)) out["data-palette"] = palette;
   if (theme === "light" || theme === "dim" || theme === "dark") out["data-theme"] = theme;
   return out;

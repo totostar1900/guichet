@@ -35,8 +35,10 @@ function apply(palette: string, theme: string) {
   const root = document.documentElement;
   if (palette === "navy") root.removeAttribute("data-palette");
   else root.setAttribute("data-palette", palette);
-  if (theme === "auto") root.removeAttribute("data-theme");
-  else root.setAttribute("data-theme", theme);
+  // « auto » revient au defaut de la surface, que le serveur a timbre : sans
+  // lui on retomberait sur le reglage du systeme, ce qui ouvrait la vitrine en
+  // sombre a tout visiteur dont l OS l est.
+  root.setAttribute("data-theme", theme === "auto" ? (root.getAttribute("data-defaut") ?? "light") : theme);
   try {
     localStorage.setItem(P_KEY, palette);
     localStorage.setItem(T_KEY, theme);
@@ -109,8 +111,8 @@ export function PaletteKeeper({ saved }: { saved?: { palette?: string; theme?: s
       const r = document.documentElement;
       if (p === "navy") r.removeAttribute("data-palette");
       else if (r.getAttribute("data-palette") !== p) r.setAttribute("data-palette", p);
-      if (t === "auto") r.removeAttribute("data-theme");
-      else if (r.getAttribute("data-theme") !== t) r.setAttribute("data-theme", t);
+      const voulu = t === "auto" ? (r.getAttribute("data-defaut") ?? "light") : t;
+      if (r.getAttribute("data-theme") !== voulu) r.setAttribute("data-theme", voulu);
     } catch {
       // storage unavailable
     }
