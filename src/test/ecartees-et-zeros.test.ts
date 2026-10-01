@@ -79,7 +79,21 @@ describe("une pièce écartée ne compte nulle part", () => {
 
   it("garde un motif pris dans une liste fermée", () => {
     expect(MOTIFS_ECART).toContain("avis d'annonce, pas un résultat");
-    expect(MOTIFS_ECART.every((m) => m.length > 8)).toBe(true);
+    /**
+     * Un motif se suffit à lui-même, SAUF « autre ».
+     *
+     * La règle d'origine voulait qu'aucun motif ne soit un haussement
+     * d'épaules : huit lettres au moins, donc une phrase. « autre » la viole
+     * exprès, et c'est le prix d'une liste honnête : sans lui, qui ne trouve
+     * pas son cas choisit le motif le plus proche, et le registre se met à
+     * mentir poliment.
+     *
+     * Ce qui le rachète vit ailleurs et doit y rester : sa précision est
+     * obligatoire, à l'écran comme dans l'action qui écrit. C'est la seule
+     * exception, et elle est nommée ici pour qu'une deuxième ne s'ajoute pas
+     * en silence.
+     */
+    expect(MOTIFS_ECART.filter((m) => m.length <= 8)).toEqual(["autre"]);
   });
 });
 

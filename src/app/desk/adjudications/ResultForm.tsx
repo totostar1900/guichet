@@ -129,7 +129,18 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
   };
   const num = champ;
 
+  /**
+   * Deux formulaires frères, et non l'un dans l'autre.
+   *
+   * « Écarter » porte le sien, et il était posé AU MILIEU de celui-ci. Un
+   * « form » imbriqué est invalide : l'analyseur HTML supprime la balise
+   * intérieure, de sorte que « Écarter cette pièce » devenait un bouton de ce
+   * formulaire-ci, qui ne porte pas cette action. Il soumettait la saisie à sa
+   * place, et rien ne paraissait se passer. Le commentaire affirmait déjà que
+   * le geste vivait en dehors ; le balisage disait l'inverse.
+   */
   return (
+    <>
     <form className={styles.form}>
       <input type="hidden" name="id" value={r.id} />
 
@@ -268,10 +279,6 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
             )}
           </div>
 
-          {/* Le troisieme geste : ni lire, ni confirmer, mais constater que
-              cette piece n en est pas une. Il vit en dehors du formulaire de
-              saisie parce qu il ne sauve aucun champ. */}
-          <Ecarter id={r.id} ecartee={etat === "ecartee"} motif={r.setAsideReason} par={r.setAsideBy} />
           <p className="muted">
             {etat === "ecartee"
               ? t("Rangée : cette pièce n'est pas un résultat, et ne compte nulle part.")
@@ -284,5 +291,11 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
         </div>
       </div>
     </form>
+
+    {/* Le troisième geste : ni lire, ni confirmer, mais constater que cette
+        pièce n'en est pas une. Il porte son propre formulaire, donc il se tient
+        à côté et jamais dedans. */}
+    <Ecarter id={r.id} ecartee={etat === "ecartee"} motif={r.setAsideReason} par={r.setAsideBy} />
+    </>
   );
 }

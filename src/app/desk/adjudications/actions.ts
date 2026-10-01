@@ -245,6 +245,10 @@ export async function setAsideResultAction(form: FormData): Promise<void> {
   const motif = String(form.get("motif") ?? "").trim();
   const precision = String(form.get("precision") ?? "").trim();
   if (!id || !(MOTIFS_ECART as readonly string[]).includes(motif)) return;
+  // « Autre » sans sa précision n'écrit rien d'utile : le registre dirait
+  // « autre » et le prochain lecteur n'en saurait pas davantage. Le champ est
+  // déjà requis à l'écran ; ceci le tient aussi quand l'écran est contourné.
+  if (motif === "autre" && !precision) return;
   const before = await repo().getAuctionResult(id);
   if (!before || before.setAsideAt) return;
   const raison = precision ? `${motif} · ${precision}` : motif;

@@ -14,6 +14,12 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- écarter une pièce qui n'est pas un résultat ---------- */
+  "chiffres douteux": "figures that do not hold",
+  autre: "other",
+  obligatoire: "required",
+  "Dites lequel : c'est tout ce que le registre gardera": "Say which: that is all the register will keep",
+
   /* ---------- le carnet du desk ---------- */
   "{n} à décider": "{n} to decide",
   "en continu": "continuous",

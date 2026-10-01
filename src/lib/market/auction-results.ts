@@ -162,7 +162,15 @@ export const MOTIFS_ECART = [
   "avis d'annonce, pas un résultat",
   "doublon d'une séance déjà saisie",
   "pièce illisible ou tronquée",
+  /* Deux motifs ajoutés à l'usage. « Chiffres douteux » n'est pas « illisible » :
+     la pièce se lit très bien, et c'est ce qu'elle dit qui ne tient pas, un
+     taux à deux chiffres là où la séance voisine en donne six. « Autre » ferme
+     la liste honnêtement : sans lui, qui ne trouve pas son cas choisit le motif
+     le plus proche, et le registre se met à mentir poliment. La précision
+     facultative, à côté, est ce qui le sauve. */
+  "chiffres douteux",
   "hors périmètre",
+  "autre",
 ] as const;
 export type MotifEcart = (typeof MOTIFS_ECART)[number];
 

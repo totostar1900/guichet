@@ -21,6 +21,10 @@ import styles from "./page.module.css";
 export function Ecarter({ id, ecartee, motif, par }: { id: string; ecartee: boolean; motif?: string; par?: string }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
+  // « Autre » exige sa précision : sans elle, le registre dirait « autre » et
+  // rien, c'est-à-dire qu'il mentirait poliment six mois plus tard.
+  const [choix, setChoix] = useState<string>(MOTIFS_ECART[0]);
+  const libre = choix === "autre";
 
   if (ecartee) {
     return (
@@ -56,7 +60,7 @@ export function Ecarter({ id, ecartee, motif, par }: { id: string; ecartee: bool
       <input type="hidden" name="id" value={id} />
       <label>
         <span>{t("Pourquoi cette pièce n'est pas un résultat")}</span>
-        <select name="motif" defaultValue={MOTIFS_ECART[0]}>
+        <select name="motif" value={choix} onChange={(e) => setChoix(e.target.value)}>
           {MOTIFS_ECART.map((m) => (
             <option key={m} value={m}>
               {t(m)}
@@ -65,11 +69,13 @@ export function Ecarter({ id, ecartee, motif, par }: { id: string; ecartee: bool
         </select>
       </label>
       <label>
-        <span>{t("Précision, si elle aide le prochain lecteur")}</span>
-        <input name="precision" type="text" maxLength={140} placeholder={t("facultatif")} />
+        <span>{t(libre ? "Dites lequel : c'est tout ce que le registre gardera" : "Précision, si elle aide le prochain lecteur")}</span>
+        <input name="precision" type="text" maxLength={140} required={libre} placeholder={t(libre ? "obligatoire" : "facultatif")} />
       </label>
       <div className={styles.ecarteActions}>
-        <button className="btn sm" type="submit" formNoValidate>
+        {/* Sans « formNoValidate », que portait ce bouton quand il vivait dans
+            le formulaire de saisie : il faut ici que « obligatoire » morde. */}
+        <button className="btn sm" type="submit">
           {t("Écarter cette pièce")}
         </button>
         <button className="btn sm ghost" type="button" onClick={() => setOuvert(false)}>
