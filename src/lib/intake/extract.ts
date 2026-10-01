@@ -15,31 +15,44 @@ const MODEL = "claude-opus-5";
 
 const Conf = z.enum(["sure", "check", "missing"]);
 
-const Extraction = z.object({
-  kind: z.enum(["OTA", "BTA", "ACTIONS", "APE", "RACHAT"]).nullable().describe("Instrument. OTA = Obligations du Trésor Assimilables (coupon annuel). BTA = Bons du Trésor Assimilables (intérêts précomptés). ACTIONS = actions / IPO / augmentation de capital. APE = emprunt obligataire par appel public à l'épargne. RACHAT = rachat de titres par l'émetteur."),
-  operation: z.enum(["nouvelle_ligne", "abondement", "rachat", "ipo", "emprunt_ape"]).nullable(),
-  country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).nullable(),
-  countryName: z.string().nullable().describe("Ex. « République du Congo »"),
-  issuer: z.string().nullable().describe("Ex. « Trésor public de la République du Congo » ou la société émettrice"),
-  isin: z.string().nullable().describe("Code émission / ISIN, ex. CG2L00000012"),
-  sourceRef: z.string().nullable().describe("Numéro et date du communiqué, ex. « n° 000473/MFBPP du 11 sept. 2026 »"),
-  nominal: z.number().nullable().describe("Valeur nominale unitaire en FCFA (10 000 pour une OTA, 1 000 000 pour un BTA, prix par action pour une IPO)"),
-  couponRate: z.number().nullable().describe("Taux du coupon annuel en % (OTA / APE)"),
-  precountRate: z.number().nullable().describe("Taux précompté en % si indiqué (BTA) : souvent fixé à l'adjudication, alors null"),
-  maturityOn: z.string().nullable().describe("Échéance, ISO YYYY-MM-DD"),
-  lastCouponOn: z.string().nullable().describe("Date du dernier coupon versé pour un abondement (échéance moins N années), ISO YYYY-MM-DD ; null pour une ligne nouvelle"),
-  opensAt: z.string().nullable().describe("Ouverture de la souscription, ISO datetime local (IPO / APE) ; null pour une adjudication"),
-  deadlineAt: z.string().nullable().describe("Date limite de dépôt des offres, ISO datetime local YYYY-MM-DDTHH:MM ; si l'heure manque, 12:00 pour une adjudication"),
-  resultsAt: z.string().nullable().describe("Annonce des résultats, ISO datetime local"),
-  settleOn: z.string().nullable().describe("Date de règlement / valeur, ISO YYYY-MM-DD"),
-  sizeLabel: z.string().nullable().describe("Volume recherché, en clair, ex. « 10 Mds FCFA » ou « 7,5 à 10 Mds FCFA »"),
-  pricePerShare: z.number().nullable(),
-  minShares: z.number().nullable(),
-  sharesOffered: z.number().nullable(),
-  dividendPerShare: z.number().nullable(),
-  title: z.string().nullable().describe("Titre court pour la fiche, ex. « OTA 6,00 % · 31 mars 2028 » ou « BTA 52 semaines · 16 sept. 2027 »"),
-  blurb: z.string().nullable().describe("Deux phrases neutres décrivant la ligne pour un client, sans prix ni recommandation"),
-  typeKey: z.string().nullable().describe("Clé du type de produit parmi la liste fournie dans la consigne (ex. OTA, BTA, APE, IPO, RACHAT ou un type ajouté par le desk) ; null si aucun ne convient"),
+/**
+ * LA LIMITE QUI A TOUT CASSE, mesuree le 2026-10-01 sur un vrai communique.
+ *
+ * Chaque champ « nullable » devient un type union dans le schema JSON, et l API
+ * en refuse plus de seize : « Schemas contains too many parameters with union
+ * types (24 parameters with type arrays or anyOf) ». Les vingt-quatre champs
+ * echouaient donc TOUTES les extractions de la maison, celle des adjudications
+ * et celle des avis comprises, avec un 400 que personne ne lisait.
+ *
+ * « optional » dit la meme chose sans union : le modele omet le champ au lieu
+ * de le mettre a null, et nn() ramene les deux au meme undefined. Le cliquet
+ * src/test/extract-unions.test.ts compte les unions du schema genere.
+ */
+export const Extraction = z.object({
+  kind: z.enum(["OTA", "BTA", "ACTIONS", "APE", "RACHAT"]).optional().describe("Instrument. OTA = Obligations du Trésor Assimilables (coupon annuel). BTA = Bons du Trésor Assimilables (intérêts précomptés). ACTIONS = actions / IPO / augmentation de capital. APE = emprunt obligataire par appel public à l'épargne. RACHAT = rachat de titres par l'émetteur."),
+  operation: z.enum(["nouvelle_ligne", "abondement", "rachat", "ipo", "emprunt_ape"]).optional(),
+  country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).optional(),
+  countryName: z.string().optional().describe("Ex. « République du Congo »"),
+  issuer: z.string().optional().describe("Ex. « Trésor public de la République du Congo » ou la société émettrice"),
+  isin: z.string().optional().describe("Code émission / ISIN, ex. CG2L00000012"),
+  sourceRef: z.string().optional().describe("Numéro et date du communiqué, ex. « n° 000473/MFBPP du 11 sept. 2026 »"),
+  nominal: z.number().optional().describe("Valeur nominale unitaire en FCFA (10 000 pour une OTA, 1 000 000 pour un BTA, prix par action pour une IPO)"),
+  couponRate: z.number().optional().describe("Taux du coupon annuel en % (OTA / APE)"),
+  precountRate: z.number().optional().describe("Taux précompté en % si indiqué (BTA) : souvent fixé à l'adjudication, alors null"),
+  maturityOn: z.string().optional().describe("Échéance, ISO YYYY-MM-DD"),
+  lastCouponOn: z.string().optional().describe("Date du dernier coupon versé pour un abondement (échéance moins N années), ISO YYYY-MM-DD ; null pour une ligne nouvelle"),
+  opensAt: z.string().optional().describe("Ouverture de la souscription, ISO datetime local (IPO / APE) ; null pour une adjudication"),
+  deadlineAt: z.string().optional().describe("Date limite de dépôt des offres, ISO datetime local YYYY-MM-DDTHH:MM ; si l'heure manque, 12:00 pour une adjudication"),
+  resultsAt: z.string().optional().describe("Annonce des résultats, ISO datetime local"),
+  settleOn: z.string().optional().describe("Date de règlement / valeur, ISO YYYY-MM-DD"),
+  sizeLabel: z.string().optional().describe("Volume recherché, en clair, ex. « 10 Mds FCFA » ou « 7,5 à 10 Mds FCFA »"),
+  pricePerShare: z.number().optional(),
+  minShares: z.number().optional(),
+  sharesOffered: z.number().optional(),
+  dividendPerShare: z.number().optional(),
+  title: z.string().optional().describe("Titre court pour la fiche, ex. « OTA 6,00 % · 31 mars 2028 » ou « BTA 52 semaines · 16 sept. 2027 »"),
+  blurb: z.string().optional().describe("Deux phrases neutres décrivant la ligne pour un client, sans prix ni recommandation"),
+  typeKey: z.string().optional().describe("Clé du type de produit parmi la liste fournie dans la consigne (ex. OTA, BTA, APE, IPO, RACHAT ou un type ajouté par le desk) ; null si aucun ne convient"),
   extra: z.array(z.object({ key: z.string(), value: z.string() })).describe("Champs libres du type choisi (liste fournie dans la consigne), uniquement ceux lus dans la source"),
   official: z.boolean().describe("true si la source est un communiqué ou une note officielle (en-tête, numéro, signature) ; false pour une photo d'écran, un message transféré, une capture"),
   confidence: z.object({
@@ -51,7 +64,7 @@ const Extraction = z.object({
 
 const SYSTEM = `Tu lis des communiqués d'opérations de marché de la zone CEMAC (Trésors publics du Cameroun, Congo, Gabon, RCA, Tchad, Guinée équatoriale ; BVMAC ; arrangeurs) pour une société de bourse.
 Extrais les caractéristiques de l'opération avec rigueur :
-- Ne jamais inventer : si une information manque, mets null et confidence « missing ».
+- Ne jamais inventer : si une information manque, OMETS le champ et mets confidence « missing ».
 - Une valeur déduite (ex. dernier coupon = échéance − n années ; heure limite absente → 12:00) prend confidence « check » et une remarque.
 - Les dates sont en ISO. Les heures sont locales (Afrique centrale).
 - « Abondement » = réouverture d'une ligne existante (code émission déjà existant, durée résiduelle) ; « nouvelle ligne » = émission d'une ligne nouvelle ; un tableau « lignes à racheter » décrit des RACHAT (un par ligne).
@@ -97,7 +110,9 @@ export async function extractOffer(input: ExtractionInput): Promise<{ draft: Off
   const out = response.parsed_output;
   if (!out) throw new Error("Réponse d'extraction illisible.");
 
-  const nn = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
+  // Le champ est absent plutôt que nul depuis que le schéma n'a plus d'unions :
+  // nn ramène les deux au même undefined, et rien d'autre ne change.
+  const nn = <T>(v: T | null | undefined): T | undefined => (v == null ? undefined : v);
   const draft: OfferDraft = {
     kind: nn(out.kind),
     operation: nn(out.operation),

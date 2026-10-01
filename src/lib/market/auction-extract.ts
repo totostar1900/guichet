@@ -77,7 +77,7 @@ Règles :
 const Amount = z.number().nullable();
 const Pct = z.number().nullable();
 
-const Lecture = z.object({
+export const Lecture = z.object({
   codeEmission: z.string().nullable().describe("Code émission du Trésor, ex. CG1300001480"),
   country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).nullable(),
   instrument: z.enum(["BTA", "OTA"]).nullable(),

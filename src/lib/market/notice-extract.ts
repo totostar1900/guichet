@@ -54,7 +54,7 @@ Règles :
 - Pour un bon du Trésor, il n'y a pas de coupon : la ligne « Rendement » y dit que les intérêts sont précomptés. Laisse couponRate à null plutôt que d'y mettre un nombre voisin.
 - Signale dans remarks tout ce qui gênerait une relecture : champ illisible, tampon, mention de remboursement absente, plusieurs lignes dans le même avis, date incohérente.`;
 
-const Lecture = z.object({
+export const Lecture = z.object({
   codeEmission: z.string().nullable().describe("Code émission du Trésor, ex. CG2K00000187"),
   instrument: z.enum(["BTA", "OTA"]).nullable(),
   tenor: z.string().nullable().describe("Durée normalisée, ex. « 26 semaines » ou « 4 ans »"),
