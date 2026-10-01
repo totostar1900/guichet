@@ -24,6 +24,16 @@ export interface IngestInput {
   trusted?: boolean;
   /** Where it came from, for the queue badge; inferred when absent. */
   source?: IntakeSource;
+  /**
+   * Garder une piece d'un type qu'on ne sait pas lire, au lieu de la refuser.
+   *
+   * Le formulaire du desk ne le pose pas : quand une personne choisit un .zip,
+   * lui dire « format non pris en charge » est le bon service. Le courrier
+   * entrant, lui, n'a personne a qui le dire : la piece est deja arrivee, et la
+   * refuser serait la perdre. Un regulateur qui envoie un questionnaire Word
+   * doit le retrouver dans le dossier, meme si la machine ne sait pas le lire.
+   */
+  keepUnsupported?: boolean;
 }
 
 export type IngestResult = { ok: true; item: IntakeItem } | { ok: false; error: string };
@@ -43,19 +53,24 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
   if (file) {
     if (file.bytes.byteLength > MAX_BYTES) return { ok: false, error: "Fichier trop lourd (max 20 Mo)." };
     mimeType = file.mimeType || "application/octet-stream";
+    const pdf = mimeType === "application/pdf";
+    const image = (IMAGE_TYPES as readonly string[]).includes(mimeType);
+    // LE TYPE SE CONTROLE AVANT LE TELEVERSEMENT, et c'est une correction.
+    // « saveSource » venait d'abord : un .zip montait dans le seau, puis la
+    // fonction rendait « format non pris en charge ». Le fichier restait, que
+    // plus rien ne designait, et il comptait contre le plafond de stockage.
+    if (!pdf && !image && !input.keepUnsupported) return { ok: false, error: "Format non pris en charge : PDF, JPEG, PNG ou WebP." };
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
     fileName = `${key}.${ext}`;
     await saveSource(fileName, file.bytes, mimeType);
-    const b64 = Buffer.from(file.bytes).toString("base64");
-    if (mimeType === "application/pdf") {
+    if (pdf) {
       if (!input.source) source = "pdf";
-      extraction = { kind: "pdf", base64: b64, hint: input.hint };
-    } else if ((IMAGE_TYPES as readonly string[]).includes(mimeType)) {
+      extraction = { kind: "pdf", base64: Buffer.from(file.bytes).toString("base64"), hint: input.hint };
+    } else if (image) {
       if (!input.source) source = "photo";
-      extraction = { kind: "image", base64: b64, mediaType: mimeType as (typeof IMAGE_TYPES)[number], hint: input.hint };
-    } else {
-      return { ok: false, error: "Format non pris en charge : PDF, JPEG, PNG ou WebP." };
+      extraction = { kind: "image", base64: Buffer.from(file.bytes).toString("base64"), mediaType: mimeType as (typeof IMAGE_TYPES)[number], hint: input.hint };
     }
+    // Un autre type : garde, sans extraction. Une personne l'ouvrira.
   } else {
     if (!input.source) source = text.includes("@") || /objet\s*:/i.test(text) ? "mail" : "texte";
     extraction = { kind: "text", text, hint: input.hint };
@@ -63,6 +78,9 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
 
   let draft: OfferDraft = emptyDraft(Boolean(input.trusted) || source === "pdf" || source === "mail");
   let extractedIn: number | undefined;
+  // Dire pourquoi aucun champ n'est propose, sinon le desk lit un brouillon
+  // vide et croit a une extraction ratee.
+  if (file && !extraction) draft.remarks = [`Pièce gardée telle quelle : ${mimeType} ne se lit pas automatiquement. Ouvrez-la et renseignez les champs à la main.`];
   if (extractionAvailable() && extraction) {
     try {
       const r = await extractOffer(extraction);

@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       from: j.from ?? "inconnu",
       subject: j.subject ?? "",
       text: j.text ?? (j.html ?? "").replace(/<[^>]+>/g, " "),
-      attachments: (j.attachments ?? []).filter((a) => a.contentBase64).map((a) => ({ name: a.filename ?? "piece", mimeType: a.contentType ?? "application/octet-stream", bytes: new Uint8Array(Buffer.from(a.contentBase64!, "base64")) })),
+      attachments: (j.attachments ?? []).filter((a) => a.contentBase64).map((a) => ({ name: a.filename ?? "piece", mimeType: a.contentType ?? "application/octet-stream", bytes: new Uint8Array(Buffer.from(a.contentBase64!, "base64")), inline: false })),
     };
   }
 

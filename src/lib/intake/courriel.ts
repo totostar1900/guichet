@@ -5,6 +5,7 @@ import { repo } from "@/lib/data";
 import { receiveLinks } from "@/lib/news/intake";
 import { urlsIn } from "@/lib/news/model";
 import { ingestSource, trustedSender } from "./ingest";
+import { direLeRefus } from "./refus";
 
 /**
  * Ce qu'on fait d'un courriel entrant, quel que soit celui qui l'apporte.
@@ -13,19 +14,49 @@ import { ingestSource, trustedSender } from "./ingest";
  * apporte le même courrier par un autre chemin, et la seule chose qui change
  * est la manière de prouver qui frappe. Dupliquer le traitement aurait fait
  * deux vérités sur ce qu'un courriel devient, et la seconde aurait divergé.
+ *
+ * LA PLATEFORME EST UN DÉPÔT, PAS UN APERÇU (2026-10-01). Elle gardait un
+ * extrait de 4 000 caractères et jetait en silence toute pièce qui n'était ni
+ * PDF ni image. Tant que la boîte Outlook gardait l'original, ça passait. Dès
+ * que le courrier de `guichet@` est redirigé ici, la plateforme devient le seul
+ * exemplaire : un questionnaire Word d'un régulateur n'aurait existé nulle
+ * part, et une lettre longue aurait été coupée au milieu d'une phrase sans que
+ * rien ne le dise.
  */
+export interface PieceJointe {
+  name: string;
+  mimeType: string;
+  bytes: Uint8Array;
+  /** « inline » : une image du corps, souvent un logo de signature. */
+  inline: boolean;
+}
+
 export interface Courriel {
   from: string;
   subject: string;
   text: string;
-  attachments: { name: string; mimeType: string; bytes: Uint8Array }[];
+  attachments: PieceJointe[];
 }
 
 export interface Issue {
   created: string[];
   news: string[];
   errors: string[];
+  /** Les pièces écartées, nommées : une perte muette n'est pas une perte acceptable. */
+  skipped: string[];
 }
+
+/**
+ * Une image de signature n'est pas un document.
+ *
+ * Un logo collé dans une signature arrive comme une pièce jointe « inline » de
+ * dix à trente kilo-octets. Sans ce seuil, chaque courriel d'un correspondant
+ * ouvrirait une ligne dans « À valider » et paierait un appel d'extraction pour
+ * lire un logo. Mais un Trésor envoie parfois son communiqué en image dans le
+ * corps du message, et celle-là pèse plus : le seuil les sépare, et ce qui est
+ * écarté est nommé pour que la décision reste visible et révisable.
+ */
+const SEUIL_IMAGE_INLINE = 40 * 1024;
 
 /** Le message complet, tel qu'il circule entre serveurs : un seul analyseur pour tous les apporteurs. */
 export async function lireRfc822(raw: Uint8Array): Promise<Courriel> {
@@ -34,38 +65,71 @@ export async function lireRfc822(raw: Uint8Array): Promise<Courriel> {
     from: parsed.from?.address ?? parsed.from?.name ?? "inconnu",
     subject: parsed.subject ?? "",
     text: parsed.text ?? (parsed.html ?? "").replace(/<[^>]+>/g, " "),
-    attachments: parsed.attachments.map((a) => ({ name: a.filename ?? "piece", mimeType: a.mimeType, bytes: typeof a.content === "string" ? new TextEncoder().encode(a.content) : new Uint8Array(a.content) })),
+    attachments: parsed.attachments.map((a) => ({
+      name: a.filename ?? "piece",
+      mimeType: a.mimeType,
+      bytes: typeof a.content === "string" ? new TextEncoder().encode(a.content) : new Uint8Array(a.content),
+      inline: a.disposition === "inline",
+    })),
   };
 }
 
+/** L'adresse seule, que `EMAIL_FROM` porte parfois sous la forme « Guichet <guichet@… > ». */
+export const adresseSeule = (v: string | undefined): string => (v ?? "").match(/<([^>]+)>/)?.[1]?.trim().toLowerCase() ?? (v ?? "").trim().toLowerCase();
+
 export async function ingererCourriel(mail: Courriel): Promise<Issue> {
+  /* LA BOUCLE, ET POURQUOI ELLE EST CERTAINE SANS CE GARDE-FOU.
+     La plateforme signe ses envois avec EMAIL_FROM. Dès qu'une redirection
+     existe sur cette boîte, tout ce qu'elle envoie lui revient : les
+     non-remises, les réponses automatiques, les absences du bureau. Chacune
+     serait classée comme un message de client, et le desk relirait ses propres
+     envois en croyant lire les réponses. */
+  const nous = adresseSeule(process.env.EMAIL_FROM);
+  if (nous && mail.from.trim().toLowerCase() === nous) {
+    await direLeRefus(`Courrier <b>écarté</b> : il vient de notre propre adresse d'envoi (${nous}), c'est un retour de ce que nous avons envoyé`);
+    return { created: [], news: [], errors: [], skipped: [mail.subject || "sans objet"] };
+  }
+
   const trusted = trustedSender(mail.from);
   const fromLabel = `${mail.from} · e-mail`;
   // Tout courriel est aussi un message dans la boîte du desk : la question d'un
-  // client n'est pas une source à ingérer.
-  await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text.slice(0, 4000) });
-  if (!trusted && mail.attachments.length === 0) return { created: [], news: [], errors: [] };
+  // client n'est pas une source à ingérer. Le corps ENTIER, désormais : un
+  // extrait coupé au milieu d'une phrase n'est pas un exemplaire.
+  await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text });
+
+  // Les images du corps assez petites pour être des logos ne deviennent pas des
+  // pièces, et on dit lesquelles.
+  const skipped: string[] = [];
+  const pieces = mail.attachments.filter((a) => {
+    const logo = a.inline && a.mimeType.startsWith("image/") && a.bytes.byteLength < SEUIL_IMAGE_INLINE;
+    if (logo) skipped.push(`${a.name} (${Math.round(a.bytes.byteLength / 1024)} ko, image du corps)`);
+    return !logo;
+  });
+  if (skipped.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${skipped.length} image(s) du corps écartée(s), trop légère(s) pour être un document : ${skipped.join(" · ")}` });
+
+  if (!trusted && pieces.length === 0) return { created: [], news: [], errors: [], skipped };
   // Un expéditeur de confiance qui envoie des liens sans pièce jointe : des
   // candidats pour les Actualités, pas une source à ingérer.
-  if (trusted && mail.attachments.length === 0 && urlsIn(mail.text).length) {
+  if (trusted && pieces.length === 0 && urlsIn(mail.text).length) {
     const got = await receiveLinks(`${mail.subject}\n${mail.text}`, `E-mail · ${mail.from}`);
-    if (got.length) return { created: [], news: got.map((n) => n.id), errors: [] };
+    if (got.length) return { created: [], news: got.map((n) => n.id), errors: [], skipped };
   }
   const hint = mail.subject ? `Objet du courriel : ${mail.subject}` : undefined;
   const created: string[] = [];
   const errors: string[] = [];
-  const usable = mail.attachments.filter((a) => a.mimeType === "application/pdf" || a.mimeType.startsWith("image/"));
-  if (usable.length === 0) {
+  if (pieces.length === 0) {
     const res = await ingestSource({ title: mail.subject, fromLabel, hint, text: `Objet : ${mail.subject}\nDe : ${mail.from}\n\n${mail.text}`, trusted, source: "mail" });
     if (res.ok) created.push(res.item.id);
     else errors.push(res.error);
   }
-  for (const a of usable) {
-    const res = await ingestSource({ title: mail.subject || a.name, fromLabel, hint: `${hint ?? ""} Pièce jointe ${a.name}.`.trim(), file: a, trusted });
+  // TOUTE pièce est gardée, quel que soit son type : `keepUnsupported` dit à
+  // l'ingestion de conserver ce qu'elle ne sait pas lire au lieu de le refuser.
+  for (const a of pieces) {
+    const res = await ingestSource({ title: mail.subject || a.name, fromLabel, hint: `${hint ?? ""} Pièce jointe ${a.name}.`.trim(), file: a, trusted, keepUnsupported: true });
     if (res.ok) created.push(res.item.id);
     else errors.push(`${a.name} : ${res.error}`);
   }
   for (const id of created) await audit("intake.create", "intake", id, { after: { from: mail.from, subject: mail.subject, channel: "email" }, actor: "courriel entrant" });
   if (errors.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${errors.join(" · ")}` });
-  return { created, news: [], errors };
+  return { created, news: [], errors, skipped };
 }
