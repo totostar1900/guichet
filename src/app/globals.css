@@ -11,7 +11,7 @@
      s y arretent. Un en-tete de tableau colle a « top: 0 » colle SOUS elle : il
      disparait, et soixante pixels de lignes defilent a decouvert la ou il
      devrait etre. C est ce qu on lisait sur « Diffusion ». */
-  --bar-h: 60px;
+  --bar-h: 62px;
   /* the four fund categories (monétaire, obligataire, diversifié, actions): dots and rails on the funds page */
   --cat-M: #0e7490;
   --cat-O: #15803d;

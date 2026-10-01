@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { PageOutline } from "@/components/PageOutline";
 import { FromSante } from "@/components/desk/FromSante";
 import type { Offer } from "@/lib/domain/types";
 import { repo } from "@/lib/data";
@@ -133,7 +134,28 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
       <DeskNav current="/desk/marche" />
       {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-cours" ? `${lines.length} / ${allLines.length}` : undefined} />}
 
-      <div className="panel" data-coach="import">
+      {/* UN RAIL, PARCE QUE LA PAGE A CINQ SUJETS.
+          Elle les posait l'un sous l'autre sans sommaire : les appariements et
+          les ordres, les deux seuls qui demandent une décision, vivaient au
+          bout de dix-sept mille pixels. Les tables se lisent maintenant dans
+          leur fenêtre et le rail dit ce qu'il y a, donc on y va sans défiler.
+          Le pied du rail dit à quoi sert la page : elle ne l'avait écrit nulle
+          part, et un desk qui l'ouvre pour la première fois le devinait. */}
+      <div className={styles.avecRail}>
+        <PageOutline
+          label={t("Cotes & VL")}
+          sections={[
+            { id: "bulletin", title: t("Le bulletin") },
+            { id: "cotations", title: t("Cotations") },
+            { id: "opcvm", title: t("OPCVM") },
+            { id: "appariements", title: t("Appariements") },
+            { id: "ordres", title: t("Ordres") },
+          ]}
+          foot={<span>{t("Le bulletin arrive seul chaque soir de bourse. Cette page sert à le relire, à corriger ce qu'il a mal dit, et à traiter les ordres qui en découlent.")}</span>}
+        />
+        <div>
+
+      <div className="panel" id="bulletin" data-coach="import">
         <div className="panel-h">
           <h2>{t("Bulletin Officiel de la Cote : BVMAC")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
@@ -359,7 +381,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="appariements">
         <div className="panel-h">
           <h2>{t("Appariements possibles")}</h2>
           <span className="muted right" style={{ fontSize: ".8rem" }}>
@@ -377,7 +399,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         )}
       </div>
 
-      <div className="panel">
+      <div className="panel" id="ordres">
         <div className="panel-h">
           <h2>{t("Ordres de bourse et d'OPCVM")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
@@ -452,6 +474,9 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
         </div>
       </div>
     </>

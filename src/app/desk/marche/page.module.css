@@ -205,3 +205,21 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Le rail a gauche, et la page a sa droite. Meme geometrie que le carnet :
+   deux rails qui s arretent a des lignes differentes se remarquent. */
+.avecRail {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  gap: 0 var(--s-9);
+  align-items: start;
+}
+.avecRail > nav {
+  position: sticky;
+  top: calc(72px + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 1100px) {
+  .avecRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

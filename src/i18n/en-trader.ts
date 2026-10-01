@@ -14,6 +14,11 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- Cotes & VL : le rail et ce que la page fait ---------- */
+  "Le bulletin": "The bulletin",
+  "Le bulletin arrive seul chaque soir de bourse. Cette page sert à le relire, à corriger ce qu'il a mal dit, et à traiter les ordres qui en découlent.":
+    "The bulletin arrives on its own each trading evening. This page is for reading it back, correcting what it got wrong, and handling the orders that follow.",
+
   /* ---------- les appareils de confiance, vus du desk ---------- */
   "Appareils de confiance": "Trusted devices",
   "clef d'accès": "passkey",
