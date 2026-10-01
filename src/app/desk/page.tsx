@@ -357,7 +357,12 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                     </td>
                     <td className="r num">{headlineYield(o) != null ? fmtPct(headlineYield(o) as number) : "—"}</td>
                     <td className="r">
-                      <span className={styles.cd}>{countdown(o.deadlineAt, now)}</span>
+                      {/* La sentinelle ne se compte pas. Quarante-cinq OPCVM
+                          affichaient « 26754 j 16 h » : ils se traitent en
+                          continu, et un compte à rebours vers 2099 n'est pas
+                          une information, c'est une date de remplissage lue
+                          comme une échéance. */}
+                      <span className={styles.cd}>{aUneCloture(o) ? countdown(o.deadlineAt, now) : t("en continu")}</span>
                     </td>
                   </tr>
                 ))}

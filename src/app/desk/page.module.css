@@ -41,7 +41,7 @@
 }
 .feedTable thead th {
   position: sticky;
-  top: 0;
+  top: var(--bar-h);
   z-index: 2;
   /* Opaque, et sur sa propre couche : c'est ce qui masque les lignes qui
      défilent dessous. Le filet lui appartient maintenant qu'il est séparé. */
