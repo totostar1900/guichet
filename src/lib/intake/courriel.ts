@@ -162,14 +162,15 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   const created: string[] = [];
   const errors: string[] = [];
   if (pieces.length === 0) {
-    const res = await ingestSource({ title: mail.subject, fromLabel, hint, text: `Objet : ${mail.subject}\nDe : ${mail.from}\n\n${mail.text}`, trusted, source: "mail" });
+    const res = await ingestSource({ title: mail.subject, fromLabel, hint, text: `Objet : ${mail.subject}\nDe : ${mail.from}\n\n${mail.text}`, trusted, source: "mail", differer: true });
     if (res.ok) created.push(res.item.id);
     else errors.push(res.error);
   }
   // TOUTE pièce est gardée, quel que soit son type : `keepUnsupported` dit à
   // l'ingestion de conserver ce qu'elle ne sait pas lire au lieu de le refuser.
   for (const a of pieces) {
-    const res = await ingestSource({ title: mail.subject || a.name, fromLabel, hint: `${hint ?? ""} Pièce jointe ${a.name}.`.trim(), file: a, trusted, keepUnsupported: true });
+    // DIFFÉRÉ : un webhook a quelques secondes, une lecture de PDF n'y tient pas.
+    const res = await ingestSource({ title: mail.subject || a.name, fromLabel, hint: `${hint ?? ""} Pièce jointe ${a.name}.`.trim(), file: a, trusted, keepUnsupported: true, differer: true });
     if (res.ok) created.push(res.item.id);
     else errors.push(`${a.name} : ${res.error}`);
   }

@@ -229,6 +229,33 @@ export async function sendBackAction(_prev: IntakeResult | null, form: FormData)
   return { ok: true };
 }
 
+/**
+ * Lire, ou relire, une pièce.
+ *
+ * LA LECTURE NE SE FAIT PLUS À L'ARRIVÉE. Un webhook a quelques secondes pour
+ * répondre, et un modèle qui lit un PDF n'y tient pas : le 2026-10-01 une pièce
+ * est restée « lecture en cours », tuée au délai. Elle arrive donc « à lire », et
+ * ce bouton est le geste qui la lit sans attendre la passe.
+ *
+ * Il reprend aussi une lecture déjà tentée, et c'est le SEUL chemin qui repasse
+ * sur une lecture : la passe automatique ne touche jamais à ce qui porte déjà son
+ * marqueur, pour ne pas écraser une correction faite à la main. Ici c'est une
+ * personne qui demande, en connaissance.
+ */
+export async function lireSourceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/a-valider");
+  const id = String(form.get("itemId") ?? "");
+  if (!id) return;
+  const { lireUnePiece } = await import("@/lib/intake/lecture");
+  const lue = await lireUnePiece(id, true);
+  if (!lue) return;
+  await audit("intake.read", "intake", id, {
+    after: { model: lue.item.readModel, seconds: lue.secondes, error: lue.erreur },
+    reason: `lecture demandée depuis le desk par ${desk.name}`,
+  });
+  revalidatePath("/desk/a-valider");
+}
+
 export async function rejectAction(form: FormData): Promise<void> {
   await requireDesk("/desk/a-valider");
   const id = String(form.get("itemId") ?? "");

@@ -27,6 +27,9 @@ import { enabledTypes, kindForEngine } from "@/lib/registry";
  */
 const MODEL = process.env.INTAKE_READ_MODEL || process.env.AUCTION_READ_MODEL || "claude-opus-5";
 
+/** Le modele employe, garde a cote de chaque lecture : sans lui, comparer deux lectures ne veut rien dire. */
+export const modeleDeLecture = (): string => MODEL;
+
 const Conf = z.enum(["sure", "check", "missing"]);
 
 /**

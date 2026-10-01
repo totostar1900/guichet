@@ -19,6 +19,10 @@ export const EN_TRADER: Record<string, string> = {
     "Alerts are not open here yet: your messages arrive on WhatsApp and by e-mail.",
   "Envoyer un essai": "Send a test",
 
+  /* ---------- lire une piece d intake, differee depuis le webhook ---------- */
+  "Lire la pièce": "Read the document",
+  "Relire la pièce": "Read the document again",
+
   /* ---------- « Votre conseiller » dans Trader ---------- */
   "Votre conseiller": "Your adviser",
   "Le desk du Guichet": "The Guichet desk",

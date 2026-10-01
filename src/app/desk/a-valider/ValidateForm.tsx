@@ -10,7 +10,7 @@ import { enabledTypes, kindForEngine, legacyTypeKey, typeByKey } from "@/lib/reg
 import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
-import { publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
+import { lireSourceAction, publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import { SourceViewer } from "@/components/SourceViewer";
 import { referenceLine, type RateReference } from "@/lib/market/auction-results";
 import styles from "./page.module.css";
@@ -369,6 +369,13 @@ export function ValidateForm({ item, offer, reference }: { item: IntakeItem; off
                   ? tr("Déjà publié le {d}. Publier à nouveau crée la version {v} et renotifie les clients.", { d: item.publishedAt ? fmtDateTime(item.publishedAt) : "—", v: (offer?.version ?? 0) + 1 })
                   : tr("Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées.")}
           </small>
+          {/* « À lire » est un état, pas une panne : la pièce est arrivée et
+              gardée, la machine n'y est pas encore passée. Le bouton dit lequel
+              des deux gestes il fait, parce qu'une relecture écrase ce que la
+              première avait proposé. */}
+          <button className="btn ghost sm" type="submit" formAction={lireSourceAction} formNoValidate>
+            {tr(item.readAt ? "Relire la pièce" : "Lire la pièce")}
+          </button>
           <button className="btn ghost sm" type="submit" formAction={rejectAction} formNoValidate>
             {tr("Rejeter")}
           </button>

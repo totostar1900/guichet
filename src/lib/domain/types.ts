@@ -305,7 +305,11 @@ export interface IntakeItem {
   draft: OfferDraft;
   offerId?: string; // set once published (or when the source updates an existing offer)
   publishedAt?: string;
-  extractedIn?: number; // seconds
+  extractedIn?: number;
+  /** Quand la lecture a ete tentee, qu'elle ait rendu quelque chose ou non. Absent : jamais tentee. */
+  readAt?: string;
+  /** Le modele qui a lu : comparer deux lectures ne veut rien dire sans lui. */
+  readModel?: string; // seconds
   notes?: string;
 }
 
