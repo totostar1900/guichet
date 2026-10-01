@@ -13,6 +13,7 @@
 import fs from "node:fs";
 import { parseBeacRows, readBeacDoc, BEAC_ANNONCES } from "../src/lib/market/beac.ts";
 import { toEmissionNotice } from "../src/lib/data/supabase.ts";
+import { storageKey } from "../src/lib/intake/cle.ts";
 
 const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
 const v = (k) => env.match(new RegExp("^" + k + "=(.*)$", "m"))[1].trim().replace(/^["']|["']$/g, "");
@@ -26,19 +27,17 @@ const arg = (n) => {
 };
 
 /**
- * La règle de storageKey(), recopiée au caractère près.
+ * La clef d'un fichier au dépôt vient de « src/lib/intake/cle.ts », importée et
+ * non recopiée.
  *
- * Recopiée et non importée : son module porte « server-only » et refuse de se
- * charger hors de Next. Une première version de cette copie ne remplaçait que
- * les caractères non ASCII, un par un, et déposait dix-sept avis de Guinée
- * équatoriale là où l'application ne serait jamais allée les chercher. Le
- * cliquet src/test/storage-key.test.ts compare désormais les deux.
+ * Elle a longtemps été recopiée ici, parce que son module portait
+ * « server-only » et refusait de se charger hors de Next. Une copie libre
+ * dérive : celle de ce script ne remplaçait que les caractères non ASCII, là où
+ * l'originale écrase aussi les espaces et les points. Dix-sept avis de Guinée
+ * équatoriale sont partis sous une clef que l'application n'aurait jamais lue,
+ * et le balayage du 2026-10-02 en a retrouvé le résidu : sept pièces illisibles
+ * et vingt-deux doublons. La barrière a été retirée le même jour.
  */
-const storageKey = (s) =>
-  s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9._\-/]+/g, "-");
 
 const res = await fetch(BEAC_ANNONCES, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0; +https://guichet.purposecapital.africa)" } });
 if (!res.ok) {

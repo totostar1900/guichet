@@ -24,11 +24,12 @@ import path from "node:path";
  * se relit, « Communiqu- » non. Les dossiers restent des dossiers côté Supabase,
  * qui les gère ; sur le disque ils s'aplatissent, le répertoire étant unique.
  */
-export const storageKey = (key: string): string =>
-  key
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9._\-/]+/g, "-");
+/* La regle vit dans « cle.ts », sans « server-only », pour que les scripts de
+   reprise l importent au lieu d en garder une copie : c est une copie libre qui
+   a envoye dix-sept avis de Guinee equatoriale sous une clef illisible. */
+import { storageKey } from "./cle";
+
+export { storageKey };
 
 const BUCKET = "sources";
 const LOCAL_DIR = path.join(process.cwd(), ".uploads");

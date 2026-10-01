@@ -35,14 +35,20 @@ describe("la clef d'un objet stocké", () => {
 /**
  * Les scripts de reprise écrivent dans le même dépôt.
  *
- * Ils ne peuvent pas importer storageKey() : son module porte « server-only » et
- * ne se charge pas hors de Next. Ils en gardent donc une copie, et une copie
- * libre dérive. Celle du script d'ingestion des avis ne remplaçait que les
+ * LA BARRIÈRE EST TOMBÉE LE 2026-10-02, et ce test change de sens. storageKey()
+ * vivait derrière « server-only », donc aucun script ne pouvait l'importer : ils
+ * en gardaient une copie, et une copie libre dérive. Celle du script d'ingestion des avis ne remplaçait que les
  * caractères non ASCII, un par un, là où l'original écrase aussi les espaces et
  * les points et réduit toute une suite à un seul tiret. Dix-sept avis de Guinée
  * équatoriale, seul pays dont le nom porte les trois, sont partis sous une clef
  * que l'application n'aurait jamais lue. Rien n'échouait : la file des avis
  * serait simplement restée pleine.
+ *
+ * Elle vit maintenant dans « cle.ts », qui ne porte pas cette barrière et
+ * s'importe de partout, scripts compris. Ce test garde donc l'inverse de ce
+ * qu'il gardait : qu'il n'en reste AUCUNE copie. Et si l'une reparaissait, elle
+ * doit au moins se comporter comme l'originale, parce qu'une copie qui dérive ne
+ * casse rien : elle écrit simplement sous une clef que personne ne relira.
  *
  * La liste des scripts ne s'énumère pas à la main. Celui qu'on ajouterait demain
  * serait oublié, et c'est le jour où ce test aurait servi.
@@ -54,8 +60,12 @@ describe("les copies de la règle, dans les scripts", () => {
     .map((f) => [f, readFileSync(path.join(racine, "scripts", f), "utf8")] as const)
     .filter(([, src]) => src.includes('normalize("NFD")'));
 
-  it("garde au moins une copie, sans quoi ce test ne garde rien", () => {
-    expect(scripts.length).toBeGreaterThan(0);
+  it("n'en garde aucune : la règle s'importe depuis cle.ts", () => {
+    /* Le 2026-10-02, le balayage du dépôt a retrouvé le résidu de la dernière
+       dérive : sept communiqués que la base désignait et que le dépôt gardait
+       sous un autre nom, donc illisibles, et vingt-deux doublons périmés. Une
+       copie ne casse rien au moment où on l'écrit, et c'est bien le problème. */
+    expect(scripts.map(([f]) => f), "un script recopie storageKey : importez-la depuis « @/lib/intake/cle » ou « ../src/lib/intake/cle.ts »").toEqual([]);
   });
 
   /**
