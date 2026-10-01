@@ -21,6 +21,7 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
   const tr = useT();
   const [state, setState] = useState<State>("busy");
   const [err, setErr] = useState("");
+  const [essai, setEssai] = useState("");
 
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -69,6 +70,15 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
       setState("off");
     }
   };
+  /* L'essai vaut la chaîne entière : la clef publique du navigateur, la
+     souscription enregistrée, et la clef privée qui signe côté serveur. Les
+     trois maillons échouent chacun autrement, et le message le dit. */
+  const essayer = async () => {
+    setEssai("busy");
+    const r = await fetch("/api/push", { method: "PUT" });
+    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+    setEssai(j.ok ? "ok" : (j.error ?? "L'essai n'a pas abouti."));
+  };
   const disable = async () => {
     setState("busy");
     const reg = await navigator.serviceWorker.getRegistration("/sw.js");
@@ -91,7 +101,14 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
       <button type="button" className={`btn sm ${state === "on" ? "" : "primary"}`} disabled={state === "busy"} onClick={state === "on" ? disable : enable}>
         {state === "busy" ? "…" : tr(state === "on" ? "Alertes activées · désactiver" : "Recevoir les alertes sur cet appareil")}
       </button>
+      {state === "on" && (
+        <button type="button" className="btn sm" disabled={essai === "busy"} onClick={essayer}>
+          {essai === "busy" ? "…" : tr("Envoyer un essai")}
+        </button>
+      )}
       {err && <small className={styles.err}>{err}</small>}
+      {essai === "ok" && <small className={styles.note}>{tr("Essai envoyé : la notification doit arriver dans quelques secondes.")}</small>}
+      {essai && essai !== "ok" && essai !== "busy" && <small className={styles.err}>{essai}</small>}
       {!compact && state === "off" && <small className={styles.note}>{tr("Une opportunité du moment, une clôture qui approche, un ordre servi : une notification, pas plus d'une par jour.")}</small>}
     </span>
   );

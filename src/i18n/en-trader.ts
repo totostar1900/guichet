@@ -17,6 +17,8 @@ export const EN_TRADER: Record<string, string> = {
   /* ---------- les alertes sur l'appareil ---------- */
   "Les alertes ne sont pas encore ouvertes ici : vos messages arrivent sur WhatsApp et par e-mail.":
     "Alerts are not open here yet: your messages arrive on WhatsApp and by e-mail.",
+  "Envoyer un essai": "Send a test",
+  "Essai envoyé : la notification doit arriver dans quelques secondes.": "Test sent: the notification should arrive within a few seconds.",
 
   /* ---------- revoir son profil d'investisseur ---------- */
   Revoir: "Review",
