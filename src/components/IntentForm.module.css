@@ -526,3 +526,10 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
+
+/* Sous le chiffre du recu : l estimation dit qu elle en est une. */
+.estNote {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}

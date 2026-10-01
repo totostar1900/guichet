@@ -111,9 +111,20 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
-  // Sur la cote l’ordre part en titres, c’est ce que le carnet prend. Mais on pense en
-  // francs : on peut saisir une somme, que le formulaire convertit et montre.
-  const [unit, setUnit] = useState<"titres" | "francs">("titres");
+  /**
+   * ON ACHÈTE AVEC UNE SOMME, ON VEND CE QU'ON DÉTIENT.
+   *
+   * L'ordre part toujours en titres : c'est ce que le carnet prend. Mais le
+   * formulaire s'OUVRAIT là-dessus, et un client qui veut placer cinq cent
+   * mille francs devait d'abord les traduire en titres, au cours, de tête,
+   * avant de pouvoir dire quoi que ce soit. Il pense en francs, parce que
+   * c'est ce qu'il a sur son compte.
+   *
+   * Vendre est l'inverse exact : on dispose d'un nombre de titres et non d'une
+   * somme, et « tout vendre » n'a de sens qu'en titres. Le choix ne se pose
+   * donc que pour un achat, et il s'ouvre en francs.
+   */
+  const [unit, setUnit] = useState<"titres" | "francs">("francs");
   const [cash, setCash] = useState("");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
   // L’e-mail du compte : celui de la session quand le fournisseur le donne, sinon
@@ -168,7 +179,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const canSwitch = offer.kind === "FONDS" && type === "rachat" && switchTargets.length > 0;
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
   const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
-  const byCash = market && unit === "francs";
+  // Vendre ou racheter part d'un nombre de titres détenus : la somme n'y a pas
+  // de sens, et « tout vendre » encore moins.
+  const vend = type === "vente" || type === "rachat" || type === "cession";
+  const byCash = market && !vend && unit === "francs";
   // Une seule quantité commande tout le reste : l’estimation, les contrôles, le passage
   // à l’étape suivante, et ce qui part au desk. Saisie en titres, ou déduite d’une somme.
   const ordered = byCash ? qtyForCash(offer, type, parseAmount(cash), lim) : parse(amount);
@@ -217,6 +231,29 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </dd>
             <dt>{t("La ligne")}</dt>
             <dd>{offer.title}</dd>
+            {/* LE PRIX MANQUAIT, et c'est ce qu'on signe. Le reçu disait le type,
+                la quantité et la ligne : on repartait avec « 105 titres » sans
+                savoir à combien, ni ce que ça engage. Le prix d'exécution n'est
+                pas connu d'avance sur la cote, mais la limite posée l'est, et le
+                cours de référence aussi : c'est cela qu'on rappelle, en disant
+                lequel des deux c'est. */}
+            <dt>{t("Le prix")}</dt>
+            <dd>
+              {market
+                ? lim
+                  ? t(offer.instrument === "obligation" ? "au plus {p} % du nominal" : "au plus {p} FCFA", { p: fmt(lim) })
+                  : t("au cours du jour · dernier coté {p}", { p: offer.instrument === "obligation" ? `${offer.ask ?? offer.lastPrice ?? "—"} %` : `${fmt(offer.ask ?? offer.lastPrice ?? 0)} FCFA` })
+                : t("au prix publié")}
+            </dd>
+            {ordered > 0 && (
+              <>
+                <dt>{t(vend ? "Produit estimé" : "Décaissement estimé")}</dt>
+                <dd>
+                  {fmt(Math.round(ordered * unitPrice(offer, type, lim)))} {t("FCFA")}
+                  <small className={styles.estNote}>{t("estimation : le prix définitif est celui de l'exécution")}</small>
+                </dd>
+              </>
+            )}
             <dt>{t("On vous répond")}</dt>
             <dd>{t(BY[state.channel])}</dd>
           </dl>
@@ -252,7 +289,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
     );
   }
 
-  const amtLabel = t(market ? (offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)") : offer.kind === "FONDS" ? (type === "rachat" ? "Parts à racheter" : "Montant (FCFA)") : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)");
+  // L'étiquette suit l'unité en cours : « Quantité (titres) » au-dessus d'un
+  // champ où l'on tape des francs se lit comme une erreur de l'écran.
+  const amtLabel = t(market ? (byCash ? "Montant (FCFA)" : offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)") : offer.kind === "FONDS" ? (type === "rachat" ? "Parts à racheter" : "Montant (FCFA)") : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)");
 
   return (
     <div className={styles.wrap}>
@@ -278,8 +317,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         <div className={styles.row}>
           {needsAmount ? (
             <label className="field">
-              {/* Sur la cote, le client choisit son unité : des titres, ou une somme */}
-              {market ? (
+              {/* Sur la cote, et pour un achat seulement : des titres, ou une
+                  somme. Vendre part de ce qu'on détient, donc de titres. */}
+              {market && !vend ? (
                 <span className={styles.unitRow}>
                   {amtLabel}
                   <span className={styles.unitPick} role="group" aria-label={t("Saisir en")}>

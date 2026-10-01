@@ -14,6 +14,15 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- le code à quatre chiffres ---------- */
+  "Les deux codes ne sont pas identiques. Recommencez.": "The two codes do not match. Start again.",
+
+  /* ---------- le reçu d'une intention : le prix, qui manquait ---------- */
+  "au plus {p} % du nominal": "at most {p} % of par",
+  "au plus {p} FCFA": "at most {p} FCFA",
+  "au cours du jour · dernier coté {p}": "at the day's price · last quoted {p}",
+  "estimation : le prix définitif est celui de l'exécution": "an estimate: the final price is the one at execution",
+
   /* ---------- Cotes & VL : le rail et ce que la page fait ---------- */
   "Le bulletin": "The bulletin",
   "Le bulletin arrive seul chaque soir de bourse. Cette page sert à le relire, à corriger ce qu'il a mal dit, et à traiter les ordres qui en découlent.":

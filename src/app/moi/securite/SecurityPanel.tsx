@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { useT } from "@/i18n/client";
 import { fmtDateTime } from "@/lib/format";
@@ -32,6 +32,9 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
   const [proven, setProven] = useState<string | null>(channels.phoneVerifiedAt ? (channels.phone ?? null) : null);
   const [adding, setAdding] = useState<"idle" | "pin">("idle");
   const [pin, setPin] = useState(["", ""]);
+  // Le curseur revient au premier champ apres un refus : effacer sans rendre la
+  // main obligerait a viser un champ masque sur un clavier de telephone.
+  const premier = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<{ error?: string; ok?: string } | null>(null);
   const [pending, start] = useTransition();
   const [canPasskey, setCanPasskey] = useState(false);
@@ -61,13 +64,23 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
   const addPin = () =>
     start(async () => {
       setMsg(null);
+      /* UN CODE REFUSÉ S'EFFACE, ET LES DEUX CHAMPS AVEC.
+         Le message paraissait et les quatre chiffres restaient : il fallait les
+         effacer à la main avant de réessayer, sur un clavier de téléphone, dans
+         un champ masqué où l'on ne voit pas ce qu'on efface. On ne sait pas
+         lequel des deux portait la faute, donc on les reprend tous les deux, et
+         le curseur revient au premier. */
       if (pin[0] !== pin[1]) {
-        setMsg({ error: "Les deux codes ne sont pas identiques." });
+        setPin(["", ""]);
+        premier.current?.focus();
+        setMsg({ error: "Les deux codes ne sont pas identiques. Recommencez." });
         return;
       }
       const token = newDeviceToken();
       const r = await enrolPin(token, pin[0], deviceLabel());
       if (!r.ok) {
+        setPin(["", ""]);
+        premier.current?.focus();
         setMsg({ error: r.error });
         return;
       }
@@ -164,7 +177,7 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
               <div className={styles.pinForm}>
                 <label>
                   <span>{t("Choisissez 4 chiffres")}</span>
-                  <input type="password" inputMode="numeric" pattern="[0-9]*" maxLength={4} autoComplete="new-password" value={pin[0]} onChange={(e) => setPin([e.target.value.replace(/\D/g, ""), pin[1]])} autoFocus />
+                  <input type="password" inputMode="numeric" pattern="[0-9]*" maxLength={4} autoComplete="new-password" value={pin[0]} onChange={(e) => setPin([e.target.value.replace(/\D/g, ""), pin[1]])} autoFocus ref={premier} />
                 </label>
                 <label>
                   <span>{t("Encore une fois")}</span>

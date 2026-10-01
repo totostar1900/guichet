@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { browserSupportsWebAuthn, startAuthentication } from "@simplewebauthn/browser";
 import { useT } from "@/i18n/client";
 import { clearDevice, readDevice } from "@/lib/device-client";
@@ -27,6 +27,9 @@ export function DeviceSignIn({ next }: { next: string }) {
   const device = raw ? readDevice() : null;
   const [hidden, setHidden] = useState(false);
   const [pin, setPin] = useState("");
+  // Le champ se vidait apres un refus, la main ne revenait pas : on retapait a
+  // l aveugle dans un champ qui n avait plus le curseur.
+  const champ = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [done, setDone] = useState(false);
@@ -63,6 +66,7 @@ export function DeviceSignIn({ next }: { next: string }) {
       const r = await pinLogin(device.id, device.token, value);
       if (!r.ok) {
         setPin("");
+        champ.current?.focus();
         setError(r.error);
         if (r.forgotten) {
           clearDevice();
@@ -108,6 +112,7 @@ export function DeviceSignIn({ next }: { next: string }) {
             pattern="[0-9]*"
             maxLength={4}
             value={pin}
+            ref={champ}
             autoFocus
             disabled={pending || done}
             aria-label={t("Code à 4 chiffres")}
