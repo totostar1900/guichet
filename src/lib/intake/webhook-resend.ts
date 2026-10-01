@@ -18,7 +18,23 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  */
 const TOLERANCE_S = 5 * 60;
 
-export const resendWebhookConfigured = (): boolean => Boolean(process.env.RESEND_WEBHOOK_SECRET && process.env.RESEND_API_KEY);
+/**
+ * La clef qui LIT, qui n'est pas forcément celle qui ENVOIE.
+ *
+ * Resend donne deux permissions à une clef : « Sending access » n'autorise que
+ * l'envoi, « Full access » tout le reste. Lire un courriel reçu demande la
+ * seconde, et la mesure du 2026-10-01 l'a dit sans ambiguïté : le webhook était
+ * bien signé, puis l'API rendait 401 « restricted_api_key ».
+ *
+ * On ne remplace pas pour autant la clef d'envoi par une clef toute-puissante :
+ * c'est elle qui signe tout le courrier de la maison, et lui ouvrir la création
+ * et la suppression de ressources pour lire un courriel serait un mauvais
+ * échange. RESEND_INBOUND_API_KEY porte la lecture, et à défaut on retombe sur
+ * la clef d'envoi, pour qui préfère n'en tenir qu'une.
+ */
+const clefDeLecture = (): string | undefined => process.env.RESEND_INBOUND_API_KEY ?? process.env.RESEND_API_KEY;
+
+export const resendWebhookConfigured = (): boolean => Boolean(process.env.RESEND_WEBHOOK_SECRET && clefDeLecture());
 
 /**
  * La signature Svix : HMAC-SHA256 sur « id.timestamp.corps », clef en base64
@@ -58,9 +74,13 @@ interface RecuResend {
  * plus tard serait garder une adresse morte.
  */
 export async function brutDuCourriel(emailId: string): Promise<Uint8Array> {
-  const clef = process.env.RESEND_API_KEY;
-  if (!clef) throw new Error("RESEND_API_KEY absente");
+  const clef = clefDeLecture();
+  if (!clef) throw new Error("aucune clef Resend pour lire : posez RESEND_INBOUND_API_KEY");
   const fiche = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`, { headers: { authorization: `Bearer ${clef}` } });
+  // UN CODE SEUL NE DIT RIEN À QUI LE LIT. « fiche du courriel : 401 » a coûté
+  // une recherche dans la documentation de Resend pour apprendre que la clef
+  // n'avait que la permission d'envoi. Le message le dit maintenant.
+  if (fiche.status === 401 || fiche.status === 403) throw new Error("la clef Resend n'a pas le droit de lire un courriel reçu : il lui faut « Full access », et non « Sending access »");
   if (!fiche.ok) throw new Error(`fiche du courriel : ${fiche.status}`);
   const lien = ((await fiche.json()) as RecuResend).raw?.download_url;
   if (!lien) throw new Error("la fiche ne porte pas de lien vers le message brut");
