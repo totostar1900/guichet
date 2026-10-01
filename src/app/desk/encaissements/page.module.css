@@ -60,10 +60,10 @@
 }
 /* Un chiffre qui appelle quelqu'un ne se lit pas comme les autres. */
 .warn {
-  color: var(--warn-ink, #92400e);
+  color: var(--warn);
 }
 .crit {
-  color: var(--crit-ink, #b91c1c);
+  color: var(--crit);
 }
 
 .pb {

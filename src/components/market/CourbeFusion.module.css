@@ -199,7 +199,7 @@
 .refus {
   margin: 0 0 var(--s-7);
   padding: var(--s-5) var(--s-6);
-  border-left: 3px solid var(--crit-ink, #b91c1c);
+  border-left: 3px solid var(--crit);
   border-radius: 0 7px 7px 0;
   background: var(--surface-2);
   font-size: 0.8rem;
@@ -448,7 +448,7 @@
   font-weight: 650;
 }
 .beacVieux {
-  color: var(--crit-ink, #b91c1c);
+  color: var(--crit);
 }
 .beacVieux b {
   color: inherit;

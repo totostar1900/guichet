@@ -115,7 +115,7 @@
 }
 .ko {
   font-size: 0.78rem;
-  color: var(--crit-ink, #b91c1c);
+  color: var(--crit);
 }
 
 .onglets {

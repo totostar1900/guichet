@@ -18,7 +18,7 @@
 .erreur {
   margin: 0;
   font-size: 0.76rem;
-  color: var(--crit-ink, #b91c1c);
+  color: var(--crit);
 }
 .fait {
   margin: 0;

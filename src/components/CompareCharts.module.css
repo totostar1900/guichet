@@ -74,7 +74,7 @@
   color: var(--navy-text);
 }
 .b {
-  color: #2a8a9a;
+  color: var(--cat-M);
 }
 .bench {
   color: var(--gold-ink);

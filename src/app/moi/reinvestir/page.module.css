@@ -144,7 +144,7 @@
 }
 .ko {
   font-size: 0.8rem;
-  color: var(--crit-ink, #b91c1c);
+  color: var(--crit);
 }
 .vide {
   margin: 0;

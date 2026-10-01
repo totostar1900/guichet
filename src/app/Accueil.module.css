@@ -43,7 +43,7 @@
   line-height: 1.04;
   font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--navy);
+  color: var(--ink);
   text-wrap: balance;
 }
 .gestes {
@@ -144,7 +144,7 @@
   line-height: 1.1;
   font-weight: 400;
   letter-spacing: -0.015em;
-  color: var(--navy);
+  color: var(--ink);
   text-wrap: balance;
 }
 .verbesTete p {
@@ -524,7 +524,7 @@
   line-height: 1.07;
   font-weight: 400;
   letter-spacing: -0.02em;
-  color: var(--navy);
+  color: var(--ink);
   text-wrap: balance;
 }
 .moment > div {
@@ -560,7 +560,7 @@
   font-size: clamp(1.6rem, 2.8vw, 2.15rem);
   line-height: 1.12;
   font-weight: 400;
-  color: var(--navy);
+  color: var(--ink);
 }
 .entrerTete span {
   font-size: 0.82rem;
@@ -610,7 +610,7 @@
   font-size: 1.55rem;
   line-height: 1.18;
   font-weight: 400;
-  color: var(--navy);
+  color: var(--fill);
 }
 .portes > div:first-child span {
   font-size: 0.84rem;

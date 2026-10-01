@@ -373,7 +373,7 @@
   color: var(--ink-3);
 }
 .last a {
-  color: var(--navy);
+  color: var(--fill);
   text-decoration: underline;
 }
 .editions {

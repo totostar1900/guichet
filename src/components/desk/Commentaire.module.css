@@ -13,7 +13,7 @@
   margin-top: var(--s-6);
 }
 .alerte {
-  border-left-color: var(--crit-ink, #b91c1c);
+  border-left-color: var(--crit);
 }
 .methode {
   border-left-color: var(--navy-2);
@@ -30,10 +30,10 @@
   color: var(--gold-ink);
 }
 .alerte .tete {
-  color: var(--crit-ink, #b91c1c);
+  color: var(--crit);
 }
 .methode .tete {
-  color: var(--navy-2);
+  color: var(--ink);
 }
 .dedans p {
   margin: 0 0 var(--s-5);
