@@ -107,12 +107,23 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   });
   if (skipped.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${skipped.length} image(s) du corps écartée(s), trop légère(s) pour être un document : ${skipped.join(" · ")}` });
 
-  if (!trusted && pieces.length === 0) return { created: [], news: [], errors: [], skipped };
+  /* RIEN À INGÉRER, ET IL FAUT LE DIRE. Un courriel d'un expéditeur non
+     reconnu, sans pièce jointe, est une conversation : elle vit dans Messages
+     et n'a pas à ouvrir une ligne dans À valider. Mais se taire ici laissait
+     deviner POURQUOI aucune pièce n'apparaissait, et la déduction a coûté trois
+     requêtes en base le 2026-10-01. La ligne porte les éléments de la décision. */
+  if (!trusted && pieces.length === 0) {
+    await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : rang\u00e9 dans Messages, sans pi\u00e8ce \u00e0 valider (exp\u00e9diteur hors INTAKE_TRUSTED_SENDERS, aucune pi\u00e8ce jointe)` });
+    return { created: [], news: [], errors: [], skipped };
+  }
   // Un expéditeur de confiance qui envoie des liens sans pièce jointe : des
   // candidats pour les Actualités, pas une source à ingérer.
   if (trusted && pieces.length === 0 && urlsIn(mail.text).length) {
     const got = await receiveLinks(`${mail.subject}\n${mail.text}`, `E-mail · ${mail.from}`);
-    if (got.length) return { created: [], news: got.map((n) => n.id), errors: [], skipped };
+    if (got.length) {
+      await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${got.length} lien(s) partis dans les Actualit\u00e9s, pas dans À valider` });
+      return { created: [], news: got.map((n) => n.id), errors: [], skipped };
+    }
   }
   const hint = mail.subject ? `Objet du courriel : ${mail.subject}` : undefined;
   const created: string[] = [];
@@ -131,5 +142,7 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   }
   for (const id of created) await audit("intake.create", "intake", id, { after: { from: mail.from, subject: mail.subject, channel: "email" }, actor: "courriel entrant" });
   if (errors.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${errors.join(" · ")}` });
+  // Ni pièce ni erreur : ne devrait pas arriver, et se tairait si cela arrivait.
+  if (!created.length && !errors.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : trait\u00e9 sans rien produire, ${pieces.length} pi\u00e8ce(s) vues` });
   return { created, news: [], errors, skipped };
 }
