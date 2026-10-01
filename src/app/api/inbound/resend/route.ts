@@ -39,11 +39,21 @@ export async function POST(req: NextRequest) {
   }
 
   const ev = JSON.parse(corps) as EvenementResend;
-  // Resend enverra d'autres événements sur la même adresse : on acquitte sans
-  // rien faire, sinon il réessaie en boucle ce qu'on ne traite pas.
-  if (ev.type !== "email.received") return NextResponse.json({ ok: true, ignore: ev.type ?? "inconnu" });
+  /* ACQUITTER N'EST PAS SE TAIRE. Resend enverra d'autres événements sur la même
+     adresse, et il faut les acquitter, sinon il réessaie en boucle ce qu'on ne
+     traitera jamais. Mais rendre 200 sans un mot laissait le flux vide, et rien
+     ne distinguait alors « Resend n'a jamais appelé » de « Resend a appelé et
+     nous avons ignoré ». Le plafond horaire évite qu'un événement fréquent
+     devienne du bruit. */
+  if (ev.type !== "email.received") {
+    await direLeRefus(`Courrier entrant : événement <b>${ev.type ?? "inconnu"}</b> acquitté sans traitement, seul « email.received » est lu`);
+    return NextResponse.json({ ok: true, ignore: ev.type ?? "inconnu" });
+  }
   const id = ev.data?.email_id;
-  if (!id) return NextResponse.json({ ok: true, ignore: "sans identifiant" });
+  if (!id) {
+    await direLeRefus("Courrier entrant : un « email.received » <b>sans identifiant</b>, rien à aller chercher");
+    return NextResponse.json({ ok: true, ignore: "sans identifiant" });
+  }
 
   try {
     const mail = await lireRfc822(await brutDuCourriel(id));
