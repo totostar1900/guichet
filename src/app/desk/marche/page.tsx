@@ -231,7 +231,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
             {t("Dernier cours = clôture du bulletin ; acheteur / vendeur = fourchette indicative du desk. La saisie manuelle n'est qu'un secours et se voit sur la fiche. La liquidité compte les séances où la ligne s'est échangée sur les douze derniers mois : elle dit si un ordre aurait eu une contrepartie.")}
           </span>
         </div>
-        <div className="scroll-x">
+        <div className="scroll-x tbl-win">
           <table className="tbl">
             <thead>
               <tr>
@@ -329,7 +329,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
             ))}
           </div>
         )}
-        <div className="scroll-x">
+        <div className="scroll-x tbl-win">
           <table className="tbl">
             <thead>
               <tr>

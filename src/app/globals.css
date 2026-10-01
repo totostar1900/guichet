@@ -765,6 +765,35 @@ h3 {
 .tbl tr:last-child td {
   border-bottom: 0;
 }
+
+/* UNE FENETRE PLUTOT QU UN MUR.
+   « Cotes & VL » posait quarante-deux cotes et quarante-cinq valeurs
+   liquidatives d un trait : 7 400 et 9 300 pixels de page, sans aucun en-tete
+   fige. Arrive a la quarantieme ligne, on ne savait plus quelle colonne on
+   lisait, et revenir en haut coutait huit ecrans.
+   La table se lit desormais dans une fenetre d un ecran, et son en-tete y
+   reste. La hauteur se dit en « vh » et non en nombre de lignes : ces rangees
+   portent des champs de saisie et mesurent 174 a 206 pixels, de sorte que dix
+   d entre elles feraient deux ecrans, ce qui ne reglerait rien.
+   A poser avec « scroll-x », qui garde le defilement horizontal. */
+.tbl-win {
+  max-height: 70vh;
+  overflow: auto;
+}
+/* Un en-tete collant ne tient pas avec « collapse » : le filet appartient
+   alors a la table et non a la cellule, et il reste en arriere quand la
+   cellule se detache. Seules des bordures basses sont posees, donc « separate »
+   ne double rien. */
+.tbl-win .tbl {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.tbl-win .tbl thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+}
 .tbl td.r,
 .tbl th.r {
   text-align: right;
