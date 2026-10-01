@@ -51,12 +51,16 @@
   flex: none;
   color: var(--ink-3);
 }
+/* Posee en « absolute », la liste vivait dans le panneau, or « .panel » porte
+   « overflow: hidden » pour que ses angles coupent le contenu : un ancetre qui
+   rogne bat n importe quel z-index, et presque tout le desk vit dans un
+   panneau. Trois listes signalees « cachees derriere » etaient trois fois cette
+   ligne. En « fixed », aux coordonnees que le composant mesure deja, elle est
+   hors d atteinte de tout rogneur. */
 .selMenu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
+  position: fixed;
   z-index: 40;
-  min-width: max(100%, 200px);
+  min-width: 200px;
   max-height: 300px;
   overflow: hidden;
   background: var(--surface);
@@ -311,13 +315,13 @@
   max-width: calc(100vw - 16px);
   padding: 0;
 }
+/* Les coordonnees viennent du composant, qui mesure. Ces deux classes ne
+   placent plus rien : elles ne servent qu a dire le sens, pour qui inspecte. */
 .selUp {
   top: auto;
-  bottom: calc(100% + 6px);
 }
 .selRight {
-  left: auto;
-  right: 0;
+  right: auto;
 }
 .selList {
   overflow: auto;

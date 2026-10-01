@@ -7,6 +7,26 @@ export type { MarketSegment } from "@/lib/registry";
 /** Bond schedule on file for an ISIN (desk-editable reference data). */
 export const bondTerms = (isin: string) => getRegistry().bondTerms.get(isin);
 
+/**
+ * La date que porte une ligne qui ne ferme jamais.
+ *
+ * Une ligne cotée et un fonds se traitent en continu : ils n'ont pas de
+ * clôture, mais le modèle en exige une. On leur pose donc une date si lointaine
+ * qu'elle ne peut être prise pour une échéance. C'est une SENTINELLE, pas une
+ * date, et qui la rencontre doit le savoir.
+ *
+ * Le desk affichait « Prochaine clôture dans 26755 j 4 h · jeu. 31 déc. 17 h 00 »
+ * parce qu'il prenait le minimum des échéances sans l'écarter. Le compte à
+ * rebours était juste ; c'est la question qui était fausse.
+ *
+ * Cinq endroits réécrivaient la règle à la main en listant les genres
+ * concernés, et un sixième l'a oubliée. Ce prédicat ne liste rien : une ligne a
+ * une clôture si sa date n'est pas la sentinelle, et cela restera vrai le jour
+ * où un genre s'ajoutera.
+ */
+export const SANS_CLOTURE = "2099-12-31T17:00:00";
+export const aUneCloture = (o: Offer): boolean => o.deadlineAt < SANS_CLOTURE;
+
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
   quoted: "Cotée",
   on_request: "Sur demande",

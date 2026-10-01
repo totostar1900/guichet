@@ -6,7 +6,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
-import { countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
+import { aUneCloture, countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
 import { TallTable } from "@/components/desk/TallTable";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
@@ -86,7 +86,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     );
   };
   const max = Math.max(...rows.map((x) => x.sF + x.sA), 1);
-  const nextDeadline = live.map((o) => o.deadlineAt).sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime())[0];
+  const nextDeadline = live.filter(aUneCloture).map((o) => o.deadlineAt).sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime())[0];
   const totalF = rows.reduce((s, x) => s + x.sF, 0);
   const totalA = rows.reduce((s, x) => s + x.sA, 0);
   const todo = intents.filter((i) => i.state === "recue").length;

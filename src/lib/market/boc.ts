@@ -9,7 +9,7 @@ import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } 
 import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
 import { loadCompanies, loadRegistry } from "@/lib/reference";
-import { bondTerms } from "@/lib/domain/status";
+import { bondTerms, SANS_CLOTURE } from "@/lib/domain/status";
 import { ABSENCE_SESSIONS, reconcileLines } from "./reconcile";
 
 const COMPANY_DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
@@ -178,7 +178,7 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, c
       : `Action cotée à la BVMAC (${q.mnemo}). Ordres d'achat et de vente exécutés au marché ou à cours limité, règlement T+3.`,
     documents: [{ name: "Bulletin Officiel de la Cote", meta: `BOC n° ${bulletinNo}`, url: bocUrl(q.sessionDate) }],
     opensAt: `${q.sessionDate}T09:00:00`,
-    deadlineAt: "2099-12-31T17:00:00",
+    deadlineAt: SANS_CLOTURE,
     settleOn: q.sessionDate,
     maturityOn: isBond ? (bondTerms(q.isin)?.maturityOn ?? (maturityYear(q.designation) ? `${maturityYear(q.designation)}-12-31` : undefined)) : undefined,
     lastCouponOn: undefined,
@@ -238,7 +238,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, y
     blurb: `${n.name} : fonds ${FUND_WORD[n.category] ?? ""} géré par ${prettyName(n.manager)}, dépositaire ${prettyName(n.depositary)}. Valeur liquidative ${FREQ_WORD[n.frequency] ?? ""} publiée au Bulletin Officiel de la Cote (source : sociétés de gestion agréées COSUMAF).`,
     documents: [],
     opensAt: `${n.inceptionDate}T09:00:00`,
-    deadlineAt: "2099-12-31T17:00:00",
+    deadlineAt: SANS_CLOTURE,
     settleOn: n.navDate,
     nominal: 1,
     commissionPct: 0,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { fold } from "@/lib/text";
 import { useT } from "@/i18n/client";
 import styles from "./ui.module.css";
@@ -34,7 +35,7 @@ export function Select({ value, options, onChange, label, name, placeholder, com
   const [phone, setPhone] = useState(false);
   // the field is earned, not automatic : on a phone it appears on the magnifier ; on a desktop it is focused for long lists only
   const [typing, setTyping] = useState(false);
-  const [place, setPlace] = useState<{ up: boolean; maxH: number; right: boolean }>({ up: false, maxH: 320, right: false });
+  const [place, setPlace] = useState<{ up: boolean; maxH: number; right: boolean; x?: number; y?: number; yUp?: number; w?: number }>({ up: false, maxH: 320, right: false });
   const cur = onChange ? value : inner;
   const set = (v: string) => {
     if (onChange) onChange(v);
@@ -88,7 +89,25 @@ export function Select({ value, options, onChange, label, name, placeholder, com
     const below = bottom - r.bottom - 12;
     const above = r.top - top - 12;
     const up = below < 180 && above > below;
-    setPlace({ up, maxH: Math.max(120, Math.min(320, (up ? above : below))), right: r.left + Math.max(r.width, 220) > width - 8 });
+    const right = r.left + Math.max(r.width, 220) > width - 8;
+    /* LA LISTE SORT DU FLUX, et c'est la correction de fond.
+       Posée en « absolute », elle vivait dans le panneau, or « .panel » porte
+       « overflow: hidden » pour que ses angles arrondis coupent le contenu :
+       un ancêtre qui rogne bat n'importe quel z-index, et presque tout le desk
+       vit dans un panneau. Trois listes différentes ont été signalées comme
+       « cachées derrière », c'était trois fois la même ligne de CSS.
+       Retirer le rognage laisserait 87 panneaux déborder de leurs angles ; la
+       liste, elle, sait déjà où elle est. Elle se pose donc en « fixed », aux
+       coordonnées mesurées, hors d'atteinte de tout rogneur. */
+    setPlace({
+      up,
+      right,
+      maxH: Math.max(120, Math.min(320, up ? above : below)),
+      x: right ? Math.max(8, r.right - Math.max(r.width, 220)) : r.left,
+      y: up ? undefined : r.bottom + 6,
+      yUp: up ? Math.max(0, (vv ? vv.height : window.innerHeight) - (r.top - top) + 6) : undefined,
+      w: r.width,
+    });
   };
   useEffect(() => {
     if (!open) return;
@@ -96,17 +115,24 @@ export function Select({ value, options, onChange, label, name, placeholder, com
     vv?.addEventListener("resize", measure);
     vv?.addEventListener("scroll", measure);
     window.addEventListener("resize", measure);
+    // La page qui défile emporte le bouton : la liste doit le suivre, sinon
+    // elle reste plantée là où le bouton était.
+    window.addEventListener("scroll", measure, true);
     return () => {
       vv?.removeEventListener("resize", measure);
       vv?.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const cible = e.target as Node;
+      // La liste vit dans un portail : elle n'est plus un descendant du bloc,
+      // donc cliquer dedans serait « dehors » et la refermerait avant le choix.
+      if (ref.current && !ref.current.contains(cible) && !listRef.current?.contains(cible)) {
         setOpen(false);
         setQuery("");
       }
@@ -219,8 +245,24 @@ export function Select({ value, options, onChange, label, name, placeholder, com
           </svg>
           </button>
       )}
-      {open && (
-        <div className={`${styles.selMenu} ${place.up ? styles.selUp : ""} ${place.right ? styles.selRight : ""}`} id={`${id}-list`} ref={listRef} style={{ maxHeight: place.maxH }}>
+      {/* LA LISTE PART DANS UN PORTAIL, et « fixed » ne suffisait pas.
+          Un ancêtre en « transform » redevient le bloc conteneur d'un élément
+          fixe : la feuille centrée garde « translate(-50%, -50%) scale(1) » une
+          fois ouverte, et la liste d'un Select posé dedans se serait replacée
+          par rapport à elle. Hors du document, il n'y a plus ni rogneur ni
+          conteneur : c'est la seule position qui ne dépend de personne. */}
+      {/* « open » est faux au rendu serveur et au premier rendu client : le
+          portail ne s'y invite donc jamais, et document.body existe quand il
+          paraît. Le garde reste, pour qui rendrait ce composant ailleurs. */}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+        <div
+          className={`${styles.selMenu} ${place.up ? styles.selUp : ""} ${place.right ? styles.selRight : ""}`}
+          id={`${id}-list`}
+          ref={listRef}
+          style={{ maxHeight: place.maxH, left: place.x, top: place.y, bottom: place.yUp, minWidth: place.w ? Math.max(place.w, 200) : undefined }}
+        >
           {phone && (
             <div className={styles.selHead}>
               {typing ? (
@@ -271,8 +313,9 @@ export function Select({ value, options, onChange, label, name, placeholder, com
               );
             })}
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </div>
   );
 }
