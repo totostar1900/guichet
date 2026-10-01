@@ -504,3 +504,66 @@
   font-size: 0.9rem;
   font-weight: 600;
 }
+
+/* Le « ··· » d un ordre, et ce qu il ouvre. */
+.dots {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--ink-3);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  padding: 0 var(--s-3);
+  line-height: 1;
+}
+.ordreMenu {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+  padding: var(--s-6);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.ordreMenu a,
+.ordreMenu button {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.ordreMenu a:hover,
+.ordreMenu button:hover {
+  text-decoration: underline;
+}
+.ordreNon {
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.ordreFerme {
+  color: var(--ink-3) !important;
+}
+/* Le retrait pousse la page : il ne flotte pas, et on lit ce qu il fait. */
+.retrait {
+  display: grid;
+  gap: var(--s-5);
+  margin-top: var(--s-5);
+  padding: var(--s-6);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  font-size: 0.82rem;
+}
+.retrait p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--gold-ink);
+}
+.retraitBtns {
+  display: flex;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}

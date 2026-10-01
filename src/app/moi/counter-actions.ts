@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { packReason } from "@/lib/domain/cancel-reasons";
 import { counterLapsed, counterTerms } from "@/lib/domain/counter";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 
@@ -59,6 +60,54 @@ export async function answerCounter(form: FormData): Promise<void> {
   await audit("intent.counter.accepted", "intent", intentId, { before: { amount: it.amount, limitPrice: it.limitPrice }, after: { amount: updated.amount, limitPrice: updated.limitPrice }, reason: terms });
   await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>acceptée</b>${terms ? ` · ${terms}` : ""}` });
   if (offer) await notifyIntentUpdated(updated, offer, "confirmee");
+  revalidatePath("/");
+  revalidatePath("/desk");
+}
+
+/**
+ * Le client retire son propre ordre.
+ *
+ * Il pouvait répondre à une contre-proposition et rien d'autre : une fois
+ * l'intention partie, elle lui échappait, et se raviser demandait d'appeler.
+ * C'est son ordre ; tant qu'il n'a pas quitté la maison, il peut le reprendre.
+ *
+ * LA LIMITE EST CELLE DU DESK, ET ELLE EST LA MÊME POUR TOUT LE MONDE : reçue
+ * ou en attente de réponse, l'ordre est encore chez nous et se retire. Confirmé,
+ * le bordereau est édité et l'ordre est au carnet : il faut une personne, donc
+ * un appel. Transmis, il est parti avec ceux des autres investisseurs, et il ne
+ * se retire plus de nulle part, par personne. Un écran qui laisserait croire le
+ * contraire mentirait sur ce qui est déjà engagé.
+ *
+ * Le motif s'écrit « à votre demande » du côté du client, parce que c'est
+ * exactement ce que c'est, et le desk le lit comme tel dans son journal.
+ */
+export async function retirerMonOrdre(form: FormData): Promise<void> {
+  const s = await getSession();
+  if (!s) return;
+  const intentId = String(form.get("intentId") ?? "");
+  if (!intentId) return;
+
+  const r = repo();
+  const intents = await r.listIntents();
+  const it = intents.find((x) => x.id === intentId);
+  // L'ordre doit être le sien : un identifiant deviné ne retire rien.
+  if (!it || it.clientId !== s.userId) return;
+  if (it.state !== "recue" && it.state !== "contre_proposee") return;
+
+  const updated = await r.setIntentState(intentId, "annulee", packReason("client"));
+  await audit("intent.withdraw", "intent", intentId, {
+    before: { state: it.state },
+    after: { state: "annulee" },
+    reason: `retiré par le client ${it.clientName}`,
+  });
+  const offer = await r.getOffer(it.offerId);
+  await r.logEvent({
+    kind: "intent",
+    intentId,
+    offerId: it.offerId,
+    html: `${updated.ref} (${updated.clientName}) : <b>retiré par le client</b>${offer ? ` · ${offer.title}` : ""}`,
+  });
+  if (offer) await notifyIntentUpdated(updated, offer, "annulee");
   revalidatePath("/");
   revalidatePath("/desk");
 }

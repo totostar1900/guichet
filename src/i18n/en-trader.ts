@@ -14,6 +14,16 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- ce qu'on peut faire d'un ordre déjà parti ---------- */
+  "Autres actions sur cet ordre": "Other actions on this order",
+  "Nous écrire à propos de cet ordre": "Write to us about this order",
+  "Retirer cet ordre": "Withdraw this order",
+  "Retirer l'ordre {r}": "Withdraw order {r}",
+  "Cet ordre sera retiré et ne repartira pas. Pour le replacer, il faudra en passer un nouveau, aux conditions du moment.":
+    "This order will be withdrawn and will not go back out. To place it again, you will have to give a new one, on the terms of the day.",
+  "L'ordre est parti au marché : il ne se retire plus, ni par vous ni par nous.": "The order has gone out to the market: it cannot be withdrawn, by you or by us.",
+  "L'ordre est confirmé et au carnet : appelez-nous pour le retirer.": "The order is confirmed and in the book: call us to withdraw it.",
+
   /* ---------- le code à quatre chiffres ---------- */
   "Les deux codes ne sont pas identiques. Recommencez.": "The two codes do not match. Start again.",
 

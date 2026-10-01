@@ -6,6 +6,7 @@ import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtMillions, localIso } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { CounterAnswer } from "./CounterAnswer";
+import { OrdreMenu } from "./OrdreMenu";
 import { ContactForm } from "./ContactForm";
 import { ConsentForm } from "./ConsentForm";
 import { PushToggle } from "@/components/PushToggle";
@@ -200,6 +201,9 @@ export async function Releve({ session: s }: { session: Session }) {
                       </small>
                     </div>
                     <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
+                    {/* Ce qu'on peut encore faire d'un ordre déjà parti : la
+                        carte disait où il en était, et rien d'autre. */}
+                    <OrdreMenu intentId={i.id} offerId={i.offerId} etat={i.state} ref_={i.ref} />
                   </div>
                   {/* Une contre-proposition se décide ici : c’est le oui du client qui change l’ordre. */}
                   {i.state === "contre_proposee" && o ? <CounterAnswer intent={i} offer={o} now={new Date()} /> : <div className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</div>}
