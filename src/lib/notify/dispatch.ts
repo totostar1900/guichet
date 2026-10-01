@@ -7,6 +7,7 @@ import { documentSent, emailHtml, intentReceived, intentUpdated, offerPublished,
 import { isPromotional, mayReceive } from "./consent";
 import { optOutUrl } from "@/lib/channels";
 import { emailConfigured, sendEmail, sendWhatsAppDocument, sendWhatsAppTemplate, sendWhatsAppText, whatsappConfigured } from "./providers";
+import { pushConfigured, sendPush, type PushPayload } from "./push";
 
 /**
  * Records every outbound message, then sends it when the channel is configured.
@@ -119,7 +120,59 @@ export async function notifyIntentUpdated(i: Intent, o: Offer, state: IntentStat
   const c = await contactForIntent(i);
   if (!c) return;
   const m = intentUpdated(i, o, state, advisor);
-  for (const t of targets(c, ["whatsapp", "email"], state === "servie" || state === "non_servie" ? "results" : "intent_update")) await deliver(state === "servie" || state === "non_servie" ? "results" : "intent_update", t, m, { intentId: i.id, offerId: o.id });
+  const kind: NotifyKind = state === "servie" || state === "non_servie" ? "results" : "intent_update";
+  for (const t of targets(c, ["whatsapp", "email"], kind)) await deliver(kind, t, m, { intentId: i.id, offerId: o.id });
+  /* LE PUSH NE PORTAIT QUE LES OPPORTUNITÉS, et c'était l'inverse de ce qu'il
+     faut. Un client qui installe le Guichet et accepte les alertes recevait
+     « une nouvelle ligne est ouverte » et jamais « votre ordre est servi ». Or
+     l'une se lit à loisir et l'autre engage son argent : « servi », « non
+     servi » et « réglé » sont précisément les mots qu'on veut savoir dans la
+     seconde, sans ouvrir sa boîte mail. */
+  await pousser(c, kind, { title: pushTitre(state), body: m.text.slice(0, 140), url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`, tag: `intent-${i.id}` }, { intentId: i.id, offerId: o.id });
+}
+
+/** Le titre d'une notification : court, et il dit l'état plutôt que « Guichet ». */
+function pushTitre(state: IntentState): string {
+  const mots: Partial<Record<IntentState, string>> = {
+    confirmee: "Votre ordre est confirmé",
+    transmise: "Votre ordre est transmis",
+    servie: "Votre ordre est servi",
+    non_servie: "Votre ordre n'a pas été servi",
+    reglee: "Votre règlement est fait",
+    contre_proposee: "Une proposition vous attend",
+    annulee: "Votre ordre est clos",
+  };
+  return mots[state] ?? "Votre ordre avance";
+}
+
+/**
+ * Pousser vers tous les appareils d'un client, et garder trace de chacun.
+ *
+ * Une notification par appareil, parce que chacune part ou échoue de son côté :
+ * un téléphone désinscrit ne doit pas faire croire que la tablette n'a rien
+ * reçu. Et comme pour les deux autres canaux, la ligne s'écrit même quand le
+ * canal n'est pas configuré : le desk voit ce qui SERAIT parti.
+ *
+ * Le consentement est celui du canal, et il vaut aussi ici : un client qui a
+ * refusé les alertes n'en reçoit pas, fût-ce sur son propre ordre.
+ */
+async function pousser(c: Contact, kind: NotifyKind, payload: PushPayload, refs: { intentId?: string; offerId?: string }): Promise<void> {
+  if (!c.id || !mayReceive(c, kind, "push")) return;
+  const r = repo();
+  const subs = await r.listPushSubscriptions([c.id]).catch(() => []);
+  for (const sub of subs) {
+    const row = await r.createNotification({ kind, channel: "push", to: `${sub.endpoint.slice(0, 60)}…`, contactName: c.name, subject: payload.title, body: payload.body, intentId: refs.intentId, offerId: refs.offerId, status: "queued" });
+    if (!pushConfigured()) {
+      await r.updateNotification(row.id, { status: "skipped", error: "Push non configuré (VAPID)" });
+      continue;
+    }
+    try {
+      await sendPush(sub, payload);
+      await r.updateNotification(row.id, { status: "sent", sentAt: new Date().toISOString() });
+    } catch (e) {
+      await r.updateNotification(row.id, { status: "failed", error: e instanceof Error ? e.message : "échec d'envoi" });
+    }
+  }
 }
 
 /** Sends a generated PDF to its client on one channel. */
