@@ -46,11 +46,17 @@ const SCHEMAS = [
 
 describe("les schémas d'extraction tiennent sous la limite de l'API", () => {
   for (const { nom, schema } of SCHEMAS) {
-    it(`${nom} : moins de ${LIMITE} paramètres à type union`, () => {
+    it(`${nom} : aucun paramètre à type union`, () => {
       const unions = compterUnions(zodOutputFormat(schema));
-      // Le compte part dans la comparaison : un échec qui dirait seulement
-      // « trop grand » obligerait à relire le schéma à l'œil.
-      expect(unions <= LIMITE ? "sous la limite" : `${nom} : ${unions} paramètres à type union, la limite est ${LIMITE}`).toBe("sous la limite");
+      /* DEUX ASSERTIONS, DEUX RAISONS. Seize est la règle de l'API, et la
+         dépasser casse tout. Zéro est la marge que la maison se donne : les
+         deux lecteurs de marché étaient à douze et onze, sous la limite donc
+         ils marchaient, et c'est exactement la situation où un champ ajouté
+         sans y penser casse la lecture d'un communiqué un lundi matin. Dire
+         seulement « sous seize » laisserait un schéma remonter à quinze sans
+         que personne ne s'en aperçoive. */
+      expect(unions <= LIMITE ? "sous la limite" : `${nom} : ${unions} paramètres à type union, la limite de l'API est ${LIMITE}`).toBe("sous la limite");
+      expect(unions === 0 ? "aucune union" : `${nom} : ${unions} paramètre(s) à type union, la maison les tient à zéro (« optional » plutôt que « nullable »)`).toBe("aucune union");
     });
   }
 

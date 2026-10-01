@@ -62,35 +62,35 @@ const SYSTEM = `Tu lis des communiqués de résultats d'adjudication de titres p
 Ce sont des documents scannés. Tu recopies ce qui est imprimé, tu ne calcules rien et tu ne déduis rien.
 
 Règles :
-- Un champ qui n'est pas imprimé reste null. Ne remplis jamais un blanc par une déduction, une moyenne ou un ordre de grandeur.
+- Un champ qui n'est pas imprimé, tu l'omets. Ne remplis jamais un blanc par une déduction, une moyenne ou un ordre de grandeur.
 - Les montants : donne le nombre tel qu'il est imprimé dans le tableau, et indique séparément l'unité annoncée par le document (« en millions de FCFA » en tête de tableau, le plus souvent). Ne convertis pas.
-- BTA : des taux, en pourcentage, précomptés. OTA : des prix, en pourcentage du nominal. Un document ne porte que l'une des deux familles ; laisse l'autre entièrement à null.
+- BTA : des taux, en pourcentage, précomptés. OTA : des prix, en pourcentage du nominal. Un document ne porte que l'une des deux familles ; omets l'autre entièrement.
 - Le taux (ou prix) « limite » est celui auquel le Trésor a arrêté l'adjudication ; le « moyen pondéré » est la moyenne des soumissions servies. Ne confonds pas les deux, et ne recopie pas l'un dans l'autre s'il en manque un.
 - Certains Trésors nomment leurs bornes du côté de l'émetteur, en coût plutôt qu'en prix : « prix maximum proposé 90,00 % » au-dessus de « prix minimum proposé 93,00 % » est normal chez eux, la proposition la moins chère à l'achat étant la plus coûteuse pour le Trésor. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
-- Le Trésor camerounais imprime parfois « Prix moyen pondéré (en FCFA) » suivi d'un montant par titre (9 899,45) plutôt qu'un pourcentage, et ajoute « Taux de rendement moyen pondéré » en pourcentage. Dans ce cas : priceAvg reste null, le montant va dans priceAvgFcfa, et le rendement dans yieldAvg.
+- Le Trésor camerounais imprime parfois « Prix moyen pondéré (en FCFA) » suivi d'un montant par titre (9 899,45) plutôt qu'un pourcentage, et ajoute « Taux de rendement moyen pondéré » en pourcentage. Dans ce cas : omets priceAvg, le montant va dans priceAvgFcfa, et le rendement dans yieldAvg.
 - Le taux d'intérêt facial de l'obligation (« taux nominal », « taux d'intérêt », « coupon ») est la clef du rendement : relève-le dès qu'il est imprimé, en pourcentage annuel. Un prix sans coupon ne dit rien.
 - L'échéance (« date d'échéance », « remboursement le ») se recopie en ISO quand elle est imprimée.
 - Le code d'émission ressemble à CG1300001480, CM1200002465, GQ2J00000081.
 - Si le document couvre plusieurs lignes, lis celle que la consigne désigne, et signale les autres dans remarks.
 - Signale dans remarks tout ce qui gênerait une relecture : chiffre illisible, tampon, colonne absente, unité inhabituelle, incohérence entre deux chiffres du document.`;
 
-const Amount = z.number().nullable();
-const Pct = z.number().nullable();
+const Amount = z.number().optional();
+const Pct = z.number().optional();
 
 export const Lecture = z.object({
-  codeEmission: z.string().nullable().describe("Code émission du Trésor, ex. CG1300001480"),
-  country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).nullable(),
-  instrument: z.enum(["BTA", "OTA"]).nullable(),
-  tenor: z.string().nullable().describe("Durée normalisée, ex. « 26 semaines » ou « 3 ans »"),
-  sessionOn: z.string().nullable().describe("Date de la séance d'adjudication, ISO YYYY-MM-DD"),
-  abondement: z.boolean().nullable().describe("true si le document dit qu'il s'agit d'un abondement (réouverture d'une ligne existante)"),
-  amountsUnit: z.enum(["millions", "milliers", "francs"]).nullable().describe("Unité dans laquelle le tableau des montants est libellé, telle que le document l'annonce"),
+  codeEmission: z.string().optional().describe("Code émission du Trésor, ex. CG1300001480"),
+  country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).optional(),
+  instrument: z.enum(["BTA", "OTA"]).optional(),
+  tenor: z.string().optional().describe("Durée normalisée, ex. « 26 semaines » ou « 3 ans »"),
+  sessionOn: z.string().optional().describe("Date de la séance d'adjudication, ISO YYYY-MM-DD"),
+  abondement: z.boolean().optional().describe("true si le document dit qu'il s'agit d'un abondement (réouverture d'une ligne existante)"),
+  amountsUnit: z.enum(["millions", "milliers", "francs"]).optional().describe("Unité dans laquelle le tableau des montants est libellé, telle que le document l'annonce"),
   announced: Amount.describe("Montant annoncé par le Trésor, tel qu'imprimé"),
   bid: Amount.describe("Total des soumissions reçues, tel qu'imprimé"),
   served: Amount.describe("Total servi / retenu, tel qu'imprimé"),
-  networkSize: z.number().nullable().describe("Nombre de SVT du réseau"),
-  bidders: z.number().nullable().describe("Nombre de SVT ayant soumissionné"),
+  networkSize: z.number().optional().describe("Nombre de SVT du réseau"),
+  bidders: z.number().optional().describe("Nombre de SVT ayant soumissionné"),
   rateMin: Pct,
   rateMax: Pct,
   rateLimit: Pct.describe("Taux limite (BTA)"),
@@ -98,13 +98,13 @@ export const Lecture = z.object({
   priceMin: Pct,
   priceMax: Pct,
   priceLimit: Pct.describe("Prix limite en % du nominal (OTA)"),
-  priceAvg: Pct.describe("Prix moyen pondéré en % du nominal (OTA). Si le document l'exprime en FCFA par titre (« Prix moyen pondéré (en FCFA) : 9 899,45 »), laisse ce champ null et mets la valeur dans priceAvgFcfa."),
-  priceAvgFcfa: Pct.describe("Prix moyen pondéré en FCFA par titre, quand le document l'exprime ainsi plutôt qu'en pourcentage ; null sinon"),
-  yieldAvg: Pct.describe("« Taux de rendement moyen pondéré » en %, quand le document l'imprime à côté des prix (Trésor camerounais) ; null sinon"),
-  yieldLimit: Pct.describe("Taux de rendement au prix limite, en %, quand le document l'imprime ; null sinon"),
-  couponRate: Pct.describe("Taux d'intérêt facial de l'obligation en % annuel (« taux nominal », « coupon ») ; null s'il n'est pas imprimé"),
-  maturityOn: z.string().nullable().describe("Date d'échéance de la ligne, ISO YYYY-MM-DD, quand le document l'imprime ; null sinon"),
-  coverage: Pct.describe("Taux de couverture en %, tel qu'imprimé ; null s'il n'est pas imprimé"),
+  priceAvg: Pct.describe("Prix moyen pondéré en % du nominal (OTA). Si le document l'exprime en FCFA par titre (« Prix moyen pondéré (en FCFA) : 9 899,45 »), omets ce champ et mets la valeur dans priceAvgFcfa."),
+  priceAvgFcfa: Pct.describe("Prix moyen pondéré en FCFA par titre, quand le document l'exprime ainsi plutôt qu'en pourcentage ; omis sinon"),
+  yieldAvg: Pct.describe("« Taux de rendement moyen pondéré » en %, quand le document l'imprime à côté des prix (Trésor camerounais) ; omis sinon"),
+  yieldLimit: Pct.describe("Taux de rendement au prix limite, en %, quand le document l'imprime ; omis sinon"),
+  couponRate: Pct.describe("Taux d'intérêt facial de l'obligation en % annuel (« taux nominal », « coupon ») ; omis s'il n'est pas imprimé"),
+  maturityOn: z.string().optional().describe("Date d'échéance de la ligne, ISO YYYY-MM-DD, quand le document l'imprime ; null sinon"),
+  coverage: Pct.describe("Taux de couverture en %, tel qu'imprimé ; omis s'il n'est pas imprimé"),
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture : chiffre illisible, colonne absente, unité inhabituelle, plusieurs lignes dans le document"),
 });
 
@@ -186,14 +186,16 @@ export interface AuctionReading {
  * multiplication, et une multiplication fausse ne se voit pas en relisant la
  * pièce, puisque le chiffre aurait l air juste.
  */
-export const toFrancs = (v: number | null, unit: "millions" | "milliers" | "francs" | null): number | undefined => {
+export const toFrancs = (v: number | null | undefined, unit: "millions" | "milliers" | "francs" | null | undefined): number | undefined => {
   if (v == null) return undefined;
   if (unit === "millions") return millions(v);
   if (unit === "milliers") return v * 1_000;
   return v;
 };
 
-const nn = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
+// Le champ est absent plutot que nul depuis que le schema n'a plus d'unions :
+// nn ramene les deux au meme undefined.
+const nn = <T>(v: T | null | undefined): T | undefined => (v == null ? undefined : v);
 
 /**
  * Le modèle d'un appel : celui qu'on demande, sinon celui de la maison.

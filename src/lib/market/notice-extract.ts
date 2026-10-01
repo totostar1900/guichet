@@ -41,32 +41,32 @@ const SYSTEM = `Tu lis des communiqués d'annonce d'émission de titres publics 
 Ce sont des documents scannés. Tu recopies ce qui est imprimé, tu ne calcules rien et tu ne déduis rien.
 
 Règles :
-- Un champ qui n'est pas imprimé reste null. Ne remplis jamais un blanc par une déduction.
+- Un champ qui n'est pas imprimé, tu l'omets. Ne remplis jamais un blanc par une déduction.
 - « Rendement : 6,20 % du nominal » est le TAUX FACIAL de l'emprunt, c'est-à-dire le coupon, et non un rendement de marché. Mets-le dans couponRate. Le mot « rendement » sur ces avis ne désigne jamais autre chose.
 - « Remboursement » se recopie mot pour mot, dans la langue du document : « In fine », ou la phrase entière quand le Trésor décrit un amortissement par tranches, avec son éventuel différé. Ne résume pas, ne traduis pas, ne remplace pas par un mot-clef.
 - Le code d'émission ressemble à CG2K00000187, CM1200002465, GQ2J00000081. Il est souvent suivi de la désignation, du taux et de l'échéance sur la même ligne : « CG2K00000187 OTA 4 ans 6,20% - 01 FEVR 2028 ».
 - Les dates se recopient en ISO AAAA-MM-JJ. Attention aux mois français abrégés : JANV janvier, FEVR février, MARS mars, AVRI avril, MAI mai, JUIN juin, JUIL juillet, AOUT août, SEPT septembre, OCTO octobre, NOVE novembre, DECE décembre.
 - L'échéance est imprimée deux fois : dans la ligne du code d'émission (« CG2J00000503 OTA-3 ans 5,90% - 01 OCTO 2027 ») et dans une ligne « Échéance » à elle seule. Recopie celle de la ligne « Échéance », qui est le champ dédié. Si les deux diffèrent, signale-le dans remarks en citant les deux dates : il arrive que le Trésor se contredise sur sa propre pièce.
 - Une échéance ne tombe jamais au-delà de la durée annoncée. Un abondement rouvre une ligne existante et lui laisse donc moins de temps que sa durée d'origine, jamais plus. Si la date que tu lis dépasse la durée annoncée, relis-la : c'est presque toujours un mois mal déchiffré.
-- Les montants : donne le nombre tel qu'il est imprimé, et indique séparément l'unité annoncée par le document. « Volume d'émission (en millions de FCFA) : 15 000 » donne issueVolume 15000 et amountsUnit « millions ». Ne convertis pas. L'unité est presque toujours annoncée entre parenthèses dans le libellé lui-même : lis-la là, et ne laisse amountsUnit à null que si le libellé n'en porte vraiment aucune.
+- Les montants : donne le nombre tel qu'il est imprimé, et indique séparément l'unité annoncée par le document. « Volume d'émission (en millions de FCFA) : 15 000 » donne issueVolume 15000 et amountsUnit « millions ». Ne convertis pas. L'unité est presque toujours annoncée entre parenthèses dans le libellé lui-même : lis-la là, et n'omets amountsUnit que si le libellé n'en porte vraiment aucune.
 - La valeur nominale unitaire est presque toujours imprimée en francs (10 000) et non en millions : c'est un champ à part, nominalUnit, et son unité est le franc.
 - La durée s'écrit « 13 semaines », « 26 semaines », « 52 semaines », « 2 ans », « 3 ans »… au pluriel sauf « mois ».
 - Sur certains scans, la colonne des libellés et celle des valeurs ne sont pas alignées : une valeur peut se trouver une ligne plus haut ou plus bas que son libellé. Apparie par le sens et non par la position. Trois repères sûrs : une valeur nominale unitaire vaut 1 000 000 F pour un bon et 10 000 F pour une obligation ; un volume d'émission est beaucoup plus grand qu'un nominal unitaire ; et « Forme des titres » vaut toujours quelque chose comme « Titres dématérialisés ». Si l'appariement ligne à ligne contredit ces repères, c'est que les colonnes ont glissé : signale-le dans remarks.
-- Pour un bon du Trésor, il n'y a pas de coupon : la ligne « Rendement » y dit que les intérêts sont précomptés. Laisse couponRate à null plutôt que d'y mettre un nombre voisin.
+- Pour un bon du Trésor, il n'y a pas de coupon : la ligne « Rendement » y dit que les intérêts sont précomptés. Omets couponRate plutôt que d'y mettre un nombre voisin.
 - Signale dans remarks tout ce qui gênerait une relecture : champ illisible, tampon, mention de remboursement absente, plusieurs lignes dans le même avis, date incohérente.`;
 
 export const Lecture = z.object({
-  codeEmission: z.string().nullable().describe("Code émission du Trésor, ex. CG2K00000187"),
-  instrument: z.enum(["BTA", "OTA"]).nullable(),
-  tenor: z.string().nullable().describe("Durée normalisée, ex. « 26 semaines » ou « 4 ans »"),
-  maturityOn: z.string().nullable().describe("Échéance, ISO AAAA-MM-JJ"),
-  couponRate: z.number().nullable().describe("Le taux facial en % annuel, imprimé sous « Rendement : X % du nominal ». C'est un coupon, pas un rendement de marché."),
-  redemption: z.string().nullable().describe("La mention « Remboursement » recopiée mot pour mot : « In fine », ou la phrase décrivant l'amortissement. Jamais résumée."),
-  nominalUnit: z.number().nullable().describe("Valeur nominale unitaire en FCFA, ex. 10000. En francs, jamais en millions."),
-  issueVolume: z.number().nullable().describe("Volume d'émission, tel qu'imprimé, sans conversion"),
-  amountsUnit: z.enum(["millions", "milliers", "francs"]).nullable().describe("Unité dans laquelle le volume d'émission est libellé, telle que le document l'annonce"),
-  settleOn: z.string().nullable().describe("Date de règlement, ISO AAAA-MM-JJ"),
-  abondement: z.boolean().nullable().describe("true si l'avis dit que l'émission se fait par abondement (réouverture d'une ligne existante)"),
+  codeEmission: z.string().optional().describe("Code émission du Trésor, ex. CG2K00000187"),
+  instrument: z.enum(["BTA", "OTA"]).optional(),
+  tenor: z.string().optional().describe("Durée normalisée, ex. « 26 semaines » ou « 4 ans »"),
+  maturityOn: z.string().optional().describe("Échéance, ISO AAAA-MM-JJ"),
+  couponRate: z.number().optional().describe("Le taux facial en % annuel, imprimé sous « Rendement : X % du nominal ». C'est un coupon, pas un rendement de marché."),
+  redemption: z.string().optional().describe("La mention « Remboursement » recopiée mot pour mot : « In fine », ou la phrase décrivant l'amortissement. Jamais résumée."),
+  nominalUnit: z.number().optional().describe("Valeur nominale unitaire en FCFA, ex. 10000. En francs, jamais en millions."),
+  issueVolume: z.number().optional().describe("Volume d'émission, tel qu'imprimé, sans conversion"),
+  amountsUnit: z.enum(["millions", "milliers", "francs"]).optional().describe("Unité dans laquelle le volume d'émission est libellé, telle que le document l'annonce"),
+  settleOn: z.string().optional().describe("Date de règlement, ISO AAAA-MM-JJ"),
+  abondement: z.boolean().optional().describe("true si l'avis dit que l'émission se fait par abondement (réouverture d'une ligne existante)"),
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture"),
 });
 
@@ -77,12 +77,13 @@ export interface NoticeReading {
   seconds: number;
 }
 
-const nn = <T>(v: T | null): T | undefined => (v === null ? undefined : v);
-const toFrancs = (v: number | null, unit: "millions" | "milliers" | "francs" | null): number | undefined =>
+// Le champ est absent plutot que nul : nn ramene les deux au meme undefined.
+const nn = <T>(v: T | null | undefined): T | undefined => (v == null ? undefined : v);
+const toFrancs = (v: number | null | undefined, unit: "millions" | "milliers" | "francs" | null | undefined): number | undefined =>
   v == null ? undefined : unit === "millions" ? millions(v) : unit === "milliers" ? v * 1_000 : v;
 
 /** Une date ISO, ou rien. Une chaîne qui n'est pas une date ne doit pas atteindre une colonne date. */
-const isoDate = (v: string | null): string | undefined => (v && /^\d{4}-\d{2}-\d{2}$/.test(v.trim()) && !Number.isNaN(Date.parse(v)) ? v.trim() : undefined);
+const isoDate = (v: string | null | undefined): string | undefined => (v && /^\d{4}-\d{2}-\d{2}$/.test(v.trim()) && !Number.isNaN(Date.parse(v)) ? v.trim() : undefined);
 
 export async function readEmissionNotice(pdfBase64: string, hint?: string, modele?: string): Promise<NoticeReading> {
   const t0 = Date.now();
