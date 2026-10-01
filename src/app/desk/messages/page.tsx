@@ -55,7 +55,15 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     t.msgs.push({ at: n.createdAt, dir: "out", channel: n.channel, text: n.body, status: n.status, subject: n.subject, intentId: n.intentId });
   }
   for (const t of threads.values()) {
-    t.msgs.sort((a, b) => a.at.localeCompare(b.at));
+    /* LE PLUS RÉCENT EN HAUT, décidé le 2026-10-01 par l'utilisateur.
+       Un fil de discussion se lit d'habitude du plus ancien au plus récent, et
+       c'est ce qu'il faisait : le dernier message était donc en bas, après tout
+       l'historique. Mais ce desk ouvre un fil pour TRAITER ce qui vient
+       d'arriver, pas pour relire une conversation : la chose à lire est la
+       dernière, elle se met donc là où l'œil tombe.
+       Le prix assumé : une réponse se trouve au-dessus du message qu'elle
+       répond. Une ligne à inverser si ça gêne plus que ça ne sert. */
+    t.msgs.sort((a, b) => b.at.localeCompare(a.at));
     t.last = t.msgs[t.msgs.length - 1]?.at ?? "";
   }
   const all = [...threads.values()].sort((a, b) => b.unread - a.unread || b.last.localeCompare(a.last));
