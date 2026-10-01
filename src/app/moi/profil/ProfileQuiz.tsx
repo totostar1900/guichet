@@ -35,7 +35,19 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
   const t = useT();
   const lang = useLang();
   const [saved, setSaved] = useState<FinancialProfile | undefined>(undefined);
-  const [redo, setRedo] = useState(false);
+  /**
+   * CE QU'ON ROUVRE, ET NON PLUS TOUT OU RIEN.
+   *
+   * « Refaire » rouvrait les dix-sept questions pour en changer une. Une portée
+   * dit par où commencer et où s'arrêter : les trois blocs pour le cas courant,
+   * une seule question quand on la vise depuis le récapitulatif. Le reste du
+   * parcours ne change pas, et la sauvegarde reste au bout.
+   */
+  const [portee, setPortee] = useState<{ de: number; a: number } | null>(null);
+  const redo = portee !== null;
+  // Le passage de classe, une fois sauvé : il se dit. Une déclaration qui
+  // change sans que personne ne le remarque n'est plus une déclaration.
+  const [passage, setPassage] = useState<string | null>(null);
   // The device may hold a profile made as a visitor: it is the visitor's own, and, once signed in, one to keep.
   const onDevice = useLocalProfile();
   const profile = saved ?? (guest ? onDevice : initial);
@@ -46,9 +58,11 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
   const [pending, start] = useTransition();
   const q = PROFILE_QUESTIONS[n];
   const chosen = answers[q.key];
-  const last = n === PROFILE_QUESTIONS.length - 1;
+  // La dernière question de la PORTÉE, et non du questionnaire : revoir le bloc
+  // « ce que je connais » s'arrête au bout de ce bloc, pas au bout des dix-sept.
+  const last = n === (portee?.a ?? PROFILE_QUESTIONS.length - 1);
   const answered = q.multi ? chosen != null && chosen > 0 : chosen != null;
-  const blockStart = n === 0 || PROFILE_QUESTIONS[n - 1].block !== q.block;
+  const blockStart = n === (portee?.de ?? 0) || PROFILE_QUESTIONS[n - 1].block !== q.block;
   const blockIndex = BLOCKS.indexOf(q.block);
   const verifying = Boolean(q.lesson);
   const right = verifying && chosen != null ? Boolean(q.options[chosen]?.correct) : undefined;
@@ -65,7 +79,7 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
         const p = computeProfile(answers, read);
         writeLocalProfile(p);
         setSaved(p);
-        setRedo(false);
+        setPortee(null);
         setN(0);
         return;
       }
@@ -75,9 +89,33 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
         return;
       }
       setSaved(r.profile);
-      setRedo(false);
+      setPassage(r.avant && r.avant !== r.profile.kind ? r.avant : null);
+      setPortee(null);
       setN(0);
     });
+  };
+
+  /**
+   * Rouvrir une partie, et une seule.
+   *
+   * Les réponses repartent de celles qui sont enregistrées : sans cela, revoir
+   * un bloc rendrait les treize autres réponses vides, et la sauvegarde les
+   * refuserait toutes.
+   */
+  const rouvrir = (de: number, a: number) => {
+    setAnswers({ ...(profile?.answers ?? {}) });
+    setPassage(null);
+    setError(null);
+    setPortee({ de, a });
+    setN(de);
+  };
+  const rouvrirBloc = (b: ProfileBlock) => {
+    const idx = PROFILE_QUESTIONS.map((x, i) => ({ x, i })).filter(({ x }) => x.block === b).map(({ i }) => i);
+    if (idx.length) rouvrir(idx[0], idx[idx.length - 1]);
+  };
+  const rouvrirQuestion = (key: string) => {
+    const i = PROFILE_QUESTIONS.findIndex((x) => x.key === key);
+    if (i >= 0) rouvrir(i, i);
   };
   const keepLocal = () => {
     if (!local) return;
@@ -89,7 +127,7 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
       }
       writeLocalProfile(null);
       setSaved(r.profile);
-      setRedo(false);
+      setPortee(null);
     });
   };
 
@@ -103,17 +141,47 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
     const horizonText = max === 99 ? t("plus de 5 ans") : t("{a} à {b} ans", { a: p.horizonYears[0], b: max });
     const cover = toCover(p);
     const v2 = p.version === 2;
-    const bar = (label: string, v: number, text: string, gold?: boolean) => (
-      <div className={styles.measure}>
-        <span>{label}</span>
-        <span className={styles.track}>
-          <span className={`${styles.fill} ${gold ? styles.fillGold : ""}`} style={{ width: `${Math.round(v * 100)}%` }} />
-        </span>
-        <b>{text}</b>
-      </div>
-    );
+    /**
+     * Chaque mesure mène à la question qui la porte.
+     *
+     * C'est le saut : on lit « Tolérance · faible », on n'est pas d'accord, on
+     * touche la barre et l'on répond à cette question-là. Une réponse, deux
+     * gestes, sans traverser les seize autres.
+     *
+     * Une mesure sans question derrière reste un affichage : la connaissance
+     * vient de quatre vérifications, pas d'une déclaration, et il n'y a rien à
+     * rouvrir.
+     */
+    const bar = (label: string, v: number, text: string, gold?: boolean, key?: string) => {
+      const dedans = (
+        <>
+          <span>{label}</span>
+          <span className={styles.track}>
+            <span className={`${styles.fill} ${gold ? styles.fillGold : ""}`} style={{ width: `${Math.round(v * 100)}%` }} />
+          </span>
+          <b>{text}</b>
+        </>
+      );
+      return key && v2 ? (
+        <button type="button" className={`${styles.measure} ${styles.measureGo}`} onClick={() => rouvrirQuestion(key)} title={t("Revoir cette réponse")}>
+          {dedans}
+        </button>
+      ) : (
+        <div className={styles.measure}>{dedans}</div>
+      );
+    };
     return (
       <div className={styles.result}>
+        {/* Le passage se dit. Un profil d'adéquation est une déclaration, pas un
+            réglage : le voir changer de classe sans qu'on le signale, c'est le
+            laisser changer sans que personne ne l'ait décidé. Le desk le lit de
+            son côté, dans son journal. */}
+        {passage && (
+          <p className={styles.passage}>
+            {t("Votre profil passe de {a} à {b}.", { a: t(PROFILE_LABEL[passage as keyof typeof PROFILE_LABEL]?.[lang] ?? passage), b: t(PROFILE_LABEL[p.kind][lang]) })}{" "}
+            {t("Il porte la date du jour, et le précédent est conservé. Les repères affichés sur les lignes suivent ce nouveau profil.")}
+          </p>
+        )}
         <div className={styles.hero}>
           <svg viewBox="0 0 120 120" width="110" height="110" aria-hidden="true">
             <path d="M10 92 A50 50 0 0 1 110 92" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="12" strokeLinecap="round" />
@@ -143,8 +211,8 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
 
         <div className={styles.panel}>
           <b>{BLOCK_LABEL.appetit[lang]}</b>
-          {bar(t("Horizon"), p.measures.horizon, horizonText)}
-          {bar(t("Tolérance"), p.measures.tolerance, p.measures.tolerance <= 0.25 ? t("faible") : p.measures.tolerance <= 0.5 ? "−10 %" : t("forte"), true)}
+          {bar(t("Horizon"), p.measures.horizon, horizonText, false, "horizon")}
+          {bar(t("Tolérance"), p.measures.tolerance, p.measures.tolerance <= 0.25 ? t("faible") : p.measures.tolerance <= 0.5 ? "−10 %" : t("forte"), true, "tolerance")}
         </div>
 
         <div className={styles.panel}>
@@ -225,10 +293,24 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
               {t("Voir les lignes")}
             </Link>
           )}
-          <button type="button" className="btn" onClick={() => setRedo(true)}>
-            {t(v2 ? "Refaire" : "Compléter mon profil")}
+          <button type="button" className="btn" onClick={() => rouvrir(0, PROFILE_QUESTIONS.length - 1)}>
+            {t(v2 ? "Tout refaire" : "Compléter mon profil")}
           </button>
         </div>
+        {/* REVOIR UN BLOC, et non les dix-sept. Changer sa tolérance au risque
+            veut en général dire revoir tout ce qu'on peut supporter, pas une
+            case ; les trois blocs sont donc la bonne maille, et le saut depuis
+            une mesure sert le cas où l'on vise vraiment une réponse. */}
+        {v2 && (
+          <div className={styles.revoir}>
+            <span>{t("Revoir")}</span>
+            {BLOCKS.map((b) => (
+              <button key={b} type="button" onClick={() => rouvrirBloc(b)}>
+                {BLOCK_LABEL[b][lang]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -248,7 +330,9 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
       )}
       <div className={styles.meta}>
         <span>
-          {t("Question")} <b>{n + 1}</b> {t("sur {n}", { n: PROFILE_QUESTIONS.length })}
+          {/* Le compte suit la portée : annoncer « 5 sur 17 » à qui n'en revoit
+              que sept lui promet douze questions qu'il ne verra pas. */}
+          {t("Question")} <b>{n - (portee?.de ?? 0) + 1}</b> {t("sur {n}", { n: (portee?.a ?? PROFILE_QUESTIONS.length - 1) - (portee?.de ?? 0) + 1 })}
         </span>
         <span>{t("cinq minutes, une fois par an")}</span>
       </div>
@@ -314,7 +398,7 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
             ← {t("Précédente")}
           </button>
         ) : profile ? (
-          <button type="button" className={styles.back} onClick={() => setRedo(false)}>
+          <button type="button" className={styles.back} onClick={() => setPortee(null)}>
             ← {t("Garder mon profil")}
           </button>
         ) : (

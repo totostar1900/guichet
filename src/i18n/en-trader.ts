@@ -14,6 +14,14 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- revoir son profil d'investisseur ---------- */
+  Revoir: "Review",
+  "Tout refaire": "Start over",
+  "Revoir cette réponse": "Review this answer",
+  "Votre profil passe de {a} à {b}.": "Your profile moves from {a} to {b}.",
+  "Il porte la date du jour, et le précédent est conservé. Les repères affichés sur les lignes suivent ce nouveau profil.":
+    "It carries today's date, and the previous one is kept. The markers shown on the lines follow this new profile.",
+
   /* ---------- joindre une pièce au dossier d'ouverture ---------- */
   "Joindre une autre pièce": "Attach another document",
   "Tout ce qui peut aider : bulletin de paie, acte de vente, attestation. Dites en deux mots ce que c'est.":

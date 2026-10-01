@@ -382,3 +382,56 @@
 .fact b {
   text-align: right;
 }
+
+/* Revoir un bloc, depuis le recapitulatif. */
+.revoir {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.78rem;
+}
+.revoir > span {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.66rem;
+  opacity: 0.7;
+}
+.revoir button {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: inherit;
+  font: inherit;
+  padding: var(--s-3) var(--s-6);
+  cursor: pointer;
+}
+.revoir button:hover {
+  border-color: currentColor;
+}
+/* Une mesure qu on peut rouvrir : meme dessin, et elle repond au survol. */
+.measureGo {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.measureGo:hover b {
+  text-decoration: underline;
+}
+/* Le passage d une classe a l autre : il se lit avant le reste. */
+.passage {
+  margin: 0 0 var(--s-8);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
