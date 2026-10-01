@@ -11,7 +11,20 @@ import { enabledTypes, kindForEngine } from "@/lib/registry";
  * reviews the result: this is a draft, never a publication.
  */
 
-const MODEL = "claude-opus-5";
+/**
+ * Le modele qui lit, posé par variable comme chez les deux frères.
+ *
+ * Ce fichier etait le seul a figer Opus, alors que auction-extract.ts et
+ * notice-extract.ts honorent AUCTION_READ_MODEL depuis le 2026-09-27. La maison
+ * a mesuré Haiku champ pour champ identique à Opus sur trois communiqués, pour
+ * un vingtième du coût et TROIS SECONDES par document.
+ *
+ * Ce n'est pas qu'une question de coût. Lire un PDF avec Opus dépasse les
+ * soixante secondes de maxDuration, et une fonction tuée au délai n'exécute
+ * aucun catch : le 2026-10-01, trois courriels ont laissé leur PDF dans le seau
+ * sans qu'aucune pièce ni aucune ligne n'apparaisse.
+ */
+const MODEL = process.env.INTAKE_READ_MODEL || process.env.AUCTION_READ_MODEL || "claude-opus-5";
 
 const Conf = z.enum(["sure", "check", "missing"]);
 

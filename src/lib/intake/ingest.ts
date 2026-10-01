@@ -77,25 +77,23 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
   }
 
   let draft: OfferDraft = emptyDraft(Boolean(input.trusted) || source === "pdf" || source === "mail");
-  let extractedIn: number | undefined;
   // Dire pourquoi aucun champ n'est propose, sinon le desk lit un brouillon
   // vide et croit a une extraction ratee.
   if (file && !extraction) draft.remarks = [`Pièce gardée telle quelle : ${mimeType} ne se lit pas automatiquement. Ouvrez-la et renseignez les champs à la main.`];
-  if (extractionAvailable() && extraction) {
-    try {
-      const r = await extractOffer(extraction);
-      draft = r.draft;
-      extractedIn = r.seconds;
-      if (input.trusted) draft.official = true;
-    } catch (e) {
-      draft = emptyDraft(Boolean(input.trusted));
-      draft.remarks = [`Extraction échouée : ${e instanceof Error ? e.message : "erreur inconnue"}. Renseignez les champs à la main.`];
-    }
-  }
 
-  const item = await repo().createIntake({
+  /* LA PIECE EXISTE AVANT QU'ON LA LISE, et c'est une correction du 2026-10-01.
+     La lecture venait d'abord, puis la pièce était créée avec son résultat. Une
+     lecture qui dépasse le budget de la fonction la fait tuer, et une fonction
+     tuée n'exécute AUCUN catch : trois courriels ont laissé leur PDF dans le
+     seau sans qu'aucune pièce ni aucune ligne n'apparaisse, et il a fallu
+     interroger le stockage pour comprendre. Désormais la pièce est inscrite,
+     visible, puis enrichie. Un délai dépassé laisse une pièce « à lire », ce qui
+     est un état, pas une perte. */
+  const lisible = extractionAvailable() && extraction;
+  if (lisible) draft.remarks = [...(draft.remarks ?? []), "Lecture automatique en cours."];
+  let item = await repo().createIntake({
     source,
-    title: input.title?.trim() || draft.title || file?.name || "Message reçu",
+    title: input.title?.trim() || file?.name || "Message reçu",
     fromLabel: input.fromLabel,
     receivedAt: new Date().toISOString(),
     state: draft.official ? "a_valider" : "bloque",
@@ -103,9 +101,28 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
     mimeType,
     rawText: file ? undefined : text,
     draft,
-    extractedIn,
   });
-  await repo().logEvent({ kind: "system", html: `Nouvelle source : <b>${item.title}</b> (${input.fromLabel})${extractedIn != null ? ` : extraite en ${extractedIn} s` : ""}` });
+  await repo().logEvent({ kind: "system", html: `Nouvelle source : <b>${item.title}</b> (${input.fromLabel})${lisible ? " : lecture en cours" : ""}` });
+
+  if (lisible) {
+    let extractedIn: number | undefined;
+    try {
+      const r = await extractOffer(extraction!);
+      draft = r.draft;
+      extractedIn = r.seconds;
+      if (input.trusted) draft.official = true;
+    } catch (e) {
+      draft = emptyDraft(Boolean(input.trusted));
+      draft.remarks = [`Extraction échouée : ${e instanceof Error ? e.message : "erreur inconnue"}. Renseignez les champs à la main.`];
+    }
+    item = await repo().updateIntake(item.id, {
+      title: input.title?.trim() || draft.title || file?.name || item.title,
+      state: draft.official ? "a_valider" : "bloque",
+      draft,
+      extractedIn,
+    });
+    await repo().logEvent({ kind: "system", html: `Lue : <b>${item.title}</b>${extractedIn != null ? ` en ${extractedIn} s` : " (échec, champs à saisir)"}` });
+  }
   return { ok: true, item };
 }
 
