@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { FiltreAuto } from "./FiltreAuto";
 import { TallTable } from "@/components/desk/TallTable";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -134,7 +135,8 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
           <div className="empty">{t("Aucune séance ne répond à ces filtres.")}</div>
         ) : (
           <TallTable total={rows.length}>
-            <form method="get" className={styles.filtrage}>
+            <form method="get" id="filtrage" className={styles.filtrage}>
+              <FiltreAuto formId="filtrage" />
               <input type="hidden" name="tri" value={tri} />
               <table className={styles.table}>
                 <thead>
@@ -144,6 +146,14 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   {th("instrument", "Instr.")}
                   {th("duree", "Durée")}
                   {th("chiffre", "Taux / prix", true)}
+                  {/* La fourchette publiée, en colonne et non en remplacement.
+                      Elle ne paraissait qu'à défaut de moyenne, c'est-à-dire
+                      presque jamais, alors que c'est elle qui dit si la séance
+                      s'est jouée serré ou large. Le coupon facial à côté :
+                      sans lui, un prix d'obligation ne donne aucun rendement,
+                      et le modèle le portait déjà sans que rien l'affiche. */}
+                  <th className={styles.r}>{t("Min / max")}</th>
+                  <th className={styles.r}>{t("Coupon")}</th>
                   {th("couverture", "Couverture", true)}
                   {th("soumis", "Soumis.", true)}
                   {th("servi", "Servi", true)}
@@ -158,7 +168,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     <th>{filtre("pays", distinct(all, (x) => x.country), "tous")}</th>
                     <th>{filtre("instrument", distinct(all, (x) => x.instrument), "tous")}</th>
                     <th>{filtre("duree", distinct(all, (x) => x.tenor), "toutes")}</th>
-                    <th colSpan={4} className={styles.r}>
+                    <th colSpan={6} className={styles.r}>
                       <button className="btn sm" type="submit">
                         {t("Filtrer")}
                       </button>{" "}
@@ -199,6 +209,8 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                       )}
                       {mince && chiffre != null ? <em title={t("Séance mince : peu de soumissions")}> ·</em> : null}
                     </td>
+                    <td className={`${styles.r} ${styles.plage}`}>{plage ? `${pct(plage.lo)} – ${pct(plage.hi)}` : "—"}</td>
+                    <td className={styles.r}>{x.couponRate != null ? pct(x.couponRate) : "—"}</td>
                     <td className={styles.r}>{pct(couverture, 0)}</td>
                     <td className={styles.r}>{x.bidders ?? "—"}</td>
                     <td className={styles.r}>{x.served == null ? "—" : `${fmt(Math.round(x.served / 1_000_000))} M`}</td>

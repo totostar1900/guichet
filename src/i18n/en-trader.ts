@@ -14,6 +14,9 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- le tableau des séances ---------- */
+  "Min / max": "Min / max",
+
   /* ---------- écarter une pièce qui n'est pas un résultat ---------- */
   "chiffres douteux": "figures that do not hold",
   autre: "other",
