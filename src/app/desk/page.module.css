@@ -92,8 +92,16 @@
 }
 .rowbtns {
   display: flex;
-  gap: 4px;
+  gap: var(--s-4);
+  align-items: center;
   justify-content: flex-end;
+}
+/* Ce qui attend derriere « Ouvrir » : le compte, pas les commandes. La rangee
+   dit qu il y a a decider, l ecran de l intention dit quoi. */
+.attend {
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  white-space: nowrap;
 }
 .placeholder {
   background: var(--surface);

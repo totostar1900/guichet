@@ -624,22 +624,46 @@ h3 {
   background: var(--neutral-soft);
   color: var(--ink-2);
 }
+/* LA COLONNE « TYPE », EN ECHELLE D ENGAGEMENT.
+   Les neuf types etaient colores a deux endroits du fichier, et vendre se
+   lisait comme informer : les deux portaient le bleu « info ». Ils se rangent
+   ici en quatre degres, du plus engageant au moins, et ils se distinguent par
+   la CLARTE, jamais par la teinte seule : un lecteur daltonien et une
+   impression en gris les separent aussi bien.
+
+     1. Engage, et achete : navy plein. L ordre devient une sortie d argent.
+     2. Engage, et vend   : navy en contour. Meme poids, sens inverse, et le
+                            plein contre le contour se lit sans couleur.
+     3. Sans engagement   : or doux. Un appetit n est pas un ordre.
+     4. Demande           : neutre. Rien n est engage, rien n attend d argent.
+
+   Le vert n est pas de la partie : il veut dire « en place » et rien d autre.
+   Le rouge non plus : il est reserve a ce qui bloque. */
+.st.ferme,
+.st.achat,
+.st.souscription {
+  background: var(--fill);
+  color: var(--fill-ink);
+}
+.st.cession,
+.st.vente,
+.st.rachat {
+  background: transparent;
+  /* « --fill » et non « --navy » : le navy ne s eclaircit jamais, donc un texte
+     navy disparait le jour ou cette surface passe en nuit. --fill suit le
+     theme, navy en clair, or en nuit, et le plein contre le contour tient
+     dans les deux. */
+  color: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--fill);
+}
 .st.appetit {
   background: var(--gold-soft);
   color: var(--gold-ink);
-}
-.st.ferme {
-  background: var(--navy);
-  color: #fff;
 }
 .st.info,
 .st.rappel {
   background: var(--neutral-soft);
   color: var(--ink-2);
-}
-.st.cession {
-  background: var(--info-soft);
-  color: var(--info);
 }
 
 .field {
@@ -867,25 +891,12 @@ h3 {
   background: var(--info-soft);
   color: var(--info);
 }
-.st.achat {
-  background: var(--navy);
-  color: #fff;
-}
-.st.vente {
-  background: var(--info-soft);
-  color: var(--info);
-}
+/* Les quatre types de marché etaient recolores ici, loin des cinq autres et
+   apres eux : vente et rachat y reprenaient le bleu « info », qui est la
+   couleur d une demande. Ils sont rentres dans l echelle, plus haut. */
 .pill.on_request {
   background: var(--neutral-soft);
   color: var(--ink-2);
-}
-.st.souscription {
-  background: var(--navy);
-  color: #fff;
-}
-.st.rachat {
-  background: var(--info-soft);
-  color: var(--info);
 }
 
 /* Sauter à une ancre glisse au lieu de sauter ; sans effet pour qui a demandé moins de mouvement. */

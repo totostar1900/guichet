@@ -14,6 +14,10 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- le carnet du desk ---------- */
+  "{n} à décider": "{n} to decide",
+  "en continu": "continuous",
+
   /* ---------- le menu du compte ---------- */
   "Comprendre et nous joindre": "Understanding, and reaching us",
   "ce que chaque opération engage": "what each operation commits you to",

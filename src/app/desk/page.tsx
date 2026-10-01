@@ -5,13 +5,12 @@ import { PageOutline } from "@/components/PageOutline";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
-import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL } from "@/lib/domain/intent";
+import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
 import { aUneCloture, countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
 import { TallTable } from "@/components/desk/TallTable";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/format";
-import { transitionIntent } from "./actions";
 import { DeskLive } from "@/components/DeskLive";
 import { FeaturePanel } from "./featured/FeaturePanel";
 import { TodayPanel, type Tile } from "./today/TodayPanel";
@@ -253,26 +252,19 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                         <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                       </td>
                       <td>
+                        {/* OUVRIR, ET RIEN D'AUTRE.
+                            La liste portait « Confirmer » et « Proposer d'autres
+                            conditions » sur chaque rangée. Confirmer un ordre
+                            depuis une liste, c'est l'engager sans avoir vu les
+                            contrôles, le dossier du client, son prix limite ni
+                            ce que le passage produit : exactement ce que le
+                            bloc Décision a été refait pour empêcher. Une liste
+                            sert à choisir quoi traiter, jamais à traiter. */}
                         <div className={styles.rowbtns}>
                           <Link className="btn sm" href={`/desk/intentions/${i.id}`}>
                             {t("Ouvrir")}
                           </Link>
-                          {(i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise" ? (
-                            <Link className="btn sm primary" href="/desk/marche">
-                              {t("Exécuter (Marché)")}
-                            </Link>
-                          ) : null}
-                          {next
-                            .filter((s) => s !== "annulee" && !((i.type === "achat" || i.type === "vente" || i.type === "souscription" || i.type === "rachat") && i.state === "transmise"))
-                            .map((s) => (
-                              <form key={s} action={transitionIntent}>
-                                <input type="hidden" name="intentId" value={i.id} />
-                                <input type="hidden" name="state" value={s} />
-                                <button className={`btn sm ${s === "transmise" ? "primary" : ""}`} type="submit">
-                                  {t(STATE_ACTION_LABEL[s] ?? "")}
-                                </button>
-                              </form>
-                            ))}
+                          {next.length > 0 && <span className={styles.attend}>{t("{n} à décider", { n: String(next.filter((s) => s !== "annulee").length) })}</span>}
                         </div>
                       </td>
                     </tr>
