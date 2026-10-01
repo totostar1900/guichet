@@ -14,6 +14,18 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- les appareils de confiance, vus du desk ---------- */
+  "Appareils de confiance": "Trusted devices",
+  "clef d'accès": "passkey",
+  "code à quatre chiffres": "four-digit code",
+  "dernier usage": "last used",
+  "jamais utilisé": "never used",
+  "{n} échecs": "{n} failures",
+  "Aucun appareil enregistré : ce client entre par un code à chaque fois.": "No device registered: this client signs in with a code every time.",
+
+  /* ---------- la navigation du desk ---------- */
+  "Allocations et règlement": "Allocations and settlement",
+
   /* ---------- le tableau des séances ---------- */
   "Min / max": "Min / max",
 

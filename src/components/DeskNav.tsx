@@ -12,7 +12,12 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     tabs: [
       ["/desk", "Carnet"],
       ["/desk/a-valider", "À valider"],
-      ["/desk/resultats", "Résultats"],
+      /* « Résultats » se confondait avec Adjudications, sous Marché, qui porte
+         les résultats publiés par les Trésors. Celle-ci ne lit rien du marché :
+         elle porte l'allocation sur NOS ordres, puis leur règlement. Deux
+         choses distinctes qui s'appelaient pareil ; c'est le nom qui trompait,
+         pas la page. */
+      ["/desk/resultats", "Allocations et règlement"],
       ["/desk/encaissements", "Encaissements"],
       ["/desk/documents", "Documents"],
     ],

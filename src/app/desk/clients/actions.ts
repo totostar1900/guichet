@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { generateKycDocument } from "@/lib/documents/generate";
@@ -110,4 +111,48 @@ export async function autoScreenAction(_p: ReviewResult | null, form: FormData):
   await r.logEvent({ kind: "desk", html: `Pré-contrôle sanctions / PPE : ${f.identity.name} : ${auto.provider === "none" ? "fournisseur non configuré" : `${auto.hits.length} correspondance(s)${auto.error ? ` (${auto.error})` : ""}`} · ${desk.name}` });
   revalidatePath("/desk/clients");
   return auto.provider === "none" ? { ok: false, error: "Le pré-contrôle automatique n'est pas activé sur cette plateforme : consultez les listes par les liens ci-dessous et attestez." } : { ok: true, message: `Pré-contrôle effectué : ${auto.hits.length} correspondance(s) à examiner.` };
+}
+
+/**
+ * Retirer un appareil de confiance, depuis le desk.
+ *
+ * Un client qui perd son téléphone appelle, et jusqu'ici personne ne pouvait
+ * rien : seul le porteur retirait ses appareils, depuis son propre espace,
+ * c'est-à-dire depuis l'appareil qu'il n'a plus. Le desk pouvait le laisser
+ * sans recours ou lui demander de se connecter pour se déconnecter.
+ *
+ * LE GESTE NE VA QUE DANS UN SENS : il retire, il n'ajoute jamais. Le desk ne
+ * peut pas enrôler un appareil au nom d'un client, parce que cela reviendrait à
+ * se donner sa clef ; il peut seulement en reprendre une, ce qui ferme une
+ * porte et n'en ouvre aucune. C'est la seule forme sous laquelle cette capacité
+ * est acceptable sur un compte-titres.
+ *
+ * Elle se journalise deux fois, à l'audit et au flux : retirer la clef de
+ * quelqu'un se lit dans son dossier, et porte un nom.
+ */
+export async function removeClientDeviceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/clients");
+  const id = String(form.get("deviceId") ?? "");
+  const userId = String(form.get("userId") ?? "");
+  if (!id || !userId) return;
+  const device = await repo().findDevice({ id });
+  // L'identifiant du porteur voyage avec : sans lui, un identifiant d'appareil
+  // devine par un autre dossier retirerait la clef d'un client qu'on ne
+  // regardait pas.
+  if (!device || device.userId !== userId) return;
+  await repo().removeDevice(id, userId);
+  await audit("device.remove", "trusted_device", id, {
+    before: { userId, kind: device.kind, name: device.name },
+    after: null,
+    reason: `retiré depuis le desk par ${desk.name}`,
+  });
+  // Le flux ne porte pas de client : le nom entre dans la phrase, sans quoi
+  // « Appareil retiré » ne dirait pas chez qui.
+  const porteur = String(form.get("clientName") ?? "").trim();
+  await repo().logEvent({
+    kind: "desk",
+    html: `Appareil <b>retiré</b> par ${desk.name}${porteur ? ` chez ${porteur}` : ""} : ${device.name} (${device.kind === "passkey" ? "clef d'accès" : "code à quatre chiffres"})`,
+  });
+  revalidatePath("/desk/clients");
+  revalidatePath("/moi/securite");
 }

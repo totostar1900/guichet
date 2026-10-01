@@ -14,6 +14,7 @@ import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { ProfileCard } from "@/components/desk/ProfileCard";
 import { ReachLine } from "@/components/desk/ReachLine";
+import { removeClientDeviceAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Clients" };
@@ -39,11 +40,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const q = (sp.q ?? "").trim();
   const queue = clientDirectory(files, q);
   const attente = files.filter(waiting).length;
-  const [lang, fin, prefs, channels] = await Promise.all([
+  const [lang, fin, prefs, channels, devices] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getChannelStatus(selected.userId).catch(() => undefined) : undefined,
+    selected ? r.listDevices(selected.userId).catch(() => []) : [],
   ]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id || (d.clientId === selected.userId && (d.type === "coupon" || d.type === "reclamation" || d.type === "releve" || d.type === "attestation"))) : [];
   const now = new Date();
@@ -190,6 +192,40 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               <div>
                 <h3>{t("Profil financier")}</h3>
                 <ProfileCard profile={fin} lang={lang} t={t} />
+                {/* LES APPAREILS DE CONFIANCE, ET LE SEUL GESTE EST DE RETIRER.
+                    Un client qui perd son téléphone appelait, et personne ne
+                    pouvait rien : seul le porteur retirait ses appareils, depuis
+                    son espace, c'est-à-dire depuis l'appareil qu'il n'a plus.
+                    Le desk ne peut pas en ajouter un, ce qui reviendrait à se
+                    donner sa clef ; il peut en reprendre une, ce qui ferme une
+                    porte et n'en ouvre aucune. */}
+                <h3>{t("Appareils de confiance")}</h3>
+                {devices.length === 0 ? (
+                  <p className="muted">{t("Aucun appareil enregistré : ce client entre par un code à chaque fois.")}</p>
+                ) : (
+                  <ul className={styles.appareils}>
+                    {devices.map((d) => (
+                      <li key={d.id}>
+                        <span>
+                          <b>{d.name}</b>
+                          <small className="muted">
+                            {t(d.kind === "passkey" ? "clef d'accès" : "code à quatre chiffres")}
+                            {d.lastUsedAt ? ` · ${t("dernier usage")} ${fmtDateTime(d.lastUsedAt)}` : ` · ${t("jamais utilisé")}`}
+                            {d.failures > 0 ? ` · ${t("{n} échecs", { n: String(d.failures) })}` : ""}
+                          </small>
+                        </span>
+                        <form action={removeClientDeviceAction}>
+                          <input type="hidden" name="deviceId" value={d.id} />
+                          <input type="hidden" name="userId" value={selected.userId} />
+                          <input type="hidden" name="clientName" value={selected.identity.name} />
+                          <button className="btn sm ghost" type="submit">
+                            {t("Retirer")}
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <h3>{t("Contrôles")}</h3>
                 <ul className={styles.checks}>
                   {autoChecks(selected, now).map((c) => (

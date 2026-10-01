@@ -460,3 +460,28 @@
   font-size: 0.78rem;
   color: var(--ink-3);
 }
+
+/* Les appareils de confiance : un par ligne, et le seul geste est de retirer. */
+.appareils {
+  list-style: none;
+  margin: 0 0 var(--s-8);
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.appareils li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  padding: var(--s-5) 0;
+  border-bottom: 1px solid var(--line);
+}
+.appareils li span {
+  display: grid;
+  gap: var(--s-1);
+  flex-grow: 1;
+  min-width: 0;
+}
+.appareils small {
+  font-size: 0.74rem;
+}

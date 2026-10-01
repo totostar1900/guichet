@@ -11,7 +11,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Résultats & positions" };
+export const metadata = { title: "Allocations et règlement" };
 
 export default async function ResultsPage() {
   const t = await getT();
