@@ -14,6 +14,10 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- les alertes sur l'appareil ---------- */
+  "Les alertes ne sont pas encore ouvertes ici : vos messages arrivent sur WhatsApp et par e-mail.":
+    "Alerts are not open here yet: your messages arrive on WhatsApp and by e-mail.",
+
   /* ---------- revoir son profil d'investisseur ---------- */
   Revoir: "Review",
   "Tout refaire": "Start over",

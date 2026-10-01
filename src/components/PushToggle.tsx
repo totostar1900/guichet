@@ -9,7 +9,7 @@ import styles from "./PushToggle.module.css";
  * a push subscription for the signed-in user. iPhone needs the app installed on
  * the home screen first; we say so instead of failing silently.
  */
-type State = "unsupported" | "needs-install" | "denied" | "off" | "on" | "busy";
+type State = "unsupported" | "unconfigured" | "needs-install" | "denied" | "off" | "on" | "busy";
 
 const b64ToBytes = (b64: string) => {
   const pad = "=".repeat((4 - (b64.length % 4)) % 4);
@@ -24,7 +24,21 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      if (!vapidKey || typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      /* LE NAVIGATEUR N'Y EST POUR RIEN QUAND LA CLEF MANQUE.
+         Les deux causes étaient confondues : sans clef publique VAPID, un
+         Chrome qui prend parfaitement en charge les notifications s'entendait
+         dire qu'il ne les prend pas en charge. Le message accusait le
+         navigateur d'un défaut de configuration, et le lecteur n'avait alors
+         aucune raison de nous en parler : il croyait son téléphone en cause.
+         C'est ainsi qu'une variable d'environnement absente se cache des mois,
+         et c'est exactement ce qui s'est passé. */
+      if (typeof window === "undefined") return;
+      const supporte = "serviceWorker" in navigator && "PushManager" in window;
+      if (supporte && !vapidKey) {
+        setState("unconfigured");
+        return;
+      }
+      if (!supporte) {
         const ios = /iphone|ipad/i.test(navigator.userAgent);
         const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
         setState(ios && !standalone ? "needs-install" : "unsupported");
@@ -67,6 +81,9 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
   };
 
   if (state === "unsupported") return compact ? null : <small className={styles.note}>{tr("Ce navigateur ne prend pas en charge les alertes.")}</small>;
+  {/* Ce qui marche se dit, et c'est la règle de la maison : on nomme ce qui
+      arrive, pas ce qui manque. Les deux autres canaux portent déjà tout. */}
+  if (state === "unconfigured") return compact ? null : <small className={styles.note}>{tr("Les alertes ne sont pas encore ouvertes ici : vos messages arrivent sur WhatsApp et par e-mail.")}</small>;
   if (state === "needs-install") return <small className={styles.note}>{tr("Sur iPhone : ajoutez le Guichet à l'écran d'accueil (Partager → « Sur l'écran d'accueil »), puis ouvrez-le de là pour activer les alertes.")}</small>;
   if (state === "denied") return <small className={styles.note}>{tr("Alertes bloquées dans les réglages du navigateur : autorisez les notifications pour ce site pour les recevoir.")}</small>;
   return (
