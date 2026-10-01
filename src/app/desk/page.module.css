@@ -17,39 +17,8 @@
   color: var(--ink);
   border-bottom-color: var(--gold);
 }
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 18px;
-}
-.kpi {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-}
-.kpi span {
-  display: block;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-3);
-}
-.kpi b {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 600;
-  display: block;
-  line-height: 1.2;
-}
-.kpi small {
-  color: var(--ink-3);
-  font-size: 0.75rem;
-}
-.hot b {
-  color: var(--warn);
-}
+/* La bande de KPI a disparu : ses trois chiffres sont devenus des tuiles
+   d'« Aujourd hui », qui portait deja le quatrieme en double. */
 .feed {
   max-height: 260px;
   overflow: auto;

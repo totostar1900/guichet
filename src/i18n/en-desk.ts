@@ -477,8 +477,11 @@ export const EN_MORE: Record<string, string> = {
   "effacer une ligne du journal (il est immuable, chaîné par empreinte)": "delete a line of the audit log (it is immutable, hash-chained)",
   "Quatre groupes": "Four groups",
   "Opérations (le quotidien), Clients, Marché, Pilotage. Un compteur signale ce qui attend une action ; « Guide » ouvre ce mode d'emploi.": "Operations (the daily work), Clients, Market, Governance. A counter flags what awaits an action; “Guide” opens this manual.",
-  "Les quatre chiffres du matin": "The four morning figures",
-  "Prochaine clôture, prises fermes, appétits à convertir, intentions non traitées. L'objectif de la journée : zéro intention non traitée à la clôture.": "Next closing, firm orders, interests to convert, intentions not handled. The day's goal: zero unhandled intention at the closing.",
+  /* « quatre » est tombé avec la bande de KPI : les chiffres sont devenus des
+     tuiles d'« Aujourd'hui », et leur nombre varie avec ce que la veille a laissé. */
+  "Les chiffres du matin": "The morning figures",
+  "Prochaine clôture, prises fermes, appétits à convertir, intentions non traitées, et ce que la veille a laissé. L'objectif de la journée : zéro intention non traitée à la clôture.":
+    "Next closing, firm orders, interests to convert, intentions not handled, and what yesterday left behind. The day's goal: zero unhandled intention at the closing.",
   "Chaque intention, message WhatsApp ou document apparaît ici à la seconde. Inutile de rafraîchir.": "Every intention, WhatsApp message or document appears here within the second. No need to refresh.",
   "La barre filtre par état, ligne et texte. Cliquez sur une référence ou « Ouvrir » : l'intention s'ouvre avec le client à côté.": "The bar filters by state, line and text. Click a reference or “Open”: the intention opens with the client beside it.",
   "Dossiers clients": "Client files",

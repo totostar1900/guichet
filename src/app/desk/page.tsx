@@ -14,7 +14,7 @@ import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/
 import { transitionIntent } from "./actions";
 import { DeskLive } from "@/components/DeskLive";
 import { FeaturePanel } from "./featured/FeaturePanel";
-import { TodayPanel } from "./today/TodayPanel";
+import { TodayPanel, type Tile } from "./today/TodayPanel";
 import { todayTiles } from "./today/today";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
@@ -90,6 +90,36 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const totalF = rows.reduce((s, x) => s + x.sF, 0);
   const totalA = rows.reduce((s, x) => s + x.sA, 0);
   const todo = intents.filter((i) => i.state === "recue").length;
+  /* Les trois chiffres du carnet, en tuiles du jour.
+     « Intentions non traitées » n'est pas ici : « Aujourd'hui » le porte déjà,
+     et c'était le doublon. Le ton suit le chiffre, comme les autres tuiles :
+     un zéro est au vert, parce que rien n'attend. */
+  const kpis: Tile[] = [
+    {
+      key: "cloture",
+      label: t("Prochaine clôture dans"),
+      value: nextDeadline ? countdown(nextDeadline, now) : "—",
+      detail: nextDeadline ? fmtDateTime(nextDeadline) : t("aucune offre ouverte"),
+      tone: nextDeadline ? "warn" : "ok",
+      href: "#offres",
+    },
+    {
+      key: "fermes",
+      label: t("Prises fermes"),
+      value: fmtMillions(totalF),
+      detail: t("{n} ordres à confirmer ou transmettre", { n: String(rows.reduce((s, x) => s + x.nF, 0)) }),
+      tone: totalF > 0 ? "warn" : "ok",
+      href: "#intentions",
+    },
+    {
+      key: "appetits",
+      label: t("Appétits à convertir"),
+      value: fmtMillions(totalA),
+      detail: t("{n} clients à rappeler", { n: String(rows.reduce((s, x) => s + x.nA, 0)) }),
+      tone: totalA > 0 ? "warn" : "ok",
+      href: "#offres",
+    },
+  ];
   // The intentions table follows the toolbar: state, search, line, sort.
   const stateOf = (i: Intent) => (i.state === "recue" ? "recue" : i.state === "confirmee" ? "confirmee" : i.state === "transmise" ? "transmise" : i.state === "annulee" ? "annulee" : "finie");
   const counts = { recue: 0, confirmee: 0, transmise: 0, finie: 0, annulee: 0 } as Record<string, number>;
@@ -131,36 +161,18 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         />
         <div className={styles.rail}>
         <div id="aujourdhui" />
-        <TodayPanel tiles={today_.tiles} bulletin={today_.bulletin} today={today_.today} />
+        {/* UNE SEULE BANDE DE CHIFFRES, et il y en avait deux.
+            « Aujourd'hui » portait sept tuiles, une bande de KPI en portait
+            quatre de plus à trois cents pixels de là, et « Intentions non
+            traitées » paraissait dans les deux. Deux bandes posent la question
+            « laquelle lire d'abord », et la réponse était « les deux ». Les
+            trois chiffres qui manquaient rejoignent donc les tuiles, et le
+            doublon disparaît de ce côté-ci : c'est « Aujourd'hui » qui le
+            portait déjà. */}
+        <TodayPanel tiles={[...today_.tiles, ...kpis]} bulletin={today_.bulletin} today={today_.today} />
 
         <div id="une" />
         <FeaturePanel active={featActive} candidates={featCandidates} />
-
-        <div className={styles.kpis} data-coach="kpis">
-          <div className={`${styles.kpi} ${styles.hot}`}>
-            <span>{t("Prochaine clôture dans")}</span>
-            <b className="num">{nextDeadline ? countdown(nextDeadline, now) : "—"}</b>
-            <small>{nextDeadline ? fmtDateTime(nextDeadline) : "aucune offre ouverte"}</small>
-          </div>
-          <div className={styles.kpi}>
-            <span>{t("Prises fermes")}</span>
-            <b className="num">{fmtMillions(totalF)}</b>
-            <small>{t("{n} ordres à confirmer ou transmettre", { n: rows.reduce((s, x) => s + x.nF, 0) })}</small>
-          </div>
-          <div className={styles.kpi}>
-            <span>{t("Appétits à convertir")}</span>
-            <b className="num">{fmtMillions(totalA)}</b>
-            <small>{t("{n} clients à rappeler", { n: rows.reduce((s, x) => s + x.nA, 0) })}</small>
-          </div>
-          <div className={styles.kpi}>
-            <span>{t("Intentions non traitées")}</span>
-            <b className="num">{todo}</b>
-            <small>{t(`sur ${intents.length} reçues`)}</small>
-          </div>
-        </div>
-
-
-
 
         <div className="panel" id="intentions" data-coach="intents">
           <div className="panel-h">

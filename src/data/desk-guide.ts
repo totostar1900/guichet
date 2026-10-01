@@ -320,7 +320,9 @@ export const GUIDE: GuideSection[] = [
 
 export const TOUR: TourStop[] = [
   { path: "/desk", target: "nav", title: "Quatre groupes", text: "Opérations (le quotidien), Clients, Marché, Pilotage. Un compteur signale ce qui attend une action ; « Guide » ouvre ce mode d'emploi." },
-  { path: "/desk", target: "kpis", title: "Les quatre chiffres du matin", text: "Prochaine clôture, prises fermes, appétits à convertir, intentions non traitées. L'objectif de la journée : zéro intention non traitée à la clôture." },
+  // La cible « kpis » n'existe plus : ses trois chiffres sont entrés dans les
+  // tuiles d'« Aujourd'hui », qui portait déjà le quatrième.
+  { path: "/desk", target: "today", title: "Les chiffres du matin", text: "Prochaine clôture, prises fermes, appétits à convertir, intentions non traitées, et ce que la veille a laissé. L'objectif de la journée : zéro intention non traitée à la clôture." },
   { path: "/desk", target: "feed", title: "Flux en direct", text: "Chaque intention, message WhatsApp ou document apparaît ici à la seconde. Inutile de rafraîchir." },
   { path: "/desk", target: "intents", title: "Intentions reçues", text: "La barre filtre par état, ligne et texte. Cliquez sur une référence ou « Ouvrir » : l'intention s'ouvre avec le client à côté." },
   { path: "/desk/clients", target: "queue", title: "Dossiers clients", text: "Les dossiers soumis en premier. Rien n'est bloquant à la soumission : c'est ici que l'on complète et que l'on décide." },
