@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
   } else {
     const j = (await req.json().catch(() => ({}))) as JsonMail;
     mail = {
+      // Cette porte recoit du JSON, pas un message : aucun en-tete a offrir,
+      // donc aucun retour automatique ne s y reconnaitra. L apporteur qui veut
+      // ce tri poste le message brut en message/rfc822.
+      headers: {},
       from: j.from ?? "inconnu",
       subject: j.subject ?? "",
       text: j.text ?? (j.html ?? "").replace(/<[^>]+>/g, " "),

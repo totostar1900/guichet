@@ -36,6 +36,8 @@ export interface Courriel {
   subject: string;
   text: string;
   attachments: PieceJointe[];
+  /** En-têtes, clefs en minuscules : c'est là qu'une machine se reconnaît. */
+  headers: Record<string, string>;
 }
 
 export interface Issue {
@@ -61,7 +63,12 @@ const SEUIL_IMAGE_INLINE = 40 * 1024;
 /** Le message complet, tel qu'il circule entre serveurs : un seul analyseur pour tous les apporteurs. */
 export async function lireRfc822(raw: Uint8Array): Promise<Courriel> {
   const parsed = await new PostalMime().parse(raw);
+  // Première occurrence gagnante : « received » se répète à chaque relais, et
+  // les en-têtes qui nous intéressent n'apparaissent qu'une fois.
+  const headers: Record<string, string> = {};
+  for (const h of parsed.headers) if (!(h.key in headers)) headers[h.key] = h.value;
   return {
+    headers,
     from: parsed.from?.address ?? parsed.from?.name ?? "inconnu",
     subject: parsed.subject ?? "",
     text: parsed.text ?? (parsed.html ?? "").replace(/<[^>]+>/g, " "),
@@ -72,6 +79,32 @@ export async function lireRfc822(raw: Uint8Array): Promise<Courriel> {
       inline: a.disposition === "inline",
     })),
   };
+}
+
+/**
+ * Un retour de machine, et non une personne qui ecrit.
+ *
+ * LE DÉFAUT QUE CECI CORRIGE EST LE MIEN, mesuré le 2026-10-01 : le garde-fou
+ * jetait tout courriel venant de notre propre adresse d'envoi, et l'utilisateur
+ * a ecrit depuis guichet@. Son message a disparu. Or guichet@ est a la fois
+ * l'identité d'envoi de la plateforme et une boîte que des personnes utilisent :
+ * l'adresse seule ne tranche pas, et je l'avais cru.
+ *
+ * Les en-têtes tranchent. Un rebond, une réponse automatique, une absence du
+ * bureau portent au moins un de ces marqueurs (RFC 3834 pour le premier) ; un
+ * humain qui ecrit n'en porte aucun.
+ */
+export function retourAutomatique(headers: Record<string, string>): boolean {
+  const h = (k: string) => (headers[k] ?? "").trim().toLowerCase();
+  // RFC 3834 : « no » est la valeur d'un message envoyé par une personne.
+  if (h("auto-submitted") && h("auto-submitted") !== "no") return true;
+  // Un rapport de non-remise est un multipart/report.
+  if (h("content-type").includes("multipart/report")) return true;
+  // Enveloppe vide : la marque classique d'un rebond.
+  if (["<>", ""].includes(h("return-path")) && "return-path" in headers) return true;
+  if (h("x-auto-response-suppress")) return true;
+  if (["auto_reply", "auto-reply", "bulk", "junk"].includes(h("precedence"))) return true;
+  return false;
 }
 
 /** L'adresse seule, que `EMAIL_FROM` porte parfois sous la forme « Guichet <guichet@… > ». */
@@ -85,8 +118,8 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
      serait classée comme un message de client, et le desk relirait ses propres
      envois en croyant lire les réponses. */
   const nous = adresseSeule(process.env.EMAIL_FROM);
-  if (nous && mail.from.trim().toLowerCase() === nous) {
-    await direLeRefus(`Courrier <b>écarté</b> : il vient de notre propre adresse d'envoi (${nous}), c'est un retour de ce que nous avons envoyé`);
+  if (nous && mail.from.trim().toLowerCase() === nous && retourAutomatique(mail.headers)) {
+    await direLeRefus(`Courrier <b>écarté</b> : un retour automatique de notre propre adresse d'envoi (${nous}), pas un message d'une personne`);
     return { created: [], news: [], errors: [], skipped: [mail.subject || "sans objet"] };
   }
 

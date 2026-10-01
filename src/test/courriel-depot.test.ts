@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { repo } from "@/lib/data";
-import { adresseSeule, ingererCourriel, type Courriel } from "@/lib/intake/courriel";
+import { adresseSeule, ingererCourriel, retourAutomatique, type Courriel } from "@/lib/intake/courriel";
 
 /**
  * La plateforme garde l'exemplaire, pas l'aperçu.
@@ -13,7 +13,7 @@ import { adresseSeule, ingererCourriel, type Courriel } from "@/lib/intake/courr
  * plateforme, celle-ci devient le SEUL exemplaire. Ce qu'elle laisse tomber est
  * perdu pour de bon.
  */
-const courriel = (p: Partial<Courriel>): Courriel => ({ from: "dobm@tresor-congo.cg", subject: "Communiqué", text: "Corps du message.", attachments: [], ...p });
+const courriel = (p: Partial<Courriel>): Courriel => ({ from: "dobm@tresor-congo.cg", subject: "Communiqué", text: "Corps du message.", attachments: [], headers: {}, ...p });
 
 const octets = (n: number) => new Uint8Array(n);
 
@@ -73,22 +73,62 @@ describe("le courriel entrant est gardé en entier", () => {
   });
 });
 
+/**
+ * NOTRE PROPRE ADRESSE NE SUFFIT PAS À ÉCARTER UN COURRIEL.
+ *
+ * Le garde-fou jetait tout ce qui venait de `EMAIL_FROM`, et le 2026-10-01 il a
+ * jeté un message qu'une personne avait écrit depuis la boîte `guichet@`. Cette
+ * adresse a deux vies : l'identité d'envoi de la plateforme, et une boîte que
+ * l'équipe utilise. L'adresse seule ne tranche pas, les en-têtes si.
+ */
+const sousNotreNom = async (mail: Parameters<typeof ingererCourriel>[0]) => {
+  const avant = process.env.EMAIL_FROM;
+  process.env.EMAIL_FROM = "Guichet <guichet@purposecapital.africa>";
+  try {
+    return await ingererCourriel(mail);
+  } finally {
+    if (avant === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = avant;
+  }
+};
+
 describe("la boucle du courrier", () => {
-  it("écarte ce qui vient de notre propre adresse d'envoi", async () => {
-    const avant = process.env.EMAIL_FROM;
-    process.env.EMAIL_FROM = "Guichet <guichet@purposecapital.africa>";
-    try {
-      const r = await ingererCourriel(courriel({ from: "guichet@purposecapital.africa", subject: "Undelivered Mail Returned to Sender", text: "bounce" }));
-      expect(r.created).toHaveLength(0);
-      expect(r.skipped).toHaveLength(1);
-      // Rien dans la boîte du desk : sinon il relirait ses propres envois en
-      // croyant lire les réponses.
-      const msg = (await repo().listInbound(50)).find((m) => m.subject === "Undelivered Mail Returned to Sender");
-      expect(msg).toBeUndefined();
-    } finally {
-      if (avant === undefined) delete process.env.EMAIL_FROM;
-      else process.env.EMAIL_FROM = avant;
-    }
+  it("écarte un rebond venu de notre propre adresse", async () => {
+    const r = await sousNotreNom(
+      courriel({
+        from: "guichet@purposecapital.africa",
+        subject: "Undelivered Mail Returned to Sender",
+        text: "bounce",
+        headers: { "auto-submitted": "auto-replied", "content-type": "multipart/report; report-type=delivery-status" },
+      }),
+    );
+    expect(r.created).toHaveLength(0);
+    expect(r.skipped).toHaveLength(1);
+    // Rien dans la boîte du desk : sinon il relirait ses propres envois en
+    // croyant lire les réponses.
+    const msg = (await repo().listInbound(50)).find((m) => m.subject === "Undelivered Mail Returned to Sender");
+    expect(msg).toBeUndefined();
+  });
+
+  it("GARDE un message qu'une personne a écrit depuis guichet@", async () => {
+    // Le défaut mesuré : ce message-là a été jeté, et c'était le mien.
+    const r = await sousNotreNom(courriel({ from: "guichet@purposecapital.africa", subject: "Une question d'un confrère", text: "Bonjour, pouvez-vous confirmer la séance de jeudi ?", headers: { "content-type": "text/plain" } }));
+    expect(r.skipped).toHaveLength(0);
+    const msg = (await repo().listInbound(50)).find((m) => m.subject === "Une question d'un confrère");
+    expect(msg).toBeDefined();
+  });
+
+  it("reconnaît une machine à chacun de ses marqueurs, et une personne à leur absence", () => {
+    expect(retourAutomatique({ "auto-submitted": "auto-replied" })).toBe(true);
+    expect(retourAutomatique({ "auto-submitted": "auto-generated" })).toBe(true);
+    // RFC 3834 : « no » est précisément ce qu'un humain porte.
+    expect(retourAutomatique({ "auto-submitted": "no" })).toBe(false);
+    expect(retourAutomatique({ "content-type": "multipart/report; report-type=delivery-status" })).toBe(true);
+    expect(retourAutomatique({ "return-path": "<>" })).toBe(true);
+    expect(retourAutomatique({ "x-auto-response-suppress": "All" })).toBe(true);
+    expect(retourAutomatique({ precedence: "bulk" })).toBe(true);
+    expect(retourAutomatique({ "content-type": "text/plain", subject: "Bonjour" })).toBe(false);
+    expect(retourAutomatique({})).toBe(false);
   });
 
   it("lit l'adresse seule, que EMAIL_FROM porte un nom ou non", () => {
