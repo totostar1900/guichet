@@ -14,6 +14,14 @@ export const EN_TRADER: Record<string, string> = {
   "Allons-y": "Let's go",
   Trader: "Trader",
 
+  /* ---------- joindre une pièce au dossier d'ouverture ---------- */
+  "Joindre une autre pièce": "Attach another document",
+  "Tout ce qui peut aider : bulletin de paie, acte de vente, attestation. Dites en deux mots ce que c'est.":
+    "Anything that helps: a payslip, a deed of sale, a certificate. Say in two words what it is.",
+  "Ce que c'est": "What it is",
+  "Retrait…": "Removing…",
+  Envoyer: "Send",
+
   /* ---------- ce qu'on peut faire d'un ordre déjà parti ---------- */
   "Autres actions sur cet ordre": "Other actions on this order",
   "Nous écrire à propos de cet ordre": "Write to us about this order",

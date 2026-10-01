@@ -4,10 +4,10 @@ import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { startTransition, useActionState } from "react";
 import { shrinkPhoto } from "@/lib/image-client";
-import type { ClientFile, KycDocKind } from "@/lib/domain/kyc";
+import type { ClientFile, KycDocKind, KycDocument } from "@/lib/domain/kyc";
 import { DOC_LABEL, requiredDocs } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
-import { addPersonAction, removePersonAction, saveFundsProfileAction, saveIdentityAction, sendConventionCodeAction, submitFileAction, uploadDocAction, verifyConventionCodeAction, type StepResult } from "./actions";
+import { addPersonAction, removeDocAction, removePersonAction, saveFundsProfileAction, saveIdentityAction, sendConventionCodeAction, submitFileAction, uploadDocAction, verifyConventionCodeAction, type StepResult } from "./actions";
 import styles from "./page.module.css";
 
 type P = { file: ClientFile; editable: boolean };
@@ -254,11 +254,82 @@ export function DocsSection({ file, editable }: P) {
         {req.map((k) => (
           <DocRow key={k} kind={k} file={file} editable={editable} />
         ))}
+        {/* Listées par leur clef et non par leur genre : elles portent toutes
+            « autre », et une liste indexée sur le genre n'en montrait qu'une. */}
         {extra.map((d) => (
-          <DocRow key={d.kind} kind={d.kind} file={file} editable={editable} />
+          <PieceLibre key={d.fileKey} doc={d} editable={editable} />
         ))}
+        <AjouterPiece editable={editable} />
       </div>
     </section>
+  );
+}
+
+/** Une pièce que le client a jointe de lui-même : son libellé, et le retrait. */
+function PieceLibre({ doc, editable }: { doc: KycDocument; editable: boolean }) {
+  const t = useT();
+  const [state, action, pending] = useActionState<StepResult | null, FormData>(removeDocAction, null);
+  return (
+    <form action={action} className={`${styles.docRow} ${styles.docHave}`}>
+      <input type="hidden" name="fileKey" value={doc.fileKey} />
+      <div className={styles.docLabel}>
+        <b>{doc.label ?? t(DOC_LABEL[doc.kind])}</b>
+        <small className={styles.okText}>
+          {t("Reçue")} · {doc.fileName} · {fmtDateTime(doc.uploadedAt)}
+        </small>
+        <Msg state={state} />
+      </div>
+      <fieldset disabled={!editable} className={styles.docInput}>
+        <button className="btn sm ghost" type="submit" disabled={pending}>
+          {t(pending ? "Retrait…" : "Retirer")}
+        </button>
+      </fieldset>
+    </form>
+  );
+}
+
+/**
+ * Joindre une pièce que nous n'avons pas demandée.
+ *
+ * La liste des pièces attendues est fermée, et c'est juste : elle dit ce qu'il
+ * faut pour ouvrir un compte. Mais un client a souvent de quoi répondre
+ * d'avance à la question suivante, un bulletin de paie, un acte de vente, une
+ * attestation d'employeur, et il n'avait nulle part où le mettre : le genre
+ * « autre » existait sans que rien ne l'offre, et il n'acceptait qu'un fichier.
+ *
+ * Le libellé part avec le fichier : « Autre pièce » dans un dossier oblige le
+ * conseiller à l'ouvrir pour savoir ce que c'est.
+ */
+function AjouterPiece({ editable }: { editable: boolean }) {
+  const t = useT();
+  const [state, action, pending] = useActionState<StepResult | null, FormData>(uploadDocAction, null);
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const f = fd.get("file");
+    const go = (petit: File | null) => {
+      if (petit) fd.set("file", petit);
+      startTransition(() => action(fd));
+    };
+    if (f instanceof File && f.size > 0) shrinkPhoto(f).then(go, () => go(null));
+    else go(null);
+  };
+  return (
+    <form onSubmit={onSubmit} className={styles.docRow}>
+      <input type="hidden" name="kind" value="autre" />
+      <div className={styles.docLabel}>
+        <b>{t("Joindre une autre pièce")}</b>
+        <small className="muted">{t("Tout ce qui peut aider : bulletin de paie, acte de vente, attestation. Dites en deux mots ce que c'est.")}</small>
+        <Msg state={state} />
+      </div>
+      <fieldset disabled={!editable} className={styles.docInput}>
+        <input type="text" name="label" maxLength={80} placeholder={t("Ce que c'est")} required />
+        <input type="file" name="file" accept="image/*,application/pdf" required />
+        <button className="btn sm" type="submit" disabled={pending}>
+          {t(pending ? "Envoi…" : "Envoyer")}
+        </button>
+      </fieldset>
+    </form>
   );
 }
 

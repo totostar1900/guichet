@@ -107,11 +107,41 @@ export async function uploadDocAction(_p: StepResult | null, form: FormData): Pr
   const ext = f.name.split(".").pop()?.toLowerCase() ?? "bin";
   const fileKey = `kyc/${userId}/${kind}-${Date.now().toString(36)}.${ext}`;
   await saveSource(fileKey, new Uint8Array(await f.arrayBuffer()), mime);
-  const docs = file.documents.filter((d) => d.kind !== kind);
-  docs.push({ kind: kind as KycDocKind, fileKey, fileName: f.name, mimeType: mime, uploadedAt: new Date().toISOString() });
+  /* UNE PIÈCE ATTENDUE SE REMPLACE, UNE PIÈCE LIBRE S'AJOUTE.
+     La règle était « un document par genre », et elle est juste pour les pièces
+     attendues : un nouveau recto remplace l'ancien, sans quoi le dossier
+     porterait deux rectos et personne ne saurait lequel vaut. Appliquée au
+     genre « autre », elle voulait dire qu'un client ne pouvait joindre qu'UNE
+     SEULE pièce libre, pour toujours : la deuxième effaçait la première, en
+     silence. */
+  const libre = kind === "autre";
+  const label = libre ? String(form.get("label") ?? "").trim().slice(0, 80) || undefined : undefined;
+  const docs = libre ? [...file.documents] : file.documents.filter((d) => d.kind !== kind);
+  docs.push({ kind: kind as KycDocKind, label, fileKey, fileName: f.name, mimeType: mime, uploadedAt: new Date().toISOString() });
   await repo().updateClientFile(file.id, { documents: docs });
   revalidatePath(PATH);
-  return { ok: true, message: `${DOC_LABEL[kind as KycDocKind]} reçue.` };
+  return { ok: true, message: `${label ?? DOC_LABEL[kind as KycDocKind]} reçue.` };
+}
+
+/**
+ * Retirer une pièce jointe par erreur.
+ *
+ * On pouvait en envoyer et jamais en reprendre : une photo floue, une mauvaise
+ * page, et elle restait au dossier jusqu'à ce qu'un conseiller la voie. Tant
+ * que le dossier n'est pas soumis, il appartient encore au client.
+ *
+ * La clef du fichier identifie la pièce : deux pièces libres peuvent porter le
+ * même genre et le même libellé, jamais la même clef.
+ */
+export async function removeDocAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
+  const { file } = await myFile();
+  if (!editable(file)) return { ok: false, error: "Dossier non modifiable." };
+  const fileKey = String(form.get("fileKey") ?? "");
+  const doc = file.documents.find((d) => d.fileKey === fileKey);
+  if (!doc) return { ok: false, error: "Pièce introuvable." };
+  await repo().updateClientFile(file.id, { documents: file.documents.filter((d) => d.fileKey !== fileKey) });
+  revalidatePath(PATH);
+  return { ok: true, message: `${doc.label ?? DOC_LABEL[doc.kind]} retirée.` };
 }
 
 /* ---------- 4. Origine des fonds, PPE, questionnaire ---------- */

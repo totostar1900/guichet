@@ -56,6 +56,15 @@ export type KycDocKind =
 
 export interface KycDocument {
   kind: KycDocKind;
+  /**
+   * Ce que le client dit de cette pièce, quand elle n'a pas de genre.
+   *
+   * Les pièces attendues se nomment seules : un recto est un recto. Une pièce
+   * libre, non : « bulletin de paie de septembre » se range dans un dossier,
+   * « Autre pièce » n'y sert à personne et oblige le conseiller à l'ouvrir
+   * pour savoir ce que c'est.
+   */
+  label?: string;
   fileKey: string;
   fileName: string;
   mimeType: string;
