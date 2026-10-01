@@ -1,6 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { avecReplisSansReflexion } from "@/lib/reflexion";
 import { z } from "zod";
 import { millions, type NewAuctionResult } from "./auction-results";
 
@@ -225,22 +226,11 @@ export async function readAuctionResult(pdfBase64: string, hint?: string, modele
   });
 
   /**
-   * La réflexion adaptative, quand le modèle la prend.
-   *
-   * Le réglage vient de l'extracteur de communiqués, qui tourne sur un modèle
-   * qui l'accepte. Posé sur un modèle économique, l'appel est refusé d'emblée :
-   * « adaptive thinking is not supported on this model ». Tenir une liste des
-   * modèles qui l'acceptent vieillirait mal ; on essaie donc, et ce refus précis,
-   * et lui seul, fait recommencer sans elle. Toute autre erreur remonte.
+   * La réflexion adaptative, quand le modèle la prend : la règle vit dans
+   * lib/reflexion.ts, qui portait déjà ce repli en deux copies avant que le
+   * troisième extracteur en manque et casse.
    */
-  let response;
-  try {
-    response = await client.messages.parse(requete(true));
-  } catch (e) {
-    const m = e instanceof Error ? e.message : String(e);
-    if (!/adaptive thinking is not supported/i.test(m)) throw e;
-    response = await client.messages.parse(requete(false));
-  }
+  const response = await avecReplisSansReflexion((reflechi) => client.messages.parse(requete(reflechi)));
 
   if (response.stop_reason === "refusal") throw new Error("Lecture refusée par le modèle.");
   const out = response.parsed_output;

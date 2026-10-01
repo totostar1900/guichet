@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { OfferDraft } from "@/lib/domain/types";
+import { avecReplisSansReflexion } from "@/lib/reflexion";
 import { enabledTypes, kindForEngine } from "@/lib/registry";
 
 /**
@@ -110,14 +111,18 @@ export async function extractOffer(input: ExtractionInput): Promise<{ draft: Off
         ? [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: input.base64 } }, { type: "text", text: instruction }]
         : [{ type: "image", source: { type: "base64", media_type: input.mediaType, data: input.base64 } }, { type: "text", text: instruction }];
 
-  const response = await client.messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    thinking: { type: "adaptive" },
-    system: SYSTEM,
-    messages: [{ role: "user", content }],
-    output_config: { format: zodOutputFormat(Extraction) },
-  });
+  // La réflexion adaptative se demande, elle ne se suppose pas : voir
+  // lib/reflexion.ts, et le 400 du 2026-10-01 qui a nommé le problème.
+  const response = await avecReplisSansReflexion((reflechi) =>
+    client.messages.parse({
+      model: MODEL,
+      max_tokens: 16000,
+      ...(reflechi ? { thinking: { type: "adaptive" as const } } : {}),
+      system: SYSTEM,
+      messages: [{ role: "user", content }],
+      output_config: { format: zodOutputFormat(Extraction) },
+    }),
+  );
 
   if (response.stop_reason === "refusal") throw new Error("Extraction refusée par le modèle.");
   const out = response.parsed_output;

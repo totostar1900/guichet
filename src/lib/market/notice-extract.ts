@@ -1,6 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { avecReplisSansReflexion } from "@/lib/reflexion";
 import { z } from "zod";
 import { millions } from "./auction-results";
 import { tenorDays } from "./yield";
@@ -104,17 +105,9 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
     output_config: { format: zodOutputFormat(Lecture) },
   });
 
-  // Même repli que pour les résultats : la réflexion adaptative est refusée
-  // d'emblée par les modèles économiques, et ce refus précis, et lui seul, fait
-  // recommencer sans elle.
-  let response;
-  try {
-    response = await client.messages.parse(requete(true));
-  } catch (e) {
-    const m = e instanceof Error ? e.message : String(e);
-    if (!/adaptive thinking is not supported/i.test(m)) throw e;
-    response = await client.messages.parse(requete(false));
-  }
+  // Même repli que pour les résultats, et il vit maintenant dans un seul
+  // endroit : lib/reflexion.ts.
+  const response = await avecReplisSansReflexion((reflechi) => client.messages.parse(requete(reflechi)));
 
   if (response.stop_reason === "refusal") throw new Error("Lecture refusée par le modèle.");
   const out = response.parsed_output;
