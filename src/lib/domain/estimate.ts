@@ -96,6 +96,53 @@ export interface Equivalence {
   restLine: string;
 }
 
+/**
+ * LES TROIS NOMBRES LIÉS D'UNE DEMANDE AU PRIMAIRE.
+ *
+ * Quantité × prix unitaire = somme, et le produit est exact : c'est ce qui
+ * autorise à écrire un signe « = » entre trois cases. Ce qui dépasse le
+ * produit, le coupon couru d'une obligation ou le reste non placé d'un bon, se
+ * dit ailleurs, en toutes lettres, et jamais dans la case du total.
+ *
+ * Le piège est que `amount` ne porte pas la même chose selon le compartiment :
+ * des francs à décaisser sur un bon du Trésor, du nominal demandé sur une
+ * obligation. Les deux facteurs de conversion le disent, pour que l'appelant
+ * n'ait pas à le savoir une seconde fois.
+ */
+export interface SurveyTrio {
+  /** Titres ou bons, à l'entier : on n'en achète pas des fractions. */
+  count: number;
+  /** Ce que coûte une unité, en francs. */
+  each: number;
+  /** Le produit exact des deux. */
+  total: number;
+  /** Ce qu'une unité de plus ajoute à `amount`. */
+  amountPerUnit: number;
+  /** Par quoi multiplier un total saisi pour retrouver `amount`. */
+  amountPerTotal: number;
+  /** Le prix tel qu'on le saisit : un taux précompté, ou un pourcentage du nominal. */
+  rate: number;
+}
+
+export function surveyTrio(o: Offer, amount: number, limit: number | null): SurveyTrio | null {
+  if (o.kind === "BTA") {
+    const rate = limit ?? o.precountRate;
+    if (rate == null || !o.maturityOn) return null;
+    const r = btaCalc({ nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn }, amount, rate);
+    const each = Math.round(r.pricePerBond);
+    if (each <= 0) return null;
+    return { count: r.n, each, total: r.n * each, amountPerUnit: each, amountPerTotal: 1, rate };
+  }
+  if (o.kind === "OTA" || o.kind === "APE") {
+    const rate = limit ?? o.servedPricePct ?? o.pricePct ?? 100;
+    const each = Math.round((o.nominal * rate) / 100);
+    if (each <= 0) return null;
+    const count = Math.max(0, Math.floor(amount / o.nominal));
+    return { count, each, total: count * each, amountPerUnit: o.nominal, amountPerTotal: 100 / rate, rate };
+  }
+  return null;
+}
+
 export function equivalence(o: Offer, amount: number, type: IntentType): Equivalence | null {
   if (!amount || o.kind === "MARCHE") return null;
 

@@ -8,7 +8,7 @@ import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
-import { equivalence, estimate } from "@/lib/domain/estimate";
+import { equivalence, estimate, surveyTrio } from "@/lib/domain/estimate";
 import { orderChecks } from "@/lib/domain/checks";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
@@ -224,9 +224,18 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const amountWarn = amountMark?.level === "warn" ? amountMark[lang] : undefined;
   const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk) && (!amountWarn || amountOk);
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
+  // Les trois cases d'une adjudication, quand la demande en porte une.
+  const trio = survey && needsAmount ? surveyTrio(offer, ordered, lim) : null;
   // L'équivalence sous le champ : elle vivait dans la bulle « Le calcul », donc
   // il fallait la demander pour la voir. Elle se lit maintenant pendant la frappe.
-  const equiv = needsAmount ? equivalence(offer, ordered, type) : null;
+  //
+  // Là où le trio est affiché, elle se tait : le prix unitaire arrondi au franc
+  // fait un total à un franc du décaissement calculé sans arrondi, et deux
+  // nombres qui se contredisent sur le même écran valent moins qu'un seul.
+  const equiv = needsAmount && !trio ? equivalence(offer, ordered, type) : null;
+  // Ce que la demande laisse de côté, par la même règle que sur la cote : une
+  // unité est entière.
+  const trioRest = trio ? Math.max(0, ordered - trio.count * trio.amountPerUnit) : 0;
   // Sur une ligne cotée, ce que la somme demandée laisse de côté : un titre ne
   // se coupe pas, et le carnet n'en prend que des entiers, par quotité.
   const marketRest = byCash && ordered > 0 ? Math.max(0, parseAmount(cash) - Math.round(ordered * unitPrice(offer, type, lim))) : 0;
@@ -442,6 +451,76 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 )}
               </div>
             </div>
+          ) : trio ? (
+            /* LES MÊMES TROIS CASES, SUR UNE ADJUDICATION, et c'est là qu'elles
+               servent le plus : l'arithmétique y trompe davantage qu'ailleurs.
+
+               Un bon du Trésor se paie moins que son nominal, parce que
+               l'intérêt est compté d'avance : on avançait dix millions et on
+               ne voyait nulle part qu'ils achètent dix bons à 978 514, ni que
+               214 861 restent sur le compte. Le calcul existait pourtant déjà,
+               mais il ne sortait que sur la fiche et sur le bordereau.
+
+               La case du milieu est le PRIX DE L'UNITÉ, pas le taux : c'est lui
+               qui multiplie, et un taux ne multiplie rien. Le taux reste
+               saisissable juste en dessous, puisque c'est lui que le client
+               décide et que l'adjudication retiendra. */
+            <div className={styles.trio}>
+              <label className="field">
+                <span>{t(offer.kind === "BTA" ? "Quantité (bons)" : "Quantité (titres)")}</span>
+                <input
+                  inputMode="numeric"
+                  placeholder="10"
+                  value={trio.count ? groupDigits(String(trio.count)) : ""}
+                  {...groupedInput((v) => setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerUnit)))))}
+                />
+                <small className={styles.calc}>{t("à l'entier : une unité ne se coupe pas")}</small>
+              </label>
+              <span className={styles.trioOp} aria-hidden="true">
+                ×
+              </span>
+              <label className="field">
+                <span>{t(offer.kind === "BTA" ? "Prix du bon (FCFA)" : "Prix du titre (FCFA)")}</span>
+                <input readOnly value={groupDigits(String(trio.each))} />
+                <small className={styles.calc}>
+                  {t(offer.kind === "BTA" ? "à {r} % précompté sur un nominal de {n} FCFA" : "à {r} % d'un nominal de {n} FCFA", { r: String(trio.rate).replace(".", ","), n: fmt(offer.nominal) })}
+                </small>
+              </label>
+              <span className={styles.trioOp} aria-hidden="true">
+                =
+              </span>
+              <label className="field">
+                <span>{t(offer.kind === "BTA" ? "À décaisser (FCFA)" : "Principal (FCFA)")}</span>
+                <input
+                  data-order-field
+                  inputMode="numeric"
+                  placeholder="10 000 000"
+                  value={trio.total ? groupDigits(String(trio.total)) : ""}
+                  {...groupedInput((v) => setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerTotal)))))}
+                />
+                <small className={styles.calc}>{t(offer.kind === "BTA" ? "ce que vous avancez · le nominal vous revient à l'échéance" : "hors coupon couru, qui s'achète avec le titre")}</small>
+              </label>
+              <input type="hidden" name="amount" value={ordered ? String(ordered) : ""} />
+              <div className={styles.trioFoot}>
+                {trioRest > 0 && (
+                  <span className={styles.rest}>
+                    {t("{v} FCFA ne sont pas placés : une unité de plus demanderait {d} FCFA de plus.", { v: fmt(trioRest), d: fmt(Math.max(0, trio.amountPerUnit - trioRest)) })}
+                  </span>
+                )}
+                {/* La condition du client : ce qu'il demande pour dire oui. Un
+                    appétit qui ne porte qu'un montant ne répond pas à la
+                    question de l'émetteur, à quel niveau cette demande tient
+                    encore. Le sens dépend du compartiment, et le mot avec : on
+                    paie un prix, on reçoit un taux. */}
+                <label className="field">
+                  <span>
+                    {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} : {t(offer.kind === "BTA" ? "% précompté" : "% du nominal")}
+                  </span>
+                  <input name="limitPrice" type="number" step={offer.kind === "BTA" ? "0.01" : "0.001"} placeholder={String((offer.kind === "BTA" ? offer.precountRate : offer.pricePct) ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
+                  <small className="muted">{t("Sans condition, votre demande tient quel que soit le résultat.")}</small>
+                </label>
+              </div>
+            </div>
           ) : needsAmount ? (
             <label className="field">
               {amtLabel}
@@ -500,7 +579,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <small className="muted">{t("Le desk enchaîne la souscription dès le rachat exécuté, pour le montant exact reçu.")}</small>
             </label>
           )}
-          {survey && (
+          {/* La condition a rejoint les trois cases : elle y est sous le prix
+              qu'elle décide. Elle n'a plus de champ séparé ici, qui en ferait un
+              second limitPrice dans le même formulaire. */}
+          {survey && !trio && (
             <label className="field">
               {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} :{" "}
               {t(offer.kind === "BTA" ? "% précompté" : "% du nominal")}
