@@ -81,6 +81,7 @@ export function ReplyForm({
   from,
   dernierRecu,
   modeles,
+  convKey,
 }: {
   to: string;
   channel: "whatsapp" | "email";
@@ -96,6 +97,13 @@ export function ReplyForm({
   dernierRecu?: DernierRecu;
   /** Les modèles du Référentiel, déjà remplis avec l'ordre de ce contact. */
   modeles?: ModeleDuFil[];
+  /**
+   * L'échange dans lequel on écrit : il part avec le message, et le serveur
+   * l'inscrit sur la réponse. Il entre aussi dans la clef du brouillon, parce
+   * qu'un correspondant a plusieurs affaires et qu'un brouillon rangé par
+   * adresse ferait répondre à l'une avec le texte de l'autre.
+   */
+  convKey: string;
 }) {
   /* L'ACTION EST ENVELOPPÉE POUR OUBLIER LE BROUILLON.
      Il faut l'effacer après un envoi réussi, sinon le remontage le restaure et
@@ -104,7 +112,7 @@ export function ReplyForm({
      c'est la suite d'un geste, au moment où l'on sait que le message est parti. */
   const [state, action, pending] = useActionState(async (prev: Etat, form: FormData) => {
     const r = await replyAction(prev, form);
-    if (r.ok) oublierBrouillon(channel, to);
+    if (r.ok) oublierBrouillon(channel, convKey);
     return r;
   }, null);
   const formId = useId();
@@ -122,6 +130,7 @@ export function ReplyForm({
     <form id={formId} action={action} className={styles.reply}>
       <input type="hidden" name="to" value={to} />
       <input type="hidden" name="channel" value={channel} />
+      <input type="hidden" name="convKey" value={convKey} />
       {name && <input type="hidden" name="name" value={name} />}
       {/* LE REMONTAGE VIDE LE FORMULAIRE, ET C'EST VOLONTAIRE.
           Sans cela le message suivant partirait avec le texte du précédent,
@@ -132,7 +141,7 @@ export function ReplyForm({
           elle a raison : une remise à zéro qui se déclenche toute seule finit
           par se déclencher au mauvais moment. */}
       <Champs
-        key={`${to}:${state?.at ?? ""}:${monte}`}
+        key={`${convKey}:${state?.at ?? ""}:${monte}`}
         to={to}
         name={name}
         channel={channel}
@@ -142,6 +151,7 @@ export function ReplyForm({
         from={from}
         dernierRecu={dernierRecu}
         modeles={modeles ?? []}
+        convKey={convKey}
         monte={monte}
         formId={formId}
         pending={pending}
@@ -161,6 +171,7 @@ function Champs({
   from,
   dernierRecu,
   modeles,
+  convKey,
   monte,
   formId,
   pending,
@@ -175,6 +186,7 @@ function Champs({
   from: string;
   dernierRecu?: DernierRecu;
   modeles: ModeleDuFil[];
+  convKey: string;
   monte: boolean;
   formId: string;
   pending: boolean;
@@ -185,7 +197,7 @@ function Champs({
   /* Le brouillon du fil, lu UNE SEULE FOIS, au montage de ce composant.
      L'initialiseur est paresseux : écrit autrement, le stockage serait relu à
      chaque frappe pour un résultat aussitôt jeté. */
-  const [garde] = useState<Brouillon>(() => (monte ? lireBrouillon(channel, to) : VIDE));
+  const [garde] = useState<Brouillon>(() => (monte ? lireBrouillon(channel, convKey) : VIDE));
   const [subject, setSubject] = useState(garde.subject);
   const [body, setBody] = useState(garde.body);
   const [offerId, setOfferId] = useState(garde.offerId);
@@ -210,7 +222,7 @@ function Champs({
      dans un effet : elle suit la frappe au lieu de la poursuivre. */
   const noter = (champ: Partial<Brouillon>) => {
     const neuf = { subject, body, offerId, ...champ };
-    garderBrouillon(channel, to, neuf);
+    garderBrouillon(channel, convKey, neuf);
     setGarde0(Boolean(neuf.body || neuf.subject));
     /* Retaper referme le ruban : le brouillon effacé n'est plus celui qu'on
        croit, et le reposer écraserait ce qu'on vient d'écrire. */
@@ -227,7 +239,7 @@ function Champs({
     setBody("");
     setOfferId("");
     setGarde0(false);
-    oublierBrouillon(channel, to);
+    oublierBrouillon(channel, convKey);
   };
 
   const reposer = () => {
@@ -236,7 +248,7 @@ function Champs({
     setBody(efface.body);
     setOfferId(efface.offerId);
     setGarde0(Boolean(efface.body || efface.subject));
-    garderBrouillon(channel, to, efface);
+    garderBrouillon(channel, convKey, efface);
     setEfface(null);
   };
 

@@ -438,11 +438,11 @@ type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: stri
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
 type NotifRow = {
   id: string; kind: Notification["kind"]; channel: Notification["channel"]; to_address: string; contact_name: string | null; subject: string | null; body: string;
-  document_id: string | null; intent_id: string | null; offer_id: string | null; status: Notification["status"]; provider_id: string | null; error: string | null; created_at: string; sent_at: string | null;
+  document_id: string | null; intent_id: string | null; offer_id: string | null; status: Notification["status"]; provider_id: string | null; error: string | null; conv_key: string | null; created_at: string; sent_at: string | null;
 };
 const toNotif = (r: NotifRow): Notification => ({
   id: r.id, kind: r.kind, channel: r.channel, to: r.to_address, contactName: u(r.contact_name), subject: u(r.subject), body: r.body, documentId: u(r.document_id), intentId: u(r.intent_id),
-  offerId: u(r.offer_id), status: r.status, providerId: u(r.provider_id), error: u(r.error), createdAt: r.created_at, sentAt: u(r.sent_at),
+  offerId: u(r.offer_id), status: r.status, providerId: u(r.provider_id), error: u(r.error), convKey: u(r.conv_key), createdAt: r.created_at, sentAt: u(r.sent_at),
 });
 type InboundRow = { id: string; channel: InboundMessage["channel"]; from_address: string; contact_name: string | null; subject: string | null; body: string | null; received_at: string; handled_at: string | null; handled_by: string | null; attachments: InboundMessage["attachments"] | null; message_id: string | null; in_reply_to: string | null; conv_key: string | null };
 const toInbound = (r: InboundRow): InboundMessage => ({ id: r.id, channel: r.channel, from: r.from_address, name: u(r.contact_name), subject: u(r.subject), body: r.body ?? "", receivedAt: r.received_at, handledAt: u(r.handled_at), handledBy: u(r.handled_by), attachments: r.attachments ?? [], messageId: u(r.message_id), inReplyTo: u(r.in_reply_to), convKey: u(r.conv_key) });
@@ -460,6 +460,7 @@ const fromNotif = (p: Partial<Notification>): Partial<NotifRow> => {
   if (p.status !== undefined) row.status = p.status;
   if (p.providerId !== undefined) row.provider_id = p.providerId;
   if (p.error !== undefined) row.error = p.error;
+  if (p.convKey !== undefined) row.conv_key = p.convKey;
   if (p.sentAt !== undefined) row.sent_at = p.sentAt;
   return row;
 };
@@ -1494,6 +1495,31 @@ export const supabaseRepository: Repository = {
   async markInboundUnhandled(id) {
     const { error } = await db().from("inbound_messages").update({ handled_at: null, handled_by: null }).eq("id", id);
     if (error) fail("markInboundUnhandled", error);
+  },
+  async listDeskExchanges() {
+    const { data, error } = await db().from("desk_exchanges").select("*");
+    if (error) fail("listDeskExchanges", error);
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      convKey: r.conv_key as string,
+      handledAt: u(r.handled_at as string | null),
+      handledBy: u(r.handled_by as string | null),
+      snoozedUntil: u(r.snoozed_until as string | null),
+      labels: (r.labels as string[] | null) ?? [],
+    }));
+  },
+  async setDeskExchange(convKey, patch, by) {
+    /* « undefined » veut dire « ne touche pas », « null » veut dire « efface ».
+       Sans cette distinction, rouvrir un échange et le laisser tel quel seraient
+       le même geste, et l'un des deux ne marcherait jamais. */
+    const row: Record<string, unknown> = { conv_key: convKey, updated_at: new Date().toISOString(), updated_by: by };
+    if ("handledAt" in patch) {
+      row.handled_at = patch.handledAt ?? null;
+      row.handled_by = patch.handledAt ? by : null;
+    }
+    if ("snoozedUntil" in patch) row.snoozed_until = patch.snoozedUntil ?? null;
+    if ("labels" in patch) row.labels = patch.labels ?? [];
+    const { error } = await db().from("desk_exchanges").upsert(row, { onConflict: "conv_key" });
+    if (error) fail("setDeskExchange", error);
   },
   async listDeskThreads() {
     const { data, error } = await db().from("desk_threads").select("*");

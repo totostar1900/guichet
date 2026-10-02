@@ -238,6 +238,28 @@ export interface DeskThread {
   labels: string[];
 }
 
+/**
+ * L'état d'un échange : traité, reporté, étiqueté.
+ *
+ * C'est le bon support de ces trois gestes, et c'est ce qui manquait : posés
+ * sur le correspondant, ils portaient sur tout ce que cette adresse a jamais
+ * écrit. « Réclamation » décrit une affaire, pas une personne.
+ *
+ * L'épingle, elle, reste sur le correspondant (voir DeskThread) : « ce dossier
+ * passe devant aujourd'hui » est vrai de quelqu'un.
+ *
+ * Un échange n'est pas créé, il est constaté : la ligne n'existe que si
+ * quelqu'un a posé un de ces gestes.
+ */
+export interface DeskExchange {
+  convKey: string;
+  /** L'affaire est close. Distinct du « traité » d'un message, qui dit qu'une pièce a reçu sa réponse. */
+  handledAt?: string;
+  handledBy?: string;
+  snoozedUntil?: string;
+  labels: string[];
+}
+
 export interface EventLog {
   id: string;
   at: string;
@@ -580,6 +602,15 @@ export interface Notification {
   status: NotifyStatus;
   providerId?: string;
   error?: string;
+  /**
+   * L'échange dans lequel cette réponse a été écrite.
+   *
+   * Écrite à l'envoi, jamais devinée : on pourrait la retrouver par l'objet, ce
+   * qui marche tant que l'opérateur garde celui du message auquel il répond, et
+   * casse le jour où il l'ajuste. Or il écrit DANS un échange : l'appartenance
+   * est connue au moment de l'envoi, il suffit de ne pas la perdre.
+   */
+  convKey?: string;
   createdAt: string;
   sentAt?: string;
 }

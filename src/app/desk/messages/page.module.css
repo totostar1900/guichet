@@ -552,3 +552,146 @@
   color: var(--ink);
   font-size: 0.78rem;
 }
+
+/* ── Le rail à deux étages ───────────────────────────────────────────────────
+   L'échange est la ligne, le correspondant est la bande au-dessus de SES
+   affaires. La bande ne paraît qu'au pluriel : un correspondant qui n'a qu'une
+   affaire tient sur une ligne, parce que c'est le cas courant et qu'il doit
+   rester le plus léger. */
+.bloc {
+  position: relative;
+  display: grid;
+  gap: var(--s-1);
+}
+.bande {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-2) var(--s-5);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+}
+.bande b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* L'épingle porte sur la personne : elle vit donc sur la bande, pas sur la
+   ligne d'une affaire. */
+.bande[data-epingle] {
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+}
+.bandeCompte,
+.pliCompte {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+/* Un correspondant à une seule affaire : son épingle se pose au bout de la
+   ligne, là où la bande l'aurait mise. */
+.blocEpingle {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-5);
+  opacity: 0;
+}
+.bloc:hover .blocEpingle,
+.bloc:focus-within .blocEpingle {
+  opacity: 1;
+}
+@media (hover: none) {
+  .blocEpingle {
+    opacity: 1;
+  }
+}
+/* L'objet, sous le nom, quand la ligne porte les deux. */
+.itemObjet {
+  font-size: 0.8rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* UNE COUPURE DEVINÉE SE DIT DEVINÉE : WhatsApp n'a pas d'objet, ses échanges
+   se séparent au silence, et c'est une estimation. */
+.devine {
+  font-size: 0.68rem;
+  color: var(--warn);
+  border-bottom: 1px dotted var(--warn);
+  width: fit-content;
+}
+/* L'accordéon : du HTML natif, qui se prend au clavier et marche sans
+   JavaScript. Les deux étages se replient séparément. */
+.pli {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.pli .pli {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+}
+.pliTete {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+.pliTete b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pliTete small {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.pliCorps {
+  display: grid;
+  gap: var(--s-1);
+  padding: 0 var(--s-3) var(--s-3);
+}
+.pliGestes {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--s-2);
+}
+/* Les premiers messages de l'affaire, dans le rail : de quoi reconnaître
+   l'échange sans l'ouvrir. */
+.apercu {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-2) var(--s-5);
+  display: grid;
+  gap: var(--s-1);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.apercu li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.replis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-2) var(--s-2);
+}
+.replis :global(.replier) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}

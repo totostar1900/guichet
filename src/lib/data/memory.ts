@@ -4,7 +4,7 @@ import { REF_AUCTIONS, REF_OFFERS } from "@/data/reference";
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
@@ -98,6 +98,7 @@ interface Store {
   notifications: Notification[];
   inbound: InboundMessage[];
   deskThreads: DeskThread[];
+  deskExchanges: DeskExchange[];
   watches: Watch[];
   cash: CashEntry[];
   standing: StandingOrder[];
@@ -161,6 +162,7 @@ function store(): Store {
       notifications: [],
       inbound: seedInbound(),
       deskThreads: [],
+      deskExchanges: [],
       watches: [],
       cash: [],
       reference: [],
@@ -713,6 +715,17 @@ export const memoryRepository: Repository = {
       m.handledAt = undefined;
       m.handledBy = undefined;
     }
+  },
+  async listDeskExchanges() {
+    return structuredClone(store().deskExchanges);
+  },
+  async setDeskExchange(convKey, patch, _by) {
+    const l = store().deskExchanges;
+    const i = l.findIndex((x) => x.convKey === convKey);
+    const base = i >= 0 ? l[i] : { convKey, labels: [] };
+    const neuf = { ...base, ...patch };
+    if (i >= 0) l[i] = neuf;
+    else l.push(neuf);
   },
   async listDeskThreads() {
     return structuredClone(store().deskThreads);

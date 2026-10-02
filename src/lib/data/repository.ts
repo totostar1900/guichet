@@ -1,5 +1,5 @@
 import type { FinancialProfile } from "@/data/profile";
-import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread } from "@/lib/domain/types";
+import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
@@ -157,6 +157,10 @@ export interface Repository {
    * unique, et un clic de trop sortait un fil de la file sans retour.
    */
   markInboundUnhandled(id: string): Promise<void>;
+  /** L'état des échanges : traité, reporté, étiqueté. */
+  listDeskExchanges(): Promise<DeskExchange[]>;
+  /** Poser ou corriger l'état d'un échange. Une valeur nulle efface la sienne. */
+  setDeskExchange(convKey: string, patch: Partial<Omit<DeskExchange, "convKey">>, by: string): Promise<void>;
   /** L'état des fils du desk : épinglé, reporté, étiqueté. */
   listDeskThreads(): Promise<DeskThread[]>;
   /** Poser ou corriger l'état d'un fil. Une valeur nulle efface la sienne. */

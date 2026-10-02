@@ -23,7 +23,7 @@ import { readSource } from "@/lib/intake/storage";
  * formulaire se rejoue sans lui.
  */
 const replySchema = z
-  .object({ to: z.string().min(3), channel: z.enum(["whatsapp", "email"]), body: z.string().min(1).max(4000), subject: z.string().max(160).optional(), name: z.string().optional(), offerId: z.string().optional() })
+  .object({ to: z.string().min(3), channel: z.enum(["whatsapp", "email"]), body: z.string().min(1).max(4000), subject: z.string().max(160).optional(), name: z.string().optional(), offerId: z.string().optional(), convKey: z.string().max(400).optional() })
   .refine((v) => v.channel !== "email" || Boolean(v.subject?.trim()), { message: "objet manquant", path: ["subject"] });
 
 /**
@@ -40,7 +40,7 @@ export async function replyAction(_prev: { ok: boolean; error?: string; at?: str
     const sansObjet = p.error.issues.some((i) => i.path[0] === "subject");
     return { ok: false, error: sansObjet ? "Un courriel a un objet : écrivez-en un." : "Écrivez un message." };
   }
-  const { to, channel, body, subject, name, offerId } = p.data;
+  const { to, channel, body, subject, name, offerId, convKey } = p.data;
 
   /* LA PIÈCE JOINTE, par courriel seulement.
      Elle est lue ici et passée telle quelle au fournisseur : aucune escale par
@@ -69,7 +69,10 @@ export async function replyAction(_prev: { ok: boolean; error?: string; at?: str
      message-exact.ts. Composer le texte ici aussi le ferait diverger de ce que
      l'opérateur vient de relire, et l'aperçu mentirait sans rien dire. */
   const text = texteExact({ corps: body, ligne, canal: channel, signataire: desk.name });
-  const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject : undefined, body: text, status: "queued" });
+  /* LA RÉPONSE PORTE SON ÉCHANGE, écrit à l'envoi et jamais deviné : on
+     pourrait le retrouver par l'objet, ce qui marche tant que l'opérateur garde
+     celui du message auquel il répond, et casse le jour où il l'ajuste. */
+  const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject : undefined, body: text, status: "queued", convKey });
   const configured = channel === "whatsapp" ? whatsappConfigured() : emailConfigured();
   if (!configured) {
     await r.updateNotification(row.id, { status: "skipped", error: `${channel === "whatsapp" ? "WhatsApp Cloud API" : "E-mail"} non configuré` });
@@ -167,25 +170,21 @@ export async function promouvoirPieceAction(form: FormData): Promise<void> {
   revalidatePath("/desk/a-valider");
 }
 
-export async function handledAction(form: FormData): Promise<void> {
-  const desk = await requireDesk();
-  const to = String(form.get("to") ?? "");
-  if (!to) return;
-  const r = repo();
-  const open = (await r.listInbound(500)).filter((m) => m.from === to && !m.handledAt);
-  for (const m of open) await r.markInboundHandled(m.id, desk.name);
-  revalidatePath("/desk/messages");
-}
+/* ─── Les gestes, et l'objet dont ils sont vrais ─────────────────────────────
 
-/* ─── Les gestes sur un fil ──────────────────────────────────────────────────
-   Épingler, reporter, étiqueter, et les deux sens de « traité ».
+   L'ÉPINGLE PORTE SUR LE CORRESPONDANT : « ce dossier passe devant aujourd'hui »
+   est vrai d'une personne, et épingler quelqu'un fait remonter toutes ses
+   affaires, ce qui est bien ce qu'on veut d'un client suivi cette semaine.
 
-   Chacun prend sa cible sous la forme « canal|adresse », parce qu'un fil
-   s'identifie ainsi et pas autrement : il n'a pas d'identifiant, il n'est pas
-   créé, il est constaté. Le bouton de chaque ligne porte cette valeur, et le
-   formulaire qui le reçoit vit une seule fois en haut de la liste : sans cela
-   il faudrait un formulaire par ligne, imbriqué dans le lien de la ligne, ce
-   que le HTML refuse. */
+   TRAITÉ, REPORTÉ ET ÉTIQUETÉ PORTENT SUR L'ÉCHANGE. Posés sur l'adresse, ils
+   couvraient tout ce que ce correspondant a jamais écrit : « réclamation »
+   décrivait une personne au lieu d'une affaire, et la BEAC n'avait qu'un fil
+   pour dix-sept séances.
+
+   L'épingle se désigne par « canal|adresse », un échange par sa clef. Le bouton
+   de chaque ligne porte cette valeur, et le formulaire qui le reçoit vit une
+   seule fois en haut de la liste : sans cela il faudrait un formulaire par
+   ligne, imbriqué dans le lien de la ligne, ce que le HTML refuse. */
 
 /** Lit « canal|adresse » et refuse tout le reste : la cible vient du navigateur. */
 function cible(form: FormData): { channel: "whatsapp" | "email"; addr: string } | undefined {
@@ -198,23 +197,15 @@ function cible(form: FormData): { channel: "whatsapp" | "email"; addr: string } 
   return { channel, addr };
 }
 
-/** Toutes les cibles d'un envoi en lot, dédoublonnées. */
-function cibles(form: FormData): { channel: "whatsapp" | "email"; addr: string }[] {
-  const vues = new Set<string>();
-  const out: { channel: "whatsapp" | "email"; addr: string }[] = [];
-  for (const v of form.getAll("fils")) {
-    const f = new FormData();
-    f.set("cible", String(v));
-    const c = cible(f);
-    if (c && !vues.has(`${c.channel}|${c.addr}`)) {
-      vues.add(`${c.channel}|${c.addr}`);
-      out.push(c);
-    }
-  }
-  return out;
+/** La clef d'un échange, telle que la page l'a écrite dans le bouton. */
+const cleEchange = (form: FormData): string | undefined => String(form.get("cle") ?? "").trim() || undefined;
+
+/** Les messages reçus d'un échange : ce que « traité » couvre vraiment. */
+async function recusDe(cle: string) {
+  return (await repo().listInbound(1000)).filter((m) => m.convKey === cle);
 }
 
-/** Le fil monte en tête de liste, ou en redescend. */
+/** Le correspondant monte en tête de liste, ou en redescend. */
 export async function epinglerAction(form: FormData): Promise<void> {
   const desk = await requireDesk();
   const c = cible(form);
@@ -226,66 +217,87 @@ export async function epinglerAction(form: FormData): Promise<void> {
   revalidatePath("/desk/messages");
 }
 
-/** Le fil sort de la file, et y rentre de lui-même à l'heure dite. */
+/** L'échange sort de la file, et y rentre de lui-même à l'heure dite. */
 export async function reporterAction(form: FormData): Promise<void> {
   const desk = await requireDesk();
-  const c = cible(form);
-  if (!c) return;
+  const cle = cleEchange(form);
+  if (!cle) return;
   const quand = String(form.get("quand") ?? "demain");
-  /* « rendre » ramène le fil tout de suite : un report se défait, sinon il
+  /* « rendre » ramène l'échange tout de suite : un report se défait, sinon il
      faudrait attendre une heure qu'on a choisie par erreur. */
   const jusqua = quand === "rendre" ? undefined : quandRevient(quand, Date.now());
   if (quand !== "rendre" && !jusqua) return;
-  const r = repo();
-  await r.setDeskThread(c.channel, c.addr, { snoozedUntil: jusqua }, desk.name);
-  await audit("message.report", "contact", c.addr, { after: { jusqua: jusqua ?? null }, actor: desk.name });
+  await repo().setDeskExchange(cle, { snoozedUntil: jusqua }, desk.name);
+  await audit("echange.report", "echange", cle, { after: { jusqua: jusqua ?? null }, actor: desk.name });
   revalidatePath("/desk/messages");
 }
 
 /** L'étiquette se pose et se retire du même bouton. */
 export async function etiquetterAction(form: FormData): Promise<void> {
   const desk = await requireDesk();
-  const c = cible(form);
+  const cle = cleEchange(form);
   const mot = String(form.get("etiquette") ?? "");
-  if (!c || !mot) return;
+  if (!cle || !mot) return;
   const r = repo();
-  const etat = (await r.listDeskThreads()).find((x) => x.channel === c.channel && x.addr === c.addr);
+  const etat = (await r.listDeskExchanges()).find((x) => x.convKey === cle);
   const avant = etat?.labels ?? [];
   const apres = avant.includes(mot) ? avant.filter((x) => x !== mot) : [...avant, mot];
-  await r.setDeskThread(c.channel, c.addr, { labels: apres }, desk.name);
-  await audit("message.etiquette", "contact", c.addr, { before: { labels: avant }, after: { labels: apres }, actor: desk.name });
+  await r.setDeskExchange(cle, { labels: apres }, desk.name);
+  await audit("echange.etiquette", "echange", cle, { before: { labels: avant }, after: { labels: apres }, actor: desk.name });
   revalidatePath("/desk/messages");
 }
 
 /**
- * L'inverse de « marquer comme traité », qui manquait.
+ * Clore un échange.
  *
- * C'était une porte à sens unique : un clic de trop sortait un fil de la file
- * sans retour, et rien ne le disait. Le fil revient entier, avec le compte de
- * ses messages non traités.
+ * DEUX HAUTEURS, ET CE N'EST PAS UN DOUBLON. Chaque message reçu garde son
+ * « traité », qui dit qu'une pièce de courrier a reçu sa réponse. L'échange
+ * gagne le sien, qui dit que l'affaire est close. Clore l'échange marque donc
+ * aussi ses messages : on ne clôt pas une affaire en laissant des courriers
+ * sans réponse derrière soi.
  */
-export async function rouvrirAction(form: FormData): Promise<void> {
+export async function traiterAction(form: FormData): Promise<void> {
   const desk = await requireDesk();
-  const c = cible(form);
-  if (!c) return;
+  const cle = cleEchange(form);
+  if (!cle) return;
   const r = repo();
-  const siens = (await r.listInbound(500)).filter((m) => m.from === c.addr && m.handledAt);
-  for (const m of siens) await r.markInboundUnhandled(m.id);
-  await audit("message.rouvert", "contact", c.addr, { after: { messages: siens.length }, actor: desk.name });
+  for (const m of (await recusDe(cle)).filter((m) => !m.handledAt)) await r.markInboundHandled(m.id, desk.name);
+  await r.setDeskExchange(cle, { handledAt: new Date().toISOString() }, desk.name);
+  await audit("echange.traite", "echange", cle, { actor: desk.name });
   revalidatePath("/desk/messages");
 }
 
-/** Plusieurs fils d'un geste, au lieu de plusieurs allers-retours. */
+/**
+ * Rouvrir un échange, l'inverse qui manquait.
+ *
+ * « Marquer comme traité » était une porte à sens unique : un clic de trop
+ * sortait une affaire de la file sans retour, et rien ne le disait.
+ */
+export async function rouvrirAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const cle = cleEchange(form);
+  if (!cle) return;
+  const r = repo();
+  const siens = (await recusDe(cle)).filter((m) => m.handledAt);
+  for (const m of siens) await r.markInboundUnhandled(m.id);
+  await r.setDeskExchange(cle, { handledAt: undefined }, desk.name);
+  await audit("echange.rouvert", "echange", cle, { after: { messages: siens.length }, actor: desk.name });
+  revalidatePath("/desk/messages");
+}
+
+/** Plusieurs échanges d'un geste, au lieu de plusieurs allers-retours. */
 export async function lotTraiteAction(form: FormData): Promise<void> {
   const desk = await requireDesk();
-  const liste = cibles(form);
-  if (!liste.length) return;
+  const cles = [...new Set(form.getAll("echanges").map((v) => String(v).trim()).filter(Boolean))];
+  if (!cles.length) return;
   const r = repo();
   const tous = await r.listInbound(1000);
-  for (const c of liste) {
-    for (const m of tous.filter((x) => x.from === c.addr && !x.handledAt)) await r.markInboundHandled(m.id, desk.name);
+  const quand = new Date().toISOString();
+  for (const cle of cles) {
+    for (const m of tous.filter((x) => x.convKey === cle && !x.handledAt)) await r.markInboundHandled(m.id, desk.name);
+    await r.setDeskExchange(cle, { handledAt: quand }, desk.name);
   }
-  await audit("message.lot", "contact", liste.map((c) => c.addr).join(", "), { after: { fils: liste.length }, actor: desk.name });
+  await audit("echange.lot", "echange", cles.join(", "), { after: { echanges: cles.length }, actor: desk.name });
   revalidatePath("/desk/messages");
 }
 
