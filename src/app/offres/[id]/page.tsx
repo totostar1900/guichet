@@ -12,7 +12,8 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { displayYield, familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { ficheStops } from "@/lib/domain/fiche-stops";
 import { tenorText } from "@/lib/finance";
 import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
@@ -85,26 +86,11 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const summary = summarize(o, new Date());
 
   // « À garder en tête » comes from the product type (desk-editable in the référentiel).
-  // The walk-through speaks about this line, with its own numbers.
-  const dyc = displayYield(o);
-  const coachStops = [
-    {
-      target: "hero",
-      title: "Le chiffre qui compte",
-      text:
-        o.kind === "FONDS"
-          ? `${summary.hero} ${summary.heroUnit ?? ""}: la dernière valeur liquidative connue. Une souscription s'exécute à la prochaine, pas à celle-ci.`
-          : o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action")
-            ? `${summary.hero} : ce que le dividende rapporte au prix du jour, s'il est maintenu. Le cours, lui, peut monter ou descendre.`
-            : dyc.atPar
-              ? `${summary.hero} : le taux nominal, parce que la ligne est au pair. Brut, avant impôt, si vous gardez le titre jusqu'à l'échéance.`
-              : `${summary.hero} : ce que rapporte la ligne chaque année si vous êtes servi au prix affiché et gardez le titre jusqu'à l'échéance. Brut, avant impôt.`,
-    },
-    { target: "kpis", title: "Chaque chiffre s'explique", text: "Touchez une carte : d'où vient le chiffre, ligne par ligne, avec la leçon de deux minutes qui va avec. Les bulles « i » de la page font pareil pour chaque mot ; tout est réuni sous Info, avec un simulateur et la page Aide." },
-    { target: "status", title: "Où en est la ligne", text: summary.countdown ? `Clôture dans ${summary.countdown} : après cette limite, plus de soumission possible. Une intention se déclare avant.` : `${summary.status}. Le statut dit ce que vous pouvez faire : souscrire, passer un ordre, ou seulement poser une question.` },
-    ...(relatedNews > 0 ? [{ target: "news", title: "Ce qui s'est dit sur cette ligne", text: "Communiqués, bulletins, avis : le desk relie ici les publications qui concernent cette ligne, avec deux lignes sur ce que cela change. L'original est à un clic." }] : []),
-    { target: "action", title: "Agir en trois étapes", text: "Montant, coordonnées, récapitulatif. Le desk vous rappelle avant de transmettre : rien n'est débité sans votre confirmation." },
-  ];
+  // Les repères du tour parlent de CETTE ligne, avec ses chiffres. Ils sont
+  // fabriqués dans le domaine plutôt qu'ici, pour qu'un cliquet puisse vérifier
+  // qu'ils passent en anglais : composés autour du chiffre principal, ils
+  // traversent t() sous forme de variable, et le scanner de clefs ne les voit pas.
+  const coachStops = ficheStops(o, summary, { hasNews: relatedNews > 0 });
 
   return (
     <div className={styles.page}>

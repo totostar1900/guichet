@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { translatable } from "@/i18n/core";
+import { segmentsDecouverts } from "./couverture";
 import { equivalence, estimate, marketEstimate, redemptionEstimate } from "@/lib/domain/estimate";
 import type { Offer } from "@/lib/domain/types";
 
@@ -22,15 +22,6 @@ import type { Offer } from "@/lib/domain/types";
  * peut pas avaler une vraie phrase, puisque toute phrase porte d'autres
  * lettres.
  */
-const NEUTRE = /^[\d\s  .,:;·+%()≈–-]*(FCFA|%)?[\d\s  .,:;·+%()≈–-]*$/;
-
-function segmentsDecouverts(phrase: string): string[] {
-  return phrase
-    .split(" · ")
-    .map((p) => p.trim())
-    .filter((p) => p && !NEUTRE.test(p) && !translatable(p));
-}
-
 const bta: Offer = { id: "b", kind: "BTA", nominal: 1_000_000, settleOn: "2026-10-08", maturityOn: "2027-04-08", precountRate: 4.25 } as unknown as Offer;
 const ota: Offer = { id: "o", kind: "OTA", nominal: 10_000, settleOn: "2026-10-08", maturityOn: "2031-10-08", couponRate: 6.25, pricePct: 98.5, lastCouponOn: "2026-04-08" } as unknown as Offer;
 const actions: Offer = { id: "a", kind: "ACTIONS", nominal: 1, settleOn: "2026-10-08", pricePerShare: 12_300, minShares: 10, dividendPerShare: 500 } as unknown as Offer;

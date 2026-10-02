@@ -148,12 +148,25 @@ function toEnglish(s: string, depth = 0): string {
  * ils rendent une phrase lisible sans qu'aucune entrée ne la nomme, et c'est
  * précisément ce qu'on veut pouvoir distinguer.
  */
-export function translatable(s: string): boolean {
+export function translatable(s: string, neutre: (x: string) => boolean = () => false, depth = 0): boolean {
   const t = s.trim();
   if (!t) return true;
+  if (neutre(t)) return true;
   if (EN[t] != null || EN[`${t}.`] != null) return true;
-  if (TEMPLATES.some((x) => x.re.test(t))) return true;
-  return lowerIndex()[t.toLowerCase()] != null;
+  if (lowerIndex()[t.toLowerCase()] != null) return true;
+  if (depth >= 3) return false;
+  // UN GABARIT NE SUFFIT PAS : SES TROUS COMPTENT AUSSI.
+  //
+  // `toEnglish` retraduit chaque morceau capturé, donc un trou qui ne se
+  // traduit pas laisse du français au milieu d'une phrase anglaise. Le premier
+  // état de ce contrôle s'arrêtait au gabarit, et il a laissé passer
+  // « +1,44 % par an depuis l'origine: the last known net asset value ».
+  // On essaie donc tous les gabarits qui correspondent, et un seul suffit à
+  // condition que tous ses trous tiennent debout.
+  return TEMPLATES.some((tpl) => {
+    const m = tpl.re.exec(t);
+    return m ? m.slice(1).every((capture) => translatable(capture, neutre, depth + 1)) : false;
+  });
 }
 
 export function translate(lang: Lang, s: string, params?: Record<string, string | number>): string {

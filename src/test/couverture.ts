@@ -31,12 +31,23 @@ const NEUTRE = new RegExp(`^[${SIGNES}]*((FCFA|%|T\\+\\d+|${DATE})[${SIGNES}]*)*
 /** Le séparateur que le traducteur sait couper, et le seul sur lequel on découpe. */
 const SEPARATEUR = " · ";
 
+/**
+ * Les noms propres sont de la donnée et ne se traduisent jamais : un
+ * établissement, un émetteur, une place. Ceux du jeu d'essai sont listés ici
+ * un par un, et non reconnus par une règle, parce qu'une règle qui devine un
+ * nom propre finirait par laisser passer une phrase.
+ */
+const NOMS_PROPRES = new Set(["LCB Bank", "Trésor", "BVMAC", "Une ligne", "X"]);
+
+/** Ce qui se lit pareil dans les deux langues : chiffres, unités, dates, noms propres. */
+const estNeutre = (x: string): boolean => NOMS_PROPRES.has(x) || NEUTRE.test(x);
+
 export function segmentsDecouverts(phrase: string | null | undefined): string[] {
   if (!phrase) return [];
   return phrase
     .split(SEPARATEUR)
     .map((p) => p.trim())
-    .filter((p) => p && !NEUTRE.test(p) && !translatable(p));
+    .filter((p) => p && !estNeutre(p) && !translatable(p, estNeutre));
 }
 
 /** Tous les segments non couverts d'un lot de phrases, sans doublons, dans l'ordre de rencontre. */
