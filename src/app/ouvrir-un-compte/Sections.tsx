@@ -478,7 +478,9 @@ export function SubmitSection({ file, editable, missing }: P & { missing: string
       <h2 className="display">{t("6 · Envoyer mon dossier")}</h2>
       {missing.length > 0 ? (
         <p className={styles.hint}>
-          {t("Encore à compléter :")} <b>{missing.join(", ")}</b>.
+          {/* Chaque manque se traduit à part : la phrase qui les assemble était
+              seule à passer par t(), et la liste restait en français. */}
+          {t("Encore à compléter :")} <b>{missing.map((m) => t(m)).join(", ")}</b>.
         </p>
       ) : (
         <p className={styles.hint}>{t("Tout y est. Un conseiller vérifie votre dossier et vous prévient dès l'ouverture du compte.")}</p>

@@ -458,7 +458,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                       {i.state === "servie" && <SettleButton intentId={i.id} />}
                       {(i.state === "recue" || i.state === "confirmee") && (
                         <Link className="btn sm" href="/desk">
-                          {i.state === "recue" ? "Confirmer dans le carnet" : "Placer (transmettre) dans le carnet"}
+                          {t(i.state === "recue" ? "Confirmer dans le carnet" : "Placer (transmettre) dans le carnet")}
                         </Link>
                       )}
                     </td>
