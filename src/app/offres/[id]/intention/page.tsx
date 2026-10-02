@@ -57,22 +57,48 @@ export default async function IntentionPage({ params, searchParams }: Props) {
       </div>
 
       <div className={styles.form} id="intention" data-coach="action">
-        <IntentForm offer={o} types={c.types} initialType={c.initial} initialAmount={c.qty} held={c.held} switchTargets={c.switchTargets} past={c.past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={c.channels} bridge={c.bridge} profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined} investable={c.fin?.investable} />
-        {/* L'épargne programmée ne vit que sur un fonds ouvert : ailleurs, un
-            montant fixe ne tombe jamais juste sur un titre indivisible, et la
-            destination d'une adjudication n'existe pas encore au moment où on la
-            programmerait. */}
-        {o.kind === "FONDS" && o.fund?.distributed && !c.past && session && (
-          <div className={styles.note}>
-            <h2 style={{ fontSize: "1rem", marginBottom: 10 }}>{t("Ou programmer un versement chaque mois")}</h2>
-            <p className="muted" style={{ fontSize: ".85rem", marginBottom: 12 }}>
-              {t(
-                "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
-              )}
-            </p>
-            <StandingForm offerId={o.id} minimum={recurringMinimum(o)} />
-          </div>
-        )}
+        {/* L'ÉPARGNE PROGRAMMÉE ENTRE DANS LE FORMULAIRE, et ce n'est pas un
+            rangement : elle était un frère de celui-ci dans la page, donc la
+            règle qui cache les étapes sur téléphone ne l'atteignait pas, et le
+            client la voyait proposer autre chose pendant qu'il tapait ses
+            coordonnées. Passée en propriété, elle devient l'autre branche d'un
+            choix, et le même état la gouverne.
+
+            Elle ne vit que sur un fonds ouvert : ailleurs, un montant fixe ne
+            tombe jamais juste sur un titre indivisible, et la destination d'une
+            adjudication n'existe pas encore au moment où on la programmerait. */}
+        <IntentForm
+          offer={o}
+          types={c.types}
+          initialType={c.initial}
+          initialAmount={c.qty}
+          held={c.held}
+          switchTargets={c.switchTargets}
+          past={c.past}
+          signedIn={Boolean(session)}
+          tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)}
+          phone={session?.phone ?? ""}
+          phoneProven={Boolean(session?.phoneVerified)}
+          email={session?.email ?? ""}
+          name={session?.name ?? ""}
+          channels={c.channels}
+          bridge={c.bridge}
+          profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined}
+          investable={c.fin?.investable}
+          monthly={
+            o.kind === "FONDS" && o.fund?.distributed && !c.past && session ? (
+              <div className={styles.note}>
+                <h2 style={{ fontSize: "1rem", marginBottom: 10 }}>{t("Ou programmer un versement chaque mois")}</h2>
+                <p className="muted" style={{ fontSize: ".85rem", marginBottom: 12 }}>
+                  {t(
+                    "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
+                  )}
+                </p>
+                <StandingForm offerId={o.id} minimum={recurringMinimum(o)} />
+              </div>
+            ) : undefined
+          }
+        />
         {o.maturityOn && !c.past && (
           <div className={styles.note}>
             {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

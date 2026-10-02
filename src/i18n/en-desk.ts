@@ -2568,4 +2568,9 @@ export const EN_MORE: Record<string, string> = {
   "estimé au dernier cours": "estimated at the last price",
   "Cette somme n'atteint pas un titre au cours de référence.": "This amount does not reach one security at the reference price.",
   "{v} FCFA ne sont pas placés : un titre de plus coûterait {d} FCFA de trop.": "{v} FCFA are not invested: one more security would cost {d} FCFA too much.",
+  "Deux demandes différentes : celle que vous choisissez décide du formulaire qui suit.": "Two different requests: the one you choose decides the form that follows.",
+  "Une fois": "Once",
+  "Je place un montant, maintenant.": "I invest an amount, now.",
+  "Chaque mois": "Every month",
+  "Je donne l'ordre une fois, il se répète jusqu'à ce que je l'arrête.": "I give the order once; it repeats until I stop it.",
 };

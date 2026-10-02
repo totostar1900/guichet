@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useRef, useState, type ReactNode } from "react";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
 import type { ChannelStatus } from "@/lib/domain/types";
@@ -100,7 +100,7 @@ export interface SwitchTarget {
   title: string;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[];  past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable, monthly }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[];  past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number; /** Le versement programmé, quand la ligne en accepte un : l'autre branche du choix. */ monthly?: ReactNode }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -151,6 +151,25 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [amountOk, setAmountOk] = useState(false);
   // On a phone the form is read in three steps (montant → coordonnées → récapitulatif); desktop shows everything.
   const [step, setStep] = useState(1);
+  /**
+   * UNE FOIS, OU CHAQUE MOIS : la décision avant les champs.
+   *
+   * Les deux demandes ne se remplissent pas pareil et ne veulent pas dire la
+   * même chose : l'une place une somme maintenant, l'autre donne un ordre qui
+   * se répète. Elles vivaient pourtant l'une sous l'autre, et le bloc mensuel,
+   * frère du formulaire dans la page, restait visible pendant les coordonnées
+   * et le récapitulatif : on remplissait un montant unique en lisant une offre
+   * qui en proposait un autre.
+   *
+   * Le choix ne se pose que sur téléphone, comme les étapes, et pour la même
+   * raison : sur grand écran tout tient d'un bloc, les deux demandes se voient
+   * ensemble, et rien ne se cache. La feuille de style décide donc seule, à
+   * partir de `data-mode` ; ici on tient l'état et rien d'autre.
+   *
+   * « » tant que rien n'est choisi, et « une » d'emblée quand la ligne n'accepte
+   * pas de versement programmé : il n'y a alors pas de choix à poser.
+   */
+  const [mode, setMode] = useState<"" | "une" | "mois">(monthly ? "" : "une");
   const formRef = useRef<HTMLFormElement>(null);
   const goTo = (n: number) => {
     if (n > step && formRef.current) {
@@ -300,8 +319,22 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const amtLabel = t(market ? (byCash ? "Montant (FCFA)" : offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)") : offer.kind === "FONDS" ? (type === "rachat" ? "Parts à racheter" : "Montant (FCFA)") : offer.kind === "ACTIONS" ? "Montant (FCFA)" : offer.kind === "RACHAT" ? "Titres à céder" : offer.kind === "BTA" ? "Montant (FCFA)" : "Montant nominal (FCFA)");
 
   return (
-    <div className={styles.wrap}>
+    <>
+    <div className={styles.wrap} data-mode={mode}>
       <h3 className="display">{t(past ? "Une question sur cette ligne ?" : "Votre intention sur cette ligne")}</h3>
+      {monthly && (
+        <div className={styles.choice}>
+          <p className={styles.choiceLead}>{t("Deux demandes différentes : celle que vous choisissez décide du formulaire qui suit.")}</p>
+          <button type="button" className={styles.choiceCard} onClick={() => setMode("une")}>
+            <b>{t("Une fois")}</b>
+            <span>{t("Je place un montant, maintenant.")}</span>
+          </button>
+          <button type="button" className={styles.choiceCard} onClick={() => setMode("mois")}>
+            <b>{t("Chaque mois")}</b>
+            <span>{t("Je donne l'ordre une fois, il se répète jusqu'à ce que je l'arrête.")}</span>
+          </button>
+        </div>
+      )}
       <form action={action} ref={formRef} data-at={step} className={styles.form}>
         <input type="hidden" name="offerId" value={offer.id} />
         {bridge && <input type="hidden" name="de" value={bridge.token} />}
@@ -677,8 +710,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>
           </div>
           <div className={styles.stepNav}>
-            {step > 1 && (
-              <button type="button" className="btn ghost" onClick={() => goTo(step - 1)}>
+            {/* À la première étape, « Retour » remonte au choix plutôt que de
+                disparaître : sans lui on ne peut plus changer d'avis sans
+                recharger la page. */}
+            {(step > 1 || monthly) && (
+              <button type="button" className="btn ghost" onClick={() => (step > 1 ? goTo(step - 1) : setMode(""))}>
                 {t("Retour")}
               </button>
             )}
@@ -694,5 +730,21 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         </div>
       </form>
     </div>
+    {/* LE BLOC MENSUEL RESTE UN FRÈRE DU CADRE, et non un enfant : sur grand
+        écran il garde exactement la place et l'allure qu'il avait, sous le
+        formulaire, dans son propre encart. Ce qui change est qu'il porte
+        maintenant le même état, donc la feuille de style peut le cacher avec
+        les étapes qu'il doublait. */}
+    {monthly && (
+      <div className={styles.monthly} data-mode={mode}>
+        {/* Sur grand écran les deux demandes se voient ensemble : ce retour
+            n'aurait rien à ramener, et il ne s'affiche pas. */}
+        <button type="button" className={`btn ghost ${styles.backToChoice}`} onClick={() => setMode("")}>
+          {t("Retour")}
+        </button>
+        {monthly}
+      </div>
+    )}
+    </>
   );
 }

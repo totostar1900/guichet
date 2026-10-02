@@ -248,6 +248,11 @@
 }
 
 /* ---------- phone: three steps ---------- */
+/* Le choix « une fois / chaque mois » n'existe pas sur grand écran : tout y
+   tient d'un bloc, les deux demandes se voient ensemble, et un choix qui
+   cacherait l'une d'elles ne ferait qu'ajouter un clic. */
+.choice,
+.backToChoice,
 .stepBar,
 .stepTitle,
 .recap {
@@ -296,6 +301,54 @@
   .form[data-at="2"] [data-step]:not([data-step="2"]),
   .form[data-at="3"] [data-step]:not([data-step="3"]) {
     display: none;
+  }
+  /* LE CHOIX, ET CE QU'IL DÉCIDE.
+
+     Tant que rien n'est choisi, les deux cartes seules. Ensuite la branche
+     retenue, et elle seule : c'est tout le point, le bloc mensuel ne doit plus
+     rester en vue pendant qu'on remplit un montant unique. */
+  .wrap[data-mode=""] .choice {
+    display: grid;
+    gap: var(--s-4);
+    margin-bottom: var(--s-4);
+  }
+  .wrap[data-mode=""] .form,
+  .wrap[data-mode="mois"] .form,
+  .monthly[data-mode=""],
+  .monthly[data-mode="une"] {
+    display: none;
+  }
+  .choiceCard {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    padding: var(--s-5) var(--s-5);
+  }
+  .choiceCard b {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+  }
+  .choiceCard span {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+    line-height: 1.45;
+  }
+  .choiceLead {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    line-height: 1.45;
+  }
+  .backToChoice {
+    display: inline-flex;
+    margin-bottom: var(--s-4);
   }
   .recap {
     display: grid;
