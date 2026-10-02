@@ -260,11 +260,14 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                             ce que le passage produit : exactement ce que le
                             bloc Décision a été refait pour empêcher. Une liste
                             sert à choisir quoi traiter, jamais à traiter. */}
+                        {/* « Ouvrir », et rien à côté. Le compte des décisions
+                            à prendre tenait là une colonne entière pour un
+                            chiffre qu'on relit sur la fiche, et il serrait la
+                            première colonne, celle qu'on lit vraiment. */}
                         <div className={styles.rowbtns}>
                           <Link className="btn sm" href={`/desk/intentions/${i.id}`}>
                             {t("Ouvrir")}
                           </Link>
-                          {next.length > 0 && <span className={styles.attend}>{t("{n} à décider", { n: String(next.filter((s) => s !== "annulee").length) })}</span>}
                         </div>
                       </td>
                     </tr>

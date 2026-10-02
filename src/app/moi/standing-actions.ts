@@ -5,14 +5,18 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { audit } from "@/lib/audit";
-import { fmt, localIso } from "@/lib/format";
+import { fmt, localIso, parseAmount } from "@/lib/format";
 import { standingBlock } from "@/lib/domain/standing";
 
 export type StandingResult = { ok: true; message: string } | { ok: false; error: string };
 
+/* Les montants arrivent GROUPÉS, « 10 000 » et non « 10000 » : ils se lisent
+   comme ceux de l'intention, en chaîne puis par parseAmount, qui retire tout ce
+   qui n'est pas un chiffre. Un z.coerce.number() en ferait un NaN, et le
+   formulaire serait refusé pour un montant correctement tapé. */
 const schema = z.object({
   offerId: z.string().min(1),
-  amount: z.coerce.number().positive(),
+  amount: z.string().min(1),
   dayOfMonth: z.coerce.number().int().min(1).max(28),
   endsOn: z.string().optional(),
   onBlocked: z.enum(["passer", "arreter"]).default("passer"),
@@ -37,7 +41,9 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
   if (!p.success) return { ok: false, error: "Montant et jour du mois requis." };
   const r = repo();
   const o = await r.getOffer(p.data.offerId);
-  const wrong = standingBlock(o, { amount: p.data.amount, dayOfMonth: p.data.dayOfMonth, startsOn: localIso(new Date()), endsOn: p.data.endsOn });
+  const montant = parseAmount(p.data.amount);
+  if (montant <= 0) return { ok: false, error: "Indiquez le montant du versement." };
+  const wrong = standingBlock(o, { amount: montant, dayOfMonth: p.data.dayOfMonth, startsOn: localIso(new Date()), endsOn: p.data.endsOn });
   if (wrong.length) return { ok: false, error: wrong.join(" ") };
 
   const [channels, existing] = await Promise.all([r.getChannelStatus(session.userId), r.listStandingOrders(session.userId)]);
@@ -52,7 +58,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
     clientName: session.name,
     clientSegment: session.segment ?? "",
     offerId: p.data.offerId,
-    amount: p.data.amount,
+    amount: montant,
     dayOfMonth: p.data.dayOfMonth,
     startsOn: localIso(new Date()),
     endsOn: p.data.endsOn || undefined,
@@ -75,7 +81,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
 
 const reinvestSchema = z.object({
   offerId: z.string().min(1),
-  minAmount: z.coerce.number().min(0).default(0),
+  minAmount: z.string().optional(),
   onBlocked: z.enum(["passer", "arreter"]).default("passer"),
 });
 
@@ -123,7 +129,7 @@ export async function createReinvestAction(_p: StandingResult | null, form: Form
        réinvestissement n'existe pas avant que le coupon tombe. */
     amount: 0,
     source: "encaissements",
-    minAmount: p.data.minAmount,
+    minAmount: parseAmount(p.data.minAmount),
     /* Sans objet : c'est l'encaissement qui déclenche, jamais le calendrier. */
     dayOfMonth: 1,
     startsOn: localIso(new Date()),

@@ -1082,6 +1082,10 @@ export const supabaseRepository: Repository = {
     const hit = users?.users.find((x) => x.email?.toLowerCase() === email.toLowerCase());
     return hit ? { id: hit.id, name: hit.email ?? hit.id, email: hit.email ?? undefined, role: "desk" } : undefined;
   },
+  async setProfileName(userId, name) {
+    const { error } = await db().from("profiles").update({ name }).eq("id", userId);
+    if (error) fail("setProfileName", error);
+  },
   async setRole(userId, role, by) {
     const { error } = await db().from("profiles").upsert({ id: userId, role, role_set_by: by, role_set_at: new Date().toISOString() }, { onConflict: "id" });
     if (error) fail("setRole", error);

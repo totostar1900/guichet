@@ -3,7 +3,7 @@ import { mfaRequired, requireResponsable } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
-import { AddStaffForm, RoleForm } from "./Forms";
+import { AddStaffForm, NameForm, RoleForm } from "./Forms";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -49,6 +49,12 @@ export default async function EquipePage() {
                     <b>{s.name}</b>
                     <br />
                     <small className="muted">{s.email ?? s.phone ?? s.id}</small>
+                    {/* Le nom se corrige ici, sur la ligne de la personne, et pas
+                        à la saisie : donner l'accès ne crée personne, il lève le
+                        niveau d'un compte qui existe déjà. */}
+                    <div className={styles.nomBtn}>
+                      <NameForm userId={s.id} name={s.name} email={s.email} />
+                    </div>
                   </td>
                   <td>
                     <span className={`${styles.role} ${styles[s.role]}`}>{t(ROLE_LABEL[s.role])}</span>

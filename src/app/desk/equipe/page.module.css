@@ -109,3 +109,8 @@
     grid-template-columns: 1fr;
   }
 }
+/* « Modifier » le nom : discret sous la personne, il ne doit pas concurrencer
+   le niveau d'accès, qui est l'action principale de cette ligne. */
+.nomBtn {
+  margin-top: var(--s-2);
+}

@@ -30,6 +30,28 @@ export async function addStaffAction(_p: TeamResult | null, form: FormData): Pro
   return { ok: true, message: `${who.email ?? who.name} est maintenant ${ROLE_LABEL[p.data.role].toLowerCase()}.` };
 }
 
+const nomSchema = z.object({ userId: z.string().min(1), name: z.string().trim().min(2).max(80) });
+
+/**
+ * Corriger le nom affiché de quelqu'un.
+ *
+ * L'adresse n'est pas modifiable, et ce n'est pas un oubli : c'est l'identité de
+ * connexion. La changer ici sans la changer dans l'authentification couperait la
+ * personne de son compte, sans rien dire. Elle s'affiche, elle ne s'édite pas.
+ */
+export async function setNameAction(_p: TeamResult | null, form: FormData): Promise<TeamResult> {
+  const me = await requireResponsable("/desk/equipe");
+  const p = nomSchema.safeParse(Object.fromEntries(form));
+  if (!p.success) return { ok: false, error: "Un nom tient entre 2 et 80 caractères." };
+  const r = repo();
+  const avant = (await r.listStaff()).find((s) => s.id === p.data.userId);
+  if (!avant) return { ok: false, error: "Cette personne n'est plus au desk." };
+  await r.setProfileName(p.data.userId, p.data.name);
+  await audit("staff.nom", "profile", p.data.userId, { before: { name: avant.name }, after: { name: p.data.name }, actor: me.name });
+  revalidatePath("/desk/equipe");
+  return { ok: true, message: `Nom corrigé : ${p.data.name}.` };
+}
+
 const changeSchema = z.object({ userId: z.string().min(1), role: z.enum(["desk", "responsable", "client"]) });
 
 /** Changes or removes someone's desk level. Never yourself; never the last responsable. */

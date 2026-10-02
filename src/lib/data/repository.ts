@@ -73,6 +73,14 @@ export interface Repository {
   listStaff(): Promise<StaffMember[]>;
   findProfileByEmail(email: string): Promise<StaffMember | undefined>;
   setRole(userId: string, role: StaffRole | "client", by: string): Promise<void>;
+  /**
+   * Corriger le nom affiché de quelqu'un.
+   *
+   * L'adresse n'a pas d'équivalent ici, et c'est délibéré : elle est l'identité
+   * de connexion, et la changer sans la changer dans l'authentification
+   * couperait la personne de son compte, en silence.
+   */
+  setProfileName(userId: string, name: string): Promise<void>;
   markMfaEnrolled(userId: string): Promise<void>;
   /** Le membre de l'équipe qui suit ce client. Absent : le desk répond. */
   findAdvisor(userId: string): Promise<StaffMember | undefined>;

@@ -172,3 +172,18 @@
   font-size: 0.8rem;
   color: var(--ink-3);
 }
+
+/* Les coordonnées, arrivées du tableau de bord le 2 octobre 2026 : le téléphone
+   et l'adresse SONT les deux canaux prouvés, et c'est cette page qui les
+   gouverne. */
+.h2 {
+  margin: var(--s-10) 0 var(--s-6);
+  font-size: 1.05rem;
+}
+.bloc {
+  margin-top: var(--s-7);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: var(--s-4);
+}

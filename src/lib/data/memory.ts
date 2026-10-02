@@ -453,6 +453,13 @@ export const memoryRepository: Repository = {
     if (advisorId) m.set(userId, advisorId);
     else m.delete(userId);
   },
+  async setProfileName(userId, name) {
+    /* Le personnel, pas les profils financiers : « profiles » porte les seconds. */
+    const s = store().staff.find((x) => x.id === userId);
+    if (s) s.name = name;
+    const c = store().contacts.find((x) => x.id === userId);
+    if (c) c.name = name;
+  },
   async setRole(userId, role, by) {
     const st = store();
     const i = st.staff.findIndex((x) => x.id === userId);

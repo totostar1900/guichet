@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
+import { Select } from "@/components/ui/Select";
+import { groupedInput } from "@/lib/ui/grouped";
 import { fmt, fmtDate } from "@/lib/format";
 import { createStandingAction, stopStandingAction, type StandingResult } from "@/app/moi/standing-actions";
 import styles from "./Standing.module.css";
@@ -30,6 +32,8 @@ function Msg({ state }: { state: StandingResult | null }) {
 export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: string; minimum: number; unit?: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(createStandingAction, null);
+  /* Le montant est tenu en etat : il se regroupe pendant la frappe. */
+  const [montant, setMontant] = useState(minimum ? String(minimum) : "");
   if (state?.ok) {
     return (
       <div className={styles.done}>
@@ -44,7 +48,10 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
       <div className={styles.row}>
         <label className="field">
           {t("Montant du versement")} : {unit}
-          <input name="amount" type="number" min={minimum || 1} step={1000} defaultValue={minimum || undefined} required />
+          {/* Les milliers se séparent pendant la frappe. Le champ n'est plus de
+              type « number » : un champ numérique refuse les espaces, donc il
+              refuserait son propre affichage. */}
+          <input name="amount" value={montant} {...groupedInput(setMontant)} inputMode="numeric" autoComplete="off" required />
           {minimum > 0 && <small className="muted">{t("minimum {n}", { n: fmt(minimum) })}</small>}
         </label>
         <label className="field">
@@ -61,10 +68,16 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
         </label>
         <label className="field">
           {t("Si un mois l'exécution est impossible")}
-          <select name="onBlocked" defaultValue="passer">
-            <option value="passer">{t("passer ce versement et continuer")}</option>
-            <option value="arreter">{t("arrêter le versement programmé")}</option>
-          </select>
+          {/* La liste de la maison, pas celle du téléphone. */}
+          <Select
+            block
+            name="onBlocked"
+            value="passer"
+            options={[
+              { value: "passer", label: t("passer ce versement et continuer") },
+              { value: "arreter", label: t("arrêter le versement programmé") },
+            ]}
+          />
         </label>
       </div>
       <button className="btn" type="submit" disabled={pending}>

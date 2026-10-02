@@ -7,9 +7,6 @@ import { fmt, fmtDate, fmtMillions, localIso } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { CounterAnswer } from "./CounterAnswer";
 import { OrdreMenu } from "./OrdreMenu";
-import { ContactForm } from "./ContactForm";
-import { ConsentForm } from "./ConsentForm";
-import { PushToggle } from "@/components/PushToggle";
 import { positionsFrom } from "@/lib/positions";
 import { StatementButtons } from "./StatementButtons";
 import { MyDocuments } from "./MyDocuments";
@@ -54,9 +51,8 @@ export async function Releve({ session: s }: { session: Session }) {
   for (const o of await Promise.all(missing.map((id) => r.getOffer(id).catch(() => undefined)))) if (o) byOffer.set(o.id, o);
   /* Le journal des espèces part avec le reste : sans lui, la bande des coupons
      ne sait dire que « échu », et c'est la question qu'elle existe pour fermer. */
-  const [myFile, contact, watches, cash] = await Promise.all([
+  const [myFile, watches, cash] = await Promise.all([
     r.getClientFileByUser(s.userId),
-    r.getContact(s.userId),
     r.listWatches(s.userId),
     r.listCash(s.userId).catch(() => []),
   ]);
@@ -221,22 +217,11 @@ export async function Releve({ session: s }: { session: Session }) {
 
       </FoldSection>
 
-      <FoldSection group="moi" defaultOpen={false} id="coordonnees" title={t("Mes coordonnées")} hint={!contact?.phone || !contact?.email ? `· ${t("à compléter")}` : "· WhatsApp ✓ · e-mail ✓"}>
-      <div className="panel">
-        <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
-        {/* Le consentement, à côté des coordonnées : c'est là qu'on se demande
-            qui peut nous écrire, pas trois panneaux plus loin. */}
-        <div className={styles.push}>
-          <b>{t("Informations et opportunités")}</b>
-          <ConsentForm whatsapp={Boolean(contact?.whatsappOptIn)} email={Boolean(contact?.emailOptIn)} hasPhone={Boolean(contact?.phone ?? s.phone)} hasEmail={Boolean(contact?.email ?? s.email)} />
-        </div>
-        <div className={styles.push}>
-          <b>{t("Alertes sur cet appareil")}</b>
-          <PushToggle vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
-        </div>
-      </div>
-
-      </FoldSection>
+      {/* LES COORDONNÉES SONT PARTIES EN SÉCURITÉ, le 2 octobre 2026.
+          Elles n'ont jamais été une affaire de portefeuille : le téléphone et
+          l'adresse sont les deux canaux prouvés, et cette page-là les gouverne
+          déjà, avec les appareils et les alertes. Le tableau de bord montre ce
+          qu'on possède, pas la façon dont on nous joint. */}
 
       <FoldSection group="moi" defaultOpen={false} id="suivies" title={t("Lignes suivies")} hint={`· ${followed.length}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t(followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut.")}</span>}>
       <div className="panel">
