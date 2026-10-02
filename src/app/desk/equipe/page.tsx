@@ -22,7 +22,7 @@ export default async function EquipePage() {
       <div className={styles.head} data-coach="roles">
         <h1>{t("Équipe")}</h1>
         <p className="muted">
-          {t("Trois niveaux.")} <b>{t("Client")}</b> {t(": lit et déclare des intentions.")} <b>{t("Opérateur desk")}</b> {t(": valide, publie, traite les intentions, tient le référentiel.")} <b>{t("Responsable")}</b> {t(": opérateur + gestion de l'équipe et approbations. Le système (crons, robot) n'est pas un utilisateur. Tout changement de niveau est journalisé.")}
+          {t("Trois niveaux.")} <b>{t("Client")}</b> {t(": lit et déclare des intentions.")} <b>{t("Opérateur")}</b> {t(": valide, publie, traite les intentions, tient le référentiel.")} <b>{t("Responsable du desk")}</b> {t(": opérateur + gestion de l'équipe et approbations. Le système (crons, robot) n'est pas un utilisateur. Tout changement de niveau est journalisé.")}
         </p>
       </div>
 

@@ -30,4 +30,4 @@ export interface Session {
 
 export const isDesk = (s: Session | null): boolean => !!s && (s.role === "desk" || s.role === "responsable");
 export const isResponsable = (s: Session | null): boolean => !!s && s.role === "responsable";
-export const ROLE_LABEL: Record<Role, string> = { client: "Client", desk: "Opérateur desk", responsable: "Responsable du desk" };
+export const ROLE_LABEL: Record<Role, string> = { client: "Client", desk: "Opérateur", responsable: "Responsable du desk" };

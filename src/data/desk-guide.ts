@@ -33,7 +33,7 @@ export interface TourStop {
 
 export const ROLES = {
   operateur: {
-    title: "Opérateur desk",
+    title: "Opérateur",
     text: "Tient le guichet au quotidien : valide les sources reçues (communiqués, bulletins) et publie les lignes dans la fenêtre déléguée, traite les intentions des clients (confirme, transmet, saisit les résultats et le règlement), revoit les dossiers clients, tient le référentiel, envoie les documents. Tout ce qu'il fait est journalisé sous son nom.",
     cannot: ["publier un prix hors de la fenêtre déléguée (la demande part en approbation)", "donner ou retirer un accès desk", "décider une approbation", "modifier la fenêtre déléguée", "diffuser une alerte à plus de 50 clients"],
   },

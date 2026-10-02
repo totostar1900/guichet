@@ -102,7 +102,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </label>
                 <label className="field">
                   {t("Niveau")}
-                  <Select block name="role" value="responsable" options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable du desk") }]} />
+                  <Select block name="role" value="responsable" options={[{ value: "desk", label: t("Opérateur") }, { value: "responsable", label: t("Responsable du desk") }]} />
                 </label>
                 <p className={styles.hint}>{t("Accès au carnet, aux intentions et à la publication des prix.")}</p>
                 <button className="btn" type="submit">

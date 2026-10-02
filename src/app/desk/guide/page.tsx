@@ -67,7 +67,7 @@ export default async function GuidePage() {
           <section key={s.key} id={s.key} className={`panel ${styles.section}`}>
             <div className="panel-h">
               <h2>{t(s.title)}</h2>
-              <span className={`${styles.roleTag} ${s.role === "responsable" ? styles.resp : ""}`}>{t(s.role === "responsable" ? "Responsable" : "Opérateur desk")}</span>
+              <span className={`${styles.roleTag} ${s.role === "responsable" ? styles.resp : ""}`}>{t(s.role === "responsable" ? "Responsable du desk" : "Opérateur")}</span>
               {!s.path.includes("…") && (
                 <Link className="btn sm ghost" href={s.path}>
                   {t("Ouvrir la page")}

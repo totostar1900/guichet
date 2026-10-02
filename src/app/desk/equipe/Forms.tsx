@@ -31,7 +31,7 @@ export function AddStaffForm() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("desk");
   const formId = useId();
-  const niveau = role === "responsable" ? t("Responsable du desk") : t("Opérateur desk");
+  const niveau = role === "responsable" ? t("Responsable du desk") : t("Opérateur");
   return (
     <form id={formId} action={action} className={styles.add}>
       <label>
@@ -40,7 +40,7 @@ export function AddStaffForm() {
       </label>
       <label>
         <span>{t("Niveau")}</span>
-        <Select block name="role" value={role} onChange={setRole} options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable du desk") }]} />
+        <Select block name="role" value={role} onChange={setRole} options={[{ value: "desk", label: t("Opérateur") }, { value: "responsable", label: t("Responsable du desk") }]} />
       </label>
       <ConfirmPublish
         form={formId}
@@ -100,7 +100,7 @@ export function RoleForm({ userId, role, self }: { userId: string; role: "desk" 
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="userId" value={userId} />
-      <Select compact name="role" value={role} label={t("Niveau")} options={[{ value: "desk", label: t("Opérateur desk") }, { value: "responsable", label: t("Responsable du desk") }, { value: "client", label: t("retirer l'accès") }]} />
+      <Select compact name="role" value={role} label={t("Niveau")} options={[{ value: "desk", label: t("Opérateur") }, { value: "responsable", label: t("Responsable du desk") }, { value: "client", label: t("retirer l'accès") }]} />
       <button className="btn sm" type="submit" disabled={pending}>
         {t(pending ? "…" : "Appliquer")}
       </button>

@@ -189,6 +189,7 @@ export const EN_MORE: Record<string, string> = {
   "Niveau": "Level",
   "Accès au carnet, aux intentions et à la publication des prix.": "Access to the book, intentions and price publication.",
   "Entrer comme desk": "Enter as the desk",
+  "Opérateur": "Operator",
   "Opérateur desk": "Operator",
   "Responsable du desk": "Manager",
   "Message envoyé à": "Message sent to",
