@@ -2,6 +2,7 @@ import type { FinancialProfile } from "@/data/profile";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
+import type { Preavis } from "@/lib/domain/preavis";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
@@ -102,6 +103,13 @@ export interface Repository {
   listCash(userId: string): Promise<CashEntry[]>;
   /** Un mouvement s'ajoute, il ne se modifie pas : une correction est un mouvement inverse. */
   addCash(entry: Omit<CashEntry, "id" | "at"> & { at?: string; createdBy?: string }): Promise<CashEntry>;
+
+  /** Les occurrences annoncées : celles d'un client, celles d'une instruction, ou la file. */
+  listPreavis(q?: { userId?: string; standingId?: string; state?: Preavis["state"] }): Promise<Preavis[]>;
+  /** Annoncer une occurrence. Une seule par instruction et par jour prévu : la base le garantit. */
+  annoncerPreavis(p: { standingId: string; userId: string; dueOn: string; amount: number }): Promise<Preavis>;
+  /** Clore une occurrence : partie, arrêtée par le client, ou périmée. Et dire si le préavis est parti. */
+  cloturerPreavis(id: string, p: { state?: Preavis["state"]; noticeSent?: boolean; noticeError?: string; stopReason?: string; intentId?: string; paidAmount?: number }): Promise<Preavis>;
 
   /** Ce que les clients disent de leurs échéances : ceux d'un client, ou la file du desk. */
   listTemoignages(q?: { userId?: string }): Promise<Temoignage[]>;

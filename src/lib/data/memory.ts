@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
+import type { Preavis } from "@/lib/domain/preavis";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
@@ -106,6 +107,7 @@ interface Store {
   payouts: CashPayout[];
   rapprochements: Rapprochement[];
   temoignages: Temoignage[];
+  preavis: Preavis[];
   standing: StandingOrder[];
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
   avisGarde: AvisGarde[];
@@ -173,6 +175,7 @@ function store(): Store {
       payouts: [],
       rapprochements: [],
       temoignages: [],
+      preavis: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
       versions: [],
@@ -581,6 +584,29 @@ export const memoryRepository: Repository = {
     store().cash.push(row);
     return structuredClone(row);
   },
+  async listPreavis(q) {
+    const rows = store().preavis.filter((x) => (!q?.userId || x.userId === q.userId) && (!q?.standingId || x.standingId === q.standingId) && (!q?.state || x.state === q.state));
+    return structuredClone([...rows].sort((a, b) => a.dueOn.localeCompare(b.dueOn)));
+  },
+  async annoncerPreavis(p) {
+    /* La base porte l'unicité d'une occurrence par instruction et par jour ; en
+       mémoire on la tient à la main, sans quoi un test passerait sur un
+       comportement que la production refuse. */
+    const s2 = store();
+    if (s2.preavis.some((x) => x.standingId === p.standingId && x.dueOn === p.dueOn)) throw new Error("standing_runs : cette occurrence est deja annoncee");
+    const row: Preavis = { id: `preavis-${s2.preavis.length + 1}`, standingId: p.standingId, userId: p.userId, dueOn: p.dueOn, amount: p.amount, announcedAt: nowIso(), noticeSent: false, state: "annoncee" };
+    s2.preavis.push(row);
+    return structuredClone(row);
+  },
+  async cloturerPreavis(id, p) {
+    const row = store().preavis.find((x) => x.id === id);
+    if (!row) throw new Error(`standing_runs ${id} introuvable`);
+    if (p.state && row.state !== "annoncee") throw new Error("standing_runs : cette occurrence est deja close");
+    if (p.state) Object.assign(row, { state: p.state, closedAt: nowIso() });
+    for (const k of ["noticeSent", "noticeError", "stopReason", "intentId", "paidAmount"] as const) if (p[k] !== undefined) Object.assign(row, { [k]: p[k] });
+    return structuredClone(row);
+  },
+
   async listTemoignages(q) {
     const rows = store().temoignages.filter((x) => !q?.userId || x.userId === q.userId);
     return structuredClone([...rows].sort((a, b) => b.at.localeCompare(a.at)));

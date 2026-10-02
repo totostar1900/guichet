@@ -274,4 +274,11 @@ export const EN_CONSOLE: Record<string, string> = {
   "Un autre montant…": "A different amount…",
   "Somme réellement reçue": "Amount actually received",
   "Vue sur votre compte le": "Seen in your account on",
+  "{m} FCFA partent le {j}": "{m} FCFA leave on {j}",
+  "votre instruction": "your instruction",
+  "Selon votre instruction permanente. Sans réponse de votre part, l'ordre part comme prévu.": "Under your standing instruction. Without a reply from you, the order goes out as planned.",
+  "Un mot, si vous voulez (facultatif)": "A word, if you like (optional)",
+  "Laisser partir": "Let it go out",
+  "Confirmer l'arrêt": "Confirm the stop",
+  "Ne faites pas ça": "Don't do this",
 };

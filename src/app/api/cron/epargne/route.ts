@@ -5,6 +5,9 @@ import { fmt, fmtDate, localIso } from "@/lib/format";
 import { instalmentLabel, isDue, reinvestLabel, reinvestissementDu, standingBlock } from "@/lib/domain/standing";
 import { cashPosition } from "@/lib/domain/cash";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+import { envoyerPreavis } from "@/lib/notify/preavis";
+import { arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
+import { loadStandingPolicy } from "@/lib/policy";
 
 /**
  * Le robot de l'épargne programmée : un versement par instruction et par mois.
@@ -41,6 +44,29 @@ import { notifyIntentUpdated } from "@/lib/notify/dispatch";
  * lendemain ne trouve plus rien à placer. L'idempotence est là, dans la
  * comptabilité, et non dans une date de dernier passage.
  *
+ * ─── Prévenir avant, et laisser le temps de dire non ───────────────────────
+ *
+ * Le robot créait l'ordre PUIS prévenait, et l'envoi du message vivait dans un
+ * try/catch vide. Une banque qui vous informe d'un prélèvement après l'avoir
+ * fait vous informe ; elle ne vous laisse pas décider.
+ *
+ * Chaque tour fait donc deux choses, et dans cet ordre :
+ *
+ *   IL EXÉCUTE ce qui a été annoncé et dont le jour est venu, au plus pour le
+ *   montant annoncé. L'exécution d'abord, parce qu'une occurrence du jour doit
+ *   partir avant qu'on en annonce une nouvelle sur le même argent.
+ *
+ *   IL ANNONCE ce qui vient, et n'exécute rien de ce qu'il annonce. Un
+ *   versement garde le jour choisi par le client et s'annonce la veille ; un
+ *   réinvestissement s'annonce le jour où l'argent est là et part après le
+ *   délai, parce que « demain » n'est pas connaissable quand c'est l'argent
+ *   arrivé qui déclenche.
+ *
+ * ET PAS D'EXÉCUTION SANS PRÉAVIS RÉELLEMENT PARTI. Un préavis qui échoue
+ * laisse l'occurrence en vie sans l'exécuter, et le journal le dit. Le risque
+ * est qu'un client au canal cassé n'ait plus de versement ; c'est assumé, parce
+ * que l'inverse est d'engager son argent en silence.
+ *
  * À appeler chaque jour, avec « Authorization: Bearer <CRON_SECRET> ».
  */
 export async function GET(req: NextRequest) {
@@ -50,12 +76,16 @@ export async function GET(req: NextRequest) {
 
   const r = repo();
   const today = localIso(new Date());
-  const [orders, offers] = await Promise.all([r.listStandingOrders(), r.listOffers()]);
+  const [orders, offers, policy, enCours] = await Promise.all([r.listStandingOrders(), r.listOffers(), loadStandingPolicy(), r.listPreavis({ state: "annoncee" }).catch(() => [] as Preavis[])]);
   const byId = new Map(offers.map((o) => [o.id, o]));
+  const parInstruction = new Map<string, Preavis[]>();
+  for (const x of enCours) parInstruction.set(x.standingId, [...(parInstruction.get(x.standingId) ?? []), x]);
   let placed = 0;
   let skipped = 0;
   let ended = 0;
   let reinvested = 0;
+  let annonces = 0;
+  let muets = 0;
 
   /* Le disponible d'un client, lu une fois : plusieurs instructions peuvent
      viser la même poche, et deux lectures indépendantes la placeraient deux
@@ -80,120 +110,144 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    /**
-     * Le réinvestissement : ce qui est arrivé, pas ce qu'un calendrier annonce.
-     *
-     * Il ne consomme pas le mois : un client qui touche deux coupons en juin
-     * les réinvestit tous les deux, et rien ne justifierait de faire attendre
-     * le second jusqu'en juillet.
-     */
-    if (s.source === "encaissements") {
-      const poche = await disponible(s.userId);
-      const { montant } = reinvestissementDu(s, poche);
-      if (montant <= 0) continue;
-      const o = byId.get(s.offerId);
-      const wrong = standingBlock(o, { amount: montant, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
-      if (wrong.length) {
-        const why = wrong.join(" ");
-        if (s.onBlocked === "arreter") {
-          await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
-          await r.logEvent({ kind: "system", html: `Réinvestissement ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
-          skipped += 1;
+    const o = byId.get(s.offerId);
+    const quoi = s.source === "encaissements" ? "Réinvestissement" : "Épargne programmée";
+
+    /* ───────── PREMIER TEMPS : exécuter ce qui a été annoncé ─────────
+       Avant d'annoncer, parce qu'une occurrence du jour doit partir avant qu'on
+       en annonce une nouvelle sur le même argent. */
+    const mur = (parInstruction.get(s.id) ?? []).filter((x) => x.dueOn <= today).sort((a, b) => a.dueOn.localeCompare(b.dueOn))[0];
+    if (mur) {
+      const refus = pourquoiPasExecuter(mur, today);
+      if (refus === "pas_parti") {
+        /* La règle qui compte : le préavis n'est pas parti, donc rien ne part.
+           Le dire à chaque tour serait du bruit ; on le dit une fois, le jour
+           où l'occurrence devient exécutable. */
+        if (mur.dueOn === today) {
+          await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>rien n'est parti</b>, le préavis du ${fmtDate(mur.dueOn)} n'a pas pu être envoyé · ${mur.noticeError ?? "canal injoignable"}` });
+          muets += 1;
         }
-        // Sinon on ne consomme rien : l'argent reste au journal et retentera demain.
-        continue;
+      } else if (refus === null) {
+        const poche = s.source === "encaissements" ? await disponible(s.userId) : mur.amount;
+        const montant = montantAExecuter(mur.amount, poche, s.source === "encaissements" ? s.minAmount : 0);
+        const wrong = standingBlock(o, { amount: montant || mur.amount, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
+        if (montant <= 0 || wrong.length) {
+          const why = wrong.length ? wrong.join(" ") : "le disponible annoncé n'est plus là";
+          await r.cloturerPreavis(mur.id, { state: "perimee" });
+          if (wrong.length && s.onBlocked === "arreter") {
+            await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
+            await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+          } else {
+            await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : occurrence du ${fmtDate(mur.dueOn)} <b>sans suite</b> · ${why}` });
+          }
+          if (s.source !== "encaissements") await r.updateStandingOrder(s.id, { lastRunOn: today });
+          skipped += 1;
+          continue;
+        }
+
+        const intent = await r.createIntent({
+          offerId: s.offerId,
+          type: "souscription",
+          amount: montant,
+          channel: s.channel,
+          contactPhone: s.contactPhone,
+          contactEmail: s.contactEmail,
+          clientName: s.clientName,
+          clientSegment: s.clientSegment,
+          clientId: s.userId,
+          message: s.source === "encaissements" ? reinvestLabel(s, today, montant) : instalmentLabel(s, today),
+          standingId: s.id,
+        });
+        // Le client a donné son ordre à la signature de l'instruction, et il a eu
+        // le préavis : ce versement n'attend pas une confirmation, il attend le règlement.
+        const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+        if (s.source === "encaissements") {
+          /* L'argent quitte la poche en s'inscrivant au journal en regard de
+             l'ordre : c'est cette écriture, et non une date, qui empêche un
+             second passage de replacer la même somme. */
+          await r.addCash({ userId: s.userId, amount: montant, kind: "souscription", label: reinvestLabel(s, today, montant), intentId: intent.id, createdBy: "robot" });
+          disponibles.set(s.userId, poche - montant);
+          reinvested += 1;
+        } else {
+          placed += 1;
+        }
+        await r.updateStandingOrder(s.id, { lastRunOn: today });
+        await r.cloturerPreavis(mur.id, { state: "executee", intentId: intent.id, paidAmount: montant });
+        await r.logEvent({
+          kind: "intent",
+          intentId: intent.id,
+          offerId: s.offerId,
+          html: `${intent.ref} (${s.clientName}) : <b>${s.source === "encaissements" ? "réinvestissement" : "versement programmé"}</b> de ${fmt(montant)} FCFA sur ${o?.title ?? s.offerId} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))} · ${s.ref}`,
+        });
+        try {
+          await notifyIntentUpdated(confirmed, o!, "confirmee");
+        } catch {
+          /* L'avis d'exécution peut échouer sans conséquence : le client a déjà
+             été prévenu AVANT, et c'est ce préavis-là qui portait sa décision. */
+        }
       }
-      const intent = await r.createIntent({
-        offerId: s.offerId,
-        type: "souscription",
-        amount: montant,
-        channel: s.channel,
-        contactPhone: s.contactPhone,
-        contactEmail: s.contactEmail,
-        clientName: s.clientName,
-        clientSegment: s.clientSegment,
-        clientId: s.userId,
-        message: reinvestLabel(s, today, montant),
-        standingId: s.id,
-      });
-      const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
-      /* L'argent quitte la poche en s'inscrivant au journal en regard de
-         l'ordre : c'est cette écriture, et non une date, qui empêche un second
-         passage de replacer la même somme. */
-      await r.addCash({
-        userId: s.userId,
-        amount: montant,
-        kind: "souscription",
-        label: reinvestLabel(s, today, montant),
-        intentId: intent.id,
-        createdBy: "robot",
-      });
-      disponibles.set(s.userId, poche - montant);
-      await r.updateStandingOrder(s.id, { lastRunOn: today });
-      await r.logEvent({
-        kind: "intent",
-        intentId: intent.id,
-        offerId: s.offerId,
-        html: `${intent.ref} (${s.clientName}) : <b>réinvestissement</b> de ${fmt(montant)} FCFA encaissés sur ${o?.title ?? s.offerId} · ${s.ref}`,
-      });
-      try {
-        await notifyIntentUpdated(confirmed, o!, "confirmee");
-      } catch {
-        // Un message qui ne part pas ne doit pas empêcher le versement suivant.
-      }
-      reinvested += 1;
-      continue;
+      // Une occurrence encore annoncée pour plus tard n'empêche rien d'autre : on continue.
+      if (refus === null || refus === "pas_parti") continue;
     }
 
-    if (!isDue(s, today)) continue;
+    /* ───────── SECOND TEMPS : annoncer ce qui vient ─────────
+       Rien ne s'exécute ici. L'occurrence naît, le préavis part, et le délai
+       commence à courir. */
+    const dueOn = dueOnDuPreavis(s, today, policy);
+    if (!dueOn) continue;
+    /* AU PLUS UNE OCCURRENCE OUVERTE PAR INSTRUCTION, et pas seulement une par
+       jour prévu. « isDue » reste vrai jusqu'à l'exécution, donc un délai de
+       plusieurs jours ferait naître une seconde occurrence du même versement le
+       lendemain : c'est « ne double jamais » qui tombe. Et pour un
+       réinvestissement dont le préavis a échoué, cela éviterait d'engager deux
+       fois le même argent. */
+    if ((parInstruction.get(s.id) ?? []).length) continue;
 
-    const o = byId.get(s.offerId);
-    const wrong = standingBlock(o, { amount: s.amount, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
+    const montantAnnonce = s.source === "encaissements" ? reinvestissementDu(s, await disponible(s.userId)).montant : s.amount;
+    if (montantAnnonce <= 0) continue;
+
+    const wrong = standingBlock(o, { amount: montantAnnonce, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
     if (wrong.length) {
       const why = wrong.join(" ");
       if (s.onBlocked === "arreter") {
         await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
-        await r.logEvent({ kind: "system", html: `Épargne programmée ${s.ref} (${s.clientName}) : <b>arrêtée</b> · ${why}` });
-      } else {
+        await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+      } else if (s.source !== "encaissements") {
         // Le mois est consommé même sans ordre : sinon le robot réessaierait chaque
         // jour jusqu'à la fin du mois et remplirait le journal de la même phrase.
         await r.updateStandingOrder(s.id, { lastRunOn: today });
-        await r.logEvent({ kind: "system", html: `Épargne programmée ${s.ref} (${s.clientName}) : versement du mois <b>passé</b> · ${why}` });
+        await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : versement du mois <b>passé</b> · ${why}` });
       }
       skipped += 1;
       continue;
     }
 
-    const intent = await r.createIntent({
-      offerId: s.offerId,
-      type: "souscription",
-      amount: s.amount,
-      channel: s.channel,
-      contactPhone: s.contactPhone,
-      contactEmail: s.contactEmail,
-      clientName: s.clientName,
-      clientSegment: s.clientSegment,
-      clientId: s.userId,
-      message: instalmentLabel(s, today),
-      standingId: s.id,
-    });
-    // Le client a donné son ordre à la signature de l'instruction : ce versement
-    // n'attend pas une seconde confirmation, il attend le règlement.
-    const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
-    await r.updateStandingOrder(s.id, { lastRunOn: today });
-    await r.logEvent({
-      kind: "intent",
-      intentId: intent.id,
-      offerId: s.offerId,
-      html: `${intent.ref} (${s.clientName}) : <b>versement programmé</b> de ${fmt(s.amount)} FCFA sur ${o?.title ?? s.offerId} · ${s.ref}`,
-    });
+    let annonce;
     try {
-      await notifyIntentUpdated(confirmed, o!, "confirmee");
+      annonce = await r.annoncerPreavis({ standingId: s.id, userId: s.userId, dueOn, amount: montantAnnonce });
     } catch {
-      // Un message qui ne part pas ne doit pas empêcher le versement suivant.
+      // L'index d'unicité a parlé : un autre tour l'a annoncée, et c'est bien.
+      continue;
     }
-    placed += 1;
+    const envoi = await envoyerPreavis(s, o, { dueOn, amount: montantAnnonce });
+    await r.cloturerPreavis(annonce.id, { noticeSent: envoi.sent, noticeError: envoi.error });
+    parInstruction.set(s.id, [...(parInstruction.get(s.id) ?? []), { ...annonce, noticeSent: envoi.sent, noticeError: envoi.error }]);
+    if (envoi.sent) {
+      annonces += 1;
+      await r.logEvent({
+        kind: "system",
+        html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis</b> de ${fmt(montantAnnonce)} FCFA sur ${o?.title ?? s.offerId}, pour le ${fmtDate(dueOn)}`,
+      });
+    } else {
+      /* Un préavis qui ne part pas se dit tout de suite, et l'exécution ne
+         suivra pas : c'est exactement la panne que le try/catch vide cachait. */
+      muets += 1;
+      await r.logEvent({
+        kind: "system",
+        html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis non envoyé</b> pour le ${fmtDate(dueOn)} · ${envoi.error ?? "canal injoignable"} · rien ne partira sans lui`,
+      });
+    }
   }
 
-  return NextResponse.json({ ok: true, day: today, placed, reinvested, skipped, ended, considered: orders.length });
+  return NextResponse.json({ ok: true, day: today, placed, reinvested, annonces, muets, skipped, ended, considered: orders.length });
 }

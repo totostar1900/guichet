@@ -3,6 +3,8 @@ import type { Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
+import { arretables } from "@/lib/domain/preavis";
+import { Annonce } from "./Annonce";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
@@ -46,12 +48,14 @@ export async function Console({ session }: { session: Session }) {
 
   /* Le contexte est déjà assemblé pour le compteur de la bande : le cache de
      React fait que cette page le lit sans le repayer. */
-  const [ctx, intents, offers, cash, payouts] = await Promise.all([
+  const [ctx, intents, offers, cash, payouts, preavis, standing] = await Promise.all([
     contexteDuClient(session.userId),
     r.listIntents(),
     r.listOffers(),
     r.listCash(session.userId).catch(() => []),
     r.listPayouts({ userId: session.userId }).catch(() => []),
+    r.listPreavis({ userId: session.userId }).catch(() => []),
+    r.listStandingOrders(session.userId).catch(() => []),
   ]);
 
   const mine = intents.filter((i) => i.clientId === session.userId);
@@ -99,6 +103,16 @@ export async function Console({ session }: { session: Session }) {
           d'être faite. Elle est donc remontée au-dessus de la valeur.
           Vide, le composant ne rend rien. */}
       <CeQuiVousAttend userId={session.userId} />
+
+      {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.
+          Le robot exécutait puis prévenait ; prévenir sans bouton d'arrêt
+          n'aurait déplacé le problème que d'une case. Cette bande expire, d'où
+          sa place : une information qui périme ne se range pas au milieu d'un
+          relevé qu'on consulte à loisir. Vide, le composant ne rend rien. */}
+      <Annonce
+        preavis={arretables(preavis, aujourdHui)}
+        titres={Object.fromEntries(standing.map((x) => [x.id, offers.find((o) => o.id === x.offerId)?.title ?? x.ref]))}
+      />
 
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
       {positions.length > 0 ? (

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
+import type { Preavis } from "@/lib/domain/preavis";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
@@ -439,6 +440,37 @@ const toCash = (r: CashRow): CashEntry => ({
   feePeriod: u(r.fee_period),
   evidence: u(r.evidence),
   expected: r.expected == null ? undefined : Number(r.expected),
+});
+
+type PreavisRow = {
+  id: string;
+  standing_id: string;
+  user_id: string;
+  due_on: string;
+  amount: string | number;
+  announced_at: string;
+  notice_sent: boolean;
+  notice_error: string | null;
+  state: Preavis["state"];
+  closed_at: string | null;
+  stop_reason: string | null;
+  intent_id: string | null;
+  paid_amount: string | number | null;
+};
+const toPreavis = (r: PreavisRow): Preavis => ({
+  id: r.id,
+  standingId: r.standing_id,
+  userId: r.user_id,
+  dueOn: r.due_on,
+  amount: Number(r.amount),
+  announcedAt: r.announced_at,
+  noticeSent: r.notice_sent,
+  noticeError: u(r.notice_error),
+  state: r.state,
+  closedAt: u(r.closed_at),
+  stopReason: u(r.stop_reason),
+  intentId: u(r.intent_id),
+  paidAmount: r.paid_amount == null ? undefined : Number(r.paid_amount),
 });
 
 type TemoinRow = {
@@ -1310,6 +1342,46 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("client_cash").insert(row).select("*").single();
     if (error) fail("addCash", error);
     return toCash(data);
+  },
+
+  async listPreavis(q) {
+    let sel = db().from("standing_runs").select("*").order("due_on", { ascending: true });
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    if (q?.standingId) sel = sel.eq("standing_id", q.standingId);
+    if (q?.state) sel = sel.eq("state", q.state);
+    const { data, error } = await sel;
+    if (error) {
+      // Migration 0063 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/standing_runs/.test(error.message)) return [];
+      fail("listPreavis", error);
+    }
+    return (data ?? []).map(toPreavis);
+  },
+  async annoncerPreavis(p) {
+    const { data, error } = await db().from("standing_runs").insert({ standing_id: p.standingId, user_id: p.userId, due_on: p.dueOn, amount: p.amount }).select("*").single();
+    if (error) fail("annoncerPreavis", error);
+    return toPreavis(data);
+  },
+  async cloturerPreavis(id, p) {
+    const row: Record<string, unknown> = {};
+    if (p.state) {
+      row.state = p.state;
+      row.closed_at = new Date().toISOString();
+    }
+    if (p.noticeSent !== undefined) row.notice_sent = p.noticeSent;
+    if (p.noticeError !== undefined) row.notice_error = p.noticeError ?? null;
+    if (p.stopReason !== undefined) row.stop_reason = p.stopReason ?? null;
+    if (p.intentId !== undefined) row.intent_id = p.intentId ?? null;
+    if (p.paidAmount !== undefined) row.paid_amount = p.paidAmount ?? null;
+    /* Une occurrence qui change d'état ne se ferme que si elle est encore
+       annoncée : deux tours du robot, ou un arrêt qui croise une exécution, ne
+       doivent pas se marcher dessus. Le simple accusé d'envoi du préavis, lui,
+       n'est pas un changement d'état et passe toujours. */
+    let q = db().from("standing_runs").update(row).eq("id", id);
+    if (p.state) q = q.eq("state", "annoncee");
+    const { data, error } = await q.select("*").single();
+    if (error) fail("cloturerPreavis", error);
+    return toPreavis(data);
   },
 
   async listTemoignages(q) {

@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import type { Offer } from "@/lib/domain/types";
 import { OUVERTE, type CashPolicy } from "@/lib/domain/cash";
 import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
+import { PREAVIS_DEFAUT, type StandingPolicy } from "@/lib/domain/preavis";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { REF } from "@/lib/reference";
 
@@ -104,6 +105,25 @@ export const loadCashPolicy = cache(async (): Promise<CashPolicy> => {
     return row ? { ...OUVERTE, ...(row.data as Partial<CashPolicy>) } : OUVERTE;
   } catch {
     return OUVERTE;
+  }
+});
+
+/**
+ * Le délai entre le préavis et l'exécution d'une instruction permanente.
+ *
+ * Elle se range avec les quatre autres, et son défaut est un jour plutôt que
+ * zéro : zéro rétablirait l'ancien comportement sous un nouveau nom, puisque
+ * annoncer et exécuter le même jour, c'est exécuter sans préavis.
+ */
+export const STANDING_POLICY_KEY = "instructions";
+
+export const loadStandingPolicy = cache(async (): Promise<StandingPolicy> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const row = rows.find((r) => r.key === STANDING_POLICY_KEY);
+    return row ? { ...PREAVIS_DEFAUT, ...(row.data as Partial<StandingPolicy>) } : PREAVIS_DEFAUT;
+  } catch {
+    return PREAVIS_DEFAUT;
   }
 });
 
