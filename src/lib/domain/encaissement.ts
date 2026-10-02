@@ -57,8 +57,16 @@ export interface FluxSuivi extends Flux {
   etat: EtatEncaissement;
   /** Les jours écoulés depuis l'échéance, pour un flux attendu. */
   retardJours?: number;
-  /** Le jour où il a été porté au journal, pour un flux encaissé. */
+  /** Le jour de valeur du mouvement qui le porte, pour un flux encaissé. */
   encaisseLe?: string;
+  /**
+   * Ce qui a réellement été reçu, quand ce flux est encaissé.
+   *
+   * Ce n'est pas « amount », qui reste ce que l'échéancier annonçait. Les deux
+   * diffèrent dès qu'un émetteur paie autre chose que ce qu'il devait, et
+   * c'est ce montant-ci qui compte dans un rendement.
+   */
+  montantRecu?: number;
 }
 
 const jour = (iso: string) => iso.slice(0, 10);
@@ -122,6 +130,7 @@ export function suivre(lignes: LigneTenue[], entries: CashEntry[], now = new Dat
         etat,
         retardJours: etat === "attendu" ? Math.max(0, Math.round((Date.parse(aujourdHui) - Date.parse(jour(f.date))) / 86_400_000)) : undefined,
         encaisseLe: porte ? jour(porte.at) : undefined,
+        montantRecu: porte?.amount,
       });
     });
   }
@@ -130,6 +139,18 @@ export function suivre(lignes: LigneTenue[], entries: CashEntry[], now = new Dat
 
 /** Ce que l'émetteur doit et qui n'est pas arrivé : la file de travail du desk. */
 export const attendus = (suivis: FluxSuivi[]): FluxSuivi[] => suivis.filter((f) => f.etat === "attendu");
+
+/**
+ * Ce qui est arrivé, au montant et à la date du mouvement qui le porte.
+ *
+ * C'est la seule liste qu'un calcul de rendement a le droit de lire. Un flux
+ * dont la date est passée sans qu'on ait constaté le crédit n'est pas de
+ * l'argent revenu, et le compter en ferait un.
+ */
+export const encaisses = (suivis: FluxSuivi[]): { date: string; amount: number; label: string }[] =>
+  suivis
+    .filter((f) => f.etat === "encaisse")
+    .map((f) => ({ date: f.encaisseLe ?? f.date, amount: f.montantRecu ?? f.amount, label: f.label }));
 
 /** Ce qui est arrivé et disponible, depuis une date : de quoi financer un réinvestissement. */
 export function encaisseDepuis(suivis: FluxSuivi[], depuis?: string): number {

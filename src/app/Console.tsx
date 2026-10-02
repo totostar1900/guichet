@@ -56,7 +56,7 @@ export async function Console({ session }: { session: Session }) {
   const services = servicesDuClient(ctx);
   const compte = compteDesEtats(services);
 
-  const { perf, mouvements } = buildPerformanceParts(mine, offers);
+  const { perf, mouvements } = buildPerformanceParts(mine, offers, cash);
   const courbe = courbeDuPortefeuille(mouvements, perf.valued, aujourdHui);
   const familles = famillesDuPortefeuille(perf.lines, new Map(offers.map((o) => [o.id, o])), poche.idle);
 

@@ -608,7 +608,7 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Le versement minimum sur ce fonds est de {n} FCFA.": "The minimum instalment on this fund is {n} FCFA.",
   "Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.": "Since {d}, on what you actually paid in and for the time each payment ran.",
   "plus {n} FCFA déjà revenus": "plus {n} FCFA already come back",
-  "{n} flux sont comptés à leur date d'échéance : l'application connaît la date à laquelle l'émetteur doit payer, elle ne constate pas l'encaissement sur votre compte.": "{n} flows are counted on their due date : the application knows when the issuer is due to pay, it does not observe the money landing in your account.",
+  "{n} échéance(s) passée(s) ne sont pas comptées ici : leur encaissement n'a pas encore été constaté. Elles le seront au jour et au montant où l'argent est arrivé, et ce rendement se mettra à jour de lui-même.": "{n} past due date(s) are not counted here: their settlement has not been recorded yet. They will be, on the day and for the amount the money arrived, and this return will update by itself.",
   "{n} ligne(s) ne sont pas comptées ici, faute de cours publié : {m} FCFA y sont versés. Une obligation du primaire gardée jusqu'à son terme ne se cote pas, et l'application préfère ne rien dire plutôt que de lui donner une valeur qu'elle n'a pas.": "{n} line(s) are not counted here, for want of a published price : {m} FCFA are paid into them. A primary bond held to its term is not quoted, and the application would rather say nothing than give it a value it does not have.",
   "dans {n} jours": "in {n} days",
   "page {n} sur {m}": "page {n} of {m}",

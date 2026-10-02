@@ -47,7 +47,7 @@ export interface LinePerformance {
   isin: string;
   /** Ce que le client a sorti, en tout. */
   invested: number;
-  /** Ce qui lui est revenu : coupons et remboursements échus, produits de vente. */
+  /** Ce qui lui est revenu : coupons et remboursements encaissés, produits de vente. */
   returned: number;
   /** Ce qu'il détient encore, à la dernière valeur publiée. */
   valued: number;
@@ -58,8 +58,8 @@ export interface LinePerformance {
   rate?: number;
   /** Le premier mouvement : la durée sur laquelle tout cela s'est joué. */
   since: string;
-  /** Des flux comptés à leur échéance, faute de rapprochement bancaire. */
-  due: number;
+  /** Des échéances passées sans crédit constaté : elles ne sont pas comptées. */
+  attendus: number;
   /** Des parts ou des titres ont été vendus : les coupons d'avant la vente manquent au compte. */
   sold: boolean;
   /**
@@ -82,7 +82,7 @@ export interface PortfolioPerformance {
   gain: number;
   rate?: number;
   since?: string;
-  due: number;
+  attendus: number;
   sold: boolean;
   /** Les lignes tenues hors du total, faute de cours, et ce qui y est versé. */
   unvalued: number;
@@ -143,8 +143,8 @@ export function movedOn(i: Intent, o: Offer): string {
  * La performance d'une ligne, et celle du portefeuille.
  *
  * Les mouvements viennent des ordres réglés, ce que le client a sorti et ce qui
- * lui est revenu ; les coupons échus et la valeur du jour viennent de la
- * position qu'il détient encore. Une ligne entièrement vendue garde donc ses
+ * lui est revenu ; les coupons dont l'encaissement est constaté et la valeur du
+ * jour viennent de la position qu'il détient encore. Une ligne entièrement vendue garde donc ses
  * deux ordres et perd les coupons encaissés avant la vente : le compte est exact
  * pour qui garde, prudent pour qui a vendu, et l'écran le signale plutôt que de
  * laisser croire à une précision qu'il n'a pas.
@@ -152,7 +152,17 @@ export function movedOn(i: Intent, o: Offer): string {
 export function linePerformance(
   offer: Offer,
   intents: Intent[],
-  position: { units: number; marketValue?: number; valuedOn?: string; echus: { date: string; amount: number; label: string }[] } | undefined,
+  position:
+    | {
+        units: number;
+        marketValue?: number;
+        valuedOn?: string;
+        /** Les flux dont l'encaissement est constaté, au montant reçu et à la date de valeur. */
+        recus: { date: string; amount: number; label: string }[];
+        /** Combien d'échéances sont passées sans qu'un crédit ait été constaté. */
+        attendus?: number;
+      }
+    | undefined,
   totalOf: (i: Intent) => number,
   today: string,
 ): { line: LinePerformance; flows: MoneyFlow[] } | null {
@@ -176,14 +186,11 @@ export function linePerformance(
     }
   }
 
-  let due = 0;
-  // Un coupon echu est compte ici comme de l argent revenu, alors que seule sa
-  // date est passee. Tant que la preuve d encaissement n est pas enregistree,
-  // ce rendement est surevalue pour toute ligne dont l emetteur a paye en
-  // retard, partiellement, ou pas du tout. A reprendre avec le champ de preuve.
-  for (const f of position?.echus ?? []) {
+  /* Seuls les flux dont le crédit est constaté entrent ici, à leur montant
+     reçu et à leur date de valeur. Un coupon dont la seule date est passée
+     n'est pas de l'argent revenu, et le compter en faisait un. */
+  for (const f of position?.recus ?? []) {
     returned += f.amount;
-    due += 1;
     flows.push({ date: f.date, amount: f.amount, label: f.label });
   }
 
@@ -208,7 +215,7 @@ export function linePerformance(
       gain: returned + valued - invested,
       rate: valuable ? xirr(flows) : undefined,
       since,
-      due,
+      attendus: position?.attendus ?? 0,
       sold: mine.some((i) => SELLS.includes(i.type)),
       valuable,
     },
@@ -240,7 +247,13 @@ export function portfolioPerformance(parts: { line: LinePerformance; flows: Mone
     gain: sum((l) => l.gain),
     rate: xirr(counted.flatMap((p) => p.flows)),
     since: counted.map((p) => p.line.since).sort()[0],
-    due: sum((l) => l.due),
+    /* Sur TOUTES les lignes, et non sur les seules lignes valorisées : combien
+       d'échéances sont passées sans crédit constaté est un fait sur les titres
+       du client, pas sur une valorisation. Une obligation du primaire gardée
+       jusqu'au terme n'a pas de cours et sort du total en francs ; ses coupons
+       en retard restent à constater, et c'est justement le cas le plus
+       courant. Les compter sur « counted » laissait ces clients sans avis. */
+    attendus: lines.reduce((t, l) => t + l.attendus, 0),
     sold: counted.some((p) => p.line.sold),
     unvalued: apart.length,
     unvaluedInvested: apart.reduce((t, l) => t + l.invested, 0),

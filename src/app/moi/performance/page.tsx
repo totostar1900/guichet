@@ -46,7 +46,7 @@ export default async function PerformancePage() {
   const r = repo();
   const [intents, offers, cash] = await Promise.all([r.listIntents(), r.listOffers(), r.listCash(s.userId).catch(() => [])]);
   const mine = intents.filter((i) => i.clientId === s.userId);
-  const p = buildPerformance(mine, offers);
+  const p = buildPerformance(mine, offers, cash);
   /* Les trois sections ajoutées tirent des mêmes ordres que le rapport : la
      répartition des lignes du rapport, l'échéancier des flux à venir des
      positions, et les opérations du journal des espèces. Rien n'est recalculé
@@ -217,9 +217,12 @@ export default async function PerformancePage() {
             "Le rendement est pondéré par les montants : cent mille francs placés onze mois n'y pèsent pas comme cent mille francs placés trois semaines. C'est le vôtre, et il diffère de la performance publiée par un fonds, qui est celle d'un porteur entré le premier jour.",
           )}
         </p>
-        {p.due > 0 && (
+        {p.attendus > 0 && (
           <p>
-            {t("{n} flux sont comptés à leur date d'échéance : l'application connaît la date à laquelle l'émetteur doit payer, elle ne constate pas l'encaissement sur votre compte.", { n: String(p.due) })}
+            {t(
+              "{n} échéance(s) passée(s) ne sont pas comptées ici : leur encaissement n'a pas encore été constaté. Elles le seront au jour et au montant où l'argent est arrivé, et ce rendement se mettra à jour de lui-même.",
+              { n: String(p.attendus) },
+            )}
           </p>
         )}
         {p.unvalued > 0 && (

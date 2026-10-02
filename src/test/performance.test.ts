@@ -118,27 +118,41 @@ describe("la performance d'une ligne", () => {
   const total = (i: Intent) => i.amount ?? 0;
 
   it("compte ce qui est sorti, ce qui reste, et le gain", () => {
-    const r = linePerformance(fonds, [ordre({ updatedAt: "2026-01-05T09:00:00" })], { units: 10, marketValue: 110_000, valuedOn: "2026-12-31", echus: [] }, total, "2027-01-05");
-    expect(r?.line).toMatchObject({ invested: 100_000, returned: 0, valued: 110_000, gain: 10_000, due: 0, sold: false });
+    const r = linePerformance(fonds, [ordre({ updatedAt: "2026-01-05T09:00:00" })], { units: 10, marketValue: 110_000, valuedOn: "2026-12-31", recus: [] }, total, "2027-01-05");
+    expect(r?.line).toMatchObject({ invested: 100_000, returned: 0, valued: 110_000, gain: 10_000, attendus: 0, sold: false });
     expect(r?.line.rate).toBeCloseTo(10, 1);
   });
 
-  it("compte un coupon échu comme revenu, et le signale comme échu", () => {
+  it("compte un coupon encaissé comme revenu", () => {
     const r = linePerformance(
       ota,
       [ordre({ offerId: "o1", type: "ferme", amount: 100_000 })],
-      { units: 10, marketValue: 100_000, valuedOn: "2026-12-31", echus: [{ date: "2026-07-05", amount: 6_250, label: "Coupon" }] },
+      { units: 10, marketValue: 100_000, valuedOn: "2026-12-31", recus: [{ date: "2026-07-05", amount: 6_250, label: "Coupon" }] },
       total,
       "2027-01-05",
     );
-    expect(r?.line).toMatchObject({ returned: 6_250, gain: 6_250, due: 1 });
+    expect(r?.line).toMatchObject({ returned: 6_250, gain: 6_250, attendus: 0 });
+  });
+
+  it("ne compte pas un coupon échu dont l'encaissement n'est pas constaté, et le dit", () => {
+    /* L'ancienne règle le comptait comme revenu parce que sa date était passée.
+       Le compte était donc surévalué pour toute ligne dont l'émetteur avait
+       payé en retard, partiellement, ou pas du tout. */
+    const r = linePerformance(
+      ota,
+      [ordre({ offerId: "o1", type: "ferme", amount: 100_000 })],
+      { units: 10, marketValue: 100_000, valuedOn: "2026-12-31", recus: [], attendus: 1 },
+      total,
+      "2027-01-05",
+    );
+    expect(r?.line).toMatchObject({ returned: 0, gain: 0, attendus: 1 });
   });
 
   it("marque la ligne dont des parts sont sorties", () => {
     const r = linePerformance(
       fonds,
       [ordre({ updatedAt: "2026-01-05T09:00:00" }), ordre({ type: "rachat", amount: 40_000, updatedAt: "2026-07-05T09:00:00" })],
-      { units: 6, marketValue: 70_000, valuedOn: "2026-12-31", echus: [] },
+      { units: 6, marketValue: 70_000, valuedOn: "2026-12-31", recus: [] },
       total,
       "2027-01-05",
     );
@@ -163,7 +177,7 @@ describe("une ligne que personne ne cote", () => {
    * mille francs qui n ont jamais ete perdus.
    */
   it("n est pas comptee comme perdue quand elle n a pas de cours", () => {
-    const r = linePerformance(ota, [ordre({ offerId: "o1", type: "ferme", amount: 5_000_000 })], { units: 500, marketValue: undefined, echus: [] }, total, "2027-01-05");
+    const r = linePerformance(ota, [ordre({ offerId: "o1", type: "ferme", amount: 5_000_000 })], { units: 500, marketValue: undefined, recus: [] }, total, "2027-01-05");
     expect(r?.line.valuable).toBe(false);
     expect(r?.line.rate).toBeUndefined();
   });
@@ -173,7 +187,7 @@ describe("une ligne que personne ne cote", () => {
     const r = linePerformance(
       fonds,
       [ordre({ updatedAt: "2026-01-05T09:00:00" }), ordre({ type: "rachat", amount: 110_000, updatedAt: "2027-01-05T09:00:00" })],
-      { units: 0, marketValue: 0, echus: [] },
+      { units: 0, marketValue: 0, recus: [] },
       total,
       "2027-01-05",
     );
@@ -182,8 +196,8 @@ describe("une ligne que personne ne cote", () => {
   });
 
   it("tient la ligne sans cours hors du total, et l annonce", () => {
-    const bon = linePerformance(fonds, [ordre({ updatedAt: "2026-01-05T09:00:00" })], { units: 10, marketValue: 110_000, echus: [] }, total, "2027-01-05")!;
-    const sansCours = linePerformance(ota, [ordre({ offerId: "o1", type: "ferme", amount: 5_000_000 })], { units: 500, marketValue: undefined, echus: [] }, total, "2027-01-05")!;
+    const bon = linePerformance(fonds, [ordre({ updatedAt: "2026-01-05T09:00:00" })], { units: 10, marketValue: 110_000, recus: [] }, total, "2027-01-05")!;
+    const sansCours = linePerformance(ota, [ordre({ offerId: "o1", type: "ferme", amount: 5_000_000 })], { units: 500, marketValue: undefined, recus: [] }, total, "2027-01-05")!;
     const p = portfolioPerformance([bon, sansCours]);
     expect(p).toMatchObject({ invested: 100_000, gain: 10_000, unvalued: 1, unvaluedInvested: 5_000_000 });
     expect(p.rate).toBeCloseTo(10, 1);
@@ -197,11 +211,11 @@ describe("le portefeuille", () => {
   const total = (i: Intent) => i.amount ?? 0;
 
   it("additionne les francs et calcule un seul taux sur tous les mouvements", () => {
-    const a = linePerformance(fonds, [ordre({ updatedAt: "2026-01-05T09:00:00" })], { units: 10, marketValue: 110_000, echus: [] }, total, "2027-01-05")!;
+    const a = linePerformance(fonds, [ordre({ updatedAt: "2026-01-05T09:00:00" })], { units: 10, marketValue: 110_000, recus: [] }, total, "2027-01-05")!;
     const b = linePerformance(
       { ...fonds, id: "f2", title: "FCP Obligations" },
       [ordre({ offerId: "f2", amount: 50_000, updatedAt: "2026-01-05T09:00:00" })],
-      { units: 5, marketValue: 45_000, echus: [] },
+      { units: 5, marketValue: 45_000, recus: [] },
       total,
       "2027-01-05",
     )!;
