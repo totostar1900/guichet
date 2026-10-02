@@ -285,21 +285,11 @@ export async function rouvrirAction(form: FormData): Promise<void> {
   revalidatePath("/desk/messages");
 }
 
-/** Plusieurs échanges d'un geste, au lieu de plusieurs allers-retours. */
-export async function lotTraiteAction(form: FormData): Promise<void> {
-  const desk = await requireDesk();
-  const cles = [...new Set(form.getAll("echanges").map((v) => String(v).trim()).filter(Boolean))];
-  if (!cles.length) return;
-  const r = repo();
-  const tous = await r.listInbound(1000);
-  const quand = new Date().toISOString();
-  for (const cle of cles) {
-    for (const m of tous.filter((x) => x.convKey === cle && !x.handledAt)) await r.markInboundHandled(m.id, desk.name);
-    await r.setDeskExchange(cle, { handledAt: quand }, desk.name);
-  }
-  await audit("echange.lot", "echange", cles.join(", "), { after: { echanges: cles.length }, actor: desk.name });
-  revalidatePath("/desk/messages");
-}
+/* « Marquer traités » et sa case ont été retirés le 2 octobre 2026, à la
+   demande de l'utilisateur : une case devant chaque ligne encombrait la liste.
+   Les deux partaient ensemble, parce qu'une case sans bouton de lot ne sert à
+   rien et qu'un bouton de lot sans case ne peut rien recevoir. La sélection
+   multiple reviendra derrière un mode « sélectionner » si elle manque. */
 
 /* ─── Les gestes sur un message reçu ─────────────────────────────────────────
    Transférer, et classer une pièce dans le dossier du client.

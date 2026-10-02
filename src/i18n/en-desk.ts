@@ -2537,4 +2537,9 @@ export const EN_MORE: Record<string, string> = {
   "Clore l'échange": "Close the exchange",
   "Rouvrir l'échange": "Reopen the exchange",
   "Choisissez un échange.": "Choose an exchange.",
+  "Étiquettes": "Labels",
+  "Non lus": "Unread",
+  "Gestes": "Actions",
+  "Colonnes": "Columns",
+  "Largeur de la liste": "List width",
 };

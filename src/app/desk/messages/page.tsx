@@ -10,12 +10,14 @@ import { fmtDateTime } from "@/lib/format";
 import { textMatch } from "@/lib/text";
 import { displayStatus, isPast } from "@/lib/domain/status";
 import { cheminDeLaCle } from "@/lib/domain/echange";
-import { classerAction, epinglerAction, etiquetterAction, lotTraiteAction, reporterAction, rouvrirAction, traiterAction } from "./actions";
+import { classerAction, epinglerAction, etiquetterAction, reporterAction, rouvrirAction, traiterAction } from "./actions";
 import { cleDeSecours, echangeDUneReponse, titreDEchange } from "./grouper";
 import { ETIQUETTES, motEtiquette } from "./etiquettes";
 import { estReporte, REPORTS } from "./report";
 import { modelesDuFil } from "./modeles";
+import { Colonnes } from "./Colonnes";
 import { GardeTaille } from "./GardeTaille";
+import { PoigneeRail } from "./PoigneeRail";
 import { Replier } from "./Replier";
 import { ReplyForm } from "./ReplyForm";
 import { TransfertForm } from "./TransfertForm";
@@ -218,31 +220,33 @@ export default async function MessagesPage({
   /** Une affaire, telle qu'elle paraît dans le rail. Les deux vues la partagent. */
   const Ligne = ({ e, g, avecNom }: { e: Echange; g: Correspondant; avecNom?: boolean }) => (
     <div className={styles.item} data-ouvert={ouvert?.e.cle === e.cle ? "" : undefined}>
-      <input type="checkbox" name="echanges" value={e.cle} form="g-lot" className={styles.coche} aria-label={t("Choisir {q}", { q: e.titre })} />
       <Link href={lien(e.cle)} className={styles.itemLien} aria-current={ouvert?.e.cle === e.cle ? "true" : undefined}>
         <div className={styles.itemTop}>
           <b>{avecNom ? (g.name ?? g.key) : e.titre}</b>
-          <small>{fmtDateTime(e.last).split(" ")[0]}</small>
+          {/* CHAQUE COLONNE PORTE SON NOM : le serveur les rend toutes, et la
+              CSS cache celles que le réglage n'a pas retenues. Rien ne se
+              recalcule au changement, et une colonne retirée revient d'un clic. */}
+          <small className={styles.colDate}>{fmtDateTime(e.last).split(" ")[0]}</small>
         </div>
         {avecNom && <div className={styles.itemObjet}>{e.titre}</div>}
         <div className={styles.itemBottom}>
-          <span className={styles.chan}>{g.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</span>
+          <span className={`${styles.chan} ${styles.colCanal}`}>{g.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</span>
           {e.labels.map((l) => (
-            <span key={l} className={styles.marque}>
+            <span key={l} className={`${styles.marque} ${styles.colEtiquettes}`}>
               {t(motEtiquette(l))}
             </span>
           ))}
-          <span className={styles.preview}>
+          <span className={`${styles.preview} ${styles.colApercu}`}>
             {e.msgs[0]?.dir === "out" ? "Vous : " : ""}
             {e.msgs[0]?.text.replace(/\s+/g, " ").slice(0, 60)}
           </span>
-          {e.unread > 0 && <em className={styles.unread}>{e.unread}</em>}
+          {e.unread > 0 && <em className={`${styles.unread} ${styles.colNonlus}`}>{e.unread}</em>}
         </div>
         {/* UNE COUPURE DEVINÉE SE DIT DEVINÉE. WhatsApp n'a pas d'objet : les
             échanges s'y séparent au silence, et c'est une estimation. */}
         {e.parLeSilence && e.msgs.length > 0 && <div className={styles.devine}>{t("séparé au silence, faute d'objet")}</div>}
       </Link>
-      <div className={styles.gestes}>
+      <div className={`${styles.gestes} ${styles.colGestes}`}>
         <button type="submit" form="g-reporter" name="cle" value={e.cle} className={styles.geste} title={estReporte(e.snoozedUntil, maintenant) ? t("Revient le {d}", { d: fmtDateTime(e.snoozedUntil ?? "") }) : t("Reporter à demain 9 h")}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
@@ -302,17 +306,12 @@ export default async function MessagesPage({
           <form id="g-epingler" action={epinglerAction} />
           <form id="g-reporter" action={reporterAction} />
           <form id="g-traiter" action={traiterAction} />
-          <form id="g-lot" action={lotTraiteAction} />
 
           <div className={styles.lot}>
             <Link className="btn sm ghost" href={autreVue}>
               {accordeon ? t("Vue à plat") : t("Vue en accordéon")}
             </Link>
-            {liste.length > 0 && (
-              <button className="btn sm" type="submit" form="g-lot">
-                {t("Marquer traités")}
-              </button>
-            )}
+            <Colonnes />
           </div>
           {accordeon && (
             <div className={styles.replis}>
@@ -379,6 +378,12 @@ export default async function MessagesPage({
           )}
           {liste.length === 0 && <div className="empty">{t("Aucun échange. Les messages WhatsApp arrivent par le webhook Meta, les e-mails par la boîte d'entrée configurée.")}</div>}
         </aside>
+
+        {/* LA SÉPARATION SE TIRE. Le coin de redimensionnement du navigateur
+            donne la hauteur ; le geste attendu pour la largeur est de tirer la
+            barre entre la liste et le fil, là où l'oeil la voit. Elle se prend
+            aussi au clavier, ce que le coin ne permet pas. */}
+        <PoigneeRail />
 
         {ouvert ? (
           <div id="desk-messages-fil" className={styles.thread}>
@@ -544,7 +549,7 @@ export default async function MessagesPage({
             />
           </div>
         ) : (
-          <div className={styles.thread}>
+          <div id="desk-messages-fil" className={styles.thread}>
             <div className="empty">{t("Choisissez un échange.")}</div>
           </div>
         )}

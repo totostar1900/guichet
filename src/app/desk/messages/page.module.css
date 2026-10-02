@@ -3,7 +3,9 @@
    changerait rien et le geste serait une promesse en l'air. */
 .layout {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  /* Trois colonnes : la liste, la poignée qui les sépare, et le fil. La poignée
+     est un élément de la grille plutôt qu une bordure, parce qu on la tire. */
+  grid-template-columns: auto auto minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
@@ -16,7 +18,7 @@
   gap: 4px;
   width: 320px;
   min-width: 200px;
-  max-width: 560px;
+  max-width: 720px;
   height: calc(100vh - 220px);
   min-height: 220px;
   overflow: auto;
@@ -201,7 +203,11 @@
     grid-template-columns: 1fr;
   }
   /* Sur un écran étroit la place est comptée et il n'y a rien à répartir : les
-     deux panneaux reprennent toute la largeur, et la poignée s'efface. */
+     deux panneaux reprennent toute la largeur, et la poignée s'efface pour de
+     bon : une séparation à tirer entre deux blocs empilés ne sépare rien. */
+  :global(.poignee-rail) {
+    display: none;
+  }
   .list,
   .thread {
     width: auto;
@@ -427,13 +433,6 @@
   text-decoration: none;
   color: inherit;
 }
-.coche {
-  align-self: center;
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  accent-color: var(--select);
-}
 /* Les gestes restent discrets au repos et se révèlent à l'approche. Ils gardent
    leur place en largeur, pour que rien ne bouge quand ils apparaissent : c'est
    la même règle que la gouttière de défilement. */
@@ -475,7 +474,8 @@
   border-color: var(--gold-line);
   background: var(--gold-soft);
 }
-/* Le bandeau du lot : il ne paraît que lorsqu'il y a des fils à cocher. */
+/* La barre au-dessus de la liste : le choix de la vue, et le réglage des
+   colonnes. */
 .lot {
   display: flex;
   align-items: center;
@@ -694,4 +694,107 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
+}
+
+/* ── Les chevrons de l'accordéon ─────────────────────────────────────────────
+   Un <summary> en « display: flex » perd le triangle natif du navigateur, et
+   l'accordéon se présentait alors sans aucun signe qu'il s'ouvre. Le chevron est
+   redessiné à la main et tourne à l'ouverture, ce que le triangle natif faisait
+   et que personne ne remarque tant qu'il est là. */
+.pliTete {
+  list-style: none;
+}
+.pliTete::-webkit-details-marker {
+  display: none;
+}
+.pliTete::before {
+  content: "";
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-right: var(--s-1);
+  border-right: 2px solid var(--ink-3);
+  border-bottom: 2px solid var(--ink-3);
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+.pli[open] > .pliTete::before {
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pliTete::before {
+    transition: none;
+  }
+}
+
+/* ── Les colonnes du rail ────────────────────────────────────────────────────
+   Le serveur rend tout, le navigateur cache ce que le réglage n'a pas retenu :
+   rien ne se recalcule, la liste ne clignote pas, et une colonne retirée revient
+   d'un clic sans rien aller rechercher.
+   Sans l'attribut, tout paraît : la page sans JavaScript montre la ligne
+   entière, ce qui est le bon défaut. */
+.list[data-colonnes]:not([data-colonnes~="date"]) .colDate,
+.list[data-colonnes]:not([data-colonnes~="canal"]) .colCanal,
+.list[data-colonnes]:not([data-colonnes~="etiquettes"]) .colEtiquettes,
+.list[data-colonnes]:not([data-colonnes~="apercu"]) .colApercu,
+.list[data-colonnes]:not([data-colonnes~="nonlus"]) .colNonlus,
+.list[data-colonnes]:not([data-colonnes~="gestes"]) .colGestes {
+  display: none;
+}
+
+/* ── La poignée entre les deux panneaux ──────────────────────────────────────
+   Six pixels de large, discrète au repos, franche sous la main. Le pointeur dit
+   ce qu'elle fait avant qu'on la touche. */
+:global(.poignee-rail) {
+  width: 6px;
+  align-self: stretch;
+  min-height: 120px;
+  border-radius: 3px;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+:global(.poignee-rail):hover,
+:global(.poignee-rail):focus-visible {
+  background: var(--line-2);
+  outline: none;
+}
+:global(.poignee-rail):focus-visible {
+  box-shadow: 0 0 0 2px var(--select);
+}
+
+/* Le réglage des colonnes : une petite feuille, repliée par défaut. */
+:global(.colonnes) {
+  position: relative;
+}
+:global(.colonnes) > summary {
+  list-style: none;
+  cursor: pointer;
+}
+:global(.colonnes) > summary::-webkit-details-marker {
+  display: none;
+}
+:global(.colonnes-liste) {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + var(--s-2));
+  left: 0;
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-5) var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow, 0 10px 30px rgba(11, 37, 69, 0.14));
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+:global(.colonnes-liste) label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  cursor: pointer;
+}
+:global(.colonnes-liste) input {
+  accent-color: var(--select);
 }
