@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
+import type { Temoignage } from "@/lib/domain/temoignage";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
@@ -104,6 +105,7 @@ interface Store {
   cash: CashEntry[];
   payouts: CashPayout[];
   rapprochements: Rapprochement[];
+  temoignages: Temoignage[];
   standing: StandingOrder[];
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
   avisGarde: AvisGarde[];
@@ -170,6 +172,7 @@ function store(): Store {
       cash: [],
       payouts: [],
       rapprochements: [],
+      temoignages: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
       versions: [],
@@ -578,6 +581,21 @@ export const memoryRepository: Repository = {
     store().cash.push(row);
     return structuredClone(row);
   },
+  async listTemoignages(q) {
+    const rows = store().temoignages.filter((x) => !q?.userId || x.userId === q.userId);
+    return structuredClone([...rows].sort((a, b) => b.at.localeCompare(a.at)));
+  },
+  async direLeFlux(t) {
+    /* Une seule déclaration vivante par échéance : la nouvelle remplace, comme
+       l'index d'unicité le fait en base. */
+    const s2 = store();
+    const i = s2.temoignages.findIndex((x) => x.userId === t.userId && x.flowKey === t.flowKey);
+    const row: Temoignage = { ...structuredClone(t), id: i >= 0 ? s2.temoignages[i].id : `temoin-${s2.temoignages.length + 1}`, at: nowIso() };
+    if (i >= 0) s2.temoignages[i] = row;
+    else s2.temoignages.push(row);
+    return structuredClone(row);
+  },
+
   async listRapprochements(limit = 40) {
     return structuredClone([...store().rapprochements].sort((a, b) => b.onDate.localeCompare(a.onDate)).slice(0, limit));
   },

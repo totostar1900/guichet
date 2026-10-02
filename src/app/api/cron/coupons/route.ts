@@ -34,7 +34,11 @@ export async function GET(req: NextRequest) {
     if (!c) continue;
     const o = u.position.offer;
     const what = u.flow.label === "Coupon" ? "coupon" : u.flow.label === "Remboursement" ? "remboursement" : "coupon et remboursement du capital";
-    const text = `${COMPANY.name} : ${u.inDays === 0 ? "aujourd'hui" : "dans 3 jours"} : ${what} de ${fmt(u.flow.amount)} FCFA brut sur ${o.title} (${o.isin}), ${fmt(u.position.units)} ${u.position.unitWord}. Le règlement par l'émetteur est attendu le ${fmtDate(u.flow.date)} ; nous vous le confirmons par un avis dès qu'il est constaté.`;
+    /* Le jour même, et pas trois jours avant : inviter à témoigner d'un crédit
+       qui n'a pas encore pu arriver ferait répondre « rien reçu » à tout le
+       monde, et noierait le signal qu'on vient chercher. */
+    const temoigner = u.inDays === 0 ? " Si votre compte-titres est tenu ailleurs, vous êtes le seul à voir ce crédit : dites-le dans le Guichet, et le desk va chercher la pièce." : "";
+    const text = `${COMPANY.name} : ${u.inDays === 0 ? "aujourd'hui" : "dans 3 jours"} : ${what} de ${fmt(u.flow.amount)} FCFA brut sur ${o.title} (${o.isin}), ${fmt(u.position.units)} ${u.position.unitWord}. Le règlement par l'émetteur est attendu le ${fmtDate(u.flow.date)} ; nous vous le confirmons par un avis dès qu'il est constaté.${temoigner}`;
     const target: { channel: NotifyChannel; to: string } | undefined = c.phone && c.whatsappOptIn ? { channel: "whatsapp", to: c.phone } : c.email ? { channel: "email", to: c.email } : undefined;
     if (!target) continue;
     const row = await r.createNotification({ kind: "results", channel: target.channel, to: target.to, contactName: c.name, subject: key, body: text, intentId: u.position.intent.id, offerId: o.id, status: "queued" });

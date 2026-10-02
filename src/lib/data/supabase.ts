@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
+import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
@@ -438,6 +439,27 @@ const toCash = (r: CashRow): CashEntry => ({
   feePeriod: u(r.fee_period),
   evidence: u(r.evidence),
   expected: r.expected == null ? undefined : Number(r.expected),
+});
+
+type TemoinRow = {
+  id: string;
+  user_id: string;
+  flow_key: string;
+  said: Temoignage["said"];
+  said_amount: string | number | null;
+  said_on: string | null;
+  note: string | null;
+  at: string;
+};
+const toTemoin = (r: TemoinRow): Temoignage => ({
+  id: r.id,
+  userId: r.user_id,
+  flowKey: r.flow_key,
+  said: r.said,
+  saidAmount: r.said_amount == null ? undefined : Number(r.said_amount),
+  saidOn: u(r.said_on),
+  note: u(r.note),
+  at: r.at,
 });
 
 type RapproRow = {
@@ -1288,6 +1310,33 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("client_cash").insert(row).select("*").single();
     if (error) fail("addCash", error);
     return toCash(data);
+  },
+
+  async listTemoignages(q) {
+    let sel = db().from("flow_reports").select("*").order("at", { ascending: false });
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    const { data, error } = await sel;
+    if (error) {
+      // Migration 0062 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/flow_reports/.test(error.message)) return [];
+      fail("listTemoignages", error);
+    }
+    return (data ?? []).map(toTemoin);
+  },
+  async direLeFlux(t) {
+    /* Une déclaration se remplace, là où un mouvement ne se corrige pas : c'est
+       un témoignage sur le monde, et quelqu'un qui relit son relevé doit pouvoir
+       se reprendre. L'index d'unicité porte le remplacement. */
+    const { data, error } = await db()
+      .from("flow_reports")
+      .upsert(
+        { user_id: t.userId, flow_key: t.flowKey, said: t.said, said_amount: t.saidAmount ?? null, said_on: t.saidOn ?? null, note: t.note ?? null, at: new Date().toISOString() },
+        { onConflict: "user_id,flow_key" },
+      )
+      .select("*")
+      .single();
+    if (error) fail("direLeFlux", error);
+    return toTemoin(data);
   },
 
   async listRapprochements(limit = 40) {

@@ -2,8 +2,10 @@ import Link from "next/link";
 import type { Position } from "@/lib/positions";
 import type { CashEntry } from "@/lib/domain/cash";
 import { bilan, suivre, type FluxSuivi, type LigneTenue } from "@/lib/domain/encaissement";
+import type { Temoignage } from "@/lib/domain/temoignage";
 import { fmt, fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
+import { DireLeFlux } from "./DireLeFlux";
 import styles from "./Reinvest.module.css";
 
 /**
@@ -41,12 +43,15 @@ import styles from "./Reinvest.module.css";
 export async function Reinvest({
   positions,
   entries = [],
+  temoignages = [],
   days = 120,
   now = new Date(),
 }: {
   positions: Position[];
   /** Le journal du client : sans lui, la bande ne sait que dire « échu ». */
   entries?: CashEntry[];
+  /** Ce que le client a déjà dit de ses échéances : sans eux, on le ferait répéter. */
+  temoignages?: Temoignage[];
   days?: number;
   now?: Date;
 }) {
@@ -90,12 +95,15 @@ export async function Reinvest({
             </small>
           </div>
           <div className={styles.acts}>
-            {/* Aucun bouton : il n'y a rien à replacer tant que rien n'est
-                arrivé, et le proposer serait mentir. */}
+            {/* Rien à replacer tant que rien n'est arrivé, et le proposer serait
+                mentir. Mais il y a quelque chose à DIRE, et c'est en dessous. */}
             <span className={styles.note}>{t("L'émetteur doit encore ces sommes, et le desk les suit.")}</span>
           </div>
         </div>
       )}
+
+      {/* Le seul témoin, quand le compte-titres est tenu ailleurs. */}
+      {attendus.length > 0 && <DireLeFlux flux={attendus.slice(0, 6)} deja={Object.fromEntries(temoignages.filter((x) => attendus.some((f) => f.cle === x.flowKey)).map((x) => [x.flowKey, x]))} />}
     </div>
   );
 }

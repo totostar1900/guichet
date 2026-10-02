@@ -6,6 +6,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
+import { fileDesAttendus } from "@/lib/domain/temoignage";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
@@ -35,7 +36,7 @@ export default async function EncaissementsPage() {
   await requireDesk("/desk/encaissements");
   const t = await getT();
   const r = repo();
-  const [intents, offers, demandes] = await Promise.all([r.listIntents(), r.listOffers(), demandesOuvertes()]);
+  const [intents, offers, demandes, temoignages] = await Promise.all([r.listIntents(), r.listOffers(), demandesOuvertes(), r.listTemoignages().catch(() => [])]);
 
   /* Les clients qui tiennent quelque chose : eux seuls ont des échéances. */
   const clients = [...new Set(intents.filter((i) => i.clientId).map((i) => i.clientId!))];
@@ -131,14 +132,15 @@ export default async function EncaissementsPage() {
                       <th>{t("Nature")}</th>
                       <th className="r">{t("Montant")}</th>
                       <th className="r">{t("Retard")}</th>
+                      <th>{t("Le client dit")}</th>
                       <th />
                     </tr>
                   </thead>
                   <tbody>
-                    {c.suivis
-                      .filter((f) => f.etat === "attendu")
-                      .sort((a, b) => (b.retardJours ?? 0) - (a.retardJours ?? 0))
-                      .map((f) => (
+                    {fileDesAttendus(
+                      c.suivis.filter((f) => f.etat === "attendu"),
+                      temoignages.filter((x) => x.userId === c.clientId),
+                    ).map(({ flux: f, temoignage, priorite }) => (
                         <tr key={f.cle}>
                           <td>{fmtDate(f.date)}</td>
                           <td>{f.titre}</td>
@@ -149,6 +151,21 @@ export default async function EncaissementsPage() {
                           <td className="r">
                             {/* Au-delà d'un mois, ce n'est plus un délai de place. */}
                             <span className={(f.retardJours ?? 0) > 30 ? "st annulee" : "st transmise"}>{t("{n} jours", { n: f.retardJours ?? 0 })}</span>
+                          </td>
+                          <td>
+                            {/* Un montant contesté passe devant tout le reste : il se
+                                serait constaté sans bruit, puisque l'opérateur qui
+                                confirme la somme attendue aurait l'air d'avoir raison. */}
+                            {priorite === "conteste" ? (
+                              <span className="st annulee">{t("reçu {m}", { m: fmt(Math.round(temoignage?.saidAmount ?? 0)) })}</span>
+                            ) : priorite === "nie" ? (
+                              <span className="st annulee">{t("rien reçu")}</span>
+                            ) : priorite === "confirme" ? (
+                              <span className="st reglee">{temoignage?.saidOn ? t("reçu le {d}", { d: fmtDate(temoignage.saidOn) }) : t("reçu")}</span>
+                            ) : (
+                              <span className="muted">—</span>
+                            )}
+                            {temoignage?.note && <small className="muted"> {temoignage.note}</small>}
                           </td>
                           <td>
                             <Encaisser userId={c.clientId} flux={{ cle: f.cle, amount: f.amount, label: f.label, date: f.date, titre: f.titre }} />

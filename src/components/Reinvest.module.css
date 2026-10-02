@@ -52,3 +52,116 @@
   font-size: 0.74rem;
   color: var(--ink-3);
 }
+
+/* Donner la parole au seul témoin. La bande disait « aucun bouton » : c'était
+   vrai pour replacer, faux pour dire. */
+.dire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-6) var(--s-6);
+  border-top: 1px solid var(--line);
+}
+.direIntro {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+  max-width: 78ch;
+}
+.direListe {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.direListe > li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.direQuoi {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.direQuoi b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.direActs {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.direDit {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.direLien {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.direForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-3) var(--s-5);
+  max-width: 46rem;
+}
+@media (max-width: 680px) {
+  .direForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.direForm label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.direForm label span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.direForm input {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+.direNote,
+.direFoot {
+  grid-column: 1 / -1;
+}
+.direFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.direOk,
+.direKo {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-width: 78ch;
+}
+.direOk {
+  color: var(--good, #1b4d3e);
+  font-weight: 700;
+}
+.direKo {
+  color: var(--crit);
+}

@@ -2767,4 +2767,9 @@ export const EN_MORE: Record<string, string> = {
   "ex. 1 200 000 de fonds propres sur le compte Afriland, et un virement client parti le 2 non encore crédité": "e.g. 1,200,000 of own funds in the Afriland account, and a client transfer sent on the 2nd not yet credited",
   "Enregistrer le rapprochement": "Record the reconciliation",
   "Un rapprochement ne se modifie pas : on en fait un autre. C'est ce qui lui donne sa valeur.": "A reconciliation is not amended: another one is made. That is what gives it its value.",
+  "Le client dit": "The client says",
+  "reçu {m}": "received {m}",
+  "rien reçu": "received nothing",
+  "reçu le {d}": "received on {d}",
+  "reçu": "received",
 };

@@ -47,10 +47,14 @@ export async function Releve({ session: s }: { session: Session }) {
   for (const o of await Promise.all(missing.map((id) => r.getOffer(id).catch(() => undefined)))) if (o) byOffer.set(o.id, o);
   /* Le journal des espèces part avec le reste : sans lui, la bande des coupons
      ne sait dire que « échu », et c'est la question qu'elle existe pour fermer. */
-  const [myFile, watches, cash] = await Promise.all([
+  const [myFile, watches, cash, temoignages] = await Promise.all([
     r.getClientFileByUser(s.userId),
     r.listWatches(s.userId),
     r.listCash(s.userId).catch(() => []),
+    /* Ce que le client a déjà dit : sans cela, la bande lui redemanderait ce
+       qu'il vient de répondre, ce qui est la façon la plus sûre de faire taire
+       un témoin. */
+    r.listTemoignages({ userId: s.userId }).catch(() => []),
   ]);
   const followed = watches.map((w) => byOffer.get(w.offerId)).filter((o): o is NonNullable<typeof o> => Boolean(o));
   const now = new Date();
@@ -115,7 +119,7 @@ export async function Releve({ session: s }: { session: Session }) {
         </p>
       )}
       {/* Ce qui est revenu et dort : la seule décision entre l’achat et le remboursement. */}
-      <Reinvest positions={positions} entries={cash} now={now} />
+      <Reinvest positions={positions} entries={cash} temoignages={temoignages} now={now} />
 
       {/* Ce que la conservation a coûté, ouvrable ligne à ligne. Un avis à zéro
           paraît comme les autres : son absence se lirait comme un oubli. */}
