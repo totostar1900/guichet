@@ -10,6 +10,7 @@ import { fmtDateTime } from "@/lib/format";
 import { textMatch } from "@/lib/text";
 import { displayStatus, isPast } from "@/lib/domain/status";
 import { handledAction } from "./actions";
+import { modelesDuFil } from "./modeles";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -80,6 +81,22 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
      ancien, donc c'est le PREMIER « in » qu'on cherche, pas le dernier. */
   const recu = open?.msgs.find((m) => m.dir === "in");
   const dernierRecu = recu ? { at: recu.at, text: recu.text } : undefined;
+  /* LES MODÈLES DU RÉFÉRENTIEL, apportés dans la boîte aux lettres.
+     L'ordre le plus récent de ce contact donne {ref} et {ligne}, et son état met
+     en tête les modèles que cette situation appelle. Sans ordre, la liste
+     entière reste là : un client écrit souvent avant d'en avoir passé un. */
+  const sien = open
+    ? intents
+        .filter((i) => (open.channel === "whatsapp" ? i.contactPhone === open.key : i.contactEmail === open.key))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+    : undefined;
+  const modeles = open
+    ? await modelesDuFil(sien?.state, {
+        client: open.name ?? "",
+        ref: sien?.ref ?? "",
+        ligne: sien ? (offers.find((o) => o.id === sien.offerId)?.title ?? "") : "",
+      })
+    : [];
 
   return (
     <>
@@ -218,6 +235,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
               name={open.name}
               lines={lines}
               dernierRecu={dernierRecu}
+              modeles={modeles}
               deskName={desk.name}
               appUrl={process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}
               from={process.env.EMAIL_FROM ?? ""}

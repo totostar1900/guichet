@@ -8,6 +8,7 @@ import { repo } from "@/lib/data";
 import { emailConfigured, sendEmail, sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
 import { signLineLink } from "@/lib/channels";
 import { texteExact, type Ligne } from "./message-exact";
+import { refusDePiece } from "./piece-jointe";
 
 /**
  * UN COURRIEL A UN OBJET, et le serveur l'exige aussi.
@@ -37,6 +38,21 @@ export async function replyAction(_prev: { ok: boolean; error?: string; at?: str
     return { ok: false, error: sansObjet ? "Un courriel a un objet : écrivez-en un." : "Écrivez un message." };
   }
   const { to, channel, body, subject, name, offerId } = p.data;
+
+  /* LA PIÈCE JOINTE, par courriel seulement.
+     Elle est lue ici et passée telle quelle au fournisseur : aucune escale par
+     le dépôt, parce que garder une copie de chaque envoi remplirait un dépôt
+     déjà étroit pour un fichier que le desk vient de choisir. Le refus est dit
+     en toutes lettres plutôt que découvert sous la forme d'un « échec
+     d'envoi » venu du fournisseur. */
+  const choisie = form.get("piece");
+  const piece = choisie instanceof File && choisie.size > 0 ? choisie : undefined;
+  if (piece) {
+    if (channel !== "email") return { ok: false, error: "Une pièce jointe part par courriel. Sur WhatsApp, envoyez le lien." };
+    const refus = refusDePiece(piece.name, piece.size);
+    if (refus) return { ok: false, error: refus };
+  }
+
   const r = repo();
   // « Répondre avec la ligne » : the fiche, and on WhatsApp a link that vouches for the number.
   let ligne: Ligne | undefined;
@@ -58,13 +74,16 @@ export async function replyAction(_prev: { ok: boolean; error?: string; at?: str
     return { ok: false, error: `Message préparé mais non envoyé : ${channel === "whatsapp" ? "WhatsApp" : "l'e-mail"} n'est pas encore configuré (clés à renseigner sur Vercel).` };
   }
   try {
-    const id = channel === "whatsapp" ? await sendWhatsAppText(to, text) : await sendEmail(to, subject ?? "", `<p>${text.replace(/\n/g, "<br>")}</p>`, text);
+    const jointes = piece ? [{ filename: piece.name, content: new Uint8Array(await piece.arrayBuffer()) }] : [];
+    const id = channel === "whatsapp" ? await sendWhatsAppText(to, text) : await sendEmail(to, subject ?? "", `<p>${text.replace(/\n/g, "<br>")}</p>`, text, jointes);
     await r.updateNotification(row.id, { status: "sent", providerId: id, sentAt: new Date().toISOString() });
   } catch (e) {
     await r.updateNotification(row.id, { status: "failed", error: e instanceof Error ? e.message : "échec d'envoi" });
     return { ok: false, error: `Échec d'envoi : ${e instanceof Error ? e.message : "erreur"}` };
   }
-  await audit("message.reply", "contact", to, { after: { channel, chars: text.length, offerId }, actor: desk.name });
+  /* Le journal nomme la pièce : les octets ne sont gardés nulle part, donc
+     c'est ici seulement qu'on saura ce qui est parti avec le message. */
+  await audit("message.reply", "contact", to, { after: { channel, chars: text.length, offerId, piece: piece ? { nom: piece.name, octets: piece.size } : undefined }, actor: desk.name });
   /* Le message envoye reparait dans le fil : c est la confirmation, meilleure
      qu une etiquette qui passe. */
   revalidatePath("/desk/messages");

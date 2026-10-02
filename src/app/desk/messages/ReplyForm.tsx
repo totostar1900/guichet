@@ -8,6 +8,8 @@ import { replyAction } from "./actions";
 import { garderBrouillon, lireBrouillon, oublierBrouillon, VIDE, type Brouillon } from "./brouillon";
 import { fenetreWhatsApp } from "./fenetre";
 import { blocLigne, citation, signature, type Ligne } from "./message-exact";
+import type { ModeleDuFil } from "./modeles";
+import { refusDePiece, taillePiece } from "./piece-jointe";
 import styles from "./page.module.css";
 
 export type DernierRecu = { at: string; text: string };
@@ -78,6 +80,7 @@ export function ReplyForm({
   appUrl,
   from,
   dernierRecu,
+  modeles,
 }: {
   to: string;
   channel: "whatsapp" | "email";
@@ -91,6 +94,8 @@ export function ReplyForm({
   from: string;
   /** Le dernier message venu du client : il ouvre la fenêtre, et il se cite. */
   dernierRecu?: DernierRecu;
+  /** Les modèles du Référentiel, déjà remplis avec l'ordre de ce contact. */
+  modeles?: ModeleDuFil[];
 }) {
   /* L'ACTION EST ENVELOPPÉE POUR OUBLIER LE BROUILLON.
      Il faut l'effacer après un envoi réussi, sinon le remontage le restaure et
@@ -136,6 +141,7 @@ export function ReplyForm({
         appUrl={appUrl}
         from={from}
         dernierRecu={dernierRecu}
+        modeles={modeles ?? []}
         monte={monte}
         formId={formId}
         pending={pending}
@@ -154,6 +160,7 @@ function Champs({
   appUrl,
   from,
   dernierRecu,
+  modeles,
   monte,
   formId,
   pending,
@@ -167,6 +174,7 @@ function Champs({
   appUrl: string;
   from: string;
   dernierRecu?: DernierRecu;
+  modeles: ModeleDuFil[];
   monte: boolean;
   formId: string;
   pending: boolean;
@@ -182,9 +190,18 @@ function Champs({
   const [body, setBody] = useState(garde.body);
   const [offerId, setOfferId] = useState(garde.offerId);
   const [garde0, setGarde0] = useState(Boolean(garde.body || garde.subject));
+  /* La pièce n'entre pas dans le brouillon : un navigateur ne laisse pas
+     repeupler un champ de fichier, et garder un chemin qui ne se rouvre pas
+     serait une promesse en l'air. Elle se rechoisit, et l'aperçu la nomme. */
+  const [piece, setPiece] = useState<{ nom: string; octets: number } | null>(null);
+  const [refusPiece, setRefusPiece] = useState<string | undefined>(undefined);
 
   const parMail = channel === "email";
-  const manque = !body.trim() || (parMail && !subject.trim());
+  /* UN {champ} NON REMPLI NE PART PAS. Les modèles qui demandent quelque chose
+     laissent {precision} en place : elle appartient à l'opérateur, et partie
+     telle quelle l'accolade arrive chez le client. */
+  const trou = body.match(/\{[a-z_]+\}/)?.[0];
+  const manque = !body.trim() || (parMail && !subject.trim()) || Boolean(trou) || Boolean(refusPiece);
   const choisie = lines.find((l) => l.id === offerId);
 
   /* Chaque frappe garde le fil en cours. L'écriture se fait dans le geste, pas
@@ -217,6 +234,21 @@ function Champs({
     noter({ body: neuf });
   };
 
+  /* Un modèle s'AJOUTE au lieu de remplacer : remplacer effacerait ce qui vient
+     d'être tapé, et personne ne s'y attend quand on cherchait la bonne formule. */
+  const poserModele = (key: string) => {
+    const m = modeles.find((x) => x.key === key);
+    if (!m) return;
+    const neuf = `${body.trimEnd()}${body.trim() ? "\n\n" : ""}${m.texte}`;
+    setBody(neuf);
+    noter({ body: neuf });
+  };
+
+  const choisirPiece = (f: File | null) => {
+    setPiece(f ? { nom: f.name, octets: f.size } : null);
+    setRefusPiece(f ? refusDePiece(f.name, f.size) : undefined);
+  };
+
   const relecture = [
     // « À : {qui} » serait une clef à trou de trois lettres, qui ne porte aucun
     // sens pour qui traduit. Le mot se traduit seul, la ponctuation est du texte.
@@ -242,6 +274,7 @@ function Champs({
       <p className={styles.relireVotre}>{body.trim()}</p>
       {ajoute && <p className={styles.relireAjoute}>{ajoute}</p>}
       <p className={styles.relireSignature}>{signature(deskName)}</p>
+      {piece && !refusPiece && <p className={styles.relirePiece}>{t("Pièce jointe : {n} · {t}", { n: piece.nom, t: taillePiece(piece.octets) })}</p>}
       <p className={styles.relirePied}>
         {t("Rien ne s'ajoute autour : le message part avec ce texte seul.")}
         {!parMail && choisie ? ` ${t("Le lien emportera en plus une marque qui reconnaît ce numéro.")}` : ""}
@@ -302,17 +335,26 @@ function Champs({
         </label>
       )}
       <div className={styles.outils}>
+        {modeles.length > 0 && <Select name="modele" value="" onChange={poserModele} options={[{ value: "", label: t("Modèle") }, ...modeles.map((m) => ({ value: m.key, label: m.label }))]} />}
         {dernierRecu && (
           <button type="button" className="btn sm ghost" onClick={citer}>
             {t("Citer")}
           </button>
+        )}
+        {parMail && (
+          <label className={styles.joindre}>
+            <span className="btn sm ghost">{piece ? `${piece.nom} · ${taillePiece(piece.octets)}` : t("Joindre")}</span>
+            <input type="file" name="piece" onChange={(e) => choisirPiece(e.target.files?.[0] ?? null)} />
+          </label>
         )}
         <span className={styles.outilsVide} />
         {garde0 && <small className="muted">{t("brouillon gardé")}</small>}
       </div>
       <div className={styles.replyRow}>
         {erreur && <span className={styles.err}>{erreur}</span>}
-        {manque && <small className="muted">{t(parMail ? "Un objet et un message sont nécessaires." : "Un message est nécessaire.")}</small>}
+        {refusPiece && <span className={styles.err}>{refusPiece}</span>}
+        {!refusPiece && trou && <small className="muted">{t("Remplacez {c} avant d'envoyer.", { c: trou })}</small>}
+        {!refusPiece && !trou && manque && <small className="muted">{t(parMail ? "Un objet et un message sont nécessaires." : "Un message est nécessaire.")}</small>}
         <ConfirmPublish
           form={formId}
           label={parMail ? t("Envoyer l'e-mail") : t("Envoyer sur WhatsApp")}

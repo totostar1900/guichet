@@ -39,25 +39,22 @@ import { describe, expect, it } from "vitest";
  */
 const SURVEILLES = ["src"];
 
-/**
- * Une chaîne qui ressemble à du français : un accent, ou un mot-outil courant.
+/*
+ * PLUS DE DÉTECTEUR : TOUTE chaîne passée à t() doit être au dictionnaire.
  *
- * « il y a 3 mois » n'a ni l'un ni l'autre, et le contrôle l'a laissée passer :
- * l'écran rendait « il y a 3 months », le traducteur découpant la phrase pour
- * traduire ce qu'il reconnaît. Les marqueurs ajoutés ne sont pas des mots
- * anglais, ce qui est la seule condition pour qu'ils n'appellent pas à tort.
+ * Il y en avait un, qui cherchait un accent ou un mot-outil courant, et son
+ * histoire disait déjà ce qu'il valait : rustine pour « il y a 3 mois », puis
+ * rustine le 29 septembre 2026 pour « Ouvrir un compte-titres », qui était le
+ * bouton principal de l'accueil. Troisième échec le 2 octobre 2026, avec
+ * « Citer », « Joindre » et « Remplacez {c} avant d'envoyer. ». Une
+ * approximation qu'on rapetasse trois fois n'est pas une règle.
+ *
+ * La règle sûre n'a pas d'angle mort, et son coût d'entrée était nul : mesure
+ * faite, il restait vingt-six chaînes inconnues dans tout le dépôt, toutes
+ * traduites le même jour. Les mots identiques dans les deux langues s'inscrivent
+ * sur eux-mêmes (« FCFA » : « FCFA »), ce qui est leur traduction, et évite une
+ * liste d'exceptions qu'il faudrait tenir à côté du dictionnaire.
  */
-const duFrancais = (s: string) =>
-  /[àâäéèêëîïôöùûüçœ]/i.test(s) ||
-  /\b(le|la|les|des|une|qui|que|pour|dans|sur|avec|sans|plus|entre|chaque|tous|toutes)\b/i.test(s) ||
-  /\b(il y a|aucun|aucune|ans|mois|jours|selon|depuis|vers|leur|leurs|cette|cet|ces|son|ses|nous|vous)\b/i.test(s) ||
-  /* Troisième passe, ajoutée le 29 septembre 2026. « Ouvrir un compte-titres »
-     n'a ni accent ni aucun des mots ci-dessus, et s'affichait en français sur
-     l'écran anglais du nouvel accueil : c'était le bouton principal de la page.
-     Ces articles et auxiliaires sont ce qui manquait, et aucun n'est un mot
-     anglais, ce qui reste la seule condition pour qu'ils n'appellent pas à
-     tort. */
-  /\b(un|du|au|aux|et|ni|est|sont|ne|pas|votre|vos|notre|nos|mon|ma|mes)\b/i.test(s);
 
 const fichiers = (cible: string): string[] => {
   const racine = path.join(process.cwd(), cible);
@@ -107,7 +104,7 @@ describe("le français sans anglais", () => {
     expect(SURVEILLES.flatMap(fichiers).length).toBeGreaterThan(400);
   });
 
-  it.each(SURVEILLES)("ne laisse aucune chaîne française sans traduction dans %s", (cible) => {
+  it.each(SURVEILLES)("ne laisse aucune chaîne sans traduction dans %s", (cible) => {
     const trous: string[] = [];
     for (const f of fichiers(cible)) {
       const s = readFileSync(f, "utf8");
@@ -118,10 +115,10 @@ describe("le français sans anglais", () => {
         } catch {
           continue;
         }
-        if (connues.has(clef) || !duFrancais(clef)) continue;
+        if (connues.has(clef)) continue;
         trous.push(`${path.relative(process.cwd(), f)}:${s.slice(0, m.index).split("\n").length} · ${clef.slice(0, 70)}`);
       }
     }
-    expect(trous, `ces chaînes ressortiraient en français dans la version anglaise :\n  ${trous.join("\n  ")}`).toEqual([]);
+    expect(trous, `ces chaînes ressortiraient telles quelles dans la version anglaise ; un mot identique dans les deux langues s'inscrit sur lui-même :\n  ${trous.join("\n  ")}`).toEqual([]);
   });
 });

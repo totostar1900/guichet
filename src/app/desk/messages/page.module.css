@@ -345,3 +345,28 @@
 .outilsVide {
   flex-grow: 1;
 }
+/* « Joindre » : un vrai champ de fichier, caché derrière son étiquette, pour que
+   le clavier et le lecteur d'écran le trouvent comme n'importe quel champ. */
+.joindre {
+  position: relative;
+  display: inline-flex;
+}
+.joindre input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.joindre:focus-within span {
+  outline: 2px solid var(--select);
+  outline-offset: 2px;
+}
+/* La pièce, nommée dans l'aperçu : elle part avec le message, elle se relit avec. */
+.relirePiece {
+  margin: 0;
+  padding: 0 var(--s-7) var(--s-7);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
