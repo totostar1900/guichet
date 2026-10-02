@@ -8,7 +8,7 @@ import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
-import { equivalence, estimate, surveyTrio } from "@/lib/domain/estimate";
+import { equivalence, estimate, marketEstimate, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
 import { orderChecks } from "@/lib/domain/checks";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
@@ -62,36 +62,6 @@ function qtyForCash(o: Offer, type: IntentType, cash: number, limit: number | nu
   if (!cash || p <= 0) return 0;
   const lot = o.lotSize && o.lotSize > 0 ? o.lotSize : 1;
   return Math.floor(cash / p / lot) * lot;
-}
-
-/**
- * Marché secondaire : comment le total se compose, et non un second total.
- *
- * La phrase annonçait « = 990 000 FCFA à décaisser » juste sous un total de
- * 1 009 466 : deux chiffres, tous deux présentés comme la somme à payer, et
- * rien pour dire lequel croire. Le premier oubliait le coupon couru, qui
- * s'achète avec le titre. Le total a sa ligne au-dessus ; celle-ci dit
- * seulement d'où il vient.
- */
-function marketEstimate(o: Offer, qty: number, type: IntentType, limit: number | null): string {
-  if (!qty) return "Indiquez une quantité pour voir l'estimation au cours de référence.";
-  const isBond = o.instrument === "obligation";
-  const ref = limit ?? (type === "vente" ? (o.bid ?? o.lastPrice ?? 0) : (o.ask ?? o.lastPrice ?? 0));
-  if (o.lotSize && qty < o.lotSize) return `Quantité minimale : ${o.lotSize}.`;
-  if (!isBond) return `${fmt(qty)} actions × ${fmt(ref)} FCFA · prix d'exécution selon le marché`;
-  const principal = (qty * o.nominal * ref) / 100;
-  const r = marketBondCalc(o, qty * o.nominal, ref);
-  const accrued = r?.accruedDays ? ` · + ${fmt(Math.round(r.accrued))} FCFA de coupon couru` : "";
-  return `${fmt(qty)} titres × ${ref} % = ${fmt(Math.round(principal))} FCFA de principal${accrued} · prix d'exécution selon le marché`;
-}
-
-/** Fund redemption: the amount field is a number of units. */
-function redemptionEstimate(o: Offer, units: number): string {
-  if (!o.fund) return "";
-  if (!units) return "Indiquez un nombre de parts pour voir l'estimation à la dernière VL.";
-  const gross = units * o.fund.nav;
-  const fee = gross * (o.fund.exitFeePct / 100);
-  return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
 }
 
 /** Un fonds que le client peut viser depuis celui-ci : la page les a déjà filtrés. */

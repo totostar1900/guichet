@@ -130,6 +130,32 @@ function toEnglish(s: string, depth = 0): string {
   return s.replace(DATE_TOKEN, (m) => DATE_EN[m] ?? m);
 }
 
+/**
+ * LE DICTIONNAIRE COUVRE-T-IL CE MORCEAU DE PHRASE ?
+ *
+ * Les estimations ne sont pas des littéraux : elles se composent avec des
+ * chiffres, puis traversent t() sous forme de variable. Le scanner de clefs ne
+ * peut donc pas les voir, et elles sont restées en français dans une interface
+ * anglaise sans que rien ne le signale.
+ *
+ * La question posée ici est une couverture, et non une ressemblance. « Cette
+ * phrase a-t-elle l'air française » est un détecteur, et ce détecteur-là a
+ * déjà échoué deux fois dans ce dépôt ; « le dictionnaire connaît-il cette
+ * clef » est un fait. Un segment identique dans les deux langues, « 995 500
+ * FCFA », répond donc non, et c'est à l'appelant de dire qu'il est neutre.
+ *
+ * On ne regarde ici ni le découpage par séparateurs ni le rattrapage des dates :
+ * ils rendent une phrase lisible sans qu'aucune entrée ne la nomme, et c'est
+ * précisément ce qu'on veut pouvoir distinguer.
+ */
+export function translatable(s: string): boolean {
+  const t = s.trim();
+  if (!t) return true;
+  if (EN[t] != null || EN[`${t}.`] != null) return true;
+  if (TEMPLATES.some((x) => x.re.test(t))) return true;
+  return lowerIndex()[t.toLowerCase()] != null;
+}
+
 export function translate(lang: Lang, s: string, params?: Record<string, string | number>): string {
   let out = lang === "en" ? toEnglish(s) : s;
   if (params) for (const [k, v] of Object.entries(params)) out = out.split(`{${k}}`).join(String(v));
