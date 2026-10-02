@@ -88,7 +88,7 @@ export const PASSAGES: Partial<Record<TemplateScope, PassageDef[]>> = {
     P("signatures", "Lignes de signature", "sous les deux cases", "libre", [], "Le Mandant : « bon pour mandat », date et signature · Le Mandataire : « bon pour acceptation », date et signature", "The Principal: “approved as mandate”, date and signature · The Agent: “accepted”, date and signature"),
   ],
   coupon: [
-    P("paiement", "Paiement", "le paragraphe sous le tableau", "relu", ["banque", "rib", "prochain"], "Le montant a été réglé par l'émetteur via le dépositaire et crédité sur votre compte de règlement ({banque}, RIB se terminant par {rib}). Prochain flux : {prochain}.", "The amount was paid by the issuer through the custodian and credited to your settlement account ({banque}, account ending {rib}). Next flow: {prochain}."),
+    P("paiement", "Paiement", "le paragraphe sous le tableau", "relu", ["banque", "rib", "prochain"], "Ce montant a été réglé par l'émetteur à la date portée ci-dessus, d'après l'avis du teneur de compte, pour crédit de votre compte de règlement ({banque}, RIB se terminant par {rib}). Prochain flux : {prochain}.", "This amount was paid by the issuer on the date shown above, according to the account keeper's advice, for credit to your settlement account ({banque}, account ending {rib}). Next flow: {prochain}."),
     P("reserve", "Réserve", "la note au pied", "relu", [], "Montants bruts, sous réserve du paiement effectif par l'émetteur ; la fiscalité applicable est celle du titre. Cet avis ne vaut pas relevé de position.", "Gross amounts, subject to actual payment by the issuer; the tax treatment is that of the security. This notice is not a statement of position."),
   ],
   reclamation: [

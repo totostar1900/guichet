@@ -152,7 +152,7 @@ export function movedOn(i: Intent, o: Offer): string {
 export function linePerformance(
   offer: Offer,
   intents: Intent[],
-  position: { units: number; marketValue?: number; valuedOn?: string; paid: { date: string; amount: number; label: string }[] } | undefined,
+  position: { units: number; marketValue?: number; valuedOn?: string; echus: { date: string; amount: number; label: string }[] } | undefined,
   totalOf: (i: Intent) => number,
   today: string,
 ): { line: LinePerformance; flows: MoneyFlow[] } | null {
@@ -177,7 +177,11 @@ export function linePerformance(
   }
 
   let due = 0;
-  for (const f of position?.paid ?? []) {
+  // Un coupon echu est compte ici comme de l argent revenu, alors que seule sa
+  // date est passee. Tant que la preuve d encaissement n est pas enregistree,
+  // ce rendement est surevalue pour toute ligne dont l emetteur a paye en
+  // retard, partiellement, ou pas du tout. A reprendre avec le champ de preuve.
+  for (const f of position?.echus ?? []) {
     returned += f.amount;
     due += 1;
     flows.push({ date: f.date, amount: f.amount, label: f.label });

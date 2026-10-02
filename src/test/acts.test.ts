@@ -28,15 +28,15 @@ describe("actes et avis", () => {
     await r.updateIntent(i.id, { state: "reglee" });
     const positions = await clientPositions("c-se");
     expect(positions.length).toBe(1);
-    expect(positions[0].paid.length).toBeGreaterThan(0);
-    const flow = positions[0].paid[0];
-    const d1 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date, { advisor: "Desk Test" });
+    expect(positions[0].echus.length).toBeGreaterThan(0);
+    const flow = positions[0].echus[0];
+    const d1 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date, { advisor: "Desk Test", paidOn: flow.date });
     expect(d1.type).toBe("coupon");
     // the client's copy carries no rank; the register entry does, and stays at the desk
     expect(d1.number).toMatch(/^PC-AC-\d{6}-[23456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/);
     expect(d1.registerNo).toMatch(/^PC-AC-\d{4}-\d{4}$/);
     expect(d1.flowKey).toBe(`c-se|CM0000TEST01|${flow.date}`);
-    const d2 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date);
+    const d2 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date, { paidOn: flow.date });
     expect(d2.id).toBe(d1.id);
 
     const c = await generateComplaint("c-se", { facts: "Le coupon est arrivé en retard.", ask: "Une explication.", receivedVia: "Mon espace", signedBy: "code sur WhatsApp" });

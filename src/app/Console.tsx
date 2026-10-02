@@ -50,7 +50,7 @@ export async function Console({ session }: { session: Session }) {
   const mine = intents.filter((i) => i.clientId === session.userId);
   const positions = positionsFrom(mine, offers);
   const poche = cashPosition(cash, mine);
-  const tenues: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const tenues: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const b = bilan(suivre(tenues, cash));
 
   const services = servicesDuClient(ctx);

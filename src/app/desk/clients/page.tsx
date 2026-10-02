@@ -56,7 +56,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const mine = selected ? intents.filter((i) => i.clientId === selected.userId) : [];
   const byFlow = new Map(docs.filter((d) => d.flowKey).map((d) => [d.flowKey!, d]));
   const actPositions: ActPosition[] = selected
-    ? positionsFrom(mine, offers).map((p) => ({ isin: p.offer.isin, title: p.offer.title, units: p.units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, paid: p.paid.map((f) => ({ ...f, docNumber: byFlow.get(`${selected.userId}|${p.offer.isin}|${f.date}`)?.number, docId: byFlow.get(`${selected.userId}|${p.offer.isin}|${f.date}`)?.id })) }))
+    ? positionsFrom(mine, offers).map((p) => ({ isin: p.offer.isin, title: p.offer.title, units: p.units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, echus: p.echus.map((f) => ({ ...f, docNumber: byFlow.get(`${selected.userId}|${p.offer.isin}|${f.date}`)?.number, docId: byFlow.get(`${selected.userId}|${p.offer.isin}|${f.date}`)?.id })) }))
     : [];
   const byOffer = new Map(offers.map((o) => [o.id, o]));
   const operations: ActOperation[] = mine.filter((i) => i.state !== "annulee").slice(0, 30).map((i) => ({ ref: i.ref, label: `${i.ref} · ${byOffer.get(i.offerId)?.title ?? ""} · ${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${i.amount.toLocaleString("fr-FR")}` : ""} · ${fmtDate(i.createdAt)}` }));

@@ -9,7 +9,9 @@ import { positionsFrom, upcomingFlows } from "@/lib/positions";
 import { flushQueuedOpportunities } from "@/lib/notify/broadcast";
 
 /**
- * Coupon and redemption notices : J-3 and the day itself.
+ * Coupon and redemption reminders : J-3 and the day itself. These announce a due
+ * date, never a settlement : the notice that attests one is the desk's document,
+ * issued against a recorded settlement date.
  * Call daily (Vercel cron or any scheduler) with `Authorization: Bearer <CRON_SECRET>`.
  * Idempotent: one notification per (intent, flow date, horizon), keyed on `subject`.
  */
@@ -32,7 +34,7 @@ export async function GET(req: NextRequest) {
     if (!c) continue;
     const o = u.position.offer;
     const what = u.flow.label === "Coupon" ? "coupon" : u.flow.label === "Remboursement" ? "remboursement" : "coupon et remboursement du capital";
-    const text = `${COMPANY.name} : ${u.inDays === 0 ? "aujourd'hui" : "dans 3 jours"} : ${what} de ${fmt(u.flow.amount)} FCFA brut sur ${o.title} (${o.isin}), ${fmt(u.position.units)} ${u.position.unitWord}, payé le ${fmtDate(u.flow.date)} par l'émetteur sur votre compte de règlement.`;
+    const text = `${COMPANY.name} : ${u.inDays === 0 ? "aujourd'hui" : "dans 3 jours"} : ${what} de ${fmt(u.flow.amount)} FCFA brut sur ${o.title} (${o.isin}), ${fmt(u.position.units)} ${u.position.unitWord}. Le règlement par l'émetteur est attendu le ${fmtDate(u.flow.date)} ; nous vous le confirmons par un avis dès qu'il est constaté.`;
     const target: { channel: NotifyChannel; to: string } | undefined = c.phone && c.whatsappOptIn ? { channel: "whatsapp", to: c.phone } : c.email ? { channel: "email", to: c.email } : undefined;
     if (!target) continue;
     const row = await r.createNotification({ kind: "results", channel: target.channel, to: target.to, contactName: c.name, subject: key, body: text, intentId: u.position.intent.id, offerId: o.id, status: "queued" });

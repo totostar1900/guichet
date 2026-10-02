@@ -15,7 +15,7 @@ export interface ActPosition {
   units: number;
   unitWord: string;
   nominalAmount: number;
-  paid: { date: string; amount: number; label: string; docNumber?: string; docId?: string }[];
+  echus: { date: string; amount: number; label: string; docNumber?: string; docId?: string }[];
 }
 
 /** An intention of the client the complaint form can point at. */
@@ -60,7 +60,7 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
   const [csState, csAction, csPending] = useActionState<ActResult | null, FormData>(closureStepAction, null);
   const [rState, rAction, rPending] = useActionState<ActResult | null, FormData>(complaintDeskAction, null);
   const active = status === "approuve";
-  const pendingFlows = positions.flatMap((p) => p.paid.filter((f) => !f.docNumber).map((f) => ({ ...f, isin: p.isin, title: p.title })));
+  const pendingFlows = positions.flatMap((p) => p.echus.filter((f) => !f.docNumber).map((f) => ({ ...f, isin: p.isin, title: p.title })));
   const unsignedMandate = mandataires.filter((m) => !mandates.some((x) => x.personName === m.name && x.status !== "revoque"));
   const toggle = (k: Open) => setOpen((o) => (o === k ? "" : k));
   const chosen = flow ? pendingFlows.find((f) => f.isin === flow.isin && f.date === flow.date) : undefined;
@@ -184,7 +184,7 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
         <form action={cAction} className={styles.actForm}>
           <input type="hidden" name="clientId" value={clientId} />
           <label>
-            <span>{t("Flux payé sans avis")}</span>
+            <span>{t("Flux échu sans avis")}</span>
             <Select
               block
               name="flowPick"
@@ -202,8 +202,8 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
           <input type="hidden" name="date" value={flow?.date ?? ""} />
           <div className={styles.row3}>
             <label>
-              <span>{t("Payé le (relevé bancaire, facultatif)")}</span>
-              <input type="date" name="paidOn" />
+              <span>{t("Réglé le, d'après l'avis du teneur de compte")}</span>
+              <input type="date" name="paidOn" required />
             </label>
             <label>
               <span>{t("Envoyer par")}</span>
@@ -214,7 +214,7 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
               <input name="note" maxLength={160} placeholder={t("ex. montant net après retenue…")} />
             </label>
           </div>
-          {chosen && <p className="muted">{t("Montant brut d'après l'échéancier : {a} FCFA. Corrigez seulement si l'émetteur a payé autre chose, la note ira sur l'avis.", { a: fmt(chosen.amount) })}</p>}
+          {chosen && <p className="muted">{t("Montant brut d'après l'échéancier : {a} FCFA. L'échéancier dit ce qui était dû, l'avis du teneur de compte dit ce qui a été réglé : si les deux diffèrent, la note va sur l'avis.", { a: fmt(chosen.amount) })}</p>}
           <div className={styles.actFoot}>
             <button type="button" className="btn sm ghost" onClick={() => setOpen("")}>
               {t("Annuler")}

@@ -62,7 +62,7 @@ export default async function TraderPage() {
   const derniere = [...mine].sort((a, b2) => b2.createdAt.localeCompare(a.createdAt))[0]?.ref;
   const positions = positionsFrom(mine, offers);
   const poche = cashPosition(cash, mine);
-  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const b = bilan(suivre(lignes, cash));
   const part = positions.find((p) => p.offer.kind === "FONDS");
   const action = positions.find((p) => p.offer.kind === "ACTIONS");

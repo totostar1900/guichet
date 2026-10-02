@@ -46,7 +46,7 @@ export default async function ReinvestirPage() {
   ]);
   const mine = intents.filter((i) => i.clientId === session.userId);
   const positions = positionsFrom(mine, offers);
-  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const suivis = suivre(lignes, cash);
   const b = bilan(suivis);
   /* Le disponible est celui du journal, jamais la somme des coupons échus : un

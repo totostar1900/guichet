@@ -114,7 +114,7 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
     const lines = new Set<string>();
     for (const clientId of clients)
       for (const p of positionsFrom(intents.filter((i) => i.clientId === clientId), offers ?? (await r.listOffers())))
-        for (const f of p.paid) {
+        for (const f of p.echus) {
           if (f.date < since || done.has(`${clientId}|${p.offer.isin}|${f.date}`)) continue;
           flows++;
           who.add(clientId);

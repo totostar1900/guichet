@@ -15,8 +15,8 @@ import type { Position } from "@/lib/positions";
 
 const NOW = new Date("2026-09-29T10:00:00Z");
 
-const position = (id: string, paid: { date: string; amount: number; label: string }[]): Position =>
-  ({ intent: { id }, offer: { title: `Ligne ${id}` }, paid, flows: [] }) as unknown as Position;
+const position = (id: string, echus: { date: string; amount: number; label: string }[]): Position =>
+  ({ intent: { id }, offer: { title: `Ligne ${id}` }, echus, flows: [] }) as unknown as Position;
 
 const recu = (intentId: string, f: { date: string; amount: number; label: string }): CashEntry => ({
   id: `c-${intentId}-${f.date}`,

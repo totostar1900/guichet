@@ -59,7 +59,8 @@ export interface CouponNoticeCtx {
   contact: Contact;
   position: Position;
   flow: { date: string; amount: number; label: string };
-  paidOn?: string;
+  /** La date du reglement constate. Sans elle, l avis n existe pas. */
+  paidOn: string;
   note?: string;
   bank?: { name?: string; ribEnd?: string };
   next?: { date: string; amount: number; label: string };
@@ -82,7 +83,7 @@ export function AvisCouponPdf({ number, contact, position, flow, paidOn, note, b
         cols={[{ label: "Nature", flex: 1.4 }, { label: "Date", flex: 1.1 }, { label: "Quantité", right: true }, { label: "Nominal (FCFA)", flex: 1.3, right: true }, { label: "Taux", flex: 1 }, { label: "Montant brut (FCFA)", flex: 1.4, right: true }]}
         rows={[[flow.label, fmtDate(flow.date), `${fmt(position.units)} ${position.unitWord}`, fmt(position.nominalAmount), rate || "—", fmt(flow.amount)]]}
       />
-      {paidOn && <Text style={s.p}>Payé le {fmtDate(paidOn)}.</Text>}
+      <Text style={s.p}>Réglé le {fmtDate(paidOn)}, d'après l'avis du teneur de compte.</Text>
       {note && <Text style={s.p}>{note}</Text>}
       <Text style={s.p}>{passage("coupon", "paiement", texts, { banque: bank?.name ?? "votre banque", rib: bank?.ribEnd ?? "…", prochain: next ? `${next.label} du ${fmtDate(next.date)} (${fmt(next.amount)} FCFA)` : "aucun, ligne soldée" })}</Text>
       <Text style={s.small}>{passage("coupon", "reserve", texts)}</Text>

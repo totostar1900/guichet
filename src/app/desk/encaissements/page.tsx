@@ -45,7 +45,7 @@ export default async function EncaissementsPage() {
     const lignes: LigneTenue[] = positions.map((p) => ({
       intentId: p.intent.id,
       titre: p.offer.title,
-      echus: p.paid,
+      echus: p.echus,
       aVenir: p.flows,
     }));
     const suivis = suivre(lignes, journaux[i]);

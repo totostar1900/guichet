@@ -32,8 +32,8 @@ export async function notifyCode(f: ClientFile, code: string): Promise<"WhatsApp
 export async function notifyKycDecision(f: ClientFile, decision: "approuve" | "complements" | "refuse", details?: string): Promise<void> {
   const lines = {
     approuve: f.review.custodianAccount
-      ? `Votre compte-titres est actif : sous-compte n° ${f.review.custodianAccount} ouvert à votre nom chez le dépositaire. Vous pouvez désormais passer des prises fermes dans le Guichet. Votre convention signée est dans votre espace.`
-      : `Votre dossier est approuvé et votre convention signée est dans votre espace. Le sous-compte à votre nom est en cours d'ouverture chez le dépositaire (24 à 48 h) ; nous vous confirmons le numéro dès réception.`,
+      ? `Votre compte-titres est actif : sous-compte n° ${f.review.custodianAccount} ouvert à votre nom chez le teneur de compte. Vous pouvez désormais passer des prises fermes dans le Guichet. Votre convention signée est dans votre espace.`
+      : `Votre dossier est approuvé et votre convention signée est dans votre espace. Le sous-compte à votre nom est en cours d'ouverture chez le teneur de compte (24 à 48 h) ; nous vous confirmons le numéro dès réception.`,
     complements: `Votre dossier d'ouverture de compte a besoin de compléments : ${details ?? "voir votre espace"}. Reprenez-le dans le Guichet › Ouvrir un compte.`,
     refuse: `Nous ne pouvons pas donner suite à votre demande d'ouverture de compte${details ? ` : ${details}` : ""}. Un conseiller reste à votre disposition.`,
   } as const;

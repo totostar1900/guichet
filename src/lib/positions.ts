@@ -21,8 +21,13 @@ export interface Position {
   /** Line the client can trade out of: the same offer (secondary / fund) : where a « Vendre / Racheter » order goes. */
   exit?: { intent: "vente" | "rachat"; offerId: string };
   flows: { date: string; amount: number; label: string }[]; // future flows only
-  /** Flows whose date is behind us: coupons and redemptions the issuer should have paid. */
-  paid: { date: string; amount: number; label: string }[];
+  /**
+   * Les flux dont la date est derriere nous, et rien de plus. Ce champ s appelait
+   * « paid » : le commentaire disait bien « should have paid », mais le nom disait
+   * paye, et trois endroits l ont cru. Une echeance depassee n est pas un
+   * reglement, et seule une piece le prouve.
+   */
+  echus: { date: string; amount: number; label: string }[];
   nextFlow?: { date: string; amount: number; label: string };
   maturityOn?: string;
 }
@@ -64,9 +69,9 @@ export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date
       const p = positionFor(i, o, { pricePct: o.servedPricePct, unitsOverride: units });
       const all = p.schedule.map((f) => ({ date: localIso(f.date), amount: f.amount, label: f.label }));
       const flows = all.filter((f) => f.date >= today);
-      const paid = all.filter((f) => f.date < today);
+      const echus = all.filter((f) => f.date < today);
       const v = valuation(o, units, offers);
-      return [{ intent: i, offer: o, units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows, paid, nextFlow: flows[0], maturityOn: o.maturityOn, ...v }];
+      return [{ intent: i, offer: o, units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows, echus, nextFlow: flows[0], maturityOn: o.maturityOn, ...v }];
     })
     .sort((a, b) => (a.nextFlow?.date ?? "9999").localeCompare(b.nextFlow?.date ?? "9999"));
 }

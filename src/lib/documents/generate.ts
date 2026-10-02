@@ -187,8 +187,10 @@ export async function clientPositions(clientId: string) {
 
 export const flowKeyOf = (clientId: string, isin: string, date: string) => `${clientId}|${isin}|${date}`;
 
-/** A coupon or redemption notice for one paid flow of one position; issued once per flow (flowKey). */
-export async function generateCouponNotice(clientId: string, isin: string, flowDate: string, opts: { advisor?: string; paidOn?: string; note?: string } = {}): Promise<GeneratedDocument> {
+/** A coupon or redemption notice for one flow of one position, against the settlement date the desk recorded; issued once per flow (flowKey). */
+export async function generateCouponNotice(clientId: string, isin: string, flowDate: string, opts: { paidOn: string; advisor?: string; note?: string }): Promise<GeneratedDocument> {
+  // Un avis atteste un reglement. Sans la date constatee, il n y a rien a attester.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(opts.paidOn ?? "")) throw new Error("Date de règlement constatée requise : l'avis atteste un paiement, il ne le suppose pas.");
   const r = repo();
   const contact = await r.getContact(clientId);
   if (!contact) throw new Error("Client introuvable");
@@ -196,9 +198,9 @@ export async function generateCouponNotice(clientId: string, isin: string, flowD
   const existing = (await r.listDocuments()).find((d) => d.flowKey === flowKey);
   if (existing) return existing;
   const positions = await clientPositions(clientId);
-  const position = positions.find((p) => p.offer.isin === isin && p.paid.some((f) => f.date === flowDate));
+  const position = positions.find((p) => p.offer.isin === isin && p.echus.some((f) => f.date === flowDate));
   if (!position) throw new Error("Flux introuvable sur les positions du client");
-  const flow = position.paid.find((f) => f.date === flowDate)!;
+  const flow = position.echus.find((f) => f.date === flowDate)!;
   const file = await r.getClientFileByUser(clientId);
   const bank = file?.funds.bankAccount ? { name: file.funds.bankName, ribEnd: file.funds.bankAccount.replace(/\s/g, "").slice(-4) } : undefined;
   const now = new Date();
@@ -421,8 +423,8 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
     const intent: Intent = { id: "apercu", ref: "PF-0000-000", offerId: offer.id, offerVersion: offer.version, clientId: "apercu", clientName: contact.name, clientSegment: contact.segment, type: "ferme", amount: 5_000_000, channel: "WhatsApp", state: "reglee", createdAt: now.toISOString(), updatedAt: now.toISOString() };
     const p = positionFor(intent, offer);
     const all = p.schedule.map((f) => ({ date: f.date.toISOString().slice(0, 10), amount: f.amount, label: f.label }));
-    const position = { intent, offer, units: p.units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows: all.slice(1), paid: all.slice(0, 1), nextFlow: all[1], maturityOn: offer.maturityOn };
-    if (type === "coupon") return renderToBuffer(el(createElement(AvisCouponPdf, { number, contact, position, flow: all[0] ?? { date: now.toISOString().slice(0, 10), amount: 0, label: "Coupon" }, bank: { name: "Banque de démonstration", ribEnd: "0047" }, next: all[1], now, texts })));
+    const position = { intent, offer, units: p.units, unitWord: p.unitWord, nominalAmount: p.nominalAmount, costBasis: p.total, flows: all.slice(1), echus: all.slice(0, 1), nextFlow: all[1], maturityOn: offer.maturityOn };
+    if (type === "coupon") return renderToBuffer(el(createElement(AvisCouponPdf, { number, contact, position, flow: all[0] ?? { date: now.toISOString().slice(0, 10), amount: 0, label: "Coupon" }, paidOn: all[0]?.date ?? now.toISOString().slice(0, 10), bank: { name: "Banque de démonstration", ribEnd: "0047" }, next: all[1], now, texts })));
     return renderToBuffer(el(createElement(TransfertPdf, { number, file, closure: { scope: "tout", destination: "Société de bourse de démonstration", destinationAccount: "0000-XX", requestedAt: now.toISOString() }, positions: [position], now, texts })));
   }
   if (type === "releve" || type === "attestation") {

@@ -109,7 +109,7 @@ export async function Reinvest({
  * et que le signaler en retard ferait passer l'application pour mal informée.
  */
 export function fluxDeLaBande(positions: Position[], entries: CashEntry[], days: number, now = new Date()): { recus: FluxSuivi[]; attendus: FluxSuivi[] } {
-  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const depuis = new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
   const dans = suivre(lignes, entries, now).filter((f) => f.date >= depuis && f.amount > 0);
   return {

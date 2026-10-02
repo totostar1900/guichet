@@ -40,7 +40,7 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   const mine = intents.filter((i) => i.clientId === userId);
   const positions = positionsFrom(mine, offers);
   const poche = cashPosition(cash, mine);
-  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.paid, aVenir: p.flows }));
+  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const b = bilan(suivre(lignes, cash));
   const part = positions.find((p) => p.offer.kind === "FONDS");
   const action = positions.find((p) => p.offer.kind === "ACTIONS");

@@ -37,13 +37,13 @@ export function buildPerformanceParts(intents: Intent[], offers: Offer[], now = 
   const byId = new Map(offers.map((o) => [o.id, o]));
   const positions = positionsFrom(intents, offers, now);
 
-  const held = new Map<string, { units: number; marketValue: number; valuedOn?: string; paid: { date: string; amount: number; label: string }[] }>();
+  const held = new Map<string, { units: number; marketValue: number; valuedOn?: string; echus: { date: string; amount: number; label: string }[] }>();
   for (const p of positions) {
-    const v = held.get(p.offer.id) ?? { units: 0, marketValue: 0, valuedOn: undefined as string | undefined, paid: [] };
+    const v = held.get(p.offer.id) ?? { units: 0, marketValue: 0, valuedOn: undefined as string | undefined, echus: [] };
     v.units += p.units;
     v.marketValue += p.marketValue ?? 0;
     v.valuedOn = p.valuedOn ?? v.valuedOn;
-    v.paid.push(...p.paid);
+    v.echus.push(...p.echus);
     held.set(p.offer.id, v);
   }
 

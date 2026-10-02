@@ -82,7 +82,7 @@ export async function mandateStatusAction(_p: ActResult | null, form: FormData):
   return { ok: true, message: status === "signe" ? `Mandat signé : ${m.personName} peut passer des ordres pour ${f.identity.name}.` : "Mandat révoqué." };
 }
 
-/** One coupon / redemption notice for one paid flow, sent on the client's channel when it is proven. */
+/** One coupon / redemption notice for one flow, against a recorded settlement date; sent on the client's channel. */
 export async function couponNoticeAction(_p: ActResult | null, form: FormData): Promise<ActResult> {
   const desk = await requireDesk("/desk/clients");
   const clientId = String(form.get("clientId") ?? "");
@@ -92,6 +92,7 @@ export async function couponNoticeAction(_p: ActResult | null, form: FormData): 
   const note = String(form.get("note") ?? "").trim() || undefined;
   const send = String(form.get("send") ?? "auto");
   if (!clientId || !isin || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: "Flux incomplet." };
+  if (!paidOn) return { ok: false, error: "Indiquez la date du règlement constaté, d'après l'avis du teneur de compte. L'avis atteste un paiement : il ne se déduit pas d'une échéance passée." };
   try {
     const doc = await generateCouponNotice(clientId, isin, date, { advisor: desk.name, paidOn, note });
     const r = repo();
@@ -108,40 +109,6 @@ export async function couponNoticeAction(_p: ActResult | null, form: FormData): 
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-}
-
-/** Every paid flow without a notice, for all clients: one click from Aujourd'hui. */
-export async function couponBatchAction(): Promise<ActResult> {
-  const desk = await requireDesk("/desk");
-  const r = repo();
-  const [intents, offers, docs] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments()]);
-  const done = new Set(docs.filter((d) => d.flowKey).map((d) => d.flowKey));
-  const clients = [...new Set(intents.map((i) => i.clientId).filter((x): x is string => Boolean(x)))];
-  let issued = 0;
-  let sent = 0;
-  for (const clientId of clients) {
-    const positions = positionsFrom(intents.filter((i) => i.clientId === clientId), offers);
-    for (const p of positions)
-      for (const flow of p.paid) {
-        if (done.has(`${clientId}|${p.offer.isin}|${flow.date}`)) continue;
-        try {
-          const doc = await generateCouponNotice(clientId, p.offer.isin, flow.date, { advisor: desk.name });
-          issued++;
-          const contact = await r.getContact(clientId);
-          const channel = await preferredChannel(clientId);
-          if (contact && channel) {
-            const n = await notifyClientDocument(doc, contact, channel);
-            if (n.status !== "skipped") sent++;
-          }
-        } catch {
-          // a flow that cannot be documented is left to the file's own button
-        }
-      }
-  }
-  await r.logEvent({ kind: "desk", html: `<b>Avis de coupon</b> : ${issued} émis, ${sent} envoyés · par ${desk.name}` });
-  revalidatePath("/desk");
-  revalidatePath("/desk/clients");
-  return { ok: true, message: `${issued} avis émis, ${sent} envoyés ; les autres sont au dossier.` };
 }
 
 /** Prepares the transfer / closure order; the file waits for the signature. */
