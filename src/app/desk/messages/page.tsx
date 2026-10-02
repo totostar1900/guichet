@@ -223,30 +223,42 @@ export default async function MessagesPage({
       <Link href={lien(e.cle)} className={styles.itemLien} aria-current={ouvert?.e.cle === e.cle ? "true" : undefined}>
         <div className={styles.itemTop}>
           <b>{avecNom ? (g.name ?? g.key) : e.titre}</b>
-          {/* CHAQUE COLONNE PORTE SON NOM : le serveur les rend toutes, et la
-              CSS cache celles que le réglage n'a pas retenues. Rien ne se
-              recalcule au changement, et une colonne retirée revient d'un clic. */}
-          <small className={styles.colDate}>{fmtDateTime(e.last).split(" ")[0]}</small>
         </div>
         {avecNom && <div className={styles.itemObjet}>{e.titre}</div>}
+        {/* LA BANDE DE COLONNES. Le serveur les rend TOUTES, dans cet ordre, et
+            la feuille que pose Colonnes.tsx les range : « order » pour la place,
+            « flex-basis » pour la largeur, « display: none » pour celles qu'on ne
+            veut pas. Sans JavaScript, tout paraît dans l'ordre du document, ce
+            qui est le bon défaut.
+            « data-col » plutôt qu'une classe : les modules CSS brouillent les
+            noms de classes, et la feuille se construit côté navigateur. */}
         <div className={styles.itemBottom}>
-          <span className={`${styles.chan} ${styles.colCanal}`}>{g.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</span>
-          {e.labels.map((l) => (
-            <span key={l} className={`${styles.marque} ${styles.colEtiquettes}`}>
-              {t(motEtiquette(l))}
-            </span>
-          ))}
-          <span className={`${styles.preview} ${styles.colApercu}`}>
+          <span data-col="etiquettes" className={styles.colEtiquettes}>
+            {e.labels.map((l) => (
+              <span key={l} className={styles.marque}>
+                {t(motEtiquette(l))}
+              </span>
+            ))}
+          </span>
+          <span data-col="apercu" className={styles.preview}>
             {e.msgs[0]?.dir === "out" ? "Vous : " : ""}
             {e.msgs[0]?.text.replace(/\s+/g, " ").slice(0, 60)}
           </span>
-          {e.unread > 0 && <em className={`${styles.unread} ${styles.colNonlus}`}>{e.unread}</em>}
+          <span data-col="canal" className={styles.chan}>
+            {g.channel === "whatsapp" ? "WhatsApp" : "E-mail"}
+          </span>
+          <small data-col="date" className={styles.colDate}>
+            {fmtDateTime(e.last).split(" ")[0]}
+          </small>
+          <span data-col="nonlus" className={styles.colNonlus}>
+            {e.unread > 0 && <em className={styles.unread}>{e.unread}</em>}
+          </span>
         </div>
         {/* UNE COUPURE DEVINÉE SE DIT DEVINÉE. WhatsApp n'a pas d'objet : les
             échanges s'y séparent au silence, et c'est une estimation. */}
         {e.parLeSilence && e.msgs.length > 0 && <div className={styles.devine}>{t("séparé au silence, faute d'objet")}</div>}
       </Link>
-      <div className={`${styles.gestes} ${styles.colGestes}`}>
+      <div data-col="gestes" className={styles.gestes}>
         <button type="submit" form="g-reporter" name="cle" value={e.cle} className={styles.geste} title={estReporte(e.snoozedUntil, maintenant) ? t("Revient le {d}", { d: fmtDateTime(e.snoozedUntil ?? "") }) : t("Reporter à demain 9 h")}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />

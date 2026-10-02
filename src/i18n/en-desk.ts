@@ -2542,4 +2542,8 @@ export const EN_MORE: Record<string, string> = {
   "Gestes": "Actions",
   "Colonnes": "Columns",
   "Largeur de la liste": "List width",
+  "Largeur de {q}, en pixels": "Width of {q}, in pixels",
+  "Monter {q}": "Move {q} up",
+  "Descendre {q}": "Move {q} down",
+  "Rétablir les colonnes": "Reset the columns",
 };

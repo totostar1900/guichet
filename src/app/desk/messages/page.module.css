@@ -728,18 +728,26 @@
 }
 
 /* ── Les colonnes du rail ────────────────────────────────────────────────────
-   Le serveur rend tout, le navigateur cache ce que le réglage n'a pas retenu :
-   rien ne se recalcule, la liste ne clignote pas, et une colonne retirée revient
-   d'un clic sans rien aller rechercher.
-   Sans l'attribut, tout paraît : la page sans JavaScript montre la ligne
-   entière, ce qui est le bon défaut. */
-.list[data-colonnes]:not([data-colonnes~="date"]) .colDate,
-.list[data-colonnes]:not([data-colonnes~="canal"]) .colCanal,
-.list[data-colonnes]:not([data-colonnes~="etiquettes"]) .colEtiquettes,
-.list[data-colonnes]:not([data-colonnes~="apercu"]) .colApercu,
-.list[data-colonnes]:not([data-colonnes~="nonlus"]) .colNonlus,
-.list[data-colonnes]:not([data-colonnes~="gestes"]) .colGestes {
-  display: none;
+   Le rangement (place, largeur, présence) vient d'une petite feuille que pose
+   Colonnes.tsx, accrochée à « data-col ». Rien ici ne décide de cela : ce qui
+   suit ne donne que l'allure de chaque colonne.
+   Sans JavaScript, tout paraît dans l'ordre du document et à sa largeur
+   naturelle, ce qui est le bon défaut. */
+.itemBottom {
+  gap: var(--s-3);
+}
+.colEtiquettes {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  overflow: hidden;
+}
+.colDate,
+.colNonlus {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap;
 }
 
 /* ── La poignée entre les deux panneaux ──────────────────────────────────────
@@ -797,4 +805,25 @@
 }
 :global(.colonnes-liste) input {
   accent-color: var(--select);
+}
+/* Le panneau de réglage des colonnes : une ligne par colonne, sa présence, sa
+   largeur, et deux flèches pour la place. */
+:global(.colonnes-ligne) {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+:global(.colonnes-ligne) label {
+  flex: 1;
+  min-width: 96px;
+}
+:global(.colonnes-px) {
+  width: 64px;
+  padding: 2px var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.74rem;
 }
