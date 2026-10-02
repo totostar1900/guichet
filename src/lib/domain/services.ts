@@ -60,6 +60,15 @@ export interface ContexteClient {
   actions?: { titre: string; n: number };
   /** L'argent reçu et n'attendant aucune opération. */
   disponible: number;
+  /**
+   * Les ordres confirmés qui attendent une signature et un virement.
+   *
+   * C'est le seul endroit où le client bloque son propre ordre, et il ne
+   * figurait nulle part : ni dans la bande, ni dans le compteur.
+   */
+  aSigner: number;
+  /** Les contre-propositions en attente de son oui ou de son non. */
+  aRepondre: number;
   /** Ce qui est échu et pas encore arrivé, et depuis combien de jours. */
   attendu?: { montant: number; retardJours: number };
   /** Le réinvestissement en place, s'il l'est. */
@@ -390,8 +399,39 @@ export interface Attente {
   ton: "arrive" | "annonce" | "retard";
 }
 
+/**
+ * Ce qui attend le client, dans l'ordre où c'est possible d'y répondre.
+ *
+ * LES DEVOIRS D'ABORD, LES OCCASIONS ENSUITE. Un bulletin à signer et une
+ * contre-proposition à trancher bloquent un ordre déjà engagé : aucune séance
+ * annoncée ne vaut qu'on laisse cet ordre en plan. L'argent qui dort tient le
+ * milieu, parce qu'il est déjà arrivé.
+ *
+ * LA FONCTION REND TOUT, et c'est l'écran qui coupe. Elle coupait à trois, et
+ * le compteur comptait la liste coupée : cinq attentes s'affichaient « 3 ».
+ */
 export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string): Attente[] {
   const out: Attente[] = [];
+  if (c.aSigner > 0)
+    out.push({
+      cle: "signer",
+      quand: { key: "Votre signature" },
+      chiffre: c.aSigner > 1 ? `${c.aSigner} ordres` : "1 ordre",
+      quoi: { key: "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait." },
+      geste: "Signer",
+      href: "/",
+      ton: "retard",
+    });
+  if (c.aRepondre > 0)
+    out.push({
+      cle: "repondre",
+      quand: { key: "Votre réponse" },
+      chiffre: c.aRepondre > 1 ? `${c.aRepondre} propositions` : "1 proposition",
+      quoi: { key: "D'autres conditions vous sont proposées : c'est votre réponse qui change l'ordre." },
+      geste: "Répondre",
+      href: "/",
+      ton: "retard",
+    });
   if (c.disponible > 0)
     out.push({
       cle: "disponible",
@@ -427,5 +467,5 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       href: "/moi",
       ton: "retard",
     });
-  return out.slice(0, 3);
+  return out;
 }

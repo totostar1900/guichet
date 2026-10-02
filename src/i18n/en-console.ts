@@ -218,4 +218,9 @@ export const EN_CONSOLE: Record<string, string> = {
   "Une ligne arrive à échéance": "A line reaches maturity",
   "Le portefeuille propose ce qui la remplacerait, à durée et à signature comparables":
     "The portfolio offers what would replace it, at comparable maturity and comparable credit",
+  "Votre signature": "Your signature",
+  "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait.": "The form is ready. The order goes out as soon as it is signed and the transfer made.",
+  "Votre réponse": "Your answer",
+  "D'autres conditions vous sont proposées : c'est votre réponse qui change l'ordre.": "Other terms are proposed to you: it is your answer that changes the order.",
+  "Signer": "Sign",
 };

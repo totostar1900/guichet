@@ -71,6 +71,8 @@ export default async function TraderPage() {
 
   const ctx: ContexteClient = {
     lignes: positions.length,
+    aSigner: mine.filter((i) => i.state === "confirmee").length,
+    aRepondre: mine.filter((i) => i.state === "contre_proposee").length,
     partsDeFonds: part ? { titre: part.offer.title, parts: part.units } : undefined,
     fondsOuverts: offers.filter((o) => o.kind === "FONDS" && o.fund?.distributed && !o.hidden).length,
     actions: action ? { titre: action.offer.title, n: action.units } : undefined,

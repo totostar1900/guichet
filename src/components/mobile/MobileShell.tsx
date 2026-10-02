@@ -150,13 +150,11 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
     // téléphone, et c'est là que la plupart des clients lisent.
     { href: "/trader", label: t("Trader"), icon: I.trader, match: (p) => p.startsWith("/trader") },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, sheet: true },
-    // Le compteur porte les gestes, et la pastille dit combien. À zéro il mène
-    // quand même au portefeuille : ce qui ne demande rien n'a pas d'urgence, mais
-    // la porte reste ouverte. Le compte, lui, vit déjà dans la barre du haut :
-    // lui donner un cinquième siège serait une porte de plus vers la même pièce.
-    // Le Guide descend au menu « ⋮ », avec l'aide : on l'ouvre une fois, on ne
-    // l'habite pas, et un dock à cinq ne se vise plus au pouce.
-    { href: "/#a-decider", label: t("À décider"), icon: I.fonds, match: () => false, badge: pendingCount },
+    /* « À DÉCIDER » A QUITTÉ LE DOCK le 2 octobre 2026. Un onglet qui porte ce
+       nom demande d'aller voir s'il y a quelque chose, et il est vide neuf jours
+       sur dix : un onglet vide neuf jours sur dix est un onglet qu'on cesse
+       d'ouvrir. La bande en tête du portefeuille le dit sans qu'on y aille, et
+       le nombre se lit au passage. Le siège libéré revient à Instruments. */
   ];
 
   return (

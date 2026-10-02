@@ -56,6 +56,10 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
     fondsOuverts: offers.filter((o) => o.kind === "FONDS" && o.fund?.distributed && !o.hidden).length,
     actions: action ? { titre: action.offer.title, n: action.units } : undefined,
     disponible: poche.idle,
+    /* Les deux devoirs : un bulletin à signer, une contre-proposition à
+       trancher. Ils se comptent sur les ordres du client, déjà lus ici. */
+    aSigner: mine.filter((i) => i.state === "confirmee").length,
+    aRepondre: mine.filter((i) => i.state === "contre_proposee").length,
     attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
     reinvestissement: reinv
       ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount, dernier: reinv.lastRunOn ? { montant: 0, le: fmtDate(reinv.lastRunOn) } : undefined }

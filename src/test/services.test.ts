@@ -12,6 +12,8 @@ import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient
 
 const vide: ContexteClient = {
   lignes: 0,
+  aSigner: 0,
+  aRepondre: 0,
   fondsOuverts: 9,
   disponible: 0,
   moisDHistorique: 0,
@@ -20,6 +22,8 @@ const vide: ContexteClient = {
 
 const garni: ContexteClient = {
   lignes: 4,
+  aSigner: 0,
+  aRepondre: 0,
   partsDeFonds: { titre: "Fonds Obligataire CEMAC", parts: 84.312 },
   fondsOuverts: 9,
   actions: { titre: "SEMC", n: 40 },
