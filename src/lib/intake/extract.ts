@@ -27,6 +27,16 @@ import { enabledTypes, kindForEngine } from "@/lib/registry";
  */
 const MODEL = process.env.INTAKE_READ_MODEL || process.env.AUCTION_READ_MODEL || "claude-opus-5";
 
+/**
+ * Le temps qu'on laisse au modèle, plus court que celui de la fonction.
+ *
+ * Vercel accorde soixante secondes à une fonction du palier Hobby. En laisser
+ * quarante au modèle garde de quoi écrire l'échec, le marquer sur la pièce et
+ * rendre une réponse : un abandon qui se raconte vaut infiniment mieux qu'une
+ * fonction tuée, qui ne raconte rien.
+ */
+const LECTURE_MS = 40_000;
+
 /** Le modele employe, garde a cote de chaque lecture : sans lui, comparer deux lectures ne veut rien dire. */
 export const modeleDeLecture = (): string => MODEL;
 
@@ -102,7 +112,14 @@ export function emptyDraft(official = false): OfferDraft {
 
 export async function extractOffer(input: ExtractionInput): Promise<{ draft: OfferDraft; seconds: number }> {
   const t0 = Date.now();
-  const client = new Anthropic();
+  /* L'APPEL ABANDONNE AVANT QUE LA FONCTION SOIT TUÉE.
+     Une fonction tuée au délai n'exécute aucun catch : l'échec le plus fréquent
+     devient alors le seul qui ne se raconte pas, et c'est ce qui s'est passé le
+     2026-10-02, deux fois de suite, sur un PDF de 75 ko.
+     « maxRetries: 0 » compte autant que le délai : le SDK réessaie deux fois par
+     défaut, et trois appels dépassent le budget bien plus sûrement qu'un seul,
+     la fonction étant tuée pendant la deuxième tentative, donc en silence. */
+  const client = new Anthropic({ timeout: LECTURE_MS, maxRetries: 0 });
   // The desk's product types (registry) drive the type choice and its free fields.
   const types = enabledTypes().filter((t) => t.segment === "primaire");
   const catalogue = types.map((t) => `- ${t.key} : ${t.label} (moteur ${t.engine})${t.fields.length ? ` ; champs libres : ${t.fields.map((f) => `${f.key} = ${f.label}`).join(", ")}` : ""}`).join("\n");
