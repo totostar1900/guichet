@@ -8,7 +8,7 @@ import type { InboundMessage, Notification } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/format";
 import { textMatch } from "@/lib/text";
 import { displayStatus, isPast } from "@/lib/domain/status";
-import { handledAction, promouvoirPieceAction } from "./actions";
+import { handledAction } from "./actions";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -147,7 +147,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                       à ce qui peut devenir une ligne de marché ; un document
                       qu'un régulateur envoie n'a rien à y devenir, et le bouton
                       « Publier » n'a aucun sens à côté de lui. */}
-                  {m.pieces?.map((piece) => (
+                  {m.pieces?.map((piece, rang) => (
                     <div key={piece.fileKey} className={styles.piece}>
                       <span className={styles.pieceIcone} aria-hidden="true">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -161,25 +161,32 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                           {piece.mimeType === "application/pdf" ? "PDF" : piece.mimeType.startsWith("image/") ? t("image") : piece.mimeType} · {Math.max(1, Math.round(piece.size / 1024))} ko · {t("gardé au dépôt")}
                         </small>
                       </span>
-                      <a className="btn sm" href={`/desk/a-valider/source?cle=${encodeURIComponent(piece.fileKey)}`} target="_blank" rel="noopener noreferrer">
-                        {t("Ouvrir")}
+                      {/* La pièce se désigne par son message et son rang, jamais
+                          par sa clef : une adresse portant la clef laisserait
+                          demander n'importe quel fichier du dépôt.
+
+                          « Ouvrir » ne s'affiche que pour ce qui se regarde. Un
+                          .docx ou un .zip ne s'ouvrent pas dans un navigateur :
+                          proposer le geste donnerait une page cassée. */}
+                      {(piece.mimeType === "application/pdf" || piece.mimeType.startsWith("image/")) && (
+                        <a className="btn sm" href={`/desk/messages/piece/${m.id}/${rang}`} target="_blank" rel="noopener noreferrer">
+                          {t("Ouvrir")}
+                        </a>
+                      )}
+                      <a className="btn sm" href={`/desk/messages/piece/${m.id}/${rang}?t=1`} download={piece.name}>
+                        {t("Télécharger")}
                       </a>
-                      {/* Une personne reconnaît un communiqué : aucune règle sur
-                          l'expéditeur ne peut le faire à sa place. */}
-                      {piece.intakeId ? (
+                      {/* LE BOUTON DE PROMOTION A ETE RETIRE le 2026-10-02.
+                          Plus aucun chemin ne mène d'un message à « À valider »,
+                          qui ne reçoit donc que ce que les crons ramassent. Les
+                          communiqués arrivent de la BEAC et de la BVMAC, pas de
+                          la boîte aux lettres : une pièce de correspondance se
+                          lit, se classe, et c'est tout. Le lien subsiste pour
+                          les pièces parties avant ce jour-là. */}
+                      {piece.intakeId && (
                         <Link className={styles.piecePartie} href={`/desk/a-valider?piece=${piece.intakeId}`}>
                           {t("déjà proposée en ligne de marché")}
                         </Link>
-                      ) : (
-                        m.id && (
-                          <form action={promouvoirPieceAction}>
-                            <input type="hidden" name="messageId" value={m.id} />
-                            <input type="hidden" name="fileKey" value={piece.fileKey} />
-                            <button className="btn sm" type="submit">
-                              {t("Proposer une ligne de marché")}
-                            </button>
-                          </form>
-                        )
                       )}
                     </div>
                   ))}
