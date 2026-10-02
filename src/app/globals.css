@@ -294,6 +294,17 @@
 html {
   font-size: 15px;
   scroll-padding-top: 76px; /* anchors land under the sticky header, not behind it */
+  /* LA BARRE DE DÉFILEMENT RESTE RÉSERVÉE, et la page cesse de sauter.
+     Une feuille qui s'ouvre verrouille le défilement avec body{overflow:hidden} ;
+     la barre disparaissait alors et la page s'élargissait de sa largeur. Mesuré
+     sur la page vivante : 15 px, à l'ouverture et à la fermeture, par trois
+     portes (la pastille du compte, le « ⋮ », la relecture avant un envoi).
+     NE PAS remplacer par « scrollbar-gutter: stable » : CSS.supports répond oui
+     et l'effet est nul, parce que le verrou est posé sur body quand la
+     gouttière se réserve sur le conteneur de défilement. Mesuré : 15 px avec,
+     15 px sans, 0 px ici. Le prix est une gouttière constante sur ordinateur,
+     et rien sur téléphone où la barre flotte. Cliquet : src/test/gouttiere.test.ts */
+  overflow-y: scroll;
 }
 /* The spot a link or a search result brought the reader to lights up for a moment. */
 :target,
