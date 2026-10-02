@@ -109,7 +109,7 @@ export interface Repository {
   /** Annoncer une occurrence. Une seule par instruction et par jour prévu : la base le garantit. */
   annoncerPreavis(p: { standingId: string; userId: string; dueOn: string; amount: number }): Promise<Preavis>;
   /** Clore une occurrence : partie, arrêtée par le client, ou périmée. Et dire si le préavis est parti. */
-  cloturerPreavis(id: string, p: { state?: Preavis["state"]; noticeSent?: boolean; noticeError?: string; stopReason?: string; intentId?: string; paidAmount?: number }): Promise<Preavis>;
+  cloturerPreavis(id: string, p: { state?: Preavis["state"]; noticeSent?: boolean; noticeError?: string; stopReason?: string; intentId?: string; intents?: string[]; paidAmount?: number }): Promise<Preavis>;
 
   /** Ce que les clients disent de leurs échéances : ceux d'un client, ou la file du desk. */
   listTemoignages(q?: { userId?: string }): Promise<Temoignage[]>;
@@ -141,6 +141,12 @@ export interface Repository {
   listStandingOrders(userId?: string): Promise<StandingOrder[]>;
   createStandingOrder(input: NewStandingOrder): Promise<StandingOrder>;
   updateStandingOrder(id: string, patch: Partial<Pick<StandingOrder, "state" | "lastRunOn" | "stopReason" | "endsOn">>): Promise<StandingOrder>;
+  /**
+   * Modifier, c'est remplacer : l'ancienne passe à « remplacee » et garde ses
+   * ordres, la nouvelle dit laquelle elle remplace. Les deux écritures vont
+   * ensemble, sans quoi un client se retrouverait avec deux instructions actives.
+   */
+  remplacerStandingOrder(id: string, input: NewStandingOrder): Promise<StandingOrder>;
 
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }): Promise<Watch>;

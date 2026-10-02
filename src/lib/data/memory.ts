@@ -573,6 +573,13 @@ export const memoryRepository: Repository = {
     Object.assign(it, patch, { updatedAt: nowIso() });
     return structuredClone(it);
   },
+  async remplacerStandingOrder(id, input) {
+    const row = store().standing.find((x) => x.id === id);
+    if (!row) throw new Error(`standing_orders ${id} introuvable`);
+    if (row.state !== "active") throw new Error("standing_orders : cette instruction ne court plus");
+    Object.assign(row, { state: "remplacee", stopReason: "remplacée par une nouvelle version", updatedAt: nowIso() });
+    return this.createStandingOrder({ ...input, supersedes: id });
+  },
   async listCash(userId) {
     return structuredClone(store().cash.filter((c) => c.userId === userId).sort((a, b) => a.at.localeCompare(b.at)));
   },
@@ -603,7 +610,7 @@ export const memoryRepository: Repository = {
     if (!row) throw new Error(`standing_runs ${id} introuvable`);
     if (p.state && row.state !== "annoncee") throw new Error("standing_runs : cette occurrence est deja close");
     if (p.state) Object.assign(row, { state: p.state, closedAt: nowIso() });
-    for (const k of ["noticeSent", "noticeError", "stopReason", "intentId", "paidAmount"] as const) if (p[k] !== undefined) Object.assign(row, { [k]: p[k] });
+    for (const k of ["noticeSent", "noticeError", "stopReason", "intentId", "intents", "paidAmount"] as const) if (p[k] !== undefined) Object.assign(row, { [k]: p[k] });
     return structuredClone(row);
   },
 

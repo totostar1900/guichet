@@ -41,6 +41,8 @@ export interface Preavis {
   closedAt?: string;
   stopReason?: string;
   intentId?: string;
+  /** Les ordres produits : plusieurs quand la clé de répartition partage. */
+  intents?: string[];
   paidAmount?: number;
 }
 

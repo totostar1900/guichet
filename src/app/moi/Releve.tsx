@@ -139,6 +139,7 @@ export async function Releve({ session: s }: { session: Session }) {
               return {
                 id: x.id,
                 ref: x.ref,
+                offerId: x.offerId,
                 title: o?.title ?? x.offerId,
                 href: `/offres/${x.offerId}`,
                 amount: x.amount,

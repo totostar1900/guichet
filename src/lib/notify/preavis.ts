@@ -20,10 +20,10 @@ import { notifyRaw } from "./dispatch";
 export async function envoyerPreavis(
   s: StandingOrder,
   o: Offer | undefined,
-  p: { dueOn: string; amount: number },
+  p: { dueOn: string; amount: number; cle?: string },
 ): Promise<{ sent: boolean; error?: string }> {
   const quoi = s.source === "encaissements" ? "réinvestissement" : "versement programmé";
-  const text = `Purpose Capital : ${fmtDate(p.dueOn)}, ${quoi} de ${fmt(p.amount)} FCFA sur ${o?.title ?? s.offerId}, selon votre instruction ${s.ref}. Vous pouvez l'arrêter dans le Guichet jusqu'à la veille ; sans réponse, l'ordre part comme prévu.`;
+  const text = `Purpose Capital : ${fmtDate(p.dueOn)}, ${quoi} de ${fmt(p.amount)} FCFA sur ${o?.title ?? s.offerId}, selon votre instruction ${s.ref}${p.cle ? `, réparti ${p.cle}` : ""}. Vous pouvez l'arrêter dans le Guichet jusqu'à la veille ; sans réponse, l'ordre part comme prévu.`;
   try {
     const c = await repo().getContact(s.userId);
     const contact = c ?? (s.contactPhone || s.contactEmail ? { id: s.userId, name: s.clientName, segment: s.clientSegment, phone: s.contactPhone, email: s.contactEmail, whatsappOptIn: Boolean(s.contactPhone) } : undefined);

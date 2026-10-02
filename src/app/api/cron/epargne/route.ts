@@ -7,6 +7,7 @@ import { cashPosition } from "@/lib/domain/cash";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 import { envoyerPreavis } from "@/lib/notify/preavis";
 import { arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
+import { cleEnMots, repartition, tranches } from "@/lib/domain/repartition";
 import { loadStandingPolicy } from "@/lib/policy";
 
 /**
@@ -130,7 +131,16 @@ export async function GET(req: NextRequest) {
       } else if (refus === null) {
         const poche = s.source === "encaissements" ? await disponible(s.userId) : mur.amount;
         const montant = montantAExecuter(mur.amount, poche, s.source === "encaissements" ? s.minAmount : 0);
-        const wrong = standingBlock(o, { amount: montant || mur.amount, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
+        /* CHAQUE TRANCHE SE RELIT CONTRE SA PROPRE DESTINATION, et une seule
+           qui bloque bloque toute l'occurrence. Exécuter la clé en partie
+           changerait la répartition que le client a écrite sans qu'il l'ait
+           dit, ce qui est pire que de ne rien faire et de l'expliquer. */
+        const parts = repartition(s);
+        const lots = tranches(montant || mur.amount, parts);
+        const wrong = lots.flatMap((l) => {
+          const dest = byId.get(l.offerId);
+          return standingBlock(dest, { amount: l.montant, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source }).map((x) => (parts.length > 1 ? `${dest?.title ?? l.offerId} : ${x}` : x));
+        });
         if (montant <= 0 || wrong.length) {
           const why = wrong.length ? wrong.join(" ") : "le disponible annoncé n'est plus là";
           await r.cloturerPreavis(mur.id, { state: "perimee" });
@@ -145,46 +155,57 @@ export async function GET(req: NextRequest) {
           continue;
         }
 
-        const intent = await r.createIntent({
-          offerId: s.offerId,
-          type: "souscription",
-          amount: montant,
-          channel: s.channel,
-          contactPhone: s.contactPhone,
-          contactEmail: s.contactEmail,
-          clientName: s.clientName,
-          clientSegment: s.clientSegment,
-          clientId: s.userId,
-          message: s.source === "encaissements" ? reinvestLabel(s, today, montant) : instalmentLabel(s, today),
-          standingId: s.id,
-        });
-        // Le client a donné son ordre à la signature de l'instruction, et il a eu
-        // le préavis : ce versement n'attend pas une confirmation, il attend le règlement.
-        const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+        /* La somme des tranches fait exactement le montant exécuté : le reste
+           d'arrondi va à la dernière part, et le journal des espèces reçoit une
+           écriture par ordre, de sorte que la poche se vide du bon total. */
+        const sortis: string[] = [];
+        for (const lot of tranches(montant, parts)) {
+          const dest = byId.get(lot.offerId);
+          const libelle = s.source === "encaissements" ? reinvestLabel(s, today, lot.montant) : instalmentLabel(s, today);
+          const intent = await r.createIntent({
+            offerId: lot.offerId,
+            type: "souscription",
+            amount: lot.montant,
+            channel: s.channel,
+            contactPhone: s.contactPhone,
+            contactEmail: s.contactEmail,
+            clientName: s.clientName,
+            clientSegment: s.clientSegment,
+            clientId: s.userId,
+            message: parts.length > 1 ? `${libelle} · ${parts.find((x) => x.offerId === lot.offerId)?.pct ?? 100} % de la clé` : libelle,
+            standingId: s.id,
+          });
+          // Le client a donné son ordre à la signature de l'instruction, et il a eu
+          // le préavis : ce versement n'attend pas une confirmation, il attend le règlement.
+          const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+          if (s.source === "encaissements") {
+            /* L'argent quitte la poche en s'inscrivant au journal en regard de
+               l'ordre : c'est cette écriture, et non une date, qui empêche un
+               second passage de replacer la même somme. */
+            await r.addCash({ userId: s.userId, amount: lot.montant, kind: "souscription", label: libelle, intentId: intent.id, createdBy: "robot" });
+          }
+          sortis.push(intent.id);
+          await r.logEvent({
+            kind: "intent",
+            intentId: intent.id,
+            offerId: lot.offerId,
+            html: `${intent.ref} (${s.clientName}) : <b>${s.source === "encaissements" ? "réinvestissement" : "versement programmé"}</b> de ${fmt(lot.montant)} FCFA sur ${dest?.title ?? lot.offerId}${parts.length > 1 ? ` · clé ${cleEnMots(parts, (id) => byId.get(id)?.title ?? id)}` : ""} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))} · ${s.ref}`,
+          });
+          try {
+            await notifyIntentUpdated(confirmed, dest!, "confirmee");
+          } catch {
+            /* L'avis d'exécution peut échouer sans conséquence : le client a déjà
+               été prévenu AVANT, et c'est ce préavis-là qui portait sa décision. */
+          }
+        }
         if (s.source === "encaissements") {
-          /* L'argent quitte la poche en s'inscrivant au journal en regard de
-             l'ordre : c'est cette écriture, et non une date, qui empêche un
-             second passage de replacer la même somme. */
-          await r.addCash({ userId: s.userId, amount: montant, kind: "souscription", label: reinvestLabel(s, today, montant), intentId: intent.id, createdBy: "robot" });
           disponibles.set(s.userId, poche - montant);
           reinvested += 1;
         } else {
           placed += 1;
         }
         await r.updateStandingOrder(s.id, { lastRunOn: today });
-        await r.cloturerPreavis(mur.id, { state: "executee", intentId: intent.id, paidAmount: montant });
-        await r.logEvent({
-          kind: "intent",
-          intentId: intent.id,
-          offerId: s.offerId,
-          html: `${intent.ref} (${s.clientName}) : <b>${s.source === "encaissements" ? "réinvestissement" : "versement programmé"}</b> de ${fmt(montant)} FCFA sur ${o?.title ?? s.offerId} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))} · ${s.ref}`,
-        });
-        try {
-          await notifyIntentUpdated(confirmed, o!, "confirmee");
-        } catch {
-          /* L'avis d'exécution peut échouer sans conséquence : le client a déjà
-             été prévenu AVANT, et c'est ce préavis-là qui portait sa décision. */
-        }
+        await r.cloturerPreavis(mur.id, { state: "executee", intentId: sortis[0], intents: sortis, paidAmount: montant });
       }
       // Une occurrence encore annoncée pour plus tard n'empêche rien d'autre : on continue.
       if (refus === null || refus === "pas_parti") continue;
@@ -229,7 +250,7 @@ export async function GET(req: NextRequest) {
       // L'index d'unicité a parlé : un autre tour l'a annoncée, et c'est bien.
       continue;
     }
-    const envoi = await envoyerPreavis(s, o, { dueOn, amount: montantAnnonce });
+    const envoi = await envoyerPreavis(s, o, { dueOn, amount: montantAnnonce, cle: repartition(s).length > 1 ? cleEnMots(repartition(s), (id) => byId.get(id)?.title ?? id) : undefined });
     await r.cloturerPreavis(annonce.id, { noticeSent: envoi.sent, noticeError: envoi.error });
     parInstruction.set(s.id, [...(parInstruction.get(s.id) ?? []), { ...annonce, noticeSent: envoi.sent, noticeError: envoi.error }]);
     if (envoi.sent) {

@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { groupedInput } from "@/lib/ui/grouped";
 import { fmt, fmtDate } from "@/lib/format";
 import { createStandingAction, stopStandingAction, type StandingResult } from "@/app/moi/standing-actions";
+import { ModifierInstruction, type FondsChoix } from "./ModifierInstruction";
 import styles from "./Standing.module.css";
 
 function Msg({ state }: { state: StandingResult | null }) {
@@ -105,16 +106,35 @@ export interface StandingRow {
   lastRunOn?: string;
   endsOn?: string;
   stopReason?: string;
+  offerId: string;
+  /** La clé du client, quand il en a écrit une : destination et part, dans l'ordre. */
+  splits?: { offerId: string; title: string; pct: number }[];
 }
 
 /** Ce qui est programmé, et le bouton pour l'arrêter. */
-export function StandingList({ rows }: { rows: StandingRow[] }) {
+/**
+ * LES INSTRUCTIONS ARRÊTÉES SE MASQUENT, ELLES NE SE SUPPRIMENT PAS.
+ *
+ * Elles portent la trace d'ordres réellement exécutés : un client qui voudrait
+ * « faire le ménage » couperait le lien entre son argent et la raison pour
+ * laquelle il est parti. Les masquer répond au besoin, qui est de ne pas lire
+ * cinq lignes mortes au-dessus de celle qui court, sans couper la piste.
+ *
+ * Le compte reste visible, parce qu'un repli qui ne dit pas ce qu'il cache fait
+ * douter qu'il cache quelque chose.
+ */
+export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?: FondsChoix[] }) {
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(stopStandingAction, null);
+  const [tout, setTout] = useState(false);
+  const [modif, setModif] = useState<string | null>(null);
   if (!rows.length) return null;
+  const vivantes = rows.filter((x) => x.state === "active");
+  const closes = rows.filter((x) => x.state !== "active");
+  const montrees = tout ? [...vivantes, ...closes] : vivantes;
   return (
     <div className={styles.list}>
-      {rows.map((s) => (
+      {montrees.map((s) => (
         <div key={s.id} className={styles.item}>
           <div className={styles.what}>
             {/* Un réinvestissement n'a ni montant ni jour du mois : afficher
@@ -139,19 +159,41 @@ export function StandingList({ rows }: { rows: StandingRow[] }) {
               {s.lastRunOn ? ` · ${t("dernier versement le {d}", { d: fmtDate(s.lastRunOn) })}` : ""}
               {s.stopReason ? ` · ${s.stopReason}` : ""}
             </small>
+            {/* La clé se lit en entier : « 60 % ici, 40 % là » est l'ordre du
+                client, et le résumer à la première destination le trahirait. */}
+            {s.splits && s.splits.length > 1 && <small className={styles.cleDite}>{s.splits.map((x) => `${x.pct} % ${x.title}`).join(" · ")}</small>}
           </div>
           {s.state === "active" ? (
-            <form action={action}>
-              <input type="hidden" name="id" value={s.id} />
-              <button className="btn sm ghost" type="submit" disabled={pending}>
-                {t("Arrêter")}
-              </button>
-            </form>
+            <div className={styles.actes}>
+              {fonds.length > 0 && (
+                <button className="btn sm ghost" type="button" onClick={() => setModif(modif === s.id ? null : s.id)}>
+                  {t("Modifier")}
+                </button>
+              )}
+              <form action={action}>
+                <input type="hidden" name="id" value={s.id} />
+                <button className="btn sm ghost" type="submit" disabled={pending}>
+                  {t("Arrêter")}
+                </button>
+              </form>
+            </div>
           ) : (
             <span className="muted">{t(s.stateLabel)}</span>
           )}
+          {modif === s.id && (
+            <ModifierInstruction
+              s={{ id: s.id, ref: s.ref, amount: s.amount, dayOfMonth: s.dayOfMonth, minAmount: s.minAmount ?? 0, source: s.source, offerId: s.offerId, splits: s.splits?.map((x) => ({ offerId: x.offerId, pct: x.pct })) }}
+              fonds={fonds}
+              onClose={() => setModif(null)}
+            />
+          )}
         </div>
       ))}
+      {closes.length > 0 && (
+        <button type="button" className={styles.repli} onClick={() => setTout((x) => !x)}>
+          {tout ? t("Masquer les instructions arrêtées") : t("Voir les {n} instructions arrêtées", { n: String(closes.length) })}
+        </button>
+      )}
       <Msg state={state} />
     </div>
   );

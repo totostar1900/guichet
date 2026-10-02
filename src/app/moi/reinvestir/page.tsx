@@ -120,7 +120,9 @@ export default async function ReinvestirPage() {
               return {
                 id: x.id,
                 ref: x.ref,
+                offerId: x.offerId,
                 title: o?.title ?? x.offerId,
+                splits: x.splits?.map((y) => ({ offerId: y.offerId, title: offers.find((z) => z.id === y.offerId)?.title ?? y.offerId, pct: y.pct })),
                 href: `/offres/${x.offerId}`,
                 amount: x.amount,
                 dayOfMonth: x.dayOfMonth,
@@ -133,6 +135,7 @@ export default async function ReinvestirPage() {
                 stopReason: x.stopReason,
               };
             })}
+            fonds={fonds}
           />
         </section>
       )}

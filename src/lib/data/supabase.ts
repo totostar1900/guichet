@@ -5,6 +5,7 @@ import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type C
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
+import type { Part } from "@/lib/domain/repartition";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
@@ -399,6 +400,9 @@ type StandingRow = {
   stop_reason: string | null;
   created_at: string;
   updated_at: string;
+  /** La clé du client et la lignée des versions : migration 0064. */
+  splits?: Part[] | null;
+  supersedes?: string | null;
 };
 
 const toStanding = (r: StandingRow): StandingOrder => ({
@@ -423,6 +427,8 @@ const toStanding = (r: StandingRow): StandingOrder => ({
   contactEmail: r.contact_email ?? undefined,
   lastRunOn: r.last_run_on ? String(r.last_run_on).slice(0, 10) : undefined,
   stopReason: r.stop_reason ?? undefined,
+  splits: r.splits ?? undefined,
+  supersedes: r.supersedes ?? undefined,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -455,6 +461,8 @@ type PreavisRow = {
   closed_at: string | null;
   stop_reason: string | null;
   intent_id: string | null;
+  /** Les ordres produits, plusieurs quand la clé partage : migration 0064. */
+  intents?: string[] | null;
   paid_amount: string | number | null;
 };
 const toPreavis = (r: PreavisRow): Preavis => ({
@@ -470,6 +478,7 @@ const toPreavis = (r: PreavisRow): Preavis => ({
   closedAt: u(r.closed_at),
   stopReason: u(r.stop_reason),
   intentId: u(r.intent_id),
+  intents: r.intents ?? undefined,
   paidAmount: r.paid_amount == null ? undefined : Number(r.paid_amount),
 });
 
@@ -1298,6 +1307,8 @@ export const supabaseRepository: Repository = {
       channel: input.channel,
       contact_phone: input.contactPhone ?? null,
       contact_email: input.contactEmail ?? null,
+      splits: input.splits?.length ? input.splits : null,
+      supersedes: input.supersedes ?? null,
     };
     const { data, error } = await db().from("standing_orders").insert(row).select("*").single();
     if (error) fail("createStandingOrder", error);
@@ -1312,6 +1323,14 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("standing_orders").update(row).eq("id", id).select("*").single();
     if (error) fail("updateStandingOrder", error);
     return toStanding(data);
+  },
+  async remplacerStandingOrder(id, input) {
+    /* L'ordre compte : l'ancienne d'abord. Si la création échouait après, le
+       client n'aurait plus d'instruction active, ce qui se voit et se répare ;
+       l'inverse en laisserait deux, et le robot prélèverait deux fois. */
+    const { error } = await db().from("standing_orders").update({ state: "remplacee", stop_reason: "remplacée par une nouvelle version", updated_at: new Date().toISOString() }).eq("id", id).eq("state", "active");
+    if (error) fail("remplacerStandingOrder", error);
+    return this.createStandingOrder({ ...input, supersedes: id });
   },
   async listCash(userId) {
     const { data, error } = await db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true });
@@ -1372,6 +1391,7 @@ export const supabaseRepository: Repository = {
     if (p.noticeError !== undefined) row.notice_error = p.noticeError ?? null;
     if (p.stopReason !== undefined) row.stop_reason = p.stopReason ?? null;
     if (p.intentId !== undefined) row.intent_id = p.intentId ?? null;
+    if (p.intents !== undefined) row.intents = p.intents ?? null;
     if (p.paidAmount !== undefined) row.paid_amount = p.paidAmount ?? null;
     /* Une occurrence qui change d'état ne se ferme que si elle est encore
        annoncée : deux tours du robot, ou un arrêt qui croise une exécution, ne

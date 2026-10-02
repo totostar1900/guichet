@@ -1,3 +1,4 @@
+import type { Part } from "./repartition";
 import type { Offer } from "./types";
 
 /**
@@ -31,7 +32,7 @@ import type { Offer } from "./types";
  * décider à sa place.
  */
 
-export type StandingState = "active" | "suspendue" | "terminee" | "annulee";
+export type StandingState = "active" | "suspendue" | "terminee" | "annulee" | "remplacee";
 export type OnBlocked = "passer" | "arreter";
 
 /**
@@ -77,6 +78,23 @@ export interface StandingOrder {
   channel: "WhatsApp" | "Appel" | "E-mail";
   contactPhone?: string;
   contactEmail?: string;
+  /**
+   * La clé de répartition écrite par le client, quand il en a écrit une.
+   *
+   * Absente, la destination unique de « offerId » reçoit tout : ce n'est pas un
+   * cas particulier mais une clé à une part, et le robot ne connaît que des
+   * clés. Voir « domain/repartition.ts ».
+   */
+  splits?: Part[];
+  /**
+   * L'instruction que celle-ci remplace.
+   *
+   * Une instruction qui a produit des ordres ne se réécrit pas : ces ordres la
+   * désignent par son identifiant, et la modifier ferait mentir le passé. Une
+   * modification est donc un remplacement, et la chaîne est l'histoire des
+   * versions.
+   */
+  supersedes?: string;
   /** Le dernier versement produit : un seul par mois civil. */
   lastRunOn?: string;
   stopReason?: string;
@@ -99,6 +117,10 @@ export interface NewStandingOrder {
   channel: "WhatsApp" | "Appel" | "E-mail";
   contactPhone?: string;
   contactEmail?: string;
+  /** La clé de répartition, quand le client en a écrit une. */
+  splits?: Part[];
+  /** L'instruction remplacée, quand celle-ci est une nouvelle version. */
+  supersedes?: string;
 }
 
 export const STANDING_STATE_LABEL: Record<StandingState, string> = {
@@ -106,6 +128,9 @@ export const STANDING_STATE_LABEL: Record<StandingState, string> = {
   suspendue: "Suspendue",
   terminee: "Terminée",
   annulee: "Arrêtée",
+  /* « Remplacée » n'est ni « arrêtée » ni « terminée » : elle a cessé parce que
+     le client a changé ses termes, et confondre les trois perdrait la raison. */
+  remplacee: "Remplacée",
 };
 
 const day = (iso: string) => iso.slice(0, 10);
