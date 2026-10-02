@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { logout } from "@/app/connexion/actions";
-import { GUIDE } from "@/data/desk-guide";
+import { leconDuClient, sectionDuDesk } from "@/lib/guide-link";
 import { useLang, useT } from "@/i18n/client";
 import { COMPANY } from "@/lib/config";
 import { LangSwitch } from "./LangSwitch";
@@ -119,7 +119,12 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
 
   const onFiche = path.startsWith("/offres/");
   const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(onFiche ? t("Bonjour, je regarde {line} sur le Guichet et…", { line: typeof document === "undefined" ? "" : document.title.replace(/\s*·\s*Guichet.*$/i, "") }) : t("Bonjour, j'ai une question sur le Guichet…"))}`;
-  const guideKey = desk && path.startsWith("/desk") ? GUIDE.find((g) => g.path !== "/desk" && path.startsWith(g.path.replace(/\/….*$/, "")))?.key ?? (path === "/desk" ? "carnet" : undefined) : undefined;
+  /* La porte du guide s'ouvre à la page qui parle de l'écran qu'on a sous les
+     yeux. La correspondance vivait ici, écrite à la main et pour le desk seul ;
+     elle vit maintenant dans `lib/guide-link`, sous cliquet, et sert les deux
+     côtés. */
+  const guideDesk = desk ? sectionDuDesk(path) : undefined;
+  const guideClient = leconDuClient(path);
 
   const show = () => {
     // What this page can replay, and where the desk's tour stands: read on opening, never guessed.
@@ -285,11 +290,13 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       <small>{tourStep != null && tourStep > 0 ? t("en cours, étape {n} : reprendre du début", { n: tourStep + 1 }) : t("vingt étapes à travers le desk")}</small>
                     </span>
                   </button>
-                  <Link className={styles.item} href={guideKey ? `/desk/guide#${guideKey}` : "/desk/guide"} onClick={close}>
+                  <Link className={styles.item} href={guideDesk?.href ?? "/desk/guide"} onClick={close}>
                     <Icon d={D.help} gold />
                     <span>
-                      <b>{t(guideKey ? "Cette page, champ par champ" : "Guide du desk")}</b>
-                      <small>{t("Guide du desk")}</small>
+                      <b>{t(guideDesk ? "Cette page, champ par champ" : "Guide du desk")}</b>
+                      {/* La commande dit où elle mène : « Guide du desk » deux
+                          fois n'apprenait rien. */}
+                      <small>{guideDesk ? t(guideDesk.titre) : t("Guide du desk")}</small>
                     </span>
                   </Link>
                   <Link className={styles.item} href="/desk/docs" onClick={close}>
@@ -336,10 +343,14 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       <b>{t("Aide")}</b>
                       <small>{t("les questions qu'on nous pose")}</small>
                     </Link>
-                    <Link className={styles.tile} href={resume && courseDone > 0 ? `/info/${resume.key}` : "/info"} onClick={close}>
+                    {/* LA LEÇON QUI PARLE DE CET ÉCRAN, quand il y en a une.
+                        Le Guide s'ouvrait à son sommaire, ou à la leçon laissée
+                        en plan : deux destinations utiles, mais aucune ne
+                        répond à « qu'est-ce que je regarde ». */}
+                    <Link className={styles.tile} href={guideClient?.href ?? (resume && courseDone > 0 ? `/info/${resume.key}` : "/info")} onClick={close}>
                       <Icon d={D.book} />
-                      <b>{t("Le Guide")}</b>
-                      <small>{index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("leçons, outils, glossaire")}</small>
+                      <b>{t(guideClient ? "Cette page expliquée" : "Le Guide")}</b>
+                      <small>{guideClient ? t(guideClient.titre) : index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("leçons, outils, glossaire")}</small>
                     </Link>
                     <Link className={styles.tile} href="/moi/profil" onClick={close}>
                       <Icon d={D.profile} />

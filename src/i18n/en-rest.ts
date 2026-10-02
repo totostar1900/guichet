@@ -1018,4 +1018,5 @@ export const EN_REST: Record<string, string> = {
   "les OPCVM de la zone, leur valeur liquidative et leurs frais": "the mutual funds of the zone, their net asset value and their fees",
   "ce que vous avez, et ce qui en découle": "what you hold, and what follows from it",
   "ce qui s'achète": "what can be bought",
+  "Cette page expliquée": "This page explained",
 };
