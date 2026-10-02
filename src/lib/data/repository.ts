@@ -1,5 +1,5 @@
 import type { FinancialProfile } from "@/data/profile";
-import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
+import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
@@ -152,6 +152,15 @@ export interface Repository {
   /** Rattacher ou mettre a jour les pieces d'un message : la promotion y pose l'identifiant d'intake. */
   setInboundAttachments(id: string, pieces: PieceGardee[]): Promise<void>;
   markInboundHandled(id: string, by: string): Promise<void>;
+  /**
+   * L'inverse, qui manquait : « marquer comme traité » était une porte à sens
+   * unique, et un clic de trop sortait un fil de la file sans retour.
+   */
+  markInboundUnhandled(id: string): Promise<void>;
+  /** L'état des fils du desk : épinglé, reporté, étiqueté. */
+  listDeskThreads(): Promise<DeskThread[]>;
+  /** Poser ou corriger l'état d'un fil. Une valeur nulle efface la sienne. */
+  setDeskThread(channel: "whatsapp" | "email", addr: string, patch: Partial<Omit<DeskThread, "channel" | "addr">>, by: string): Promise<void>;
   createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;
   updateNotification(id: string, patch: Partial<Notification>): Promise<Notification>;
 

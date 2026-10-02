@@ -370,3 +370,115 @@
   font-size: 0.8rem;
   color: var(--ink-2);
 }
+
+/* ── La ligne de la liste, devenue une rangée ────────────────────────────────
+   Elle contenait un lien et rien d'autre ; elle contient maintenant une case,
+   le lien, et les gestes. Un bouton de formulaire dans un <a> est du HTML
+   invalide : la ligne cesse donc d'être un lien pour pouvoir en porter. */
+.item {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-3) var(--s-5);
+  color: var(--ink);
+}
+.item[data-ouvert] {
+  border-color: var(--select);
+}
+.itemLien {
+  display: grid;
+  gap: var(--s-1);
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.coche {
+  align-self: center;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--select);
+}
+/* Les gestes restent discrets au repos et se révèlent à l'approche. Ils gardent
+   leur place en largeur, pour que rien ne bouge quand ils apparaissent : c'est
+   la même règle que la gouttière de défilement. */
+.gestes {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  flex-shrink: 0;
+  opacity: 0;
+}
+.item:hover .gestes,
+.item:focus-within .gestes {
+  opacity: 1;
+}
+@media (hover: none) {
+  /* Au doigt il n'y a pas d'approche : les gestes se montrent. */
+  .gestes {
+    opacity: 1;
+  }
+}
+.geste {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.geste:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.geste[aria-pressed="true"] {
+  color: var(--gold-ink);
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+/* Le bandeau du lot : il ne paraît que lorsqu'il y a des fils à cocher. */
+.lot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-2) var(--s-2);
+}
+/* L'étiquette, posée sur un fil : un mot, pas une pastille de plus. */
+.marque {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 0 4px;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+.marques {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.marqueBtn {
+  font: inherit;
+  font-size: 0.7rem;
+  padding: 2px var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.marqueBtn:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}

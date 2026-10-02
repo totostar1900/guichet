@@ -9,6 +9,7 @@ import { emailConfigured, sendEmail, sendWhatsAppText, whatsappConfigured } from
 import { signLineLink } from "@/lib/channels";
 import { texteExact, type Ligne } from "./message-exact";
 import { refusDePiece } from "./piece-jointe";
+import { quandRevient } from "./report";
 
 /**
  * UN COURRIEL A UN OBJET, et le serveur l'exige aussi.
@@ -171,5 +172,117 @@ export async function handledAction(form: FormData): Promise<void> {
   const r = repo();
   const open = (await r.listInbound(500)).filter((m) => m.from === to && !m.handledAt);
   for (const m of open) await r.markInboundHandled(m.id, desk.name);
+  revalidatePath("/desk/messages");
+}
+
+/* ─── Les gestes sur un fil ──────────────────────────────────────────────────
+   Épingler, reporter, étiqueter, et les deux sens de « traité ».
+
+   Chacun prend sa cible sous la forme « canal|adresse », parce qu'un fil
+   s'identifie ainsi et pas autrement : il n'a pas d'identifiant, il n'est pas
+   créé, il est constaté. Le bouton de chaque ligne porte cette valeur, et le
+   formulaire qui le reçoit vit une seule fois en haut de la liste : sans cela
+   il faudrait un formulaire par ligne, imbriqué dans le lien de la ligne, ce
+   que le HTML refuse. */
+
+/** Lit « canal|adresse » et refuse tout le reste : la cible vient du navigateur. */
+function cible(form: FormData): { channel: "whatsapp" | "email"; addr: string } | undefined {
+  const brut = String(form.get("cible") ?? "");
+  const i = brut.indexOf("|");
+  if (i < 1) return undefined;
+  const channel = brut.slice(0, i);
+  const addr = brut.slice(i + 1);
+  if ((channel !== "whatsapp" && channel !== "email") || !addr) return undefined;
+  return { channel, addr };
+}
+
+/** Toutes les cibles d'un envoi en lot, dédoublonnées. */
+function cibles(form: FormData): { channel: "whatsapp" | "email"; addr: string }[] {
+  const vues = new Set<string>();
+  const out: { channel: "whatsapp" | "email"; addr: string }[] = [];
+  for (const v of form.getAll("fils")) {
+    const f = new FormData();
+    f.set("cible", String(v));
+    const c = cible(f);
+    if (c && !vues.has(`${c.channel}|${c.addr}`)) {
+      vues.add(`${c.channel}|${c.addr}`);
+      out.push(c);
+    }
+  }
+  return out;
+}
+
+/** Le fil monte en tête de liste, ou en redescend. */
+export async function epinglerAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const c = cible(form);
+  if (!c) return;
+  const r = repo();
+  const etat = (await r.listDeskThreads()).find((x) => x.channel === c.channel && x.addr === c.addr);
+  await r.setDeskThread(c.channel, c.addr, { pinnedAt: etat?.pinnedAt ? undefined : new Date().toISOString() }, desk.name);
+  await audit("message.epingle", "contact", c.addr, { after: { epingle: !etat?.pinnedAt }, actor: desk.name });
+  revalidatePath("/desk/messages");
+}
+
+/** Le fil sort de la file, et y rentre de lui-même à l'heure dite. */
+export async function reporterAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const c = cible(form);
+  if (!c) return;
+  const quand = String(form.get("quand") ?? "demain");
+  /* « rendre » ramène le fil tout de suite : un report se défait, sinon il
+     faudrait attendre une heure qu'on a choisie par erreur. */
+  const jusqua = quand === "rendre" ? undefined : quandRevient(quand, Date.now());
+  if (quand !== "rendre" && !jusqua) return;
+  const r = repo();
+  await r.setDeskThread(c.channel, c.addr, { snoozedUntil: jusqua }, desk.name);
+  await audit("message.report", "contact", c.addr, { after: { jusqua: jusqua ?? null }, actor: desk.name });
+  revalidatePath("/desk/messages");
+}
+
+/** L'étiquette se pose et se retire du même bouton. */
+export async function etiquetterAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const c = cible(form);
+  const mot = String(form.get("etiquette") ?? "");
+  if (!c || !mot) return;
+  const r = repo();
+  const etat = (await r.listDeskThreads()).find((x) => x.channel === c.channel && x.addr === c.addr);
+  const avant = etat?.labels ?? [];
+  const apres = avant.includes(mot) ? avant.filter((x) => x !== mot) : [...avant, mot];
+  await r.setDeskThread(c.channel, c.addr, { labels: apres }, desk.name);
+  await audit("message.etiquette", "contact", c.addr, { before: { labels: avant }, after: { labels: apres }, actor: desk.name });
+  revalidatePath("/desk/messages");
+}
+
+/**
+ * L'inverse de « marquer comme traité », qui manquait.
+ *
+ * C'était une porte à sens unique : un clic de trop sortait un fil de la file
+ * sans retour, et rien ne le disait. Le fil revient entier, avec le compte de
+ * ses messages non traités.
+ */
+export async function rouvrirAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const c = cible(form);
+  if (!c) return;
+  const r = repo();
+  const siens = (await r.listInbound(500)).filter((m) => m.from === c.addr && m.handledAt);
+  for (const m of siens) await r.markInboundUnhandled(m.id);
+  await audit("message.rouvert", "contact", c.addr, { after: { messages: siens.length }, actor: desk.name });
+  revalidatePath("/desk/messages");
+}
+
+/** Plusieurs fils d'un geste, au lieu de plusieurs allers-retours. */
+export async function lotTraiteAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const liste = cibles(form);
+  if (!liste.length) return;
+  const r = repo();
+  const tous = await r.listInbound(1000);
+  for (const c of liste) {
+    for (const m of tous.filter((x) => x.from === c.addr && !x.handledAt)) await r.markInboundHandled(m.id, desk.name);
+  }
+  await audit("message.lot", "contact", liste.map((c) => c.addr).join(", "), { after: { fils: liste.length }, actor: desk.name });
   revalidatePath("/desk/messages");
 }

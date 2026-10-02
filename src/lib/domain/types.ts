@@ -218,6 +218,26 @@ export interface Intent {
   updatedAt: string;
 }
 
+/**
+ * L'état d'un fil de la boîte aux lettres du desk.
+ *
+ * Il porte ce qui appartient à la CONVERSATION et non à un message : épinglé,
+ * reporté, étiqueté. « Traité » n'est pas ici : il dit qu'une pièce de courrier
+ * a reçu sa réponse, et c'est une propriété du message.
+ *
+ * Un fil n'est pas créé, il est constaté : la ligne n'existe que si quelqu'un a
+ * posé un de ces trois gestes.
+ */
+export interface DeskThread {
+  channel: "whatsapp" | "email";
+  /** Le numéro ou l'adresse : ce qui identifie un fil dans la boîte. */
+  addr: string;
+  pinnedAt?: string;
+  /** Le fil sort de la file et y rentre de lui-même à cette date. */
+  snoozedUntil?: string;
+  labels: string[];
+}
+
 export interface EventLog {
   id: string;
   at: string;

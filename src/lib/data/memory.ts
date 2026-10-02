@@ -4,7 +4,7 @@ import { REF_AUCTIONS, REF_OFFERS } from "@/data/reference";
 import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
@@ -96,6 +96,7 @@ interface Store {
   devices: TrustedDevice[];
   notifications: Notification[];
   inbound: InboundMessage[];
+  deskThreads: DeskThread[];
   watches: Watch[];
   cash: CashEntry[];
   standing: StandingOrder[];
@@ -158,6 +159,7 @@ function store(): Store {
       devices: [],
       notifications: [],
       inbound: seedInbound(),
+      deskThreads: [],
       watches: [],
       cash: [],
       reference: [],
@@ -689,6 +691,24 @@ export const memoryRepository: Repository = {
   async setInboundAttachments(id, pieces) {
     const m = store().inbound.find((x) => x.id === id);
     if (m) m.attachments = structuredClone(pieces);
+  },
+  async markInboundUnhandled(id) {
+    const m = store().inbound.find((x) => x.id === id);
+    if (m) {
+      m.handledAt = undefined;
+      m.handledBy = undefined;
+    }
+  },
+  async listDeskThreads() {
+    return structuredClone(store().deskThreads);
+  },
+  async setDeskThread(channel, addr, patch, _by) {
+    const l = store().deskThreads;
+    const i = l.findIndex((x) => x.channel === channel && x.addr === addr);
+    const base = i >= 0 ? l[i] : { channel, addr, labels: [] };
+    const neuf = { ...base, ...patch };
+    if (i >= 0) l[i] = neuf;
+    else l.push(neuf);
   },
   async markInboundHandled(id, by) {
     const m = store().inbound.find((x) => x.id === id);

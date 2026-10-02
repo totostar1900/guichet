@@ -1469,6 +1469,32 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("inbound_messages").update({ attachments: pieces }).eq("id", id);
     if (error) fail("setInboundAttachments", error);
   },
+  async markInboundUnhandled(id) {
+    const { error } = await db().from("inbound_messages").update({ handled_at: null, handled_by: null }).eq("id", id);
+    if (error) fail("markInboundUnhandled", error);
+  },
+  async listDeskThreads() {
+    const { data, error } = await db().from("desk_threads").select("*");
+    if (error) fail("listDeskThreads", error);
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      channel: r.channel as "whatsapp" | "email",
+      addr: r.addr as string,
+      pinnedAt: (r.pinned_at as string | null) ?? undefined,
+      snoozedUntil: (r.snoozed_until as string | null) ?? undefined,
+      labels: (r.labels as string[] | null) ?? [],
+    }));
+  },
+  async setDeskThread(channel, addr, patch, by) {
+    /* « undefined » veut dire « ne touche pas », « null » veut dire « efface ».
+       Sans cette distinction, désépingler et laisser tel quel seraient le même
+       geste, et l'un des deux ne marcherait jamais. */
+    const row: Record<string, unknown> = { channel, addr, updated_at: new Date().toISOString(), updated_by: by };
+    if ("pinnedAt" in patch) row.pinned_at = patch.pinnedAt ?? null;
+    if ("snoozedUntil" in patch) row.snoozed_until = patch.snoozedUntil ?? null;
+    if ("labels" in patch) row.labels = patch.labels ?? [];
+    const { error } = await db().from("desk_threads").upsert(row, { onConflict: "channel,addr" });
+    if (error) fail("setDeskThread", error);
+  },
   async markInboundHandled(id, by) {
     const { error } = await db().from("inbound_messages").update({ handled_at: new Date().toISOString(), handled_by: by }).eq("id", id);
     if (error) fail("markInboundHandled", error);
