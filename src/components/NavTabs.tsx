@@ -27,7 +27,7 @@ import { isEspaceSection, isMarcheSection } from "@/lib/nav-section";
  * lectures de ce qu'on possède.
  */
 const PORTEFEUILLE = [
-  { key: "performance", href: "/moi/performance", label: "La performance", hint: "le rendement pondéré par les flux, depuis l'origine" },
+  { key: "performance", href: "/moi/performance", label: "Analyse", hint: "la répartition, le rendement, l'échéancier et vos opérations" },
   { key: "reinvestir", href: "/moi/reinvestir", label: "Réinvestir", hint: "où remettre un coupon ou un remboursement qui vient de tomber" },
 ];
 

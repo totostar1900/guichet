@@ -202,4 +202,5 @@ export const EN_TRADER: Record<string, string> = {
   "Ouvrir le signal, fermé par défaut : sans lui, rien n'est rapproché.": "Open the signal, closed by default : without it, nothing is matched.",
   "Une intention de sens inverse peut alors croiser la vôtre.": "An intention in the opposite direction can then cross yours.",
   "Le desk vous prévient avant tout rapprochement : il ne se fait jamais dans votre dos.": "The desk tells you before any match : it never happens behind your back.",
+  "la répartition, le rendement, l'échéancier et vos opérations": "the breakdown, the return, the schedule and your operations",
 };

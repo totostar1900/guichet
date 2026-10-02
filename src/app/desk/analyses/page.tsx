@@ -4,7 +4,7 @@ import { TallTable } from "@/components/desk/TallTable";
 import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { Poignee } from "@/components/desk/Poignee";
-import { RailAnalyse, type SectionRail } from "@/components/desk/RailAnalyse";
+import { RailSections, type SectionRail } from "@/components/RailSections";
 import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CourbeFusion } from "@/components/market/CourbeFusion";
 import type { CourbePays, Fenetre } from "@/lib/market/courbe-vue";
@@ -342,7 +342,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
         {/* Douze sections : le rail en donne la carte, et porte le compte de ce
             qui reste ouvert pour qu'on l'apprenne du haut de la page. */}
         <div className={`${styles.avecRail} grille-analyses`}>
-        <RailAnalyse sections={railSections} />
+        <RailSections sections={railSections} />
         {/* Le rail se règle : une table à six colonnes et un commentaire qu'on
             rédige ne veulent pas de la place au même moment. */}
         <Poignee variable="--rail" min={150} max={340} memoire="ana.rail" libelle="Régler la largeur du rail" />

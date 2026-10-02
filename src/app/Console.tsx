@@ -153,7 +153,7 @@ export async function Console({ session }: { session: Session }) {
         <section>
           <div className={styles.tete}>
             <b>{t("Ce que vous avez versé, ce qui vous est revenu")}</b>
-            <Link href="/moi/performance">{t("Le rapport de performance")} →</Link>
+            <Link href="/moi/performance">{t("L'analyse de votre portefeuille")} →</Link>
           </div>
           <svg className={styles.courbe} viewBox="0 0 1000 300" role="img" aria-label={t("Les versements et les retours cumulés, mois par mois, et la valeur du jour")}>
             <line x1="52" y1="14" x2="52" y2="248" stroke="var(--line)" strokeWidth="1" />

@@ -2,15 +2,21 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { buildPerformance } from "@/lib/performance-report";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, localIso } from "@/lib/format";
 import { getT } from "@/i18n/server";
+import { positionsFrom } from "@/lib/positions";
+import { famillesDuPortefeuille } from "@/lib/domain/familles-actifs";
+import { echeancier } from "@/lib/domain/echeancier";
+import { RailSections } from "@/components/RailSections";
+import { Echeancier } from "./Echeancier";
+import { Repartition } from "./Repartition";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Ce que votre épargne a rapporté") };
+  return { title: t("Analyse de votre portefeuille") };
 }
 
 /**
@@ -38,9 +44,17 @@ export default async function PerformancePage() {
   const t = await getT();
   const s = await requireSession("/moi/performance");
   const r = repo();
-  const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+  const [intents, offers, cash] = await Promise.all([r.listIntents(), r.listOffers(), r.listCash(s.userId).catch(() => [])]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const p = buildPerformance(mine, offers);
+  /* Les trois sections ajoutées tirent des mêmes ordres que le rapport : la
+     répartition des lignes du rapport, l'échéancier des flux à venir des
+     positions, et les opérations du journal des espèces. Rien n'est recalculé
+     d'un autre côté, donc rien ne peut diverger. */
+  const positions = positionsFrom(mine, offers);
+  const familles = famillesDuPortefeuille(p.lines, new Map(offers.map((o) => [o.id, o])), 0);
+  const aVenir = echeancier(positions.flatMap((x) => x.flows), localIso(new Date()));
+  const operations = [...cash].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 40);
 
   // Aucune ligne valorisable : le tableau garde son sens, le chapeau n'en a plus.
   const totalsMakeSense = p.lines.some((l) => l.valuable);
@@ -64,10 +78,37 @@ export default async function PerformancePage() {
       <Link href="/" className={styles.back}>
         ← {t("Portefeuille")}
       </Link>
-      <h1 className="display">{t("Ce que votre épargne a rapporté")}</h1>
+      <h1 className="display">{t("Analyse de votre portefeuille")}</h1>
       <p className={styles.lead}>
         {t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
       </p>
+
+      {/* LE RAIL, comme sur Analyses au desk. Quatre sections, c'est déjà plus
+          qu'on ne parcourt de haut en bas, et chaque tuile du tableau de bord
+          mène directement à la sienne. */}
+      <div className={styles.corps}>
+      <RailSections
+        sections={[
+          { id: "detenu", titre: t("Ce que vous détenez"), groupe: t("Le portefeuille") },
+          { id: "rapporte", titre: t("Ce que ça a rapporté"), groupe: t("Le portefeuille") },
+          { id: "echeancier", titre: t("L'échéancier"), groupe: t("Ce qui vient") },
+          { id: "operations", titre: t("Vos opérations"), groupe: t("Ce qui vient") },
+        ]}
+      />
+      <div className={styles.sections}>
+
+      <section id="detenu">
+        <h2 className={styles.h2}>{t("Ce que vous détenez")}</h2>
+        <Repartition parts={familles} />
+        {p.unvalued > 0 && (
+          <p className={styles.horsDessin}>
+            {t("{n} ligne(s) sont hors du dessin, faute de cours publié. Elles ne valent pas zéro : les compter à zéro ferait baisser votre répartition sans raison.", { n: String(p.unvalued) })}
+          </p>
+        )}
+      </section>
+
+      <section id="rapporte">
+      <h2 className={styles.h2}>{t("Ce que ça a rapporté")}</h2>
 
       {totalsMakeSense && (
       <div className={styles.head}>
@@ -134,6 +175,42 @@ export default async function PerformancePage() {
         </table>
       </div>
 
+      </section>
+
+      <section id="echeancier">
+        <h2 className={styles.h2}>{t("L'échéancier")}</h2>
+        <p className={styles.sousTitre}>{t("Ce que vos lignes doivent vous verser, mois par mois.")}</p>
+        <Echeancier mois={aVenir} />
+      </section>
+
+      <section id="operations">
+        <h2 className={styles.h2}>{t("Vos opérations")}</h2>
+        {operations.length === 0 ? (
+          <p className="muted">{t("Aucun mouvement encore porté au journal.")}</p>
+        ) : (
+          <div className="scroll-x">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>{t("Date")}</th>
+                  <th>{t("Opération")}</th>
+                  <th className="r">{t("Montant")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {operations.map((o) => (
+                  <tr key={o.id}>
+                    <td>{fmtDate(o.at)}</td>
+                    <td>{o.label}</td>
+                    <td className="r num">{fmt(Math.round(o.amount))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       <div className={styles.notes}>
         <p>
           {t(
@@ -155,6 +232,8 @@ export default async function PerformancePage() {
         )}
         {p.sold && <p>{t("Sur les lignes dont des parts sont sorties, les coupons encaissés avant la vente ne sont pas comptés : le gain affiché y est prudent.")}</p>}
         <p className="muted">{t("Ce rapport mesure ce qui s'est passé. Il ne recommande aucune opération : les performances passées ne préjugent pas des performances futures.")}</p>
+      </div>
+      </div>
       </div>
     </div>
   );

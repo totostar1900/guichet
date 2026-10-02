@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n/client";
-import styles from "./RailAnalyse.module.css";
+import styles from "./RailSections.module.css";
 
 /**
- * La carte d'une page qu'on ne parcourt plus à l'aveugle.
+ * Le rail d'une page à sections : la carte d'une page qu'on ne parcourt plus à
+ * l'aveugle.
+ *
+ * IL A QUITTÉ « components/desk » le 2 octobre 2026, parce qu'il sert aussi la
+ * page Analyse du client. Un cliquet interdit au Guichet de citer un composant
+ * du desk, et il a raison : ce qui est réservé au desk ne doit pas se retrouver
+ * sous les yeux d'un client par la porte d'un import. Ce rail-ci ne porte aucun
+ * savoir du desk, seulement une liste de sections, donc il déménage plutôt que
+ * d'être recopié.
  *
  * La courbe et les analyses étaient deux écrans, et personne ne lisait le
  * premier sans le second : un rendement congolais à seize pour cent ne se
@@ -32,7 +40,7 @@ export interface SectionRail {
   alerte?: number;
 }
 
-export function RailAnalyse({ sections }: { sections: SectionRail[] }) {
+export function RailSections({ sections }: { sections: SectionRail[] }) {
   const t = useT();
   const [courante, setCourante] = useState(sections[0]?.id);
 

@@ -115,7 +115,7 @@ export async function Releve({ session: s }: { session: Session }) {
       {/* La question qu un releve laisse ouverte : ai-je gagne, et combien. */}
       {positions.length > 0 && (
         <p className={styles.reportLink}>
-          <Link href="/moi/performance">{t("Ce que votre épargne a rapporté")}</Link>
+          <Link href="/moi/performance">{t("L'analyse de votre portefeuille")}</Link>
         </p>
       )}
       {/* Ce qui est revenu et dort : la seule décision entre l’achat et le remboursement. */}

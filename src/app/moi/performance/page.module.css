@@ -70,3 +70,88 @@
   line-height: 1.5;
   max-width: 70ch;
 }
+
+/* ── La page à sections ──────────────────────────────────────────────────────
+   Le rail à gauche, les sections à droite : la même disposition qu'Analyses au
+   desk, qui tient douze sections. */
+.corps {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  gap: var(--s-9);
+  align-items: start;
+}
+.sections {
+  display: grid;
+  gap: var(--s-10);
+  min-width: 0;
+}
+.h2 {
+  margin: 0 0 var(--s-3);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.sousTitre {
+  margin: 0 0 var(--s-7);
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+/* Un graphique ne déborde jamais : il se réduit avec la colonne. */
+.graphe {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 640px;
+}
+.sousGraphe {
+  margin: var(--s-4) 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+/* La légende nomme chaque part à côté de sa couleur : l'identité ne tient
+   jamais à la couleur seule. */
+.legende {
+  list-style: none;
+  margin: var(--s-6) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-9);
+}
+.legende li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: 0.8rem;
+}
+.legende i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.legende b {
+  font-variant-numeric: tabular-nums;
+}
+.legende span {
+  color: var(--ink-2);
+}
+.legende small {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+/* Ce qui sort du dessin se dit sous le dessin, et pas en note de bas de page :
+   une part manquante se lit comme une part perdue. */
+.horsDessin {
+  margin: var(--s-7) 0 0;
+  padding: var(--s-5) var(--s-6);
+  background: var(--warn-soft);
+  border-left: 3px solid var(--warn);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+@media (max-width: 900px) {
+  .corps {
+    grid-template-columns: 1fr;
+  }
+}
