@@ -4,7 +4,8 @@ import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { attentesDuClient, compteDesEtats, servicesDuClient } from "@/lib/domain/services";
+import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
+import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { buildPerformanceParts } from "@/lib/performance-report";
 import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
@@ -54,7 +55,6 @@ export async function Console({ session }: { session: Session }) {
 
   const services = servicesDuClient(ctx);
   const compte = compteDesEtats(services);
-  const attentes = attentesDuClient(ctx, fmt);
 
   const { perf, mouvements } = buildPerformanceParts(mine, offers);
   const courbe = courbeDuPortefeuille(mouvements, perf.valued, aujourdHui);
@@ -81,6 +81,13 @@ export async function Console({ session }: { session: Session }) {
           {session.kycStatus === "valide" ? t("Dossier complet") : t("Dossier à compléter")}
         </span>
       </div>
+
+      {/* CE QUI ATTEND LE LECTEUR, AVANT TOUT LE RESTE.
+          C'est la seule bande de la page qui demande un geste ; tout le reste
+          est un constat, et un constat attend d'être lu quand une action attend
+          d'être faite. Elle est donc remontée au-dessus de la valeur.
+          Vide, le composant ne rend rien. */}
+      <CeQuiVousAttend userId={session.userId} />
 
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
       {positions.length > 0 ? (
@@ -139,26 +146,6 @@ export async function Console({ session }: { session: Session }) {
         </section>
       ) : (
         <p className={styles.vide}>{t("Vous ne tenez encore aucune ligne. Les titres et les fonds ouverts se parcourent sans engagement.")}</p>
-      )}
-
-      {/* 2. Ce qui attend une décision : l'ancre du compteur de la bande. */}
-      {attentes.length > 0 && (
-        <section id="a-decider">
-          <div className={styles.tete}>
-            <b>{t("Ce qui vous attend")}</b>
-            <span>{attentes.length === 1 ? t("une décision possible aujourd'hui") : t("{n} décisions possibles aujourd'hui", { n: attentes.length })}</span>
-          </div>
-          <div className={styles.attentes}>
-            {attentes.map((a) => (
-              <div key={a.cle} className={`${styles.attente} ${a.ton === "arrive" ? styles.arrive : a.ton === "annonce" ? styles.annonce : styles.retard}`}>
-                <span>{t(a.quand.key, a.quand.params)}</span>
-                <b>{a.chiffre}</b>
-                <p>{t(a.quoi.key, a.quoi.params)}</p>
-                <Link href={a.href}>{t(a.geste)}</Link>
-              </div>
-            ))}
-          </div>
-        </section>
       )}
 
       {/* 3. Ce qui est entré, ce qui est revenu, et ce que ça vaut aujourd'hui. */}

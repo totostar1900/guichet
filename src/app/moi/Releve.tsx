@@ -13,7 +13,6 @@ import { MyDocuments } from "./MyDocuments";
 import { FoldAll, FoldSection } from "@/components/Fold";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
-import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
 import { AvisGardeList } from "@/components/AvisGardeList";
@@ -103,13 +102,6 @@ export async function Releve({ session: s }: { session: Session }) {
   const t = await getT();
   return (
     <div className={styles.wrap} id="releve">
-      {/* CE QUI ATTEND LE LECTEUR, AVANT TOUT LE RESTE. C'est la seule bande de
-          la page qui demande un geste ; le reste est un constat, et un constat
-          attend d'être lu quand une action attend d'être faite. Elle passe donc
-          devant l'invitation à ouvrir un compte, qui est une invitation.
-          Vide, le composant ne rend rien : une bande qui dit « rien » occupe la
-          place de ce qui compte. */}
-      <CeQuiVousAttend userId={s.userId} />
       {/* Le seul reste de l'ancien en-tête : un appel à agir, pas une redite du
           nom ni du palier, que le portefeuille dit déjà au-dessus. */}
       {s.tier < 2 && (
