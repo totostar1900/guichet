@@ -22,7 +22,7 @@ import { amountFlag } from "@/data/profile";
 import { Amount } from "./Amount";
 import { RefTotals } from "./RefTotals";
 import { orderPlan, orderTotals } from "./OrderFlows";
-import { groupedInput } from "@/lib/ui/grouped";
+import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 
 const DONE: Record<IntentType, (by: string) => string> = {
   ferme: (by) => `Votre prise ferme est dans le carnet. Un conseiller vous confirme ${by} avant la clôture et vous envoie le bulletin à signer.`,
@@ -208,6 +208,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // L'équivalence sous le champ : elle vivait dans la bulle « Le calcul », donc
   // il fallait la demander pour la voir. Elle se lit maintenant pendant la frappe.
   const equiv = needsAmount ? equivalence(offer, ordered, type) : null;
+  // Sur une ligne cotée, ce que la somme demandée laisse de côté : un titre ne
+  // se coupe pas, et le carnet n'en prend que des entiers, par quotité.
+  const marketRest = byCash && ordered > 0 ? Math.max(0, parseAmount(cash) - Math.round(ordered * unitPrice(offer, type, lim))) : 0;
   // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
   const checks = needsAmount && ordered ? orderChecks(offer, type, ordered, lim, { held: (type === "vente" || type === "rachat") && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
   const blocked = checks.some((c) => c.level === "block");
@@ -318,64 +321,105 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           ))}
         </div>
         <div className={styles.row}>
-          {needsAmount ? (
-            <label className="field">
-              {/* Sur la cote, et pour un achat seulement : des titres, ou une
-                  somme. Vendre part de ce qu'on détient, donc de titres. */}
-              {market && !vend ? (
-                <span className={styles.unitRow}>
-                  {amtLabel}
-                  <span className={styles.unitPick} role="group" aria-label={t("Saisir en")}>
-                    {(["titres", "francs"] as const).map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        aria-pressed={unit === u}
-                        className={unit === u ? styles.unitOn : undefined}
-                        onClick={() => setUnit(u)}
-                      >
-                        {t(u === "titres" ? (offer.instrument === "obligation" ? "en titres" : "en actions") : "en FCFA")}
-                      </button>
-                    ))}
-                  </span>
-                </span>
-              ) : (
-                amtLabel
-              )}
-              {byCash ? (
+          {needsAmount && market ? (
+            /* LES TROIS CASES LIÉES : quantité × cours = total.
+
+               Le formulaire posait déjà la question dans les deux sens, par un
+               interrupteur « en titres / en FCFA » au-dessus d'un seul champ,
+               et renvoyait la conversion dans une phrase en dessous. Trois
+               nombres dont deux se déduisaient restaient donc à tenir de tête,
+               et le cours, qui décide des deux autres, n'était visible nulle
+               part : il dormait dans un champ « Prix limite (facultatif) »
+               plus bas.
+
+               Celle qu'on ne touche pas en dernier est celle qui suit : taper
+               une quantité recalcule le total, taper un total recalcule la
+               quantité. L'interrupteur disparaît, non parce qu'il gênait mais
+               parce qu'il ne décide plus rien : le champ où l'on tape dit déjà
+               l'unité, et le mot « calculé » dit l'autre. L'état qu'il
+               pilotait, lui, reste, et c'est le champ touché qui le pose. */
+            <div className={styles.trio}>
+              <label className="field">
+                <span>{t(offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)")}</span>
                 <input
                   data-order-field
+                  name={byCash ? undefined : "amount"}
+                  inputMode="numeric"
+                  placeholder="80"
+                  value={byCash ? (ordered ? groupDigits(String(ordered)) : "") : amount}
+                  {...groupedInput((v) => {
+                    setUnit("titres");
+                    setAmount(v);
+                  })}
+                />
+                <small className={byCash ? styles.calc : styles.typed}>{t(byCash ? "calculé, à la quotité par le bas" : "vous tapez ici")}</small>
+              </label>
+              <span className={styles.trioOp} aria-hidden="true">
+                ×
+              </span>
+              <label className="field">
+                <span>{t(lim ? (offer.instrument === "obligation" ? "Votre limite (% du nominal)" : "Votre limite (FCFA)") : offer.instrument === "obligation" ? "Cours (% du nominal)" : "Cours (FCFA)")}</span>
+                <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String((vend ? offer.bid : offer.ask) ?? offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
+                <small className={lim ? styles.typed : styles.calc}>{t(lim ? "votre limite : le desk ne dépasse pas" : "dernier cours publié · laissez vide pour au mieux")}</small>
+              </label>
+              <span className={styles.trioOp} aria-hidden="true">
+                =
+              </span>
+              <label className="field">
+                <span>{t(vend ? "Produit estimé (FCFA)" : "Total (FCFA)")}</span>
+                <input
                   inputMode="numeric"
                   placeholder="1 000 000"
-                  value={cash}
-                  {...groupedInput(setCash)}
+                  readOnly={vend}
+                  value={byCash ? cash : ordered ? groupDigits(String(Math.round(ordered * unitPrice(offer, type, lim)))) : ""}
+                  {...groupedInput((v) => {
+                    if (vend) return;
+                    setUnit("francs");
+                    setCash(v);
+                  })}
                 />
-              ) : (
-                <input
-                  data-order-field
-                  name="amount"
-                  inputMode="numeric"
-                  placeholder={offer.kind === "RACHAT" ? "500" : "10 000 000"}
-                  value={amount}
-                  {...groupedInput(setAmount, { decimals: offer.kind === "FONDS" && type === "rachat" })}
-                />
-              )}
-              {/* Ce qui part au desk reste une quantité : c’est ce que le carnet prend. */}
+                <small className={byCash ? styles.typed : styles.calc}>{t(lim ? "au cours de votre limite" : "estimé au dernier cours")}</small>
+              </label>
+              {/* Ce qui part au desk reste une quantité : c'est ce que le carnet prend. */}
               {byCash && <input type="hidden" name="amount" value={ordered ? String(ordered) : ""} />}
-              {byCash && (
-                <small className={styles.conv}>
-                  {ordered
-                    ? t("soit {n} {u} à {p}, pour {c} FCFA", {
-                        n: fmt(ordered),
-                        u: t(offer.instrument === "obligation" ? "titres" : "actions"),
-                        p: offer.instrument === "obligation" ? `${lim ?? offer.ask ?? offer.lastPrice ?? 0} %` : `${fmt(lim ?? offer.ask ?? offer.lastPrice ?? 0)} FCFA`,
-                        c: fmt(Math.round(ordered * unitPrice(offer, type, lim))),
-                      })
-                    : parseAmount(cash)
-                      ? t("Cette somme n’atteint pas un titre au cours de référence.")
-                      : t("La somme se convertit en titres au cours de référence, arrondie à la quotité par le bas.")}
-                </small>
-              )}
+              <div className={styles.trioFoot}>
+                {byCash && !ordered && parseAmount(cash) > 0 && <span className={styles.rest}>{t("Cette somme n'atteint pas un titre au cours de référence.")}</span>}
+                {/* UN TITRE NE SE COUPE PAS, et ce qui reste ne se disait nulle
+                    part : le total affiché descendait sous la somme demandée
+                    sans un mot. */}
+                {marketRest > 0 && (
+                  <span className={styles.rest}>
+                    {t("{v} FCFA ne sont pas placés : un titre de plus coûterait {d} FCFA de trop.", { v: fmt(marketRest), d: fmt(Math.max(0, Math.round(unitPrice(offer, type, lim)) - marketRest)) })}
+                  </span>
+                )}
+                {held > 0 && type === "vente" && (
+                  <small className={styles.held}>
+                    {t("Vous détenez")} {fmtUnits(held)} {t(offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={() => {
+                        setUnit("titres");
+                        setAmount(fmtUnits(held));
+                      }}
+                    >
+                      {t("tout vendre")}
+                    </button>
+                  </small>
+                )}
+              </div>
+            </div>
+          ) : needsAmount ? (
+            <label className="field">
+              {amtLabel}
+              <input
+                data-order-field
+                name="amount"
+                inputMode="numeric"
+                placeholder={offer.kind === "RACHAT" ? "500" : "10 000 000"}
+                value={amount}
+                {...groupedInput(setAmount, { decimals: offer.kind === "FONDS" && type === "rachat" })}
+              />
               {equiv && (
                 <small className={styles.conv}>
                   <b className={styles.equiv}>{t(equiv.line)}</b>
@@ -438,12 +482,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <small className="muted">{t("Sans condition, votre demande tient quel que soit le résultat.")}</small>
             </label>
           )}
-          {market && (type === "achat" || type === "vente") && (
-            <label className="field">
-              {t("Prix limite (facultatif)")} : {t(offer.instrument === "obligation" ? "% du nominal" : "FCFA par action")}
-              <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String(offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
-            </label>
-          )}
+          {/* Le prix limite a rejoint les trois cases : il est la case du milieu,
+              puisque c'est lui qui décide des deux autres. Il n'a plus de champ
+              séparé plus bas, qui en ferait un second dans le même formulaire. */}
         </div>
         {needsAmount && (
           <>
