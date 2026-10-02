@@ -2521,4 +2521,6 @@ export const EN_MORE: Record<string, string> = {
   "Avec ses {n} pièce(s) jointe(s)": "With its {n} attachment(s)",
   "Sans pièce jointe": "Without an attachment",
   "Le message d'origine part cité, avec son expéditeur et sa date.": "The original message goes out quoted, with its sender and date.",
+  "Effacer le brouillon": "Discard the draft",
+  "Brouillon effacé.": "Draft discarded.",
 };

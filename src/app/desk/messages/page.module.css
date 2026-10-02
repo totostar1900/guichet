@@ -1,14 +1,26 @@
+/* LA COLONNE DE GAUCHE N'EST PLUS IMPOSEE PAR LA GRILLE : « auto » laisse le
+   rail décider de sa largeur, sans quoi la poignée de redimensionnement ne
+   changerait rien et le geste serait une promesse en l'air. */
 .layout {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
+/* Les deux panneaux se redimensionnent par la poignée du navigateur : pas de
+   barre glissante à écrire, et le geste est celui que les gens connaissent.
+   GardeTaille.tsx repose la taille à l'ouverture suivante. */
 .list {
   display: grid;
+  align-content: start;
   gap: 4px;
-  max-height: calc(100vh - 220px);
+  width: 320px;
+  min-width: 200px;
+  max-width: 560px;
+  height: calc(100vh - 220px);
+  min-height: 220px;
   overflow: auto;
+  resize: both;
 }
 .item {
   display: grid;
@@ -72,8 +84,15 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   display: grid;
+  height: calc(100vh - 220px);
   min-height: 420px;
+  min-width: 320px;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  /* « hidden » plutôt que « auto » : la rangée du milieu défile déjà, et deux
+     barres l'une dans l'autre sont une gêne, pas une aide. « resize » demande
+     seulement que le débordement ne soit pas « visible ». */
+  overflow: hidden;
+  resize: both;
 }
 .threadHead {
   display: flex;
@@ -94,6 +113,9 @@
   display: flex;
   gap: 6px;
 }
+/* LA HAUTEUR VIENT DU PANNEAU, plus de la fenêtre. Mesurée en « vh », la liste
+   des messages ignorait la taille du fil : redimensionné, il aurait grandi sans
+   qu'elle suive, et le vide serait resté sous les messages. */
 .msgs {
   list-style: none;
   margin: 0;
@@ -101,7 +123,7 @@
   display: grid;
   align-content: start;
   gap: 10px;
-  max-height: calc(100vh - 360px);
+  min-height: 0;
   overflow: auto;
 }
 .msgs li {
@@ -178,8 +200,17 @@
   .layout {
     grid-template-columns: 1fr;
   }
+  /* Sur un écran étroit la place est comptée et il n'y a rien à répartir : les
+     deux panneaux reprennent toute la largeur, et la poignée s'efface. */
+  .list,
+  .thread {
+    width: auto;
+    max-width: none;
+    height: auto;
+    resize: none;
+  }
   .list {
-    max-height: none;
+    max-height: 40vh;
   }
   .msgs li {
     max-width: 92%;
@@ -509,4 +540,15 @@
   width: auto;
   flex: 1;
   min-width: 180px;
+}
+/* Le ruban du brouillon effacé : il tient sur une ligne, sous la barre des
+   gestes, et reste tant qu'on n'a pas retapé. */
+.ruban {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  background: var(--warn-soft);
+  color: var(--ink);
+  font-size: 0.78rem;
 }

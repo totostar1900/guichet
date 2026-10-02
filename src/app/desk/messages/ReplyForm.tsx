@@ -195,6 +195,8 @@ function Champs({
      serait une promesse en l'air. Elle se rechoisit, et l'aperçu la nomme. */
   const [piece, setPiece] = useState<{ nom: string; octets: number } | null>(null);
   const [refusPiece, setRefusPiece] = useState<string | undefined>(undefined);
+  /* Ce qui vient d'être effacé, gardé le temps qu'on puisse le reposer. */
+  const [efface, setEfface] = useState<Brouillon | null>(null);
 
   const parMail = channel === "email";
   /* UN {champ} NON REMPLI NE PART PAS. Les modèles qui demandent quelque chose
@@ -210,6 +212,32 @@ function Champs({
     const neuf = { subject, body, offerId, ...champ };
     garderBrouillon(channel, to, neuf);
     setGarde0(Boolean(neuf.body || neuf.subject));
+    /* Retaper referme le ruban : le brouillon effacé n'est plus celui qu'on
+       croit, et le reposer écraserait ce qu'on vient d'écrire. */
+    setEfface(null);
+  };
+
+  /* EFFACER N'EST PAS PERDRE. « Êtes-vous sûr » devant un geste fréquent entre
+     dans le rythme du clic en une semaine ; effacer tout de suite et laisser
+     revenir protège vraiment. Le ruban n'a pas de minuterie : un ruban qui
+     disparaît tout seul emporte le texte avec lui. */
+  const effacer = () => {
+    setEfface({ subject, body, offerId });
+    setSubject("");
+    setBody("");
+    setOfferId("");
+    setGarde0(false);
+    oublierBrouillon(channel, to);
+  };
+
+  const reposer = () => {
+    if (!efface) return;
+    setSubject(efface.subject);
+    setBody(efface.body);
+    setOfferId(efface.offerId);
+    setGarde0(Boolean(efface.body || efface.subject));
+    garderBrouillon(channel, to, efface);
+    setEfface(null);
   };
 
   /* L'adresse de la fiche, telle que le serveur la composera. Sur WhatsApp elle
@@ -349,7 +377,20 @@ function Champs({
         )}
         <span className={styles.outilsVide} />
         {garde0 && <small className="muted">{t("brouillon gardé")}</small>}
+        {(body.trim() || subject.trim() || offerId) && (
+          <button type="button" className="btn sm ghost" onClick={effacer}>
+            {t("Effacer le brouillon")}
+          </button>
+        )}
       </div>
+      {efface && (
+        <div className={styles.ruban}>
+          <span>{t("Brouillon effacé.")}</span>
+          <button type="button" className="btn sm" onClick={reposer}>
+            {t("Rétablir")}
+          </button>
+        </div>
+      )}
       <div className={styles.replyRow}>
         {erreur && <span className={styles.err}>{erreur}</span>}
         {refusPiece && <span className={styles.err}>{refusPiece}</span>}

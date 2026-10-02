@@ -13,6 +13,7 @@ import { classerAction, epinglerAction, etiquetterAction, handledAction, lotTrai
 import { ETIQUETTES, motEtiquette } from "./etiquettes";
 import { estReporte, REPORTS } from "./report";
 import { modelesDuFil } from "./modeles";
+import { GardeTaille } from "./GardeTaille";
 import { ReplyForm } from "./ReplyForm";
 import { TransfertForm } from "./TransfertForm";
 import styles from "./page.module.css";
@@ -150,7 +151,11 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       />
 
       <div className={styles.layout} data-coach="inbox">
-        <aside className={styles.list}>
+        {/* Les deux panneaux se redimensionnent par la poignée du navigateur, et
+            gardent la taille qu'on leur donne : une liste à 320 px convient à un
+            écran et à un seul. */}
+        <GardeTaille />
+        <aside id="desk-messages-liste" className={styles.list}>
           {/* LES FORMULAIRES DES GESTES, posés une seule fois.
               Chaque bouton de ligne s'y rattache par « form », et porte sa cible
               en valeur. Un bouton dans un lien serait du HTML invalide, et un
@@ -182,7 +187,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     <span className={styles.chan}>{t2.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</span>
                     {t2.labels.map((l) => (
                       <span key={l} className={styles.marque}>
-                        {motEtiquette(l)}
+                        {t(motEtiquette(l))}
                       </span>
                     ))}
                     <span className={styles.preview}>
@@ -219,7 +224,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
         </aside>
 
         {open ? (
-          <div className={styles.thread}>
+          <div id="desk-messages-fil" className={styles.thread}>
             <div className={styles.threadHead}>
               <div>
                 <b>{open.name ?? open.key}</b>
@@ -238,7 +243,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                         <input type="hidden" name="cible" value={`${open.channel}|${open.key}`} />
                         <input type="hidden" name="etiquette" value={e.cle} />
                         <button type="submit" className={styles.marqueBtn} aria-pressed={posee} style={posee ? { background: e.fond, color: e.teinte, borderColor: e.teinte } : undefined}>
-                          {e.mot}
+                          {t(e.mot)}
                         </button>
                       </form>
                     );

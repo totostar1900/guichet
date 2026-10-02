@@ -17,6 +17,16 @@
  *
  * La teinte vient des familles d'instruments, qui ont déjà leur jeu de couleurs
  * distinctes et lisibles dans les deux thèmes : pas une palette de plus.
+ *
+ * LES MOTS SE TRADUISENT, et l'appelant écrit `t(e.mot)`. Rendus en dur, ils
+ * s'affichaient en français sur l'écran anglais, alors que leurs traductions
+ * étaient au dictionnaire : quatre entrées posées le même jour et qui ne
+ * servaient à rien.
+ *
+ * Le contrôle des clefs ne lit que les appels dont la chaîne est écrite en
+ * clair, et ne verra donc jamais ceux-ci. La ligne qui suit les lui montre :
+ * elle ne s'exécute pas, elle se lit.
+ *   t("régulateur") · t("ordre") · t("réclamation") · t("KYC")
  */
 export type Etiquette = { cle: string; mot: string; teinte: string; fond: string };
 
