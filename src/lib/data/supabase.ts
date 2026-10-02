@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
+import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
@@ -437,6 +438,29 @@ const toCash = (r: CashRow): CashEntry => ({
   feePeriod: u(r.fee_period),
   evidence: u(r.evidence),
   expected: r.expected == null ? undefined : Number(r.expected),
+});
+
+type RapproRow = {
+  id: string;
+  on_date: string;
+  owed: string | number;
+  owed_assigned: string | number;
+  held: string | number;
+  accounts: CompteDeclare[] | null;
+  note: string | null;
+  created_at: string;
+  created_by: string;
+};
+const toRappro = (r: RapproRow): Rapprochement => ({
+  id: r.id,
+  onDate: r.on_date,
+  owed: Number(r.owed),
+  owedAssigned: Number(r.owed_assigned),
+  held: Number(r.held),
+  accounts: r.accounts ?? [],
+  note: u(r.note),
+  createdAt: r.created_at,
+  createdBy: r.created_by,
 });
 
 type PayoutRow = {
@@ -1264,6 +1288,25 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("client_cash").insert(row).select("*").single();
     if (error) fail("addCash", error);
     return toCash(data);
+  },
+
+  async listRapprochements(limit = 40) {
+    const { data, error } = await db().from("cash_reconciliations").select("*").order("on_date", { ascending: false }).limit(limit);
+    if (error) {
+      // Migration 0061 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/cash_reconciliations/.test(error.message)) return [];
+      fail("listRapprochements", error);
+    }
+    return (data ?? []).map(toRappro);
+  },
+  async addRapprochement(r) {
+    const { data, error } = await db()
+      .from("cash_reconciliations")
+      .insert({ on_date: r.onDate, owed: r.owed, owed_assigned: r.owedAssigned, held: r.held, accounts: r.accounts, note: r.note ?? null, created_by: r.createdBy })
+      .select("*")
+      .single();
+    if (error) fail("addRapprochement", error);
+    return toRappro(data);
   },
 
   async listPayouts(q) {

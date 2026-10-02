@@ -6,6 +6,7 @@ import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
+import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
@@ -102,6 +103,7 @@ interface Store {
   watches: Watch[];
   cash: CashEntry[];
   payouts: CashPayout[];
+  rapprochements: Rapprochement[];
   standing: StandingOrder[];
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
   avisGarde: AvisGarde[];
@@ -167,6 +169,7 @@ function store(): Store {
       watches: [],
       cash: [],
       payouts: [],
+      rapprochements: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
       versions: [],
@@ -575,6 +578,16 @@ export const memoryRepository: Repository = {
     store().cash.push(row);
     return structuredClone(row);
   },
+  async listRapprochements(limit = 40) {
+    return structuredClone([...store().rapprochements].sort((a, b) => b.onDate.localeCompare(a.onDate)).slice(0, limit));
+  },
+  async addRapprochement(r) {
+    const s2 = store();
+    const row: Rapprochement = { ...structuredClone(r), id: `rappro-${s2.rapprochements.length + 1}`, createdAt: nowIso() };
+    s2.rapprochements.push(row);
+    return structuredClone(row);
+  },
+
   async listPayouts(q) {
     const rows = store().payouts.filter((x) => (!q?.userId || x.userId === q.userId) && (!q?.state || x.state === q.state));
     return structuredClone([...rows].sort((a, b) => a.askedAt.localeCompare(b.askedAt)));

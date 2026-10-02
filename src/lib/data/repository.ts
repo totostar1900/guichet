@@ -1,6 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
+import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
@@ -100,6 +101,11 @@ export interface Repository {
   listCash(userId: string): Promise<CashEntry[]>;
   /** Un mouvement s'ajoute, il ne se modifie pas : une correction est un mouvement inverse. */
   addCash(entry: Omit<CashEntry, "id" | "at"> & { at?: string; createdBy?: string }): Promise<CashEntry>;
+
+  /** Les rapprochements, du plus récent au plus ancien. Un contrôle ne se modifie pas. */
+  listRapprochements(limit?: number): Promise<Rapprochement[]>;
+  /** Enregistrer un contrôle : les deux chiffres sont gelés à la date du jour. */
+  addRapprochement(r: Omit<Rapprochement, "id" | "createdAt">): Promise<Rapprochement>;
 
   /** Les demandes de restitution : celles d'un client, ou la file ouverte du desk. */
   listPayouts(q?: { userId?: string; state?: CashPayout["state"] }): Promise<CashPayout[]>;

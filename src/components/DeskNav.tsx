@@ -19,6 +19,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          pas la page. */
       ["/desk/resultats", "Allocations et règlement"],
       ["/desk/encaissements", "Encaissements"],
+      /* Le contrôle que la règle des espèces, ouverte le 2 octobre 2026, rend
+         obligatoire : ce que la maison doit à ses clients face à ce qu'elle
+         tient. Il se range après les encaissements parce qu'il les totalise. */
+      ["/desk/rapprochement", "Rapprochement"],
       ["/desk/documents", "Documents"],
     ],
   },
