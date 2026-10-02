@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { repo } from "@/lib/data";
 import type { Offer } from "@/lib/domain/types";
+import { OUVERTE, type CashPolicy } from "@/lib/domain/cash";
 import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { REF } from "@/lib/reference";
@@ -78,6 +79,31 @@ export const loadBaremeGarde = cache(async (): Promise<BaremeGarde> => {
     return row ? { ...BAREME_FERME, ...(row.data as Partial<BaremeGarde>) } : BAREME_FERME;
   } catch {
     return BAREME_FERME;
+  }
+});
+
+/**
+ * La politique des espèces : ce que la maison fait du solde d'un client.
+ *
+ * Elle se range avec les trois autres parce que c'est la même nature de chose,
+ * mais son défaut est l'inverse du leur, et c'est voulu. Les trois autres sont
+ * fermées par défaut parce qu'une lecture manquée ne doit pas publier un
+ * carnet, prélever des frais ou élargir une délégation par accident.
+ *
+ * Ici, la plus stricte des positions n'est pas la plus prudente : la politique
+ * fermée RENVOIE l'argent, et renvoyer sur une panne de lecture le solde d'un
+ * client qui a demandé à le garder serait un mouvement de trop, pas un silence.
+ * Le défaut est donc la règle en vigueur, décidée le 2 octobre 2026.
+ */
+export const CASH_POLICY_KEY = "especes";
+
+export const loadCashPolicy = cache(async (): Promise<CashPolicy> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const row = rows.find((r) => r.key === CASH_POLICY_KEY);
+    return row ? { ...OUVERTE, ...(row.data as Partial<CashPolicy>) } : OUVERTE;
+  } catch {
+    return OUVERTE;
   }
 });
 

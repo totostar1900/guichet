@@ -253,4 +253,13 @@ export const EN_CONSOLE: Record<string, string> = {
   "Trois choses sont déjà écrites quand l'ordre part : la ligne, que vous avez choisie ; le moment, celui où l'argent arrive ; et le montant, celui que l'émetteur a versé.": "Three things are already written when the order goes out: the line, which you chose; the moment, which is when the money arrives; and the amount, which is what the issuer paid.",
   "Une ligne précise, fixée maintenant : le desk la suivra, telle quelle, le mois venu.": "One precise line, set now: the desk will follow it, as it stands, when the month comes.",
   "Décidé maintenant, par vous : le jour venu, l'ordre part tel que vous l'avez écrit.": "Decided now, by you: on the day, the order goes out exactly as you wrote it.",
+  "Versement demandé le {d} pour {m} FCFA. Le desk vire sur le compte déclaré à l'ouverture, et vous recevez un avis.": "Payment requested on {d} for {m} FCFA. The desk transfers to the account declared at opening, and you receive a notice.",
+  "Votre demande du {d} n'a pas été suivie : {motif}": "Your request of {d} was not carried out: {motif}",
+  "Demander de nouveau": "Request again",
+  "Dernier versement : {m} FCFA le {d}. ": "Last payment: {m} FCFA on {d}. ",
+  "Ce solde reste ici aussi longtemps que vous le souhaitez.": "This balance stays here as long as you wish.",
+  "Me le faire virer": "Have it transferred to me",
+  "{m} FCFA seront virés sur le compte déclaré à l'ouverture de votre compte-titres. Le desk recalcule au moment du virement : un coupon qui tombe d'ici là s'y ajoute.": "{m} FCFA will be transferred to the account declared when your securities account was opened. The desk recalculates at the time of transfer: a coupon falling in between is added.",
+  "Un mot pour le desk (facultatif)": "A word for the desk (optional)",
+  "Demander le versement": "Request the payment",
 };

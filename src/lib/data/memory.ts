@@ -5,7 +5,7 @@ import { SEED_NEWS } from "@/data/news-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
-import type { CashEntry } from "@/lib/domain/cash";
+import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
@@ -101,6 +101,7 @@ interface Store {
   deskExchanges: DeskExchange[];
   watches: Watch[];
   cash: CashEntry[];
+  payouts: CashPayout[];
   standing: StandingOrder[];
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
   avisGarde: AvisGarde[];
@@ -165,6 +166,7 @@ function store(): Store {
       deskExchanges: [],
       watches: [],
       cash: [],
+      payouts: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
       versions: [],
@@ -571,6 +573,27 @@ export const memoryRepository: Repository = {
        et la garde contre le double clic ne mordait pas. */
     const row: CashEntry = { id: `cash-${store().cash.length + 1}`, at: entry.at ?? new Date().toISOString(), userId: entry.userId, amount: entry.amount, kind: entry.kind, label: entry.label, intentId: entry.intentId, dueBy: entry.dueBy, flowKey: entry.flowKey, feePeriod: entry.feePeriod, evidence: entry.evidence, expected: entry.expected };
     store().cash.push(row);
+    return structuredClone(row);
+  },
+  async listPayouts(q) {
+    const rows = store().payouts.filter((x) => (!q?.userId || x.userId === q.userId) && (!q?.state || x.state === q.state));
+    return structuredClone([...rows].sort((a, b) => a.askedAt.localeCompare(b.askedAt)));
+  },
+  async askPayout(p) {
+    /* La base porte l'unicite d'une demande ouverte ; en memoire on la tient a
+       la main, sans quoi un test passerait sur un comportement que la
+       production refuse. */
+    const s2 = store();
+    if (s2.payouts.some((x) => x.userId === p.userId && x.state === "demandee")) throw new Error("cash_payouts : une demande est deja ouverte");
+    const row: CashPayout = { id: `payout-${s2.payouts.length + 1}`, userId: p.userId, askedAt: nowIso(), askedAmount: p.askedAmount, note: p.note, state: "demandee" };
+    s2.payouts.push(row);
+    return structuredClone(row);
+  },
+  async closePayout(id, p) {
+    const row = store().payouts.find((x) => x.id === id);
+    if (!row) throw new Error(`cash_payouts ${id} introuvable`);
+    if (row.state !== "demandee") throw new Error("cash_payouts : cette demande est deja fermee");
+    Object.assign(row, { state: p.state, closedAt: nowIso(), closedBy: p.closedBy, closedReason: p.closedReason, paidAmount: p.paidAmount, cashEntry: p.cashEntry });
     return structuredClone(row);
   },
   async listWatches(userId) {

@@ -162,3 +162,17 @@
   color: var(--warn);
   font-weight: 700;
 }
+
+/* Le refus ouvre son motif à la place des deux boutons : la question se pose
+   là où le geste se fait, et non dans une feuille qui couvre la file. */
+.refus {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-width: 22rem;
+}
+.refus input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+}

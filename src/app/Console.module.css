@@ -609,3 +609,57 @@
   font-weight: 400;
   color: var(--ink-2);
 }
+
+/* Réclamer son disponible, sous le chiffre qu'on vient de lire. Le ton est
+   celui d'une phrase, pas d'un panneau : ce solde n'est pas un problème à
+   régler, c'est de l'argent qui attend une décision du client. */
+.versementEtat {
+  margin: var(--s-4) 0 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 72ch;
+}
+.versementLien {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.versementForm {
+  margin-top: var(--s-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  max-width: 72ch;
+}
+.versementForm p {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.versementForm input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+.versementOk,
+.versementKo {
+  flex: 1 1 100%;
+  font-size: 0.76rem;
+}
+.versementOk {
+  color: var(--good, #1b4d3e);
+  font-weight: 700;
+}
+.versementKo {
+  color: var(--ink-3);
+}

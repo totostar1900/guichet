@@ -2,7 +2,7 @@ import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
-import type { CashEntry } from "@/lib/domain/cash";
+import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
@@ -437,6 +437,33 @@ const toCash = (r: CashRow): CashEntry => ({
   feePeriod: u(r.fee_period),
   evidence: u(r.evidence),
   expected: r.expected == null ? undefined : Number(r.expected),
+});
+
+type PayoutRow = {
+  id: string;
+  user_id: string;
+  asked_at: string;
+  asked_amount: string | number;
+  note: string | null;
+  state: CashPayout["state"];
+  closed_at: string | null;
+  closed_by: string | null;
+  closed_reason: string | null;
+  paid_amount: string | number | null;
+  cash_entry: string | null;
+};
+const toPayout = (r: PayoutRow): CashPayout => ({
+  id: r.id,
+  userId: r.user_id,
+  askedAt: r.asked_at,
+  askedAmount: Number(r.asked_amount),
+  note: u(r.note),
+  state: r.state,
+  closedAt: u(r.closed_at),
+  closedBy: u(r.closed_by),
+  closedReason: u(r.closed_reason),
+  paidAmount: r.paid_amount == null ? undefined : Number(r.paid_amount),
+  cashEntry: u(r.cash_entry),
 });
 
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
@@ -1237,6 +1264,38 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("client_cash").insert(row).select("*").single();
     if (error) fail("addCash", error);
     return toCash(data);
+  },
+
+  async listPayouts(q) {
+    let sel = db().from("cash_payouts").select("*").order("asked_at", { ascending: true });
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    if (q?.state) sel = sel.eq("state", q.state);
+    const { data, error } = await sel;
+    if (error) {
+      // Migration 0060 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/cash_payouts/.test(error.message)) return [];
+      fail("listPayouts", error);
+    }
+    return (data ?? []).map(toPayout);
+  },
+  async askPayout(p) {
+    const { data, error } = await db().from("cash_payouts").insert({ user_id: p.userId, asked_amount: p.askedAmount, note: p.note ?? null }).select("*").single();
+    if (error) fail("askPayout", error);
+    return toPayout(data);
+  },
+  async closePayout(id, p) {
+    const { data, error } = await db()
+      .from("cash_payouts")
+      .update({ state: p.state, closed_at: new Date().toISOString(), closed_by: p.closedBy, closed_reason: p.closedReason ?? null, paid_amount: p.paidAmount ?? null, cash_entry: p.cashEntry ?? null })
+      /* Seule une demande encore ouverte se ferme : deux opérateurs sur la même
+         ligne ne paient pas deux fois, et le second ne trouve rien à mettre à
+         jour plutôt que d'écraser la réponse du premier. */
+      .eq("id", id)
+      .eq("state", "demandee")
+      .select("*")
+      .single();
+    if (error) fail("closePayout", error);
+    return toPayout(data);
   },
 
   async listCustodyNotices(q) {

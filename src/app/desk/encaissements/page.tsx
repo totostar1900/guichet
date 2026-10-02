@@ -1,5 +1,7 @@
 import { DeskNav } from "@/components/DeskNav";
 import { Encaisser } from "./Encaisser";
+import { Versements } from "./Versements";
+import { demandesOuvertes } from "./payout-actions";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
@@ -33,7 +35,7 @@ export default async function EncaissementsPage() {
   await requireDesk("/desk/encaissements");
   const t = await getT();
   const r = repo();
-  const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+  const [intents, offers, demandes] = await Promise.all([r.listIntents(), r.listOffers(), demandesOuvertes()]);
 
   /* Les clients qui tiennent quelque chose : eux seuls ont des échéances. */
   const clients = [...new Set(intents.filter((i) => i.clientId).map((i) => i.clientId!))];
@@ -159,6 +161,8 @@ export default async function EncaissementsPage() {
             </section>
           ))
         )}
+
+        {demandes.length > 0 && <Versements demandes={demandes} />}
 
         {ecarts.length > 0 && (
           <section className="panel">

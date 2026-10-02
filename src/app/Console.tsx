@@ -3,6 +3,7 @@ import type { Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
+import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
@@ -45,11 +46,21 @@ export async function Console({ session }: { session: Session }) {
 
   /* Le contexte est déjà assemblé pour le compteur de la bande : le cache de
      React fait que cette page le lit sans le repayer. */
-  const [ctx, intents, offers, cash] = await Promise.all([contexteDuClient(session.userId), r.listIntents(), r.listOffers(), r.listCash(session.userId).catch(() => [])]);
+  const [ctx, intents, offers, cash, payouts] = await Promise.all([
+    contexteDuClient(session.userId),
+    r.listIntents(),
+    r.listOffers(),
+    r.listCash(session.userId).catch(() => []),
+    r.listPayouts({ userId: session.userId }).catch(() => []),
+  ]);
 
   const mine = intents.filter((i) => i.clientId === session.userId);
   const positions = positionsFrom(mine, offers);
   const poche = cashPosition(cash, mine);
+  /* La demande ouverte s'il y en a une, sinon la dernière réponse reçue : un
+     refus motivé que le client ne verrait pas le laisserait attendre un
+     virement sans savoir pourquoi. */
+  const derniereDemande = payouts.find((p) => p.state === "demandee") ?? [...payouts].sort((x, y) => y.askedAt.localeCompare(x.askedAt))[0];
   const tenues: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const b = bilan(suivre(tenues, cash));
 
@@ -143,6 +154,8 @@ export async function Console({ session }: { session: Session }) {
               <b>{fmt(Math.round(poche.idle))}</b>
             </span>
           </div>
+          {/* Ce solde appartient au client : il le lit ici, donc il le réclame ici. */}
+          <DemanderVersement montant={poche.idle} demande={derniereDemande} />
         </section>
       ) : (
         <p className={styles.vide}>{t("Vous ne tenez encore aucune ligne. Les titres et les fonds ouverts se parcourent sans engagement.")}</p>

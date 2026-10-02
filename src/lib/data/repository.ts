@@ -1,6 +1,6 @@
 import type { FinancialProfile } from "@/data/profile";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
-import type { CashEntry } from "@/lib/domain/cash";
+import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
@@ -100,6 +100,13 @@ export interface Repository {
   listCash(userId: string): Promise<CashEntry[]>;
   /** Un mouvement s'ajoute, il ne se modifie pas : une correction est un mouvement inverse. */
   addCash(entry: Omit<CashEntry, "id" | "at"> & { at?: string; createdBy?: string }): Promise<CashEntry>;
+
+  /** Les demandes de restitution : celles d'un client, ou la file ouverte du desk. */
+  listPayouts(q?: { userId?: string; state?: CashPayout["state"] }): Promise<CashPayout[]>;
+  /** Le client demande. Une seule demande ouverte à la fois, la base le garantit. */
+  askPayout(p: { userId: string; askedAmount: number; note?: string }): Promise<CashPayout>;
+  /** Le desk répond : payée avec son mouvement, ou refusée avec son motif. */
+  closePayout(id: string, p: { state: "payee" | "refusee"; closedBy: string; closedReason?: string; paidAmount?: number; cashEntry?: string }): Promise<CashPayout>;
 
   /** Les avis de droits de garde émis : ceux d'un client, ou tous ceux d'une période. */
   listCustodyNotices(q?: { userId?: string; period?: string }): Promise<AvisGarde[]>;

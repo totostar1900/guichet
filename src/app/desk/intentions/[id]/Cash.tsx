@@ -65,7 +65,7 @@ export function Cash({ intentId, ref_, position }: { intentId: string; ref_: str
       {p.toRestore > 0 && (
         <form action={restAction} className={styles.cashForm}>
           <input type="hidden" name="intentId" value={intentId} />
-          <span className={styles.cashWarn}>{t("{m} FCFA sans destination : à renvoyer sur le compte du client.", { m: fmt(Math.round(p.toRestore)) })}</span>
+          <span className={styles.cashWarn}>{t("{m} FCFA que la politique en vigueur renvoie d'elle-même.", { m: fmt(Math.round(p.toRestore)) })}</span>
           <button className="btn sm" type="submit" disabled={restPending}>
             {t(restPending ? "…" : "Restituer")}
           </button>

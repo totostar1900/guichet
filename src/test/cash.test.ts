@@ -60,11 +60,23 @@ describe("le journal des espèces", () => {
 describe("le verrou de l'argent inoccupé", () => {
   const dormant = [entry({ kind: "coupon", amount: 272_500, at: "2026-09-10T08:00:00" })];
 
-  it("est fermé par défaut : tout ce qui dort repart", () => {
+  /**
+   * Ce test disait « est fermé par défaut : tout ce qui dort repart », et
+   * c'était la règle jusqu'au 2 octobre 2026. La maison a répondu depuis : cet
+   * argent appartient au client, et il peut rester aussi longtemps que le client
+   * le souhaite. Le défaut a donc changé de camp, et la politique fermée reste
+   * testée juste en dessous, parce qu'un responsable peut la rétablir.
+   *
+   * Le nouveau régime et la demande de versement qu'il rend nécessaire vivent
+   * dans `restitution.test.ts`.
+   */
+  it("est ouvert par défaut : le solde reste tant que le client ne demande rien", () => {
+    expect(toRestore(dormant, [], undefined, NOW)).toBe(0);
+  });
+
+  it("fermé par un responsable, il renvoie tout ce qui dort", () => {
     expect(CLOSED.holdIdle).toBe(false);
     expect(toRestore(dormant, [], CLOSED, NOW)).toBe(272_500);
-    // Et par défaut, sans politique nommée, c'est la politique fermée qui s'applique.
-    expect(toRestore(dormant, [], undefined, NOW)).toBe(272_500);
   });
 
   it("garde l'argent affecté, verrou fermé ou non", () => {
@@ -80,8 +92,11 @@ describe("le verrou de l'argent inoccupé", () => {
     expect(toRestore(dormant, [], ouvert, new Date("2026-10-25T12:00:00Z"))).toBe(272_500);
   });
 
-  it("refuse d'encaisser une provision sans destination", () => {
-    // C'est la porte d'entrée : un virement qui ne sert à rien ne s'accepte pas.
+  it("fermé, il refuse d'encaisser une provision sans destination", () => {
+    /* C'était la porte d'entrée sous l'ancienne règle : un virement qui ne
+       servait à rien ne s'acceptait pas. Sous la règle en vigueur il s'accepte,
+       parce que cet argent est celui du client. */
+    expect(mayHold({ kind: "provision" }, undefined)).toBe(true);
     expect(mayHold({ kind: "provision" }, CLOSED)).toBe(false);
     expect(mayHold({ kind: "provision", intentId: "i1" }, CLOSED)).toBe(true);
     expect(mayHold({ kind: "provision" }, { holdIdle: true, graceDays: 30 })).toBe(true);

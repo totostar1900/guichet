@@ -2726,4 +2726,13 @@ export const EN_MORE: Record<string, string> = {
   "Valeur": "Value",
   "La pièce est demandée, et c'est elle qui fait la différence : une ligne de relevé ou un numéro d'avis du teneur de compte transforme une présomption en constat. C'est aussi la première chose qu'un contrôleur demande.": "The evidence is required, and it is what makes the difference: a statement line or an account keeper's advice number turns a presumption into a finding. It is also the first thing an auditor asks for.",
   "Le montant reçu n'est pas forcément celui qui était dû, et la date de valeur n'est pas celle de l'échéance. Les deux se saisissent : l'attendu est gardé à côté, sinon l'écart disparaîtrait au moment même de son inscription.": "The amount received is not necessarily the one that was due, and the value date is not the due date. Both are entered: the expected amount is kept alongside, otherwise the gap would vanish at the very moment it is recorded.",
+  "Versements demandés": "Payments requested",
+  "Le solde d'un client lui appartient et reste tant qu'il le souhaite. Quand il le réclame, la demande s'inscrit ici.": "A client's balance belongs to them and stays as long as they wish. When they claim it, the request appears here.",
+  "Demandé le": "Requested on",
+  "Disponible aujourd'hui": "Available today",
+  "Note du client": "Client's note",
+  "Pourquoi la maison garde ce solde": "Why the firm is keeping this balance",
+  "Verser {m}": "Pay {m}",
+  "Refuser…": "Decline…",
+  "{m} FCFA que la politique en vigueur renvoie d'elle-même.": "{m} FCFA that the policy in force returns by itself.",
 };
