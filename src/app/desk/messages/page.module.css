@@ -482,3 +482,31 @@
   color: var(--ink);
   border-color: var(--ink-3);
 }
+/* Le transfert, replié sous le message reçu : rare à l'échelle d'un fil, un
+   champ d'adresse ouvert sous chacun encombrerait la lecture de tous pour le
+   besoin d'un seul. Le <details> le range sans le cacher, et il marche sans
+   JavaScript. */
+.transfert {
+  margin-top: var(--s-3);
+  font-size: 0.78rem;
+}
+.transfert summary {
+  cursor: pointer;
+  color: var(--ink-3);
+  width: fit-content;
+}
+.transfert summary:hover {
+  color: var(--ink);
+}
+.transfertCorps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+.transfertCorps .subject {
+  width: auto;
+  flex: 1;
+  min-width: 180px;
+}

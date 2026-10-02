@@ -10,6 +10,8 @@ import { signLineLink } from "@/lib/channels";
 import { texteExact, type Ligne } from "./message-exact";
 import { refusDePiece } from "./piece-jointe";
 import { quandRevient } from "./report";
+import { citation } from "./message-exact";
+import { readSource } from "@/lib/intake/storage";
 
 /**
  * UN COURRIEL A UN OBJET, et le serveur l'exige aussi.
@@ -284,5 +286,108 @@ export async function lotTraiteAction(form: FormData): Promise<void> {
     for (const m of tous.filter((x) => x.from === c.addr && !x.handledAt)) await r.markInboundHandled(m.id, desk.name);
   }
   await audit("message.lot", "contact", liste.map((c) => c.addr).join(", "), { after: { fils: liste.length }, actor: desk.name });
+  revalidatePath("/desk/messages");
+}
+
+/* ─── Les gestes sur un message reçu ─────────────────────────────────────────
+   Transférer, et classer une pièce dans le dossier du client.
+
+   Les deux manquaient vraiment. Une lettre d'un régulateur se transmet à un
+   collègue ; et depuis qu'aucun chemin ne mène plus d'un message à « À valider »,
+   une pièce reçue n'appartient qu'à son message, alors qu'elle appartient au
+   dossier du client. */
+
+/** Le message d'un fil, par son identifiant : la cible vient du navigateur. */
+async function messageRecu(id: string) {
+  return (await repo().listInbound(1000)).find((m) => m.id === id);
+}
+
+/**
+ * Transférer un message reçu, avec ses pièces.
+ *
+ * LE TEXTE PART CITÉ, et l'objet reprend celui d'origine préfixé de « Tr. » :
+ * la personne qui le reçoit doit voir d'un coup d'où il vient. Un transfert qui
+ * perd son expéditeur et sa date n'est plus une pièce, c'est un extrait.
+ *
+ * LES PIÈCES SUIVENT. Transférer une lettre de la COSUMAF sans son annexe
+ * obligerait le destinataire à revenir demander, et c'est précisément ce que le
+ * geste cherche à éviter.
+ */
+export async function transfererAction(_prev: { ok: boolean; error?: string } | null, form: FormData): Promise<{ ok: boolean; error?: string }> {
+  const desk = await requireDesk();
+  const id = String(form.get("messageId") ?? "");
+  const vers = String(form.get("vers") ?? "").trim();
+  if (!id || !vers.includes("@")) return { ok: false, error: "Indiquez une adresse de courriel." };
+  if (!emailConfigured()) return { ok: false, error: "L'e-mail n'est pas encore configuré (clés à renseigner sur Vercel)." };
+  const m = await messageRecu(id);
+  if (!m) return { ok: false, error: "Ce message est introuvable." };
+
+  const quand = new Date(m.receivedAt).toISOString().slice(0, 16).replace("T", " ");
+  /* La note de transfert est en français comme le reste de ce qui quitte la
+     maison : elle part chez une personne, pas sur l'écran du desk. */
+  const texte = `Message transféré par ${desk.name}, Purpose Capital.\n\nDe : ${m.name ? `${m.name} · ${m.from}` : m.from}\nLe : ${quand}\n${m.subject ? `Objet : ${m.subject}\n` : ""}\n${citation(quand, m.body)}`;
+
+  /* Les pièces sont relues au dépôt : elles y sont gardées depuis l'arrivée du
+     message, et c'est la seule copie. */
+  const jointes: { filename: string; content: Uint8Array }[] = [];
+  for (const p of m.attachments ?? []) {
+    try {
+      jointes.push({ filename: p.name, content: await readSource(p.fileKey) });
+    } catch {
+      /* Une pièce illisible ne doit pas retenir le message : il part sans elle,
+         et le journal dira laquelle manquait. */
+    }
+  }
+
+  try {
+    await sendEmail(vers, `Tr. : ${m.subject || "message reçu"}`, `<p>${texte.replace(/\n/g, "<br>")}</p>`, texte, jointes);
+  } catch (e) {
+    return { ok: false, error: `Échec du transfert : ${e instanceof Error ? e.message : "erreur"}` };
+  }
+  await audit("message.transfert", "contact", m.from, { after: { vers, pieces: jointes.length, manquantes: (m.attachments?.length ?? 0) - jointes.length }, actor: desk.name });
+  revalidatePath("/desk/messages");
+  return { ok: true };
+}
+
+/**
+ * Classer une pièce reçue dans le dossier du client.
+ *
+ * LE FICHIER NE BOUGE PAS. Le dossier référence la même clef de dépôt que le
+ * message : une copie ferait deux vérités et doublerait la place occupée, pour
+ * un dépôt déjà étroit. La pièce reste visible dans son fil, et paraît en plus
+ * dans le dossier.
+ */
+export async function classerAction(form: FormData): Promise<void> {
+  const desk = await requireDesk();
+  const id = String(form.get("messageId") ?? "");
+  const rang = Number(form.get("rang") ?? -1);
+  const userId = String(form.get("userId") ?? "");
+  if (!id || !userId || !Number.isInteger(rang) || rang < 0) return;
+  const m = await messageRecu(id);
+  const p = m?.attachments?.[rang];
+  if (!m || !p) return;
+  const r = repo();
+  const dossier = await r.getClientFileByUser(userId);
+  if (!dossier) return;
+  /* Classée deux fois, elle ferait deux lignes pour un seul fichier : la clef
+     de dépôt tranche, parce que c'est elle qui désigne la pièce. */
+  if (dossier.documents.some((d) => d.fileKey === p.fileKey)) return;
+  await r.updateClientFile(dossier.id, {
+    documents: [
+      ...dossier.documents,
+      {
+        /* « autre » est le genre juste : la pièce est arrivée par courrier, elle
+           ne répond à aucune des cases attendues du dossier. Son libellé dit ce
+           qu'elle est, ce qu'« Autre pièce » ne ferait pas. */
+        kind: "autre" as const,
+        label: `${p.name} · reçu le ${new Date(m.receivedAt).toISOString().slice(0, 10)}`,
+        fileKey: p.fileKey,
+        fileName: p.name,
+        mimeType: p.mimeType,
+        uploadedAt: new Date().toISOString(),
+      },
+    ],
+  });
+  await audit("message.classee", "client_file", dossier.id, { after: { piece: p.name, depuis: m.from }, actor: desk.name });
   revalidatePath("/desk/messages");
 }

@@ -9,11 +9,12 @@ import type { InboundMessage, Notification } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/format";
 import { textMatch } from "@/lib/text";
 import { displayStatus, isPast } from "@/lib/domain/status";
-import { epinglerAction, etiquetterAction, handledAction, lotTraiteAction, reporterAction, rouvrirAction } from "./actions";
+import { classerAction, epinglerAction, etiquetterAction, handledAction, lotTraiteAction, reporterAction, rouvrirAction } from "./actions";
 import { ETIQUETTES, motEtiquette } from "./etiquettes";
 import { estReporte, REPORTS } from "./report";
 import { modelesDuFil } from "./modeles";
 import { ReplyForm } from "./ReplyForm";
+import { TransfertForm } from "./TransfertForm";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -328,6 +329,25 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                       <a className="btn sm" href={`/desk/messages/piece/${m.id}/${rang}?t=1`} download={piece.name}>
                         {t("Télécharger")}
                       </a>
+                      {/* CLASSER DANS LE DOSSIER. Depuis qu'aucun chemin ne mène
+                          plus d'un message à « À valider », une pièce reçue
+                          n'appartient qu'à son message ; or elle appartient au
+                          dossier du client. Le fichier ne bouge pas : le dossier
+                          référence la même clef de dépôt, et la pièce reste
+                          visible dans son fil.
+                          Le bouton ne paraît que si le fil est rattaché à un
+                          client : sans dossier, il promettrait un rangement qui
+                          n'a nulle part où aller. */}
+                      {open.clientId && m.id && (
+                        <form action={classerAction}>
+                          <input type="hidden" name="messageId" value={m.id} />
+                          <input type="hidden" name="rang" value={rang} />
+                          <input type="hidden" name="userId" value={open.clientId} />
+                          <button className="btn sm ghost" type="submit">
+                            {t("Classer dans le dossier")}
+                          </button>
+                        </form>
+                      )}
                       {/* LE BOUTON DE PROMOTION A ETE RETIRE le 2026-10-02.
                           Plus aucun chemin ne mène d'un message à « À valider »,
                           qui ne reçoit donc que ce que les crons ramassent. Les
@@ -342,6 +362,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                       )}
                     </div>
                   ))}
+                  {m.dir === "in" && m.id && <TransfertForm messageId={m.id} sujet={m.subject} pieces={m.pieces?.length ?? 0} />}
                   <small>
                     {fmtDateTime(m.at)}
                     {m.dir === "out" ? ` · ${m.status === "sent" ? "envoyé" : m.status === "skipped" ? "préparé, non envoyé" : m.status === "failed" ? "échec" : "en file"}` : m.handled ? " · traité" : ""}
