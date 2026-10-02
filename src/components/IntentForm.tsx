@@ -13,6 +13,7 @@ import { orderChecks } from "@/lib/domain/checks";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
 import { Info } from "./Info";
+import { Select } from "@/components/ui/Select";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { fmt, parseAmount, parseUnits } from "@/lib/format";
@@ -81,6 +82,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
+  // Le fonds d arrivee d un passage : il faut un etat, la liste de la maison
+  // etant controlee, la native ne l etait pas.
+  const [switchTo, setSwitchTo] = useState("");
   /**
    * ON ACHÈTE AVEC UNE SOMME, ON VEND CE QU'ON DÉTIENT.
    *
@@ -536,18 +540,22 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               les parts à la prochaine valeur liquidative, nette des droits de sortie,
               et cette valeur se publie après. */}
           {canSwitch && (
-            <label className="field">
-              {t("Replacer le produit dans (facultatif)")}
-              <select name="switchToOffer" defaultValue="">
-                <option value="">{t("non : virer le produit sur mon compte")}</option>
-                {switchTargets.map((x) => (
-                  <option key={x.id} value={x.id}>
-                    {x.title}
-                  </option>
-                ))}
-              </select>
+            <div className="field">
+              {/* LA LISTE DE L'APPLICATION, ET NON CELLE DU TÉLÉPHONE.
+                  Une liste native s'ouvre en roue au bas de l'écran, avec sa
+                  propre typographie et sans la phrase qui dit ce que chaque
+                  ligne est. Celle-ci garde la langue, l'encre et la recherche,
+                  et c'est la même qu'au réinvestissement, où elle sert déjà. */}
+              <Select
+                name="switchToOffer"
+                label={t("Replacer le produit dans (facultatif)")}
+                value={switchTo}
+                onChange={setSwitchTo}
+                block
+                options={[{ value: "", label: t("non : virer le produit sur mon compte") }, ...switchTargets.map((x) => ({ value: x.id, label: x.title }))]}
+              />
               <small className="muted">{t("Le desk enchaîne la souscription dès le rachat exécuté, pour le montant exact reçu.")}</small>
-            </label>
+            </div>
           )}
           {/* La condition a rejoint les trois cases : elle y est sous le prix
               qu'elle décide. Elle n'a plus de champ séparé ici, qui en ferait un
