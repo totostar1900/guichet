@@ -88,17 +88,45 @@ async function entree(i: IntakeItem): Promise<ExtractionInput | undefined> {
  * `reprendre` est le geste d'une personne au desk : relire une pièce déjà
  * tentée. C'est le seul chemin qui repasse sur une lecture, et il est explicite.
  */
+/**
+ * CHAQUE SORTIE LAISSE UNE TRACE, y compris celles qui ne font rien.
+ *
+ * Le 2026-10-02, un clic sur « Lire la pièce » n'a rien laissé : ni ligne au
+ * flux, ni entrée d'audit, ni changement en base. Impossible de distinguer
+ * « l'action n'a pas tourné » de « elle a levé » ou « la fonction a été tuée ».
+ * Quatre sorties étaient muettes, et c'est le troisième défaut de cette famille
+ * en une soirée, cette fois dans le code écrit pour la corriger.
+ */
+const direLecture = async (html: string) => {
+  await repo()
+    .logEvent({ kind: "system", html })
+    .catch(() => undefined);
+};
+
 export async function lireUnePiece(id: string, reprendre = false): Promise<Lue | undefined> {
   const r = repo();
   const item = await r.getIntake(id);
-  if (!item) return undefined;
-  if (!extractionAvailable()) return { item, erreur: "Lecture automatique indisponible : ANTHROPIC_API_KEY absente." };
+  if (!item) {
+    await direLecture(`Lecture demandée sur une pièce <b>introuvable</b> (${id})`);
+    return undefined;
+  }
+  if (!extractionAvailable()) {
+    await direLecture(`Pièce <b>${item.title}</b> : lecture impossible, ANTHROPIC_API_KEY absente`);
+    return { item, erreur: "Lecture automatique indisponible : ANTHROPIC_API_KEY absente." };
+  }
   if (item.readAt && !reprendre) return { item, erreur: "Déjà lue : seule une reprise explicite la relit." };
 
-  const input = await entree(item).catch((e) => {
-    throw new Error(`pièce introuvable au dépôt : ${e instanceof Error ? e.message : "erreur inconnue"}`);
+  // Le dépôt peut refuser : on le dit avant de laisser l'erreur remonter.
+  const input = await entree(item).catch(async (e) => {
+    const quoi = e instanceof Error ? e.message : "erreur inconnue";
+    await direLecture(`Pièce <b>${item.title}</b> : fichier illisible au dépôt (${quoi})`);
+    throw new Error(`pièce introuvable au dépôt : ${quoi}`);
   });
-  if (!input) return { item, erreur: "Rien à lire : ni fichier exploitable ni texte." };
+  if (!input) {
+    await direLecture(`Pièce <b>${item.title}</b> : rien à lire, ni fichier exploitable ni texte`);
+    return { item, erreur: "Rien à lire : ni fichier exploitable ni texte." };
+  }
+  await direLecture(`Pièce <b>${item.title}</b> : lecture lancée (${modeleDeLecture()})`);
 
   const modele = modeleDeLecture();
   const t0 = Date.now();

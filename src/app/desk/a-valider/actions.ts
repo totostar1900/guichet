@@ -247,12 +247,21 @@ export async function lireSourceAction(form: FormData): Promise<void> {
   const id = String(form.get("itemId") ?? "");
   if (!id) return;
   const { lireUnePiece } = await import("@/lib/intake/lecture");
-  const lue = await lireUnePiece(id, true);
-  if (!lue) return;
-  await audit("intake.read", "intake", id, {
-    after: { model: lue.item.readModel, seconds: lue.secondes, error: lue.erreur },
-    reason: `lecture demandée depuis le desk par ${desk.name}`,
-  });
+  /* RIEN NE SORT D'ICI SANS LE DIRE. Un clic qui ne laisse aucune trace est
+     indistinguable d'un clic qui n'a pas eu lieu, et c'est ce qui s'est passé le
+     2026-10-02. Le « catch » couvre aussi l'échec du dépôt, qui remonte. */
+  try {
+    const lue = await lireUnePiece(id, true);
+    if (!lue) return;
+    await audit("intake.read", "intake", id, {
+      after: { model: lue.item.readModel, seconds: lue.secondes, error: lue.erreur },
+      reason: `lecture demandée depuis le desk par ${desk.name}`,
+    });
+  } catch (e) {
+    await repo()
+      .logEvent({ kind: "desk", html: `Lecture demandée par ${desk.name} <b>interrompue</b> : ${e instanceof Error ? e.message : "erreur inconnue"}` })
+      .catch(() => undefined);
+  }
   revalidatePath("/desk/a-valider");
 }
 
