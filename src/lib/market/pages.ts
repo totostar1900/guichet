@@ -34,13 +34,11 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", hint: "deux titres côte à côte, avec l'indice en repère" },
-  // Le primaire de la zone, qui n'est pas la cote : les six Trésors, et le seul
-  // endroit où leurs séances se lisent ensemble.
-  //
-  // « Séances » puis « Le calendrier » nommaient le contenant et non l'opération :
-  // un calendrier porte n'importe quoi. « Adjudications » est le mot que la maison
-  // emploie déjà partout ailleurs, et c'est le geste lui-même.
-  { key: "calendrier", href: "/calendrier", label: "Les adjudications des six Trésors", short: "Adjudications", hint: "les séances des six Trésors, annoncées environ une semaine avant" },
+  /* LES ADJUDICATIONS ONT QUITTÉ CETTE TABLE pour le siège Instruments. Elles y
+     étaient rangées comme une publication, entre l'indice et les notes, alors
+     qu'une séance annoncée est une occasion d'acheter et non un article. La
+     règle, désormais : Marché se lit, Instruments s'achète, Trader fait. Voir
+     `lib/nav-groups.ts`, où les trois sièges déclarent leurs pages. */
   // Le Guide est servi sur les deux domaines : une seule adresse suffit.
   { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
@@ -60,7 +58,9 @@ export function currentMarketPage(path: string): string | undefined {
   if (path.startsWith("/indice")) return "indice";
   if (path.startsWith("/societes") || path.startsWith("/emetteurs")) return "societes";
   if (path.startsWith("/comparer")) return "comparer";
-  if (path.startsWith("/calendrier")) return "calendrier";
+  /* Les adjudications ne sont plus de la famille : elles ont leur siège,
+     Instruments. Les y laisser ici afficherait la bande du marché sur une page
+     d'achat, et une pastille qui ne correspond à aucune entrée. */
   if (path.startsWith("/info/indice-bvmac")) return "lecon";
   if (path.startsWith("/actualites")) return "actualites";
   if (path.startsWith("/marche")) return "marche";

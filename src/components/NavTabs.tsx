@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
-import { isEspaceSection, isMarcheSection } from "@/lib/nav-section";
+import { INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
+import { isEspaceSection, isInstrumentsSection, isMarcheSection } from "@/lib/nav-section";
 
 /**
  * Deux axes, et le second manquait.
@@ -26,11 +27,6 @@ import { isEspaceSection, isMarcheSection } from "@/lib/nav-section";
  * services » n'y est plus non plus : il est devenu Trader. Restent deux
  * lectures de ce qu'on possède.
  */
-const PORTEFEUILLE = [
-  { key: "performance", href: "/moi/performance", label: "Analyse", hint: "la répartition, le rendement, l'échéancier et vos opérations" },
-  { key: "reinvestir", href: "/moi/reinvestir", label: "Réinvestir", hint: "où remettre un coupon ou un remboursement qui vient de tomber" },
-];
-
 const TABS = [
   /**
    * DEUX ONGLETS, ET PAS SIX.
@@ -46,7 +42,17 @@ const TABS = [
    * Le Guide, les actualités et les services quittent la bande pour le menu du
    * compte : ce sont des destinations qu'on ouvre, pas des axes qu'on habite.
    */
-  { href: "/", label: "Portefeuille", match: isEspaceSection, connecte: true, pages: PORTEFEUILLE },
+  { href: "/", label: "Portefeuille", match: isEspaceSection, connecte: true, pages: PORTEFEUILLE_PAGES },
+  /**
+   * INSTRUMENTS, et le siège libéré par « À décider ».
+   *
+   * Marché portait les deux à la fois, ce qui se lit et ce qui se traite, et il
+   * demandait donc au lecteur de faire lui-même le tri. Trois mots règlent la
+   * question : Marché se lit, Instruments s'achète, Trader fait. Les
+   * adjudications suivent les titres et les fonds, parce qu'une séance
+   * annoncée est une occasion d'acheter et non un article.
+   */
+  { href: "/titres", label: "Instruments", match: isInstrumentsSection, connecte: true, pages: INSTRUMENTS_PAGES },
   /**
    * TRADER, et c'est le siège qui manquait.
    *
@@ -114,30 +120,40 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: {
   return (
     <nav className={styles.tabs} aria-label="Sections">
       {tabs.map((tab) => {
-        const link = (
-          <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
+        const dedans = (
+          <>
             {t(tab.label)}
-            {/* Le compte de « Marché » est celui de tout ce qui s'achète : les
-                deux chiffres tenaient sous deux onglets, ils tiennent sous un. */}
-            {counts && tab.href === "/marche" && <b className={styles.count}>{counts.titres + counts.fonds}</b>}
-          </Link>
+            {/* Le compte est celui de tout ce qui s'achète : les deux chiffres
+                tenaient sous deux onglets, ils tiennent sous Instruments. */}
+            {counts && tab.href === "/titres" && <b className={styles.count}>{counts.titres + counts.fonds}</b>}
+          </>
         );
-        if (!tab.pages) return link;
+        if (!tab.pages)
+          return (
+            <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
+              {dedans}
+            </Link>
+          );
         // Un seul menu ouvert à la fois : l'état retient QUEL siège est ouvert,
         // pas seulement qu'il y en a un. Avec un booléen, ouvrir Portefeuille
         // ouvrait aussi Marché.
         const ouvert = open === tab.href;
         return (
           <div key={tab.href} className={styles.group} ref={ouvert ? box : undefined}>
-            {link}
+            {/* UN SIÈGE QUI PORTE UNE LISTE N'EST PLUS UN LIEN.
+                Le nom ouvrait une page et le chevron ouvrait la liste : deux
+                cibles collées, dont l'une de huit pixels, et le lecteur visait
+                mal. Le siège ouvre sa liste, et l'ancienne racine en est le
+                premier élément, nommée. */}
             <button
               type="button"
-              className={styles.chev}
+              className={`${styles.tab} ${styles.chev}`}
+              aria-current={tab.match(path) ? "page" : undefined}
               aria-expanded={ouvert}
               aria-haspopup="true"
-              aria-label={t("Les pages de {s}", { s: t(tab.label) })}
               onClick={() => setOpen(ouvert ? null : tab.href)}
             >
+              {dedans}
               <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
                 <path d="M1 3.2 L5 7 L9 3.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

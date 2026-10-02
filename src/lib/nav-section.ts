@@ -57,15 +57,22 @@ export const isEspaceSection = (path: string): boolean => (path === "/" || path.
  * téléphone ne puissent pas en tenir deux versions.
  */
 export const isMarcheSection = (path: string): boolean =>
-  path.startsWith("/marche") ||
-  isTitresSection(path) ||
-  isFundsSection(path) ||
-  path.startsWith("/societes") ||
-  path.startsWith("/indice") ||
-  path.startsWith("/emetteurs") ||
-  path.startsWith("/calendrier") ||
-  path.startsWith("/actualites") ||
-  path.startsWith("/comparer");
+  path.startsWith("/marche") || path.startsWith("/societes") || path.startsWith("/indice") || path.startsWith("/emetteurs") || path.startsWith("/actualites") || path.startsWith("/comparer");
+
+/**
+ * LE SIÈGE « INSTRUMENTS » : CE QUI S'ACHÈTE.
+ *
+ * Marché portait les deux à la fois, ce qui se lit et ce qui se traite. Un
+ * siège qui range un indice et un bon du Trésor côte à côte demande au lecteur
+ * de distinguer lui-même la lecture de l'achat, et c'est précisément ce qu'une
+ * navigation doit faire à sa place.
+ *
+ * La ligne de partage tient en trois mots : Marché se lit, Instruments
+ * s'achète, Trader fait. Les adjudications quittent donc Marché, où elles
+ * étaient rangées comme une publication : une séance annoncée est une occasion
+ * d'acheter, pas un article.
+ */
+export const isInstrumentsSection = (path: string): boolean => isTitresSection(path) || isFundsSection(path) || path.startsWith("/calendrier");
 
 /** Vers quelle liste remonter depuis une fiche, faute de liste mémorisée. */
 export const listForFiche = (path: string): string => (path.startsWith(FUND_FICHE) ? "/fonds" : TITRES);

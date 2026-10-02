@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 import { AccountMenu } from "./AccountMenu";
 import { MarketChips } from "./MarketChips";
 import { Sheet } from "./Sheet";
-import { MARKET_PAGES, currentMarketPage, isMarketPath } from "@/lib/market/pages";
+import { currentMarketPage, isMarketPath } from "@/lib/market/pages";
+import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
-import { isEspaceSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -25,7 +26,23 @@ export const LAST_LIST_KEY = "guichet:lastList";
 // « /titres » en est une depuis que « / » est devenu la console.
 const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites", "/marche"];
 
-type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; /** l'onglet lève une feuille au lieu d'ouvrir une page */ sheet?: boolean };
+/**
+ * `feuille` : le siège ouvre sa liste au lieu de sauter sur une page.
+ *
+ * Trois sièges sur cinq en portent une, et c'est la même règle que la bande de
+ * l'écran large : un siège qui est à la fois un lien et un bouton demande au
+ * pouce de viser, et le pouce vise mal. L'ancienne racine devient le premier
+ * élément de la liste, nommée, plutôt que de disparaître.
+ */
+type Groupe = "portefeuille" | "instruments" | "marche";
+type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; feuille?: Groupe };
+
+/** Les trois listes, lues de la même table que la bande de l'écran large. */
+const GROUPES: Record<Groupe, { titre: string; sous: string; pages: NavPage[] }> = {
+  portefeuille: { titre: "Portefeuille", sous: "ce que vous avez, et ce qui en découle", pages: PORTEFEUILLE_PAGES },
+  instruments: { titre: "Instruments", sous: "ce qui s'achète", pages: INSTRUMENTS_PAGES },
+  marche: { titre: "Marché", sous: "les pages de la BVMAC", pages: MARCHE_PAGES },
+};
 
 const I = {
   guichet: (
@@ -95,9 +112,10 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
-  // La feuille retient la page sur laquelle elle s'est ouverte : partir la referme.
-  const [marketAt, setMarketAt] = useState<string | null>(null);
-  const marketOpen = marketAt === path;
+  // La feuille retient QUEL siège l'a ouverte et SUR QUELLE page : partir la
+  // referme, et deux sièges ne peuvent pas être ouverts ensemble.
+  const [feuille, setFeuille] = useState<{ groupe: Groupe; at: string } | null>(null);
+  const ouverte = feuille?.at === path ? feuille.groupe : null;
   const isRoot = ROOTS.includes(path) || path === "/societes";
 
   // The page title comes from <title>, which every page already sets.
@@ -145,11 +163,15 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
    * de section.
    */
   const tabs: Tab[] = [
-    { href: "/", label: t("Portefeuille"), icon: I.moi, match: isEspaceSection },
+    { href: "/", label: t("Portefeuille"), icon: I.moi, match: isEspaceSection, feuille: "portefeuille" },
+    /* INSTRUMENTS PREND LE SIÈGE LIBÉRÉ. Marché portait les deux à la fois, ce
+       qui se lit et ce qui se traite ; trois mots règlent la question : Marché
+       se lit, Instruments s'achète, Trader fait. */
+    { href: "/titres", label: t("Instruments"), icon: I.fonds, match: isInstrumentsSection, feuille: "instruments" },
     // Trader entre au dock : sans lui, les neuf services n'ont pas de porte sur
     // téléphone, et c'est là que la plupart des clients lisent.
     { href: "/trader", label: t("Trader"), icon: I.trader, match: (p) => p.startsWith("/trader") },
-    { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, sheet: true },
+    { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, feuille: "marche" },
     /* « À DÉCIDER » A QUITTÉ LE DOCK le 2 octobre 2026. Un onglet qui porte ce
        nom demande d'aller voir s'il y a quelque chose, et il est vide neuf jours
        sur dix : un onglet vide neuf jours sur dix est un onglet qu'on cesse
@@ -212,12 +234,14 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
               {t(tab.label)}
             </>
           );
-          if (tab.sheet)
+          if (tab.feuille) {
+            const g = tab.feuille;
             return (
-              <button key={tab.href} type="button" aria-current={tab.match(path) ? "page" : undefined} aria-expanded={marketOpen} aria-haspopup="dialog" onClick={() => setMarketAt(marketOpen ? null : path)}>
+              <button key={tab.href} type="button" aria-current={tab.match(path) ? "page" : undefined} aria-expanded={ouverte === g} aria-haspopup="dialog" onClick={() => setFeuille(ouverte === g ? null : { groupe: g, at: path })}>
                 {face}
               </button>
             );
+          }
           return (
             <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
               {face}
@@ -227,10 +251,12 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
       </nav>
       )}
 
-      <Sheet open={marketOpen} onClose={() => setMarketAt(null)} title={t("Marché")} sub={t("les pages de la BVMAC")}>
+      {/* Une seule feuille pour les trois sièges : trois composants de la même
+          chose finiraient par se répondre différemment. */}
+      <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")} sub={t(ouverte ? GROUPES[ouverte].sous : "")}>
         <div className={styles.market}>
-          {MARKET_PAGES.map((p) => (
-            <Link key={p.key} href={p.href} className={p.key === currentMarketPage(path) ? styles.marketOn : undefined} onClick={() => setMarketAt(null)}>
+          {(ouverte ? GROUPES[ouverte].pages : []).map((p) => (
+            <Link key={p.key} href={p.href} className={p.href === path || p.key === currentMarketPage(path) ? styles.marketOn : undefined} onClick={() => setFeuille(null)}>
               <b>{t(p.label)}</b>
               <small>{t(p.hint)}</small>
             </Link>

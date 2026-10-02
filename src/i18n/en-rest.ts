@@ -1010,4 +1010,12 @@ export const EN_REST: Record<string, string> = {
     "A name, a management company, a custodian ; the category, how often the NAV is struck ; the sort. Once the band has scrolled off, the « Filter · Sort » button at the bottom brings it back without scrolling up.",
   "Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.":
     "The latest NAV and its date, the change since the previous NAV, the twelve-month performance and the one since inception. « See the line » gives the NAV history and the subscription form ; the « ··· » follows, compares, shares.",
+  "Instruments": "Instruments",
+  "Tableau de bord": "Dashboard",
+  "ce que vous avez, ce qui vous attend, et ce qui est entré": "what you hold, what is waiting for you, and what has come in",
+  "vos relevés, vos avis d'opéré, vos bulletins et vos appels de fonds": "your statements, confirmations, subscription forms and funding calls",
+  "obligations, bons du Trésor et actions de la zone CEMAC": "bonds, treasury bills and shares of the CEMAC zone",
+  "les OPCVM de la zone, leur valeur liquidative et leurs frais": "the mutual funds of the zone, their net asset value and their fees",
+  "ce que vous avez, et ce qui en découle": "what you hold, and what follows from it",
+  "ce qui s'achète": "what can be bought",
 };
