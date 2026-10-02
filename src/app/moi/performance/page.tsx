@@ -231,7 +231,7 @@ export default async function PerformancePage() {
           </p>
         )}
         {p.sold && <p>{t("Sur les lignes dont des parts sont sorties, les coupons encaissés avant la vente ne sont pas comptés : le gain affiché y est prudent.")}</p>}
-        <p className="muted">{t("Ce rapport mesure ce qui s'est passé. Il ne recommande aucune opération : les performances passées ne préjugent pas des performances futures.")}</p>
+        <p className="muted">{t("Ce rapport mesure ce qui s'est passé, ligne par ligne. Les performances passées ne préjugent pas des performances futures.")}</p>
       </div>
       </div>
       </div>

@@ -190,7 +190,7 @@ export async function Console({ session }: { session: Session }) {
         <section>
           <div className={styles.tete}>
             <b>{t("Par type d'actif")}</b>
-            <span>{t("aucune part n'est jugée : la maison exécute, elle ne conseille pas de répartition")}</span>
+            <span>{t("ce que vous détenez, par famille, à la dernière valeur connue")}</span>
           </div>
           <div className={styles.barre}>
             {familles.map((f) => (

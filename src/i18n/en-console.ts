@@ -248,4 +248,9 @@ export const EN_CONSOLE: Record<string, string> = {
   "{n} relevé(s), avis et bulletins": "{n} statement(s), confirmations and forms",
   "{n} ordre(s) servis, réglés ou clos": "{n} order(s) filled, settled or closed",
   "prochain flux le {date}": "next flow on {date}",
+  "ce que vous détenez, par famille, à la dernière valeur connue": "what you hold, by family, at the latest known value",
+  "Ce rapport mesure ce qui s'est passé, ligne par ligne. Les performances passées ne préjugent pas des performances futures.": "This report measures what happened, line by line. Past performance is no guide to future performance.",
+  "Trois choses sont déjà écrites quand l'ordre part : la ligne, que vous avez choisie ; le moment, celui où l'argent arrive ; et le montant, celui que l'émetteur a versé.": "Three things are already written when the order goes out: the line, which you chose; the moment, which is when the money arrives; and the amount, which is what the issuer paid.",
+  "Une ligne précise, fixée maintenant : le desk la suivra, telle quelle, le mois venu.": "One precise line, set now: the desk will follow it, as it stands, when the month comes.",
+  "Décidé maintenant, par vous : le jour venu, l'ordre part tel que vous l'avez écrit.": "Decided now, by you: on the day, the order goes out exactly as you wrote it.",
 };

@@ -38,7 +38,7 @@ export function ReinvestForm({ fonds }: { fonds: { id: string; title: string; mi
             s'ouvre en roue grise au bas de l'écran, sans les mots de
             l'application, et on n'y cherche pas. */}
         <Select block name="offerId" value={offerId} onChange={setOfferId} options={fonds.map((f) => ({ value: f.id, label: f.title }))} />
-        <small>{t("Une ligne précise, fixée maintenant. La maison n'a pas l'agrément pour choisir à votre place le mois venu.")}</small>
+        <small>{t("Une ligne précise, fixée maintenant : le desk la suivra, telle quelle, le mois venu.")}</small>
       </label>
 
       <label className={styles.champ}>
@@ -62,7 +62,7 @@ export function ReinvestForm({ fonds }: { fonds: { id: string; title: string; mi
             <input type="radio" name="onBlocked" value="arreter" /> {t("arrêter l'instruction")}
           </label>
         </div>
-        <small>{t("Décidé maintenant, par vous. Improviser le jour venu reviendrait à décider à votre place.")}</small>
+        <small>{t("Décidé maintenant, par vous : le jour venu, l'ordre part tel que vous l'avez écrit.")}</small>
       </fieldset>
 
       <div className={styles.pied}>

@@ -154,7 +154,7 @@ export default async function ReinvestirPage() {
         </ol>
         <p className={styles.note}>
           {t(
-            "La maison ne choisit rien : ni la ligne, ni le moment, ni le montant. La ligne est la vôtre, le moment est celui où l'argent arrive, et le montant est ce que l'émetteur a versé. Choisir à votre place demanderait un agrément que Purpose Capital n'a pas.",
+            "Trois choses sont déjà écrites quand l'ordre part : la ligne, que vous avez choisie ; le moment, celui où l'argent arrive ; et le montant, celui que l'émetteur a versé.",
           )}
         </p>
       </section>
