@@ -1,16 +1,12 @@
 import Link from "next/link";
 import type { Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtMillions, localIso } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 import { CounterAnswer } from "./CounterAnswer";
 import { OrdreMenu } from "./OrdreMenu";
 import { positionsFrom } from "@/lib/positions";
-import { StatementButtons } from "./StatementButtons";
-import { MyDocuments } from "./MyDocuments";
-import { FoldAll, FoldSection } from "@/components/Fold";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -174,11 +170,18 @@ export async function Releve({ session: s }: { session: Session }) {
           <small>{open.length ? t(open.length > 1 ? "intentions suivies par le desk" : "intention suivie par le desk") : t("aucune intention en cours")}</small>
         </div>
       </div>
-      <div className={styles.foldBar}>
-        <FoldAll group="moi" ids={["intentions", "coordonnees", "suivies", "positions", "historique", "documents"]} />
-      </div>
 
-      <FoldSection group="moi" defaultOpen={false} id="intentions" title={t("Intentions en cours")} hint={`· ${open.length}${toSign ? ` · ${t(toSign > 1 ? "{n} à signer" : "une à signer", { n: toSign })}` : ""}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t("reçue → confirmée → transmise → servie → réglée")}</span>}>
+      {/* LES INTENTIONS NE SE REPLIENT PLUS. Elles demandent quelque chose, et
+          ce qui demande quelque chose ne se range pas derrière un pli. Elles
+          étaient dites deux fois, ici et en chiffre dans un compteur plus
+          haut : le compteur est parti, les cartes portent le nombre par leur
+          présence. */}
+      <section className={styles.sec}>
+        <div className={styles.secTete}>
+          <h2>{t("Vos intentions en cours")}</h2>
+          <span className="muted">{t("reçue → confirmée → transmise → servie → réglée")}</span>
+          <Link href="/moi/performance#operations">{t("Vos ordres passés")} →</Link>
+        </div>
       <div className="panel">
         {open.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans le Guichet.")}</div>}
         {open.length > 0 && (
@@ -215,7 +218,7 @@ export async function Releve({ session: s }: { session: Session }) {
         )}
       </div>
 
-      </FoldSection>
+      </section>
 
       {/* LES COORDONNÉES SONT PARTIES EN SÉCURITÉ, le 2 octobre 2026.
           Elles n'ont jamais été une affaire de portefeuille : le téléphone et
@@ -223,7 +226,11 @@ export async function Releve({ session: s }: { session: Session }) {
           déjà, avec les appareils et les alertes. Le tableau de bord montre ce
           qu'on possède, pas la façon dont on nous joint. */}
 
-      <FoldSection group="moi" defaultOpen={false} id="suivies" title={t("Lignes suivies")} hint={`· ${followed.length}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t(followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut.")}</span>}>
+      <section className={styles.sec}>
+        <div className={styles.secTete}>
+          <h2>{t("Lignes suivies")}</h2>
+          <span className="muted">{t(followed.length ? "Un message à chaque changement de cours, de prix ou de statut." : "Sur chaque fiche, « Suivre » vous prévient des changements de cours, de prix ou de statut.")}</span>
+        </div>
       <div className="panel">
         {followed.length > 0 && (
           <div className={styles.watchList}>
@@ -245,149 +252,39 @@ export async function Releve({ session: s }: { session: Session }) {
         )}
       </div>
 
-      </FoldSection>
+      </section>
 
-      {positions.length > 0 && (
-        <FoldSection group="moi" defaultOpen={false} id="positions" title={t("Mes positions")} hint={`· ${fmtMillions(valued)}${nextFlow ? ` · ${t("flux le {date}", { date: fmtDate(nextFlow.date, false) })}` : ""}`} aside={<StatementButtons />}>
-        <div className="panel">
-          <div className={`panel-h ${styles.noHead}`}>
-            <span className="muted" style={{ fontSize: ".8rem" }}>
-              {t("titres inscrits à votre nom · flux à venir")}
-            </span>
-          </div>
-          <div className="scroll-x">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>{t("Ligne")}</th>
-                  <th className="r">{t("Quantité")}</th>
-                  <th className="r">{t("Nominal · valeur")}</th>
-                  <th>{t("Prochain flux")}</th>
-                  <th>{t("Échéance")}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {positions.map((p) => (
-                  <tr key={p.intent.id}>
-                    <td>
-                      <Link href={`/offres/${p.offer.id}`}>{p.offer.title}</Link>
-                      <br />
-                      <span className="mono muted">{p.offer.isin}</span>
-                    </td>
-                    <td className="r num">
-                      {p.unitWord === "parts" ? p.units.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(p.units)} {t(p.unitWord)}
-                    </td>
-                    <td className="r num">
-                      {p.offer.kind === "FONDS" ? "" : `${fmt(p.nominalAmount)} FCFA`}
-                      {p.marketValue != null && (
-                        <>
-                          {p.offer.kind === "FONDS" ? "" : <br />}
-                          <span className={p.offer.kind === "FONDS" ? "" : "muted"}>
-                            {fmt(p.marketValue)} FCFA{p.valuedOn ? ` ${t(p.offer.kind === "FONDS" ? "à la VL du" : "au cours du")} ${fmtDate(p.valuedOn, false)}` : ""}
-                          </span>
-                        </>
-                      )}
-                    </td>
-                    <td>{p.nextFlow ? `${fmtDate(p.nextFlow.date)} · ${fmt(p.nextFlow.amount)} FCFA · ${t(p.nextFlow.label)}` : "—"}</td>
-                    <td>{p.maturityOn ? fmtDate(p.maturityOn) : "—"}</td>
-                    <td className="r">
-                      {p.exit && (
-                        <Link className="btn sm" href={`/offres/${p.exit.offerId}?intent=${p.exit.intent}&qty=${p.units}`}>
-                          {t(p.exit.intent === "rachat" ? "Racheter" : "Vendre")}
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* LE RESTE DU DOSSIER, EN TUILES. Trois plis vivaient ici : les positions,
+          l'historique et les documents. Un pli pose au lecteur la question « y
+          a-t-il quelque chose là-dedans » à chaque ouverture ; une tuile y
+          répond avec son chiffre, et mène à une page qui montre mieux.
+          Les positions et l'historique sont dans Analyse, qui porte déjà la
+          répartition, le rendement ligne par ligne et l'échéancier : une
+          troisième table ici aurait fait trois lectures du même argent. */}
+      <section className={styles.sec}>
+        <div className={styles.secTete}>
+          <h2>{t("Le reste de votre dossier")}</h2>
         </div>
-        </FoldSection>
-      )}
+        <div className={styles.tuiles}>
+          <Link href="/moi/performance#detenu" className={styles.tuile}>
+            <b>{t("Vos positions")}</b>
+            <span>{positions.length ? t("{n} ligne(s) · {v}", { n: String(positions.length), v: fmtMillions(valued) }) : t("aucun titre inscrit encore")}</span>
+          </Link>
+          <Link href="/moi/documents" className={styles.tuile}>
+            <b>{t("Mes documents")}</b>
+            <span>{t("{n} relevé(s), avis et bulletins", { n: String(myDocs.length) })}</span>
+          </Link>
+          <Link href="/moi/performance#operations" className={styles.tuile}>
+            <b>{t("Vos ordres passés")}</b>
+            <span>{t("{n} ordre(s) servis, réglés ou clos", { n: String(closed.length) })}</span>
+          </Link>
+          <Link href="/moi/performance#echeancier" className={styles.tuile}>
+            <b>{t("L'échéancier")}</b>
+            <span>{nextFlow ? t("prochain flux le {date}", { date: fmtDate(nextFlow.date, false) }) : t("coupons et remboursements à venir")}</span>
+          </Link>
+        </div>
+      </section>
 
-      <FoldSection group="moi" id="historique" title={t("Historique")} hint={`· ${closed.length}`} aside={<span className="muted" style={{ fontSize: ".8rem" }}>{t("intentions servies, réglées, non servies ou annulées")}</span>} defaultOpen={false}>
-      <div className="panel">
-        <div className={styles.histCards}>
-          {closed.map((i) => {
-            const o = byOffer.get(i.offerId);
-            return (
-              <div key={i.id} className={styles.histCard}>
-                <div className={styles.cardTop}>
-                  <div>
-                    <b>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</b>
-                    <small>
-                      {t(INTENT_LABEL[i.type])}
-                      {i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · {t("réf.")} {i.ref} · {fmtDate(i.createdAt, false)}
-                    </small>
-                  </div>
-                  <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
-                </div>
-                <span className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</span>
-              </div>
-            );
-          })}
-          {closed.length === 0 && <p className="muted">{t("Rien encore.")}</p>}
-        </div>
-        <div className={`scroll-x ${styles.deskTable}`}>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>{t("Réf.")}</th>
-                <th>{t("Ligne")}</th>
-                <th>{t("Type")}</th>
-                <th className="r">{t("Montant")}</th>
-                <th>{t("État")}</th>
-                <th>{t("Et maintenant")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {closed.map((i) => {
-                const o = byOffer.get(i.offerId);
-                return (
-                  <tr key={i.id}>
-                    <td className="mono">{i.ref}</td>
-                    <td>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</td>
-                    <td>
-                      <span className={`st ${i.type}`}>{t(INTENT_LABEL[i.type])}</span>
-                    </td>
-                    <td className="r num">{i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} ${t("parts")}` : `${fmt(i.amount)} ${o?.kind === "RACHAT" ? t("titres") : "FCFA"}`) : "—"}</td>
-                    <td>
-                      <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
-                    </td>
-                    <td className="muted" style={{ fontSize: ".8rem" }}>
-                      {t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}
-                    </td>
-                  </tr>
-                );
-              })}
-              {closed.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="muted">
-                    {t("Rien encore.")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      </FoldSection>
-
-      <FoldSection group="moi" defaultOpen={false} id="documents" title={t("Mes documents")} hint={`· ${myDocs.length}`} aside={<Link className="btn sm" href="/moi/reclamation">{t("Déposer une réclamation")}</Link>}>
-      <MyDocuments
-        inFold
-        docs={myDocs.map((d) => ({ id: d.id, number: d.number, label: t(DOC_LABEL[d.type]), createdAt: d.createdAt, status: d.status, href: `/desk/documents/pdf/${d.id}`, intentId: d.intentId }))}
-        ops={mine
-          .slice()
-          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-          .map((i) => {
-            const o = byOffer.get(i.offerId);
-            return { id: i.id, title: o?.title ?? i.offerId, about: `${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${amountText(i, o?.kind)}` : ""} · ${t("réf.")} ${i.ref}`, state: t(INTENT_STATE_LABEL[i.state]), stateKey: i.state, href: o ? `/offres/${o.id}` : undefined };
-          })}
-      />
-      </FoldSection>
     </div>
   );
 }

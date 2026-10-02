@@ -567,3 +567,55 @@
   gap: var(--s-5);
   flex-wrap: wrap;
 }
+
+/* ── Le tableau de bord sans plis ────────────────────────────────────────────
+   Six sections repliées posaient six fois la même question : « y a-t-il quelque
+   chose là-dedans ». Une tuile y répond avec son chiffre, et mène à la page qui
+   montre mieux. */
+.secTete {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-6);
+}
+.secTete h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.secTete span {
+  font-size: 0.78rem;
+}
+.secTete a {
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--s-6);
+}
+/* Une tuile porte son chiffre, parce que c'est ce qu'on venait lire. Sans lui,
+   elle redemanderait d'aller voir. */
+.tuile {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-7);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--ink);
+}
+.tuile:hover {
+  border-color: var(--ink-3);
+}
+.tuile b {
+  font-size: 0.88rem;
+}
+.tuile span {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
