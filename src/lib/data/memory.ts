@@ -17,6 +17,7 @@ import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeOrderNo, makeRef, type Repository } from "./repository";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
+import { cleDEchange } from "@/lib/domain/echange";
 
 /** A few inbound messages so the desk inbox has something to answer in demo mode. */
 function seedInbound(): InboundMessage[] {
@@ -211,6 +212,17 @@ function store(): Store {
 
 const nowIso = () => new Date().toISOString();
 const uid = () => Math.random().toString(36).slice(2, 10);
+
+/** Les voisins que la règle demande, cherchés dans le magasin en mémoire. */
+function cleIci(tous: InboundMessage[], m: Omit<InboundMessage, "id">): string | undefined {
+  if (m.channel !== "whatsapp" && m.channel !== "email") return undefined;
+  const parent = m.inReplyTo ? tous.find((x) => x.messageId === m.inReplyTo) : undefined;
+  const dernier = [...tous].filter((x) => x.channel === m.channel && x.from === m.from).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt))[0];
+  return cleDEchange(
+    { channel: m.channel, from: m.from, subject: m.subject, receivedAt: m.receivedAt, inReplyTo: m.inReplyTo },
+    { cleDuParent: parent?.convKey, dernier: dernier ? { receivedAt: dernier.receivedAt, convKey: dernier.convKey } : undefined },
+  ).cle;
+}
 
 export const memoryRepository: Repository = {
   async listOffers() {
@@ -684,7 +696,10 @@ export const memoryRepository: Repository = {
     return structuredClone(store().inbound.slice(0, limit));
   },
   async createInbound(m) {
-    const row: InboundMessage = { id: uid(), ...m, receivedAt: m.receivedAt ?? nowIso() };
+    const receivedAt = m.receivedAt ?? nowIso();
+    /* LA CLEF D'ÉCHANGE SE POSE ICI, au passage obligé : quatre points d'entrée
+       écrivent des messages, et la règle doit être unique. */
+    const row: InboundMessage = { id: uid(), ...m, receivedAt, convKey: m.convKey ?? cleIci(store().inbound, { ...m, receivedAt }) };
     store().inbound.unshift(row);
     return structuredClone(row);
   },

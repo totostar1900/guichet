@@ -498,6 +498,16 @@ export interface InboundMessage {
   handledBy?: string;
   /** Les pieces jointes, gardees au depot et rattachees a ce message. */
   attachments?: PieceGardee[];
+  /** L'identifiant que le message se donne : il sert de cible aux réponses. */
+  messageId?: string;
+  /** Le message auquel celui-ci répond, s'il le dit. */
+  inReplyTo?: string;
+  /**
+   * L'échange auquel ce message appartient, décidé À L'ARRIVÉE et jamais
+   * recalculé : les étiquettes et les reports s'y accrochent. La règle vit dans
+   * src/lib/domain/echange.ts.
+   */
+  convKey?: string;
 }
 
 /**

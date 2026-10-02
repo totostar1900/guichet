@@ -135,7 +135,17 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   // Tout courriel est aussi un message dans la boîte du desk : la question d'un
   // client n'est pas une source à ingérer. Le corps ENTIER, désormais : un
   // extrait coupé au milieu d'une phrase n'est pas un exemplaire.
-  const message = await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text });
+  /* LES EN-TÊTES DE FIL, gardés au lieu d'être jetés. Ils étaient lus depuis
+     toujours et s'arrêtaient là : « In-Reply-To » est le seul chemin qui ne
+     devine rien pour savoir à quel échange une réponse appartient. */
+  const message = await repo().createInbound({
+    channel: "email",
+    from: mail.from.toLowerCase(),
+    subject: mail.subject,
+    body: mail.text,
+    messageId: enTete(mail.headers, "message-id"),
+    inReplyTo: enTete(mail.headers, "in-reply-to"),
+  });
 
   // Les images du corps assez petites pour être des logos ne deviennent pas des
   // pièces, et on dit lesquelles.
@@ -199,4 +209,18 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   });
   if (errors.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${errors.join(" · ")}` });
   return { created: [], news: [], errors, skipped, messageId: message.id, gardees };
+}
+
+/**
+ * Un en-tête, cherché sans se soucier de la casse de son nom.
+ *
+ * Les noms d'en-têtes sont insensibles à la casse, et les serveurs les écrivent
+ * comme ils veulent : « Message-ID », « Message-Id », « message-id ». Chercher
+ * une seule forme marcherait chez la plupart des expéditeurs et pas chez tous,
+ * ce qui est la pire des pannes : elle n'arrive qu'à certains.
+ */
+export function enTete(headers: Record<string, string>, nom: string): string | undefined {
+  const cible = nom.toLowerCase();
+  for (const [k, v] of Object.entries(headers)) if (k.toLowerCase() === cible) return v.trim() || undefined;
+  return undefined;
 }
