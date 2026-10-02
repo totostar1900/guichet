@@ -312,6 +312,9 @@ type CashRow = {
   flow_key?: string | null;
   fee_period?: string | null;
   created_by: string | null;
+  /** La pièce qui atteste, et ce que l'échéancier annonçait : migration 0059. */
+  evidence?: string | null;
+  expected?: string | number | null;
 };
 /** « DG-2610-K7Q4 » : le client la cite quand il parle de son avis de garde. */
 function makeAvisRef(): string {
@@ -432,6 +435,8 @@ const toCash = (r: CashRow): CashEntry => ({
   dueBy: u(r.due_by),
   flowKey: u(r.flow_key),
   feePeriod: u(r.fee_period),
+  evidence: u(r.evidence),
+  expected: r.expected == null ? undefined : Number(r.expected),
 });
 
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
@@ -1224,6 +1229,8 @@ export const supabaseRepository: Repository = {
          deux fois, et deux avis du même trimestre ne prélèvent pas deux fois. */
       flow_key: entry.flowKey ?? null,
       fee_period: entry.feePeriod ?? null,
+      evidence: entry.evidence ?? null,
+      expected: entry.expected ?? null,
       created_by: entry.createdBy ?? null,
       ...(entry.at ? { at: entry.at } : {}),
     };

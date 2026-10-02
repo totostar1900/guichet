@@ -49,8 +49,15 @@ export default async function EncaissementsPage() {
       aVenir: p.flows,
     }));
     const suivis = suivre(lignes, journaux[i]);
-    return { clientId, nom: siens[0]?.clientName ?? clientId, suivis, bilan: bilan(suivis) };
+    return { clientId, nom: siens[0]?.clientName ?? clientId, suivis, bilan: bilan(suivis), journal: journaux[i] };
   });
+
+  /* Les écarts : ce qui est arrivé pour autre chose que ce qui était dû. Un
+     encaissement partiel est une comptabilité juste et une créance vivante, et
+     sans cette file la créance disparaîtrait au moment même de son inscription. */
+  const ecarts = parClient
+    .flatMap((c) => c.journal.filter((e) => e.expected != null && Math.round(e.expected) !== Math.round(e.amount)).map((e) => ({ ...e, nom: c.nom, manque: Math.round(e.expected!) - Math.round(e.amount) })))
+    .sort((a, b) => b.manque - a.manque || b.at.localeCompare(a.at));
 
   /* Rangés par le retard le plus long : c'est ce qui appelle quelqu'un. */
   const enRetard = parClient.filter((c) => c.bilan.nbAttendus > 0).sort((a, b) => b.bilan.retardMax - a.bilan.retardMax);
@@ -153,6 +160,50 @@ export default async function EncaissementsPage() {
           ))
         )}
 
+        {ecarts.length > 0 && (
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Écarts constatés")}</h2>
+              <span className="muted">{t("Reçu pour un autre montant que ce qui était dû : la différence reste une créance sur l'émetteur.")}</span>
+            </div>
+            <div className="scroll-x">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>{t("Valeur")}</th>
+                    <th>{t("Client")}</th>
+                    <th>{t("Mouvement")}</th>
+                    <th className="r">{t("Attendu")}</th>
+                    <th className="r">{t("Reçu")}</th>
+                    <th className="r">{t("Écart")}</th>
+                    <th>{t("Pièce")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ecarts.map((e) => (
+                    <tr key={e.id}>
+                      <td>{fmtDate(e.at)}</td>
+                      <td>{e.nom}</td>
+                      <td>{e.label}</td>
+                      <td className="r">{fmt(Math.round(e.expected!))}</td>
+                      <td className="r">
+                        <b>{fmt(Math.round(e.amount))}</b>
+                      </td>
+                      <td className="r">
+                        <span className={e.manque > 0 ? "st annulee" : "st transmise"}>
+                          {e.manque > 0 ? "−" : "+"}
+                          {fmt(Math.abs(e.manque))}
+                        </span>
+                      </td>
+                      <td className="muted">{e.evidence ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         <section className="panel">
           <div className="panel-h">
             <h2>{t("Ce que ce geste engage")}</h2>
@@ -162,6 +213,16 @@ export default async function EncaissementsPage() {
               <li>
                 {t(
                   "Inscrire un encaissement, c'est constater un crédit sur le compte de règlement. Ce n'est pas dire qu'une échéance est passée : cela, l'échéancier le sait déjà et le client le lit déjà.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "La pièce est demandée, et c'est elle qui fait la différence : une ligne de relevé ou un numéro d'avis du teneur de compte transforme une présomption en constat. C'est aussi la première chose qu'un contrôleur demande.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "Le montant reçu n'est pas forcément celui qui était dû, et la date de valeur n'est pas celle de l'échéance. Les deux se saisissent : l'attendu est gardé à côté, sinon l'écart disparaîtrait au moment même de son inscription.",
                 )}
               </li>
               <li>{t("Un mouvement s'ajoute et ne se corrige pas : une erreur se répare par un mouvement inverse, jamais par une réécriture.")}</li>

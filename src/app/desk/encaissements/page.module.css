@@ -103,3 +103,62 @@
   font-size: 0.74rem;
   color: var(--ink-3);
 }
+
+/* Le constat, ouvert à la place du bouton. Trois champs et l'écart dessous :
+   la pièce d'abord, parce que c'est elle qui fait la différence entre un
+   constat et une présomption. */
+.constat {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-3) var(--s-5);
+  min-width: 26rem;
+}
+@media (max-width: 860px) {
+  .constat {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+  }
+}
+.constat label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.constat label span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.constat input {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+.constat p,
+.constatFoot,
+.constat > .ok,
+.constat > .ko {
+  grid-column: 1 / -1;
+}
+.constatFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.ecartNul,
+.ecartVif {
+  margin: 0;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+.ecartNul {
+  color: var(--ink-3);
+}
+/* Un écart n'est pas une erreur de saisie : c'est une créance qui reste. */
+.ecartVif {
+  color: var(--warn);
+  font-weight: 700;
+}

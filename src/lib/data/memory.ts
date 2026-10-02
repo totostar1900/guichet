@@ -566,7 +566,10 @@ export const memoryRepository: Repository = {
     return structuredClone(store().cash.filter((c) => c.userId === userId).sort((a, b) => a.at.localeCompare(b.at)));
   },
   async addCash(entry) {
-    const row: CashEntry = { id: `cash-${store().cash.length + 1}`, at: entry.at ?? new Date().toISOString(), userId: entry.userId, amount: entry.amount, kind: entry.kind, label: entry.label, intentId: entry.intentId, dueBy: entry.dueBy };
+    /* flowKey et feePeriod se perdaient ici : en mémoire, un encaissement
+       n'était donc jamais rapproché, le flux restait « attendu » pour toujours
+       et la garde contre le double clic ne mordait pas. */
+    const row: CashEntry = { id: `cash-${store().cash.length + 1}`, at: entry.at ?? new Date().toISOString(), userId: entry.userId, amount: entry.amount, kind: entry.kind, label: entry.label, intentId: entry.intentId, dueBy: entry.dueBy, flowKey: entry.flowKey, feePeriod: entry.feePeriod, evidence: entry.evidence, expected: entry.expected };
     store().cash.push(row);
     return structuredClone(row);
   },

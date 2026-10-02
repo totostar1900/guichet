@@ -47,6 +47,7 @@ export const isIncoming = (k: CashKind): boolean => INCOMING.includes(k);
 export interface CashEntry {
   id: string;
   userId: string;
+  /** La date de valeur : le jour où l'argent est arrivé, non celui de l'échéance. */
   at: string;
   /** Toujours positif : le sens vient de `kind`. */
   amount: number;
@@ -65,6 +66,24 @@ export interface CashEntry {
    * comptabilité qui devine n'est pas une comptabilité. Voir `encaissement.ts`.
    */
   flowKey?: string;
+  /**
+   * La pièce qui atteste ce mouvement : une ligne de relevé, un numéro d'avis
+   * du teneur de compte.
+   *
+   * Sans elle, un encaissement n'est pas un constat mais une présomption, et
+   * c'est la première chose qu'un contrôleur demande. Obligatoire dès que le
+   * mouvement porte une clef de flux, parce qu'alors il affirme qu'une échéance
+   * a été réglée.
+   */
+  evidence?: string;
+  /**
+   * Ce que l'échéancier annonçait, quand ce mouvement solde une échéance.
+   *
+   * Le garder rend l'écart durable. Sans lui, un coupon payé 480 000 au lieu de
+   * 500 000 s'inscrit pour 480 000 et plus rien ne dit qu'il manque 20 000 :
+   * la comptabilité est juste, et la créance a disparu.
+   */
+  expected?: number;
   /**
    * La période de droits de garde que ce mouvement règle, « 2026-T3 ».
    *
