@@ -47,7 +47,10 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
           {t(label)}
           {explain && <i aria-hidden="true">?</i>}
         </span>
-        <b className="num">{value}</b>
+        {/* La valeur est presque toujours un nombre, que t() rend tel quel.
+            Mais « 178 jours » ou « 2 ans et 11 mois » en est une aussi, et la
+            carte traduisait son étiquette en laissant sa valeur en français. */}
+        <b className="num">{typeof value === "string" ? t(value) : value}</b>
       </button>
       {open &&
         explain &&

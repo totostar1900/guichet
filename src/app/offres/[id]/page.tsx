@@ -121,7 +121,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
-            {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
+            {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
           </div>
         )}
       </aside>

@@ -101,7 +101,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
         />
         {o.maturityOn && !c.past && (
           <div className={styles.note}>
-            {t("Durée réelle")} <b>{tenorText(o.settleOn, o.maturityOn)}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
+            {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
           </div>
         )}
       </div>
