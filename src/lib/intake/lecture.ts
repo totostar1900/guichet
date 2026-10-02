@@ -15,9 +15,12 @@ import { readSource } from "./storage";
  * rien ne se dit. Resend, qui attend une réponse en quelques secondes, n'a
  * d'ailleurs aucune raison d'attendre une lecture.
  *
- * La maison avait déjà la bonne forme pour les adjudications : le robot remplit,
- * une personne confirme, par petits paquets, et il ne touche jamais à ce qui est
- * déjà lu. Les pièces d'intake prennent la même.
+ * ET POURQUOI IL N'Y A PLUS DE FILE. Une file a existé une nuit, puis la
+ * question juste a été posée : pourquoi lire ? L'extracteur ne sait lire qu'un
+ * communiqué d'opération de marché, et le contenu d'un courriel est
+ * imprévisible. Lire d'office un document quelconque ne produit rien et coûte
+ * un appel. C'est donc une personne qui reconnaît un communiqué et demande la
+ * lecture, depuis le desk : une offre, et non une file.
  *
  * TROIS RÈGLES REPRISES DU PRÉCÉDENT, et chacune a coûté quelque chose ailleurs :
  *
@@ -33,33 +36,6 @@ export interface Lue {
   item: IntakeItem;
   secondes?: number;
   erreur?: string;
-}
-
-/**
- * Un brouillon que personne n'a touché.
- *
- * LE GARDE QUE J'AVAIS OUBLIÉ, et la migration l'a montré tout de suite : le
- * marqueur naît vide sur TOUTES les pièces, donc les dix-huit déjà en base, dont
- * six travaillées et publiées en septembre, se sont présentées comme « à lire ».
- * Une passe les aurait relues et aurait écrasé ce qu'une personne avait rempli.
- * La route des adjudications porte la même règle depuis le début : « il ne prend
- * que ce qui est vide ».
- *
- * « confidence », « official » et « remarks » ne comptent pas : ils existent sur
- * un brouillon neuf. C'est un champ de fond qui dit qu'on y a touché.
- */
-const brouillonVierge = (d: OfferDraft): boolean =>
-  !Object.entries(d)
-    .filter(([clef]) => !["confidence", "official", "remarks"].includes(clef))
-    .some(([, valeur]) => valeur !== undefined && valeur !== null && valeur !== "" && !(Array.isArray(valeur) && valeur.length === 0));
-
-/** Ce qui attend une lecture : jamais tenté, rien de rempli, pas publié, le plus ancien d'abord. */
-export async function piecesALire(n = 5): Promise<IntakeItem[]> {
-  const toutes = await repo().listIntake();
-  return toutes
-    .filter((i) => !i.readAt && !i.publishedAt && brouillonVierge(i.draft) && lisible(i))
-    .sort((a, b) => a.receivedAt.localeCompare(b.receivedAt))
-    .slice(0, Math.max(1, Math.min(n, 20)));
 }
 
 /** Une pièce que la machine sait ouvrir : un PDF, une image, ou du texte. */

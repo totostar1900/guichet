@@ -35,7 +35,7 @@ export interface IngestInput {
    */
   keepUnsupported?: boolean;
   /**
-   * Inscrire la pièce et rendre la main, sans la lire.
+   * Garder la pièce sans la lire, et sans la mettre en file.
    *
    * Un webhook a quelques secondes pour répondre, et un modèle qui lit un PDF
    * n'y tient pas : le 2026-10-01 une pièce est restée « lecture en cours »,
@@ -45,7 +45,7 @@ export interface IngestInput {
    * Le formulaire du desk ne le pose pas : une personne qui dépose un fichier
    * attend de voir les champs proposés, et elle est là pour attendre.
    */
-  differer?: boolean;
+  sansLecture?: boolean;
 }
 
 export type IngestResult = { ok: true; item: IntakeItem } | { ok: false; error: string };
@@ -102,7 +102,7 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
      visible, puis enrichie. Un délai dépassé laisse une pièce « à lire », ce qui
      est un état, pas une perte. */
   const aLire = extractionAvailable() && extraction;
-  if (aLire) draft.remarks = [...(draft.remarks ?? []), input.differer ? "À lire : la lecture automatique y passera." : "Lecture automatique en cours."];
+  if (aLire) draft.remarks = [...(draft.remarks ?? []), input.sansLecture ? "Pièce gardée telle quelle : son contenu n'est pas prévisible, une personne décide s'il y a lieu de la lire." : "Lecture automatique en cours."];
   let item = await repo().createIntake({
     source,
     title: input.title?.trim() || file?.name || "Message reçu",
@@ -114,9 +114,9 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
     rawText: file ? undefined : text,
     draft,
   });
-  await repo().logEvent({ kind: "system", html: `Nouvelle source : <b>${item.title}</b> (${input.fromLabel})${aLire ? (input.differer ? " : à lire" : " : lecture en cours") : ""}` });
+  await repo().logEvent({ kind: "system", html: `Nouvelle source : <b>${item.title}</b> (${input.fromLabel})${aLire && !input.sansLecture ? " : lecture en cours" : ""}` });
 
-  if (aLire && !input.differer) {
+  if (aLire && !input.sansLecture) {
     let extractedIn: number | undefined;
     try {
       const r = await extractOffer(extraction!);
