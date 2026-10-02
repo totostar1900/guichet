@@ -53,3 +53,29 @@ export const signature = (signataire: string): string => `${signataire}, Purpose
 export function texteExact(p: PiecesDuMessage): string {
   return `${p.corps.trim()}${blocLigne(p)}\n\n${signature(p.signataire)}`;
 }
+
+/**
+ * Le message reçu, repris sous la réponse.
+ *
+ * POURQUOI. Le client lit souvent la réponse des jours plus tard, dans une
+ * boîte où sa propre question a défilé. La citation lui remet sous les yeux ce
+ * à quoi on répond, et c'est la convention que toutes les messageries suivent.
+ *
+ * `quand` arrive déjà écrit, en français, par l'appelant : la date se formate
+ * dans le fuseau de l'opérateur, qui est celui où la phrase a un sens, et ce
+ * fuseau n'existe que dans le navigateur. Cette fonction tient la forme, pas
+ * l'horloge.
+ *
+ * Comme tout ce fichier, la phrase ne passe pas par t() : elle part chez le
+ * client, en français, quelle que soit la langue de l'écran du desk.
+ */
+export function citation(quand: string, texte: string): string {
+  const lignes = texte
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    /* Une ligne vide garde son chevron : sans lui, la citation se casse en deux
+       blocs et le client ne voit plus où elle finit. */
+    .map((l) => `> ${l}`.trimEnd())
+    .join("\n");
+  return `Le ${quand}, vous écriviez :\n${lignes}`;
+}

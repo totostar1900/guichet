@@ -318,3 +318,30 @@
   line-height: 1.5;
   color: var(--ink-3);
 }
+
+/* La fenêtre de 24 h de WhatsApp, dite au-dessus du champ. Elle informe, elle
+   n'interdit pas : une horloge qui se trompe fermerait le desk sur une
+   déduction. */
+.fenetreOuverte,
+.fenetreFermee {
+  padding: var(--s-4) var(--s-6);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.fenetreOuverte {
+  background: var(--good-soft);
+  color: var(--ink);
+}
+.fenetreFermee {
+  background: var(--warn-soft);
+  color: var(--ink);
+}
+/* La barre des gestes : citer, et le mot qui dit que le brouillon est gardé. */
+.outils {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.outilsVide {
+  flex-grow: 1;
+}

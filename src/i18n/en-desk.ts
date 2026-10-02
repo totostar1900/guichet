@@ -2459,4 +2459,10 @@ export const EN_MORE: Record<string, string> = {
   "Le PDF part dans Documents avec son numéro et la version de chaque passage. Il ne part pas aux clients : cet envoi se fait ensuite, comme pour les autres documents.": "The PDF goes to Documents with its number and the version of each passage. It does not go to clients: that sending happens afterwards, as for the other documents.",
   "Français": "French",
   "vous@exemple.com": "you@example.com",
+  "Citer": "Quote",
+  "adresse d'envoi à renseigner": "sending address to be set",
+  "Fenêtre WhatsApp ouverte, elle se ferme dans {h} h {m}.": "WhatsApp window open, it closes in {h} h {m}.",
+  "Fenêtre WhatsApp ouverte, elle se ferme dans {m} minutes.": "WhatsApp window open, it closes in {m} minutes.",
+  "La fenêtre de 24 h est passée : WhatsApp accepte un modèle approuvé, et un e-mail passe toujours.": "The 24 h window has passed: WhatsApp accepts an approved template, and an e-mail always goes through.",
+  "brouillon gardé": "draft kept",
 };

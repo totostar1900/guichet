@@ -75,6 +75,11 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const list = all.filter((t) => (!sp.canal || t.channel === sp.canal) && (sp.etat !== "a_traiter" || t.unread > 0) && (sp.etat !== "traites" || t.unread === 0) && textMatch(sp.q, t.key, t.name, ...t.msgs.slice(-3).map((m) => m.text)));
   const open = sp.avec ? threads.get(sp.avec) : list[0];
   const unread = all.reduce((s, t) => s + t.unread, 0);
+  /* Le dernier message VENU du client : il ouvre la fenêtre de 24 h de WhatsApp
+     et c'est lui que « Citer » reprend. Le fil est trié du plus récent au plus
+     ancien, donc c'est le PREMIER « in » qu'on cherche, pas le dernier. */
+  const recu = open?.msgs.find((m) => m.dir === "in");
+  const dernierRecu = recu ? { at: recu.at, text: recu.text } : undefined;
 
   return (
     <>
@@ -212,6 +217,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
               channel={open.channel}
               name={open.name}
               lines={lines}
+              dernierRecu={dernierRecu}
               deskName={desk.name}
               appUrl={process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}
               from={process.env.EMAIL_FROM ?? ""}
