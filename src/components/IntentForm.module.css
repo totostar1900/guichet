@@ -151,18 +151,26 @@
   font-size: 0.8rem;
   margin-bottom: 10px;
 }
+/* La rangée d'actions : la phrase réglementaire et les boutons.
+   Sur grand écran les deux sont côte à côte, comme avant que le bouton d'envoi
+   ne quitte le pied. Sur téléphone la phrase passe au-dessus, et les boutons
+   tiennent une seule rangée. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .foot {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .foot small {
   color: var(--ink-3);
   font-size: 0.72rem;
   max-width: 48ch;
-}
-.foot button {
-  margin-left: auto;
 }
 .done {
   background: var(--good-soft);
@@ -242,9 +250,23 @@
 /* ---------- phone: three steps ---------- */
 .stepBar,
 .stepTitle,
-.stepNav,
 .recap {
   display: none;
+}
+/* La barre d'actions existe aux deux tailles : sur grand écran elle ne porte
+   que l'envoi, puisqu'il n'y a ni étape ni retour. */
+.stepNav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.stepNav button[type="button"] {
+  display: none;
+}
+.next,
+.send {
+  margin-left: auto;
 }
 @media (max-width: 760px) {
   .stepBar {
@@ -304,13 +326,23 @@
     min-width: 0;
     overflow-wrap: anywhere;
   }
+  /* La phrase au-dessus, les boutons sur une rangée en dessous. */
+  .actions {
+    display: block;
+  }
   .stepNav {
-    display: flex;
-    justify-content: space-between;
     gap: 8px;
     margin-top: 12px;
   }
-  .stepNav .btn {
+  .stepNav button[type="button"] {
+    display: inline-flex;
+  }
+  /* L'envoi n'apparaît qu'à l'étape où il a un sens. Le reste du temps,
+     « Continuer » occupe sa place, et jamais les deux ensemble. */
+  .form:not([data-at="3"]) .send {
+    display: none;
+  }
+  .stepNav button {
     min-width: 40%;
   }
   .foot {
@@ -420,6 +452,31 @@
   font-size: 0.78rem;
   color: var(--ink-3);
   line-height: 1.45;
+}
+/* L'équivalence se lit pendant la frappe : encre pleine, pas le gris des
+   notes, parce que c'est un chiffre et non un commentaire. */
+.equiv {
+  display: block;
+  color: var(--ink);
+  font-weight: 600;
+}
+/* Ce qui ne part pas est la seule phrase du bloc qui demande une décision. */
+.rest {
+  display: block;
+  margin-top: 2px;
+  color: var(--warn);
+  font-weight: 600;
+}
+.recapEquiv b {
+  display: block;
+}
+.recapEquiv small {
+  display: block;
+  margin-top: 2px;
+  color: var(--warn);
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-align: right;
 }
 
 /* Le reçu : une fiche à garder, pas un paragraphe à relire. */

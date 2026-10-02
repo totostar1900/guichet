@@ -2553,4 +2553,5 @@ export const EN_MORE: Record<string, string> = {
   "Un opérateur traite les ordres, les dossiers et le courrier.": "An operator handles orders, files and mail.",
   "{a} · l'adresse est l'identité de connexion et se change avec le compte.": "{a} · the address is the sign-in identity and changes with the account.",
   "L'adresse est l'identité de connexion et se change avec le compte.": "The address is the sign-in identity and changes with the account.",
+  "Soit environ": "That is about",
 };

@@ -8,7 +8,7 @@ import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
-import { estimate } from "@/lib/domain/estimate";
+import { equivalence, estimate } from "@/lib/domain/estimate";
 import { orderChecks } from "@/lib/domain/checks";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
@@ -205,6 +205,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const amountWarn = amountMark?.level === "warn" ? amountMark[lang] : undefined;
   const ready = signedIn && (phoneOk || phonePending) && emailOk && (!profileFlag || profileOk) && (!amountWarn || amountOk);
   const needsAmount = type === "ferme" || type === "cession" || type === "appetit" || type === "achat" || type === "vente" || type === "souscription" || type === "rachat";
+  // L'équivalence sous le champ : elle vivait dans la bulle « Le calcul », donc
+  // il fallait la demander pour la voir. Elle se lit maintenant pendant la frappe.
+  const equiv = needsAmount ? equivalence(offer, ordered, type) : null;
   // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
   const checks = needsAmount && ordered ? orderChecks(offer, type, ordered, lim, { held: (type === "vente" || type === "rachat") && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
   const blocked = checks.some((c) => c.level === "block");
@@ -371,6 +374,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                     : parseAmount(cash)
                       ? t("Cette somme n’atteint pas un titre au cours de référence.")
                       : t("La somme se convertit en titres au cours de référence, arrondie à la quotité par le bas.")}
+                </small>
+              )}
+              {equiv && (
+                <small className={styles.conv}>
+                  <b className={styles.equiv}>{t(equiv.line)}</b>
+                  {equiv.restLine && <span className={styles.rest}>{t(equiv.restLine)}</span>}
                 </small>
               )}
               {held > 0 && (type === "vente" || type === "rachat") && (
@@ -566,6 +575,20 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <b>{parse(amount) ? (type === "rachat" ? fmtUnits(parse(amount)) : fmt(parse(amount))) : "—"}</b>
             </div>
           )}
+          {/* Le récapitulatif disait la quantité tapée et rien d'autre : on
+              signait « 10 000 000 FCFA » sans savoir combien de parts, ni ce
+              qui restait de côté. */}
+          {equiv && (
+            <div className={styles.recapEquiv}>
+              <span>{t("Soit environ")}</span>
+              <b>
+                {/* La mise en garde est déjà sous le champ : ici elle ferait
+                    quatre lignes dans un tableau qui en tient une. */}
+                {t(equiv.line).replace("≈ ", "").split(" · ")[0]}
+                {equiv.restLine && <small>{t(equiv.restLine)}</small>}
+              </b>
+            </div>
+          )}
           <div>
             <span>{t("Contact")}</span>
             <b>
@@ -599,26 +622,34 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           </label>
         )}
         <input type="hidden" name="profileFlag" value={[profileFlag && profileOk ? profileFlag : "", amountWarn && amountOk ? amountWarn : ""].filter(Boolean).join(" · ")} />
-        <div className={styles.foot}>
-          <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>
-          <button className="btn primary" type="submit" disabled={pending || !ready}>
-            {t(pending ? "Envoi…" : "Envoyer au desk")}
-          </button>
         </div>
-        </div>
-        <div className={styles.stepNav}>
-          {step > 1 ? (
-            <button type="button" className="btn ghost" onClick={() => goTo(step - 1)}>
-              {t("Retour")}
+        {/* UNE SEULE RANGÉE D'ACTIONS.
+
+            « Envoyer au desk » vivait dans le pied de l'étape 3, « Retour » dans
+            une barre en dessous : sur téléphone, deux rangées, et le pouce
+            devait choisir entre deux boutons qui ne se voyaient pas ensemble.
+            Le bouton d'envoi rejoint la barre, qui devient la seule rangée.
+            Le pied garde sa phrase, et sur grand écran les deux restent côte à
+            côte comme avant, par le cadre qui les entoure. */}
+        <div className={styles.actions}>
+          <div className={styles.foot} data-step="3">
+            <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>
+          </div>
+          <div className={styles.stepNav}>
+            {step > 1 && (
+              <button type="button" className="btn ghost" onClick={() => goTo(step - 1)}>
+                {t("Retour")}
+              </button>
+            )}
+            {step < 3 && (
+              <button type="button" className={`btn primary ${styles.next}`} onClick={() => goTo(step + 1)}>
+                {t("Continuer")}
+              </button>
+            )}
+            <button className={`btn primary ${styles.send}`} type="submit" disabled={pending || !ready}>
+              {t(pending ? "Envoi…" : "Envoyer au desk")}
             </button>
-          ) : (
-            <span />
-          )}
-          {step < 3 && (
-            <button type="button" className="btn primary" onClick={() => goTo(step + 1)}>
-              {t("Continuer")}
-            </button>
-          )}
+          </div>
         </div>
       </form>
     </div>
