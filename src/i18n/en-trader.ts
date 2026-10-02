@@ -25,6 +25,16 @@ export const EN_TRADER: Record<string, string> = {
   /* ---------- la piece dans le fil du message ---------- */
   "gardé au dépôt": "kept in the vault",
   "Télécharger": "Download",
+
+  /* ---------- la relecture avant qu un message parte ---------- */
+  "Relire avant d'envoyer": "Read it over before sending",
+  "Objet : {o}": "Subject: {o}",
+  "Par WhatsApp, sans objet": "On WhatsApp, no subject",
+  "Avec la fiche : {l}": "With the line: {l}",
+  "Sans fiche jointe": "No line attached",
+  "Un objet et un message sont nécessaires.": "A subject and a message are both needed.",
+  "Un message est nécessaire.": "A message is needed.",
+  "Un courriel a un objet : écrivez-en un.": "An e-mail has a subject: write one.",
   "Proposer une ligne de marché": "Propose a market line",
   "déjà proposée en ligne de marché": "already proposed as a market line",
   "Relire la pièce": "Read the document again",

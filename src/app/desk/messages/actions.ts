@@ -8,13 +8,33 @@ import { repo } from "@/lib/data";
 import { emailConfigured, sendEmail, sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
 import { signLineLink } from "@/lib/channels";
 
-const replySchema = z.object({ to: z.string().min(3), channel: z.enum(["whatsapp", "email"]), body: z.string().min(1).max(4000), subject: z.string().optional(), name: z.string().optional(), offerId: z.string().optional() });
+/**
+ * UN COURRIEL A UN OBJET, et le serveur l'exige aussi.
+ *
+ * Le champ n'était obligatoire nulle part, et le serveur comblait le vide par
+ * « Purpose Capital : votre demande ». Un objet par défaut, identique sur tous
+ * les messages, se range mal dans la boîte du client et ne dit rien de ce qu'il
+ * contient. Une règle que seul le navigateur applique n'est pas une règle : un
+ * formulaire se rejoue sans lui.
+ */
+const replySchema = z
+  .object({ to: z.string().min(3), channel: z.enum(["whatsapp", "email"]), body: z.string().min(1).max(4000), subject: z.string().max(160).optional(), name: z.string().optional(), offerId: z.string().optional() })
+  .refine((v) => v.channel !== "email" || Boolean(v.subject?.trim()), { message: "objet manquant", path: ["subject"] });
 
-/** The desk answers from the inbox; the message is journalised like every other outbound one. */
-export async function replyAction(_prev: { ok: boolean; error?: string } | null, form: FormData): Promise<{ ok: boolean; error?: string }> {
+/**
+ * The desk answers from the inbox; the message is journalised like every other
+ * outbound one.
+ *
+ * `at` MARQUE LE SUCCES, et sert de clef au formulaire : il remonte, donc il se
+ * vide. Un echec n en porte pas, et le texte reste a l ecran pour etre corrige.
+ */
+export async function replyAction(_prev: { ok: boolean; error?: string; at?: string } | null, form: FormData): Promise<{ ok: boolean; error?: string; at?: string }> {
   const desk = await requireDesk();
   const p = replySchema.safeParse(Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string" && v.trim() !== "")));
-  if (!p.success) return { ok: false, error: "Écrivez un message." };
+  if (!p.success) {
+    const sansObjet = p.error.issues.some((i) => i.path[0] === "subject");
+    return { ok: false, error: sansObjet ? "Un courriel a un objet : écrivez-en un." : "Écrivez un message." };
+  }
   const { to, channel, body, subject, name, offerId } = p.data;
   const r = repo();
   // « Répondre avec la ligne » : the fiche, and on WhatsApp a link that vouches for the number.
@@ -27,7 +47,7 @@ export async function replyAction(_prev: { ok: boolean; error?: string } | null,
     lineText = `\n\n${o.title}\n${url}${channel === "whatsapp" ? "\nCe lien reconnaît votre numéro : votre intention ne demande plus que le code e-mail." : ""}`;
   }
   const text = `${body.trim()}${lineText}\n\n${desk.name}, Purpose Capital`;
-  const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject || "Purpose Capital : votre demande" : undefined, body: text, status: "queued" });
+  const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject : undefined, body: text, status: "queued" });
   const configured = channel === "whatsapp" ? whatsappConfigured() : emailConfigured();
   if (!configured) {
     await r.updateNotification(row.id, { status: "skipped", error: `${channel === "whatsapp" ? "WhatsApp Cloud API" : "E-mail"} non configuré` });
@@ -35,15 +55,17 @@ export async function replyAction(_prev: { ok: boolean; error?: string } | null,
     return { ok: false, error: `Message préparé mais non envoyé : ${channel === "whatsapp" ? "WhatsApp" : "l'e-mail"} n'est pas encore configuré (clés à renseigner sur Vercel).` };
   }
   try {
-    const id = channel === "whatsapp" ? await sendWhatsAppText(to, text) : await sendEmail(to, subject || "Purpose Capital : votre demande", `<p>${text.replace(/\n/g, "<br>")}</p>`, text);
+    const id = channel === "whatsapp" ? await sendWhatsAppText(to, text) : await sendEmail(to, subject ?? "", `<p>${text.replace(/\n/g, "<br>")}</p>`, text);
     await r.updateNotification(row.id, { status: "sent", providerId: id, sentAt: new Date().toISOString() });
   } catch (e) {
     await r.updateNotification(row.id, { status: "failed", error: e instanceof Error ? e.message : "échec d'envoi" });
     return { ok: false, error: `Échec d'envoi : ${e instanceof Error ? e.message : "erreur"}` };
   }
   await audit("message.reply", "contact", to, { after: { channel, chars: text.length, offerId }, actor: desk.name });
+  /* Le message envoye reparait dans le fil : c est la confirmation, meilleure
+     qu une etiquette qui passe. */
   revalidatePath("/desk/messages");
-  return { ok: true };
+  return { ok: true, at: new Date().toISOString() };
 }
 
 /** Marks every message of a conversation as handled. */

@@ -39,3 +39,18 @@
   border-top: 1px solid var(--line);
   padding-top: var(--s-6);
 }
+
+/* Le message tel qu'il partira. Il se lit : la casse, les retours à la ligne et
+   les espaces sont ceux qui seront envoyés, pas une approximation. */
+.corps {
+  margin: var(--s-6) 0 0;
+  padding: var(--s-7);
+  border-left: 2px solid var(--fill);
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 320px;
+  overflow-y: auto;
+}

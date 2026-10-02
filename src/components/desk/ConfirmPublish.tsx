@@ -23,7 +23,9 @@ import styles from "./ConfirmPublish.module.css";
  *
  * `typed` : le mot à recopier, pour ce qui quitte la plateforme et ne se
  * rattrape pas. `preview` : voir exactement ce que le client verra, qui vaut
- * mieux que le bouton lui-même.
+ * mieux que le bouton lui-même. `corps` : le texte tel qu'il partira, pour un
+ * message qui se relit plutôt qu'il ne se résume. Une ligne de résumé ne montre
+ * pas la faute de frappe ni le paragraphe collé deux fois.
  */
 export function ConfirmPublish({
   form,
@@ -33,6 +35,7 @@ export function ConfirmPublish({
   confirmLabel,
   typed,
   preview,
+  corps,
   className = "btn sm primary",
   disabled,
   pending,
@@ -46,6 +49,8 @@ export function ConfirmPublish({
   confirmLabel: string;
   typed?: string;
   preview?: { href: string; label: string };
+  /** Le message tel qu'il partira : on le lit, on ne le résume pas. */
+  corps?: string;
   className?: string;
   disabled?: boolean;
   pending?: boolean;
@@ -67,6 +72,7 @@ export function ConfirmPublish({
             <li key={l}>{l}</li>
           ))}
         </ul>
+        {corps && <p className={styles.corps}>{corps}</p>}
         {preview && (
           <Link href={preview.href} target="_blank" rel="noreferrer" className={styles.preview}>
             {preview.label}
