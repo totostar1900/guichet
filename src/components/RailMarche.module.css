@@ -1,0 +1,61 @@
+/**
+ * LE RAIL DES PAGES D'UNE SECTION, À GAUCHE.
+ *
+ * La bande « Sur le même sujet » dit la même famille, mais au PIED de
+ * l'article : il faut l'avoir lu pour apprendre qu'il y a autre chose. Le rail
+ * le dit avant, et il reste là pendant la lecture.
+ *
+ * Il ne paraît pas sous 1040 px : le téléphone a la feuille du siège, qui dit
+ * la même chose et se referme. Deux navigations visibles en même temps sur un
+ * écran étroit se disputent le pouce.
+ */
+.avecRail {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--s-9);
+  align-items: start;
+}
+.rail {
+  position: sticky;
+  top: calc(var(--bar-h) + var(--s-7));
+  display: grid;
+  gap: var(--s-2);
+  padding-right: var(--s-7);
+  border-right: 1px solid var(--line);
+}
+.titre {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--s-3);
+}
+.rail a {
+  display: block;
+  padding: var(--s-3) var(--s-4);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+.rail a:hover {
+  color: var(--ink);
+  background: var(--paper);
+}
+/* La page où l'on est : un filet plein, pas une couleur de fond. Un fond ferait
+   une sixième boîte dans une colonne qui n'en a aucune. */
+.rail a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 650;
+  border-left-color: var(--gold);
+}
+@media (max-width: 1040px) {
+  .avecRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rail {
+    display: none;
+  }
+}

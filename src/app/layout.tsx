@@ -10,6 +10,7 @@ import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
+import { RailMarche } from "@/components/RailMarche";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { Onboarding } from "@/components/mobile/Onboarding";
 import { Presentation } from "@/components/mobile/Presentation";
@@ -159,7 +160,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
-        <main className={styles.main}>{children}</main>
+        <main className={styles.main}>
+          {/* Le rail des pages du marche se pose ici, et il decide lui-meme s il
+              a lieu d etre : la mise en page d une famille vit a un endroit. */}
+          <RailMarche>{children}</RailMarche>
+        </main>
         </RegistryProvider>
         <footer className={styles.footer}>
           <p>

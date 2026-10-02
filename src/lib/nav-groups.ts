@@ -12,7 +12,7 @@ import { MARKET_PAGES, type MarketPage } from "./market/pages";
  * demande au lecteur de viser, et il vise mal : le nom ouvrait une page, le
  * chevron ouvrait la liste, et deux cibles de huit pixels se touchent.
  */
-export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint">;
+export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short">;
 
 /**
  * Ce que je possède, et ce qui en découle. Le tableau de bord ouvre la liste
