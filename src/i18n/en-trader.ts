@@ -21,6 +21,11 @@ export const EN_TRADER: Record<string, string> = {
 
   /* ---------- lire une piece d intake, differee depuis le webhook ---------- */
   "Lire la pièce": "Read the document",
+
+  /* ---------- la piece dans le fil du message ---------- */
+  "gardé au dépôt": "kept in the vault",
+  "Proposer une ligne de marché": "Propose a market line",
+  "déjà proposée en ligne de marché": "already proposed as a market line",
   "Relire la pièce": "Read the document again",
 
   /* ---------- « Votre conseiller » dans Trader ---------- */

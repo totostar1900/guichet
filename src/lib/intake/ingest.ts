@@ -46,6 +46,13 @@ export interface IngestInput {
    * attend de voir les champs proposés, et elle est là pour attendre.
    */
   sansLecture?: boolean;
+  /**
+   * Le fichier est DEJA au depot sous cette clef : ne pas le reecrire.
+   *
+   * Une promotion depuis Messages part d'une piece deja gardee. La reecrire
+   * creerait un doublon de plus, et j'en ai retire vingt-deux le meme jour.
+   */
+  fileKeyExistant?: string;
 }
 
 export type IngestResult = { ok: true; item: IntakeItem } | { ok: false; error: string };
@@ -73,8 +80,9 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
     // plus rien ne designait, et il comptait contre le plafond de stockage.
     if (!pdf && !image && !input.keepUnsupported) return { ok: false, error: "Format non pris en charge : PDF, JPEG, PNG ou WebP." };
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
-    fileName = `${key}.${ext}`;
-    await saveSource(fileName, file.bytes, mimeType);
+    // Deja au depot : on garde la clef, on n'en fabrique pas une seconde copie.
+    fileName = input.fileKeyExistant ?? `${key}.${ext}`;
+    if (!input.fileKeyExistant) await saveSource(fileName, file.bytes, mimeType);
     if (pdf) {
       if (!input.source) source = "pdf";
       extraction = { kind: "pdf", base64: Buffer.from(file.bytes).toString("base64"), hint: input.hint };

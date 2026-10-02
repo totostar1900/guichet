@@ -448,6 +448,24 @@ export type NotifyStatus = "queued" | "sent" | "failed" | "skipped";
 export type NotifyKind = "offer_published" | "intent_received" | "intent_update" | "document" | "results" | "watch" | "digest" | "opportunity";
 
 /** A message a client (or anyone) sent us on WhatsApp or by e-mail : the desk inbox. */
+/**
+ * Une piece gardee au depot et rattachee au message qui l'apportait.
+ *
+ * Elle ne va PAS dans « A valider » : cette file sert a ce qui peut devenir une
+ * ligne de marche, et un document qu'un regulateur envoie n'a rien a y devenir.
+ * Une personne peut l'y promouvoir, et c'est le seul chemin : aucune regle sur
+ * l'expediteur ne tranche, puisqu'un membre de l'equipe transfere aussi bien un
+ * communique du Tresor qu'une lettre de la COSUMAF.
+ */
+export interface PieceGardee {
+  name: string;
+  fileKey: string;
+  mimeType: string;
+  size: number;
+  /** L'entree d'intake nee d'une promotion : presente, la piece est deja partie. */
+  intakeId?: string;
+}
+
 export interface InboundMessage {
   id: string;
   channel: NotifyChannel;
@@ -458,6 +476,8 @@ export interface InboundMessage {
   receivedAt: string;
   handledAt?: string;
   handledBy?: string;
+  /** Les pieces jointes, gardees au depot et rattachees a ce message. */
+  attachments?: PieceGardee[];
 }
 
 /**

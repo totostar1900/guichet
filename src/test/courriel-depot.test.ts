@@ -35,15 +35,15 @@ describe("le courriel entrant est gardé en entier", () => {
         attachments: [{ name: "questionnaire.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", bytes: octets(5_000), inline: false }],
       }),
     );
-    // Une pièce gardée ouvre une ligne : un régulateur doit retrouver son
-    // document, même si la machine ne sait pas le lire.
-    expect(r.created).toHaveLength(1);
+    /* Le format ne décide de rien : un régulateur doit retrouver son document.
+       Depuis le 2026-10-02 la pièce vit AVEC LE MESSAGE et n'ouvre plus d'entrée
+       dans « À valider », qui est la file de ce qui devient une ligne de
+       marché. */
     expect(r.errors).toHaveLength(0);
-    const item = (await repo().listIntake()).find((i) => i.id === r.created[0]);
-    expect(item?.fileName?.endsWith(".docx")).toBe(true);
-    // Et le brouillon dit pourquoi aucun champ n'est proposé, sinon le desk
-    // croit à une extraction ratée.
-    expect(item?.draft.remarks?.[0]).toContain("gardée telle quelle");
+    expect(r.created).toEqual([]);
+    expect(r.gardees).toHaveLength(1);
+    expect(r.gardees?.[0].name).toBe("questionnaire.docx");
+    expect(r.gardees?.[0].mimeType).toContain("wordprocessingml");
   });
 
   it("écarte une image de signature, et la nomme", async () => {
@@ -69,7 +69,8 @@ describe("le courriel entrant est gardé en entier", () => {
       }),
     );
     expect(r.skipped).toHaveLength(0);
-    expect(r.created).toHaveLength(1);
+    // Assez lourde pour être un document : gardée avec le message.
+    expect(r.gardees).toHaveLength(1);
   });
 });
 

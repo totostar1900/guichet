@@ -686,6 +686,10 @@ export const memoryRepository: Repository = {
     store().inbound.unshift(row);
     return structuredClone(row);
   },
+  async setInboundAttachments(id, pieces) {
+    const m = store().inbound.find((x) => x.id === id);
+    if (m) m.attachments = structuredClone(pieces);
+  },
   async markInboundHandled(id, by) {
     const m = store().inbound.find((x) => x.id === id);
     if (m) {

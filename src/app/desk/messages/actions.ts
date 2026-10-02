@@ -47,6 +47,79 @@ export async function replyAction(_prev: { ok: boolean; error?: string } | null,
 }
 
 /** Marks every message of a conversation as handled. */
+/**
+ * Promouvoir une pièce d'un message vers « À valider ».
+ *
+ * POURQUOI C'EST UN GESTE DE PERSONNE, ET NON UNE RÈGLE. « À valider » sert à ce
+ * qui peut devenir une LIGNE DE MARCHÉ. Un document qu'un régulateur ou un
+ * client envoie n'a rien à y devenir, et le bouton « Publier » n'a aucun sens à
+ * côté de lui. Mais rien dans le courriel ne dit lequel des deux il est : un
+ * membre de l'équipe transfère aussi bien un communiqué du Trésor qu'une lettre
+ * de la COSUMAF, donc l'expéditeur ne tranche pas. C'est une personne qui
+ * reconnaît un communiqué, et ce bouton est l'endroit où elle le dit.
+ *
+ * LA PIÈCE NE SE RECOPIE PAS : elle est déjà au dépôt sous sa clef, et
+ * « fileKeyExistant » dit à l'ingestion de la reprendre telle quelle. Vingt-deux
+ * doublons ont été retirés du dépôt le 2026-10-02, il serait dommage d'en
+ * fabriquer d'autres le même jour.
+ *
+ * La lecture suit tout de suite, parce qu'ici une personne attend le résultat :
+ * c'est elle qui vient d'affirmer que ce document est un communiqué.
+ */
+export async function promouvoirPieceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/messages");
+  const messageId = String(form.get("messageId") ?? "");
+  const fileKey = String(form.get("fileKey") ?? "");
+  if (!messageId || !fileKey) return;
+
+  const r = repo();
+  const message = (await r.listInbound(400)).find((m) => m.id === messageId);
+  const piece = message?.attachments?.find((a) => a.fileKey === fileKey);
+  if (!message || !piece) {
+    await r.logEvent({ kind: "desk", html: `Promotion demandée par ${desk.name} : <b>pièce introuvable</b> sur ce message` }).catch(() => undefined);
+    return;
+  }
+  if (piece.intakeId) return; // déjà partie : le bouton disparaît, mais un double envoi se rejoue
+
+  try {
+    const { readSource } = await import("@/lib/intake/storage");
+    const { ingestSource } = await import("@/lib/intake/ingest");
+    const bytes = await readSource(fileKey);
+    const res = await ingestSource({
+      title: message.subject || piece.name,
+      fromLabel: `${message.from} · promue depuis Messages`,
+      hint: message.subject ? `Objet du courriel : ${message.subject}` : undefined,
+      file: { name: piece.name, mimeType: piece.mimeType, bytes },
+      fileKeyExistant: fileKey,
+      // Promue par une personne qui affirme que c'en est un : la source est officielle.
+      trusted: true,
+      keepUnsupported: true,
+    });
+    if (!res.ok) {
+      await r.logEvent({ kind: "desk", html: `Promotion de <b>${piece.name}</b> par ${desk.name} : ${res.error}` });
+      return;
+    }
+    // Le lien dans les deux sens : le message sait où sa pièce est partie.
+    await r.setInboundAttachments(
+      messageId,
+      (message.attachments ?? []).map((a) => (a.fileKey === fileKey ? { ...a, intakeId: res.item.id } : a)),
+    );
+    await audit("intake.promote", "intake", res.item.id, {
+      after: { messageId, fileKey, from: message.from },
+      reason: `pièce promue depuis Messages par ${desk.name}`,
+    });
+    await r.logEvent({ kind: "desk", html: `<b>${piece.name}</b> promue en source par ${desk.name} : à valider` });
+  } catch (e) {
+    /* Rien ne sort d'ici sans le dire : un clic sans trace est indistinguable
+       d'un clic qui n'a pas eu lieu, et ça a coûté une nuit. */
+    await r
+      .logEvent({ kind: "desk", html: `Promotion de <b>${piece.name}</b> par ${desk.name} <b>interrompue</b> : ${e instanceof Error ? e.message : "erreur inconnue"}` })
+      .catch(() => undefined);
+  }
+  revalidatePath("/desk/messages");
+  revalidatePath("/desk/a-valider");
+}
+
 export async function handledAction(form: FormData): Promise<void> {
   const desk = await requireDesk();
   const to = String(form.get("to") ?? "");

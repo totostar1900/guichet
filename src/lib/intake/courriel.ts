@@ -2,9 +2,11 @@ import "server-only";
 import PostalMime from "postal-mime";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
+import type { PieceGardee } from "@/lib/domain/types";
 import { receiveLinks } from "@/lib/news/intake";
 import { urlsIn } from "@/lib/news/model";
-import { ingestSource, trustedSender } from "./ingest";
+import { trustedSender } from "./ingest";
+import { saveSource } from "./storage";
 import { direLeRefus } from "./refus";
 
 /**
@@ -41,11 +43,16 @@ export interface Courriel {
 }
 
 export interface Issue {
+  /** Les entrées d'intake nées de ce courriel : vide, désormais, sauf promotion. */
   created: string[];
   news: string[];
   errors: string[];
   /** Les pièces écartées, nommées : une perte muette n'est pas une perte acceptable. */
   skipped: string[];
+  /** Le message ouvert dans la boîte du desk, quand il y en a un. */
+  messageId?: string;
+  /** Les pièces gardées au dépôt et rattachées à ce message. */
+  gardees?: PieceGardee[];
 }
 
 /**
@@ -128,7 +135,7 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   // Tout courriel est aussi un message dans la boîte du desk : la question d'un
   // client n'est pas une source à ingérer. Le corps ENTIER, désormais : un
   // extrait coupé au milieu d'une phrase n'est pas un exemplaire.
-  await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text });
+  const message = await repo().createInbound({ channel: "email", from: mail.from.toLowerCase(), subject: mail.subject, body: mail.text });
 
   // Les images du corps assez petites pour être des logos ne deviennent pas des
   // pièces, et on dit lesquelles.
@@ -158,29 +165,38 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
       return { created: [], news: got.map((n) => n.id), errors: [], skipped };
     }
   }
-  const hint = mail.subject ? `Objet du courriel : ${mail.subject}` : undefined;
-  const created: string[] = [];
+  /* LA PIÈCE VIT AVEC LE MESSAGE, et plus dans « À valider ».
+     Cette file sert à ce qui peut devenir une LIGNE DE MARCHÉ : les communiqués
+     ramassés par les crons, les avis d'émission, les résultats d'adjudication.
+     Un document qu'un régulateur ou un client envoie n'a rien à y devenir, et le
+     bouton « Publier » n'a aucun sens à côté de lui. Jusqu'ici un courriel
+     écrivait deux choses sans lien, et le desk faisait la jonction de tête.
+     Une personne peut promouvoir une pièce vers « À valider » depuis Messages.
+     C'est le seul chemin, parce qu'aucune règle sur l'expéditeur ne tranche : un
+     membre de l'équipe transfère aussi bien un communiqué du Trésor qu'une
+     lettre de la COSUMAF. */
   const errors: string[] = [];
-  if (pieces.length === 0) {
-    const res = await ingestSource({ title: mail.subject, fromLabel, hint, text: `Objet : ${mail.subject}\nDe : ${mail.from}\n\n${mail.text}`, trusted, source: "mail", sansLecture: true });
-    if (res.ok) created.push(res.item.id);
-    else errors.push(res.error);
-  }
-  // TOUTE pièce est gardée, quel que soit son type : `keepUnsupported` dit à
-  // l'ingestion de conserver ce qu'elle ne sait pas lire au lieu de le refuser.
+  const gardees: PieceGardee[] = [];
   for (const a of pieces) {
-    /* GARDÉE, PAS LUE. Le contenu d'un courriel est imprévisible : une lettre
-       de régulateur, un questionnaire, un relevé. L'extracteur ne sait lire
-       qu'un communiqué d'opération de marché, et lui demander d'y trouver un
-       ISIN n'a pas de sens. Une personne reconnaît un communiqué et demande la
-       lecture depuis le desk. */
-    const res = await ingestSource({ title: mail.subject || a.name, fromLabel, hint: `${hint ?? ""} Pièce jointe ${a.name}.`.trim(), file: a, trusted, keepUnsupported: true, sansLecture: true });
-    if (res.ok) created.push(res.item.id);
-    else errors.push(`${a.name} : ${res.error}`);
+    const ext = a.name.split(".").pop()?.toLowerCase() ?? "bin";
+    const fileKey = `courrier/${message.id}/${Date.now().toString(36)}-${gardees.length}.${ext}`;
+    try {
+      await saveSource(fileKey, a.bytes, a.mimeType);
+      gardees.push({ name: a.name, fileKey, mimeType: a.mimeType, size: a.bytes.byteLength });
+    } catch (e) {
+      errors.push(`${a.name} : ${e instanceof Error ? e.message : "dépôt refusé"}`);
+    }
   }
-  for (const id of created) await audit("intake.create", "intake", id, { after: { from: mail.from, subject: mail.subject, channel: "email" }, actor: "courriel entrant" });
+  if (gardees.length) await repo().setInboundAttachments(message.id, gardees);
+
+  // Un expéditeur de confiance qui envoie des liens sans pièce jointe a déjà été
+  // traité plus haut ; ici on dit seulement ce que le message a apporté.
+  await repo().logEvent({
+    kind: "system",
+    html: gardees.length
+      ? `Courriel de ${mail.from} : ${gardees.length} pi\u00e8ce(s) gard\u00e9e(s) avec le message`
+      : `Courriel de ${mail.from} : rang\u00e9 dans Messages, sans pi\u00e8ce jointe`,
+  });
   if (errors.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : ${errors.join(" · ")}` });
-  // Ni pièce ni erreur : ne devrait pas arriver, et se tairait si cela arrivait.
-  if (!created.length && !errors.length) await repo().logEvent({ kind: "system", html: `Courriel de ${mail.from} : trait\u00e9 sans rien produire, ${pieces.length} pi\u00e8ce(s) vues` });
-  return { created, news: [], errors, skipped };
+  return { created: [], news: [], errors, skipped, messageId: message.id, gardees };
 }

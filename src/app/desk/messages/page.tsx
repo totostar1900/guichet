@@ -3,11 +3,12 @@ import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { repo } from "@/lib/data";
+import type { PieceGardee } from "@/lib/domain/types";
 import type { InboundMessage, Notification } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/format";
 import { textMatch } from "@/lib/text";
 import { displayStatus, isPast } from "@/lib/domain/status";
-import { handledAction } from "./actions";
+import { handledAction, promouvoirPieceAction } from "./actions";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -15,7 +16,7 @@ import { getT } from "@/i18n/server";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Messages" };
 
-type Msg = { at: string; dir: "in" | "out"; channel: string; text: string; status?: string; subject?: string; handled?: boolean; intentId?: string };
+type Msg = { at: string; dir: "in" | "out"; channel: string; text: string; status?: string; subject?: string; handled?: boolean; intentId?: string; id?: string; pieces?: PieceGardee[] };
 type Thread = { key: string; channel: "whatsapp" | "email"; name?: string; clientId?: string; msgs: Msg[]; unread: number; last: string };
 
 /**
@@ -45,7 +46,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     if (m.channel === "push") continue;
     const t = get(m.from, m.channel);
     if (!t.name && m.name) t.name = m.name;
-    t.msgs.push({ at: m.receivedAt, dir: "in", channel: m.channel, text: m.body, subject: m.subject, handled: Boolean(m.handledAt) });
+    t.msgs.push({ at: m.receivedAt, dir: "in", channel: m.channel, text: m.body, subject: m.subject, handled: Boolean(m.handledAt), id: m.id, pieces: m.attachments ?? [] });
     if (!m.handledAt) t.unread++;
   }
   for (const n of notifications as Notification[]) {
@@ -142,6 +143,46 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     {m.subject && <b className={styles.subj}>{m.subject}</b>}
                     <span>{m.text}</span>
                   </div>
+                  {/* LA PIÈCE VIT ICI, et plus dans « À valider ». Cette file sert
+                      à ce qui peut devenir une ligne de marché ; un document
+                      qu'un régulateur envoie n'a rien à y devenir, et le bouton
+                      « Publier » n'a aucun sens à côté de lui. */}
+                  {m.pieces?.map((piece) => (
+                    <div key={piece.fileKey} className={styles.piece}>
+                      <span className={styles.pieceIcone} aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z" />
+                          <path d="M14 3v5h5" />
+                        </svg>
+                      </span>
+                      <span className={styles.pieceQuoi}>
+                        <b>{piece.name}</b>
+                        <small>
+                          {piece.mimeType === "application/pdf" ? "PDF" : piece.mimeType.startsWith("image/") ? t("image") : piece.mimeType} · {Math.max(1, Math.round(piece.size / 1024))} ko · {t("gardé au dépôt")}
+                        </small>
+                      </span>
+                      <a className="btn sm" href={`/desk/a-valider/source?cle=${encodeURIComponent(piece.fileKey)}`} target="_blank" rel="noopener noreferrer">
+                        {t("Ouvrir")}
+                      </a>
+                      {/* Une personne reconnaît un communiqué : aucune règle sur
+                          l'expéditeur ne peut le faire à sa place. */}
+                      {piece.intakeId ? (
+                        <Link className={styles.piecePartie} href={`/desk/a-valider?piece=${piece.intakeId}`}>
+                          {t("déjà proposée en ligne de marché")}
+                        </Link>
+                      ) : (
+                        m.id && (
+                          <form action={promouvoirPieceAction}>
+                            <input type="hidden" name="messageId" value={m.id} />
+                            <input type="hidden" name="fileKey" value={piece.fileKey} />
+                            <button className="btn sm" type="submit">
+                              {t("Proposer une ligne de marché")}
+                            </button>
+                          </form>
+                        )
+                      )}
+                    </div>
+                  ))}
                   <small>
                     {fmtDateTime(m.at)}
                     {m.dir === "out" ? ` · ${m.status === "sent" ? "envoyé" : m.status === "skipped" ? "préparé, non envoyé" : m.status === "failed" ? "échec" : "en file"}` : m.handled ? " · traité" : ""}

@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { repo } from "@/lib/data";
-import { ingererCourriel, type Courriel } from "@/lib/intake/courriel";
 import { ingestSource } from "@/lib/intake/ingest";
 
 /**
@@ -21,29 +19,11 @@ import { ingestSource } from "@/lib/intake/ingest";
  * lecture. C'est ce qu'il aurait dû être depuis le début, une offre et non une
  * file.
  *
- * Ce cliquet tient les deux propriétés qui se perdraient sans bruit : la pièce
- * EXISTE, et aucune lecture ne part toute seule.
+ * Ce cliquet tient ce qui reste vrai du dépôt par le desk et de la remarque.
+ * Que la pièce d'un courriel vive avec son message est tenu ailleurs, par
+ * src/test/piece-avec-le-message.ts.
  */
-const courriel = (p: Partial<Courriel>): Courriel => ({ from: "dobm@tresor-congo.cg", subject: "Communiqué", text: "Corps.", attachments: [], headers: {}, ...p });
-
 describe("une pièce de courriel est gardée, pas lue", () => {
-  it("garde la pièce jointe, avec son fichier, sans la lire", async () => {
-    const r = await ingererCourriel(
-      courriel({
-        from: "regulateur@cosumaf.org",
-        subject: "Questionnaire annuel",
-        attachments: [{ name: "questionnaire.pdf", mimeType: "application/pdf", bytes: new Uint8Array(9_000), inline: false }],
-      }),
-    );
-    expect(r.created).toHaveLength(1);
-    const item = (await repo().listIntake()).find((i) => i.id === r.created[0]);
-    // Gardée : c'est tout ce qu'on demande au courrier entrant.
-    expect(item?.fileName?.endsWith(".pdf")).toBe(true);
-    // Jamais lue, et jamais mise en file d'attente de lecture.
-    expect(item?.readAt).toBeUndefined();
-    expect(item?.extractedIn).toBeUndefined();
-  });
-
   it("ne promet pas une lecture automatique dans sa remarque", async () => {
     const res = await ingestSource({ fromLabel: "regulateur@cosumaf.org · e-mail", title: "Lettre", file: { name: "lettre.pdf", mimeType: "application/pdf", bytes: new Uint8Array(1_000) }, sansLecture: true });
     expect(res.ok).toBe(true);

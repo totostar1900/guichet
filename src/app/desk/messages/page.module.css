@@ -202,3 +202,46 @@
   color: var(--ink);
   font: inherit;
 }
+
+/* La pièce jointe, dans le fil du message qui l'apportait. Filet et blanc,
+   jamais une carte : « même famille, deux sujets ». */
+.piece {
+  margin-top: var(--s-5);
+  border: 1px solid var(--line);
+  padding: var(--s-6);
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+}
+.pieceIcone {
+  flex: none;
+  width: 34px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+.pieceQuoi {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pieceQuoi small {
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.pieceQuoi b {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.piecePartie {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}

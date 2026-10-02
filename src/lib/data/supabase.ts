@@ -443,8 +443,8 @@ const toNotif = (r: NotifRow): Notification => ({
   id: r.id, kind: r.kind, channel: r.channel, to: r.to_address, contactName: u(r.contact_name), subject: u(r.subject), body: r.body, documentId: u(r.document_id), intentId: u(r.intent_id),
   offerId: u(r.offer_id), status: r.status, providerId: u(r.provider_id), error: u(r.error), createdAt: r.created_at, sentAt: u(r.sent_at),
 });
-type InboundRow = { id: string; channel: InboundMessage["channel"]; from_address: string; contact_name: string | null; subject: string | null; body: string | null; received_at: string; handled_at: string | null; handled_by: string | null };
-const toInbound = (r: InboundRow): InboundMessage => ({ id: r.id, channel: r.channel, from: r.from_address, name: u(r.contact_name), subject: u(r.subject), body: r.body ?? "", receivedAt: r.received_at, handledAt: u(r.handled_at), handledBy: u(r.handled_by) });
+type InboundRow = { id: string; channel: InboundMessage["channel"]; from_address: string; contact_name: string | null; subject: string | null; body: string | null; received_at: string; handled_at: string | null; handled_by: string | null; attachments: InboundMessage["attachments"] | null };
+const toInbound = (r: InboundRow): InboundMessage => ({ id: r.id, channel: r.channel, from: r.from_address, name: u(r.contact_name), subject: u(r.subject), body: r.body ?? "", receivedAt: r.received_at, handledAt: u(r.handled_at), handledBy: u(r.handled_by), attachments: r.attachments ?? [] });
 const fromNotif = (p: Partial<Notification>): Partial<NotifRow> => {
   const row: Partial<NotifRow> = {};
   if (p.kind !== undefined) row.kind = p.kind;
@@ -1460,10 +1460,14 @@ export const supabaseRepository: Repository = {
     return (data as InboundRow[]).map(toInbound);
   },
   async createInbound(m) {
-    const row = { channel: m.channel, from_address: m.from, contact_name: m.name ?? null, subject: m.subject ?? null, body: m.body, received_at: m.receivedAt ?? new Date().toISOString() };
+    const row = { channel: m.channel, from_address: m.from, contact_name: m.name ?? null, subject: m.subject ?? null, body: m.body, received_at: m.receivedAt ?? new Date().toISOString(), attachments: m.attachments ?? [] };
     const { data, error } = await db().from("inbound_messages").insert(row).select("*").single();
     if (error) fail("createInbound", error);
     return toInbound(data as InboundRow);
+  },
+  async setInboundAttachments(id, pieces) {
+    const { error } = await db().from("inbound_messages").update({ attachments: pieces }).eq("id", id);
+    if (error) fail("setInboundAttachments", error);
   },
   async markInboundHandled(id, by) {
     const { error } = await db().from("inbound_messages").update({ handled_at: new Date().toISOString(), handled_by: by }).eq("id", id);

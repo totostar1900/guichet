@@ -1,5 +1,5 @@
 import type { FinancialProfile } from "@/data/profile";
-import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
+import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage } from "@/lib/domain/types";
 import type { CashEntry } from "@/lib/domain/cash";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
@@ -149,6 +149,8 @@ export interface Repository {
   listNotifications(limit?: number): Promise<Notification[]>;
   listInbound(limit?: number): Promise<InboundMessage[]>;
   createInbound(m: Omit<InboundMessage, "id" | "receivedAt"> & { receivedAt?: string }): Promise<InboundMessage>;
+  /** Rattacher ou mettre a jour les pieces d'un message : la promotion y pose l'identifiant d'intake. */
+  setInboundAttachments(id: string, pieces: PieceGardee[]): Promise<void>;
   markInboundHandled(id: string, by: string): Promise<void>;
   createNotification(n: Omit<Notification, "id" | "createdAt">): Promise<Notification>;
   updateNotification(id: string, patch: Partial<Notification>): Promise<Notification>;
