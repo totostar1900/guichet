@@ -221,8 +221,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           nom: "Sondage avant adjudication",
           ou: "Titres › une séance annoncée",
           href: "/calendrier",
-          phrase: { key: "Aucune séance n'est annoncée : un sondage se tient devant une date." },
-          sinon: { key: "Il rouvrira dès qu'un Trésor publiera son avis d'annonce." },
+          phrase: { key: "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne." },
         }),
   );
 
@@ -244,8 +243,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           nom: "Passage d'un fonds à l'autre",
           ou: "Fonds",
           href: "/fonds",
-          phrase: { key: "Vous ne détenez aucune part de fonds : un passage part d'un rachat." },
-          sinon: { key: "Il s'ouvrira dès votre première souscription." },
+          phrase: { key: "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez." },
         }),
   );
 
@@ -298,7 +296,6 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           ou: "Automatique",
           href: "/trader",
           phrase: { key: "La maison détecte une intention inverse et vous la signale." },
-          sinon: { key: "L'exécution d'un appariement attend une décision de la maison : aujourd'hui, le signal seul." },
         }),
   );
 

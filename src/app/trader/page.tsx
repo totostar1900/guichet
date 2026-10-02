@@ -6,9 +6,10 @@ import type { BeacAuction } from "@/lib/market/beac";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { compteDesEtats, ETAPES, servicesDuClient, type ContexteClient, type EtatService } from "@/lib/domain/services";
+import { ETAPES, servicesDuClient, type ContexteClient, type EtatService } from "@/lib/domain/services";
 import { getT } from "@/i18n/server";
 import { ConseillerCard } from "./ConseillerCard";
+import { Etapes } from "./Etapes";
 import { fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 
@@ -89,24 +90,21 @@ export default async function TraderPage() {
   };
 
   const services = servicesDuClient(ctx);
-  const compte = compteDesEtats(services);
 
-  const classe: Record<EtatService, string> = { en_place: styles.enPlace, a_activer: styles.aActiver, indisponible: styles.indisponible };
-  const mot: Record<EtatService, string> = { en_place: t("en place"), a_activer: t("à activer"), indisponible: t("indisponible") };
-  // « Allons-y » ouvre la page où le geste commence, et la destination se nomme
-  // à côté : une commande doit dire exactement ce qui va se passer. Un service
-  // fermé n'en porte pas, il n'y a nulle part où aller.
-  const geste: Record<EtatService, { mot: string; cls: string }> = {
-    en_place: { mot: t("Allons-y"), cls: styles.gSecond },
-    a_activer: { mot: t("Allons-y"), cls: styles.gPrincipal },
-    indisponible: { mot: t("En savoir plus"), cls: styles.gDiscret },
-  };
-
-  const comptes = [
-    { n: compte.en_place, mot: t("en place"), sous: t("ils tournent sans vous"), cls: styles.enPlace },
-    { n: compte.a_activer, mot: t("à activer"), sous: t("ouverts, jamais pris"), cls: styles.aActiver },
-    { n: compte.indisponible, mot: t("indisponible"), sous: t("et la raison est dite"), cls: styles.indisponible },
-  ];
+  /**
+   * UN SEUL ÉTAT SE DIT, ET C'EST LE BON.
+   *
+   * Chaque service portait son état en toutes lettres, « en place », « à
+   * activer », « indisponible », avec un numéro à côté et trois compteurs au-
+   * dessus. Un service qui s'annonce indisponible ferme une porte que rien ne
+   * ferme vraiment : il demande seulement qu'on ait commencé par autre chose,
+   * et c'est cela qu'il faut dire.
+   *
+   * Reste donc la seule marque qui apprend quelque chose : ce qui tourne déjà.
+   * Le reste se lit dans la phrase du service, qui dit par quoi commencer.
+   */
+  const dejaLa = (e: EtatService) => e === "en_place";
+  const geste: Record<EtatService, string> = { en_place: styles.gSecond, a_activer: styles.gPrincipal, indisponible: styles.gPrincipal };
 
   const contextes = [
     { quand: t("Un coupon est encaissé"), alors: t("La ligne propose de le replacer, ou d'activer le réinvestissement une fois pour toutes"), ou: t("sur l'espèce") },
@@ -119,52 +117,30 @@ export default async function TraderPage() {
     <div className={styles.page}>
 
       <header className={styles.tete}>
-        <h1>{t("Ce que vous pouvez faire")}</h1>
-        <p>{t("Chaque geste dit son état, ce qu'il fait pour vous en ce moment avec vos chiffres, et ses étapes dans l'ordre. Aucun ne décrit un service en général.")}</p>
+        <h1>{t("Trader maintenant")}</h1>
       </header>
-
-      <section className={styles.comptes}>
-        {comptes.map((c) => (
-          <div className={`${styles.compte} ${c.cls}`} key={c.mot}>
-            <b>{c.n}</b>
-            <span>
-              <em>{c.mot}</em>
-              <small>{c.sous}</small>
-            </span>
-          </div>
-        ))}
-      </section>
 
       <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: positions.length, derniere }} />
 
       <section className={styles.liste}>
         {services.map((sv) => (
           <div className={styles.ligne} key={sv.cle}>
-            <span className={`${styles.etat} ${classe[sv.etat]}`}>
-              <i aria-hidden="true" />
-              <span>{mot[sv.etat]}</span>
-            </span>
-            <span className={styles.num}>{sv.n}</span>
             <span className={styles.quoi}>
+              {dejaLa(sv.etat) && (
+                <em className={styles.enPlace}>
+                  <i aria-hidden="true" />
+                  {t("en place")}
+                </em>
+              )}
               <b>{t(sv.nom)}</b>
               <small>{t(sv.ou)}</small>
             </span>
             <span className={styles.dit}>
               <p>{t(sv.phrase.key, sv.phrase.params)}</p>
-              {sv.sinon && <small>{t(sv.sinon.key, sv.sinon.params)}</small>}
-              {/* Les étapes, dans l'ordre : c'est la seule liste numérotée de la
-                  maison, parce que c'est la seule vraie séquence. */}
-              {ETAPES[sv.cle] && (
-                <ol className={styles.etapes}>
-                  {ETAPES[sv.cle].map((e) => (
-                    <li key={e}>{t(e)}</li>
-                  ))}
-                </ol>
-              )}
+              {ETAPES[sv.cle] && <Etapes items={ETAPES[sv.cle]} />}
             </span>
-            <Link href={sv.href} className={`${styles.geste} ${geste[sv.etat].cls}`}>
-              {geste[sv.etat].mot}
-              <em>{t(sv.ou)}</em>
+            <Link href={sv.href} className={`${styles.geste} ${geste[sv.etat]}`}>
+              {t("Allons-y")}
             </Link>
           </div>
         ))}

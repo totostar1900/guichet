@@ -32,96 +32,54 @@
 }
 
 /* Le compte des trois états : un service qu'on ne sait pas offert n'existe pas. */
-.comptes {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--navy);
-  border-bottom: 1px solid var(--line);
-}
-.compte {
-  padding: var(--s-7) var(--s-8) var(--s-8) 0;
-  border-right: 1px solid var(--line);
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-6);
-  min-width: 0;
-}
-.compte b {
-  font-size: 1.7rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.compte span {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
-  min-width: 0;
-}
-.compte em {
-  font-style: normal;
-  font-size: 0.78rem;
-  font-weight: 650;
-}
-.compte small {
-  font-size: 0.74rem;
-  color: var(--ink-3);
-}
 
 .liste {
   border-top: 1px solid var(--navy);
 }
+/* UNE GRILLE, ET NON UNE RANGEE SOUPLE.
+   En flex, chaque service posait ses colonnes ou il pouvait : le nom d'un
+   service long poussait sa phrase, celle du voisin commençait ailleurs, et
+   l'oeil ne retrouvait aucune verticale. Trois colonnes nommees, les mêmes
+   pour tous, et les neuf services s'alignent. */
 .ligne {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-9);
+  display: grid;
+  grid-template-columns: minmax(170px, 1fr) minmax(0, 2.1fr) auto;
+  align-items: start;
+  gap: var(--s-6) var(--s-9);
   padding: var(--s-8) 0;
   border-bottom: 1px solid var(--line);
 }
-.etat {
-  width: 118px;
-  flex: none;
-  display: flex;
+/* La seule marque qui apprend quelque chose : ce qui tourne deja. */
+.enPlace {
+  display: inline-flex;
   align-items: center;
-  gap: var(--s-4);
-  padding-top: 3px;
-}
-.etat i {
-  width: 5px;
-  height: 5px;
-  flex: none;
-}
-.etat span {
+  gap: var(--s-3);
+  font-style: normal;
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
+  color: var(--good);
+  margin-bottom: var(--s-2);
+}
+.enPlace i {
+  width: 5px;
+  height: 5px;
+  background: var(--good);
+}
+/* Les etapes : a cote de la phrase sur grand ecran, derriere un bouton sur
+   telephone, ou neuf services fois quatre etapes faisaient un mur. */
+.pas {
+  display: contents;
+}
+.pasBtn {
+  display: none;
 }
 .enPlace i {
   background: var(--good);
 }
 .enPlace span {
   color: var(--good);
-}
-.aActiver i {
-  background: var(--gold);
-}
-.aActiver span {
-  color: var(--gold-ink);
-}
-.indisponible i {
-  background: var(--line-2);
-}
-.indisponible span {
-  color: var(--ink-3);
-}
-.num {
-  width: 32px;
-  flex: none;
-  padding-top: 3px;
-  font-size: 0.7rem;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  color: var(--gold-ink);
 }
 .quoi {
   width: 232px;
@@ -188,13 +146,6 @@
   white-space: nowrap;
 }
 /* La destination, nommée sous la commande : « Allons-y » seul ne dit pas où. */
-.geste em {
-  font-style: normal;
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  opacity: 0.75;
-}
 .gPrincipal {
   background: var(--navy);
   color: #fff;
@@ -294,13 +245,6 @@
   .contexte > div,
   .quand {
     grid-column: 1 / -1;
-  }
-  .comptes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .compte {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
   }
   .quandLigne {
     flex-wrap: wrap;
@@ -419,5 +363,39 @@
   .cGestes :global(.btn) {
     flex-grow: 1;
     justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .ligne {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-5);
+  }
+  .geste {
+    justify-self: start;
+  }
+  .pas {
+    display: block;
+    margin-top: var(--s-5);
+  }
+  .pasBtn {
+    display: inline-flex;
+    align-items: center;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    padding: var(--s-3) var(--s-6);
+    cursor: pointer;
+  }
+  .pas[data-ouvert="0"] .etapes {
+    display: none;
+  }
+  .pas[data-ouvert="1"] .etapes {
+    margin-top: var(--s-5);
   }
 }

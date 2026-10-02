@@ -81,13 +81,21 @@ describe("l'état suit la donnée du client", () => {
     expect(m.get("sondage")!.etat).toBe("a_activer");
   });
 
-  it("ferme ce qui n'a pas de prise, et dit pourquoi", () => {
-    /* Un service grisé sans raison se lit comme une panne. */
+  it("dit par quoi commencer, au lieu de se déclarer indisponible", () => {
+    /**
+     * Un service qui s'annonce indisponible ferme une porte que rien ne ferme
+     * vraiment : il demande seulement qu'on ait commencé par autre chose, et
+     * c'est cela qu'il faut dire. « Commencez » est donc la forme attendue, et
+     * non une explication de ce que la maison ne fait pas.
+     */
     const m = parCle(vide);
     expect(m.get("passage")!.etat).toBe("indisponible");
-    expect(m.get("passage")!.phrase.key).toMatch(/aucune part de fonds/);
+    expect(m.get("passage")!.phrase.key).toMatch(/^Commencez par/);
     expect(m.get("sondage")!.etat).toBe("indisponible");
-    expect(m.get("sondage")!.sinon?.key).toBeTruthy();
+    expect(m.get("sondage")!.phrase.key).toMatch(/^Commencez par/);
+    // La phrase suffit : la sous-phrase justifiait, et elle ne s'affiche plus.
+    expect(m.get("passage")!.sinon).toBeUndefined();
+    expect(m.get("sondage")!.sinon).toBeUndefined();
   });
 
   it("ferme l'appariement tant que la maison n'a pas tranché", () => {

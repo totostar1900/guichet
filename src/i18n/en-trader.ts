@@ -203,4 +203,9 @@ export const EN_TRADER: Record<string, string> = {
   "Une intention de sens inverse peut alors croiser la vôtre.": "An intention in the opposite direction can then cross yours.",
   "Le desk vous prévient avant tout rapprochement : il ne se fait jamais dans votre dos.": "The desk tells you before any match : it never happens behind your back.",
   "la répartition, le rendement, l'échéancier et vos opérations": "the breakdown, the return, the schedule and your operations",
+  "Trader maintenant": "Trade now",
+  "Les étapes": "The steps",
+  "Masquer les étapes": "Hide the steps",
+  "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne.": "Start with an announced session: the calendar publishes them as soon as a Treasury opens one.",
+  "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez.": "Start by subscribing to a fund: the switch is then declared from the line you hold.",
 };
