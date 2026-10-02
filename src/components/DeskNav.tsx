@@ -74,10 +74,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
 ];
 export const DESK_TABS: [string, string][] = DESK_GROUPS.flatMap((g) => g.tabs);
 
-export async function DeskNav({ current, badges = {} }: { current: string; badges?: Record<string, number> }) {
+export async function DeskNav({ current, badges = {}, rail = false }: { current: string; badges?: Record<string, number>; /** debout dans un rail de gauche, au lieu de couchée au-dessus de la page */ rail?: boolean }) {
   const t = await getT();
   return (
-    <nav className={styles.nav} aria-label="Desk" data-coach="nav">
+    <nav className={rail ? `${styles.nav} ${styles.navRail}` : styles.nav} aria-label="Desk" data-coach="nav">
       {DESK_GROUPS.map((g) => (
         <div key={g.label} className={styles.group}>
           <span className={styles.label}>{t(g.label)}</span>

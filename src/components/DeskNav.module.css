@@ -95,3 +95,65 @@
     margin-left: 4px;
   }
 }
+
+/* Le rail n'existe qu'au-dessus de 1100 px, la largeur à laquelle la colonne
+   de gauche disparaît. En dessous, la barre se recouche au-dessus du carnet :
+   elle est la seule porte vers les autres pages du desk, et une navigation qui
+   disparaît avec sa colonne enferme le lecteur. */
+@media (min-width: 1101px) {
+  /* ---------- la même navigation, debout dans un rail ---------- */
+  /**
+   * LES MÊMES LIENS, EN COLONNE.
+   *
+   * Couchée, la barre prend trois rangées au-dessus du carnet du jour : on
+   * descend pour atteindre ce qu'on vient lire. Debout dans le rail, elle ne
+   * coûte rien à la hauteur de la page, et elle reste visible pendant qu'on lit,
+   * ce qu'une barre qui défile ne fait pas.
+   *
+   * Aucun lien n'est perdu, aucun n'est renommé : c'est la même table.
+   */
+  .navRail {
+    display: grid;
+    gap: var(--s-7);
+    margin-bottom: 0;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+  .navRail .group {
+    display: grid;
+    gap: var(--s-2);
+    align-items: stretch;
+  }
+  .navRail .label {
+    white-space: normal;
+  }
+  .navRail .tabs {
+    display: grid;
+    gap: 0;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .navRail .tabs a {
+    display: flex;
+    padding: 3px 8px;
+    border-radius: 0;
+    border-left: 2px solid transparent;
+    font-size: 0.76rem;
+    font-weight: 500;
+    white-space: normal;
+  }
+  /* La page où l'on est : un filet, et non un pavé de couleur. Vingt pavés dans
+     une colonne de 196 px feraient une mosaïque, et le lecteur chercherait
+     lequel est allumé. */
+  .navRail .tabs a[aria-current="page"] {
+    background: transparent;
+    color: var(--ink);
+    font-weight: 700;
+    border-left-color: var(--gold);
+  }
+  .navRail .guide {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

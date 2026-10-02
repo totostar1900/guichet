@@ -141,12 +141,19 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   return (
     <>
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
-      <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
       {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-prix" ? String(book.length) : undefined} />}
 
       {/* Le carnet et son sommaire. Le rail est le même objet que sur les pages
           publiques : le desk se parcourt aussi, et il n’avait rien pour cela. */}
       <div className={styles.withRail}>
+        {/* LA NAVIGATION DESCEND DANS LE RAIL. Couchée au-dessus du carnet elle
+            prenait trois rangées, et l'on descendait pour atteindre ce qu'on
+            venait lire. Debout ici, elle ne coûte rien à la hauteur de la page
+            et reste visible pendant la lecture. Aucun lien n'est perdu. */}
+        <div className={styles.colRail}>
+        {/* Nommé, parce que PageOutline rend lui aussi un nav : sans cela, la
+            règle étroite ne saurait pas lequel des deux effacer. */}
+        <div className={styles.sommaire}>
         <PageOutline
           label={t("Le carnet")}
           sections={[
@@ -158,6 +165,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
             { id: "flux", title: t("Flux en direct") },
           ]}
         />
+        </div>
+        <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} rail />
+        </div>
         <div className={styles.rail}>
         <div id="aujourdhui" />
         {/* UNE SEULE BANDE DE CHIFFRES, et il y en avait deux.
