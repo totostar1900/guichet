@@ -7,9 +7,35 @@
  * autre forme, guillemets ou non, dans l'un quelconque des fichiers en-*.ts.
  *
  *   node scripts/clefs-manquantes.mjs src/components/market/CourbeFusion.tsx
+ *   node scripts/clefs-manquantes.mjs            (tout src)
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
+
+/**
+ * Les fichiers a lire : ceux qu on nomme, sinon tout src.
+ *
+ * SANS ARGUMENT, IL NE LISAIT RIEN et annoncait « 0 clefs a traduire ». Le
+ * compte des clefs connues, lui, etait juste : la sortie ressemblait trait pour
+ * trait a un succes. Une verification qui passe a vide est pire que pas de
+ * verification, parce qu elle rassure.
+ */
+const fichiers = (cibles) => {
+  const out = [];
+  const marche = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const q = path.join(d, e.name);
+      if (e.isDirectory()) marche(q);
+      else if (/\.tsx?$/.test(e.name)) out.push(q);
+    }
+  };
+  for (const c of cibles.length ? cibles : ["src"]) {
+    const q = path.join(process.cwd(), c);
+    if (statSync(q).isDirectory()) marche(q);
+    else out.push(q);
+  }
+  return out;
+};
 
 const connues = new Set();
 const dossier = path.join(process.cwd(), "src/i18n");
@@ -34,8 +60,9 @@ const duFrancais = (s) =>
   /\b(un|du|au|aux|et|ni|est|sont|ne|pas|votre|vos|notre|nos|mon|ma|mes)\b/i.test(s);
 
 const vues = new Set();
-for (const cible of process.argv.slice(2)) {
-  const s = readFileSync(path.join(process.cwd(), cible), "utf8");
+const cibles = fichiers(process.argv.slice(2));
+for (const cible of cibles) {
+  const s = readFileSync(cible, "utf8");
   for (const m of s.matchAll(/\bt\(\s*"((?:[^"\\]|\\.)*)"/g)) {
     let clef;
     try {
@@ -48,4 +75,6 @@ for (const cible of process.argv.slice(2)) {
     console.log(`  ${JSON.stringify(clef)}: "",`);
   }
 }
-console.error(`${vues.size} clefs à traduire · ${connues.size} déjà connues`);
+/* Le nombre de fichiers lus fait partie du verdict : « 0 clefs » sur 0 fichier
+   ne dit rien, et c'est exactement ce que cette sortie disait avant. */
+console.error(`${vues.size} clefs à traduire · ${connues.size} déjà connues · ${cibles.length} fichiers lus`);

@@ -40,17 +40,12 @@
   padding-top: var(--s-6);
 }
 
-/* Le message tel qu'il partira. Il se lit : la casse, les retours à la ligne et
-   les espaces sont ceux qui seront envoyés, pas une approximation. */
+/* La place du message tel qu'il partira : une boîte qui défile, et rien de
+   plus. Aucune teinte ni cadre ici, parce que l'appelant sait ce qu'il montre
+   (un courriel se relit par parties, chacune avec la sienne) et que ce composant
+   sert tout le desk. */
 .corps {
   margin: var(--s-6) 0 0;
-  padding: var(--s-7);
-  border-left: 2px solid var(--fill);
-  background: var(--surface-2);
-  font-size: 0.85rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  max-height: 320px;
+  max-height: 360px;
   overflow-y: auto;
 }

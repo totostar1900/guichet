@@ -25,7 +25,19 @@ import { describe, expect, it } from "vitest";
  * surveiller par son dossier allumerait toute l'application ; le surveiller
  * par son nom le garde propre sans exiger le reste.
  */
-const SURVEILLES = ["src/app/desk/analyses", "src/components/market", "src/components/desk", "src/app/Accueil.tsx"];
+/**
+ * TOUT src, depuis le 2 octobre 2026.
+ *
+ * La liste tenait quatre endroits, et src/app/desk/messages n'en faisait pas
+ * partie : trois chaînes de la feuille de relecture y sont passées sans que
+ * rien ne bronche. Le script compagnon ne les a pas vues non plus, pour une
+ * autre raison, et les deux mailles laissaient donc passer au même endroit.
+ *
+ * Élargir a coûté huit traductions sur 667 fichiers : le reste du dépôt était
+ * déjà propre. Une liste d'endroits surveillés est une dette qui ne se voit
+ * pas ; « partout » n'en est pas une.
+ */
+const SURVEILLES = ["src"];
 
 /**
  * Une chaîne qui ressemble à du français : un accent, ou un mot-outil courant.
@@ -85,6 +97,14 @@ describe("le français sans anglais", () => {
   it("connaît le dictionnaire de la maison", () => {
     // Sans lui, le test passerait au vert pour une mauvaise raison.
     expect(connues.size).toBeGreaterThan(1000);
+  });
+
+  it("lit vraiment des fichiers, et pas zéro", () => {
+    /* LA MÊME PANNE, DE L'AUTRE CÔTÉ. Le script compagnon prenait ses cibles
+       dans argv : lancé sans argument il lisait zéro fichier et annonçait
+       « 0 clefs à traduire », ce qui ressemble trait pour trait à un succès.
+       Un parcours qui ne trouve rien doit échouer ici plutôt que rassurer. */
+    expect(SURVEILLES.flatMap(fichiers).length).toBeGreaterThan(400);
   });
 
   it.each(SURVEILLES)("ne laisse aucune chaîne française sans traduction dans %s", (cible) => {

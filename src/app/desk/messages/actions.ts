@@ -7,6 +7,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emailConfigured, sendEmail, sendWhatsAppText, whatsappConfigured } from "@/lib/notify/providers";
 import { signLineLink } from "@/lib/channels";
+import { texteExact, type Ligne } from "./message-exact";
 
 /**
  * UN COURRIEL A UN OBJET, et le serveur l'exige aussi.
@@ -38,15 +39,17 @@ export async function replyAction(_prev: { ok: boolean; error?: string; at?: str
   const { to, channel, body, subject, name, offerId } = p.data;
   const r = repo();
   // « Répondre avec la ligne » : the fiche, and on WhatsApp a link that vouches for the number.
-  let lineText = "";
+  let ligne: Ligne | undefined;
   if (offerId) {
     const o = await r.getOffer(offerId);
     if (!o) return { ok: false, error: "Ligne introuvable." };
     const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const url = channel === "whatsapp" ? `${base}/offres/${o.id}?de=${signLineLink(to)}` : `${base}/offres/${o.id}`;
-    lineText = `\n\n${o.title}\n${url}${channel === "whatsapp" ? "\nCe lien reconnaît votre numéro : votre intention ne demande plus que le code e-mail." : ""}`;
+    ligne = { titre: o.title, url: channel === "whatsapp" ? `${base}/offres/${o.id}?de=${signLineLink(to)}` : `${base}/offres/${o.id}` };
   }
-  const text = `${body.trim()}${lineText}\n\n${desk.name}, Purpose Capital`;
+  /* UN SEUL CONSTRUCTEUR, partagé avec l'aperçu de relecture : voir
+     message-exact.ts. Composer le texte ici aussi le ferait diverger de ce que
+     l'opérateur vient de relire, et l'aperçu mentirait sans rien dire. */
+  const text = texteExact({ corps: body, ligne, canal: channel, signataire: desk.name });
   const row = await r.createNotification({ kind: "intent_update", channel, to, contactName: name, subject: channel === "email" ? subject : undefined, body: text, status: "queued" });
   const configured = channel === "whatsapp" ? whatsappConfigured() : emailConfigured();
   if (!configured) {

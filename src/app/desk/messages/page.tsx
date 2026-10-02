@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { Toolbar } from "@/components/ui/Toolbar";
+import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import type { PieceGardee } from "@/lib/domain/types";
 import type { InboundMessage, Notification } from "@/lib/domain/types";
@@ -27,6 +28,9 @@ type Thread = { key: string; channel: "whatsapp" | "email"; name?: string; clien
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ avec?: string; q?: string; etat?: string; canal?: string; depuis?: string; point?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
+  /* Qui signe. La disposition garde déjà le desk ; on relit la session pour le
+     nom, que le serveur met au bas de chaque message. */
+  const desk = await requireDesk();
   const r = repo();
   const [inbound, notifications, contacts, intents, offers] = await Promise.all([r.listInbound(1000), r.listNotifications(1000), r.listContacts(), r.listIntents(), r.listOffers()]);
   const now = new Date();
@@ -203,7 +207,15 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                 </li>
               ))}
             </ol>
-            <ReplyForm to={open.key} channel={open.channel} name={open.name} lines={lines} />
+            <ReplyForm
+              to={open.key}
+              channel={open.channel}
+              name={open.name}
+              lines={lines}
+              deskName={desk.name}
+              appUrl={process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}
+              from={process.env.EMAIL_FROM ?? ""}
+            />
           </div>
         ) : (
           <div className={styles.thread}>

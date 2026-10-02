@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { useT } from "@/i18n/client";
 import { Sheet } from "@/components/mobile/Sheet";
 import styles from "./ConfirmPublish.module.css";
@@ -49,8 +49,16 @@ export function ConfirmPublish({
   confirmLabel: string;
   typed?: string;
   preview?: { href: string; label: string };
-  /** Le message tel qu'il partira : on le lit, on ne le résume pas. */
-  corps?: string;
+  /**
+   * Le message tel qu'il partira : on le lit, on ne le résume pas.
+   *
+   * C'est un NOEUD et non une chaîne, parce qu'un courriel se relit par parties
+   * (l'enveloppe, ce que l'opérateur a écrit, ce que le serveur ajoute, la
+   * signature) et que chacune porte sa teinte. Dessiner cette enveloppe ici
+   * rendrait ConfirmPublish spécifique au courrier, alors qu'il sert partout sur
+   * le desk : il offre la place, l'appelant décide de ce qui s'y met.
+   */
+  corps?: ReactNode;
   className?: string;
   disabled?: boolean;
   pending?: boolean;
@@ -72,7 +80,7 @@ export function ConfirmPublish({
             <li key={l}>{l}</li>
           ))}
         </ul>
-        {corps && <p className={styles.corps}>{corps}</p>}
+        {corps && <div className={styles.corps}>{corps}</div>}
         {preview && (
           <Link href={preview.href} target="_blank" rel="noreferrer" className={styles.preview}>
             {preview.label}

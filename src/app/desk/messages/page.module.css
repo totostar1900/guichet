@@ -245,3 +245,76 @@
   font-size: 0.75rem;
   color: var(--ink-3);
 }
+
+/* ── La relecture avant envoi : le message exact, en quatre parties ──────────
+   Lecture C, arrêtée le 2 octobre 2026. Chaque partie porte sa teinte, et c'est
+   la teinte qui fait le travail : elle sépare ce que l'opérateur a écrit de ce
+   que le serveur ajoute. L'oeil tranche d'un coup, ce qu'un bloc gris uniforme
+   ne permettait pas.
+   Tout vient des jetons, rien n'est écrit en dur : le même partage tient donc
+   la nuit, où le papier blanc devient la surface sombre. */
+.relire {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+/* L'enveloppe : la première chose que le client voit dans sa boîte. */
+.relireEnt {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-1) var(--s-6);
+  padding: var(--s-5) var(--s-7);
+  background: var(--gold-soft);
+  border-bottom: 1px solid var(--gold-line);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.relireEnt span {
+  color: var(--gold-ink);
+  font-weight: 600;
+}
+.relireEnt b {
+  color: var(--ink);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.relireObjet {
+  font-weight: 600;
+}
+/* Ce que l'opérateur a écrit : sur le papier, sans teinte. La casse, les
+   retours à la ligne et les espaces sont ceux qui partiront. */
+.relireVotre {
+  margin: 0;
+  padding: var(--s-7) var(--s-7) 0;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* Ce que le serveur ajoute : le titre de la ligne et son adresse. Teinté, parce
+   que l'opérateur ne l'a pas écrit et ne peut pas le corriger ici. */
+.relireAjoute {
+  margin: var(--s-6) var(--s-7);
+  padding: var(--s-5) var(--s-6);
+  background: var(--info-soft);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.relireSignature {
+  margin: 0;
+  padding: 0 var(--s-7) var(--s-7);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.relirePied {
+  margin: 0;
+  padding: var(--s-5) var(--s-7);
+  border-top: 1px dashed var(--line-2);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
