@@ -2,7 +2,6 @@ import { resolveIssuer } from "@/data/issuer-registry";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import type { Offer } from "./types";
-import { displayYield } from "./status";
 
 /**
  * CE QUE PORTE UNE CARTE COMPACTE, SUR UN TÉLÉPHONE.
@@ -45,21 +44,31 @@ export interface Phrase {
 export const CODE_PAYS: Record<Offer["country"], string> = { Cameroun: "CMR", Gabon: "GAB", Tchad: "TCD", Congo: "COG", RCA: "RCA", "Guinée éq.": "GNQ" };
 
 /**
- * Pour tout autre émetteur, LE REGISTRE PORTE DÉJÀ LE CODE : son slug est le
- * mnémonique BVMAC d'une société cotée (« semc », « saf », « socap ») ou le nom
- * court d'un émetteur obligataire (« alios », « acep », « snpc », « bdeac »).
- * Écrire une table à côté l'aurait dédoublée, et une table dédoublée diverge.
+ * POUR TOUT AUTRE ÉMETTEUR, LE CODE EST UNE DONNÉE DU RÉFÉRENTIEL.
  *
- * Aucune règle ne devine un nom propre, en revanche : un slug qui ne tient pas
- * en huit lettres sans trait d'union n'a pas de code, et un cliquet le dit
- * plutôt que de laisser l'écran inventer un « LA » pour « La Régionale ».
+ * « BHC » et « REG » sont des mnémoniques de bulletin : ils servent à
+ * rapprocher une ligne d'un émetteur, pas à le nommer devant un client. La
+ * fiche de chaque société et de chaque émetteur obligataire porte donc un
+ * « Nom court » que le desk écrit, et la carte le suit à la publication :
+ * « BGFI », « La Régionale », « SAFACAM ».
+ *
+ * À DÉFAUT, LE SLUG, qui est le mnémonique BVMAC : un code vaut toujours mieux
+ * qu'un nom entier sur deux lignes, mais aucune règle ne devine un nom propre.
+ * « La Régionale » coupé au premier mot donnerait « LA ». Un slug qui ne tient
+ * pas en huit lettres sans trait d'union n'a donc pas de code par défaut, et
+ * un cliquet le dit plutôt que de laisser l'écran inventer.
  */
 export const codeLisible = (slug: string): boolean => /^[a-z0-9]{2,8}$/.test(slug);
 
-/** « GAB », « BDEAC », « SEMC » : ce que la première ligne de la carte annonce. */
+/** Un code trop long chasse la ligne grise de sa colonne : quatorze signes au plus. */
+export const CODE_MAX = 14;
+
+/** « GAB », « BGFI », « SAFACAM » : ce que la première ligne de la carte annonce. */
 export function codeCourt(o: Pick<Offer, "isin" | "issuer" | "title" | "country">): string {
   const p = resolveIssuer(o);
-  if (!p || p.family === "etat") return CODE_PAYS[o.country] ?? o.country;
+  if (!p) return CODE_PAYS[o.country] ?? o.country;
+  if (p.code) return p.code;
+  if (p.family === "etat") return CODE_PAYS[o.country] ?? o.country;
   return codeLisible(p.slug) ? p.slug.toUpperCase() : p.name;
 }
 
@@ -105,9 +114,8 @@ export function origineDuChiffre(o: Offer, now: Date): Phrase {
   if (prix == null) return { key: "sans cours" };
   if (o.instrument === "action") return { key: "cours {n} FCFA", params: { n: fmt(prix) } };
   const age = o.priceSince ? daysBetween(o.priceSince, localIso(now)) : 0;
-  const pair = displayYield(o).atPar;
-  if (age <= 0) return pair ? { key: "au pair" } : { key: "cours {p}", params: { p: fmtPrice(prix) } };
-  return pair ? { key: "au pair · {n} j", params: { n: fmt(age) } } : { key: "{p} · {n} j", params: { p: fmtPrice(prix), n: fmt(age) } };
+  const p = fmtPrice(prix);
+  return age > 0 ? { key: "{p} · {n} j", params: { p, n: fmt(age) } } : { key: "cours {p}", params: { p } };
 }
 
 /**
@@ -141,8 +149,6 @@ export const CLEFS_CARTE: string[] = [
   "si servi à {p}",
   "sans cours",
   "cours {n} FCFA",
-  "au pair",
-  "au pair · {n} j",
   "cours {p}",
   "{p} · {n} j",
 ];

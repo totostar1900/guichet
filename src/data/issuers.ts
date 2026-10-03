@@ -15,6 +15,8 @@ export interface IssuerFigures {
 
 export interface BondIssuer {
   slug: string;
+  /** Le nom court des ecrans etroits. Vide : le slug sert de defaut. */
+  code?: string;
   name: string; // dénomination sociale
   shortName: string;
   mnemo: string;
@@ -42,6 +44,7 @@ const U = "https://www.bvm-ac.org/wp-content/uploads/2026/09";
 export const ISSUERS: BondIssuer[] = [
   {
     slug: "snpc",
+    code: "SNPC",
     name: "Société Nationale des Pétroles du Congo",
     shortName: "SNPC",
     mnemo: "SNPC 1",
@@ -71,6 +74,7 @@ export const ISSUERS: BondIssuer[] = [
   },
   {
     slug: "acep",
+    code: "ACEP",
     name: "Agence de Crédit pour l'Entreprise Privée Cameroun SA",
     shortName: "ACEP Cameroun",
     mnemo: "ACEP 1",
@@ -109,6 +113,7 @@ export const ISSUERS: BondIssuer[] = [
   },
   {
     slug: "alios",
+    code: "Alios",
     name: "Société Camerounaise de Crédit Automobile (SOCCA) : Alios Finance Cameroun",
     shortName: "Alios Finance",
     mnemo: "AFC",

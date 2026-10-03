@@ -89,6 +89,7 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
   const [isin, setIsin] = useState(copy ? "" : (c?.isin ?? seed?.isin ?? ""));
   const [isins, setIsins] = useState(copy ? "" : (iss?.isins ?? seed?.isins ?? (seed?.isin ? [seed.isin] : [])).join("\n"));
   const [name, setName] = useState(data?.name ?? seed?.name ?? "");
+  const [code, setCode] = useState(data?.code ?? "");
   const [shortName, setShortName] = useState(copy && data ? `${data.shortName} (copie)` : (data?.shortName ?? seed?.shortName ?? ""));
   const [mnemoIss, setMnemoIss] = useState(iss?.mnemo ?? "");
   const [sector, setSector] = useState(data?.sector ?? (isCompany ? SECTORS[0] : ""));
@@ -123,6 +124,7 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
     const base = {
       name: name.trim(),
       shortName: shortName.trim(),
+      ...(code.trim() ? { code: code.trim() } : {}),
       sector: sector.trim(),
       activity: activity.trim(),
       country,
@@ -184,7 +186,7 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
       documents: docs.filter((d) => d.title.trim() && d.url.trim()).map((d) => ({ year: num(d.year) ?? 0, title: d.title.trim(), url: d.url.trim() })),
     };
     return fiche;
-  }, [name, shortName, sector, activity, country, city, shareCapital, chair, ceo, website, contact, reading, holders, isCompany, key, isin, listedOn, ipoPrice, sharesTotal, sharesFloat, freeFloatPct, figs, docs, mnemoIss, isins, unit, unitNote]);
+  }, [name, code, shortName, sector, activity, country, city, shareCapital, chair, ceo, website, contact, reading, holders, isCompany, key, isin, listedOn, ipoPrice, sharesTotal, sharesFloat, freeFloatPct, figs, docs, mnemoIss, isins, unit, unitNote]);
 
   const nextYear = String((Math.max(0, ...figs.map((f) => num(f.year) ?? 0)) || new Date().getFullYear() - 1) + 1);
   return (
@@ -216,6 +218,12 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
           <label>
             <span>{t("Nom court")}</span>
             <input value={shortName} onChange={(e) => setShortName(e.target.value)} required />
+          </label>
+          {/* Ce que les écrans étroits affichent : « BGFI » plutôt que « BHC ».
+              Vide, le mnémonique sert de défaut. */}
+          <label>
+            <span>{t("Code des cartes")}</span>
+            <input value={code} onChange={(e) => setCode(e.target.value)} maxLength={14} placeholder="BGFI" />
           </label>
         </div>
         <label>

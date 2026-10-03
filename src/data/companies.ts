@@ -33,6 +33,12 @@ export interface YearFigures {
 
 export interface Company {
   mnemo: string;
+  /**
+   * Le nom court des ecrans etroits : « BGFI » plutot que « BHC ». Le
+   * mnemonique du bulletin sert a rapprocher une ligne, pas a nommer une
+   * societe devant un client. Vide : le mnemonique sert de defaut.
+   */
+  code?: string;
   isin: string;
   name: string; // dénomination sociale
   shortName: string;
@@ -63,6 +69,7 @@ const U = "https://www.bvm-ac.org/wp-content/uploads";
 export const COMPANIES: Company[] = [
   {
     mnemo: "SEMC",
+    code: "SEMC",
     isin: "CM0000010009",
     name: "Société des Eaux Minérales du Cameroun",
     shortName: "SEMC",
@@ -117,6 +124,7 @@ export const COMPANIES: Company[] = [
   },
   {
     mnemo: "SAF",
+    code: "SAFACAM",
     isin: "CM0000010017",
     name: "Société Africaine Forestière et Agricole du Cameroun",
     shortName: "SAFACAM",
@@ -170,6 +178,7 @@ export const COMPANIES: Company[] = [
   },
   {
     mnemo: "SOCAP",
+    code: "SOCAPALM",
     isin: "CM0000010025",
     name: "Société Camerounaise de Palmeraies",
     shortName: "SOCAPALM",
@@ -220,6 +229,7 @@ export const COMPANIES: Company[] = [
   },
   {
     mnemo: "REG",
+    code: "La Régionale",
     isin: "CM0000010041",
     name: "La Régionale Bank S.A.",
     shortName: "La Régionale",
@@ -267,6 +277,7 @@ export const COMPANIES: Company[] = [
   },
   {
     mnemo: "BANGE",
+    code: "BANGE",
     isin: "GQ0000010050",
     name: "Banco Nacional de Guinea Ecuatorial S.A.",
     shortName: "BANGE",
@@ -311,6 +322,7 @@ export const COMPANIES: Company[] = [
   },
   {
     mnemo: "SCGRE",
+    code: "SCG-Ré",
     isin: "GA0000010066",
     name: "Société Commerciale Gabonaise de Réassurance",
     shortName: "SCG-Ré",
@@ -351,6 +363,7 @@ export const COMPANIES: Company[] = [
   },
   {
     mnemo: "BHC",
+    code: "BGFI",
     isin: "GA0000010074",
     name: "BGFI Holding Corporation S.A.",
     shortName: "BGFI Holding",

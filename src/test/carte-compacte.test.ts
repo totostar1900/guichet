@@ -35,7 +35,7 @@ describe("le code court d'un émetteur", () => {
   it("reprend le slug du registre pour tous les autres", () => {
     // Le registre porte déjà le mnémonique BVMAC : le redoubler le ferait diverger.
     expect(codeCourt(cotee({ title: "BDEAC · BDEAC 5,95 % NET 2024-2029", isin: "CG0000020436", issuer: "BDEAC" }))).toBe("BDEAC");
-    expect(codeCourt(cotee({ title: "Alios Finance · ALIOS 6,5 % BRUT 2023-2028", isin: "CM0000020412", issuer: "Alios Finance", country: "Cameroun" }))).toBe("ALIOS");
+    expect(codeCourt(cotee({ title: "Alios Finance · ALIOS 6,5 % BRUT 2023-2028", isin: "CM0000020412", issuer: "Alios Finance", country: "Cameroun" }))).toBe("Alios");
   });
 
   it("refuse de deviner un nom propre", () => {
@@ -91,8 +91,11 @@ describe("le chiffre de droite dit d'où il vient", () => {
     expect(dit(origineDuChiffre(cotee(), NOW))).toBe("97 % · 192 j");
   });
 
-  it("un pair qui n'a jamais bougé se nomme, et porte son âge aussi", () => {
-    expect(dit(origineDuChiffre(cotee({ lastPrice: 100, couponRate: 6.75, priceSince: "2025-09-02" }), NOW))).toBe("au pair · 397 j");
+  it("un prix au pair s'écrit 100 %, comme les autres", () => {
+    /* « au pair » est 100 % du nominal : l'écrire en lettres à côté de « 97 % »
+       obligeait le lecteur à convertir pour comparer deux lignes. La colonne
+       commence donc toujours par un prix. */
+    expect(dit(origineDuChiffre(cotee({ lastPrice: 100, couponRate: 6.75, priceSince: "2025-09-02" }), NOW))).toBe("100 % · 397 j");
   });
 
   it("sans date d'immobilité, le champ nomme le cours au lieu d'inventer un âge", () => {
@@ -144,6 +147,6 @@ describe("les clefs de la carte passent en anglais", () => {
   it("l'anglais compte les jours en « d », pas en « j »", () => {
     // Le seul mot à traduire dans « 97 % · 192 j », et le plus facile à oublier.
     expect(translate("en", "{p} · {n} j", { p: "97 %", n: "192" })).toBe("97 % · 192 d");
-    expect(translate("en", "au pair · {n} j", { n: "397" })).toBe("at par · 397 d");
+    expect(translate("en", "cours {p}", { p: "97 %" })).toBe("price 97 %");
   });
 });
