@@ -2,7 +2,8 @@ import { repo } from "@/lib/data";
 import { healthChecks } from "@/lib/health";
 import { displayStatus, isActionable } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
-import { fmtDate } from "@/lib/format";
+import { fmt, fmtDate } from "@/lib/format";
+import { etatDesRobots, robotsAVoir } from "@/lib/domain/robots";
 import { positionsFrom } from "@/lib/positions";
 import type { Tile } from "./TodayPanel";
 
@@ -133,7 +134,79 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
     /* quiet */
   }
 
-  // 7. Health.
+  /* 7. LES QUATRE FILES DU LOT DES ESPECES.
+        Elles vivaient sur /desk/encaissements et /desk/sante, ou il fallait aller
+        les chercher. Un operateur commence sa journee ici : une file vraie que
+        personne ne regarde est exactement le defaut que ce lot corrige ailleurs.
+        Elles restent visibles a zero, comme les sept autres, parce qu un ecran
+        qui cacherait les unes et pas les autres demanderait deux regles. */
+  try {
+    const [demandes, clients] = await Promise.all([r.listPayouts({ state: "demandee" }).catch(() => []), Promise.resolve([...new Set(intents.filter((i) => i.clientId).map((i) => i.clientId!))])]);
+    const du = demandes.reduce((n, x) => n + x.askedAmount, 0);
+    const vieux = demandes.reduce((j, x) => Math.max(j, Math.floor((local.getTime() - new Date(x.askedAt).getTime()) / 86_400_000)), 0);
+    tiles.push({
+      key: "versements",
+      label: t("Versements demandés"),
+      value: String(demandes.length),
+      detail: demandes.length ? `${fmt(Math.round(du))} FCFA · ${t("le plus ancien : {n} j", { n: String(vieux) })}` : t("aucune demande en attente"),
+      tone: demandes.length ? "warn" : "ok",
+      href: "/desk/encaissements",
+      action: demandes.length ? t("verser ou refuser") : undefined,
+    });
+
+    /* L ecart est une creance qui reste : le montant recu differe de ce qui etait
+       du, et sans cette tuile il ne se voit qu en ouvrant la page. */
+    const journaux = await Promise.all(clients.map((id) => r.listCash(id).catch(() => [])));
+    const ecarts = journaux.flat().filter((e) => e.expected != null && Math.round(e.expected) !== Math.round(e.amount));
+    const manque = ecarts.reduce((n, e) => n + (Math.round(e.expected!) - Math.round(e.amount)), 0);
+    tiles.push({
+      key: "ecarts",
+      label: t("Écarts d'encaissement"),
+      value: String(ecarts.length),
+      detail: ecarts.length ? t("{m} FCFA d'écart cumulé", { m: fmt(Math.abs(manque)) }) : t("reçu et dû concordent"),
+      tone: ecarts.length ? "crit" : "ok",
+      href: "/desk/encaissements",
+      action: ecarts.length ? t("voir les écarts") : undefined,
+    });
+
+    /* Ce que le client dit de ses echeances. « Rien recu » et « un autre
+       montant » sont les deux reponses chargees : la premiere est une creance a
+       poursuivre, la seconde se serait constatee sans bruit. */
+    const dits = await r.listTemoignages().catch(() => []);
+    const charges = dits.filter((x) => x.said === "rien" || x.said === "autre");
+    const rien = charges.filter((x) => x.said === "rien").length;
+    tiles.push({
+      key: "temoignages",
+      label: t("Le client dit"),
+      value: String(charges.length),
+      detail: charges.length ? t("{r} rien reçu · {a} autre montant", { r: String(rien), a: String(charges.length - rien) }) : t("aucun témoignage à traiter"),
+      tone: charges.length ? "crit" : "ok",
+      href: "/desk/encaissements",
+      action: charges.length ? t("reprendre avec l'émetteur") : undefined,
+    });
+  } catch {
+    /* quiet */
+  }
+
+  /* 8. Les robots muets. Un robot qui n a rien a faire ne laissait aucune trace,
+        donc un robot mort ressemblait a un robot au repos. C est l absence de
+        tour qui se voit ici, jamais sa presence. */
+  try {
+    const muets = robotsAVoir(etatDesRobots(await r.listTours(200).catch(() => []), local));
+    tiles.push({
+      key: "robots",
+      label: t("Robots muets"),
+      value: String(muets.length),
+      detail: muets.length ? muets.slice(0, 3).map((x) => x.cle).join(" · ") : t("tous ont tourné dans leur cadence"),
+      tone: muets.length ? "crit" : "ok",
+      href: "/desk/sante#robots",
+      action: muets.length ? t("voir les robots") : undefined,
+    });
+  } catch {
+    /* quiet */
+  }
+
+  // 9. Health.
   const worst = checks.some((c) => c.level === "crit") ? "crit" : checks.some((c) => c.level === "warn") ? "warn" : "ok";
   const bad = checks.filter((c) => c.level !== "ok");
   tiles.push({

@@ -2794,4 +2794,22 @@ export const EN_MORE: Record<string, string> = {
   "Collecte des adjudications BEAC": "Collection of BEAC auctions",
   "Courbe mensuelle de la BEAC": "Monthly BEAC curve",
   "à la main": "by hand",
+
+  /* ---------- les quatre files du lot des especes, sur « Aujourd hui » ----------
+     « ecart » se dit « gap » partout dans la section du rapprochement ci-dessus :
+     une tuile qui dirait « discrepancy » nommerait autrement la meme chose que la
+     page ou elle mene. ---------------------------------------------------------- */
+  "le plus ancien : {n} j": "oldest: {n} d",
+  "aucune demande en attente": "no request pending",
+  "verser ou refuser": "pay out or decline",
+  "Écarts d'encaissement": "Collection gaps",
+  "{m} FCFA d'écart cumulé": "{m} FCFA of cumulative gap",
+  "reçu et dû concordent": "received and owed agree",
+  "voir les écarts": "see the gaps",
+  "{r} rien reçu · {a} autre montant": "{r} received nothing · {a} a different amount",
+  "aucun témoignage à traiter": "no client report to handle",
+  "reprendre avec l'émetteur": "take it up with the issuer",
+  "Robots muets": "Silent robots",
+  "tous ont tourné dans leur cadence": "all ran within their cadence",
+  "voir les robots": "see the robots",
 };
