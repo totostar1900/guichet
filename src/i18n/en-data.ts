@@ -116,4 +116,33 @@ export const EN_DATA: Record<string, string> = {
   "Exemple d'une ligne passée, en vie : la fiche reste consultable, avec le prix servi, l'échéancier des coupons et la valorisation.": "Example of a past line, still outstanding: the page stays available, with the price served, the coupon schedule and the valuation.",
   "un titre relativement actif pour la BVMAC": "a relatively active stock for the BVMAC",
   "peu d'échanges, comptez plusieurs séances pour un ordre de taille": "few trades, count on several sessions for a sizeable order",
+
+  /* ---------- sources of the figures, and issuer sheets ----------
+     `t(f.source)` sits under the accounts table and `tr(d.title)` under the
+     issuer's documents: it is the line that lets a reader go and check a
+     figure, so it has to read in their language. These travel through t() as a
+     variable, which is why the key scanner never saw them. */
+  "Fiche signalétique SEMC 2025 (BVMAC)": "SEMC term sheet 2025 (BVMAC)",
+  "États financiers OHADA 2025 certifiés (Deloitte / Vinka Audit), AGO 2026": "Audited OHADA financial statements 2025 (Deloitte / Vinka Audit), 2026 AGM",
+  "Fiche signalétique SAFACAM 2026 (BVMAC)": "SAFACAM term sheet 2026 (BVMAC)",
+  "Fiche signalétique SAFACAM 2026 (BVMAC) : comptes 2025 certifiés": "SAFACAM term sheet 2026 (BVMAC): audited 2025 accounts",
+  "Fiche signalétique SOCAPALM 2026 (BVMAC)": "SOCAPALM term sheet 2026 (BVMAC)",
+  "Fiche signalétique SOCAPALM 2026 (BVMAC) : comptes 2025 certifiés": "SOCAPALM term sheet 2026 (BVMAC): audited 2025 accounts",
+  "Fiche signalétique La Régionale Bank 2025 (BVMAC)": "La Régionale Bank term sheet 2025 (BVMAC)",
+  "Fiche signalétique La Régionale Bank 2025 (BVMAC) : bénéfice réintégré": "La Régionale Bank term sheet 2025 (BVMAC): profit reinstated",
+  "Fiche signalétique BANGE 2025 (BVMAC)": "BANGE term sheet 2025 (BVMAC)",
+  "rapport de gestion 2024": "2024 management report",
+  "Fiche signalétique SCG-Ré 2024 (BVMAC)": "SCG-Ré term sheet 2024 (BVMAC)",
+  "états financiers 2024 certifiés": "audited 2024 financial statements",
+  "Fiche émetteur BHC 2026 (BVMAC)": "BHC issuer sheet 2026 (BVMAC)",
+  "Fiche émetteur BHC 2026 (BVMAC) : comptes sociaux de la holding, en millions": "BHC issuer sheet 2026 (BVMAC): the holding's company accounts, in millions",
+  "Fiche émetteur BHC 2026 (BVMAC) : dividende 2025 après division du nominal": "BHC issuer sheet 2026 (BVMAC): 2025 dividend after the par-value split",
+  "Fiche signalétique ACEP Cameroun (mise à jour 2025)": "ACEP Cameroun term sheet (updated 2025)",
+  "Fiche signalétique Alios Finance Cameroun (mise à jour 2026)": "Alios Finance Cameroun term sheet (updated 2026)",
+
+  /* A chairman's name does not translate. It is written down all the same,
+     because the page passes it through tr(): nothing else distinguishes « seen
+     and left as it is » from « never seen ». */
+  "Ambroise Ondoa Onana": "Ambroise Ondoa Onana",
+  "Serge Bile": "Serge Bile",
 };

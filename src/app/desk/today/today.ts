@@ -213,7 +213,11 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
     key: "health",
     label: t("Santé"),
     value: t(worst === "ok" ? "au vert" : worst === "warn" ? "un point orange" : "un point rouge"),
-    detail: bad.length ? bad.map((c) => c.label).slice(0, 2).join(" · ") : t("{n} contrôles passés", { n: String(checks.length) }),
+    /* `t(c.label)` : le dictionnaire connaissait ces étiquettes depuis toujours,
+       c'est l'appel qui manquait ici. Vu sur la production en anglais le 3
+       octobre 2026 : « Bulletins à relire · Lignes publiées contre le bulletin »
+       sous un titre « Health ». La page Santé, elle, les traduisait déjà. */
+    detail: bad.length ? bad.map((c) => t(c.label)).slice(0, 2).join(" · ") : t("{n} contrôles passés", { n: String(checks.length) }),
     tone: worst,
     href: "/desk/sante",
     action: bad.length ? t("voir") : undefined,

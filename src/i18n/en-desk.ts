@@ -2812,4 +2812,13 @@ export const EN_MORE: Record<string, string> = {
   "Robots muets": "Silent robots",
   "tous ont tourné dans leur cadence": "all ran within their cadence",
   "voir les robots": "see the robots",
+
+  /* ---------- Sante : ce qui part en t(variable) ----------
+     Ces textes traversent t() depuis HEALTH_HOW et health.ts, donc le scanner
+     de clefs ne les voit pas : trois « comment » et une etiquette etaient restes
+     en francais depuis l ouverture de la page. Cliquet : donnees-en.test.ts. */
+  "Actualités : liens à trier / liens morts": "News: links to sort / dead links",
+  "Le tableau « Lignes et bulletin », plus bas sur cette page. Une sortie de cote dont l'échéance est passée se retire seule à la lecture du bulletin ; celles dont l'échéance est inconnue attendent un « Retirer ». Un cours ou un instrument qui diffère du bulletin est un défaut de lecture : relancer la lecture de la séance.": "The “Lines and bulletin” table, lower on this page. A delisting whose maturity has passed is withdrawn on its own when the bulletin is read; those whose maturity is unknown wait for a “Withdraw”. A price or an instrument that differs from the bulletin is a reading fault: run the session's reading again.",
+  "Le tableau « Bulletins à relire », plus bas sur cette page : « Relire les plus anciens » reprend six séances depuis l'adresse d'origine du bulletin, « Relire » en fait une seule. À relancer après chaque correction du lecteur.": "The “Bulletins to read again” table, lower on this page: “Read the oldest again” takes six sessions from the bulletin's original address, “Read again” does a single one. To be run after each correction to the reader.",
+  "Un lien mort se retire ou se remplace. Un lien reçu se publie, avec son titre réécrit pour le client et ses deux lignes de « pourquoi ça compte », ou se rejette : la file se vide chaque semaine, elle ne se laisse pas vieillir.": "A dead link is removed or replaced. A received link is published, with its title rewritten for the client and its two lines of “why it matters”, or rejected: the queue is emptied every week, it is not left to age.",
 };
