@@ -70,6 +70,18 @@ describe("la ligne grise ne dit que la promesse de l'émetteur", () => {
     // La première ligne annonce l'émetteur, la grise la promesse, et un seul nombre est en avant.
     expect(dit(ligneGrise(cotee()))).not.toContain("11,09");
   });
+
+  it("la ligne grise tient dans sa colonne : trente-quatre caractères au plus", () => {
+    /* Mesuré sur la production le 4 octobre 2026 : « Rachat au pair · éch.
+       initiale nov. 2026 » demandait 180 px et en recevait 130, parce que son
+       origine en occupait 133 à droite. C'était la seule des treize à déborder,
+       et l'ellipse mangeait la date, c'est-à-dire le fait. « initiale » est
+       parti, « par tranches » aussi : la forme complète du coupon faisait 44
+       caractères. */
+    const cas = [cotee(), cotee({ title: "ALIOS 6,5 % BRUT 2023-2028" }), cotee({ kind: "BTA", maturityOn: "2027-09-23" }), cotee({ instrument: "action", dividendPerShare: 2_500 }), { ...base, kind: "RACHAT", title: "Rachat OTA 3 ans", isin: "CF2J00000091", nominal: 10_000, maturityOn: "2026-11-29" } as unknown as Offer];
+    const trop = cas.map((o) => dit(ligneGrise(o))).filter((x) => x.length > 34);
+    expect(trop, `ces lignes grises débordent :\n  ${trop.join("\n  ")}`).toEqual([]);
+  });
 });
 
 describe("le chiffre de droite dit d'où il vient", () => {

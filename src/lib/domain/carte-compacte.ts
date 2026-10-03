@@ -71,19 +71,17 @@ const moisAn = (d: string): string => fmtDate(d).replace(/^[0-9]+\s/, "");
  * Une action n'a ni coupon ni échéance, elle a un dividende.
  */
 export function ligneGrise(o: Offer): Phrase {
-  if (o.kind === "RACHAT") return o.maturityOn ? { key: "Rachat au pair · éch. initiale {d}", params: { d: moisAn(o.maturityOn) } } : { key: "Rachat au pair" };
+  if (o.kind === "RACHAT") return o.maturityOn ? { key: "Rachat au pair · éch. {d}", params: { d: moisAn(o.maturityOn) } } : { key: "Rachat au pair" };
   if (o.kind === "FONDS") return o.fund ? { key: "Fonds · VL du {d}", params: { d: fmtDate(o.fund.navDate, false) } } : { key: "Fonds" };
   if (o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action")) return o.dividendPerShare ? { key: "Dividende {n} FCFA", params: { n: fmt(o.dividendPerShare) } } : { key: "Action · pas de dividende connu" };
   if (o.kind === "BTA") return o.maturityOn ? { key: "Bon précompté · {d}", params: { d: moisAn(o.maturityOn) } } : { key: "Bon précompté · échéance à préciser" };
   const c = fmtPct(o.couponRate ?? 0, 2);
   if (!o.maturityOn) return { key: "Coupon {c} · échéance à préciser", params: { c } };
   const d = moisAn(o.maturityOn);
-  const brut = /BRUT/i.test(o.title);
-  const tranches = o.extra?.amortissement === "tranches";
-  if (brut && tranches) return { key: "Coupon {c} brut · {d} · par tranches", params: { c, d } };
-  if (brut) return { key: "Coupon {c} brut · {d}", params: { c, d } };
-  if (tranches) return { key: "Coupon {c} · {d} · par tranches", params: { c, d } };
-  return { key: "Coupon {c} · {d}", params: { c, d } };
+  /* « par tranches » ne monte pas ici : la forme complete fait 44 caracteres
+     la ou la colonne en tient 34 sur un telephone, et l amortissement se lit
+     sur la fiche et au dos de la carte. Le coupon et l echeance decident. */
+  return /BRUT/i.test(o.title) ? { key: "Coupon {c} brut · {d}", params: { c, d } } : { key: "Coupon {c} · {d}", params: { c, d } };
 }
 
 /**
@@ -121,7 +119,7 @@ export function origineDuChiffre(o: Offer, now: Date): Phrase {
  * que le code produit vraiment.
  */
 export const CLEFS_CARTE: string[] = [
-  "Rachat au pair · éch. initiale {d}",
+  "Rachat au pair · éch. {d}",
   "Rachat au pair",
   "Fonds · VL du {d}",
   "Fonds",
@@ -130,9 +128,7 @@ export const CLEFS_CARTE: string[] = [
   "Bon précompté · {d}",
   "Bon précompté · échéance à préciser",
   "Coupon {c} · échéance à préciser",
-  "Coupon {c} brut · {d} · par tranches",
   "Coupon {c} brut · {d}",
-  "Coupon {c} · {d} · par tranches",
   "Coupon {c} · {d}",
   "du nominal, pas un rendement",
   "douze mois écoulés",
