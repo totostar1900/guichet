@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { etatDesRobots, robotsAVoir } from "@/lib/domain/robots";
 import { DeskNav } from "@/components/DeskNav";
 import { bulletinsToReread, healthChecks, lineIssues, REREAD_BATCH } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
@@ -23,7 +24,19 @@ const KIND_LABEL: Record<string, string> = { sortie: "Sortie de cote", absente: 
 
 export default async function SantePage() {
   const t = await getT();
-  const [checks, bulletins, notifications, arriere, ecarts, offers] = await Promise.all([healthChecks(), repo().listBulletins(12), repo().listNotifications(40), bulletinsToReread(), lineIssues(), repo().listOffers()]);
+  const [checks, bulletins, notifications, arriere, ecarts, offers, tours] = await Promise.all([
+    healthChecks(),
+    repo().listBulletins(12),
+    repo().listNotifications(40),
+    bulletinsToReread(),
+    lineIssues(),
+    repo().listOffers(),
+    repo().listTours(200).catch(() => []),
+  ]);
+  /* Un robot muet ressemble à un robot sans travail : c'est l'absence de tour
+     qui se voit ici, jamais sa présence. */
+  const robots = etatDesRobots(tours);
+  const aVoir = robotsAVoir(robots);
   // Le dernier échange d'une ligne n'est retenu que depuis peu : celles qui
   // n'ont pas traité depuis le sont muettes tant que les cotes déjà lues n'ont
   // pas été reprises. Le bouton ne paraît que tant qu'il reste du travail.
@@ -64,6 +77,56 @@ export default async function SantePage() {
           );
         })}
       </div>
+
+      <section className="panel" id="robots">
+        <div className="panel-h">
+          <h2>{t("Les robots")}</h2>
+          <span className="muted">
+            {aVoir.length
+              ? t("{n} robot(s) à regarder : muet depuis plus que sa cadence, ou en échec.", { n: aVoir.length })
+              : t("Tous ont tourné dans leur cadence. Un tour laisse sa ligne même quand il n'a rien fait : c'est l'absence qui se voit.")}
+          </span>
+        </div>
+        <div className="scroll-x">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>{t("Robot")}</th>
+                <th>{t("Ce qu'il fait")}</th>
+                <th>{t("Dernier tour")}</th>
+                <th className="r">{t("Depuis")}</th>
+                <th>{t("État")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {robots.map((r) => (
+                <tr key={r.cle}>
+                  <td className="mono">{r.cle}</td>
+                  <td className="muted">{t(r.quoi)}</td>
+                  <td>
+                    {r.dernier ? fmtDateTime(r.dernier.startedAt) : <span className="muted">{t("jamais")}</span>}
+                    {/* Un tour à la main se montre et ne prouve rien : il ne dit
+                        pas que l'ordonnanceur vit. */}
+                    {r.dernier?.par === "main" && <small className="muted"> {t("à la main")}</small>}
+                  </td>
+                  <td className="r">{r.depuis == null ? "—" : t("depuis {n} heures", { n: Math.round(r.depuis) })}</td>
+                  <td>
+                    {/* Muet et échoué ne se réparent pas pareil : l'un demande de
+                        regarder l'ordonnanceur, l'autre le code. */}
+                    {r.etat === "muet" ? (
+                      <span className="st annulee">{t("muet depuis plus de {n} heures", { n: r.heures })}</span>
+                    ) : r.etat === "echoue" ? (
+                      <span className="st annulee">{r.dernier?.error ?? t("échec")}</span>
+                    ) : (
+                      <span className="st reglee">{t("tourne dans sa cadence")}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {ecarts.length > 0 && (
         <section className="panel" id="lignes">

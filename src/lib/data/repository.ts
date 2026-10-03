@@ -3,6 +3,7 @@ import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Con
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
+import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
@@ -103,6 +104,13 @@ export interface Repository {
   listCash(userId: string): Promise<CashEntry[]>;
   /** Un mouvement s'ajoute, il ne se modifie pas : une correction est un mouvement inverse. */
   addCash(entry: Omit<CashEntry, "id" | "at"> & { at?: string; createdBy?: string }): Promise<CashEntry>;
+
+  /** Les tours des robots, du plus récent au plus ancien. Ce qui compte est l'absence d'une ligne. */
+  listTours(limit?: number): Promise<TourVu[]>;
+  /** Ouvrir un tour : il existe dès son début, pour qu'un robot mort en plein travail se voie. */
+  ouvrirTour(robot: string, par?: "cron" | "main"): Promise<{ id: string }>;
+  /** Le fermer : abouti avec ses compteurs, ou échoué avec sa raison. */
+  fermerTour(id: string, p: { ok: boolean; detail?: unknown; error?: string }): Promise<void>;
 
   /** Les occurrences annoncées : celles d'un client, celles d'une instruction, ou la file. */
   listPreavis(q?: { userId?: string; standingId?: string; state?: Preavis["state"] }): Promise<Preavis[]>;

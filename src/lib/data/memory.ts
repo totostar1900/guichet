@@ -8,6 +8,7 @@ import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type C
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
+import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
@@ -108,6 +109,7 @@ interface Store {
   rapprochements: Rapprochement[];
   temoignages: Temoignage[];
   preavis: Preavis[];
+  tours: (TourVu & { id: string })[];
   standing: StandingOrder[];
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
   avisGarde: AvisGarde[];
@@ -176,6 +178,7 @@ function store(): Store {
       rapprochements: [],
       temoignages: [],
       preavis: [],
+      tours: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
       versions: [],
@@ -591,6 +594,21 @@ export const memoryRepository: Repository = {
     store().cash.push(row);
     return structuredClone(row);
   },
+  async listTours(limit = 200) {
+    return structuredClone([...store().tours].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, limit));
+  },
+  async ouvrirTour(robot, par) {
+    const s2 = store();
+    const row: TourVu & { id: string } = { id: `tour-${s2.tours.length + 1}`, robot, par, startedAt: nowIso() };
+    s2.tours.push(row);
+    return { id: row.id };
+  },
+  async fermerTour(id, p) {
+    const row = store().tours.find((x) => (x as { id?: string }).id === id);
+    if (!row) return;
+    Object.assign(row, { finishedAt: nowIso(), ok: p.ok, detail: p.detail, error: p.error });
+  },
+
   async listPreavis(q) {
     const rows = store().preavis.filter((x) => (!q?.userId || x.userId === q.userId) && (!q?.standingId || x.standingId === q.standingId) && (!q?.state || x.state === q.state));
     return structuredClone([...rows].sort((a, b) => a.dueOn.localeCompare(b.dueOn)));

@@ -1363,6 +1363,30 @@ export const supabaseRepository: Repository = {
     return toCash(data);
   },
 
+  async listTours(limit = 200) {
+    const { data, error } = await db().from("cron_runs").select("*").order("started_at", { ascending: false }).limit(limit);
+    if (error) {
+      // Migration 0065 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/cron_runs/.test(error.message)) return [];
+      fail("listTours", error);
+    }
+    return (data ?? []).map((r) => ({ robot: r.robot, par: r.par ?? undefined, startedAt: r.started_at, finishedAt: r.finished_at ?? undefined, ok: r.ok ?? undefined, detail: r.detail ?? undefined, error: r.error ?? undefined }));
+  },
+  async ouvrirTour(robot, par) {
+    const { data, error } = await db().from("cron_runs").insert({ robot, par: par ?? null }).select("id").single();
+    if (error) fail("ouvrirTour", error);
+    return { id: data.id };
+  },
+  async fermerTour(id, p) {
+    /* Le détail est ce que le robot a rendu, tel quel : les compteurs d'un tour
+       se lisent mieux bruts qu'interprétés par l'enveloppe. */
+    const { error } = await db()
+      .from("cron_runs")
+      .update({ finished_at: new Date().toISOString(), ok: p.ok, detail: p.detail === undefined ? null : p.detail, error: p.error ?? null })
+      .eq("id", id);
+    if (error) fail("fermerTour", error);
+  },
+
   async listPreavis(q) {
     let sel = db().from("standing_runs").select("*").order("due_on", { ascending: true });
     if (q?.userId) sel = sel.eq("user_id", q.userId);

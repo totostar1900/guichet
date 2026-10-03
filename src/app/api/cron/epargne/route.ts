@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { routeDuRobot } from "@/lib/cron/tour";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
@@ -71,204 +72,204 @@ import { loadStandingPolicy } from "@/lib/policy";
  * À appeler chaque jour, avec « Authorization: Bearer <CRON_SECRET> ».
  */
 export async function GET(req: NextRequest) {
-  await loadRegistry();
-  const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) return new NextResponse("Unauthorized", { status: 401 });
-
-  const r = repo();
-  const today = localIso(new Date());
-  const [orders, offers, policy, enCours] = await Promise.all([r.listStandingOrders(), r.listOffers(), loadStandingPolicy(), r.listPreavis({ state: "annoncee" }).catch(() => [] as Preavis[])]);
-  const byId = new Map(offers.map((o) => [o.id, o]));
-  const parInstruction = new Map<string, Preavis[]>();
-  for (const x of enCours) parInstruction.set(x.standingId, [...(parInstruction.get(x.standingId) ?? []), x]);
-  let placed = 0;
-  let skipped = 0;
-  let ended = 0;
-  let reinvested = 0;
-  let annonces = 0;
-  let muets = 0;
-
-  /* Le disponible d'un client, lu une fois : plusieurs instructions peuvent
-     viser la même poche, et deux lectures indépendantes la placeraient deux
-     fois. Ce que le tour consomme se retranche au fur et à mesure. */
-  const disponibles = new Map<string, number>();
-  const disponible = async (userId: string): Promise<number> => {
-    if (!disponibles.has(userId)) {
-      const [entries, tous] = await Promise.all([r.listCash(userId), r.listIntents()]);
-      disponibles.set(userId, cashPosition(entries, tous.filter((i) => i.clientId === userId)).idle);
-    }
-    return disponibles.get(userId) ?? 0;
-  };
-
-  for (const s of orders) {
-    if (s.state !== "active") continue;
-
-    // Une instruction dont le terme est passé s'éteint d'elle-même : elle a fait ce qu'on lui a demandé.
-    if (s.endsOn && today > s.endsOn) {
-      await r.updateStandingOrder(s.id, { state: "terminee" });
-      await r.logEvent({ kind: "system", html: `Épargne programmée ${s.ref} (${s.clientName}) : <b>terminée</b>, le terme du ${fmtDate(s.endsOn)} est passé` });
-      ended += 1;
-      continue;
-    }
-
-    const o = byId.get(s.offerId);
-    const quoi = s.source === "encaissements" ? "Réinvestissement" : "Épargne programmée";
-
-    /* ───────── PREMIER TEMPS : exécuter ce qui a été annoncé ─────────
-       Avant d'annoncer, parce qu'une occurrence du jour doit partir avant qu'on
-       en annonce une nouvelle sur le même argent. */
-    const mur = (parInstruction.get(s.id) ?? []).filter((x) => x.dueOn <= today).sort((a, b) => a.dueOn.localeCompare(b.dueOn))[0];
-    if (mur) {
-      const refus = pourquoiPasExecuter(mur, today);
-      if (refus === "pas_parti") {
-        /* La règle qui compte : le préavis n'est pas parti, donc rien ne part.
-           Le dire à chaque tour serait du bruit ; on le dit une fois, le jour
-           où l'occurrence devient exécutable. */
-        if (mur.dueOn === today) {
-          await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>rien n'est parti</b>, le préavis du ${fmtDate(mur.dueOn)} n'a pas pu être envoyé · ${mur.noticeError ?? "canal injoignable"}` });
-          muets += 1;
-        }
-      } else if (refus === null) {
-        const poche = s.source === "encaissements" ? await disponible(s.userId) : mur.amount;
-        const montant = montantAExecuter(mur.amount, poche, s.source === "encaissements" ? s.minAmount : 0);
-        /* CHAQUE TRANCHE SE RELIT CONTRE SA PROPRE DESTINATION, et une seule
-           qui bloque bloque toute l'occurrence. Exécuter la clé en partie
-           changerait la répartition que le client a écrite sans qu'il l'ait
-           dit, ce qui est pire que de ne rien faire et de l'expliquer. */
-        const parts = repartition(s);
-        const lots = tranches(montant || mur.amount, parts);
-        const wrong = lots.flatMap((l) => {
-          const dest = byId.get(l.offerId);
-          return standingBlock(dest, { amount: l.montant, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source }).map((x) => (parts.length > 1 ? `${dest?.title ?? l.offerId} : ${x}` : x));
-        });
-        if (montant <= 0 || wrong.length) {
-          const why = wrong.length ? wrong.join(" ") : "le disponible annoncé n'est plus là";
-          await r.cloturerPreavis(mur.id, { state: "perimee" });
-          if (wrong.length && s.onBlocked === "arreter") {
-            await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
-            await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
-          } else {
-            await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : occurrence du ${fmtDate(mur.dueOn)} <b>sans suite</b> · ${why}` });
+  return routeDuRobot("epargne", req, async () => {
+    await loadRegistry();
+  
+    const r = repo();
+    const today = localIso(new Date());
+    const [orders, offers, policy, enCours] = await Promise.all([r.listStandingOrders(), r.listOffers(), loadStandingPolicy(), r.listPreavis({ state: "annoncee" }).catch(() => [] as Preavis[])]);
+    const byId = new Map(offers.map((o) => [o.id, o]));
+    const parInstruction = new Map<string, Preavis[]>();
+    for (const x of enCours) parInstruction.set(x.standingId, [...(parInstruction.get(x.standingId) ?? []), x]);
+    let placed = 0;
+    let skipped = 0;
+    let ended = 0;
+    let reinvested = 0;
+    let annonces = 0;
+    let muets = 0;
+  
+    /* Le disponible d'un client, lu une fois : plusieurs instructions peuvent
+       viser la même poche, et deux lectures indépendantes la placeraient deux
+       fois. Ce que le tour consomme se retranche au fur et à mesure. */
+    const disponibles = new Map<string, number>();
+    const disponible = async (userId: string): Promise<number> => {
+      if (!disponibles.has(userId)) {
+        const [entries, tous] = await Promise.all([r.listCash(userId), r.listIntents()]);
+        disponibles.set(userId, cashPosition(entries, tous.filter((i) => i.clientId === userId)).idle);
+      }
+      return disponibles.get(userId) ?? 0;
+    };
+  
+    for (const s of orders) {
+      if (s.state !== "active") continue;
+  
+      // Une instruction dont le terme est passé s'éteint d'elle-même : elle a fait ce qu'on lui a demandé.
+      if (s.endsOn && today > s.endsOn) {
+        await r.updateStandingOrder(s.id, { state: "terminee" });
+        await r.logEvent({ kind: "system", html: `Épargne programmée ${s.ref} (${s.clientName}) : <b>terminée</b>, le terme du ${fmtDate(s.endsOn)} est passé` });
+        ended += 1;
+        continue;
+      }
+  
+      const o = byId.get(s.offerId);
+      const quoi = s.source === "encaissements" ? "Réinvestissement" : "Épargne programmée";
+  
+      /* ───────── PREMIER TEMPS : exécuter ce qui a été annoncé ─────────
+         Avant d'annoncer, parce qu'une occurrence du jour doit partir avant qu'on
+         en annonce une nouvelle sur le même argent. */
+      const mur = (parInstruction.get(s.id) ?? []).filter((x) => x.dueOn <= today).sort((a, b) => a.dueOn.localeCompare(b.dueOn))[0];
+      if (mur) {
+        const refus = pourquoiPasExecuter(mur, today);
+        if (refus === "pas_parti") {
+          /* La règle qui compte : le préavis n'est pas parti, donc rien ne part.
+             Le dire à chaque tour serait du bruit ; on le dit une fois, le jour
+             où l'occurrence devient exécutable. */
+          if (mur.dueOn === today) {
+            await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>rien n'est parti</b>, le préavis du ${fmtDate(mur.dueOn)} n'a pas pu être envoyé · ${mur.noticeError ?? "canal injoignable"}` });
+            muets += 1;
           }
-          if (s.source !== "encaissements") await r.updateStandingOrder(s.id, { lastRunOn: today });
-          skipped += 1;
-          continue;
-        }
-
-        /* La somme des tranches fait exactement le montant exécuté : le reste
-           d'arrondi va à la dernière part, et le journal des espèces reçoit une
-           écriture par ordre, de sorte que la poche se vide du bon total. */
-        const sortis: string[] = [];
-        for (const lot of tranches(montant, parts)) {
-          const dest = byId.get(lot.offerId);
-          const libelle = s.source === "encaissements" ? reinvestLabel(s, today, lot.montant) : instalmentLabel(s, today);
-          const intent = await r.createIntent({
-            offerId: lot.offerId,
-            type: "souscription",
-            amount: lot.montant,
-            channel: s.channel,
-            contactPhone: s.contactPhone,
-            contactEmail: s.contactEmail,
-            clientName: s.clientName,
-            clientSegment: s.clientSegment,
-            clientId: s.userId,
-            message: parts.length > 1 ? `${libelle} · ${parts.find((x) => x.offerId === lot.offerId)?.pct ?? 100} % de la clé` : libelle,
-            standingId: s.id,
+        } else if (refus === null) {
+          const poche = s.source === "encaissements" ? await disponible(s.userId) : mur.amount;
+          const montant = montantAExecuter(mur.amount, poche, s.source === "encaissements" ? s.minAmount : 0);
+          /* CHAQUE TRANCHE SE RELIT CONTRE SA PROPRE DESTINATION, et une seule
+             qui bloque bloque toute l'occurrence. Exécuter la clé en partie
+             changerait la répartition que le client a écrite sans qu'il l'ait
+             dit, ce qui est pire que de ne rien faire et de l'expliquer. */
+          const parts = repartition(s);
+          const lots = tranches(montant || mur.amount, parts);
+          const wrong = lots.flatMap((l) => {
+            const dest = byId.get(l.offerId);
+            return standingBlock(dest, { amount: l.montant, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source }).map((x) => (parts.length > 1 ? `${dest?.title ?? l.offerId} : ${x}` : x));
           });
-          // Le client a donné son ordre à la signature de l'instruction, et il a eu
-          // le préavis : ce versement n'attend pas une confirmation, il attend le règlement.
-          const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+          if (montant <= 0 || wrong.length) {
+            const why = wrong.length ? wrong.join(" ") : "le disponible annoncé n'est plus là";
+            await r.cloturerPreavis(mur.id, { state: "perimee" });
+            if (wrong.length && s.onBlocked === "arreter") {
+              await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
+              await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+            } else {
+              await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : occurrence du ${fmtDate(mur.dueOn)} <b>sans suite</b> · ${why}` });
+            }
+            if (s.source !== "encaissements") await r.updateStandingOrder(s.id, { lastRunOn: today });
+            skipped += 1;
+            continue;
+          }
+  
+          /* La somme des tranches fait exactement le montant exécuté : le reste
+             d'arrondi va à la dernière part, et le journal des espèces reçoit une
+             écriture par ordre, de sorte que la poche se vide du bon total. */
+          const sortis: string[] = [];
+          for (const lot of tranches(montant, parts)) {
+            const dest = byId.get(lot.offerId);
+            const libelle = s.source === "encaissements" ? reinvestLabel(s, today, lot.montant) : instalmentLabel(s, today);
+            const intent = await r.createIntent({
+              offerId: lot.offerId,
+              type: "souscription",
+              amount: lot.montant,
+              channel: s.channel,
+              contactPhone: s.contactPhone,
+              contactEmail: s.contactEmail,
+              clientName: s.clientName,
+              clientSegment: s.clientSegment,
+              clientId: s.userId,
+              message: parts.length > 1 ? `${libelle} · ${parts.find((x) => x.offerId === lot.offerId)?.pct ?? 100} % de la clé` : libelle,
+              standingId: s.id,
+            });
+            // Le client a donné son ordre à la signature de l'instruction, et il a eu
+            // le préavis : ce versement n'attend pas une confirmation, il attend le règlement.
+            const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+            if (s.source === "encaissements") {
+              /* L'argent quitte la poche en s'inscrivant au journal en regard de
+                 l'ordre : c'est cette écriture, et non une date, qui empêche un
+                 second passage de replacer la même somme. */
+              await r.addCash({ userId: s.userId, amount: lot.montant, kind: "souscription", label: libelle, intentId: intent.id, createdBy: "robot" });
+            }
+            sortis.push(intent.id);
+            await r.logEvent({
+              kind: "intent",
+              intentId: intent.id,
+              offerId: lot.offerId,
+              html: `${intent.ref} (${s.clientName}) : <b>${s.source === "encaissements" ? "réinvestissement" : "versement programmé"}</b> de ${fmt(lot.montant)} FCFA sur ${dest?.title ?? lot.offerId}${parts.length > 1 ? ` · clé ${cleEnMots(parts, (id) => byId.get(id)?.title ?? id)}` : ""} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))} · ${s.ref}`,
+            });
+            try {
+              await notifyIntentUpdated(confirmed, dest!, "confirmee");
+            } catch {
+              /* L'avis d'exécution peut échouer sans conséquence : le client a déjà
+                 été prévenu AVANT, et c'est ce préavis-là qui portait sa décision. */
+            }
+          }
           if (s.source === "encaissements") {
-            /* L'argent quitte la poche en s'inscrivant au journal en regard de
-               l'ordre : c'est cette écriture, et non une date, qui empêche un
-               second passage de replacer la même somme. */
-            await r.addCash({ userId: s.userId, amount: lot.montant, kind: "souscription", label: libelle, intentId: intent.id, createdBy: "robot" });
+            disponibles.set(s.userId, poche - montant);
+            reinvested += 1;
+          } else {
+            placed += 1;
           }
-          sortis.push(intent.id);
-          await r.logEvent({
-            kind: "intent",
-            intentId: intent.id,
-            offerId: lot.offerId,
-            html: `${intent.ref} (${s.clientName}) : <b>${s.source === "encaissements" ? "réinvestissement" : "versement programmé"}</b> de ${fmt(lot.montant)} FCFA sur ${dest?.title ?? lot.offerId}${parts.length > 1 ? ` · clé ${cleEnMots(parts, (id) => byId.get(id)?.title ?? id)}` : ""} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))} · ${s.ref}`,
-          });
-          try {
-            await notifyIntentUpdated(confirmed, dest!, "confirmee");
-          } catch {
-            /* L'avis d'exécution peut échouer sans conséquence : le client a déjà
-               été prévenu AVANT, et c'est ce préavis-là qui portait sa décision. */
-          }
+          await r.updateStandingOrder(s.id, { lastRunOn: today });
+          await r.cloturerPreavis(mur.id, { state: "executee", intentId: sortis[0], intents: sortis, paidAmount: montant });
         }
-        if (s.source === "encaissements") {
-          disponibles.set(s.userId, poche - montant);
-          reinvested += 1;
-        } else {
-          placed += 1;
+        // Une occurrence encore annoncée pour plus tard n'empêche rien d'autre : on continue.
+        if (refus === null || refus === "pas_parti") continue;
+      }
+  
+      /* ───────── SECOND TEMPS : annoncer ce qui vient ─────────
+         Rien ne s'exécute ici. L'occurrence naît, le préavis part, et le délai
+         commence à courir. */
+      const dueOn = dueOnDuPreavis(s, today, policy);
+      if (!dueOn) continue;
+      /* AU PLUS UNE OCCURRENCE OUVERTE PAR INSTRUCTION, et pas seulement une par
+         jour prévu. « isDue » reste vrai jusqu'à l'exécution, donc un délai de
+         plusieurs jours ferait naître une seconde occurrence du même versement le
+         lendemain : c'est « ne double jamais » qui tombe. Et pour un
+         réinvestissement dont le préavis a échoué, cela éviterait d'engager deux
+         fois le même argent. */
+      if ((parInstruction.get(s.id) ?? []).length) continue;
+  
+      const montantAnnonce = s.source === "encaissements" ? reinvestissementDu(s, await disponible(s.userId)).montant : s.amount;
+      if (montantAnnonce <= 0) continue;
+  
+      const wrong = standingBlock(o, { amount: montantAnnonce, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
+      if (wrong.length) {
+        const why = wrong.join(" ");
+        if (s.onBlocked === "arreter") {
+          await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
+          await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+        } else if (s.source !== "encaissements") {
+          // Le mois est consommé même sans ordre : sinon le robot réessaierait chaque
+          // jour jusqu'à la fin du mois et remplirait le journal de la même phrase.
+          await r.updateStandingOrder(s.id, { lastRunOn: today });
+          await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : versement du mois <b>passé</b> · ${why}` });
         }
-        await r.updateStandingOrder(s.id, { lastRunOn: today });
-        await r.cloturerPreavis(mur.id, { state: "executee", intentId: sortis[0], intents: sortis, paidAmount: montant });
+        skipped += 1;
+        continue;
       }
-      // Une occurrence encore annoncée pour plus tard n'empêche rien d'autre : on continue.
-      if (refus === null || refus === "pas_parti") continue;
-    }
-
-    /* ───────── SECOND TEMPS : annoncer ce qui vient ─────────
-       Rien ne s'exécute ici. L'occurrence naît, le préavis part, et le délai
-       commence à courir. */
-    const dueOn = dueOnDuPreavis(s, today, policy);
-    if (!dueOn) continue;
-    /* AU PLUS UNE OCCURRENCE OUVERTE PAR INSTRUCTION, et pas seulement une par
-       jour prévu. « isDue » reste vrai jusqu'à l'exécution, donc un délai de
-       plusieurs jours ferait naître une seconde occurrence du même versement le
-       lendemain : c'est « ne double jamais » qui tombe. Et pour un
-       réinvestissement dont le préavis a échoué, cela éviterait d'engager deux
-       fois le même argent. */
-    if ((parInstruction.get(s.id) ?? []).length) continue;
-
-    const montantAnnonce = s.source === "encaissements" ? reinvestissementDu(s, await disponible(s.userId)).montant : s.amount;
-    if (montantAnnonce <= 0) continue;
-
-    const wrong = standingBlock(o, { amount: montantAnnonce, dayOfMonth: s.dayOfMonth, startsOn: s.startsOn, endsOn: s.endsOn, source: s.source });
-    if (wrong.length) {
-      const why = wrong.join(" ");
-      if (s.onBlocked === "arreter") {
-        await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
-        await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
-      } else if (s.source !== "encaissements") {
-        // Le mois est consommé même sans ordre : sinon le robot réessaierait chaque
-        // jour jusqu'à la fin du mois et remplirait le journal de la même phrase.
-        await r.updateStandingOrder(s.id, { lastRunOn: today });
-        await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : versement du mois <b>passé</b> · ${why}` });
+  
+      let annonce;
+      try {
+        annonce = await r.annoncerPreavis({ standingId: s.id, userId: s.userId, dueOn, amount: montantAnnonce });
+      } catch {
+        // L'index d'unicité a parlé : un autre tour l'a annoncée, et c'est bien.
+        continue;
       }
-      skipped += 1;
-      continue;
+      const envoi = await envoyerPreavis(s, o, { dueOn, amount: montantAnnonce, cle: repartition(s).length > 1 ? cleEnMots(repartition(s), (id) => byId.get(id)?.title ?? id) : undefined });
+      await r.cloturerPreavis(annonce.id, { noticeSent: envoi.sent, noticeError: envoi.error });
+      parInstruction.set(s.id, [...(parInstruction.get(s.id) ?? []), { ...annonce, noticeSent: envoi.sent, noticeError: envoi.error }]);
+      if (envoi.sent) {
+        annonces += 1;
+        await r.logEvent({
+          kind: "system",
+          html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis</b> de ${fmt(montantAnnonce)} FCFA sur ${o?.title ?? s.offerId}, pour le ${fmtDate(dueOn)}`,
+        });
+      } else {
+        /* Un préavis qui ne part pas se dit tout de suite, et l'exécution ne
+           suivra pas : c'est exactement la panne que le try/catch vide cachait. */
+        muets += 1;
+        await r.logEvent({
+          kind: "system",
+          html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis non envoyé</b> pour le ${fmtDate(dueOn)} · ${envoi.error ?? "canal injoignable"} · rien ne partira sans lui`,
+        });
+      }
     }
-
-    let annonce;
-    try {
-      annonce = await r.annoncerPreavis({ standingId: s.id, userId: s.userId, dueOn, amount: montantAnnonce });
-    } catch {
-      // L'index d'unicité a parlé : un autre tour l'a annoncée, et c'est bien.
-      continue;
-    }
-    const envoi = await envoyerPreavis(s, o, { dueOn, amount: montantAnnonce, cle: repartition(s).length > 1 ? cleEnMots(repartition(s), (id) => byId.get(id)?.title ?? id) : undefined });
-    await r.cloturerPreavis(annonce.id, { noticeSent: envoi.sent, noticeError: envoi.error });
-    parInstruction.set(s.id, [...(parInstruction.get(s.id) ?? []), { ...annonce, noticeSent: envoi.sent, noticeError: envoi.error }]);
-    if (envoi.sent) {
-      annonces += 1;
-      await r.logEvent({
-        kind: "system",
-        html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis</b> de ${fmt(montantAnnonce)} FCFA sur ${o?.title ?? s.offerId}, pour le ${fmtDate(dueOn)}`,
-      });
-    } else {
-      /* Un préavis qui ne part pas se dit tout de suite, et l'exécution ne
-         suivra pas : c'est exactement la panne que le try/catch vide cachait. */
-      muets += 1;
-      await r.logEvent({
-        kind: "system",
-        html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis non envoyé</b> pour le ${fmtDate(dueOn)} · ${envoi.error ?? "canal injoignable"} · rien ne partira sans lui`,
-      });
-    }
-  }
-
-  return NextResponse.json({ ok: true, day: today, placed, reinvested, annonces, muets, skipped, ended, considered: orders.length });
+  
+    return ({ ok: true, day: today, placed, reinvested, annonces, muets, skipped, ended, considered: orders.length });
+  });
 }

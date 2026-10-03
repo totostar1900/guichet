@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { routeDuRobot } from "@/lib/cron/tour";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import { abscisses, calibrer, listerBulletins, series, tresorsDuTitre, type ReleveBeac } from "@/lib/market/beac-bulletin";
 import { repo } from "@/lib/data";
@@ -82,31 +83,31 @@ async function relever(url: string): Promise<{ series: ReleveBeac["series"] } | 
 }
 
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) return new NextResponse("Unauthorized", { status: 401 });
-
-  const page = await fetch(PAGE, { headers: { "user-agent": UA }, cache: "no-store" });
-  if (!page.ok) return NextResponse.json({ ok: false, error: `la page des statistiques répond ${page.status}` }, { status: 502 });
-  const bulletins = listerBulletins(await page.text()).slice(0, A_ESSAYER);
-  if (!bulletins.length) return NextResponse.json({ ok: false, error: "aucun bulletin listé sur la page" }, { status: 502 });
-
-  const r0 = repo();
-  const derniere = await r0.latestBeacCurve();
-  const deja = new Set(derniere ? [derniere.numero] : []);
-
-  const ecartes: { numero: number; pourquoi: string }[] = [];
-  for (const b of bulletins) {
-    if (deja.has(b.numero)) continue;
-    const r = await relever(b.url);
-    if ("refus" in r) {
-      ecartes.push({ numero: b.numero, pourquoi: r.refus });
-      continue;
+  return routeDuRobot("beac-courbe", req, async () => {
+  
+    const page = await fetch(PAGE, { headers: { "user-agent": UA }, cache: "no-store" });
+    if (!page.ok) return NextResponse.json({ ok: false, error: `la page des statistiques répond ${page.status}` }, { status: 502 });
+    const bulletins = listerBulletins(await page.text()).slice(0, A_ESSAYER);
+    if (!bulletins.length) return NextResponse.json({ ok: false, error: "aucun bulletin listé sur la page" }, { status: 502 });
+  
+    const r0 = repo();
+    const derniere = await r0.latestBeacCurve();
+    const deja = new Set(derniere ? [derniere.numero] : []);
+  
+    const ecartes: { numero: number; pourquoi: string }[] = [];
+    for (const b of bulletins) {
+      if (deja.has(b.numero)) continue;
+      const r = await relever(b.url);
+      if ("refus" in r) {
+        ecartes.push({ numero: b.numero, pourquoi: r.refus });
+        continue;
+      }
+      /* Le plus récent qui donne quelque chose suffit : les précédents sont déjà
+         en base, ou n'ont rien à donner. */
+      await r0.saveBeacCurve({ numero: b.numero, mois: b.mois, source: b.url, releveLe: new Date().toISOString(), series: r.series });
+      return NextResponse.json({ ok: true, releve: { numero: b.numero, mois: b.mois, tresors: r.series.map((s) => s.pays), points: r.series.reduce((n, s) => n + s.points.length, 0) }, ecartes });
     }
-    /* Le plus récent qui donne quelque chose suffit : les précédents sont déjà
-       en base, ou n'ont rien à donner. */
-    await r0.saveBeacCurve({ numero: b.numero, mois: b.mois, source: b.url, releveLe: new Date().toISOString(), series: r.series });
-    return NextResponse.json({ ok: true, releve: { numero: b.numero, mois: b.mois, tresors: r.series.map((s) => s.pays), points: r.series.reduce((n, s) => n + s.points.length, 0) }, ecartes });
-  }
-
-  return NextResponse.json({ ok: true, releve: null, deja: [...deja], ecartes, dit: ecartes.length ? "aucun bulletin neuf ne porte de courbe relevable" : "rien de neuf" });
+  
+    return NextResponse.json({ ok: true, releve: null, deja: [...deja], ecartes, dit: ecartes.length ? "aucun bulletin neuf ne porte de courbe relevable" : "rien de neuf" });
+  });
 }
