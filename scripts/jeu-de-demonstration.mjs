@@ -40,19 +40,51 @@ const OFFRE = "demo-ota-6-2023-2028";
 const CLIENT = "3553a84b-09c6-45d7-9835-28ceb365e585"; // Test Toto
 const jour = (n = 0) => new Date(Date.now() + n * 86_400_000).toLocaleDateString("sv-SE");
 
+/** Toute erreur se dit : un nettoyage qui se tait laisse derrière lui ce qu'il
+    prétend avoir retiré, et c'est ainsi que j'ai d'abord cru la ligne effacée
+    alors que son coupon tenait toujours. */
+const sur = async (quoi, p) => {
+  const { error } = await p;
+  if (error) throw new Error(`${quoi} : ${error.message}`);
+};
+
 const effacer = async () => {
   /* L'ordre suit les dépendances : ce qui pointe vers l'ordre d'abord. */
   const { data: ordres } = await db.from("intents").select("id").eq("offer_id", OFFRE);
   const ids = (ordres ?? []).map((x) => x.id);
   const { data: inst } = await db.from("standing_orders").select("id").eq("offer_id", OFFRE);
-  for (const s of inst ?? []) await db.from("standing_runs").delete().eq("standing_id", s.id);
-  await db.from("standing_orders").delete().eq("offer_id", OFFRE);
-  for (const id of ids) await db.from("client_cash").delete().eq("intent_id", id);
-  await db.from("client_cash").delete().like("label", "%démonstration%");
-  await db.from("flow_reports").delete().eq("user_id", CLIENT);
-  await db.from("intents").delete().eq("offer_id", OFFRE);
-  await db.from("offers").delete().eq("id", OFFRE);
-  console.log(`efface : ${ids.length} ordre(s), ${(inst ?? []).length} instruction(s), la ligne et ses mouvements`);
+  for (const s of inst ?? []) await sur("standing_runs", db.from("standing_runs").delete().eq("standing_id", s.id));
+  await sur("standing_orders", db.from("standing_orders").delete().eq("offer_id", OFFRE));
+  await sur("flow_reports", db.from("flow_reports").delete().eq("user_id", CLIENT));
+
+  /* LE JOURNAL NE S'EFFACE PAS, et c'est voulu : « un mouvement ne se modifie
+     pas ; passer un mouvement inverse ». Un déclencheur de la base refuse la
+     suppression, et il a raison. On neutralise donc le mouvement de
+     démonstration par son contraire, ce qui ramène le disponible à zéro sans
+     effacer la trace. Sans cela le client garderait un solde orphelin, dont la
+     ligne qui l'a produit n'existe plus. */
+  const { data: mouvements } = await db.from("client_cash").select("id,amount,kind,label").eq("user_id", CLIENT).like("label", "%démonstration%");
+  let inverses = 0;
+  for (const m of mouvements ?? []) {
+    if (/^Contrepartie de démonstration/.test(m.label)) continue;
+    const dejaDefait = (mouvements ?? []).some((x) => x.label === `Contrepartie de démonstration · ${m.id}`);
+    if (dejaDefait) continue;
+    await sur(
+      "contrepartie",
+      db.from("client_cash").insert({
+        user_id: CLIENT,
+        amount: m.amount,
+        kind: "restitution",
+        label: `Contrepartie de démonstration · ${m.id}`,
+        created_by: "jeu de démonstration",
+      }),
+    );
+    inverses += 1;
+  }
+
+  await sur("intents", db.from("intents").delete().eq("offer_id", OFFRE));
+  await sur("offers", db.from("offers").delete().eq("id", OFFRE));
+  console.log(`efface : ${ids.length} ordre(s), ${(inst ?? []).length} instruction(s), la ligne · journal : ${inverses} mouvement(s) neutralisé(s) par leur contraire`);
 };
 
 const ecrire = async () => {
