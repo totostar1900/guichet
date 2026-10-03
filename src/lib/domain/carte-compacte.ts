@@ -1,6 +1,6 @@
 import { resolveIssuer } from "@/data/issuer-registry";
 import { daysBetween } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct, fmtPrice, localIso } from "@/lib/format";
+import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import type { Offer } from "./types";
 
 /**
@@ -72,6 +72,9 @@ export function codeCourt(o: Pick<Offer, "isin" | "issuer" | "title" | "country"
   return codeLisible(p.slug) ? p.slug.toUpperCase() : p.name;
 }
 
+/** « jeu. 15 oct. 15 h 00 » sans le jour de la semaine : la place manque, la date suffit. */
+const quand = (iso: string): string => fmtDateTime(iso).replace(/^[^ ]+ /, "").replace(/ h 00$/, " h").replace(/:00$/, "");
+
 /** « 30 déc. 2027 » devient « déc. 2027 » : le jour n'apprend rien à qui choisit une durée. */
 const moisAn = (d: string): string => fmtDate(d).replace(/^[0-9]+\s/, "");
 
@@ -80,10 +83,15 @@ const moisAn = (d: string): string => fmtDate(d).replace(/^[0-9]+\s/, "");
  * Une action n'a ni coupon ni échéance, elle a un dividende.
  */
 export function ligneGrise(o: Offer): Phrase {
+  /* UNE SÉANCE SE LIT PAR SA DATE LIMITE. Sur la cote, ce qui décide est le
+     coupon et l'échéance ; à l'adjudication, c'est l'heure à laquelle le dépôt
+     ferme, parce qu'après elle il n'y a plus rien à faire. Elle passe donc
+     devant, et l'échéance se lit sur la fiche. */
+  if (o.kind === "OTA") return { key: "Coupon {c} · dépôt {d}", params: { c: fmtPct(o.couponRate ?? 0, 2), d: quand(o.deadlineAt) } };
+  if (o.kind === "BTA") return { key: "Bon précompté · dépôt {d}", params: { d: quand(o.deadlineAt) } };
   if (o.kind === "RACHAT") return o.maturityOn ? { key: "Rachat au pair · éch. {d}", params: { d: moisAn(o.maturityOn) } } : { key: "Rachat au pair" };
   if (o.kind === "FONDS") return o.fund ? { key: "Fonds · VL du {d}", params: { d: fmtDate(o.fund.navDate, false) } } : { key: "Fonds" };
   if (o.kind === "ACTIONS" || (o.kind === "MARCHE" && o.instrument === "action")) return o.dividendPerShare ? { key: "Dividende {n} FCFA", params: { n: fmt(o.dividendPerShare) } } : { key: "Action · pas de dividende connu" };
-  if (o.kind === "BTA") return o.maturityOn ? { key: "Bon précompté · {d}", params: { d: moisAn(o.maturityOn) } } : { key: "Bon précompté · échéance à préciser" };
   const c = fmtPct(o.couponRate ?? 0, 2);
   if (!o.maturityOn) return { key: "Coupon {c} · échéance à préciser", params: { c } };
   const d = moisAn(o.maturityOn);
@@ -133,8 +141,8 @@ export const CLEFS_CARTE: string[] = [
   "Fonds",
   "Dividende {n} FCFA",
   "Action · pas de dividende connu",
-  "Bon précompté · {d}",
-  "Bon précompté · échéance à préciser",
+  "Coupon {c} · dépôt {d}",
+  "Bon précompté · dépôt {d}",
   "Coupon {c} · échéance à préciser",
   "Coupon {c} brut · {d}",
   "Coupon {c} · {d}",

@@ -635,4 +635,6 @@ export const EN_TEMPLATES: Record<string, string> = {
   "clôture dans {d}": "closes in {d}",
   "du nominal, pas un rendement": "of par, not a yield",
   "douze mois écoulés": "over twelve months",
+  "Coupon {c} · dépôt {d}": "Coupon {c} · bids by {d}",
+  "Bon précompté · dépôt {d}": "Discounted bill · bids by {d}",
 };

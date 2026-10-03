@@ -918,3 +918,41 @@
   background: var(--select);
   color: var(--on-select);
 }
+
+/* ---------- le titre d'une section, collant pendant le défilement ----------
+   Il remplace la pastille qu'on aurait mise à gauche de chaque carte : une
+   pastille dit le pays, un titre dit à qui on prête. Il colle pour qu'on sache
+   toujours où l'on se trouve, et il emporte son compte. */
+.secHead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 10px;
+  align-items: baseline;
+  padding: 10px 2px 7px;
+  margin-top: 14px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.secHead h2 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.secN {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.secNote {
+  grid-column: 1 / -1;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+  margin-top: 2px;
+}

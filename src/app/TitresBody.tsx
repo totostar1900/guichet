@@ -1,6 +1,7 @@
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { BackToTop } from "@/components/BackToTop";
 import { repo } from "@/lib/data";
+import { lieuDe } from "@/lib/domain/sections";
 import { IndexPulse } from "@/components/IndexPulse";
 import { PrimaireSilence } from "@/components/market/PrimaireSilence";
 
@@ -16,7 +17,18 @@ export async function TitresBody() {
   // Funds live on their own page (every OPCVM with a published NAV, distributed or not).
   // A primary line (OTA, APE) that is settled or matured and quoted at the BVMAC since : its bulletin line stands for it, once.
   const quoted = new Set(all.filter((o) => o.kind === "MARCHE" && !o.hidden && o.isin).map((o) => o.isin));
-  const offers = all.filter((o) => !o.hidden && o.kind !== "FONDS" && !(o.kind !== "MARCHE" && (o.status === "live" || o.status === "matured") && quoted.has(o.isin)));
+  /**
+   * LA COTE, ET RIEN QUE LA COTE.
+   *
+   * Les séances de la BEAC sont parties aux Adjudications, où elles ont un
+   * cycle. Elles restaient ici faute d'en sortir un jour : la règle ne retirait
+   * une ligne du primaire qu'à sa cotation, et un bon du Trésor n'est jamais
+   * coté. Mesuré le 4 octobre 2026 : neuf séances closes depuis deux à trois
+   * semaines dormaient dans cette liste à l'état « publié », sans résultat.
+   */
+  const offers = all.filter((o) => !o.hidden && lieuDe(o) === "cote" && !((o.status === "live" || o.status === "matured") && o.kind !== "MARCHE" && quoted.has(o.isin)));
+  const seances = all.filter((o) => !o.hidden && lieuDe(o) === "adjudications");
+  void seances;
   const fundsCount = all.filter((o) => o.kind === "FONDS").length;
   const nowIso = new Date().toISOString();
   /**

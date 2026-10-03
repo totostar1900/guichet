@@ -1,0 +1,51 @@
+/* La barre de sections : elle défile horizontalement sur un téléphone plutôt
+   que de passer à la ligne, pour que la liste commence au même endroit quelle
+   que soit la longueur des noms. */
+.bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0 8px;
+  margin: 0;
+}
+.bar::-webkit-scrollbar {
+  display: none;
+}
+.bar button {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bar button b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.bar button:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+.on {
+  border-color: var(--gold) !important;
+  color: var(--gold-ink) !important;
+  font-weight: 600;
+}
+.on b {
+  color: var(--gold-ink) !important;
+}
+/* Éteinte, pas cachée : « 0 » est une information. */
+.empty {
+  opacity: 0.55;
+  cursor: default;
+}

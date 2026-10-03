@@ -18,7 +18,7 @@ import type { Offer } from "@/lib/domain/types";
  * dépasse sa place, et chaque clef existe en anglais.
  */
 const NOW = new Date("2026-10-04T09:00:00Z");
-const base = { id: "x", country: "Gabon" as const, countryName: "Gabon", issuer: "État du Gabon", status: "quoted", settleOn: "2026-10-07", commissionPct: 0.5, sizeLabel: "", operation: "secondaire", documents: [], version: 1 };
+const base = { id: "x", country: "Gabon" as const, countryName: "Gabon", issuer: "État du Gabon", status: "quoted", settleOn: "2026-10-07", commissionPct: 0.5, sizeLabel: "", operation: "secondaire", documents: [], version: 1, deadlineAt: "2026-10-15T14:00:00.000Z" };
 const cotee = (o: Partial<Offer> = {}): Offer =>
   ({ ...base, kind: "MARCHE", market: "BVMAC", instrument: "obligation", title: "État du Gabon · EOG MT 6,6 % NET 2024-2027-II", isin: "GA0000020552", nominal: 10_000, couponRate: 6.6, maturityOn: "2027-12-30", lastPrice: 97, lastPriceOn: "2026-10-02", priceSince: "2026-03-26", lotSize: 1, settlementDays: 3, ...o }) as unknown as Offer;
 const dit = (p: { key: string; params?: Record<string, string> }): string => translate("fr", p.key, p.params);

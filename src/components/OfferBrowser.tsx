@@ -13,6 +13,8 @@ import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
+import { SectionChips } from "./SectionChips";
+import { SECTIONS, SECTION_LABEL, SECTION_NOTE, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { FoldAll, useFold } from "./Fold";
 import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
@@ -143,6 +145,20 @@ function Dropdown({ label, items, selected, onChange, single }: { label: string;
 type Row = { o: Offer; s: OfferSummary };
 /** Rows in their current order, bucketed by issuer (first appearance keeps the sort). */
 /** Groups follow the issuer registry: one head for a borrower's spellings, its zone (a country, or CEMAC) on the flag. */
+/**
+ * LES SECTIONS, DANS L'ORDRE DU LIEU, Y COMPRIS LES VIDES.
+ *
+ * Une section sans ligne garde son titre et son zéro : la règle de la maison
+ * est que l'absence se voie. « En souscription · aucune émission ouverte » dit
+ * quelque chose ; une section escamotée laisse croire qu'elle n'existe pas.
+ */
+function groupBySection(rows: Row[], lieu: Lieu): { section: Section; rows: Row[] }[] {
+  const par = new Map<Section, Row[]>();
+  for (const x of SECTIONS[lieu]) par.set(x, []);
+  for (const r of rows) par.get(sectionDe(r.o))?.push(r);
+  return SECTIONS[lieu].map((section) => ({ section, rows: par.get(section) ?? [] }));
+}
+
 function groupByIssuer(rows: Row[]): { issuer: string; zone: IssuerZone; countryName: string; rows: Row[] }[] {
   const out: { issuer: string; zone: IssuerZone; countryName: string; rows: Row[] }[] = [];
   const idx = new Map<string, number>();
@@ -157,6 +173,25 @@ function groupByIssuer(rows: Row[]): { issuer: string; zone: IssuerZone; country
   }
   return out;
 }
+/**
+ * Le titre d'une section, collant pendant le défilement.
+ *
+ * Il remplace la pastille qu'on aurait mise à gauche de chaque carte, et il
+ * fait mieux : une pastille dit le pays, un titre dit à qui on prête. C'est
+ * une vraie `<section>` avec son `<h2>`, donc un lecteur d'écran les énumère
+ * et saute de l'une à l'autre avec ses propres commandes.
+ */
+function SectionHead({ section, n }: { section: Section; n: number }) {
+  const t = useT();
+  return (
+    <div className={styles.secHead}>
+      <h2 id={`sec-${section}`}>{t(SECTION_LABEL[section])}</h2>
+      <span className={styles.secN}>{n > 0 ? n : t("aucune ligne")}</span>
+      <small className={styles.secNote}>{t(SECTION_NOTE[section])}</small>
+    </div>
+  );
+}
+
 /** The slug the fold state of an issuer's group is kept under. */
 const groupId = (issuer: string) => issuer.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
@@ -385,7 +420,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
 }
 
 /* ---------- browser ---------- */
-export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; nowIso: string; fundsCount: number }) {
+export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
   const router = useRouter();
@@ -395,6 +430,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
 
   const kind = setOf("instrument");
   const segment = (sp.get("marche") as MarketSegment | null) ?? undefined;
+  const sectionChoisie = (sp.get("section") as Section | null) ?? undefined;
   const grouped = sp.get("groupe") === "emetteur";
   const country = setOf("pays");
   const status = setOf("statut");
@@ -484,6 +520,18 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
   ];
   const setYield = (min?: number, max?: number) => update({ rendement: yieldRangeParam(min, max) });
   const yields = useMemo(() => offers.map((o) => headlineYield(o)).filter((y): y is number => y != null), [offers]);
+  /* Le compte de chaque section se fait sur TOUTES les lignes du lieu, pas sur
+     celles qui restent après les autres filtres : une pastille qui changerait
+     de nombre selon le pays coché ne dirait plus ce que contient la section. */
+  const sectionCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const x of SECTIONS[lieu]) c[x] = 0;
+    for (const o of offers) {
+      const k = sectionDe(o);
+      if (k in c) c[k]++;
+    }
+    return c;
+  }, [offers, lieu]);
   const segCount = useMemo(() => {
     const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
     for (const o of offers) c[familySegment(offerFamily(o))]++;
@@ -497,6 +545,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
         const st = displayStatus(o, now);
         const fam = offerFamily(o);
         if (segment && familySegment(fam) !== segment) return false;
+        if (sectionChoisie && sectionDe(o) !== sectionChoisie) return false;
         if (kind.size && !kind.has(fam)) return false;
         if (country.size && !country.has(o.country)) return false;
         if (status.size) {
@@ -568,10 +617,20 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listUrl, orderKey]);
   useListScroll(listUrl);
-  const render = (list: Row[], featured: boolean) =>
-    view === "table" ? (
-      <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
-    ) : view === "list" ? (
+  /**
+   * LES SECTIONS NE S'APPLIQUENT PAS AU TABLEAU.
+   *
+   * Le tableau sert à comparer des chiffres colonne par colonne, et on y trie
+   * par rendement ou par échéance à travers toute la liste : le couper en cinq
+   * blocs empêcherait exactement ce pour quoi on l'ouvre. Les cartes et la
+   * liste se lisent de haut en bas, elles se sectionnent.
+   *
+   * Et quand une pastille est touchée, il ne reste qu'une section : son titre
+   * ne se répète pas au-dessus, la pastille le dit déjà.
+   */
+  const parSections = !sectionChoisie && view !== "table";
+  const renderUn = (list: Row[], featured: boolean) =>
+    view === "list" ? (
       <List rows={list} grouped={grouped && !featured} featured={featured} />
     ) : (
       <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
@@ -589,11 +648,27 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
       </div>
     );
 
+  const render = (list: Row[], featured: boolean) =>
+    view === "table" ? (
+      <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
+    ) : parSections && !featured ? (
+      <>
+        {groupBySection(list, lieu).map((g) => (
+          <section key={g.section} aria-labelledby={`sec-${g.section}`}>
+            <SectionHead section={g.section} n={g.rows.length} />
+            {g.rows.length > 0 && renderUn(g.rows, false)}
+          </section>
+        ))}
+      </>
+    ) : (
+      renderUn(list, featured)
+    );
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <TitresHead fundsCount={fundsCount} />
       <div className={styles.top} ref={top}>
-        <MarketToggles selected={segment === "primaire" || segment === "secondaire" ? segment : undefined} counts={{ primaire: segCount.primaire, secondaire: segCount.secondaire }} onChange={(k) => update({ marche: k, instrument: undefined })} />
+        <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />
         <div className={styles.toolbar} data-coach="titres-filtres">
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

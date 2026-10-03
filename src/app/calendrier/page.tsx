@@ -8,6 +8,8 @@ import type { Offer } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
+import { OfferBrowser } from "@/components/OfferBrowser";
+import { lieuDe } from "@/lib/domain/sections";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,7 @@ export default async function CalendrierPage() {
   const today = localIso(new Date());
   const [feed, offers, lues] = await Promise.all([loadBeacAuctions(), repo().listOffers(), repo().listAuctionResults({ limit: 2000 }).catch(() => [])]);
   const annonces = feed.auctions.filter((a) => a.kind === "annonce" && a.on);
+  const seances = offers.filter((o) => !o.hidden && lieuDe(o) === "adjudications");
   const devant = annonces.filter((a) => a.on! >= today).sort((a, b) => a.on!.localeCompare(b.on!));
   const passees = annonces.filter((a) => a.on! < today).sort((a, b) => b.on!.localeCompare(a.on!)).slice(0, 8);
 
@@ -157,6 +160,22 @@ export default async function CalendrierPage() {
           </p>
         )}
       </section>
+
+      {/*
+        LES LIGNES REJOIGNENT LEUR SÉANCE.
+
+        Cette page citait les communiqués de la BEAC et s'arrêtait là : les
+        lignes à souscrire vivaient dans la liste des titres, au milieu de
+        valeurs négociables, et n'en sortaient jamais puisqu'un bon du Trésor
+        n'est jamais coté. L'annonce, la ligne et le dépouillement se suivent
+        maintenant au même endroit, dans cet ordre.
+      */}
+      {seances.length > 0 && (
+        <section>
+          <h2>{t("Les lignes de ces séances")}</h2>
+          <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" />
+        </section>
+      )}
 
       {passees.length > 0 && (
         <section>
