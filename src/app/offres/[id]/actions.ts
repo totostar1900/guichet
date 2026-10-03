@@ -145,7 +145,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
 }
 
 /** Follow / unfollow a line from its fiche; the daily alert takes it from there. */
-export async function toggleWatch(offerId: string, on: boolean): Promise<{ ok: boolean; watching: boolean }> {
+export async function toggleWatch(offerId: string, on: boolean, mode?: "evenement" | "quotidien"): Promise<{ ok: boolean; watching: boolean }> {
   const session = await getSession();
   if (!session) return { ok: false, watching: false };
   const r = repo();
@@ -154,7 +154,7 @@ export async function toggleWatch(offerId: string, on: boolean): Promise<{ ok: b
   try {
     if (on) {
       const { watchSnapshot } = await import("@/lib/watch");
-      await r.addWatch(session.userId, offerId, watchSnapshot(offer));
+      await r.addWatch(session.userId, offerId, watchSnapshot(offer), mode);
     } else await r.removeWatch(session.userId, offerId);
   } catch {
     return { ok: false, watching: false }; // table missing (migration 0014) : the button stays off

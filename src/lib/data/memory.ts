@@ -681,10 +681,10 @@ export const memoryRepository: Repository = {
   async listWatches(userId) {
     return structuredClone(store().watches.filter((w) => !userId || w.userId === userId));
   },
-  async addWatch(userId, offerId, snapshot) {
+  async addWatch(userId, offerId, snapshot, mode) {
     const existing = store().watches.find((w) => w.userId === userId && w.offerId === offerId);
     if (existing) return structuredClone(existing);
-    const w: Watch = { id: uid(), userId, offerId, lastHero: snapshot.hero, lastStatus: snapshot.status, createdAt: nowIso() };
+    const w: Watch = { id: uid(), userId, offerId, lastHero: snapshot.hero, lastStatus: snapshot.status, mode: mode ?? "evenement", createdAt: nowIso() };
     store().watches.push(w);
     return structuredClone(w);
   },

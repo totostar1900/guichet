@@ -157,9 +157,9 @@ export interface Repository {
   remplacerStandingOrder(id: string, input: NewStandingOrder): Promise<StandingOrder>;
 
   listWatches(userId?: string): Promise<Watch[]>;
-  addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }): Promise<Watch>;
+  addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;
   removeWatch(userId: string, offerId: string): Promise<void>;
-  updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt">>): Promise<void>;
+  updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt" | "lastDaily">>): Promise<void>;
   /** Client-side updates to reachability (phone, e-mail) : the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email" | "segment">>): Promise<void>;
   /** The client's personal preferences, set from the account sheet. */

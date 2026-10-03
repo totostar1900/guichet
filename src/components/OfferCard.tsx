@@ -13,6 +13,7 @@ import { backFacts } from "@/lib/domain/back";
 import { useMemo, useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
+import { lieuDe } from "@/lib/domain/sections";
 import styles from "./OfferCard.module.css";
 
 const Turn = () => (
@@ -60,6 +61,9 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
     <SwipeActions
       id={o.id}
       turnRef={turn}
+      /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
+         se suit a chaque changement : deux marches, deux cadences. */
+      cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"}
       backHead={
         <div className={styles.corner}>
           <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>

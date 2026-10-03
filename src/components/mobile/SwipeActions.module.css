@@ -152,3 +152,27 @@
     display: none;
   }
 }
+
+/* Le suivi armé : la couleur dit l'état, le mot le confirme. */
+.b2on {
+  color: var(--gold-ink);
+}
+/* Ce que l'appui vient de faire, une seconde et demie. Au-dessus de la carte,
+   pas dedans : la carte revient à sa place pendant que le mot reste lisible. */
+.dit {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+  padding: 6px 12px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-radius: var(--radius);
+  font-size: 0.74rem;
+  line-height: 1.3;
+  text-align: center;
+  pointer-events: none;
+}

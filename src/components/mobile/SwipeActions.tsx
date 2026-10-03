@@ -2,16 +2,31 @@
 
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import styles from "./SwipeActions.module.css";
 
 /**
  * A card under a finger, on the phone (under 760 px, touch only):
  *
  * · pulled to the left, two actions come out from under it, the two the
- *   « ··· » leaves out on purpose: « Déclarer » (the intention form of the
- *   fiche) and « Me rappeler » (a reminder before the closing, the same
- *   form with « rappel » chosen); a long pull past 70 % fires « Déclarer »;
+ *   « ··· » leaves out on purpose. La première est toujours « Déclarer »,
+ *   le formulaire d'intention de la fiche ; un tiré long au-delà de 70 % la
+ *   déclenche. LA SECONDE DÉPEND DU LIEU, parce que deux marchés ne se
+ *   suivent pas pareil :
+ *
+ *   sur la cote, « Suivre » : un message quand le chiffre ou l'état bouge.
+ *   Rien ne se passe la plupart du temps, et c'est voulu : mesuré sur douze
+ *   mois, zéro transaction au compartiment obligataire ;
+ *
+ *   à l'adjudication, « Me rappeler » : un message par jour jusqu'à la
+ *   clôture, puis plus rien. Là, rien ne bouge jusqu'à la séance et c'est
+ *   justement la séance qu'il ne faut pas manquer. Le message utile n'est pas
+ *   « ça a changé » mais « il vous reste n jours ».
+ *
+ *   Les deux arment le même suivi, à deux cadences, et s'éteignent d'un second
+ *   appui. Demander un rappel téléphonique reste sur la fiche, où le formulaire
+ *   porte l'intention « rappel » : c'est une personne qu'on y demande, pas une
+ *   notification.
  * · pulled to the right, the card turns over (a 3D turn): its light back
  *   (`back`) shows what the front keeps quiet, the four figures of the
  *   list and the ISIN.
@@ -29,8 +44,11 @@ let turnedNow: (() => void) | null = null;
 const REVEAL = 180;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; children: React.ReactNode }) {
+export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi = false, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
   const t = useT();
+  const [on, setOn] = useState(suivi);
+  const [dit, setDit] = useState("");
+  const [, demarrer] = useTransition();
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
   const flip = useRef<HTMLDivElement>(null);
@@ -249,8 +267,35 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
     fn?.();
   };
 
+  /**
+   * UN APPUI ARME OU DÉSARME, ET LE DIT.
+   *
+   * Un suivi qui s'allume sans rien dire laisse le lecteur appuyer deux fois,
+   * donc l'éteindre en croyant l'allumer. Le mot reste une seconde et demie,
+   * le temps de lire, et il nomme la cadence : « prévenu à chaque changement »
+   * n'est pas « prévenu chaque jour jusqu'à la clôture ».
+   */
+  const basculerLeSuivi = () => {
+    demarrer(async () => {
+      const { toggleWatch } = await import("@/app/offres/[id]/actions");
+      const res = await toggleWatch(id, !on, cadence);
+      if (!res.ok) {
+        router.push(`/connexion?next=${encodeURIComponent(href)}`);
+        return;
+      }
+      setOn(res.watching);
+      setDit(res.watching ? (cadence === "quotidien" ? t("Rappel armé : un message par jour jusqu'à la clôture") : t("Ligne suivie : un message à chaque changement")) : t("Suivi retiré"));
+      window.setTimeout(() => setDit(""), 1600);
+    });
+  };
+
   return (
     <div ref={wrap} className={styles.wrap}>
+      {dit && (
+        <span className={styles.dit} role="status">
+          {dit}
+        </span>
+      )}
       <div className={styles.under} aria-hidden="true">
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹
@@ -261,11 +306,11 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, children }: 
           </svg>
           {t("Déclarer")}
         </button>
-        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}/intention?intent=rappel`))} tabIndex={-1}>
+        <button type="button" className={`${styles.b2} ${on ? styles.b2on : ""}`} onClick={() => closeThen(basculerLeSuivi)} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
-            <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" />
+            {cadence === "quotidien" ? <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" /> : <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z" />}
           </svg>
-          {t("Me rappeler")}
+          {t(on ? (cadence === "quotidien" ? "Rappel armé" : "Suivie") : cadence === "quotidien" ? "Me rappeler" : "Suivre")}
         </button>
       </div>
       <div ref={flip} className={styles.flip}>

@@ -586,10 +586,25 @@ export interface TrustedDevice {
 }
 
 /** A line a client follows; the snapshot is what they were last told. */
+/**
+ * DEUX CADENCES, PARCE QUE DEUX MARCHÉS NE SE SUIVENT PAS PAREIL.
+ *
+ * Sur la cote, ce qui mérite un message est un CHANGEMENT : un cours qui bouge,
+ * un statut qui change. À l'adjudication rien ne bouge jusqu'à la séance, et
+ * c'est justement la séance qu'il ne faut pas manquer : l'annonce tombe une
+ * semaine avant, le dépôt ferme à une heure, et après il n'y a plus rien à
+ * faire. Le message utile n'est donc pas « ça a changé » mais « il vous reste
+ * n jours ». Le mode quotidien s'arrête de lui-même à la clôture.
+ */
+export type WatchMode = "evenement" | "quotidien";
+
 export interface Watch {
   id: string;
   userId: string;
   offerId: string;
+  mode?: WatchMode;
+  /** Le jour du dernier message quotidien : un seul par jour, même si le robot repasse. */
+  lastDaily?: string;
   lastHero?: string;
   lastStatus?: string;
   alertedAt?: string;

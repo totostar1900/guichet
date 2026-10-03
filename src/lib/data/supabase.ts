@@ -555,8 +555,8 @@ const toPayout = (r: PayoutRow): CashPayout => ({
   cashEntry: u(r.cash_entry),
 });
 
-type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string };
-const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at });
+type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string; mode?: string | null; last_daily?: string | null };
+const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at, mode: (u(r.mode) as Watch["mode"]) ?? "evenement", lastDaily: u(r.last_daily) });
 type NotifRow = {
   id: string; kind: Notification["kind"]; channel: Notification["channel"]; to_address: string; contact_name: string | null; subject: string | null; body: string;
   document_id: string | null; intent_id: string | null; offer_id: string | null; status: Notification["status"]; provider_id: string | null; error: string | null; conv_key: string | null; created_at: string; sent_at: string | null;
@@ -1553,8 +1553,8 @@ export const supabaseRepository: Repository = {
     }
     return (data as WatchRow[]).map(toWatch);
   },
-  async addWatch(userId, offerId, snapshot) {
-    const { data, error } = await db().from("watchlist").upsert({ user_id: userId, offer_id: offerId, last_hero: snapshot.hero, last_status: snapshot.status }, { onConflict: "user_id,offer_id" }).select("*").single();
+  async addWatch(userId, offerId, snapshot, mode) {
+    const { data, error } = await db().from("watchlist").upsert({ user_id: userId, offer_id: offerId, last_hero: snapshot.hero, last_status: snapshot.status, mode: mode ?? "evenement" }, { onConflict: "user_id,offer_id" }).select("*").single();
     if (error) fail("addWatch", error);
     return toWatch(data as WatchRow);
   },
@@ -1567,6 +1567,7 @@ export const supabaseRepository: Repository = {
     if (patch.lastHero !== undefined) row.last_hero = patch.lastHero;
     if (patch.lastStatus !== undefined) row.last_status = patch.lastStatus;
     if (patch.alertedAt !== undefined) row.alerted_at = patch.alertedAt;
+    if (patch.lastDaily !== undefined) row.last_daily = patch.lastDaily;
     const { error } = await db().from("watchlist").update(row).eq("id", id);
     if (error) fail("updateWatch", error);
   },

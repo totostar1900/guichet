@@ -1039,4 +1039,9 @@ export const EN_REST: Record<string, string> = {
   "Sections": "Sections",
   "aucune ligne": "no line",
   "Les lignes de ces séances": "The lines of these sessions",
+  "Rappel armé : un message par jour jusqu'à la clôture": "Reminder set: one message a day until the deadline",
+  "Ligne suivie : un message à chaque changement": "Line followed: one message on each change",
+  "Suivi retiré": "Follow removed",
+  "Rappel armé": "Reminder set",
+  "Suivie": "Followed",
 };
