@@ -55,7 +55,7 @@ export function Declarer({ du, aujourdHui }: { du: { owed: number; assigned: num
             <tr>
               <th>{t("Compte de la maison")}</th>
               <th className="r">{t("Solde du relevé")}</th>
-              <th>{t("Pièce")}</th>
+              <th>{t("Pièce justificative")}</th>
             </tr>
           </thead>
           <tbody>

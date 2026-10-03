@@ -667,7 +667,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span>
                 E-mail <em className={styles.req}>· {t("requis")}</em>
               </span>
-              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder="vous@exemple.com" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} required readOnly={Boolean(signedIn && provenEmail)} />
+              <input name="contactEmail" type="email" inputMode="email" autoComplete="email" placeholder={t("vous@exemple.com")} value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} required readOnly={Boolean(signedIn && provenEmail)} />
               {emailOk && <em className={styles.proven}>✓ {t("prouvé")}</em>}
             </label>
           </div>

@@ -50,7 +50,7 @@ export function Encaisser({ userId, flux }: { userId: string; flux: { cle: strin
       <input type="hidden" name="date" value={flux.date} />
       <input type="hidden" name="titre" value={flux.titre} />
       <label>
-        <span>{t("Pièce")}</span>
+        <span>{t("Pièce justificative")}</span>
         <input name="evidence" required minLength={3} maxLength={120} placeholder={t("ex. avis teneur de compte n° 4471, ou relevé du 16/10 ligne 42")} />
       </label>
       <label>

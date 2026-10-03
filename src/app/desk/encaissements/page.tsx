@@ -197,7 +197,7 @@ export default async function EncaissementsPage() {
                     <th className="r">{t("Attendu")}</th>
                     <th className="r">{t("Reçu")}</th>
                     <th className="r">{t("Écart")}</th>
-                    <th>{t("Pièce")}</th>
+                    <th>{t("Pièce justificative")}</th>
                   </tr>
                 </thead>
                 <tbody>

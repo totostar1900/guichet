@@ -60,7 +60,7 @@ export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; p
       {mode === "email" ? (
         <label className="field">
           {t("Adresse e-mail")}
-          <input name="email" type="email" autoComplete="email" placeholder="vous@exemple.com" autoFocus required />
+          <input name="email" type="email" autoComplete="email" placeholder={t("vous@exemple.com")} autoFocus required />
         </label>
       ) : (
         <label className="field">

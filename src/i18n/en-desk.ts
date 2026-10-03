@@ -2772,4 +2772,5 @@ export const EN_MORE: Record<string, string> = {
   "rien reçu": "received nothing",
   "reçu le {d}": "received on {d}",
   "reçu": "received",
+  "Pièce justificative": "Evidence",
 };
