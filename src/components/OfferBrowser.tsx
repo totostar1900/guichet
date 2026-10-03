@@ -56,7 +56,25 @@ const TENORS: [string, string][] = [
 export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer" | "recent";
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
-const SORT_LABEL: Record<SortKey, string> = { deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", recent: "plus récent" };
+/**
+ * UN SEUL ORDRE POUR LES TROIS VUES, ET UN SEUL ENDROIT QUI LE DIT.
+ *
+ * Le sélecteur existe à deux endroits : la barre d'outils, qui disparaît sous
+ * 760 px, et la feuille de filtres, qui est alors le seul chemin. Les deux
+ * listes étaient écrites à la main, et dans l'ordre inverse l'une de l'autre :
+ * « Tableau · Liste · Cartes » dans la barre, « Cartes · Liste · Tableau » dans
+ * la feuille. Chacune mettait sa vue par défaut en tête, ce qui explique la
+ * dérive sans l'excuser.
+ *
+ * Mesuré le 4 octobre 2026 : un téléphone fait 390 px debout et 844 px couché,
+ * donc il TRAVERSE la bascule des 760. On tourne l'appareil, les trois boutons
+ * sont dans l'autre sens, et le geste appris choisit une autre vue. La vue
+ * active se marque déjà par `aria-pressed` : ni l'une ni l'autre n'avait besoin
+ * de mettre sa favorite en tête.
+ */
+const VIEWS: View[] = ["table", "list", "cards"];
+const VIEW_LABEL: Record<View, string> = { table: "Tableau", list: "Liste", cards: "Cartes" };
+const SORT_LABEL: Record<SortKey, string> ={ deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", recent: "plus récent" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
 const normStatus = (s: DisplayStatus): string => clientStatusGroup(s);
@@ -651,9 +669,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
             </button>
           )}
           <div className={styles.seg} role="group" aria-label={t("Affichage")} data-coach="titres-vues">
-            {(["table", "list", "cards"] as View[]).map((v) => (
+            {VIEWS.map((v) => (
               <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
-                {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
+                {t(VIEW_LABEL[v])}
               </button>
             ))}
           </div>
@@ -693,9 +711,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount }: { offers: Offer[]; 
                 {t("Grouper par émetteur")}
               </label>
               <div className={styles.sheetViews} role="group" aria-label={t("Affichage")}>
-                {(["cards", "list", "table"] as View[]).map((v) => (
+                {VIEWS.map((v) => (
                   <button key={v} type="button" className={view === v ? styles.on : undefined} aria-pressed={view === v} onClick={() => update({ vue: v })}>
-                    {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
+                    {t(VIEW_LABEL[v])}
                   </button>
                 ))}
               </div>
