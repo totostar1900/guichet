@@ -111,17 +111,35 @@ export async function Reinvest({
 /**
  * Les deux listes de la bande : ce qui est arrivé, ce qui se fait attendre.
  *
- * La fenêtre porte sur la date d'échéance et non sur celle de l'encaissement :
- * c'est l'événement que le client a en tête. Un flux daté d'aujourd'hui n'y
- * paraît pas comme attendu, parce qu'il n'a pas encore pu atteindre son compte
- * et que le signaler en retard ferait passer l'application pour mal informée.
+ * ELLES N'ONT PLUS LA MÊME FENÊTRE, et c'est le point.
+ *
+ * « Reçu » est une OCCASION : la bande existe pour rappeler une somme qu'on peut
+ * replacer maintenant, et un coupon encaissé il y a deux ans n'est plus cela.
+ * La fenêtre reste donc sur cette liste.
+ *
+ * « Attendu » est une CRÉANCE, et une créance ne devient pas moins due avec le
+ * temps. La fenêtre y supprimait exactement les cas qui comptent le plus : un
+ * coupon en retard de treize jours paraissait, un coupon en retard de trois
+ * cent soixante-dix-huit disparaissait. Et depuis que cette liste porte des
+ * boutons, c'est pire qu'un oubli d'affichage : on retirait au client le moyen
+ * de dire « rien reçu » précisément là où il avait le plus à dire.
+ *
+ * D'où aussi l'ordre : les attendus se rangent DU PLUS ANCIEN au plus récent,
+ * comme la file du desk. C'est une liste de travail, et ce qui est en haut doit
+ * être ce qui appelle quelqu'un.
+ *
+ * La fenêtre des reçus porte sur la date d'échéance et non sur celle de
+ * l'encaissement : c'est l'événement que le client a en tête. Et un flux daté
+ * d'aujourd'hui ne paraît pas comme attendu, parce qu'il n'a pas encore pu
+ * atteindre son compte et que le signaler en retard ferait passer l'application
+ * pour mal informée.
  */
 export function fluxDeLaBande(positions: Position[], entries: CashEntry[], days: number, now = new Date()): { recus: FluxSuivi[]; attendus: FluxSuivi[] } {
   const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const depuis = new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
-  const dans = suivre(lignes, entries, now).filter((f) => f.date >= depuis && f.amount > 0);
+  const tous = suivre(lignes, entries, now).filter((f) => f.amount > 0);
   return {
-    recus: dans.filter((f) => f.etat === "encaisse").sort((a, b) => b.date.localeCompare(a.date)),
-    attendus: dans.filter((f) => f.etat === "attendu" && (f.retardJours ?? 0) >= 1).sort((a, b) => b.date.localeCompare(a.date)),
+    recus: tous.filter((f) => f.etat === "encaisse" && f.date >= depuis).sort((a, b) => b.date.localeCompare(a.date)),
+    attendus: tous.filter((f) => f.etat === "attendu" && (f.retardJours ?? 0) >= 1).sort((a, b) => a.date.localeCompare(b.date)),
   };
 }

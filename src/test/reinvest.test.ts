@@ -62,10 +62,24 @@ describe("la fenêtre et ses bords", () => {
     expect(fluxDeLaBande([position("A", [aujourdHui])], [], 120, NOW).attendus).toEqual([]);
   });
 
-  it("oublie ce qui est trop ancien pour être encore une occasion", () => {
+  it("oublie un ENCAISSEMENT trop ancien pour être encore une occasion", () => {
+    /* La bande existe pour rappeler une somme qu'on peut replacer maintenant.
+       Un coupon encaissé il y a huit mois n'est plus cela. */
     const vieux = { date: "2026-01-10", amount: 50_000, label: "Coupon" };
-    expect(fluxDeLaBande([position("A", [vieux])], [], 120, NOW).attendus).toEqual([]);
-    expect(fluxDeLaBande([position("A", [vieux])], [], 365, NOW).attendus).toHaveLength(1);
+    expect(fluxDeLaBande([position("A", [vieux])], [recu("A", vieux)], 120, NOW).recus).toEqual([]);
+    expect(fluxDeLaBande([position("A", [vieux])], [recu("A", vieux)], 365, NOW).recus).toHaveLength(1);
+  });
+
+  it("n'oublie JAMAIS une créance, si vieille soit-elle", () => {
+    /* Ce test disait l'inverse, et la fenêtre supprimait exactement les cas qui
+       comptent le plus : un coupon en retard de treize jours paraissait, un
+       coupon en retard de huit mois disparaissait. Depuis que cette liste porte
+       des boutons, c'était pire qu'un oubli d'affichage : on retirait au client
+       le moyen de dire « rien reçu » là où il avait le plus à dire. */
+    const vieux = { date: "2026-01-10", amount: 50_000, label: "Coupon" };
+    expect(fluxDeLaBande([position("A", [vieux])], [], 120, NOW).attendus).toHaveLength(1);
+    const tresVieux = { date: "2019-01-10", amount: 50_000, label: "Coupon" };
+    expect(fluxDeLaBande([position("A", [tresVieux])], [], 120, NOW).attendus).toHaveLength(1);
   });
 
   it("écarte un flux nul, et ne s'émeut pas d'un portefeuille vide", () => {
@@ -74,10 +88,21 @@ describe("la fenêtre et ses bords", () => {
     expect(fluxDeLaBande([position("A", [])], [], 120, NOW)).toEqual({ recus: [], attendus: [] });
   });
 
-  it("range du plus récent au plus ancien", () => {
+  it("range les créances du PLUS ANCIEN au plus récent, comme une file de travail", () => {
+    /* L'ordre était l'inverse, et il convenait à un résumé. Cette liste porte
+       maintenant les trois réponses du client : ce qui est en haut doit être ce
+       qui appelle quelqu'un, et l'écran n'en montre que six. */
     const a = { date: "2026-09-01", amount: 10_000, label: "Coupon" };
     const b = { date: "2026-07-01", amount: 20_000, label: "Coupon" };
     const { attendus } = fluxDeLaBande([position("A", [b, a])], [], 120, NOW);
-    expect(attendus.map((f) => f.date)).toEqual(["2026-09-01", "2026-07-01"]);
+    expect(attendus.map((f) => f.date)).toEqual(["2026-07-01", "2026-09-01"]);
+  });
+
+  it("les reçus restent du plus récent au plus ancien", () => {
+    // Eux sont une occasion : le dernier arrivé est celui qu'on replace.
+    const a = { date: "2026-09-01", amount: 10_000, label: "Coupon" };
+    const b = { date: "2026-07-01", amount: 20_000, label: "Coupon" };
+    const { recus } = fluxDeLaBande([position("A", [b, a])], [recu("A", a), recu("A", b)], 120, NOW);
+    expect(recus.map((f) => f.date)).toEqual(["2026-09-01", "2026-07-01"]);
   });
 });
