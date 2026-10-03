@@ -60,10 +60,15 @@ export async function Reinvest({
   if (!recus.length && !attendus.length) return null;
   const b = bilan([...recus, ...attendus]);
 
+  /* L'ANNÉE SE DIT, et c'est la fenêtre retirée qui l'a rendu nécessaire. Deux
+     coupons annuels tombent le même jour du même mois : sans l'année, le résumé
+     se lit « Coupon · OTA · 20 sept. · Coupon · OTA · 20 sept. » et paraît
+     bégayer. Tant que la liste tenait sur cent vingt jours, la collision était
+     impossible. */
   const trois = (l: FluxSuivi[]) =>
     l
       .slice(0, 3)
-      .map((f) => `${t(f.label)} · ${f.titre} · ${fmtDate(f.date, false)}`)
+      .map((f) => `${t(f.label)} · ${f.titre} · ${fmtDate(f.date)}`)
       .join(" · ") + (l.length > 3 ? ` · ${t("et {n} autres", { n: String(l.length - 3) })}` : "");
 
   return (
