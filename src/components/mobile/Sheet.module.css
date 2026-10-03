@@ -65,6 +65,10 @@
 }
 .body {
   overflow-y: auto;
+  /* Le verrou empeche la page de bouger ; ceci empeche le geste de se
+     propager au parent une fois la feuille arrivee en bout. Les deux sont
+     necessaires, et aucun ne remplace l autre. */
+  overscroll-behavior: contain;
   padding: 12px 14px 16px;
 }
 @media (max-width: 760px) {

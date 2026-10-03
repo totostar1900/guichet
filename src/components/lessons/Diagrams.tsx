@@ -1,6 +1,7 @@
 "use client";
 
 import { Linked, TermWord, openTerm } from "../TermSheet";
+import { deverrouiller, verrouiller } from "../mobile/verrou-defilement";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ACTOR_LABEL, Actor, ActorGlyph, type ActorKind } from "../Illustrations";
@@ -166,13 +167,12 @@ function MapZoom({ focus, onClose }: { focus?: string[]; onClose: () => void }) 
 
   useEffect(() => {
     fit();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    verrouiller();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("resize", fit);
     document.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      deverrouiller();
       window.removeEventListener("resize", fit);
       document.removeEventListener("keydown", onKey);
     };

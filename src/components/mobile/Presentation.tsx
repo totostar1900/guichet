@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { deverrouiller, verrouiller } from "./verrou-defilement";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Presentation.module.css";
@@ -226,11 +227,10 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
       if (e.key === "ArrowLeft") setI((k) => Math.max(k - 1, 0));
     };
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    verrouiller();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      deverrouiller();
     };
   }, [open, close]);
 

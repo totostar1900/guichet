@@ -49,9 +49,14 @@ describe("la gouttière de défilement", () => {
   });
 
   it("laisse le verrou des feuilles sur body, qui est ce que mesure ce cliquet", () => {
-    // Si le verrou déménageait sur html, la mesure ci-dessus ne dirait plus rien
-    // de la page : le cliquet veut échouer ce jour-là plutôt que mentir.
-    const feuille = readFileSync("src/components/mobile/Sheet.tsx", "utf8");
-    expect(feuille).toMatch(/document\.body\.style\.overflow\s*=\s*"hidden"/);
+    /* Si le verrou déménageait sur html, la mesure ci-dessus ne dirait plus rien
+       de la page : le cliquet veut échouer ce jour-là plutôt que mentir. Il a
+       échoué le 4 octobre 2026, à raison : le verrou a quitté Sheet.tsx pour un
+       module partagé, après que la page s'est mise à défiler derrière un menu
+       sur iOS. Il est toujours posé sur `body`, et la gouttière réservée sur
+       `html` le couvre toujours ; seule la sonde a suivi. */
+    const verrou = readFileSync("src/components/mobile/verrou-defilement.ts", "utf8");
+    expect(verrou, "le verrou n'est plus posé sur document.body").toMatch(/document\.body\.style/);
+    expect(verrou).toMatch(/\bb\.overflow = "hidden"/);
   });
 });

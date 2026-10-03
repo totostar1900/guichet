@@ -5,6 +5,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Sheet.module.css";
 import { useSheetPresence } from "./useSheetPresence";
+import { deverrouiller, verrouiller } from "./verrou-defilement";
 
 /**
  * A sheet over the page: from the bottom on the phone (pulled down or
@@ -41,11 +42,10 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    verrouiller();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      deverrouiller();
     };
   }, [open, onClose]);
   if (!mounted || !shown) return null;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { deverrouiller, verrouiller } from "./verrou-defilement";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
@@ -66,12 +67,11 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className, openR
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    verrouiller();
     sheet.current?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      deverrouiller();
     };
   }, [open, close]);
 
