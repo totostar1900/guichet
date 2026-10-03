@@ -150,6 +150,14 @@ export interface Offer {
   lastPriceOn?: string;
   /** Dernière séance où la ligne s'est échangée : le BOC cote tous les jours, il ne se traite pas tous les jours. */
   lastTradedOn?: string;
+  /**
+   * Depuis quand `lastPrice` est inchangé. C'est le jumeau de `lastTradedOn`
+   * du côté du prix : `lastPriceOn` porte la date de la SÉANCE, donc celle
+   * d'aujourd'hui, et ne dit rien de l'âge du cours. Celle-ci ne bouge qu'au
+   * changement de cours. Mesuré le 4 octobre 2026 : la plus vieille des
+   * quarante-deux lignes cotées porte le même prix depuis 397 jours.
+   */
+  priceSince?: string;
 
   // secondary market (kind MARCHE)
   market?: "BVMAC" | "Trésor secondaire";

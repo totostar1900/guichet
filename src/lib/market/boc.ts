@@ -199,6 +199,10 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, c
     lastPriceOn: q.sessionDate,
     // La clôture est de toutes les séances ; l'échange, non : la date ne bouge que s'il y en a eu un.
     lastTradedOn: tradedSession(q) ? q.sessionDate : base.lastTradedOn,
+    // Le prix non plus ne bouge pas à chaque séance : « depuis quand » est une
+    // autre question que « à quelle date lu », et c'est celle qui qualifie un
+    // cours sur une place où une ligne peut rester un an sans transaction.
+    priceSince: base.lastPrice === q.close && base.priceSince ? base.priceSince : q.sessionDate,
     dividendPerShare: q.lastDividend ?? base.dividendPerShare,
     pricedAt: new Date().toISOString(),
     priceSource: "boc",

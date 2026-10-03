@@ -612,4 +612,31 @@ export const EN_TEMPLATES: Record<string, string> = {
   "{n} ligne(s) ne sont pas comptées ici, faute de cours publié : {m} FCFA y sont versés. Une obligation du primaire gardée jusqu'à son terme ne se cote pas, et l'application préfère ne rien dire plutôt que de lui donner une valeur qu'elle n'a pas.": "{n} line(s) are not counted here, for want of a published price : {m} FCFA are paid into them. A primary bond held to its term is not quoted, and the application would rather say nothing than give it a value it does not have.",
   "dans {n} jours": "in {n} days",
   "page {n} sur {m}": "page {n} of {m}",
+
+  /* ---------- la carte compacte du téléphone ----------
+     Ces clefs traversent t() sous forme de variable, depuis
+     src/lib/domain/carte-compacte.ts : le scanner ne les voit pas, un cliquet
+     les confronte une par une (src/test/carte-compacte.test.ts). Le « j » des
+     jours devient « d » : c'est tout ce qu'il y a à traduire dans « 97 % · 192 j ». */
+  "Coupon {c} · {d}": "Coupon {c} · {d}",
+  "Coupon {c} brut · {d}": "Coupon {c} gross · {d}",
+  "Coupon {c} · {d} · par tranches": "Coupon {c} · {d} · in instalments",
+  "Coupon {c} brut · {d} · par tranches": "Coupon {c} gross · {d} · in instalments",
+  "Coupon {c} · échéance à préciser": "Coupon {c} · maturity to be confirmed",
+  "Bon précompté · {d}": "Discounted bill · {d}",
+  "Bon précompté · échéance à préciser": "Discounted bill · maturity to be confirmed",
+  "Dividende {n} FCFA": "Dividend {n} FCFA",
+  "Action · pas de dividende connu": "Share · no dividend on record",
+  "Rachat au pair · éch. initiale {d}": "Buyback at par · original mat. {d}",
+  "Fonds · VL du {d}": "Fund · NAV of {d}",
+  "si adjugé à {r} précompté": "if allotted at {r} discounted",
+  "au prix de {n}": "at the price of {n}",
+  "cours {n} FCFA": "price {n} FCFA",
+  "au pair · {n} j": "at par · {n} d",
+  "{p} · {n} j": "{p} · {n} d",
+  "au pair": "at par",
+  "sans cours": "no price",
+  "clôture dans {d}": "closes in {d}",
+  "du nominal, pas un rendement": "of par, not a yield",
+  "douze mois écoulés": "over twelve months",
 };

@@ -1,0 +1,137 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { CLEFS_CARTE, CODE_PAYS, codeCourt, codeLisible, ligneGrise, origineDuChiffre } from "@/lib/domain/carte-compacte";
+import { ISSUER_REGISTRY } from "@/data/issuer-registry";
+import { EN_ALL, translate } from "@/i18n/core";
+import type { Offer } from "@/lib/domain/types";
+
+/**
+ * LA CARTE COMPACTE DU TÉLÉPHONE : TROIS CHAMPS COURTS.
+ *
+ * Le défaut corrigé est une troncature, mesurée le 4 octobre 2026 : la
+ * deuxième ligne portait 89 caractères dans une place qui en laisse 33, et le
+ * lecteur voyait « actuariel annuel brut au cours 9… ». Les qualificatifs
+ * passaient, « aucun échange relevé » et « coupon 6,60 % » tombaient.
+ *
+ * Ce qui est tenu ici : un seul chiffre en avant, le chiffre dit d'où il
+ * vient, la ligne grise ne dit que la promesse de l'émetteur, aucun champ ne
+ * dépasse sa place, et chaque clef existe en anglais.
+ */
+const NOW = new Date("2026-10-04T09:00:00Z");
+const base = { id: "x", country: "Gabon" as const, countryName: "Gabon", issuer: "État du Gabon", status: "quoted", settleOn: "2026-10-07", commissionPct: 0.5, sizeLabel: "", operation: "secondaire", documents: [], version: 1 };
+const cotee = (o: Partial<Offer> = {}): Offer =>
+  ({ ...base, kind: "MARCHE", market: "BVMAC", instrument: "obligation", title: "État du Gabon · EOG MT 6,6 % NET 2024-2027-II", isin: "GA0000020552", nominal: 10_000, couponRate: 6.6, maturityOn: "2027-12-30", lastPrice: 97, lastPriceOn: "2026-10-02", priceSince: "2026-03-26", lotSize: 1, settlementDays: 3, ...o }) as unknown as Offer;
+const dit = (p: { key: string; params?: Record<string, string> }): string => translate("fr", p.key, p.params);
+
+describe("le code court d'un émetteur", () => {
+  it("donne trois lettres à un État, et RCA à la Centrafrique", () => {
+    expect(codeCourt(cotee())).toBe("GAB");
+    expect(CODE_PAYS.RCA).toBe("RCA");
+    /* Le seul écart à l'ISO, et il est voulu : « CAF » se lit confédération de
+       football en zone francophone. */
+    expect(Object.values(CODE_PAYS)).not.toContain("CAF");
+  });
+
+  it("reprend le slug du registre pour tous les autres", () => {
+    // Le registre porte déjà le mnémonique BVMAC : le redoubler le ferait diverger.
+    expect(codeCourt(cotee({ title: "BDEAC · BDEAC 5,95 % NET 2024-2029", isin: "CG0000020436", issuer: "BDEAC" }))).toBe("BDEAC");
+    expect(codeCourt(cotee({ title: "Alios Finance · ALIOS 6,5 % BRUT 2023-2028", isin: "CM0000020412", issuer: "Alios Finance", country: "Cameroun" }))).toBe("ALIOS");
+  });
+
+  it("refuse de deviner un nom propre", () => {
+    /* « La Régionale » coupé au premier mot donnerait « LA ». Aucune règle ne
+       devine un nom propre : un slug illisible n'a pas de code, et le cliquet
+       suivant le dit avant l'écran. */
+    expect(codeLisible("la-regionale")).toBe(false);
+    expect(codeLisible("semc")).toBe(true);
+  });
+
+  it("couvre tout le registre d'aujourd'hui", () => {
+    const sans = ISSUER_REGISTRY.filter((p) => p.family !== "etat" && !codeLisible(p.slug)).map((p) => `${p.slug} (${p.name})`);
+    expect(sans, `ces émetteurs sortiraient leur nom entier sur une carte compacte :\n  ${sans.join("\n  ")}`).toEqual([]);
+    expect(ISSUER_REGISTRY.length, "registre vide : le cliquet ne regarde plus rien").toBeGreaterThan(10);
+  });
+});
+
+describe("la ligne grise ne dit que la promesse de l'émetteur", () => {
+  it("coupon et échéance pour une obligation", () => {
+    expect(dit(ligneGrise(cotee()))).toBe("Coupon 6,60 % · déc. 2027");
+  });
+
+  it("marque un coupon brut, parce que la retenue s'applique", () => {
+    expect(dit(ligneGrise(cotee({ title: "Alios Finance · ALIOS 6,5 % BRUT 2023-2028", couponRate: 6.5 })))).toContain("brut");
+  });
+
+  it("une action n'a ni coupon ni échéance", () => {
+    expect(dit(ligneGrise(cotee({ instrument: "action", dividendPerShare: 800, couponRate: undefined, maturityOn: undefined })))).toBe("Dividende 800 FCFA");
+  });
+
+  it("ne porte aucun rendement : c'est le chiffre de droite", () => {
+    // La première ligne annonce l'émetteur, la grise la promesse, et un seul nombre est en avant.
+    expect(dit(ligneGrise(cotee()))).not.toContain("11,09");
+  });
+});
+
+describe("le chiffre de droite dit d'où il vient", () => {
+  it("un cours de référence porte son âge", () => {
+    /* Sans l'âge, « 11,09 % » se lit comme un rendement de marché. Mesuré sur
+       douze mois : zéro transaction sur 7 709 couples ligne-séance. */
+    expect(dit(origineDuChiffre(cotee(), NOW))).toBe("97 % · 192 j");
+  });
+
+  it("un pair qui n'a jamais bougé se nomme, et porte son âge aussi", () => {
+    expect(dit(origineDuChiffre(cotee({ lastPrice: 100, couponRate: 6.75, priceSince: "2025-09-02" }), NOW))).toBe("au pair · 397 j");
+  });
+
+  it("sans date d'immobilité, le champ nomme le cours au lieu d'inventer un âge", () => {
+    expect(dit(origineDuChiffre(cotee({ priceSince: undefined }), NOW))).toBe("cours 97 %");
+  });
+
+  it("un taux imprimé par le Trésor se distingue d'un prix proposé", () => {
+    const bta = { ...base, kind: "BTA", title: "BTA 52 semaines", isin: "CG1300001480", nominal: 1_000_000, maturityOn: "2027-09-23", precountRate: 5.5 } as unknown as Offer;
+    expect(dit(origineDuChiffre(bta, NOW))).toBe("si adjugé à 5,50 % précompté");
+    expect(dit(origineDuChiffre({ ...bta, servedPricePct: 97 } as Offer, NOW))).toBe("adjugé à 5,50 % précompté");
+  });
+
+  it("un rachat n'a pas de rendement, et le dit", () => {
+    expect(dit(origineDuChiffre({ ...base, kind: "RACHAT", title: "Rachat OTA 3 ans", isin: "CF2J00000091", nominal: 10_000 } as unknown as Offer, NOW))).toBe("du nominal, pas un rendement");
+  });
+
+  it("tient dans la place : vingt-huit caractères au plus", () => {
+    /* La mesure qui a ouvert ce chantier. À 10 px sur 390 de large, la colonne
+       de droite en prend vingt-huit ; au-delà le champ se tronque, et c'est la
+       fin de la phrase, donc le fait, qui disparaît. */
+    const cas = [cotee(), cotee({ lastPrice: 100, priceSince: "2025-09-02" }), cotee({ lastPrice: 94.96, priceSince: "2025-10-11" }), cotee({ instrument: "action", lastPrice: 53_000 }), { ...base, kind: "RACHAT", title: "R", isin: "CF2J00000091", nominal: 1 } as unknown as Offer];
+    const trop = cas.map((o) => dit(origineDuChiffre(o, NOW))).filter((x) => x.length > 28);
+    expect(trop, `ces origines débordent :\n  ${trop.join("\n  ")}`).toEqual([]);
+  });
+});
+
+describe("les clefs de la carte passent en anglais", () => {
+  const source = readFileSync("C:/dev/guichet/src/lib/domain/carte-compacte.ts", "utf8");
+
+  it("chacune est au dictionnaire", () => {
+    /* Premier angle mort du scanner : ces clefs traversent t() sous forme de
+       variable, donc rien d'autre ne peut les voir. */
+    const trous = CLEFS_CARTE.filter((k) => EN_ALL[k] == null);
+    expect(trous, `ces clefs sortiraient en français :\n  ${trous.join("\n  ")}`).toEqual([]);
+  });
+
+  it("la liste dit vraiment ce que le code produit", () => {
+    /* Une liste tenue à la main dérive : si elle oubliait une clef, le contrôle
+       ci-dessus passerait au vert sur une clef absente du dictionnaire. On
+       relit donc les clefs écrites dans le module, hors de la liste elle-même. */
+    const i = source.indexOf("export const CLEFS_CARTE");
+    const code = source.slice(0, i);
+    const ecrites = [...code.matchAll(/key: "((?:[^"\\]|\\.)*)"/g)].map((m) => m[1]);
+    expect(ecrites.length, "aucune clef lue dans le code : le cliquet ne regarde plus rien").toBeGreaterThan(20);
+    const oubliees = [...new Set(ecrites)].filter((k) => !CLEFS_CARTE.includes(k));
+    expect(oubliees, `clefs produites mais absentes de CLEFS_CARTE :\n  ${oubliees.join("\n  ")}`).toEqual([]);
+  });
+
+  it("l'anglais compte les jours en « d », pas en « j »", () => {
+    // Le seul mot à traduire dans « 97 % · 192 j », et le plus facile à oublier.
+    expect(translate("en", "{p} · {n} j", { p: "97 %", n: "192" })).toBe("97 % · 192 d");
+    expect(translate("en", "au pair · {n} j", { n: "397" })).toBe("at par · 397 d");
+  });
+});

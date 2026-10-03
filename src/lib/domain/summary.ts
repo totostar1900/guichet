@@ -1,4 +1,5 @@
 import type { DisplayStatus, IntentType, Offer } from "./types";
+import { codeCourt, ligneGrise, origineDuChiffre, type Phrase } from "./carte-compacte";
 import { countdown, displayStatus, displayYield, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { typeOf } from "@/lib/registry";
 import { fundAnnualPct } from "./fund-perf";
@@ -38,6 +39,10 @@ export interface OfferSummary {
   secondary?: { label: string; intent: IntentType };
   /** Automatic and desk badges: « Sélection du desk », « Nouveau », « Clôture imminente ». */
   badges: Badge[];
+  /** La carte compacte du téléphone : le code de l'émetteur, sa promesse, et d'où vient le chiffre. */
+  code: string;
+  promesse: Phrase;
+  origine: Phrase;
   facts: [string, string, string?][]; // three facts for the card: label, value, a note under it (the duration under a date)
   ledger: [string, string, string?][]; // four labelled figures for the list: label, value, note
   past: boolean;
@@ -95,6 +100,9 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     yieldPct: y,
     past,
     commission: com,
+    code: codeCourt(o),
+    promesse: ligneGrise(o),
+    origine: origineDuChiffre(o, now),
   };
   const dl = (iso: string) => (parseDate(iso).toDateString() === now.toDateString() ? `Auj. ${fmtTime(iso)}` : fmtDateTime(iso));
   const dlParts = (iso: string): [string, string] => (parseDate(iso).toDateString() === now.toDateString() ? ["Aujourd'hui", fmtTime(iso)] : [fmtDate(iso, false), fmtTime(iso).replace(":", " h ")]);

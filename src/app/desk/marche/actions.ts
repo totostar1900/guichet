@@ -43,7 +43,10 @@ export async function updateQuoteAction(_p: MarketResult | null, form: FormData)
   if (!o || o.kind !== "MARCHE") return { ok: false, error: "Ligne introuvable." };
   const now = new Date();
   if (p.data.version != null && p.data.version !== o.version) return { ok: false, error: new ConflictError("offer", o.id, p.data.version, o.version).message };
-  const next: typeof o = { ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: p.data.lastPriceOn || now.toISOString().slice(0, 10), pricedAt: now.toISOString(), priceSource: "desk", priceNote: `Cours saisi par le desk (${desk.name}).`, version: o.version + 1 };
+  const lu = p.data.lastPriceOn || now.toISOString().slice(0, 10);
+  /* Même règle que pour une séance lue : « depuis quand » ne bouge qu'au
+     changement. Un cours ressaisi à l'identique ne rajeunit pas le prix. */
+  const next: typeof o = { ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: lu, priceSince: o.lastPrice === p.data.lastPrice && o.priceSince ? o.priceSince : lu, pricedAt: now.toISOString(), priceSource: "desk", priceNote: `Cours saisi par le desk (${desk.name}).`, version: o.version + 1 };
   const reason = approvalReason(next, o, await loadPolicy());
   if (reason && !isResponsable(desk)) {
     const a = await r.createApproval({ kind: "offer_quote", entityId: o.id, title: o.title, payload: next, reason, requestedBy: desk.name });
