@@ -614,6 +614,10 @@
    celui d'une phrase, pas d'un panneau : ce solde n'est pas un problème à
    régler, c'est de l'argent qui attend une décision du client. */
 .versementEtat {
+  /* « .valeur » est une grille de douze colonnes : sans cette portée, la phrase
+     tombe dans une seule et se replie sur cinq mots par ligne, loin des chiffres
+     qu'elle commente. Vu à l'écran, en largeur bureau seulement. */
+  grid-column: 1 / -1;
   margin: var(--s-4) 0 0;
   font-size: 0.8rem;
   line-height: 1.55;
@@ -632,6 +636,7 @@
   text-underline-offset: 2px;
 }
 .versementForm {
+  grid-column: 1 / -1;
   margin-top: var(--s-4);
   display: flex;
   flex-wrap: wrap;
