@@ -19,6 +19,11 @@ export function yearsBetween(from: string, to: string): number {
   return daysBetween(from, to) / 365;
 }
 
+/** "2 ans 11 mois" : la même durée sans la conjonction, pour une colonne étroite. */
+export function tenorCourt(from: string, to: string): string {
+  return tenorText(from, to).replace(" et ", " ");
+}
+
 /** "2 ans et 11 mois", "1 an et 5 mois", "182 jours". */
 export function tenorText(from: string, to: string): string {
   const a = parseDate(from);

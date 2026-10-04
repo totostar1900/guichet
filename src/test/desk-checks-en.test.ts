@@ -7,7 +7,7 @@ import { summarize } from "@/lib/domain/summary";
 import { offerReference, offerRisks } from "@/lib/domain/sheet";
 import { explainKpis } from "@/lib/domain/explain";
 import { displayStatus, repaymentLabel, statusLabel } from "@/lib/domain/status";
-import { tenorText } from "@/lib/finance";
+import { tenorCourt, tenorText } from "@/lib/finance";
 import { ficheStops } from "@/lib/domain/fiche-stops";
 import { compareLine } from "@/lib/domain/compare";
 import { standingBlock } from "@/lib/domain/standing";
@@ -125,7 +125,7 @@ describe("les textes du desk et de la fiche passent en anglais", () => {
       ["2026-10-08", "2028-10-08"],
       ["2026-10-08", "2029-09-08"],
     ])
-      deskPhrases.push(sans("tenorText", () => tenorText(a, b), ""));
+      deskPhrases.push(sans("tenorText", () => tenorText(a, b), ""), sans("tenorCourt", () => tenorCourt(a, b), ""));
     deskPhrases.push(...sans("fundBackFacts", () => aPlat(fundBackFacts({ nav: 105_750, entryFeePct: 2.5, exitFeePct: 1, minAmount: 100_000, cutoff: "11:00", settlementDays: 2, inceptionDate: "2021-04-01" })), []));
     for (const k of ["client", "echeance", "documents", "ligne_close", "position", "capacite", "doublon"]) deskPhrases.push(sans("reasonForDesk", () => reasonForDesk(k), ""), sans("reasonForClient", () => reasonForClient(k), ""));
     for (const t of TYPES) deskPhrases.push(sans("receivedLabel", () => receivedLabel(t), ""));

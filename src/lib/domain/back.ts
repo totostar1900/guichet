@@ -1,6 +1,6 @@
 import type { Offer } from "./types";
 import { bondTerms, marketAmortInput, marketBondCalc, marketBondInput, maturityIsGuess } from "./status";
-import { amortCalc, bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate, tenorText } from "../finance";
+import { amortCalc, bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate, tenorCourt } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "../format";
 
 /**
@@ -56,7 +56,7 @@ const short = (iso: string, now: Date): string => {
 const ageDuCours = (o: Offer, now: Date): string | undefined => {
   if (o.priceSince) {
     const j = daysBetween(o.priceSince, localIso(now));
-    return j > 0 ? `inchangé depuis le ${fmtDate(o.priceSince)}, ${fmt(j)} jours` : "fixé à la dernière séance";
+    return j > 0 ? `depuis le ${fmtDate(o.priceSince)}, ${fmt(j)} jours` : "fixé à la dernière séance";
   }
   return o.lastPriceOn ? `séance du ${fmtDate(o.lastPriceOn)}` : undefined;
 };
@@ -196,8 +196,8 @@ export function backFacts(o: Offer, now: Date): BackFacts {
         sub: `${o.isin} · ${o.market ?? "BVMAC"}, cotation continue`,
         band: [
           ["Cours", fmtPrice(ref), ageDuCours(o, now)],
-          ["Rendement", fmtPct(r.irr, 2), "actuariel brut à ce cours"],
-          ["Échéance", maturityIsGuess(o) ? `${o.maturityOn?.slice(0, 4) ?? "—"} ≈` : fmtDate(o.maturityOn ?? ""), o.maturityOn ? tenorText(localIso(now), o.maturityOn) : undefined],
+          ["Rendement", fmtPct(r.irr, 2), "à l'échéance, à ce cours"],
+          ["Échéance", maturityIsGuess(o) ? `${o.maturityOn?.slice(0, 4) ?? "—"} ≈` : fmtDate(o.maturityOn ?? ""), o.maturityOn ? tenorCourt(localIso(now), o.maturityOn) : undefined],
         ],
         lines,
         reference: {

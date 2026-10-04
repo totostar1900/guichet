@@ -44,10 +44,41 @@
   color: var(--ink-3);
   white-space: nowrap;
 }
-/* LE NOM DE LA LIGNE, en tête du dos, sous la pastille et à gauche des icônes. */
+/**
+ * LE NOM DE LA LIGNE, en tête du dos, et ses trois écarts resserrés le
+ * 4 octobre 2026.
+ *
+ * EN HAUT, SIX AU LIEU DE VINGT-QUATRE. La face du dos ouvre sur douze de
+ * marge, et la reserve sajoutait : trente-six du bord au nom. Dix-huit
+ * desormais, la moitie. Les vingt-quatre laissaient passer
+ * la pastille de statut, haute de vingt-trois : le nom commençait donc sous
+ * elle. À douze, sa première ligne traverse la bande de la pastille, et c'est
+ * la RÉSERVE DE DROITE qui doit alors la laisser passer : la pastille fait
+ * cinquante-neuf de large contre trente-quatre pour les deux icônes, d'où
+ * soixante-neuf ici et quarante-quatre pour les autres dos. Le nom perd vingt
+ * de largeur et les gagne en hauteur.
+ *
+ * SOUS L'ISIN, le grand vide n'était dessiné par personne : « first » réserve
+ * quatre-vingt-douze de hauteur pour que la grille des quatre cases descende
+ * au moins jusque sous les icônes, et le nom, qui tient en soixante-dix, en
+ * héritait. Vingt-deux de vide, par accident. La réserve ne vaut pas ici : la
+ * bande des trois chiffres passe juste après et descend bien plus bas.
+ */
 .ident {
   display: grid;
-  gap: 2px;
+  /* La moitié du premier pas : l'écart entre le nom et son ISIN, écrit comme
+     ce qu'il est plutôt qu'en pixel nu, que le cliquet d'espacement refuse. */
+  gap: calc(var(--s-1) / 2);
+  padding-top: var(--s-3);
+  /* Soixante-huit : la pastille fait cinquante-neuf de large, les deux icônes
+     trente-quatre. L'échelle s'arrête à quarante, cette réserve s'y compose. */
+  padding-right: calc(var(--s-11) + var(--s-9) + var(--s-2));
+  min-height: 0;
+}
+/* Et l'écart jusqu'à la bande : trois plus le filet plus la gouttière de huit,
+   douze au lieu de dix-sept. */
+.ident + .sec {
+  padding-top: var(--s-1);
 }
 .name {
   font-size: 0.82rem;
@@ -78,8 +109,18 @@
 .grid span {
   display: block;
 }
+/* TROIS LIGNES, PAS UNE PHRASE : l'étiquette, le nombre seul, la glose en
+   dessous. Le nombre collé à sa glose se lisait « 97 %séance du 29 sept. ». */
 .band b {
+  display: block;
   font-size: 0.95rem;
+}
+.band em {
+  display: block;
+  font-style: normal;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ink-3);
 }
 /* Le rendement est le chiffre que porte la façade : il est le même des deux
    côtés de la pièce, à la même couleur. */
@@ -231,4 +272,19 @@
 /* the first section is also the first child: this rule comes last so the pill's room wins */
 .sec.first {
   padding-top: 24px;
+}
+/**
+ * ET LE NOM PASSE DEVANT CETTE DERNIÈRE RÈGLE.
+ *
+ * « .sec.first » est posée en fin de fichier avec deux classes, précisément
+ * pour que la place de la pastille gagne sur « .sec:first-child ». Elle gagnait
+ * aussi sur « .ident », qui n'en porte qu'une : la réserve du haut est restée
+ * à vingt-quatre pendant que la gouttière et la réserve de droite, elles,
+ * obéissaient. Trois classes ici, et la mesure le confirme.
+ *
+ * Six, plus les douze de la face du dos : dix-huit du bord au nom, la moitié
+ * des trente-six d'avant.
+ */
+.sec.first.ident {
+  padding-top: var(--s-3);
 }
