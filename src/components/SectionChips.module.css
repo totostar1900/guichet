@@ -7,16 +7,19 @@
    d'accord, d'où les variables plutôt que trois nombres recopiés. */
 .bar {
   position: sticky;
-  top: var(--lieux-h, 0px);
+  top: calc(var(--barre-app, 0px) + var(--lieux-h, 0px));
   z-index: 6;
-  transition: top 0.18s ease;
   display: flex;
   gap: 6px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  padding: 6px 0;
-  margin: 0;
+  /* PLEINE LARGEUR, ET C EST CE QUI MANQUAIT. Sans ces marges negatives la
+     bande s arretait a la gouttiere de la page, et les cartes defilaient
+     VISIBLEMENT de part et d autre, derriere elle. Signale a l ecran le
+     4 octobre 2026 : « scrolling behind the screen appears ». */
+  padding: 6px 20px;
+  margin: 0 -20px;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
 }
@@ -57,12 +60,6 @@
 .on b {
   color: var(--gold-ink) !important;
 }
-/* Quand la rangee d onglets s est retiree, la bande monte prendre sa place :
-   sinon ses quarante pixels liberes resteraient vides sous un filet. */
-:global(html[data-onglets="reduits"]) .bar {
-  top: var(--s-2);
-}
-
 /* « VOUS ÊTES ICI », ET CE N'EST PAS « C'EST FILTRÉ ». La section qu'on lit
    porte un filet sous son nom ; celle qu'on a choisie porte la case entière.
    Deux états qui se confondraient à l'œil seraient pires que l'absence du
@@ -79,4 +76,14 @@
 .empty {
   opacity: 0.55;
   cursor: default;
+}
+
+@media (max-width: 820px) {
+  /* La gouttière du téléphone vaut quatorze dans cette page. */
+  .bar {
+    padding-left: calc(var(--s-6) + var(--s-1));
+    padding-right: calc(var(--s-6) + var(--s-1));
+    margin-left: calc(-1 * (var(--s-6) + var(--s-1)));
+    margin-right: calc(-1 * (var(--s-6) + var(--s-1)));
+  }
 }

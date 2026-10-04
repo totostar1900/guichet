@@ -1,15 +1,15 @@
 /* Les onglets d'une section : un filet sous la rangée, un trait actif de deux
    pixels sous l'onglet courant. Le transparent de même épaisseur sur les autres
    empêche la rangée de sauter d'un pixel au changement. */
-/* ELLE COLLE, ET ELLE SE RETIRE EN DESCENTE. Deux bandes permanentes, celle-ci
-   et celle des sections, prennent environ quatre-vingts pixels : une carte et
-   demie sur un écran de 812, trop pour une liste qu'on parcourt longtemps.
-   Celle-ci s'efface donc dès qu'on descend et ne laisse qu'un filet ; un geste
-   vers le haut la ramène. Celle des sections reste : c'est elle qui sert
-   pendant la lecture. */
+/* ELLE COLLE, ET ELLE NE BOUGE PLUS.
+   Elle se retirait d'abord en descente pour rendre quarante pixels. Le
+   résultat tremblait, et c'était prévisible une fois vu : le seuil basculait
+   pendant que la page bougeait, la hauteur s'animait, et la bande des
+   sections changeait de « top » au même instant. Trois mouvements pour
+   quarante pixels. Une barre collante qui bouge n'est plus un repère. */
 .onglets {
   position: sticky;
-  top: 0;
+  top: var(--barre-app, 0px);
   z-index: 7;
   height: var(--lieux-h);
   display: flex;
@@ -21,20 +21,13 @@
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   background: var(--paper);
-  transition: height 0.18s ease, opacity 0.18s ease, margin-bottom 0.18s ease;
-}
-.onglets[data-reduit="oui"] {
-  height: var(--s-2);
-  margin-bottom: var(--s-4);
-  opacity: 0.6;
-}
-.onglets[data-reduit="oui"] .onglet {
-  pointer-events: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .onglets {
-    transition: none;
-  }
+  /* PLEINE LARGEUR : collante, elle doit couvrir ce qui defile dessous, y
+     compris dans les gouttieres de la page. Sans ces marges negatives les
+     cartes passaient VISIBLEMENT de part et d autre. */
+  padding-left: var(--s-8);
+  padding-right: var(--s-8);
+  margin-left: calc(-1 * var(--s-8));
+  margin-right: calc(-1 * var(--s-8));
 }
 .onglets::-webkit-scrollbar {
   display: none;

@@ -929,7 +929,7 @@
    toujours où l'on se trouve, et il emporte son compte. */
 .secHead {
   position: sticky;
-  top: calc(var(--lieux-h) + var(--sections-h));
+  top: calc(var(--barre-app, 0px) + var(--lieux-h) + var(--sections-h));
   z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -959,4 +959,12 @@
   line-height: 1.45;
   color: var(--ink-3);
   margin-top: 2px;
+}
+
+/* LA RÉSERVE DU SAUT : ce que la bande collante occupe, titre de section
+   compris. Le navigateur l'applique au moment où il s'arrête, ce qu'un calcul
+   fait à l'instant du clic ne peut pas faire — la mise en page bouge entre les
+   deux, et on arrive dans la section d'avant. */
+.bloc {
+  scroll-margin-top: calc(var(--barre-app, 0px) + var(--lieux-h) + var(--sections-h) + var(--s-2));
 }

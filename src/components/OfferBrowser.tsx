@@ -658,7 +658,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
     ) : parSections && !featured ? (
       <>
         {groupBySection(list, lieu).map((g) => (
-          <section key={g.section} aria-labelledby={`sec-${g.section}`}>
+          <section key={g.section} className={styles.bloc} aria-labelledby={`sec-${g.section}`}>
             <SectionHead section={g.section} n={g.rows.length} />
             {g.rows.length > 0 && renderUn(g.rows, false)}
           </section>

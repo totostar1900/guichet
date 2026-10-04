@@ -69,6 +69,12 @@
      contenu la decider faisait chevaucher les pastilles de quatre pixels et
      demi, ce qui ne se voit qu a l ecran. */
   --lieux-h: calc(var(--s-11) + var(--s-2));
+  /* CE QUE L EN-TETE DE L APPLICATION OCCUPE EN HAUT. Tout ce qui colle se
+     pose SOUS lui : il est lui-meme collant, a z-index 40, et une barre qui
+     collerait a zero disparaitrait derriere sans que rien ne le signale.
+     Mesure le 4 octobre 2026 : la rangee d onglets etait invisible, cachee
+     par ces cinquante-deux pixels. Il n existe que sur telephone. */
+  --barre-app: 0px;
   /* One hue per instrument family : badge text / soft background. Same in every view. */
   --fam-OTA: #0b2545;
   --fam-OTA-soft: #e3e9f3;
@@ -982,4 +988,10 @@ h3 {
 }
 .rail-y::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --barre-app: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
+  }
 }

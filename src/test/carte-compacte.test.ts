@@ -363,3 +363,93 @@ describe("les deux bandes collantes", () => {
     expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "la rangée doit VALOIR cette hauteur, pas la laisser au contenu").toMatch(/height: var\(--lieux-h\)/);
   });
 });
+
+describe("la bande des sections conduit, et le saut est instantané", () => {
+  /**
+   * TROIS CHEMINS MESURÉS LE 4 OCTOBRE 2026 sur un saut vers « Entreprises »,
+   * et deux qui ratent :
+   *
+   *  - cible calculée puis glissement doux : 158 px trop haut, dans la
+   *    section d'avant, parce que la cible est mesurée à l'instant du clic et
+   *    que la mise en page bouge pendant le voyage ;
+   *  - « scrollIntoView » avec « scroll-margin-top » : régulier mais 76 px
+   *    trop bas, toujours dans la section d'avant ;
+   *  - défilement mesuré et INSTANTANÉ : le bloc se pose à quatre pixels sous
+   *    la bande, aux cinq sections.
+   *
+   * ET « instant » DOIT ÊTRE ÉCRIT. La page déclare « scroll-behavior:
+   * smooth » : « auto » veut dire « ce que dit le CSS », donc un glissement.
+   * L'atterrissage variait alors de -3743 à +624 selon le moment où l'on
+   * regardait, ce qui ressemblait à un défaut de calcul et n'en était pas un.
+   */
+  const chips = readFileSync("C:/dev/guichet/src/components/SectionChips.tsx", "utf8");
+  /* Les commentaires CITENT ce qui a été retiré : on les enlève avant de
+     chercher, sinon l'épreuve se prend elle-même au piège. Troisième fois
+     aujourd'hui. */
+  const code = chips.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  it("la pastille conduit à la section, elle ne filtre plus", () => {
+    expect(chips, "le clic doit conduire").toContain("conduire(s)");
+    expect(chips, "le saut se mesure depuis la bande collante").toContain("bande.getBoundingClientRect().bottom");
+  });
+
+  it("le saut est instantané, écrit noir sur blanc", () => {
+    expect(chips, '« auto » suivrait « scroll-behavior: smooth » de la page').toContain('behavior: "instant"');
+    expect(readFileSync("C:/dev/guichet/src/app/globals.css", "utf8"), "si la page cessait d'être douce, ce commentaire deviendrait faux").toMatch(/scroll-behavior: smooth/);
+  });
+
+  it("la barre ne déplace jamais la page pour se recadrer", () => {
+    /* « scrollIntoView » sur la pastille active déplaçait AUSSI la page quand
+       il jugeait la barre mal cadrée, pendant que le doigt défilait : c'était
+       le tremblement signalé. On n'écrit que « scrollLeft ». */
+    expect(code, "scrollIntoView sur la pastille fait trembler la page").not.toMatch(/scrollIntoView/);
+    expect(chips, "seul l'axe horizontal de la barre bouge").toContain("b.scrollTo({ left:");
+  });
+
+  it("les deux bandes couvrent toute la largeur", () => {
+    /* Collantes et à la gouttière de la page, elles laissaient les cartes
+       défiler VISIBLEMENT de part et d'autre. */
+    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8")).toMatch(/\.bar \{[^}]*margin: 0 -20px/);
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8")).toMatch(/margin-left: calc\(-1 \* var\(--s-8\)\)/);
+  });
+
+  it("la rangée d'onglets ne se replie plus", () => {
+    /* Le repli rendait quarante pixels et faisait trembler : le seuil
+       basculait pendant que la page bougeait, la hauteur s'animait, et la
+       bande des sections changeait de « top » au même instant. */
+    const css = readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8");
+    expect(css, "une hauteur qui s'anime sur une barre collante tremble").not.toMatch(/transition:[^;]*height/);
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "plus d'écoute du défilement sur cette rangée").not.toMatch(/addEventListener\("scroll"/);
+  });
+});
+
+describe("la pile collante commence sous l'en-tête de l'application", () => {
+  /**
+   * L'EN-TÊTE DE L'APPLICATION EST LUI-MÊME COLLANT, à z-index 40 et sur
+   * cinquante-deux pixels. Une barre qui collerait à zéro disparaîtrait
+   * derrière lui sans que rien ne le signale : c'est ce qui est arrivé à la
+   * rangée d'onglets, invisible à l'écran alors que ses coordonnées la
+   * disaient en place — elle était bien à 0-44, mais sous un en-tête opaque.
+   *
+   * Les quatre étages se posent donc les uns sous les autres, et chacun
+   * ajoute la hauteur des précédents. Mesuré après : 0-52 l'application,
+   * 52-96 les onglets, 96-137 les sections, 138 le titre de section.
+   */
+  it("chaque étage ajoute la hauteur de celui du dessus", () => {
+    const g = readFileSync("C:/dev/guichet/src/app/globals.css", "utf8");
+    expect(g, "la hauteur de l'en-tête doit être nommée une fois").toMatch(/--barre-app:/);
+    expect(g, "elle ne vaut que sur téléphone, où cet en-tête existe").toMatch(/@media \(max-width: 760px\)[\s\S]{0,200}--barre-app: calc\(var\(--mobile-bar\)/);
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "les onglets se posent sous l'en-tête").toMatch(/top: var\(--barre-app/);
+    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8"), "les sections se posent sous les onglets").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--lieux-h/);
+    const o = readFileSync("C:/dev/guichet/src/components/OfferBrowser.module.css", "utf8");
+    expect(o, "le titre de section se pose sous les deux").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--lieux-h\) \+ var\(--sections-h\)\)/);
+    expect(o, "et le saut réserve la même hauteur").toMatch(/scroll-margin-top: calc\(var\(--barre-app/);
+  });
+
+  it("aucun étage ne passe devant l'en-tête de l'application", () => {
+    // Il est à 40 : ce qui se glisse dessous doit rester en dessous.
+    const z = (css: string, sel: RegExp) => Number((css.match(sel) ?? [])[1] ?? 0);
+    expect(z(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), /\.onglets \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
+    expect(z(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8"), /\.bar \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
+  });
+});
