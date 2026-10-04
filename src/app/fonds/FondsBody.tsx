@@ -1,7 +1,7 @@
 import { repo } from "@/lib/data";
+import { fondsListes } from "@/lib/domain/listes";
 import { FundsBrowser } from "./FundsBrowser";
 import { FondsEnBref } from "./FondsEnBref";
-import type { Offer } from "@/lib/domain/types";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -22,7 +22,7 @@ export async function FondsBody() {
      plus de compte. Il restait la requête du bulletin, payée à chaque visite
      pour une valeur que plus rien n'affiche, et trois variables mortes. */
   const offers = await r.listOffers();
-  const funds = offers.filter((o): o is Offer & { fund: NonNullable<Offer["fund"]> } => o.kind === "FONDS" && Boolean(o.fund));
+  const funds = fondsListes(offers);
   // Les courbes partent avec la page : une carte retournée les dessine tout de suite,
   // au lieu d'aller les demander et de montrer « Courbe en cours de lecture… ».
   const curves = await r.listFundCurves(funds.map((o) => o.fund.key));

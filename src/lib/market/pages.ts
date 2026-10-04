@@ -18,6 +18,13 @@ export interface MarketPage {
   hint: string;
   /** Le nom en deux mots, pour une pastille : le nom complet n'y tiendrait pas. */
   short?: string;
+  /**
+   * Trois ou quatre mots sous une tuile. La phrase de « hint » y est illisible
+   * et, coupée, elle devient fausse ; mais une tuile sans rien du tout ne dit
+   * pas ce qu'elle ouvre, et c'est le défaut des grilles d'icônes. Donc jamais
+   * zéro, jamais une phrase.
+   */
+  tuile?: string;
   /** Vrai quand la page appartient au Guide plutôt qu'au marché lui-même. */
   guide?: boolean;
   /**
@@ -29,20 +36,20 @@ export interface MarketPage {
 }
 
 export const MARKET_PAGES: MarketPage[] = [
-  { key: "marche", href: "/marche", label: "Le marché", hint: "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis" },
-  { key: "indice", href: "/indice", deskHref: "/desk/indice/apercu", label: "L'indice BVMAC All Share", short: "L'indice", hint: "le niveau séance par séance, sept vues, la composition sur les deux pondérations" },
-  { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
-  { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
-  { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", hint: "deux titres côte à côte, avec l'indice en repère" },
+  { key: "marche", href: "/marche", label: "Le marché", short: "Vue d'ensemble", tuile: "l'indice, les sociétés, les avis", hint: "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis" },
+  { key: "indice", href: "/indice", deskHref: "/desk/indice/apercu", label: "L'indice BVMAC All Share", short: "L'indice", tuile: "séance par séance", hint: "le niveau séance par séance, sept vues, la composition sur les deux pondérations" },
+  { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés", tuile: "les sept de la cote", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
+  { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", tuile: "un trimestre par note", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
+  { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", tuile: "deux lignes côte à côte", hint: "deux titres côte à côte, avec l'indice en repère" },
   /* LES ADJUDICATIONS ONT QUITTÉ CETTE TABLE pour le siège Instruments. Elles y
      étaient rangées comme une publication, entre l'indice et les notes, alors
      qu'une séance annoncée est une occasion d'acheter et non un article. La
      règle, désormais : Marché se lit, Instruments s'achète, Trader fait. Voir
      `lib/nav-groups.ts`, où les trois sièges déclarent leurs pages. */
   // Le Guide est servi sur les deux domaines : une seule adresse suffit.
-  { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
+  { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", tuile: "comment lire l'indice", hint: "ce qu'il dit, ce qu'il ne dit pas, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
-  { key: "actualites", href: "/actualites", label: "Actualités du marché", short: "Actualités", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
+  { key: "actualites", href: "/actualites", label: "Actualités du marché", short: "Actualités", tuile: "cinq rubriques, relues", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
 ];
 
 /**

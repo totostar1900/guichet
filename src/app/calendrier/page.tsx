@@ -5,7 +5,7 @@ import styles from "./page.module.css";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { AdjudicationsEnBref } from "./EnBref";
-import { lieuDe } from "@/lib/domain/sections";
+import { seancesAnnoncees } from "@/lib/domain/listes";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +50,7 @@ export default async function CalendrierPage() {
      elle-même sans un aller-retour par ligne, et sans elles la cloche ne
      saurait pas quoi montrer. Sans session, personne n'a d'alerte. */
   const [offers, veilles] = await Promise.all([repo().listOffers(), session ? repo().listWatches(session.userId) : Promise.resolve([])]);
-  const seances = offers.filter((o) => !o.hidden && lieuDe(o) === "adjudications");
+  const seances = seancesAnnoncees(offers);
   const suivis = veilles.map((w) => w.offerId);
 
   return (

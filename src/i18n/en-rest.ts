@@ -1052,6 +1052,22 @@ export const EN_REST: Record<string, string> = {
   "obligations, bons du Trésor et actions de la zone CEMAC": "bonds, treasury bills and shares of the CEMAC zone",
   "les OPCVM de la zone, leur valeur liquidative et leurs frais": "the mutual funds of the zone, their net asset value and their fees",
   "ce que vous avez, et ce qui en découle": "what you hold, and what follows from it",
+  /* Les trois ou quatre mots sous une tuile du dock. Ils vivent dans une table
+     et traversent t() en variable, donc le scanner de clefs ne les voit pas :
+     c'est « tuiles-en.test.ts » qui tient leur couverture. */
+  "ce qui vous attend": "what is waiting for you",
+  "répartition et rendement": "allocation and return",
+  "un coupon qui tombe": "a coupon that lands",
+  "relevés, avis, bulletins": "statements, notices, bulletins",
+  "obligations, bons, actions": "bonds, bills, shares",
+  "les OPCVM de la zone": "the mutual funds of the zone",
+  "les séances des Trésors": "the Treasuries' sessions",
+  "l'indice, les sociétés, les avis": "the index, the companies, the notices",
+  "séance par séance": "session by session",
+  "les sept de la cote": "the seven on the exchange",
+  "un trimestre par note": "one quarter per note",
+  "deux lignes côte à côte": "two lines side by side",
+  "cinq rubriques, relues": "five sections, reviewed",
   "ce qui s'achète": "what can be bought",
   "Cette page expliquée": "This page explained",
 /* ---------- les trois lieux et leurs sections ---------- */

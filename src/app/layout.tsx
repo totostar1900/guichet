@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { comptesParLieu, type ComptesParLieu } from "@/lib/domain/listes";
 import Link from "next/link";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import "./globals.css";
@@ -74,11 +75,16 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-/** The two figures in the menu: listed lines and funds. Never fails the page. */
-async function countOffers(): Promise<{ titres: number; fonds: number } | undefined> {
+/**
+ * Les trois chiffres des trois pages d'achat : la cote, les fonds, les séances.
+ * La bande large en fait une somme, les tuiles du téléphone les montrent un par
+ * un. Ils sont comptés comme chaque page les montre, par « domain/listes », et
+ * ne tiennent qu'à la lecture que le layout faisait déjà. N'échoue jamais la
+ * page : sans eux les tuiles portent leur nom, et c'est tout.
+ */
+async function countOffers(): Promise<ComptesParLieu | undefined> {
   try {
-    const all = await repo().listOffers();
-    return { titres: all.filter((o) => !o.hidden && o.kind !== "FONDS").length, fonds: all.filter((o) => o.kind === "FONDS").length };
+    return comptesParLieu(await repo().listOffers());
   } catch {
     return undefined;
   }
@@ -156,7 +162,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} desk={deskUi} deskHost={onDeskHost} counts={navCounts} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />

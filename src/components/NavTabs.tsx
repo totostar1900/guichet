@@ -7,6 +7,7 @@ import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
 import { INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
+import type { ComptesParLieu } from "@/lib/domain/listes";
 import { isEspaceSection, isInstrumentsSection, isMarcheSection } from "@/lib/nav-section";
 
 /**
@@ -81,7 +82,7 @@ const TABS = [
 ];
 
 /** `mode`: "client" hides the Desk tab (the desk has its own host), "desk" keeps only it, "all" is the one-host setup. */
-export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: { titres: number; fonds: number }; mode?: "all" | "client" | "desk"; connecte?: boolean }) {
+export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: ComptesParLieu; mode?: "all" | "client" | "desk"; connecte?: boolean }) {
   const path = usePathname();
   const t = useT();
   // Le menu retient la page sur laquelle il s'est ouvert : changer de page le referme
@@ -125,7 +126,7 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: {
             {t(tab.label)}
             {/* Le compte est celui de tout ce qui s'achète : les deux chiffres
                 tenaient sous deux onglets, ils tiennent sous Instruments. */}
-            {counts && tab.href === "/titres" && <b className={styles.count}>{counts.titres + counts.fonds}</b>}
+            {counts && tab.href === "/titres" && <b className={styles.count}>{counts.titres + counts.fonds + counts.calendrier}</b>}
           </>
         );
         if (!tab.pages)

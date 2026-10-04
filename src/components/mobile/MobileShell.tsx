@@ -9,6 +9,8 @@ import { MarketChips } from "./MarketChips";
 import { Sheet } from "./Sheet";
 import { currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
+import { ICONE_PAGE } from "@/components/nav/IconesPages";
+import type { ComptesParLieu } from "@/lib/domain/listes";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
 import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
@@ -42,6 +44,17 @@ const GROUPES: Record<Groupe, { titre: string; sous: string; pages: NavPage[] }>
   portefeuille: { titre: "Portefeuille", sous: "ce que vous avez, et ce qui en découle", pages: PORTEFEUILLE_PAGES },
   instruments: { titre: "Instruments", sous: "ce qui s'achète", pages: INSTRUMENTS_PAGES },
   marche: { titre: "Marché", sous: "les pages de la BVMAC", pages: MARCHE_PAGES },
+};
+
+/**
+ * Les pages qui portent un chiffre. Les trois listes d'achat l'ont, parce
+ * qu'on y vient compter ; une page de lecture n'a rien à compter, et un zéro
+ * sous « Comparer » ne voudrait rien dire.
+ */
+const COMPTES: Record<string, (c?: ComptesParLieu) => number | undefined> = {
+  titres: (c) => c?.titres,
+  fonds: (c) => c?.fonds,
+  calendrier: (c) => c?.calendrier,
 };
 
 const I = {
@@ -108,7 +121,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, counts, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que chaque page d'achat contient, pour le dire avant le toucher */ counts?: ComptesParLieu; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -252,15 +265,33 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
       )}
 
       {/* Une seule feuille pour les trois sièges : trois composants de la même
-          chose finiraient par se répondre différemment. */}
+          chose finiraient par se répondre différemment.
+
+          DES TUILES, ET NON DES RANGÉES. Trois ou quatre destinations lues en
+          une fois valent mieux que trois phrases lues l'une après l'autre : on
+          vient ici pour aller ailleurs, pas pour lire. Ce que la tuile perd,
+          c'est la phrase entière ; elle garde trois mots, jamais rien, parce
+          qu'une grille d'icônes nues ne dit pas ce qu'elle ouvre. La feuille
+          large, elle, garde la phrase : la place y est.
+
+          ET LE CHIFFRE RÉPOND AVANT LE TOUCHER. « 44 » sous Titres est la seule
+          chose que la rangée ne disait pas, et c'est celle qu'on allait
+          chercher. Il est compté comme la page le montre, par « domain/listes »,
+          sinon il mentirait d'une ligne ou de neuf. */}
       <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")} sub={t(ouverte ? GROUPES[ouverte].sous : "")}>
-        <div className={styles.market}>
-          {(ouverte ? GROUPES[ouverte].pages : []).map((p) => (
-            <Link key={p.key} href={p.href} className={p.href === path || p.key === currentMarketPage(path) ? styles.marketOn : undefined} onClick={() => setFeuille(null)}>
-              <b>{t(p.label)}</b>
-              <small>{t(p.hint)}</small>
-            </Link>
-          ))}
+        <div className={styles.tuiles} style={{ gridTemplateColumns: `repeat(${Math.min(ouverte ? GROUPES[ouverte].pages.length : 1, 4)}, 1fr)` }}>
+          {(ouverte ? GROUPES[ouverte].pages : []).map((p) => {
+            const ici = p.href === path || p.key === currentMarketPage(path);
+            const n = COMPTES[p.key] ? COMPTES[p.key](counts) : undefined;
+            return (
+              <Link key={p.key} href={p.href} className={`${styles.tuile} ${ici ? styles.tuileIci : ""}`} aria-current={ici ? "page" : undefined} onClick={() => setFeuille(null)}>
+                <span className={styles.ico}>{ICONE_PAGE[p.key]}</span>
+                <b>{t(p.short ?? p.label)}</b>
+                <em>{t(p.tuile ?? p.hint)}</em>
+                {n != null && <span className={styles.compte}>{n}</span>}
+              </Link>
+            );
+          })}
         </div>
       </Sheet>
     </>
