@@ -45,6 +45,8 @@ const DEPOSITAIRES = [
   "SOCIETE GENERALE CAMEROUN",
 ];
 const CATEGORIES = ["Monétaire", "Obligataire", "Diversifié", "Actions"];
+/** Les quatre Trésors qui empruntent en ce moment, tels que le registre les nomme. */
+const TRESORS = ["État du Cameroun", "État centrafricain", "État du Congo", "État de Guinée équatoriale"];
 
 describe("le nom court d'un groupe", () => {
   it("retire ce qui est dans la moitié des noms, garde ce qui distingue", () => {
@@ -90,6 +92,23 @@ describe("le nom court d'un groupe", () => {
   it("ne coupe pas juste après un mot-outil", () => {
     /* « Crédit du | Congo » est un nom estropié, pas un nom court. */
     expect(nomsCourts(DEPOSITAIRES).get("CREDIT DU CONGO")).toBe("CREDIT DU CONGO");
+  });
+
+  it("laisse un nom, jamais un morceau de phrase", () => {
+    /* LES QUATRE TRÉSORS DE LA PRODUCTION, et les trois façons dont la règle
+       se cassait sur eux avant correction : « État » est dans les quatre
+       noms, donc commun, et le retirer laissait « du Cameroun », « de Guinée
+       équatoriale » et « centrafricain ». Vu à l'écran le 5 octobre 2026 sur
+       la page des adjudications, groupée par émetteur.
+       Deux règles réparent les trois : on jette les mots-outils de tête, et
+       un reste qui commence par une minuscule est un adjectif accroché à ce
+       qu'on vient d'enlever, donc le nom entier revient. */
+    const m = nomsCourts(TRESORS);
+    expect(m.get("État du Cameroun")).toBe("Cameroun");
+    expect(m.get("État du Congo")).toBe("Congo");
+    expect(m.get("État de Guinée équatoriale")).toBe("Guinée équatoriale");
+    expect(m.get("État centrafricain")).toBe("État centrafricain");
+    expect(new Set(m.values()).size).toBe(TRESORS.length);
   });
 
   it("ne touche à rien quand il n'y a rien à dégraisser", () => {

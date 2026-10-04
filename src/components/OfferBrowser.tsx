@@ -14,6 +14,9 @@ import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { SectionChips } from "./SectionChips";
+import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
+import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
+import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
 import { SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
@@ -334,10 +337,10 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
 
 /* ---------- the filters, the search and the sort in a sheet over the list (the page keeps its place) ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
-function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, extra }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number; gauge: React.ReactNode; extra: React.ReactNode }) {
+function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, extra, trie = true }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number; gauge: React.ReactNode; extra: React.ReactNode; /** Faux quand la feuille ne porte pas le tri : son titre ne doit pas le promettre. */ trie?: boolean }) {
   const t = useT();
   return (
-    <Sheet open={open} onClose={onClose} title={t("Filtrer et trier")}>
+    <Sheet open={open} onClose={onClose} title={t(trie ? "Filtrer et trier" : "Filtrer")}>
       <div className={styles.sheetBody}>
           {extra}
           {groups.map((g) => (
@@ -370,7 +373,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
 }
 
 /* ---------- browser ---------- */
-export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu }) {
+export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[] }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
   const router = useRouter();
@@ -386,6 +389,43 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
   const status = setOf("statut");
   const tenor = setOf("duree");
   const yr = parseYieldRange(sp.get("rendement"));
+  /**
+   * LA PAGE DES ADJUDICATIONS N'EST PAS UNE COTE, ET SA BARRE NE DOIT PAS
+   * L'ÊTRE.
+   *
+   * Huit séances d'emprunt d'État, toutes de la même famille : chercher par
+   * nom n'a pas de sens (personne ne connaît « OTA 6,25 % · 8 juil. 2031 » de
+   * mémoire), trier non plus (une séance se lit par sa clôture, et c'est
+   * déjà l'ordre), grouper par émetteur revient à grouper par pays, qui est
+   * un filtre, et choisir entre tableau, liste et cartes n'a pas à se régler
+   * devant huit lignes. Ce qui sépare vraiment deux séances, c'est la DURÉE :
+   * treize semaines ou cinq ans ne s'achètent pas pour la même raison.
+   *
+   * La feuille des filtres y perd donc la recherche, le tri, la présentation
+   * et les vues, et y gagne la durée en jauge, à côté de celle du rendement.
+   */
+  const adj = lieu === "adjudications";
+  const armees = useMemo(() => new Set(suivis ?? []), [suivis]);
+  const dr = parseDureeRange(adj ? sp.get("ans") : null);
+  /* Les durées de TOUTES les lignes du lieu : les barres de la jauge doivent
+     montrer la distribution entière, pas celle de ce qui reste après filtre,
+     sinon la jauge se vide à mesure qu'on s'en sert. */
+  const durees = useMemo(() => offers.map((o) => tenorYears(o)).filter((a) => a > 0), [offers]);
+  /**
+   * HUIT SÉANCES SE RANGENT DE DEUX FAÇONS : par type et par émetteur.
+   *
+   * Par TYPE, c'est ce que la page faisait déjà sous le nom de sections —
+   * bons, obligations, rachats — et c'est le rangement par défaut, parce
+   * qu'un bon à treize semaines et une obligation à cinq ans ne s'achètent
+   * pas pour la même raison. Par ÉMETTEUR, c'est le Trésor qui emprunte, et
+   * c'est la question de celui qui regarde un pays.
+   *
+   * Les deux prennent la même forme que sur les fonds : un titre figé qui
+   * EST le sommaire. La bande des sections, elle, se retire de cette page :
+   * trois pastilles pour trois types n'avaient pas besoin d'une barre à
+   * elles, et deux rangements auraient demandé deux barres.
+   */
+  const parEmetteur = adj && grouped;
   const q = sp.get("q") ?? "";
   const sort = (sp.get("tri") as SortKey) || "deadline";
   const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
@@ -442,17 +482,18 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
     if (sort === k) update({ sens: dir === "asc" ? "desc" : "asc" });
     else update({ tri: k, sens: undefined });
   };
-  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, rendement: undefined, q: undefined });
-  const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (segment ? 1 : 0);
+  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined });
+  const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
     { key: "pays", label: t("Pays"), items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
     { key: "statut", label: t("Statut"), items: STATUSES, selected: status },
-    { key: "duree", label: t("Durée"), items: TENORS, selected: tenor },
+    ...(adj ? [] : [{ key: "duree", label: t("Durée"), items: TENORS, selected: tenor }]),
   ];
   const toggle = (key: string, value: string, single?: boolean) => {
     if (key === "rendement") return update({ rendement: undefined });
+    if (key === "ans") return update({ ans: undefined });
     const cur = setOf(key);
     if (single) {
       if (cur.has(value)) cur.clear();
@@ -467,6 +508,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
   const activeChips = [
     ...groups.flatMap((g) => g.items.filter(([v]) => g.selected.has(v)).map(([v, l]) => ({ key: g.key, value: v, label: t(l), single: g.single }))),
     ...(yr.min != null || yr.max != null ? [{ key: "rendement", value: "*", label: `${t("Rendement")} ${yieldRangeLabel(yr)}`, single: true }] : []),
+    ...(dr.min != null || dr.max != null ? [{ key: "ans", value: "*", label: `${t("Durée")} ${dureeRangeLabel(dr)}`, single: true }] : []),
   ];
   const setYield = (min?: number, max?: number) => update({ rendement: yieldRangeParam(min, max) });
   const yields = useMemo(() => offers.map((o) => headlineYield(o)).filter((y): y is number => y != null), [offers]);
@@ -507,6 +549,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
           const t = tenorYears(o);
           const k = o.kind === "ACTIONS" || o.kind === "FONDS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
           if (!tenor.has(k)) return false;
+        }
+        if (dr.min != null || dr.max != null) {
+          const an = tenorYears(o);
+          if (!(an > 0) || (dr.min != null && an < dr.min) || (dr.max != null && an > dr.max)) return false;
         }
         if (yr.min != null || yr.max != null) {
           const y = headlineYield(o);
@@ -579,17 +625,22 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
    * ne se répète pas au-dessus, la pastille le dit déjà.
    */
   const parSections = !sectionChoisie && view !== "table";
-  const renderUn = (list: Row[], featured: boolean) =>
+  const renderUn = (list: Row[], featured: boolean, deja = false) =>
     view === "list" ? (
-      <List rows={list} grouped={grouped && !featured} featured={featured} />
+      <List rows={list} grouped={grouped && !featured && !deja} featured={featured} />
     ) : (
       <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
-        {(grouped && !featured ? groupByIssuer(list) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
-          ...(grouped && !featured ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
-          <GroupBody key={`b-${g.issuer}`} issuer={grouped && !featured ? g.issuer : ""}>
+        {/* « deja » : le bloc qui nous appelle a déjà posé son titre. Sans
+            lui, la page des adjudications groupée par émetteur montrait deux
+            titres par groupe à vingt pixels l'un de l'autre — « Cameroun ·
+            2 lignes » en figé, « CM État du Cameroun · 2 lignes » juste
+            dessous. */}
+        {(grouped && !featured && !deja ? groupByIssuer(list) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
+          ...(grouped && !featured && !deja ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
+          <GroupBody key={`b-${g.issuer}`} issuer={grouped && !featured && !deja ? g.issuer : ""}>
             {g.rows.map(({ o, s }) => (
               <div key={o.id} className={featured ? styles.pickCard : undefined}>
-                <OfferCard o={o} s={s} />
+                <OfferCard o={o} s={s} suivi={armees.has(o.id)} />
                 {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
               </div>
             ))}
@@ -598,9 +649,38 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
       </div>
     );
 
+  /** Les blocs de la page des adjudications : par émetteur, ou par type. */
+  const blocsAdj = (list: Row[]): { clef: string; entier: string; rows: Row[] }[] => {
+    if (parEmetteur) return groupByIssuer(list).map((g) => ({ clef: groupId(g.issuer), entier: g.issuer, rows: g.rows }));
+    return groupBySection(list, lieu)
+      .filter((g) => g.rows.length > 0)
+      .map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
+  };
+
   const render = (list: Row[], featured: boolean) =>
     view === "table" ? (
       <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
+    ) : adj && !featured ? (
+      (() => {
+        const blocs = blocsAdj(list);
+        /* LES NOMS COURTS : « Trésor public de la République centrafricaine »
+           ne tient pas dans un titre de téléphone, et les six Trésors ne
+           diffèrent que par leur pays. La règle est celle des fonds — un mot
+           présent dans la moitié des noms ne distingue rien — et elle rend
+           son nom entier à qui entrerait en collision. */
+        const brefs = nomsCourts(blocs.map((b) => b.entier));
+        const sommaire: Groupe[] = blocs.map((b) => ({ clef: b.clef, nom: brefs.get(b.entier) ?? b.entier, entier: b.entier, n: b.rows.length }));
+        return (
+          <>
+            {blocs.map((b, i) => (
+              <section key={b.clef} className={styles.bloc} aria-labelledby={`sec-${b.clef}`}>
+                <TeteGroupe id={`sec-${b.clef}`} nom={sommaire[i].nom} entier={b.entier} n={b.rows.length} groupes={sommaire} unite={b.rows.length > 1 ? "lignes" : "ligne"} />
+                {renderUn(b.rows, false, true)}
+              </section>
+            ))}
+          </>
+        );
+      })()
     ) : parSections && !featured ? (
       <>
         {groupBySection(list, lieu).map((g) => (
@@ -625,9 +705,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
           decollait au bout de quarante pixels et partait avec lui. Mesure :
           elle se retrouvait a -1223 apres un defilement de 1400. Son parent
           est donc « wrap », aussi haut que la liste. */}
-      <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />
+      {/* LA BANDE DES SECTIONS NE PARAÎT PLUS SUR LES ADJUDICATIONS : le
+          titre de chaque bloc y est le sommaire, comme sur les fonds, et deux
+          rangements au choix auraient demandé deux barres. */}
+      {!adj && <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />}
       <div className={styles.top} ref={top}>
         <div className={styles.toolbar} data-coach="titres-filtres">
+          {!adj && (
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
@@ -679,6 +763,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
               </ul>
             )}
           </label>
+          )}
           <button type="button" className={styles.sheetBtn} onClick={() => setSheet(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M4 6h16M7 12h10M10 18h4" />
@@ -724,6 +809,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
         )}
       </div>
       <FilterSheet
+        trie={!adj}
         open={sheet}
         onClose={() => setSheet(false)}
         groups={groups}
@@ -732,6 +818,20 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
         count={rows.length}
         gauge={<YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} />}
         extra={
+          adj ? (
+            /* LA DURÉE EN JAUGE, et rien d'autre. Ce qui a été retiré de
+               cette feuille pour la page des adjudications, et pourquoi :
+               la RECHERCHE, parce qu'on ne connaît pas une séance par son
+               nom ; le TRI, parce qu'une séance se lit par sa clôture et
+               que c'est déjà l'ordre ; le GROUPEMENT par émetteur, parce
+               qu'il recoupe le pays, qui est un filtre juste au-dessus ; les
+               VUES, parce qu'on ne règle pas trois présentations devant huit
+               lignes. */
+            <div className={styles.fg}>
+              <span>{t("Durée")}</span>
+              <DureeGauge values={durees} min={dr.min} max={dr.max} onChange={(min, max) => update({ ans: dureeRangeParam(min, max) })} />
+            </div>
+          ) : (
           <>
             <div className={styles.fg}>
               <span>{t("Rechercher")}</span>
@@ -761,23 +861,38 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
               </div>
             </div>
           </>
+          )
         }
       />
       <FilterFab watch={top} onClick={() => setSheet(true)} count={filterCount + Number(Boolean(q))} open={sheet} />
 
       <div className={styles.meta}>
+        {/* « 13 lignes · 1 ouverte ou cotée » répétait ce que la liste montre,
+            sur une page qui en porte huit : le compte se voit. Il reste sur
+            la cote, où il y en a trente-cinq et où le filtre en retire. */}
+        {!adj && (
         <span>
           <b>{rows.length}</b> {t(rows.length > 1 ? "lignes" : "ligne")}
           {filterCount > 0 || q ? ` ${t("correspondant aux filtres")}` : ""} · {live} {t(live > 1 ? "ouvertes ou cotées" : "ouverte ou cotée")}
         </span>
+        )}
         <Link className={styles.compareLink} href="/comparer">
           {t("Comparer deux lignes")}
         </Link>
-        <label className={styles.groupToggle}>
-          <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
-          {t("Grouper par émetteur")}
-        </label>
-        {grouped && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
+        {adj ? (
+          /* DEUX RANGEMENTS, PAS UNE CASE À COCHER. « Grouper par émetteur »
+             cochée ou non laissait croire qu'il n'y a qu'une façon de ranger
+             et qu'on l'ajoute ; ici il y en a deux, et l'une des deux est
+             toujours en vigueur. */
+          <Dropdown label="Grouper" single items={[["type", "Type de titre"], ["emetteur", "Émetteur"]]} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
+        ) : (
+          <label className={styles.groupToggle}>
+            <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
+            {t("Grouper par émetteur")}
+          </label>
+        )}
+        {grouped && !adj && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
+        {!adj && (
         <label className={styles.sortSel}>
           {t("Tri")}
           <Select compact value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
@@ -785,6 +900,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
             {dir === "asc" ? "↑" : "↓"}
           </button>
         </label>
+        )}
         {view === "cards" && !desk && <DensitySwitch />}
       </div>
 

@@ -108,6 +108,30 @@
 .corner > .pill {
   flex: none;
 }
+/* LA CLOCHE ET LA PASTILLE SUR LA MÊME LIGNE. Le coin est une COLONNE : la
+   cloche posée avant la pastille se serait rangée au-dessus d'elle, et
+   « avant » veut dire à gauche. Elles forment donc une rangée à elles deux,
+   qui est le premier étage de la colonne. */
+.etat {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+/* L'alerte appartient au lecteur, l'état de la séance au marché : l'or dit
+   « c'est vous qui l'avez posée ». */
+.cloche {
+  display: inline-flex;
+  color: var(--gold-ink);
+}
+.cloche svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 /**
  * LE CHIFFRE SUIT LA LIGNE GRISE À DIX-HUIT.
  *

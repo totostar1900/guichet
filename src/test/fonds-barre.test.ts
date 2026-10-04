@@ -35,6 +35,10 @@ const CARTE = readFileSync("src/app/fonds/FundCard.tsx", "utf8");
 const CARTE_CSS = readFileSync("src/app/fonds/FundCard.module.css", "utf8");
 const MENU_CSS = readFileSync("src/components/market/Dropdown.module.css", "utf8");
 const PAGE_CSS = readFileSync("src/app/fonds/page.module.css", "utf8");
+/* Le titre-sommaire est partagé avec la page des adjudications : il vit dans
+   « market/TeteGroupe », et c'est là qu'on l'éprouve. */
+const TETE = readFileSync("src/components/market/TeteGroupe.tsx", "utf8");
+const TETE_CSS = readFileSync("src/components/market/TeteGroupe.module.css", "utf8");
 const ONGLETS = readFileSync("src/components/market/OngletsMarche.module.css", "utf8");
 const BANDE_CSS = readFileSync("src/components/SectionChips.module.css", "utf8");
 
@@ -125,9 +129,10 @@ describe("les commandes de la page des fonds", () => {
        répétait en plus le titre figé qui la suivait, et coûtait 42 px sur
        chaque écran. */
     expect(SRC, "la bande des groupes est revenue au-dessus du titre").not.toMatch(/BandeGroupes/);
-    expect(PAGE_CSS, "le titre ne se range plus directement sous l'en-tête : une bande s'est réintercalée").toMatch(/\.teteBoite \{[^}]*top: var\(--barre-app, 0px\);/);
+    expect(TETE_CSS, "le titre ne se range plus directement sous l'en-tête : une bande s'est réintercalée").toMatch(/\.teteBoite \{[^}]*top: var\(--barre-app, 0px\);/);
     // Le titre porte le sommaire : il s'ouvre, et il conduit.
-    const tete = corpsDe("function TeteGroupe(", "\n}\n");
+    expect(PAGE, "le titre-sommaire a quitté la page des fonds").toMatch(/<TeteGroupe /);
+    const tete = TETE;
     expect(tete, "le titre ne s'ouvre plus").toMatch(/aria-expanded/);
     expect(tete, "le titre ne conduit plus nulle part").toMatch(/conduireVers\(g\.clef/);
     expect(tete, "le saut doit se mesurer depuis le titre épinglé, pas depuis une constante").toMatch(/tete\.current\?\.getBoundingClientRect\(\)\.top/);
@@ -252,11 +257,11 @@ describe("la pile collante", () => {
   it("couvre toute la largeur, sinon la liste défile visiblement à côté", () => {
     /* Deuxième fois que cette leçon se paie : arrêté à la gouttière, un
        bandeau collant laisse passer les chiffres dans ses marges. */
-    expect(PAGE_CSS, "le titre de groupe s'arrête à la gouttière").toMatch(/\.teteGroupe \{[^}]*margin: var\(--s-8\) -20px var\(--s-4\);/);
-    expect(PAGE_CSS, "sans rembourrage, le texte du titre collerait au bord").toMatch(/\.teteBouton \{[^}]*padding: var\(--s-3\) 20px;/);
-    expect(PAGE_CSS, "le titre de groupe doit être opaque").toMatch(/\.teteGroupe \{[^}]*background: var\(--paper\);/);
+    expect(TETE_CSS, "le titre de groupe s'arrête à la gouttière").toMatch(/\.teteGroupe \{[^}]*margin: var\(--s-8\) -20px var\(--s-4\);/);
+    expect(TETE_CSS, "sans rembourrage, le texte du titre collerait au bord").toMatch(/\.teteBouton \{[^}]*padding: var\(--s-3\) 20px;/);
+    expect(TETE_CSS, "le titre de groupe doit être opaque").toMatch(/\.teteGroupe \{[^}]*background: var\(--paper\);/);
     /* ET LA LISTE AUSSI : ouverte, elle couvre ce qui défile dessous. */
-    expect(PAGE_CSS, "la liste du sommaire s'arrête à la gouttière").toMatch(/\.teteListe \{[^}]*left: -20px;/);
+    expect(TETE_CSS, "la liste du sommaire s'arrête à la gouttière").toMatch(/\.teteListe \{[^}]*left: -20px;/);
   });
 
   it("donne au groupe qu'on lit une marque qui gagne vraiment", () => {
@@ -265,8 +270,8 @@ describe("la pile collante", () => {
        (0,1,1). Les deux couleurs sortaient identiques, rgb(181, 192, 208),
        et le repère ne repérait rien. L'état doit être écrit AUSSI composé
        que la règle de base. */
-    expect(PAGE_CSS, "la marque « vous êtes ici » est redevenue moins spécifique que la règle de base").toMatch(/\.teteListe button\.teteIci \{/);
-    expect(PAGE_CSS, "une marque posée sans son parent reperdra contre « .teteListe button »").not.toMatch(/\n\.teteIci \{/);
+    expect(TETE_CSS, "la marque « vous êtes ici » est redevenue moins spécifique que la règle de base").toMatch(/\.teteListe button\.teteIci \{/);
+    expect(TETE_CSS, "une marque posée sans son parent reperdra contre « .teteListe button »").not.toMatch(/\n\.teteIci \{/);
   });
 });
 

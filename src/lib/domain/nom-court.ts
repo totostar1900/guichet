@@ -48,14 +48,24 @@ export function nomsCourts(noms: string[]): Map<string, string> {
   for (const m of mots) for (const mot of new Set(m.map(fold))) compte.set(mot, (compte.get(mot) ?? 0) + 1);
   const commun = (mot: string) => (compte.get(fold(mot)) ?? 0) * 2 >= uniques.length;
 
+  const outil = (mot: string) => OUTILS.has(fold(mot).replace(/[^a-z]/g, ""));
   const court = (m: string[]): string => {
-    const reste = m.filter((mot) => !commun(mot));
-    const garde = reste.length > 0 ? reste : m;
+    let reste = m.filter((mot) => !commun(mot));
+    /* CE QUI RESTE DOIT ÊTRE UN NOM, PAS UN MORCEAU DE PHRASE. Les Trésors
+       de la zone l'ont montré : « État » est dans les quatre noms, donc
+       commun, et le retirer laissait « du Cameroun », « de Guinée
+       équatoriale », « centrafricain ». Deux règles réparent les trois.
+       On jette les mots-outils de tête — « du Cameroun » devient
+       « Cameroun » — et si le reste commence par une minuscule, c'est un
+       adjectif accroché à ce qu'on vient d'enlever : « centrafricain » ne
+       se tient pas seul, « État centrafricain » si. */
+    while (reste.length > 1 && outil(reste[0])) reste = reste.slice(1);
+    if (reste.length === 0 || /^\p{Ll}/u.test(reste[0])) return m.join(" ");
     const pris: string[] = [];
-    for (const mot of garde) {
+    for (const mot of reste) {
       pris.push(mot);
       // On s'arrête à deux mots, mais jamais juste après un mot-outil.
-      if (pris.length >= 2 && !OUTILS.has(fold(pris[pris.length - 1]).replace(/[^a-z]/g, ""))) break;
+      if (pris.length >= 2 && !outil(pris[pris.length - 1])) break;
     }
     return pris.join(" ");
   };

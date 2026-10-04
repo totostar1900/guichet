@@ -1,5 +1,38 @@
 /** English for the remaining screens: account opening, companies and issuers, reference data, desk forms, MFA. Keyed by the French text. */
 export const EN_REST: Record<string, string> = {
+
+  /* ---------- la page des adjudications, 5 octobre 2026 ---------- */
+  "Les adjudications en bref": "Auctions in brief",
+  "Les six Trésors de la CEMAC empruntent par adjudication : ils annoncent une séance, les investisseurs y proposent un prix ou un taux, et le Trésor sert les meilleures offres jusqu'au montant qu'il recherche. Les annonces viennent de la BEAC, et c'est elle qui fait foi.":
+    "The six CEMAC Treasuries borrow by auction : they announce a session, investors bid a price or a rate, and the Treasury serves the best bids up to the amount it is after. The announcements come from BEAC, and BEAC is the authority.",
+  "Comment une séance se déroule": "How a session runs",
+  "L'annonce": "The announcement",
+  "Le Trésor publie son communiqué, en général une semaine avant la séance : montant recherché, durée, date de règlement.":
+    "The Treasury publishes its notice, usually a week before the session : amount sought, term, settlement date.",
+  "La clôture": "The cut-off",
+  "Le desk doit avoir votre ordre avant elle. Elle précède la séance, parfois de la veille seulement.":
+    "The desk must have your order before it. It comes before the session, sometimes only the day before.",
+  /* « La séance » est déjà traduite plus bas, pour le desk : une clef ne
+     vit qu'une fois. */
+  "Les offres sont dépouillées le jour dit. Le Trésor retient les meilleures jusqu'au montant qu'il veut lever, et peut servir moins, ou rien.":
+    "Bids are opened on the day. The Treasury takes the best ones up to the amount it means to raise, and may serve less, or nothing.",
+  "Le règlement": "Settlement",
+  "Les titres servis sont inscrits à votre nom chez le dépositaire central, et le montant est prélevé à la date de valeur annoncée.":
+    "The securities served are registered in your name at the central depository, and the amount is debited on the announced value date.",
+  "Le prix que vous voyez est une proposition": "The price you see is a proposal",
+  "Le prix, ou le taux, que porte une ligne est celui que Purpose Capital compte présenter à la séance : le desk l'établit au vu des séances précédentes du même Trésor. Ce n'est pas une condition.":
+    "The price, or the rate, a line carries is the one Purpose Capital means to bid at the session : the desk sets it from that Treasury's previous sessions. It is not a condition.",
+  "Vous pouvez proposer le vôtre. Dites-le au desk avant la clôture et c'est celui-là qui part à la séance ; un prix plus bas rapporte davantage s'il est servi, et risque de ne pas l'être.":
+    "You may bid your own. Tell the desk before the cut-off and that is the one that goes to the session ; a lower price pays more if it is served, and risks not being served.",
+  "Aucune séance ouverte au Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.":
+    "No session open at the Guichet right now. The Treasuries publish their notices in waves, often a week before the session.",
+  "3 à 7 ans": "3 to 7 years",
+  "Plus de 7 ans": "Over 7 years",
+  "Durée minimum": "Minimum term",
+  "Durée maximum": "Maximum term",
+  "Aller à un groupe": "Go to a group",
+  "Type de titre": "Type of security",
+
   /* ---------- account opening ---------- */
   "Ouverture de compte-titres": "Securities account opening",
   "1 · Type de client": "1 · Type of client",

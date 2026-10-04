@@ -1,14 +1,10 @@
-import Link from "next/link";
 import { repo } from "@/lib/data";
-import { loadBeacAuctions } from "@/lib/market/beac-feed";
-import { beacLabel, resultsFor, BEAC_ANNONCES, type BeacAuction } from "@/lib/market/beac";
-import { daysBetween } from "@/lib/finance";
-import { fmt, fmtDate, localIso } from "@/lib/format";
-import type { Offer } from "@/lib/domain/types";
+import { getSession } from "@/lib/auth";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { OfferBrowser } from "@/components/OfferBrowser";
+import { AdjudicationsEnBref } from "./EnBref";
 import { lieuDe } from "@/lib/domain/sections";
 
 export const dynamic = "force-dynamic";
@@ -29,159 +25,45 @@ export async function generateMetadata() {
  * prendre part apprend l'opération une fois qu'elle est passée, ce qui revient à
  * ne jamais y prendre part.
  *
- * Deux précautions tiennent cette page.
+ * LA PAGE TENAIT TROIS LISTES, ELLE N'EN TIENT PLUS QU'UNE.
  *
- * Rien n'y est de nous. Chaque ligne cite le communiqué de la BEAC, et le lien
- * l'ouvre : une date d'adjudication publiée sous le nom de la maison est une
- * parole dont elle répond, alors qu'une date citée reste celle du Trésor qui
- * l'a écrite.
+ * Il y avait « À venir », les annonces de la BEAC encore ouvertes ; « Les
+ * lignes de ces séances », ce que le desk en a ouvert au Guichet ; et
+ * « Dernières séances annoncées », les communiqués passés. Trois listes du
+ * même objet, à trois états, dont deux qu'on ne peut que lire. Le lecteur qui
+ * veut prendre part à une séance n'a affaire qu'à la deuxième : les autres
+ * l'obligeaient à comprendre, avant de chercher, laquelle des trois le
+ * concerne.
  *
- * Et elle ne cache pas ses creux. Les annonces arrivent par vagues : trois
- * semaines sans rien, puis six séances en deux jours. Une page vide en période
- * creuse donnerait l'impression d'un marché mort ou d'un outil en panne ; les
- * dernières séances annoncées restent donc affichées, avec leur date, pour
- * montrer le rythme réel plutôt qu'un vide sans explication.
+ * CE QUI PART AVEC ELLES, ET OÙ CELA SE RETROUVE. Les communiqués de la BEAC
+ * étaient cités ligne à ligne : la porte reste ouverte dans « En bref », qui
+ * mène à la page des annonces. Les séances passées relues par le desk, avec
+ * leur taux moyen servi, ne sont plus ici : elles vivent au desk, dans les
+ * adjudications, et sur la courbe des rendements qu'elles alimentent. Le jour
+ * où un client les demandera, ce sera une page d'historique, pas une liste de
+ * plus sous celle-ci.
  */
 export default async function CalendrierPage() {
   const t = await getT();
-  const today = localIso(new Date());
-  const [feed, offers, lues] = await Promise.all([loadBeacAuctions(), repo().listOffers(), repo().listAuctionResults({ limit: 2000 }).catch(() => [])]);
-  const annonces = feed.auctions.filter((a) => a.kind === "annonce" && a.on);
+  const session = await getSession();
+  /* LES ALERTES DE CE LECTEUR, lues ici : la carte ne peut pas les demander
+     elle-même sans un aller-retour par ligne, et sans elles la cloche ne
+     saurait pas quoi montrer. Sans session, personne n'a d'alerte. */
+  const [offers, veilles] = await Promise.all([repo().listOffers(), session ? repo().listWatches(session.userId) : Promise.resolve([])]);
   const seances = offers.filter((o) => !o.hidden && lieuDe(o) === "adjudications");
-  const devant = annonces.filter((a) => a.on! >= today).sort((a, b) => a.on!.localeCompare(b.on!));
-  const passees = annonces.filter((a) => a.on! < today).sort((a, b) => b.on!.localeCompare(a.on!)).slice(0, 8);
-
-  // Une ligne ouverte au Guichet pour cette séance : même pays, même
-  // compartiment, une clôture à moins d'une semaine de la date annoncée. Au-delà
-  // le rapprochement devient une supposition, et on préfère ne rien proposer.
-  const live = offers.filter((o) => !o.hidden && o.status !== "withdrawn" && (o.kind === "BTA" || o.kind === "OTA"));
-  const matching = (a: BeacAuction): Offer | undefined => {
-    if (!a.on || !a.country || !a.instrument) return undefined;
-    const near = live.filter((o) => o.country === a.country && o.kind === a.instrument && Math.abs(daysBetween(a.on!, o.deadlineAt.slice(0, 10))) <= 7);
-    return near.length === 1 ? near[0] : undefined;
-  };
-
-  /**
-   * Ce que NOUS avons lu de cette séance.
-   *
-   * La page renvoyait au communiqué de la BEAC et s'arrêtait là : un PDF scanné
-   * à ouvrir soi-même, alors que le desk a relu la séance et que le chiffre est
-   * en base. Le lecteur avait le document, nous avions la lecture, et les deux
-   * ne se rencontraient pas.
-   *
-   * Le rapprochement se fait sur le pays, le compartiment et la date, à trois
-   * jours près : le communiqué d'annonce porte la date de séance, et le
-   * dépouillement la reprend parfois au lendemain. Au-delà, ce serait deviner,
-   * et on préfère ne rien dire.
-   */
-  const lueDe = (a: BeacAuction) =>
-    a.on && a.country && a.instrument
-      ? lues.find((x) => !x.setAsideAt && x.confirmedBy && x.country === a.country && x.instrument === a.instrument && Math.abs(daysBetween(a.on!, x.sessionOn)) <= 3)
-      : undefined;
-
-  const row = (a: BeacAuction, past: boolean) => {
-    const o = past ? undefined : matching(a);
-    const res = resultsFor(a, feed.auctions);
-    const lue = past ? lueDe(a) : undefined;
-    return (
-      <li key={a.doc.url} className={styles.row}>
-        <span className={styles.when}>
-          <b>{fmtDate(a.on!)}</b>
-          {!past && <small className="muted">{t("dans {n} jours", { n: String(Math.max(0, Math.round(daysBetween(today, a.on!)))) })}</small>}
-        </span>
-        <span className={styles.what}>
-          <b>{beacLabel(a)}</b>
-          {/* Ce que la séance a payé, quand le desk l'a relue. Le taux d'un bon
-              est précompté, une obligation se sert à un prix : les deux ne se
-              mélangent pas, et l'étiquette le dit plutôt que de laisser croire
-              à un taux là où il y a un prix. */}
-          {lue ? (
-            <small className={styles.lue}>
-              {lue.instrument === "BTA" && lue.rateAvg != null ? (
-                <b>{t("Taux moyen servi {v}", { v: `${lue.rateAvg.toFixed(2).replace(".", ",")} %` })}</b>
-              ) : lue.priceAvg != null ? (
-                <b>{t("Prix moyen servi {v}", { v: `${lue.priceAvg.toFixed(3).replace(".", ",")} %` })}</b>
-              ) : (
-                <b>{t("Séance relue, sans prix publié")}</b>
-              )}
-              {lue.served != null && lue.bid != null && lue.served > 0 ? <span className="muted"> · {t("{b} demandé, {s} servi", { b: fmt(lue.bid), s: fmt(lue.served) })}</span> : null}
-            </small>
-          ) : null}
-          <small className="muted">
-            <a href={a.doc.url} target="_blank" rel="noreferrer">
-              {t("Communiqué de la BEAC")}
-            </a>
-          </small>
-        </span>
-        <span className={styles.act}>
-          {/* Une adjudication n'est finie que lorsque le Trésor publie ce qu'il a
-              servi et à quel taux. Tant qu'il ne l'a pas fait, la place est vide :
-              quelques jours de retard sont le cours normal des choses, et l'annoncer
-              comme un manque apprendrait à lire un retard là où il n'y en a pas. */}
-          {res ? (
-            <a className="btn sm ghost" href={res.doc.url} target="_blank" rel="noreferrer">
-              {t("Résultats")}
-            </a>
-          ) : null}
-          {o ? (
-            <Link className="btn sm" href={`/offres/${o.id}`}>
-              {t("Voir la ligne")}
-            </Link>
-          ) : past || res ? null : (
-            <small className="muted">{t("pas encore ouverte au Guichet")}</small>
-          )}
-        </span>
-      </li>
-    );
-  };
+  const suivis = veilles.map((w) => w.offerId);
 
   return (
     <div className={styles.page}>
       <OngletsMarche />
-      <h1 className="display">{t("Adjudications")}</h1>
-      <p className={styles.lead}>
-        {t("Les séances d'émission des six Trésors de la CEMAC, reprises des annonces de la BEAC. Une adjudication s'annonce environ une semaine avant sa séance : cette page suit ce rythme.")}
-      </p>
-
-      <section>
-        <h2>{t("À venir")}</h2>
-        {devant.length ? (
-          <ul className={styles.list}>{devant.map((a) => row(a, false))}</ul>
-        ) : (
-          <p className="muted">
-            {/* Dire « aucune séance » quand on n'a pas pu lire la source, ce serait
-                affirmer sur le marché une chose qui ne parle que de nous. */}
-            {feed.ok
-              ? t("Aucune séance annoncée pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")
-              : t("Les annonces de la BEAC ne répondent pas en ce moment : cette page ne peut rien affirmer sur les séances à venir.")}{" "}
-            <a href={BEAC_ANNONCES} target="_blank" rel="noreferrer">
-              {t("Les annonces de la BEAC")}
-            </a>
-          </p>
-        )}
-      </section>
-
-      {/*
-        LES LIGNES REJOIGNENT LEUR SÉANCE.
-
-        Cette page citait les communiqués de la BEAC et s'arrêtait là : les
-        lignes à souscrire vivaient dans la liste des titres, au milieu de
-        valeurs négociables, et n'en sortaient jamais puisqu'un bon du Trésor
-        n'est jamais coté. L'annonce, la ligne et le dépouillement se suivent
-        maintenant au même endroit, dans cet ordre.
-      */}
-      {seances.length > 0 && (
-        <section>
-          <h2>{t("Les lignes de ces séances")}</h2>
-          <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" />
-        </section>
-      )}
-
-      {passees.length > 0 && (
-        <section>
-          <h2>{t("Dernières séances annoncées")}</h2>
-          <ul className={styles.list}>{passees.map((a) => row(a, true))}</ul>
-        </section>
+      <div className={styles.head}>
+        <h1 className="display">{t("Adjudications")}</h1>
+        <AdjudicationsEnBref />
+      </div>
+      {seances.length > 0 ? (
+        <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
+      ) : (
+        <p className="muted">{t("Aucune séance ouverte au Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
       )}
 
       <p className={styles.note}>

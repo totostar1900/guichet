@@ -44,7 +44,31 @@ const Turn = () => (
  * « Suivre » ne se fait nulle part ailleurs, et en compacte le dos est le seul
  * endroit où vivent les quatre autres chiffres.
  */
-export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
+/**
+ * LA CLOCHE DIT QU'UNE ALERTE EST ARMÉE, et elle manquait.
+ *
+ * On arme une alerte en tirant la carte vers la gauche, puis on relâche : le
+ * mot « Alerte armée » passe une seconde et demie, et la carte redevient
+ * exactement ce qu'elle était. Rien, ensuite, ne distingue une ligne surveillée
+ * d'une autre — ni dans la liste, ni au retour sur la page. Le lecteur qui
+ * doute retire son alerte pour voir, ou en pose une seconde.
+ *
+ * La cloche est donc dans le coin, AVANT la pastille d'état : l'état de la
+ * séance se lit en dernier parce qu'il appartient au marché, l'alerte en
+ * premier parce qu'elle appartient au lecteur.
+ */
+function Cloche() {
+  const t = useT();
+  return (
+    <span className={styles.cloche} title={t("Alerte armée")} aria-label={t("Alerte armée")} role="img">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" />
+      </svg>
+    </span>
+  );
+}
+
+export function OfferCard({ o, s, suivi = false }: { o: Offer; s: OfferSummary; suivi?: boolean }) {
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
@@ -64,9 +88,13 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
       /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
          se suit a chaque changement : deux marches, deux cadences. */
       cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"}
+      suivi={suivi}
       backHead={
         <div className={styles.corner}>
-          <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+          <span className={styles.etat}>
+            {suivi && <Cloche />}
+            <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+          </span>
           {/* LE DOS N'A PLUS SON ICÔNE DE RETOURNEMENT : elle proposait un
               geste que le glissement fait déjà, et la bascule n'existe que
               sous 760 px, où le doigt est toujours disponible. Le « ··· »
@@ -106,7 +134,10 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           <div className={styles.head}>
             <LineIdentity o={o} s={s} href={href} size="lg" isin={false} />
             <div className={styles.corner}>
-              <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+              <span className={styles.etat}>
+                {suivi && <Cloche />}
+                <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+              </span>
               {!desk && <LineMenu line={menu} openRef={more} />}
               <button type="button" data-coach="titres-retourner" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
                 <Turn />
