@@ -1,13 +1,24 @@
 /* La barre de sections : elle défile horizontalement sur un téléphone plutôt
    que de passer à la ligne, pour que la liste commence au même endroit quelle
-   que soit la longueur des noms. */
+   que soit la longueur des noms.
+
+   ELLE COLLE SOUS CELLE DES LIEUX. Les deux se superposent dans cet ordre, et
+   les titres de section viennent se ranger dessous : trois hauteurs à tenir
+   d'accord, d'où les variables plutôt que trois nombres recopiés. */
 .bar {
+  position: sticky;
+  top: var(--lieux-h, 0px);
+  z-index: 6;
+  transition: top 0.18s ease;
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
-  padding: 2px 0 8px;
+  padding: 6px 0;
   margin: 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
 }
 .bar::-webkit-scrollbar {
   display: none;
@@ -19,7 +30,9 @@
   gap: 5px;
   padding: 6px 10px;
   border: 1px solid var(--line-2);
-  border-radius: var(--radius);
+  /* Rayon zéro : la direction arrêtée le 29 septembre 2026. Une pastille
+     arrondie disait « étiquette » ; une case dit « section ». */
+  border-radius: 0;
   background: var(--surface);
   color: var(--ink-2);
   font-family: inherit;
@@ -44,6 +57,24 @@
 .on b {
   color: var(--gold-ink) !important;
 }
+/* Quand la rangee d onglets s est retiree, la bande monte prendre sa place :
+   sinon ses quarante pixels liberes resteraient vides sous un filet. */
+:global(html[data-onglets="reduits"]) .bar {
+  top: var(--s-2);
+}
+
+/* « VOUS ÊTES ICI », ET CE N'EST PAS « C'EST FILTRÉ ». La section qu'on lit
+   porte un filet sous son nom ; celle qu'on a choisie porte la case entière.
+   Deux états qui se confondraient à l'œil seraient pires que l'absence du
+   second. */
+/* Le filet se pose en ombre interne et non en bordure : une bordure plus
+   epaisse grandirait la case d un pixel, et la barre sauterait a chaque
+   changement de section pendant le defilement. */
+.ici {
+  box-shadow: inset 0 calc(-1 * var(--s-1)) 0 var(--gold);
+  color: var(--ink) !important;
+}
+
 /* Éteinte, pas cachée : « 0 » est une information. */
 .empty {
   opacity: 0.55;

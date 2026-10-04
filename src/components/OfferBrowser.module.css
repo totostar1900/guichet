@@ -4,6 +4,10 @@
   /* la hauteur réelle de l’en-tête : la tête de table s’y colle, et deux pixels
      d’erreur la font passer dessous */
   --header-h: 62px;
+  /* Les trois hauteurs collantes : la rangee d onglets (--lieux-h, posee dans
+     globals.css parce que deux modules en dependent), celle des sections, et
+     le titre de section qui se range sous les deux. */
+  --sections-h: calc(var(--s-11) + var(--s-1));
 }
 /* The market tabs and the toolbar scroll with the page; once under the header, the floating filter button brings the controls back. */
 .top {
@@ -925,7 +929,7 @@
    toujours où l'on se trouve, et il emporte son compte. */
 .secHead {
   position: sticky;
-  top: 0;
+  top: calc(var(--lieux-h) + var(--sections-h));
   z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

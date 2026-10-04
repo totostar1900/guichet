@@ -258,13 +258,15 @@ describe("l'en-tête de la carte est réglé par son identité", () => {
     expect(css, "une réserve fixe à droite de l'en-tête est cette devinette").not.toMatch(/\.head \{[^}]*padding-right/);
   });
 
-  it("l'écart sous l'ISIN est la gouttière de la carte, et rien d'autre", () => {
-    /* Plus de marge à écrire : la hauteur de l'en-tête est celle de
-       l'identité, donc la gouttière de la grille suffit. Une marge qui
-       réapparaîtrait ici voudrait dire que quelque chose rattrape encore une
-       hauteur qu'on ne contrôle pas. */
+  it("l'écart sous la ligne grise s'écrit comme un écart, pas comme une marge", () => {
+    /* La gouttière de la carte vaut douze et ne se règle pas par paire : la
+       marge reprend la différence jusqu'à l'écart voulu. On écrit donc
+       l'écart, et la marge s'en déduit — c'est l'écart qui se lit sur
+       l'écran, et c'est lui qu'on vient changer quand on le change.
+       Il a valu 3,5 puis 4 puis 12 puis 18 en une journée : autant que la
+       valeur soit à un seul endroit, nommée. */
     expect(css, "la gouttière de la carte vaut douze").toMatch(/\.card \{[^}]*gap: 12px/);
-    expect(css, "une marge sur le grand chiffre fausse l'écart").not.toMatch(/\.big \{[^}]*margin-top/);
+    expect(css, "l'écart doit être nommé, et la marge s'en déduire").toMatch(/--ecart-ytm:[^;]+;\s*margin-top: calc\(var\(--ecart-ytm\) - var\(--s-6\)\)/);
   });
 });
 
@@ -315,5 +317,49 @@ describe("au dos, la glose du cours tient sur deux lignes", () => {
     expect(src, "la seconde glose doit être rendue").toContain("{note2 && <em>{t(note2)}</em>}");
     const css = readFileSync("C:/dev/guichet/src/components/mobile/CardBack.module.css", "utf8");
     expect(css, "chaque glose occupe sa ligne").toMatch(/\.band em \{[^}]*display: block/);
+  });
+});
+
+describe("les deux bandes collantes", () => {
+  /**
+   * Trois défauts mesurés à l'écran le 4 octobre 2026, dont aucun ne se
+   * voyait à la relecture :
+   *
+   *  1. UNE BANDE DE LIEUX AJOUTÉE EN DOUBLON. « OngletsMarche » portait déjà
+   *     Titres, Fonds et Adjudications ; j'en ai posé une seconde vingt
+   *     pixels plus bas. C'est la rangée qui existe qui devient collante.
+   *  2. LES PASTILLES NE COLLAIENT PAS. Elles vivaient dans « top », un bloc
+   *     court : un élément collant ne dépasse pas la boîte de son parent, et
+   *     elles partaient avec lui. Mesuré à -1223 après un défilement de 1400.
+   *  3. LE REPÈRE ÉTAIT EN RETARD D'UNE SECTION. Il comparait les TITRES, qui
+   *     sont eux-mêmes collants et restent épinglés tant que leur section est
+   *     à l'écran. Le bloc, lui, ne colle pas.
+   */
+  const chips = readFileSync("C:/dev/guichet/src/components/SectionChips.tsx", "utf8");
+  const browser = readFileSync("C:/dev/guichet/src/components/OfferBrowser.tsx", "utf8");
+
+  it("une seule rangée de lieux, celle qui existait", () => {
+    expect(browser, "une seconde bande de lieux ferait doublon avec OngletsMarche").not.toMatch(/LieuBar/);
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "c'est elle qui colle").toMatch(/\.onglets \{[^}]*position: sticky/);
+  });
+
+  it("les pastilles ne vivent pas dans un bloc court", () => {
+    /* Dans « top », elles se décollaient au bout de quarante pixels. Leur
+       parent doit être « wrap », aussi haut que la liste. */
+    const dansTop = /<div className=\{styles\.top\}[\s\S]{0,400}?<SectionChips/.test(browser);
+    expect(dansTop, "les pastilles sont retombées dans « top » : elles ne colleront plus").toBe(false);
+    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8")).toMatch(/\.bar \{[^}]*position: sticky/);
+  });
+
+  it("le repère mesure la section, pas son titre collant", () => {
+    expect(chips, "le titre est collant : il donnerait toujours la section précédente").toContain('[aria-labelledby="sec-');
+    expect(chips, "la section doit encore contenir la bande, pas seulement l'avoir dépassée").toContain("r.bottom > bas");
+  });
+
+  it("les deux bandes partagent une seule hauteur", () => {
+    /* Mesurée à 44,5 et devinée à 40, la bande des sections chevauchait la
+       rangée de quatre pixels et demi. Deux modules, un seul nombre. */
+    expect(readFileSync("C:/dev/guichet/src/app/globals.css", "utf8"), "la hauteur est posée une fois, dans globals").toMatch(/--lieux-h:/);
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "la rangée doit VALOIR cette hauteur, pas la laisser au contenu").toMatch(/height: var\(--lieux-h\)/);
   });
 });

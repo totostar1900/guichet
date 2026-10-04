@@ -2,8 +2,7 @@ import { OfferBrowser } from "@/components/OfferBrowser";
 import { BackToTop } from "@/components/BackToTop";
 import { repo } from "@/lib/data";
 import { lieuDe } from "@/lib/domain/sections";
-import { IndexPulse } from "@/components/IndexPulse";
-import { PrimaireSilence } from "@/components/market/PrimaireSilence";
+
 
 /**
  * La liste des titres, une seule fois.
@@ -46,9 +45,13 @@ export async function TitresBody() {
     .sort()
     .pop();
   return (
+    /* LES DEUX BANDES DU HAUT SONT PARTIES. L'indice et le silence du marché
+       primaire ouvraient la page des titres sur deux encarts qu'il fallait
+       dépasser avant d'atteindre la première ligne, alors qu'aucun des deux
+       ne répond à la question qu'on vient poser ici : quoi acheter. L'indice
+       a sa page, et le calendrier des adjudications est désormais à un
+       toucher dans la bande des lieux. */
     <>
-      <IndexPulse compact />
-      {!primaireOuvert && <PrimaireSilence derniereSeance={derniere} />}
       <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
       <BackToTop />
     </>

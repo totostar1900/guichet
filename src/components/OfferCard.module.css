@@ -109,14 +109,19 @@
   flex: none;
 }
 /**
- * LE CHIFFRE SUIT SON ISIN À DOUZE, LA GOUTTIÈRE DE LA CARTE, SANS RIEN QUI
- * S'AJOUTE.
+ * LE CHIFFRE SUIT LA LIGNE GRISE À DIX-HUIT.
  *
- * Il n'y a donc plus de marge à écrire : c'est que la hauteur de l'en-tête
- * est enfin celle de l'identité seule, le coin ayant quitté le calcul. Tant
- * que le coin y entrait, l'écart VU sous l'ISIN valait douze PLUS le vide que
- * le coin laissait, de zéro à trente-sept selon la longueur du nom et la
- * largeur de l'écran.
+ * La carte est une grille et sa gouttière vaut douze partout ; une gouttière
+ * de grille ne se règle pas par paire, donc la marge reprend la différence.
+ * On écrit l'écart voulu plutôt que la marge, qui s'en déduit : c'est l'écart
+ * qui se lit sur l'écran. Dix-huit n'est pas un pas de l'échelle, il s'y
+ * compose, seize plus deux.
+ *
+ * Cet écart ne tient que parce que la hauteur de l'en-tête est celle de
+ * l'identité seule, le coin ayant quitté le calcul. Tant que le coin y
+ * entrait, l'écart VU sous l'ISIN valait la gouttière PLUS le vide que le
+ * coin laissait, de zéro à trente-sept selon la longueur du nom et la largeur
+ * de l'écran.
  *
  * CETTE RÈGLE A VÉCU UN JOUR DANS « @media (orientation: portrait) », parce
  * que la demande disait « en portrait ». Mesuré pour une seule et même carte :
@@ -129,6 +134,8 @@
  * sous l'en-tête : trente-quatre de large, plus l'air, une constante.
  */
 .big {
+  --ecart-ytm: calc(var(--s-7) + var(--s-1));
+  margin-top: calc(var(--ecart-ytm) - var(--s-6));
   padding-right: calc(var(--s-10) + var(--s-6));
   min-width: 0;
   display: flex;

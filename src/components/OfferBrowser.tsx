@@ -14,7 +14,7 @@ import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { SectionChips } from "./SectionChips";
-import { SECTIONS, SECTION_LABEL, SECTION_NOTE, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
+import { SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { FoldAll, useFold } from "./Fold";
 import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
@@ -185,9 +185,13 @@ function SectionHead({ section, n }: { section: Section; n: number }) {
   const t = useT();
   return (
     <div className={styles.secHead}>
+      {/* LA PHRASE SOUS LE TITRE EST PARTIE. Elle disait la règle
+          d'appartenance de la section — « Emprunts des six États de la zone,
+          cotés en continu » — et elle la disait à chaque passage, sur un
+          écran qu'on parcourt pour comparer des lignes. Le titre suffit à
+          celui qui descend ; celui qui veut la règle la trouve au Guide. */}
       <h2 id={`sec-${section}`}>{t(SECTION_LABEL[section])}</h2>
       <span className={styles.secN}>{n > 0 ? n : t("aucune ligne")}</span>
-      <small className={styles.secNote}>{t(SECTION_NOTE[section])}</small>
     </div>
   );
 }
@@ -669,8 +673,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
       {/* L'en-tête nomme la cote et renvoie aux fonds : il n'a rien à dire sur
           une page d'adjudications, qui a son propre titre et son calendrier. */}
       {lieu === "cote" && <TitresHead fundsCount={fundsCount} />}
+      {/* LA BANDE DES SECTIONS SORT DE « top », ET C EST CE QUI LA REND
+          COLLANTE. Un element collant ne depasse pas la boite de son parent :
+          dans « top », qui est un bloc court en haut de page, elle se
+          decollait au bout de quarante pixels et partait avec lui. Mesure :
+          elle se retrouvait a -1223 apres un defilement de 1400. Son parent
+          est donc « wrap », aussi haut que la liste. */}
+      <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />
       <div className={styles.top} ref={top}>
-        <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />
         <div className={styles.toolbar} data-coach="titres-filtres">
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

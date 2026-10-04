@@ -47,12 +47,21 @@ export const SECTION_LABEL: Record<Section, string> = {
   fonds: "Fonds",
 };
 
-/** Ce qu'une section est, en une ligne, sous son titre : la règle d'appartenance et rien d'autre. */
+/**
+ * Ce qu une section est, en une ligne : la regle d appartenance et rien d autre.
+ *
+ * ELLE N EST PLUS RENDUE SOUS LE TITRE DEPUIS LE 4 OCTOBRE 2026. Elle se
+ * repetait a chaque section sur un ecran qu on parcourt pour comparer des
+ * lignes, et le titre suffit a qui descend. Les phrases restent ici, et leur
+ * anglais aussi : c est la seule definition ecrite de chaque section, et le
+ * Guide est l endroit ou elle doit reparaitre. Une epreuve verifie qu il y en
+ * a une par section, pour qu elles ne pourrissent pas en attendant.
+ */
 export const SECTION_NOTE: Record<Section, string> = {
   souscription: "Émissions ouvertes à la BVMAC : un prix fixé, une fenêtre, puis la cotation.",
   etats: "Emprunts des six États de la zone, cotés en continu.",
   regionales: "La BDEAC, détenue par les six États et la BEAC : ni un État, ni une entreprise.",
-  entreprises: "Sociétés et établissements financiers de la zone. Coupon souvent brut.",
+  entreprises: "Sociétés et établissements financiers de la zone.",
   actions: "Le capital d'une société, pas une créance sur elle.",
   obligations_tresor: "Adjugées à la BEAC, avec un coupon et une durée.",
   bons_tresor: "Précomptés : vous payez moins que le nominal et recevez le nominal à l'échéance.",

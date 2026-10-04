@@ -63,6 +63,12 @@
   --tip-down: #ffb86b;
   --tip-shadow: 0 10px 28px rgba(11, 37, 69, 0.35), 0 2px 6px rgba(11, 37, 69, 0.25);
   --radius: 6px;
+  /* LA HAUTEUR DE LA RANGEE D ONGLETS, partagee. Deux modules en dependent :
+     celui qui la dessine et celui qui colle dessous. Mesuree a 44,5 px, elle
+     est donc FIXEE a 44 pour que les deux disent le meme nombre : laisser le
+     contenu la decider faisait chevaucher les pastilles de quatre pixels et
+     demi, ce qui ne se voit qu a l ecran. */
+  --lieux-h: calc(var(--s-11) + var(--s-2));
   /* One hue per instrument family : badge text / soft background. Same in every view. */
   --fam-OTA: #0b2545;
   --fam-OTA-soft: #e3e9f3;

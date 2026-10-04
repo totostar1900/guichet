@@ -12,6 +12,11 @@ import { useT } from "@/i18n/client";
  */
 type Seg = "primaire" | "secondaire";
 
+/* LE RENVOI VERS LES FONDS A QUITTÉ CET EN-TÊTE : la bande des lieux porte
+   « Fonds » en permanence, au même endroit sur les trois pages. Un deuxième
+   chemin vers la même page, à deux centimètres du premier, coûtait une ligne
+   de titre sans rien ajouter. « fundsCount » reste reçu : la page le compte
+   déjà et le tour de la page le nomme. */
 export function TitresHead({ fundsCount }: { fundsCount: number }) {
   const t = useT();
   return (
@@ -20,9 +25,6 @@ export function TitresHead({ fundsCount }: { fundsCount: number }) {
         <span className="eyebrow">{t("Titres")}</span>
         <h1 className="display">{t("Obligations, bons du Trésor et actions de la zone CEMAC")}</h1>
       </div>
-      <Link href="/fonds" className="btn sm ghost mtogglesFunds" data-coach="titres-fonds">
-        {t("Voir les {n} fonds (OPCVM)", { n: fundsCount })} →
-      </Link>
     </div>
   );
 }

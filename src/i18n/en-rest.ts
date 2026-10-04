@@ -1033,7 +1033,7 @@ export const EN_REST: Record<string, string> = {
   "Émissions ouvertes à la BVMAC : un prix fixé, une fenêtre, puis la cotation.": "Issues open at the BVMAC: a set price, a window, then the listing.",
   "Emprunts des six États de la zone, cotés en continu.": "Bonds of the zone's six States, quoted continuously.",
   "La BDEAC, détenue par les six États et la BEAC : ni un État, ni une entreprise.": "The BDEAC, owned by the six States and the BEAC: neither a State nor a company.",
-  "Sociétés et établissements financiers de la zone. Coupon souvent brut.": "Companies and financial institutions of the zone. The coupon is often gross.",
+  "Sociétés et établissements financiers de la zone.": "Companies and financial institutions of the zone.",
   "Le capital d'une société, pas une créance sur elle.": "A company's capital, not a claim on it.",
   "Adjugées à la BEAC, avec un coupon et une durée.": "Allotted at the BEAC, with a coupon and a term.",
   "Précomptés : vous payez moins que le nominal et recevez le nominal à l'échéance.": "Discounted: you pay less than par and receive par at maturity.",
