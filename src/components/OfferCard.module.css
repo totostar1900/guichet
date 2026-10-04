@@ -197,9 +197,11 @@
   font-variant-numeric: tabular-nums;
 }
 .cTools {
-  /* Vingt-quatre et non huit : le chiffre est ce qu on lit, les outils ce
-     qu on vise. Les coller faisait toucher le « ··· » en voulant lire le
-     rendement, et le pouce couvrait le nombre. */
+  /* SEIZE, LA OU IL N Y AVAIT RIEN. Mesure sur la page vivante : l ecart
+     entre le rendement et les outils etait de ZERO pixel, pas de huit comme
+     je l avais d abord ecrit ici. Le chiffre est ce qu on lit, les outils ce
+     qu on vise : colles, on touchait le « ··· » en voulant lire le rendement
+     et le pouce couvrait le nombre. */
   margin-left: 16px;
   flex: none;
   display: flex;
