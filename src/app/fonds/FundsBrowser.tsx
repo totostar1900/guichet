@@ -9,6 +9,7 @@ import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { usePhone } from "@/components/chart-utils";
+import { FilterFab } from "@/components/FilterFab";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { TeteGroupe } from "@/components/market/TeteGroupe";
 import { Dropdown } from "@/components/market/Dropdown";
@@ -266,10 +267,22 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     setDraft(v);
     update({ q: v || undefined });
   };
+  /**
+   * TOUT EFFACER EFFACE AUSSI LE TRI, et c'est ce qui manquait.
+   *
+   * Le bouton ne remettait que les filtres : qui avait trié par « 12 mois »
+   * gardait son ordre après l'avoir touché, sans comprendre pourquoi la
+   * liste ne revenait pas à ce qu'elle était. Et le tri n'avait pas de
+   * sortie à lui : il est toujours à une valeur, donc sa liste n'offrait
+   * jamais de retour au rangement par catégorie autrement qu'en le
+   * choisissant à la main, parmi huit.
+   *
+   * « Tout » veut dire tout : les filtres, la recherche, l'ordre et son sens.
+   */
   const clearAll = () => {
     pushed.current = "";
     setDraft("");
-    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, vl: undefined });
+    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, vl: undefined, tri: undefined, sens: undefined });
   };
   const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
   const setManager = (v: string) => update({ gestion: v || undefined });
@@ -405,6 +418,10 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     </th>
   );
   const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(depositary)) + Number(Boolean(freq));
+  /* CE QUI EST POSÉ SUR LA LISTE, tri compris : le bouton doit paraître quand
+     la liste n'est plus celle qu'on trouve en arrivant, et un ordre choisi
+     suffit à l'en éloigner. */
+  const poseSurLaListe = active > 0 || Boolean(draft) || sort !== "categorie" || Boolean(sp.get("sens"));
 
   // Remember this list (URL + order shown) so a fund's page can bring the reader back and step to the next fund.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
@@ -558,6 +575,11 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   return (
     <>
+      {/* LE BOUTON DES FILTRES RAMÈNE EN HAUT, puisqu'il n'y a plus de
+          feuille ici : les commandes sont à plat, et c'est vers elles qu'il
+          conduit. Il ne paraît qu'une fois la barre passée sous l'en-tête ;
+          le retour en haut de page, lui, a son propre bouton à droite. */}
+      <FilterFab watch={toolsRef} ouvre={false} open={false} count={active + Number(Boolean(draft))} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} />
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
         {/* UN CHAMP, DEUX RANGÉES, PUIS CE QUE LA LISTE DIT D'ELLE-MÊME.
             Rien derrière un bouton, rien dans une feuille : tout ce qui
@@ -599,11 +621,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                 {asc ? "↑" : "↓"}
               </button>
             )}
-            {(active > 0 || draft) && (
-              <button type="button" className={styles.clear} onClick={clearAll}>
-                {t("Tout effacer")}
-              </button>
-            )}
           </div>
           {actifs.map((f) => (
             <div key={f.clef} className={styles.rangee}>
@@ -620,6 +637,15 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             ne compte pas des fonds, on en cherche un. Ce qui restait d'utile
             sur cette ligne — effacer, trier — a rejoint les listes au-dessus. */}
         <div className={styles.count}>
+          {/* « TOUT EFFACER » À GAUCHE DU CHOIX DES VUES : il défait ce que
+              les commandes du dessus ont posé, et il se tient donc au bout de
+              leur ligne plutôt qu'au milieu d'elles. Il ne paraît pas quand
+              il n'y a rien à défaire. */}
+          {poseSurLaListe && (
+            <button type="button" className={styles.clear} onClick={clearAll}>
+              {t("Tout effacer")}
+            </button>
+          )}
           <div className={styles.seg} role="group" aria-label={t("Affichage")}>
             {(["table", "list", "cards"] as Vue[]).map((v) => (
               <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>

@@ -500,8 +500,14 @@
   .filters {
     display: none;
   }
+  /* LA RANGÉE SE CASSE PLUTÔT QUE DE DÉBORDER. « nowrap » tenait le champ
+     et le bouton du filtre sur une ligne, ce qui était juste quand ils
+     étaient deux. À quatre — filtre, rangement, resserrement, tout effacer —
+     le dernier sortait de l'écran : mesuré à 412 px, « Tout effacer » allait
+     de 373 à 431, donc coupé. Les trois premiers tiennent ensemble, le
+     quatrième descend quand il le faut. */
   .toolbar {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
   .search {
     flex: 1 1 auto;
@@ -888,4 +894,22 @@
    deux, et on arrive dans la section d'avant. */
 .bloc {
   scroll-margin-top: calc(var(--barre-app, 0px) + var(--sections-h) + var(--s-2));
+}
+
+/* TOUT EFFACER, au bout de la ligne des commandes : il défait ce qu'elles
+   ont posé. Discret, parce qu'il ne sert qu'une fois sur dix, mais nommé en
+   toutes lettres : une croix seule ne dit pas ce qu'elle emporte. */
+.clearAll {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--gold-ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: var(--s-2) var(--s-3);
+  cursor: pointer;
+}
+.clearAll:hover {
+  text-decoration: underline;
 }

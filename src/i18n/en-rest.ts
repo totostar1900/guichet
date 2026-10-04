@@ -31,6 +31,7 @@ export const EN_REST: Record<string, string> = {
   "Durée minimum": "Minimum term",
   "Durée maximum": "Maximum term",
   "Aller à un groupe": "Go to a group",
+  "Revenir aux filtres": "Back to the filters",
   "Type de titre": "Type of security",
 
   /* ---------- account opening ---------- */

@@ -60,7 +60,11 @@ const STATUSES: [string, string][] = [
  * vigueur.
  */
 const GROUPEMENTS: [string, string][] = [
-  ["type", "Type de titre"],
+  /* UN MOT CHACUN : le bouton répète la valeur choisie à côté de son nom, et
+     « Grouper · Type de titre » prenait 187 px des 384 d'un téléphone, ce qui
+     renvoyait « Tout effacer » à la ligne. « Grouper » dit déjà qu'il s'agit
+     d'un rangement ; « Type » suffit à dire lequel. */
+  ["type", "Type"],
   ["emetteur", "Émetteur"],
 ];
 const TENORS: [string, string][] = [
@@ -415,6 +419,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * et les vues, et y gagne la durée en jauge, à côté de celle du rendement.
    */
   const adj = lieu === "adjudications";
+  /* La cote et les adjudications rangent leur liste de la même façon : un
+     titre figé par bloc, qui est le sommaire. */
+  const sommaire = adj || lieu === "cote";
   const armees = useMemo(() => new Set(suivis ?? []), [suivis]);
   const dr = parseDureeRange(adj ? sp.get("ans") : null);
   /* Les durées de TOUTES les lignes du lieu : les barres de la jauge doivent
@@ -435,7 +442,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * trois pastilles pour trois types n'avaient pas besoin d'une barre à
    * elles, et deux rangements auraient demandé deux barres.
    */
-  const parEmetteur = adj && grouped;
+  const parEmetteur = sommaire && grouped;
   const q = sp.get("q") ?? "";
   const sort = (sp.get("tri") as SortKey) || "deadline";
   const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
@@ -492,7 +499,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     if (sort === k) update({ sens: dir === "asc" ? "desc" : "asc" });
     else update({ tri: k, sens: undefined });
   };
-  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined });
+  /* TOUT EFFACER VEUT DIRE TOUT : les filtres, la recherche, la section
+     choisie, l'ordre et son sens. Il ne remettait que les filtres, et qui
+     avait trié gardait son ordre après l'avoir touché. */
+  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined });
   const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
@@ -659,33 +669,41 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       </div>
     );
 
-  /** Les blocs de la page des adjudications : par émetteur, ou par type. */
-  const blocsAdj = (list: Row[]): { clef: string; entier: string; rows: Row[] }[] => {
+  /**
+   * Les blocs d'une liste à sommaire : par émetteur, ou par type.
+   *
+   * UNE SECTION VIDE RESTE, avec son zéro. C'est la règle de la maison et
+   * elle vaut surtout ici : « En souscription 0 » dit qu'aucune émission
+   * n'est ouverte, ce qu'une section absente ne dit pas. Un émetteur vide,
+   * lui, n'existe pas : on ne le nomme que parce qu'il a des lignes.
+   */
+  const blocsDuSommaire = (list: Row[]): { clef: string; entier: string; rows: Row[] }[] => {
     if (parEmetteur) return groupByIssuer(list).map((g) => ({ clef: groupId(g.issuer), entier: g.issuer, rows: g.rows }));
-    return groupBySection(list, lieu)
-      .filter((g) => g.rows.length > 0)
-      .map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
+    return groupBySection(list, lieu).map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
   };
 
   const render = (list: Row[], featured: boolean) =>
     view === "table" ? (
       <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
-    ) : adj && !featured ? (
+    ) : sommaire && !featured ? (
       (() => {
-        const blocs = blocsAdj(list);
-        /* LES NOMS COURTS : « Trésor public de la République centrafricaine »
-           ne tient pas dans un titre de téléphone, et les six Trésors ne
-           diffèrent que par leur pays. La règle est celle des fonds — un mot
-           présent dans la moitié des noms ne distingue rien — et elle rend
-           son nom entier à qui entrerait en collision. */
-        const brefs = nomsCourts(blocs.map((b) => b.entier));
-        const sommaire: Groupe[] = blocs.map((b) => ({ clef: b.clef, nom: brefs.get(b.entier) ?? b.entier, entier: b.entier, n: b.rows.length }));
+        const blocs = blocsDuSommaire(list);
+        /* LES NOMS COURTS NE VALENT QUE POUR LES ÉMETTEURS. « Trésor public
+           de la République centrafricaine » ne tient pas dans un titre de
+           téléphone, et les six Trésors ne diffèrent que par leur pays.
+           Les noms de SECTION, eux, sont déjà courts et déjà choisis : les
+           dégraisser les abîme. Vu à l'écran le 5 octobre 2026 sur la cote
+           en anglais, « Open for subscription » devenait « Open for » —
+           deux mots, dont le second est une préposition que la liste des
+           mots-outils française ne connaît pas. */
+        const brefs = parEmetteur ? nomsCourts(blocs.map((b) => b.entier)) : new Map<string, string>();
+        const titres: Groupe[] = blocs.map((b) => ({ clef: b.clef, nom: brefs.get(b.entier) ?? b.entier, entier: b.entier, n: b.rows.length }));
         return (
           <>
             {blocs.map((b, i) => (
               <section key={b.clef} className={styles.bloc} aria-labelledby={`sec-${b.clef}`}>
-                <TeteGroupe id={`sec-${b.clef}`} nom={sommaire[i].nom} entier={b.entier} n={b.rows.length} groupes={sommaire} unite={b.rows.length > 1 ? "lignes" : "ligne"} />
-                {renderUn(b.rows, false, true)}
+                <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} n={b.rows.length} groupes={titres} unite={b.rows.length > 1 ? "lignes" : "ligne"} />
+                {b.rows.length > 0 && renderUn(b.rows, false, true)}
               </section>
             ))}
           </>
@@ -718,7 +736,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       {/* LA BANDE DES SECTIONS NE PARAÎT PLUS SUR LES ADJUDICATIONS : le
           titre de chaque bloc y est le sommaire, comme sur les fonds, et deux
           rangements au choix auraient demandé deux barres. */}
-      {!adj && <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />}
+      {!sommaire && <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />}
       <div className={styles.top} ref={top}>
         <div className={styles.toolbar} data-coach="titres-filtres">
           {!adj && (
@@ -784,10 +802,19 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               commandes de la page sur une ligne, dans l'ordre des décisions.
               Elles étaient sur trois lignes, « Filtrer » seule en haut et les
               deux autres soixante pixels plus bas. */}
-          {adj && (
+          {sommaire && (
             <Dropdown label="Grouper" single items={GROUPEMENTS} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
           )}
-          {adj && view === "cards" && !desk && <DensitySwitch />}
+          {sommaire && view === "cards" && !desk && <DensitySwitch />}
+          {/* TOUT EFFACER, au bout de la ligne qu'il défait : filtres,
+              recherche, ordre et sens. Il ne paraît pas quand il n'y a rien
+              à défaire, et son absence dit donc que la liste est celle qu'on
+              trouve en arrivant. */}
+          {(filterCount > 0 || q || sp.get("tri") || sp.get("sens") || sectionChoisie) && (
+            <button type="button" className={styles.clearAll} onClick={reset}>
+              {t("Tout effacer")}
+            </button>
+          )}
           <div className={styles.filters}>
           <Dropdown
             label={t("Instrument")}
@@ -888,7 +915,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         {/* « 13 lignes · 1 ouverte ou cotée » répétait ce que la liste montre,
             sur une page qui en porte huit : le compte se voit. Il reste sur
             la cote, où il y en a trente-cinq et où le filtre en retire. */}
-        {!adj && (
+        {!sommaire && (
         <span>
           <b>{rows.length}</b> {t(rows.length > 1 ? "lignes" : "ligne")}
           {filterCount > 0 || q ? ` ${t("correspondant aux filtres")}` : ""} · {live} {t(live > 1 ? "ouvertes ou cotées" : "ouverte ou cotée")}
@@ -897,16 +924,18 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         <Link className={styles.compareLink} href="/comparer">
           {t("Comparer deux lignes")}
         </Link>
-        {/* Sur les adjudications, le rangement est monté sur la ligne du
-            filtre, avec le resserrement : trois commandes d'une même famille
-            sur une seule ligne. */}
-        {!adj && (
+        {/* Le rangement est monté sur la ligne du filtre, avec le
+            resserrement : trois commandes d'une même famille sur une seule
+            ligne. La case à cocher ne survit que là où il n'y a pas de
+            sommaire, c'est-à-dire nulle part aujourd'hui — elle attend un
+            troisième lieu. */}
+        {!sommaire && (
           <label className={styles.groupToggle}>
             <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
             {t("Grouper par émetteur")}
           </label>
         )}
-        {grouped && !adj && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
+        {grouped && !sommaire && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
         {!adj && (
         <label className={styles.sortSel}>
           {t("Tri")}
@@ -916,7 +945,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           </button>
         </label>
         )}
-        {view === "cards" && !desk && !adj && <DensitySwitch />}
+        {view === "cards" && !desk && !sommaire && <DensitySwitch />}
       </div>
 
       {picks.length > 0 && (

@@ -382,8 +382,9 @@
   font-size: 0.8rem;
   color: var(--ink-2);
 }
+/* Il est le premier de sa ligne maintenant : la marge qui l'écartait de ce
+   qui le précédait n'a plus rien à écarter. */
 .clear {
-  margin-left: 10px;
   border: 0;
   background: none;
   color: var(--gold-ink);

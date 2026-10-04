@@ -65,7 +65,10 @@ describe("la page des adjudications", () => {
     /* Le compte, la recherche et le tri partent ; la durée arrive. Chacune
        de ces quatre règles est accrochée à « adj », et non retirée pour tout
        le monde : la cote, elle, en a besoin. */
-    expect(BROWSER, "le compte des lignes est revenu sur les adjudications").toMatch(/\{!adj && \(\s*<span>\s*<b>\{rows\.length\}<\/b>/);
+    /* « sommaire » dit « cette liste range ses blocs sous un titre figé » et
+       vaut pour la cote comme pour les adjudications ; « adj » ne garde que
+       ce qui tient au lieu. Le compte part des deux. */
+    expect(BROWSER, "le compte des lignes est revenu").toMatch(/\{!sommaire && \(\s*<span>\s*<b>\{rows\.length\}<\/b>/);
     expect(BROWSER, "la recherche est revenue dans la barre des adjudications").toMatch(/\{!adj && \(\s*<label className=\{styles\.search\}>/);
     expect(BROWSER, "le tri est revenu dans la barre des adjudications").toMatch(/\{!adj && \(\s*<label className=\{styles\.sortSel\}>/);
     expect(BROWSER, "la feuille promet encore un tri qu'elle ne porte pas").toMatch(/title=\{t\(trie \? "Filtrer et trier" : "Filtrer"\)\}/);
@@ -76,8 +79,16 @@ describe("la page des adjudications", () => {
   });
 
   it("groupe par type ou par émetteur, avec un seul titre par groupe", () => {
-    expect(BROWSER, "les deux rangements ont disparu").toMatch(/const GROUPEMENTS: \[string, string\]\[\] = \[\s*\["type", "Type de titre"\],\s*\["emetteur", "Émetteur"\],/);
+    expect(BROWSER, "les deux rangements ont disparu").toMatch(/const GROUPEMENTS: \[string, string\]\[\][\s\S]*?\["type", "Type"\],\s*\["emetteur", "Émetteur"\],/);
     expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single items=\{GROUPEMENTS\}/);
+    /* UNE SECTION VIDE RESTE, AVEC SON ZÉRO : « En souscription 0 » dit
+       qu'aucune émission n'est ouverte, ce qu'une section absente ne dit
+       pas. Les émetteurs, eux, n'existent que par leurs lignes. */
+    expect(BROWSER, "les sections vides ont disparu de la cote").not.toMatch(/groupBySection\(list, lieu\)\s*\.filter/);
+    /* LES NOMS COURTS NE VALENT QUE POUR LES ÉMETTEURS : les libellés de
+       section sont déjà courts et déjà choisis, et les dégraisser les abîme
+       — « Open for subscription » devenait « Open for ». */
+    expect(BROWSER, "les libellés de section repassent au dégraissage").toMatch(/const brefs = parEmetteur \? nomsCourts/);
     expect(BROWSER, "les groupes ne portent plus le titre-sommaire des fonds").toMatch(/<TeteGroupe id=\{`sec-\$\{b\.clef\}`\}/);
     /* DEUX TITRES PAR GROUPE : le bloc posait le sien, et « renderUn »
        regroupait à son tour, vingt pixels plus bas. Vu à l'écran. */
@@ -87,7 +98,7 @@ describe("la page des adjudications", () => {
     expect([...BROWSER.matchAll(/grouped && !featured && !deja/g)].length, "« renderUn » regroupe de nouveau sous un bloc qui a déjà son titre").toBe(4);
     expect(BROWSER, "un regroupement a repris sans tenir compte du bloc qui l'appelle").not.toMatch(/grouped && !featured \?/);
     // La bande des sections ne paraît plus : le titre est le sommaire.
-    expect(BROWSER, "la bande des sections est revenue au-dessus des titres").toMatch(/\{!adj && <SectionChips/);
+    expect(BROWSER, "la bande des sections est revenue au-dessus des titres").toMatch(/\{!sommaire && <SectionChips/);
   });
 
   it("met le filtre, le rangement et le resserrement sur une seule ligne", () => {
@@ -111,8 +122,14 @@ describe("la page des adjudications", () => {
        passait. Et « styles.sheetBtn » sans accolade attrape aussi un
        « styles.sheetBtnX » : la borne doit être close. */
     const filtre = barre.indexOf("className={styles.sheetBtn}");
-    const grouper = barre.indexOf('{adj && (\n            <Dropdown label="Grouper"');
-    const densite = barre.indexOf('{adj && view === "cards" && !desk && <DensitySwitch />}');
+    const grouper = barre.indexOf('{sommaire && (\n            <Dropdown label="Grouper"');
+    const densite = barre.indexOf('{sommaire && view === "cards" && !desk && <DensitySwitch />}');
+    /* TOUT EFFACER FERME LA LIGNE : il défait ce qu'elle pose, donc il vient
+       après. À 412 px les quatre ne tiennent pas ensemble — mesuré, le
+       quatrième allait de 373 à 431 — et la rangée se casse plutôt que de
+       déborder : les trois que le lecteur a nommés restent ensemble. */
+    expect(barre, "« Tout effacer » a quitté la ligne des commandes").toMatch(/styles\.clearAll/);
+    expect(barre.indexOf("styles.clearAll"), "il doit fermer la ligne, pas l'ouvrir").toBeGreaterThan(densite);
     for (const [quoi, i] of [["le filtre", filtre], ["le rangement", grouper], ["le resserrement", densite]] as const) {
       expect(i, `${quoi} a quitté la ligne des commandes`).toBeGreaterThan(-1);
     }

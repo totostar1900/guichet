@@ -6,12 +6,18 @@ import { createPortal } from "react-dom";
 import styles from "./FilterFab.module.css";
 
 /**
- * The floating filter button of a list: a round icon, bottom-left, shown
- * once the list's own toolbar has scrolled under the site header. It opens
- * the same controls in a sheet over the list, so the page keeps its place.
- * Lives on the body: the list may be sliding under a finger, the button must not.
+ * Le bouton flottant des filtres : un rond en bas à gauche, qui paraît dès
+ * que la barre de la liste est passée sous l'en-tête du site. Il vit sur le
+ * « body » : la liste peut glisser sous un doigt, le bouton ne doit pas.
+ *
+ * IL NE MÈNE PAS TOUJOURS À UNE FEUILLE. Sur les titres et les adjudications
+ * il ouvre la feuille des filtres ; sur les fonds, où tout est à plat et où
+ * il n'y a plus de feuille, il RAMÈNE aux commandes, en haut. Dans les deux
+ * cas il veut dire « les filtres », et il y conduit sous la forme qu'ils ont
+ * à cet endroit. « ouvre » dit laquelle, parce qu'un lecteur d'écran ne doit
+ * pas s'entendre annoncer une boîte de dialogue qui ne viendra pas.
  */
-export function FilterFab({ watch, onClick, count, open }: { watch: React.RefObject<HTMLElement | null>; onClick: () => void; count: number; open: boolean }) {
+export function FilterFab({ watch, onClick, count, open, ouvre = true }: { watch: React.RefObject<HTMLElement | null>; onClick: () => void; count: number; open: boolean; ouvre?: boolean }) {
   const t = useT();
   const [gone, setGone] = useState(false);
   const mounted = useSyncExternalStore(
@@ -29,9 +35,10 @@ export function FilterFab({ watch, onClick, count, open }: { watch: React.RefObj
   }, [watch]);
   if (!mounted) return null;
   const on = gone && !open;
-  const label = count > 0 ? `${t("Filtrer et trier")} · ${count}` : t("Filtrer et trier");
+  const quoi = ouvre ? t("Filtrer et trier") : t("Revenir aux filtres");
+  const label = count > 0 ? `${quoi} · ${count}` : quoi;
   return createPortal(
-    <button type="button" className={`${styles.fab} ${on ? styles.on : ""}`} onClick={onClick} aria-haspopup="dialog" aria-hidden={!on} tabIndex={on ? 0 : -1} aria-label={label} title={label}>
+    <button type="button" className={`${styles.fab} ${on ? styles.on : ""}`} onClick={onClick} aria-haspopup={ouvre ? "dialog" : undefined} aria-hidden={!on} tabIndex={on ? 0 : -1} aria-label={label} title={label}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
         <path d="M4 6h16M7 12h10M10 18h4" />
       </svg>

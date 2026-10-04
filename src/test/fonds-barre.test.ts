@@ -66,9 +66,14 @@ const PAGE = SRC.slice(SRC.indexOf("  return ("));
 
 describe("les commandes de la page des fonds", () => {
   it("ne cache plus rien derrière une feuille", () => {
-    for (const enferme of ["Sheet", "FilterFab", "FilterLine"]) {
+    for (const enferme of ["Sheet", "FilterLine"]) {
       expect(SRC, `« ${enferme} » est revenu : la page remet des commandes derrière un geste`).not.toMatch(new RegExp(`import \\{[^}]*\\b${enferme}\\b`));
     }
+    /* « FilterFab » EST REVENU, MAIS IL N'OUVRE RIEN : il ramène aux
+       commandes, qui sont en haut et à plat. « ouvre={false} » est ce qui le
+       dit, à l'écran comme au lecteur d'écran — sans lui, le bouton
+       annoncerait une boîte de dialogue qui ne viendra pas. */
+    expect(SRC, "le bouton flottant annonce de nouveau une feuille").toMatch(/<FilterFab [^>]*ouvre=\{false\}/);
     /* La rangée écrite une fois pour la page et une fois pour la feuille était
        le vrai motif : c'est elle qui obligeait à masquer l'une des deux. */
     expect(SRC, "une rangée d'outils est revenue, avec les deux copies qu'elle entraîne").not.toMatch(/styles\.(toolbar|deskTools|sheetTools)\b/);
@@ -83,6 +88,11 @@ describe("les commandes de la page des fonds", () => {
        clefs : les deux doivent coïncider. Ajouter un filtre à « clearAll »
        sans l'inscrire ici fait tomber le test, et c'est le but. */
     const COMMANDES: Record<string, { quoi: string; preuve: RegExp }> = {
+      /* « tri » et « sens » sont dans « clearAll » depuis que « Tout
+         effacer » efface AUSSI l'ordre : ils ont donc leur commande nommée,
+         comme les filtres. */
+      tri: { quoi: "la liste des ordres", preuve: /<Dropdown label="Tri"/ },
+      sens: { quoi: "la flèche qui retourne l'ordre", preuve: /styles\.dirBtn/ },
       q: { quoi: "le champ de recherche", preuve: /type="search"/ },
       cat: { quoi: "la rangée des catégories, à plat", preuve: /rangee\(\s*"Catégorie"/ },
       vl: { quoi: "la liste des périodicités", preuve: /<Dropdown\s+label="VL"/ },
@@ -90,7 +100,7 @@ describe("les commandes de la page des fonds", () => {
       depositaire: { quoi: "la pastille du dépositaire", preuve: /clef: "depositaire"/ },
     };
     const effacees = [...corpsDe("const clearAll = () => {", BLOC).matchAll(/(\w+): undefined/g)].map((m) => m[1]);
-    expect(effacees.length, "clearAll n'efface plus rien : le test ne mesure plus rien").toBeGreaterThan(4);
+    expect(effacees.length, "clearAll n'efface plus rien : le test ne mesure plus rien").toBeGreaterThan(5);
     expect([...effacees].sort(), "un filtre de l'adresse n'a pas de commande nommée dans ce test").toEqual(Object.keys(COMMANDES).sort());
     for (const [clef, { quoi, preuve }] of Object.entries(COMMANDES)) {
       expect(SRC.match(preuve), `« ${clef} » : ${quoi} a disparu de la page`).toBeTruthy();
@@ -196,9 +206,15 @@ describe("les commandes de la page des fonds", () => {
     /* « 25 obligataires correspondant aux filtres » répétait ce que la liste
        montre, sur une ligne payée à chaque écran, et dont personne ne tire
        une décision : on ne compte pas des fonds, on en cherche un. */
-    const compte = PAGE.slice(PAGE.indexOf("styles.count"), PAGE.indexOf("styles.count") + 900);
+    const compte = PAGE.slice(PAGE.indexOf("styles.count"), PAGE.indexOf("styles.count") + 1400);
     expect(compte, "le compte est revenu sur la ligne des vues").not.toMatch(/filtered\.length/);
     expect(compte, "la phrase du compte est revenue").not.toMatch(/correspondant aux filtres/);
+    /* TOUT EFFACER EFFACE AUSSI L'ORDRE, et paraît dès qu'un ordre est posé :
+       sans cela, le tri n'avait aucune sortie à lui. Il est à gauche du
+       choix des vues, au bout de la ligne qu'il défait. */
+    expect(compte, "« Tout effacer » a quitté la gauche du choix des vues").toMatch(/poseSurLaListe && \([\s\S]*?onClick=\{clearAll\}/);
+    expect(SRC, "le bouton ne paraît plus quand seul l'ordre a changé").toMatch(/const poseSurLaListe = [^;]*sort !== "categorie"/);
+    expect(compte.indexOf("poseSurLaListe"), "il doit précéder le choix des vues").toBeLessThan(compte.indexOf("styles.seg"));
     /* Le resserrement ne règle que la vue cartes : avant elles, il se lisait
        comme s'il commandait les trois. */
     const vues = compte.indexOf("styles.seg");
