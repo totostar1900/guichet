@@ -3,7 +3,7 @@ import { codeCourt, ligneGrise, origineDuChiffre, type Phrase } from "./carte-co
 import { countdown, displayStatus, displayYield, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { typeOf } from "@/lib/registry";
 import { fundAnnualPct } from "./fund-perf";
-import { daysBetween, parseDate, tenorText } from "../finance";
+import { daysBetween, parseDate, tenorCourt, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
 /**
@@ -53,7 +53,9 @@ const OP: Record<Offer["operation"], string> = { nouvelle_ligne: "nouvelle ligne
 /** BOC bonds carry only the year of maturity ("NET 2024-2029"): we store 31/12 and say so. */
 const yearOnly = maturityIsGuess;
 /** Time left from today; "échue" once the date has passed. */
-const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" : tenorText(localIso(now), to));
+/* « 3 ans 9 mois » : la vie restante se lit sous une échéance, dans une
+   colonne étroite, et la conjonction l'y faisait passer à la ligne. */
+const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" : tenorCourt(localIso(now), to));
 const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
 const maturityNote = (o: Offer): string | undefined => (o.maturityOn && yearOnly(o) ? "année seule au BOC" : undefined);
 
@@ -299,7 +301,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       y != null
         ? dy.atPar
           ? `taux nominal · au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}`
-          : `${isBond ? "actuariel annuel brut au cours" : "dividende brut au cours"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${tradedTxt}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
+          : `${isBond ? "à l'échéance au cours de" : "du dividende au cours de"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${tradedTxt}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
         : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? (o.maturityOn && o.maturityOn < localIso(now) ? `remboursée le ${fmtDate(o.maturityOn)}` : "échéance à préciser") : "pas de dividende connu"}`,
     heroUnit: dy.atPar ? "au pair · nominal" : `au cours ${priceTxt}`,
     gold: y != null && st === "quoted",
@@ -322,6 +324,12 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
          La date entière se lit au dos ; ici il n'y a place que pour les jours. */
       ["Cours", priceTxt, o.priceSince ? `${fmt(daysBetween(o.priceSince, localIso(now)))} j` : undefined],
       isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      /* UNE ESPACE ORDINAIRE AVANT L UNITE, ET C EST MESURE. La typographie
+         francaise voudrait une insecable, et elle a ete essayee : dans la plus
+         etroite des quatre colonnes, « 10 000 FCFA » devient alors un seul mot
+         plus large que sa place, et « overflow-wrap: anywhere » le coupe ou il
+         peut, « 10 000 FCF / A ». Couper entre le nombre et sa monnaie est le
+         moindre mal. */
       ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
     ],
     ledger: [

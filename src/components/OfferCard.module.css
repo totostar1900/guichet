@@ -58,18 +58,20 @@
 .gold {
   color: var(--gold-ink);
 }
-/* TROIS OU QUATRE SELON CE QUE LA LIGNE A À DIRE : une ligne cotée ajoute son
-   cours entre le coupon et l'échéance, et la rangée se répartit seule.
+/* TOUS SUR LA MÊME BANDE, trois ou quatre selon ce que la ligne a à dire : une
+   ligne cotée ajoute son cours entre le coupon et l'échéance.
 
-   LE PLANCHER EST À 110, ET C'EST MESURÉ. À 72, le téléphone tenait trois
-   colonnes de 98 et renvoyait le ticket SEUL sur un deuxième rang, ce qui est
-   exactement le défaut que ce réglage devait éviter. À 110 il en tient deux :
-   un bloc de deux sur deux, où rien n'est écrasé et rien n'est esseulé. Un
-   écran large en met quatre de front, comme avant. */
+   « auto-fit » a été essayé et écarté : il décidait du nombre de colonnes
+   d'après une largeur plancher, et donnait donc deux rangs sur un téléphone
+   (puis le ticket seul sous trois, à un autre plancher). Une bande qui se
+   replie n'est plus une bande : on ne compare plus quatre mesures d'un coup
+   d'œil, on lit un bloc. Le compte des colonnes suit donc le compte des
+   faits, et c'est l'écart qui cède, pas la rangée. */
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--s-3);
   border-top: 1px solid var(--line);
   padding-top: 10px;
 }
@@ -356,6 +358,18 @@
 .flipBtn {
   margin-top: 6px;
 }
+/* LE CHIFFRE REMONTE VERS L'ISIN, EN PORTRAIT. La carte est une grille et sa
+   gouttière vaut douze partout ; ici, et seulement entre l'identité et le
+   grand chiffre, elle en fait six. Une gouttière de grille ne se règle pas
+   par paire : la marge négative en reprend la moitié, et c'est la façon la
+   moins détournée de le dire. En paysage l'écran est large, la carte respire,
+   et les douze restent. */
+@media (orientation: portrait) {
+  .big {
+    margin-top: calc(-1 * var(--s-3));
+  }
+}
+
 @media (max-width: 760px) {
   .flipBtn,
   .dotsBack {
