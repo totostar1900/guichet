@@ -19,6 +19,10 @@ export const EN_TEMPLATES: Record<string, string> = {
      brut. Le dos emploie déjà « à l'échéance, à ce cours » : les deux faces
      de la pièce disent le même mot depuis le 4 octobre 2026. */
   "à l'échéance au cours de {p}": "yield to maturity at {p}",
+  "{n} OPCVM au Bulletin Officiel de la Cote": "{n} mutual funds in the Official Market Bulletin",
+  "{n} fonds": "{n} funds",
+  "{n} sont ouverts à la souscription chez Purpose Capital. Pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion.": "{n} are open for subscription at Purpose Capital. For the others, tell us you are interested: we arrange the relationship with the management company.",
+  "{n} est ouvert à la souscription chez Purpose Capital. Pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion.": "{n} is open for subscription at Purpose Capital. For the others, tell us you are interested: we arrange the relationship with the management company.",
   "du dividende au cours de {p}": "dividend yield at {p}",
   "{n} FCFA / action": "{n} FCFA / share",
   "coupon {c}": "coupon {c}",

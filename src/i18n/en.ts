@@ -84,6 +84,15 @@ export const EN: Record<string, string> = {
   "à l'échéance, à ce cours": "yield to maturity at this price",
   "fixé à la dernière séance": "set at the last session",
   "cours affiché": "quoted price",
+  "En bref": "In brief",
+  "Les fonds en bref": "Funds in brief",
+  "Trier": "Sort",
+  "Quatre catégories, du plus calme au plus mobile": "Four categories, from the steadiest to the most mobile",
+  "Les parts sont toujours inscrites à votre nom chez le dépositaire.": "Units are always registered in your name with the custodian.",
+  "Dites-nous votre intérêt : nous organisons la relation avec la société de gestion.": "Tell us you are interested: we arrange the relationship with the management company.",
+  "Un OPCVM met en commun l'argent de plusieurs porteurs et le place selon une règle écrite. Ceux-ci sont agréés par la COSUMAF et leur valeur liquidative paraît au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.": "A mutual fund pools the money of several holders and invests it under a written rule. These are approved by COSUMAF and their net asset value is published in the Official Market Bulletin, with their management company and their custodian.",
+  "du plus petit au plus grand": "lowest first",
+  "du plus grand au plus petit": "highest first",
   "Rangées par échéance. Aucune de ces lignes n'a changé de mains : leur chiffre est calculé sur la cotation du bulletin, que personne n'a confirmée par une transaction.":
     "Ordered by maturity. None of these lines has changed hands: their figure is computed on the bulletin's quotation, which no transaction has confirmed.",
   "Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.":

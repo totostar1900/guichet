@@ -156,6 +156,8 @@ export const EN_NEWS: Record<string, string> = {
 
   /* client walk-through */
   "Comment lire cette page ?": "How to read this page?",
+  "Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. « En bref » les définit en une phrase chacune, avec le nombre de fonds, et rappelle ce qu'est un OPCVM agréé.":
+    "Money market, bonds, diversified, equity: from the steadiest to the most mobile. « In brief » defines each in one sentence, with the number of funds, and recalls what an approved mutual fund is.",
   "Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres, et le compte des lignes retenues s'affiche à côté. Le tri se prend dans la même feuille, ou dans l'en-tête d'une colonne du tableau. Tri et filtres restent dans l'adresse de la page : revenez d'une fiche, la liste est telle que vous l'aviez laissée, et le lien que vous envoyez montre ce que vous voyiez.":
     "Instrument, country, status, maturity, yield: each filter adds to the others, and the number of lines kept shows beside them. Sorting is picked in the same sheet, or in a table column header. Sorting and filters stay in the page address: come back from a line and the list is as you left it, and the link you send shows what you were seeing.",
   "Le tableau compare les chiffres colonne par colonne, la liste se lit d'un trait, les cartes conviennent au téléphone. Un second réglage, la densité, resserre les cartes : en compacte une carte ne porte plus qu'un nom et un chiffre, et tout le reste passe au dos. Le rendement est toujours le premier chiffre.":

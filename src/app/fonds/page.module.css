@@ -729,3 +729,43 @@
   font-size: 0.78em;
   color: var(--ink-3);
 }
+
+/* LA FEUILLE DU TRI : une liste de choix, un par ligne, pas un menu déroulant
+   dans une barre. Le critère actif dit aussi son sens, parce que « 12 mois »
+   seul ne dit pas si l'on part du plus fort ou du plus faible. */
+.triListe {
+  display: grid;
+  gap: 0;
+  margin: calc(-1 * var(--s-2)) 0;
+}
+.triListe button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-5) var(--s-2);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+.triListe button:last-child {
+  border-bottom: 0;
+}
+.triOn {
+  color: var(--ink) !important;
+  font-weight: 700;
+  box-shadow: inset var(--s-1) 0 0 var(--gold);
+}
+.triListe em {
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}

@@ -73,37 +73,12 @@ const SORT: [SortKey, string][] = [
     un nom de A à Z. Le second clic inverse, et c'est lui qui écrit « sens ». */
 const NATURAL: Record<SortKey, "asc" | "desc"> = { categorie: "asc", nom: "asc", gestion: "asc", vl: "desc", var: "desc", an: "desc", origine: "desc", date: "desc" };
 const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
-const BLURB: Record<FundNav["category"], string> = {
-  M: "Placement de trésorerie : titres courts, valeur liquidative très régulière, argent disponible sous quelques jours.",
-  O: "Investis en obligations d'États et d'entreprises de la zone ; rendement porté par les coupons, sensibilité aux taux.",
-  D: "Un panachage d'obligations, d'actions et de trésorerie, arbitré par la société de gestion.",
-  A: "Exposés aux actions cotées à la BVMAC et à la région : le potentiel et la volatilité les plus élevés.",
-  "?": "Catégorie non précisée au bulletin.",
-};
-
-const FAMILIES_KEY = "guichet:fonds:familles"; // "0" once the reader folded the explanation
-let familiesListeners: (() => void)[] = [];
-const readFamilies = () => {
-  try {
-    return localStorage.getItem(FAMILIES_KEY) !== "0";
-  } catch {
-    return true;
-  }
-};
-const subscribeFamilies = (cb: () => void) => {
-  familiesListeners.push(cb);
-  return () => {
-    familiesListeners = familiesListeners.filter((x) => x !== cb);
-  };
-};
-const setFamilies = (open: boolean) => {
-  try {
-    localStorage.setItem(FAMILIES_KEY, open ? "1" : "0");
-  } catch {
-    // storage unavailable
-  }
-  familiesListeners.forEach((cb) => cb());
-};
+/* LES PHRASES DES CATÉGORIES ONT DÉMÉNAGÉ dans « FondsEnBref ». Le bandeau
+   qui les portait en haut de page occupait la première moitié de l'écran à
+   chaque visite ; il se repliait, et il fallait donc retenir son état d'un
+   passage à l'autre, dans le stockage local, avec son abonnement et ses
+   écouteurs. Plus de bandeau, plus de replieur, plus de mémoire à tenir.
+   « CATS » reste : il donne l'ordre des catégories au tri et aux pastilles. */
 
 const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`);
 const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
@@ -344,7 +319,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </button>
     </th>
   );
-  const familiesOpen = useSyncExternalStore(subscribeFamilies, readFamilies, () => true);
   const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq));
 
   // Remember this list (URL + order shown) so a fund's page can bring the reader back and step to the next fund.
@@ -365,6 +339,10 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const sep = useDistinction();
   const toolsRef = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState(false);
+  /* LA FEUILLE S OUVRE SUR LA PARTIE DEMANDEE. « Filtres » et « Trier »
+     menaient au meme endroit, en haut de la meme feuille : qui voulait
+     changer le tri devait traverser quatre filtres pour l atteindre. */
+  const [cible, setCible] = useState<"filtres" | "tri">("filtres");
 
   // The controls, once: in the page, and again in the sheet the floating button
   // opens. La boîte de tri ne paraît que dans la feuille : sur un écran large,
@@ -445,37 +423,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   return (
     <>
-      <section className={`${styles.families} ${familiesOpen ? "" : styles.familiesClosed}`} aria-label={t("Les quatre catégories de fonds")} data-coach="fonds-familles">
-        <div className={styles.familiesHead}>
-          <button type="button" className={styles.familiesToggle} onClick={() => setFamilies(!familiesOpen)} aria-expanded={familiesOpen}>
-            <h2>{t("Quatre catégories, quatre façons de placer")}</h2>
-            <svg viewBox="0 0 24 24" aria-hidden="true" className={familiesOpen ? styles.chevOpen : undefined}>
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </button>
-          {familiesOpen && <Link href="/info/fonds-vl">{t("Leçon : la VL et les frais")} →</Link>}
-        </div>
-        {familiesOpen && (
-          <div className={styles.familiesGrid}>
-            {CATS.filter((c) => c !== "?").map((c) => (
-              <button key={c} type="button" className={`${styles.family} ${cat === c ? styles.familyOn : ""}`} aria-pressed={cat === c} onClick={() => setCat(cat === c ? "" : c)} data-cat={c}>
-                <b>
-                  <i className={styles.familyDot} aria-hidden="true" />
-                  {t(FUND_CATEGORY_LABEL[c])} <em>· {rows.filter((r) => r.category === c).length}</em>
-                </b>
-                <span>{t(BLURB[c])}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
         <div className={styles.deskTools}>{toolbar(false)}</div>
-        <FilterLine count={active + Number(Boolean(draft))} summary={[draft && `« ${draft} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={() => setSheet(true)} />
+        <FilterLine count={active + Number(Boolean(draft))} summary={[draft && `« ${draft} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={(cible) => { setCible(cible); setSheet(true); }} />
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
           {active > 0 || draft ? ` ${t("correspondant aux filtres")}` : ""}
-          {cat && <span className={styles.countHint}> : {t(BLURB[cat])}</span>}
           {sort !== "categorie" && (
             <button type="button" className={styles.clear} onClick={() => setSort("categorie")}>
               {t("Par catégorie")}
@@ -497,8 +450,35 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </div>
       {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}
       <FilterFab watch={toolsRef} onClick={() => setSheet(true)} count={active + Number(Boolean(draft))} open={sheet} />
-      <Sheet open={sheet} onClose={() => setSheet(false)} title={t("Filtrer et trier")}>
-        <div className={styles.sheetTools}>{toolbar(true)}</div>
+      {/* DEUX FEUILLES, PARCE QUE CE SONT DEUX ACTIONS. Filtrer retire des
+          lignes, trier les remet dans un autre ordre : une seule feuille
+          intitulée « Filtrer et trier » obligeait à traverser quatre filtres
+          pour changer un ordre, et le bouton « Tri » y menait au même endroit
+          que le bouton « Filtres ». */}
+      <Sheet open={sheet && cible === "tri"} onClose={() => setSheet(false)} title={t("Trier")} sub={t("{n} fonds", { n: filtered.length })}>
+        <div className={styles.triListe} role="radiogroup" aria-label={t("Trier")}>
+          {SORT.map(([k, l]) => (
+            <button key={k} type="button" role="radio" aria-checked={sort === k} className={sort === k ? styles.triOn : undefined} onClick={() => setSort(k)}>
+              <span>{t(l)}</span>
+              {sort === k && k !== "categorie" && (
+                <em>{t(asc ? "du plus petit au plus grand" : "du plus grand au plus petit")}</em>
+              )}
+            </button>
+          ))}
+        </div>
+        <div className={styles.sheetFoot}>
+          {sort !== "categorie" && (
+            <button type="button" className="btn sm ghost" onClick={() => setAsc(!asc)}>
+              {asc ? "↑" : "↓"} {t("Inverser l'ordre")}
+            </button>
+          )}
+          <button type="button" className="btn sm primary" onClick={() => setSheet(false)}>
+            {t("Voir")}
+          </button>
+        </div>
+      </Sheet>
+      <Sheet open={sheet && cible === "filtres"} onClose={() => setSheet(false)} title={t("Filtrer")}>
+        <div className={styles.sheetTools}>{toolbar(false)}</div>
         <div className={styles.sheetFoot}>
           <span>
             <b>{filtered.length}</b> {t("fonds")}
@@ -578,7 +558,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         id="fonds"
         replayLabel={t("Comment lire cette page ?")}
         stops={[
-          { target: "fonds-familles", title: t("Quatre catégories"), text: t("Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. Chaque carte explique la catégorie en une phrase et filtre le tableau ; repliez le bandeau quand vous le connaissez.") },
+          { target: "fonds-enbref", title: t("Quatre catégories"), text: t("Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. « En bref » les définit en une phrase chacune, avec le nombre de fonds, et rappelle ce qu'est un OPCVM agréé.") },
           { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. Quand la bande est sortie de l'écran, le bouton « Filtrer · Trier » en bas la ramène sans remonter.") },
           { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.") },
         ]}

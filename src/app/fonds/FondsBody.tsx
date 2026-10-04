@@ -1,6 +1,7 @@
 import { repo } from "@/lib/data";
 import { FundsBrowser } from "./FundsBrowser";
 import { BackToTop } from "@/components/BackToTop";
+import { FondsEnBref } from "./FondsEnBref";
 import type { Offer } from "@/lib/domain/types";
 import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
@@ -24,6 +25,10 @@ export async function FondsBody() {
   const curves = await r.listFundCurves(funds.map((o) => o.fund.key));
   const last = bulletins[0];
   const open = funds.filter((o) => o.fund.distributed && !o.hidden).length;
+  /* Le compte par categorie : la feuille « En bref » le montre a cote de
+     chaque definition, parce qu une categorie vide ne se promet pas. */
+  const parCategorie: Partial<Record<string, number>> = {};
+  for (const o of funds) parCategorie[o.fund.category] = (parCategorie[o.fund.category] ?? 0) + 1;
 
   return (
     <>
@@ -31,11 +36,11 @@ export async function FondsBody() {
       <div className={styles.head}>
         <div>
           <h1 className="display">{t("Fonds communs de placement")}</h1>
-          <p className={styles.lead}>
-            {t("Les {n} OPCVM agréés par la COSUMAF dont la valeur liquidative est publiée au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.", { n: funds.length })}{" "}
-            {open > 0 ? t(open > 1 ? "{n} sont ouverts à la souscription chez Purpose Capital ; " : "{n} est ouvert à la souscription chez Purpose Capital ; ", { n: open }) : ""}
-            {t("pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion. Les parts sont toujours inscrites à votre nom chez le dépositaire.")}
-          </p>
+          {/* LE CHAPO EST PASSE DANS LA FEUILLE « EN BREF ». Trois phrases sur
+              ce qu est un OPCVM agree, plus le bandeau des quatre categories,
+              faisaient pres de deux cents mots avant le premier fonds, relus a
+              chaque visite. Ils n etaient pas faux, ils etaient permanents. */}
+          <FondsEnBref total={funds.length} ouverts={open} parCategorie={parCategorie} />
         </div>
         {last && (
           <div className={styles.stamp}>

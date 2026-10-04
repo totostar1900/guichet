@@ -1,0 +1,94 @@
+/* Le bouton « En bref » : discret à côté du titre, assez grand pour le pouce.
+   Rayon zéro, comme le reste depuis le 29 septembre 2026. */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  min-height: var(--s-10);
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bouton:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.bouton svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.corps {
+  display: grid;
+  gap: var(--s-6);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.corps p {
+  margin: 0;
+}
+.titre {
+  margin: var(--s-2) 0 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+/* Une catégorie par ligne : son nom, son compte, sa phrase. Pas de carte :
+   ce sont quatre définitions, pas quatre boutons. */
+.cats {
+  display: grid;
+  gap: var(--s-5);
+  margin: 0;
+}
+.cats dt {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  font-weight: 700;
+  color: var(--ink);
+}
+.cats dt em {
+  margin-left: auto;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.cats dd {
+  margin: var(--s-1) 0 0;
+  font-size: 0.82rem;
+}
+.pastille {
+  width: var(--s-4);
+  height: var(--s-4);
+  border-radius: 50%;
+  background: var(--fam-c, var(--line-2));
+}
+.pastille[data-cat="M"] {
+  --fam-c: var(--info);
+}
+.pastille[data-cat="O"] {
+  --fam-c: var(--gold);
+}
+.pastille[data-cat="D"] {
+  --fam-c: var(--ink-3);
+}
+.pastille[data-cat="A"] {
+  --fam-c: var(--good);
+}
+.sortie {
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
