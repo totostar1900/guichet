@@ -192,6 +192,10 @@
   font-variant-numeric: tabular-nums;
 }
 .cTools {
+  /* Vingt-quatre et non huit : le chiffre est ce qu on lit, les outils ce
+     qu on vise. Les coller faisait toucher le « ··· » en voulant lire le
+     rendement, et le pouce couvrait le nombre. */
+  margin-left: 16px;
   flex: none;
   display: flex;
   flex-direction: column;

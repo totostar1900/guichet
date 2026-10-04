@@ -95,3 +95,26 @@ describe("chaque section se nomme et se dit", () => {
     }
   });
 });
+
+describe("le type se lit au registre, pas au champ kind", () => {
+  it("une ligne dont les deux colonnes se contredisent suit le registre", () => {
+    /* MESURÉ LE 4 OCTOBRE 2026. L'abondement congolais CG2A00000668 et son
+       équivalent équato-guinéen portent « OTA » dans type_key et « APE » dans
+       kind, dans la même rangée : ce sont des adjudications de la BEAC, et
+       elles paraissaient « en souscription » sur la cote.
+
+       Tout le reste de l'application passe par typeOf, qui tranche en faveur
+       de type_key : le badge de la ligne disait déjà « OTA » pendant que le
+       rangement disait « APE ». */
+    const contradictoire = ligne({ kind: "APE", typeKey: "OTA", title: "OTA 5,50 % · 29 mai 2027 : abondement", isin: "CG2A00000668", country: "Congo" } as Partial<Offer>);
+    expect(lieuDe(contradictoire)).toBe("adjudications");
+    expect(sectionDe(contradictoire)).toBe("obligations_tresor");
+  });
+
+  it("une vraie émission par appel public reste en souscription", () => {
+    // Le registre dit APE, et rien ne le contredit : elle est bien au primaire BVMAC.
+    const vraie = ligne({ kind: "APE", typeKey: "APE" } as Partial<Offer>);
+    expect(lieuDe(vraie)).toBe("cote");
+    expect(sectionDe(vraie)).toBe("souscription");
+  });
+});

@@ -308,17 +308,17 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹
         </button>
-        <button type="button" className={styles.b1} onClick={() => closeThen(() => router.push(`${href}/intention`))} tabIndex={-1}>
-          <svg viewBox="0 0 24 24">
-            <path d="M4 5h16v14H4z M8 10h8 M8 14h5" />
-          </svg>
-          {t("Déclarer")}
-        </button>
         <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}/intention?intent=rappel`))} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             <path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z" />
           </svg>
           {t("Contacter")}
+        </button>
+        <button type="button" className={styles.b1} onClick={() => closeThen(() => router.push(`${href}/intention`))} tabIndex={-1}>
+          <svg viewBox="0 0 24 24">
+            <path d="M4 5h16v14H4z M8 10h8 M8 14h5" />
+          </svg>
+          {t("Déclarer")}
         </button>
         <button type="button" className={`${styles.b3} ${on ? styles.b3on : ""}`} onClick={() => closeThen(basculerLeSuivi)} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
@@ -331,6 +331,18 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         <div ref={front} className={styles.front}>
           {children}
           {/* a faint chevron on the right edge: the card turns over on a pull to the right */}
+          {/* Deux chevrons, un de chaque bord, et ils ne disent pas la même
+              chose : celui de gauche annonce le retournement, qui se fait d'un
+              tiré VERS la droite, celui de droite rappelle où se trouvent les
+              trois actions, qui sortent d'un tiré vers la gauche. Un seul
+              laissait deviner la moitié des gestes. */}
+          {back && (
+            <span className={styles.turnLeft} aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </span>
+          )}
           {back && (
             <span className={styles.turnHint} aria-hidden="true">
               <svg viewBox="0 0 24 24">

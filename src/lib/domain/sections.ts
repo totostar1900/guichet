@@ -1,5 +1,6 @@
 import { resolveIssuer } from "@/data/issuer-registry";
 import type { Offer } from "./types";
+import { offerFamily } from "./status";
 
 /**
  * TROIS LIEUX, PAS TROIS RAYONS.
@@ -11,20 +12,15 @@ import type { Offer } from "./types";
  * liste des titres disparaît donc : elle devient le lieu.
  *
  * CE QUE ÇA RÈGLE. Un bon du Trésor clôturé le 22 septembre restait dans la
- * liste des titres au 4 octobre, parce que cette liste ne retire une ligne du
- * primaire que lorsqu'elle devient cotée, et qu'un bon ne l'est jamais. Mesuré
- * le même jour : neuf séances closes depuis deux à trois semaines y dormaient
- * à l'état « publié », sans prix servi ni dépouillement, au milieu de lignes
- * négociables. Une séance a un cycle, une cote n'a qu'un cours ; une file avec
- * des états se voit quand elle ne se vide pas, une liste de titres non.
+ * liste des titres au 4 octobre, parce que cette liste ne retirait une ligne du
+ * primaire que lorsqu'elle devenait cotée, et qu'un bon ne l'est jamais. Une
+ * séance a un cycle, une cote n'a qu'un cours ; une file avec des états se voit
+ * quand elle ne se vide pas, une liste de titres non.
  *
  * LES SECTIONS DE LA COTE NE SONT PAS DE NOUS. Le Bulletin Officiel de la Cote
  * range lui-même ses obligations en « etats », « regionales » et « privees »,
  * et nous lisons ce champ depuis le premier jour sans jamais l'afficher. Le
  * découpage ci-dessous reprend ces trois noms, plus le compartiment actions.
- * Il se déduit de la famille de l'émetteur plutôt que du champ du bulletin,
- * pour une raison : une ligne du primaire n'a pas de bulletin, et il faut bien
- * la ranger aussi. Un cliquet vérifie que les deux disent la même chose.
  */
 export type Lieu = "cote" | "adjudications" | "fonds";
 
@@ -64,17 +60,38 @@ export const SECTION_NOTE: Record<Section, string> = {
   fonds: "Souscrits à la prochaine valeur liquidative, jamais à celle affichée.",
 };
 
-/** Où vit une ligne. Le lieu dit comment on l'achète. */
-export function lieuDe(o: Pick<Offer, "kind">): Lieu {
-  if (o.kind === "FONDS") return "fonds";
-  if (o.kind === "OTA" || o.kind === "BTA" || o.kind === "RACHAT") return "adjudications";
-  return "cote";
+/**
+ * OÙ VIT UNE LIGNE. Le lieu dit comment on l'achète.
+ *
+ * LE TYPE SE LIT AU REGISTRE, ET NON AU CHAMP « kind ». Mesuré le 4 octobre
+ * 2026 : l'abondement congolais CG2A00000668 et son équivalent équato-guinéen
+ * portent « OTA » dans « type_key » et « APE » dans « kind », dans la même
+ * rangée. Ce sont des adjudications de la BEAC, et elles paraissaient « en
+ * souscription » sur la cote.
+ *
+ * « typeOf » tranche en faveur de « type_key », et tout le reste de
+ * l'application passe par lui : le badge de la ligne disait déjà « OTA »
+ * pendant que mon rangement disait « APE ». Lire la même source que les autres
+ * supprime la question, et donne en prime un classement que le desk corrige
+ * depuis le Référentiel plutôt qu'en base.
+ */
+export function lieuDe(o: Pick<Offer, "kind" | "instrument" | "typeKey">): Lieu {
+  switch (offerFamily(o)) {
+    case "OPCVM":
+      return "fonds";
+    case "OTA":
+    case "BTA":
+    case "RACHAT":
+      return "adjudications";
+    default:
+      return "cote";
+  }
 }
 
 /** Dans ce lieu, à qui on prête. */
-export function sectionDe(o: Pick<Offer, "kind" | "instrument" | "isin" | "issuer" | "title" | "country">): Section {
-  switch (o.kind) {
-    case "FONDS":
+export function sectionDe(o: Pick<Offer, "kind" | "instrument" | "typeKey" | "isin" | "issuer" | "title" | "country">): Section {
+  switch (offerFamily(o)) {
+    case "OPCVM":
       return "fonds";
     case "OTA":
       return "obligations_tresor";
@@ -85,10 +102,11 @@ export function sectionDe(o: Pick<Offer, "kind" | "instrument" | "isin" | "issue
     // Un appel public à l'épargne et une introduction ne sont ni une séance de
     // la BEAC ni encore la cote : un prix fixé, une fenêtre, puis la cotation.
     case "APE":
-    case "ACTIONS":
+    case "IPO":
       return "souscription";
+    case "ACTION_COTEE":
+      return "actions";
     default: {
-      if (o.instrument === "action") return "actions";
       const f = resolveIssuer(o)?.family;
       if (f === "etat") return "etats";
       if (f === "supranational") return "regionales";

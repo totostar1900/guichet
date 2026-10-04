@@ -182,3 +182,34 @@
   text-align: center;
   pointer-events: none;
 }
+
+/* Le chevron de gauche annonce le retournement, qui se fait d'un tiré VERS la
+   droite : il pointe donc dans le sens du geste, comme celui de droite pointe
+   dans le sens du sien. Même discrétion, même taille, même opacité. */
+.turnLeft {
+  display: none;
+}
+@media (max-width: 760px) {
+  .turnLeft {
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .turnLeft svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
