@@ -67,15 +67,16 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
       backHead={
         <div className={styles.corner}>
           <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+          {/* LE DOS N'A PLUS SON ICÔNE DE RETOURNEMENT : elle proposait un
+              geste que le glissement fait déjà, et la bascule n'existe que
+              sous 760 px, où le doigt est toujours disponible. Le « ··· »
+              reste, lui : aucun geste ne l'ouvre. */}
           <button type="button" className={styles.dotsBack} onClick={() => more.current?.()} aria-label={t("Plus d'actions")}>
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="5" cy="12" r="2" />
               <circle cx="12" cy="12" r="2" />
               <circle cx="19" cy="12" r="2" />
             </svg>
-          </button>
-          <button type="button" className={styles.flipBtn} data-recto aria-label={t("Recto")} title={t("Recto")}>
-            <Turn />
           </button>
         </div>
       }

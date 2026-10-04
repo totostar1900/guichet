@@ -171,11 +171,19 @@
 .link:hover {
   text-decoration: underline;
 }
+/* « VOIR LA FICHE » RESTE À DROITE, SEUL OU ACCOMPAGNÉ. Le pied répartissait
+   ses deux enfants aux deux bords ; depuis que « cotation continue » en est
+   parti, il n'en reste qu'un sur une ligne cotée, et « space-between » l'a
+   renvoyé à gauche. Le bouton se cale donc à la fin, et c'est la mention de
+   clôture, quand il y en a une, qui pousse depuis la gauche. */
 .foot {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
+}
+.when {
+  margin-right: auto;
 }
 .when {
   color: var(--ink-3);
@@ -396,8 +404,11 @@
   font-size: 0.78rem;
 }
 
-/* the flip icon: under the « ··· », the same weight, air between the two; phone only (the card turns there).
-   The back carries the same corner (status, dots, icon) so both sit at the same place on both sides. */
+/* the flip icon: beside the « ··· », the same weight; phone only (the card turns there).
+   LE DOS NE LE PORTE PLUS : une fois la carte retournée, l'icône proposait un
+   geste que le glissement fait déjà, et la bascule n'existe que sous 760 px,
+   donc le doigt est toujours là pour le faire. Le dos garde la pastille et le
+   « ··· », qui eux n'ont pas d'équivalent au geste. */
 .flipBtn,
 .dotsBack {
   display: none;
