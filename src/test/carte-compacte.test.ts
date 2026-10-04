@@ -352,7 +352,11 @@ describe("les deux bandes collantes", () => {
 
   it("une seule rangée de lieux, celle qui existait", () => {
     expect(browser, "une seconde bande de lieux ferait doublon avec OngletsMarche").not.toMatch(/LieuBar/);
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "c'est elle qui colle").toMatch(/\.onglets \{[^}]*position: sticky/);
+    /* Elle a collé, et elle ne colle plus : voir « la pile collante » plus
+       bas. Ce qui reste tenu ici est qu'il n'y en a qu'UNE, ce qui était le
+       défaut d'origine — j'en avais posé une seconde vingt pixels sous celle
+       qui existait déjà. */
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "c'est elle qui porte les pages du marché").toMatch(/ONGLETS = \[/);
   });
 
   it("les pastilles ne vivent pas dans un bloc court", () => {
@@ -443,18 +447,24 @@ describe("la pile collante commence sous l'en-tête de l'application", () => {
    * rangée d'onglets, invisible à l'écran alors que ses coordonnées la
    * disaient en place — elle était bien à 0-44, mais sous un en-tête opaque.
    *
-   * Les quatre étages se posent donc les uns sous les autres, et chacun
-   * ajoute la hauteur des précédents. Mesuré après : 0-52 l'application,
-   * 52-96 les onglets, 96-137 les sections, 138 le titre de section.
+   * TROIS ÉTAGES, ET NON PLUS QUATRE. La rangée d'onglets a quitté la pile
+   * le 4 octobre 2026 : elle ne colle plus, elle s'en va avec la page, parce
+   * qu'une rangée de liens vers d'AUTRES pages ne vaut pas quarante pixels
+   * sur chaque écran pendant toute la lecture. Mesuré après : 0-52
+   * l'application, 52-93 les sections, 100 le titre de section.
+   *
+   * CE QUI NE COLLE PLUS NE DOIT PLUS RÉSERVER SA HAUTEUR, sans quoi les
+   * bandes flottent quarante pixels sous l'en-tête, devant du vide.
    */
   it("chaque étage ajoute la hauteur de celui du dessus", () => {
     const g = readFileSync("C:/dev/guichet/src/app/globals.css", "utf8");
     expect(g, "la hauteur de l'en-tête doit être nommée une fois").toMatch(/--barre-app:/);
     expect(g, "elle ne vaut que sur téléphone, où cet en-tête existe").toMatch(/@media \(max-width: 760px\)[\s\S]{0,200}--barre-app: calc\(var\(--mobile-bar\)/);
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "les onglets se posent sous l'en-tête").toMatch(/top: var\(--barre-app/);
-    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8"), "les sections se posent sous les onglets").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--lieux-h/);
+    const onglets = readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8");
+    expect(onglets, "la rangée des pages ne colle plus : elle n'a donc plus de « top »").not.toMatch(/\.onglets \{[^}]*position: sticky/);
+    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8"), "les sections se posent directement sous l'en-tête").toMatch(/\.bar \{[^}]*top: var\(--barre-app, 0px\);/);
     const o = readFileSync("C:/dev/guichet/src/components/OfferBrowser.module.css", "utf8");
-    expect(o, "le titre de section se pose sous les deux").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--lieux-h\) \+ var\(--sections-h\)\)/);
+    expect(o, "le titre de section se pose sous la bande des sections, et sous elle seule").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
     expect(o, "et le saut réserve la même hauteur").toMatch(/scroll-margin-top: calc\(var\(--barre-app/);
   });
 

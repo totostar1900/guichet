@@ -149,14 +149,36 @@ describe("les commandes de la page des fonds", () => {
     expect(SRC).toMatch(/else if \(sug\.kind === "depositaire"\) update\(\{ depositaire: sug\.text/);
   });
 
-  it("trie dans la page, et retire la flèche là où elle ne veut rien dire", () => {
-    const compte = PAGE.slice(PAGE.indexOf("styles.count"));
-    expect(compte, "le tri a quitté la ligne du compte").toMatch(/styles\.sortSel/);
-    expect(compte, "la liste des ordres ne vient plus de SORT").toMatch(/options=\{SORT\.map/);
+  it("range les trois listes sur une seule rangée, et retire la flèche là où elle ne veut rien dire", () => {
+    /* VL, Grouper et Tri sont trois choix de même nature : ils tiennent sur
+       une rangée, et ils y tiennent VRAIMENT — mesuré à 412 px, « Grouper ·
+       Société de gestion » faisait 177 px et les renvoyait à la ligne, d'où
+       les étiquettes d'un mot. */
+    const rang = SRC.slice(SRC.indexOf("<div className={styles.rangee}>"), SRC.indexOf("{actifs.map("));
+    for (const liste of ['label="VL"', 'label="Grouper"', 'label="Tri"']) {
+      expect(rang, `${liste} a quitté la rangée des listes`).toContain(liste);
+    }
+    expect(rang, "la liste des ordres ne vient plus de SORT").toMatch(/items=\{SORT\}/);
     /* « par catégorie » est un rangement, pas une mesure : il n'a pas de sens
        à inverser, et la flèche ne doit pas s'y proposer. */
-    expect(compte).toMatch(/\{sort !== "categorie" && \([\s\S]*?styles\.dirBtn/);
-    expect(PAGE, "le resserrement des cartes paraît sur une vue qui n'en a pas").toMatch(/\{vue === "cards" && !desk && <DensitySwitch \/>\}/);
+    expect(rang).toMatch(/\{sort !== "categorie" && \([\s\S]*?styles\.dirBtn/);
+  });
+
+  it("ne compte plus les fonds, et met le resserrement après le choix des vues", () => {
+    /* « 25 obligataires correspondant aux filtres » répétait ce que la liste
+       montre, sur une ligne payée à chaque écran, et dont personne ne tire
+       une décision : on ne compte pas des fonds, on en cherche un. */
+    const compte = PAGE.slice(PAGE.indexOf("styles.count"), PAGE.indexOf("styles.count") + 900);
+    expect(compte, "le compte est revenu sur la ligne des vues").not.toMatch(/filtered\.length/);
+    expect(compte, "la phrase du compte est revenue").not.toMatch(/correspondant aux filtres/);
+    /* Le resserrement ne règle que la vue cartes : avant elles, il se lisait
+       comme s'il commandait les trois. */
+    const vues = compte.indexOf("styles.seg");
+    const densite = compte.indexOf("<DensitySwitch");
+    expect(vues, "le choix des vues a disparu").toBeGreaterThan(-1);
+    expect(densite, "le resserrement a disparu").toBeGreaterThan(-1);
+    expect(vues, "le resserrement doit suivre le choix des vues, pas le précéder").toBeLessThan(densite);
+    expect(PAGE, "le resserrement paraît sur une vue qui n'en a pas").toMatch(/\{vue === "cards" && !desk && <DensitySwitch \/>\}/);
   });
 
   it("traduit toutes les étiquettes, qui passent par t(variable)", () => {
@@ -173,6 +195,31 @@ describe("les commandes de la page des fonds", () => {
     ];
     expect(clefs.length, "plus aucune étiquette : le test ne mesure plus rien").toBeGreaterThan(12);
     for (const k of clefs) expect(EN_ALL[k], `« ${k} » : étiquette sans anglais, et le balayeur ne la voit pas puisqu'elle passe par t(variable)`).toBeTruthy();
+  });
+});
+
+describe("la pile collante", () => {
+  const PAGE_CSS = readFileSync("src/app/fonds/page.module.css", "utf8");
+  const ONGLETS = readFileSync("src/components/market/OngletsMarche.module.css", "utf8");
+  const BANDE_CSS = readFileSync("src/components/SectionChips.module.css", "utf8");
+
+  it("laisse partir la rangée des pages quand on descend", () => {
+    /* Collante, elle prenait quarante pixels sur chaque écran pendant toute
+       la lecture, pour des liens vers d'AUTRES pages. Le repère pendant la
+       lecture, c'est le sommaire, qui dit où l'on est dans celle-ci. */
+    expect(ONGLETS, "la rangée des pages colle de nouveau en haut de l'écran").not.toMatch(/\.onglets \{[^}]*position: sticky/);
+    /* Et ce qui colle ne doit plus réserver sa hauteur : sinon les bandes
+       flottent quarante pixels sous l'en-tête, devant du vide. */
+    expect(BANDE_CSS, "la bande des sections garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/\.bar \{[^}]*--lieux-h/);
+    expect(PAGE_CSS, "le titre de groupe garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/\.teteGroupe \{[^}]*--lieux-h/);
+  });
+
+  it("couvre toute la largeur, sinon la liste défile visiblement à côté", () => {
+    /* Deuxième fois que cette leçon se paie : arrêté à la gouttière, un
+       bandeau collant laisse passer les chiffres dans ses marges. */
+    expect(PAGE_CSS, "le titre de groupe s'arrête à la gouttière").toMatch(/\.teteGroupe \{[^}]*margin: var\(--s-8\) -20px var\(--s-4\);/);
+    expect(PAGE_CSS, "sans rembourrage, le texte du titre collerait au bord").toMatch(/\.teteGroupe \{[^}]*padding: var\(--s-3\) 20px;/);
+    expect(PAGE_CSS, "le titre de groupe doit être opaque").toMatch(/\.teteGroupe \{[^}]*background: var\(--paper\);/);
   });
 });
 

@@ -14,7 +14,6 @@ import { BandeGroupes } from "./BandeGroupes";
 import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
-import { Select } from "@/components/ui/Select";
 import { useDeskView, useLineHref } from "@/components/DeskView";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, fundKey, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
@@ -80,8 +79,12 @@ const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
  * que trois tas, grouper par performance n'a pas de sens — c'est un tri.
  */
 type GroupKey = "gestion" | "depositaire" | "categorie";
+/* UN MOT CHACUN. Le bouton répète la valeur choisie à côté de son nom :
+   « Grouper · Société de gestion » faisait 177 px sur les 384 d'un téléphone,
+   et les trois listes passaient à la ligne. « Gestion » dit la même chose en
+   un mot, et les trois tiennent sur une ligne. */
 const GROUPES: [GroupKey, string][] = [
-  ["gestion", "Société de gestion"],
+  ["gestion", "Gestion"],
   ["depositaire", "Dépositaire"],
   ["categorie", "Catégorie"],
 ];
@@ -548,8 +551,14 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
    * ne mène donc jamais à une liste vide.
    */
   const rangee = (etiquette: string, valeur: string, toutes: string, options: [string, string][], choisir: (v: string) => void) => (
+    /* L'ÉTIQUETTE RESTE, MAIS POUR L'OREILLE SEULEMENT. Écrite à l'écran,
+       « CATÉGORIE » prenait toute une ligne sur un téléphone : les cinq
+       pastilles tiennent dans 343 px des 384 disponibles, l'étiquette les
+       poussait à 417 et les renvoyait à la ligne suivante. « Toutes ·
+       Monétaire · Obligataire · Diversifié · Actions » se nomme tout seul
+       pour qui voit ; un lecteur d'écran, lui, a besoin qu'on le dise, et
+       c'est ce que fait « aria-label ». */
     <div className={styles.rangee} role="group" aria-label={t(etiquette)}>
-      <span className={styles.quoi}>{t(etiquette)}</span>
       <button type="button" className={`${styles.pst} ${valeur === "" ? styles.pstOn : ""}`} aria-pressed={valeur === ""} onClick={() => choisir("")}>
         {t(toutes)}
       </button>
@@ -568,6 +577,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             Rien derrière un bouton, rien dans une feuille : tout ce qui
             commande cette liste est sous les yeux, du champ au tri. */}
         <div className={styles.barre}>{recherche}</div>
+        {/* TROIS LIGNES SOUS LE CHAMP, ET PAS UNE DE PLUS.
+            Les pastilles de catégorie, puis les trois listes, puis les vues.
+            Les étiquettes de rangée ont disparu : « CATÉGORIE » prenait sa
+            ligne entière sur un téléphone (les cinq pastilles tiennent sur
+            384 px, l'étiquette les faisait passer à 417), et « Toutes ·
+            Monétaire · Obligataire » n'a jamais eu besoin qu'on dise de quoi
+            c'est la liste. */}
         <div className={styles.aplat}>
           {rangee(
             "Catégorie",
@@ -576,15 +592,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => [c, FUND_CATEGORY_LABEL[c]]),
             (v) => setCat(v as FundNav["category"] | ""),
           )}
-          {/* DEUX LISTES CÔTE À CÔTE : à quel rythme la VL est frappée, et
-              comment la liste se range. Chacune tombe du bord de son propre
-              bouton, règle de la maison, et c'est la liste des titres : un
-              seul objet pour les deux pages. */}
-          {/* CETTE RANGÉE N'A PAS D'ÉTIQUETTE, et c'est voulu : chaque bouton
-              porte déjà la sienne, « VL » et « Grouper », là où les pastilles
-              de la rangée du dessus ont besoin qu'on dise de quoi elles sont
-              les valeurs. Une étiquette de plus aurait nommé ce qui se nomme
-              tout seul. */}
+          {/* LES TROIS LISTES CÔTE À CÔTE : à quel rythme la VL est frappée,
+              comment la liste se range, dans quel ordre. Chacune tombe du bord
+              de son propre bouton, règle de la maison, et c'est la liste des
+              titres : un seul objet pour les deux pages.
+              La flèche ne paraît pas sur « par catégorie », qui est un
+              rangement et non une mesure : il n'y a pas de sens à inverser. */}
           <div className={styles.rangee}>
             <Dropdown
               label="VL"
@@ -594,6 +607,17 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               onChange={(s) => setFreq(([...s][0] ?? "") as FundNav["frequency"] | "")}
             />
             <Dropdown label="Grouper" single items={GROUPES} selected={new Set(groupe ? [groupe] : [])} onChange={(s) => setGroupe(([...s][0] ?? "") as GroupKey | "")} />
+            <Dropdown label="Tri" single items={SORT} selected={new Set([sort])} onChange={(s) => setSort((([...s][0] as SortKey) ?? "categorie") as SortKey)} />
+            {sort !== "categorie" && (
+              <button type="button" className={styles.dirBtn} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
+                {asc ? "↑" : "↓"}
+              </button>
+            )}
+            {(active > 0 || draft) && (
+              <button type="button" className={styles.clear} onClick={clearAll}>
+                {t("Tout effacer")}
+              </button>
+            )}
           </div>
           {actifs.map((f) => (
             <div key={f.clef} className={styles.rangee}>
@@ -604,33 +628,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             </div>
           ))}
         </div>
+        {/* LE COMPTE EST PARTI. « 25 obligataires correspondant aux filtres »
+            répétait ce que la liste montre déjà, sur une ligne qui coûtait sa
+            hauteur à chaque écran, et dont personne ne tire une décision : on
+            ne compte pas des fonds, on en cherche un. Ce qui restait d'utile
+            sur cette ligne — effacer, trier — a rejoint les listes au-dessus. */}
         <div className={styles.count}>
-          <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
-          {active > 0 || draft ? ` ${t("correspondant aux filtres")}` : ""}
-          {(active > 0 || draft) && (
-            <button type="button" className={styles.clear} onClick={clearAll}>
-              {t("Tout effacer")}
-            </button>
-          )}
-          {/* LE TRI, COMME SUR LES TITRES : son nom, la liste des ordres, et la
-              flèche qui retourne celui-ci. Il était dans la feuille, où il
-              fallait le chercher ; il est maintenant à côté du compte des
-              lignes qu'il range, sur les deux pages de la même façon.
-              La flèche ne paraît pas sur « par catégorie », qui est un
-              rangement et non une mesure : il n'y a pas de sens à inverser. */}
-          <label className={styles.sortSel}>
-            {t("Tri")}
-            <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
-            {sort !== "categorie" && (
-              <button type="button" className={styles.dirBtn} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
-                {asc ? "↑" : "↓"}
-              </button>
-            )}
-          </label>
-          {/* LE RESSERREMENT DES CARTES, comme sur les titres : il ne paraît
-              que sur la vue qui en a une, parce qu'un réglage sans effet
-              visible se lit comme une panne. */}
-          {vue === "cards" && !desk && <DensitySwitch />}
           <div className={styles.seg} role="group" aria-label={t("Affichage")}>
             {(["table", "list", "cards"] as Vue[]).map((v) => (
               <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
@@ -638,6 +641,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               </button>
             ))}
           </div>
+          {/* LE RESSERREMENT DES CARTES SUIT LE CHOIX DES VUES, à sa droite :
+              il ne règle que la vue cartes, et il se lisait mal posé avant
+              elle, comme s'il commandait les trois. Il ne paraît d'ailleurs
+              que sur cette vue, parce qu'un réglage sans effet visible se lit
+              comme une panne. */}
+          {vue === "cards" && !desk && <DensitySwitch />}
         </div>
       </div>
 

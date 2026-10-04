@@ -1,16 +1,26 @@
 /* Les onglets d'une section : un filet sous la rangée, un trait actif de deux
    pixels sous l'onglet courant. Le transparent de même épaisseur sur les autres
    empêche la rangée de sauter d'un pixel au changement. */
-/* ELLE COLLE, ET ELLE NE BOUGE PLUS.
-   Elle se retirait d'abord en descente pour rendre quarante pixels. Le
-   résultat tremblait, et c'était prévisible une fois vu : le seuil basculait
-   pendant que la page bougeait, la hauteur s'animait, et la bande des
-   sections changeait de « top » au même instant. Trois mouvements pour
-   quarante pixels. Une barre collante qui bouge n'est plus un repère. */
+/**
+ * ELLE NE COLLE PLUS : ELLE S'EN VA AVEC LA PAGE.
+ *
+ * Trois états essayés, dans cet ordre. Collante et se repliant en descente
+ * pour rendre quarante pixels : cela TREMBLAIT, et c'était prévisible une
+ * fois vu — le seuil basculait pendant que la page bougeait, la hauteur
+ * s'animait, et la bande des sections changeait de « top » au même instant.
+ * Collante et fixe : plus de tremblement, mais quarante pixels pris sur
+ * chaque écran, pendant toute la lecture, par une rangée de liens vers
+ * d'AUTRES pages. Ni collante ni repliée : elle est là quand on arrive, elle
+ * s'en va quand on descend, elle revient quand on remonte.
+ *
+ * C'est le troisième état, arrêté le 4 octobre 2026. Le repère pendant la
+ * lecture, c'est le sommaire des sections ou des groupes, qui dit OÙ L'ON EST
+ * dans cette page ; une rangée qui mène ailleurs n'a pas à rester sous les
+ * yeux. Les bandes qui collent partent donc de « --barre-app » seul, et
+ * « --lieux-h » n'entre plus dans leur calcul : il ne dit plus que la hauteur
+ * de cette rangée-ci.
+ */
 .onglets {
-  position: sticky;
-  top: var(--barre-app, 0px);
-  z-index: 7;
   height: var(--lieux-h);
   display: flex;
   align-items: stretch;

@@ -50,8 +50,12 @@
   display: flex;
   gap: 6px;
 }
+/* LE BOUTON DE RAPPEL RESPIRE. Il suivait la dernière ligne de la liste sans
+   rien entre eux : collé sous une carte, il se lisait comme une commande de
+   cette carte-là plutôt que comme une offre faite à la page entière. */
 .replay {
   white-space: nowrap;
+  margin-top: var(--s-10);
 }
 @media (prefers-reduced-motion: reduce) {
   .dim,

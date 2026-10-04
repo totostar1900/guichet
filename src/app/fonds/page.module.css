@@ -413,22 +413,45 @@
 .bloc {
   min-width: 0;
 }
+/**
+ * LE TITRE COLLANT COUVRE TOUTE LA LARGEUR, et c'est la deuxième fois que
+ * cette leçon se paie. Arrêté à la gouttière de la page, il laissait les
+ * cartes défiler VISIBLEMENT de part et d'autre, derrière lui : on voyait
+ * passer les chiffres dans les vingt pixels de marge. La bande des sections
+ * avait eu exactement ce défaut le 4 octobre au matin — « scrolling behind
+ * the screen appears » — et sa correction, des marges négatives rendues en
+ * rembourrage, n'avait pas été reportée ici.
+ *
+ * Il se range SOUS la bande du sommaire, elle-même sous l'en-tête de
+ * l'application : deux hauteurs à tenir d'accord, d'où les variables plutôt
+ * que des nombres recopiés. Les onglets du marché, eux, ne collent plus : ils
+ * s'en vont avec la page et ne comptent plus dans cette pile.
+ */
 .teteGroupe {
   position: sticky;
-  /* --lieux-h : les onglets du marché. --s-11 + --s-4 : la bande du
-     sommaire, qui porte des pastilles de 28 px dans 6 px de marge. */
-  top: calc(var(--barre-app, 0px) + var(--lieux-h, 0px) + var(--s-11) + var(--s-4));
+  /* --s-11 + --s-4 : la bande du sommaire, qui porte des pastilles de 28 px
+     dans 6 px de marge. */
+  top: calc(var(--barre-app, 0px) + var(--s-11) + var(--s-4));
   z-index: 5;
   display: flex;
   align-items: baseline;
   gap: var(--s-4);
-  margin: var(--s-8) 0 var(--s-4);
-  padding: var(--s-3) 0;
+  margin: var(--s-8) -20px var(--s-4);
+  padding: var(--s-3) 20px;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--ink);
+}
+@media (max-width: 820px) {
+  /* La gouttière du téléphone vaut quatorze dans cette page. */
+  .teteGroupe {
+    margin-left: calc(-1 * (var(--s-6) + var(--s-1)));
+    margin-right: calc(-1 * (var(--s-6) + var(--s-1)));
+    padding-left: calc(var(--s-6) + var(--s-1));
+    padding-right: calc(var(--s-6) + var(--s-1));
+  }
 }
 .teteGroupe b {
   font-size: 0.74rem;

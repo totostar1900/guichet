@@ -2,12 +2,15 @@
    que de passer à la ligne, pour que la liste commence au même endroit quelle
    que soit la longueur des noms.
 
-   ELLE COLLE SOUS CELLE DES LIEUX. Les deux se superposent dans cet ordre, et
-   les titres de section viennent se ranger dessous : trois hauteurs à tenir
-   d'accord, d'où les variables plutôt que trois nombres recopiés. */
+   ELLE COLLE SOUS L'EN-TÊTE DE L'APPLICATION, et plus sous la rangée des
+   lieux : celle-ci s'en va désormais avec la page, parce qu'une rangée de
+   liens vers d'AUTRES pages n'a pas à prendre quarante pixels sur chaque
+   écran pendant qu'on lit celle-ci. Deux hauteurs à tenir d'accord au lieu de
+   trois — cette bande et le titre de section qui se range dessous — d'où les
+   variables plutôt que des nombres recopiés. */
 .bar {
   position: sticky;
-  top: calc(var(--barre-app, 0px) + var(--lieux-h, 0px));
+  top: var(--barre-app, 0px);
   z-index: 6;
   display: flex;
   gap: 6px;

@@ -226,8 +226,35 @@ export function perf1y(history: FundNav[], to: FundNav): { pct: number; from: st
   return { pct: (to.nav / before.nav - 1) * 100, from: before.navDate };
 }
 
+/**
+ * UNE DATE DE CRÉATION NE RECULE PAS DANS LE TEMPS, ELLE N'AVANCE PAS.
+ *
+ * Mesuré le 4 octobre 2026 : à partir du bulletin n° 2551 (séance du 10
+ * juillet 2026), cinq fonds d'Africa Bright — AB Cash, AB Diversifié, AB
+ * Invest, Cap Obligations, Performance — ont vu leur date de création passer
+ * à « 10 juillet 2026 », c'est-à-dire À LA DATE DE CE BULLETIN. Les
+ * quarante-cinq bulletins précédents donnaient 2021-08-19, 2023-09-18,
+ * 2021-08-19, 2022-03-25 et 2022-08-11, et nos propres VL pour ces fonds
+ * remontent au 29 août 2025.
+ *
+ * L'écran disait donc, sur la même carte, « +27,39 % depuis l'origine » et
+ * « depuis le 10 juil. 2026 » — un fonds obligataire qui aurait gagné vingt-
+ * sept pour cent en dix semaines — avec, à côté, une performance sur douze
+ * mois qu'un fonds de dix semaines ne peut pas avoir. Les chiffres étaient
+ * bons ; c'est la date qui mentait, et c'est elle qui rendait les chiffres
+ * absurdes.
+ *
+ * La règle est donc celle d'un fait passé : on garde la PLUS ANCIENNE date
+ * jamais publiée pour ce fonds. Elle vient du même bulletin, elle est sourcée,
+ * et c'est la seule qui s'accorde avec les performances. Les lignes de
+ * « fund_navs », elles, gardent ce que le bulletin a dit : on ne récrit pas la
+ * source, on en tire ce qui se tient.
+ */
+export const dateDeCreation = (publiee: string, connue?: string): string => (connue && connue < publiee ? connue : publiee);
+
 export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, yearAgo?: { pct: number; from: string }): Offer {
   const geo = COUNTRY_OF_DEPOSITARY(n.depositary);
+  const naissance = dateDeCreation(n.inceptionDate, existing?.fund?.inceptionDate);
   const base: Offer = existing ?? {
     id: `fund-${n.fundKey}`,
     kind: "FONDS",
@@ -241,7 +268,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, y
     hidden: false,
     blurb: `${n.name} : fonds ${FUND_WORD[n.category] ?? ""} géré par ${prettyName(n.manager)}, dépositaire ${prettyName(n.depositary)}. Valeur liquidative ${FREQ_WORD[n.frequency] ?? ""} publiée au Bulletin Officiel de la Cote (source : sociétés de gestion agréées COSUMAF).`,
     documents: [],
-    opensAt: `${n.inceptionDate}T09:00:00`,
+    opensAt: `${naissance}T09:00:00`,
     deadlineAt: SANS_CLOTURE,
     settleOn: n.navDate,
     nominal: 1,
@@ -260,7 +287,7 @@ export function offerFromNav(n: FundNav, bulletinNo: number, existing?: Offer, y
       nav: n.nav,
       navDate: n.navDate,
       navOrigin: n.navOrigin,
-      inceptionDate: n.inceptionDate,
+      inceptionDate: naissance,
       perfSinceInceptionPct: n.perfSinceInceptionPct,
       variationPct: n.variationPct,
       perf1yPct: yearAgo?.pct ?? prior?.perf1yPct,
