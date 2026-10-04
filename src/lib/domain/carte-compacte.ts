@@ -72,6 +72,40 @@ export function codeCourt(o: Pick<Offer, "isin" | "issuer" | "title" | "country"
   return codeLisible(p.slug) ? p.slug.toUpperCase() : p.name;
 }
 
+/**
+ * LE TITRE D'UNE LIGNE, L'ÉMETTEUR ABRÉGÉ.
+ *
+ * Le bulletin nomme ses lignes « État du Gabon · EOG MT 6,75 % NET
+ * 2024-2028-II ». Les quatorze signes de « État du Gabon » reviennent sur
+ * vingt-cinq cartes du tableau, disent ce que le drapeau et le code pays
+ * disent déjà à côté, et repoussent à la deuxième ligne la seule partie qui
+ * distingue une ligne gabonaise d'une autre : le coupon et l'échéance.
+ *
+ * DEUX RÈGLES, PAS UNE. D'ordinaire le préfixe devient le code court : « GAB ·
+ * EOG MT 6,75 % … ». Mais plusieurs émetteurs portent déjà leur code dans le
+ * nom de la ligne, « BDEAC · BDEAC 5,45 % NET 2020-2027 » : là, le préfixe
+ * part sans rien laisser, car le répéter serait pire que le nom long.
+ *
+ * LE NOM COMPLET NE DISPARAÎT PAS : il reste en tête de la fiche et de la
+ * ligne du desk, qui sont les deux endroits où l'on vérifie de quelle ligne on
+ * parle, et au dos de la carte, qui est fait pour cela.
+ */
+export function titreCourt(o: Pick<Offer, "isin" | "issuer" | "title" | "country">): string {
+  const prefixe = `${o.issuer} · `;
+  if (!o.title.startsWith(prefixe)) return o.title;
+  const reste = o.title.slice(prefixe.length);
+  const code = codeCourt(o);
+  const suite = reste.slice(code.length);
+  /* LA BORNE EST « PAS UNE LETTRE NI UN CHIFFRE », pas « une espace ». Deux
+     mesures a l ecran le 4 octobre 2026 : le referentiel ecrit « Alios » et
+     le bulletin « ALIOS 6,5 % » (casse differente, laissait passer), puis
+     « ALIOS-05 6 % » (un trait d union, laissait passer aussi). En revanche
+     « BGFI » devant « BGFIBank » n est pas une repetition : la lettre qui
+     suit en fait un autre mot, et le prefixe reste. */
+  const colle = reste.toUpperCase().startsWith(code.toUpperCase()) && !/^[A-Za-z0-9]/.test(suite);
+  return colle ? reste : `${code} · ${reste}`;
+}
+
 /** « jeu. 15 oct. 15 h 00 » sans le jour de la semaine : la place manque, la date suffit. */
 const quand = (iso: string): string => fmtDateTime(iso).replace(/^[^ ]+ /, "").replace(/ h 00$/, " h").replace(/:00$/, "");
 

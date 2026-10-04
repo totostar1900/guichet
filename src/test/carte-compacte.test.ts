@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { CLEFS_CARTE, CODE_PAYS, codeCourt, codeLisible, ligneGrise, origineDuChiffre } from "@/lib/domain/carte-compacte";
+import { CLEFS_CARTE, CODE_PAYS, codeCourt, codeLisible, ligneGrise, origineDuChiffre, titreCourt } from "@/lib/domain/carte-compacte";
 import { ISSUER_REGISTRY } from "@/data/issuer-registry";
 import { EN_ALL, translate } from "@/i18n/core";
 import type { Offer } from "@/lib/domain/types";
@@ -148,5 +148,62 @@ describe("les clefs de la carte passent en anglais", () => {
     // Le seul mot à traduire dans « 97 % · 192 j », et le plus facile à oublier.
     expect(translate("en", "{p} · {n} j", { p: "97 %", n: "192" })).toBe("97 % · 192 d");
     expect(translate("en", "cours {p}", { p: "97 %" })).toBe("price 97 %");
+  });
+});
+
+describe("le titre abrège son émetteur", () => {
+  /**
+   * « État du Gabon » revient sur vingt-cinq des trente-cinq lignes cotées et
+   * redit le drapeau posé juste dessous ; ses quatorze signes repoussent à la
+   * deuxième ligne la seule partie qui distingue une ligne gabonaise d'une
+   * autre, son coupon et son échéance. Demandé le 4 octobre 2026.
+   */
+  it("remplace le nom de l'émetteur par son code court", () => {
+    expect(titreCourt(cotee())).toBe("GAB · EOG MT 6,6 % NET 2024-2027-II");
+  });
+
+  it("ne répète pas un code que le nom de la ligne porte déjà", () => {
+    /* « BDEAC · BDEAC 5,45 % NET 2020-2027 » deviendrait « BDEAC · BDEAC
+       5,45 % … » : répéter est pire que le nom long, donc le préfixe part. */
+    const bdeac = cotee({ issuer: "BDEAC", title: "BDEAC · BDEAC 5,45 % NET 2020 - 2027", isin: "CG0000020220", country: "Congo" });
+    expect(titreCourt(bdeac)).toBe("BDEAC 5,45 % NET 2020 - 2027");
+  });
+
+  it("laisse intact un titre qui ne commence pas par son émetteur", () => {
+    // Aucune supposition sur la forme du libellé : sans le préfixe exact, on ne touche à rien.
+    const libre = cotee({ title: "Obligation gabonaise 6,6 % 2027" });
+    expect(titreCourt(libre)).toBe("Obligation gabonaise 6,6 % 2027");
+  });
+
+  it("le nom complet reste en tête de page", () => {
+    /* LA FICHE ET LA LIGNE DU DESK GARDENT LE NOM LÉGAL : ce sont les deux
+       pages où l'on vérifie de quelle ligne on parle avant de passer un ordre
+       en banque, et le dos de la carte est fait pour la même chose. */
+    const src = readFileSync("C:/dev/guichet/src/components/LineIdentity.tsx", "utf8");
+    expect(src, "l'en-tête de page doit garder s.title").toContain('Tag === "h1" ? s.title : titreCourt(o)');
+  });
+});
+
+describe("le code colle au nom quand le nom le porte déjà", () => {
+  it("« Alios » devant « ALIOS 6,5 % » ne se répète pas", () => {
+    /* Trouvé à l'écran, pas à la relecture : le référentiel écrit « Alios »,
+       le bulletin « ALIOS ». La règle comparait les chaînes telles quelles et
+       laissait passer « Alios · ALIOS 6,5 % BRUT 2023-2028 ». */
+    const alios = cotee({ issuer: "Alios Finance", title: "Alios Finance · ALIOS 6,5 % BRUT 2023-2028", isin: "CM0000020412", country: "Cameroun" });
+    expect(titreCourt(alios)).toBe("ALIOS 6,5 % BRUT 2023-2028");
+  });
+
+  it("« Alios » devant « ALIOS-05 » non plus", () => {
+    /* Deuxième passage à l'écran : la borne était « une espace », et
+       « ALIOS-05 6 % BRUT 2025-2028 » passait au travers par son trait
+       d'union. La borne est « pas une lettre ni un chiffre ». */
+    const a5 = cotee({ issuer: "Alios Finance", title: "Alios Finance · ALIOS-05 6 % BRUT 2025-2028", isin: "CM0000020610", country: "Cameroun" });
+    expect(titreCourt(a5)).toBe("ALIOS-05 6 % BRUT 2025-2028");
+  });
+
+  it("mais une lettre qui suit fait un autre mot, et le préfixe reste", () => {
+    // « BGFI » devant « BGFIBank » n'est pas une répétition : ce sont deux noms.
+    const bgfi = cotee({ issuer: "BGFI Holding", title: "BGFI Holding · BGFIBank 6 % 2027", isin: "GA0000099999" });
+    expect(titreCourt(bgfi)).toContain(" · BGFIBank");
   });
 });

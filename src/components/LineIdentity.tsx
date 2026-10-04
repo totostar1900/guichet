@@ -5,6 +5,7 @@ import { issuerZone } from "@/data/issuer-registry";
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
 import { COUNTRY_CODE, type OfferSummary } from "@/lib/domain/summary";
+import { titreCourt } from "@/lib/domain/carte-compacte";
 import { famVars } from "@/lib/registry";
 import styles from "./LineIdentity.module.css";
 
@@ -12,10 +13,18 @@ import styles from "./LineIdentity.module.css";
  * How a line introduces itself, the same in the table, the list and the cards:
  * the instrument name, then who issues it (family badge · country · issuer ·
  * operation), then the ISIN in monospace for bank orders.
+ *
+ * L'ÉMETTEUR EST ABRÉGÉ DANS LE TITRE, sauf en tête de page. « État du Gabon »
+ * revient sur vingt-cinq lignes du tableau et redit le drapeau posé juste
+ * dessous ; « GAB » laisse la place au coupon et à l'échéance, qui sont ce qui
+ * distingue une ligne d'une autre. En « h1 », c'est-à-dire sur la fiche et sur
+ * la ligne du desk, le nom complet reste : ce sont les deux pages où l'on
+ * vérifie avant de passer un ordre.
  */
 export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" | "xl"; as?: "div" | "h1" }) {
   const t = useT();
-  const title = href ? <Link href={href}>{t(s.title)}</Link> : t(s.title);
+  const nom = Tag === "h1" ? s.title : titreCourt(o);
+  const title = href ? <Link href={href}>{t(nom)}</Link> : t(nom);
   const zone = issuerZone(o);
   return (
     <div className={`${styles.id} ${size === "lg" ? styles.lg : size === "xl" ? styles.xl : ""}`}>
