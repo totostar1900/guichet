@@ -1,0 +1,94 @@
+/* La liste déroulante d'un filtre. Déplacée telle quelle depuis
+   « OfferBrowser.module.css » le 4 octobre 2026, quand la page des fonds a
+   voulu la même : une seule définition, deux pages. */
+.dd {
+  position: relative;
+}
+.ddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  background: var(--surface);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ddBtn:hover {
+  border-color: var(--ink-3);
+}
+.ddOn {
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+}
+.ddOn:hover {
+  border-color: var(--ink);
+}
+.ddBtn b {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  padding: 0 7px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+/* ELLE TOMBE DU BORD DE SON DÉCLENCHEUR, règle de la maison : « top: 100 % »
+   la pose sous le bouton qu'on vient de toucher, et non au bas de l'écran. */
+.ddMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: grid;
+}
+/* LE MENU RESTE DANS L'ÉCRAN. Posé à gauche de son bouton, un menu large de
+   200 px débordait quand le bouton était à moins de 200 px du bord droit :
+   sur un téléphone de 412 px, le second des deux. On l'accroche alors par la
+   droite, ce que le composant demande avec « data-bord ». */
+.ddMenu[data-bord="droite"] {
+  left: auto;
+  right: 0;
+}
+.ddItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+.ddItem:hover {
+  background: var(--surface-2);
+}
+.ddItem input {
+  accent-color: var(--select);
+  margin: 0;
+}
+.ddClear {
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  padding: 8px 10px 4px;
+  text-align: left;
+}
+.ddClear:hover {
+  color: var(--ink);
+}
+.ddGroup {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  font-weight: 800;
+  padding: 8px 10px 2px;
+}

@@ -1,8 +1,10 @@
+/* Le titre à gauche, « En bref » en face à droite : la boîte était déjà une
+   ligne à deux bouts, mais les deux tenaient dans le même bout. */
 .head {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
@@ -310,9 +312,26 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pst:hover {
-  border-color: var(--gold);
-  color: var(--ink);
+/**
+ * LE SURVOL NE DOIT PAS ATTEINDRE LA PASTILLE CHOISIE.
+ *
+ * « .pst:hover » vaut (0,2,0) et « .pstOn » (0,1,0) : le survol gagnait, et
+ * sa couleur « --ink » (#eaeff6) se posait sur le fond doré « --select »
+ * (#e0b65a). Rapport de contraste 1,65 contre 1 : le mot disparaissait.
+ *
+ * Sur un téléphone c'était pire qu'un survol, c'était l'état NORMAL : le
+ * doigt qui touche laisse le survol collé jusqu'au prochain toucher ailleurs.
+ * Choisir « Monétaire » effaçait donc le mot « Monétaire ». Signalé à l'écran
+ * le 4 octobre 2026 : « the selected box content is not visible anymore ».
+ *
+ * Deux verrous plutôt qu'un : la règle exclut la pastille choisie, et elle ne
+ * s'applique qu'aux appareils qui ont un vrai survol.
+ */
+@media (hover: hover) {
+  .pst:not(.pstOn):hover {
+    border-color: var(--gold);
+    color: var(--ink);
+  }
 }
 .pstOn {
   background: var(--select);
@@ -385,6 +404,57 @@
 .count > b {
   margin-right: 2px;
 }
+/* ------------------------------------------------------------------
+   LES GROUPES : un titre collant par bloc, et le sommaire au-dessus.
+   Le titre se range SOUS la bande du sommaire, qui est elle-même sous les
+   onglets du marché : trois hauteurs à tenir d'accord, d'où les variables
+   plutôt que trois nombres recopiés.
+   ------------------------------------------------------------------ */
+.bloc {
+  min-width: 0;
+}
+.teteGroupe {
+  position: sticky;
+  /* --lieux-h : les onglets du marché. --s-11 + --s-4 : la bande du
+     sommaire, qui porte des pastilles de 28 px dans 6 px de marge. */
+  top: calc(var(--barre-app, 0px) + var(--lieux-h, 0px) + var(--s-11) + var(--s-4));
+  z-index: 5;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  margin: var(--s-8) 0 var(--s-4);
+  padding: var(--s-3) 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.teteGroupe b {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.bloc:first-child .teteGroupe {
+  margin-top: var(--s-4);
+}
+/* Dans le tableau, le titre est une rangée : une section ne se glisse pas
+   entre deux « tr », et un « tbody » par groupe porte l'ancre. */
+.teteRangee td {
+  padding: var(--s-6) var(--s-4) var(--s-3);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-2);
+}
+.teteRangee b {
+  margin-left: var(--s-4);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
 /* the phone: cards in place of the table */
 .cards {
   display: grid;

@@ -1,35 +1,39 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { EN_ALL } from "@/i18n/core";
-import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
+import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, fundKey } from "@/lib/domain/market";
 
 /**
  * LES COMMANDES DE LA PAGE DES FONDS SONT SOUS LES YEUX.
  *
- * Le défaut corrigé est une commande enfermée. La page écrivait sa rangée
+ * Le défaut d'origine est une commande enfermée. La page écrivait sa rangée
  * d'outils UNE FOIS POUR DEUX ENDROITS : dans la page, où elle disparaissait
  * sous 760 px, et dans une feuille, seule voie restante sur téléphone. Tout y
  * était donc derrière un geste : le champ de recherche, qui est le geste le
- * plus direct de cette page ; la catégorie, dans une grille encadrée ; la
- * périodicité, dans une liste déroulante ; le tri, dans une autre feuille.
+ * plus direct de cette page ; la catégorie ; la périodicité ; le tri.
  *
  * Ce qui est tenu ici, et qu'une relecture du fichier ne montre pas :
  *
  *  1. plus de feuille, plus de bouton flottant, plus de rangée écrite deux
  *     fois : c'est le motif qui enfermait les commandes ;
  *  2. chaque filtre que l'adresse peut porter a sa commande NOMMÉE dans la
- *     page, et un cinquième filtre ajouté demain sans la sienne fait tomber
- *     ce test ;
- *  3. les valeurs offertes viennent des lignes reçues, donc un filtre ne mène
+ *     page, et un filtre ajouté demain sans la sienne fait tomber ce test ;
+ *  3. ce qui s'ouvre tombe du bord de son déclencheur, jamais du bas de
+ *     l'écran ;
+ *  4. les valeurs offertes viennent des lignes reçues, donc un filtre ne mène
  *     jamais à une liste vide ;
- *  4. le tri est dans la page avec sa flèche, et la flèche se retire sur
- *     « par catégorie », qui est un rangement sans sens à inverser ;
- *  5. le resserrement des cartes ne paraît que sur la vue qui en a une ;
- *  6. toutes les étiquettes existent en anglais, alors qu'elles passent par
+ *  5. le sommaire des groupes ne paraît que groupé, et il sait retrouver
+ *     chacun de ses blocs ;
+ *  6. le champ reconnaît les TROIS choses qu'il promet, chacune avec sa part
+ *     réservée ;
+ *  7. le tri et le resserrement sont là où les titres les mettent ;
+ *  8. toutes les étiquettes existent en anglais, alors qu'elles passent par
  *     « t(variable) », le premier angle mort du balayeur de clefs.
  */
 const SRC = readFileSync("src/app/fonds/FundsBrowser.tsx", "utf8");
 const CARTE = readFileSync("src/app/fonds/FundCard.tsx", "utf8");
+const CARTE_CSS = readFileSync("src/app/fonds/FundCard.module.css", "utf8");
+const MENU_CSS = readFileSync("src/components/market/Dropdown.module.css", "utf8");
 
 /** La fermeture d'un bloc d'instructions, par opposition à celle du JSX. */
 const BLOC = "\n  };\n";
@@ -52,13 +56,6 @@ const corpsDe = (nom: string, ferme = "\n  );\n"): string => {
 
 /** Le rendu de la page, où toute commande doit se trouver. */
 const PAGE = SRC.slice(SRC.indexOf("  return ("));
-/** Les appels à la fabrique des rangées à plat, avec leurs arguments. */
-const RANGEES = [...SRC.matchAll(/rangee\(\s*"([^"]+)",\s*(\w+),\s*"([^"]+)",([\s\S]*?)\n          \)|rangee\("([^"]+)", (\w+), "([^"]+)", ([^\n]*?)\)\}/g)].map((m) => ({
-  etiquette: m[1] ?? m[5],
-  valeur: m[2] ?? m[6],
-  toutes: m[3] ?? m[7],
-  options: m[4] ?? m[8],
-}));
 
 describe("les commandes de la page des fonds", () => {
   it("ne cache plus rien derrière une feuille", () => {
@@ -80,34 +77,76 @@ describe("les commandes de la page des fonds", () => {
        sans l'inscrire ici fait tomber le test, et c'est le but. */
     const COMMANDES: Record<string, { quoi: string; preuve: RegExp }> = {
       q: { quoi: "le champ de recherche", preuve: /type="search"/ },
-      cat: { quoi: "la rangée des catégories", preuve: /rangee\(\s*"Catégorie"/ },
-      vl: { quoi: "la rangée des périodicités", preuve: /rangee\("VL"/ },
+      cat: { quoi: "la rangée des catégories, à plat", preuve: /rangee\(\s*"Catégorie"/ },
+      vl: { quoi: "la liste des périodicités", preuve: /<Dropdown\s+label="VL"/ },
       gestion: { quoi: "la pastille de la société de gestion", preuve: /clef: "gestion"/ },
+      depositaire: { quoi: "la pastille du dépositaire", preuve: /clef: "depositaire"/ },
     };
     const effacees = [...corpsDe("const clearAll = () => {", BLOC).matchAll(/(\w+): undefined/g)].map((m) => m[1]);
-    expect(effacees.length, "clearAll n'efface plus rien : le test ne mesure plus rien").toBeGreaterThan(3);
+    expect(effacees.length, "clearAll n'efface plus rien : le test ne mesure plus rien").toBeGreaterThan(4);
     expect([...effacees].sort(), "un filtre de l'adresse n'a pas de commande nommée dans ce test").toEqual(Object.keys(COMMANDES).sort());
     for (const [clef, { quoi, preuve }] of Object.entries(COMMANDES)) {
       expect(SRC.match(preuve), `« ${clef} » : ${quoi} a disparu de la page`).toBeTruthy();
     }
-    /* CHAQUE RANGÉE PORTE SA SORTIE : « Toutes » remet le filtre à zéro là où
-       on l'a pris. Sans elle, on ne peut plus que tout effacer. */
-    expect(RANGEES.length, "les deux rangées à plat : introuvables").toBe(2);
-    for (const r of RANGEES) expect(r.toutes, `la rangée « ${r.etiquette} » n'a plus de sortie`).toBeTruthy();
+    /* LA RANGÉE À PLAT PORTE SA SORTIE : « Toutes » remet le filtre à zéro là
+       où on l'a pris. Sans elle, on ne peut plus que tout effacer. */
     expect(corpsDe("const rangee = ("), "la sortie de la rangée ne remet rien à zéro").toMatch(/onClick=\{\(\) => choisir\(""\)\}/);
-    // La pastille de la gestion rend la main : une pastille sans « retirer » est un cul-de-sac.
-    for (const [pousse] of SRC.matchAll(/actifs\.push\([\s\S]*?\);/g)) expect(pousse, `pastille sans sortie : ${pousse}`).toMatch(/retirer: \(\) =>/);
+    // Les pastilles rendent la main : une pastille sans « retirer » est un cul-de-sac.
+    const pastilles = [...SRC.matchAll(/actifs\.push\([\s\S]*?\);/g)];
+    expect(pastilles.length, "plus aucune pastille : le test ne mesure plus rien").toBeGreaterThan(1);
+    for (const [pousse] of pastilles) expect(pousse, `pastille sans sortie : ${pousse}`).toMatch(/retirer: \(\) =>/);
+  });
+
+  it("ouvre ses listes du bord de leur déclencheur, pas du bas de l'écran", () => {
+    /* Règle de la maison. Une liste posée en « fixed » ou collée au bas de la
+       fenêtre perd le lien avec le bouton qu'on vient de toucher. */
+    expect(MENU_CSS, "le menu ne tombe plus de son bouton").toMatch(/\.ddMenu \{[^}]*position: absolute;[^}]*top: calc\(100% \+/);
+    expect(MENU_CSS, "le menu sortirait de l'écran près du bord droit, sans recours").toMatch(/\.ddMenu\[data-bord="droite"\]/);
   });
 
   it("n'offre que des valeurs présentes dans les lignes reçues", () => {
     /* Une pastille qui mène à « Aucun fonds ne correspond » est une fausse
        promesse. Les catégories sont filtrées sur les lignes, les périodicités
        viennent de « freqs », qui est lui-même construit sur les lignes. */
-    const cats = RANGEES.find((r) => r.etiquette === "Catégorie");
-    expect(cats?.options, "les catégories ne sont plus filtrées sur les lignes reçues").toMatch(/rows\.some\(/);
-    const vl = RANGEES.find((r) => r.etiquette === "VL");
-    expect(vl?.options, "les périodicités ne viennent plus des lignes reçues").toMatch(/freqs\./);
+    const rang = SRC.slice(SRC.indexOf('rangee(\n            "Catégorie"'), SRC.indexOf('rangee(\n            "Catégorie"') + 400);
+    expect(rang, "les catégories ne sont plus filtrées sur les lignes reçues").toMatch(/rows\.some\(/);
+    expect(SRC, "les périodicités ne viennent plus des lignes reçues").toMatch(/items=\{freqs\.map/);
     expect(SRC, "« freqs » ne se construit plus sur les lignes").toMatch(/const freqs = useMemo\(\(\) => \[\.\.\.new Set\(rows\.map/);
+  });
+
+  it("ne montre le sommaire que groupé, et lui donne des ancres qu'il sait relire", () => {
+    expect(PAGE, "le sommaire paraît sans groupes : une bande collante qui ne conduit nulle part").toMatch(/\{groupe && groupes\.length > 1 && <BandeGroupes/);
+    /* LA CLEF D'UN GROUPE EST UNE ANCRE : la bande va chercher le bloc par un
+       sélecteur d'attribut. Les noms réels portent apostrophes, points et
+       espaces — « L'ARCHER ASSET MANAGEMENT », « ELITE CAPITAL ASSET
+       MANAGEMENT S.A. », « CCA -Bank » — et « fundKey » doit en faire quelque
+       chose qu'un sélecteur accepte. */
+    expect(SRC, "la clef d'un groupe n'est plus un slug").toMatch(/const clef = fundKey\(nom\)/);
+    for (const nom of ["L'ARCHER ASSET MANAGEMENT", "ELITE CAPITAL ASSET MANAGEMENT S.A.", "CCA -Bank", "UBA CAMEROUN"]) {
+      const clef = fundKey(nom);
+      expect(clef, `« ${nom} » : clef vide`).toBeTruthy();
+      expect(clef, `« ${nom} » → « ${clef} » : un sélecteur d'attribut ne l'avalera pas tel quel`).toMatch(/^[a-z0-9-]+$/);
+    }
+    // Le bloc porte l'ancre que la bande cherche : « aria-labelledby="sec-<clef>" ».
+    expect(PAGE, "les blocs ne portent plus l'ancre du sommaire").toMatch(/aria-labelledby=\{b\.clef \? `sec-\$\{b\.clef\}` : undefined\}/);
+    expect([...PAGE.matchAll(/aria-labelledby=\{b\.clef/g)].length, "les trois vues doivent porter l'ancre : cartes, liste, tableau").toBe(3);
+  });
+
+  it("reconnaît les trois choses que le champ promet, chacune avec sa part", () => {
+    /* Le champ promet « un fonds, une société de gestion, un dépositaire ».
+       Le filtre tenait les trois, les suggestions n'en offraient que deux :
+       taper « UBA » retirait trente-cinq fonds sans que rien ne dise
+       pourquoi. Et les gestions passant d'abord, « asset » reconnaissait
+       treize sociétés et ne laissait plus une place à un fonds. */
+    const sug = corpsDe("const suggestions = useMemo(", "\n  }, [draft");
+    for (const sorte of ["gestion", "depositaire", "fonds"]) {
+      expect(sug, `la suggestion « ${sorte} » a disparu du champ`).toMatch(new RegExp(`kind: "${sorte}" as const`));
+    }
+    expect(sug, "une sorte peut de nouveau prendre toutes les places").toMatch(/\.slice\(0, 3\)[\s\S]*\.slice\(0, 3\)/);
+    expect(SRC, "le filtre ne cherche plus dans les trois").toMatch(/fold\(`\$\{r\.title\} \$\{r\.manager\} \$\{r\.depositary\}`\)/);
+    // Toucher une gestion ou un dépositaire FILTRE ; toucher un fonds CHERCHE.
+    expect(SRC).toMatch(/if \(sug\.kind === "gestion"\) update\(\{ gestion: sug\.text/);
+    expect(SRC).toMatch(/else if \(sug\.kind === "depositaire"\) update\(\{ depositaire: sug\.text/);
   });
 
   it("trie dans la page, et retire la flèche là où elle ne veut rien dire", () => {
@@ -117,32 +156,41 @@ describe("les commandes de la page des fonds", () => {
     /* « par catégorie » est un rangement, pas une mesure : il n'a pas de sens
        à inverser, et la flèche ne doit pas s'y proposer. */
     expect(compte).toMatch(/\{sort !== "categorie" && \([\s\S]*?styles\.dirBtn/);
-  });
-
-  it("ne montre le resserrement que sur la vue qui en a une", () => {
     expect(PAGE, "le resserrement des cartes paraît sur une vue qui n'en a pas").toMatch(/\{vue === "cards" && !desk && <DensitySwitch \/>\}/);
   });
 
   it("traduit toutes les étiquettes, qui passent par t(variable)", () => {
     const clefs = [
-      ...RANGEES.flatMap((r) => [r.etiquette, r.toutes]),
+      ...[...SRC.matchAll(/rangee\(\s*"([^"]+)",\s*\w+,\s*"([^"]+)"/g)].flatMap((m) => [m[1], m[2]]),
       ...[...SRC.matchAll(/actifs\.push\(\{[^»]*?quoi: "([^"]+)"/g)].map((m) => m[1]),
+      ...[...SRC.matchAll(/<Dropdown\s+label="([^"]+)"/g)].map((m) => m[1]),
+      ...[...SRC.matchAll(/^\s*\["(?:gestion|depositaire|categorie)", "([^"]+)"\],$/gm)].map((m) => m[1]),
       /* Le tiret de la valeur manquante ne se traduit pas : c'est la règle de
          la maison, et « ? » est la catégorie d'un fonds dont le bulletin n'a
          rien dit. Aucune pastille ne le propose, mais la carte l'affiche. */
       ...Object.values(FUND_CATEGORY_LABEL).filter((l) => l && l !== "—"),
       ...Object.values(FUND_FREQUENCY_LABEL).filter((l) => l && l !== "—"),
     ];
-    expect(clefs.length, "plus aucune étiquette : le test ne mesure plus rien").toBeGreaterThan(8);
+    expect(clefs.length, "plus aucune étiquette : le test ne mesure plus rien").toBeGreaterThan(12);
     for (const k of clefs) expect(EN_ALL[k], `« ${k} » : étiquette sans anglais, et le balayeur ne la voit pas puisqu'elle passe par t(variable)`).toBeTruthy();
-    /* La périodicité ne prend pas d'étiquette dans sa pastille : son libellé
-       commence déjà par « VL », et « VL · VL quotidienne » dirait le mot deux
-       fois. Le dire ici évite qu'on la « complète » demain. */
-    expect(SRC).not.toMatch(/clef: "vl", quoi:/);
   });
 });
 
-describe("le sous-titre de la carte d'un fonds", () => {
+describe("la carte compacte d'un fonds", () => {
+  it("remplit la carte et cale sa performance en colonne, comme celle d'un titre", () => {
+    /* Mesuré à 412 px avant correction : le contenu s'arrêtait à 211 sur une
+       carte large de 384, et la performance tombait à une abscisse différente
+       par carte, selon la longueur du nom. Après : nom à 47, performance
+       finissant à 309, outils à 333, identiques sur les six premières. */
+    expect(CARTE_CSS, "le lien ne grandit plus : le contenu se tasse à gauche et la colonne des chiffres se dérègle").toMatch(/\.cLien \{[^}]*flex: 1 1 auto;/);
+    expect(CARTE_CSS, "les outils retournent coller au chiffre : on touche le « ··· » en voulant lire la performance").toMatch(/\.cOutils \{[^}]*margin-left: var\(--s-9\);/);
+    expect(CARTE_CSS, "les outils ne doivent plus être tirés vers le contenu par une marge négative").not.toMatch(/\.cOutils \{[^}]*margin-right: calc\(-1/);
+    /* VINGT-QUATRE DE CHAQUE CÔTÉ, pour que les chevrons du glissement aient
+       leur voie : un chevron tient de 2 à 16 px du bord. */
+    expect(CARTE_CSS, "la voie du chevron est reprise par le texte").toMatch(/\.compacte \{[^}]*padding: var\(--s-4\) calc\(var\(--s-9\) \+ var\(--s-4\)\);/);
+    expect(CARTE_CSS, "la performance n'est plus calée à droite : les chiffres ne font plus une colonne").toMatch(/\.cPerf \{[^}]*text-align: right;/);
+  });
+
   it("donne sa ligne au gestionnaire, et la suivante à la catégorie et au rythme", () => {
     /* Les trois faits tenaient sur une ligne, séparés par des points médians :
        « Actions · Harvest Asset Management · VL hebdomadaire », cinquante-six

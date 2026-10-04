@@ -39,7 +39,10 @@ export function FondsEnBref() {
         </svg>
         {t("En bref")}
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={t("Les fonds en bref")}>
+      {/* LA FEUILLE S'OUVRE DU BORD DE SON DÉCLENCHEUR, règle de la maison.
+          Le bouton est passé au coin haut droit, en face du titre : la
+          feuille vient de ce coin-là et non du bas de l'écran. */}
+      <Sheet open={open} onClose={() => setOpen(false)} title={t("Les fonds en bref")} dock="top-right">
         <div className={styles.corps}>
           <p>
             {t("Un OPCVM met en commun l'argent de plusieurs porteurs et le place selon une règle écrite. Ceux-ci sont agréés par la COSUMAF et leur valeur liquidative paraît au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.")}

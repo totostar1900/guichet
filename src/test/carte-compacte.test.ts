@@ -320,6 +320,18 @@ describe("au dos, la glose du cours tient sur deux lignes", () => {
   });
 });
 
+/**
+ * LE COMPORTEMENT DE LA BANDE A DÉMÉNAGÉ, PAS DISPARU.
+ *
+ * Il vivait dans « SectionChips » ; les fonds ont voulu la même bande pour
+ * leurs groupes, et ce qui a coûté cher à régler — le repère qui suit le
+ * défilement, le saut instantané, la barre qui ne bouge que de côté — ne doit
+ * exister qu'une fois. Il est dans « lib/ui/sommaire.ts », et les deux
+ * barres l'appellent. Les épreuves ci-dessous lisent donc les deux fichiers
+ * ensemble : elles tiennent le comportement où qu'il soit écrit.
+ */
+const BANDE = [readFileSync("C:/dev/guichet/src/components/SectionChips.tsx", "utf8"), readFileSync("C:/dev/guichet/src/lib/ui/sommaire.ts", "utf8")].join("\n");
+
 describe("les deux bandes collantes", () => {
   /**
    * Trois défauts mesurés à l'écran le 4 octobre 2026, dont aucun ne se
@@ -335,7 +347,7 @@ describe("les deux bandes collantes", () => {
    *     sont eux-mêmes collants et restent épinglés tant que leur section est
    *     à l'écran. Le bloc, lui, ne colle pas.
    */
-  const chips = readFileSync("C:/dev/guichet/src/components/SectionChips.tsx", "utf8");
+  const chips = BANDE;
   const browser = readFileSync("C:/dev/guichet/src/components/OfferBrowser.tsx", "utf8");
 
   it("une seule rangée de lieux, celle qui existait", () => {
@@ -382,7 +394,7 @@ describe("la bande des sections conduit, et le saut est instantané", () => {
    * L'atterrissage variait alors de -3743 à +624 selon le moment où l'on
    * regardait, ce qui ressemblait à un défaut de calcul et n'en était pas un.
    */
-  const chips = readFileSync("C:/dev/guichet/src/components/SectionChips.tsx", "utf8");
+  const chips = BANDE;
   /* Les commentaires CITENT ce qui a été retiré : on les enlève avant de
      chercher, sinon l'épreuve se prend elle-même au piège. Troisième fois
      aujourd'hui. */

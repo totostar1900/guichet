@@ -52,12 +52,37 @@
   white-space: nowrap;
 }
 
-/* LA VUE COMPACTE : trois choses sur une ligne. Le nom prend la place qui
-   reste, la performance ne se coupe jamais. */
+/**
+ * LA VUE COMPACTE, AU TRAIT PRÈS CELLE D'UN TITRE.
+ *
+ * Elle ne l'était pas, et la mesure le disait : sur une carte large de 384 px
+ * à 412 px d'écran, le contenu s'arrêtait à 211 et laissait 187 px de vide à
+ * droite. « .cLien » ne grandissait pas, donc le « flex: 1 » du nom ne
+ * poussait rien : nom, performance et outils restaient collés les uns aux
+ * autres dans la moitié gauche, et la performance tombait à une abscisse
+ * différente sur chaque carte, selon la longueur du nom. Une colonne de
+ * chiffres qu'on ne peut pas parcourir du regard n'est pas une colonne.
+ *
+ * Les trois réglages de la carte d'un titre, repris tels quels :
+ *
+ *  - VINGT-QUATRE DE CHAQUE CÔTÉ, pour que les chevrons du glissement aient
+ *    leur voie. Un chevron tient de 2 à 16 px du bord ; le texte commençait à
+ *    12, donc SOUS lui. L'écart n'était pas petit, il était négatif.
+ *  - SEIZE ENTRE LE CHIFFRE ET LES OUTILS. Il valait moins que zéro ici
+ *    (« .cOutils » tirait de −4) : on touchait le « ··· » en voulant lire la
+ *    performance, et le pouce couvrait le nombre.
+ *  - LA COLONNE DU CHIFFRE CALÉE À DROITE, donc au même bord sur toutes les
+ *    cartes : sur les titres, les quatre premières lignes finissent toutes à
+ *    327 px, mesuré.
+ */
 .compacte {
-  padding: var(--s-5) var(--s-6);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: var(--s-4) calc(var(--s-9) + var(--s-4));
 }
 .cLien {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: var(--s-5);
@@ -66,7 +91,7 @@
   min-width: 0;
 }
 .cNom {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
 }
 .cNom b {
@@ -116,8 +141,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s-1);
-  margin-right: calc(-1 * var(--s-2));
+  gap: 0;
+  margin-left: var(--s-9);
 }
 .cDots,
 .cFlip {
@@ -134,11 +159,6 @@
 .cFlip:hover,
 .cDots:hover {
   color: var(--gold-ink);
-}
-.compacte {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
 }
 
 /* LE DOS, QUI EST LA VUE NORMALE. La face arrière apporte déjà sa boîte, sa

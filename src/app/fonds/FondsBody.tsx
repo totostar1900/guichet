@@ -31,15 +31,18 @@ export async function FondsBody() {
   return (
     <>
       <BackToTop />
+      {/* LE CHAPO EST PASSE DANS LA FEUILLE « EN BREF ». Trois phrases sur ce
+          qu est un OPCVM agree, plus le bandeau des quatre categories,
+          faisaient pres de deux cents mots avant le premier fonds, relus a
+          chaque visite. Ils n etaient pas faux, ils etaient permanents.
+
+          LE BOUTON PASSE EN FACE DU TITRE, au coin haut droit. Il etait SOUS
+          le titre, dans la meme boite, donc sur la ligne suivante : il
+          reculait d un cran le debut de la liste, qui est ce pour quoi on
+          vient. En face, il ne coute aucune hauteur. */}
       <div className={styles.head}>
-        <div>
-          <h1 className="display">{t("Fonds communs de placement")}</h1>
-          {/* LE CHAPO EST PASSE DANS LA FEUILLE « EN BREF ». Trois phrases sur
-              ce qu est un OPCVM agree, plus le bandeau des quatre categories,
-              faisaient pres de deux cents mots avant le premier fonds, relus a
-              chaque visite. Ils n etaient pas faux, ils etaient permanents. */}
-          <FondsEnBref />
-        </div>
+        <h1 className="display">{t("Fonds communs de placement")}</h1>
+        <FondsEnBref />
       </div>
 
       <FundsBrowser rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />

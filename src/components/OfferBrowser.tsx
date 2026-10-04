@@ -14,6 +14,7 @@ import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { SectionChips } from "./SectionChips";
+import { Dropdown } from "./market/Dropdown";
 import { SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { FoldAll, useFold } from "./Fold";
@@ -82,64 +83,9 @@ const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2,
 const normStatus = (s: DisplayStatus): string => clientStatusGroup(s);
 const parseNum = (s: string) => Number(s.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
 
-/* ---------- dropdown of checkboxes ---------- */
-function Dropdown({ label, items, selected, onChange, single }: { label: string; items: [string, string][]; selected: Set<string>; onChange: (s: Set<string>) => void; single?: boolean }) {
-  const t = useT();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", esc);
-    };
-  }, [open]);
-  const toggle = (v: string) => {
-    const n = new Set(single ? [] : selected);
-    if (selected.has(v)) n.delete(v);
-    else n.add(v);
-    onChange(n);
-  };
-  const active = selected.size > 0;
-  return (
-    <div className={styles.dd} ref={ref}>
-      <button type="button" className={`${styles.ddBtn} ${active ? styles.ddOn : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}>
-        {t(label)}
-        {active && <b>{single ? t(items.find(([v]) => selected.has(v))?.[1] ?? "") : selected.size}</b>}
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div className={styles.ddMenu} role="group" aria-label={label}>
-          {items.map(([v, l]) =>
-            v.startsWith("#") ? (
-              <div key={v} className={styles.ddGroup}>
-                {t(l)}
-              </div>
-            ) : (
-              <label key={v} className={styles.ddItem}>
-                <input type={single ? "radio" : "checkbox"} checked={selected.has(v)} onChange={() => toggle(v)} />
-                {t(l)}
-              </label>
-            ),
-          )}
-          {active && (
-            <button type="button" className={styles.ddClear} onClick={() => onChange(new Set())}>
-              {t("Effacer")}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+/* La liste déroulante d'un filtre a déménagé dans « market/Dropdown » : la
+   page des fonds voulait la même pour la périodicité des VL, et deux listes
+   qui se commandent pareil doivent être le même objet. */
 
 /* ---------- grouping ---------- */
 type Row = { o: Offer; s: OfferSummary };

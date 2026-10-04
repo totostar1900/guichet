@@ -9,12 +9,14 @@ import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { usePhone } from "@/components/chart-utils";
+import { Dropdown } from "@/components/market/Dropdown";
+import { BandeGroupes } from "./BandeGroupes";
 import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { Select } from "@/components/ui/Select";
 import { useDeskView, useLineHref } from "@/components/DeskView";
-import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, type FundNav } from "@/lib/domain/market";
+import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, fundKey, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
 import { useT } from "@/i18n/client";
@@ -70,6 +72,19 @@ const SORT: [SortKey, string][] = [
     un nom de A à Z. Le second clic inverse, et c'est lui qui écrit « sens ». */
 const NATURAL: Record<SortKey, "asc" | "desc"> = { categorie: "asc", nom: "asc", gestion: "asc", vl: "desc", var: "desc", an: "desc", origine: "desc", date: "desc" };
 const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
+/**
+ * TROIS FAÇONS DE RANGER LA LISTE, ET PAS UNE DE PLUS.
+ *
+ * Qui gère, qui garde, et de quelle sorte : ce sont les trois questions qui
+ * font chercher un fonds plutôt qu'un autre. Grouper par VL n'aurait rangé
+ * que trois tas, grouper par performance n'a pas de sens — c'est un tri.
+ */
+type GroupKey = "gestion" | "depositaire" | "categorie";
+const GROUPES: [GroupKey, string][] = [
+  ["gestion", "Société de gestion"],
+  ["depositaire", "Dépositaire"],
+  ["categorie", "Catégorie"],
+];
 /* LES PHRASES DES CATÉGORIES ONT DÉMÉNAGÉ dans « FondsEnBref ». Le bandeau
    qui les portait en haut de page occupait la première moitié de l'écran à
    chaque visite ; il se repliait, et il fallait donc retenir son état d'un
@@ -80,6 +95,27 @@ const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
 const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`);
 const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
 const num = (v?: number) => (v == null ? -Infinity : v);
+
+/**
+ * LE TITRE D'UN GROUPE, COLLANT PENDANT QU'ON LE LIT.
+ *
+ * Il se range sous la bande du sommaire, et c'est lui qui dit où l'on est
+ * quand on a défilé loin du haut. Le compte est à côté du nom parce qu'il
+ * répond à la question d'avant la lecture : « Harvest 10 » dit combien de
+ * fonds on s'apprête à traverser.
+ */
+function TeteGroupe({ id, nom, n }: { id: string; nom: string; n: number }) {
+  const t = useT();
+  return (
+    <h2 id={id} className={styles.teteGroupe}>
+      {nom}
+      {/* « fonds » ne prend pas de pluriel : pas de test de nombre ici. */}
+      <b>
+        {n} {t("fonds")}
+      </b>
+    </h2>
+  );
+}
 
 /** One row of the table, with its « ··· ». */
 function FundTr({ r }: { r: FundRow }) {
@@ -189,7 +225,9 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const q = sp.get("q") ?? "";
   const cat = (sp.get("cat") ?? "") as FundNav["category"] | "";
   const manager = sp.get("gestion") ?? "";
+  const depositary = sp.get("depositaire") ?? "";
   const freq = (sp.get("vl") ?? "") as FundNav["frequency"] | "";
+  const groupe = (GROUPES.some(([k]) => k === sp.get("groupe")) ? sp.get("groupe") : "") as GroupKey | "";
   const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
   const asc = (sp.get("sens") ?? NATURAL[sort]) === "asc";
   const vueChoisie = sp.get("vue") as Vue | null;
@@ -247,11 +285,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const clearAll = () => {
     pushed.current = "";
     setDraft("");
-    update({ q: undefined, cat: undefined, gestion: undefined, vl: undefined });
+    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, vl: undefined });
   };
   const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
   const setManager = (v: string) => update({ gestion: v || undefined });
+  const setDepositary = (v: string) => update({ depositaire: v || undefined });
   const setFreq = (v: FundNav["frequency"] | "") => update({ vl: v || undefined });
+  const setGroupe = (v: GroupKey | "") => update({ groupe: v || undefined });
   const setSort = (v: SortKey) => update({ tri: v === "categorie" ? undefined : v, sens: undefined });
   // Depuis l'en-tête d'une colonne : la première fois son sens naturel, la
   // seconde l'inverse. C'est là qu'on cherche à trier un tableau.
@@ -262,23 +302,50 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const setAsc = (v: boolean) => update({ sens: v === (NATURAL[sort] === "asc") ? undefined : v ? "asc" : "desc" });
 
   const managers = useMemo(() => [...new Set(rows.map((r) => r.manager))].sort((a, b) => a.localeCompare(b, "fr")), [rows]);
-  // What the typed letters match: management companies (a filter) and funds (a search); a tap applies it.
+  const depositaries = useMemo(() => [...new Set(rows.map((r) => r.depositary))].sort((a, b) => a.localeCompare(b, "fr")), [rows]);
   const [typing, setTyping] = useState(false);
   // Toucher une suggestion valide la recherche : le clavier se retire et la liste paraît.
-  const { input: searchInput, list: searchList, commit: commitSearch } = useSearchCommit<HTMLInputElement, HTMLElement>();
+  const { input: searchInput, list: searchList, commit: commitSearch } = useSearchCommit<HTMLInputElement, HTMLDivElement>();
+  /**
+   * CE QUE LES LETTRES TAPÉES RECONNAISSENT, ET LE DÉPOSITAIRE EN FAISAIT
+   * PARTIE SANS JAMAIS SE MONTRER.
+   *
+   * Le champ promet trois choses : un fonds, une société de gestion, un
+   * dépositaire. Le filtre tenait bien les trois — il cherche dans le nom, la
+   * gestion ET le dépositaire — mais les suggestions n'en offraient que deux.
+   * Taper « UBA » retirait donc trente-cinq fonds sans que rien ne dise
+   * pourquoi : la liste se vidait, et le mot n'était reconnu nulle part.
+   * Mesuré le 4 octobre 2026 sur la production : treize dépositaires, dont
+   * « UBA CAMEROUN » (7 fonds), « UBA BANK CAMEROUN » (2) et « UBA CAMEROON »
+   * (1), qui sont la même banque écrite trois fois. Le bulletin les écrit
+   * ainsi, nous les reprenons tels quels, et les trois paraissent.
+   *
+   * TROIS SORTES, TROIS PARTS RÉSERVÉES. Les gestions passaient d'abord et
+   * les huit places pouvaient leur revenir en entier : « asset » reconnaît
+   * treize sociétés sur treize, et plus un seul fonds n'apparaissait. Chaque
+   * sorte a donc trois places au plus, et les fonds prennent ce qui reste.
+   *
+   * L'ISIN N'EST PAS CHERCHABLE, ET CE N'EST PAS UN OUBLI : les quarante-cinq
+   * fonds n'en ont pas. La colonne « isin » porte leur clef interne
+   * (« fcp-ab-cash »), parce que le Bulletin Officiel de la Cote ne publie
+   * pas d'ISIN pour les OPCVM. Promettre « un ISIN » dans ce champ serait
+   * promettre ce que la donnée ne contient pas.
+   */
   const suggestions = useMemo(() => {
     const d = fold(draft.trim());
-    if (!typing || d.length < 2) return [] as { kind: "gestion" | "fonds"; text: string }[];
-    const out: { kind: "gestion" | "fonds"; text: string }[] = [];
-    for (const m of managers) if (fold(m).includes(d) && m !== manager) out.push({ kind: "gestion", text: m });
-    for (const r of rows) if (fold(r.title).includes(d) && fold(r.title) !== d) out.push({ kind: "fonds", text: r.title });
-    return out.slice(0, 8);
-  }, [draft, typing, managers, manager, rows]);
+    if (!typing || d.length < 2) return [] as { kind: "gestion" | "depositaire" | "fonds"; text: string }[];
+    const reconnus = (liste: string[], deja: string) => liste.filter((x) => fold(x).includes(d) && x !== deja);
+    return [
+      ...reconnus(managers, manager).slice(0, 3).map((text) => ({ kind: "gestion" as const, text })),
+      ...reconnus(depositaries, depositary).slice(0, 3).map((text) => ({ kind: "depositaire" as const, text })),
+      ...rows.filter((r) => fold(r.title).includes(d) && fold(r.title) !== d).map((r) => ({ kind: "fonds" as const, text: r.title })),
+    ].slice(0, 8);
+  }, [draft, typing, managers, manager, depositaries, depositary, rows]);
   const freqs = useMemo(() => [...new Set(rows.map((r) => r.frequency))].filter((f) => f !== "?"), [rows]);
 
   const filtered = useMemo(() => {
     const ql = fold(draft.trim());
-    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
+    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":
@@ -302,9 +369,41 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     // « par catégorie » est un rangement, pas une mesure : il garde son ordre.
     const dir = sort === "categorie" ? 1 : asc ? 1 : -1;
     return [...list].sort((a, b) => dir * cmp(a, b));
-  }, [rows, draft, cat, manager, freq, sort, asc]);
+  }, [rows, draft, cat, manager, depositary, freq, sort, asc]);
 
   const rowsShown = sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered;
+  /**
+   * LES GROUPES SUIVENT L'ORDRE DE LA LISTE, pas un ordre à eux.
+   *
+   * Un groupe naît quand son premier fonds paraît : le tri choisi commande
+   * donc aussi l'ordre des blocs, et changer de tri ne rebat pas les cartes
+   * d'une façon qu'on n'a pas demandée. Groupé par catégorie et trié par
+   * catégorie, on retrouve l'ordre de la maison — du plus calme au plus
+   * mobile — sans qu'on ait à l'écrire deux fois.
+   *
+   * LA CLEF N'EST PAS LE NOM : la bande collante va chercher le bloc par un
+   * sélecteur d'attribut, et « L'ARCHER ASSET MANAGEMENT » y porte une
+   * apostrophe et des espaces. « fundKey » en fait « l-archer-asset-
+   * management », ce qu'un sélecteur accepte sans échappement.
+   */
+  const groupes = useMemo(() => {
+    if (!groupe) return [];
+    const nomDe = (r: FundRow) => (groupe === "gestion" ? r.manager : groupe === "depositaire" ? r.depositary : t(FUND_CATEGORY_LABEL[r.category]));
+    const out: { clef: string; nom: string; rows: FundRow[] }[] = [];
+    const vus = new Map<string, number>();
+    for (const r of rowsShown) {
+      const nom = nomDe(r) || t("Non renseigné");
+      const clef = fundKey(nom) || "sans-nom";
+      if (!vus.has(clef)) {
+        vus.set(clef, out.length);
+        out.push({ clef, nom, rows: [] });
+      }
+      out[vus.get(clef)!].rows.push(r);
+    }
+    return out;
+  }, [groupe, rowsShown, t]);
+  /** Les blocs à rendre : les groupes, ou la liste entière comme un seul bloc muet. */
+  const blocs = groupe && groupes.length > 0 ? groupes : [{ clef: "", nom: "", rows: rowsShown }];
   // L'en-tête d'une colonne est déjà le nom de ce qu'on veut trier : une
   // fonction, pas un composant, qu'un composant déclaré dans le rendu
   // reperdrait son état à chaque passage.
@@ -316,7 +415,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </button>
     </th>
   );
-  const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(freq));
+  const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(depositary)) + Number(Boolean(freq));
 
   // Remember this list (URL + order shown) so a fund's page can bring the reader back and step to the next fund.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
@@ -350,14 +449,16 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
    * bouton flottant ; et « toolbar », la rangée écrite une fois pour la page
    * et une fois pour la feuille, qui était le vrai motif de cette mécanique.
    *
-   * CE QUI RESTE PASTILLE, c'est ce qu'aucune rangée ne montre : la société de
-   * gestion, qui ne s'obtient qu'en touchant une suggestion du champ. La
-   * catégorie et la périodicité se retirent là où elles se prennent, en
-   * touchant « Toutes » ou la pastille déjà enfoncée ; les répéter en dessous
-   * aurait dit deux fois la même chose à deux centimètres d'écart.
+   * CE QUI RESTE PASTILLE, c'est ce qu'aucune commande ne montre : la société
+   * de gestion et le dépositaire, qui ne s'obtiennent qu'en touchant une
+   * suggestion du champ. La catégorie se retire là où elle se prend, en
+   * touchant « Toutes » ou la pastille déjà enfoncée, et la périodicité dans
+   * sa liste ; les répéter en dessous aurait dit deux fois la même chose à
+   * deux centimètres d'écart.
    */
   const actifs: { clef: string; quoi?: string; valeur: string; retirer: () => void }[] = [];
   if (manager) actifs.push({ clef: "gestion", quoi: "Gestion", valeur: manager, retirer: () => setManager("") });
+  if (depositary) actifs.push({ clef: "depositaire", quoi: "Dépositaire", valeur: depositary, retirer: () => setDepositary("") });
 
   /**
    * LA BARRE DE RECHERCHE, TOUJOURS VISIBLE.
@@ -406,12 +507,17 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                 onClick={() =>
                   commitSearch(() => {
                     setTyping(false);
+                    /* Une gestion et un dépositaire FILTRENT : ce sont des
+                       listes fermées, et l'on veut tous leurs fonds. Un nom
+                       de fonds CHERCHE : c'est un texte, et il peut en
+                       désigner plusieurs. */
                     if (sug.kind === "gestion") update({ gestion: sug.text, q: undefined });
+                    else if (sug.kind === "depositaire") update({ depositaire: sug.text, q: undefined });
                     else setQ(sug.text);
                   })
                 }
               >
-                <em>{t(sug.kind === "gestion" ? "Gestion" : "Fonds")}</em>
+                <em>{t(sug.kind === "gestion" ? "Gestion" : sug.kind === "depositaire" ? "Dépositaire" : "Fonds")}</em>
                 <b>{sug.text}</b>
               </button>
             </li>
@@ -422,21 +528,23 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   );
 
   /**
-   * LES DEUX FILTRES, À PLAT.
+   * LA CATÉGORIE RESTE À PLAT, LA PÉRIODICITÉ RETOURNE DANS UNE LISTE.
    *
-   * La catégorie était une grille encadrée de quatre tuiles, la périodicité
-   * une liste déroulante : deux formes différentes pour deux choix de même
-   * nature, et la seconde cachait ses quatre valeurs derrière un geste. Les
-   * voici dans la même forme, l'une sous l'autre, chaque valeur visible et
-   * chaque rangée dite par son étiquette.
+   * Ce n'est pas une hésitation, c'est une différence de rang. La catégorie
+   * est LA question qu'on se pose devant quarante-cinq fonds — monétaire ou
+   * actions, c'est-à-dire tranquille ou mobile — et ses quatre valeurs
+   * méritent d'être lues sans geste. La périodicité de la VL est un détail
+   * d'exécution, qu'on regarde quand on sait déjà ce qu'on cherche : elle
+   * tient dans une liste qui tombe du bord de son bouton, comme les filtres
+   * des titres, et laisse sa place à l'écran.
    *
-   * CHAQUE RANGÉE PORTE SON « TOUTES », qui est la sortie : on retire un
+   * LA RANGÉE À PLAT PORTE SON « TOUTES », qui est la sortie : on retire le
    * filtre là où on l'a pris, sans aller chercher ailleurs de quoi l'annuler.
    * Toucher la pastille déjà enfoncée fait la même chose, pour qui s'attend à
    * ce qu'un interrupteur s'éteigne comme il s'allume.
    *
    * Les valeurs viennent des lignes reçues, pas d'une liste écrite d'avance :
-   * une périodicité que personne ne pratique n'a pas de pastille, et un filtre
+   * une catégorie que personne ne pratique n'a pas de pastille, et un filtre
    * ne mène donc jamais à une liste vide.
    */
   const rangee = (etiquette: string, valeur: string, toutes: string, options: [string, string][], choisir: (v: string) => void) => (
@@ -468,7 +576,25 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => [c, FUND_CATEGORY_LABEL[c]]),
             (v) => setCat(v as FundNav["category"] | ""),
           )}
-          {rangee("VL", freq, "Toutes", freqs.map((f) => [f, FUND_FREQUENCY_LABEL[f]]), (v) => setFreq(v as FundNav["frequency"] | ""))}
+          {/* DEUX LISTES CÔTE À CÔTE : à quel rythme la VL est frappée, et
+              comment la liste se range. Chacune tombe du bord de son propre
+              bouton, règle de la maison, et c'est la liste des titres : un
+              seul objet pour les deux pages. */}
+          {/* CETTE RANGÉE N'A PAS D'ÉTIQUETTE, et c'est voulu : chaque bouton
+              porte déjà la sienne, « VL » et « Grouper », là où les pastilles
+              de la rangée du dessus ont besoin qu'on dise de quoi elles sont
+              les valeurs. Une étiquette de plus aurait nommé ce qui se nomme
+              tout seul. */}
+          <div className={styles.rangee}>
+            <Dropdown
+              label="VL"
+              single
+              items={freqs.map((f) => [f, FUND_FREQUENCY_LABEL[f]])}
+              selected={new Set(freq ? [freq] : [])}
+              onChange={(s) => setFreq(([...s][0] ?? "") as FundNav["frequency"] | "")}
+            />
+            <Dropdown label="Grouper" single items={GROUPES} selected={new Set(groupe ? [groupe] : [])} onChange={(s) => setGroupe(([...s][0] ?? "") as GroupKey | "")} />
+          </div>
           {actifs.map((f) => (
             <div key={f.clef} className={styles.rangee}>
               <span className={styles.quoi}>{t(f.quoi ?? "")}</span>
@@ -515,19 +641,38 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       </div>
 
+      {/* LE SOMMAIRE NE PARAÎT QUE GROUPÉ : sans blocs, il n'aurait rien à
+          désigner, et une bande collante qui ne conduit nulle part prend de
+          la hauteur sur chaque écran pour rien. */}
+      {groupe && groupes.length > 1 && <BandeGroupes groupes={groupes.map((g) => ({ clef: g.clef, nom: g.nom, n: g.rows.length }))} quoi={GROUPES.find(([k]) => k === groupe)?.[1] ?? "Groupes"} />}
+
       {rowsShown.length > 0 && vue === "cards" && (
-        <section className={styles.cards} data-coach="fonds-table" data-sep={sep} ref={searchList}>
-          {rowsShown.map((r) => (
-            <FundCard key={r.id} r={r} />
+        <div data-coach="fonds-table" ref={searchList}>
+          {blocs.map((b) => (
+            <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
+              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} n={b.rows.length} />}
+              <div className={styles.cards} data-sep={sep}>
+                {b.rows.map((r) => (
+                  <FundCard key={r.id} r={r} />
+                ))}
+              </div>
+            </section>
           ))}
-        </section>
+        </div>
       )}
       {rowsShown.length > 0 && vue === "list" && (
-        <ul className={styles.list} data-coach="fonds-table" ref={searchList as React.RefObject<HTMLUListElement>}>
-          {rowsShown.map((r) => (
-            <FundLi key={r.id} r={r} />
+        <div data-coach="fonds-table" ref={searchList}>
+          {blocs.map((b) => (
+            <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
+              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} n={b.rows.length} />}
+              <ul className={styles.list}>
+                {b.rows.map((r) => (
+                  <FundLi key={r.id} r={r} />
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       )}
       {rowsShown.length > 0 && vue === "table" && (
         <section className={styles.group} data-coach="fonds-table">
@@ -565,11 +710,24 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                   <th></th>
                 </tr>
               </thead>
-              <tbody>
-                {rowsShown.map((r) => (
-                  <FundTr key={r.id} r={r} />
-                ))}
-              </tbody>
+              {/* UN CORPS DE TABLE PAR GROUPE, avec sa ligne de tête. Le
+                  sommaire conduit au corps, qui porte l'ancre : c'est la
+                  même mécanique que pour les cartes, à ceci près qu'un
+                  tableau ne tolère pas une section entre ses rangées. */}
+              {blocs.map((b) => (
+                <tbody key={b.clef || "tout"} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
+                  {b.clef && (
+                    <tr className={styles.teteRangee}>
+                      <td colSpan={8} id={`sec-${b.clef}`}>
+                        {b.nom} <b>{b.rows.length}</b>
+                      </td>
+                    </tr>
+                  )}
+                  {b.rows.map((r) => (
+                    <FundTr key={r.id} r={r} />
+                  ))}
+                </tbody>
+              ))}
             </table>
           </div>
         </section>
