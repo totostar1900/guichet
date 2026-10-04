@@ -41,6 +41,14 @@
   flex: none;
   padding: 10px 14px 8px;
   border-bottom: 1px solid var(--line);
+  /* LA TÊTE GÈRE SON PROPRE GESTE. C'est la zone du tiré : la barrette, le
+     titre, la croix. Sans cela le navigateur reconnaît d'abord SON geste, le
+     tiré au bord haut, et rafraîchit la page pendant que la feuille, elle,
+     suivait le doigt. Signalé le 4 octobre 2026 sur « mon compte » et sur le
+     « ⋮ ». Ni le verrou ni un gestionnaire ne suffisent : React écoute
+     « touchmove » en mode passif, le code ne peut donc pas refuser le geste,
+     et le corps hors du flux ne porte plus le défilement de la fenêtre. */
+  touch-action: none;
 }
 .grab {
   display: none;
@@ -65,6 +73,8 @@
 }
 .body {
   overflow-y: auto;
+  /* Le corps, lui, défile : il ne prend que le geste vertical. */
+  touch-action: pan-y;
   /* Le verrou empeche la page de bouger ; ceci empeche le geste de se
      propager au parent une fois la feuille arrivee en bout. Les deux sont
      necessaires, et aucun ne remplace l autre. */

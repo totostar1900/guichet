@@ -44,7 +44,7 @@ describe("equivalence", () => {
     const e = equivalence(fonds, 5_000_000, "souscription");
     expect(e!.line).toContain("parts");
     // L'espace des milliers est une fine insécable, pas une espace ordinaire.
-    expect(e!.line).toContain("105 750");
+    expect(e!.line).toContain("105 750");
     // Les parts ont trois décimales : il n'y a rien à laisser de côté.
     expect(e!.rest).toBe(0);
   });
@@ -53,7 +53,7 @@ describe("equivalence", () => {
     const fonds = { ...base, kind: "FONDS", fund: { nav: 105_750, navDate: "2026-09-30", minAmount: 100_000, entryFeePct: 0, exitFeePct: 0, manager: "X", distributed: true } } as unknown as Offer;
     const e = equivalence(fonds, 40, "rachat");
     expect(e!.line).toContain("FCFA");
-    expect(e!.line).toContain("4 230 000");
+    expect(e!.line).toContain("4 230 000");
   });
 
   it("laisse les lignes cotées à leur propre conversion", () => {

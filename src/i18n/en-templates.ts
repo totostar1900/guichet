@@ -48,6 +48,8 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Pour 10 bons de {n} FCFA": "For 10 bills of {n} FCFA",
   "Pour {n} FCFA à la dernière VL": "For {n} FCFA at the latest NAV",
   "Pour {n} titres au cours vendeur": "For {n} securities at the ask price",
+  "Pour {n} titres au cours de référence": "For {n} securities at the reference price",
+  "inchangé depuis le {d}, {n} jours": "unchanged since {d}, {n} days",
   "Pour {n} actions au cours vendeur": "For {n} shares at the ask price",
   "Pour {n} actions": "For {n} shares",
   "Pour {n} titres cédés": "For {n} securities sold",

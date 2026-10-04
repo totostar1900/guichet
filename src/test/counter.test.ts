@@ -17,12 +17,14 @@ describe("la contre-proposition", () => {
   it("ne nomme que ce qui change", () => {
     // Répéter les conditions inchangées noierait la seule information qui compte.
     expect(counterTerms({ amount: 40, until: "", by: "", at: "" }, intent, offer)).toBe("40 actions au lieu de 100");
-    // fmt() separe les milliers par une espace insecable etroite, comme le francais le veut
-    const price = counterTerms({ limitPrice: 85000, until: "", by: "", at: "" }, intent, offer).replace(/ /g, " ");
+    // fmt() separe les milliers par une insecable : on la ramene a une espace
+    // ordinaire pour comparer, la fine comme l'autre, car ce test porte sur ce
+    // qui est nomme et non sur le caractere qui separe.
+    const price = counterTerms({ limitPrice: 85000, until: "", by: "", at: "" }, intent, offer).replace(/[  ]/g, " ");
     expect(price).toBe("85 000 FCFA au lieu de 90 000 FCFA");
     const both = counterTerms({ amount: 40, limitPrice: 85000, until: "", by: "", at: "" }, intent, offer);
     expect(both).toContain("40 actions");
-    expect(both.replace(/ /g, " ")).toContain("85 000 FCFA");
+    expect(both.replace(/[  ]/g, " ")).toContain("85 000 FCFA");
   });
 
   it("dit le prix comme la ligne le cote", () => {

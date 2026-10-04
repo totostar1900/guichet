@@ -79,35 +79,35 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
           </button>
         </div>
       }
-      back={<CardBack facts={facts} figures={compact ? s.ledger.slice(1) : undefined} />}
+      back={<CardBack facts={facts} figures={s.ledger.slice(1)} />}
     >
       {compact ? (
-        <article className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+        <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
               <b className={styles.cCode}>{s.code}</b>
               <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : t(s.promesse.key, s.promesse.params)}</small>
             </span>
-            <span className={styles.cNum}>
+            <span className={styles.cNum} data-coach="titres-chiffre">
               <b className={s.gold ? styles.gold : ""}>{s.hero}</b>
               <small>{t(s.origine.key, s.origine.params)}</small>
             </span>
           </Link>
           <span className={styles.cTools}>
             {!desk && <LineMenu line={menu} openRef={more} className={styles.cDots} />}
-            <button type="button" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+            <button type="button" data-coach="titres-retourner" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
               <Turn />
             </button>
           </span>
         </article>
       ) : (
-        <article className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+        <article data-coach="titres-carte" className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <div className={styles.head}>
             <LineIdentity o={o} s={s} href={href} size="lg" />
             <div className={styles.corner}>
               <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
               {!desk && <LineMenu line={menu} openRef={more} />}
-              <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+              <button type="button" data-coach="titres-retourner" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
                 <Turn />
               </button>
             </div>

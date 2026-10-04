@@ -23,15 +23,32 @@ import styles from "./CardBack.module.css";
  */
 export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?: [string, string, string?][]; curve?: FundCurve }) {
   const t = useT();
+  /* LA BANDE REMPLACE LES QUATRE CASES quand la ligne en a une : trois chiffres
+     côte à côte valent mieux que quatre cases dont deux redisent ce qui est
+     écrit plus bas. Les autres instruments gardent la grille, le temps qu'on
+     leur taille la leur. */
+  const band = facts.band;
+  const tete = Boolean(facts.title);
+  const haut = band ?? figures;
   return (
     <div className={styles.back}>
-      {figures && (
-        <div className={`${styles.sec} ${styles.first}`}>
-          <div className={styles.grid}>
-            {figures.map(([k, v, note]) => (
+      {facts.title && (
+        /* LE NOM OUVRE LE DOS, et il s'arrête avant le coin : la pastille de
+           statut court en haut, le « ··· » et le retournement descendent à
+           droite. `first` leur garde leur colonne. Un nom qui passerait
+           dessous se lirait sous deux icônes. */
+        <div className={`${styles.sec} ${styles.first} ${styles.ident}`}>
+          <div className={styles.name}>{facts.title}</div>
+          {facts.sub && <div className={styles.sub}>{facts.sub}</div>}
+        </div>
+      )}
+      {haut && (
+        <div className={`${styles.sec} ${tete ? "" : styles.first}`}>
+          <div className={band ? styles.band : styles.grid}>
+            {haut.map(([k, v, note]) => (
               <div key={k}>
                 <span>{t(k)}</span>
-                <b>{v}</b>
+                <b className={band && k === "Rendement" ? styles.or : undefined}>{v}</b>
                 {note && <em>{t(note)}</em>}
               </div>
             ))}
@@ -39,7 +56,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
         </div>
       )}
       {facts.calendar && (
-        <div className={`${styles.sec} ${figures ? "" : styles.first}`}>
+        <div className={`${styles.sec} ${haut || tete ? "" : styles.first}`}>
           <div className={styles.lbl}>
             {t("Calendrier")}
             {facts.calendar.some((s) => s.state === "on") && <i>{t("étape en cours")}</i>}
@@ -55,7 +72,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
         </div>
       )}
       {facts.lines && (
-        <div className={`${styles.sec} ${figures || facts.calendar ? "" : styles.first}`}>
+        <div className={`${styles.sec} ${haut || tete || facts.calendar ? "" : styles.first}`}>
           {facts.lines.map(([k, v]) => (
             <div key={k} className={styles.kv}>
               <span>{t(k)}</span>

@@ -19,25 +19,25 @@ describe("grouper un montant", () => {
   it("pose une espace tous les trois chiffres", () => {
     expect(groupDigits("1")).toBe("1");
     expect(groupDigits("100")).toBe("100");
-    expect(groupDigits("1000")).toBe("1 000");
-    expect(groupDigits("10000000")).toBe("10 000 000");
+    expect(groupDigits("1000")).toBe("1 000");
+    expect(groupDigits("10000000")).toBe("10 000 000");
   });
 
   it("ne passe pas par un nombre, donc ne perd rien sur les très grands", () => {
     // 2^53 est dépassé : un aller-retour par Number arrondirait.
-    expect(groupDigits("9007199254740993")).toBe("9 007 199 254 740 993");
+    expect(groupDigits("9007199254740993")).toBe("9 007 199 254 740 993");
   });
 
   it("ignore ce qui n'est pas un chiffre", () => {
-    expect(regroup("10 000 000")).toBe("10 000 000");
-    expect(regroup("10.000,00 FCFA")).toBe("1 000 000");
+    expect(regroup("10 000 000")).toBe("10 000 000");
+    expect(regroup("10.000,00 FCFA")).toBe("1 000 000");
     expect(regroup("")).toBe("");
     expect(regroup("abc")).toBe("");
   });
 
   it("garde les décimales des parts de fonds, et n'en groupe que l'entier", () => {
-    expect(regroup("1234,5", true)).toBe("1 234,5");
-    expect(regroup("1234.567", true)).toBe("1 234,567");
+    expect(regroup("1234,5", true)).toBe("1 234,5");
+    expect(regroup("1234.567", true)).toBe("1 234,567");
     // Trois décimales au plus : c'est le pas d'une part au registre.
     expect(regroup("1,23456", true)).toBe("1,234");
     expect(regroup(",5", true)).toBe(",5");

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { parseAmount } from "@/lib/format";
+import { fmt, parseAmount } from "@/lib/format";
 import { groupDigits, regroup } from "@/lib/ui/grouped";
 
 /**
@@ -16,15 +16,22 @@ import { groupDigits, regroup } from "@/lib/ui/grouped";
  * CHAÎNE, et `parseAmount` la lit en retirant tout ce qui n'est pas un chiffre.
  * Ce cliquet tient les deux bouts ensemble, le format posé et le format relu.
  */
-/* L'espace fine insécable, celle que « Intl » emploie en français. Écrite par
-   son code et non tapée : à l'oeil elle ne se distingue pas d'une espace
-   ordinaire, et un test qui compare deux espaces différentes échoue en montrant
-   deux chaînes identiques. */
+/* L'espace insécable ordinaire, U+00A0, celle que pose « fmt » depuis le
+   4 octobre 2026. Écrite par son code et non tapée : à l'oeil elle ne se
+   distingue pas d'une espace ordinaire, et un test qui compare deux espaces
+   différentes échoue en montrant deux chaînes identiques.
+   La fine, U+202F, est celle que « Intl » emploie et que la maison a quittée :
+   à 11 px elle ne se voyait pas, et « 9 059 000 » se lisait « 9059000 ». */
+const espace = " ";
 const espaceFine = " ";
 
 describe("ce que le champ écrit", () => {
-  it("sépare les milliers avec l'espace fine insécable", () => {
-    expect(groupDigits("10000000")).toBe(`10${espaceFine}000${espaceFine}000`);
+  it("sépare les milliers avec l'espace que pose « fmt »", () => {
+    expect(groupDigits("10000000")).toBe(`10${espace}000${espace}000`);
+    // Et surtout : la MÊME que l'affichage, sinon le champ et la carte se
+    // contrediraient à l'oeil sur le même montant.
+    expect(groupDigits("10000000")).toBe(fmt(10_000_000));
+    expect(groupDigits("10000000")).not.toContain(espaceFine);
   });
 
   it("ne groupe pas en deçà du millier", () => {
@@ -32,7 +39,7 @@ describe("ce que le champ écrit", () => {
   });
 
   it("ignore ce qui n'est pas un chiffre pendant la frappe", () => {
-    expect(regroup("10a0b0c0")).toBe(`10${espaceFine}000`);
+    expect(regroup("10a0b0c0")).toBe(`10${espace}000`);
   });
 });
 

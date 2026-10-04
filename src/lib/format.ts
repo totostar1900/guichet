@@ -1,6 +1,22 @@
 import { parseDate } from "./finance";
 
 const nf = new Intl.NumberFormat("fr-FR");
+/**
+ * L'ESPACE DES MILLIERS EST UNE INSÉCABLE ORDINAIRE, PAS LA FINE.
+ *
+ * « Intl » sépare le français par U+202F, une espace FINE insécable. Elle est
+ * juste typographiquement et illisible à l'écran : signalé le 4 octobre 2026
+ * sur le dos d'une carte, où « 9 059 000 » se lisait « 9059000 » à 11 px. Les
+ * grands chiffres de la fiche la montraient, eux, parce qu'ils font le double
+ * de cette taille, et c'est ce qui a fait croire si longtemps que le
+ * séparateur était posé partout. Il l'était ; il ne se voyait pas.
+ *
+ * RIEN NE DÉPEND DU CARACTÈRE, et c'est mesuré : les quatre endroits qui
+ * relisent un montant saisi (format.ts, grouped.ts, FicheForm, le PDF)
+ * retirent déjà les DEUX espaces, et le PDF les aplatit en espace ordinaire
+ * avant de composer. Le changement ne touche donc que ce qui s'affiche.
+ */
+const ESPACE_DES_MILLIERS = " ";
 const MONTHS_FR = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 const DAYS_FR = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -13,7 +29,7 @@ export const setFormatLang = (l: "fr" | "en"): void => {
 const MONTHS = new Proxy([] as string[], { get: (_t, i) => (formatLang === "en" ? MONTHS_EN : MONTHS_FR)[i as unknown as number] });
 const DAYS = new Proxy([] as string[], { get: (_t, i) => (formatLang === "en" ? DAYS_EN : DAYS_FR)[i as unknown as number] });
 
-export const fmt = (n: number): string => nf.format(Math.round(n));
+export const fmt = (n: number): string => nf.format(Math.round(n)).split(" ").join(ESPACE_DES_MILLIERS);
 
 export const fmtPct = (v: number, decimals = 1): string =>
   `${v.toLocaleString("fr-FR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} %`;

@@ -82,7 +82,13 @@ describe("les contrôles d'ordre passent en anglais", () => {
 
 describe("les textes du desk et de la fiche passent en anglais", () => {
   it("bloc de référence, résumé, explications, statuts, comparaison, versements, motifs, accusés", () => {
-    const aPlat = (f: { calendar?: { label: string; when: string }[]; lines?: [string, string][]; reference: { title: string; rows: [string, string, boolean?][] } }): string[] => [
+    /* TOUT CE QUE PORTE UN DOS, champ par champ. Le nom et la bande ont été
+       ajoutés le 4 octobre 2026 et ce tamis ne les connaissait pas : il a
+       laissé passer trois phrases sans anglais en rapportant zéro manque. Un
+       tamis muet sur ce qu'il ignore est pire qu'un tamis absent.
+       Le titre et l'ISIN ne se traduisent pas : ce sont des noms propres. */
+    const aPlat = (f: { band?: [string, string, string?][]; calendar?: { label: string; when: string }[]; lines?: [string, string][]; reference: { title: string; rows: [string, string, boolean?][] } }): string[] => [
+      ...(f.band ?? []).flatMap((b) => [b[0], b[2] ?? ""]),
       ...(f.calendar ?? []).flatMap((s) => [s.label, s.when]),
       ...(f.lines ?? []).flat(),
       f.reference.title,
@@ -123,6 +129,15 @@ describe("les textes du desk et de la fiche passent en anglais", () => {
     deskPhrases.push(...sans("fundBackFacts", () => aPlat(fundBackFacts({ nav: 105_750, entryFeePct: 2.5, exitFeePct: 1, minAmount: 100_000, cutoff: "11:00", settlementDays: 2, inceptionDate: "2021-04-01" })), []));
     for (const k of ["client", "echeance", "documents", "ligne_close", "position", "capacite", "doublon"]) deskPhrases.push(sans("reasonForDesk", () => reasonForDesk(k), ""), sans("reasonForClient", () => reasonForClient(k), ""));
     for (const t of TYPES) deskPhrases.push(sans("receivedLabel", () => receivedLabel(t), ""));
+
+    /* L'ÂGE DU COURS NE SE DIT QUE SI UNE LIGNE PORTE « priceSince », et
+       aucune offre du jeu d'essai n'en portait : la phrase la plus neuve du
+       dos n'était jamais produite, donc jamais vérifiée. On force les deux
+       branches sur la première ligne cotée venue. */
+    const cotee = OFFRES.find((o) => o.kind === "MARCHE" && o.instrument === "obligation");
+    if (cotee) {
+      for (const priceSince of ["2026-08-18", "2026-10-08"]) deskPhrases.push(...sans("backFacts priceSince", () => aPlat(backFacts({ ...cotee, priceSince }, NOW)), []));
+    }
 
     expect(rates).toEqual([]);
     expect(deskPhrases.filter(Boolean).length).toBeGreaterThan(100);

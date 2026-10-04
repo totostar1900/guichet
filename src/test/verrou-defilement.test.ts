@@ -14,8 +14,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * et deux champs de `window` : on les lui tend, et on mesure ce qu'il y écrit.
  */
 const style: Record<string, string> = {};
+const racine: Record<string, string> = {};
 const scrollTo = vi.fn();
-vi.stubGlobal("document", { body: { style } });
+vi.stubGlobal("document", { body: { style }, documentElement: { style: racine } });
 vi.stubGlobal("window", { get scrollY() { return position; }, scrollTo });
 let position = 0;
 
@@ -24,6 +25,7 @@ const { deverrouiller, verrouiller } = await import("@/components/mobile/verrou-
 describe("le verrou de défilement", () => {
   beforeEach(() => {
     for (const k of Object.keys(style)) delete style[k];
+    for (const k of Object.keys(racine)) delete racine[k];
     scrollTo.mockClear();
     position = 0;
   });
@@ -76,8 +78,21 @@ describe("le verrou de défilement", () => {
     expect(style.overscrollBehavior).toBe("");
   });
 
+  it("l'interdit vaut sur la racine, car c'est elle qui porte le défilement", () => {
+    /* LE PREMIER CORRECTIF NE POSAIT LA PROPRIÉTÉ QUE SUR LE CORPS, et le
+       corps venait d'être sorti du flux par la ligne du dessus : il ne porte
+       plus le défilement de la fenêtre, donc la propriété n'y valait rien.
+       Mesuré le 4 octobre 2026 sur « mon compte » et « Bonjour … », où le tiré
+       depuis la bande du haut rafraîchissait encore la page. */
+    verrouiller();
+    expect(racine.overscrollBehavior, "la racine ne retient pas le tiré").toBe("none");
+    deverrouiller();
+    expect(racine.overscrollBehavior).toBe("");
+  });
+
   it("ne déverrouille pas ce qui n'est pas verrouillé", () => {
     deverrouiller();
+    expect(Object.keys(racine)).toEqual([]);
     expect(Object.keys(style)).toEqual([]);
     expect(scrollTo).not.toHaveBeenCalled();
   });
@@ -104,6 +119,18 @@ describe("plus personne ne pose son propre verrou", () => {
   it("le panneau qui défile retient le geste en bout de course", () => {
     // Le verrou empêche la page de bouger, pas le geste de se propager au parent.
     expect(readFileSync("C:/dev/guichet/src/components/mobile/Sheet.module.css", "utf8")).toMatch(/\.body \{[^}]*overscroll-behavior: contain/);
+  });
+
+  it("la tête de la feuille prend le geste à son compte", () => {
+    /* LE DERNIER RECOURS, ET LE SEUL QUI TIENNE SUR LA BANDE DU HAUT : React
+       écoute « touchmove » en mode passif, le code ne peut donc pas refuser le
+       geste au navigateur, et celui-ci reconnaît son tiré-pour-rafraîchir
+       avant que la feuille n'ait bougé. « touch-action » se lit avant tout
+       gestionnaire. Le corps garde « pan-y », sinon une feuille longue ne se
+       lirait plus. */
+    const css = readFileSync("C:/dev/guichet/src/components/mobile/Sheet.module.css", "utf8");
+    expect(css, "la tête laisse le navigateur prendre le geste").toMatch(/\.head \{[^}]*touch-action: none/);
+    expect(css, "le corps doit garder son défilement").toMatch(/\.body \{[^}]*touch-action: pan-y/);
   });
 });
 

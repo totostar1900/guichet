@@ -45,6 +45,12 @@ export function verrouiller(): void {
      feuille ET perd ce que le lecteur y avait coché. Signalé sur la feuille
      des filtres le 4 octobre 2026. */
   b.overscrollBehavior = "none";
+  /* SUR LA RACINE AUSSI, et c'est elle qui compte. « overscroll-behavior » ne
+     vaut pour la fenêtre que par l'élément qui porte son défilement : le corps
+     vient d'être sorti du flux, il ne le porte plus. Poser la propriété sur le
+     seul corps laissait donc le tiré-pour-rafraîchir intact, ce qu'a montré le
+     menu du compte le 4 octobre 2026. */
+  document.documentElement.style.overscrollBehavior = "none";
 }
 
 export function deverrouiller(): void {
@@ -58,6 +64,7 @@ export function deverrouiller(): void {
   b.width = "";
   b.overflow = "";
   b.overscrollBehavior = "";
+  document.documentElement.style.overscrollBehavior = "";
   /* `scrollTo` sans animation : la restauration doit être invisible, une
      feuille qui se ferme sur un glissement doux ramènerait l'œil en haut. */
   window.scrollTo({ top: positionRetenue, behavior: "instant" as ScrollBehavior });

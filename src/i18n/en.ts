@@ -81,6 +81,8 @@ export const EN: Record<string, string> = {
   "Clôture": "Closing",
   "Échéance": "Maturity",
   "Ticket minimum": "Minimum ticket",
+  "actuariel brut à ce cours": "gross actuarial at this price",
+  "fixé à la dernière séance": "set at the last session",
   "Ticket min.": "Min. ticket",
   "Ticket": "Ticket",
   "Voir la fiche": "View details",

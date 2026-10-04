@@ -14,14 +14,16 @@ import type { ChangeEvent } from "react";
  * replace le curseur après le même nombre de chiffres. Le lecteur qui corrige
  * un zéro au milieu de son million reste où il était.
  *
- * L'espace posée est l'espace fine insécable, celle que « Intl » emploie pour
- * le français : les analyseurs de l'application retirent tous les caractères
- * qui ne sont pas des chiffres, donc rien ne dépend de ce choix.
+ * L'ESPACE POSÉE EST CELLE QU'AFFICHE « fmt », ET CE N'EST PLUS LA FINE.
+ * « Intl » sépare le français par U+202F, invisible à petite taille ; le champ
+ * posait la même, si bien qu'un montant tapé et un montant affiché partageaient
+ * leur défaut. Les analyseurs retirent tous les caractères qui ne sont pas des
+ * chiffres, donc rien d'autre ne dépend de ce choix.
  */
-const THIN = " ";
+const ESPACE = " ";
 
 /** « 10000000 » → « 10 000 000 », sans passer par un nombre (aucune perte au-delà de 2^53). */
-export const groupDigits = (digits: string): string => digits.replace(/\B(?=(\d{3})+(?!\d))/g, THIN);
+export const groupDigits = (digits: string): string => digits.replace(/\B(?=(\d{3})+(?!\d))/g, ESPACE);
 
 /**
  * Le texte tapé, regroupé. Avec `decimals`, la partie décimale est laissée
