@@ -21,7 +21,7 @@ import styles from "./LineIdentity.module.css";
  * la ligne du desk, le nom complet reste : ce sont les deux pages où l'on
  * vérifie avant de passer un ordre.
  */
-export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" | "xl"; as?: "div" | "h1" }) {
+export function LineIdentity({ o, s, href, size = "md", as: Tag = "div", isin = true }: { o: Offer; s: OfferSummary; href?: string; size?: "md" | "lg" | "xl"; as?: "div" | "h1"; /** La carte le descend dans son pied : voir OfferCard. */ isin?: boolean }) {
   const t = useT();
   const nom = Tag === "h1" ? s.title : titreCourt(o);
   const title = href ? <Link href={href}>{t(nom)}</Link> : t(nom);
@@ -48,7 +48,7 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div" }: { o: 
             Trésor il s'agit, et l'ISIN ne sert qu'à passer un ordre en banque,
             jamais à reconnaître une ligne. */}
         <span className={styles.issuer}>{t(s.subtitle)}</span>
-        <span className={styles.isin}>{o.isin}</span>
+        {isin && <span className={styles.isin}>{o.isin}</span>}
       </div>
       {s.badges.length > 0 && (
         <div className={styles.badges}>

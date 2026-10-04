@@ -220,6 +220,18 @@
 .when {
   margin-right: auto;
 }
+/* L ISIN AU PIED : meme allure que dans la ligne grise, chiffres alignes,
+   cale a gauche en face du bouton. Il ouvre le pied dans le balisage, donc sa
+   marge automatique suffit a le coller a gauche ; sur une seance, la mention
+   de cloture garde la sienne et se place entre les deux. */
+.footIsin {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  margin-right: auto;
+}
 .when {
   color: var(--ink-3);
   font-size: 0.74rem;

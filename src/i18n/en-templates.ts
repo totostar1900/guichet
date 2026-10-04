@@ -58,7 +58,7 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Pour {n} titres au cours de référence": "For {n} securities at the reference price",
   "Rangées par échéance. {n} lignes affichent un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.":
     "Ordered by maturity. {n} lines show a market yield: what a purchase at today's price returns. The others have not changed hands, and their figure is computed on the bulletin's quotation.",
-  "depuis le {d}, {n} jours": "since {d}, {n} days",
+  "depuis le {d}": "since {d}",
   "Pour {n} actions au cours vendeur": "For {n} shares at the ask price",
   "Pour {n} actions": "For {n} shares",
   "Pour {n} titres cédés": "For {n} securities sold",

@@ -30,7 +30,7 @@ export interface BackFacts {
    * déjà écrit deux lignes plus bas et que le rendement ne l'était qu'au terme
    * d'un calcul, tout en bas, alors que c'est lui que porte la façade.
    */
-  band?: [string, string, string?][]; // label, value, note
+  band?: [string, string, string?, string?][]; // étiquette, valeur, glose, seconde glose
   calendar?: CalendarStep[]; // an operation
   lines?: [string, string][]; // dated facts of a line without operation
   reference: { title: string; rows: [string, string, boolean?][] }; // label, value, total?
@@ -53,12 +53,16 @@ const short = (iso: string, now: Date): string => {
  * la date de la SÉANCE, donc souvent celle d'aujourd'hui, et ne renseigne en
  * rien l'âge du cours.
  */
-const ageDuCours = (o: Offer, now: Date): string | undefined => {
+const ageDuCours = (o: Offer, now: Date): [string?, string?] => {
   if (o.priceSince) {
     const j = daysBetween(o.priceSince, localIso(now));
-    return j > 0 ? `depuis le ${fmtDate(o.priceSince)}, ${fmt(j)} jours` : "fixé à la dernière séance";
+    /* DEUX LIGNES, LA DATE PUIS LA DURÉE. Sur une seule, « depuis le 18 août
+       2026, 47 jours » se coupe où la colonne le décide, et la virgule se
+       retrouve en bout de ligne. Séparées, chacune se lit d'un coup : la
+       première dit QUAND, la seconde DEPUIS COMBIEN DE TEMPS. */
+    return j > 0 ? [`depuis le ${fmtDate(o.priceSince)}`, `${fmt(j)} jours`] : ["fixé à la dernière séance"];
   }
-  return o.lastPriceOn ? `séance du ${fmtDate(o.lastPriceOn)}` : undefined;
+  return [o.lastPriceOn ? `séance du ${fmtDate(o.lastPriceOn)}` : undefined];
 };
 
 const hm = (iso: string): string => {
@@ -195,7 +199,7 @@ export function backFacts(o: Offer, now: Date): BackFacts {
         title: o.title,
         sub: `${o.isin} · ${o.market ?? "BVMAC"}, cotation continue`,
         band: [
-          ["Cours", fmtPrice(ref), ageDuCours(o, now)],
+          ["Cours", fmtPrice(ref), ...ageDuCours(o, now)],
           ["Rendement", fmtPct(r.irr, 2), "à l'échéance, à ce cours"],
           ["Échéance", maturityIsGuess(o) ? `${o.maturityOn?.slice(0, 4) ?? "—"} ≈` : fmtDate(o.maturityOn ?? ""), o.maturityOn ? tenorCourt(localIso(now), o.maturityOn) : undefined],
         ],

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CLEFS_CARTE, CODE_PAYS, codeCourt, codeLisible, ligneGrise, origineDuChiffre, titreCourt } from "@/lib/domain/carte-compacte";
+import { backFacts } from "@/lib/domain/back";
 import { ISSUER_REGISTRY } from "@/data/issuer-registry";
 import { EN_ALL, translate } from "@/i18n/core";
 import type { Offer } from "@/lib/domain/types";
@@ -282,5 +283,37 @@ describe("l'écart sous l'ISIN ne dépend pas de l'orientation", () => {
     const apres = css.slice(css.indexOf("@media"));
     expect(apres, "l'écart est redéfini dans une requête média").not.toMatch(/\.big \{[^}]*margin-top/);
     expect(css, "aucune règle de cette carte ne dépend de l'orientation").not.toMatch(/@media \(orientation/);
+  });
+});
+
+describe("au dos, la glose du cours tient sur deux lignes", () => {
+  /**
+   * « depuis le 18 août 2026, 47 jours » sur une seule ligne se coupe où la
+   * colonne le décide, et la virgule se retrouve en bout de ligne. Séparées,
+   * chacune se lit d'un coup : la première dit QUAND, la seconde DEPUIS
+   * COMBIEN DE TEMPS. Demandé le 4 octobre 2026.
+   *
+   * Le jeu d'essai local ne porte pas « priceSince », donc cette branche ne
+   * se voit pas à l'écran en développement : elle se tient ici.
+   */
+  it("la date d'abord, la durée en dessous", () => {
+    const f = backFacts(cotee({ priceSince: "2026-08-18" }), new Date("2026-10-04T12:00:00"));
+    const cours = f.band!.find(([k]) => k === "Cours")!;
+    expect(cours[2]).toBe("depuis le 18 août 2026");
+    expect(cours[3]).toBe("47 jours");
+  });
+
+  it("sans date de changement, une seule glose et pas de seconde vide", () => {
+    const f = backFacts(cotee({ priceSince: undefined, lastPriceOn: "2026-10-02" }), new Date("2026-10-04T12:00:00"));
+    const cours = f.band!.find(([k]) => k === "Cours")!;
+    expect(cours[2]).toBe("séance du 2 oct. 2026");
+    expect(cours[3]).toBeUndefined();
+  });
+
+  it("le dos rend les deux gloses, l'une sous l'autre", () => {
+    const src = readFileSync("C:/dev/guichet/src/components/mobile/CardBack.tsx", "utf8");
+    expect(src, "la seconde glose doit être rendue").toContain("{note2 && <em>{t(note2)}</em>}");
+    const css = readFileSync("C:/dev/guichet/src/components/mobile/CardBack.module.css", "utf8");
+    expect(css, "chaque glose occupe sa ligne").toMatch(/\.band em \{[^}]*display: block/);
   });
 });

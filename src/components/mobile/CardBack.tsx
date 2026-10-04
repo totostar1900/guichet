@@ -21,12 +21,15 @@ import styles from "./CardBack.module.css";
  * premier retournement : la carte s'ouvrait sur « Courbe en cours de lecture… »
  * et il fallait attendre une lecture complète pour voir un trait.
  */
-export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?: [string, string, string?][]; curve?: FundCurve }) {
+export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?: [string, string, string?, string?][]; curve?: FundCurve }) {
   const t = useT();
   /* LA BANDE REMPLACE LES QUATRE CASES quand la ligne en a une : trois chiffres
      côte à côte valent mieux que quatre cases dont deux redisent ce qui est
      écrit plus bas. Les autres instruments gardent la grille, le temps qu'on
      leur taille la leur. */
+  /* La bande porte jusqu'à DEUX gloses sous son chiffre : elles se posent
+     l'une sous l'autre, chacune sur sa ligne. La grille des quatre cases n'en
+     a qu'une, d'où le découpage à trois ou à quatre éléments. */
   const band = facts.band;
   const tete = Boolean(facts.title);
   const haut = band ?? figures;
@@ -45,11 +48,12 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
       {haut && (
         <div className={`${styles.sec} ${tete ? "" : styles.first}`}>
           <div className={band ? styles.band : styles.grid}>
-            {haut.map(([k, v, note]) => (
+            {haut.map(([k, v, note, note2]) => (
               <div key={k}>
                 <span>{t(k)}</span>
                 <b className={band && k === "Rendement" ? styles.or : undefined}>{v}</b>
                 {note && <em>{t(note)}</em>}
+                {note2 && <em>{t(note2)}</em>}
               </div>
             ))}
           </div>

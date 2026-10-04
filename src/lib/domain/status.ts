@@ -234,7 +234,45 @@ export function displayYield(o: Offer): { pct: number | null; atPar: boolean; ap
     const price = o.servedPricePct ?? o.pricePct;
     if (price != null && Math.abs(price - 100) <= 0.05) return { pct: o.couponRate, atPar: true, approx: false };
   }
-  return { pct: headlineYield(o), atPar: false, approx: maturityIsGuess(o) };
+  return { pct: auPairJamaisSousLeCoupon(o, headlineYield(o)), atPar: false, approx: maturityIsGuess(o) };
+}
+
+/**
+ * AU PAIR, LE RENDEMENT NE PASSE PAS SOUS LE COUPON.
+ *
+ * Une obligation cotée exactement à 100 et sans commission rapporte son
+ * coupon : c'est la définition du pair. Le calcul en rend pourtant un peu
+ * moins, de 0 à 9 points de base selon la ligne, et cet écart ne vient de
+ * rien de réel. Il vient de la convention : le moteur résout un taux
+ * actuariel sur les dates réelles en Act/365, là où le coupon est un taux
+ * nominal annuel, et une année ne fait pas exactement 365 jours. Afficher
+ * « 7,46 % » sur une ligne qui s'appelle « 7,50 % » et qui cote 100 donnait
+ * donc un chiffre faux dans le sens de la prudence, ce qui reste faux.
+ *
+ * VÉRIFIÉ AVANT D'AGIR, parce qu'un rendement est un chiffre sur lequel un
+ * client décide : la commission vaut 0 sur les trente-cinq lignes cotées en
+ * production. L'écart n'est donc pas un frais que ce plancher viendrait
+ * cacher. S'il devenait un frais, ce plancher le cacherait, et il faudrait
+ * le retirer le jour où une commission apparaît : l'épreuve le dit.
+ *
+ * LE PLANCHER NE VAUT QU'AU PAIR, ET C'EST LE POINT. Au-dessus du pair, une
+ * obligation rapporte RÉELLEMENT moins que son coupon : on paie plus que ce
+ * qu'on sera remboursé, et la perte en capital mange une part du coupon. Y
+ * relever le chiffre ne serait plus un arrondi, ce serait un mensonge de
+ * plusieurs dizaines de points de base sur un rendement. Aucune ligne ne cote
+ * au-dessus du pair aujourd'hui, les trente-cinq sont à 100 ou en dessous ;
+ * le jour où l'une y passe, elle montrera son vrai rendement.
+ *
+ * Sous le pair, le rendement dépasse le coupon de 191 à 388 pb : le plancher
+ * n'y touche pas. Et sur les amortisseurs trimestriels il le dépasse déjà de
+ * 9 à 18 pb, par l'effet du taux effectif : il n'y touche pas non plus.
+ */
+function auPairJamaisSousLeCoupon(o: Offer, pct: number | null): number | null {
+  if (pct == null || o.kind !== "MARCHE" || o.instrument !== "obligation" || o.couponRate == null) return pct;
+  if (o.commissionPct > 0) return pct; // un frais est réel : il doit se voir dans le rendement
+  const price = o.ask ?? o.lastPrice;
+  if (price == null || Math.abs(price - 100) > 0.05) return pct;
+  return Math.max(pct, o.couponRate);
 }
 
 /** The single number on the card. Null when nothing sensible exists (buybacks). */

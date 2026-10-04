@@ -104,7 +104,7 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
       ) : (
         <article data-coach="titres-carte" className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <div className={styles.head}>
-            <LineIdentity o={o} s={s} href={href} size="lg" />
+            <LineIdentity o={o} s={s} href={href} size="lg" isin={false} />
             <div className={styles.corner}>
               <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
               {!desk && <LineMenu line={menu} openRef={more} />}
@@ -131,6 +131,13 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
             ))}
           </div>
           <div className={styles.foot}>
+            {/* L'ISIN DESCEND AU PIED, en face de « Voir la fiche ». Il ne sert
+                qu'à passer un ordre en banque, jamais à reconnaître une ligne :
+                sa place est au bas de la carte, là où l'on agit, et non dans la
+                ligne grise, où il coupait la lecture entre l'émetteur et le
+                chiffre. Le pied avait la place depuis que « cotation continue »
+                en est parti. */}
+            <span className={styles.footIsin}>{o.isin}</span>
             {/* « Cotation continue » se lisait ici ET dans la ligne grise sous
                 le titre, à quatre lignes d'écart. Le pied ne garde que ce qui
                 presse : la clôture d'une séance. Une ligne cotée n'en a pas. */}

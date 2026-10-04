@@ -87,8 +87,8 @@ describe("les textes du desk et de la fiche passent en anglais", () => {
        laissé passer trois phrases sans anglais en rapportant zéro manque. Un
        tamis muet sur ce qu'il ignore est pire qu'un tamis absent.
        Le titre et l'ISIN ne se traduisent pas : ce sont des noms propres. */
-    const aPlat = (f: { band?: [string, string, string?][]; calendar?: { label: string; when: string }[]; lines?: [string, string][]; reference: { title: string; rows: [string, string, boolean?][] } }): string[] => [
-      ...(f.band ?? []).flatMap((b) => [b[0], b[2] ?? ""]),
+    const aPlat = (f: { band?: [string, string, string?, string?][]; calendar?: { label: string; when: string }[]; lines?: [string, string][]; reference: { title: string; rows: [string, string, boolean?][] } }): string[] => [
+      ...(f.band ?? []).flatMap((b) => [b[0], b[2] ?? "", b[3] ?? ""]),
       ...(f.calendar ?? []).flatMap((s) => [s.label, s.when]),
       ...(f.lines ?? []).flat(),
       f.reference.title,

@@ -177,12 +177,11 @@ describe("la cote ne retient plus le taux nominal", () => {
    * LES ADJUDICATIONS GARDENT LA RÈGLE : leur 100 % n'est pas un cours figé
    * mais un prix à servir, et le taux nominal y est le taux contractuel.
    */
-  it("une obligation cotée à 100 affiche son rendement actuariel", () => {
-    const auPair = line({ lastPrice: 100, ask: undefined });
-    const dy = displayYield(auPair);
+  it("une obligation cotée sous le pair affiche son rendement actuariel", () => {
+    // 97 % : l'écart avec le coupon est réel et vaut des centaines de points de base.
+    const dy = displayYield(line({ lastPrice: 97, ask: undefined }));
     expect(dy.atPar, "la cote ne connaît plus le pair").toBe(false);
-    expect(dy.pct).not.toBe(auPair.couponRate);
-    expect(dy.pct).toBeCloseTo(marketBondCalc(auPair, 10_000_000, 100)!.irr, 6);
+    expect(dy.pct).toBeCloseTo(marketBondCalc(line({ lastPrice: 97, ask: undefined }), 10_000_000, 97)!.irr, 6);
   });
 
   it("une adjudication au pair garde son taux nominal", () => {
@@ -192,6 +191,56 @@ describe("la cote ne retient plus le taux nominal", () => {
     const dy = displayYield(ota);
     expect(dy.atPar, "une séance servie au pair garde le taux du contrat").toBe(true);
     expect(dy.pct).toBe(7);
+  });
+});
+
+describe("au pair, le rendement ne passe pas sous le coupon", () => {
+  /**
+   * Une obligation cotée exactement à 100 et SANS COMMISSION rapporte son
+   * coupon : c'est la définition du pair. Le moteur en rendait de 0 à 9 points
+   * de base de moins, parce qu'il résout un taux actuariel sur les dates
+   * réelles en Act/365 là où le coupon est un taux nominal annuel. « 7,46 % »
+   * sur une ligne nommée « 7,50 % » qui cote 100 était un chiffre faux, dans
+   * le sens de la prudence, ce qui reste faux.
+   *
+   * VÉRIFIÉ AVANT D'AGIR : la commission vaut 0 sur les trente-cinq lignes
+   * cotées en production, donc ce plancher ne cache aucun frais.
+   */
+  it("relève le chiffre jusqu'au coupon, et le nomme toujours un rendement", () => {
+    const auPair = line({ lastPrice: 100, ask: undefined });
+    const brut = marketBondCalc(auPair, 10_000_000, 100)!.irr;
+    expect(brut, "sans le plancher, le calcul rend moins que le coupon").toBeLessThan(auPair.couponRate!);
+    const dy = displayYield(auPair);
+    expect(dy.pct).toBe(auPair.couponRate);
+    expect(dy.atPar, "le libellé reste « au cours de 100 % », pas « au pair »").toBe(false);
+  });
+
+  it("ne touche pas un rendement déjà au-dessus du coupon", () => {
+    /* Les amortisseurs trimestriels dépassent leur coupon de 9 à 18 pb par
+       l'effet du taux effectif : c'est réel, et le plancher n'y change rien. */
+    const au = line({ lastPrice: 100, ask: undefined });
+    const r = marketBondCalc(au, 10_000_000, 100)!.irr;
+    if (r > au.couponRate!) expect(displayYield(au).pct).toBeCloseTo(r, 6);
+  });
+
+  it("ne relève rien au-dessus du pair, où l'écart est réel", () => {
+    /* À 103, on paie plus que ce qu'on sera remboursé : la perte en capital
+       mange une part du coupon, et le rendement est VRAIMENT inférieur. Y
+       appliquer le plancher serait un mensonge de plusieurs dizaines de points
+       de base. Aucune ligne ne cote au-dessus du pair aujourd'hui ; le jour où
+       l'une y passe, elle doit montrer son vrai rendement. */
+    const cher = line({ lastPrice: 103, ask: undefined });
+    const dy = displayYield(cher);
+    expect(dy.pct!).toBeLessThan(cher.couponRate!);
+    expect(dy.pct).toBeCloseTo(marketBondCalc(cher, 10_000_000, 103)!.irr, 6);
+  });
+
+  it("ne relève rien dès qu'une commission existe", () => {
+    /* Un frais est réel : il doit se voir dans le rendement. Le jour où une
+       commission apparaît sur la cote, ce plancher la cacherait. */
+    const avecFrais = line({ lastPrice: 100, ask: undefined, commissionPct: 0.5 });
+    const dy = displayYield(avecFrais);
+    expect(dy.pct!).toBeLessThan(avecFrais.couponRate!);
   });
 });
 
