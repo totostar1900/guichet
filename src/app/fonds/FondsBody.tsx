@@ -40,15 +40,8 @@ export async function FondsBody() {
               ce qu est un OPCVM agree, plus le bandeau des quatre categories,
               faisaient pres de deux cents mots avant le premier fonds, relus a
               chaque visite. Ils n etaient pas faux, ils etaient permanents. */}
-          <FondsEnBref total={funds.length} ouverts={open} parCategorie={parCategorie} />
+          <FondsEnBref />
         </div>
-        {last && (
-          <div className={styles.stamp}>
-            {t("VL lues au BOC n° {n} du {d}", { n: last.number, d: fmtDate(last.sessionDate) })}
-            <br />
-            {t("source : sociétés de gestion agréées COSUMAF")}
-          </div>
-        )}
       </div>
 
       <FundsBrowser rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />

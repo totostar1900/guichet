@@ -343,6 +343,9 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
      menaient au meme endroit, en haut de la meme feuille : qui voulait
      changer le tri devait traverser quatre filtres pour l atteindre. */
   const [cible, setCible] = useState<"filtres" | "tri">("filtres");
+  /* LE BAS DU DECLENCHEUR, mesure a l ouverture : la feuille tombe de la
+     ligne de filtres, et non du bas de l ecran. Regle de la maison. */
+  const [ancre, setAncre] = useState<number | undefined>(undefined);
 
   // The controls, once: in the page, and again in the sheet the floating button
   // opens. La boîte de tri ne paraît que dans la feuille : sur un écran large,
@@ -425,7 +428,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     <>
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
         <div className={styles.deskTools}>{toolbar(false)}</div>
-        <FilterLine count={active + Number(Boolean(draft))} summary={[draft && `« ${draft} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={(cible) => { setCible(cible); setSheet(true); }} />
+        <FilterLine count={active + Number(Boolean(draft))} summary={[draft && `« ${draft} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={(cible) => { setCible(cible); setAncre(toolsRef.current?.getBoundingClientRect().bottom); setSheet(true); }} />
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
           {active > 0 || draft ? ` ${t("correspondant aux filtres")}` : ""}
@@ -455,7 +458,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           intitulée « Filtrer et trier » obligeait à traverser quatre filtres
           pour changer un ordre, et le bouton « Tri » y menait au même endroit
           que le bouton « Filtres ». */}
-      <Sheet open={sheet && cible === "tri"} onClose={() => setSheet(false)} title={t("Trier")} sub={t("{n} fonds", { n: filtered.length })}>
+      <Sheet open={sheet && cible === "tri"} onClose={() => setSheet(false)} title={t("Trier")} sub={t("{n} fonds", { n: filtered.length })} dock="under" anchorTop={ancre}>
         <div className={styles.triListe} role="radiogroup" aria-label={t("Trier")}>
           {SORT.map(([k, l]) => (
             <button key={k} type="button" role="radio" aria-checked={sort === k} className={sort === k ? styles.triOn : undefined} onClick={() => setSort(k)}>
@@ -477,7 +480,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </button>
         </div>
       </Sheet>
-      <Sheet open={sheet && cible === "filtres"} onClose={() => setSheet(false)} title={t("Filtrer")}>
+      <Sheet open={sheet && cible === "filtres"} onClose={() => setSheet(false)} title={t("Filtrer")} dock="under" anchorTop={ancre}>
         <div className={styles.sheetTools}>{toolbar(false)}</div>
         <div className={styles.sheetFoot}>
           <span>

@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useT } from "@/i18n/client";
 import { Sheet } from "@/components/mobile/Sheet";
 import { FUND_CATEGORY_LABEL } from "@/lib/domain/market";
-import type { FundNav } from "@/lib/domain/market";
 import styles from "./FondsEnBref.module.css";
 
 /**
@@ -26,7 +25,7 @@ import styles from "./FondsEnBref.module.css";
  * Les catégories ne filtrent plus depuis ici : le filtre a sa place, en haut
  * de la liste, et une même action à deux endroits est une action de trop.
  */
-export function FondsEnBref({ total, ouverts, parCategorie }: { total: number; ouverts: number; parCategorie: Partial<Record<FundNav["category"], number>> }) {
+export function FondsEnBref() {
   const t = useT();
   const [open, setOpen] = useState(false);
   const cats = ["M", "O", "D", "A"] as const;
@@ -40,15 +39,13 @@ export function FondsEnBref({ total, ouverts, parCategorie }: { total: number; o
         </svg>
         {t("En bref")}
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={t("Les fonds en bref")} sub={t("{n} OPCVM au Bulletin Officiel de la Cote", { n: total })}>
+      <Sheet open={open} onClose={() => setOpen(false)} title={t("Les fonds en bref")}>
         <div className={styles.corps}>
           <p>
             {t("Un OPCVM met en commun l'argent de plusieurs porteurs et le place selon une règle écrite. Ceux-ci sont agréés par la COSUMAF et leur valeur liquidative paraît au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.")}
           </p>
           <p>
-            {ouverts > 0
-              ? t(ouverts > 1 ? "{n} sont ouverts à la souscription chez Purpose Capital. Pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion." : "{n} est ouvert à la souscription chez Purpose Capital. Pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion.", { n: ouverts })
-              : t("Dites-nous votre intérêt : nous organisons la relation avec la société de gestion.")}{" "}
+            {t("Certains sont ouverts à la souscription chez Purpose Capital ; pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion.")}{" "}
             {t("Les parts sont toujours inscrites à votre nom chez le dépositaire.")}
           </p>
           <h3 className={styles.titre}>{t("Quatre catégories, du plus calme au plus mobile")}</h3>
@@ -58,7 +55,6 @@ export function FondsEnBref({ total, ouverts, parCategorie }: { total: number; o
                 <dt>
                   <i className={styles.pastille} data-cat={c} aria-hidden="true" />
                   {t(FUND_CATEGORY_LABEL[c])}
-                  <em>{parCategorie[c] ?? 0}</em>
                 </dt>
                 <dd>{t(BREF[c])}</dd>
               </div>
