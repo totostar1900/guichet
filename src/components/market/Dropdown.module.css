@@ -27,12 +27,38 @@
 .ddOn:hover {
   border-color: var(--ink);
 }
-.ddBtn b {
+/**
+ * LA VALEUR CHOISIE DOIT SE LIRE, ET ELLE NE SE LISAIT PLUS.
+ *
+ * Mesuré le 5 octobre 2026 sur la page des adjudications : le bouton
+ * « Grouper · Émetteur », une fois choisi, passe en « .ddOn », c'est-à-dire
+ * fond clair (--ink) et texte sombre (--surface). Sa valeur, elle, sortait
+ * en rgb(234, 239, 246) sur rgb(234, 239, 246) : CONTRASTE 1,00. Le mot
+ * « Émetteur » était là, de la couleur exacte de son fond.
+ *
+ * La cause n'est pas dans ce fichier : « .meta b », une règle de la page qui
+ * entoure la liste déroulante, vaut (0,1,1) et donnait sa couleur à notre
+ * « b », qui n'en déclarait aucune. Une déclaration explicite bat l'héritage
+ * quelle que soit la spécificité, donc la couleur du bouton ne descendait
+ * pas. « .dd .ddBtn b » vaut (0,2,1) et reprend la main.
+ *
+ * TROISIÈME FOIS EN DEUX JOURS qu'un état se fait manger par une règle plus
+ * spécifique venue d'à côté : le survol qui effaçait la pastille choisie
+ * (contraste 1,65), la marque « vous êtes ici » du sommaire, et celle-ci.
+ * La leçon se répète : un état se déclare aussi composé que ce qui l'entoure.
+ */
+.dd .ddBtn b {
+  color: inherit;
   background: rgba(255, 255, 255, 0.22);
   border-radius: 4px;
   padding: 0 7px;
   font-size: 0.72rem;
   font-weight: 800;
+}
+/* Et sur fond clair, un voile blanc ne voile rien : c'est l'encre qui
+   s'éclaircit, pas le fond. */
+.dd .ddOn b {
+  background: rgba(11, 37, 69, 0.12);
 }
 /* ELLE TOMBE DU BORD DE SON DÉCLENCHEUR, règle de la maison : « top: 100 % »
    la pose sous le bouton qu'on vient de toucher, et non au bas de l'écran. */

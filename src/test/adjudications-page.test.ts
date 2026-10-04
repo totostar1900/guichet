@@ -76,7 +76,8 @@ describe("la page des adjudications", () => {
   });
 
   it("groupe par type ou par émetteur, avec un seul titre par groupe", () => {
-    expect(BROWSER, "le choix du rangement a disparu").toMatch(/items=\{\[\["type", "Type de titre"\], \["emetteur", "Émetteur"\]\]\}/);
+    expect(BROWSER, "les deux rangements ont disparu").toMatch(/const GROUPEMENTS: \[string, string\]\[\] = \[\s*\["type", "Type de titre"\],\s*\["emetteur", "Émetteur"\],/);
+    expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single items=\{GROUPEMENTS\}/);
     expect(BROWSER, "les groupes ne portent plus le titre-sommaire des fonds").toMatch(/<TeteGroupe id=\{`sec-\$\{b\.clef\}`\}/);
     /* DEUX TITRES PAR GROUPE : le bloc posait le sien, et « renderUn »
        regroupait à son tour, vingt pixels plus bas. Vu à l'écran. */
@@ -87,6 +88,47 @@ describe("la page des adjudications", () => {
     expect(BROWSER, "un regroupement a repris sans tenir compte du bloc qui l'appelle").not.toMatch(/grouped && !featured \?/);
     // La bande des sections ne paraît plus : le titre est le sommaire.
     expect(BROWSER, "la bande des sections est revenue au-dessus des titres").toMatch(/\{!adj && <SectionChips/);
+  });
+
+  it("met le filtre, le rangement et le resserrement sur une seule ligne", () => {
+    /* Trois commandes d'une même famille sur trois lignes : « Filtrer » seule
+       en haut, « Grouper » et les densités soixante pixels plus bas. Mesuré
+       après : 14, 98 et 240 px, tous à la même ordonnée.
+       L'ordre suit celui des décisions — ce qu'on retire, comment on range,
+       comment on lit — donc le bouton du filtre vient en premier. */
+    /* LA FENÊTRE DOIT ÊTRE LA BONNE : d'abord bornée par un repère qui
+       n'existait pas, elle couvrait le fichier entier et trouvait les trois
+       commandes n'importe où — trois sabotages sur trois sont passés sans
+       la faire tomber. Elle s'arrête maintenant à la rangée des filtres,
+       qui suit immédiatement. */
+    const ouvre = BROWSER.indexOf("<div className={styles.toolbar}");
+    const ferme = BROWSER.indexOf("<div className={styles.filters}", ouvre);
+    expect(ouvre, "la barre d'outils est introuvable").toBeGreaterThan(-1);
+    expect(ferme, "la rangée des filtres est introuvable : la fenêtre ne borne plus rien").toBeGreaterThan(ouvre);
+    const barre = BROWSER.slice(ouvre, ferme);
+    /* Les trois repères sont pris AVEC leur condition : « label="Grouper" »
+       tout seul reste écrit même derrière un « false && », et le sabotage
+       passait. Et « styles.sheetBtn » sans accolade attrape aussi un
+       « styles.sheetBtnX » : la borne doit être close. */
+    const filtre = barre.indexOf("className={styles.sheetBtn}");
+    const grouper = barre.indexOf('{adj && (\n            <Dropdown label="Grouper"');
+    const densite = barre.indexOf('{adj && view === "cards" && !desk && <DensitySwitch />}');
+    for (const [quoi, i] of [["le filtre", filtre], ["le rangement", grouper], ["le resserrement", densite]] as const) {
+      expect(i, `${quoi} a quitté la ligne des commandes`).toBeGreaterThan(-1);
+    }
+    expect(filtre, "le filtre doit venir en premier").toBeLessThan(grouper);
+    expect(grouper, "le resserrement doit suivre le rangement").toBeLessThan(densite);
+  });
+
+  it("laisse lire la valeur choisie d'une liste déroulante", () => {
+    /* Mesuré le 5 octobre 2026 : « Grouper · Émetteur » choisi, la valeur
+       sortait en rgb(234, 239, 246) sur rgb(234, 239, 246) — CONTRASTE 1,00.
+       « .meta b », une règle de la page autour, donnait sa couleur à un « b »
+       qui n'en déclarait pas, et une déclaration explicite bat l'héritage
+       quelle que soit la spécificité. Après : 13,61. */
+    const DD = readFileSync("src/components/market/Dropdown.module.css", "utf8");
+    expect(DD, "la valeur choisie reprend la couleur d'une règle voisine").toMatch(/\.dd \.ddBtn b \{[^}]*color: inherit;/);
+    expect(DD, "le voile blanc du badge ne voile rien sur un fond clair").toMatch(/\.dd \.ddOn b \{/);
   });
 
   it("montre une cloche quand une alerte est armée", () => {

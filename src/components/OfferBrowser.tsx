@@ -53,6 +53,16 @@ const STATUSES: [string, string][] = [
   ["upcoming", "À venir"],
   ["closed", "Clôturées"],
 ];
+/**
+ * DEUX RANGEMENTS, PAS UNE CASE À COCHER. « Grouper par émetteur » cochée ou
+ * non laissait croire qu'il n'y a qu'une façon de ranger et qu'on l'ajoute ;
+ * sur les adjudications il y en a deux, et l'une des deux est toujours en
+ * vigueur.
+ */
+const GROUPEMENTS: [string, string][] = [
+  ["type", "Type de titre"],
+  ["emetteur", "Émetteur"],
+];
 const TENORS: [string, string][] = [
   ["lt1", "Moins d'un an"],
   ["1-3", "1 à 3 ans"],
@@ -770,6 +780,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             </svg>
             {t("Filtrer")}{filterCount > 0 ? ` · ${filterCount}` : ""}
           </button>
+          {/* CE QU'ON RETIRE, COMMENT ON RANGE, COMMENT ON LIT : les trois
+              commandes de la page sur une ligne, dans l'ordre des décisions.
+              Elles étaient sur trois lignes, « Filtrer » seule en haut et les
+              deux autres soixante pixels plus bas. */}
+          {adj && (
+            <Dropdown label="Grouper" single items={GROUPEMENTS} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
+          )}
+          {adj && view === "cards" && !desk && <DensitySwitch />}
           <div className={styles.filters}>
           <Dropdown
             label={t("Instrument")}
@@ -879,13 +897,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         <Link className={styles.compareLink} href="/comparer">
           {t("Comparer deux lignes")}
         </Link>
-        {adj ? (
-          /* DEUX RANGEMENTS, PAS UNE CASE À COCHER. « Grouper par émetteur »
-             cochée ou non laissait croire qu'il n'y a qu'une façon de ranger
-             et qu'on l'ajoute ; ici il y en a deux, et l'une des deux est
-             toujours en vigueur. */
-          <Dropdown label="Grouper" single items={[["type", "Type de titre"], ["emetteur", "Émetteur"]]} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
-        ) : (
+        {/* Sur les adjudications, le rangement est monté sur la ligne du
+            filtre, avec le resserrement : trois commandes d'une même famille
+            sur une seule ligne. */}
+        {!adj && (
           <label className={styles.groupToggle}>
             <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
             {t("Grouper par émetteur")}
@@ -901,7 +916,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           </button>
         </label>
         )}
-        {view === "cards" && !desk && <DensitySwitch />}
+        {view === "cards" && !desk && !adj && <DensitySwitch />}
       </div>
 
       {picks.length > 0 && (
