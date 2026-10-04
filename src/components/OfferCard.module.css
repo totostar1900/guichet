@@ -68,14 +68,18 @@
    d'œil, on lit un bloc. Le compte des colonnes suit donc le compte des
    faits, et c'est l'écart qui cède, pas la rangée. */
 .facts {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+  display: flex;
   gap: var(--s-3);
   border-top: 1px solid var(--line);
   padding-top: 10px;
 }
+/* CHAQUE COLONNE PREND LA PLACE DE SA VALEUR, pas celle de son étiquette.
+   « 29 mars 2031 » demande le double de « 7,50 % » et recevait autant :
+   quatre colonnes égales font tenir la plus courte à l'aise et passer la
+   plus longue à la ligne. « flex-basis: auto » part du contenu, et le reste
+   de la place se répartit ensuite. */
 .facts > div {
+  flex: 1 1 auto;
   min-width: 0;
 }
 .facts b {
@@ -360,13 +364,13 @@
 }
 /* LE CHIFFRE REMONTE VERS L'ISIN, EN PORTRAIT. La carte est une grille et sa
    gouttière vaut douze partout ; ici, et seulement entre l'identité et le
-   grand chiffre, elle en fait six. Une gouttière de grille ne se règle pas
-   par paire : la marge négative en reprend la moitié, et c'est la façon la
-   moins détournée de le dire. En paysage l'écran est large, la carte respire,
-   et les douze restent. */
+   grand chiffre, elle en fait quatre. Une gouttière de grille ne se règle pas
+   par paire : la marge négative reprend les huit de trop, et c'est la façon
+   la moins détournée de le dire. En paysage l'écran est large, la carte
+   respire, et les douze restent. */
 @media (orientation: portrait) {
   .big {
-    margin-top: calc(-1 * var(--s-3));
+    margin-top: calc(-1 * var(--s-4));
   }
 }
 

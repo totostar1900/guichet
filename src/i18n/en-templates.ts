@@ -18,9 +18,7 @@ export const EN_TEMPLATES: Record<string, string> = {
      chiffre de la carte n'a pas besoin qu'on lui rappelle qu'il est annuel et
      brut. Le dos emploie déjà « à l'échéance, à ce cours » : les deux faces
      de la pièce disent le même mot depuis le 4 octobre 2026. */
-  "à l'échéance au cours de {p} du {d}": "yield to maturity at {p} on {d}",
   "à l'échéance au cours de {p}": "yield to maturity at {p}",
-  "du dividende au cours de {p} du {d}": "dividend yield at {p} on {d}",
   "du dividende au cours de {p}": "dividend yield at {p}",
   "{n} FCFA / action": "{n} FCFA / share",
   "coupon {c}": "coupon {c}",

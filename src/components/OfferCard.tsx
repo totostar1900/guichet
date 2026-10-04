@@ -130,10 +130,15 @@ export function OfferCard({ o, s }: { o: Offer; s: OfferSummary }) {
             ))}
           </div>
           <div className={styles.foot}>
-            <span className={styles.when}>
-              {whenLabel}
-              {when}
-            </span>
+            {/* « Cotation continue » se lisait ici ET dans la ligne grise sous
+                le titre, à quatre lignes d'écart. Le pied ne garde que ce qui
+                presse : la clôture d'une séance. Une ligne cotée n'en a pas. */}
+            {!continuous && (
+              <span className={styles.when}>
+                {whenLabel}
+                {when}
+              </span>
+            )}
             <Link className="btn sm" href={href}>
               {t("Voir la fiche")} →
             </Link>

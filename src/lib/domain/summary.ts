@@ -301,7 +301,12 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       y != null
         ? dy.atPar
           ? `taux nominal · au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}`
-          : `${isBond ? "à l'échéance au cours de" : "du dividende au cours de"} ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${tradedTxt}${isBond ? ` · coupon ${fmtPct(o.couponRate ?? 0, 2)}` : ` · ${fmt(o.dividendPerShare ?? 0)} FCFA / action`}`
+          : /* LA PHRASE SOUS LE CHIFFRE S'ARRÊTE AU COURS. Elle portait aussi
+               la date de la séance, le dernier échange et le coupon : la date
+               de séance est celle d'aujourd'hui sur presque toutes les lignes
+               et n'apprend rien, le coupon est dans la rangée juste en dessous
+               sous son nom, et l'âge du cours y est aussi, en jours. */
+            `${isBond ? "à l'échéance au cours de" : "du dividende au cours de"} ${priceTxt}`
         : `cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""} · ${isBond ? (o.maturityOn && o.maturityOn < localIso(now) ? `remboursée le ${fmtDate(o.maturityOn)}` : "échéance à préciser") : "pas de dividende connu"}`,
     heroUnit: dy.atPar ? "au pair · nominal" : `au cours ${priceTxt}`,
     gold: y != null && st === "quoted",
