@@ -146,10 +146,16 @@ describe("la page des adjudications", () => {
        adjudications leur rendement en or : le même rôle — le nombre qu'on
        vient chercher — portait deux couleurs selon la page. Mesuré après :
        rgb(92, 196, 140) sur les trois listes, c'est-à-dire « --good ».
-       Le vert ne va qu'au chiffre SUR LEQUEL ON PEUT AGIR : « gold » vaut
-       « !past », donc une séance close garde son rendement en encre neutre.
-       Vérifié sur la page : une séance ouverte en vert, douze closes en
-       neutre. Un taux d'hier n'est pas une offre. */
+       LE VERT NE VA QU'AU CHIFFRE SUR LEQUEL ON PEUT AGIR, et « agir » a été
+       tranché le 5 octobre 2026 : une ligne COTÉE compte, parce qu'elle
+       s'achète au cours du jour, au même titre qu'une séance en
+       souscription. Ne restent neutres que les séances closes et les lignes
+       passées — un taux d'hier n'est pas une offre.
+       C'est ce que « gold » dit déjà : « !past » pour une adjudication,
+       « quoted » pour une ligne de la cote. Compté à l'écran : 41 chiffres
+       verts sur 44 aux titres (40 cotées, 1 en souscription, 3 closes), et
+       1 sur 13 aux adjudications, où une seule séance est ouverte.
+       La question se reposera, et la réponse est là. */
     const CARD_CSS = readFileSync("src/components/OfferCard.module.css", "utf8");
     expect(CARD_CSS, "le chiffre principal n'est plus vert").toMatch(/\.taux \{\s*color: var\(--good\);/);
     expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le chiffre principal du tableau n'est plus vert").toMatch(/\.taux \{\s*color: var\(--good\);/);
