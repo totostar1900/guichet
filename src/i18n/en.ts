@@ -86,6 +86,8 @@ export const EN: Record<string, string> = {
   "cours affiché": "quoted price",
   "En bref": "In brief",
   "Les fonds en bref": "Funds in brief",
+  "1ᵉʳ janv.": "1 Jan",
+  "année incomplète": "part year",
   "Certains sont ouverts à la souscription chez Purpose Capital ; pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion.":
     "Some are open for subscription at Purpose Capital; for the others, tell us you are interested: we arrange the relationship with the management company.",
   "Trier": "Sort",

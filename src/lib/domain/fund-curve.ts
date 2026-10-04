@@ -18,6 +18,23 @@ export interface FundCurve {
   to: string;
   /** Les VL dans l'ordre, la plus récente en dernier. */
   ys: number[];
+  /**
+   * LA VL DE RÉFÉRENCE DE L'ANNÉE EN COURS, et sa date.
+   *
+   * Les fonds publient trois mesures au bulletin — la variation depuis la VL
+   * précédente, les douze mois glissants, le depuis l'origine — et pas
+   * l'année en cours. Elle se calcule, mais pas depuis la courbe affichée :
+   * celle-ci ne transporte que deux dates et des valeurs, donc y chercher le
+   * 1er janvier reviendrait à INTERPOLER, c'est-à-dire à inventer un chiffre.
+   *
+   * La référence est donc choisie ICI, où la série datée est complète : la
+   * dernière VL publiée à la date du 1er janvier ou avant. Elle manque quand
+   * la série ne remonte pas jusque-là, et c'est précisément le cas d'un fonds
+   * né en cours d'année : l'écran affiche alors « — », ce qui est la règle de
+   * la maison, plutôt qu'un pourcentage calculé sur une année incomplète.
+   */
+  ytdFrom?: number;
+  ytdDate?: string;
 }
 
 /**
@@ -27,10 +44,27 @@ export interface FundCurve {
  * sans courbe vaut mieux qu'un trait qui ne dit rien.
  */
 export function fundCurveFrom(navs: { navDate: string; nav: number }[], points = 60): FundCurve | undefined {
-  const kept = [...navs]
-    .filter((n) => Number.isFinite(n.nav))
-    .sort((a, b) => a.navDate.localeCompare(b.navDate))
-    .slice(-points);
+  const tout = [...navs].filter((n) => Number.isFinite(n.nav)).sort((a, b) => a.navDate.localeCompare(b.navDate));
+  const kept = tout.slice(-points);
   if (kept.length < 2) return undefined;
-  return { from: kept[0].navDate, to: kept[kept.length - 1].navDate, ys: kept.map((n) => n.nav) };
+  /* LA RÉFÉRENCE DE L'ANNÉE SE CHERCHE AVANT LA COUPE. On ne garde que les
+     soixante dernières VL pour dessiner, mais le 1er janvier peut être plus
+     loin : c'est la série entière qui le porte. */
+  const premierJanvier = kept[kept.length - 1].navDate.slice(0, 4) + "-01-01";
+  const base = [...tout].reverse().find((n) => n.navDate < premierJanvier);
+  return { from: kept[0].navDate, to: kept[kept.length - 1].navDate, ys: kept.map((n) => n.nav), ytdFrom: base?.nav, ytdDate: base?.navDate };
+}
+
+/**
+ * La performance depuis le 1er janvier, ou rien.
+ *
+ * Rien, et non zéro, dans les deux cas que la maison a tranchés : la série ne
+ * remonte pas à l'an dernier (donc le fonds est né en cours d'année, ou nous
+ * n'avons pas son historique), ou la VL de référence est nulle.
+ */
+export function fundYtdPct(curve: Pick<FundCurve, "ys" | "ytdFrom"> | undefined): number | null {
+  if (!curve?.ytdFrom || !(curve.ytdFrom > 0)) return null;
+  const derniere = curve.ys[curve.ys.length - 1];
+  if (!Number.isFinite(derniere)) return null;
+  return ((derniere - curve.ytdFrom) / curve.ytdFrom) * 100;
 }

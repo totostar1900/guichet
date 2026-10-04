@@ -1,0 +1,128 @@
+/* Ce qui est propre à la carte d'un fonds. Tout le reste vient de la carte
+   d'un titre : même boîte, même coin, même pied, même rangée de chiffres. */
+
+/* LA PASTILLE DE CATÉGORIE : une couleur par famille, du plus calme au plus
+   mobile. Elle sert aussi dans la feuille « En bref », avec les mêmes
+   couleurs, pour qu'une catégorie se reconnaisse sans la lire. */
+.point {
+  display: inline-block;
+  width: var(--s-2);
+  height: var(--s-2);
+  border-radius: 50%;
+  margin-right: var(--s-2);
+  vertical-align: 1px;
+  background: var(--fam-c, var(--line-2));
+}
+.point[data-cat="M"] {
+  --fam-c: var(--info);
+}
+.point[data-cat="O"] {
+  --fam-c: var(--gold);
+}
+.point[data-cat="D"] {
+  --fam-c: var(--ink-3);
+}
+.point[data-cat="A"] {
+  --fam-c: var(--good);
+}
+
+/* LA VUE COMPACTE : trois choses sur une ligne. Le nom prend la place qui
+   reste, la performance ne se coupe jamais. */
+.compacte {
+  padding: var(--s-5) var(--s-6);
+}
+.cLien {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+.cNom {
+  flex: 1;
+  min-width: 0;
+}
+.cNom b {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.cNom small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--ink-3);
+}
+.cPerf {
+  flex: none;
+  text-align: right;
+  white-space: nowrap;
+}
+.cPerf b {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cPerf em {
+  display: block;
+  font-style: normal;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* La VL n'est pas une performance : elle ne prend donc ni le vert ni le
+   rouge, qui sont réservés à ce qui monte et descend. */
+.vl {
+  color: var(--gold-ink);
+}
+
+/* LES OUTILS DE LA COMPACTE : le « ··· » et le retournement, dans leur
+   colonne, comme sur une carte de titre. Ils ne paraissent qu'ici, parce que
+   la vue normale n'a rien derrière elle. */
+.cOutils {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+  margin-right: calc(-1 * var(--s-2));
+}
+.cDots,
+.cFlip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--s-10);
+  height: var(--s-10);
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.cFlip:hover,
+.cDots:hover {
+  color: var(--gold-ink);
+}
+.compacte {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+/* LE DOS, QUI EST LA VUE NORMALE. La face arrière apporte déjà sa boîte, sa
+   couleur et ses marges : le corps n'en remet pas. Il réserve seulement le
+   coin, où la pastille et le « ··· » sont posés par la tête de cette face. */
+.dos {
+  display: grid;
+  gap: var(--s-6);
+  min-width: 0;
+}
+.dosTete {
+  padding-right: calc(var(--s-11) + var(--s-9));
+}
