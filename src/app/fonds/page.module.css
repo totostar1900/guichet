@@ -429,9 +429,7 @@
  */
 .teteGroupe {
   position: sticky;
-  /* --s-11 + --s-4 : la bande du sommaire, qui porte des pastilles de 28 px
-     dans 6 px de marge. */
-  top: calc(var(--barre-app, 0px) + var(--s-11) + var(--s-4));
+  top: calc(var(--barre-app, 0px) + var(--sections-h));
   z-index: 5;
   display: flex;
   align-items: baseline;

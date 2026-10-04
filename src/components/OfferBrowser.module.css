@@ -4,12 +4,12 @@
   /* la hauteur réelle de l’en-tête : la tête de table s’y colle, et deux pixels
      d’erreur la font passer dessous */
   --header-h: 62px;
-  /* LES DEUX HAUTEURS COLLANTES : la bande des sections, et le titre de
-     section qui se range dessous. Elles étaient trois : la rangée d'onglets
-     du marché en faisait partie. Elle ne colle plus — elle s'en va avec la
-     page — donc elle ne décale plus rien, et « --lieux-h » ne dit plus que
-     sa propre hauteur. */
-  --sections-h: calc(var(--s-11) + var(--s-1));
+  /* « --sections-h », la hauteur de la bande des sections, est passée dans
+     « globals.css » : la page des fonds en a besoin pour la même bande, et
+     une hauteur que deux modules doivent dire pareil n'appartient à aucun
+     des deux. Elle était trois avec la rangée d'onglets du marché ; celle-ci
+     ne colle plus — elle s'en va avec la page — donc elle ne décale plus
+     rien. */
 }
 /* The market tabs and the toolbar scroll with the page; once under the header, the floating filter button brings the controls back. */
 .top {

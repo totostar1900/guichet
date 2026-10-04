@@ -12,7 +12,12 @@
   position: sticky;
   top: var(--barre-app, 0px);
   z-index: 6;
+  /* ELLE VAUT SA HAUTEUR, elle ne la tient plus de son contenu : ce qui se
+     range dessous ajoute « --sections-h », et deux nombres qui doivent
+     coincider ne se devinent pas l'un l'autre. */
+  height: var(--sections-h);
   display: flex;
+  align-items: center;
   gap: 6px;
   overflow-x: auto;
   overscroll-behavior-x: contain;

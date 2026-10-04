@@ -69,6 +69,17 @@
      contenu la decider faisait chevaucher les pastilles de quatre pixels et
      demi, ce qui ne se voit qu a l ecran. */
   --lieux-h: calc(var(--s-11) + var(--s-2));
+  /* LA HAUTEUR DU SOMMAIRE COLLANT, partagée elle aussi, et pour la même
+     raison : celui qui le dessine (la bande des sections sur les titres, la
+     bande des groupes sur les fonds) et ceux qui se rangent dessous (le
+     titre de section, le titre de groupe) doivent dire le MÊME nombre.
+     Elle vivait dans « OfferBrowser.module.css », donc invisible à la page
+     des fonds, qui a redeviné la hauteur à 48 px là où la bande en fait 42.
+     Les sept pixels d'écart laissaient voir les cartes défiler ENTRE la
+     bande et le titre : signalé à l'écran le 4 octobre 2026, capture à
+     l'appui. La bande VAUT donc cette hauteur, elle ne la reçoit plus de son
+     contenu. */
+  --sections-h: calc(var(--s-11) + var(--s-1));
   /* CE QUE L EN-TETE DE L APPLICATION OCCUPE EN HAUT. Tout ce qui colle se
      pose SOUS lui : il est lui-meme collant, a z-index 40, et une barre qui
      collerait a zero disparaitrait derriere sans que rien ne le signale.

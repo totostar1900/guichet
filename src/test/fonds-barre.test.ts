@@ -214,6 +214,21 @@ describe("la pile collante", () => {
     expect(PAGE_CSS, "le titre de groupe garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/\.teteGroupe \{[^}]*--lieux-h/);
   });
 
+  it("ne laisse pas un pixel entre la bande et le titre qui se range dessous", () => {
+    /* LE DÉFAUT, VU À L'ÉCRAN le 4 octobre 2026 : sept pixels d'air entre la
+       bande du sommaire et le titre de groupe, par lesquels les cartes
+       défilaient. La bande mesurait 41 px, posée par son contenu ; le titre
+       se décalait de 48, un nombre deviné parce que la hauteur de la bande
+       vivait dans le module des titres, invisible d'ici.
+       Une hauteur que deux fichiers doivent dire pareil appartient à
+       « globals.css », et celui qui la dessine la VAUT au lieu de la tenir
+       de son contenu. Mesuré après : écart nul, sur les deux pages. */
+    expect(readFileSync("src/app/globals.css", "utf8"), "la hauteur du sommaire doit être nommée une fois, pour tous").toMatch(/--sections-h:/);
+    expect(BANDE_CSS, "la bande reçoit de nouveau sa hauteur de son contenu : personne ne peut plus s'y caler").toMatch(/\.bar \{[^}]*height: var\(--sections-h\);/);
+    expect(PAGE_CSS, "le titre de groupe devine la hauteur de la bande au lieu de la nommer").toMatch(/\.teteGroupe \{[^}]*top: calc\(var\(--barre-app, 0px\) \+ var\(--sections-h\)\);/);
+    expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le titre de section des titres doit se caler sur la même hauteur").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
+  });
+
   it("couvre toute la largeur, sinon la liste défile visiblement à côté", () => {
     /* Deuxième fois que cette leçon se paie : arrêté à la gouttière, un
        bandeau collant laisse passer les chiffres dans ses marges. */
