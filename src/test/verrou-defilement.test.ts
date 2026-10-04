@@ -65,6 +65,17 @@ describe("le verrou de défilement", () => {
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 300 }));
   });
 
+  it("interdit le tirer-pour-rafraîchir pendant qu'une feuille est ouverte", () => {
+    /* Le corps hors du flux empeche le DEFILEMENT, pas le GESTE : le
+       navigateur reconnait le tire au bord haut et recharge, ce qui ferme la
+       feuille et perd ce que le lecteur y avait coche. Signale sur la feuille
+       des filtres le 4 octobre 2026. */
+    verrouiller();
+    expect(style.overscrollBehavior).toBe("none");
+    deverrouiller();
+    expect(style.overscrollBehavior).toBe("");
+  });
+
   it("ne déverrouille pas ce qui n'est pas verrouillé", () => {
     deverrouiller();
     expect(Object.keys(style)).toEqual([]);
@@ -93,5 +104,22 @@ describe("plus personne ne pose son propre verrou", () => {
   it("le panneau qui défile retient le geste en bout de course", () => {
     // Le verrou empêche la page de bouger, pas le geste de se propager au parent.
     expect(readFileSync("C:/dev/guichet/src/components/mobile/Sheet.module.css", "utf8")).toMatch(/\.body \{[^}]*overscroll-behavior: contain/);
+  });
+});
+
+describe("le tiré ferme la feuille, pas la page", () => {
+  const src = readFileSync("C:/dev/guichet/src/components/mobile/Sheet.tsx", "utf8");
+
+  it("ferme aussi depuis le corps, quand le corps est déjà en haut", () => {
+    /* La règle d'avant avait raison sur le fond et tort au bord : arrivé en
+       haut de son contenu, le lecteur continue de tirer, et c'est exactement
+       là qu'il veut fermer. */
+    expect(src).toContain("corps.scrollTop > 0");
+  });
+
+  it("laisse une feuille longue se lire", () => {
+    // Le corps garde son défilement tant qu'il n'est pas en haut : sinon une
+    // feuille de filtres se refermerait au premier geste de lecture.
+    expect(src).toContain("if (!surLaTete && corps && corps.scrollTop > 0) return;");
   });
 });

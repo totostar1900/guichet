@@ -136,11 +136,23 @@ describe("la dernière séance échangée", () => {
     expect(tradedSession(q({ status: "" }))).toBe(false);
   });
 
-  it("compte les titres échangés, et à défaut le code de séance", () => {
-    // Une action : le bulletin donne des volumes, c'est la preuve la plus forte.
+  it("compte les titres échangés, et rien d autre", () => {
+    // Une action : le bulletin donne des volumes, c est la preuve la plus forte.
     expect(tradedSession(q({ volumeTraded: 218, trades: 2 }))).toBe(true);
     expect(tradedSession(q({ trades: 1 }))).toBe(true);
-    // Une obligation : aucun volume imprimé, le code de séance est tout ce qu'il y a.
-    expect(tradedSession(q({ status: "PEq" }))).toBe(true);
   });
-});
+
+  it("ne prend pas un code de statut pour une transaction", () => {
+    /* CE TEST DISAIT L INVERSE, et il encodait une supposition : « une
+       obligation n a pas de volume imprimé, le code de séance est tout ce
+       qu il y a ». Mesuré le 4 octobre 2026 sur toute l histoire du
+       compartiment obligataire : 8 340 séances « NC » et 40 « PEq », et les
+       QUARANTE « PEq » sont à volume nul et zéro transaction. Huit d entre
+       elles portent un changement de cours : « PEq » marque une bourse qui
+       RE-MARQUE un prix, jamais une contrepartie.
+
+       Le coût de la supposition : la carte annonçait « dernier échange le
+       1er sept. 2026 » sur une ligne gabonaise qui n a jamais traité. */
+    expect(tradedSession(q({ status: "PEq" }))).toBe(false);
+    expect(tradedSession(q({ status: "PEq", volumeTraded: 5 }))).toBe(true);
+  });});

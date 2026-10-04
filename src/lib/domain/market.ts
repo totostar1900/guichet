@@ -35,8 +35,21 @@ export interface MarketBulletin {
  * ligne à chaque séance, échangée ou non. « Cours 97,00 % du 9 sept. » se lit
  * comme « elle a traité le 9 septembre » alors qu'elle peut n'avoir rien
  * traité depuis mai.
+ *
+ * UN CODE DE STATUT N'EST PAS UNE TRANSACTION, et cette règle en comptait un
+ * pour tel. Elle tenait « tout statut autre que NC » pour un échange : mesuré
+ * le 4 octobre 2026 sur la ligne gabonaise GA0000020560, deux séances portent
+ * « PEq » et deux cent soixante-neuf « NC », les deux cent soixante et onze à
+ * volume nul et zéro transaction. La carte annonçait donc « dernier échange le
+ * 1er sept. 2026 » pour une ligne qui n'a jamais traité, et les deux séances
+ * « PEq » sont précisément celles où la bourse a RE-MARQUÉ le prix, sans
+ * contrepartie.
+ *
+ * Seuls le volume et le nombre de transactions font foi. Un marché où rien ne
+ * s'échange doit pouvoir le dire ; une règle qui invente un échange à chaque
+ * code de statut le lui interdit.
  */
-export const tradedSession = (q: Pick<Quote, "volumeTraded" | "trades" | "status">): boolean => q.volumeTraded > 0 || q.trades > 0 || (q.status !== "" && q.status !== "NC");
+export const tradedSession = (q: Pick<Quote, "volumeTraded" | "trades">): boolean => q.volumeTraded > 0 || q.trades > 0;
 
 /**
  * Une cotation réduite à ce qui dit si la ligne a traité.

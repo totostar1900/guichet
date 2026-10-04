@@ -39,6 +39,12 @@ export function verrouiller(): void {
   b.right = "0";
   b.width = "100%";
   b.overflow = "hidden";
+  /* TIRER VERS LE BAS NE RAFRAICHIT PAS LA PAGE tant qu'une feuille est
+     ouverte. Le corps hors du flux empêche le défilement, pas le geste : le
+     navigateur reconnaît le tiré au bord haut et recharge, ce qui ferme la
+     feuille ET perd ce que le lecteur y avait coché. Signalé sur la feuille
+     des filtres le 4 octobre 2026. */
+  b.overscrollBehavior = "none";
 }
 
 export function deverrouiller(): void {
@@ -51,6 +57,7 @@ export function deverrouiller(): void {
   b.right = "";
   b.width = "";
   b.overflow = "";
+  b.overscrollBehavior = "";
   /* `scrollTo` sans animation : la restauration doit être invisible, une
      feuille qui se ferme sur un glissement doux ramènerait l'œil en haut. */
   window.scrollTo({ top: positionRetenue, behavior: "instant" as ScrollBehavior });

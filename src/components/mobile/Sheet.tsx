@@ -49,9 +49,23 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
     };
   }, [open, onClose]);
   if (!mounted || !shown) return null;
+  /**
+   * CE QUI FERME LA FEUILLE AU DOIGT.
+   *
+   * La règle d'avant : seul un tiré commencé sur la poignée ou le titre ferme,
+   * le corps garde son défilement. Elle avait raison sur le fond et tort au
+   * bord : arrivé en haut de son contenu, le lecteur continue de tirer, et
+   * c'est exactement là qu'il veut fermer. Il obtenait un rafraîchissement de
+   * page, qui ferme la feuille ET perd ce qu'il venait d'y cocher.
+   *
+   * Le tiré ferme donc aussi depuis le corps, À LA CONDITION que le corps soit
+   * déjà en haut. Sinon il défile, comme avant : une feuille longue se lit.
+   */
   const onTouchStart = (e: React.TouchEvent) => {
-    // Only a pull that starts on the handle or the title closes: the body may scroll.
-    if (!(e.target as HTMLElement).closest(`.${styles.head}`)) return;
+    const cible = e.target as HTMLElement;
+    const corps = cible.closest(`.${styles.body}`);
+    const surLaTete = Boolean(cible.closest(`.${styles.head}`));
+    if (!surLaTete && corps && corps.scrollTop > 0) return;
     drag.current = { y0: e.touches[0].clientY, dy: 0 };
     box.current?.classList.add(styles.drag);
   };
