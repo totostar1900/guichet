@@ -11,7 +11,8 @@ interface Line {
   title: string;
   isin: string;
   kind: string;
-  proposed: number;
+  /** Vide quand rien n'est proposable : le bouton saute alors la ligne. */
+  proposed?: number;
   /**
    * D'où vient le chiffre proposé. « depouillement » : du communiqué de la
    * BEAC, lu puis confirmé par une personne. « lecture » : lu par la machine
@@ -40,7 +41,7 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
             {l.kind === "BTA" ? (
               <label className="field">
                 {t("Taux servi (% précompté)")}
-                <input name={`rate_${l.offerId}`} type="number" step="0.01" defaultValue={l.proposed} />
+                <input name={`rate_${l.offerId}`} type="number" step="0.01" defaultValue={l.proposed ?? ""} placeholder={t("en attente du communiqué")} />
               {l.source && (
                 <small className={l.source === "depouillement" ? styles.vient : styles.vientLu}>
                   {t(l.source === "depouillement" ? "du dépouillement de la séance" : "lu par la machine, non confirmé")}
@@ -54,7 +55,7 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
             ) : (
               <label className="field">
                 {t("Prix servi (% du nominal, 3 déc.)")}
-                <input name={`price_${l.offerId}`} type="number" step="0.001" defaultValue={l.proposed} />
+                <input name={`price_${l.offerId}`} type="number" step="0.001" defaultValue={l.proposed ?? ""} placeholder={t("en attente du communiqué")} />
               {l.source && (
                 <small className={l.source === "depouillement" ? styles.vient : styles.vientLu}>
                   {t(l.source === "depouillement" ? "du dépouillement de la séance" : "lu par la machine, non confirmé")}

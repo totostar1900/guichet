@@ -2835,4 +2835,5 @@ export const EN_MORE: Record<string, string> = {
   "Aucun ordre sur cette ligne : le résultat se consigne quand même.": "No order on this line: the result is recorded all the same.",
   "du dépouillement de la séance": "from the session's allotment notice",
   "lu par la machine, non confirmé": "read by the machine, not confirmed",
+  "en attente du communiqué": "awaiting the notice",
 };

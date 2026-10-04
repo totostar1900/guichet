@@ -27,6 +27,22 @@ export async function applyResultsAction(_p: ResultsOutcome | null, form: FormDa
         const pct = v === null || v === "" ? 100 : Number(v);
         return { intentId: i.id, allocationPct: Math.max(0, Math.min(100, isNaN(pct) ? 100 : pct)) };
       });
+    /**
+     * UN CHAMP LAISSÉ VIDE SAUTE LA LIGNE.
+     *
+     * La page montre désormais toute séance close, qu'elle porte un ordre
+     * client ou non, et pré-remplit le chiffre quand le dépouillement est au
+     * dépôt. Une ligne sans dépouillement reste donc vide : l'appliquer la
+     * ferait partir au prix ANNONCÉ par le desk, une hypothèse présentée comme
+     * un résultat. Elle est sautée, et elle restera dans la file jusqu'à ce
+     * que son communiqué arrive.
+     *
+     * Une ligne qui porte des ordres fait exception : son allocation doit
+     * pouvoir s'appliquer même si le prix annoncé tient lieu de prix servi,
+     * ce qui était le fonctionnement d'avant et ce que le desk attend.
+     */
+    const vide = (x: FormDataEntryValue | null) => x === null || String(x).trim() === "";
+    if (vide(price) && vide(rate) && allocations.length === 0) continue;
     lines.push({ offerId, servedPricePct: price ? Number(price) : undefined, servedRatePct: rate ? Number(rate) : undefined, allocations });
   }
   try {

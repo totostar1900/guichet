@@ -86,9 +86,15 @@ export default async function ResultsPage() {
                   title: l.o.title,
                   isin: l.o.isin,
                   kind: l.o.kind,
-                  /* Le chiffre du dépouillement passe devant celui du desk : c'est
-                     ce que la séance a réellement servi, et il reste à relire. */
-                  proposed: (l.o.kind === "BTA" ? (prop?.tauxPct ?? l.o.precountRate) : (prop?.prixPct ?? l.o.pricePct)) ?? (l.o.kind === "BTA" ? 0 : 100),
+                  /**
+                   * Le chiffre du dépouillement, et rien d'autre, SAUF si la
+                   * ligne porte des ordres : là le prix annoncé tient lieu de
+                   * défaut, comme avant. Une ligne sans ordre et sans
+                   * dépouillement reste VIDE, et le bouton la saute : un champ
+                   * pré-rempli au prix annoncé serait une hypothèse présentée
+                   * comme un résultat.
+                   */
+                  proposed: (l.o.kind === "BTA" ? prop?.tauxPct : prop?.prixPct) ?? (l.transmitted.length > 0 ? ((l.o.kind === "BTA" ? l.o.precountRate : l.o.pricePct) ?? (l.o.kind === "BTA" ? 0 : 100)) : undefined),
                   source: prop ? (prop.confirmee ? "depouillement" : "lecture") : undefined,
                   orders: l.transmitted.map((i) => ({ id: i.id, ref: i.ref, client: i.clientName, units: unitLabel(i, l.o), amount: i.amount ?? 0 })),
                 };
