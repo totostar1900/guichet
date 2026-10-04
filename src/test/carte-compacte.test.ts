@@ -247,3 +247,21 @@ describe("l'en-tête de la carte est réglé par son identité", () => {
     expect(css).toMatch(/--ecart-ytm:[^;]+;\s*margin-top: calc\(var\(--ecart-ytm\) - var\(--s-6\)\)/);
   });
 });
+
+describe("l'écart sous l'ISIN ne dépend pas de l'orientation", () => {
+  /**
+   * La règle a vécu un jour dans « @media (orientation: portrait) », parce que
+   * la demande disait « en portrait ». Mesuré le 4 octobre 2026 : 3,5 px
+   * debout, 12,59 px couché. Un écart qui change selon la façon de tenir le
+   * téléphone a le même défaut que celui qui changeait avec la longueur du
+   * nom. C'est le lecteur qui tourne son écran, pas la carte qui change d'avis.
+   */
+  it("la règle n'est enfermée dans aucune requête d'orientation", () => {
+    /* Les commentaires CITENT la requete qui a ete retiree : on les enleve
+       avant de chercher, sinon l epreuve se prend elle-meme au piege. */
+    const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const apres = css.slice(css.indexOf("@media"));
+    expect(apres, "l'écart est redéfini dans une requête média").not.toMatch(/--ecart-ytm/);
+    expect(css, "aucune règle de cette carte ne dépend de l'orientation").not.toMatch(/@media \(orientation/);
+  });
+});

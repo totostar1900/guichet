@@ -76,7 +76,25 @@
   grid-column: 1 / -1;
   justify-self: end;
 }
+/**
+ * LE CHIFFRE SUIT SON ISIN À QUATRE, ET C'EST TOUT CE QUI LE RÈGLE.
+ *
+ * La carte est une grille et sa gouttière vaut douze partout ; une gouttière
+ * de grille ne se règle pas par paire, donc la marge négative reprend la
+ * différence. On écrit l'écart voulu plutôt que la marge, qui s'en déduit :
+ * c'est l'écart qui se lit sur l'écran. Quatre est le deuxième pas de
+ * l'échelle, et c'est la raison de l'avoir préféré à trois et demi.
+ *
+ * CETTE RÈGLE A VÉCU UN JOUR DANS « @media (orientation: portrait) », parce
+ * que la demande disait « en portrait ». Mesuré pour une seule et même carte :
+ * 3,5 px debout, 12,59 px couché. Un écart qui change selon la façon de tenir
+ * le téléphone a le même défaut que celui qui changeait avec la longueur du
+ * nom, et c'est le lecteur qui tourne son écran, pas la carte qui change
+ * d'avis. Une seule valeur, dans les deux sens, et une épreuve le tient.
+ */
 .big {
+  --ecart-ytm: var(--s-2);
+  margin-top: calc(var(--ecart-ytm) - var(--s-6));
   min-width: 0;
   display: flex;
   align-items: baseline;
@@ -401,18 +419,6 @@
 }
 .flipBtn {
   margin-top: 6px;
-}
-/* LE CHIFFRE REMONTE VERS L'ISIN, EN PORTRAIT : trois, et trois quelle que
-   soit la longueur du nom. La carte est une grille et sa gouttière vaut douze
-   partout ; une gouttière de grille ne se règle pas par paire, donc la marge
-   négative reprend la différence. On écrit l'écart voulu plutôt que la marge,
-   qui s'en déduit : c'est l'écart qui se lit sur l'écran. En paysage l'écran
-   est large, la carte respire, et les douze restent. */
-@media (orientation: portrait) {
-  .big {
-    --ecart-ytm: calc(var(--s-1) * 1.75);
-    margin-top: calc(var(--ecart-ytm) - var(--s-6));
-  }
 }
 
 @media (max-width: 760px) {
