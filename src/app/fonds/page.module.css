@@ -427,28 +427,141 @@
  * que des nombres recopiés. Les onglets du marché, eux, ne collent plus : ils
  * s'en vont avec la page et ne comptent plus dans cette pile.
  */
-.teteGroupe {
+/* LA BOÎTE PORTE LE COLLANT, le titre porte l'allure, et la liste tombe de
+   la boîte : un menu posé dans l'élément collant lui-même sortirait de sa
+   boîte sans y être rattaché. Il n'y a plus de bande au-dessus, donc le
+   titre se range directement sous l'en-tête de l'application. */
+.teteBoite {
   position: sticky;
-  top: calc(var(--barre-app, 0px) + var(--sections-h));
+  top: var(--barre-app, 0px);
   z-index: 5;
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-4);
+}
+.teteGroupe {
   margin: var(--s-8) -20px var(--s-4);
-  padding: var(--s-3) 20px;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--ink);
 }
+/* LE TITRE EST LE SOMMAIRE : il se touche sur toute sa largeur, et pas
+   seulement sur son chevron. Une cible de 366 px sur 33 ne se rate pas, là
+   où la bande demandait de viser une pastille de 28 px de haut, puis de
+   glisser de côté sur six écrans et demi. */
+.teteBouton {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-3) 20px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.teteBouton:disabled {
+  cursor: default;
+}
+.teteBouton > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.teteBouton svg {
+  margin-left: auto;
+  flex: none;
+  align-self: center;
+  color: var(--gold-ink);
+}
+/* CE QUE LE TITRE OUVRE : une ligne par groupe, pleine largeur, verticale.
+   Treize lignes font une seule glissade du pouce ; treize pastilles en
+   rangée faisaient 2 718 px pour 412 d'écran. */
+.teteListe {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  top: 100%;
+  z-index: 6;
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-2);
+  box-shadow: var(--shadow);
+}
+.teteListe button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-4) 20px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+}
+.teteListe button:first-child {
+  border-top: 0;
+}
+.teteListe button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.teteListe button b {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.teteListe button:hover {
+  background: var(--surface-2);
+}
+/**
+ * « VOUS ÊTES ICI » DOIT GAGNER, et c'est une affaire de spécificité.
+ *
+ * Écrit « .teteIci » tout seul, il vaut (0,1,0) et perd contre
+ * « .teteListe button », qui vaut (0,1,1) : la ligne du groupe qu'on lit
+ * restait grise, et le repère ne repérait rien. Mesuré avant correction :
+ * les deux couleurs sortaient identiques, rgb(181, 192, 208).
+ *
+ * TROISIÈME FOIS DANS LA JOURNÉE que la spécificité mange un état. L'autre
+ * cas, le matin : « .pst:hover » (0,2,0) battait « .pstOn » (0,1,0) et
+ * effaçait le mot de la pastille choisie, contraste 1,65 contre 1. La parade
+ * est la même : écrire l'état AUSSI composé que la règle de base, et ne
+ * jamais se fier à l'ordre des déclarations.
+ */
+.teteListe button.teteIci {
+  color: var(--gold-ink);
+  font-weight: 700;
+}
+.teteListe button.teteIci b {
+  color: var(--gold-ink);
+}
 @media (max-width: 820px) {
   /* La gouttière du téléphone vaut quatorze dans cette page. */
   .teteGroupe {
     margin-left: calc(-1 * (var(--s-6) + var(--s-1)));
     margin-right: calc(-1 * (var(--s-6) + var(--s-1)));
+  }
+  .teteBouton,
+  .teteListe button {
     padding-left: calc(var(--s-6) + var(--s-1));
     padding-right: calc(var(--s-6) + var(--s-1));
+  }
+  .teteListe {
+    left: calc(-1 * (var(--s-6) + var(--s-1)));
+    right: calc(-1 * (var(--s-6) + var(--s-1)));
   }
 }
 .teteGroupe b {

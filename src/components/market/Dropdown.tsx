@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
+import { useFermeDehors } from "@/lib/ui/ferme-dehors";
 import styles from "./Dropdown.module.css";
 
 /**
@@ -26,6 +27,7 @@ export function Dropdown({ label, items, selected, onChange, single }: { label: 
   const [open, setOpen] = useState(false);
   const [bord, setBord] = useState<"gauche" | "droite">("gauche");
   const ref = useRef<HTMLDivElement>(null);
+  useFermeDehors(ref, open, () => setOpen(false));
   useEffect(() => {
     if (!open) return;
     /* De quel côté le menu s'accroche : à gauche de son bouton, sauf s'il
@@ -33,16 +35,6 @@ export function Dropdown({ label, items, selected, onChange, single }: { label: 
        sont connues. */
     const r = ref.current?.getBoundingClientRect();
     if (r) setBord(r.left + 200 > window.innerWidth - 8 ? "droite" : "gauche");
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", esc);
-    };
   }, [open]);
   const toggle = (v: string) => {
     const n = new Set(single ? [] : selected);

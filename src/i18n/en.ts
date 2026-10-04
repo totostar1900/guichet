@@ -209,6 +209,7 @@ export const EN: Record<string, string> = {
   "Un fonds, une société de gestion, un dépositaire": "A fund, a manager, a custodian",
   "Filtres actifs": "Active filters",
   "Grouper": "Group",
+  "Aller à un groupe": "Go to a group",
   "Non renseigné": "Not stated",
   "Catégorie": "Category",
   "Toutes": "All",

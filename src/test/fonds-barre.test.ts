@@ -34,6 +34,9 @@ const SRC = readFileSync("src/app/fonds/FundsBrowser.tsx", "utf8");
 const CARTE = readFileSync("src/app/fonds/FundCard.tsx", "utf8");
 const CARTE_CSS = readFileSync("src/app/fonds/FundCard.module.css", "utf8");
 const MENU_CSS = readFileSync("src/components/market/Dropdown.module.css", "utf8");
+const PAGE_CSS = readFileSync("src/app/fonds/page.module.css", "utf8");
+const ONGLETS = readFileSync("src/components/market/OngletsMarche.module.css", "utf8");
+const BANDE_CSS = readFileSync("src/components/SectionChips.module.css", "utf8");
 
 /** La fermeture d'un bloc d'instructions, par opposition à celle du JSX. */
 const BLOC = "\n  };\n";
@@ -114,20 +117,40 @@ describe("les commandes de la page des fonds", () => {
     expect(SRC, "« freqs » ne se construit plus sur les lignes").toMatch(/const freqs = useMemo\(\(\) => \[\.\.\.new Set\(rows\.map/);
   });
 
-  it("ne montre le sommaire que groupé, et lui donne des ancres qu'il sait relire", () => {
-    expect(PAGE, "le sommaire paraît sans groupes : une bande collante qui ne conduit nulle part").toMatch(/\{groupe && groupes\.length > 1 && <BandeGroupes/);
-    /* LA CLEF D'UN GROUPE EST UNE ANCRE : la bande va chercher le bloc par un
-       sélecteur d'attribut. Les noms réels portent apostrophes, points et
+  it("fait du titre le sommaire, sans bande au-dessus", () => {
+    /* LA BANDE ÉTAIT DIMENSIONNÉE POUR QUATRE, ON LUI EN AVAIT DONNÉ TREIZE.
+       Mesuré à 412 px : par catégorie 4 pastilles et 412 px, ça tient tout
+       juste ; par dépositaire 1 806 px, soit 4,4 écrans ; par société de
+       gestion 2 718 px, soit 6,6 écrans, dont une pastille de 351 px. Elle
+       répétait en plus le titre figé qui la suivait, et coûtait 42 px sur
+       chaque écran. */
+    expect(SRC, "la bande des groupes est revenue au-dessus du titre").not.toMatch(/BandeGroupes/);
+    expect(PAGE_CSS, "le titre ne se range plus directement sous l'en-tête : une bande s'est réintercalée").toMatch(/\.teteBoite \{[^}]*top: var\(--barre-app, 0px\);/);
+    // Le titre porte le sommaire : il s'ouvre, et il conduit.
+    const tete = corpsDe("function TeteGroupe(", "\n}\n");
+    expect(tete, "le titre ne s'ouvre plus").toMatch(/aria-expanded/);
+    expect(tete, "le titre ne conduit plus nulle part").toMatch(/conduireVers\(g\.clef/);
+    expect(tete, "le saut doit se mesurer depuis le titre épinglé, pas depuis une constante").toMatch(/tete\.current\?\.getBoundingClientRect\(\)\.top/);
+    /* UN SEUL GROUPE N'EST PAS UN SOMMAIRE : le chevron annoncerait un geste
+       qui ne mène qu'à soi-même. */
+    expect(tete, "le titre s'ouvre même quand il n'y a qu'un groupe").toMatch(/const seul = groupes\.length < 2;/);
+    expect(tete).toMatch(/disabled=\{seul\}/);
+    /* LE NOM ENTIER N'EST JAMAIS PERDU : il reste en infobulle et dans le
+       nom accessible, puisque le titre, lui, est raccourci. */
+    expect(tete, "le nom entier a disparu de l'infobulle").toMatch(/title=\{entier !== nom \? entier : undefined\}/);
+    expect(tete, "le nom accessible doit dire le nom entier").toMatch(/aria-label=\{`\$\{entier\}/);
+    /* LA CLEF D'UN GROUPE EST UNE ANCRE : le sommaire va chercher le bloc par
+       un sélecteur d'attribut. Les noms réels portent apostrophes, points et
        espaces — « L'ARCHER ASSET MANAGEMENT », « ELITE CAPITAL ASSET
        MANAGEMENT S.A. », « CCA -Bank » — et « fundKey » doit en faire quelque
        chose qu'un sélecteur accepte. */
-    expect(SRC, "la clef d'un groupe n'est plus un slug").toMatch(/const clef = fundKey\(nom\)/);
+    expect(SRC, "la clef d'un groupe n'est plus un slug").toMatch(/const clef = fundKey\(entier\)/);
     for (const nom of ["L'ARCHER ASSET MANAGEMENT", "ELITE CAPITAL ASSET MANAGEMENT S.A.", "CCA -Bank", "UBA CAMEROUN"]) {
       const clef = fundKey(nom);
       expect(clef, `« ${nom} » : clef vide`).toBeTruthy();
       expect(clef, `« ${nom} » → « ${clef} » : un sélecteur d'attribut ne l'avalera pas tel quel`).toMatch(/^[a-z0-9-]+$/);
     }
-    // Le bloc porte l'ancre que la bande cherche : « aria-labelledby="sec-<clef>" ».
+    // Le bloc porte l'ancre que le sommaire cherche : « aria-labelledby="sec-<clef>" ».
     expect(PAGE, "les blocs ne portent plus l'ancre du sommaire").toMatch(/aria-labelledby=\{b\.clef \? `sec-\$\{b\.clef\}` : undefined\}/);
     expect([...PAGE.matchAll(/aria-labelledby=\{b\.clef/g)].length, "les trois vues doivent porter l'ancre : cartes, liste, tableau").toBe(3);
   });
@@ -199,10 +222,6 @@ describe("les commandes de la page des fonds", () => {
 });
 
 describe("la pile collante", () => {
-  const PAGE_CSS = readFileSync("src/app/fonds/page.module.css", "utf8");
-  const ONGLETS = readFileSync("src/components/market/OngletsMarche.module.css", "utf8");
-  const BANDE_CSS = readFileSync("src/components/SectionChips.module.css", "utf8");
-
   it("laisse partir la rangée des pages quand on descend", () => {
     /* Collante, elle prenait quarante pixels sur chaque écran pendant toute
        la lecture, pour des liens vers d'AUTRES pages. Le repère pendant la
@@ -214,27 +233,40 @@ describe("la pile collante", () => {
     expect(PAGE_CSS, "le titre de groupe garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/\.teteGroupe \{[^}]*--lieux-h/);
   });
 
-  it("ne laisse pas un pixel entre la bande et le titre qui se range dessous", () => {
+  it("ne laisse pas un pixel entre la bande des sections et le titre qui s'y range", () => {
     /* LE DÉFAUT, VU À L'ÉCRAN le 4 octobre 2026 : sept pixels d'air entre la
-       bande du sommaire et le titre de groupe, par lesquels les cartes
-       défilaient. La bande mesurait 41 px, posée par son contenu ; le titre
-       se décalait de 48, un nombre deviné parce que la hauteur de la bande
-       vivait dans le module des titres, invisible d'ici.
+       bande du sommaire et le titre, par lesquels les cartes défilaient. La
+       bande mesurait 41 px, posée par son contenu ; le titre se décalait de
+       48, un nombre deviné parce que la hauteur de la bande vivait dans le
+       module des titres, invisible depuis la page des fonds.
        Une hauteur que deux fichiers doivent dire pareil appartient à
-       « globals.css », et celui qui la dessine la VAUT au lieu de la tenir
-       de son contenu. Mesuré après : écart nul, sur les deux pages. */
+       « globals.css », et celui qui la dessine la VAUT au lieu de la tenir de
+       son contenu. La page des fonds n'a plus de bande du tout — son titre
+       est le sommaire — mais celle des titres en garde une, et la leçon
+       vaut pour elle. */
     expect(readFileSync("src/app/globals.css", "utf8"), "la hauteur du sommaire doit être nommée une fois, pour tous").toMatch(/--sections-h:/);
     expect(BANDE_CSS, "la bande reçoit de nouveau sa hauteur de son contenu : personne ne peut plus s'y caler").toMatch(/\.bar \{[^}]*height: var\(--sections-h\);/);
-    expect(PAGE_CSS, "le titre de groupe devine la hauteur de la bande au lieu de la nommer").toMatch(/\.teteGroupe \{[^}]*top: calc\(var\(--barre-app, 0px\) \+ var\(--sections-h\)\);/);
-    expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le titre de section des titres doit se caler sur la même hauteur").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
+    expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le titre de section des titres doit se caler sur cette hauteur").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
   });
 
   it("couvre toute la largeur, sinon la liste défile visiblement à côté", () => {
     /* Deuxième fois que cette leçon se paie : arrêté à la gouttière, un
        bandeau collant laisse passer les chiffres dans ses marges. */
     expect(PAGE_CSS, "le titre de groupe s'arrête à la gouttière").toMatch(/\.teteGroupe \{[^}]*margin: var\(--s-8\) -20px var\(--s-4\);/);
-    expect(PAGE_CSS, "sans rembourrage, le texte du titre collerait au bord").toMatch(/\.teteGroupe \{[^}]*padding: var\(--s-3\) 20px;/);
+    expect(PAGE_CSS, "sans rembourrage, le texte du titre collerait au bord").toMatch(/\.teteBouton \{[^}]*padding: var\(--s-3\) 20px;/);
     expect(PAGE_CSS, "le titre de groupe doit être opaque").toMatch(/\.teteGroupe \{[^}]*background: var\(--paper\);/);
+    /* ET LA LISTE AUSSI : ouverte, elle couvre ce qui défile dessous. */
+    expect(PAGE_CSS, "la liste du sommaire s'arrête à la gouttière").toMatch(/\.teteListe \{[^}]*left: -20px;/);
+  });
+
+  it("donne au groupe qu'on lit une marque qui gagne vraiment", () => {
+    /* TROISIÈME FOIS DANS LA JOURNÉE que la spécificité mange un état :
+       « .teteIci » vaut (0,1,0) et perdait contre « .teteListe button »
+       (0,1,1). Les deux couleurs sortaient identiques, rgb(181, 192, 208),
+       et le repère ne repérait rien. L'état doit être écrit AUSSI composé
+       que la règle de base. */
+    expect(PAGE_CSS, "la marque « vous êtes ici » est redevenue moins spécifique que la règle de base").toMatch(/\.teteListe button\.teteIci \{/);
+    expect(PAGE_CSS, "une marque posée sans son parent reperdra contre « .teteListe button »").not.toMatch(/\n\.teteIci \{/);
   });
 });
 

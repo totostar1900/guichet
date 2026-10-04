@@ -9,8 +9,10 @@ import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { usePhone } from "@/components/chart-utils";
+import { nomsCourts } from "@/lib/domain/nom-court";
+import { conduireVers } from "@/lib/ui/sommaire";
+import { useFermeDehors } from "@/lib/ui/ferme-dehors";
 import { Dropdown } from "@/components/market/Dropdown";
-import { BandeGroupes } from "./BandeGroupes";
 import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
@@ -100,23 +102,76 @@ const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : sty
 const num = (v?: number) => (v == null ? -Infinity : v);
 
 /**
- * LE TITRE D'UN GROUPE, COLLANT PENDANT QU'ON LE LIT.
+ * LE TITRE D'UN GROUPE EST LE SOMMAIRE : il n'y a plus de bande au-dessus.
  *
- * Il se range sous la bande du sommaire, et c'est lui qui dit où l'on est
- * quand on a défilé loin du haut. Le compte est à côté du nom parce qu'il
- * répond à la question d'avant la lecture : « Harvest 10 » dit combien de
- * fonds on s'apprête à traverser.
+ * LA BANDE ÉTAIT DIMENSIONNÉE POUR QUATRE, ON LUI EN AVAIT DONNÉ TREIZE.
+ * Elle vient des titres, où elle porte cinq sections fixes et courtes.
+ * Mesuré ici le 4 octobre 2026, sur un écran de 412 px : par catégorie, 4
+ * pastilles et 412 px, elle tient tout juste ; par dépositaire, 13 pastilles
+ * et 1 806 px, soit 4,4 écrans de glissement latéral ; par société de
+ * gestion, 2 718 px, soit 6,6 écrans — et la plus large des pastilles, 351 px,
+ * prenait 85 % de la largeur du téléphone à elle seule.
+ *
+ * Trois raisons de la retirer plutôt que de la rétrécir. Elle RÉPÈTE ce titre
+ * figé, qui nomme déjà le groupe qu'on lit. Elle COÛTE 42 px sur chaque écran
+ * d'une page qu'on parcourt. Et son geste — glisser de côté dans une rangée
+ * de 28 px de haut — est le plus difficile du téléphone, là où une liste
+ * verticale est le plus facile.
+ *
+ * Ce qu'elle offrait et qui se perd : le coup d'œil sur les groupes voisins
+ * sans rien toucher. Il n'existait déjà pas à 6,6 écrans ; le treizième
+ * groupe n'était pas visible, il était derrière un geste long.
+ *
+ * Le compte reste à côté du nom parce qu'il répond avant le saut :
+ * « Harvest 10 » dit combien de fonds on s'apprête à traverser.
  */
-function TeteGroupe({ id, nom, n }: { id: string; nom: string; n: number }) {
+function TeteGroupe({ id, nom, entier, n, groupes }: { id: string; nom: string; entier: string; n: number; groupes: { clef: string; nom: string; entier: string; n: number }[] }) {
   const t = useT();
+  const [ouvert, setOuvert] = useState(false);
+  const boite = useRef<HTMLDivElement>(null);
+  const tete = useRef<HTMLHeadingElement>(null);
+  useFermeDehors(boite, ouvert, () => setOuvert(false));
+  const seul = groupes.length < 2;
   return (
-    <h2 id={id} className={styles.teteGroupe}>
-      {nom}
-      {/* « fonds » ne prend pas de pluriel : pas de test de nombre ici. */}
-      <b>
-        {n} {t("fonds")}
-      </b>
-    </h2>
+    <div className={styles.teteBoite} ref={boite}>
+      <h2 id={id} className={styles.teteGroupe} ref={tete} title={entier !== nom ? entier : undefined}>
+        <button type="button" className={styles.teteBouton} onClick={() => !seul && setOuvert(!ouvert)} aria-expanded={seul ? undefined : ouvert} disabled={seul} aria-label={`${entier} · ${n} ${t("fonds")}${seul ? "" : ` · ${t("Aller à un groupe")}`}`}>
+          <span>{nom}</span>
+          {/* « fonds » ne prend pas de pluriel : pas de test de nombre ici. */}
+          <b>
+            {n} {t("fonds")}
+          </b>
+          {!seul && (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+              <path d={ouvert ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} />
+            </svg>
+          )}
+        </button>
+      </h2>
+      {ouvert && (
+        <div className={styles.teteListe} role="group" aria-label={t("Aller à un groupe")}>
+          {groupes.map((g) => (
+            <button
+              key={g.clef}
+              type="button"
+              className={g.clef === id.slice(4) ? styles.teteIci : undefined}
+              title={g.entier !== g.nom ? g.entier : undefined}
+              onClick={() => {
+                setOuvert(false);
+                /* LE SAUT SE MESURE DEPUIS CE TITRE-CI, qui est épinglé : le
+                   bloc visé vient s'y poser, et comme il commence lui aussi
+                   par son titre, c'est le titre d'arrivée qui prend la place
+                   exacte du titre de départ. Aucune constante à tenir. */
+                conduireVers(g.clef, tete.current?.getBoundingClientRect().top ?? 0);
+              }}
+            >
+              <span>{g.nom}</span>
+              <b>{g.n}</b>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -392,21 +447,26 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const groupes = useMemo(() => {
     if (!groupe) return [];
     const nomDe = (r: FundRow) => (groupe === "gestion" ? r.manager : groupe === "depositaire" ? r.depositary : t(FUND_CATEGORY_LABEL[r.category]));
-    const out: { clef: string; nom: string; rows: FundRow[] }[] = [];
+    const out: { clef: string; entier: string; rows: FundRow[] }[] = [];
     const vus = new Map<string, number>();
     for (const r of rowsShown) {
-      const nom = nomDe(r) || t("Non renseigné");
-      const clef = fundKey(nom) || "sans-nom";
+      const entier = nomDe(r) || t("Non renseigné");
+      const clef = fundKey(entier) || "sans-nom";
       if (!vus.has(clef)) {
         vus.set(clef, out.length);
-        out.push({ clef, nom, rows: [] });
+        out.push({ clef, entier, rows: [] });
       }
       out[vus.get(clef)!].rows.push(r);
     }
-    return out;
+    /* LE NOM COURT SE CALCULE SUR LA LISTE ENTIÈRE, pas groupe par groupe :
+       savoir qu'un mot ne distingue rien demande de voir tous les noms. */
+    const brefs = nomsCourts(out.map((g) => g.entier));
+    return out.map((g) => ({ ...g, nom: brefs.get(g.entier) ?? g.entier }));
   }, [groupe, rowsShown, t]);
   /** Les blocs à rendre : les groupes, ou la liste entière comme un seul bloc muet. */
-  const blocs = groupe && groupes.length > 0 ? groupes : [{ clef: "", nom: "", rows: rowsShown }];
+  const blocs = groupe && groupes.length > 0 ? groupes : [{ clef: "", nom: "", entier: "", rows: rowsShown }];
+  /** Ce que le sommaire du titre propose : les mêmes groupes, sans leurs lignes. */
+  const sommaire = groupes.map((g) => ({ clef: g.clef, nom: g.nom, entier: g.entier, n: g.rows.length }));
   // L'en-tête d'une colonne est déjà le nom de ce qu'on veut trier : une
   // fonction, pas un composant, qu'un composant déclaré dans le rendu
   // reperdrait son état à chaque passage.
@@ -650,16 +710,11 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       </div>
 
-      {/* LE SOMMAIRE NE PARAÎT QUE GROUPÉ : sans blocs, il n'aurait rien à
-          désigner, et une bande collante qui ne conduit nulle part prend de
-          la hauteur sur chaque écran pour rien. */}
-      {groupe && groupes.length > 1 && <BandeGroupes groupes={groupes.map((g) => ({ clef: g.clef, nom: g.nom, n: g.rows.length }))} quoi={GROUPES.find(([k]) => k === groupe)?.[1] ?? "Groupes"} />}
-
       {rowsShown.length > 0 && vue === "cards" && (
         <div data-coach="fonds-table" ref={searchList}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
-              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} n={b.rows.length} />}
+              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} n={b.rows.length} groupes={sommaire} />}
               <div className={styles.cards} data-sep={sep}>
                 {b.rows.map((r) => (
                   <FundCard key={r.id} r={r} />
@@ -673,7 +728,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div data-coach="fonds-table" ref={searchList}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
-              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} n={b.rows.length} />}
+              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} n={b.rows.length} groupes={sommaire} />}
               <ul className={styles.list}>
                 {b.rows.map((r) => (
                   <FundLi key={r.id} r={r} />

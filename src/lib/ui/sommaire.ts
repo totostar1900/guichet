@@ -41,6 +41,25 @@ import { useEffect, useState, type RefObject } from "react";
  */
 export const blocDe = (clef: string): HTMLElement | null => document.querySelector<HTMLElement>(`[aria-labelledby="sec-${CSS.escape(clef)}"]`);
 
+/**
+ * Poser le bloc d'un groupe À UNE HAUTEUR D'ÉCRAN DONNÉE, tout de suite.
+ *
+ * « cible » est l'ordonnée où le haut du bloc doit venir : le bas de la bande
+ * pour un sommaire en bande, le haut du titre épinglé pour un sommaire porté
+ * par le titre lui-même. Les deux appellent donc la même mesure, qui est la
+ * seule ligne délicate de l'affaire.
+ */
+export function conduireVers(clef: string, cible: number): void {
+  const bloc = blocDe(clef);
+  if (!bloc) return;
+  /* « instant » EXPLICITE, ET NON « auto ». La page déclare
+     « scroll-behavior: smooth » : « auto » veut dire « ce que dit le CSS »,
+     donc un glissement, pendant lequel toute mesure est fausse. C'est ce qui
+     faisait varier l'atterrissage de −3743 à +624 selon le moment où l'on
+     regardait. */
+  window.scrollBy({ top: bloc.getBoundingClientRect().top - cible, behavior: "instant" });
+}
+
 export function useSommaire(clefs: string[], bar: RefObject<HTMLElement | null>, actif = true): { enVue: string | undefined; conduire: (clef: string) => void } {
   const [vu, setEnVue] = useState<string | undefined>(undefined);
   /* RIEN N'EST « EN VUE » QUAND LA BANDE NE CONDUIT PAS, et cela se DÉDUIT :
@@ -99,16 +118,12 @@ export function useSommaire(clefs: string[], bar: RefObject<HTMLElement | null>,
     else if (droite > b.scrollLeft) b.scrollTo({ left: droite, behavior: "smooth" });
   }, [enVue, bar]);
 
+  /* Le bloc se pose à quatre pixels sous la bande : c'est la mesure, elle vit
+     dans « conduireVers » parce que le sommaire des fonds, porté par son
+     titre, a la même à faire depuis un autre repère. */
   const conduire = (clef: string) => {
-    const bloc = blocDe(clef);
     const bande = bar.current;
-    if (!bloc || !bande) return;
-    /* « instant » EXPLICITE, ET NON « auto ». La page déclare
-       « scroll-behavior: smooth » : « auto » veut dire « ce que dit le CSS »,
-       donc un glissement, pendant lequel toute mesure est fausse. C'est ce qui
-       faisait varier l'atterrissage de −3743 à +624 selon le moment où l'on
-       regardait. */
-    window.scrollBy({ top: bloc.getBoundingClientRect().top - bande.getBoundingClientRect().bottom - 4, behavior: "instant" });
+    if (bande) conduireVers(clef, bande.getBoundingClientRect().bottom + 4);
   };
 
   return { enVue, conduire };
