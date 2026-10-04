@@ -9,6 +9,7 @@ import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { usePhone } from "@/components/chart-utils";
+import { BackToTop } from "@/components/BackToTop";
 import { FilterFab } from "@/components/FilterFab";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { TeteGroupe } from "@/components/market/TeteGroupe";
@@ -580,6 +581,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           conduit. Il ne paraît qu'une fois la barre passée sous l'en-tête ;
           le retour en haut de page, lui, a son propre bouton à droite. */}
       <FilterFab watch={toolsRef} ouvre={false} open={false} count={active + Number(Boolean(draft))} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} />
+      <BackToTop watch={toolsRef} />
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
         {/* UN CHAMP, DEUX RANGÉES, PUIS CE QUE LA LISTE DIT D'ELLE-MÊME.
             Rien derrière un bouton, rien dans une feuille : tout ce qui
@@ -614,8 +616,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               selected={new Set(freq ? [freq] : [])}
               onChange={(s) => setFreq(([...s][0] ?? "") as FundNav["frequency"] | "")}
             />
-            <Dropdown label="Grouper" single items={GROUPES} selected={new Set(groupe ? [groupe] : [])} onChange={(s) => setGroupe(([...s][0] ?? "") as GroupKey | "")} />
-            <Dropdown label="Tri" single items={SORT} selected={new Set([sort])} onChange={(s) => setSort((([...s][0] as SortKey) ?? "categorie") as SortKey)} />
+            <Dropdown label="Grouper" single effacable={Boolean(groupe)} items={GROUPES} selected={new Set(groupe ? [groupe] : [])} onChange={(s) => setGroupe(([...s][0] ?? "") as GroupKey | "")} />
+            <Dropdown label="Tri" single effacable={sort !== "categorie"} items={SORT} selected={new Set([sort])} onChange={(s) => setSort((([...s][0] as SortKey) ?? "categorie") as SortKey)} />
             {sort !== "categorie" && (
               <button type="button" className={styles.dirBtn} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
                 {asc ? "↑" : "↓"}
@@ -639,13 +641,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div className={styles.count}>
           {/* « TOUT EFFACER » À GAUCHE DU CHOIX DES VUES : il défait ce que
               les commandes du dessus ont posé, et il se tient donc au bout de
-              leur ligne plutôt qu'au milieu d'elles. Il ne paraît pas quand
-              il n'y a rien à défaire. */}
-          {poseSurLaListe && (
-            <button type="button" className={styles.clear} onClick={clearAll}>
-              {t("Tout effacer")}
-            </button>
-          )}
+              leur ligne plutôt qu'au milieu d'elles.
+              IL RESTE LÀ MÊME SANS RIEN À EFFACER, éteint : un bouton qui
+              n'apparaît qu'au moment où l'on en a besoin ne s'apprend
+              jamais, et c'est à ce moment-là qu'on le cherche. */}
+          <button type="button" className={styles.clear} onClick={clearAll} disabled={!poseSurLaListe} title={poseSurLaListe ? undefined : t("Rien à effacer")}>
+            {t("Tout effacer")}
+          </button>
           <div className={styles.seg} role="group" aria-label={t("Affichage")}>
             {(["table", "list", "cards"] as Vue[]).map((v) => (
               <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>

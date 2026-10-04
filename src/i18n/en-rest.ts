@@ -32,6 +32,7 @@ export const EN_REST: Record<string, string> = {
   "Durée maximum": "Maximum term",
   "Aller à un groupe": "Go to a group",
   "Revenir aux filtres": "Back to the filters",
+  "Rien à effacer": "Nothing to clear",
   "Type de titre": "Type of security",
 
   /* ---------- account opening ---------- */

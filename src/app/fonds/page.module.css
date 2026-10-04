@@ -611,3 +611,10 @@
   font-size: 0.78em;
   color: var(--ink-3);
 }
+/* Éteint quand il n'a rien à défaire : il garde sa place pour s'apprendre,
+   sans prétendre pouvoir agir. */
+.clear:disabled {
+  color: var(--ink-3);
+  opacity: 0.55;
+  cursor: default;
+}

@@ -80,7 +80,11 @@ describe("la page des adjudications", () => {
 
   it("groupe par type ou par émetteur, avec un seul titre par groupe", () => {
     expect(BROWSER, "les deux rangements ont disparu").toMatch(/const GROUPEMENTS: \[string, string\]\[\][\s\S]*?\["type", "Type"\],\s*\["emetteur", "Émetteur"\],/);
-    expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single items=\{GROUPEMENTS\}/);
+    expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single effacable=\{grouped\} items=\{GROUPEMENTS\}/);
+    /* « EFFACER » NE S'OFFRE QUE S'IL EFFACE QUELQUE CHOSE. Un rangement est
+       toujours à une valeur : sur « Type », qui est le défaut, le mot ne
+       changeait rien. Signalé à l'écran. */
+    expect(readFileSync("src/components/market/Dropdown.tsx", "utf8"), "« Effacer » s'offre de nouveau là où il n'efface rien").toMatch(/\{active && effacable && \(/);
     /* UNE SECTION VIDE RESTE, AVEC SON ZÉRO : « En souscription 0 » dit
        qu'aucune émission n'est ouverte, ce qu'une section absente ne dit
        pas. Les émetteurs, eux, n'existent que par leurs lignes. */
@@ -135,6 +139,23 @@ describe("la page des adjudications", () => {
     }
     expect(filtre, "le filtre doit venir en premier").toBeLessThan(grouper);
     expect(grouper, "le resserrement doit suivre le rangement").toBeLessThan(densite);
+  });
+
+  it("peint le chiffre principal en vert, comme les fonds", () => {
+    /* Les fonds disaient leur performance en vert, les titres et les
+       adjudications leur rendement en or : le même rôle — le nombre qu'on
+       vient chercher — portait deux couleurs selon la page. Mesuré après :
+       rgb(92, 196, 140) sur les trois listes, c'est-à-dire « --good ».
+       Le vert ne va qu'au chiffre SUR LEQUEL ON PEUT AGIR : « gold » vaut
+       « !past », donc une séance close garde son rendement en encre neutre.
+       Vérifié sur la page : une séance ouverte en vert, douze closes en
+       neutre. Un taux d'hier n'est pas une offre. */
+    const CARD_CSS = readFileSync("src/components/OfferCard.module.css", "utf8");
+    expect(CARD_CSS, "le chiffre principal n'est plus vert").toMatch(/\.taux \{\s*color: var\(--good\);/);
+    expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le chiffre principal du tableau n'est plus vert").toMatch(/\.taux \{\s*color: var\(--good\);/);
+    expect(CARTE, "la carte repeint son chiffre en or").not.toMatch(/s\.gold \? styles\.gold/);
+    expect([...CARTE.matchAll(/s\.gold \? styles\.taux/g)].length, "les deux faces de la carte doivent le peindre pareil").toBe(2);
+    expect(BROWSER, "le tableau et la liste repeignent leur chiffre en or").not.toMatch(/s\.gold \? styles\.gold/);
   });
 
   it("laisse lire la valeur choisie d'une liste déroulante", () => {

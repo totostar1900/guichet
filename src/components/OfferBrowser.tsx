@@ -13,6 +13,7 @@ import { OfferCard } from "./OfferCard";
 import { MarketToggles, TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
+import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
 import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
 import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
@@ -273,7 +274,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
             {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
           </td>
           <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
-            <span className={`${styles.hero} ${s.gold ? styles.gold : ""}`}>{s.hero}</span>
+            <span className={`${styles.hero} ${s.gold ? styles.taux : ""}`}>{s.hero}</span>
             <small>{t(s.heroUnit ?? s.heroSub)}</small>
           </td>
           <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
@@ -334,7 +335,7 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
           {s.ledger.map(([k, v, note], i) => (
             <div key={k}>
               <dt>{t(k)}</dt>
-              <dd className={i === 0 && s.gold ? styles.gold : undefined}>
+              <dd className={i === 0 && s.gold ? styles.taux : undefined}>
                 {v}
                 {note && <small>{t(note)}</small>}
               </dd>
@@ -504,6 +505,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
      avait trié gardait son ordre après l'avoir touché. */
   const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined });
   const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
+  /* Ce que « Tout effacer » aurait à défaire : il se lit après le compte des
+     filtres, qui en fait partie. */
+  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionChoisie);
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
@@ -803,18 +807,21 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               Elles étaient sur trois lignes, « Filtrer » seule en haut et les
               deux autres soixante pixels plus bas. */}
           {sommaire && (
-            <Dropdown label="Grouper" single items={GROUPEMENTS} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
+            <Dropdown label="Grouper" single effacable={grouped} items={GROUPEMENTS} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
           )}
           {sommaire && view === "cards" && !desk && <DensitySwitch />}
-          {/* TOUT EFFACER, au bout de la ligne qu'il défait : filtres,
-              recherche, ordre et sens. Il ne paraît pas quand il n'y a rien
-              à défaire, et son absence dit donc que la liste est celle qu'on
-              trouve en arrivant. */}
-          {(filterCount > 0 || q || sp.get("tri") || sp.get("sens") || sectionChoisie) && (
-            <button type="button" className={styles.clearAll} onClick={reset}>
-              {t("Tout effacer")}
-            </button>
-          )}
+          {/* TOUT EFFACER RESTE À SA PLACE, MÊME SANS RIEN À EFFACER.
+              Il ne paraissait que lorsqu'un filtre était posé, et c'était
+              defendable — sauf qu'un bouton qui n'est là que lorsqu'on en a
+              besoin ne s'apprend jamais : on ne sait pas qu'il existe tant
+              qu'on n'est pas dans l'état où il apparaît, et c'est justement
+              l'état où l'on cherche comment sortir. Signalé à l'écran : « je
+              ne vois pas le "tout effacer" ».
+              Il est donc toujours là, éteint quand il n'a rien à défaire :
+              la ligne garde sa forme, et le bouton s'apprend à froid. */}
+          <button type="button" className={styles.clearAll} onClick={reset} disabled={!aEffacer} title={aEffacer ? undefined : t("Rien à effacer")}>
+            {t("Tout effacer")}
+          </button>
           <div className={styles.filters}>
           <Dropdown
             label={t("Instrument")}
@@ -847,9 +854,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
                 {c.label} <span aria-hidden="true">×</span>
               </button>
             ))}
-            <button type="button" className={styles.chipBtn} onClick={reset}>
-              {t("Tout effacer")}
-            </button>
+            {/* Le « Tout effacer » de cette rangée est parti : celui de la
+                ligne des commandes est toujours là, à portée, et deux
+                boutons du même nom à deux centimètres se disputaient le
+                même geste. */}
           </div>
         )}
       </div>
@@ -909,7 +917,12 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           )
         }
       />
+      {/* LES DEUX BOUTONS DU COIN, montés ensemble et sur le même signal :
+          les filtres à gauche, le retour en haut à droite. Ils vivaient à
+          deux endroits et répondaient à deux questions, donc ils
+          paraissaient l'un après l'autre. */}
       <FilterFab watch={top} onClick={() => setSheet(true)} count={filterCount + Number(Boolean(q))} open={sheet} />
+      <BackToTop watch={top} />
 
       <div className={styles.meta}>
         {/* « 13 lignes · 1 ouverte ou cotée » répétait ce que la liste montre,

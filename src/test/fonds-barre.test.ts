@@ -206,15 +206,23 @@ describe("les commandes de la page des fonds", () => {
     /* « 25 obligataires correspondant aux filtres » répétait ce que la liste
        montre, sur une ligne payée à chaque écran, et dont personne ne tire
        une décision : on ne compte pas des fonds, on en cherche un. */
-    const compte = PAGE.slice(PAGE.indexOf("styles.count"), PAGE.indexOf("styles.count") + 1400);
+    /* La fenêtre va jusqu'à la fin de la ligne du compte, et non sur un
+       nombre de caractères deviné : le commentaire du bouton a grossi, et
+       les 1 400 caractères s'arrêtaient avant le resserrement. */
+    const debutCompte = PAGE.indexOf("styles.count");
+    const compte = PAGE.slice(debutCompte, PAGE.indexOf("<DensitySwitch />}", debutCompte) + 20);
     expect(compte, "le compte est revenu sur la ligne des vues").not.toMatch(/filtered\.length/);
     expect(compte, "la phrase du compte est revenue").not.toMatch(/correspondant aux filtres/);
     /* TOUT EFFACER EFFACE AUSSI L'ORDRE, et paraît dès qu'un ordre est posé :
        sans cela, le tri n'avait aucune sortie à lui. Il est à gauche du
        choix des vues, au bout de la ligne qu'il défait. */
-    expect(compte, "« Tout effacer » a quitté la gauche du choix des vues").toMatch(/poseSurLaListe && \([\s\S]*?onClick=\{clearAll\}/);
+    /* IL RESTE À SA PLACE MÊME SANS RIEN À EFFACER, éteint : un bouton qui
+       n'apparaît qu'au moment où l'on en a besoin ne s'apprend jamais, et
+       c'est à ce moment-là qu'on le cherche. Signalé à l'écran : « je ne
+       vois pas le tout effacer ». */
+    expect(compte, "« Tout effacer » a quitté la gauche du choix des vues").toMatch(/onClick=\{clearAll\} disabled=\{!poseSurLaListe\}/);
     expect(SRC, "le bouton ne paraît plus quand seul l'ordre a changé").toMatch(/const poseSurLaListe = [^;]*sort !== "categorie"/);
-    expect(compte.indexOf("poseSurLaListe"), "il doit précéder le choix des vues").toBeLessThan(compte.indexOf("styles.seg"));
+    expect(compte.indexOf("onClick={clearAll}"), "il doit précéder le choix des vues").toBeLessThan(compte.indexOf("styles.seg"));
     /* Le resserrement ne règle que la vue cartes : avant elles, il se lisait
        comme s'il commandait les trois. */
     const vues = compte.indexOf("styles.seg");

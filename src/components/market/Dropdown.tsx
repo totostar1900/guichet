@@ -22,7 +22,7 @@ import styles from "./Dropdown.module.css";
  *
  * Un libellé préfixé de « # » est un titre de groupe, pas une valeur.
  */
-export function Dropdown({ label, items, selected, onChange, single }: { label: string; items: [string, string][]; selected: Set<string>; onChange: (s: Set<string>) => void; single?: boolean }) {
+export function Dropdown({ label, items, selected, onChange, single, effacable = true }: { label: string; items: [string, string][]; selected: Set<string>; onChange: (s: Set<string>) => void; single?: boolean; /** Faux quand vider la liste ne changerait rien : voir plus bas. */ effacable?: boolean }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [bord, setBord] = useState<"gauche" | "droite">("gauche");
@@ -36,12 +36,26 @@ export function Dropdown({ label, items, selected, onChange, single }: { label: 
     const r = ref.current?.getBoundingClientRect();
     if (r) setBord(r.left + 200 > window.innerWidth - 8 ? "droite" : "gauche");
   }, [open]);
+  /**
+   * UN CHOIX REFERME LA LISTE, Y COMPRIS QUAND ON PEUT EN CHOISIR PLUSIEURS.
+   *
+   * Seules les listes à valeur unique se refermaient. Les autres — pays,
+   * statut, instrument, durée — restaient ouvertes sur le choix qu'on venait
+   * de faire, et masquaient la liste qu'elles filtrent : on ne voyait pas ce
+   * que le choix venait de faire, et il fallait toucher ailleurs pour s'en
+   * rendre compte.
+   *
+   * Ce qu'on perd : cocher deux pays d'affilée demande deux ouvertures. Ce
+   * qu'on gagne : on voit le résultat de chaque choix. Sur une liste qu'on
+   * filtre pour la regarder, le second vaut le premier — et la pastille du
+   * filtre actif, elle, reste sous les yeux pour retirer d'un toucher.
+   */
   const toggle = (v: string) => {
     const n = new Set(single ? [] : selected);
     if (selected.has(v)) n.delete(v);
     else n.add(v);
     onChange(n);
-    if (single) setOpen(false);
+    setOpen(false);
   };
   const active = selected.size > 0;
   return (
@@ -67,7 +81,22 @@ export function Dropdown({ label, items, selected, onChange, single }: { label: 
               </label>
             ),
           )}
-          {active && (
+          {/**
+            * « EFFACER » NE S'OFFRE QUE S'IL EFFACE QUELQUE CHOSE.
+            *
+            * Un rangement est TOUJOURS à une valeur : « Grouper » vaut « Type »
+            * ou « Émetteur », jamais rien. Sa liste offrait pourtant
+            * « Effacer », et sur « Type » — qui est déjà le rangement par
+            * défaut — toucher ce mot ne changeait rien du tout. Signalé à
+            * l'écran : « Clear doesn't work in Group by type ». Un bouton
+            * qui ne fait rien est pire qu'un bouton absent : on le touche
+            * deux fois avant de croire qu'il est cassé.
+            *
+            * La règle n'est pas « liste à valeur unique » — la périodicité
+            * des VL est unique et peut être vide, « toutes » étant un état
+            * réel. C'est l'appelant qui sait si le vide existe chez lui.
+            */}
+          {active && effacable && (
             <button type="button" className={styles.ddClear} onClick={() => onChange(new Set())}>
               {t("Effacer")}
             </button>

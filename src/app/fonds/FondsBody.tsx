@@ -1,6 +1,5 @@
 import { repo } from "@/lib/data";
 import { FundsBrowser } from "./FundsBrowser";
-import { BackToTop } from "@/components/BackToTop";
 import { FondsEnBref } from "./FondsEnBref";
 import type { Offer } from "@/lib/domain/types";
 import styles from "./page.module.css";
@@ -30,7 +29,7 @@ export async function FondsBody() {
 
   return (
     <>
-      <BackToTop />
+      {/* Le retour en haut est monté par la liste, avec son jumeau. */}
       {/* LE CHAPO EST PASSE DANS LA FEUILLE « EN BREF ». Trois phrases sur ce
           qu est un OPCVM agree, plus le bandeau des quatre categories,
           faisaient pres de deux cents mots avant le premier fonds, relus a

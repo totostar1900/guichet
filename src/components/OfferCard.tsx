@@ -118,7 +118,7 @@ export function OfferCard({ o, s, suivi = false }: { o: Offer; s: OfferSummary; 
               <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : t(s.promesse.key, s.promesse.params)}</small>
             </span>
             <span className={styles.cNum} data-coach="titres-chiffre">
-              <b className={s.gold ? styles.gold : ""}>{s.hero}</b>
+              <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
               <small>{t(s.origine.key, s.origine.params)}</small>
             </span>
           </Link>
@@ -145,7 +145,7 @@ export function OfferCard({ o, s, suivi = false }: { o: Offer; s: OfferSummary; 
             </div>
           </div>
           <div className={styles.big}>
-            <b className={s.gold ? styles.gold : ""}>{s.hero}</b>
+            <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
             <small>{t(s.heroSub)}</small>
             <span className={styles.whenC}>
               {whenLabel}

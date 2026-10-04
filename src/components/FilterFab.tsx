@@ -1,7 +1,8 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
+import { usePasse } from "@/lib/ui/passe";
 import { createPortal } from "react-dom";
 import styles from "./FilterFab.module.css";
 
@@ -19,20 +20,14 @@ import styles from "./FilterFab.module.css";
  */
 export function FilterFab({ watch, onClick, count, open, ouvre = true }: { watch: React.RefObject<HTMLElement | null>; onClick: () => void; count: number; open: boolean; ouvre?: boolean }) {
   const t = useT();
-  const [gone, setGone] = useState(false);
+  /* LE MÊME SIGNAL QUE LE RETOUR EN HAUT : les deux boutons du coin
+     paraissent ensemble, ou le coin change deux fois. */
+  const gone = usePasse(watch);
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   );
-  useEffect(() => {
-    const el = watch.current;
-    if (!el) return;
-    // The site header covers the top 60 px: the toolbar counts as gone once it is under it.
-    const io = new IntersectionObserver(([e]) => setGone(!e.isIntersecting && e.boundingClientRect.bottom < 60), { rootMargin: "-60px 0px 0px 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [watch]);
   if (!mounted) return null;
   const on = gone && !open;
   const quoi = ouvre ? t("Filtrer et trier") : t("Revenir aux filtres");

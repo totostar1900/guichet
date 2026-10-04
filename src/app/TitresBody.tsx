@@ -53,7 +53,8 @@ export async function TitresBody() {
        toucher dans la bande des lieux. */
     <>
       <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
-      <BackToTop />
+      {/* Le retour en haut est monté par la liste, avec son jumeau : les
+          deux paraissent au même moment. */}
     </>
   );
 }

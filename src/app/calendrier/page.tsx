@@ -2,7 +2,6 @@ import { repo } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
-import { BackToTop } from "@/components/BackToTop";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { AdjudicationsEnBref } from "./EnBref";
@@ -56,10 +55,6 @@ export default async function CalendrierPage() {
 
   return (
     <div className={styles.page}>
-      {/* Les trois listes du marché ont les deux mêmes boutons flottants :
-          les filtres à gauche, le retour en haut à droite. Celui-ci manquait
-          ici. */}
-      <BackToTop />
       <OngletsMarche />
       <div className={styles.head}>
         <h1 className="display">{t("Adjudications")}</h1>

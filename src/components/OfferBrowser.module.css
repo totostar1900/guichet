@@ -174,6 +174,21 @@
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
+/**
+ * LE CHIFFRE PRINCIPAL EST VERT, SUR LES TROIS LISTES.
+ *
+ * Les fonds disaient leur performance en vert, les titres et les
+ * adjudications disaient leur rendement en or : le même rôle — le nombre
+ * qu'on vient chercher — portait deux couleurs selon la page, et le lecteur
+ * qui passe de l'une à l'autre apprend deux fois la même chose. Arrêté le
+ * 5 octobre 2026 : c'est le vert, celui des fonds.
+ *
+ * « .gold » n'est pas renommé pour autant : il habille encore le simulateur,
+ * le menu et les cartes de chiffres, où il ne désigne pas un taux.
+ */
+.taux {
+  color: var(--good);
+}
 .gold {
   color: var(--gold-ink);
 }
@@ -912,4 +927,12 @@
 }
 .clearAll:hover {
   text-decoration: underline;
+}
+/* Éteint quand il n'a rien à défaire : il garde sa place pour s'apprendre,
+   sans prétendre pouvoir agir. */
+.clearAll:disabled {
+  color: var(--ink-3);
+  opacity: 0.55;
+  cursor: default;
+  text-decoration: none;
 }
