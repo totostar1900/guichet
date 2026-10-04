@@ -1046,4 +1046,18 @@ export const EN_REST: Record<string, string> = {
   "Alerte armée : un message par jour jusqu'à la clôture": "Alert set: one message a day until the deadline",
   "Ligne suivie : un message à chaque mouvement": "Line followed: one message on each move",
   "Alerte retirée": "Alert removed",
+
+  /* ---------- joindre le desk sur une ligne, sans rien redéclarer ---------- */
+  "Un conseiller vous écrit sur WhatsApp.": "An adviser writes to you on WhatsApp.",
+  "Un conseiller vous appelle.": "An adviser calls you.",
+  "Un conseiller vous répond par e-mail.": "An adviser replies by e-mail.",
+  "Joindre un conseiller sur cette ligne": "Reach an adviser about this line",
+  "Vos coordonnées sont déjà prouvées : il n'y a rien à ressaisir.": "Your details are already proven: there is nothing to type again.",
+  "Comment vous répondre": "How to reply to you",
+  "Votre message": "Your message",
+  "Envoyer au desk": "Send to the desk",
+  "Envoi…": "Sending…",
+  "Message envoyé · {ref}": "Message sent · {ref}",
+  "Vous le retrouvez dans vos messages, avec la réponse du desk.": "You will find it in your messages, with the desk's reply.",
+  "Bonjour, je m'intéresse à la ligne « {t} » et j'aimerais en parler. Pouvez-vous me recontacter ?": "Hello, I am interested in the line “{t}” and would like to discuss it. Could you get back to me?",
 };

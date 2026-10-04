@@ -145,8 +145,11 @@ describe("le geste dit laquelle des deux cadences il arme", () => {
        chaîne de l'interface à traduire. */
     expect(src).toMatch(/\{t\("Déclarer"\)\}/);
     expect(src).toMatch(/\{t\("Contacter"\)\}/);
-    // « Contacter » demande une personne : l'intention « rappel » de la fiche.
-    expect(src).toContain("intention?intent=rappel");
+    /* « Contacter » demande une personne. Il menait au formulaire d'intention
+       entier, qui redemande quatre champs déjà prouvés pour poser une
+       question ; il mène depuis au bloc de contact de la fiche, où un client
+       prouvé écrit au desk en un geste. */
+    expect(src).toContain("#contact");
   });
 
   it("un second appui désarme", () => {

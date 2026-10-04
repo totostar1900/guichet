@@ -1,6 +1,8 @@
 "use server";
 
 import type { NotifyChannel } from "@/lib/domain/types";
+import { canauxOuverts, contactRapidePossible, messageParDefaut } from "@/lib/domain/contact-rapide";
+import type { Channel } from "@/lib/domain/types";
 import { loadRegistry } from "@/lib/reference";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -223,4 +225,55 @@ export async function guestVerifyEmailCode(rawEmail: string, code: string): Prom
   if (error || !data.user) return { ok: false, error: "Code incorrect ou expiré." };
   await repo().markChannelVerified(data.user.id, "email", email);
   return { ok: true, step: "in", email };
+}
+
+/* ---------- Joindre le desk sur une ligne, sans repasser par le formulaire ---------- */
+
+export type ContactResult = { ok: true; ref: string; canal: Channel } | { ok: false; error: string };
+
+/**
+ * UN CLIENT DÉJÀ PROUVÉ N'A PLUS RIEN À DÉCLARER DE LUI-MÊME.
+ *
+ * `submitIntent` revérifie le prénom, le nom, le numéro et l'adresse, et
+ * refuse tant que les deux canaux ne sont pas prouvés : c'est la règle d'une
+ * intention qui engage une opération, et elle ne bouge pas. Demander un rappel
+ * n'engage rien, et redemander quatre champs déjà prouvés est un péage payé
+ * deux fois. Cette action-ci ne demande donc que le canal et le message.
+ *
+ * ELLE RESTE DANS LA MAISON : une intention « rappel » entre dans la file du
+ * desk, avec la ligne attachée et le canal voulu. Un lien « wa.me » aurait
+ * ouvert l'application du client et n'aurait laissé aucune trace ici.
+ */
+export async function contacterSurLigne(offerId: string, canal: Channel, message: string): Promise<ContactResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Connectez-vous pour écrire au desk." };
+  const r = repo();
+  const offer = await r.getOffer(offerId);
+  if (!offer) return { ok: false, error: "Ligne introuvable." };
+  if (session.kycStatus === "en_cloture" || session.kycStatus === "clos") return { ok: false, error: "Votre compte est en cours de clôture : écrivez-nous depuis vos messages." };
+
+  const channels = await r.getChannelStatus(session.userId);
+  const emailProuve = Boolean(channels.emailVerifiedAt && channels.email) || Boolean(session.email);
+  const telephoneProuve = Boolean(channels.phoneVerifiedAt && channels.phone);
+  if (!contactRapidePossible({ connecte: true, emailProuve, telephoneProuve })) return { ok: false, error: "Prouvez un canal depuis Mon espace › Sécurité pour écrire au desk d'ici." };
+  if (!canauxOuverts({ emailProuve, telephoneProuve }).includes(canal)) return { ok: false, error: "Ce canal n'est pas encore prouvé : choisissez-en un autre." };
+
+  const texte = message.trim().slice(0, 1000) || messageParDefaut(offer);
+  const intent = await r.createIntent({
+    offerId,
+    type: "rappel",
+    channel: canal,
+    contactPhone: channels.phone ?? undefined,
+    contactEmail: (channels.email ?? session.email ?? "").toLowerCase() || undefined,
+    message: texte,
+    clientId: session.userId,
+    clientName: session.name,
+    clientSegment: session.segment,
+    phoneVerified: telephoneProuve,
+    emailVerified: emailProuve,
+  });
+  await notifyIntentReceived(intent, offer);
+  revalidatePath("/desk");
+  revalidatePath(`/offres/${offerId}`);
+  return { ok: true, ref: intent.ref, canal };
 }

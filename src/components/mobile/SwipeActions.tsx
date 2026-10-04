@@ -11,8 +11,10 @@ import styles from "./SwipeActions.module.css";
  * · pulled to the left, TROIS actions sortent de dessous, celles que le
  *   « ··· » laisse de côté à dessein. Les deux premières ne changent jamais :
  *   « Déclarer », le formulaire d'intention de la fiche, qu'un tiré long
- *   au-delà de 70 % déclenche ; et « Contacter », qui demande qu'un conseiller
- *   rappelle, c'est-à-dire une personne et non une notification.
+ *   au-delà de 70 % déclenche ; et « Contacter », qui mène au bloc de contact
+ *   de la fiche, où un client déjà prouvé écrit au desk en un geste. Il
+ *   menait au formulaire entier, qui redemandait quatre champs déjà prouvés
+ *   pour poser une question.
  *
  *   LA TROISIÈME DÉPEND DU LIEU, parce que deux marchés ne se suivent pas
  *   pareil :
@@ -308,7 +310,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹
         </button>
-        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}/intention?intent=rappel`))} tabIndex={-1}>
+        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}#contact`))} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             <path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z" />
           </svg>
@@ -331,15 +333,17 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         <div ref={front} className={styles.front}>
           {children}
           {/* a faint chevron on the right edge: the card turns over on a pull to the right */}
-          {/* Deux chevrons, un de chaque bord, et ils ne disent pas la même
-              chose : celui de gauche annonce le retournement, qui se fait d'un
-              tiré VERS la droite, celui de droite rappelle où se trouvent les
-              trois actions, qui sortent d'un tiré vers la gauche. Un seul
-              laissait deviner la moitié des gestes. */}
+          {/* Deux chevrons, un de chaque bord : celui de gauche annonce le
+              retournement, celui de droite rappelle où sortent les trois
+              actions. Un seul laissait deviner la moitié des gestes.
+              Chacun pointe VERS SON BORD, comme le coin d'une page qu'on
+              soulève : ils disent « il y a quelque chose au-delà », et non la
+              direction du doigt, qui va dans l'autre sens pour le
+              retournement. */}
           {back && (
             <span className={styles.turnLeft} aria-hidden="true">
               <svg viewBox="0 0 24 24">
-                <path d="M9 6l6 6-6 6" />
+                <path d="M15 6l-6 6 6 6" />
               </svg>
             </span>
           )}

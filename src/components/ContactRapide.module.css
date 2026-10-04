@@ -1,0 +1,72 @@
+/* Le contact rapide : il se tient au-dessus du formulaire d'intention, parce
+   qu'il répond à la question la plus fréquente et la moins engageante. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  border-radius: var(--radius);
+}
+.note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.promesse {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gold-ink);
+}
+.canaux {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.canaux button {
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.canaux button:hover {
+  border-color: var(--gold);
+}
+.on {
+  border-color: var(--gold) !important;
+  color: var(--gold-ink) !important;
+  font-weight: 600;
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.champ textarea {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  resize: vertical;
+}
+.ok {
+  color: var(--good);
+}
+.err {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--alert);
+}

@@ -129,7 +129,12 @@
   flex-direction: row;
   align-items: center;
   gap: 0;
-  padding: 8px 4px 8px 12px;
+  /* VINGT-QUATRE DE CHAQUE CÔTÉ, pour que les chevrons aient leur voie.
+     Un chevron tient de 2 à 16 px du bord ; le texte commençait à 12, donc
+     SOUS lui, et les outils finissaient à 4, donc sous l'autre. L'écart
+     n'était pas petit, il était négatif. Seize de chevron plus huit d'air :
+     la colonne voisine commence franchement après. */
+  padding: 8px 24px;
   border-radius: 10px;
 }
 .cLink {

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ContactRapide } from "@/components/ContactRapide";
+import type { Channel } from "@/lib/domain/types";
 import { ListNav } from "@/components/ListNav";
 import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
@@ -25,7 +27,7 @@ import { identite } from "./identite";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string; de?: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string; de?: string; canal?: string }> };
 
 /**
  * Ce qu'une messagerie montre sous un lien partagé.
@@ -52,6 +54,9 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function OfferPage({ params, searchParams }: Props) {
     const [{ id }, sp] = await Promise.all([params, searchParams]);
+  /* « ?canal=WhatsApp » : le geste qui a amene ici disait deja comment on veut
+     etre rappele, la page ne le redemande pas. */
+  const canalDemande = (["WhatsApp", "Appel", "E-mail"] as Channel[]).find((c) => c === sp.canal);
   const [t, lang] = await Promise.all([getT(), getLang()]);
   const [o, session] = await Promise.all([repo().getOffer(id), getSession()]);
   if (!o) notFound();
@@ -104,6 +109,18 @@ export default async function OfferPage({ params, searchParams }: Props) {
       </SwipePager>
 
       <aside className={styles.side} id="intention" data-coach="action">
+        {/* AU-DESSUS DU FORMULAIRE, parce qu'il répond à la question la plus
+            fréquente et la moins engageante. Un client dont un canal est
+            prouvé n'a rien à redéclarer pour demander un rappel : le
+            formulaire entier existe pour engager une opération. */}
+        <div id="contact">
+          <ContactRapide
+            offer={{ id: o.id, title: o.title }}
+            emailProuve={Boolean(channels?.emailVerifiedAt || session?.email)}
+            telephoneProuve={Boolean(channels?.phoneVerifiedAt && channels?.phone)}
+            canalInitial={canalDemande}
+          />
+        </div>
         <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
