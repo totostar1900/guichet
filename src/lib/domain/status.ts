@@ -193,18 +193,45 @@ export function marketBondInput(o: Offer, now = new Date(), on?: string): BondIn
 }
 
 /**
- * What the Guichet prints as « rendement ». For a bond bought at par (±0,05 %)
- * the nominal rate: the actuarial yield would differ by a few basis points of
- * pure day-count convention and read as a second, contradictory number next to
- * the coupon in the instrument's name. Away from par, the actuarial yield is
- * the only honest figure. `approx` flags a maturity known by its year only.
+ * What the Guichet prints as « rendement ».
+ *
+ * LA RÈGLE « AU PAIR » NE VAUT PLUS SUR LA COTE, depuis le 4 octobre 2026.
+ * Elle rendait le TAUX NOMINAL pour une obligation cotée à 100 ± 0,05, au
+ * motif que le rendement actuariel n'en différerait que de quelques points de
+ * base de pure convention de calcul, et qu'afficher « 7,46 % » à côté d'un nom
+ * qui dit « 7,50 % » ressemblerait à une erreur.
+ *
+ * TROIS MESURES ONT DÉFAIT CE MOTIF, prises sur les trente-cinq lignes cotées
+ * en production :
+ *
+ * 1. VINGT-CINQ SONT EXACTEMENT À 100,00. La règle ne gouvernait pas une
+ *    exception, elle gouvernait 71 % du tableau : la même pastille or portait
+ *    un taux nominal sur vingt-quatre cartes et un rendement actuariel sur
+ *    onze, et la liste se triait sur ce mélange.
+ * 2. « QUELQUES POINTS DE BASE » EST VRAI POUR LES ANNUITÉS, de 0 à −9 pb, et
+ *    FAUX POUR LES AMORTISSEURS FRÉQUENTS : +9 pb sur ALIOS 6,5 2028, +10 sur
+ *    ACEP 7 2027, +13 sur ALIOS-05, +18 sur ALIOS-06 7 2030. Le signe lui-même
+ *    s'inverse. Là ce n'est pas une convention : le capital revient par
+ *    tranches, se replace, et le rendement dépasse réellement le coupon.
+ * 3. Hors du pair l'écart va de +191 à +388 pb, donc les deux mesures ne sont
+ *    comparables en rien.
+ *
+ * LA CONTRADICTION APPARENTE SE RÈGLE PAR LA PHRASE, pas en masquant le
+ * chiffre : la carte écrit « 7,46 % · actuariel annuel brut au cours 100 % ·
+ * coupon 7,50 % ». Les deux nombres sont là et leur différence est nommée.
+ *
+ * LES ADJUDICATIONS GARDENT LA RÈGLE, et c'est voulu : leur 100 % n'est pas un
+ * cours figé mais un prix à servir, le taux nominal y est le taux contractuel
+ * d'une opération à venir, et une séance ne se compare pas à une ligne cotée.
+ *
+ * `approx` flags a maturity known by its year only.
  */
 export function displayYield(o: Offer): { pct: number | null; atPar: boolean; approx: boolean } {
   const isBond = o.kind === "OTA" || o.kind === "APE" || (o.kind === "MARCHE" && o.instrument === "obligation");
   // A listed bond past its maturity is still printed by the BOC for a while: nothing to earn.
   if (o.kind === "MARCHE" && isBond && o.maturityOn && o.maturityOn < localIso(new Date())) return { pct: null, atPar: false, approx: false };
-  if (isBond && o.couponRate != null) {
-    const price = o.kind === "MARCHE" ? (o.ask ?? o.lastPrice) : (o.servedPricePct ?? o.pricePct);
+  if (isBond && o.couponRate != null && o.kind !== "MARCHE") {
+    const price = o.servedPricePct ?? o.pricePct;
     if (price != null && Math.abs(price - 100) <= 0.05) return { pct: o.couponRate, atPar: true, approx: false };
   }
   return { pct: headlineYield(o), atPar: false, approx: maturityIsGuess(o) };

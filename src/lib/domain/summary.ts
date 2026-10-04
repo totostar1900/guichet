@@ -3,7 +3,7 @@ import { codeCourt, ligneGrise, origineDuChiffre, type Phrase } from "./carte-co
 import { countdown, displayStatus, displayYield, isPast, KIND_LABEL, type MarketSegment, maturityIsGuess, type OfferFamily, offerFamily, statusLabel } from "./status";
 import { typeOf } from "@/lib/registry";
 import { fundAnnualPct } from "./fund-perf";
-import { parseDate, tenorText } from "../finance";
+import { daysBetween, parseDate, tenorText } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
 
 /**
@@ -314,6 +314,13 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     secondary: st === "quoted" ? { label: "Vendre", intent: "vente" } : { label: "Question", intent: "info" },
     facts: [
       [isBond ? "Coupon" : "Dividende", isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
+      /* LE COURS ENTRE LE COUPON ET L'ÉCHÉANCE, avec son âge et rien d'autre.
+         Le grand chiffre au-dessus est le rendement À CE COURS : sans le cours
+         sous les yeux on ne peut ni le vérifier ni le comparer. Et l'âge est
+         ici la seule chose à dire du cours, parce que sur ce marché un prix de
+         quatre cents jours et un prix d'hier ne valent pas la même confiance.
+         La date entière se lit au dos ; ici il n'y a place que pour les jours. */
+      ["Cours", priceTxt, o.priceSince ? `${fmt(daysBetween(o.priceSince, localIso(now)))} j` : undefined],
       isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
     ],

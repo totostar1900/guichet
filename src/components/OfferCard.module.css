@@ -58,9 +58,17 @@
 .gold {
   color: var(--gold-ink);
 }
+/* TROIS OU QUATRE SELON CE QUE LA LIGNE A À DIRE : une ligne cotée ajoute son
+   cours entre le coupon et l'échéance, et la rangée se répartit seule.
+
+   LE PLANCHER EST À 110, ET C'EST MESURÉ. À 72, le téléphone tenait trois
+   colonnes de 98 et renvoyait le ticket SEUL sur un deuxième rang, ce qui est
+   exactement le défaut que ce réglage devait éviter. À 110 il en tient deux :
+   un bloc de deux sur deux, où rien n'est écrasé et rien n'est esseulé. Un
+   écran large en met quatre de front, comme avant. */
 .facts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
   border-top: 1px solid var(--line);
   padding-top: 10px;

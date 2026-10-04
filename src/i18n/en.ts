@@ -83,6 +83,11 @@ export const EN: Record<string, string> = {
   "Ticket minimum": "Minimum ticket",
   "à l'échéance, à ce cours": "yield to maturity at this price",
   "fixé à la dernière séance": "set at the last session",
+  "cours affiché": "quoted price",
+  "Rangées par échéance. Aucune de ces lignes n'a changé de mains : leur chiffre est calculé sur la cotation du bulletin, que personne n'a confirmée par une transaction.":
+    "Ordered by maturity. None of these lines has changed hands: their figure is computed on the bulletin's quotation, which no transaction has confirmed.",
+  "Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.":
+    "Ordered by maturity. One line shows a market yield: what a purchase at today's price returns. The others have not changed hands, and their figure is computed on the bulletin's quotation.",
   "Ticket min.": "Min. ticket",
   "Ticket": "Ticket",
   "Voir la fiche": "View details",

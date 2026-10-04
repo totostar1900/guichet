@@ -44,10 +44,10 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
   const priced = marketYields(years);
   const lead =
     priced === 0
-      ? t("Rangées par échéance. Le cours de ces lignes est au pair ou absent : le chiffre donné est le coupon inscrit au contrat.")
+      ? t("Rangées par échéance. Aucune de ces lignes n'a changé de mains : leur chiffre est calculé sur la cotation du bulletin, que personne n'a confirmée par une transaction.")
       : priced === 1
-        ? t("Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Ailleurs le cours est au pair ou absent, et le chiffre donné est le coupon du contrat.")
-        : t("Rangées par échéance. {n} lignes affichent un rendement de marché : ce qu'un achat au cours du jour procure. Ailleurs le cours est au pair ou absent, et le chiffre donné est le coupon du contrat.", { n: String(priced) });
+        ? t("Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.")
+        : t("Rangées par échéance. {n} lignes affichent un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.", { n: String(priced) });
   return (
     <div className={styles.card}>
       <div className={styles.head}>
@@ -134,6 +134,10 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
                         ) : l.basis === "coupon" ? (
                           <>
                             <b className={styles.plain}>{l.figure}</b> <small className={styles.qual}>{t("coupon")}</small>
+                          </>
+                        ) : l.basis === "cours_affiche" ? (
+                          <>
+                            <b className={styles.plain}>{l.figure}</b> <small className={styles.qual}>{t("cours affiché")}</small>
                           </>
                         ) : (
                           <>

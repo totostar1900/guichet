@@ -3,6 +3,7 @@ import { setRegistry } from "@/lib/registry";
 import { BOND_TERMS } from "@/data/bond-terms";
 import { displayYield, marketBondCalc, marketBondInput } from "@/lib/domain/status";
 import { explainKpis } from "@/lib/domain/explain";
+import { summarize } from "@/lib/domain/summary";
 import { estimate } from "@/lib/domain/estimate";
 import type { Offer } from "@/lib/domain/types";
 import { tradedSession, type Quote } from "@/lib/domain/market";
@@ -156,3 +157,66 @@ describe("la dernière séance échangée", () => {
     expect(tradedSession(q({ status: "PEq" }))).toBe(false);
     expect(tradedSession(q({ status: "PEq", volumeTraded: 5 }))).toBe(true);
   });});
+
+describe("la cote ne retient plus le taux nominal", () => {
+  /**
+   * LA RÈGLE « AU PAIR » RENDAIT LE COUPON pour une obligation cotée à 100,
+   * au motif que l'écart avec le rendement actuariel ne tenait qu'à la
+   * convention de calcul. Trois mesures du 4 octobre 2026 sur les trente-cinq
+   * lignes cotées en production ont défait ce motif :
+   *
+   *  - VINGT-CINQ cotent exactement 100,00 : la règle gouvernait 71 % du
+   *    tableau, pas une exception, et la même pastille or portait deux
+   *    grandeurs différentes selon la carte ;
+   *  - l'écart est bien de 0 à −9 pb sur les annuités, mais il monte à
+   *    +9, +10, +13 et +18 pb sur les quatre amortisseurs semestriels et
+   *    trimestriels, en changeant de signe : là ce n'est plus une
+   *    convention, c'est le capital qui revient par tranches et se replace ;
+   *  - hors du pair l'écart va de +191 à +388 pb.
+   *
+   * LES ADJUDICATIONS GARDENT LA RÈGLE : leur 100 % n'est pas un cours figé
+   * mais un prix à servir, et le taux nominal y est le taux contractuel.
+   */
+  it("une obligation cotée à 100 affiche son rendement actuariel", () => {
+    const auPair = line({ lastPrice: 100, ask: undefined });
+    const dy = displayYield(auPair);
+    expect(dy.atPar, "la cote ne connaît plus le pair").toBe(false);
+    expect(dy.pct).not.toBe(auPair.couponRate);
+    expect(dy.pct).toBeCloseTo(marketBondCalc(auPair, 10_000_000, 100)!.irr, 6);
+  });
+
+  it("une adjudication au pair garde son taux nominal", () => {
+    /* L'exception est assumée et doit rester vraie : si elle tombait avec la
+       règle de la cote, personne ne le verrait avant un client. */
+    const ota = line({ kind: "OTA", instrument: undefined, lastPrice: undefined, pricePct: 100, couponRate: 7, settleOn: "2026-10-07", maturityOn: "2031-10-07" });
+    const dy = displayYield(ota);
+    expect(dy.atPar, "une séance servie au pair garde le taux du contrat").toBe(true);
+    expect(dy.pct).toBe(7);
+  });
+});
+
+/* Ce que « summarize » attend en plus du jeu d essai des rendements. */
+const POUR_RESUME = { settleOn: "2026-10-07", opensAt: "2026-01-01", deadlineAt: "2026-12-31T17:00:00.000Z", blurb: "", documents: [], lotSize: 1, countryName: "Gabon", operation: "secondaire", sizeLabel: "" } as unknown as Partial<Offer>;
+
+describe("le cours est dans la rangée des faits", () => {
+  /**
+   * Le grand chiffre est le rendement À CE COURS : sans le cours sous les
+   * yeux, on ne peut ni le vérifier ni le comparer d'une ligne à l'autre.
+   * Il se range entre le coupon et l'échéance, et il ne porte que son âge,
+   * parce que sur ce marché un prix de quatre cents jours et un prix d'hier
+   * ne valent pas la même confiance. La date entière se lit au dos.
+   */
+  it("entre le coupon et l'échéance, avec le nombre de jours", () => {
+    const s = summarize(line({ priceSince: "2026-05-07", ...POUR_RESUME }), new Date("2026-10-04T12:00:00"));
+    const etiquettes = s.facts.map(([k]) => k);
+    expect(etiquettes).toEqual(["Coupon", "Cours", "Échéance", "Ticket min."]);
+    const cours = s.facts.find(([k]) => k === "Cours")!;
+    expect(cours[1]).toBe("97 %");
+    expect(cours[2], "l'âge du cours, et rien d'autre").toBe("150 j");
+  });
+
+  it("sans date de dernier changement, le cours n'invente pas d'âge", () => {
+    const s = summarize(line({ priceSince: undefined, ...POUR_RESUME }), new Date("2026-10-04T12:00:00"));
+    expect(s.facts.find(([k]) => k === "Cours")![2]).toBeUndefined();
+  });
+});

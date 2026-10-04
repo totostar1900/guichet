@@ -17,13 +17,21 @@ import type { Offer } from "./types";
  * jour et son mois. On lit d'un coup où se placent les remboursements, ce qui
  * est la question qu'on se pose devant le papier d'un même emprunteur.
  *
- * Reste le piège, et c'est le vrai. Une ligne cotée qui n'a jamais traité est
- * imprimée au pair par le bulletin : son « rendement » est alors son coupon, pas
- * un rendement de marché. Les deux chiffres se rangeaient dans la même colonne,
- * au même poids, dans la même couleur. Un client qui compare 10,96 % au cours
- * 97 % et 6,00 % au pair en conclut que la première paie près du double de la
- * seconde ; elle ne le paie pas, ce sont deux grandeurs différentes. « basis »
- * les sépare, et l'écran leur donne deux traitements.
+ * Reste le piège, et c'est le vrai. Un chiffre adossé à une transaction et un
+ * chiffre calculé sur une cotation que personne n'a traitée se rangeaient dans
+ * la même colonne, au même poids, dans la même couleur. Un client qui compare
+ * 10,96 % et 6,00 % en conclut que la première paie près du double de la
+ * seconde ; ce sont deux grandeurs différentes. « basis » les sépare, et
+ * l'écran leur donne trois traitements.
+ *
+ * LA SÉPARATION SE FAISAIT SUR « AU PAIR », ET C'ÉTAIT UN SUBSTITUT. Elle
+ * voulait dire « pas de prix de marché derrière ce chiffre », et elle le
+ * devinait par le cours. Les deux mesures du 4 octobre 2026 la démentent dans
+ * les deux sens : une ligne cotée à 100 PEUT avoir traité (EOG 7 % 2024-2029,
+ * échangée le 25 septembre), et une ligne à 97 % peut n'avoir JAMAIS traité
+ * (GA0000020560, zéro transaction en 271 séances). Le test est donc désormais
+ * celui que le cours employait déjà deux lignes plus bas : la ligne a-t-elle
+ * changé de mains.
  *
  * Le cours obéit à la même règle. Le bulletin imprime 100 % pour une ligne qui
  * n'a pas traité ; afficher ce 100 % en donnerait la couleur d'une cotation.
@@ -44,10 +52,15 @@ export interface IssuerLine {
   price?: string;
   figure: string;
   /**
-   * « rendement » : ce qu'un achat au cours du jour procure.
-   * « coupon » : le taux inscrit au contrat, faute de prix de marché.
+   * « rendement » : une transaction est derrière le prix, le chiffre est un
+   *   rendement de marché.
+   * « cours_affiche » : le bulletin cote la ligne sans qu'elle traite ; le
+   *   chiffre est un rendement actuariel calculé sur cette cotation, exact
+   *   dans son calcul et sans acheteur pour le confirmer.
+   * « coupon » : le taux inscrit au contrat, pour une séance pas encore
+   *   servie, où il n'y a pas encore de prix du tout.
    */
-  basis: "rendement" | "coupon" | "aucun";
+  basis: "rendement" | "cours_affiche" | "coupon" | "aucun";
   /** L'emprunteur l'a déjà remboursée : elle descend au bas de l'échelle. */
   past: boolean;
   /** La fiche qu'on est en train de lire : elle garde sa place dans l'échelle. */
@@ -135,7 +148,7 @@ export function issuerLadder(rows: { o: Offer; s: OfferSummary }[], issuer: stri
           past,
           price: coursOf(o),
           figure: s.hero,
-          basis: s.yieldPct == null ? "aucun" : displayYield(o).atPar ? "coupon" : "rendement",
+          basis: s.yieldPct == null ? "aucun" : coursOf(o) ? "rendement" : displayYield(o).atPar ? "coupon" : "cours_affiche",
           here: o.id === hereId,
         } satisfies IssuerLine,
       };

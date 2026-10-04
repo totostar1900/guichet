@@ -98,12 +98,19 @@ describe("l'échelle des échéances", () => {
     expect(y[0].lines[0].day).not.toMatch(/2027/);
   });
 
-  it("sépare le rendement de marché du coupon du contrat", () => {
+  it("sépare le rendement de marché du rendement sur cotation", () => {
+    /* LA SÉPARATION SE FAISAIT SUR « AU PAIR », ET C'ÉTAIT UN SUBSTITUT.
+       Elle voulait dire « pas de prix de marché derrière ce chiffre » et le
+       devinait par le cours. Depuis que la cote ne retient plus le taux
+       nominal, le chiffre d'une ligne non traitée n'est plus son coupon :
+       c'est un rendement actuariel calculé sur la cotation du bulletin,
+       exact dans son calcul et sans acheteur pour le confirmer. Le test est
+       donc celui que le cours employait déjà : a-t-elle changé de mains. */
     const y = issuerLadder(lignes, "État du Gabon", "ici", now);
     const traitee = y[0].lines.find((l) => l.id === "c");
     const jamais = y[0].lines.find((l) => l.id === "b");
     expect(traitee?.basis).toBe("rendement");
-    expect(jamais?.basis).toBe("coupon");
+    expect(jamais?.basis).toBe("cours_affiche");
   });
 
   it("ne donne un cours qu'à la ligne qui a réellement changé de mains", () => {
@@ -114,13 +121,19 @@ describe("l'échelle des échéances", () => {
     expect(y[0].lines.find((l) => l.id === "c")?.price).toBe("97 %");
   });
 
-  it("compte les rendements de marché, pas les cours, pour la phrase de tête", () => {
-    // Trois des huit gabonaises cotent au pair : elles ont un cours, et leur
-    // rendement reste leur coupon. Compter les cours en annoncerait cinq.
+  it("une ligne au pair qui a traité compte comme un rendement de marché", () => {
+    /* L'ANCIENNE RÈGLE SE TROMPAIT DANS LES DEUX SENS, et ce jeu d'essai en
+       portait déjà la preuve sans que personne la lise : « pair » cote à
+       100 ET s'est échangée le 25 septembre. Son prix est un vrai prix de
+       marché ; l'écarter parce qu'il vaut 100 sous-comptait la part observée
+       de la courbe. L'autre sens est mesuré en production : GA0000020560
+       cote 97 % et n'a jamais traité en 271 séances. */
     const auPair = eog({ id: "pair", title: "État du Gabon · EOG 7 % NET 2024-2029", maturityOn: "2029-07-01", couponRate: 7, lastPrice: 100, lastTradedOn: "2026-09-25" });
     const y = issuerLadder([...lignes, row(auPair)], "État du Gabon", "ici", now);
-    expect(y.flatMap((g) => g.lines).filter((l) => l.price)).toHaveLength(2);
-    expect(marketYields(y)).toBe(1);
+    const pair = y.flatMap((g) => g.lines).find((l) => l.id === "pair");
+    expect(pair?.price, "une ligne échangée porte son cours, fût-il de 100").toBe("100 %");
+    expect(pair?.basis).toBe("rendement");
+    expect(marketYields(y), "les deux lignes échangées, et elles seules").toBe(2);
   });
 
   it("met au bout ce qui n'a pas d'échéance, sous son propre libellé", () => {
