@@ -217,20 +217,32 @@ describe("l'en-tête de la carte est réglé par son identité", () => {
    * bord inférieur. Mesuré le 4 octobre 2026 : 42 px sur la plupart des
    * cartes, 24 dès qu'un nom passait sur deux lignes.
    *
-   * CE QUI TIENT MAINTENANT L'ÉCART : le coin ne dépasse pas deux rangs, la
-   * pastille puis les deux icônes côte à côte. Soixante-seize de haut contre
-   * soixante-dix-huit pour la plus courte des quarante-cinq identités
-   * mesurées en portrait. La marge est de deux pixels : réempiler les icônes
-   * la reprendrait, et l'écart se remettrait à varier sans que rien d'autre
-   * ne le signale.
+   * DEUX PIXELS DE MARGE N'EN ÉTAIENT PAS. Le coin ramené à deux rangs
+   * mesurait 76 contre 78 pour la plus courte identité À 375 px, et cela
+   * suffisait là. À 412 px, la largeur d'un téléphone courant, les titres
+   * tiennent sur une ligne, l'identité tombe à 58,6, et QUARANTE-DEUX CARTES
+   * SUR QUARANTE-CINQ redevenaient réglées par le coin : quatre écarts
+   * distincts, jusqu'à 17,98 px. Mesurer une seule largeur ne prouvait rien.
+   *
+   * CE QUI TIENT L'ÉCART MAINTENANT : le coin tient sur UN SEUL RANG, la
+   * pastille et les deux icônes côte à côte. Trente-quatre de haut contre
+   * cinquante-huit, vingt-quatre de marge au lieu de deux.
    */
   const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8");
   const coin = css.slice(css.indexOf(".corner {"), css.indexOf("}", css.indexOf(".corner {")));
 
-  it("le coin tient sur deux rangs, pas trois", () => {
-    expect(coin, "le coin doit rester une grille à deux colonnes").toMatch(/grid-template-columns:\s*auto auto/);
-    expect(css, "la pastille occupe le premier rang à elle seule").toMatch(/\.corner > \.pill \{[^}]*grid-column: 1 \/ -1/);
+  it("le coin tient sur un seul rang", () => {
+    expect(coin, "une rangée, donc trente-quatre de haut").toMatch(/display:\s*flex/);
     expect(coin, "une colonne le remettrait sur trois rangs").not.toMatch(/flex-direction:\s*column/);
+    expect(coin, "une grille y remettrait un deuxième rang").not.toMatch(/grid-template-columns/);
+    expect(css, "la pastille ne doit plus occuper un rang à elle seule").not.toMatch(/\.corner > \.pill \{[^}]*grid-column/);
+  });
+
+  it("et il ne déborde pas sous l'en-tête", () => {
+    /* La marge basse négative retirait le coin du calcul de la hauteur, mais
+       le faisait déborder de 10,6 px : quatre cartes y passaient leur texte
+       sous l'icône. Un rang ne déborde pas, et n'a donc pas besoin de ruse. */
+    expect(coin, "une marge basse négative cache un débordement").not.toMatch(/margin:[^;]*calc\(-1/);
   });
 
   it("le coin reste dans le flux, qui lui réserve sa largeur", () => {

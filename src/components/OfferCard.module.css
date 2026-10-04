@@ -63,18 +63,46 @@
  * l'identité. L'en-tête est désormais réglé par son contenu de gauche dans
  * tous les cas, et l'écart ne dépend plus de rien.
  */
+/**
+ * LE COIN DONNE SA LARGEUR AU FLUX ET NE LUI DONNE PAS SA HAUTEUR.
+ *
+ * La hauteur d'un en-tête vaut le plus grand de ses deux enfants, et le coin
+ * gagnait. Mesuré à 412 px, la largeur d'un téléphone courant : l'identité de
+ * CM0000020370 fait 58,6 et le coin 76, d'où un écart de 17,98 px sous l'ISIN
+ * là où une carte au titre plus long en montrait 4. QUARANTE-DEUX CARTES SUR
+ * QUARANTE-CINQ étaient réglées par le coin à cette largeur, pour quatre
+ * valeurs d'écart distinctes. À 375 px le même tableau donnait 4 partout :
+ * la mesure d'une seule largeur ne prouvait rien.
+ *
+ * DEUX REMÈDES ONT ÉTÉ ESSAYÉS ET ÉCARTÉS. Raccourcir le coin à deux rangs ne
+ * faisait que déplacer le seuil. Le sortir du flux réglait la hauteur mais
+ * obligeait à DEVINER sa largeur, qui va de 76 à plus de 130 selon que la
+ * pastille dit « Cotée » ou porte un compte à rebours.
+ *
+ * LA MARGE BASSE NÉGATIVE retirait bien le coin du calcul de la hauteur tout
+ * en laissant le flux mesurer sa largeur, mais elle le faisait déborder sous
+ * l'en-tête : mesuré, jusqu'à 10,6 px, et quatre cartes y passaient leur
+ * texte sous l'icône, celles sans rendement dont la phrase est la plus
+ * longue. Un chevauchement se tolère mal, même de trois pixels de haut.
+ *
+ * LE COIN TIENT DONC SUR UN SEUL RANG : la pastille, le « ··· », le
+ * retournement. Trente-quatre de haut, contre cinquante-huit pour la plus
+ * courte des identités mesurées, soit vingt-quatre de marge au lieu de deux.
+ * La hauteur de l'en-tête est celle de l'identité sans qu'on ait à ruser, le
+ * flux réserve la largeur exactement, et rien ne déborde. Un titre un peu
+ * plus long passe à la ligne : c'est la carte qui grandit, pas l'écart qui
+ * bouge, et c'est ce qui était demandé.
+ */
 .corner {
   flex: none;
-  display: grid;
-  grid-template-columns: auto auto;
-  justify-content: end;
-  align-content: start;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 2px;
   margin: -4px -8px 0 0;
 }
 .corner > .pill {
-  grid-column: 1 / -1;
-  justify-self: end;
+  flex: none;
 }
 /**
  * LE CHIFFRE SUIT SON ISIN À QUATRE, ET C'EST TOUT CE QUI LE RÈGLE.
