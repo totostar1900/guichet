@@ -1,3 +1,4 @@
+import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { ComparerBody } from "./ComparerBody";
 import { getT } from "@/i18n/server";
 
@@ -9,5 +10,12 @@ export async function generateMetadata() {
 }
 
 export default async function ComparerPage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
-  return <ComparerBody searchParams={searchParams} />;
+  return (
+    <>
+      {/* La rangee du siege « Marche », sur toutes ses pages : sans elle,
+          cette page etait une impasse dont on ne sortait que par le dock. */}
+      <OngletsMarche />
+      <ComparerBody searchParams={searchParams} />
+    </>
+  );
 }

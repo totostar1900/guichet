@@ -356,7 +356,10 @@ describe("les deux bandes collantes", () => {
        bas. Ce qui reste tenu ici est qu'il n'y en a qu'UNE, ce qui était le
        défaut d'origine — j'en avais posé une seconde vingt pixels sous celle
        qui existait déjà. */
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "c'est elle qui porte les pages du marché").toMatch(/ONGLETS = \[/);
+    /* Elle ne tient plus sa liste en dur : elle lit celle du siège, dans
+       « nav-onglets ». Ce qui est tenu ici reste qu'elle porte bien des lieux,
+       donc qu'une seconde bande n'a pas à en porter. */
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "c'est elle qui porte les pages du siège").toMatch(/ongletsDuSiege\(path\)\.map/);
   });
 
   it("les pastilles ne vivent pas dans un bloc court", () => {

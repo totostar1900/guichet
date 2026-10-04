@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { indexPageData } from "@/lib/market/index-data";
@@ -34,6 +35,9 @@ export default async function NotesArchivePage() {
 
   return (
     <div className={styles.page}>
+      {/* La rangee du siege « Marche », sur toutes ses pages : sans elle,
+          cette page etait une impasse dont on ne sortait que par le dock. */}
+      <OngletsMarche />
       <header className={styles.head}>
         <h1>{t("Les notes de marché")}</h1>
         <p className={styles.lead}>

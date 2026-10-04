@@ -12,7 +12,10 @@ import { MARKET_PAGES, type MarketPage } from "./market/pages";
  * demande au lecteur de viser, et il vise mal : le nom ouvrait une page, le
  * chevron ouvrait la liste, et deux cibles de huit pixels se touchent.
  */
-export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short">;
+/* « guide » entre dans la part partagee : la rangee d onglets s en sert pour
+   ecarter la lecon, qui vit sous « /info » et dont la pastille ne
+   s allumerait jamais. */
+export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short" | "guide">;
 
 /**
  * Ce que je possède, et ce qui en découle. Le tableau de bord ouvre la liste
