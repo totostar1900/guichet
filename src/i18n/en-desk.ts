@@ -2836,4 +2836,5 @@ export const EN_MORE: Record<string, string> = {
   "du dépouillement de la séance": "from the session's allotment notice",
   "lu par la machine, non confirmé": "read by the machine, not confirmed",
   "en attente du communiqué": "awaiting the notice",
+  "Taux servi à l'adjudication": "Rate allotted at the auction",
 };
