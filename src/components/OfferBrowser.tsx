@@ -666,7 +666,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote" }: { of
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
-      <TitresHead fundsCount={fundsCount} />
+      {/* L'en-tête nomme la cote et renvoie aux fonds : il n'a rien à dire sur
+          une page d'adjudications, qui a son propre titre et son calendrier. */}
+      {lieu === "cote" && <TitresHead fundsCount={fundsCount} />}
       <div className={styles.top} ref={top}>
         <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />
         <div className={styles.toolbar} data-coach="titres-filtres">
