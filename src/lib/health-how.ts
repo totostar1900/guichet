@@ -11,6 +11,11 @@ export interface HealthHow {
 }
 
 export const HEALTH_HOW: Record<string, HealthHow> = {
+  depouillement: {
+    label: "Séances closes sans résultat",
+    href: "/desk/resultats",
+    how: "La page des résultats, groupée par séance : le prix servi est proposé quand le dépouillement est au dépôt, il reste à le relire et à appliquer. Une séance sans communiqué attend le sien, et c'est la BEAC qui le publie.",
+  },
   boc: {
     label: "Dernier bulletin BVMAC",
     href: "/desk#aujourdhui",

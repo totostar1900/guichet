@@ -1,5 +1,6 @@
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
+import { propositions, sansResultat } from "@/lib/results/depouillement";
 import { positionFor } from "@/lib/documents/position";
 import { displayStatus } from "@/lib/domain/status";
 import type { Intent, Offer } from "@/lib/domain/types";
@@ -16,8 +17,19 @@ export const metadata = { title: "Allocations et règlement" };
 export default async function ResultsPage() {
   const t = await getT();
   const r = repo();
-  const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
+  const [offers, intents, seances] = await Promise.all([r.listOffers(), r.listIntents(), r.listAuctionResults({ limit: 400 }).catch(() => [])]);
   const now = new Date();
+  /**
+   * CE QUE LE DÉPOUILLEMENT PROPOSE, QUAND IL EST AU DÉPÔT.
+   *
+   * Le prix servi ne s'écrivait qu'en servant des ordres clients : une séance
+   * où la maison n'avait placé personne n'avait aucun champ, donc aucun prix,
+   * et restait « publiée » indéfiniment. Onze lignes dormaient ainsi le 4
+   * octobre 2026, dont sept dont le communiqué était lu et confirmé depuis
+   * huit jours. Le prix servi d'une séance est un fait de marché : il se
+   * consigne que nous y ayons été ou non.
+   */
+  const proposees = propositions(offers, seances, now);
 
   // Auctions with work to do: transmitted orders (results, entered once the issuer publishes) or served orders (settlement).
   const groups = new Map<string, { country: string; deadlineAt: string; issuer: string; offers: Offer[] }>();
@@ -31,7 +43,16 @@ export default async function ResultsPage() {
     });
   const auctions = Array.from(groups.values()).map((g) => {
     const lines = g.offers.map((o) => ({ o, transmitted: intents.filter((i) => i.offerId === o.id && i.state === "transmise"), served: intents.filter((i) => i.offerId === o.id && i.state === "servie") }));
-    return { ...g, lines, toResult: lines.reduce((s, l) => s + l.transmitted.length, 0), toSettle: lines.reduce((s, l) => s + l.served.length, 0) };
+    /**
+     * LES LIGNES À SAISIR, ORDRE CLIENT OU PAS.
+     *
+     * La liste ne retenait que celles qui portaient un ordre transmis. Une
+     * séance où personne n'avait soumis n'avait donc pas de champ, et son prix
+     * servi ne s'écrivait jamais : c'est la raison pour laquelle onze lignes
+     * affichaient « si servi à 93 % » trois semaines après leur clôture.
+     */
+    const aSaisir = lines.filter((l) => l.transmitted.length > 0 || sansResultat(l.o, now));
+    return { ...g, lines, aSaisir, toResult: lines.reduce((s, l) => s + l.transmitted.length, 0), toSettle: lines.reduce((s, l) => s + l.served.length, 0) };
   });
 
   const positions = positionsFrom(intents, offers, now);
@@ -55,19 +76,23 @@ export default async function ResultsPage() {
             </span>
           </div>
 
-          {a.toResult > 0 && (
+          {a.aSaisir.length > 0 && (
             <ResultsForm
-              offerIds={a.lines.filter((l) => l.transmitted.length > 0).map((l) => l.o.id)}
-              lines={a.lines
-                .filter((l) => l.transmitted.length > 0)
-                .map((l) => ({
+              offerIds={a.aSaisir.map((l) => l.o.id)}
+              lines={a.aSaisir.map((l) => {
+                const prop = proposees.get(l.o.id);
+                return {
                   offerId: l.o.id,
                   title: l.o.title,
                   isin: l.o.isin,
                   kind: l.o.kind,
-                  proposed: l.o.kind === "BTA" ? (l.o.precountRate ?? 0) : (l.o.pricePct ?? 100),
+                  /* Le chiffre du dépouillement passe devant celui du desk : c'est
+                     ce que la séance a réellement servi, et il reste à relire. */
+                  proposed: (l.o.kind === "BTA" ? (prop?.tauxPct ?? l.o.precountRate) : (prop?.prixPct ?? l.o.pricePct)) ?? (l.o.kind === "BTA" ? 0 : 100),
+                  source: prop ? (prop.confirmee ? "depouillement" : "lecture") : undefined,
                   orders: l.transmitted.map((i) => ({ id: i.id, ref: i.ref, client: i.clientName, units: unitLabel(i, l.o), amount: i.amount ?? 0 })),
-                }))}
+                };
+              })}
             />
           )}
 

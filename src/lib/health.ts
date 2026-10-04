@@ -7,6 +7,7 @@ import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { indexCheck } from "@/lib/market/index";
+import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
 import { ABSENCE_SESSIONS, reconcileLines, reconcileSummary, type LineIssue } from "@/lib/market/reconcile";
 import { positionsFrom } from "@/lib/positions";
 import type { MarketBulletin } from "@/lib/domain/market";
@@ -193,7 +194,34 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     detail: pending.map((o) => o.title).join(" · ") || "—",
   });
 
-  // 8. The index against the share prices of the last two sessions read.
+  /**
+   * 8. LES SÉANCES CLOSES QUI ATTENDENT ENCORE LEUR RÉSULTAT.
+   *
+   * Mesuré le 4 octobre 2026 : onze lignes du primaire, closes depuis douze à
+   * vingt jours, sans prix servi. Le dépouillement de deux des trois séances
+   * était pourtant au dépôt, lu et confirmé huit jours plus tôt. Rien ne le
+   * disait, parce que le prix servi ne s'écrivait qu'en servant des ordres
+   * clients : une séance où la maison n'avait placé personne n'avait aucune
+   * raison d'apparaître quelque part.
+   *
+   * Un rendement affiché « si servi à 93 % » trois semaines après la séance
+   * est une promesse périmée sous les yeux d'un client.
+   */
+  const closes = offers.filter((o) => sansResultat(o, now));
+  const attente = Math.max(0, ...closes.map((o) => joursDAttente(o, now)));
+  const pretes = propositions(closes, await r.listAuctionResults({ limit: 400 }).catch(() => []), now);
+  out.push({
+    key: "depouillement",
+    label: "Séances closes sans résultat",
+    // Deux jours de tolérance : un dépouillement paraît rarement le soir même.
+    level: closes.length === 0 ? "ok" : attente > 7 ? "crit" : "warn",
+    value: `${closes.length}`,
+    detail: closes.length
+      ? `la plus ancienne attend depuis ${attente} jours · ${pretes.size} avec un dépouillement prêt à appliquer`
+      : "chaque séance close porte son résultat",
+  });
+
+  // 9. The index against the share prices of the last two sessions read.
   try {
     const [b0, b1] = bulletins;
     const [q0, q1] = await Promise.all([b0 ? r.quotesOn(b0.sessionDate) : [], b1 ? r.quotesOn(b1.sessionDate) : []]);

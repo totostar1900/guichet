@@ -84,3 +84,19 @@
   flex-direction: column;
   gap: 4px;
 }
+
+/* D'où vient le chiffre pré-rempli. Un nombre dont on ignore la provenance se
+   valide sans se lire : vert quand une personne l'a confirmé au dépouillement,
+   doré quand la machine seule l'a lu. */
+.vient {
+  display: block;
+  margin-top: 4px;
+  color: var(--good);
+  font-size: 0.7rem;
+}
+.vientLu {
+  display: block;
+  margin-top: 4px;
+  color: var(--gold-ink);
+  font-size: 0.7rem;
+}

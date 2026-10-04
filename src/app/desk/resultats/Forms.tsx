@@ -12,6 +12,13 @@ interface Line {
   isin: string;
   kind: string;
   proposed: number;
+  /**
+   * D'où vient le chiffre proposé. « depouillement » : du communiqué de la
+   * BEAC, lu puis confirmé par une personne. « lecture » : lu par la machine
+   * et pas encore confirmé. Absent : c'est le prix que le desk avait annoncé,
+   * donc une hypothèse, pas un résultat.
+   */
+  source?: "depouillement" | "lecture";
   orders: { id: string; ref: string; client: string; units: string; amount: number }[];
 }
 
@@ -34,6 +41,11 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
               <label className="field">
                 {t("Taux servi (% précompté)")}
                 <input name={`rate_${l.offerId}`} type="number" step="0.01" defaultValue={l.proposed} />
+              {l.source && (
+                <small className={l.source === "depouillement" ? styles.vient : styles.vientLu}>
+                  {t(l.source === "depouillement" ? "du dépouillement de la séance" : "lu par la machine, non confirmé")}
+                </small>
+              )}
               </label>
             ) : l.kind === "RACHAT" ? (
               <span className="muted" style={{ fontSize: ".8rem" }}>
@@ -43,9 +55,22 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
               <label className="field">
                 {t("Prix servi (% du nominal, 3 déc.)")}
                 <input name={`price_${l.offerId}`} type="number" step="0.001" defaultValue={l.proposed} />
+              {l.source && (
+                <small className={l.source === "depouillement" ? styles.vient : styles.vientLu}>
+                  {t(l.source === "depouillement" ? "du dépouillement de la séance" : "lu par la machine, non confirmé")}
+                </small>
+              )}
               </label>
             )}
           </div>
+          {l.orders.length === 0 && (
+            <div className="muted" style={{ fontSize: ".8rem" }}>
+              {/* Le prix servi d'une séance est un fait de marché : il se consigne
+                  que la maison y ait placé quelqu'un ou non. */}
+              {t("Aucun ordre sur cette ligne : le résultat se consigne quand même.")}
+            </div>
+          )}
+          {l.orders.length > 0 && (
           <table className="tbl">
             <thead>
               <tr>
@@ -70,6 +95,7 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
               ))}
             </tbody>
           </table>
+          )}
         </div>
       ))}
       {state && (state.ok ? <div className={styles.ok}>{state.message}</div> : <div className={styles.err}>{state.error}</div>)}

@@ -2822,4 +2822,17 @@ export const EN_MORE: Record<string, string> = {
   "Le tableau « Bulletins à relire », plus bas sur cette page : « Relire les plus anciens » reprend six séances depuis l'adresse d'origine du bulletin, « Relire » en fait une seule. À relancer après chaque correction du lecteur.": "The “Bulletins to read again” table, lower on this page: “Read the oldest again” takes six sessions from the bulletin's original address, “Read again” does a single one. To be run after each correction to the reader.",
   "Un lien mort se retire ou se remplace. Un lien reçu se publie, avec son titre réécrit pour le client et ses deux lignes de « pourquoi ça compte », ou se rejette : la file se vide chaque semaine, elle ne se laisse pas vieillir.": "A dead link is removed or replaced. A received link is published, with its title rewritten for the client and its two lines of “why it matters”, or rejected: the queue is emptied every week, it is not left to age.",
   "Code des cartes": "Card code",
+
+  /* ---------- les séances closes qui attendent leur résultat ----------
+     Ces libellés traversent t() sous forme de variable depuis health.ts et
+     health-how.ts : seul src/test/donnees-en.test.ts les voit. */
+  "Séances closes sans résultat": "Closed sessions without a result",
+  "chaque séance close porte son résultat": "every closed session carries its result",
+  "La page des résultats, groupée par séance : le prix servi est proposé quand le dépouillement est au dépôt, il reste à le relire et à appliquer. Une séance sans communiqué attend le sien, et c'est la BEAC qui le publie.":
+    "The results page, grouped by session: the served price is proposed when the allotment notice is in store, and it remains to be read again and applied. A session without a notice is waiting for one, and the BEAC publishes it.",
+  "la plus ancienne attend depuis {n} jours · {m} avec un dépouillement prêt à appliquer": "the oldest has waited {n} days · {m} with an allotment ready to apply",
+
+  "Aucun ordre sur cette ligne : le résultat se consigne quand même.": "No order on this line: the result is recorded all the same.",
+  "du dépouillement de la séance": "from the session's allotment notice",
+  "lu par la machine, non confirmé": "read by the machine, not confirmed",
 };
