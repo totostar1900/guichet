@@ -4,13 +4,10 @@ import { fold } from "@/lib/text";
 import { useSearchCommit } from "@/lib/ui/commit-search";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Info } from "@/components/Info";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
-import { Sheet } from "@/components/mobile/Sheet";
-import { FilterFab } from "@/components/FilterFab";
-import { FilterLine } from "@/components/FilterLine";
 import { usePhone } from "@/components/chart-utils";
 import { FundCard } from "./FundCard";
 import { LineMenu } from "@/components/mobile/LineMenu";
@@ -338,110 +335,176 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const vue: Vue = vueChoisie ?? (phone ? "cards" : "table");
   const sep = useDistinction();
   const toolsRef = useRef<HTMLDivElement>(null);
-  const [sheet, setSheet] = useState(false);
-  /* LA FEUILLE S OUVRE SUR LA PARTIE DEMANDEE. « Filtres » et « Trier »
-     menaient au meme endroit, en haut de la meme feuille : qui voulait
-     changer le tri devait traverser quatre filtres pour l atteindre. */
-  const [cible, setCible] = useState<"filtres" | "tri">("filtres");
-  /* LE BAS DU DECLENCHEUR, mesure a l ouverture : la feuille tombe de la
-     ligne de filtres, et non du bas de l ecran. Regle de la maison. */
-  const [ancre, setAncre] = useState<number | undefined>(undefined);
+  /**
+   * TOUT EST À PLAT, IL N'Y A PLUS DE FEUILLE.
+   *
+   * La page avait deux feuilles — « Filtrer » et « Trier » — et un bouton
+   * flottant pour les rappeler. Or tout ce qu'elles contenaient tient en deux
+   * rangées de pastilles et un sélecteur : quatre catégories, quatre
+   * périodicités, huit ordres. Une feuille se justifie quand les commandes ne
+   * tiennent pas sous les yeux ; ici elles tenaient, et la feuille n'ajoutait
+   * qu'un geste et un état à retenir devant chaque filtre.
+   *
+   * Ce qui est parti avec elles : « cible », pour savoir laquelle s'ouvrait ;
+   * « ancre », pour la faire tomber de son déclencheur ; « FilterFab », le
+   * bouton flottant ; et « toolbar », la rangée écrite une fois pour la page
+   * et une fois pour la feuille, qui était le vrai motif de cette mécanique.
+   *
+   * CE QUI RESTE PASTILLE, c'est ce qu'aucune rangée ne montre : la société de
+   * gestion, qui ne s'obtient qu'en touchant une suggestion du champ. La
+   * catégorie et la périodicité se retirent là où elles se prennent, en
+   * touchant « Toutes » ou la pastille déjà enfoncée ; les répéter en dessous
+   * aurait dit deux fois la même chose à deux centimètres d'écart.
+   */
+  const actifs: { clef: string; quoi?: string; valeur: string; retirer: () => void }[] = [];
+  if (manager) actifs.push({ clef: "gestion", quoi: "Gestion", valeur: manager, retirer: () => setManager("") });
 
-  // The controls, once: in the page, and again in the sheet the floating button
-  // opens. La boîte de tri ne paraît que dans la feuille : sur un écran large,
-  // le tableau porte ses colonnes et c'est d'elles qu'on trie ; sur téléphone
-  // il n'y a pas de colonnes, donc la boîte reste le seul moyen.
-  const toolbar = (withSort: boolean) => (
-    <div className={styles.toolbar}>
-      <div className={styles.search}>
-        {manager && (
-          <button type="button" className={styles.managerTag} onClick={() => setManager("")} title={t("Retirer ce filtre")}>
-            {manager} ×
-          </button>
-        )}
-        <input
-          ref={searchInput}
-          type="search"
-          placeholder={manager ? t("Un fonds de cette société…") : t("Un fonds, une société de gestion, un dépositaire")}
-          aria-label={t("Rechercher")}
-          value={draft}
-          onChange={(e) => {
-            setDraft(e.target.value);
-            setTyping(true);
-          }}
-          onFocus={() => setTyping(true)}
-          onBlur={() => window.setTimeout(() => setTyping(false), 150)}
-          autoComplete="off"
-        />
-        {suggestions.length > 0 && (
-          <ul className={styles.suggest} role="listbox">
-            {suggestions.map((sug) => (
-              <li key={sug.kind + sug.text}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={false}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() =>
-                    commitSearch(() => {
-                      setTyping(false);
-                      if (sug.kind === "gestion") update({ gestion: sug.text, q: undefined });
-                      else setQ(sug.text);
-                    })
-                  }
-                >
-                  <em>{t(sug.kind === "gestion" ? "Gestion" : "Fonds")}</em>
-                  <b>{sug.text}</b>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className={styles.chips} role="group" aria-label={t("Catégorie")}>
-        <button type="button" className={`${styles.chip} ${cat === "" ? styles.chipOn : ""}`} onClick={() => setCat("")}>
-          {t("Toutes")}
-        </button>
-        {CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => (
-          <button key={c} type="button" className={`${styles.chip} ${cat === c ? styles.chipOn : ""}`} onClick={() => setCat(cat === c ? "" : c)} aria-pressed={cat === c}>
-            {t(FUND_CATEGORY_LABEL[c])}
-          </button>
-        ))}
-      </div>
-      <Select className={styles.fixedSm} value={freq} onChange={(v) => setFreq(v as FundNav["frequency"] | "")} label={t("VL")} options={[{ value: "", label: t("toute périodicité") }, ...freqs.map((f) => ({ value: f, label: t(FUND_FREQUENCY_LABEL[f]) }))]} />
-      {withSort && (
-        <label className={styles.sort}>
-          {t("Tri")}
-          <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
-          {sort !== "categorie" && (
-            <button type="button" className={styles.dir} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
-              {asc ? "↑" : "↓"}
-            </button>
-          )}
-        </label>
+  /**
+   * LA BARRE DE RECHERCHE, TOUJOURS VISIBLE.
+   *
+   * Le champ vivait dans la barre d'outils : montré sur grand écran, ENFERMÉ
+   * DANS LA FEUILLE DES FILTRES sur téléphone. Chercher « Harvest » demandait
+   * donc d'ouvrir les filtres, alors que taper trois lettres est le geste le
+   * plus direct de cette page. Il en sort et devient la barre.
+   *
+   * Il cherche dans les trois choses qu'on tape — un nom de fonds, une société
+   * de gestion, un dépositaire — et propose en dessous ce qu'il reconnaît, en
+   * disant de quoi il s'agit : « Gestion » n'est pas « Fonds », et toucher
+   * l'un FILTRE quand l'autre CHERCHE.
+   *
+   * LA PASTILLE DE LA SOCIÉTÉ DE GESTION A QUITTÉ LE CHAMP. Elle y était
+   * posée à gauche du curseur, et elle est désormais dans la rangée des
+   * filtres actifs, avec les autres : la garder aux deux endroits aurait
+   * montré « Harvest » deux fois à trois centimètres d'écart, dont une fois
+   * sans dire que c'est un filtre de société.
+   */
+  const recherche = (
+    <div className={styles.search}>
+      <input
+        ref={searchInput}
+        type="search"
+        placeholder={manager ? t("Un fonds de cette société…") : t("Un fonds, une société de gestion, un dépositaire")}
+        aria-label={t("Rechercher")}
+        value={draft}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          setTyping(true);
+        }}
+        onFocus={() => setTyping(true)}
+        onBlur={() => window.setTimeout(() => setTyping(false), 150)}
+        autoComplete="off"
+      />
+      {suggestions.length > 0 && (
+        <ul className={styles.suggest} role="listbox">
+          {suggestions.map((sug) => (
+            <li key={sug.kind + sug.text}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={false}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() =>
+                  commitSearch(() => {
+                    setTyping(false);
+                    if (sug.kind === "gestion") update({ gestion: sug.text, q: undefined });
+                    else setQ(sug.text);
+                  })
+                }
+              >
+                <em>{t(sug.kind === "gestion" ? "Gestion" : "Fonds")}</em>
+                <b>{sug.text}</b>
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
-      {!desk && <DensitySwitch className={styles.density} />}
+    </div>
+  );
+
+  /**
+   * LES DEUX FILTRES, À PLAT.
+   *
+   * La catégorie était une grille encadrée de quatre tuiles, la périodicité
+   * une liste déroulante : deux formes différentes pour deux choix de même
+   * nature, et la seconde cachait ses quatre valeurs derrière un geste. Les
+   * voici dans la même forme, l'une sous l'autre, chaque valeur visible et
+   * chaque rangée dite par son étiquette.
+   *
+   * CHAQUE RANGÉE PORTE SON « TOUTES », qui est la sortie : on retire un
+   * filtre là où on l'a pris, sans aller chercher ailleurs de quoi l'annuler.
+   * Toucher la pastille déjà enfoncée fait la même chose, pour qui s'attend à
+   * ce qu'un interrupteur s'éteigne comme il s'allume.
+   *
+   * Les valeurs viennent des lignes reçues, pas d'une liste écrite d'avance :
+   * une périodicité que personne ne pratique n'a pas de pastille, et un filtre
+   * ne mène donc jamais à une liste vide.
+   */
+  const rangee = (etiquette: string, valeur: string, toutes: string, options: [string, string][], choisir: (v: string) => void) => (
+    <div className={styles.rangee} role="group" aria-label={t(etiquette)}>
+      <span className={styles.quoi}>{t(etiquette)}</span>
+      <button type="button" className={`${styles.pst} ${valeur === "" ? styles.pstOn : ""}`} aria-pressed={valeur === ""} onClick={() => choisir("")}>
+        {t(toutes)}
+      </button>
+      {options.map(([v, l]) => (
+        <button key={v} type="button" className={`${styles.pst} ${valeur === v ? styles.pstOn : ""}`} aria-pressed={valeur === v} onClick={() => choisir(valeur === v ? "" : v)}>
+          {t(l)}
+        </button>
+      ))}
     </div>
   );
 
   return (
     <>
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
-        <div className={styles.deskTools}>{toolbar(false)}</div>
-        <FilterLine count={active + Number(Boolean(draft))} summary={[draft && `« ${draft} »`, cat && t(FUND_CATEGORY_LABEL[cat]), manager, freq && t(FUND_FREQUENCY_LABEL[freq])].filter(Boolean).join(" · ")} sortLabel={t(SORT.find(([k]) => k === sort)?.[1] ?? "")} onOpen={(cible) => { setCible(cible); setAncre(toolsRef.current?.getBoundingClientRect().bottom); setSheet(true); }} />
+        {/* UN CHAMP, DEUX RANGÉES, PUIS CE QUE LA LISTE DIT D'ELLE-MÊME.
+            Rien derrière un bouton, rien dans une feuille : tout ce qui
+            commande cette liste est sous les yeux, du champ au tri. */}
+        <div className={styles.barre}>{recherche}</div>
+        <div className={styles.aplat}>
+          {rangee(
+            "Catégorie",
+            cat,
+            "Toutes",
+            CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => [c, FUND_CATEGORY_LABEL[c]]),
+            (v) => setCat(v as FundNav["category"] | ""),
+          )}
+          {rangee("VL", freq, "Toutes", freqs.map((f) => [f, FUND_FREQUENCY_LABEL[f]]), (v) => setFreq(v as FundNav["frequency"] | ""))}
+          {actifs.map((f) => (
+            <div key={f.clef} className={styles.rangee}>
+              <span className={styles.quoi}>{t(f.quoi ?? "")}</span>
+              <button type="button" className={`${styles.pst} ${styles.pstOn}`} onClick={f.retirer} aria-label={`${t("Retirer ce filtre")} : ${f.valeur}`}>
+                {f.valeur} <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          ))}
+        </div>
         <div className={styles.count}>
           <b>{filtered.length}</b> {cat ? t(`${t(FUND_CATEGORY_LABEL[cat])}s`).toLowerCase() : t("fonds")}
           {active > 0 || draft ? ` ${t("correspondant aux filtres")}` : ""}
-          {sort !== "categorie" && (
-            <button type="button" className={styles.clear} onClick={() => setSort("categorie")}>
-              {t("Par catégorie")}
-            </button>
-          )}
           {(active > 0 || draft) && (
             <button type="button" className={styles.clear} onClick={clearAll}>
-              {t("Effacer")}
+              {t("Tout effacer")}
             </button>
           )}
+          {/* LE TRI, COMME SUR LES TITRES : son nom, la liste des ordres, et la
+              flèche qui retourne celui-ci. Il était dans la feuille, où il
+              fallait le chercher ; il est maintenant à côté du compte des
+              lignes qu'il range, sur les deux pages de la même façon.
+              La flèche ne paraît pas sur « par catégorie », qui est un
+              rangement et non une mesure : il n'y a pas de sens à inverser. */}
+          <label className={styles.sortSel}>
+            {t("Tri")}
+            <Select compact value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT.map(([k, l]) => ({ value: k, label: t(l) }))} />
+            {sort !== "categorie" && (
+              <button type="button" className={styles.dirBtn} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
+                {asc ? "↑" : "↓"}
+              </button>
+            )}
+          </label>
+          {/* LE RESSERREMENT DES CARTES, comme sur les titres : il ne paraît
+              que sur la vue qui en a une, parce qu'un réglage sans effet
+              visible se lit comme une panne. */}
+          {vue === "cards" && !desk && <DensitySwitch />}
           <div className={styles.seg} role="group" aria-label={t("Affichage")}>
             {(["table", "list", "cards"] as Vue[]).map((v) => (
               <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
@@ -451,51 +514,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           </div>
         </div>
       </div>
-      {/* The same controls, brought back over the list from the floating button: the page keeps its place. */}
-      <FilterFab watch={toolsRef} onClick={() => setSheet(true)} count={active + Number(Boolean(draft))} open={sheet} />
-      {/* DEUX FEUILLES, PARCE QUE CE SONT DEUX ACTIONS. Filtrer retire des
-          lignes, trier les remet dans un autre ordre : une seule feuille
-          intitulée « Filtrer et trier » obligeait à traverser quatre filtres
-          pour changer un ordre, et le bouton « Tri » y menait au même endroit
-          que le bouton « Filtres ». */}
-      <Sheet open={sheet && cible === "tri"} onClose={() => setSheet(false)} title={t("Trier")} sub={t("{n} fonds", { n: filtered.length })} dock="under" anchorTop={ancre}>
-        <div className={styles.triListe} role="radiogroup" aria-label={t("Trier")}>
-          {SORT.map(([k, l]) => (
-            <button key={k} type="button" role="radio" aria-checked={sort === k} className={sort === k ? styles.triOn : undefined} onClick={() => setSort(k)}>
-              <span>{t(l)}</span>
-              {sort === k && k !== "categorie" && (
-                <em>{t(asc ? "du plus petit au plus grand" : "du plus grand au plus petit")}</em>
-              )}
-            </button>
-          ))}
-        </div>
-        <div className={styles.sheetFoot}>
-          {sort !== "categorie" && (
-            <button type="button" className="btn sm ghost" onClick={() => setAsc(!asc)}>
-              {asc ? "↑" : "↓"} {t("Inverser l'ordre")}
-            </button>
-          )}
-          <button type="button" className="btn sm primary" onClick={() => setSheet(false)}>
-            {t("Voir")}
-          </button>
-        </div>
-      </Sheet>
-      <Sheet open={sheet && cible === "filtres"} onClose={() => setSheet(false)} title={t("Filtrer")} dock="under" anchorTop={ancre}>
-        <div className={styles.sheetTools}>{toolbar(false)}</div>
-        <div className={styles.sheetFoot}>
-          <span>
-            <b>{filtered.length}</b> {t("fonds")}
-          </span>
-          {(active > 0 || draft) && (
-            <button type="button" className="btn sm ghost" onClick={clearAll}>
-              {t("Effacer")}
-            </button>
-          )}
-          <button type="button" className="btn sm primary" onClick={() => setSheet(false)}>
-            {t("Voir")}
-          </button>
-        </div>
-      </Sheet>
 
       {rowsShown.length > 0 && vue === "cards" && (
         <section className={styles.cards} data-coach="fonds-table" data-sep={sep} ref={searchList}>
@@ -562,7 +580,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         replayLabel={t("Comment lire cette page ?")}
         stops={[
           { target: "fonds-enbref", title: t("Quatre catégories"), text: t("Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. « En bref » les définit en une phrase chacune, avec le nombre de fonds, et rappelle ce qu'est un OPCVM agréé.") },
-          { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. Quand la bande est sortie de l'écran, le bouton « Filtrer · Trier » en bas la ramène sans remonter.") },
+          { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Le champ cherche dans trois choses : un nom de fonds, une société de gestion, un dépositaire. En dessous, la catégorie et la périodicité de la VL sont à plat, toutes leurs valeurs visibles : « Toutes » retire le filtre. Le tri est à droite du compte, avec la flèche qui retourne l'ordre.") },
           { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.") },
         ]}
       />}

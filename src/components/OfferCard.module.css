@@ -379,11 +379,10 @@
 .fundTitle a:hover {
   text-decoration: underline;
 }
-.fundSub {
-  font-size: 0.74rem;
-  color: var(--ink-3);
-  margin-top: 3px;
-}
+/* « .fundSub » portait les trois faits du fonds sur UNE ligne. Ils en tiennent
+   deux maintenant, et la règle qui les habille a suivi dans
+   « FundCard.module.css » : la société de gestion sur sa ligne, la catégorie
+   et le rythme de VL sur la suivante. */
 .up {
   color: var(--good);
 }

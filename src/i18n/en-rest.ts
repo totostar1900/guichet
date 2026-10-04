@@ -1006,8 +1006,8 @@ export const EN_REST: Record<string, string> = {
   "Rien n'a encore été lu sur cette pièce.": "Nothing has been read from this document yet.",
 
   /* Les deux textes de la visite guidée des fonds, muets en anglais depuis leur écriture. */
-  "Un nom, une société de gestion, un dépositaire ; la catégorie, la périodicité de la VL ; le tri. Quand la bande est sortie de l'écran, le bouton « Filtrer · Trier » en bas la ramène sans remonter.":
-    "A name, a management company, a custodian ; the category, how often the NAV is struck ; the sort. Once the band has scrolled off, the « Filter · Sort » button at the bottom brings it back without scrolling up.",
+  "Le champ cherche dans trois choses : un nom de fonds, une société de gestion, un dépositaire. En dessous, la catégorie et la périodicité de la VL sont à plat, toutes leurs valeurs visibles : « Toutes » retire le filtre. Le tri est à droite du compte, avec la flèche qui retourne l'ordre.":
+    "The field searches three things : a fund name, a management company, a custodian. Below it, the category and how often the NAV is struck are laid out flat, with every value in view : « All » removes the filter. The sort sits to the right of the count, with the arrow that reverses the order.",
   "Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.":
     "The latest NAV and its date, the change since the previous NAV, the twelve-month performance and the one since inception. « See the line » gives the NAV history and the subscription form ; the « ··· » follows, compares, shares.",
   "Instruments": "Instruments",

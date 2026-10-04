@@ -207,6 +207,7 @@ export const EN: Record<string, string> = {
 
   /* ---------- funds page ---------- */
   "Un fonds, une société de gestion, un dépositaire": "A fund, a manager, a custodian",
+  "Filtres actifs": "Active filters",
   "Catégorie": "Category",
   "Toutes": "All",
   "Gestion": "Manager",

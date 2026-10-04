@@ -70,9 +70,23 @@ export function FundCard({ r }: { r: FundRow }) {
       <div className={`${styles.head} ${dos ? propres.dosTete : ""}`}>
         <div className={styles.fundId}>
           <div className={styles.fundTitle}>{dos ? r.title : <Link href={href}>{r.title}</Link>}</div>
-          <div className={styles.fundSub}>
-            <i className={propres.point} data-cat={r.category} aria-hidden="true" />
-            {t(FUND_CATEGORY_LABEL[r.category])} · {r.manager} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
+          {/* DEUX LIGNES SOUS LE NOM, ET LE GESTIONNAIRE D'ABORD.
+              Les trois faits tenaient sur une ligne, séparés par des points
+              médians : « Actions · Harvest Asset Management · VL hebdomadaire »,
+              soit cinquante-six caractères qui passaient à la ligne n'importe
+              où selon la longueur du nom de la société. Or ce sont deux choses
+              de nature différente. QUI GÈRE est l'engagement : une maison
+              répond du fonds, et c'est le nom qu'on reconnaît ou qu'on va
+              chercher. CE QUE C'EST et À QUEL RYTHME sont les deux
+              caractéristiques du produit, et elles se lisent ensemble.
+              Le gestionnaire prend donc sa ligne, seul, et les deux autres la
+              suivante, côte à côte. */}
+          <div className={propres.sous}>
+            <span className={propres.gestion}>{r.manager}</span>
+            <span className={propres.traits}>
+              <i className={propres.point} data-cat={r.category} aria-hidden="true" />
+              {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
+            </span>
           </div>
         </div>
         {!dos && (

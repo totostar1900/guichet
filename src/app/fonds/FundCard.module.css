@@ -26,6 +26,32 @@
   --fam-c: var(--good);
 }
 
+/* LE SOUS-TITRE DE LA VUE NORMALE : deux lignes, pas une.
+   La société de gestion seule sur la première, parce qu'elle est le nom qui
+   répond du fonds ; la catégorie et le rythme de VL sur la seconde, parce
+   qu'elles décrivent le produit et se lisent ensemble. Les trois sur une même
+   ligne tenaient cinquante-six caractères et se coupaient n'importe où. */
+.sous {
+  display: grid;
+  gap: var(--s-1);
+  margin-top: var(--s-2);
+  font-size: 0.74rem;
+  color: var(--ink-3);
+  min-width: 0;
+}
+.gestion {
+  font-weight: 600;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.traits {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* LA VUE COMPACTE : trois choses sur une ligne. Le nom prend la place qui
    reste, la performance ne se coupe jamais. */
 .compacte {

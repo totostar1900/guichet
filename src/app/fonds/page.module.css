@@ -175,155 +175,12 @@
     gap: 4px;
   }
 }
-
-/* ---------- filters and sort ---------- */
-/* The four categories explained once, above the filters; foldable, the choice kept on the device. */
-.families {
-  margin: 0 0 12px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 10px 14px 12px;
-}
-.familiesClosed {
-  padding-bottom: 10px;
-}
-.familiesHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.familiesHead h2 {
-  font-size: 0.9rem;
-  margin: 0;
-}
-.familiesHead span {
-  display: inline-flex;
-  gap: 14px;
-  align-items: center;
-  font-size: 0.8rem;
-}
-.familiesHead a {
-  color: var(--navy-text);
-  font-weight: 700;
-  text-decoration: none;
-}
-.familiesToggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1 1 auto;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: var(--ink);
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-}
-.familiesToggle svg {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: var(--gold);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  flex: none;
-  transition: transform 0.15s;
-}
-.familiesToggle .chevOpen {
-  transform: rotate(180deg);
-}
-.familiesHead button.unused {
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  font: inherit;
-  font-size: 0.78rem;
-  cursor: pointer;
-  padding: 0;
-}
-.familiesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-.family {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: left;
-  border: 1px solid var(--line-2);
-  border-radius: 8px;
-  padding: 9px 12px;
-  background: var(--paper);
-  font: inherit;
-  color: var(--ink);
-  cursor: pointer;
-}
-.family:hover {
-  border-color: var(--cat, var(--gold));
-}
-.family b {
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.family b em {
-  font-style: normal;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-.familyDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background: var(--cat, var(--gold));
-  flex: none;
-}
-.family[data-cat="M"] {
-  --cat: var(--cat-M);
-}
-.family[data-cat="O"] {
-  --cat: var(--cat-O);
-}
-.family[data-cat="D"] {
-  --cat: var(--cat-D);
-}
-.family[data-cat="A"] {
-  --cat: var(--cat-A);
-}
-.family span {
-  font-size: 0.84rem;
-  line-height: 1.5;
-  color: var(--ink);
-}
-.familyOn {
-  border-color: var(--cat, var(--gold));
-  box-shadow: inset 3px 0 0 var(--cat, var(--gold)), 0 0 0 1px var(--cat, var(--gold));
-  background: var(--surface);
-}
-.countHint {
-  color: var(--ink-2);
-}
 /* The selector band scrolls with the page; once out of view, the floating « Filtrer · Trier » brings it back over the list. */
 .tools {
   background: var(--paper);
   margin: 0 -20px;
   padding: 10px 20px 0;
   border-bottom: 1px solid var(--line);
-}
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 8px;
 }
 .search {
   position: relative;
@@ -338,22 +195,9 @@
   flex: 1 1 auto;
   min-width: 0;
 }
-.managerTag {
-  flex: none;
-  max-width: 46%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border: 1px solid var(--gold);
-  background: var(--gold-soft);
-  color: var(--gold-ink);
-  border-radius: 999px;
-  padding: 4px 9px;
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 700;
-  cursor: pointer;
-}
+/* « .managerTag » était la pastille de la société de gestion POSÉE DANS LE
+   CHAMP, à gauche du curseur. Elle est dans la rangée des filtres actifs
+   depuis que celle-ci existe, avec les autres et nommée comme elles. */
 .suggest {
   position: absolute;
   left: 0;
@@ -406,24 +250,93 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The selectors keep a fixed width whatever value they show: only the table below moves when a filter changes. */
-.fixed {
-  width: 236px;
+/* ------------------------------------------------------------------
+   LA BARRE, PUIS LES FILTRES À PLAT.
+   Le champ était dans la rangée d'outils, donc dans la feuille des filtres
+   sur téléphone : il fallait ouvrir un panneau pour taper un nom. La
+   catégorie était une grille encadrée de tuiles, la périodicité une liste
+   déroulante. Tout cela est sous les yeux maintenant, du champ au tri, et la
+   page n'a plus de feuille.
+   ------------------------------------------------------------------ */
+.barre {
+  display: flex;
+  align-items: center;
+  padding: var(--s-2) 0 var(--s-3);
+}
+/* Le champ garde sa largeur de lecture : seul sur sa ligne, il prenait les
+   1 225 px de l'écran, mesurés à 1 280. Un champ de recherche n'est pas une
+   zone de texte, et un curseur perdu au milieu d'une ligne vide ne se trouve
+   pas. Les 380 px de la règle générale tiennent ; sur téléphone la règle du
+   bas lui rend toute la largeur, qui y vaut 380 px de moins. */
+.barre .search {
+  flex: 1 1 auto;
+}
+/* LES RANGÉES DE FILTRES : une étiquette, puis les valeurs, à plat. */
+.aplat {
+  display: grid;
+  gap: var(--s-2);
+  padding-bottom: var(--s-4);
+}
+.rangee {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+/* L'ÉTIQUETTE DE LA RANGÉE prend une largeur fixe, pour que les pastilles des
+   deux rangées commencent sur la même verticale : deux listes alignées se
+   comparent, deux listes décalées se relisent. */
+.quoi {
+  flex: none;
+  width: var(--s-11);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.pst {
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: var(--s-2) var(--s-5);
+  cursor: pointer;
+  white-space: nowrap;
   max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.fixedSm {
-  width: 176px;
-  max-width: 100%;
+.pst:hover {
+  border-color: var(--gold);
+  color: var(--ink);
 }
-.fixed > button,
-.fixedSm > button {
-  width: 100%;
-  justify-content: space-between;
+.pstOn {
+  background: var(--select);
+  border-color: var(--select);
+  color: var(--on-select);
 }
-.fixed > button > span:nth-child(2),
-.fixedSm > button > span:nth-child(2) {
-  flex: 1;
-  text-align: left;
+/* LE TRI, AU TRAIT PRÈS CELUI DES TITRES : le mot, la liste des ordres, la
+   flèche qui retourne celui-ci. Deux listes qui se ressemblent doivent se
+   commander pareil. */
+.sortSel {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.dirBtn {
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  width: var(--s-9);
+  height: var(--s-9);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
 }
 .search input {
   width: 100%;
@@ -434,37 +347,7 @@
   background: var(--surface);
   color: var(--ink);
 }
-/* The category switches: one boxed row of equal square tiles, like the market switches of Titres. */
-.chips {
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 4px;
-  padding: 3px;
-  border: 1px solid var(--line-2);
-  border-radius: 6px;
-  background: var(--surface);
-}
-.chip {
-  border: 0;
-  border-radius: 4px;
-  min-width: 86px;
-  text-align: center;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--ink-2);
-  background: var(--surface);
-  cursor: pointer;
-  font-family: inherit;
-}
-.chipOn {
-  background: var(--select);
-  color: var(--on-select);
-  border-color: var(--select);
-}
-.sel,
-.sort select {
+.sel {
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
   padding: 6px 8px;
@@ -479,22 +362,6 @@
   gap: 6px;
   font-size: 0.8rem;
   color: var(--ink-2);
-}
-.sort {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--ink-3);
-  margin-left: auto;
-}
-.dir {
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 4px 8px;
-  cursor: pointer;
-  font-family: inherit;
 }
 .clear {
   margin-left: 10px;
@@ -518,44 +385,6 @@
 .count > b {
   margin-right: 2px;
 }
-.density {
-  margin-left: 0;
-}
-.sheetTools .density {
-  display: none;
-}
-/* in the sheet the same controls stack, full width */
-.sheetTools .toolbar {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-.sheetTools .search,
-.sheetTools .fixed,
-.sheetTools .fixedSm,
-.sheetTools .chips {
-  width: 100%;
-  flex: none;
-}
-.sheetTools .sort {
-  justify-content: space-between;
-}
-.sheetFoot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-  font-size: 0.82rem;
-  color: var(--ink-3);
-}
-.sheetFoot > span {
-  flex: 1;
-}
-.sheetFoot b {
-  color: var(--ink);
-}
 /* the phone: cards in place of the table */
 .cards {
   display: grid;
@@ -563,31 +392,23 @@
   margin-top: 10px;
 }
 @media (max-width: 760px) {
-  .chips {
-    width: 100%;
-  }
-  .chip {
-    min-width: 0;
-    padding: 6px 4px;
-  }
   .tools {
     margin: 0 -12px;
     padding: 6px 12px 0;
   }
-  .toolbar {
-    gap: 6px;
-  }
   .count {
     margin-bottom: 6px;
   }
-  .search,
-  .fixed,
-  .fixedSm {
+  .search {
     width: 100%;
     flex-basis: 100%;
   }
-  .sort {
-    margin-left: 0;
+  /* L'ÉTIQUETTE PASSE AU-DESSUS DE SES PASTILLES. Elle prend toute la ligne,
+     ce qui suffit à renvoyer les pastilles à la suivante, où elles gardent
+     leur enroulement : à 390 px, quarante pixels pris sur la gauche ne
+     laissaient pas deux pastilles côte à côte. */
+  .quoi {
+    width: 100%;
   }
 }
 
@@ -691,13 +512,6 @@
   }
 }
 
-/* the phone: the toolbar lives in the sheet, the page shows the « Filtres · Tri » line */
-@media (max-width: 760px) {
-  .deskTools {
-    display: none;
-  }
-}
-
 /* Trier depuis la colonne. Le chevron reste effacé tant que la colonne
    n'est pas celle du tri : sinon six flèches grises se disputent le regard. */
 .sortTh {
@@ -728,44 +542,4 @@
   font-weight: 400;
   font-size: 0.78em;
   color: var(--ink-3);
-}
-
-/* LA FEUILLE DU TRI : une liste de choix, un par ligne, pas un menu déroulant
-   dans une barre. Le critère actif dit aussi son sens, parce que « 12 mois »
-   seul ne dit pas si l'on part du plus fort ou du plus faible. */
-.triListe {
-  display: grid;
-  gap: 0;
-  margin: calc(-1 * var(--s-2)) 0;
-}
-.triListe button {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-4);
-  width: 100%;
-  padding: var(--s-5) var(--s-2);
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 0.9rem;
-  text-align: left;
-  cursor: pointer;
-}
-.triListe button:last-child {
-  border-bottom: 0;
-}
-.triOn {
-  color: var(--ink) !important;
-  font-weight: 700;
-  box-shadow: inset var(--s-1) 0 0 var(--gold);
-}
-.triListe em {
-  font-style: normal;
-  font-size: 0.74rem;
-  font-weight: 500;
-  color: var(--ink-3);
-  white-space: nowrap;
 }

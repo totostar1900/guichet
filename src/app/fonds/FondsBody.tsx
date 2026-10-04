@@ -3,7 +3,6 @@ import { FundsBrowser } from "./FundsBrowser";
 import { BackToTop } from "@/components/BackToTop";
 import { FondsEnBref } from "./FondsEnBref";
 import type { Offer } from "@/lib/domain/types";
-import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -18,17 +17,16 @@ import { getT } from "@/i18n/server";
 export async function FondsBody() {
   const t = await getT();
   const r = repo();
-  const [offers, bulletins] = await Promise.all([r.listOffers(), r.listBulletins(1)]);
+  /* LE BULLETIN N'EST PLUS LU ICI, NI LES COMPTES TENUS. « VL lues au BOC n° {n}
+     du {d} » a quitté l'en-tête, et le chapô qui annonçait le nombre de fonds
+     ouverts et le nombre par catégorie est parti dans « En bref », qui ne donne
+     plus de compte. Il restait la requête du bulletin, payée à chaque visite
+     pour une valeur que plus rien n'affiche, et trois variables mortes. */
+  const offers = await r.listOffers();
   const funds = offers.filter((o): o is Offer & { fund: NonNullable<Offer["fund"]> } => o.kind === "FONDS" && Boolean(o.fund));
   // Les courbes partent avec la page : une carte retournée les dessine tout de suite,
   // au lieu d'aller les demander et de montrer « Courbe en cours de lecture… ».
   const curves = await r.listFundCurves(funds.map((o) => o.fund.key));
-  const last = bulletins[0];
-  const open = funds.filter((o) => o.fund.distributed && !o.hidden).length;
-  /* Le compte par categorie : la feuille « En bref » le montre a cote de
-     chaque definition, parce qu une categorie vide ne se promet pas. */
-  const parCategorie: Partial<Record<string, number>> = {};
-  for (const o of funds) parCategorie[o.fund.category] = (parCategorie[o.fund.category] ?? 0) + 1;
 
   return (
     <>
