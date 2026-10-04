@@ -3,6 +3,7 @@
 import { useT } from "@/i18n/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useVerrouDeDefilement } from "./verrou-defilement";
 import styles from "./Onboarding.module.css";
 
 /**
@@ -190,6 +191,10 @@ export function Onboarding({ force = false, onClose }: { force?: boolean; onClos
     setOpen(false);
     onClose?.();
   };
+  /* Le voile met la page de côté : elle ne doit pas bouger dessous. Rien ne
+     défile dans la carte, c'est donc le seul des trois à n'avoir besoin que du
+     verrou. */
+  useVerrouDeDefilement(open);
   const t = useT();
   if (!open) return null;
   const s = SLIDES[i];

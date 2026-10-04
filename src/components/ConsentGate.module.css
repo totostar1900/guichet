@@ -33,6 +33,7 @@
 }
 .text {
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 6px 20px;
   font-size: 0.9rem;
   line-height: 1.6;

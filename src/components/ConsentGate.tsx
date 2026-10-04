@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { LEGAL, LEGAL_VERSION } from "@/data/legal";
 import { useLang, useT } from "@/i18n/client";
 import { acceptTerms } from "@/app/moi/actions";
+import { useVerrouDeDefilement } from "./mobile/verrou-defilement";
 import styles from "./ConsentGate.module.css";
 
 /**
@@ -18,6 +19,11 @@ export function ConsentGate({ previous }: { previous?: string }) {
   const [read, setRead] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  /* RIEN DERRIÈRE CETTE PORTE N'EST ATTEIGNABLE, et la page le disait mal :
+     elle défilait sous le voile. Le texte des mentions est long et défile à
+     l'intérieur ; le tiré au bord haut rechargeait la page, ce qui décochait
+     la case que le lecteur venait de cocher. */
+  useVerrouDeDefilement(true);
   const accept = () =>
     start(async () => {
       const r = await acceptTerms(LEGAL_VERSION);

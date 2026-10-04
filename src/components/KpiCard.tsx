@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useVerrouDeDefilement } from "./mobile/verrou-defilement";
 import type { KpiExplanation } from "@/lib/domain/explain";
 import { getRegistry, lessonForTerm } from "@/lib/registry";
 import styles from "./KpiCard.module.css";
@@ -35,6 +36,14 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
       window.removeEventListener("resize", place);
     };
   }, [open]);
+
+  /* LA PAGE NE DÉFILE PAS DERRIÈRE CETTE CARTE. Au téléphone c'est une feuille
+     du bas comme les autres, mais écrite ici plutôt qu'avec le Sheet
+     partagé : elle n'avait donc reçu aucun des deux correctifs du 4 octobre
+     2026. Et sur un écran large le panneau est placé une fois pour toutes
+     d'après la position du bouton : la page qui défile derrière le laissait
+     flotter là où la carte n'était plus. */
+  useVerrouDeDefilement(open);
 
   const t = useT();
   const term = explain?.term ? getRegistry().glossary[explain.term] : undefined;

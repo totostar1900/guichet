@@ -123,3 +123,70 @@ describe("le tiré ferme la feuille, pas la page", () => {
     expect(src).toContain("if (!surLaTete && corps && corps.scrollTop > 0) return;");
   });
 });
+
+describe("tout calque modal verrouille la page, ou dit pourquoi non", () => {
+  /**
+   * LE DÉFAUT N'ÉTAIT PAS DANS LA FEUILLE DES FILTRES, il était dans chaque
+   * calque écrit à la main. Les filtres de toutes les pages passent par un seul
+   * `Sheet`, donc un seul correctif les a tous servis ; mais trois autres
+   * calques couvrent l'écran sans rien verrouiller, dont une vraie feuille du
+   * bas, celle des cartes de taux sur la fiche. Relevé le 4 octobre 2026.
+   *
+   * DEUX CALQUES DOIVENT AU CONTRAIRE LAISSER LA PAGE DÉFILER : une visite
+   * guidée appelle `scrollIntoView` à chaque étape et remesure sa bague à
+   * chaque défilement. L'y verrouiller la casserait net. L'exception est donc
+   * nommée ici, avec sa raison, et non laissée au hasard.
+   */
+  const SANS_VERROU: Record<string, string> = {
+    "src/components/mobile/CoachMarks.tsx": "la visite amène sa cible à l'écran et suit le défilement",
+    "src/components/DeskTour.tsx": "même mécanique que CoachMarks, au desk",
+  };
+
+  const calques = () => {
+    const out: string[] = [];
+    const voir = (d: string) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = `${d}/${e.name}`;
+        if (e.isDirectory()) voir(p);
+        else if (/\.tsx$/.test(e.name) && /aria-modal="true"/.test(readFileSync(p, "utf8"))) out.push(p.replace("C:/dev/guichet/", ""));
+      }
+    };
+    voir("C:/dev/guichet/src");
+    return out;
+  };
+
+  it("chaque calque modal tient la page, sauf ceux nommés", () => {
+    const muets = calques().filter((p) => !SANS_VERROU[p] && !/verrou-defilement/.test(readFileSync(`C:/dev/guichet/${p}`, "utf8")));
+    expect(muets, `ces calques couvrent l'écran et la page défile derrière :\n  ${muets.join("\n  ")}`).toEqual([]);
+  });
+
+  it("l'exception est une liste close, pas un oubli", () => {
+    // Un nom resté dans la liste après que le composant a disparu ou s'est mis
+    // à verrouiller fait croire à une exception qui n'existe plus.
+    const vus = calques();
+    const perimes = Object.keys(SANS_VERROU).filter((p) => !vus.includes(p) || /verrou-defilement/.test(readFileSync(`C:/dev/guichet/${p}`, "utf8")));
+    expect(perimes, `ces exceptions ne décrivent plus rien :\n  ${perimes.join("\n  ")}`).toEqual([]);
+  });
+
+  it("tout panneau fixe qui défile retient le geste en bout de course", () => {
+    /* La feuille partagée le fait depuis son module ; une feuille écrite à la
+       main l'oublie, et le geste repart dans la page une fois le panneau au
+       bout. C'est le même défaut, à un autre endroit. */
+    const fautifs: string[] = [];
+    const voir = (d: string) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = `${d}/${e.name}`;
+        if (e.isDirectory()) voir(p);
+        else if (/\.css$/.test(e.name)) {
+          for (const bloc of readFileSync(p, "utf8").split("}")) {
+            if (/position:\s*fixed/.test(bloc) && /overflow(-y)?:\s*(auto|scroll)/.test(bloc) && !/overscroll-behavior/.test(bloc)) {
+              fautifs.push(`${p.replace("C:/dev/guichet/", "")} ${(bloc.match(/\.[\w-]+\s*\{/) ?? ["?"])[0]}`);
+            }
+          }
+        }
+      }
+    };
+    voir("C:/dev/guichet/src");
+    expect(fautifs, `ces panneaux fixes défilent sans retenir le geste :\n  ${fautifs.join("\n  ")}`).toEqual([]);
+  });
+});

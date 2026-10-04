@@ -67,6 +67,9 @@
   width: min(380px, calc(100vw - 24px));
   max-height: calc(100vh - var(--top, 80px) - 16px);
   overflow-y: auto;
+  /* Le verrou empêche la page de bouger, pas le geste de se propager au parent
+     une fois le panneau arrivé en bout de course. */
+  overscroll-behavior: contain;
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
