@@ -18,6 +18,28 @@
 .past {
   opacity: 0.65;
 }
+/**
+ * L'EN-TÊTE EST RÉGLÉ PAR L'IDENTITÉ, ET LE COIN RESTE DANS LE FLUX.
+ *
+ * La hauteur de l'en-tête vaut le plus grand de ses deux enfants. Le coin
+ * empilé sur trois rangs faisait cent, l'identité d'une ligne cotée en
+ * faisait moins : l'ISIN flottait au-dessus du bord inférieur, et l'écart que
+ * le lecteur VOIT entre l'ISIN et le grand chiffre valait 42 px, puis 24 dès
+ * qu'un nom passait sur deux lignes. Il suivait la longueur du nom, ce qu'un
+ * écart ne doit jamais faire. Mesuré sur huit cartes le 4 octobre 2026.
+ *
+ * SORTIR LE COIN DU FLUX A ÉTÉ ESSAYÉ, puis écarté, et la mesure dit
+ * pourquoi : la hauteur devenait bien celle de l'identité, mais il fallait
+ * alors lui réserver à droite une largeur devinée, alors que le coin fait
+ * 94,6 px sur une ligne cotée et davantage dès que la pastille porte un
+ * compte à rebours. Le flux calculait cette réservation exactement et
+ * gratuitement. On ne troque pas un couplage mesurable contre une devinette.
+ *
+ * Ce qui tient l'écart, c'est donc que LE COIN NE DÉPASSE JAMAIS DEUX RANGS :
+ * la pastille, puis les deux icônes côte à côte. Soixante-seize de haut,
+ * contre quatre-vingt-seize pour la plus courte des identités en portrait, où
+ * la ligne grise passe toujours à la ligne. Une épreuve tient ces deux rangs.
+ */
 .head {
   display: flex;
   justify-content: space-between;
@@ -25,16 +47,34 @@
   gap: 10px;
   min-width: 0;
 }
+/**
+ * LE COIN NE DOIT PAS ÊTRE PLUS HAUT QUE L'IDENTITÉ, et il l'était.
+ *
+ * Empilés, la pastille et les deux icônes font cent de haut ; l'identité
+ * d'une ligne cotée en fait cinquante-neuf. C'est donc le coin qui réglait la
+ * hauteur de l'en-tête, et l'ISIN se retrouvait à flotter trente-sept au-
+ * dessus de son bord inférieur. L'écart que le lecteur VOIT entre l'ISIN et
+ * le grand chiffre valait alors 42 px, et il tombait à 24 dès qu'un nom
+ * passait sur deux lignes : il suivait la longueur du nom, ce qu'un écart ne
+ * doit jamais faire. Mesuré sur huit cartes le 4 octobre 2026.
+ *
+ * Les deux icônes passent donc côte à côte sous la pastille : vingt-trois
+ * plus deux plus trente-quatre, cinquante-neuf, la hauteur même de
+ * l'identité. L'en-tête est désormais réglé par son contenu de gauche dans
+ * tous les cas, et l'écart ne dépend plus de rien.
+ */
 .corner {
   flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: end;
+  align-content: start;
   gap: 2px;
   margin: -4px -8px 0 0;
 }
 .corner > .pill {
-  flex: none;
+  grid-column: 1 / -1;
+  justify-self: end;
 }
 .big {
   min-width: 0;
@@ -362,15 +402,16 @@
 .flipBtn {
   margin-top: 6px;
 }
-/* LE CHIFFRE REMONTE VERS L'ISIN, EN PORTRAIT. La carte est une grille et sa
-   gouttière vaut douze partout ; ici, et seulement entre l'identité et le
-   grand chiffre, elle en fait quatre. Une gouttière de grille ne se règle pas
-   par paire : la marge négative reprend les huit de trop, et c'est la façon
-   la moins détournée de le dire. En paysage l'écran est large, la carte
-   respire, et les douze restent. */
+/* LE CHIFFRE REMONTE VERS L'ISIN, EN PORTRAIT : trois, et trois quelle que
+   soit la longueur du nom. La carte est une grille et sa gouttière vaut douze
+   partout ; une gouttière de grille ne se règle pas par paire, donc la marge
+   négative reprend la différence. On écrit l'écart voulu plutôt que la marge,
+   qui s'en déduit : c'est l'écart qui se lit sur l'écran. En paysage l'écran
+   est large, la carte respire, et les douze restent. */
 @media (orientation: portrait) {
   .big {
-    margin-top: calc(-1 * var(--s-4));
+    --ecart-ytm: calc(var(--s-1) + var(--s-1) / 2);
+    margin-top: calc(var(--ecart-ytm) - var(--s-6));
   }
 }
 

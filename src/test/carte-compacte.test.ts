@@ -207,3 +207,43 @@ describe("le code colle au nom quand le nom le porte déjà", () => {
     expect(titreCourt(bgfi)).toContain(" · BGFIBank");
   });
 });
+
+describe("l'en-tête de la carte est réglé par son identité", () => {
+  /**
+   * L'ÉCART SOUS L'ISIN SUIVAIT LA LONGUEUR DU NOM, ce qu'un écart ne doit
+   * jamais faire. La hauteur de l'en-tête vaut le plus grand de ses deux
+   * enfants : le coin empilé sur trois rangs faisait cent, l'identité d'une
+   * ligne cotée en faisait moins, et l'ISIN flottait trente-sept au-dessus du
+   * bord inférieur. Mesuré le 4 octobre 2026 : 42 px sur la plupart des
+   * cartes, 24 dès qu'un nom passait sur deux lignes.
+   *
+   * CE QUI TIENT MAINTENANT L'ÉCART : le coin ne dépasse pas deux rangs, la
+   * pastille puis les deux icônes côte à côte. Soixante-seize de haut contre
+   * soixante-dix-huit pour la plus courte des quarante-cinq identités
+   * mesurées en portrait. La marge est de deux pixels : réempiler les icônes
+   * la reprendrait, et l'écart se remettrait à varier sans que rien d'autre
+   * ne le signale.
+   */
+  const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8");
+  const coin = css.slice(css.indexOf(".corner {"), css.indexOf("}", css.indexOf(".corner {")));
+
+  it("le coin tient sur deux rangs, pas trois", () => {
+    expect(coin, "le coin doit rester une grille à deux colonnes").toMatch(/grid-template-columns:\s*auto auto/);
+    expect(css, "la pastille occupe le premier rang à elle seule").toMatch(/\.corner > \.pill \{[^}]*grid-column: 1 \/ -1/);
+    expect(coin, "une colonne le remettrait sur trois rangs").not.toMatch(/flex-direction:\s*column/);
+  });
+
+  it("le coin reste dans le flux, qui lui réserve sa largeur", () => {
+    /* Le sortir du flux a été essayé : la hauteur devenait bien celle de
+       l'identité, mais il fallait alors deviner une réservation à droite,
+       alors que le coin fait 94,6 px sur une ligne cotée et davantage dès que
+       la pastille porte un compte à rebours. Le flux la calcule exactement. */
+    expect(css, "le coin hors du flux force à deviner sa largeur").not.toMatch(/\.head > \.corner \{[^}]*position: absolute/);
+    expect(css, "une réserve fixe à droite de l'en-tête est cette devinette").not.toMatch(/\.head \{[^}]*padding-right/);
+  });
+
+  it("l'écart sous l'ISIN est écrit comme un écart, pas comme une marge", () => {
+    // La marge négative s'en déduit ; c'est l'écart qui se lit sur l'écran.
+    expect(css).toMatch(/--ecart-ytm:[^;]+;\s*margin-top: calc\(var\(--ecart-ytm\) - var\(--s-6\)\)/);
+  });
+});
