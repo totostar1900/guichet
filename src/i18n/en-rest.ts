@@ -1023,7 +1023,10 @@ export const EN_REST: Record<string, string> = {
   "La cote": "The exchange",
   "En souscription": "Open for subscription",
   "États": "States",
-  "Entreprises": "Companies",
+  /* « Corporate » et non « Companies » : la section nomme des ÉMETTEURS
+     d'obligations, pas un annuaire de sociétés. « Companies » reste le nom de
+     l'annuaire, à /societes, qui est autre chose. */
+  "Entreprises": "Corporate",
   "Obligations du Trésor": "Treasury bonds",
   "Bons du Trésor": "Treasury bills",
   "Rachats du Trésor": "Treasury buybacks",
