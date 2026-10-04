@@ -231,18 +231,21 @@ describe("l'en-tête de la carte est réglé par son identité", () => {
   const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8");
   const coin = css.slice(css.indexOf(".corner {"), css.indexOf("}", css.indexOf(".corner {")));
 
-  it("le coin tient sur un seul rang", () => {
-    expect(coin, "une rangée, donc trente-quatre de haut").toMatch(/display:\s*flex/);
-    expect(coin, "une colonne le remettrait sur trois rangs").not.toMatch(/flex-direction:\s*column/);
-    expect(coin, "une grille y remettrait un deuxième rang").not.toMatch(/grid-template-columns/);
-    expect(css, "la pastille ne doit plus occuper un rang à elle seule").not.toMatch(/\.corner > \.pill \{[^}]*grid-column/);
+  it("le coin ne donne pas sa hauteur à l'en-tête", () => {
+    /* Dans une rangée flex, la hauteur de ligne se calcule sur la taille
+       EXTERNE des enfants : une marge basse plus grande que sa hauteur retire
+       le coin du calcul, pendant que sa largeur reste mesurée par le flux.
+       Sans elle, un coin en colonne redevient plus haut que l'identité et
+       l'écart sous l'ISIN se remet à suivre la longueur du nom. */
+    expect(coin, "sans marge basse négative, le coin règle de nouveau la hauteur").toMatch(/margin:[^;]*calc\(-1 \* var\(--s-11\)/);
   });
 
-  it("et il ne déborde pas sous l'en-tête", () => {
-    /* La marge basse négative retirait le coin du calcul de la hauteur, mais
-       le faisait déborder de 10,6 px : quatre cartes y passaient leur texte
-       sous l'icône. Un rang ne déborde pas, et n'a donc pas besoin de ruse. */
-    expect(coin, "une marge basse négative cache un débordement").not.toMatch(/margin:[^;]*calc\(-1/);
+  it("et la ligne du grand chiffre laisse passer ce qui déborde", () => {
+    /* Ce qui descend sous l'en-tête, ce sont les deux icônes : trente-quatre
+       de large, une constante. La pastille, elle, reste dans l'en-tête. Sans
+       cette réserve, les cartes sans rendement passent leur phrase sous
+       l'icône : quatre l'ont fait, mesurées. */
+    expect(css, "la ligne du grand chiffre doit réserver la largeur des icônes").toMatch(/\.big \{[^}]*padding-right/);
   });
 
   it("le coin reste dans le flux, qui lui réserve sa largeur", () => {
@@ -254,9 +257,13 @@ describe("l'en-tête de la carte est réglé par son identité", () => {
     expect(css, "une réserve fixe à droite de l'en-tête est cette devinette").not.toMatch(/\.head \{[^}]*padding-right/);
   });
 
-  it("l'écart sous l'ISIN est écrit comme un écart, pas comme une marge", () => {
-    // La marge négative s'en déduit ; c'est l'écart qui se lit sur l'écran.
-    expect(css).toMatch(/--ecart-ytm:[^;]+;\s*margin-top: calc\(var\(--ecart-ytm\) - var\(--s-6\)\)/);
+  it("l'écart sous l'ISIN est la gouttière de la carte, et rien d'autre", () => {
+    /* Plus de marge à écrire : la hauteur de l'en-tête est celle de
+       l'identité, donc la gouttière de la grille suffit. Une marge qui
+       réapparaîtrait ici voudrait dire que quelque chose rattrape encore une
+       hauteur qu'on ne contrôle pas. */
+    expect(css, "la gouttière de la carte vaut douze").toMatch(/\.card \{[^}]*gap: 12px/);
+    expect(css, "une marge sur le grand chiffre fausse l'écart").not.toMatch(/\.big \{[^}]*margin-top/);
   });
 });
 
@@ -273,7 +280,7 @@ describe("l'écart sous l'ISIN ne dépend pas de l'orientation", () => {
        avant de chercher, sinon l epreuve se prend elle-meme au piege. */
     const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     const apres = css.slice(css.indexOf("@media"));
-    expect(apres, "l'écart est redéfini dans une requête média").not.toMatch(/--ecart-ytm/);
+    expect(apres, "l'écart est redéfini dans une requête média").not.toMatch(/\.big \{[^}]*margin-top/);
     expect(css, "aucune règle de cette carte ne dépend de l'orientation").not.toMatch(/@media \(orientation/);
   });
 });

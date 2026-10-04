@@ -79,39 +79,44 @@
  * obligeait à DEVINER sa largeur, qui va de 76 à plus de 130 selon que la
  * pastille dit « Cotée » ou porte un compte à rebours.
  *
- * LA MARGE BASSE NÉGATIVE retirait bien le coin du calcul de la hauteur tout
- * en laissant le flux mesurer sa largeur, mais elle le faisait déborder sous
- * l'en-tête : mesuré, jusqu'à 10,6 px, et quatre cartes y passaient leur
- * texte sous l'icône, celles sans rendement dont la phrase est la plus
- * longue. Un chevauchement se tolère mal, même de trois pixels de haut.
+ * LA MARGE BASSE NÉGATIVE EST LA RÉPONSE, et le coin en colonne la rend sûre.
  *
- * LE COIN TIENT DONC SUR UN SEUL RANG : la pastille, le « ··· », le
- * retournement. Trente-quatre de haut, contre cinquante-huit pour la plus
- * courte des identités mesurées, soit vingt-quatre de marge au lieu de deux.
- * La hauteur de l'en-tête est celle de l'identité sans qu'on ait à ruser, le
- * flux réserve la largeur exactement, et rien ne déborde. Un titre un peu
- * plus long passe à la ligne : c'est la carte qui grandit, pas l'écart qui
- * bouge, et c'est ce qui était demandé.
+ * Dans une rangée flex, la hauteur de ligne se calcule sur la taille EXTERNE
+ * des enfants, marges comprises : une marge basse plus grande que sa hauteur
+ * retire donc le coin du calcul, pendant que sa largeur reste mesurée par le
+ * flux, exactement, sans qu'on ait à la deviner. C'est ce qui manquait à la
+ * version absolue, où la réserve de droite variait de 76 à plus de 130 selon
+ * que la pastille dit « Cotée » ou porte un compte à rebours.
+ *
+ * CE QUI DÉBORDE EST ALORS DE LARGEUR CONNUE. En colonne, la pastille occupe
+ * le premier rang, à l'intérieur de l'en-tête ; ce qui passe dessous, ce sont
+ * les deux icônes, trente-quatre de large, une constante. La ligne du grand
+ * chiffre leur réserve donc quarante-quatre à droite, et c'est un chiffre
+ * qu'on sait écrire, pas une devinette.
+ *
+ * Essayé avant, et écarté : le coin sur un seul rang réglait tout mais
+ * élargissait le haut de la carte et faisait passer les titres à la ligne.
  */
 .corner {
   flex: none;
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 2px;
-  margin: -4px -8px 0 0;
+  margin: -4px -8px calc(-1 * var(--s-11) * 4) 0;
 }
 .corner > .pill {
   flex: none;
 }
 /**
- * LE CHIFFRE SUIT SON ISIN À QUATRE, ET C'EST TOUT CE QUI LE RÈGLE.
+ * LE CHIFFRE SUIT SON ISIN À DOUZE, LA GOUTTIÈRE DE LA CARTE, SANS RIEN QUI
+ * S'AJOUTE.
  *
- * La carte est une grille et sa gouttière vaut douze partout ; une gouttière
- * de grille ne se règle pas par paire, donc la marge négative reprend la
- * différence. On écrit l'écart voulu plutôt que la marge, qui s'en déduit :
- * c'est l'écart qui se lit sur l'écran. Quatre est le deuxième pas de
- * l'échelle, et c'est la raison de l'avoir préféré à trois et demi.
+ * Il n'y a donc plus de marge à écrire : c'est que la hauteur de l'en-tête
+ * est enfin celle de l'identité seule, le coin ayant quitté le calcul. Tant
+ * que le coin y entrait, l'écart VU sous l'ISIN valait douze PLUS le vide que
+ * le coin laissait, de zéro à trente-sept selon la longueur du nom et la
+ * largeur de l'écran.
  *
  * CETTE RÈGLE A VÉCU UN JOUR DANS « @media (orientation: portrait) », parce
  * que la demande disait « en portrait ». Mesuré pour une seule et même carte :
@@ -119,10 +124,12 @@
  * le téléphone a le même défaut que celui qui changeait avec la longueur du
  * nom, et c'est le lecteur qui tourne son écran, pas la carte qui change
  * d'avis. Une seule valeur, dans les deux sens, et une épreuve le tient.
+ *
+ * LA RÉSERVE DE DROITE laisse passer les deux icônes du coin, qui descendent
+ * sous l'en-tête : trente-quatre de large, plus l'air, une constante.
  */
 .big {
-  --ecart-ytm: var(--s-2);
-  margin-top: calc(var(--ecart-ytm) - var(--s-6));
+  padding-right: calc(var(--s-10) + var(--s-6));
   min-width: 0;
   display: flex;
   align-items: baseline;
