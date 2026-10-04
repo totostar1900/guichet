@@ -38,7 +38,9 @@
     font: inherit;
     font-size: 0.68rem;
     font-weight: 700;
-    width: 76px;
+    /* 68 et non 76 : à trois actions, 76 mettait les deux tiers de la carte
+       sous les boutons sur un écran de 390. */
+    width: 68px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -68,6 +70,14 @@
   }
   .b2 {
     background: var(--warn);
+  }
+  /* La troisième arme une alerte : éteinte elle est sobre, armée elle est
+     verte, parce que le vert de la maison veut dire « en place ». */
+  .b3 {
+    background: var(--navy-2);
+  }
+  .b3on {
+    background: var(--good);
   }
   .flip {
     position: relative;
@@ -153,10 +163,6 @@
   }
 }
 
-/* Le suivi armé : la couleur dit l'état, le mot le confirme. */
-.b2on {
-  color: var(--gold-ink);
-}
 /* Ce que l'appui vient de faire, une seconde et demie. Au-dessus de la carte,
    pas dedans : la carte revient à sa place pendant que le mot reste lisible. */
 .dit {

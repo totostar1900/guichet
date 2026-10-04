@@ -8,25 +8,26 @@ import styles from "./SwipeActions.module.css";
 /**
  * A card under a finger, on the phone (under 760 px, touch only):
  *
- * · pulled to the left, two actions come out from under it, the two the
- *   « ··· » leaves out on purpose. La première est toujours « Déclarer »,
- *   le formulaire d'intention de la fiche ; un tiré long au-delà de 70 % la
- *   déclenche. LA SECONDE DÉPEND DU LIEU, parce que deux marchés ne se
- *   suivent pas pareil :
+ * · pulled to the left, TROIS actions sortent de dessous, celles que le
+ *   « ··· » laisse de côté à dessein. Les deux premières ne changent jamais :
+ *   « Déclarer », le formulaire d'intention de la fiche, qu'un tiré long
+ *   au-delà de 70 % déclenche ; et « Contacter », qui demande qu'un conseiller
+ *   rappelle, c'est-à-dire une personne et non une notification.
  *
- *   sur la cote, « Suivre » : un message quand le chiffre ou l'état bouge.
+ *   LA TROISIÈME DÉPEND DU LIEU, parce que deux marchés ne se suivent pas
+ *   pareil :
+ *
+ *   sur la cote, « Suivre » : un message à chaque mouvement de la cote.
  *   Rien ne se passe la plupart du temps, et c'est voulu : mesuré sur douze
  *   mois, zéro transaction au compartiment obligataire ;
  *
- *   à l'adjudication, « Me rappeler » : un message par jour jusqu'à la
- *   clôture, puis plus rien. Là, rien ne bouge jusqu'à la séance et c'est
+ *   à l'adjudication, « Alerte » : un message par jour jusqu'à la clôture,
+ *   puis plus rien. Là, rien ne bouge jusqu'à la séance et c'est
  *   justement la séance qu'il ne faut pas manquer. Le message utile n'est pas
  *   « ça a changé » mais « il vous reste n jours ».
  *
- *   Les deux arment le même suivi, à deux cadences, et s'éteignent d'un second
- *   appui. Demander un rappel téléphonique reste sur la fiche, où le formulaire
- *   porte l'intention « rappel » : c'est une personne qu'on y demande, pas une
- *   notification.
+ *   Les deux arment le même suivi, à deux cadences, et s'éteignent d'un
+ *   second appui.
  * · pulled to the right, the card turns over (a 3D turn): its light back
  *   (`back`) shows what the front keeps quiet, the four figures of the
  *   list and the ISIN.
@@ -41,7 +42,14 @@ import styles from "./SwipeActions.module.css";
  */
 // One turned card at a time: turning another one puts the previous back on its front.
 let turnedNow: (() => void) | null = null;
-const REVEAL = 180;
+/**
+ * Ce que le tiré découvre : la poignée et les trois actions.
+ *
+ * 28 + 68 × 3. À deux actions c'était 28 + 76 × 2 = 180 ; à trois, garder 76
+ * aurait fait 256 sur un écran de 390, soit les deux tiers de la carte sous
+ * les boutons. Les étiquettes tiennent en 68, et la carte garde sa moitié.
+ */
+const REVEAL = 232;
 const SLOP = 8;
 
 export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi = false, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
@@ -284,7 +292,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         return;
       }
       setOn(res.watching);
-      setDit(res.watching ? (cadence === "quotidien" ? t("Rappel armé : un message par jour jusqu'à la clôture") : t("Ligne suivie : un message à chaque changement")) : t("Suivi retiré"));
+      setDit(res.watching ? (cadence === "quotidien" ? t("Alerte armée : un message par jour jusqu'à la clôture") : t("Ligne suivie : un message à chaque mouvement")) : t("Alerte retirée"));
       window.setTimeout(() => setDit(""), 1600);
     });
   };
@@ -306,11 +314,17 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
           </svg>
           {t("Déclarer")}
         </button>
-        <button type="button" className={`${styles.b2} ${on ? styles.b2on : ""}`} onClick={() => closeThen(basculerLeSuivi)} tabIndex={-1}>
+        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}/intention?intent=rappel`))} tabIndex={-1}>
+          <svg viewBox="0 0 24 24">
+            <path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z" />
+          </svg>
+          {t("Contacter")}
+        </button>
+        <button type="button" className={`${styles.b3} ${on ? styles.b3on : ""}`} onClick={() => closeThen(basculerLeSuivi)} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             {cadence === "quotidien" ? <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" /> : <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z" />}
           </svg>
-          {t(on ? (cadence === "quotidien" ? "Rappel armé" : "Suivie") : cadence === "quotidien" ? "Me rappeler" : "Suivre")}
+          {t(on ? (cadence === "quotidien" ? "Alerte armée" : "Suivie") : cadence === "quotidien" ? "Alerte" : "Suivre")}
         </button>
       </div>
       <div ref={flip} className={styles.flip}>

@@ -133,7 +133,20 @@ describe("le geste dit laquelle des deux cadences il arme", () => {
     /* « Suivie » ne dit pas ce qui arrivera. Le lecteur doit savoir s'il sera
        prévenu à chaque changement ou chaque jour : ce sont deux promesses. */
     expect(src).toContain("un message par jour jusqu'à la clôture");
-    expect(src).toContain("un message à chaque changement");
+    expect(src).toContain("un message à chaque mouvement");
+  });
+
+  it("trois actions, et les deux premières ne changent jamais", () => {
+    /* « Declarer » engage, « Contacter » demande une personne, la troisieme arme
+       une notification : trois gestes de nature differente, et seul le dernier
+       depend du lieu. */
+    /* Un motif plutôt qu'un littéral : le scanner de clefs cherche « t( » suivi
+       d'une chaîne, et un test qui en contiendrait un serait compté comme une
+       chaîne de l'interface à traduire. */
+    expect(src).toMatch(/\{t\("Déclarer"\)\}/);
+    expect(src).toMatch(/\{t\("Contacter"\)\}/);
+    // « Contacter » demande une personne : l'intention « rappel » de la fiche.
+    expect(src).toContain("intention?intent=rappel");
   });
 
   it("un second appui désarme", () => {
