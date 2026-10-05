@@ -2849,4 +2849,32 @@ export const EN_MORE: Record<string, string> = {
   "lu par la machine, non confirmé": "read by the machine, not confirmed",
   "en attente du communiqué": "awaiting the notice",
   "Taux servi à l'adjudication": "Rate allotted at the auction",
+  // La cadence des robots : les jours se nomment, la phrase se compose dans la page.
+  dimanche: "Sunday",
+  lundi: "Monday",
+  mardi: "Tuesday",
+  mercredi: "Wednesday",
+  jeudi: "Thursday",
+  vendredi: "Friday",
+  samedi: "Saturday",
+  "chaque jour à {h}": "every day at {h}",
+  "chaque jour ouvré à {h}": "every weekday at {h}",
+  "chaque {jour} à {h}": "every {jour} at {h}",
+  "le {j} de chaque mois à {h}": "the {j} of each month at {h}",
+  "le {j} du premier mois de chaque trimestre à {h}": "the {j} of the first month of each quarter at {h}",
+  "dans moins d'une heure": "in under an hour",
+  "dans {n} heures": "in {n} hours",
+  "Prochain tour": "Next run",
+  "Les heures sont en UTC, comme l'ordonnanceur : Yaoundé est à UTC+1, donc une heure de plus que ce qui est écrit ici. Un robot qui se tait au-delà de sa tolérance passe en « muet » : la tolérance vaut environ deux passages, pour qu'un ordonnanceur en retard de cinq minutes ne crie pas tous les matins.":
+    "Times are in UTC, like the scheduler: Yaoundé is UTC+1, so one hour later than what is written here. A robot silent beyond its tolerance turns « silent »: the tolerance is worth about two runs, so that a scheduler five minutes late does not cry out every morning.",
+  // La relecture du bulletin de la cote.
+  "Bulletins de la BVMAC à relire": "BVMAC bulletins to read again",
+  "{n} séances du bulletin officiel de la cote (BOC) lues à moitié : le lecteur les a marquées au moment même, elles attendent une relecture.":
+    "{n} sessions of the official list bulletin (BOC) read halfway: the reader flagged them at the time, they are waiting to be read again.",
+  "« Relire » reprend le PDF de la séance à l'adresse gardée avec elle, le repasse au lecteur d'aujourd'hui, et remplace les cotations de cette séance par ce qu'il en tire. Rien d'autre ne bouge, et le geste se répète sans risque : une séance ne gagne des cours que le jour où le lecteur progresse. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.":
+    "« Read again » fetches the session's PDF from the address kept with it, puts it through today's reader, and replaces that session's quotes with what it yields. Nothing else moves, and the gesture repeats safely: a session only gains prices on the day the reader improves. A session with no equity price skews the index, and that is the one to take first.",
+  "Une passe reprend {n} séances, les moins récemment reprises de la liste : la file tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. {n} et non toutes, parce qu'un bulletin demande environ quatre secondes et qu'un bouton de page doit répondre avant le délai de la fonction. Pour reprendre toute la série d'un coup, c'est la route qui le fait, en dizaines de minutes : « /api/cron/boc?from=AAAA-MM-JJ&to=AAAA-MM-JJ&relire=1 ».":
+    "One pass takes {n} sessions, the least recently retried of the list: the queue turns, and a session that does not improve no longer blocks the others. {n} and not all of them, because one bulletin takes about four seconds and a page button must answer before the function's time limit. To take the whole series at once, the route does it, in tens of minutes: « /api/cron/boc?from=YYYY-MM-DD&to=YYYY-MM-DD&relire=1 ».",
+  "Relire {n} séances": "Read {n} sessions again",
+  "… et {n} autres, reprises {k} par {k}.": "… and {n} more, taken {k} at a time.",
 };

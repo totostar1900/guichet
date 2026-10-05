@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { etatDesRobots, robotsAVoir } from "@/lib/domain/robots";
+import { cadence, etatDesRobots, prochainTour, robotsAVoir } from "@/lib/domain/robots";
 import { DeskNav } from "@/components/DeskNav";
 import { bulletinsToReread, healthChecks, lineIssues, REREAD_BATCH } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
@@ -37,6 +37,71 @@ export default async function SantePage() {
      qui se voit ici, jamais sa présence. */
   const robots = etatDesRobots(tours);
   const aVoir = robotsAVoir(robots);
+  /* Une seule heure pour tout le tableau : deux appels a new Date() dans la
+     meme page feraient deux « prochain tour » a la seconde pres differents. */
+  const maintenant = new Date();
+  /* LE MOT « UTC » NE PARAIT QUE QUAND IL MANQUE. La frequence vient de
+     l'expression cron et reste en UTC ; les deux colonnes voisines passent par
+     fmtDateTime, qui lit l'horloge du serveur. Sur Vercel c'est UTC et les
+     trois s'accordent, donc rien a ajouter. Sur une machine de developpement
+     (UTC+3 ici, mesure le 6 octobre 2026) l'ecart saute aux yeux et se lit
+     comme une panne : le mot le reduit a ce qu'il est. */
+  const serveurEnUTC = maintenant.getTimezoneOffset() === 0;
+  const JOURS = [t("dimanche"), t("lundi"), t("mardi"), t("mercredi"), t("jeudi"), t("vendredi"), t("samedi")];
+  /**
+   * La phrase de la cadence, composee ici et nulle part ailleurs.
+   *
+   * Les clefs sont ecrites en clair : le script qui cherche les traductions
+   * manquantes ne voit pas un t(variable), et c'est l'angle mort qui a deja
+   * coute deux passages.
+   */
+  const phraseCadence = (cron: string): string => {
+    let c;
+    try {
+      c = cadence(cron);
+    } catch {
+      // Plutot l'expression nue qu'une page de desk blanche.
+      return cron;
+    }
+    const h = c.heure;
+    switch (c.quand) {
+      case "quotidien":
+        return t("chaque jour à {h}", { h });
+      case "ouvre":
+        return t("chaque jour ouvré à {h}", { h });
+      case "hebdo":
+        return t("chaque {jour} à {h}", { jour: JOURS[c.jour], h });
+      case "mensuel":
+        return t("le {j} de chaque mois à {h}", { j: String(c.jourDuMois), h });
+      case "trimestriel":
+        return t("le {j} du premier mois de chaque trimestre à {h}", { j: String(c.jourDuMois), h });
+      default:
+        return cron;
+    }
+  };
+  /**
+   * Le prochain depart, et dans combien de temps : la date seule se compte mal.
+   *
+   * LE PIEGE DU FUSEAU, mesure le 6 octobre 2026. `fmtDateTime` lit l'heure
+   * locale du serveur : UTC sur Vercel, East Africa Time sur la machine de
+   * developpement. En production les trois colonnes s'accordent donc, et la
+   * phrase en tete du tableau dit vrai. En local la colonne « Frequence »,
+   * qui vient de l'expression cron et reste en UTC, decale de trois heures des
+   * deux autres. Ce n'est pas une panne : c'est la page de demonstration qui
+   * tourne sur une horloge que Vercel n'a pas.
+   *
+   * Le delai relatif, lui, ne depend d'aucun fuseau : c'est une difference.
+   */
+  const prochain = (cron: string): { quand: string; dans: string } | undefined => {
+    try {
+      const d = prochainTour(cron, maintenant);
+      const heures = (d.getTime() - maintenant.getTime()) / 3_600_000;
+      const dans = heures < 1 ? t("dans moins d'une heure") : heures < 24 ? t("dans {n} heures", { n: Math.round(heures) }) : t("dans {n} jours", { n: Math.round(heures / 24) });
+      return { quand: fmtDateTime(d.toISOString()), dans };
+    } catch {
+      return undefined;
+    }
+  };
   // Le dernier échange d'une ligne n'est retenu que depuis peu : celles qui
   // n'ont pas traité depuis le sont muettes tant que les cotes déjà lues n'ont
   // pas été reprises. Le bouton ne paraît que tant qu'il reste du travail.
@@ -87,12 +152,21 @@ export default async function SantePage() {
               : t("Tous ont tourné dans leur cadence. Un tour laisse sa ligne même quand il n'a rien fait : c'est l'absence qui se voit.")}
           </span>
         </div>
+        {/* LE FUSEAU SE DIT UNE FOIS, ET NON DANS CHAQUE CELLULE. L'ordonnanceur
+            de Vercel travaille en UTC et la colonne « Dernier tour » l'est deja :
+            melanger deux fuseaux dans une meme ligne couterait plus cher qu'une
+            phrase a lire une fois. */}
+        <p className={styles.p}>
+          {t("Les heures sont en UTC, comme l'ordonnanceur : Yaoundé est à UTC+1, donc une heure de plus que ce qui est écrit ici. Un robot qui se tait au-delà de sa tolérance passe en « muet » : la tolérance vaut environ deux passages, pour qu'un ordonnanceur en retard de cinq minutes ne crie pas tous les matins.")}
+        </p>
         <div className="scroll-x">
           <table className="tbl">
             <thead>
               <tr>
                 <th>{t("Robot")}</th>
                 <th>{t("Ce qu'il fait")}</th>
+                <th>{t("Fréquence")}</th>
+                <th>{t("Prochain tour")}</th>
                 <th>{t("Dernier tour")}</th>
                 <th className="r">{t("Depuis")}</th>
                 <th>{t("État")}</th>
@@ -103,6 +177,24 @@ export default async function SantePage() {
                 <tr key={r.cle}>
                   <td className="mono">{r.cle}</td>
                   <td className="muted">{t(r.quoi)}</td>
+                  {/* L'expression nue reste sous le curseur : c'est elle que
+                      l'ordonnanceur execute, la phrase n'en est que la lecture. */}
+                  <td title={r.cron}>
+                    {phraseCadence(r.cron)}
+                    {serveurEnUTC ? null : <small className="muted"> UTC</small>}
+                  </td>
+                  <td>
+                    {(() => {
+                      const n = prochain(r.cron);
+                      if (!n) return <span className="muted">—</span>;
+                      return (
+                        <>
+                          {n.quand}
+                          <small className="muted"> {n.dans}</small>
+                        </>
+                      );
+                    })()}
+                  </td>
                   <td>
                     {r.dernier ? fmtDateTime(r.dernier.startedAt) : <span className="muted">{t("jamais")}</span>}
                     {/* Un tour à la main se montre et ne prouve rien : il ne dit
@@ -197,16 +289,26 @@ export default async function SantePage() {
       {arriere.length > 0 && (
         <section className="panel" id="relire">
           <div className="panel-h">
-            <h2>{t("Bulletins à relire")}</h2>
+            {/* LE TITRE NOMME SA SOURCE. « Bulletins » tout court laissait
+                trois lectures possibles sur cette page : le bulletin de la cote,
+                les avis d'emission de la BEAC, les rapports hebdomadaires. */}
+            <h2>{t("Bulletins de la BVMAC à relire")}</h2>
             <span className="muted">
-              {t("{n} séances lues à moitié : le lecteur les a marquées au moment même, elles attendent une relecture.", { n: arriere.length })}
+              {t("{n} séances du bulletin officiel de la cote (BOC) lues à moitié : le lecteur les a marquées au moment même, elles attendent une relecture.", { n: arriere.length })}
             </span>
           </div>
           <p className={styles.p}>
-            {t("Chaque bulletin garde l'adresse de son PDF d'origine : une relecture le reprend tel quel, avec le lecteur d'aujourd'hui. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier. Une passe prend les séances les moins récemment reprises : la liste tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. Elle ne s'améliorera d'ailleurs que le jour où le lecteur progresse.")}
+            {t("« Relire » reprend le PDF de la séance à l'adresse gardée avec elle, le repasse au lecteur d'aujourd'hui, et remplace les cotations de cette séance par ce qu'il en tire. Rien d'autre ne bouge, et le geste se répète sans risque : une séance ne gagne des cours que le jour où le lecteur progresse. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.")}
+          </p>
+          {/* POURQUOI SIX, ET NON TOUT. La question se pose devant le bouton, donc
+              la reponse vit a cote de lui. Quatre secondes par bulletin, mesurees :
+              une action de page doit repondre dans le delai de la fonction, et la
+              serie entiere se compte en dizaines de minutes. */}
+          <p className={styles.p}>
+            {t("Une passe reprend {n} séances, les moins récemment reprises de la liste : la file tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. {n} et non toutes, parce qu'un bulletin demande environ quatre secondes et qu'un bouton de page doit répondre avant le délai de la fonction. Pour reprendre toute la série d'un coup, c'est la route qui le fait, en dizaines de minutes : « /api/cron/boc?from=AAAA-MM-JJ&to=AAAA-MM-JJ&relire=1 ».", { n: String(REREAD_BATCH) })}
           </p>
           <div className={styles.actions}>
-            <Reread action={rereadAction} label={t("Reprendre {n} séances", { n: String(REREAD_BATCH) })} primary />
+            <Reread action={rereadAction} label={t("Relire {n} séances", { n: String(REREAD_BATCH) })} primary />
             <Link className="btn sm ghost" href="/desk/marche">
               {t("Marché")} →
             </Link>
@@ -242,7 +344,7 @@ export default async function SantePage() {
             </table>
           </div>
           {arriere.length > 30 && (
-            <p className="muted">{t("… et {n} autres, reprises six par six.", { n: arriere.length - 30 })}</p>
+            <p className="muted">{t("… et {n} autres, reprises {k} par {k}.", { n: arriere.length - 30, k: String(REREAD_BATCH) })}</p>
           )}
         </section>
       )}

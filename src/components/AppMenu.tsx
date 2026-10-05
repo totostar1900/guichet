@@ -257,14 +257,11 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                   </div>
                   <div className={styles.group}>{t("Couleurs")}</div>
                   <PaletteSwitch lang={lang} />
-                  {/* La langue et l'entrée : derrière l'initiale pour qui est
-                      connecté, ici pour qui ne l'est pas. */}
-                  <div className={styles.line}>
-                    <LangSwitch compact />
-                    <Link href="/connexion" className={styles.lineOut} onClick={close}>
-                      {t("Se connecter")}
-                    </Link>
-                  </div>
+                  {/* LA LANGUE ET L'ENTRÉE ONT QUITTÉ CETTE FEUILLE le 6 octobre
+                      2026. Toutes deux vivent maintenant dans la barre du haut, à
+                      côté du « ⋮ », à toute largeur : les ranger ici en plus les
+                      mettait plus loin que l'original, et un réglage qu'on trouve
+                      à deux endroits est un réglage qu'on cherche aux deux. */}
                   <div className={styles.group}>{t("Nous joindre")}</div>
                   {contactBlock}
                 </>

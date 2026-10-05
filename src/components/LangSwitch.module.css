@@ -8,13 +8,16 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   background: transparent;
-  color: var(--on-navy-2, #b9c6da);
+  /* Le gris pale du second plan le rendait invisible : la langue est un
+     reglage qu'on cherche, pas une note de bas de page. */
+  color: var(--on-navy, #fff);
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.86rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   padding: 4px 9px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .btn:hover {
   border-color: var(--gold);
@@ -25,7 +28,9 @@
 .sep {
   opacity: 0.6;
 }
+/* Dans la barre du telephone, a cote de l'entree et du « ⋮ » : plus petit que
+   le bouton large, jamais au point de ne plus se lire. */
 .compact .btn {
-  padding: 3px 7px;
-  font-size: 0.64rem;
+  padding: 4px 8px;
+  font-size: 0.8rem;
 }

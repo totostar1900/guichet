@@ -72,6 +72,12 @@
     align-items: center;
     justify-content: flex-end;
   }
+  /* La langue tient a gauche de l'entree, et ne pousse pas le « ⋮ » hors du
+     bord : la barre est une grille, et c'est le titre qui cede. */
+  .lang {
+    display: inline-flex;
+    margin-right: 6px;
+  }
   .deskLink {
     color: #fff;
     font-size: 0.78rem;

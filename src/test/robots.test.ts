@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ROBOTS, etatDesRobots, robotsAVoir, type TourVu } from "@/lib/domain/robots";
+import { cadence, lirePlan, prochainTour, ROBOTS, etatDesRobots, robotsAVoir, type TourVu } from "@/lib/domain/robots";
 
 /**
  * UN ROBOT MUET RESSEMBLE À UN ROBOT MORT.
@@ -132,5 +132,103 @@ describe("chaque route de robot passe par l'enveloppe", () => {
       if (/const secret = process\.env\.CRON_SECRET/.test(s)) fautifs.push(`${d} : garde recopiée`);
     }
     expect(fautifs).toEqual([]);
+  });
+});
+
+/**
+ * LA CADENCE N'ÉTAIT NULLE PART.
+ *
+ * La page Santé disait « muet depuis 30 heures » sans dire que le robot passe
+ * tous les matins : le chiffre ne se jugeait pas. Et un desk qui attend un
+ * tour ne savait pas s'il fallait attendre dix minutes ou trois mois.
+ *
+ * Ce que ces cliquets tiennent : l'expression recopiée dans `ROBOTS` est celle
+ * que l'ordonnanceur exécute, au caractère. Une expression qui dériverait
+ * ferait annoncer au desk une heure à laquelle plus rien ne part, ce qui est
+ * pire que de ne rien annoncer du tout.
+ */
+describe("l'expression de chaque robot est celle de l'ordonnanceur", () => {
+  const programme = (): Map<string, string> => {
+    const j = JSON.parse(readFileSync("C:/dev/guichet/vercel.json", "utf8")) as { crons: { path: string; schedule: string }[] };
+    return new Map(j.crons.map((c) => [c.path.split("/").pop()!, c.schedule]));
+  };
+
+  it("au caractère, dans les deux sens", () => {
+    const p = programme();
+    const ecarts = ROBOTS.filter((r) => p.get(r.cle) !== r.cron).map((r) => `${r.cle} : tableau « ${r.cron} », ordonnanceur « ${p.get(r.cle)} »`);
+    expect(ecarts).toEqual([]);
+  });
+
+  it("et chacune se lit", () => {
+    // Une expression que le lecteur ne sait pas lire lèverait au rendu de la page.
+    for (const r of ROBOTS) expect(cadence(r.cron).quand, r.cle).not.toBe("autre");
+  });
+});
+
+describe("la cadence lue de l'expression", () => {
+  it("nomme les cinq formes que nous employons", () => {
+    expect(cadence("0 7 * * *")).toEqual({ quand: "quotidien", heure: "7 h" });
+    expect(cadence("30 18 * * 1-5")).toEqual({ quand: "ouvre", heure: "18 h 30" });
+    expect(cadence("0 16 * * 5")).toEqual({ quand: "hebdo", jour: 5, heure: "16 h" });
+    expect(cadence("40 6 3 * *")).toEqual({ quand: "mensuel", jourDuMois: 3, heure: "6 h 40" });
+    expect(cadence("0 7 5 1,4,7,10 *")).toEqual({ quand: "trimestriel", jourDuMois: 5, heure: "7 h" });
+  });
+
+  it("avoue quand elle ne sait pas, au lieu d'inventer", () => {
+    // Montrer l'expression telle quelle vaut mieux qu'une phrase fausse.
+    expect(cadence("0 7 * * 1,3").quand).toBe("autre");
+  });
+
+  it("range dimanche avec lui-même, qu'il s'écrive 0 ou 7", () => {
+    expect(lirePlan("0 7 * * 7").semaine).toEqual([0]);
+    expect(cadence("0 7 * * 0")).toEqual({ quand: "hebdo", jour: 0, heure: "7 h" });
+  });
+
+  it("refuse ce qu'elle ne sait pas lire", () => {
+    // Une expression à quatre champs, ou à deux heures, s'afficherait de travers.
+    expect(() => lirePlan("0 7 * *")).toThrow();
+    expect(() => lirePlan("0 7,19 * * *")).toThrow();
+    expect(() => lirePlan("0 */2 * * *")).toThrow();
+  });
+});
+
+describe("le prochain tour", () => {
+  // Mercredi 7 octobre 2026, 10 h UTC.
+  const NOW_UTC = new Date("2026-10-07T10:00:00.000Z");
+  const iso = (cron: string, now = NOW_UTC) => prochainTour(cron, now).toISOString();
+
+  it("saute le tour du jour déjà passé", () => {
+    /* Le piège : prendre le premier jour retenu et y poser l'heure donnerait
+       un prochain tour dans le passé pendant tout l'après-midi. */
+    expect(iso("0 7 * * *")).toBe("2026-10-08T07:00:00.000Z");
+    expect(iso("0 16 * * 3")).toBe("2026-10-07T16:00:00.000Z");
+  });
+
+  it("passe le week-end pour un robot de jours ouvrés", () => {
+    // Vendredi 9 octobre à 18 h 30, puis lundi 12 : pas samedi.
+    expect(iso("30 18 * * 1-5", new Date("2026-10-09T19:00:00.000Z"))).toBe("2026-10-12T18:30:00.000Z");
+  });
+
+  it("attend le mois suivant quand le jour du mois est passé", () => {
+    expect(iso("40 6 3 * *")).toBe("2026-11-03T06:40:00.000Z");
+  });
+
+  it("attend le trimestre suivant", () => {
+    // Le 5 octobre est passé : janvier 2027, et non novembre.
+    expect(iso("0 7 5 1,4,7,10 *")).toBe("2027-01-05T07:00:00.000Z");
+  });
+
+  it("fait un OU quand le jour du mois et le jour de semaine sont tous deux donnés", () => {
+    /* Aucun de nos robots n'est dans ce cas ; cron, lui, fait un OU, et un
+       lecteur qui ferait un ET annoncerait des tours qui n'existent pas. */
+    expect(iso("0 7 15 * 1")).toBe("2026-10-12T07:00:00.000Z"); // le lundi 12 avant le 15
+  });
+
+  it("se range avant le seuil de silence de son robot", () => {
+    /* Non vacuité qui vaut plus que la somme : si un robot attendait plus
+       longtemps que sa propre tolérance, la page le déclarerait muet à chaque
+       passage, et une alerte qui crie toujours cesse d'être lue. */
+    const dort = ROBOTS.filter((r) => (prochainTour(r.cron, NOW_UTC).getTime() - NOW_UTC.getTime()) / 3_600_000 > r.heures).map((r) => r.cle);
+    expect(dort).toEqual([]);
   });
 });

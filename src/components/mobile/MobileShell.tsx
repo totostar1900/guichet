@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LangSwitch } from "@/components/LangSwitch";
 import { AccountMenu } from "./AccountMenu";
 import { MarketChips } from "./MarketChips";
 import { Sheet } from "./Sheet";
@@ -202,6 +203,12 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
           </>
         )}
         <div className={styles.right}>
+          {/* LA LANGUE ENTRE DANS LA BARRE. Sous 760 px l'en-tete de bureau est
+              masque : le bouton de langue mesurait 0 x 0, et le seul chemin vers
+              l'anglais passait par le bas d'une feuille. */}
+          <span className={styles.lang}>
+            <LangSwitch compact />
+          </span>
           {desk && (
             <Link href="/desk" className={`${styles.deskLink} ${path.startsWith("/desk") ? styles.deskOn : ""}`}>
               {t("Desk")}
