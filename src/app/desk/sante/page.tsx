@@ -296,7 +296,7 @@ export default async function SantePage() {
             </span>
           </div>
           <p className={styles.p}>
-            {t("« Relire » reprend le PDF de la séance à l'adresse gardée avec elle, le repasse au lecteur d'aujourd'hui, et remplace les cotations de cette séance par ce qu'il en tire. Rien d'autre ne bouge, et le geste se répète sans risque : une séance ne gagne des cours que le jour où le lecteur progresse. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.")}
+            {t("« Relire » reprend le PDF de la séance à l'adresse gardée avec elle et le repasse au lecteur d'aujourd'hui. Chaque cotation retrouvée écrase celle de la même ligne pour la même séance ; celles qu'il ne retrouve pas restent en place, donc une relecture ajoute ou corrige et ne retire jamais. Le geste se répète sans risque : une séance ne gagne des cours que le jour où le lecteur progresse. Une séance sans cours d'action fausse la lecture de l'indice, c'est elle qu'il faut reprendre en premier.")}
           </p>
           {/* POURQUOI SIX, ET NON TOUT. La question se pose devant le bouton, donc
               la reponse vit a cote de lui. Quatre secondes par bulletin, mesurees :
@@ -318,6 +318,12 @@ export default async function SantePage() {
             <br />
             {t("« échec » : l'en-tête du PDF n'a pas été reconnu, donc le numéro du bulletin non plus. Aucun cours de cette séance n'est entré : elle est entièrement à reprendre.")}
           </p>
+          {/* CE QUE DEVIENT LA LIGNE. On regarde un tableau d'attente sans
+              savoir ce qui fait sortir d'une file : la reponse tient en deux
+              phrases, et sans elles on reclique sur la meme seance. */}
+          <p className={styles.p}>
+            {t("Après la passe, une séance qui repasse en « ok » quitte ce tableau : elle rejoint les bulletins ordinaires, ses cours alimentent l'indice et les fiches comme les autres. Une séance qui n'a rien gagné reste ici, et passe en queue de file : la liste tourne, et les suivantes sont servies avant qu'on ne revienne sur elle.")}
+          </p>
           <div className={styles.actions}>
             <Reread action={rereadAction} label={t("Relire {n} séances", { n: String(REREAD_BATCH) })} primary />
             <Link className="btn sm ghost" href="/desk/marche">
@@ -333,6 +339,7 @@ export default async function SantePage() {
                   <th>{t("État")}</th>
                   <th className="r">{t("Actions")}</th>
                   <th>{t("Ce que le lecteur a dit")}</th>
+                  <th>{t("Source")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -346,6 +353,18 @@ export default async function SantePage() {
                     </td>
                     <td className="r num">{b.counts?.equities ?? 0}</td>
                     <td className="muted">{(b.anomalies[0] ?? b.warnings[0] ?? "—").slice(0, 90)}</td>
+                    {/* Le document que le lecteur a lu : sans lui, verifier une
+                        anomalie voulait dire retrouver la seance a la main sur
+                        le site de la bourse. */}
+                    <td>
+                      {b.sourceUrl?.startsWith("http") ? (
+                        <a href={b.sourceUrl} target="_blank" rel="noreferrer">
+                          {t("PDF")}
+                        </a>
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
+                    </td>
                     <td className="r">
                       <Reread action={rereadAction} label={t("Relire")} date={b.sessionDate} />
                     </td>
@@ -378,6 +397,7 @@ export default async function SantePage() {
                 <th className="r">{t("Oblig.")}</th>
                 <th className="r">{t("OPCVM")}</th>
                 <th>{t("Ingéré")}</th>
+                <th>{t("Source")}</th>
               </tr>
             </thead>
             <tbody>
@@ -393,6 +413,15 @@ export default async function SantePage() {
                   <td className="r num">{b.counts.funds}</td>
                   <td className="muted">
                     {fmtDateTime(b.ingestedAt)} · {b.ingestedBy}
+                  </td>
+                  <td>
+                    {b.sourceUrl?.startsWith("http") ? (
+                      <a href={b.sourceUrl} target="_blank" rel="noreferrer">
+                        {t("PDF")}
+                      </a>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
