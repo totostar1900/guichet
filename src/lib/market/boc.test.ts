@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { memoryRepository, viderLaCote } from "@/lib/data/memory";
+import { memoryRepository } from "@/lib/data/memory";
 import { bocUrl, bondQuote, equityQuote, fundNav, ingestBoc, offerFromQuote, prettyName, validate } from "./boc";
 import { parseBoc } from "./boc-parse";
 
@@ -54,10 +54,6 @@ describe("offerFromQuote", () => {
 describe("ingestBoc (memory repository, real PDF when present)", () => {
   let pdf: Uint8Array | undefined;
   beforeAll(() => {
-    /* Le dépôt mémoire porte une cote de démonstration ; l'ingestion se mesure
-       sur un dépôt vierge, sinon le lecteur compare le PDF à des cours
-       inventés et signale un écart, à juste titre. */
-    viderLaCote();
     try {
       pdf = new Uint8Array(readFileSync(new URL("../../../.uploads/BOC-20260804.pdf", import.meta.url)));
     } catch {

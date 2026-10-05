@@ -1,4 +1,6 @@
-import type { MarketBulletin, Quote } from "@/lib/domain/market";
+import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
+import { REF_OFFERS } from "./reference";
+import { SEED_OFFERS } from "./seed";
 
 /**
  * LA COTE DU JEU DE DÉMONSTRATION.
@@ -92,13 +94,137 @@ const pas = (cours: number) => (cours >= 20_000 ? 500 : 100);
  */
 const PAS_DE_VARIATION = [1.0, 1.5, 2.0, 3.0];
 
+/**
+ * LES OBLIGATIONS ET LES FONDS NE S'INVENTENT PAS NON PLUS.
+ *
+ * Les trente-cinq lignes obligataires et les quarante-cinq fonds du semis
+ * dense existent déjà comme OFFRES, avec leur ISIN, leur libellé, leur prix et
+ * leur valeur liquidative. Leur donner ici des chiffres à eux créerait deux
+ * vérités sur le même titre : la carte dirait 1 293,52 et la courbe finirait
+ * ailleurs. On reprend donc les leurs, et on leur construit l'historique qui
+ * manquait.
+ *
+ * LE COMPARTIMENT OBLIGATAIRE NE BOUGE PRESQUE PAS, et c'est mesuré : sur
+ * douze mois de production, zéro transaction sur 7 709 couples ligne-séance,
+ * et vingt et une lignes sur trente-cinq figées au même cours depuis 397
+ * jours. Une cote obligataire animée donnerait à croire qu'on y entre et qu'on
+ * en sort tous les jours, ce qui est le malentendu même que la fiche s'efforce
+ * de dissiper.
+ */
+interface LigneObligataire {
+  isin: string;
+  titre: string;
+  emetteur: string;
+  prix: number;
+  nominal?: number;
+}
+
+/**
+ * Toutes les lignes que le dépôt sert, des deux semis.
+ *
+ * Le jeu de départ porte deux fonds et une obligation que le semis dense ne
+ * reprend pas ; sans eux, deux cartes sur quarante-sept n'avaient pas de
+ * courbe. Un trou de cette taille ne se voit pas tant qu'on ne compte pas.
+ */
+const lignes = () => {
+  const vues = new Set<string>();
+  return [...SEED_OFFERS, ...REF_OFFERS].filter((o) => {
+    const clef = o.kind === "FONDS" ? (o.fund?.key ?? "") : (o.isin ?? "");
+    if (!clef || vues.has(clef)) return false;
+    vues.add(clef);
+    return true;
+  });
+};
+
+const obligations = (): LigneObligataire[] =>
+  lignes()
+    .filter((o) => o.kind === "MARCHE" && o.instrument === "obligation" && o.isin)
+    .map((o) => ({
+      isin: o.isin!,
+      titre: o.title,
+      emetteur: o.issuer,
+      prix: o.lastPrice && o.lastPrice > 0 ? o.lastPrice : 100,
+      nominal: o.nominal,
+    }));
+
+/** Le pas entre deux valeurs liquidatives, en jours, selon ce que le fonds annonce. */
+const PAS_VL: Record<string, number> = { quotidienne: 1, hebdomadaire: 7, mensuelle: 30, trimestrielle: 91 };
+
+/**
+ * QUATRE-VINGT-DIX POINTS, ET LE DERNIER EST CELUI DE LA CARTE.
+ *
+ * La courbe se construit À REBOURS depuis la valeur publiée : c'est la seule
+ * façon d'être certain que le dernier point de la courbe est le chiffre que la
+ * carte affiche. Construite à l'endroit, elle arriverait à côté, et la carte
+ * et sa propre courbe se contrediraient sur le même écran.
+ *
+ * La dérive annuelle vient de la performance sur douze mois quand le fonds en
+ * publie une, sinon de sa performance depuis l'origine. Un fonds monétaire
+ * monte presque en ligne droite ; un fonds d'actions respire. Le bruit suit
+ * donc la catégorie, et non le hasard.
+ */
+const AMPLITUDE: Record<string, number> = { M: 0.04, O: 0.25, D: 0.5, A: 0.8 };
+
+function navsDEssai(tirage: () => number): FundNav[] {
+  const out: FundNav[] = [];
+  for (const o of lignes()) {
+    if (o.kind !== "FONDS" || !o.fund) continue;
+    const f = o.fund;
+    const pas = PAS_VL[f.frequency] ?? 7;
+    const points = Math.min(90, Math.max(12, Math.round(((Date.parse(f.navDate) - Date.parse(f.inceptionDate)) / 86400e3 / pas) | 0) || 12));
+    const annees = Math.max(0.5, (Date.parse(f.navDate) - Date.parse(f.inceptionDate)) / 86400e3 / 365);
+    const deriveAnnuelle = f.perf1yPct ?? f.perfSinceInceptionPct / annees;
+    const parPas = Math.pow(1 + deriveAnnuelle / 100, pas / 365) - 1;
+    const bruit = AMPLITUDE[f.category] ?? 0.3;
+
+    /* Le dernier point d'abord : la variation publiée donne l'avant-dernier,
+       donc la carte, la variation et la courbe tombent d'accord. */
+    const valeurs: { date: string; nav: number }[] = [{ date: f.navDate, nav: f.nav }];
+    let v = f.variationPct ? f.nav / (1 + f.variationPct / 100) : f.nav / (1 + parPas);
+    let d = Date.parse(f.navDate);
+    for (let i = 1; i < points; i++) {
+      d -= pas * 86400e3;
+      if (i > 1) v = v / (1 + parPas + ((tirage() - 0.5) * bruit) / 100);
+      valeurs.push({ date: new Date(d).toISOString().slice(0, 10), nav: Number(v.toFixed(2)) });
+    }
+    valeurs.reverse();
+
+    valeurs.forEach((pt, i) => {
+      const avant = i > 0 ? valeurs[i - 1] : undefined;
+      out.push({
+        fundKey: f.key,
+        name: o.title,
+        manager: f.manager,
+        depositary: f.depositary,
+        category: f.category,
+        frequency: f.frequency,
+        navDate: pt.date,
+        nav: pt.nav,
+        previousNav: avant?.nav,
+        previousDate: avant?.date,
+        navOrigin: f.navOrigin,
+        inceptionDate: f.inceptionDate,
+        perfSinceInceptionPct: Number((((pt.nav - f.navOrigin) / f.navOrigin) * 100).toFixed(2)),
+        variationPct: avant ? Number((((pt.nav - avant.nav) / avant.nav) * 100).toFixed(2)) : undefined,
+        bulletinNo: PREMIER_BULLETIN,
+        sessionDate: pt.date,
+      });
+    });
+  }
+  return out;
+}
+
 export interface CoteDEssai {
   bulletins: MarketBulletin[];
   quotes: Quote[];
+  navs: FundNav[];
 }
 
 export function coteDEssai(): CoteDEssai {
   const tirage = dés(20261001);
+  const lignesObligataires = obligations();
+  const navs = navsDEssai(dés(20261002));
+  const nbFonds = new Set(navs.map((n) => n.fundKey)).size;
   const seances: string[] = [];
   for (let d = PREMIERE; d <= DERNIERE; d = jourSuivant(d)) if (ouvre(d)) seances.push(d);
 
@@ -112,10 +238,18 @@ export function coteDEssai(): CoteDEssai {
   const quotes: Quote[] = [];
   let precedent = 1000;
 
+  /* Deux lignes obligataires sur cinq bougeront dans l'année ; les autres
+     garderont leur cours. Le tirage est fait une fois pour toutes : une ligne
+     figée le lundi ne se dégèle pas le mardi. */
+  const obligationVivante = new Map(lignesObligataires.map((l) => [l.isin, tirage() < 0.4]));
+  const coursObligataire = new Map(lignesObligataires.map((l) => [l.isin, l.prix]));
+  const dateObligataire = new Map(lignesObligataires.map((l) => [l.isin, PREMIERE]));
+
   seances.forEach((date, i) => {
     const bulletinNo = PREMIER_BULLETIN + i;
     /* La première séance sert d'origine : elle ne bouge pas, sinon la variation
        se mesurerait contre un cours qui n'a jamais été publié. */
+    const coursAvant = new Map(cours);
     for (const l of LIGNES) {
       if (i === 0 || tirage() >= 0.05) continue;
       const avant = cours.get(l.mnemo)!;
@@ -126,8 +260,22 @@ export function coteDEssai(): CoteDEssai {
       cours.set(l.mnemo, Math.max(p, avant + sens * marche));
     }
 
-    const niveau = Number(((capFlottante() / base) * 1000).toFixed(3));
-    const variation = Number((((niveau - precedent) / precedent) * 100).toFixed(3));
+    let niveau = Number(((capFlottante() / base) * 1000).toFixed(3));
+    let variation = Number((((niveau - precedent) / precedent) * 100).toFixed(3));
+    /**
+     * UNE SÉANCE QUI S'ANNULE PRESQUE NE PASSE PAS LE CONTRÔLE.
+     *
+     * Deux lignes qui bougent en sens inverse peuvent laisser un net de
+     * −0,01 %, et à cette taille l'arrondi de l'indice à trois décimales crée
+     * un écart d'un facteur avec la variation reconstituée : le desk voit
+     * « séance à éclaircir », à juste titre. Elle n'apprend rien ici et coûte
+     * une alerte : on la rend plate.
+     */
+    if (Math.abs(variation) < 0.02 && [...cours].some(([m, v]) => v !== coursAvant.get(m))) {
+      for (const [m, v] of coursAvant) cours.set(m, v);
+      niveau = Number(((capFlottante() / base) * 1000).toFixed(3));
+      variation = Number((((niveau - precedent) / precedent) * 100).toFixed(3));
+    }
 
     for (const l of LIGNES) {
       const close = cours.get(l.mnemo)!;
@@ -169,6 +317,41 @@ export function coteDEssai(): CoteDEssai {
       }
     }
 
+    for (const l of lignesObligataires) {
+      const avant = coursObligataire.get(l.isin)!;
+      /* Un mouvement obligataire est rare et petit : un quart de point, et
+         seulement sur une ligne qu'on a déclarée vivante. */
+      const bouge = i > 0 && obligationVivante.get(l.isin) && tirage() < 0.012;
+      const close = bouge ? Number((avant + (tirage() < 0.5 ? -0.25 : 0.25)).toFixed(3)) : avant;
+      quotes.push({
+        isin: l.isin,
+        sessionDate: date,
+        bulletinNo,
+        instrument: "obligation",
+        mnemo: l.isin.slice(-6),
+        issuer: l.emetteur,
+        designation: l.titre,
+        previousClose: avant,
+        previousDate: dateObligataire.get(l.isin)!,
+        open: close,
+        close,
+        thresholdHigh: close * 1.02,
+        thresholdLow: close * 0.98,
+        variationPct: close === avant ? 0 : Number((((close - avant) / avant) * 100).toFixed(2)),
+        referenceNext: close,
+        /* Aucune transaction : c'est l'état du compartiment, pas un trou. */
+        volumeTraded: 0,
+        valueTraded: 0,
+        trades: 0,
+        status: "NC",
+        nominalRemaining: l.nominal,
+      });
+      if (close !== avant) {
+        coursObligataire.set(l.isin, close);
+        dateObligataire.set(l.isin, date);
+      }
+    }
+
     bulletins.push({
       id: date,
       number: bulletinNo,
@@ -178,7 +361,7 @@ export function coteDEssai(): CoteDEssai {
       status: "ok",
       indexValue: niveau,
       indexVariationPct: i === 0 ? 0 : variation,
-      counts: { equities: LIGNES.length, bonds: 0, funds: 0 },
+      counts: { equities: LIGNES.length, bonds: lignesObligataires.length, funds: nbFonds },
       warnings: [],
       anomalies: [],
       notices: [],
@@ -186,5 +369,5 @@ export function coteDEssai(): CoteDEssai {
     precedent = niveau;
   });
 
-  return { bulletins, quotes };
+  return { bulletins, quotes, navs };
 }

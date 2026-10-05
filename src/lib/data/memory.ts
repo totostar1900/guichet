@@ -1,6 +1,6 @@
 import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
-import { REF_AUCTIONS, REF_OFFERS } from "@/data/reference";
+import { REF_AUCTIONS, REF_OFFERS, semisDense } from "@/data/reference";
 import { SEED_NEWS } from "@/data/news-seed";
 import { coteDEssai } from "@/data/cote-seed";
 import type { NewsItem } from "@/lib/news/model";
@@ -193,11 +193,12 @@ function store(): Store {
       clientFiles: seedClientFiles(),
       standing: [],
       avisGarde: [],
-      ...(() => {
-        const c = coteDEssai();
-        return { bulletins: c.bulletins, quotes: c.quotes };
-      })(),
-      fundNavs: [],
+      /* LA COTE SUIT LA MÊME RÈGLE QUE LES OFFRES : elle ne paraît que dans le
+         semis dense. Le socle d'une suite de tests ne se déplace pas parce
+         qu'on voulait un environnement local plus fourni, et le lecteur de
+         bulletins l'a dit aussitôt : son contrôle d'écart a comparé le PDF du
+         test à des cours inventés. */
+      ...cote(),
       issuerDocs: [],
       auctionResults: structuredClone(REF_AUCTIONS),
       emissionNotices: [],
@@ -221,12 +222,8 @@ function store(): Store {
   if (!g.__guichetStore.push) g.__guichetStore.push = [];
   /* Le rechargement à chaud peut garder un magasin d'une forme plus ancienne.
      La condition porte sur la CLEF ABSENTE, et non sur un tableau vide : une
-     cote vidée exprès, comme le fait le test d'ingestion, doit le rester. */
-  if (!g.__guichetStore.bulletins || !g.__guichetStore.quotes) {
-    const c = coteDEssai();
-    g.__guichetStore.bulletins = c.bulletins;
-    g.__guichetStore.quotes = c.quotes;
-  }
+     cote volontairement vide doit le rester. */
+  if (!g.__guichetStore.bulletins || !g.__guichetStore.quotes || !g.__guichetStore.fundNavs) Object.assign(g.__guichetStore, cote());
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
@@ -234,6 +231,13 @@ function store(): Store {
   if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
   return g.__guichetStore;
 }
+
+/** La cote de démonstration, ou rien : voir « data/reference » pour la règle. */
+const cote = (): { bulletins: MarketBulletin[]; quotes: Quote[]; fundNavs: FundNav[] } => {
+  if (!semisDense()) return { bulletins: [], quotes: [], fundNavs: [] };
+  const c = coteDEssai();
+  return { bulletins: c.bulletins, quotes: c.quotes, fundNavs: c.navs };
+};
 
 const nowIso = () => new Date().toISOString();
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -247,21 +251,6 @@ function cleIci(tous: InboundMessage[], m: Omit<InboundMessage, "id">): string |
     { channel: m.channel, from: m.from, subject: m.subject, receivedAt: m.receivedAt, inReplyTo: m.inReplyTo },
     { cleDuParent: parent?.convKey, dernier: dernier ? { receivedAt: dernier.receivedAt, convKey: dernier.convKey } : undefined },
   ).cle;
-}
-
-/**
- * Vide la cote du jeu de démonstration.
- *
- * L'ingestion d'un bulletin se teste sur un dépôt qui n'en a pas encore : avec
- * la cote d'essai en place, le lecteur compare le cours du PDF à un cours
- * inventé et signale un écart, ce qui est exactement son travail. Nommé ici
- * plutôt que bricolé depuis un test, parce qu'un test qui va fouiller dans
- * « globalThis » dépend d'une forme que personne ne lui a promise.
- */
-export function viderLaCote(): void {
-  const s = store();
-  s.bulletins = [];
-  s.quotes = [];
 }
 
 export const memoryRepository: Repository = {
