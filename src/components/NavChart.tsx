@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type Lu, RangeRead, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { labelMetrics, usePhone } from "./chart-utils";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
@@ -79,12 +79,17 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
   /* Au repos la dernière VL, sous le doigt celle qu'il désigne. Le bandeau
      porte la variation de la séance ; la performance depuis l'origine est déjà
      écrite à côté du graphique, la répéter ici coûterait la ligne qui reste. */
-  const vu = h ?? series[last];
+  const epingle = pin ? series.find((n) => n.date === pin) : undefined;
+  /* L'ordre : le doigt, puis l'épingle, puis la dernière VL. Une lecture en
+     cours passe devant une épingle posée avant elle, et l'épingle passe devant
+     le repos, parce qu'elle est un choix. */
+  const vu = h ?? epingle ?? series[last];
   const varVu = h ? (h.variationPct ?? (prev ? (h.nav / prev.nav - 1) * 100 : undefined)) : series[last].variationPct;
   const lu: Lu = {
     quand: fmtDate(vu.date),
-    dit: h ? t("VL lue") : t("dernière VL"),
+    dit: h ? t("VL lue") : epingle ? t("épinglée") : t("dernière VL"),
     valeur: `${fmt(vu.nav)} FCFA`,
+    sous: !h && epingle ? t("une seconde date pour recadrer") : undefined,
     droite: [
       <>
         {t("séance")} <em className={(varVu ?? 0) >= 0 ? trackStyles.up : trackStyles.down}>{signed(varVu)}</em>
@@ -103,7 +108,7 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
 
   return (
     <div className={styles.navChart}>
-      <TrackBand lu={lu} mince />
+      <TrackBand lu={lu} mince onClear={pin ? () => setPin(null) : undefined} clearLabel={t("effacer")} />
       <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={`${series.length} ${t("valeurs liquidatives publiées")}, ${fmt(series[0].nav)} → ${fmt(series[last].nav)} FCFA`} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
@@ -129,11 +134,6 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
         ))}
         <TrackMarks x={(k) => x(idx(k))} y={(k) => y(series[idx(k)].nav)} hover={h?.date} pinA={pin ?? track.pinA} pinB={pin ? undefined : track.pinB} padT={pad} padB={row.extra + pad} H={H + row.extra} />
       </svg>
-      {pin && (
-        <RangeRead onClear={() => setPin(null)} clearLabel={t("effacer")}>
-          <b>{fmtDate(pin)}</b> : {t("touchez une seconde date pour recadrer la période")}
-        </RangeRead>
-      )}
     </div>
   );
 }

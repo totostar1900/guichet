@@ -60,6 +60,36 @@ describe("le bandeau de suivi", () => {
     expect(restes, "la bulle se replace sur la courbe, sous le doigt").toEqual([]);
   });
 
+  /**
+   * L'ÉPINGLE EST DANS LE BANDEAU, ET ELLE S'EFFACE DE LÀ.
+   *
+   * Un graphique qui laisse épingler sans donner la croix enferme le lecteur
+   * dans une période qu'il a posée d'un toucher : rien n'échoue, et il faut
+   * recharger la page. La croix n'est pas une décoration, c'est la sortie.
+   */
+  it("donne la croix partout où l'on peut épingler", () => {
+    const manques: string[] = [];
+    for (const f of fichiers) {
+      if (f.nom === "tracker.tsx" || !/useTracker\(/.test(f.src)) continue;
+      const peutEpingler = /onPin|pins:/.test(f.src);
+      if (peutEpingler && !/onClear=\{/.test(f.src)) manques.push(f.nom);
+    }
+    expect(manques, "on y pose une épingle, on ne peut pas la retirer").toEqual([]);
+  });
+
+  /**
+   * UNE PÉRIODE NE SE LIT PAS À DEUX ENDROITS. Les deux dates épinglées sont
+   * montées dans le bandeau le 5 octobre 2026 ; ce qui reste sous un tracé ne
+   * dit plus QUE ce qui ne tenait pas (un cumul, deux valeurs de départ), et
+   * ne réécrit donc jamais les dates.
+   */
+  it("ne réécrit pas les dates épinglées sous le tracé", () => {
+    const index = readFileSync(join(DOSSIER, "IndexChart.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const m of index.matchAll(/styles\.pinsRead[\s\S]{0,400}?<\/p>/g)) {
+      expect(m[0], "une période épinglée se relit sous le graphique de l'indice").not.toMatch(/fmtDate\(/);
+    }
+  });
+
   it("garde une hauteur qui ne bouge pas", () => {
     const css = readFileSync(join(DOSSIER, "charts/tracker.module.css"), "utf8");
     const bloc = css.slice(css.indexOf(".band {"), css.indexOf("\n}", css.indexOf(".band {")));

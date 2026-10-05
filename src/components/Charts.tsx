@@ -108,16 +108,26 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
           sous: `${full(pA.value)} → ${full(pB.value)} ${unit}`,
           droite: [`${between.length} ${tr("séances")}`],
         }
-      : {
-          quand: frDate(last.date),
-          dit: tr("dernier cours"),
-          valeur: `${full(last.value)} ${unit}`,
-          droite: [
-            <>
-              {tr("début de période")} {ecart(points[0].value, last.value)}
-            </>,
-          ],
-        };
+      : pA
+        ? {
+            /* UNE SEULE ÉPINGLE : elle tient le point, et dit ce qui manque.
+               La ligne du dessous le disait, à deux centimètres du bandeau qui
+               parlait d'autre chose. */
+            quand: frDate(pA.date),
+            dit: tr("épinglée"),
+            valeur: `${full(pA.value)} ${unit}`,
+            sous: tr("une seconde date pour l'écart"),
+          }
+        : {
+            quand: frDate(last.date),
+            dit: tr("dernier cours"),
+            valeur: `${full(last.value)} ${unit}`,
+            droite: [
+              <>
+                {tr("début de période")} {ecart(points[0].value, last.value)}
+              </>,
+            ],
+          };
   return (
     <div className={styles.wrapRel}>
       <TrackBand lu={lu} onClear={pA ? () => setPins([]) : undefined} clearLabel={tr("effacer")} />
@@ -148,10 +158,6 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
       {pA && pB && volumeBetween ? (
         <RangeRead clearLabel={tr("effacer")}>
           {tr("échangé sur la période")} : {full(volumeBetween)} {tr("titres")} · {fmtShort(amountBetween)} FCFA
-        </RangeRead>
-      ) : pA && !pB ? (
-        <RangeRead onClear={() => setPins([])} clearLabel={tr("effacer")}>
-          <b>{frDate(pA.date)}</b> {tr("est épinglée")} · {tr("touchez une seconde date pour lire l'écart")}
         </RangeRead>
       ) : null}
     </div>

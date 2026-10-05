@@ -378,11 +378,40 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   const stDernier = stops[stops.length - 1];
   const stLu = hs ?? stDernier;
   const auStop = stLu ? series.map((s) => atStop(s, stLu.d)) : [];
-  const lu: Lu = {
-    quand: stLu ? when(stLu) : "",
-    dit: hs ? t("point lu") : t("dernier point"),
-    series: auStop.map((p, i) => ({ classe: COLORS[i], nom: labels[i], valeur: p ? fmtY(p.y) : "—" })),
+  /* L'ÉCART PAR SÉRIE DANS LE BANDEAU, les deux valeurs dessous. « 1 166 336
+     → 1 324 749 (+13,6 %) » ne tient pas dans une colonne de 190 px avec son
+     nom devant : le bandeau garde ce qu'on vient lire, l'écart, et la ligne du
+     dessous ne dit plus que d'où à où. */
+  const ecartSerie = (i: number) => {
+    const pa = sA && atStop(series[i], sA.d);
+    const pb = sB && atStop(series[i], sB.d);
+    if (!pa || !pb) return "—";
+    const delta = pb.y - pa.y;
+    const txt = area === "up" && !zero ? `${delta >= 0 ? "+" : ""}${fmtPct(pa.y ? (delta / pa.y) * 100 : 0, 1)}` : `${delta >= 0 ? "+" : ""}${fmtPct(delta, 1).replace(" %", " pt")}`;
+    return <b className={delta >= 0 ? trackStyles.up : trackStyles.down}>{txt}</b>;
   };
+  const lu: Lu =
+    !hs && sA && sB
+      ? {
+          quand: when(sA),
+          dit: t("au {d}", { d: when(sB) }),
+          series: series.map((_, i) => ({ classe: COLORS[i], nom: labels[i], valeur: ecartSerie(i) })),
+        }
+      : !hs && sA
+        ? {
+            quand: when(sA),
+            dit: t("épinglée"),
+            series: series.map((s2, i) => {
+              const p = atStop(s2, sA.d);
+              return { classe: COLORS[i], nom: labels[i], valeur: p ? fmtY(p.y) : "—" };
+            }),
+            droite: [t("une seconde date")],
+          }
+        : {
+            quand: stLu ? when(stLu) : "",
+            dit: hs ? t("point lu") : t("dernier point"),
+            series: auStop.map((p, i) => ({ classe: COLORS[i], nom: labels[i], valeur: p ? fmtY(p.y) : "—" })),
+          };
   return (
     <div className={styles.dual}>
       <TrackBand lu={lu} mince onClear={sA ? () => setPins([]) : undefined} clearLabel={t("effacer")} />
@@ -418,26 +447,24 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
         <TrackMarks x={(k) => x(Number(k))} y={(k) => anchorY(Number(k))} hover={hs ? String(hs.d) : undefined} pinA={track.pinA} pinB={track.pinB} padT={pad} padB={18 + pad} H={H + 18} />
       </svg>
       {sA && sB ? (
-        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
-          <b>
-            {when(sA)} → {when(sB)}
-          </b>
+        <RangeRead clearLabel={t("effacer")}>
           {series.map((s, i) => {
             const pa = atStop(s, sA.d);
             const pb = atStop(s, sB.d);
             if (!pa || !pb) return null;
-            const delta = pb.y - pa.y;
             return (
               <span key={i}>
-                {" "}
-                · <i className={COLORS[i]}>■</i> {labels[i]} : {fmtY(pa.y)} → {fmtY(pb.y)} (<b className={delta >= 0 ? trackStyles.up : trackStyles.down}>{area === "up" && !zero ? `${delta >= 0 ? "+" : ""}${fmtPct(pa.y ? (delta / pa.y) * 100 : 0, 1)}` : `${delta >= 0 ? "+" : ""}${fmtPct(delta, 1).replace(" %", " pt")}`}</b>)
+                {i > 0 ? " · " : ""}
+                <i className={COLORS[i]}>■</i> {fmtY(pa.y)} → {fmtY(pb.y)}
               </span>
             );
           })}
-        </RangeRead>
-      ) : sA ? (
-        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
-          <b>{when(sA)}</b> : {t("touchez une seconde date pour lire l'écart")}
+          {bench && sB.date ? (
+            <span>
+              {" · "}
+              <i className={styles.bench}>┄</i> {bench.label} : {fmtY(bench.at(sB.date))}
+            </span>
+          ) : null}
         </RangeRead>
       ) : null}
     </div>

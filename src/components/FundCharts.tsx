@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type Lu, RangeRead, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { labelMetrics, usePhone } from "./chart-utils";
 import { axisLabel, axisRow, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
@@ -135,10 +135,12 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
      quatre modes (quand · combien · de combien), et chaque mode choisit ce que
      « combien » veut dire chez lui : un rendement annuel, un montant, un pas de
      VL, un écart au plus haut. */
-  const vu = h ?? series[last];
+  const epingle = pin ? series.find((q) => q.date === pin) : undefined;
+  const vu = h ?? epingle ?? series[last];
   const lu: Lu = {
     quand: fmtDate(vu.date),
-    dit: h ? t("point lu") : t("dernier point"),
+    dit: h ? t("point lu") : epingle ? t("épinglée") : t("dernier point"),
+    sous: !h && epingle ? t("une seconde date pour recadrer") : undefined,
     valeur: mode === "placement" ? `${fmt(vu.y)} FCFA` : mode === "repli" && vu.y === 0 ? t("au plus haut") : signed(vu.y),
     droite: [
       mode === "rendement" ? (
@@ -170,7 +172,7 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
 
   return (
     <div className={styles.navChart}>
-      <TrackBand lu={lu} mince />
+      <TrackBand lu={lu} mince onClear={pin ? () => setPin(null) : undefined} clearLabel={t("effacer")} />
       <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={t(MODE_LABEL[mode])} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
@@ -218,11 +220,6 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
             <i className={styles.keyBench}>┄</i> {benchmark.label} · {fmtPct(benchmark.pct, 2)} {t(mode === "rendement" ? "par an" : "par an, le même montant placé au même taux")}
           </span>
         </div>
-      )}
-      {pin && (
-        <RangeRead onClear={() => setPin(null)} clearLabel={t("effacer")}>
-          <b>{fmtDate(pin)}</b> : {t("touchez une seconde date pour recadrer la période")}
-        </RangeRead>
       )}
     </div>
   );

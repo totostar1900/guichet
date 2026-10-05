@@ -20,6 +20,14 @@ export const EN_BANDEAU: Record<string, string> = {
   "dernier cours": "last price",
   "période épinglée": "pinned period",
   "Total du bilan et fonds propres par année": "Total assets and equity by year",
+  /* l'épingle : ce que le bandeau dit quand une date, ou deux, sont posées */
+  "épinglée": "pinned",
+  "épinglé": "pinned",
+  "une seconde date pour l'écart": "a second date for the change",
+  "une seconde date pour recadrer": "a second date to reframe",
+  "un second flux pour le total": "a second flow for the total",
+  "une seconde date": "a second date",
+  "{n} séances, {m} bougées": "{n} sessions, {m} moved",
   /* les écarts */
   "sur un an": "year on year",
   "vs la mise": "vs outlay",

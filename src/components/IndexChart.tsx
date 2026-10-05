@@ -207,13 +207,53 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   /* AU REPOS, LA DERNIÈRE SÉANCE. C'est la valeur que la page entière
      commente, et il fallait jusqu'ici poser un doigt sur le bord droit du
      tracé pour la lire. Sous le doigt, la séance désignée prend sa place. */
-  const vu = hp ?? pts[pts.length - 1];
   const sInfo = (d: string) => series.find((p) => p.date === d);
   const oInfo = (d: string) => ovSeries.filter((p) => p.date <= d).pop();
   const pinA = pins[0] ? at(pins[0]) : undefined;
   const pinB = pins[1] ? at(pins[1]) : undefined;
   const between = pinA && pinB ? pts.filter((p) => p.date > pinA.date && p.date <= pinB.date) : [];
   const moved = between.filter((p) => (p.variationPct ?? 0) !== 0).length;
+  const vu = hp ?? (pinA && !pinB ? pinA : undefined) ?? pts[pts.length - 1];
+  /* L'ordre des quatre états : le doigt, la période, l'épingle seule, le
+     repos. La période ne se lit plus sous le graphique : elle EST le bandeau,
+     et les deux champs de dates en dessous la posent toujours. */
+  const luIndice: Lu =
+    !hp && pinA && pinB
+      ? {
+          quand: fmtDate(pinA.date),
+          dit: t("au {d}", { d: fmtDate(pinB.date) }),
+          valeur: <em className={pinB.value >= pinA.value ? styles.upT : styles.downT}>{signed(((pinB.value - pinA.value) / pinA.value) * 100)}</em>,
+          /* Mesuré à 375 px : les deux niveaux (100 px) ne tiennent pas sous
+             la valeur, qui ne reçoit que 77 px une fois les deux dates et les
+             deux écarts servis. Ils passent donc à droite, avec le reste de ce
+             qui s est passé, et le montant échangé prend leur place. */
+          sous: `${money(between.reduce((a2, q) => a2 + (q.amount ?? 0), 0))} FCFA`,
+          droite: [
+            <>{t("{n} séances, {m} bougées", { n: String(between.length), m: String(moved) })}</>,
+            <>
+              {lvl(pinA.value)} → {lvl(pinB.value)}
+            </>,
+          ],
+        }
+      : {
+          quand: fmtDate(vu.date),
+          dit: hp ? t("séance lue") : pinA && !pinB ? t("épinglée") : t("dernière séance"),
+          valeur: lvl(vu.value),
+          /* LA QUATRIÈME CHOSE N APPARAÎT QUE SI LA PLACE EXISTE. Mesuré à
+             375 px : les trois zones remplissent déjà la largeur, et ce qui
+             s ajoute se fait couper en deux. Le seuil est celui que le reste
+             du graphique emploie déjà pour ses propres décisions. */
+          sous: !hp && pinA && !pinB ? t("une seconde date pour l'écart") : W >= 480 ? (vu.titles ? `${fmt(vu.titles)} ${t("titres")} · ${money(vu.amount ?? 0)} FCFA` : t("aucun échange sur les actions")) : undefined,
+          droite: [
+            <>
+              <em className={(vu.variationPct ?? 0) > 0 ? styles.upT : (vu.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(vu.variationPct)}</em>
+              {ov && oInfo(vu.date) ? ` · ${ov.mnemo} ${lvl(oInfo(vu.date)!.y, 1)}` : ""}
+            </>,
+            <>
+              {t(PERIODS.find(([k]) => k === period)?.[1] ?? "Tout")} <em className={vu.value >= pts[0].value ? styles.upT : styles.downT}>{signed(((vu.value - pts[0].value) / pts[0].value) * 100)}</em>
+            </>,
+          ],
+        };
   const lineView = view === "niveau" || view === "volumes";
 
   return (
@@ -255,27 +295,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {lineView && (
         <>
-          <TrackBand
-            lu={{
-              quand: fmtDate(vu.date),
-              dit: hp ? t("séance lue") : t("dernière séance"),
-              valeur: lvl(vu.value),
-              /* LA QUATRIÈME CHOSE N APPARAÎT QUE SI LA PLACE EXISTE. Mesuré à
-                 375 px : les trois zones remplissent déjà la largeur, et ce qui
-                 s ajoute se fait couper en deux. Le seuil est celui que le reste
-                 du graphique emploie déjà pour ses propres décisions. */
-              sous: W >= 480 ? (vu.titles ? `${fmt(vu.titles)} ${t("titres")} · ${money(vu.amount ?? 0)} FCFA` : t("aucun échange sur les actions")) : undefined,
-              droite: [
-                <>
-                  <em className={(vu.variationPct ?? 0) > 0 ? styles.upT : (vu.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(vu.variationPct)}</em>
-                  {ov && oInfo(vu.date) ? ` · ${ov.mnemo} ${lvl(oInfo(vu.date)!.y, 1)}` : ""}
-                </>,
-                <>
-                  {t(PERIODS.find(([k]) => k === period)?.[1] ?? "Tout")} <em className={vu.value >= pts[0].value ? styles.upT : styles.downT}>{signed(((vu.value - pts[0].value) / pts[0].value) * 100)}</em>
-                </>,
-              ],
-            }}
-          />
+          <TrackBand lu={luIndice} onClear={pinA ? () => setPins([]) : undefined} clearLabel={t("effacer")} />
           <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
@@ -360,26 +380,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               {t("Au")}
               <input type="date" value={pins[1] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [cur[0] ?? d0, e.target.value].sort() : cur.slice(0, 1)))} />
             </label>
-            {pinA && pinB ? (
-              <p className={styles.pinsRead}>
-                <b>
-                  {fmtDate(pinA.date)} → {fmtDate(pinB.date)}
-                </b>{" "}
-                : {lvl(pinA.value)} → {lvl(pinB.value)}, <b className={pinB.value >= pinA.value ? styles.upT : styles.downT}>{signed(((pinB.value - pinA.value) / pinA.value) * 100)}</b> · {t("{n} séances, {m} avec mouvement", { n: String(between.length), m: String(moved) })}
-                {" · "}
-                {money(between.reduce((a, p) => a + (p.amount ?? 0), 0))} FCFA
-                <button type="button" className={styles.clear} onClick={() => setPins([])}>
-                  {t("effacer")}
-                </button>
-              </p>
-            ) : pinA ? (
-              <p className={styles.pinsRead}>
-                <b>{fmtDate(pinA.date)}</b> : {lvl(pinA.value)} · {t("touchez une seconde date pour lire l'écart")}
-                <button type="button" className={styles.clear} onClick={() => setPins([])}>
-                  {t("effacer")}
-                </button>
-              </p>
-            ) : (
+            {pinA ? null : (
               <p className={styles.pinsRead}>
                 {withVol
                   ? t("Sur la période : {a} FCFA échangés, {n} transactions, {m} séances avec mouvement. Barres dorées : l'indice a bougé.", { a: money(totals.amount), n: fmt(totals.trades), m: String(totals.moved) })
@@ -553,14 +554,26 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   const yOf = (d: string) => (flat ? y(floatOnly ? rowAt(d).float : rowAt(d).total) : y(curves[0]?.pts.find((p) => p.date === d)?.y ?? (reading === "part" ? 50 : 100)));
   const track = useTracker({ keys: dates, x: (i) => x(dates[i]), W, pins, onPin, onRange });
   const hp = track.hover != null ? rows[track.hover] : undefined;
+  const rA = track.pinA ? rowAt(track.pinA) : undefined;
+  const rB = track.pinB ? rowAt(track.pinB) : undefined;
   /* Quatre lectures, deux formes de bandeau : en francs la somme et son
      flottant, en base 100 ou en parts une ligne par société, avec la pastille
      de sa courbe. Au repos, la dernière séance dans les deux cas. */
-  const vuCap = hp ?? rows[rows.length - 1];
-  const luCap: Lu = flat
+  const vuCap = hp ?? (rA && !rB ? rA : undefined) ?? rows[rows.length - 1];
+  const ecartCap = (de: number, a: number) => <em className={a >= de ? styles.upT : styles.downT}>{signed(de ? ((a - de) / de) * 100 : 0, 1)}</em>;
+  const luCap: Lu = !hp && rA && rB
+    ? {
+        quand: fmtDate(rA.date),
+        dit: t("au {d}", { d: fmtDate(rB.date) }),
+        series: [
+          { couleur: "var(--chart-out)", nom: t("capital global"), valeur: <>{money(rA.total)} → {money(rB.total)} {ecartCap(rA.total, rB.total)}</> },
+          { couleur: "var(--gold)", nom: t("flottant coté"), valeur: <>{money(rA.float)} → {money(rB.float)} {ecartCap(rA.float, rB.float)}</> },
+        ],
+      }
+    : flat
     ? {
         quand: fmtDate(vuCap?.date ?? dN),
-        dit: hp ? t("séance lue") : t("dernière séance"),
+        dit: hp ? t("séance lue") : rA && !rB ? t("épinglée") : t("dernière séance"),
         /* « FCFA » et la part du flottant attendent 480 px : mesuré à 375,
            « 1 727,2 Md FCFA » se faisait couper par une colonne de droite qui
            disait l'unité une seconde fois. */
@@ -585,8 +598,6 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           })(),
         })),
       };
-  const rA = track.pinA ? rowAt(track.pinA) : undefined;
-  const rB = track.pinB ? rowAt(track.pinB) : undefined;
   if (!ready) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
   // today's split : one bar, the whole exchange, heaviest first
   const split = [...overlays].map((o) => ({ o, cap: capAt(o, dN, kind) })).filter((p) => p.cap > 0).sort((a, b) => b.cap - a.cap);
@@ -610,7 +621,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant coté")}
         </label>
       </div>
-      <TrackBand lu={luCap} />
+      <TrackBand lu={luCap} onClear={rA ? () => onPin(rA.date) : undefined} clearLabel={t("effacer")} />
       <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Capitalisation de la cote, séance après séance")} {...track.handlers}>
         {ticks.map((v) => (
           <g key={v}>
@@ -649,14 +660,6 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
         </text>
         <TrackMarks x={x} y={yOf} hover={hp?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
       </svg>
-      {rA && rB && (
-        <p className={styles.pinsRead}>
-          <b>
-            {fmtDate(rA.date)} → {fmtDate(rB.date)}
-          </b>{" "}
-          : {t("capital global")} {money(rA.total)} → {money(rB.total)} FCFA (<b className={rB.total >= rA.total ? styles.upT : styles.downT}>{signed(rA.total ? ((rB.total - rA.total) / rA.total) * 100 : 0, 1)}</b>) · {t("flottant coté")} {money(rA.float)} → {money(rB.float)} (<b className={rB.float >= rA.float ? styles.upT : styles.downT}>{signed(rA.float ? ((rB.float - rA.float) / rA.float) * 100 : 0, 1)}</b>)
-        </p>
-      )}
       {flat && !company && splitTotal > 0 && (
         <div className={styles.splitWrap}>
           <div className={styles.splitHead}>
@@ -768,10 +771,21 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
   const at = (arr: { date: string; y: number }[], d: string) => arr.find((p) => p.date === d)?.y ?? 100;
   /* Les deux lectures côte à côte, et l'écart entre elles : c'est toute la
      raison d'être de cette vue, et elle se lit maintenant sans un geste. */
-  const dVu = hp?.date ?? dN;
-  const luFlot: Lu = {
+  const dVu = hp?.date ?? (track.pinA && !track.pinB ? track.pinA : undefined) ?? dN;
+  const pA = track.pinA;
+  const pB = track.pinB;
+  const luFlot: Lu = !hp && pA && pB
+    ? {
+        quand: fmtDate(pA),
+        dit: t("au {d}", { d: fmtDate(pB) }),
+        series: [
+          { couleur: "var(--chart-out)", nom: t("indice publié"), valeur: <em className={at(pub, pB) >= at(pub, pA) ? styles.upT : styles.downT}>{signed((at(pub, pB) / at(pub, pA) - 1) * 100, 1)}</em> },
+          { couleur: "var(--gold)", nom: t("en flottant"), valeur: <em className={at(reading, pB) >= at(reading, pA) ? styles.upT : styles.downT}>{signed((at(reading, pB) / at(reading, pA) - 1) * 100, 1)}</em> },
+        ],
+      }
+    : {
     quand: fmtDate(dVu),
-    dit: hp ? t("séance lue") : t("dernière séance"),
+    dit: hp ? t("séance lue") : pA && !pB ? t("épinglée") : t("dernière séance"),
     series: [
       { couleur: "var(--chart-out)", nom: t("indice publié"), valeur: lvl(at(pub, dVu), 1) },
       { couleur: "var(--gold)", nom: t("en flottant"), valeur: lvl(at(reading, dVu), 1) },
@@ -802,7 +816,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
     <div className={styles.capWrap}>
       {hasCaps ? (
         <>
-          <TrackBand lu={luFlot} />
+          <TrackBand lu={luFlot} onClear={pA ? () => onPin(pA) : undefined} clearLabel={t("effacer")} />
           <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={company ? t("{m}, lecture en flottant et indice publié, base 100", { m: company.mnemo }) : t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
@@ -824,14 +838,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
             </text>
             <TrackMarks x={x} y={(d) => y(at(pub, d))} hover={hp?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
           </svg>
-          {track.pinA && track.pinB && (
-            <p className={styles.pinsRead}>
-              <b>
-                {fmtDate(track.pinA)} → {fmtDate(track.pinB)}
-              </b>{" "}
-              : {t("indice publié")} <b className={at(pub, track.pinB) >= at(pub, track.pinA) ? styles.upT : styles.downT}>{signed((at(pub, track.pinB) / at(pub, track.pinA) - 1) * 100, 1)}</b> · {t("lecture en flottant")} <b className={at(reading, track.pinB) >= at(reading, track.pinA) ? styles.upT : styles.downT}>{signed((at(reading, track.pinB) / at(reading, track.pinA) - 1) * 100, 1)}</b> · {t("la rotation ci-dessous est celle de cet intervalle")}
-            </p>
-          )}
+          {pA && pB && <p className={styles.pinsRead}>{t("la rotation ci-dessous est celle de cet intervalle")}</p>}
           <p className={styles.legend}>
             <span>
               <i className={styles.kLine} /> {t("indice publié, capital global")} : {signed(pubEnd, 1)}

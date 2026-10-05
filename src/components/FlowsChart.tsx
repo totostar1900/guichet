@@ -82,18 +82,36 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
           </>,
         ],
       }
-    : {
-        quand: t("l'échéancier"),
-        dit: t("{n} versements", { n: String(pts.length - 1) }),
-        valeur: gros(total),
-        sous: t("ce qui revient"),
-        droite: [
-          <>
-            {t("la mise")} {money(out)}
-          </>,
-          out ? <>{fmtPct((total / out - 1) * 100, 1)} {t("de plus")}</> : null,
-        ].filter((node): node is React.ReactElement => node !== null),
-      };
+    : iA >= 0 && iB >= 0
+      ? {
+          /* LA PÉRIODE : ce qui revient entre les deux flux. Le cumul de début
+             et de fin ne tient pas ici, il reste sur la ligne du dessous, qui
+             ne dit plus que lui. */
+          quand: fmtDate(iso(pts[iA].date)),
+          dit: t("au {d}", { d: fmtDate(iso(pts[iB].date)) }),
+          valeur: `+${money(backBetween)} FCFA`,
+          sous: t("{n} versements", { n: String(iB - iA) }),
+          droite: out ? [<>{fmtPct((backBetween / out) * 100, 1)} {t("de la mise")}</>] : undefined,
+        }
+      : iA >= 0
+        ? {
+            quand: fmtDate(iso(pts[iA].date)),
+            dit: t("épinglé"),
+            valeur: signe(pts[iA].amount),
+            sous: t("un second flux pour le total"),
+          }
+        : {
+            quand: t("l'échéancier"),
+            dit: t("{n} versements", { n: String(pts.length - 1) }),
+            valeur: gros(total),
+            sous: t("ce qui revient"),
+            droite: [
+              <>
+                {t("la mise")} {money(out)}
+              </>,
+              out ? <>{fmtPct((total / out - 1) * 100, 1)} {t("de plus")}</> : null,
+            ].filter((node): node is React.ReactElement => node !== null),
+          };
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: Math.round(768 * size), margin: "8px auto 0" }}>
@@ -130,16 +148,8 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
         <TrackMarks x={(k) => cx(idx(k))} y={(k) => barTop(idx(k))} hover={hover != null ? keys[hover] : undefined} pinA={track.pinA} pinB={track.pinB} padT={0} padB={28} H={H} />
       </svg>
       {iA >= 0 && iB >= 0 ? (
-        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
-          <b>
-            {fmtDate(iso(pts[iA].date))} → {fmtDate(iso(pts[iB].date))}
-          </b>{" "}
-          : <b className={trackStyles.up}>+{fmt(backBetween)} FCFA</b> {t("reçus en {n} flux", { n: String(iB - iA) })} · {t("cumul")} {cum[iA] < 0 ? "−" : "+"}{fmt(Math.abs(cum[iA]))} → {cum[iB] < 0 ? "−" : "+"}{fmt(Math.abs(cum[iB]))} FCFA
-          {out ? ` · ${fmtPct((backBetween / out) * 100, 1)} ${t("de la mise")}` : ""}
-        </RangeRead>
-      ) : iA >= 0 ? (
-        <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
-          <b>{fmtDate(iso(pts[iA].date))}</b> : {t("touchez un second flux pour lire ce qui revient entre les deux")}
+        <RangeRead clearLabel={t("effacer")}>
+          {t("cumul")} : {signe(cum[iA])} → {signe(cum[iB])}
         </RangeRead>
       ) : null}
     </div>
