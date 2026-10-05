@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { loadBeacAuctions } from "@/lib/market/beac-feed";
@@ -6,15 +5,16 @@ import type { BeacAuction } from "@/lib/market/beac";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { ETAPES, servicesDuClient, type ContexteClient, type EtatService } from "@/lib/domain/services";
+import { ETAPES, servicesDuClient, type ContexteClient } from "@/lib/domain/services";
 import { getT } from "@/i18n/server";
 import { ConseillerCard } from "./ConseillerCard";
-import { Etapes } from "./Etapes";
+import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
+import { ServicesBande } from "./ServicesBande";
 import { fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Trader" };
+export const metadata = { title: "Agir" };
 
 /**
  * Trader : ce que vous pouvez faire, et par où chaque geste commence.
@@ -87,6 +87,10 @@ export default async function TraderPage() {
     prochaineSeance: devant ? { pays: devant.country ?? t("la zone"), quoi: [devant.instrument, devant.tenor].filter(Boolean).join(" ") || t("une séance"), le: fmtDate(devant.on!) } : undefined,
     moisDHistorique: positions.length ? 12 : 0,
     appariementExecutable: false,
+    /* Un client qui tient des lignes a forcément un compte : sans cette
+       seconde condition, un dossier incomplet au référentiel renverrait vers
+       une ouverture déjà faite. */
+    compteOuvert: Boolean(dossier?.review.custodianAccount) || positions.length > 0,
   };
 
   const services = servicesDuClient(ctx);
@@ -103,9 +107,6 @@ export default async function TraderPage() {
    * Reste donc la seule marque qui apprend quelque chose : ce qui tourne déjà.
    * Le reste se lit dans la phrase du service, qui dit par quoi commencer.
    */
-  const dejaLa = (e: EtatService) => e === "en_place";
-  const geste: Record<EtatService, string> = { en_place: styles.gSecond, a_activer: styles.gPrincipal, indisponible: styles.gPrincipal };
-
   const contextes = [
     { quand: t("Un coupon est encaissé"), alors: t("La ligne propose de le replacer, ou d'activer le réinvestissement une fois pour toutes"), ou: t("sur l'espèce") },
     { quand: t("Une séance est annoncée"), alors: t("Le titre concerné propose de déclarer une intention, ou de répondre au sondage"), ou: t("sur le titre") },
@@ -117,41 +118,28 @@ export default async function TraderPage() {
     <div className={styles.page}>
 
       <header className={styles.tete}>
-        <h1>{t("Trader maintenant")}</h1>
+        <h1>{t("Agir")}</h1>
+        <p>{t("Ce que le Guichet peut faire pour vous, et par où chaque geste commence.")}</p>
       </header>
 
-      <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: positions.length, derniere }} />
+      {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui
+          dort, une séance qui se ferme : ce sont les seules lignes de cette
+          page qui ont une échéance, et elles étaient au bas d'un mur. */}
+      <CeQuiVousAttend userId={s.userId} />
 
-      <section className={styles.liste}>
-        {services.map((sv) => (
-          <div className={styles.ligne} key={sv.cle}>
-            <span className={styles.quoi}>
-              {dejaLa(sv.etat) && (
-                <em className={styles.enPlace}>
-                  <i aria-hidden="true" />
-                  {t("en place")}
-                </em>
-              )}
-              <b>{t(sv.nom)}</b>
-              <small>{t(sv.ou)}</small>
-            </span>
-            <span className={styles.dit}>
-              <p>{t(sv.phrase.key, sv.phrase.params)}</p>
-              {ETAPES[sv.cle] && <Etapes items={ETAPES[sv.cle]} />}
-            </span>
-            <Link href={sv.href} className={`${styles.geste} ${geste[sv.etat]}`}>
-              {t("Allons-y")}
-            </Link>
-          </div>
-        ))}
-      </section>
+      <div className={styles.deuxColonnes}>
+        <ServicesBande services={services} etapes={ETAPES} />
+        <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: positions.length, derniere }} />
+      </div>
 
-      {/* Une page de services ne suffit jamais : personne ne va la chercher. */}
-      <section className={styles.contexte}>
-        <div>
+      {/* Une page de services ne suffit jamais : personne ne va la chercher.
+          Replié : cela se lit une fois, et cela coûtait 644 px à chaque
+          visite. */}
+      <details className={styles.contexte}>
+        <summary>
           <h2>{t("Et là où le besoin naît")}</h2>
           <p>{t("Le geste se présente au moment où il sert, sur la ligne concernée. Cette page dit où le retrouver, elle ne le remplace pas.")}</p>
-        </div>
+        </summary>
         <div className={styles.quand}>
           {contextes.map((c) => (
             <div className={styles.quandLigne} key={c.quand}>
@@ -161,7 +149,7 @@ export default async function TraderPage() {
             </div>
           ))}
         </div>
-      </section>
+      </details>
 
     </div>
   );

@@ -67,7 +67,7 @@ const TABS = [
    * déroulante ils se réduiraient à neuf noms, or un service nommé ne se lit
    * pas : c'est son état qui se lit.
    */
-  { href: "/trader", label: "Trader", match: (p: string) => p.startsWith("/trader"), connecte: true },
+  { href: "/trader", label: "Agir", match: (p: string) => p.startsWith("/trader"), connecte: true },
   // Le catalogue : les titres, les fonds, les adjudications, l'indice, les
   // sociétés, les analyses. La bande « Sur le même sujet » dit la même famille
   // au pied de chaque article, et les deux se lisent dans MARKET_PAGES.

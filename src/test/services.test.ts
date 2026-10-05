@@ -81,32 +81,59 @@ describe("l'état suit la donnée du client", () => {
     expect(m.get("sondage")!.etat).toBe("a_activer");
   });
 
-  it("dit par quoi commencer, au lieu de se déclarer indisponible", () => {
+  it("dit par quoi commencer, et ne ferme rien", () => {
     /**
-     * Un service qui s'annonce indisponible ferme une porte que rien ne ferme
-     * vraiment : il demande seulement qu'on ait commencé par autre chose, et
-     * c'est cela qu'il faut dire. « Commencez » est donc la forme attendue, et
-     * non une explication de ce que la maison ne fait pas.
+     * Un service qui s'annonçait indisponible fermait une porte que rien ne
+     * ferme : il demande seulement qu'on ait commencé par autre chose, et
+     * c'est cela qu'il dit. « Commencez » est donc la forme attendue, et
+     * l'état reste « à activer » : il n'y a plus d'état fermé.
      */
     const m = parCle(vide);
-    expect(m.get("passage")!.etat).toBe("indisponible");
+    expect(m.get("passage")!.etat).toBe("a_activer");
     expect(m.get("passage")!.phrase.key).toMatch(/^Commencez par/);
-    expect(m.get("sondage")!.etat).toBe("indisponible");
+    expect(m.get("sondage")!.etat).toBe("a_activer");
     expect(m.get("sondage")!.phrase.key).toMatch(/^Commencez par/);
     // La phrase suffit : la sous-phrase justifiait, et elle ne s'affiche plus.
     expect(m.get("passage")!.sinon).toBeUndefined();
     expect(m.get("sondage")!.sinon).toBeUndefined();
   });
 
-  it("ferme l'appariement tant que la maison n'a pas tranché", () => {
-    expect(parCle(garni).get("appariement")!.etat).toBe("indisponible");
+  /* AUCUN SERVICE N'EST FERMÉ. L'appariement que la maison n'exécute pas
+     encore reste à activer, et sa phrase dit ce qu'il fait en attendant :
+     griser apprend à ne plus toucher, proposer apprend par où commencer. */
+  it("laisse l'appariement à activer tant que la maison n'a pas tranché", () => {
+    expect(parCle(garni).get("appariement")!.etat).toBe("a_activer");
     expect(parCle({ ...garni, appariementExecutable: true }).get("appariement")!.etat).toBe("en_place");
   });
 
-  it("compte les trois états sans en perdre un", () => {
+  it("compte les deux états sans en perdre un", () => {
     const c = compteDesEtats(servicesDuClient(garni));
-    expect(c.en_place + c.a_activer + c.indisponible).toBe(9);
+    expect(c.en_place + c.a_activer).toBe(9);
     expect(c.en_place).toBe(3);
+  });
+
+  /**
+   * LA PORTE AVANT LE SERVICE. Sans compte-titres ouvert, aucun des neuf ne
+   * commence par lui-même : tous proposent l'ouverture, qui est l'étape
+   * commune. Aucun n'est éteint pour autant.
+   */
+  it("propose l'ouverture du compte quand il n'est pas ouvert, et à tous", () => {
+    const sans = servicesDuClient({ ...garni, compteOuvert: false });
+    expect(sans.length).toBe(9);
+    expect([...new Set(sans.map((x) => x.href))]).toEqual(["/ouvrir-un-compte"]);
+    expect([...new Set(sans.map((x) => x.geste.key))]).toEqual(["Ouvrir un compte-titres"]);
+    /* La condition se lit a l ouverture de la fiche, pas dans la liste : neuf
+       sous-titres identiques effaceraient ce que chaque service fait. */
+    expect(sans.every((x) => x.porte)).toBe(true);
+    expect(sans.filter((x) => x.sinon && x.porte && x.sinon.key === x.porte.key).length).toBe(0);
+    /* Et les états restent lisibles : on ne perd pas ce qui tourne déjà. */
+    expect(sans.filter((x) => x.etat === "en_place").length).toBe(3);
+  });
+
+  it("laisse chaque service nommer son geste quand le compte est ouvert", () => {
+    const avec = servicesDuClient(garni);
+    expect(avec.every((x) => x.geste.key.length > 0)).toBe(true);
+    expect(new Set(avec.map((x) => x.href)).size, "chaque service mène quelque part, et pas tous au même endroit").toBeGreaterThan(3);
   });
 });
 

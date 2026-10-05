@@ -184,7 +184,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
     { href: "/titres", label: t("Instruments"), icon: I.fonds, match: isInstrumentsSection, feuille: "instruments" },
     // Trader entre au dock : sans lui, les neuf services n'ont pas de porte sur
     // téléphone, et c'est là que la plupart des clients lisent.
-    { href: "/trader", label: t("Trader"), icon: I.trader, match: (p) => p.startsWith("/trader") },
+    { href: "/trader", label: t("Agir"), icon: I.trader, match: (p) => p.startsWith("/trader") },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, feuille: "marche" },
     /* « À DÉCIDER » A QUITTÉ LE DOCK le 2 octobre 2026. Un onglet qui porte ce
        nom demande d'aller voir s'il y a quelque chose, et il est vide neuf jours

@@ -204,6 +204,12 @@ export const EN_TRADER: Record<string, string> = {
   "Le desk vous prévient avant tout rapprochement : il ne se fait jamais dans votre dos.": "The desk tells you before any match : it never happens behind your back.",
   "la répartition, le rendement, l'échéancier et vos opérations": "the breakdown, the return, the schedule and your operations",
   "Trader maintenant": "Trade now",
+  /* Le siège s'appelle Agir depuis le 5 octobre 2026 : un verbe parmi trois
+     noms, et c'est ce qui le distingue. L'adresse reste « /trader ». */
+  "Ce que le Guichet peut faire pour vous, et par où chaque geste commence.": "What Guichet can do for you, and where each step begins.",
+  "Ouvrir un compte-titres": "Open a securities account",
+  "Ce service demande un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces.": "This service needs a securities account in your name. Opening is done online and the desk checks the papers.",
+  "Voir le détail": "See the details",
   "Les étapes": "The steps",
   "Masquer les étapes": "Hide the steps",
   "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne.": "Start with an announced session: the calendar publishes them as soon as a Treasury opens one.",

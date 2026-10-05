@@ -399,3 +399,153 @@
     margin-top: var(--s-5);
   }
 }
+
+/**
+ * LA BANDE DES SERVICES : une surface, pas une pile.
+ *
+ * C'étaient neuf cartes de 228 px, toutes de la même forme et du même poids :
+ * 2 009 px de mur sur un téléphone, mesurés le 5 octobre 2026, pour une page
+ * qui doit faire agir. Une seule surface les porte, à peine plus claire que
+ * la page, avec un filet entre les lignes : on lit une liste.
+ */
+.bande {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.svc {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  width: 100%;
+  padding: var(--s-5) var(--s-6);
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+.bande > div:first-child .svc {
+  border-top: 0;
+}
+.svc:hover {
+  background: var(--surface);
+}
+/* Le cadre de l'icône porte l'état : le trait du dessin, lui, ne change pas,
+   sinon neuf dessins dorés feraient neuf alertes. */
+.ico {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+}
+.ico svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.svcEnPlace .ico {
+  border-color: var(--good);
+}
+.svcEnPlace .ico svg {
+  stroke: var(--good);
+}
+.svc .quoi {
+  flex: 1;
+  min-width: 0;
+}
+.svc .quoi b {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.svc .quoi small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  line-height: 1.35;
+  margin-top: var(--s-1);
+}
+.chev {
+  flex: none;
+  color: var(--ink-3);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.bloc {
+  background: var(--surface);
+}
+/* La fiche s'ouvre DANS la bande : la liste ne se rompt pas. */
+.fiche {
+  padding: 0 var(--s-6) var(--s-6) calc(34px + var(--s-5) + var(--s-6));
+}
+.fiche p {
+  margin: 0 0 var(--s-5);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  line-height: 1.55;
+  max-width: 68ch;
+}
+.fiche .etapes {
+  margin: 0 0 var(--s-6);
+  padding-left: var(--s-7);
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+.cta {
+  display: inline-block;
+  padding: var(--s-4) var(--s-7);
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+/**
+ * DEUX COLONNES QUAND LA LARGEUR EXISTE. Les neuf cartes faisaient 1 225 px
+ * de large, empilées : la largeur ne servait à rien. Le conseiller tient à
+ * côté de la bande, et la page cesse d'être une seule colonne de 2 000 px.
+ */
+.deuxColonnes {
+  display: grid;
+  gap: var(--s-7);
+}
+@media (min-width: 900px) {
+  .deuxColonnes {
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    align-items: start;
+  }
+}
+/* Le pli du bas : 644 px qui se lisent une fois. */
+.contexte > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.contexte > summary::-webkit-details-marker {
+  display: none;
+}
+.contexte > summary h2::after {
+  content: " +";
+  color: var(--ink-3);
+}
+.contexte[open] > summary h2::after {
+  content: " –";
+}
+/* Ce qu'il faut avoir d'abord : une phrase de condition, pas une alerte. */
+.porte {
+  color: var(--gold-ink);
+}
+/* La précision sous la phrase : le dernier passage, la limite, la raison. */
+.sinon {
+  font-size: 0.82rem !important;
+  color: var(--ink-3) !important;
+}

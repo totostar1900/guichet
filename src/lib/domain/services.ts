@@ -13,14 +13,20 @@
  * détenez 84,312 parts rachetables » vaut mille fois « passez d'un fonds à
  * l'autre ».
  *
- * Trois états, et « indisponible » ne s'excuse pas : il dit pourquoi, en une
+ * DEUX ÉTATS, ET AUCUN SERVICE FERMÉ. Il y en avait trois, et le troisième
+ * disait la vérité à l'envers : un service qui demande d'avoir commencé par
+ * autre chose n'est pas fermé, il attend une première ligne, une part de
+ * fonds ou une séance annoncée, et c'est un geste, pas un mur. Un écran qui
+ * grise apprend à ne plus toucher ; celui-ci propose l'étape qui ouvre.
+ *
+ * L'ancien commentaire disait « indisponible ne s'excuse pas : il dit
  * phrase. Un service grisé sans raison se lit comme une panne.
  *
  * Module sans dépendance d'exécution : il reçoit un état de compte déjà lu et
  * rend des phrases à traduire. Un test l'atteint sans monter ni base ni écran.
  */
 
-export type EtatService = "en_place" | "a_activer" | "indisponible";
+export type EtatService = "en_place" | "a_activer";
 
 /** Une phrase du dictionnaire, avec ses trous : les nombres voyagent à part. */
 export interface Dit {
@@ -41,6 +47,20 @@ export interface ServiceVu {
   phrase: Dit;
   /** La précision dessous : le dernier passage, la limite, la raison. */
   sinon?: Dit;
+  /**
+   * Ce que le bouton dit, et où il mène.
+   *
+   * « Allons-y » partout ne disait rien de ce qui allait se passer. Et quand
+   * le compte-titres n'est pas encore ouvert, aucun des neuf ne commence par
+   * lui-même : le geste devient l'ouverture, une fois, pour tous.
+   */
+  geste: Dit;
+  /**
+   * Ce qu'il faut avoir avant de prendre ce service, dit à l'ouverture de sa
+   * fiche et nulle part ailleurs. Répété dans la liste, il effaçait neuf
+   * sous-titres pour dire neuf fois la même chose.
+   */
+  porte?: Dit;
 }
 
 /**
@@ -83,11 +103,20 @@ export interface ContexteClient {
   moisDHistorique: number;
   /** L'appariement est-il exécutable, ou seulement détecté ? */
   appariementExecutable: boolean;
+  /**
+   * Le compte-titres est-il ouvert ?
+   *
+   * Tant qu'il ne l'est pas, aucun service ne peut rien faire, et ce n'est pas
+   * une raison d'en griser neuf : c'est une raison de proposer l'ouverture,
+   * qui est l'étape commune à tous. Absent, on suppose qu'il l'est : un doute
+   * sur le dossier ne doit pas envoyer un client vers une ouverture qu'il a
+   * déjà faite.
+   */
+  compteOuvert?: boolean;
 }
 
-const enPlace = (s: Omit<ServiceVu, "etat">): ServiceVu => ({ ...s, etat: "en_place" });
-const aActiver = (s: Omit<ServiceVu, "etat">): ServiceVu => ({ ...s, etat: "a_activer" });
-const ferme = (s: Omit<ServiceVu, "etat">): ServiceVu => ({ ...s, etat: "indisponible" });
+const enPlace = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "en_place", geste: s.geste ?? { key: "Voir le détail" } });
+const aActiver = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "a_activer", geste: s.geste ?? { key: "Allons-y" } });
 
 /**
  * Les neuf, dans l'ordre des états : ce qui tourne, ce qui dort, ce qui est
@@ -215,7 +244,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
           sinon: { key: "L'émetteur voit une demande chiffrée, jamais un nom." },
         })
-      : ferme({
+      : aActiver({
           n: "09",
           cle: "sondage",
           nom: "Sondage avant adjudication",
@@ -237,7 +266,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           phrase: { key: "Vous détenez {n} parts de {d}, rachetables.", params: { n: c.partsDeFonds.parts, d: c.partsDeFonds.titre } },
           sinon: { key: "Le rachat et la souscription seraient tenus ensemble, sans passer par votre banque." },
         })
-      : ferme({
+      : aActiver({
           n: "08",
           cle: "passage",
           nom: "Passage d'un fonds à l'autre",
@@ -289,7 +318,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           href: "/trader",
           phrase: { key: "Quand une intention inverse existe en interne, elle vous est signalée avant toute sortie sur le marché." },
         })
-      : ferme({
+      : aActiver({
           n: "04",
           cle: "appariement",
           nom: "Appariement des intentions",
@@ -299,8 +328,23 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
         }),
   );
 
-  const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1, indisponible: 2 };
-  return out.sort((a, b) => rang[a.etat] - rang[b.etat]);
+  const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1 };
+  /**
+   * LA PORTE AVANT LE SERVICE. Sans compte-titres ouvert, les neuf commencent
+   * par la même chose, et le dire neuf fois vaut mieux que de griser neuf
+   * fois : le client clique sur ce qui l'intéresse et apprend ce qu'il lui
+   * faut pour l'avoir, au lieu de se heurter à un service éteint.
+   */
+  const ouverts =
+    c.compteOuvert === false
+      ? out.map((x) => ({
+          ...x,
+          href: "/ouvrir-un-compte",
+          geste: { key: "Ouvrir un compte-titres" },
+          porte: { key: "Ce service demande un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces." },
+        }))
+      : out;
+  return ouverts.sort((a, b) => rang[a.etat] - rang[b.etat]);
 }
 
 /**
@@ -374,7 +418,7 @@ export function compteDesEtats(services: ServiceVu[]): Record<EtatService, numbe
   return {
     en_place: services.filter((s) => s.etat === "en_place").length,
     a_activer: services.filter((s) => s.etat === "a_activer").length,
-    indisponible: services.filter((s) => s.etat === "indisponible").length,
+
   };
 }
 
