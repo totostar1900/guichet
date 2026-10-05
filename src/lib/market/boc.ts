@@ -143,7 +143,7 @@ export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], pr
    */
   const avant = { action: 0, obligation: 0 };
   for (const q of previous) avant[q.instrument] += 1;
-  const manque = (lu, hier, plancher, tolerance) => (hier > 0 ? lu < hier - tolerance : lu < plancher);
+  const manque = (lu: number, hier: number, plancher: number, tolerance: number) => (hier > 0 ? lu < hier - tolerance : lu < plancher);
   if (manque(parsed.equities.length, avant.action, 4, 0)) out.push(`Seulement ${parsed.equities.length} action(s) lue(s)${avant.action ? ` contre ${avant.action} la séance précédente` : ""} : la section semble incomplète.`);
   if (manque(parsed.bonds.length, avant.obligation, 8, 1)) out.push(`Seulement ${parsed.bonds.length} obligation(s) lue(s)${avant.obligation ? ` contre ${avant.obligation} la séance précédente` : ""} : la section semble incomplète.`);
   if (manque(navs.length, prevNavs, 10, 1)) out.push(`Seulement ${navs.length} OPCVM lu(s)${prevNavs ? ` contre ${prevNavs} la séance précédente` : ""} : la table semble incomplète.`);

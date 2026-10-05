@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { memoryRepository } from "@/lib/data/memory";
 import { bocUrl, bondQuote, equityQuote, fundNav, ingestBoc, offerFromQuote, prettyName, validate } from "./boc";
 import { parseBoc } from "./boc-parse";
+import type { Quote } from "@/lib/domain/market";
 
 const text = readFileSync(new URL("./__fixtures__/BOC-20260804.txt", import.meta.url), "utf8");
 const parsed = parseBoc(text);
@@ -134,10 +135,10 @@ describe("les sections incomplètes, mesurées contre la séance précédente", 
   });
 
   /** Une ligne de plus hier qu aujourd hui : on en fabrique une, avec son propre ISIN. */
-  const enPlus = (q, n) => Array.from({ length: n }, (_, i) => ({ ...q, isin: `ZZ${String(i).padStart(10, "0")}`, sessionDate: "2026-08-03" }));
+  const enPlus = (q: Quote, n: number) => Array.from({ length: n }, (_, i) => ({ ...q, isin: `ZZ${String(i).padStart(10, "0")}`, sessionDate: "2026-08-03" }));
 
   it("crie quand une action disparaît, même une seule", () => {
-    const action = quotes.find((q) => q.instrument === "action");
+    const action = quotes.find((q) => q.instrument === "action")!;
     const hier = [...veille(quotes.filter((q) => q.instrument === "action").length, quotes.filter((q) => q.instrument === "obligation").length), ...enPlus(action, 1)];
     const out = incompletes(validate(parsed, quotes, navs, hier, navs.length));
     expect(out.join(" ")).toMatch(/action\(s\) lue\(s\) contre/);
@@ -145,7 +146,7 @@ describe("les sections incomplètes, mesurées contre la séance précédente", 
 
   it("tolère qu'une obligation arrive à échéance, pas que trois disparaissent", () => {
     const base = quotes.filter((q) => q.instrument === "obligation").length;
-    const obl = quotes.find((q) => q.instrument === "obligation");
+    const obl = quotes.find((q) => q.instrument === "obligation")!;
     const tout = veille(quotes.filter((q) => q.instrument === "action").length, base);
     const une = [...tout, ...enPlus(obl, 1)];
     expect(incompletes(validate(parsed, quotes, navs, une, navs.length))).toEqual([]);
