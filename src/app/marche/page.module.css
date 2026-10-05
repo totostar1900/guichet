@@ -70,3 +70,62 @@
   margin: 18px 0 0;
   line-height: 1.6;
 }
+
+/**
+ * UN APERÇU : trois lignes, chacune avec son chiffre.
+ *
+ * La porte montrait la table des sept sociétés, que trois autres pages
+ * portent déjà avec d'autres colonnes. Un aperçu répond à la question qu'on
+ * venait poser et laisse la liste à sa page : il porte un chiffre, jamais une
+ * simple promesse, sinon c'est un lien de plus.
+ */
+.apercu {
+  display: flex;
+  flex-direction: column;
+}
+.apercu a {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+}
+.apercu a:first-child {
+  border-top: 0;
+}
+.apercu a:hover span {
+  color: var(--ink);
+}
+.apercu b {
+  flex: none;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+/* Le nom prend la place qui reste et pousse les chiffres a droite ; sous
+   300 px il passe a la ligne plutot que de serrer le chiffre. */
+.apercu span {
+  flex: 1 1 120px;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+.apercu i {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+.apercu em {
+  font-style: normal;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.hausse {
+  color: var(--good);
+}
+.baisse {
+  color: var(--warn);
+}

@@ -79,3 +79,33 @@ describe("ce qui s'est échangé, et quand le cours a bougé", () => {
     expect(page).toContain("dernierMouvement(");
   });
 });
+
+/**
+ * LA PORTE MONTRE, ELLE NE RECOPIE PAS.
+ *
+ * Audit du 5 octobre 2026 : les sept sociétés paraissaient sur quatre pages
+ * avec quatre jeux de colonnes, et chaque page du marché portait sa famille
+ * deux fois, soit treize liens pour sept pages. La porte montre maintenant
+ * trois lignes et un chiffre de chaque page ; la liste vit à un seul endroit.
+ */
+describe("les aperçus de la porte du marché", () => {
+  const page = readFileSync(join(process.cwd(), "src/app/marche/page.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("ne recopie plus la table des sept sociétés", () => {
+    expect(page, "la liste des sociétés vit sur leur page").not.toContain("<table");
+    expect(page, "trois lignes, pas cinq : au-delà on recopie la table").toContain("weights.slice(0, 3)");
+  });
+
+  /* La promesse du lot : ce que « indexPageData » porte déjà ne se redemande
+     pas. Les actualités vivent ailleurs, d'où la seule requête ajoutée. */
+  it("ne lit que ce qu'elle doit : l'indice, et les actualités publiées", () => {
+    expect(page, "la page lit « indexPageData », pas le dépôt").not.toMatch(/\brepo\(\)/);
+    expect(page).toContain("publishedNews()");
+    expect(page, "la dernière note se calcule des données en main").toContain("quarterNote(undefined, data)");
+  });
+
+  it("laisse la bande du pied au desk, qui n'a ni rail ni pastilles", () => {
+    const strip = readFileSync(join(process.cwd(), "src/components/MarketStrip.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(strip).toContain('if (mode !== "desk") return null;');
+  });
+});
