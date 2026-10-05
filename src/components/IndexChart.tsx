@@ -71,7 +71,7 @@ function HowTo({ text }: { text: string }) {
   return (
     <div className={styles.howTo}>
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        {open ? "×" : "?"} {t("Comment lire ce graphique")}
+        {t("Comment lire ce graphique ?")} {open ? "×" : ""}
       </button>
       {open && <p>{text}</p>}
     </div>

@@ -311,3 +311,54 @@ tfoot .when {
   font-size: 0.8rem;
   line-height: 1.5;
 }
+
+/* Le nom de la carte : il manquait, et le grand chiffre flottait sans dire
+   ce qu'il mesurait. */
+.levelH {
+  flex: 1 0 100%;
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+/**
+ * LE PORTRAIT RANGE LA CARTE AUTREMENT.
+ *
+ * En paysage, le grand chiffre et ses sept mesures tiennent sur une ligne qui
+ * se lit de gauche à droite. En portrait, la même rangée se repliait en
+ * colonnes inégales, chacune de la largeur de son mot : « depuis le
+ * 1er janvier » prenait trois fois la place de « un mois », et les chiffres
+ * ne s'alignaient plus. Deux colonnes égales, et la lecture revient.
+ */
+@media (max-width: 700px) {
+  .level {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-6);
+  }
+  .deltas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--s-5) var(--s-7);
+  }
+}
+/* Le pli « Données et méthode » : une ligne tant qu'on ne l'ouvre pas. */
+.teach > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.teach > summary::-webkit-details-marker {
+  display: none;
+}
+.teach > summary h2 {
+  margin: 0;
+}
+.teach > summary h2::after {
+  content: " +";
+  color: var(--ink-3);
+}
+.teach[open] > summary h2::after {
+  content: " –";
+}

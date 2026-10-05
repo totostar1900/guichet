@@ -99,7 +99,6 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const high = year.reduce<typeof last>((a, p) => (!a || p.value > a.value ? p : a), undefined);
   const low = year.reduce<typeof last>((a, p) => (!a || p.value < a.value ? p : a), undefined);
   const movedSessions = [...stats.points].filter((p) => (p.variationPct ?? 0) !== 0).reverse();
-  const flat = stats.points.length - movedSessions.length;
   const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? "" : v > 0 ? styles.up : styles.down);
   const capT = weights.reduce((a, w) => a + w.capTotal, 0);
   const capF = weights.reduce((a, w) => a + w.capFloat, 0);
@@ -131,6 +130,9 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
         <div className={styles.withRail}>
           <div className={styles.sections}>
             <section className={styles.level} id="niveau">
+            {/* La carte porte un nom : sans lui, le grand chiffre flottait en
+                tête de page sans dire ce qu'il mesurait. */}
+            <h2 className={styles.levelH}>{t("Le niveau du jour")}</h2>
             <div className={styles.big}>
               <small>{fmtDate(last.date)}</small>
               <b>{lvl(last.value)}</b>
@@ -165,25 +167,20 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
                   </div>
                 </>
               )}
+              {/* LA TAILLE DU MARCHÉ ET CE QU'IL ÉCHANGE, à côté de son
+                  niveau : les deux vivaient plus bas, dans « Données », où
+                  l'on ne descend pas pour savoir de quoi on parle. Leur
+                  provenance et leur détail y restent. */}
               <div>
-                <dt>{t("séances lues")}</dt>
-                <dd>
-                  {stats.points.length} <small>{t("dont {n} sans mouvement", { n: String(flat) })}</small>
-                </dd>
+                <dt>{t("Capitalisation")}</dt>
+                <dd>{money(capT)} <small>FCFA</small></dd>
+              </div>
+              <div>
+                <dt>{t("Échangé sur 12 mois")}</dt>
+                <dd>{money(amount12)} <small>FCFA</small></dd>
               </div>
             </dl>
 
-            {/* La fraîcheur du panier, à côté du niveau qu'elle qualifie. */}
-            {dormances.length > 0 && (
-              <p className={styles.fraicheur}>
-                {t("Sur les {m} valeurs du panier, {n} ont traité dans la semaine.", { m: String(dormances.length), n: String(dormances.length - dormantes.length) })}{" "}
-                {dormantes.length > 0
-                  ? t("{liste} : leur cours est celui de leur dernière transaction, et l'indice le reprend tel quel.", {
-                      liste: dormantes.map((d) => (d.jours == null ? t("{m}, aucune transaction sur la période", { m: d.mnemo }) : t("{m}, il y a {j} jours", { m: d.mnemo, j: String(d.jours) }))).join(" · "),
-                    })
-                  : t("Le niveau publié repose donc sur des cours du jour.")}
-              </p>
-            )}
           </section>
 
           <section className="panel" id="courbe">
@@ -465,26 +462,33 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             </div>
           </section>
 
-          <section className={`panel ${styles.teach}`} id="lecture">
-            <div className="panel-h">
-              <h2>{t("Comment le lire")}</h2>
-            </div>
-            <div className={styles.three}>
-              <p>
-                <b>{t("Un indice de prix")}</b> : {t("il ne compte pas les dividendes. La performance d'un porteur, c'est le cours plus le dividende ; l'indice ne dit que le cours.")}
-              </p>
-              <p>
-                <b>{t("Une ou deux valeurs")}</b> : {t("les poids sont très inégaux, une variation de l'indice est presque toujours le mouvement d'une ou deux sociétés. Le tableau des séances dit laquelle.")}
-              </p>
-              <p>
-                <b>{t("0,00 % est la norme")}</b> : {t("sans transaction, le cours de référence ne bouge pas et l'indice non plus. Une séance plate est une séance sans échange, pas un marché calme.")}
-              </p>
-            </div>
+          {/* TROIS PARAGRAPHES SONT DEVENUS QUATRE LIGNES. Ils expliquaient
+              l'indice par ses manques, « les poids sont très inégaux », « 0,00 %
+              est la norme », là où la leçon l'explique déjà et mieux. Reste ce
+              qu'une page de données doit porter : d'où viennent les chiffres,
+              ce que l'indice mesure, et ce qu'il ne mesure pas. */}
+          <details className={`panel ${styles.teach}`} id="lecture">
+            <summary>
+              <h2>{t("Données et méthode")}</h2>
+            </summary>
             <p className={styles.method}>
-              {t("Méthode")} : {t("indice pondéré par la capitalisation ; la base, la date de base et la règle de pondération (capital global ou flottant) sont à confirmer auprès de la BVMAC. L'historique commence au premier bulletin lu par le Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
-              {t("Le Guichet montre l'indice et l'explique ; il ne le prend jamais pour un objectif à battre.")}
+              {t("Indice de prix pondéré par la capitalisation, lu dans chaque bulletin officiel de la cote de la BVMAC et montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.")}{" "}
+              {t("La base, la date de base et la règle de pondération sont à confirmer auprès de la BVMAC. L'historique commence au premier bulletin lu par le Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
+              {t("Le Guichet le publie et l'explique : c'est un repère de lecture du marché, que chacun rapporte ensuite à ses propres objectifs.")}
             </p>
-            </section>
+            {/* La fraîcheur du panier : elle qualifie le niveau, et c'est une
+                précision de méthode plutôt qu'une phrase de carte. */}
+            {dormances.length > 0 && (
+              <p className={styles.method}>
+                {t("Sur les {m} valeurs du panier, {n} ont traité dans la semaine.", { m: String(dormances.length), n: String(dormances.length - dormantes.length) })}{" "}
+                {dormantes.length > 0
+                  ? t("{liste} : leur cours est celui de leur dernière transaction, et l'indice le reprend tel quel.", {
+                      liste: dormantes.map((d) => (d.jours == null ? t("{m}, aucune transaction sur la période", { m: d.mnemo }) : t("{m}, il y a {j} jours", { m: d.mnemo, j: String(d.jours) }))).join(" · "),
+                    })
+                  : t("Le niveau publié repose donc sur des cours du jour.")}
+              </p>
+            )}
+            </details>
             <MarketStrip current="indice" mode={mode} />
             <BackToTop />
           </div>

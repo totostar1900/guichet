@@ -1072,6 +1072,14 @@ export const EN_REST: Record<string, string> = {
   /* Un douze mois vide : le fonds n'a pas un an, ou nos VL ne remontent pas
      si loin. La case ne peut pas confondre les deux. */
   "pas encore un an": "not a year old yet",
+  /* La page de l'indice : la carte nommée, et la méthode en quatre lignes. */
+  "Le niveau du jour": "Where the index stands",
+  "Échangé sur 12 mois": "Traded over 12 months",
+  "Données et méthode": "Data and method",
+  "Comment lire ce graphique ?": "How to read this chart?",
+  "Indice de prix pondéré par la capitalisation, lu dans chaque bulletin officiel de la cote de la BVMAC et montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.": "A price index weighted by capitalisation, read from every official quotation bulletin of the BVMAC and shown as published. Dividends are not in it: a holder's performance is the price and the dividend.",
+  "La base, la date de base et la règle de pondération sont à confirmer auprès de la BVMAC. L'historique commence au premier bulletin lu par le Guichet, le {d}.": "The base, the base date and the weighting rule are to be confirmed with the BVMAC. The history starts at the first bulletin Guichet read, on {d}.",
+  "Le Guichet le publie et l'explique : c'est un repère de lecture du marché, que chacun rapporte ensuite à ses propres objectifs.": "Guichet publishes it and explains it: it is a reading point for the market, which everyone then relates to their own goals.",
   "VL lues sur moins d'un an": "NAVs read over less than a year",
   "dernier mouvement le {d}, {v}": "last move on {d}, {v}",
   "aucun mouvement depuis la première séance lue, le {d}": "no move since the first session read, on {d}",
