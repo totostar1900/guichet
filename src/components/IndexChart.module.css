@@ -126,51 +126,11 @@
   fill: var(--gold);
   opacity: 0.08;
 }
-.tip {
-  position: fixed;
-  transform: translateX(-50%);
-  background: var(--tip-bg);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 0.76rem;
-  color: var(--tip-ink-2);
-  display: grid;
-  gap: 2px;
-  pointer-events: none;
-  box-shadow: var(--tip-shadow);
-  font-variant-numeric: tabular-nums;
-  z-index: 30;
-  width: 240px;
-  max-width: calc(100vw - 16px);
-}
-.tipAbove {
-  transform: translate(-50%, -100%);
-}
-.tip b {
-  color: var(--tip-ink);
-}
-.tip em {
-  font-style: normal;
-  font-weight: 700;
-}
-.tipSince {
-  color: var(--tip-ink-3);
-}
-.tipMovers {
-  color: var(--tip-accent);
-  font-weight: 700;
-}
 .upT {
   color: var(--good);
 }
 .downT {
   color: var(--warn);
-}
-.tip .upT {
-  color: var(--tip-up);
-}
-.tip .downT {
-  color: var(--tip-down);
 }
 .pinsBar {
   display: flex;

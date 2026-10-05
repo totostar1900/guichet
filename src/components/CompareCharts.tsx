@@ -10,7 +10,7 @@ import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import q from "./QuoteHistory.module.css";
 import styles from "./CompareCharts.module.css";
 import { useT } from "@/i18n/client";
-import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useTracker } from "./charts/tracker";
 
 /**
  * The graphs under the comparison table. Which ones appear depends on the
@@ -361,20 +361,31 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
     const p = series.map((s) => atStop(s, d)).find(Boolean);
     return p ? y(p.y) : H / 2;
   };
-  const track = useTracker({ keys, x: (i) => x(stops[i].d), yAt: (i) => anchorY(stops[i].d), W, H: H + 18, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
+  const track = useTracker({ keys, x: (i) => x(stops[i].d), W, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
   if (ys.length === 0) return <div className="empty">{t("Pas assez d'historique commun.")}</div>;
   const path = (s: XY[], step?: boolean) => s.map((p, i) => `${i === 0 ? "M" : step ? "L" : "L"}${x(px(p)).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const baseY = area === "down" ? y(Math.max(min, Math.min(max, 0))) : H - pad;
   const axis = axisLabel(dates, phone);
   const hs = track.hover != null ? stops[track.hover] : null;
   const hovered = hs ? series.map((s) => atStop(s, hs.d)) : [];
-  const anchor = hovered.find(Boolean);
   const when = (st: { d: number; date: string }) => (xDays ? `${Math.round(st.d / 30)} ${t("mois")}` : fmtDate(st.date));
   const stopOf = (k?: string) => (k ? stops.find((st) => String(st.d) === k) : undefined);
   const sA = stopOf(track.pinA);
   const sB = stopOf(track.pinB);
+  /* DEUX SÉRIES, DEUX LIGNES, chacune avec la pastille de sa courbe. Au repos
+     le dernier point commun : comparer sans toucher est le geste le plus
+     fréquent de cette page. */
+  const stDernier = stops[stops.length - 1];
+  const stLu = hs ?? stDernier;
+  const auStop = stLu ? series.map((s) => atStop(s, stLu.d)) : [];
+  const lu: Lu = {
+    quand: stLu ? when(stLu) : "",
+    dit: hs ? t("point lu") : t("dernier point"),
+    series: auStop.map((p, i) => ({ classe: COLORS[i], nom: labels[i], valeur: p ? fmtY(p.y) : "—" })),
+  };
   return (
     <div className={styles.dual}>
+      <TrackBand lu={lu} mince onClear={sA ? () => setPins([]) : undefined} clearLabel={t("effacer")} />
       <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={labels.join(" / ")} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={q.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={q.guide} />
@@ -406,24 +417,6 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
         ))}
         <TrackMarks x={(k) => x(Number(k))} y={(k) => anchorY(Number(k))} hover={hs ? String(hs.d) : undefined} pinA={track.pinA} pinB={track.pinB} padT={pad} padB={18 + pad} H={H + 18} />
       </svg>
-      {anchor && hs && (
-        <TrackTip pos={track.pos}>
-          <b>{when(hs)}</b>
-          {hovered.map((p, i) =>
-            p ? (
-              <span key={i}>
-                <i className={COLORS[i]}>■</i> {labels[i]} : <b>{fmtY(p.y)}</b>
-              </span>
-            ) : null,
-          )}
-          {bench && anchor.date && (
-            <span>
-              <i className={styles.bench}>┄</i> {bench.label} : {fmtY(bench.at(anchor.date))}
-            </span>
-          )}
-          <small>{sA && !sB ? t("toucher pour lire l'écart depuis l'épingle") : t("toucher deux points pour lire un écart")}</small>
-        </TrackTip>
-      )}
       {sA && sB ? (
         <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
           <b>

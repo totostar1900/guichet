@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useOutsideTap } from "./chart-utils";
-import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useTracker } from "./charts/tracker";
 import styles from "./Charts.module.css";
 import { useT } from "@/i18n/client";
 
@@ -63,7 +63,7 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
   const x = (i: number) => (points.length === 1 ? W / 2 : padL + (i * (W - padL - padR)) / Math.max(1, points.length - 1));
   const y = (v: number) => padT + (H - padT - padB) * (1 - (v - min) / (max - min));
   const keys = points.map((p) => p.date);
-  const track = useTracker({ keys, x, yAt: (i) => y(points[i].value), W, H, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
+  const track = useTracker({ keys, x, W, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
   if (points.length === 0) return <div className={styles.empty}>{tr("Pas encore de cours sur cette période.")}</div>;
   const ticks = niceTicks(min, max, 4);
   const d = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(" ");
@@ -79,8 +79,48 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
   const between = pA && pB ? points.slice(idx(pA.date), idx(pB.date) + 1) : [];
   const amountBetween = between.slice(1).reduce((s, p) => s + (p.amount ?? 0), 0);
   const volumeBetween = between.slice(1).reduce((s, p) => s + (p.volume ?? 0), 0);
+  const ecart = (de: number, a: number) => <em className={a >= de ? trackStyles.up : trackStyles.down}>{pct(de ? ((a - de) / Math.abs(de)) * 100 : 0)}</em>;
+  /* LE BANDEAU DIT TROIS CHOSES, DANS CET ORDRE : le point sous le doigt, sinon
+     la période épinglée, sinon le dernier cours. L'ordre compte : une lecture en
+     cours passe devant une épingle posée avant elle. */
+  const lu: Lu = h
+    ? {
+        quand: frDate(h.date),
+        dit: tr("séance lue"),
+        valeur: `${full(h.value)} ${unit}`,
+        sous: h.volume != null ? (h.volume ? `${full(h.volume)} ${tr("titres")} · ${fmtShort(h.amount ?? 0)} FCFA` : tr("aucun échange")) : h.extra,
+        droite: [
+          prev ? (
+            <>
+              {tr("séance précédente")} {ecart(prev.value, h.value)}
+            </>
+          ) : null,
+          <>
+            {tr("début de période")} {ecart(points[0].value, h.value)}
+          </>,
+        ].filter((n): n is React.ReactElement => n !== null),
+      }
+    : pA && pB
+      ? {
+          quand: `${frDate(pA.date)} → ${frDate(pB.date)}`,
+          dit: tr("période épinglée"),
+          valeur: ecart(pA.value, pB.value),
+          sous: `${full(pA.value)} → ${full(pB.value)} ${unit}`,
+          droite: [`${between.length} ${tr("séances")}`],
+        }
+      : {
+          quand: frDate(last.date),
+          dit: tr("dernier cours"),
+          valeur: `${full(last.value)} ${unit}`,
+          droite: [
+            <>
+              {tr("début de période")} {ecart(points[0].value, last.value)}
+            </>,
+          ],
+        };
   return (
     <div className={styles.wrapRel}>
+      <TrackBand lu={lu} onClear={pA ? () => setPins([]) : undefined} clearLabel={tr("effacer")} />
       <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={ariaLabel} {...track.handlers}>
         {ticks.map((t) => (
           <g key={t}>
@@ -105,36 +145,13 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
         ))}
         <TrackMarks x={(k) => x(idx(k))} y={(k) => y(points[idx(k)].value)} hover={h?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
       </svg>
-      {h && (
-        <TrackTip pos={track.pos}>
-          <b>
-            {full(h.value)} {unit}
-          </b>
-          <span>{frDate(h.date)}</span>
-          {prev && (
-            <span>
-              {tr("vs séance précédente")} : <em className={h.value >= prev.value ? trackStyles.up : trackStyles.down}>{pct(((h.value - prev.value) / prev.value) * 100)}</em>
-            </span>
-          )}
-          <span>
-            {tr("vs début de période")} : <em className={h.value >= points[0].value ? trackStyles.up : trackStyles.down}>{pct(((h.value - points[0].value) / points[0].value) * 100)}</em>
-          </span>
-          {h.volume != null && <small>{h.volume ? `${full(h.volume)} ${tr("titres")} · ${fmtShort(h.amount ?? 0)} FCFA` : tr("aucun échange")}</small>}
-          {h.extra && <span>{h.extra}</span>}
-          <small>{pA && !pB ? tr("toucher pour lire l'écart depuis l'épingle") : tr("toucher deux points pour lire un écart")}</small>
-        </TrackTip>
-      )}
-      {pA && pB ? (
-        <RangeRead onClear={() => setPins([])} clearLabel={tr("effacer")}>
-          <b>
-            {frDate(pA.date)} → {frDate(pB.date)}
-          </b>{" "}
-          : {full(pA.value)} → {full(pB.value)} {unit}, <b className={pB.value >= pA.value ? trackStyles.up : trackStyles.down}>{pct(((pB.value - pA.value) / pA.value) * 100)}</b> · {between.length} {tr("séances")}
-          {volumeBetween ? ` · ${full(volumeBetween)} ${tr("titres")} · ${fmtShort(amountBetween)} FCFA` : ""}
+      {pA && pB && volumeBetween ? (
+        <RangeRead clearLabel={tr("effacer")}>
+          {tr("échangé sur la période")} : {full(volumeBetween)} {tr("titres")} · {fmtShort(amountBetween)} FCFA
         </RangeRead>
-      ) : pA ? (
+      ) : pA && !pB ? (
         <RangeRead onClear={() => setPins([])} clearLabel={tr("effacer")}>
-          <b>{frDate(pA.date)}</b> : {full(pA.value)} {unit} · {tr("touchez une seconde date pour lire l'écart")}
+          <b>{frDate(pA.date)}</b> {tr("est épinglée")} · {tr("touchez une seconde date pour lire l'écart")}
         </RangeRead>
       ) : null}
     </div>
@@ -150,6 +167,7 @@ function svgX(e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElemen
 
 /** Grouped bars per year (e.g. revenue and net income). Values in FCFA. */
 export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: string[]; series: { name: string; values: number[]; accent?: boolean }[]; height?: number; ariaLabel: string }) {
+  const t = useT();
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
   useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
@@ -174,9 +192,30 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
     const i = Math.floor((px - padL) / gw);
     setHover(i >= 0 && i < groups.length ? i : null);
   };
-  const tipLeft = hover != null ? Math.min(Math.max(padL + hover * gw + gw / 2, padL + 100), W - padR - 100) : 0;
+  /* Les barres suivent la même règle que les courbes : l'exercice sous le
+     doigt, sinon le dernier. Le point n'est pas une date mais une année, et
+     chaque série prend une ligne avec la pastille de sa barre. */
+  const gi = hover ?? groups.length - 1;
+  const luB: Lu = {
+    quand: groups[gi] ?? "",
+    dit: hover != null ? t("exercice lu") : t("dernier exercice"),
+    series: series.map((s) => ({
+      couleur: s.accent ? "var(--chart-in)" : "var(--chart-out)",
+      nom: s.name,
+      valeur: `${fmtShort(s.values[gi] ?? 0)} FCFA`,
+    })),
+    droite:
+      gi > 0 && series[0]?.values[gi - 1]
+        ? [
+            <>
+              {t("sur un an")} <em className={(series[0].values[gi] ?? 0) >= (series[0].values[gi - 1] ?? 0) ? trackStyles.up : trackStyles.down}>{pct((((series[0].values[gi] ?? 0) - (series[0].values[gi - 1] ?? 0)) / Math.abs(series[0].values[gi - 1] ?? 1)) * 100)}</em>
+            </>,
+          ]
+        : undefined,
+  };
   return (
     <div className={styles.wrapRel}>
+      <TrackBand lu={luB} />
       <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={ariaLabel} onMouseMove={onMove} onMouseLeave={() => setHover(null)} onTouchStart={onMove} onTouchMove={onMove}>
         {ticks.map((t) => (
           <g key={t}>
@@ -219,24 +258,6 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
           </g>
         ))}
       </svg>
-      {hover != null && (
-        <div className={styles.tip} style={{ left: `${(tipLeft / W) * 100}%`, top: 0 }}>
-          <b>{groups[hover]}</b>
-          {series.map((s) => {
-            const v = s.values[hover] ?? 0;
-            const p = hover > 0 ? s.values[hover - 1] : undefined;
-            return (
-              <span key={s.name}>
-                {s.name} : <b>{fmtShort(v)} FCFA</b> ({full(v)})
-                {p ? ` · ${pct(((v - p) / Math.abs(p)) * 100)} vs ${groups[hover - 1]}` : ""}
-              </span>
-            );
-          })}
-          {series.length === 2 && series[0].values[hover] ? <span>
-              {series[1].name.toLowerCase()} / {series[0].name.toLowerCase()} : {pct(((series[1].values[hover] ?? 0) / series[0].values[hover]) * 100).replace("+", "")}
-            </span> : null}
-        </div>
-      )}
     </div>
   );
 }

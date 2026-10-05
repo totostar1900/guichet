@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RangeRead, TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, RangeRead, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { labelMetrics, usePhone } from "./chart-utils";
 import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
@@ -62,9 +62,7 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
   const track = useTracker({
     keys,
     x,
-    yAt: (i) => y(series[i].nav),
     W,
-    H: H + row.extra,
     pins,
     onPin: (k) => {
       if (!onRange) return;
@@ -78,9 +76,34 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
   const hover = track.hover;
   const h = hover == null ? null : series[hover];
   const prev = hover != null && hover > 0 ? series[hover - 1] : null;
+  /* Au repos la dernière VL, sous le doigt celle qu'il désigne. Le bandeau
+     porte la variation de la séance ; la performance depuis l'origine est déjà
+     écrite à côté du graphique, la répéter ici coûterait la ligne qui reste. */
+  const vu = h ?? series[last];
+  const varVu = h ? (h.variationPct ?? (prev ? (h.nav / prev.nav - 1) * 100 : undefined)) : series[last].variationPct;
+  const lu: Lu = {
+    quand: fmtDate(vu.date),
+    dit: h ? t("VL lue") : t("dernière VL"),
+    valeur: `${fmt(vu.nav)} FCFA`,
+    droite: [
+      <>
+        {t("séance")} <em className={(varVu ?? 0) >= 0 ? trackStyles.up : trackStyles.down}>{signed(varVu)}</em>
+      </>,
+      sinceStart && h && hover != null && hover > 0 ? (
+        <>
+          {t("sur la période")} <em className={h.nav >= series[0].nav ? trackStyles.up : trackStyles.down}>{signed(series[0].nav > 0 ? (h.nav / series[0].nav - 1) * 100 : undefined)}</em>
+        </>
+      ) : (
+        <>
+          {t("depuis l'origine")} <em className={(vu.perfSinceInceptionPct ?? 0) >= 0 ? trackStyles.up : trackStyles.down}>{signed(vu.perfSinceInceptionPct)}</em>
+        </>
+      ),
+    ],
+  };
 
   return (
     <div className={styles.navChart}>
+      <TrackBand lu={lu} mince />
       <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={`${series.length} ${t("valeurs liquidatives publiées")}, ${fmt(series[0].nav)} → ${fmt(series[last].nav)} FCFA`} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
@@ -106,27 +129,6 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
         ))}
         <TrackMarks x={(k) => x(idx(k))} y={(k) => y(series[idx(k)].nav)} hover={h?.date} pinA={pin ?? track.pinA} pinB={pin ? undefined : track.pinB} padT={pad} padB={row.extra + pad} H={H + row.extra} />
       </svg>
-      {h && hover != null && (
-        <TrackTip pos={track.pos}>
-          <b>{fmt(h.nav)} FCFA</b>
-          <span>
-            {t("VL du")} {fmtDate(h.date)} · BOC n° {h.bulletinNo}
-          </span>
-          <span>
-            {t("Variation")} <em className={(h.variationPct ?? (prev ? h.nav / prev.nav - 1 : 0)) >= 0 ? trackStyles.up : trackStyles.down}>{signed(h.variationPct ?? (prev ? (h.nav / prev.nav - 1) * 100 : undefined))}</em>
-            {prev ? ` ${t("depuis le")} ${fmtDate(prev.date, false)}` : ""}
-          </span>
-          {sinceStart && hover > 0 && (
-            <span>
-              {t("Depuis le début de la période")} {signed(series[0].nav > 0 ? (h.nav / series[0].nav - 1) * 100 : undefined)}
-            </span>
-          )}
-          <span>
-            {t("Depuis l'origine")} {signed(h.perfSinceInceptionPct)}
-          </span>
-          {onRange && <small>{pin ? t("toucher pour fermer la période à cette date") : t("toucher deux dates pour recadrer la période")}</small>}
-        </TrackTip>
-      )}
       {pin && (
         <RangeRead onClear={() => setPin(null)} clearLabel={t("effacer")}>
           <b>{fmtDate(pin)}</b> : {t("touchez une seconde date pour recadrer la période")}

@@ -167,7 +167,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
               {t("Fonds propres")} <Info term="fonds_propres" /> {t("et total du bilan")} <Info term="total_bilan" />
             </h2>
             <div className={styles.unitNote}>{t("en FCFA · survolez les barres pour les montants exacts")}</div>
-            <BarChart groups={years} series={[{ name: "Total du bilan", values: figs.map((f) => f.totalAssets) }, { name: "Fonds propres", values: figs.map((f) => f.equity), accent: true }]} ariaLabel="Total du bilan et fonds propres par année" />
+            <BarChart groups={years} series={[{ name: t("Total du bilan"), values: figs.map((f) => f.totalAssets) }, { name: t("Fonds propres"), values: figs.map((f) => f.equity), accent: true }]} ariaLabel={t("Total du bilan et fonds propres par année")} />
             <div className={styles.reading}>
               <b>{t("Comment lire.")}</b> {t("Le total du bilan est tout ce que l'entreprise possède ; les fonds propres, la part qui appartient aux actionnaires. Des fonds propres qui grossissent année après année veulent dire que l'entreprise garde une partie de ses bénéfices.")} {c.sector === "Banque" || c.sector === "Holding bancaire" ? t("Pour une banque, un bilan très supérieur aux fonds propres est normal : il est constitué des dépôts des clients.") : ""}
             </div>

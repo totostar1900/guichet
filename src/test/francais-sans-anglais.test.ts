@@ -39,6 +39,20 @@ import { describe, expect, it } from "vitest";
  */
 const SURVEILLES = ["src"];
 
+/**
+ * Les noms sous lesquels le traducteur est appelé DANS CE FICHIER.
+ *
+ * « const tr = useT() » existe, et le motif « \bt\( » ne voit pas « tr( » :
+ * Charts.tsx était invisible en entier, et cinq chaînes y sont restées en
+ * français dans l'interface anglaise. On ne devine plus le nom, on le lit.
+ */
+const appels = (s: string): RegExp => {
+  const noms = new Set(["t"]);
+  for (const m of s.matchAll(/\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*useT\(\)/g)) noms.add(m[1]);
+  for (const m of s.matchAll(/\bconst\s*\{\s*t\s*:\s*([A-Za-z_$][\w$]*)\s*\}\s*=/g)) noms.add(m[1]);
+  return new RegExp(`\\b(?:${[...noms].join("|")})\\(\\s*"((?:[^"\\\\]|\\\\.)*)"`, "g");
+};
+
 /*
  * PLUS DE DÉTECTEUR : TOUTE chaîne passée à t() doit être au dictionnaire.
  *
@@ -104,11 +118,20 @@ describe("le français sans anglais", () => {
     expect(SURVEILLES.flatMap(fichiers).length).toBeGreaterThan(400);
   });
 
+  /**
+   * LE QUATRIÈME ANGLE MORT, trouvé le 5 octobre 2026. Trois étaient écrits
+   * ailleurs : t(variable), le littéral dans un attribut, l'appel absent au
+   * rendu. Celui-ci est le traducteur renommé : « const tr = useT() » dans
+   * Charts.tsx, et le motif « \bt\( » ne voit pas « tr( ». Le fichier entier
+   * était invisible des deux côtés, et cinq chaînes s'affichaient en français
+   * dans l'interface anglaise sans que rien n'échoue. On lit la liaison au
+   * lieu de supposer le nom.
+   */
   it.each(SURVEILLES)("ne laisse aucune chaîne sans traduction dans %s", (cible) => {
     const trous: string[] = [];
     for (const f of fichiers(cible)) {
       const s = readFileSync(f, "utf8");
-      for (const m of s.matchAll(/\bt\(\s*"((?:[^"\\]|\\.)*)"/g)) {
+      for (const m of s.matchAll(appels(s))) {
         let clef: string;
         try {
           clef = JSON.parse(`"${m[1]}"`) as string;

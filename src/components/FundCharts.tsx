@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RangeRead, TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, RangeRead, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { labelMetrics, usePhone } from "./chart-utils";
 import { axisLabel, axisRow, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
@@ -108,9 +108,7 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
   const track = useTracker({
     keys,
     x,
-    yAt: (i) => y(series[i].y),
     W,
-    H: H + row.extra,
     pins,
     onPin: (k) => {
       if (!onRange) return;
@@ -133,9 +131,46 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
   const hover = track.hover;
   const h = hover == null ? null : series[hover];
   if (n === 0) return <div className="empty">{t(mode === "rendement" ? "Pas assez d'historique pour une fenêtre de {n} jours." : "Aucune VL publiée sur cette période.", { n: windowDays ?? 365 })}</div>;
+  /* UNE LECTURE, QUATRE CONTENUS. Le bandeau garde la même forme dans les
+     quatre modes (quand · combien · de combien), et chaque mode choisit ce que
+     « combien » veut dire chez lui : un rendement annuel, un montant, un pas de
+     VL, un écart au plus haut. */
+  const vu = h ?? series[last];
+  const lu: Lu = {
+    quand: fmtDate(vu.date),
+    dit: h ? t("point lu") : t("dernier point"),
+    valeur: mode === "placement" ? `${fmt(vu.y)} FCFA` : mode === "repli" && vu.y === 0 ? t("au plus haut") : signed(vu.y),
+    droite: [
+      mode === "rendement" ? (
+        <>
+          {t("depuis le")} {fmtDate(vu.from ?? vu.date, false)}
+        </>
+      ) : mode === "placement" ? (
+        <>
+          {t("vs la mise")} <em className={vu.y >= REF_AMOUNT ? trackStyles.up : trackStyles.down}>{signed((vu.y / REF_AMOUNT - 1) * 100)}</em>
+        </>
+      ) : (
+        <>
+          {t("VL")} {fmt(vu.nav)} FCFA
+        </>
+      ),
+      benchmark && mode === "rendement" ? (
+        <>
+          {benchmark.label} {fmtPct(benchmark.pct, 2)} · {t("écart")} <em className={vu.y >= benchmark.pct ? trackStyles.up : trackStyles.down}>{signed(vu.y - benchmark.pct)}</em>
+        </>
+      ) : benchmark && mode === "placement" && bench ? (
+        <>
+          {benchmark.label} {fmt(bench[hover ?? last])} FCFA
+        </>
+      ) : mode === "variations" ? (
+        <>BOC n° {vu.bulletinNo}</>
+      ) : null,
+    ].filter((node): node is React.ReactElement => node !== null),
+  };
 
   return (
     <div className={styles.navChart}>
+      <TrackBand lu={lu} mince />
       <svg className={trackStyles.track} viewBox={`0 0 ${W} ${H + row.extra}`} role="img" aria-label={t(MODE_LABEL[mode])} {...track.handlers}>
         <line x1={padX} x2={W - pad} y1={y(max)} y2={y(max)} className={styles.guide} />
         <line x1={padX} x2={W - pad} y1={y(min)} y2={y(min)} className={styles.guide} />
@@ -183,57 +218,6 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
             <i className={styles.keyBench}>┄</i> {benchmark.label} · {fmtPct(benchmark.pct, 2)} {t(mode === "rendement" ? "par an" : "par an, le même montant placé au même taux")}
           </span>
         </div>
-      )}
-      {h && hover != null && (
-        <TrackTip pos={track.pos}>
-          {mode === "rendement" && (
-            <>
-              <b>{signed(h.y)} {t("par an")}</b>
-              <span>
-                {t("du")} {fmtDate(h.from ?? h.date, false)} {t("au")} {fmtDate(h.date)}
-              </span>
-              {benchmark && (
-                <span>
-                  {benchmark.label} {fmtPct(benchmark.pct, 2)} · {t("écart")} {signed(h.y - benchmark.pct)}
-                </span>
-              )}
-            </>
-          )}
-          {mode === "placement" && (
-            <>
-              <b>{fmt(h.y)} FCFA</b>
-              <span>
-                {t("le")} {fmtDate(h.date)} · {signed((h.y / REF_AMOUNT - 1) * 100)}
-              </span>
-              {bench && (
-                <span>
-                  {benchmark?.label} : {fmt(bench[hover])} FCFA
-                </span>
-              )}
-            </>
-          )}
-          {mode === "variations" && (
-            <>
-              <b>{signed(h.y)}</b>
-              <span>
-                {t("VL du")} {fmtDate(h.date)} · {fmt(h.nav)} FCFA
-              </span>
-              <span>
-                {t("depuis le")} {fmtDate(h.from ?? h.date, false)} · BOC n° {h.bulletinNo}
-              </span>
-            </>
-          )}
-          {mode === "repli" && (
-            <>
-              <b>{h.y === 0 ? t("au plus haut") : signed(h.y)}</b>
-              <span>
-                {t("VL du")} {fmtDate(h.date)} · {fmt(h.nav)} FCFA
-              </span>
-              <span>{t("écart au plus haut atteint avant cette date")}</span>
-            </>
-          )}
-          {onRange && <small>{pin ? t("toucher pour fermer la période à cette date") : t("toucher deux dates pour recadrer la période")}</small>}
-        </TrackTip>
       )}
       {pin && (
         <RangeRead onClear={() => setPin(null)} clearLabel={t("effacer")}>

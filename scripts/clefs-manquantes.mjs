@@ -57,11 +57,25 @@ for (const f of readdirSync(dossier).filter((x) => /^en.*\.ts$/.test(x))) {
    parmi d'autres. Un mot identique dans les deux langues s'inscrit sur
    lui-même. */
 
+/**
+ * Les noms sous lesquels le traducteur est appelé DANS CE FICHIER.
+ *
+ * « const tr = useT() » existe, et le motif « \\bt\\( » ne le voyait pas :
+ * Charts.tsx était invisible en entier, scanner et cliquet compris, et cinq
+ * chaînes y sont restées en français dans l'interface anglaise. On ne devine
+ * plus le nom, on le lit.
+ */
+const appels = (s) => {
+  const noms = new Set(["t"]);
+  for (const m of s.matchAll(/\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*useT\(\)/g)) noms.add(m[1]);
+  for (const m of s.matchAll(/\bconst\s*\{\s*t\s*:\s*([A-Za-z_$][\w$]*)\s*\}\s*=/g)) noms.add(m[1]);
+  return new RegExp(`\\b(?:${[...noms].join("|")})\\(\\s*"((?:[^"\\\\]|\\\\.)*)"`, "g");
+};
 const vues = new Set();
 const cibles = fichiers(process.argv.slice(2));
 for (const cible of cibles) {
   const s = readFileSync(cible, "utf8");
-  for (const m of s.matchAll(/\bt\(\s*"((?:[^"\\]|\\.)*)"/g)) {
+  for (const m of s.matchAll(appels(s))) {
     let clef;
     try {
       clef = JSON.parse(`"${m[1]}"`);

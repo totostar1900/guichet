@@ -5,22 +5,37 @@ import type React from "react";
 import styles from "./tracker.module.css";
 
 /**
- * The tracking of a time chart, shared by every chart of the platform : the
- * nearest point under the pointer, a bubble fixed to the viewport (never
- * clipped by a panel, kept inside the window, above the point near the
- * bottom), and two pins that set a range. On touch, the first tap reads,
- * the second on the same point pins. The chart keeps its own drawing ; it
- * spreads `handlers` on its <svg>, draws <TrackMarks>, and renders the
- * bubble with <TrackTip>.
+ * LE SUIVI D'UN GRAPHIQUE, PARTAGÉ PAR TOUTE LA PLATEFORME : le point le plus
+ * proche du pointeur, un bandeau de hauteur fixe AU-DESSUS du tracé, et deux
+ * épingles qui posent une période. Au doigt, le premier toucher lit, le second
+ * sur le même point épingle. Le graphique garde son dessin ; il pose
+ * `handlers` sur son <svg>, dessine <TrackMarks>, et écrit <TrackBand>.
+ *
+ * LA BULLE EST PARTIE, le 5 octobre 2026. Mesurée au téléphone sur l'indice :
+ * 240 × 90 px dans un tracé de 313 × 235, soit 30 % du dessin, et le doigt
+ * (44 px) se posait dessus. La bulle se place à côté du point, donc SUR la
+ * courbe, et le doigt se place sur le point : à deux, ils cachaient l'endroit
+ * exact qu'on cherchait à lire.
+ *
+ * TROIS CHOSES TIENNENT LE BANDEAU, et chacune répond à un défaut constaté :
+ *
+ *   - Il est là AVANT le geste. Au repos il donne le dernier point, donc la
+ *     page se lit sans qu'on la touche, ce que le graphique d'hier ne faisait
+ *     pas : il fallait poser un doigt pour connaître la dernière valeur.
+ *   - Sa hauteur est FIXE. S'il apparaissait au toucher, ou s'il grandissait
+ *     d'une ligne en cours de glissement, le tracé descendrait sous le doigt et
+ *     le point lu changerait tout seul.
+ *   - Il tient trois zones et pas une de plus : quand, combien, de combien ça
+ *     a bougé. Ce qui ne tient pas descend sous le graphique ; une bulle de six
+ *     lignes n'était pas lue, elle était subie.
  */
 export interface TrackerArgs {
   /** One key per point, in drawing order (a date, usually). */
   keys: string[];
-  /** x of a point in viewBox units, and y of the point at index i. */
+  /** x d'un point en unités du viewBox. Le y ne sert plus : le bandeau ne se
+   *  place pas, il est posé au-dessus du tracé. */
   x: (i: number) => number;
-  yAt: (i: number) => number;
   W: number;
-  H: number;
   /** The pinned keys the chart is given (none, one, or two, sorted). */
   pins?: string[];
   onPin?: (key: string) => void;
@@ -28,10 +43,9 @@ export interface TrackerArgs {
   onRange?: (a: string, b: string) => void;
 }
 
-export function useTracker({ keys, x, yAt, W, H, pins = [], onPin, onRange }: TrackerArgs) {
+export function useTracker({ keys, x, W, pins = [], onPin, onRange }: TrackerArgs) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
-  const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
   // the finger : where it landed, whether it moved, whether the long press turned the drag into a range
   const touch = useRef<{ id: number; x0: number; i0: number; moved: boolean; range: boolean; wasReading: boolean; timer: number | null } | null>(null);
   const nearest = (clientX: number, svg: SVGSVGElement) => {
@@ -49,18 +63,9 @@ export function useTracker({ keys, x, yAt, W, H, pins = [], onPin, onRange }: Tr
     }
     return best;
   };
-  const show = (i: number) => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const r = svg.getBoundingClientRect();
-    const px = r.left + (x(i) / W) * r.width;
-    const py = r.top + (yAt(i) / H) * r.height;
-    const half = 120;
-    const cx = Math.min(window.innerWidth - half - 8, Math.max(half + 8, px));
-    const above = py + 170 > window.innerHeight;
-    setHover(i);
-    setPos({ x: cx, y: above ? py - 12 : py + 14, above });
-  };
+  /* Le bandeau ne se place pas : il est déjà posé, à sa hauteur, au-dessus du
+     tracé. Lire un point ne fait donc plus que dire LEQUEL. */
+  const show = (i: number) => setHover(i);
   const hide = () => setHover(null);
   // a reading stays after the finger lifts : it closes on the next touch or click elsewhere, on a scroll, or on Escape
   useEffect(() => {
@@ -154,7 +159,7 @@ export function useTracker({ keys, x, yAt, W, H, pins = [], onPin, onRange }: Tr
   };
   const pinA = pins[0] && keys.includes(pins[0]) ? pins[0] : undefined;
   const pinB = pins[1] && keys.includes(pins[1]) ? pins[1] : undefined;
-  return { handlers, hover, pos, pinA, pinB, hide };
+  return { handlers, hover, pinA, pinB, hide };
 }
 
 /** Toggle a key in a pins list : one, then two (sorted), a third starts over. */
@@ -181,12 +186,77 @@ export function TrackMarks({ x, y, hover, pinA, pinB, padT, padB, H }: { x: (key
   );
 }
 
-/** The bubble, fixed to the viewport, on the tip tokens (the inverse of the ground in every theme). */
-export function TrackTip({ pos, children }: { pos: { x: number; y: number; above: boolean } | null; children: React.ReactNode }) {
-  if (!pos) return null;
+/** Une série dans le bandeau : la pastille de sa courbe, son nom, sa valeur. */
+export interface SerieLue {
+  /** La couleur de la courbe, quand le graphique la connaît en clair. */
+  couleur?: string;
+  /** Ou la classe qui la porte, quand elle vient d'une feuille de style. */
+  classe?: string;
+  nom: React.ReactNode;
+  valeur: React.ReactNode;
+}
+
+/**
+ * CE QUE LE BANDEAU DIT D'UN POINT. Trois zones, deux lignes chacune au plus :
+ * la date à gauche avec ce qu'elle est (« dernière séance », « séance lue »,
+ * « épinglé »), la valeur au milieu, les écarts à droite. Un graphique qui
+ * voudrait une septième ligne doit choisir : c'est la contrainte qui fait
+ * qu'on lit le bandeau d'un coup d'œil.
+ */
+export interface Lu {
+  quand: React.ReactNode;
+  dit?: React.ReactNode;
+  valeur?: React.ReactNode;
+  /** Sous la valeur, en petit : une précision qui n'est pas un écart. */
+  sous?: React.ReactNode;
+  /** À droite, deux lignes au plus ; au-delà, c'est un tableau. */
+  droite?: React.ReactNode[];
+  /** À la place de la valeur : une ligne par série, trois au plus. */
+  series?: SerieLue[];
+}
+
+/**
+ * LE BANDEAU, AU-DESSUS DU TRACÉ, TOUJOURS LÀ.
+ *
+ * Sa hauteur ne bouge pas : `height` fixe et débordement caché, pas
+ * `min-height`. Une ligne de trop ferait descendre le tracé sous le doigt
+ * pendant la lecture, et le point désigné changerait sans que la main bouge.
+ */
+export function TrackBand({ lu, mince, onClear, clearLabel }: { lu: Lu; /** Un trace de 96 px : le bandeau tient alors sur une seule ligne. */ mince?: boolean; onClear?: () => void; clearLabel?: string }) {
   return (
-    <div className={`${styles.tip} ${pos.above ? styles.tipAbove : ""}`} style={{ left: pos.x, top: pos.y }} role="status">
-      {children}
+    <div className={`${styles.band} ${mince ? styles.bandMince : ""}`}>
+      <span className={styles.bWhen}>
+        <b>{lu.quand}</b>
+        {lu.dit ? <small>{lu.dit}</small> : null}
+      </span>
+      {lu.series ? (
+        <span className={styles.bSeries}>
+          {lu.series.slice(0, 3).map((s, i) => (
+            <span key={i} className={styles.bSerie}>
+              <i className={s.classe} style={s.couleur ? { background: s.couleur } : undefined} />
+              <b>{s.nom}</b>
+              <span>{s.valeur}</span>
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span className={styles.bVal}>
+          <b>{lu.valeur}</b>
+          {lu.sous ? <small>{lu.sous}</small> : null}
+        </span>
+      )}
+      {lu.droite && lu.droite.length > 0 ? (
+        <span className={styles.bRight}>
+          {lu.droite.slice(0, 2).map((d, i) => (
+            <span key={i}>{d}</span>
+          ))}
+        </span>
+      ) : null}
+      {onClear && (
+        <button type="button" className={styles.bClear} onClick={onClear} title={clearLabel} aria-label={clearLabel}>
+          ×
+        </button>
+      )}
     </div>
   );
 }

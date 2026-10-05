@@ -21,48 +21,196 @@
   fill: var(--gold);
   opacity: 0.08;
 }
-/* the bubble : the inverse of the ground, fixed to the viewport */
-.tip {
-  position: fixed;
-  transform: translateX(-50%);
-  background: var(--tip-bg);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 0.76rem;
-  color: var(--tip-ink-2);
-  display: grid;
-  gap: 2px;
-  pointer-events: none;
-  box-shadow: var(--tip-shadow);
+/* LE BANDEAU DE SUIVI : hauteur FIXE, au-dessus du tracé.
+   « height » et non « min-height » : une ligne de plus ferait descendre le
+   dessin sous le doigt au moment de la lecture. */
+.band {
+  height: 46px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-3) var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
   font-variant-numeric: tabular-nums;
-  z-index: 30;
-  width: 240px;
-  max-width: calc(100vw - 16px);
+  overflow: hidden;
+  position: relative;
+}
+.bWhen {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  max-width: 108px;
+  line-height: 1.25;
+}
+.bWhen b {
+  font-size: 0.76rem;
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bWhen small {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* LA ZONE QUI CÈDE LA PREMIÈRE. Les trois rétrécissaient ensemble et la
+   colonne des écarts se faisait couper, alors que c'est elle qu'on vient
+   lire : « flex: none » à droite, « min-width: 0 » ici. */
+.bVal {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.bVal b {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.bVal small {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Les écarts, calés à droite : deux lignes au plus, et jamais de retour. */
+.bRight {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  margin-left: auto;
+  text-align: right;
+  font-size: 0.72rem;
   line-height: 1.35;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
 }
-.tipAbove {
-  transform: translate(-50%, -100%);
-}
-.tip b {
-  color: var(--tip-ink);
-}
-.tip em {
+.bRight b,
+.bRight em {
   font-style: normal;
   font-weight: 700;
+  color: var(--ink);
 }
-.tip small {
-  color: var(--tip-ink-3);
-  font-size: 0.7rem;
+/* Plusieurs séries : une ligne chacune, la pastille de sa courbe devant. */
+.bSeries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  flex: 1;
+  min-width: 0;
+  margin-left: auto;
+  align-items: flex-end;
 }
-.tip .up {
-  color: var(--tip-up);
+.bSerie {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  max-width: 100%;
 }
-.tip .down {
-  color: var(--tip-down);
+.bSerie i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  background: currentColor;
 }
-.tip .accent {
-  color: var(--tip-accent);
+.bSerie b {
+  font-weight: 600;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bSerie span {
   font-weight: 700;
+  color: var(--ink);
+}
+/* LA VARIANTE MINCE, pour les tracés de 96 px : le bandeau normal ferait la
+   moitié de la hauteur du dessin.
+
+   ELLE GARDE LES COLONNES. Une première version les mettait à plat pour tenir
+   en 32 px, et « 13 285 FCFA » s'est fait couper sur la fiche d'un fonds :
+   côte à côte, les deux écarts prennent deux fois la largeur qu'ils prennent
+   empilés. Deux lignes de 0,64 rem tiennent dans 34 px, donc c'est la hauteur
+   qui cède et non la largeur, et il n'y a qu'une disposition à comprendre. */
+.bandMince {
+  height: 34px;
+  gap: var(--s-4);
+  padding: var(--s-2) var(--s-4);
+}
+.bandMince .bWhen {
+  max-width: 88px;
+}
+.bandMince .bWhen b {
+  font-size: 0.7rem;
+  line-height: 1.15;
+}
+.bandMince .bWhen small,
+.bandMince .bVal small {
+  font-size: 0.62rem;
+  line-height: 1.15;
+}
+.bandMince .bVal b {
+  font-size: 0.82rem;
+}
+.bandMince .bRight,
+.bandMince .bSerie {
+  font-size: 0.64rem;
+  line-height: 1.15;
+}
+.bandMince .bSeries {
+  gap: 0;
+}
+/* SOUS 460 PX, LE BANDEAU SERRE D'UN CRAN. Mesuré à 375 px sur la fiche d'une
+   société : « 85 000 FCFA » et les noms des deux séries se faisaient couper, à
+   une dizaine de pixels près. Rien n'est retiré, tout est resserré. */
+@media (max-width: 460px) {
+  .band {
+    gap: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+  }
+  .bWhen {
+    max-width: 84px;
+  }
+  .bWhen b {
+    font-size: 0.72rem;
+  }
+  .bWhen small {
+    font-size: 0.64rem;
+  }
+  .bVal b {
+    font-size: 0.95rem;
+  }
+  .bVal small,
+  .bRight,
+  .bSerie {
+    font-size: 0.66rem;
+  }
+}
+.bClear {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: var(--s-1) var(--s-2);
+  cursor: pointer;
+}
+.bClear:hover {
+  color: var(--ink);
 }
 /* the range line under a chart */
 .read {

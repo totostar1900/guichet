@@ -3,9 +3,9 @@
 import { useT } from "@/i18n/client";
 import type { CashFlow } from "@/lib/finance";
 import { useState } from "react";
-import { RangeRead, TrackMarks, TrackTip, togglePin, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useTracker } from "./charts/tracker";
 import type { BondResult } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct, fmtUnits } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, fmtUnits, money } from "@/lib/format";
 
 /**
  * Cash flows for one bond position: one outflow at settlement, then coupons and
@@ -55,16 +55,49 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
   const keys = pts.map((p, i) => `${iso(p.date)}|${i}`);
   const cx = (i: number) => padL + slot * i + slot / 2;
   const barTop = (i: number) => (pts[i].amount < 0 ? base + 1 : base - Math.max(3, Math.abs(pts[i].amount) * scale) - 1);
-  const track = useTracker({ keys, x: cx, yAt: barTop, W, H, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
+  const track = useTracker({ keys, x: cx, W, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
   const hover = track.hover;
   const h = hover != null ? pts[hover] : null;
   const idx = (k: string) => keys.indexOf(k);
   const iA = track.pinA ? idx(track.pinA) : -1;
   const iB = track.pinB ? idx(track.pinB) : -1;
   const backBetween = iA >= 0 && iB >= 0 ? pts.slice(iA + 1, iB + 1).filter((p) => p.amount > 0).reduce((s, p) => s + p.amount, 0) : 0;
+  const total = pts.filter((p) => p.amount > 0).reduce((s, p) => s + p.amount, 0);
+  const signe = (v: number) => `${v < 0 ? "−" : "+"}${fmt(Math.abs(v))} FCFA`;
+  /* Un versement garde ses francs, c'est le point qu'on désigne ; une somme se
+     lit en ordre de grandeur, et le tableau dessous porte l'exact. */
+  const gros = (v: number) => `${v < 0 ? "−" : "+"}${money(Math.abs(v))} FCFA`;
+  /* AU REPOS, L'ÉCHÉANCIER ENTIER : ce qui revient, contre ce qui sort. C'est la
+     question qu'on se pose en arrivant, et il fallait jusqu'ici poser un doigt
+     sur la dernière barre pour en approcher la réponse. Sous le doigt, le
+     versement désigné et le cumul à sa date. */
+  const lu: Lu = h
+    ? {
+        quand: fmtDate(iso(h.date)),
+        dit: h.label,
+        valeur: signe(h.amount),
+        droite: [
+          <>
+            {t("cumul")} <em className={cum[hover ?? 0] >= 0 ? trackStyles.up : trackStyles.down}>{gros(cum[hover ?? 0])}</em>
+          </>,
+        ],
+      }
+    : {
+        quand: t("l'échéancier"),
+        dit: t("{n} versements", { n: String(pts.length - 1) }),
+        valeur: gros(total),
+        sous: t("ce qui revient"),
+        droite: [
+          <>
+            {t("la mise")} {money(out)}
+          </>,
+          out ? <>{fmtPct((total / out - 1) * 100, 1)} {t("de plus")}</> : null,
+        ].filter((node): node is React.ReactElement => node !== null),
+      };
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: Math.round(768 * size), margin: "8px auto 0" }}>
+      <TrackBand lu={lu} onClear={iA >= 0 ? () => setPins([]) : undefined} clearLabel={t("effacer")} />
       <svg className={`chart chartSm ${trackStyles.track}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("Flux de trésorerie")} {...track.handlers}>
         <line className="axis" x1={padL} x2={W - padR} y1={base} y2={base} strokeWidth="1" />
         {pts.map((p, i) => {
@@ -96,21 +129,6 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
         })}
         <TrackMarks x={(k) => cx(idx(k))} y={(k) => barTop(idx(k))} hover={hover != null ? keys[hover] : undefined} pinA={track.pinA} pinB={track.pinB} padT={0} padB={28} H={H} />
       </svg>
-      {h && hover != null && (
-        <TrackTip pos={track.pos}>
-          <b>
-            {h.amount < 0 ? "−" : "+"}
-            {fmt(Math.abs(h.amount))} FCFA
-          </b>
-          <span>
-            {h.label} · {fmtDate(iso(h.date))}
-          </span>
-          <span>
-            {t("cumul à cette date")} : <em className={cum[hover] >= 0 ? trackStyles.up : trackStyles.down}>{cum[hover] < 0 ? "−" : "+"}{fmt(Math.abs(cum[hover]))} FCFA</em>
-          </span>
-          <small>{iA >= 0 && iB < 0 ? t("toucher pour lire ce qui revient jusqu'à ce flux") : t("toucher deux flux pour lire ce qui revient entre eux")}</small>
-        </TrackTip>
-      )}
       {iA >= 0 && iB >= 0 ? (
         <RangeRead onClear={() => setPins([])} clearLabel={t("effacer")}>
           <b>

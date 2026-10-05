@@ -42,6 +42,11 @@ export const EN_MORE: Record<string, string> = {
   "continue, jours ouvrés": "continuous, business days",
   "Règlement": "Settlement",
   "Dernier cours": "Last price",
+  /* Trois chaînes restées en français jusqu'au 5 octobre 2026 : leur fichier
+     appelle le traducteur « tr », et le cliquet ne cherchait que « t( ». */
+  "Ouvrir le document chez l'émetteur": "Open the document at the issuer",
+  "L'entrée {k} devient ce que l'application lit, pour les clients comme pour le desk.": "Entry {k} becomes what the application reads, for clients and for the desk alike.",
+  "{n} modification(s) deviennent ce que l'application lit, pour les clients comme pour le desk.": "{n} change(s) become what the application reads, for clients and for the desk alike.",
   "Ouverture": "Opening",
   "Dépôt des offres": "Bids deadline",
   "Remboursement": "Redemption",

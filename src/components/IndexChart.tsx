@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
+import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { fmt, fmtDate, money } from "@/lib/format";
 import { gouttiere } from "@/components/charts/gouttiere";
 import styles from "./IndexChart.module.css";
@@ -200,10 +200,14 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const togglePin = (date: string) => setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
   const setRange = (a: string, b: string) => setPins(a === b ? [a] : [a, b]);
   const at = (d: string) => pts.find((p) => p.date === d);
-  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(series[i]?.y ?? 0), W, H, pins, onPin: togglePin, onRange: setRange });
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), W, pins, onPin: togglePin, onRange: setRange });
   const hover = track.hover;
   if (!last || pts.length < 2) return <div className="empty">{t("Pas assez de séances lues sur cette période.")}</div>;
   const hp = hover != null ? pts[hover] : undefined;
+  /* AU REPOS, LA DERNIÈRE SÉANCE. C'est la valeur que la page entière
+     commente, et il fallait jusqu'ici poser un doigt sur le bord droit du
+     tracé pour la lire. Sous le doigt, la séance désignée prend sa place. */
+  const vu = hp ?? pts[pts.length - 1];
   const sInfo = (d: string) => series.find((p) => p.date === d);
   const oInfo = (d: string) => ovSeries.filter((p) => p.date <= d).pop();
   const pinA = pins[0] ? at(pins[0]) : undefined;
@@ -251,6 +255,27 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {lineView && (
         <>
+          <TrackBand
+            lu={{
+              quand: fmtDate(vu.date),
+              dit: hp ? t("séance lue") : t("dernière séance"),
+              valeur: lvl(vu.value),
+              /* LA QUATRIÈME CHOSE N APPARAÎT QUE SI LA PLACE EXISTE. Mesuré à
+                 375 px : les trois zones remplissent déjà la largeur, et ce qui
+                 s ajoute se fait couper en deux. Le seuil est celui que le reste
+                 du graphique emploie déjà pour ses propres décisions. */
+              sous: W >= 480 ? (vu.titles ? `${fmt(vu.titles)} ${t("titres")} · ${money(vu.amount ?? 0)} FCFA` : t("aucun échange sur les actions")) : undefined,
+              droite: [
+                <>
+                  <em className={(vu.variationPct ?? 0) > 0 ? styles.upT : (vu.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(vu.variationPct)}</em>
+                  {ov && oInfo(vu.date) ? ` · ${ov.mnemo} ${lvl(oInfo(vu.date)!.y, 1)}` : ""}
+                </>,
+                <>
+                  {t(PERIODS.find(([k]) => k === period)?.[1] ?? "Tout")} <em className={vu.value >= pts[0].value ? styles.upT : styles.downT}>{signed(((vu.value - pts[0].value) / pts[0].value) * 100)}</em>
+                </>,
+              ],
+            }}
+          />
           <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Indice BVMAC All Share, {n} séances du {a} au {b}", { n: String(pts.length), a: fmtDate(d0), b: fmtDate(dN) })} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
@@ -303,28 +328,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               ))}
             <TrackMarks x={(k) => x(k)} y={(k) => y(sInfo(k)?.y ?? 0)} hover={hp?.date} pinA={pinA?.date} pinB={pinB?.date} padT={padT} padB={padB} H={H} />
           </svg>
-          {hp && track.pos && (
-            <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
-              <b>{fmtDate(hp.date)}</b>
-              <span>
-                {lvl(hp.value)} <em className={(hp.variationPct ?? 0) > 0 ? styles.upT : (hp.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(hp.variationPct)}</em>
-              </span>
-              {showBase && <span>{t("base 100")} : {lvl(sInfo(hp.date)!.y, 1)}</span>}
-              {ov && oInfo(hp.date) && (
-                <span>
-                  {ov.mnemo} : {lvl(oInfo(hp.date)!.y, 1)}
-                </span>
-              )}
-              <span className={styles.tipSince}>
-                {t("depuis le {d}", { d: fmtDate(d0) })} : {signed(((hp.value - pts[0].value) / pts[0].value) * 100)}
-              </span>
-              {hp.movers?.length ? <span className={styles.tipMovers}>{hp.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · ")}</span> : null}
-              <span className={styles.tipSince}>
-                {hp.titles ? `${fmt(hp.titles)} ${t("titres")} · ${money(hp.amount ?? 0)} FCFA · ${hp.trades ?? 0} ${t("transaction(s)")}` : t("aucun échange sur les actions")}
-                {volSrc ? ` · ${volSrc.mnemo} : ${volLabel(volAt(hp.date))}` : ""}
-              </span>
-            </div>
-          )}
           <p className={styles.legend}>
             <span>
               <i className={styles.kLine} /> {t("indice BVMAC All Share")}{showBase ? ` · ${t("base 100")}` : ""}
@@ -548,8 +551,40 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   const dates = rows.map((r) => r.date);
   const rowAt = (d: string) => rows.find((r) => r.date === d)!;
   const yOf = (d: string) => (flat ? y(floatOnly ? rowAt(d).float : rowAt(d).total) : y(curves[0]?.pts.find((p) => p.date === d)?.y ?? (reading === "part" ? 50 : 100)));
-  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(flat ? (floatOnly ? rows[i].float : rows[i].total) : (curves[0]?.pts[i]?.y ?? (reading === "part" ? 50 : 100))), W, H, pins, onPin, onRange });
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), W, pins, onPin, onRange });
   const hp = track.hover != null ? rows[track.hover] : undefined;
+  /* Quatre lectures, deux formes de bandeau : en francs la somme et son
+     flottant, en base 100 ou en parts une ligne par société, avec la pastille
+     de sa courbe. Au repos, la dernière séance dans les deux cas. */
+  const vuCap = hp ?? rows[rows.length - 1];
+  const luCap: Lu = flat
+    ? {
+        quand: fmtDate(vuCap?.date ?? dN),
+        dit: hp ? t("séance lue") : t("dernière séance"),
+        /* « FCFA » et la part du flottant attendent 480 px : mesuré à 375,
+           « 1 727,2 Md FCFA » se faisait couper par une colonne de droite qui
+           disait l'unité une seconde fois. */
+        valeur: W >= 480 ? `${money(vuCap?.total ?? 0)} FCFA` : money(vuCap?.total ?? 0),
+        sous: t("capital global"),
+        droite: [
+          <>
+            {t("flottant coté")} {money(vuCap?.float ?? 0)}
+          </>,
+          W >= 480 ? <>{vuCap?.total ? lvl((vuCap.float / vuCap.total) * 100, 0) : "—"} % {t("du capital")}</> : null,
+        ].filter((node): node is React.ReactElement => node !== null),
+      }
+    : {
+        quand: fmtDate(vuCap?.date ?? dN),
+        dit: hp ? t("séance lue") : t("dernière séance"),
+        series: curves.slice(0, 3).map((l, i) => ({
+          couleur: GROWTH[i % GROWTH.length],
+          nom: l.o.mnemo,
+          valeur: (() => {
+            const v = l.pts.find((p) => p.date === (vuCap?.date ?? dN))?.y ?? 100;
+            return reading === "part" ? `${lvl(v, 1)} %` : lvl(v, 1);
+          })(),
+        })),
+      };
   const rA = track.pinA ? rowAt(track.pinA) : undefined;
   const rB = track.pinB ? rowAt(track.pinB) : undefined;
   if (!ready) return <div className="empty">{t("Le nombre de titres des sociétés n'est pas encore lu : pas de capitalisation à montrer.")}</div>;
@@ -575,6 +610,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           <input type="radio" name="capk" checked={floatOnly} onChange={() => setFloatOnly(true)} /> {t("flottant coté")}
         </label>
       </div>
+      <TrackBand lu={luCap} />
       <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Capitalisation de la cote, séance après séance")} {...track.handlers}>
         {ticks.map((v) => (
           <g key={v}>
@@ -613,31 +649,6 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
         </text>
         <TrackMarks x={x} y={yOf} hover={hp?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
       </svg>
-      {hp && track.pos && (
-        <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
-          <b>{fmtDate(hp.date)}</b>
-          {flat ? (
-            <>
-              <span>
-                {t("capital global")} : {money(hp.total)} FCFA
-              </span>
-              <span>
-                {t("flottant coté")} : {money(hp.float)} FCFA ({hp.total ? lvl((hp.float / hp.total) * 100, 0) : "—"} %)
-              </span>
-            </>
-          ) : (
-            curves.slice(0, 4).map((l, i) => {
-              const v = l.pts.find((p) => p.date === hp.date)?.y ?? 100;
-              return (
-                <span key={l.o.mnemo}>
-                  <i className={styles.kDot} style={{ background: GROWTH[i % GROWTH.length] }} /> {l.o.mnemo} : {reading === "part" ? `${lvl(v, 1)} %` : lvl(v, 1)}
-                  {reading === "croissance" ? <em className={v >= 100 ? styles.upT : styles.downT}> {signed(v - 100, 1)}</em> : null}
-                </span>
-              );
-            })
-          )}
-        </div>
-      )}
       {rA && rB && (
         <p className={styles.pinsRead}>
           <b>
@@ -752,9 +763,26 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
   const ticks = 4;
   const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
   const dates = index.map((p) => p.date);
-  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(pub[i].y), W, H, pins, onPin, onRange });
+  const track = useTracker({ keys: dates, x: (i) => x(dates[i]), W, pins, onPin, onRange });
   const hp = track.hover != null ? index[track.hover] : undefined;
   const at = (arr: { date: string; y: number }[], d: string) => arr.find((p) => p.date === d)?.y ?? 100;
+  /* Les deux lectures côte à côte, et l'écart entre elles : c'est toute la
+     raison d'être de cette vue, et elle se lit maintenant sans un geste. */
+  const dVu = hp?.date ?? dN;
+  const luFlot: Lu = {
+    quand: fmtDate(dVu),
+    dit: hp ? t("séance lue") : t("dernière séance"),
+    series: [
+      { couleur: "var(--chart-out)", nom: t("indice publié"), valeur: lvl(at(pub, dVu), 1) },
+      { couleur: "var(--gold)", nom: t("en flottant"), valeur: lvl(at(reading, dVu), 1) },
+      ...(coLine.length > 1 && company ? [{ couleur: "#2a8a9a", nom: company.mnemo, valeur: lvl(at(coLine, dVu), 1) }] : []),
+    ],
+    droite: [
+      <>
+        {t("écart")} <em className={at(pub, dVu) >= at(reading, dVu) ? styles.upT : styles.downT}>{signed(at(pub, dVu) - at(reading, dVu), 1).replace(" %", " pt")}</em>
+      </>,
+    ],
+  };
   // the rotation window : the pinned range when there is one, else the period
   const rFrom = track.pinA && track.pinB ? track.pinA : d0;
   const rTo = track.pinA && track.pinB ? track.pinB : dN;
@@ -774,6 +802,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
     <div className={styles.capWrap}>
       {hasCaps ? (
         <>
+          <TrackBand lu={luFlot} />
           <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={company ? t("{m}, lecture en flottant et indice publié, base 100", { m: company.mnemo }) : t("Indice publié et lecture en flottant, base 100")} {...track.handlers}>
             {tickVals.map((v) => (
               <g key={v}>
@@ -795,25 +824,6 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
             </text>
             <TrackMarks x={x} y={(d) => y(at(pub, d))} hover={hp?.date} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
           </svg>
-          {hp && track.pos && (
-            <div className={`${styles.tip} ${track.pos.above ? styles.tipAbove : ""}`} style={{ left: track.pos.x, top: track.pos.y }}>
-              <b>{fmtDate(hp.date)}</b>
-              <span>
-                {t("indice publié")} : {lvl(at(pub, hp.date), 1)} <em className={at(pub, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(pub, hp.date) - 100, 1)}</em>
-              </span>
-              <span>
-                {t("lecture en flottant")} : {lvl(at(reading, hp.date), 1)} <em className={at(reading, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(reading, hp.date) - 100, 1)}</em>
-              </span>
-              {coLine.length > 1 && company && (
-                <span>
-                  <i className={styles.kDot} style={{ background: "#2a8a9a" }} /> {company.mnemo} : {lvl(at(coLine, hp.date), 1)} <em className={at(coLine, hp.date) >= 100 ? styles.upT : styles.downT}>{signed(at(coLine, hp.date) - 100, 1)}</em>
-                </span>
-              )}
-              <span className={styles.tipSince}>
-                {t("écart")} : {signed(at(pub, hp.date) - at(reading, hp.date), 1).replace(" %", " pt")}
-              </span>
-            </div>
-          )}
           {track.pinA && track.pinB && (
             <p className={styles.pinsRead}>
               <b>
