@@ -7,6 +7,7 @@ import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { TrackMarks, TrackTip, trackStyles, useTracker } from "./charts/tracker";
 import { fmt, fmtDate, money } from "@/lib/format";
+import { gouttiere } from "@/components/charts/gouttiere";
 import styles from "./IndexChart.module.css";
 
 export interface ChartPoint {
@@ -119,7 +120,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const withVol = view === "volumes";
   const volH = withVol ? (W < 480 ? 70 : 90) : 0;
   const H = (W < 480 ? 240 : 320) + volH;
-  const padL = 46;
   const padR = 14;
   const padT = 14;
   const padB = 28;
@@ -158,13 +158,21 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const d0 = dates[0] ?? "2000-01-01";
   const dN = dates[dates.length - 1] ?? "2000-01-02";
   const span = Math.max(1, daysBetween(d0, dN));
-  const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
   const ys = [...series.map((p) => p.y), ...ovSeries.map((p) => p.y)];
   let lo = Math.min(...ys);
   let hi = Math.max(...ys);
   const pad = (hi - lo || lo * 0.02 || 1) * 0.08;
   lo -= pad;
   hi += pad;
+  const ticks = 4;
+  const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
+  const vols = pts.map((p) => volAt(p.date));
+  const volMax = Math.max(1, ...vols);
+  const volLabel = (v: number) => (volKey === "amount" ? money(v) : fmt(v));
+  /* Le niveau de l indice tient en cinq caracteres, le volume d une seance en
+     francs non : « 1 182,2 M » en demande neuf, et la gouttiere s y plie. */
+  const padL = gouttiere([...tickVals.map((v) => lvl(v, 0)), withVol ? volLabel(volMax) : ""]);
+  const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
   const plotB = H - padB - volH;
   const y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * (plotB - padT);
   const segments = (arr: { date: string; y: number }[]) => {
@@ -180,8 +188,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     if (cur.length) out.push(cur.join(" "));
     return out;
   };
-  const ticks = 4;
-  const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
   // as many date ticks as the width can carry, first and last always
   const dateTicks: string[] = [];
   {
@@ -190,9 +196,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     for (let k = 0; k <= n; k++) dateTicks.push(shift(dN, Math.round(span - k * step)));
   }
   const tickDate = (d: string) => (W < 480 ? new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" }) : fmtDate(d));
-  const vols = pts.map((p) => volAt(p.date));
-  const volMax = Math.max(1, ...vols);
-  const volLabel = (v: number) => (volKey === "amount" ? money(v) : fmt(v));
   const totals = { titles: pts.reduce((a, p) => a + (p.titles ?? 0), 0), amount: pts.reduce((a, p) => a + (p.amount ?? 0), 0), trades: pts.reduce((a, p) => a + (p.trades ?? 0), 0), moved: pts.filter((p) => (p.variationPct ?? 0) !== 0).length };
   const togglePin = (date: string) => setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
   const setRange = (a: string, b: string) => setPins(a === b ? [a] : [a, b]);
@@ -493,7 +496,6 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   // four readings : the exchange in francs (linear or log, size and growth in one frame), each company in base 100, or each one's share of the exchange
   const [reading, setReading] = useState<CapReading>("francs");
   const H = W < 480 ? 220 : 280;
-  const padL = 52;
   const padR = 14;
   const padT = 14;
   const padB = 28;
@@ -504,8 +506,6 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   const d0 = rows[0]?.date ?? "2000-01-01";
   const dN = rows[rows.length - 1]?.date ?? "2000-01-02";
   const span = Math.max(1, daysBetween(d0, dN));
-  const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
-  const last = rows[rows.length - 1];
   // the growth reading : every company in base 100 on the period, one shared scale
   const lines = (company ? [company] : overlays).map((o) => ({ o, pts: index.map((p) => ({ date: p.date, cap: capAt(o, p.date, kind) })) })).map(({ o, pts }) => ({ o, pts: pts[0]?.cap ? pts.map((q) => ({ date: q.date, y: (q.cap / pts[0].cap) * 100 })) : [] })).filter((l) => l.pts.length > 1);
   const growthY = lines.flatMap((l) => l.pts.map((p) => p.y));
@@ -517,6 +517,22 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   const logLo = Math.max(1, Math.min(...rows.flatMap((r) => [r.total, r.float]).filter((v) => v > 0)) * 0.8);
   const logHi = Math.max(logLo * 2, ...rows.map((r) => r.total)) * 1.25;
   const lg = (v: number) => Math.log10(Math.max(logLo, v));
+  const decades: number[] = [];
+  for (let p = Math.floor(Math.log10(logLo)); Math.pow(10, p) <= logHi; p++) for (const m of [1, 3]) { const v = m * Math.pow(10, p); if (v >= logLo && v <= logHi) decades.push(v); }
+  const flat = reading === "francs" || reading === "log";
+  const ticks =
+    reading === "francs"
+      ? [0, 0.25, 0.5, 0.75, 1].map((v) => topF * v)
+      : reading === "log"
+        ? decades
+        : reading === "part"
+          ? [0, 25, 50, 75, 100]
+          : [gLo, (gLo + gHi) / 2, 100, gHi].filter((v, i, a) => a.indexOf(v) === i);
+  /** L etiquette d une graduation, ecrite une fois pour la gouttiere et pour le dessin. */
+  const etiquette = (v: number) => (flat ? money(v) : reading === "part" ? `${lvl(v, 0)} %` : lvl(v, 0));
+  const padL = gouttiere(ticks.map(etiquette), 52);
+  const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
+  const last = rows[rows.length - 1];
   const plot = (v: number) => padT + (1 - v) * (H - padT - padB);
   const y = (v: number) =>
     reading === "francs"
@@ -528,20 +544,9 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           : plot((v - gLo) / (gHi - gLo));
   const path = (k: "total" | "float") => rows.map((r) => `${x(r.date).toFixed(1)},${y(r[k]).toFixed(1)}`).join(" ");
   const area = (k: "total" | "float") => `${x(d0).toFixed(1)},${y(0).toFixed(1)} ${path(k)} ${x(dN).toFixed(1)},${y(0).toFixed(1)}`;
-  const decades: number[] = [];
-  for (let p = Math.floor(Math.log10(logLo)); Math.pow(10, p) <= logHi; p++) for (const m of [1, 3]) { const v = m * Math.pow(10, p); if (v >= logLo && v <= logHi) decades.push(v); }
-  const ticks =
-    reading === "francs"
-      ? [0, 0.25, 0.5, 0.75, 1].map((v) => topF * v)
-      : reading === "log"
-        ? decades
-        : reading === "part"
-          ? [0, 25, 50, 75, 100]
-          : [gLo, (gLo + gHi) / 2, 100, gHi].filter((v, i, a) => a.indexOf(v) === i);
   const curves = reading === "part" ? shares : lines;
   const dates = rows.map((r) => r.date);
   const rowAt = (d: string) => rows.find((r) => r.date === d)!;
-  const flat = reading === "francs" || reading === "log";
   const yOf = (d: string) => (flat ? y(floatOnly ? rowAt(d).float : rowAt(d).total) : y(curves[0]?.pts.find((p) => p.date === d)?.y ?? (reading === "part" ? 50 : 100)));
   const track = useTracker({ keys: dates, x: (i) => x(dates[i]), yAt: (i) => y(flat ? (floatOnly ? rows[i].float : rows[i].total) : (curves[0]?.pts[i]?.y ?? (reading === "part" ? 50 : 100))), W, H, pins, onPin, onRange });
   const hp = track.hover != null ? rows[track.hover] : undefined;
@@ -575,7 +580,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={v === 100 && reading === "croissance" ? styles.baseLine : styles.grid} />
             <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
-              {flat ? money(v) : reading === "part" ? `${lvl(v, 0)} %` : lvl(v, 0)}
+              {etiquette(v)}
             </text>
           </g>
         ))}

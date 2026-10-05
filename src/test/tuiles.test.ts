@@ -49,9 +49,24 @@ describe("les mots de la navigation, en anglais", () => {
     }
   });
 
-  it("ne pose plus les trois mots dans la feuille du dock", () => {
+  /**
+   * NI SOUS-TITRE NI CHIFFRE SOUS LE NOM. Les trois mots sont partis le matin
+   * du 5 octobre 2026, le chiffre des listes d'achat l'après-midi : la tuile
+   * est une silhouette et un nom, et chaque étage de texte rendu sous l'icône
+   * ramène la rangée pleine largeur que la grille a remplacée. Le chiffre vit
+   * toujours dans le menu large, à côté du nom de sa page.
+   */
+  it("ne pose ni sous-titre ni chiffre dans la feuille du dock", () => {
     const shell = readFileSync(join(process.cwd(), "src/components/mobile/MobileShell.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(shell, "la feuille du dock ne passe plus de sous-titre à ses tuiles").not.toMatch(/mots:/);
+    expect(shell, "la feuille du dock ne passe plus de chiffre à ses tuiles").not.toMatch(/compte:/);
+  });
+
+  /* Et la grille elle-meme n a plus de quoi en afficher un : la prop retiree
+     d un seul appelant se rebranche trop facilement. */
+  it("n'a plus de chiffre à afficher dans la grille", () => {
+    const grille = readFileSync(join(process.cwd(), "src/components/nav/Tuiles.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(grille, "la tuile ne porte plus de compte").not.toMatch(/compte/);
   });
 });
 

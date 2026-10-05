@@ -11,7 +11,6 @@ import { currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
 import { ICONE_PAGE } from "@/components/nav/IconesPages";
 import { Tuiles } from "@/components/nav/Tuiles";
-import type { ComptesParLieu } from "@/lib/domain/listes";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
 import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
@@ -47,17 +46,6 @@ const GROUPES: Record<Groupe, { titre: string; pages: NavPage[] }> = {
   portefeuille: { titre: "Portefeuille", pages: PORTEFEUILLE_PAGES },
   instruments: { titre: "Instruments", pages: INSTRUMENTS_PAGES },
   marche: { titre: "Marché", pages: MARCHE_PAGES },
-};
-
-/**
- * Les pages qui portent un chiffre. Les trois listes d'achat l'ont, parce
- * qu'on y vient compter ; une page de lecture n'a rien à compter, et un zéro
- * sous « Comparer » ne voudrait rien dire.
- */
-const COMPTES: Record<string, (c?: ComptesParLieu) => number | undefined> = {
-  titres: (c) => c?.titres,
-  fonds: (c) => c?.fonds,
-  calendrier: (c) => c?.calendrier,
 };
 
 const I = {
@@ -124,7 +112,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, counts, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que chaque page d'achat contient, pour le dire avant le toucher */ counts?: ComptesParLieu; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -277,17 +265,17 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
           qu'une grille d'icônes nues ne dit pas ce qu'elle ouvre. La feuille
           large, elle, garde la phrase : la place y est.
 
-          ET LE CHIFFRE RÉPOND AVANT LE TOUCHER. « 44 » sous Titres est la seule
-          chose que la rangée ne disait pas, et c'est celle qu'on allait
-          chercher. Il est compté comme la page le montre, par « domain/listes »,
-          sinon il mentirait d'une ligne ou de neuf. */}
+          ET PAS DE CHIFFRE SOUS LE NOM, décision du 5 octobre 2026. « 45 »
+          sous Titres répondait avant le toucher, mais il ramenait sous l'icône
+          le troisième étage de texte qu'on venait d'enlever avec les trois
+          mots. Il reste dans le menu large, à côté du nom de SA page, là où il
+          ne coûte pas une ligne. */}
       <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")}>
         <Tuiles
           items={(ouverte ? GROUPES[ouverte].pages : []).map((p) => ({
             key: p.key,
             href: p.href,
             nom: t(p.short ?? p.label),
-            compte: COMPTES[p.key]?.(counts),
             icone: ICONE_PAGE[p.key],
             ici: p.href === path || p.key === currentMarketPage(path),
           }))}

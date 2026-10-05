@@ -36,8 +36,6 @@ export interface Tuile {
    * c'est la seule information vivante des deux grilles.
    */
   etat?: string;
-  /** Ce qu'il y a derrière, pour répondre avant le toucher. */
-  compte?: number;
   icone: React.ReactNode;
   ici?: boolean;
 }
@@ -53,7 +51,6 @@ export function Tuiles({ items, onPick }: { items: Tuile[]; onPick?: () => void 
           </span>
           <b>{it.nom}</b>
           {it.etat ? <span className={styles.etat}>{it.etat}</span> : it.mots ? <em>{it.mots}</em> : null}
-          {it.compte != null && <span className={styles.compte}>{it.compte}</span>}
         </Link>
       ))}
     </div>

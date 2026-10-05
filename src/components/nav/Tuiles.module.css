@@ -58,14 +58,6 @@
   margin-top: var(--s-1);
 }
 /* Le chiffre de la page : il répond avant le toucher, donc il se voit. */
-.compte {
-  display: block;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--gold-ink);
-  font-variant-numeric: tabular-nums;
-  margin-top: var(--s-1);
-}
 /**
  * L'ÉTAT PREND LA PLACE DES TROIS MOTS, IL NE S'Y AJOUTE PAS.
  *
