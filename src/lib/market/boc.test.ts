@@ -98,3 +98,58 @@ describe("prettyName", () => {
     expect(prettyName("BDEAC")).toBe("BDEAC");
   });
 });
+
+/**
+ * LE SEUIL COMPTE PAR RAPPORT À HIER, ET NON À UN NOMBRE FIGÉ.
+ *
+ * « Seulement 16 obligation(s) lue(s) » criait sur toute l'année 2024, où la
+ * cote en portait quinze : le seuil était écrit en dur, réglé sur la cote du
+ * jour où il a été écrit. Mesuré le 5 octobre 2026, après la remontée de
+ * l'historique : 10 obligations cotées en 2023, 15 en 2024, 27 en 2025, 32
+ * aujourd'hui. Un seuil absolu transforme la croissance du marché en alarme.
+ */
+describe("les sections incomplètes, mesurées contre la séance précédente", () => {
+  const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((b) => bondQuote(b, parsed))];
+  const navs = parsed.funds.map((f) => fundNav(f, parsed));
+  const incompletes = (out: string[]) => out.filter((a) => /semble incomplète/.test(a));
+  /** La veille d'une cote plus petite : autant de lignes qu'aujourd'hui, un jour plus tôt. */
+  const veille = (nAction: number, nObligation: number) =>
+    [
+      ...quotes.filter((q) => q.instrument === "action").slice(0, nAction),
+      ...quotes.filter((q) => q.instrument === "obligation").slice(0, nObligation),
+    ].map((q) => ({ ...q, sessionDate: "2026-08-03" }));
+
+  it("se tait quand la séance rend autant que la précédente", () => {
+    const hier = veille(quotes.filter((q) => q.instrument === "action").length, quotes.filter((q) => q.instrument === "obligation").length);
+    expect(incompletes(validate(parsed, quotes, navs, hier, navs.length))).toEqual([]);
+  });
+
+  it("se tait sur une cote plus petite qu'aujourd'hui, si elle ne rétrécit pas", () => {
+    /* Le cas de 2024 : quinze obligations, et c'était le marché entier. */
+    const petite = { ...parsed, bonds: parsed.bonds.slice(0, 15), funds: parsed.funds.slice(0, 32) };
+    const cotes = [...petite.equities.map((e) => equityQuote(e, petite)), ...petite.bonds.map((b) => bondQuote(b, petite))];
+    const vl = petite.funds.map((f) => fundNav(f, petite));
+    const hier = cotes.map((q) => ({ ...q, sessionDate: "2026-08-03" }));
+    expect(incompletes(validate(petite, cotes, vl, hier, vl.length))).toEqual([]);
+  });
+
+  /** Une ligne de plus hier qu aujourd hui : on en fabrique une, avec son propre ISIN. */
+  const enPlus = (q, n) => Array.from({ length: n }, (_, i) => ({ ...q, isin: `ZZ${String(i).padStart(10, "0")}`, sessionDate: "2026-08-03" }));
+
+  it("crie quand une action disparaît, même une seule", () => {
+    const action = quotes.find((q) => q.instrument === "action");
+    const hier = [...veille(quotes.filter((q) => q.instrument === "action").length, quotes.filter((q) => q.instrument === "obligation").length), ...enPlus(action, 1)];
+    const out = incompletes(validate(parsed, quotes, navs, hier, navs.length));
+    expect(out.join(" ")).toMatch(/action\(s\) lue\(s\) contre/);
+  });
+
+  it("tolère qu'une obligation arrive à échéance, pas que trois disparaissent", () => {
+    const base = quotes.filter((q) => q.instrument === "obligation").length;
+    const obl = quotes.find((q) => q.instrument === "obligation");
+    const tout = veille(quotes.filter((q) => q.instrument === "action").length, base);
+    const une = [...tout, ...enPlus(obl, 1)];
+    expect(incompletes(validate(parsed, quotes, navs, une, navs.length))).toEqual([]);
+    const trois = [...tout, ...enPlus(obl, 3)];
+    expect(incompletes(validate(parsed, quotes, navs, trois, navs.length)).join(" ")).toMatch(/obligation\(s\) lue\(s\) contre/);
+  });
+});

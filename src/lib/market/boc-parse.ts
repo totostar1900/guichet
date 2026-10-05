@@ -185,10 +185,23 @@ function parseCapitalisation(lines: string[], warnings: string[]): BocCapitalisa
 /* ---------------- Actions ---------------- */
 const ISIN_LOOSE = /^(.*?)([A-Z]{2})\s?(\d{10})(.*)$/;
 const MNEMO_BY_ISIN: Record<string, string> = { CM0000010009: "SEMC", CM0000010017: "SAF", CM0000010025: "SOCAP", CM0000010041: "REG", GQ0000010050: "BANGE", GA0000010066: "SCGRE", GA0000010074: "BHC" };
-// An amount printed with thousand spaces: "49 000", "228 085", "1 250" or a small "800".
-const AMT = "(?:[1-9]\\d{0,2}(?: \\d{3})*|0)";
+/**
+ * Un montant, avec ses espaces de milliers : « 49 000 », « 228 085 », « 800 ».
+ *
+ * LES DEUX DÉCIMALES SONT OPTIONNELLES, et elles ont coûté cher : en 2024,
+ * SOCAPALM et LA REGIONALE étaient cotées « 50 000,00 » quand les autres
+ * étaient cotées « 47 000 ». Le motif sans virgule ne reconnaissait pas leur
+ * ligne, les deux actions sortaient de la séance sans que rien n'échoue, et
+ * 456 bulletins sur 808 sont restés « partiels ». Mesuré le 5 octobre 2026 :
+ * SOCAP, la plus échangée de la cote, n'était lue que sur 42 des 246 séances
+ * de 2024.
+ */
+const AMT = "(?:[1-9]\\d{0,2}(?: \\d{3})*|0)(?:,\\d{2})?";
 // prev close · date · volumes (glued) · status · open · close · high · low · var% · ref · ytd high · ytd low · ytd var
-const EQ_DENSE = new RegExp("^(" + AMT + ")(\\d{2}/\\d{2}/\\d{4})([\\d ]*?)([A-Z]{1,3}[a-z]?)(" + AMT + ")(" + AMT + ")(" + AMT + ")\\s*(" + AMT + ")\\s*(-?\\d+,\\d{2})%(" + AMT + ")(" + AMT + ")(" + AMT + ")(-?\\d+,\\d{2}|-)?$");
+/* Les colonnes se touchent d'ordinaire ; LA REGIONALE, elle, imprime
+   « 42 500,00  46 750 ». L'espace est donc toléré entre chacune. */
+const E = "\\s*";
+const EQ_DENSE = new RegExp("^(" + AMT + ")(\\d{2}/\\d{2}/\\d{4})([\\d ]*?)([A-Z]{1,3}[a-z]?)" + E + "(" + AMT + ")" + E + "(" + AMT + ")" + E + "(" + AMT + ")" + E + "(" + AMT + ")" + E + "(-?\\d+,\\d{2})%" + E + "(" + AMT + ")" + E + "(" + AMT + ")" + E + "(" + AMT + ")" + E + "(-?\\d+,\\d{2}|-)?$");
 
 function parseEquityDense(isin: string, issuer: string, line: string): BocEquity | undefined {
   const m = line.replace(/\s+/g, " ").trim().match(EQ_DENSE);
@@ -271,7 +284,8 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
     let dense: BocEquity | undefined;
     for (let k = 1; k <= 4 && !dense; k++) {
       const cand = section.slice(i + 1, i + 1 + k).join("").replace(/^[A-Za-z\s-]+(?=\d)/, "");
-      if (/^[\d ]+\d{2}\/\d{2}\/\d{4}/.test(cand)) dense = parseEquityDense(isin, issuer, cand);
+      // La virgule du cours précédent fait partie du nombre : « 50 000,0031/05/2024 ».
+      if (/^[\d ,]+\d{2}\/\d{2}\/\d{4}/.test(cand)) dense = parseEquityDense(isin, issuer, cand);
     }
     if (dense) {
       out.push(dense);

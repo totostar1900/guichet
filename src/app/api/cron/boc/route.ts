@@ -13,11 +13,13 @@ export const maxDuration = 300;
  */
 export async function GET(req: NextRequest) {
   return routeDuRobot("boc", req, async () => {
-    // ?from=YYYY-MM-DD&to=YYYY-MM-DD backfills history (quotes and NAVs only, PDFs not archived).
+    /* « ?from=&to= » remonte l'historique : cotations et VL seulement, le PDF
+       n'est pas archivé. « &relire=1 » repasse en plus sur les séances déjà
+       lues, ce qu'il faut après une correction du lecteur. */
     const sp = req.nextUrl.searchParams;
     const ok = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
     const from = ok(sp.get("from"));
-    const results = from ? await backfill("cron", from, ok(sp.get("to")) ?? new Date().toISOString().slice(0, 10)) : await catchUp("cron");
+    const results = from ? await backfill("cron", from, ok(sp.get("to")) ?? new Date().toISOString().slice(0, 10), false, sp.get("relire") === "1") : await catchUp("cron");
     // The daily run doubles as the health check that warns the desk.
     const health = from ? undefined : await alertDesk();
     return ({

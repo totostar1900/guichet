@@ -120,13 +120,33 @@ export function fundNav(f: BocFund, b: BocParsed): FundNav {
 /* ---------------- validation ---------------- */
 
 /** What was read but looks wrong : the desk sees these before trusting the day's prices. */
-export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[]): string[] {
+export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0): string[] {
   const out: string[] = [];
   const prevBy = new Map(previous.map((q) => [q.isin, q]));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.sessionDate)) out.push("Date de séance illisible.");
-  if (parsed.equities.length < 5) out.push(`Seulement ${parsed.equities.length} action(s) lue(s) : la section semble incomplète.`);
-  if (parsed.bonds.length < 20) out.push(`Seulement ${parsed.bonds.length} obligation(s) lue(s) : la section semble incomplète.`);
-  if (parsed.funds.length < 20) out.push(`Seulement ${parsed.funds.length} OPCVM lu(s) : la table semble incomplète.`);
+  /**
+   * CE QUE LA SÉANCE PRÉCÉDENTE A RENDU, ET NON UN NOMBRE FIGÉ.
+   *
+   * Les seuils étaient écrits en dur (5 actions, 20 obligations, 20 OPCVM),
+   * réglés sur la cote du jour où ils ont été écrits. La cote grandit : 10
+   * obligations en 2023, 15 en 2024, 27 en 2025, 32 en 2026. Remonter
+   * l'historique a donc fait crier « section incomplète » sur deux années
+   * entières où la lecture était juste.
+   *
+   * La question utile n'est pas « combien », c'est « moins qu'hier ». Une
+   * obligation ou un fonds peut sortir de la cote du jour au lendemain, d'où
+   * la tolérance d'une unité ; une action qui disparaît est toujours une
+   * anomalie, et c'est elle qui aurait signalé SOCAPALM dès 2024.
+   *
+   * Sans séance précédente (première ingestion, reprise après un trou), on
+   * retombe sur un plancher bas : mieux vaut se taire que crier à tort.
+   */
+  const avant = { action: 0, obligation: 0 };
+  for (const q of previous) avant[q.instrument] += 1;
+  const manque = (lu, hier, plancher, tolerance) => (hier > 0 ? lu < hier - tolerance : lu < plancher);
+  if (manque(parsed.equities.length, avant.action, 4, 0)) out.push(`Seulement ${parsed.equities.length} action(s) lue(s)${avant.action ? ` contre ${avant.action} la séance précédente` : ""} : la section semble incomplète.`);
+  if (manque(parsed.bonds.length, avant.obligation, 8, 1)) out.push(`Seulement ${parsed.bonds.length} obligation(s) lue(s)${avant.obligation ? ` contre ${avant.obligation} la séance précédente` : ""} : la section semble incomplète.`);
+  if (manque(navs.length, prevNavs, 10, 1)) out.push(`Seulement ${navs.length} OPCVM lu(s)${prevNavs ? ` contre ${prevNavs} la séance précédente` : ""} : la table semble incomplète.`);
   for (const q of quotes) {
     const label = `${q.mnemo} (${q.isin})`;
     if (!(q.close > 0)) out.push(`${label} : cours de clôture nul ou illisible.`);
@@ -362,7 +382,10 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   // Reference = the session right before this one (during a backfill the "latest" quotes may be months later).
   const prevDate = (await r.listBulletins(2000)).map((b) => b.sessionDate).filter((d) => d < sessionDate).sort().pop();
   const previous = prevDate ? await r.quotesOn(prevDate) : [];
-  const anomalies = validate(parsed, quotes, navs, previous);
+  /* Le compte des VL de la veille vient du bulletin précédent : les cotations
+     ne portent pas les OPCVM. */
+  const avantHier = prevDate ? await r.getBulletin(prevDate).catch(() => undefined) : undefined;
+  const anomalies = validate(parsed, quotes, navs, previous, avantHier?.counts?.funds ?? 0);
   const already = await r.getBulletin(sessionDate);
 
   await r.upsertQuotes(quotes);
@@ -449,11 +472,20 @@ export async function catchUp(by: MarketBulletin["ingestedBy"], today = new Date
   return backfill(by, localIso(from), to, true);
 }
 
-/** Every business day of [from, to] not yet ingested, oldest first : history for charts and reports (PDFs kept only when asked). */
-export async function backfill(by: MarketBulletin["ingestedBy"], from: string, to: string, keepPdf = false): Promise<IngestResult[]> {
+/**
+ * Chaque jour ouvré de [from, to] non encore lu, du plus ancien au plus
+ * récent : l'historique des graphiques et des notes (le PDF n'est gardé que si
+ * on le demande).
+ *
+ * « relire » renverse la règle : on repasse sur les séances DÉJÀ en base. Le
+ * rattrapage les saute, et c'est ce qu'il faut tous les soirs ; après une
+ * correction du lecteur, c'est exactement l'inverse qu'il faut, et le bouton
+ * du desk ne reprend que six séances à la fois.
+ */
+export async function backfill(by: MarketBulletin["ingestedBy"], from: string, to: string, keepPdf = false, relire = false): Promise<IngestResult[]> {
   const r = repo();
   const results: IngestResult[] = [];
-  const known = new Set((await r.listBulletins(2000)).map((b) => b.sessionDate));
+  const known = relire ? new Set<string>() : new Set((await r.listBulletins(2000)).map((b) => b.sessionDate));
   for (let d = new Date(`${from}T12:00:00`); localIso(d) <= to; d.setDate(d.getDate() + 1)) {
     if (d.getDay() === 0 || d.getDay() === 6) continue;
     const iso = localIso(d);
