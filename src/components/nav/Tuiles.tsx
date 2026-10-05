@@ -44,7 +44,7 @@ export interface Tuile {
 
 export function Tuiles({ items, onPick }: { items: Tuile[]; onPick?: () => void }) {
   return (
-    <div className={styles.tuiles} style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, 1fr)` }}>
+    <div className={styles.tuiles} style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 3)}, 1fr)` }}>
       {items.map((it) => (
         <Link key={it.key} href={it.href} className={`${styles.tuile} ${it.ici ? styles.tuileIci : ""}`} aria-current={it.ici ? "page" : undefined} onClick={onPick}>
           <span className={styles.ico}>

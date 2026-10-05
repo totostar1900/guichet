@@ -208,7 +208,8 @@ export const EN_TRADER: Record<string, string> = {
      noms, et c'est ce qui le distingue. L'adresse reste « /trader ». */
   "Ce que le Guichet peut faire pour vous, et par où chaque geste commence.": "What Guichet can do for you, and where each step begins.",
   "Ouvrir un compte-titres": "Open a securities account",
-  "Ce service demande un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces.": "This service needs a securities account in your name. Opening is done online and the desk checks the papers.",
+  "Écrivez sur WhatsApp, appelez, ou envoyez un e-mail : le desk répond en journée, du lundi au vendredi.": "Message on WhatsApp, call, or send an e-mail: the desk answers during the day, Monday to Friday.",
+  "Ce service s'écrit sur un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces.": "This service is written on a securities account in your name. Opening is done online and the desk checks the papers.",
   "Voir le détail": "See the details",
   "Les étapes": "The steps",
   "Masquer les étapes": "Hide the steps",

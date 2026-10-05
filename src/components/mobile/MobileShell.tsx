@@ -41,10 +41,12 @@ type Groupe = "portefeuille" | "instruments" | "marche";
 type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; feuille?: Groupe };
 
 /** Les trois listes, lues de la même table que la bande de l'écran large. */
-const GROUPES: Record<Groupe, { titre: string; sous: string; pages: NavPage[] }> = {
-  portefeuille: { titre: "Portefeuille", sous: "ce que vous avez, et ce qui en découle", pages: PORTEFEUILLE_PAGES },
-  instruments: { titre: "Instruments", sous: "ce qui s'achète", pages: INSTRUMENTS_PAGES },
-  marche: { titre: "Marché", sous: "les pages de la BVMAC", pages: MARCHE_PAGES },
+/* L'en-tête ne porte plus que le nom du siège : la phrase qui le suivait
+   redisait ce que les tuiles montrent, et volait une ligne en tête de feuille. */
+const GROUPES: Record<Groupe, { titre: string; pages: NavPage[] }> = {
+  portefeuille: { titre: "Portefeuille", pages: PORTEFEUILLE_PAGES },
+  instruments: { titre: "Instruments", pages: INSTRUMENTS_PAGES },
+  marche: { titre: "Marché", pages: MARCHE_PAGES },
 };
 
 /**
@@ -279,7 +281,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
           chose que la rangée ne disait pas, et c'est celle qu'on allait
           chercher. Il est compté comme la page le montre, par « domain/listes »,
           sinon il mentirait d'une ligne ou de neuf. */}
-      <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")} sub={t(ouverte ? GROUPES[ouverte].sous : "")}>
+      <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")}>
         <Tuiles
           items={(ouverte ? GROUPES[ouverte].pages : []).map((p) => ({
             key: p.key,

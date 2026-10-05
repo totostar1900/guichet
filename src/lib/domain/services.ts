@@ -330,18 +330,26 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
 
   const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1 };
   /**
-   * LA PORTE AVANT LE SERVICE. Sans compte-titres ouvert, les neuf commencent
-   * par la même chose, et le dire neuf fois vaut mieux que de griser neuf
-   * fois : le client clique sur ce qui l'intéresse et apprend ce qu'il lui
-   * faut pour l'avoir, au lieu de se heurter à un service éteint.
+   * LA PORTE AVANT LE SERVICE, MAIS PAS DEVANT TOUS.
+   *
+   * Sans compte-titres, celui qui touche « Conservation », « Réinvestissement »,
+   * « Épargne programmée » ou « Appariement » ne peut rien faire d'autre que
+   * l'ouvrir : ces quatre-là SONT le compte, ou s'écrivent dessus.
+   *
+   * Les cinq autres commencent par regarder, et regarder ne demande rien : le
+   * calendrier des séances, le catalogue des fonds, la cote, le passage d'un
+   * fonds à l'autre, le sondage. Les y envoyer ouvrir un compte serait une fin
+   * de non-recevoir déguisée ; c'est l'ordre qui demandera le compte, et il le
+   * demandera à son heure.
    */
+  const surLeCompte = new Set(["garde", "reinvestissement", "epargne", "appariement"]);
   const ouverts =
     c.compteOuvert === false
-      ? out.map((x) => ({
+      ? out.map((x) => (!surLeCompte.has(x.cle) ? x : {
           ...x,
           href: "/ouvrir-un-compte",
           geste: { key: "Ouvrir un compte-titres" },
-          porte: { key: "Ce service demande un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces." },
+          porte: { key: "Ce service s'écrit sur un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces." },
         }))
       : out;
   return ouverts.sort((a, b) => rang[a.etat] - rang[b.etat]);

@@ -11,7 +11,7 @@
  */
 .tuiles {
   display: grid;
-  gap: var(--s-6) var(--s-2);
+  gap: var(--s-8) var(--s-4);
 }
 .tuile {
   display: block;
@@ -21,10 +21,12 @@
 }
 /* Le cadre porte l'icône ET l'état « où l'on est » : le trait, lui, ne change
    jamais de couleur, sinon la silhouette se lit deux fois. */
+/* Moitie plus grand qu au premier jet : a 54 px, la silhouette se devinait
+   plus qu elle ne se lisait, et le nom dessous tenait de la legende. */
 .ico {
   position: relative;
-  width: 54px;
-  height: 54px;
+  width: 80px;
+  height: 80px;
   margin: 0 auto var(--s-3);
   display: flex;
   align-items: center;
@@ -33,8 +35,8 @@
   background: var(--surface-2);
 }
 .ico svg {
-  width: 23px;
-  height: 23px;
+  width: 34px;
+  height: 34px;
   fill: none;
   stroke: var(--gold);
   stroke-width: 1.6;
@@ -43,14 +45,14 @@
 }
 .tuile b {
   display: block;
-  font-size: 0.74rem;
+  font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.25;
 }
 .tuile em {
   display: block;
   font-style: normal;
-  font-size: 0.63rem;
+  font-size: 0.9rem;
   color: var(--ink-3);
   line-height: 1.25;
   margin-top: var(--s-1);
@@ -58,7 +60,7 @@
 /* Le chiffre de la page : il répond avant le toucher, donc il se voit. */
 .compte {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--gold-ink);
   font-variant-numeric: tabular-nums;
@@ -73,7 +75,7 @@
  */
 .etat {
   display: block;
-  font-size: 0.63rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--gold-ink);
   line-height: 1.25;

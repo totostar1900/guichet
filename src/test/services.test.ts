@@ -117,15 +117,25 @@ describe("l'état suit la donnée du client", () => {
    * commence par lui-même : tous proposent l'ouverture, qui est l'étape
    * commune. Aucun n'est éteint pour autant.
    */
-  it("propose l'ouverture du compte quand il n'est pas ouvert, et à tous", () => {
+  /**
+   * LA PORTE NE SE MET QUE DEVANT CE QU'ELLE FERME.
+   *
+   * Quatre services sont le compte, ou s'écrivent dessus : conservation,
+   * réinvestissement, épargne, appariement. Les cinq autres commencent par
+   * regarder, et envoyer quelqu'un ouvrir un compte parce qu'il a touché le
+   * catalogue des fonds serait une fin de non-recevoir déguisée.
+   */
+  it("ne propose l'ouverture du compte que là où elle est la première étape", () => {
     const sans = servicesDuClient({ ...garni, compteOuvert: false });
     expect(sans.length).toBe(9);
-    expect([...new Set(sans.map((x) => x.href))]).toEqual(["/ouvrir-un-compte"]);
-    expect([...new Set(sans.map((x) => x.geste.key))]).toEqual(["Ouvrir un compte-titres"]);
-    /* La condition se lit a l ouverture de la fiche, pas dans la liste : neuf
-       sous-titres identiques effaceraient ce que chaque service fait. */
-    expect(sans.every((x) => x.porte)).toBe(true);
-    expect(sans.filter((x) => x.sinon && x.porte && x.sinon.key === x.porte.key).length).toBe(0);
+    const surLeCompte = sans.filter((x) => x.href === "/ouvrir-un-compte");
+    expect(surLeCompte.map((x) => x.cle).sort()).toEqual(["appariement", "epargne", "garde", "reinvestissement"]);
+    expect([...new Set(surLeCompte.map((x) => x.geste.key))]).toEqual(["Ouvrir un compte-titres"]);
+    expect(surLeCompte.every((x) => x.porte)).toBe(true);
+    /* Les cinq autres gardent leur chemin : regarder ne demande rien. */
+    const libres = sans.filter((x) => x.href !== "/ouvrir-un-compte");
+    expect(libres.map((x) => x.cle).sort()).toEqual(["actions", "fonds", "passage", "primaire", "sondage"]);
+    expect(libres.some((x) => x.porte)).toBe(false);
     /* Et les états restent lisibles : on ne perd pas ce qui tourne déjà. */
     expect(sans.filter((x) => x.etat === "en_place").length).toBe(3);
   });

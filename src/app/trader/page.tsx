@@ -107,13 +107,6 @@ export default async function TraderPage() {
    * Reste donc la seule marque qui apprend quelque chose : ce qui tourne déjà.
    * Le reste se lit dans la phrase du service, qui dit par quoi commencer.
    */
-  const contextes = [
-    { quand: t("Un coupon est encaissé"), alors: t("La ligne propose de le replacer, ou d'activer le réinvestissement une fois pour toutes"), ou: t("sur l'espèce") },
-    { quand: t("Une séance est annoncée"), alors: t("Le titre concerné propose de déclarer une intention, ou de répondre au sondage"), ou: t("sur le titre") },
-    { quand: t("Une part de fonds est détenue"), alors: t("La ligne propose le passage vers un autre fonds, ou un versement programmé dessus"), ou: t("sur la ligne") },
-    { quand: t("Une ligne arrive à échéance"), alors: t("Le portefeuille propose ce qui la remplacerait, à durée et à signature comparables"), ou: t("sur la ligne") },
-  ];
-
   return (
     <div className={styles.page}>
 
@@ -132,24 +125,6 @@ export default async function TraderPage() {
         <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: positions.length, derniere }} />
       </div>
 
-      {/* Une page de services ne suffit jamais : personne ne va la chercher.
-          Replié : cela se lit une fois, et cela coûtait 644 px à chaque
-          visite. */}
-      <details className={styles.contexte}>
-        <summary>
-          <h2>{t("Et là où le besoin naît")}</h2>
-          <p>{t("Le geste se présente au moment où il sert, sur la ligne concernée. Cette page dit où le retrouver, elle ne le remplace pas.")}</p>
-        </summary>
-        <div className={styles.quand}>
-          {contextes.map((c) => (
-            <div className={styles.quandLigne} key={c.quand}>
-              <span>{c.quand}</span>
-              <span>{c.alors}</span>
-              <em>{c.ou}</em>
-            </div>
-          ))}
-        </div>
-      </details>
 
     </div>
   );

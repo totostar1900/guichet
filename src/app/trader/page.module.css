@@ -415,7 +415,9 @@
 .svc {
   display: flex;
   align-items: center;
-  gap: var(--s-5);
+  /* Deux fois l'écart d'origine entre le dessin et le nom : à dix pixels,
+     l'icône faisait partie du mot. */
+  gap: var(--s-8);
   width: 100%;
   padding: var(--s-5) var(--s-6);
   border: 0;
@@ -434,8 +436,8 @@
 /* Le cadre de l'icône porte l'état : le trait du dessin, lui, ne change pas,
    sinon neuf dessins dorés feraient neuf alertes. */
 .ico {
-  width: 34px;
-  height: 34px;
+  width: 50px;
+  height: 50px;
   flex: none;
   display: flex;
   align-items: center;
@@ -444,8 +446,8 @@
   background: var(--surface);
 }
 .ico svg {
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: var(--ink-2);
   stroke-width: 1.6;
@@ -464,12 +466,12 @@
 }
 .svc .quoi b {
   display: block;
-  font-size: 0.92rem;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 .svc .quoi small {
   display: block;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--ink-3);
   line-height: 1.35;
   margin-top: var(--s-1);
@@ -485,7 +487,7 @@
 }
 /* La fiche s'ouvre DANS la bande : la liste ne se rompt pas. */
 .fiche {
-  padding: 0 var(--s-6) var(--s-6) calc(34px + var(--s-5) + var(--s-6));
+  padding: 0 var(--s-6) var(--s-6) calc(50px + var(--s-8) + var(--s-6));
 }
 .fiche p {
   margin: 0 0 var(--s-5);
@@ -515,9 +517,11 @@
  * de large, empilées : la largeur ne servait à rien. Le conseiller tient à
  * côté de la bande, et la page cesse d'être une seule colonne de 2 000 px.
  */
+/* Deux fois l'écart d'origine sous la bande : le desk se lisait comme la
+   dixième ligne de la liste. */
 .deuxColonnes {
   display: grid;
-  gap: var(--s-7);
+  gap: var(--s-10);
 }
 @media (min-width: 900px) {
   .deuxColonnes {
