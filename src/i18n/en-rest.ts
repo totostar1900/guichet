@@ -1070,7 +1070,6 @@ export const EN_REST: Record<string, string> = {
   "À la une": "Front page",
   "Toutes les actualités": "All the news",
   "La dernière note": "The latest note",
-  "au": "to",
   "dernier mouvement le {d}, {v}": "last move on {d}, {v}",
   "aucun mouvement depuis la première séance lue, le {d}": "no move since the first session read, on {d}",
   "Comment lire l'indice": "How to read the index",
