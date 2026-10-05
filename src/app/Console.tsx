@@ -8,7 +8,6 @@ import { Annonce } from "./Annonce";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
-import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { buildPerformanceParts } from "@/lib/performance-report";
 import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
@@ -97,12 +96,16 @@ export async function Console({ session }: { session: Session }) {
         </span>
       </div>
 
-      {/* CE QUI ATTEND LE LECTEUR, AVANT TOUT LE RESTE.
-          C'est la seule bande de la page qui demande un geste ; tout le reste
-          est un constat, et un constat attend d'être lu quand une action attend
-          d'être faite. Elle est donc remontée au-dessus de la valeur.
-          Vide, le composant ne rend rien. */}
-      <CeQuiVousAttend userId={session.userId} />
+      {/* CE QUI ATTEND LE LECTEUR EST PASSÉ SUR AGIR, et ne paraît plus ici.
+          La bande demande un geste, et Agir est le siège du geste : la tenir
+          aux deux endroits, c'est la duplication que l'audit du marché vient
+          de retirer ailleurs. Décision du 5 octobre 2026.
+
+          CE QU'IL FAUT SURVEILLER AVEC : « À décider » a quitté le dock le
+          2 octobre PARCE QUE cette bande le disait ici. Un ordre à signer se
+          lit maintenant sur Agir, à un toucher, et plus sur cette page. Si
+          cela se paie en signatures en retard, la réponse n'est pas de
+          remettre la bande : c'est une ligne qui compte et qui mène à Agir. */}
 
       {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.
           Le robot exécutait puis prévenait ; prévenir sans bouton d'arrêt
