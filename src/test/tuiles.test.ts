@@ -34,13 +34,24 @@ describe("les mots de la navigation, en anglais", () => {
     expect(manquants, `à traduire dans src/i18n :\n${manquants.join("\n")}`).toEqual([]);
   });
 
-  /* Une tuile sans ses trois mots ne dit pas ce qu'elle ouvre, et c'est le
-     défaut des grilles d'icônes. La phrase entière, elle, y est illisible. */
-  it("donne trois ou quatre mots à chaque tuile, jamais zéro, jamais une phrase", () => {
+  /**
+   * LES TROIS MOTS NE S'AFFICHENT PLUS DANS LES FEUILLES DU DOCK, décision du
+   * 5 octobre 2026 : à 80 px de cadre et 1,05 rem de nom, la silhouette et le
+   * nom portent la tuile, et neuf phrases à lire pour choisir une destination
+   * étaient neuf de trop. Les mots restent dans la table, où la feuille du
+   * compte et d'autres surfaces peuvent les reprendre ; ils ne sont donc plus
+   * exigés, mais s'ils existent ils tiennent en trois ou quatre mots.
+   */
+  it("garde des mots courts, là où une table en porte", () => {
     for (const p of TOUTES) {
-      expect(p.tuile, `${p.key} n'a pas de mots de tuile`).toBeTruthy();
-      expect(p.tuile!.length, `${p.key} : « ${p.tuile} » est une phrase`).toBeLessThanOrEqual(36);
+      if (!p.tuile) continue;
+      expect(p.tuile.length, `${p.key} : « ${p.tuile} » est une phrase`).toBeLessThanOrEqual(36);
     }
+  });
+
+  it("ne pose plus les trois mots dans la feuille du dock", () => {
+    const shell = readFileSync(join(process.cwd(), "src/components/mobile/MobileShell.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(shell, "la feuille du dock ne passe plus de sous-titre à ses tuiles").not.toMatch(/mots:/);
   });
 });
 

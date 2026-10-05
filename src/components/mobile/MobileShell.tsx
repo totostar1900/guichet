@@ -287,7 +287,6 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
             key: p.key,
             href: p.href,
             nom: t(p.short ?? p.label),
-            mots: t(p.tuile ?? p.hint),
             compte: COMPTES[p.key]?.(counts),
             icone: ICONE_PAGE[p.key],
             ici: p.href === path || p.key === currentMarketPage(path),
