@@ -28,9 +28,19 @@
   overflow: hidden;
   margin-bottom: 16px;
 }
+/**
+ * LE NOM RESTE QUAND LA TABLE GLISSE.
+ *
+ * Huit colonnes ne tiennent pas sur un téléphone : la table défile, et qui
+ * arrive au rendement ne sait plus de quelle société il lit le chiffre. La
+ * première colonne se fige donc, et c'est « separate » qui le permet : avec
+ * « collapse », les bordures appartiennent à la table et la colonne figée les
+ * perd en chemin. La leçon était déjà écrite pour l'en-tête collant du desk.
+ */
 .tbl {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.85rem;
 }
 .tbl th,
@@ -40,6 +50,46 @@
   text-align: left;
   vertical-align: middle;
   white-space: nowrap;
+}
+.tbl th:first-child,
+.tbl td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+/* Le filet qui sépare la colonne figée de ce qui glisse dessous. */
+.tbl th:first-child::after,
+.tbl td:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+.tbl tbody tr:hover td:first-child {
+  background: var(--surface-2);
+}
+
+/* Le tri, à plat : il n'y a plus de filtre avec qui partager une feuille. */
+.outils {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-6);
+}
+.dirBtn {
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  width: var(--s-9);
+  height: var(--s-9);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
 }
 .tbl th {
   font-size: 0.68rem;
@@ -128,7 +178,7 @@
 }
 .issuer {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr);
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
@@ -147,6 +197,30 @@
   display: block;
   color: var(--ink-3);
   font-size: 0.74rem;
+}
+/**
+ * LES DEUX CHIFFRES SE LISENT ENSEMBLE, donc ils se tiennent côte à côte, y
+ * compris sur un téléphone : un chiffre d'affaires et un résultat net l'un
+ * SOUS l'autre invitent à les comparer verticalement, ce qui n'a pas de sens.
+ * Entre eux, un demi-filet : assez pour séparer, pas assez pour découper.
+ */
+.issuerFigs {
+  display: flex;
+  gap: var(--s-7);
+}
+.issuerFigs > div {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.issuerFigs > div + div::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--s-7) / -2);
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--line-2);
 }
 .issuerFig span {
   display: block;
@@ -291,4 +365,18 @@
 }
 .sheetFoot b {
   color: var(--ink);
+}
+
+/* Le nom entier sous le sigle : il explique ce que le sigle désigne. */
+.issuerNom {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  white-space: normal;
+  line-height: 1.35;
+}
+/* Le retour vers la liste, au pied des émetteurs. */
+.retour {
+  margin: var(--s-7) 0 0;
+  font-size: 0.86rem;
 }

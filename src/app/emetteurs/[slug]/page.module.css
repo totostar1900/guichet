@@ -1,0 +1,6 @@
+
+/* Le retour vers la cote, au pied des autres émetteurs. */
+.retour {
+  margin: var(--s-7) 0 0;
+  font-size: 0.86rem;
+}

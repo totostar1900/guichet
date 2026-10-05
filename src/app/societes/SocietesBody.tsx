@@ -76,21 +76,31 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
             return (
               <Link key={i.slug} href={`/emetteurs/${i.slug}`} className={styles.issuer}>
                 <div>
+                  {/* Le sigle fait reconnaître, le nom fait comprendre : « SNPC »
+                      ne dit rien à qui ne le connaît pas déjà. */}
                   <span className="cc" title={i.country}>{COUNTRY_CODE[i.country]}</span> <b>{i.shortName}</b>
+                  {i.name !== i.shortName && <span className={styles.issuerNom}>{i.name}</span>}
                   <small>{t(i.sector)} · {i.isins.length} {t(i.isins.length > 1 ? "emprunts cotés" : "emprunt coté")}</small>
                 </div>
-                <div className={styles.issuerFig}>
-                  <span>{t(last.revenueLabel)} {last.year}</span>
-                  <b>{fmtUnits(last.revenue * i.unit, true)}</b>
-                </div>
-                <div className={styles.issuerFig}>
-                  <span>{t("Résultat net")} {last.year}</span>
-                  <b>{fmtUnits(last.netIncome * i.unit, true)}</b>
+                <div className={styles.issuerFigs}>
+                  <div className={styles.issuerFig}>
+                    <span>{t(last.revenueLabel)} {last.year}</span>
+                    <b>{fmtUnits(last.revenue * i.unit, true)}</b>
+                  </div>
+                  <div className={styles.issuerFig}>
+                    <span>{t("Résultat net")} {last.year}</span>
+                    <b>{fmtUnits(last.netIncome * i.unit, true)}</b>
+                  </div>
                 </div>
               </Link>
             );
           })}
         </div>
+        {/* Le retour : on arrive ici par le bas de la page des sociétés, et
+            rien n'y ramenait sans remonter tout l'écran. */}
+        <p className={styles.retour}>
+          <Link href={mode === "desk" ? "/desk/societes" : "/societes"}>← {t("Les sociétés cotées")}</Link>
+        </p>
       </div>
 
       <div className={styles.howto}>

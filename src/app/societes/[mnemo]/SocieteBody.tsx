@@ -160,9 +160,6 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
             </h2>
             <div className={styles.unitNote}>{t("en FCFA · survolez les barres pour les montants exacts et la variation d'une année sur l'autre")}</div>
             <BarChart groups={years} series={[{ name: t(a.latest.revenueLabel), values: figs.map((f) => f.revenue) }, { name: t("Bénéfice net"), values: figs.map((f) => f.netIncome), accent: true }]} ariaLabel={`${t(a.latest.revenueLabel)} ${t("et bénéfice net par année")}`} />
-            <div className={styles.reading}>
-              <b>{t("Comment lire.")}</b> {t("Les barres bleues mesurent l'activité ({label}), les barres dorées ce qu'il en reste une fois tout payé. Un bénéfice qui suit les revenus est le signe d'une entreprise dont les marges tiennent ; un bénéfice qui décroche alors que les revenus montent signale des coûts ou des provisions en hausse.", { label: t(a.latest.revenueLabel).toLowerCase() })}
-            </div>
           </div>
 
           <div className={styles.panel}>

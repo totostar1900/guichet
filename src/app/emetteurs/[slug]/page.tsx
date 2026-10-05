@@ -245,6 +245,12 @@ export default async function EmetteurPage({ params }: Props) {
                 </Link>
               ))}
             </div>
+            {/* On arrive ici par le bas de la page des sociétés, et cette page
+                ne proposait que d'aller vers un AUTRE émetteur : la famille se
+                parcourait dans un seul sens. */}
+            <p className={styles.retour}>
+              <Link href="/societes">← {tr("Les sociétés cotées")}</Link>
+            </p>
           </div>
         </div>
       </div>

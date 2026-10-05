@@ -146,7 +146,7 @@ export default async function MarchePage() {
           <div className="panel-h">
             <h2>{t(derniere ? "La dernière note" : "Les notes de marché")}</h2>
             <Link className="btn sm ghost" href="/indice/notes">
-              {notes.length > 1 ? `${t("Les {n} notes", { n: notes.length })} →` : `${t("Toutes les notes")} →`}
+              {t("Toutes les notes")} →
             </Link>
           </div>
           {derniere ? (
@@ -157,13 +157,13 @@ export default async function MarchePage() {
                   {fmtDate(derniere.quarter.from, false)} {t("au")} {fmtDate(derniere.quarter.to, false)}
                 </span>
                 <i className={derniere.ret > 0 ? styles.hausse : derniere.ret < 0 ? styles.baisse : undefined}>{`${derniere.ret > 0 ? "+" : ""}${fmtPct(derniere.ret, 2)}`}</i>
-                <em>{t("{s} séances, {m} avec un mouvement", { s: derniere.sessions, m: derniere.moved })}</em>
               </Link>
             </div>
           ) : (
             <div className="empty">{t("La première note paraîtra à la fin du premier trimestre entièrement lu.")}</div>
           )}
-        <p className={styles.note}>{t("Une note par trimestre : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé, et ce que l'indice ne dit pas. Publique, et en PDF.")}</p>
+        {/* Une annonce, pas un sommaire : le sommaire est dans la note. */}
+        <p className={styles.note}>{t("Le pouls du trimestre, en une page.")}</p>
       </section>
 
       {/* LES ACTUALITÉS NE PARAISSENT QUE S'IL Y EN A. Une rubrique vide en

@@ -38,7 +38,7 @@ export interface MarketPage {
 export const MARKET_PAGES: MarketPage[] = [
   { key: "marche", href: "/marche", label: "Le marché", short: "Vue d'ensemble", tuile: "l'indice, les sociétés, les avis", hint: "la porte de l'environnement BVMAC : l'indice, les sociétés, les notes, les avis" },
   { key: "indice", href: "/indice", deskHref: "/desk/indice/apercu", label: "L'indice BVMAC All Share", short: "L'indice", tuile: "séance par séance", hint: "le niveau séance par séance, sept vues, la composition sur les deux pondérations" },
-  { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés", tuile: "les sept de la cote", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
+  { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés cotées", tuile: "les sept de la cote", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", tuile: "un trimestre par note", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", tuile: "deux lignes côte à côte", hint: "deux titres côte à côte, avec l'indice en repère" },
   /* LES ADJUDICATIONS ONT QUITTÉ CETTE TABLE pour le siège Instruments. Elles y
