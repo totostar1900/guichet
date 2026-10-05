@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { logout } from "@/app/connexion/actions";
 import { leconDuClient, sectionDuDesk } from "@/lib/guide-link";
 import { useLang, useT } from "@/i18n/client";
-import { COMPANY } from "@/lib/config";
+
 import { LangSwitch } from "./LangSwitch";
 import { PaletteSwitch } from "./PaletteSwitch";
 import { Sheet } from "./mobile/Sheet";
 import { Presentation } from "./mobile/Presentation";
 import { Onboarding } from "./mobile/Onboarding";
 import { startDeskTour } from "./DeskTour";
-import { rankEntries, type SearchEntry } from "@/app/info/InfoSearch";
-import { TOP_QUESTIONS, type GuideIndex } from "@/lib/guide-index-shared";
-import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
+import { MenuContact, MenuPied, MenuRecherche, useGuideIndex } from "./menu/Pieces";
 import { usePhone } from "./chart-utils";
 import styles from "./AppMenu.module.css";
 
@@ -34,9 +32,6 @@ export interface AppMenuProps {
   signedIn: boolean;
   desk: boolean;
   name?: string;
-  security?: { channels: number; devices: number };
-  /** The client's financial profile, when set: the word under « Mon profil ». */
-  profile?: "prudent" | "equilibre" | "dynamique";
   /** Kept for the layout's call; the alerts row lives on Mon espace now. */
   vapidKey?: string;
   build?: string;
@@ -44,13 +39,6 @@ export interface AppMenuProps {
 
 const COACH_KEY = "guichet:coach:menu";
 type Tab = "guichet" | "aide" | "reglages";
-/** Yaoundé (UTC+1), Monday to Friday, 8 h to 17 h: whether a conseiller is at the desk right now. */
-function deskOpenNow(): boolean {
-  const d = new Date(new Date().getTime() + 60 * 60 * 1000);
-  const day = d.getUTCDay();
-  const h = d.getUTCHours();
-  return day >= 1 && day <= 5 && h >= 8 && h < 17;
-}
 const noop = () => () => {};
 const firstTimeSnapshot = () => {
   try {
@@ -89,7 +77,7 @@ const D = {
   pin: "M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
 };
 
-export function AppMenu({ signedIn, desk, name, security, profile, build }: AppMenuProps) {
+export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
   const t = useT();
   const lang = useLang();
   const path = usePathname();
@@ -104,21 +92,9 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
   // On the phone the desk gets one sheet too: its learning items, then the language and the account.
   const phone = usePhone();
   const deskTabs = desk && !phone;
-  const [openNow, setOpenNow] = useState(false);
-  const [q, setQ] = useState("");
-  const [index, setIndex] = useState<GuideIndex | null>(cachedGuideIndex());
-  const [done, setDone] = useState<string[]>([]);
-  const hits = useMemo(() => (index && q.trim().length >= 2 ? rankEntries(index.entries, q, 6).results.map((r) => r.e) : []), [index, q]);
-  const first = index?.lessons.filter((l) => !l.section) ?? [];
-  const course = index?.lessons.filter((l) => l.section) ?? [];
-  const firstDone = first.filter((l) => done.includes(l.key)).length;
-  const courseDone = course.filter((l) => done.includes(l.key)).length;
-  const resume = course.find((l) => !done.includes(l.key));
-  const resumeSection = resume && index ? index.sections.find((x) => x.key === resume.section) : undefined;
-  const top = index ? TOP_QUESTIONS.map((slug) => index.aide.find((r) => r.slug === slug)).filter((r): r is NonNullable<typeof r> => Boolean(r)) : [];
+  const { index, lues, resume } = useGuideIndex(open);
 
   const onFiche = path.startsWith("/offres/");
-  const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(onFiche ? t("Bonjour, je regarde {line} sur le Guichet et…", { line: typeof document === "undefined" ? "" : document.title.replace(/\s*·\s*Guichet.*$/i, "") }) : t("Bonjour, j'ai une question sur le Guichet…"))}`;
   /* La porte du guide s'ouvre à la page qui parle de l'écran qu'on a sous les
      yeux. La correspondance vivait ici, écrite à la main et pour le desk seul ;
      elle vit maintenant dans `lib/guide-link`, sous cliquet, et sert les deux
@@ -137,18 +113,8 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
     }
     setOpen(true);
     setTab(desk ? "aide" : "guichet");
-    setOpenNow(deskOpenNow());
-    setQ("");
-    loadGuideIndex().then((i) => {
-      setIndex(i);
-      setDone(readDoneLessons(i.lessons.map((l) => l.key)));
-    });
   };
   const close = () => setOpen(false);
-  const openHit = (e: SearchEntry) => {
-    close();
-    router.push(e.href);
-  };
   const dismissCoach = () => {
     try {
       localStorage.setItem(COACH_KEY, new Date().toISOString());
@@ -163,53 +129,13 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
   };
 
   const coach = Boolean(firstTime) && !coachGone && !desk;
-  // The contacts, at the foot of the one sheet: WhatsApp first, the number in large.
-  const contactBlock = (
-    <>
-              <a className={styles.waCard} href={wa} target="_blank" rel="noopener" onClick={close}>
-                <span className={styles.waHead}>
-                  <Icon d={D.whatsapp} />
-                  <b>WhatsApp</b>
-                </span>
-                <strong>{COMPANY.phone}</strong>
-                <small>{t(onFiche ? "un conseiller répond dans l'heure ouvrée, au sujet de cette ligne" : "un conseiller répond dans l'heure ouvrée")}</small>
-                <span className={styles.waBtn}>{t("Écrire")}</span>
-              </a>
-              <div className={styles.contactPair}>
-                <a className={styles.contactCard} href={`tel:${COMPANY.phone.replace(/\s/g, "")}`} onClick={close}>
-                  <Icon d={D.phone} />
-                  <b>{t("Appeler")}</b>
-                  <strong>{COMPANY.phone}</strong>
-                  <small>{t("lundi à vendredi, 8 h à 17 h")}</small>
-                </a>
-                <a className={styles.contactCard} href={`mailto:${COMPANY.email}`} onClick={close}>
-                  <Icon d={D.mail} />
-                  <b>{t("E-mail")}</b>
-                  <strong>{COMPANY.email}</strong>
-                  <small>{t("réponse sous un jour ouvré")}</small>
-                </a>
-              </div>
-              <div className={styles.address}>
-                <Icon d={D.pin} />
-                <span>
-                  <b>{COMPANY.legalName}</b>
-                  <small>{COMPANY.address}</small>
-                  <small>{t(COMPANY.licence)}</small>
-                </span>
-              </div>
-              <div className={styles.hours}>
-                <span>
-                  <b>{t("Ouvert")}</b> · {t("lundi à vendredi, 8 h à 17 h")}
-                </span>
-                {openNow && (
-                  <em>
-                    <i aria-hidden="true" />
-                    {t("en ligne maintenant")}
-                  </em>
-                )}
-              </div>
-          </>
-  );
+  const contactBlock = <MenuContact close={close} surFiche={onFiche} />;
+
+  /* CONNECTÉ, LE « ⋮ » N'EXISTE PLUS : tout est derrière l'initiale depuis
+     le 5 octobre 2026, et deux portes vers la même feuille étaient la cause du
+     doublon. Il reste pour le visiteur, qui n'a pas d'initiale, et pour le
+     desk, qui a ses deux onglets. */
+  if (signedIn && !desk) return null;
 
   return (
     <>
@@ -249,25 +175,7 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
         <div className={styles.menu}>
           {(tab === "aide" || tab === "guichet" || !deskTabs) && (
             <>
-              <label className={styles.search}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.5-3.5" />
-                </svg>
-                <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Une question, un mot… ex. coupon couru")} aria-label={t("Rechercher dans l'aide")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && openHit(hits[0])} />
-                <small>{t("aide · glossaire · éclairages")}</small>
-              </label>
-              {q.trim().length >= 2 && (
-                <div className={styles.hits} role="listbox">
-                  {hits.length === 0 && <span className={styles.none}>{index ? t("Aucun résultat") : t("Un instant…")}</span>}
-                  {hits.map((e) => (
-                    <button key={e.href + e.title} type="button" role="option" aria-selected={false} className={styles.hit} onClick={() => openHit(e)}>
-                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Éclairage" : e.kind === "outil" ? "Outil" : "Aide")}</em>
-                      <b>{e.title}</b>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <MenuRecherche index={index} close={close} />
               {coachLabel && (
                 <>
                   <div className={styles.group}>{t("Sur cette page")}</div>
@@ -327,17 +235,6 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       <b>{t("Premiers pas")}</b>
                       <small>{t("six écrans")}</small>
                     </button>
-                    {/* Le rail de bureau porte « Services » ; sur le téléphone
-                        le dock est plein à cinq, et la porte est ici. Elle ne
-                        s'ouvre qu'à qui est connecté : les services ne se
-                        présentent plus avant. */}
-                    {signedIn && (
-                      <Link className={styles.tile} href="/trader" onClick={close}>
-                        <Icon d={D.services} />
-                        <b>{t("Les services")}</b>
-                        <small>{t("les neuf, avec leur état")}</small>
-                      </Link>
-                    )}
                     <Link className={styles.tile} href="/info/aide" onClick={close}>
                       <Icon d={D.help} />
                       <b>{t("Aide")}</b>
@@ -347,35 +244,27 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                         Le Guide s'ouvrait à son sommaire, ou à l'éclairage laissée
                         en plan : deux destinations utiles, mais aucune ne
                         répond à « qu'est-ce que je regarde ». */}
-                    <Link className={styles.tile} href={guideClient?.href ?? (resume && courseDone > 0 ? `/info/${resume.key}` : "/info")} onClick={close}>
+                    <Link className={styles.tile} href={guideClient?.href ?? (resume && lues > 0 ? `/info/${resume.key}` : "/info")} onClick={close}>
                       <Icon d={D.book} />
                       <b>{t(guideClient ? "Cette page expliquée" : "Le Guide")}</b>
-                      <small>{guideClient ? t(guideClient.titre) : index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("éclairages, outils, glossaire")}</small>
+                      <small>{guideClient ? t(guideClient.titre) : index ? t("{d} / {n} lues", { d: lues, n: index.lessons.length }) : t("éclairages, outils, glossaire")}</small>
                     </Link>
                     <Link className={styles.tile} href="/moi/profil" onClick={close}>
                       <Icon d={D.profile} />
                       <b>{t("Mon profil")}</b>
-                      <small>{profile ? t(profile === "prudent" ? "prudent" : profile === "equilibre" ? "équilibré" : "dynamique") : signedIn ? t("deux minutes") : t("deux minutes · à titre indicatif")}</small>
+                      <small>{t("deux minutes · à titre indicatif")}</small>
                     </Link>
-                    {signedIn && (
-                      <Link className={styles.tile} href="/moi/securite" onClick={close}>
-                        <Icon d={D.shield} />
-                        <b>{t("Sécurité")}</b>
-                        <small className={security && security.channels === 2 ? styles.good : undefined}>{security ? t("{c} canaux · {d} appareil", { c: String(security.channels), d: String(security.devices) }) : t("canaux, appareils")}</small>
-                      </Link>
-                    )}
                   </div>
                   <div className={styles.group}>{t("Couleurs")}</div>
                   <PaletteSwitch lang={lang} />
-                  {/* Signed in, the language and the way out live behind the initial; a visitor finds them here. */}
-                  {!signedIn && (
-                    <div className={styles.line}>
-                      <LangSwitch compact />
-                      <Link href="/connexion" className={styles.lineOut} onClick={close}>
-                        {t("Se connecter")}
-                      </Link>
-                    </div>
-                  )}
+                  {/* La langue et l'entrée : derrière l'initiale pour qui est
+                      connecté, ici pour qui ne l'est pas. */}
+                  <div className={styles.line}>
+                    <LangSwitch compact />
+                    <Link href="/connexion" className={styles.lineOut} onClick={close}>
+                      {t("Se connecter")}
+                    </Link>
+                  </div>
                   <div className={styles.group}>{t("Nous joindre")}</div>
                   {contactBlock}
                 </>
@@ -408,20 +297,7 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
             </>
           )}
 
-          <div className={styles.foot}>
-            <span>
-              {COMPANY.legalName} · {t("agrément COSUMAF")}
-            </span>
-            <span className={styles.footLinks}>
-              <Link href="/info/mentions" onClick={close}>
-                {t("Mentions")}
-              </Link>
-              <Link href="/info/aide#entretien" onClick={close}>
-                {t("À propos")}
-                {build ? ` · v${build}` : ""}
-              </Link>
-            </span>
-          </div>
+          <MenuPied close={close} build={build} />
         </div>
       </Sheet>
 

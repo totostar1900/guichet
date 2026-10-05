@@ -87,25 +87,53 @@ describe("les tuiles du dock", () => {
 });
 
 /**
- * LES HUIT DESTINATIONS DU COMPTE.
+ * LA FEUILLE UNIQUE, DEPUIS LE 5 OCTOBRE 2026.
  *
- * Elles ne vivent pas dans une table partagée : elles sont écrites dans la
- * feuille, avec les noms courts et les trois mots. Deux choses s'y perdent en
- * silence : une clef sans icône, qui laisse un cadre vide, et l'état du
- * dossier, qui traverse t() sous forme de variable et resterait donc en
- * français dans une interface anglaise.
+ * Ses huit destinations sont écrites dans la feuille, pas dans une table
+ * partagée. Trois choses s'y perdent en silence : un dessin absent, qui laisse
+ * un cadre vide ; l'état du dossier, qui traverse t() sous forme de variable
+ * et resterait en français dans une interface anglaise ; et, depuis la fusion,
+ * un réglage oublié au passage d'une feuille à l'autre.
  */
-describe("les tuiles du compte", () => {
+describe("la feuille unique du compte", () => {
   const source = readFileSync(join(process.cwd(), "src/components/mobile/AccountMenu.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
-  it("donne une icône à chacune des huit", async () => {
-    const { ICONE_PAGE } = await import("@/components/nav/IconesPages");
-    const clefs = [...source.matchAll(/icone: ICONE_PAGE\.(\w+)/g)].map((m) => m[1]);
-    expect(clefs.length, "les deux grilles portent huit tuiles").toBe(8);
+  it("donne un dessin à chacune des huit", () => {
+    const dessins = [...source.matchAll(/\bd: D\.(\w+)/g)].map((m) => m[1]);
+    const table = /const D = \{([\s\S]*?)\n\};/.exec(source);
+    expect(table, "la table des dessins a changé de forme").toBeTruthy();
+    const connus = new Set([...table![1].matchAll(/^\s*(\w+):/gm)].map((m) => m[1]));
+    expect(dessins.length, "les deux grilles portent huit tuiles").toBe(8);
     expect(
-      clefs.filter((k) => !ICONE_PAGE[k]),
+      dessins.filter((k) => !connus.has(k)),
       "ces tuiles afficheraient un cadre vide",
     ).toEqual([]);
+  });
+
+  /**
+   * UNE SEULE PORTE QUAND ON EST CONNECTÉ. Le « ⋮ » et l'initiale ouvraient
+   * deux feuilles qui disaient la même chose : 2 433 px pour neuf pages, cinq
+   * destinations écrites deux fois. Le jour où le « ⋮ » revient pour un client
+   * connecté, le doublon revient avec lui.
+   */
+  it("ne laisse qu'une porte au client connecté", () => {
+    const menu = readFileSync(join(process.cwd(), "src/components/AppMenu.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(menu, "le « ⋮ » s'ouvre de nouveau à côté de l'initiale").toMatch(/if \(signedIn && !desk\) return null;/);
+  });
+
+  /**
+   * CE QUE LA FUSION NE DOIT PAS PERDRE. Les quatre réglages, les couleurs, la
+   * recherche, le contact et les deux sorties vivaient dans l'une ou l'autre
+   * feuille ; en fondre deux en une est exactement le geste qui en laisse
+   * tomber un au passage.
+   */
+  it("garde tout ce que les deux feuilles portaient", () => {
+    /* Le CORPS, pas les imports : un composant importé puis jamais rendu est
+       exactement la façon dont un réglage disparaît sans bruit. */
+    const corps = source.slice(source.indexOf("export function AccountMenu"));
+    for (const quoi of ["MenuRecherche", "MenuContact", "MenuRejouables", "MenuPied", "PaletteSwitch", "LangSwitch", "PushToggle", "statementsByEmail", "reach", "logoutEverywhere"]) {
+      expect(corps, `${quoi} a disparu de la feuille unique`).toContain(quoi);
+    }
   });
 
   /* L'état du dossier prend la place des trois mots : c'est la seule chose

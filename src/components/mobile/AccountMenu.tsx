@@ -1,26 +1,43 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
-import { useT } from "@/i18n/client";
+import { useLang, useT } from "@/i18n/client";
 import { logout, logoutEverywhere } from "@/app/connexion/actions";
 import { identityAction, prefsAction, type IdentityResult } from "@/app/moi/actions";
 import type { ClientPrefs } from "@/lib/domain/types";
 import { LangSwitch } from "@/components/LangSwitch";
+import { PaletteSwitch } from "@/components/PaletteSwitch";
 import { PushToggle } from "@/components/PushToggle";
+import { MenuContact, MenuPied, MenuRecherche, MenuRejouables, useGuideIndex } from "@/components/menu/Pieces";
+import { leconDuClient } from "@/lib/guide-link";
 import { Sheet } from "./Sheet";
-import { ICONE_PAGE } from "@/components/nav/IconesPages";
-import { Tuiles, type Tuile } from "@/components/nav/Tuiles";
+import menu from "@/components/AppMenu.module.css";
 import styles from "./AccountMenu.module.css";
 
 /**
- * The account, behind the initial at the top right of the phone header, in
- * the manner of the Claude app. The rule: the initial is you, the ⋮ is the
- * app. So here: the card (name and city, corrected in place), the two
- * channels and their proof, what is yours (Mon espace, the profile, the
- * security, the papers), your preferences (language, alerts on this device,
- * how the desk reaches you first, statements by e-mail), what comes next,
- * and the way out (this device, or everywhere).
+ * LA FEUILLE DU COMPTE, ET PLUS QU'ELLE.
+ *
+ * Elle vit derrière l'initiale, en haut à droite. Jusqu'au 5 octobre 2026 une
+ * seconde feuille vivait derrière le « ⋮ », à deux centimètres, et les deux
+ * disaient la même chose : mesuré à 375 px, 2 433 px de feuille pour neuf
+ * pages, cinq destinations écrites deux fois, et Sécurité joignable par quatre
+ * chemins. La règle qui les séparait (« l'initiale c'est vous, le ⋮ c'est
+ * l'application ») était écrite en tête des deux fichiers, et les deux la
+ * franchissaient : le ⋮ portait Mon profil et Sécurité, le compte portait le
+ * Guide, l'Aide, les Risques et les Mentions.
+ *
+ * ELLES N'EN FONT PLUS QU'UNE. Connecté, le « ⋮ » disparaît et tout est ici :
+ * l'identité, les deux canaux et leur preuve, les huit destinations, la
+ * recherche, les rejouables, le contact, les couleurs, les quatre réglages, et
+ * la sortie dans un pied qui ne défile pas. Le visiteur, lui, n'a pas
+ * d'initiale : le « ⋮ » reste pour lui, et pour le desk, qui a ses propres
+ * entrées.
+ *
+ * LA RÈGLE DE REMPLACEMENT, celle qui se vérifie : le dock porte les quatre
+ * sièges, la feuille porte tout le reste. « Les services » est donc parti
+ * d'ici le jour où Agir est devenu un siège.
  */
 export interface AccountProps {
   name: string;
@@ -34,8 +51,14 @@ export interface AccountProps {
   emailOk?: boolean;
   prefs?: ClientPrefs;
   vapidKey?: string;
-  /** KYC file status when one exists (brouillon → approuve): the hint under « Mes coordonnées et pièces ». */
+  /** KYC file status when one exists (brouillon → approuve): the hint under « Mes pièces ». */
   kycStatus?: string;
+  /** Les canaux prouvés et les appareils de confiance : le mot sous « Sécurité ». */
+  security?: { channels: number; devices: number };
+  /** Le profil financier, quand il est fait : le mot sous « Mon profil ». */
+  profile?: "prudent" | "equilibre" | "dynamique";
+  /** La version, au pied de la feuille. */
+  build?: string;
 }
 
 const D = {
@@ -43,9 +66,10 @@ const D = {
   profil: "M12 12m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0M4 21a8 8 0 0 1 16 0",
   shield: "M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6zM9 12l2 2 4-4",
   papers: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6",
-  compte: "M3 7h18v12H3zM3 11h18M7 15h4",
-  famille: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 20a6 6 0 0 1 12 0M15 20a4.5 4.5 0 0 1 6 0",
-  invite: "M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7c-2-3-6-3-6 0h6M12 7c2-3 6-3 6 0h-6",
+  book: "M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z",
+  help: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5M12 17h.01",
+  risques: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16h.01",
+  mentions: "M6 3h9l4 4v14H6zM14 3v5h5",
   out: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
   mail: "M3 6h18v12H3zM3 7l9 6 9-6",
   wa: "M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z",
@@ -93,6 +117,8 @@ function IdentityForm({ name, city, onDone }: { name: string; city: string; onDo
 
 export function AccountMenu(p: AccountProps) {
   const t = useT();
+  const lang = useLang();
+  const path = usePathname();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [who, setWho] = useState({ name: p.name, segment: p.segment });
@@ -102,6 +128,8 @@ export function AccountMenu(p: AccountProps) {
   const close = () => setOpen(false);
   const initial = who.name.trim().charAt(0).toUpperCase() || "?";
   const [kind, city = ""] = who.segment.split("·").map((s) => s.trim());
+  const { index, lues } = useGuideIndex(open);
+  const lecon = leconDuClient(path);
 
   const setPref = (patch: ClientPrefs) => {
     const before = prefs;
@@ -117,46 +145,54 @@ export function AccountMenu(p: AccountProps) {
   };
 
   /**
-   * CHEZ VOUS, EN QUATRE TUILES.
+   * CHEZ VOUS, QUATRE TUILES, ET PAS LES SIÈGES.
    *
-   * Les noms perdent le mot qui classe et gardent celui qui identifie :
-   * « Mon profil financier » ne tient pas sous un cadre de 54 px, « Mon
-   * profil » si, et à côté de « Sécurité » et de « Mes pièces » il ne manque
-   * rien. C'est la règle des noms courts de la cote, appliquée telle quelle.
+   * Portefeuille est un siège du dock et reste pourtant ici : c'est la
+   * destination qu'on redemande le plus, et la feuille s'ouvre souvent depuis
+   * une page qui n'est pas la sienne. Agir, lui, est parti : il est devenu un
+   * siège le 1er octobre, et deux portes vers la même page dans la même vue
+   * est exactement ce que cette fusion retire.
    *
-   * UNE SEULE DE CES HUIT EST VIVANTE : le dossier d'ouverture dit où il en
-   * est, « commencé », « envoyé », « en revue », « approuvé », « à reprendre ».
-   * Cet état vaut mieux que « adresse, RIB, pièce », donc il prend sa place au
-   * lieu de s'y ajouter, et la pastille le dit avant la lecture. Sans dossier,
-   * la tuile reprend ses trois mots et perd sa pastille.
+   * UNE SEULE DE CES QUATRE EST VIVANTE : le dossier d'ouverture dit où il en
+   * est. Cet état vaut mieux que « adresse, RIB, pièce », donc il prend sa
+   * place au lieu de s'y ajouter.
    */
-  const mine: Tuile[] = [
-    { key: "espace", icone: ICONE_PAGE.espace, nom: t(p.desk ? "Le desk" : "Portefeuille"), mots: t(p.desk ? "intentions, lignes" : "intentions, positions"), href: p.desk ? "/desk" : "/" },
-    { key: "profil", icone: ICONE_PAGE.profil, nom: t("Mon profil"), mots: t("horizon, tolérance"), href: "/moi/profil" },
-    { key: "securite", icone: ICONE_PAGE.securite, nom: t("Sécurité"), mots: t("canaux, appareils"), href: "/moi/securite" },
-    { key: "pieces", icone: ICONE_PAGE.pieces, nom: t("Mes pièces"), mots: t("adresse, RIB, pièce"), etat: p.kycStatus && KYC_HINT[p.kycStatus] ? t(KYC_HINT[p.kycStatus]) : undefined, href: p.kycStatus ? "/ouvrir-un-compte" : "/moi#coordonnees" },
+  const chezVous = [
+    { key: "espace", d: D.espace, nom: t(p.desk ? "Le desk" : "Portefeuille"), mot: t(p.desk ? "intentions, lignes" : "intentions, positions"), href: p.desk ? "/desk" : "/" },
+    {
+      key: "pieces",
+      d: D.papers,
+      nom: t("Mes pièces"),
+      mot: p.kycStatus && KYC_HINT[p.kycStatus] ? t(KYC_HINT[p.kycStatus]) : t("adresse, RIB, pièce"),
+      href: p.kycStatus ? "/ouvrir-un-compte" : "/moi#coordonnees",
+    },
+    { key: "profil", d: D.profil, nom: t("Mon profil"), mot: p.profile ? t(p.profile === "prudent" ? "prudent" : p.profile === "equilibre" ? "équilibré" : "dynamique") : t("horizon, tolérance"), href: "/moi/profil" },
+    { key: "securite", d: D.shield, nom: t("Sécurité"), mot: p.security ? t("{c} canaux · {d} appareil", { c: String(p.security.channels), d: String(p.security.devices) }) : t("canaux, appareils"), href: "/moi/securite" },
   ];
   /**
-   * Comprendre, et nous joindre.
-   *
-   * Ces quatre-là ne vivaient que dans la feuille « ⋮ » : sur un écran de
-   * bureau, ils n'existaient donc pas pour qui n'avait pas trouvé les trois
-   * points. Ce ne sont pas des réglages de compte, mais ils relèvent du même
-   * axe, ma relation avec la maison, et l'on ne les habite pas : on les ouvre
-   * une fois.
+   * Comprendre : les quatre pages de la maison, qui vivaient dans les deux
+   * feuilles à la fois. La première s'ouvre sur l'écran qu'on a sous les yeux
+   * quand le Guide en parle, et dit lequel.
    */
-  const comprendre: Tuile[] = [
-    { key: "guide", icone: ICONE_PAGE.guide, nom: t("Le Guide"), mots: t("glossaire, éclairages"), href: "/info" },
-    { key: "aide", icone: ICONE_PAGE.aide, nom: t("Aide"), mots: t("les questions reçues"), href: "/info/aide" },
-    { key: "risques", icone: ICONE_PAGE.risques, nom: t("Risques"), mots: t("ce que ça engage"), href: "/info/risques" },
-    { key: "mentions", icone: ICONE_PAGE.mentions, nom: t("Mentions"), mots: t("agrément COSUMAF"), href: "/info/mentions" },
-  ];
-  const soon: { key: string; icon: string; label: string; sub: string }[] = [
-    { key: "compte", icon: D.compte, label: t("Mon compte-titres"), sub: t("dossier d'ouverture, relevés") },
-    { key: "famille", icon: D.famille, label: t("Mes proches"), sub: t("un compte pour un enfant, une tontine") },
-    { key: "parrainage", icon: D.invite, label: t("Inviter un proche"), sub: t("un lien, une ligne offerte à lire") },
+  const comprendre = [
+    { key: "guide", d: D.book, nom: t(lecon ? "Cette page expliquée" : "Le Guide"), mot: lecon ? t(lecon.titre) : index ? t("{d} / {n} lues", { d: lues, n: index.lessons.length }) : t("glossaire, éclairages"), href: lecon?.href ?? "/info" },
+    { key: "aide", d: D.help, nom: t("Aide"), mot: t("les questions reçues"), href: "/info/aide" },
+    { key: "risques", d: D.risques, nom: t("Risques"), mot: t("ce que ça engage"), href: "/info/risques" },
+    { key: "mentions", d: D.mentions, nom: t("Mentions"), mot: t("agrément COSUMAF"), href: "/info/mentions" },
   ];
   const reach = prefs.reach ?? (p.phoneOk ? "whatsapp" : "email");
+
+  const grille = (items: typeof comprendre, vif?: (k: string) => boolean) => (
+    <div className={menu.tiles}>
+      {items.map((it) => (
+        <Link key={it.key} className={menu.tile} href={it.href} onClick={close}>
+          <Icon d={it.d} />
+          <b>{it.nom}</b>
+          <small className={vif?.(it.key) ? menu.good : undefined}>{it.mot}</small>
+        </Link>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -169,7 +205,7 @@ export function AccountMenu(p: AccountProps) {
         navy
         dock="top-right"
         tall
-        title={t("Mon compte")}
+        title={t("Bonjour {name}", { name: who.name.split(/\s+/)[0] })}
         foot={
           <div className={styles.out}>
             <form action={logout}>
@@ -183,6 +219,7 @@ export function AccountMenu(p: AccountProps) {
                 {t("Se déconnecter partout")}
               </button>
             </form>
+            <MenuPied close={close} build={p.build} />
           </div>
         }
       >
@@ -231,19 +268,33 @@ export function AccountMenu(p: AccountProps) {
           </Link>
         </div>
 
-        {/* DEUX GRILLES, ET LES DEUX TITRES QUI LES SÉPARENT.
-            Les huit destinations commençaient à 224 et finissaient à 741 pour
-            460 pixels visibles : aucune des quatre dernières ne se voyait sans
-            défiler, et ce sont justement celles qu'on vient chercher ici. En
-            tuiles elles finissent à 477, donc les huit noms se lisent d'un
-            coup. Les deux titres restent : ils disent que quatre sont à moi et
+        {/* DEUX GRILLES ET DEUX TITRES : quatre destinations sont à vous,
             quatre à la maison, et huit tuiles d'affilée redeviendraient une
             liste d'icônes. */}
         <div className={styles.group}>{t("Chez vous")}</div>
-        <Tuiles items={mine} onPick={close} />
+        {grille(chezVous, (k) => k === "pieces" && Boolean(p.kycStatus))}
 
-        <div className={styles.group}>{t("Comprendre et nous joindre")}</div>
-        <Tuiles items={comprendre} onPick={close} />
+        <div className={styles.group}>{t("Comprendre")}</div>
+        {grille(comprendre)}
+
+        {/* Ce qui vivait dans le « ⋮ », et n'existait donc pas sur un écran de
+            bureau pour qui n'avait pas trouvé les trois points. Le desk garde
+            sa propre feuille : il les y a déjà. */}
+        {!p.desk && <MenuRecherche index={index} close={close} />}
+
+        <div className={styles.group}>{t("Revoir")}</div>
+        <div className={styles.rows}>
+          <MenuRejouables close={close} />
+        </div>
+
+        {!p.desk && (
+          <>
+            <div className={styles.group}>{t("Nous joindre")}</div>
+            <MenuContact close={close} compact />
+            <div className={styles.group}>{t("Couleurs")}</div>
+            <PaletteSwitch lang={lang} />
+          </>
+        )}
 
         <div className={styles.group}>{t("Préférences")}</div>
         <div className={styles.rows}>
@@ -285,21 +336,6 @@ export function AccountMenu(p: AccountProps) {
           </div>
           {prefErr && <small className={styles.err}>{t(prefErr)}</small>}
         </div>
-
-        <div className={styles.group}>{t("Bientôt")}</div>
-        <div className={styles.rows}>
-          {soon.map((r) => (
-            <div key={r.key} className={`${styles.row} ${styles.soon}`} aria-disabled="true">
-              <Icon d={r.icon} />
-              <span>
-                <b>{r.label}</b>
-                <small>{r.sub}</small>
-              </span>
-              <em>{t("bientôt")}</em>
-            </div>
-          ))}
-        </div>
-        <p className={styles.note}>{t("Le ⋮ garde l'aide, les couleurs et le contact ; ici, ce qui vous appartient.")}</p>
       </Sheet>
     </>
   );
