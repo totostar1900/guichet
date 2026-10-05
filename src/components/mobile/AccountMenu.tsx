@@ -223,18 +223,31 @@ export function AccountMenu(p: AccountProps) {
           </div>
         }
       >
-        <div className={styles.card}>
-          <span className={styles.big}>{initial}</span>
-          <span className={styles.who}>
-            <b>{who.name}</b>
-            <small>{[t(kind), city].filter(Boolean).join(" · ")}</small>
+        {/* LA RECHERCHE EN TÊTE. Elle était en sixième position, après dix-sept
+            tuiles : c'est pourtant le chemin le plus court vers n'importe quoi,
+            et le seul qui réponde à une question qu'on n'a pas su ranger. Elle
+            vivait dans le « ⋮ » et n'existait donc pas sur un écran de bureau
+            pour qui n'avait pas trouvé les trois points ; le desk, lui, a la
+            sienne. */}
+        {!p.desk && <MenuRecherche index={index} close={close} />}
+
+        {/* LE TITRE DIT DÉJÀ LE NOM. « Bonjour Georges » en haut et « Georges »
+            trois centimètres plus bas, avec l'initiale en grand entre les deux,
+            disaient trois fois la même chose. Reste ce qui s'apprend : la
+            qualité, la ville, le niveau et l'état du compte-titres.
+
+            ET LE BOUTON NOMME CE QU'IL OUVRE. « Modifier » ouvrait le nom et la
+            ville, posé au-dessus de deux canaux qu'il ne touche pas. */}
+        <div className={styles.statut}>
+          <span>
+            <b>{[t(kind), city].filter(Boolean).join(" · ")}</b>
             <small>
               {t("niveau")} {p.tier} · {t(p.tier < 2 ? "compte-titres à ouvrir" : "compte-titres actif")}
             </small>
           </span>
           {!editing && (
             <button type="button" className={styles.editBtn} onClick={() => setEditing(true)}>
-              {t("Modifier")}
+              {t("Nom et ville")}
             </button>
           )}
         </div>
@@ -250,21 +263,27 @@ export function AccountMenu(p: AccountProps) {
         )}
 
         <div className={styles.channels}>
-          <Link href="/moi/securite" className={styles.channel} onClick={close}>
+          {/* UN CANAL NE SE CORRIGE PAS, IL SE PROUVE : le desk envoie un code
+              à l'adresse et un lien au numéro, et le canal ne compte pour une
+              intention qu'une fois la preuve faite. Un champ libre ici
+              laisserait croire que c'est réglé alors que le canal serait
+              repassé « à prouver », et qu'un bulletin à signer n'arriverait
+              plus. Le geste mène donc là où la preuve se fait. */}
+          <Link href="/moi/securite#canaux" className={styles.channel} onClick={close}>
             <Icon d={D.mail} />
             <span>
               <b>{p.email ?? t("E-mail à renseigner")}</b>
               <small className={p.emailOk ? styles.ok : undefined}>{t(p.emailOk ? "prouvé" : p.email ? "à prouver" : "le desk vous écrit ici")}</small>
             </span>
-            <i aria-hidden="true">›</i>
+            <span className={styles.chg}>{t(p.email ? "Changer" : "Ajouter")}</span>
           </Link>
-          <Link href="/moi/securite" className={styles.channel} onClick={close}>
+          <Link href="/moi/securite#canaux" className={styles.channel} onClick={close}>
             <Icon d={D.wa} />
             <span>
               <b>{p.phone ?? t("WhatsApp à renseigner")}</b>
               <small className={p.phoneOk ? styles.ok : undefined}>{t(p.phoneOk ? "prouvé" : p.phone ? "à prouver" : "le desk vous joint ici")}</small>
             </span>
-            <i aria-hidden="true">›</i>
+            <span className={styles.chg}>{t(p.phone ? "Changer" : "Ajouter")}</span>
           </Link>
         </div>
 
@@ -277,15 +296,8 @@ export function AccountMenu(p: AccountProps) {
         <div className={styles.group}>{t("Comprendre")}</div>
         {grille(comprendre)}
 
-        {/* Ce qui vivait dans le « ⋮ », et n'existait donc pas sur un écran de
-            bureau pour qui n'avait pas trouvé les trois points. Le desk garde
-            sa propre feuille : il les y a déjà. */}
-        {!p.desk && <MenuRecherche index={index} close={close} />}
-
         <div className={styles.group}>{t("Revoir")}</div>
-        <div className={styles.rows}>
-          <MenuRejouables close={close} />
-        </div>
+        <MenuRejouables close={close} />
 
         {!p.desk && (
           <>

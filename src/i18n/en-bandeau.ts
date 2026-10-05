@@ -28,6 +28,9 @@ export const EN_BANDEAU: Record<string, string> = {
   "un second flux pour le total": "a second flow for the total",
   "une seconde date": "a second date",
   "{n} séances, {m} bougées": "{n} sessions, {m} moved",
+  /* la feuille du compte */
+  "Nos bureaux": "Our offices",
+  "Nom et ville": "Name and city",
   /* les écarts */
   "sur un an": "year on year",
   "vs la mise": "vs outlay",

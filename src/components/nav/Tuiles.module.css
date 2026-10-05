@@ -50,7 +50,10 @@
 }
 .tuile b {
   display: block;
-  font-size: 0.95rem;
+  /* Moins 10 % le matin du 5 octobre 2026, moins 15 % le soir : le nom tient
+     sous un cadre de 50 px sans se couper, et la silhouette redevient ce qui
+     se voit en premier. */
+  font-size: 0.81rem;
   font-weight: 600;
   line-height: 1.25;
 }

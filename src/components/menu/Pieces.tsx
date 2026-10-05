@@ -90,11 +90,11 @@ export function MenuRecherche({ index, close }: { index: GuideIndex | null; clos
 }
 
 /**
- * Les deux rejouables, en rangées minces.
+ * Les deux rejouables, côte à côte dans la grille.
  *
- * Ils étaient deux tuiles sur quatre dans le « ⋮ », à côté de destinations
- * qu'on ouvre souvent : on ne revoit pas une présentation deux fois, donc ils
- * prennent la forme de ce qu'ils sont, deux rangées qu'on ouvre une fois.
+ * Ils ont été deux rangées pleine largeur une demi-journée, et c'était une
+ * grammaire de trop : la feuille pose cinq bandes de tuiles, et deux rangées
+ * au milieu cassaient la lecture pour deux choses qu'on ouvre une fois.
  */
 export function MenuRejouables({ close }: { close: () => void }) {
   const t = useT();
@@ -105,24 +105,22 @@ export function MenuRejouables({ close }: { close: () => void }) {
   };
   return (
     <>
-      <button type="button" className={styles.item} onClick={lancer("presentation")}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.gold}>
-          <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l5.5-3.5z" />
-        </svg>
-        <span>
+      <div className={styles.tiles}>
+        <button type="button" className={styles.tile} onClick={lancer("presentation")}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l5.5-3.5z" />
+          </svg>
           <b>{t("Trente secondes")}</b>
           <small>{t("la présentation")}</small>
-        </span>
-      </button>
-      <button type="button" className={styles.item} onClick={lancer("onboarding")}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.gold}>
-          <path d="M4 19V5l6 3v11zM14 16V4l6 3v11z" />
-        </svg>
-        <span>
+        </button>
+        <button type="button" className={styles.tile} onClick={lancer("onboarding")}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 19V5l6 3v11zM14 16V4l6 3v11z" />
+          </svg>
           <b>{t("Premiers pas")}</b>
           <small>{t("six écrans")}</small>
-        </span>
-      </button>
+        </button>
+      </div>
       {joue === "presentation" && <Presentation force onClose={() => setJoue(null)} />}
       {joue === "onboarding" && <Onboarding force onClose={() => setJoue(null)} />}
     </>
@@ -162,24 +160,23 @@ export function MenuContact({ close, surFiche, compact }: { close: () => void; /
             <b>{t("Appeler")}</b>
             <small>{t("lundi à vendredi, 8 h à 17 h")}</small>
           </a>
-        </div>
-        <a className={styles.item} href={`mailto:${COMPANY.email}`} onClick={close}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.gold}>
-            <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l9 6 9-6" />
-          </svg>
-          <span>
-            <b>{COMPANY.email}</b>
+          <a className={styles.tile} href={`mailto:${COMPANY.email}`} onClick={close}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l9 6 9-6" />
+            </svg>
+            <b>{t("E-mail")}</b>
+            <small>{COMPANY.email}</small>
             <small>{t("réponse sous un jour ouvré")}</small>
-          </span>
-        </a>
-        <div className={styles.address}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0" />
-          </svg>
-          <span>
-            <b>{COMPANY.legalName}</b>
+          </a>
+          {/* L adresse n est pas un lien : elle se
+              lit. La raison sociale et l'agrément vivent au pied de la
+              feuille, qui ne défile pas. */}
+          <span className={styles.tile}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0" />
+            </svg>
+            <b>{t("Nos bureaux")}</b>
             <small>{COMPANY.address}</small>
-            <small>{t(COMPANY.licence)}</small>
           </span>
         </div>
       </>

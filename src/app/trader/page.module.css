@@ -466,7 +466,10 @@
 }
 .svc .quoi b {
   display: block;
-  font-size: 1.25rem;
+  /* 1,25 rem venait du « +50 % de contenu » et faisait du nom d un service le
+     plus gros texte de cette famille, un tiers au-dessus d un nom de tuile.
+     Moins 15 % le 5 octobre 2026. */
+  font-size: 1.06rem;
   font-weight: 600;
 }
 .svc .quoi small {

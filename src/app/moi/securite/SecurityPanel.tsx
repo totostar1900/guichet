@@ -100,7 +100,9 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
 
   return (
     <div className={styles.grid}>
-      <section className="panel">
+      {/* L ancre que la feuille du compte vise : « Changer » doit tomber sur
+          le canal, pas en haut d une page qui porte aussi les appareils. */}
+      <section className="panel" id="canaux">
         <div className="panel-h">
           <h2>{t("Mes deux canaux")}</h2>
           <span className={styles.sub}>{t("Prouvés une fois ; un nouveau numéro ou une nouvelle adresse se prouve à nouveau.")}</span>

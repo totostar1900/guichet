@@ -13,38 +13,39 @@
   cursor: pointer;
   padding: 0;
 }
-.card {
+/* Le statut : ce que la carte disait, moins le nom et l'initiale, que le
+   titre de la feuille porte déjà. */
+.statut {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 0 12px;
+  gap: var(--s-6);
+  padding: var(--s-4) 0 var(--s-5);
   border-bottom: 1px solid var(--line);
 }
-.big {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
-  background: var(--gold);
-  color: var(--navy);
-  font-weight: 800;
-  font-size: 1.2rem;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-.who {
+.statut > span {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
 }
-.card b {
-  font-size: 1rem;
+.statut b {
+  font-size: 0.86rem;
+  font-weight: 600;
 }
-.card small {
+.statut small {
   font-size: 0.74rem;
   color: var(--ink-3);
-  overflow-wrap: anywhere;
+}
+/* Le geste du canal : il a la même forme que « Nom et ville », parce qu'il
+   fait la même promesse, changer ce qui est écrit à côté. */
+.chg {
+  flex: none;
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: var(--s-2) var(--s-5);
 }
 .rows {
   display: flex;
@@ -110,9 +111,6 @@
   font-size: 0.74rem;
   color: var(--ink-3);
   line-height: 1.45;
-}
-.card {
-  position: relative;
 }
 .editBtn {
   flex: none;
