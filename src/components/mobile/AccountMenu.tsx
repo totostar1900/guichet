@@ -9,6 +9,8 @@ import type { ClientPrefs } from "@/lib/domain/types";
 import { LangSwitch } from "@/components/LangSwitch";
 import { PushToggle } from "@/components/PushToggle";
 import { Sheet } from "./Sheet";
+import { ICONE_PAGE } from "@/components/nav/IconesPages";
+import { Tuiles, type Tuile } from "@/components/nav/Tuiles";
 import styles from "./AccountMenu.module.css";
 
 /**
@@ -114,11 +116,25 @@ export function AccountMenu(p: AccountProps) {
     });
   };
 
-  const mine: { key: string; icon: string; label: string; sub: string; href: string }[] = [
-    { key: "espace", icon: D.espace, label: t(p.desk ? "Le desk" : "Portefeuille"), sub: t(p.desk ? "intentions, lignes, documents" : "intentions, positions, documents"), href: p.desk ? "/desk" : "/" },
-    { key: "profil", icon: D.profil, label: t("Mon profil financier"), sub: t("horizon, tolérance, connaissance, capacité"), href: "/moi/profil" },
-    { key: "securite", icon: D.shield, label: t("Sécurité"), sub: t("canaux prouvés, appareils, code"), href: "/moi/securite" },
-    { key: "pieces", icon: D.papers, label: t("Mes coordonnées et pièces"), sub: p.kycStatus && KYC_HINT[p.kycStatus] ? t(KYC_HINT[p.kycStatus]) : t("adresse, pièce d'identité, RIB, dossier"), href: p.kycStatus ? "/ouvrir-un-compte" : "/moi#coordonnees" },
+  /**
+   * CHEZ VOUS, EN QUATRE TUILES.
+   *
+   * Les noms perdent le mot qui classe et gardent celui qui identifie :
+   * « Mon profil financier » ne tient pas sous un cadre de 54 px, « Mon
+   * profil » si, et à côté de « Sécurité » et de « Mes pièces » il ne manque
+   * rien. C'est la règle des noms courts de la cote, appliquée telle quelle.
+   *
+   * UNE SEULE DE CES HUIT EST VIVANTE : le dossier d'ouverture dit où il en
+   * est, « commencé », « envoyé », « en revue », « approuvé », « à reprendre ».
+   * Cet état vaut mieux que « adresse, RIB, pièce », donc il prend sa place au
+   * lieu de s'y ajouter, et la pastille le dit avant la lecture. Sans dossier,
+   * la tuile reprend ses trois mots et perd sa pastille.
+   */
+  const mine: Tuile[] = [
+    { key: "espace", icone: ICONE_PAGE.espace, nom: t(p.desk ? "Le desk" : "Portefeuille"), mots: t(p.desk ? "intentions, lignes" : "intentions, positions"), href: p.desk ? "/desk" : "/" },
+    { key: "profil", icone: ICONE_PAGE.profil, nom: t("Mon profil"), mots: t("horizon, tolérance"), href: "/moi/profil" },
+    { key: "securite", icone: ICONE_PAGE.securite, nom: t("Sécurité"), mots: t("canaux, appareils"), href: "/moi/securite" },
+    { key: "pieces", icone: ICONE_PAGE.pieces, nom: t("Mes pièces"), mots: t("adresse, RIB, pièce"), etat: p.kycStatus && KYC_HINT[p.kycStatus] ? t(KYC_HINT[p.kycStatus]) : undefined, href: p.kycStatus ? "/ouvrir-un-compte" : "/moi#coordonnees" },
   ];
   /**
    * Comprendre, et nous joindre.
@@ -129,11 +145,11 @@ export function AccountMenu(p: AccountProps) {
    * axe, ma relation avec la maison, et l'on ne les habite pas : on les ouvre
    * une fois.
    */
-  const comprendre: { key: string; icon: string; label: string; sub: string; href: string }[] = [
-    { key: "guide", icon: D.espace, label: t("Le Guide"), sub: t("aide · glossaire · leçons"), href: "/info" },
-    { key: "aide", icon: D.papers, label: t("Aide"), sub: t("les questions qu'on nous pose"), href: "/info/aide" },
-    { key: "risques", icon: D.shield, label: t("Risques et limites"), sub: t("ce que chaque opération engage"), href: "/info/risques" },
-    { key: "mentions", icon: D.compte, label: t("Mentions"), sub: t("agrément COSUMAF"), href: "/info/mentions" },
+  const comprendre: Tuile[] = [
+    { key: "guide", icone: ICONE_PAGE.guide, nom: t("Le Guide"), mots: t("glossaire, leçons"), href: "/info" },
+    { key: "aide", icone: ICONE_PAGE.aide, nom: t("Aide"), mots: t("les questions reçues"), href: "/info/aide" },
+    { key: "risques", icone: ICONE_PAGE.risques, nom: t("Risques"), mots: t("ce que ça engage"), href: "/info/risques" },
+    { key: "mentions", icone: ICONE_PAGE.mentions, nom: t("Mentions"), mots: t("agrément COSUMAF"), href: "/info/mentions" },
   ];
   const soon: { key: string; icon: string; label: string; sub: string }[] = [
     { key: "compte", icon: D.compte, label: t("Mon compte-titres"), sub: t("dossier d'ouverture, relevés") },
@@ -215,33 +231,19 @@ export function AccountMenu(p: AccountProps) {
           </Link>
         </div>
 
+        {/* DEUX GRILLES, ET LES DEUX TITRES QUI LES SÉPARENT.
+            Les huit destinations commençaient à 224 et finissaient à 741 pour
+            460 pixels visibles : aucune des quatre dernières ne se voyait sans
+            défiler, et ce sont justement celles qu'on vient chercher ici. En
+            tuiles elles finissent à 477, donc les huit noms se lisent d'un
+            coup. Les deux titres restent : ils disent que quatre sont à moi et
+            quatre à la maison, et huit tuiles d'affilée redeviendraient une
+            liste d'icônes. */}
         <div className={styles.group}>{t("Chez vous")}</div>
-        <div className={styles.rows}>
-          {mine.map((r) => (
-            <Link key={r.key} href={r.href} className={styles.row} onClick={close}>
-              <Icon d={r.icon} />
-              <span>
-                <b>{r.label}</b>
-                <small>{r.sub}</small>
-              </span>
-              <i aria-hidden="true">›</i>
-            </Link>
-          ))}
-        </div>
+        <Tuiles items={mine} onPick={close} />
 
         <div className={styles.group}>{t("Comprendre et nous joindre")}</div>
-        <div className={styles.rows}>
-          {comprendre.map((r) => (
-            <Link key={r.key} href={r.href} className={styles.row} onClick={close}>
-              <Icon d={r.icon} />
-              <span>
-                <b>{r.label}</b>
-                <small>{r.sub}</small>
-              </span>
-              <i aria-hidden="true">›</i>
-            </Link>
-          ))}
-        </div>
+        <Tuiles items={comprendre} onPick={close} />
 
         <div className={styles.group}>{t("Préférences")}</div>
         <div className={styles.rows}>

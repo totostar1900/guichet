@@ -16,14 +16,16 @@ const svg = (d: React.ReactNode) => (
   </svg>
 );
 
+const BORD = svg(
+  <>
+    <path d="M4 7h16v12H4z" />
+    <path d="M8 7V5h8v2M4 12h16" />
+  </>,
+);
+
 export const ICONE_PAGE: Record<string, React.ReactNode> = {
   /* Le portefeuille : ce qu'on a, et ce qui en découle. */
-  bord: svg(
-    <>
-      <path d="M4 7h16v12H4z" />
-      <path d="M8 7V5h8v2M4 12h16" />
-    </>,
-  ),
+  bord: BORD,
   // L'analyse : une part, parce que la première question est « combien de quoi ».
   performance: svg(
     <>
@@ -111,6 +113,59 @@ export const ICONE_PAGE: Record<string, React.ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 11v5M12 7.6v.9" />
+    </>,
+  ),
+
+  /**
+   * LE COMPTE : ce qui est à moi, et ce qui est à la maison.
+   *
+   * Ces huit-là se partageaient cinq dessins. En rangée le nom portait, et
+   * deux documents identiques à dix lignes d'écart ne se voyaient pas ; dans
+   * une grille, côte à côte, la silhouette se lit avant le nom.
+   */
+  espace: BORD,
+  profil: svg(
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+    </>,
+  ),
+  securite: svg(
+    <>
+      <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </>,
+  ),
+  // Les pièces : une chemise, et non une feuille, pour la distinguer des deux
+  // documents de la même feuille.
+  pieces: svg(
+    <>
+      <path d="M3 7h6l2 2h10v10H3z" />
+      <path d="M7 13h8" />
+    </>,
+  ),
+  guide: svg(
+    <>
+      <path d="M4 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4z" />
+      <path d="M20 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z" />
+    </>,
+  ),
+  aide: svg(
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9.6a2.5 2.5 0 1 1 2.9 2.9v1.1M12.4 17v.1" />
+    </>,
+  ),
+  risques: svg(
+    <>
+      <path d="M12 4l9 16H3z" />
+      <path d="M12 10v4M12 17v.1" />
+    </>,
+  ),
+  mentions: svg(
+    <>
+      <path d="M5 4h14v16H5z" />
+      <path d="M8 9h8M8 13h8M8 17h5" />
     </>,
   ),
 };

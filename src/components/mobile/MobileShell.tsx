@@ -10,6 +10,7 @@ import { Sheet } from "./Sheet";
 import { currentMarketPage, isMarketPath } from "@/lib/market/pages";
 import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
 import { ICONE_PAGE } from "@/components/nav/IconesPages";
+import { Tuiles } from "@/components/nav/Tuiles";
 import type { ComptesParLieu } from "@/lib/domain/listes";
 import type { ClientPrefs } from "@/lib/domain/types";
 import styles from "./MobileShell.module.css";
@@ -279,20 +280,18 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
           chercher. Il est compté comme la page le montre, par « domain/listes »,
           sinon il mentirait d'une ligne ou de neuf. */}
       <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")} sub={t(ouverte ? GROUPES[ouverte].sous : "")}>
-        <div className={styles.tuiles} style={{ gridTemplateColumns: `repeat(${Math.min(ouverte ? GROUPES[ouverte].pages.length : 1, 4)}, 1fr)` }}>
-          {(ouverte ? GROUPES[ouverte].pages : []).map((p) => {
-            const ici = p.href === path || p.key === currentMarketPage(path);
-            const n = COMPTES[p.key] ? COMPTES[p.key](counts) : undefined;
-            return (
-              <Link key={p.key} href={p.href} className={`${styles.tuile} ${ici ? styles.tuileIci : ""}`} aria-current={ici ? "page" : undefined} onClick={() => setFeuille(null)}>
-                <span className={styles.ico}>{ICONE_PAGE[p.key]}</span>
-                <b>{t(p.short ?? p.label)}</b>
-                <em>{t(p.tuile ?? p.hint)}</em>
-                {n != null && <span className={styles.compte}>{n}</span>}
-              </Link>
-            );
-          })}
-        </div>
+        <Tuiles
+          items={(ouverte ? GROUPES[ouverte].pages : []).map((p) => ({
+            key: p.key,
+            href: p.href,
+            nom: t(p.short ?? p.label),
+            mots: t(p.tuile ?? p.hint),
+            compte: COMPTES[p.key]?.(counts),
+            icone: ICONE_PAGE[p.key],
+            ici: p.href === path || p.key === currentMarketPage(path),
+          }))}
+          onPick={() => setFeuille(null)}
+        />
       </Sheet>
     </>
   );

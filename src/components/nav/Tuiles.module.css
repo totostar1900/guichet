@@ -1,0 +1,98 @@
+/**
+ * LES TUILES, UNE SEULE FOIS.
+ *
+ * Elles servent la feuille du dock et celle du compte. Deux copies du même
+ * dessin divergent toujours, et une tuile qui n'a pas la même taille d'une
+ * feuille à l'autre se voit tout de suite : c'est la même grille, au pixel.
+ *
+ * Le nombre de colonnes vient du nombre de tuiles, posé par le composant :
+ * trois tuiles font trois colonnes, et une grille de quatre à moitié vide
+ * dirait qu'il manque quelque chose.
+ */
+.tuiles {
+  display: grid;
+  gap: var(--s-6) var(--s-2);
+}
+.tuile {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: var(--ink);
+}
+/* Le cadre porte l'icône ET l'état « où l'on est » : le trait, lui, ne change
+   jamais de couleur, sinon la silhouette se lit deux fois. */
+.ico {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto var(--s-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.ico svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tuile b {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.tuile em {
+  display: block;
+  font-style: normal;
+  font-size: 0.63rem;
+  color: var(--ink-3);
+  line-height: 1.25;
+  margin-top: var(--s-1);
+}
+/* Le chiffre de la page : il répond avant le toucher, donc il se voit. */
+.compte {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--s-1);
+}
+/**
+ * L'ÉTAT PREND LA PLACE DES TROIS MOTS, IL NE S'Y AJOUTE PAS.
+ *
+ * « Dossier en revue » vaut mieux que « adresse, RIB, pièce » : c'est la seule
+ * chose vivante de cette grille, et c'est exactement ce qu'une grille d'icônes
+ * efface d'habitude. La pastille le dit de loin, avant la lecture.
+ */
+.etat {
+  display: block;
+  font-size: 0.63rem;
+  font-weight: 600;
+  color: var(--gold-ink);
+  line-height: 1.25;
+  margin-top: var(--s-1);
+}
+.pastille {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.tuileIci .ico {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.tuileIci b {
+  color: var(--gold-ink);
+}

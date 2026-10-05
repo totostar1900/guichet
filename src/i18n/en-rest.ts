@@ -1068,6 +1068,15 @@ export const EN_REST: Record<string, string> = {
   "un trimestre par note": "one quarter per note",
   "deux lignes côte à côte": "two lines side by side",
   "cinq rubriques, relues": "five sections, reviewed",
+  /* Les tuiles du compte. « Mes pièces » n'est pas « Mes documents » : l'un
+     porte les pièces du dossier d'ouverture, l'autre les relevés et les avis,
+     et deux tuiles du même nom seraient deux destinations confondues. */
+  "Mes pièces": "My papers",
+  "adresse, RIB, pièce": "address, bank details, ID",
+  "horizon, tolérance": "horizon, tolerance",
+  "glossaire, leçons": "glossary, lessons",
+  "les questions reçues": "the questions we get",
+  "ce que ça engage": "what it commits you to",
   "ce qui s'achète": "what can be bought",
   "Cette page expliquée": "This page explained",
 /* ---------- les trois lieux et leurs sections ---------- */
