@@ -30,17 +30,20 @@
 /**
  * CE QUI S'EST ÉCHANGÉ : trois nombres, et rien autour.
  *
- * C'est la seule mesure d'activité de la page. Trois colonnes sur une ligne,
- * qui se replient sous 300 px : à cette largeur, trois nombres côte à côte
- * deviennent trois colonnes d'un caractère.
+ * C'est la seule mesure d'activité de la page. Trois colonnes, sur une seule
+ * ligne : en « flex », le troisième bloc réclamait à lui seul 313 des 345
+ * pixels disponibles et passait à la ligne, laissant deux nombres en haut et
+ * un en bas. Mesuré sur la production le 5 octobre 2026.
  */
 .ech {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--s-7);
 }
+/* Sans « min-width: 0 », une colonne de grille ne descend pas sous la largeur
+   minimale de son contenu, et les trois nombres se remettent a deborder. */
 .ech > div {
-  flex: 1 1 100px;
+  min-width: 0;
 }
 .ech b {
   display: block;
