@@ -47,7 +47,7 @@ export const MARKET_PAGES: MarketPage[] = [
      règle, désormais : Marché se lit, Instruments s'achète, Trader fait. Voir
      `lib/nav-groups.ts`, où les trois sièges déclarent leurs pages. */
   // Le Guide est servi sur les deux domaines : une seule adresse suffit.
-  { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "La leçon : comment lire l'indice", short: "La leçon", tuile: "comment lire l'indice", hint: "comment il se calcule, ce que pèse chaque société, et le curseur à manipuler", guide: true },
+  { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "L'éclairage : comment lire l'indice", short: "L'éclairage", tuile: "comment lire l'indice", hint: "comment il se calcule, ce que pèse chaque société, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
   { key: "actualites", href: "/actualites", label: "Actualités du marché", short: "Actualités", tuile: "cinq rubriques, relues", hint: "Trésors, BVMAC, sociétés, fonds, réglementation : ce que le desk a relu et publié" },
 ];

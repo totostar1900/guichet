@@ -328,7 +328,7 @@ export function ActorsMap({ focus }: { focus?: string[] }) {
       {zoom && <MapZoom focus={focus} onClose={() => setZoom(false)} />}
 
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> : {t("de gauche à droite, le chemin d'un titre ; de haut en bas, qui surveille qui. Un acteur estompé n'est pas concerné par cette leçon ; un acteur souligné ouvre son mot du glossaire.")}
+        <b>{t("Comment lire")}</b> : {t("de gauche à droite, le chemin d'un titre ; de haut en bas, qui surveille qui. Un acteur estompé n'est pas concerné par cet éclairage ; un acteur souligné ouvre son mot du glossaire.")}
       </p>
     </div>
   );

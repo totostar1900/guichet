@@ -76,7 +76,7 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
           })}
         </div>
         <span>
-          <b>{t("{n} leçons lues sur {total}", { n: readCount, total })}</b>
+          <b>{t("{n} éclairages lus sur {total}", { n: readCount, total })}</b>
           {minutesLeft > 0 ? ` · ${t("{n} min restantes", { n: minutesLeft })}` : ` · ${t("parcours terminé")}`}
         </span>
       </div>
@@ -96,7 +96,7 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
               <span className={styles.headText}>
                 <b>{t(s.title)}</b>
                 <small>
-                  {t("{n} leçons", { n: ls.length })} · {ls.reduce((x, l) => x + l.minutes, 0)} min{doneN > 0 ? ` · ${doneN === ls.length ? t("lues") : t("{n} lues", { n: doneN })}` : ""}
+                  {t("{n} éclairages", { n: ls.length })} · {ls.reduce((x, l) => x + l.minutes, 0)} min{doneN > 0 ? ` · ${doneN === ls.length ? t("lues") : t("{n} lues", { n: doneN })}` : ""}
                 </small>
               </span>
               <span className={styles.keywords}>{t(s.keywords)}</span>

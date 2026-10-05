@@ -8,7 +8,7 @@ import styles from "./SectionLine.module.css";
 
 /**
  * On the phone, the row of chapter chips that used to slide under the header
- * is one line instead: « Sur cette page · Huit leçons courtes · 2 / 6 » and a
+ * is one line instead: « Sur cette page · Huit éclairages courts · 2 / 6 » and a
  * chevron, a thin rail of one segment per chapter underneath. Nothing is
  * hidden off-screen, the place is said in words, one wide target. A tap opens
  * the numbered list in a sheet: passed chapters ticked, the current one

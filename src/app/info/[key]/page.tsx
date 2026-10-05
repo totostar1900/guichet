@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props) {
   const { key } = await params;
   const [ls, t] = await Promise.all([loadLessons(), getT()]);
   const l = ls.find((x) => x.key === key);
-  return { title: t(l ? l.title : "Leçon") };
+  return { title: t(l ? l.title : "Éclairage") };
 }
 
 /** Picks the real line the lesson plays with: an open one first, then any published one of the right kind. */
@@ -87,7 +87,7 @@ export default async function LessonPage({ params }: Props) {
       hintKey="lecon"
       prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title), pos: i > 0 ? pos(i) : t("Section précédente") } : undefined}
       next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title), pos: next ? pos(i + 2) : t("Section suivante") } : undefined}
-      hints={{ next: "Glissez vers la gauche : la leçon suivante", prev: "Glissez vers la droite : la leçon précédente" }}
+      hints={{ next: "Glissez vers la gauche : l'éclairage suivante", prev: "Glissez vers la droite : l'éclairage précédente" }}
     >
     <div className={styles.wrap}>
       <Link href={section ? "/info/parcours" : "/info"} className={styles.back}>
@@ -97,7 +97,7 @@ export default async function LessonPage({ params }: Props) {
         <div className={`eyebrow ${styles.eyebrow}`}>
           {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
           {section ? `${String.fromCharCode(64 + section.order)} · ${t(section.title)} · ` : ""}
-          {t("Leçon {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
+          {t("Éclairage {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
         </div>
         <h1 className="display">{t(l.title)}</h1>
         <p className={styles.intro}>{t(l.intro)}</p>

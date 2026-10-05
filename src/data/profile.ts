@@ -252,7 +252,7 @@ export const PROFILE_QUESTIONS: ProfileQuestion[] = [
 
 export const BLOCK_LABEL: Record<ProfileBlock, { fr: string; en: string; short: { fr: string; en: string }; lead: { fr: string; en: string } }> = {
   appetit: { fr: "Ce que vous pouvez supporter", en: "What you can bear", short: { fr: "Supporter", en: "Bear" }, lead: { fr: "Votre horizon, votre objectif, votre réaction à une baisse.", en: "Your horizon, your goal, your reaction to a fall." } },
-  connaissance: { fr: "Ce que vous connaissez", en: "What you know", short: { fr: "Connaître", en: "Know" }, lead: { fr: "Votre expérience, puis quatre vérifications : une réponse fausse, c'est une leçon à lire.", en: "Your experience, then four checks: a wrong answer is a lesson to read." } },
+  connaissance: { fr: "Ce que vous connaissez", en: "What you know", short: { fr: "Connaître", en: "Know" }, lead: { fr: "Votre expérience, puis quatre vérifications : une réponse fausse, c'est un éclairage à lire.", en: "Your experience, then four checks: a wrong answer is a insight to read." } },
   capacite: { fr: "Ce que vous pouvez engager", en: "What you can commit", short: { fr: "Engager", en: "Commit" }, lead: { fr: "Des fourchettes, jamais des chiffres exacts : elles dimensionnent, elles ne jugent pas.", en: "Bands, never exact figures: they size, they do not judge." } },
 };
 

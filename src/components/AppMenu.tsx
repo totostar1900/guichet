@@ -255,14 +255,14 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                   <path d="m20 20-3.5-3.5" />
                 </svg>
                 <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Une question, un mot… ex. coupon couru")} aria-label={t("Rechercher dans l'aide")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && openHit(hits[0])} />
-                <small>{t("aide · glossaire · leçons")}</small>
+                <small>{t("aide · glossaire · éclairages")}</small>
               </label>
               {q.trim().length >= 2 && (
                 <div className={styles.hits} role="listbox">
                   {hits.length === 0 && <span className={styles.none}>{index ? t("Aucun résultat") : t("Un instant…")}</span>}
                   {hits.map((e) => (
                     <button key={e.href + e.title} type="button" role="option" aria-selected={false} className={styles.hit} onClick={() => openHit(e)}>
-                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Leçon" : e.kind === "outil" ? "Outil" : "Aide")}</em>
+                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Éclairage" : e.kind === "outil" ? "Outil" : "Aide")}</em>
                       <b>{e.title}</b>
                     </button>
                   ))}
@@ -343,14 +343,14 @@ export function AppMenu({ signedIn, desk, name, security, profile, build }: AppM
                       <b>{t("Aide")}</b>
                       <small>{t("les questions qu'on nous pose")}</small>
                     </Link>
-                    {/* LA LEÇON QUI PARLE DE CET ÉCRAN, quand il y en a une.
-                        Le Guide s'ouvrait à son sommaire, ou à la leçon laissée
+                    {/* L ÉCLAIRAGE QUI PARLE DE CET ÉCRAN, quand il y en a une.
+                        Le Guide s'ouvrait à son sommaire, ou à l'éclairage laissée
                         en plan : deux destinations utiles, mais aucune ne
                         répond à « qu'est-ce que je regarde ». */}
                     <Link className={styles.tile} href={guideClient?.href ?? (resume && courseDone > 0 ? `/info/${resume.key}` : "/info")} onClick={close}>
                       <Icon d={D.book} />
                       <b>{t(guideClient ? "Cette page expliquée" : "Le Guide")}</b>
-                      <small>{guideClient ? t(guideClient.titre) : index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("leçons, outils, glossaire")}</small>
+                      <small>{guideClient ? t(guideClient.titre) : index ? t("{d} / {n} lues", { d: firstDone + courseDone, n: index.lessons.length }) : t("éclairages, outils, glossaire")}</small>
                     </Link>
                     <Link className={styles.tile} href="/moi/profil" onClick={close}>
                       <Icon d={D.profile} />

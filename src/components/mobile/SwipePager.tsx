@@ -114,7 +114,7 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
    *
    * Demandées à l'ouverture et non au geste : quand le doigt part, elles sont
    * déjà là, et c'est la vraie lecture qui glisse, pas une vignette. Seules les
-   * fiches en ont : le Guide, qui passe d'une leçon à l'autre par le même
+   * fiches en ont : le Guide, qui passe d'un éclairage à l'autre par le même
    * composant, garde sa vignette.
    */
   const wantIds = useMemo(() => (id ? [prevHref, nextHref].map((h) => h?.split("/").pop()).filter((x): x is string => Boolean(x)) : []), [id, prevHref, nextHref]);

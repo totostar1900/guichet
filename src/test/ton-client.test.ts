@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
  * une, et la liste se discute à chaque ajout.
  *
  * Ce qu'il ne regarde pas : les mentions et les risques, qui sont dus ; le
- * desk, qui parle entre professionnels ; la documentation et les leçons, qui
+ * desk, qui parle entre professionnels ; la documentation et les éclairages, qui
  * expliquent le modèle et dont c'est le métier ; les commentaires du code,
  * qui s'adressent à nous.
  */

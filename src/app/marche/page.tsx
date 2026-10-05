@@ -106,7 +106,7 @@ export default async function MarchePage() {
       {/* TROIS LIGNES, ET NON SEPT. Les sept sociétés paraissaient sur quatre
           pages avec quatre jeux de colonnes : l'indice donne le capital global
           et la liquidité, les sociétés la séance et l'année, cette page-ci
-          l'activité et le dernier mouvement, et la leçon les redessine. Qui
+          l'activité et le dernier mouvement, et l'éclairage les redessine. Qui
           cherche « le poids de BHC » avait trois réponses. La porte en montre
           trois, celles qui pèsent, et la liste vit à un seul endroit. */}
       {weights.length > 0 && (

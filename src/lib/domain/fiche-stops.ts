@@ -41,7 +41,7 @@ export function ficheStops(o: Offer, s: OfferSummary, opts: { hasNews?: boolean 
     {
       target: "kpis",
       title: "Chaque chiffre s'explique",
-      text: "Touchez une carte : d'où vient le chiffre, ligne par ligne, avec la leçon de deux minutes qui va avec. Les bulles « i » de la page font pareil pour chaque mot ; tout est réuni sous Info, avec un simulateur et la page Aide.",
+      text: "Touchez une carte : d'où vient le chiffre, ligne par ligne, avec l'éclairage de deux minutes qui va avec. Les bulles « i » de la page font pareil pour chaque mot ; tout est réuni sous Info, avec un simulateur et la page Aide.",
     },
     {
       target: "status",

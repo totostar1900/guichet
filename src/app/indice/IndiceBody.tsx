@@ -116,7 +116,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
         </div>
         <div className={styles.links}>
           <Link className="btn sm" href="/info/indice-bvmac">
-            {t("La leçon : comment le lire")}
+            {t("L'éclairage : comment le lire")}
           </Link>
           <Link className="btn sm ghost" href={`${base}/comparer`}>
             {t("Comparer deux lignes")}
@@ -290,7 +290,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
                 {t("Télécharger la série (CSV)")}
               </a>
               <Link className="btn sm" href="/info/indice-bvmac">
-                {t("La leçon")}
+                {t("L'éclairage")}
               </Link>
               <Link className="btn sm ghost" href={`${base}/societes`}>
                 {t("Les sociétés cotées")}
@@ -464,7 +464,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
 
           {/* TROIS PARAGRAPHES SONT DEVENUS QUATRE LIGNES. Ils expliquaient
               l'indice par ses manques, « les poids sont très inégaux », « 0,00 %
-              est la norme », là où la leçon l'explique déjà et mieux. Reste ce
+              est la norme », là où l'éclairage l'explique déjà et mieux. Reste ce
               qu'une page de données doit porter : d'où viennent les chiffres,
               ce que l'indice mesure, et ce qu'il ne mesure pas. */}
           <details className={`panel ${styles.teach}`} id="lecture">

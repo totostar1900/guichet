@@ -36,7 +36,7 @@ export default async function InfoPage() {
   const entries: SearchEntry[] = (await buildGuideIndex(t, lang)).entries;
   const sections = [
     { id: "recherche", title: t("Recherche") },
-    { id: "lecons", title: t("Huit leçons courtes") },
+    { id: "lecons", title: t("Huit éclairages courts") },
     { id: "parcours", title: t("Comprendre le marché CEMAC") },
     { id: "simulateur", title: t("Simulateur d'obligation") },
     { id: "outils", title: t("Outils et repères") },
@@ -61,14 +61,14 @@ export default async function InfoPage() {
         <FoldSection
           group="info"
           id="lecons"
-          title={t("Huit leçons courtes")}
+          title={t("Huit éclairages courts")}
           aside={
             <Link className="btn sm" href="/info/aide" data-coach="info-aide">
               {t("Aide : vos questions, nos réponses")} →
             </Link>
           }
         >
-        <div className={styles.lessons} data-coach="info-lessons">
+        <div className={styles.lessons} data-coach="info-insights">
           {lessons.map((l) => (
             <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
               <i>{l.order}</i>
@@ -96,7 +96,7 @@ export default async function InfoPage() {
           <span className={styles.parcoursText}>
             <span className="eyebrow">{t("Parcours")}</span>
             <b>{t("Six sections, du marché à la monnaie")}</b>
-            <small>{t("{n} leçons en six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie.", { n: parcoursCount })}</small>
+            <small>{t("{n} éclairages en six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie.", { n: parcoursCount })}</small>
           </span>
           <span className={styles.parcoursGo}>{t("Commencer")} →</span>
         </Link>
@@ -139,10 +139,10 @@ export default async function InfoPage() {
           id="info"
           replayLabel={t("Comment utiliser le Guide ?")}
           stops={[
-            { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, une leçon, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
-            { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page, la recherche, les leçons, le simulateur, les outils, le glossaire, et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
+            { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
+            { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page, la recherche, les éclairages, le simulateur, les outils, le glossaire, et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
-            { target: "info-lessons", title: t("Huit leçons de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque leçon se lit en deux minutes et se coche une fois lue.") },
+            { target: "info-insights", title: t("Huit éclairages de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux minutes et se coche une fois lue.") },
             { target: "info-glossaire", title: t("Les mots du Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
             { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
           ]}

@@ -106,7 +106,7 @@ export const EN_CONTENT: Record<string, string> = {
   "Vous n'achetez pas un titre mais une part d'un panier, à un prix connu après coup.": "You do not buy a security but a unit of a basket, at a price known afterwards.",
   "Les quatre risques, et ce qu'on peut faire": "The four risks, and what can be done",
   "Crédit, liquidité, prix, allocation : chaque fiche les rappelle dans « À garder en tête ».": "Credit, liquidity, price, allocation : every page recalls them under “Keep in mind”.",
-  "Leçon :": "Lesson:",
+  "Éclairage :": "Insight:",
 
   /* ---------- KPI explanations ---------- */
   "Taux nominal au pair": "Coupon rate at par",
@@ -299,7 +299,7 @@ export const EN_CONTENT: Record<string, string> = {
   "Dates de coupon et de remboursement par ISIN, pour les calculs de rendement et de flux.": "Coupon and redemption dates per ISIN, for yield and cash-flow calculations.",
   "Glossaire": "Glossary",
   "Les bulles « i » de toute l'application.": "The “i” bubbles of the whole application.",
-  "Leçons": "Lessons",
+  "Éclairages": "Insights",
   "L'onglet Guide : titre, texte, question.": "The Guide tab: title, text, question.",
   "Sociétés et émetteurs": "Companies and issuers",
   "Fiches, documents publiés, contacts.": "Pages, published documents, contacts.",
@@ -351,5 +351,5 @@ export const EN_CONTENT: Record<string, string> = {
   "Introduction en bourse": "IPO",
   "Une société ouvre son capital au public : ses actions sont offertes à un prix de souscription pendant une fenêtre, avec le visa de la COSUMAF, puis cotées à la BVMAC.": "A company opens its capital to the public: its shares are offered at a subscription price during a window, with COSUMAF's approval, then listed on the BVMAC.",
   "Voir dans le glossaire": "See in the glossary",
-  "La leçon qui en parle": "The lesson about it",
+  "L'éclairage qui en parle": "The insight about it",
 };

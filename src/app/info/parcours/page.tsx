@@ -45,7 +45,7 @@ export default async function ParcoursPage() {
         <div className={styles.head} data-coach="parcours-head">
           <span className="eyebrow">{t("Guide · parcours")}</span>
           <h1 className="display">{t("Comprendre le marché CEMAC")}</h1>
-          <p className="muted">{t("{s} sections, {n} leçons de deux à trois minutes. Ouvrez une section, lisez une leçon, répondez à sa question ; le parcours retient où vous en êtes. Les huit leçons « Lire une ligne » restent le premier pas ; ici, on prend du recul.", { s: SECTIONS.length, n: lessons.length })}</p>
+          <p className="muted">{t("{s} sections, {n} éclairages de deux à trois minutes. Ouvrez une section, lisez un éclairage, répondez à sa question ; le parcours retient où vous en êtes. Les huit éclairages « Lire une ligne » restent le premier pas ; ici, on prend du recul.", { s: SECTIONS.length, n: lessons.length })}</p>
           <div className={styles.strip} aria-hidden="true">
             {STRIP.map((k) => (
               <span key={k} className={styles.actor}>
@@ -62,10 +62,10 @@ export default async function ParcoursPage() {
           id="parcours"
           replayLabel={t("Comment suivre ce parcours ?")}
           stops={[
-            { target: "parcours-head", title: t("{n} leçons, {s} sections", { n: lessons.length, s: SECTIONS.length }), text: t("Chaque section se replie : vous voyez six idées et le temps qu'il reste. La section en cours s'ouvre seule quand vous revenez.") },
-            { target: "parcours-progress", title: t("Où vous en êtes"), text: t("Une leçon est lue quand vous avez répondu à sa question. La barre se remplit section par section, dans la couleur de chacune.") },
-            { target: "parcours-section", title: t("Une section"), text: t("Ouvrez-la : ses leçons, celle qu'il faut continuer, et ce qu'elle vous apprend. Chaque leçon porte un schéma ou un bloc à manipuler, une question, et les mots du glossaire.") },
-            { target: "parcours-nav", title: t("Le sommaire"), text: t("À gauche, les cinq sections ; en dessous, les huit premières leçons, l'aide et le glossaire.") },
+            { target: "parcours-head", title: t("{n} éclairages, {s} sections", { n: lessons.length, s: SECTIONS.length }), text: t("Chaque section se replie : vous voyez six idées et le temps qu'il reste. La section en cours s'ouvre seule quand vous revenez.") },
+            { target: "parcours-progress", title: t("Où vous en êtes"), text: t("Un éclairage est lue quand vous avez répondu à sa question. La barre se remplit section par section, dans la couleur de chacune.") },
+            { target: "parcours-section", title: t("Une section"), text: t("Ouvrez-la : ses éclairages, celle qu'il faut continuer, et ce qu'elle vous apprend. Chaque éclairage porte un schéma ou un bloc à manipuler, une question, et les mots du glossaire.") },
+            { target: "parcours-nav", title: t("Le sommaire"), text: t("À gauche, les cinq sections ; en dessous, les huit premiers éclairages, l'aide et le glossaire.") },
           ]}
         />
       </div>

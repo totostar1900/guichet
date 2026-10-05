@@ -1,7 +1,7 @@
 /** English for the eight lessons (bodies, quizzes) and the lesson widgets. Keyed by the French text. */
 export const EN_LESSONS: Record<string, string> = {
-  "Leçon {n} sur {total}": "Lesson {n} of {total}",
-  "Leçon": "Lesson",
+  "Éclairage {n} sur {total}": "Insight {n} of {total}",
+  "Éclairage": "Insight",
   "Bonne réponse": "Right answer",
   "Question de fin": "Closing question",
   "Sur une vraie ligne du Guichet": "On a real line of the Guichet",
@@ -130,7 +130,7 @@ export const EN_LESSONS: Record<string, string> = {
   "acquis": "learnt",
   "Exact.": "Right.",
   "Pas tout à fait.": "Not quite.",
-  "Leçon suivante :": "Next lesson:",
+  "Éclairage suivante :": "Next insight:",
   "restitués sous deux jours": "returned within two days",
   "10 M à 96 %": "10 M at 96%",
   "allocation totale": "full allocation",

@@ -31,7 +31,7 @@ export const PORTEFEUILLE_PAGES: NavPage[] = [
 
 /**
  * Ce qui s'achète. Les trois façons d'entrer sur une ligne, et rien d'autre :
- * une leçon sur l'indice n'est pas un instrument, et une séance annoncée en
+ * un éclairage sur l'indice n'est pas un instrument, et une séance annoncée en
  * est un.
  */
 export const INSTRUMENTS_PAGES: NavPage[] = [

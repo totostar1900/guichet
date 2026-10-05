@@ -20,7 +20,7 @@ export const clientOrigin = (): string => (process.env.NEXT_PUBLIC_APP_URL ?? ""
 
 /** Paths the desk host serves besides /desk: sign-in, auth, APIs, the account's security page. */
 /**
- * Le Guide entier, et non les seules mentions : les leçons sont citées de
+ * Le Guide entier, et non les seules mentions : les éclairages sont citées de
  * partout dans le desk, de la carte de chiffre à la ligne « à couvrir à
  * l'appel » d'un profil client. Les servir ici, c'est lire la page du client
  * sans quitter le domaine ni perdre sa session ; en faire une seconde version

@@ -102,7 +102,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Une Obligation du Trésor assimilable dure de deux à dix ans, parfois plus. Le coupon est fixé à l'émission, 6,50 % de 10 000 FCFA, soit 650 FCFA par titre et par an, et tombe à date fixe.",
       "« Assimilable » veut dire qu'un Trésor peut rouvrir une ligne existante (un abondement) : mêmes coupon et échéance, durée restante plus courte. Une ligne nouvelle démarre sans coupon couru ; un abondement en porte.",
-      "Le prix auquel vous êtes servi fait le rendement : au pair, vous gagnez le coupon ; sous le pair, davantage. C'est la leçon « Rendement et coupon » du premier parcours, appliquée aux titres d'État.",
+      "Le prix auquel vous êtes servi fait le rendement : au pair, vous gagnez le coupon ; sous le pair, davantage. C'est l'éclairage « Rendement et coupon » du premier parcours, appliquée aux titres d'État.",
     ],
     widget: "vie",
     quiz: { q: "Sur une OTA à 6,50 % de nominal 10 000 FCFA, que recevez-vous par titre la dernière année ?", options: ["650 FCFA", "10 000 FCFA", "10 650 FCFA"], answer: 2, why: "Le dernier coupon et le nominal tombent ensemble à l'échéance." },

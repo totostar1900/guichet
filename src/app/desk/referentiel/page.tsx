@@ -28,7 +28,7 @@ const TABS: [Tab, string, string][] = [
   ["types", "Types de produits", REF.types],
   ["echeanciers", "Échéanciers", REF.bondTerms],
   ["glossaire", "Glossaire", REF.glossary],
-  ["lecons", "Leçons", REF.lessons],
+  ["lecons", "Éclairages", REF.lessons],
   ["societes", "Sociétés cotées", REF.companies],
   ["emetteurs", "Émetteurs", REF.issuers],
 ];
@@ -340,14 +340,14 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
     <>
       <div className="panel">
         <div className="panel-h">
-          <h2>{tr("Leçons")} ({list.length})</h2>
-          <span className="muted">{tr("L'onglet Guide : une idée par leçon, une vraie ligne, une question.")}</span>
+          <h2>{tr("Éclairages")} ({list.length})</h2>
+          <span className="muted">{tr("L'onglet Guide : une idée par éclairage, une vraie ligne, une question.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>
             <tr>
               <th>N°</th>
-              <th>{tr("Leçon")}</th>
+              <th>{tr("Éclairage")}</th>
               <th>{tr("Bloc")}</th>
               <th>{tr("Termes liés")}</th>
               <th>{tr("Origine")}</th>
@@ -373,7 +373,7 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
                     <RestoreButton kind={REF.lessons} k={l.key} />
                   ) : (
                     <span className={styles.rowBtns}>
-                      <Link className="btn sm ghost" href={`/desk/referentiel?onglet=lecons&copie=${l.key}#edit`} title={tr("Nouvelle leçon à partir de celle-ci")}>
+                      <Link className="btn sm ghost" href={`/desk/referentiel?onglet=lecons&copie=${l.key}#edit`} title={tr("Nouvel éclairage à partir de celle-ci")}>
                         {tr("Dupliquer")}
                       </Link>
                       <Link className="btn sm" href={`/desk/referentiel?onglet=lecons&cle=${l.key}#edit`}>
@@ -388,8 +388,8 @@ async function Lessons({ list: published, rows, open, ok, copie }: { list: Lesso
         </table>
       </div>
       <div className="panel" id="edit">
-        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.title} »`} kind={REF.lessons} k={cur.item.key} s={cur} remove={{ what: cur.item.title, where: tr("du Guide et des bulles « i » qui y renvoient") }} /> : <EditHead title={model ? `${tr("Nouvelle leçon à partir de")} « ${model.title} »` : tr("Nouvelle leçon")} kind={REF.lessons} />}
-        {model && <p className={styles.copyHint}>{tr("Tout est repris de la leçon d'origine : donnez une clé (l'adresse de la page), un titre, et changez ce qui doit l'être. La leçon d'origine ne bouge pas.")}</p>}
+        {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.title} »`} kind={REF.lessons} k={cur.item.key} s={cur} remove={{ what: cur.item.title, where: tr("du Guide et des bulles « i » qui y renvoient") }} /> : <EditHead title={model ? `${tr("Nouvel éclairage à partir de")} « ${model.title} »` : tr("Nouvel éclairage")} kind={REF.lessons} />}
+        {model && <p className={styles.copyHint}>{tr("Tout est repris de l'éclairage d'origine : donnez une clé (l'adresse de la page), un titre, et changez ce qui doit l'être. L'éclairage d'origine ne bouge pas.")}</p>}
         <LessonForm key={cur?.item.key ?? (model ? `copy-${model.key}` : "new")} l={cur?.item ?? model} copy={Boolean(model)} />
       </div>
     </>

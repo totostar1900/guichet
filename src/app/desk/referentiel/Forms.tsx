@@ -269,7 +269,7 @@ export function LessonForm({ l, copy }: { l?: Lesson; copy?: boolean }) {
         </label>
       </div>
       <label>
-        <span>{tr("Termes du glossaire dont la bulle « i » renvoie à cette leçon (clés, séparées par des virgules)")}</span>
+        <span>{tr("Termes du glossaire dont la bulle « i » renvoie à cet éclairage (clés, séparées par des virgules)")}</span>
         <input name="terms" className="mono" defaultValue={l?.terms.join(", ")} placeholder={tr("ota, nominal, coupon")} />
       </label>
       <div className={styles.actions}>

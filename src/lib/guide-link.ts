@@ -31,11 +31,11 @@ export function sectionDuDesk(path: string): LienGuide | undefined {
 }
 
 /**
- * Le client : une leçon par famille d'écrans, et seulement là où une leçon dit
+ * Le client : un éclairage par famille d'écrans, et seulement là où un éclairage dit
  * vraiment quelque chose de la page.
  *
  * On ne force pas la correspondance. Le tableau de bord, Trader et le profil
- * n'ont pas de leçon qui les explique, et un lien qui mènerait « quelque part
+ * n'ont pas de éclairage qui les explique, et un lien qui mènerait « quelque part
  * dans le guide » vaudrait moins que pas de lien du tout.
  *
  * L'ordre compte : la fiche d'un fonds commence par « /offres/fund- », qui est
@@ -64,5 +64,5 @@ export function leconDuClient(path: string): LienGuide | undefined {
 /** La porte du guide depuis la page courante, côté desk ou côté client. */
 export const lienDuGuide = (path: string, desk: boolean): LienGuide | undefined => (desk && path.startsWith("/desk") ? sectionDuDesk(path) : leconDuClient(path));
 
-/** Les clefs citées par la table des leçons, pour le cliquet. */
+/** Les clefs citées par la table des éclairages, pour le cliquet. */
 export const CLES_LECONS = LECONS.map(([, cle]) => cle);

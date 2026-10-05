@@ -19,7 +19,7 @@ import styles from "./FondsEnBref.module.css";
  * Ils tiennent donc dans une feuille qu'on ouvre d'un bouton, à côté du
  * titre : le lecteur qui sait descend directement, celui qui découvre y
  * trouve la même chose, en entier, avec le compte de chaque catégorie et le
- * renvoi à la leçon. La feuille est celle de la maison — verrou de
+ * renvoi à l'éclairage. La feuille est celle de la maison — verrou de
  * défilement, tiré pour fermer, même allure que les autres.
  *
  * Les catégories ne filtrent plus depuis ici : le filtre a sa place, en haut
@@ -64,7 +64,7 @@ export function FondsEnBref() {
             ))}
           </dl>
           <p className={styles.sortie}>
-            <Link href="/info/fonds-vl">{t("Leçon : la VL et les frais")} →</Link>
+            <Link href="/info/fonds-vl">{t("Éclairage : la VL et les frais")} →</Link>
           </p>
         </div>
       </Sheet>

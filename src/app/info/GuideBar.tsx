@@ -171,7 +171,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
     <>
       <div className={`${styles.corner} ${chapter ? styles.double : ""} ${folded ? styles.folded : ""}`} role="navigation" aria-label={t("Le Guide")}>
         {chapter && (
-          <button type="button" className={styles.pastille} onClick={() => show("chapitre")} aria-haspopup="dialog" aria-label={`${t("Ce chapitre")} : ${chapter.letter} · ${chapter.title}${place ? `, ${t("leçon {n} sur {total}", { n: pos.index ?? 0, total })}` : ""}`}>
+          <button type="button" className={styles.pastille} onClick={() => show("chapitre")} aria-haspopup="dialog" aria-label={`${t("Ce chapitre")} : ${chapter.letter} · ${chapter.title}${place ? `, ${t("éclairage {n} sur {total}", { n: pos.index ?? 0, total })}` : ""}`}>
             <Ring letter={chapter.letter} color={chapter.color} done={mineDone} total={total} place={place} />
             <span className={styles.badge} aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -187,7 +187,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
         </button>
       </div>
 
-      <Sheet open={open} onClose={close} navy tall={Boolean(chapter)} title={t("Le Guide")} sub={index ? t("{n} leçons lues sur {total}", { n: firstDone + courseDone, total: index.lessons.length }) : undefined} tabs={tabs} foot={foot}>
+      <Sheet open={open} onClose={close} navy tall={Boolean(chapter)} title={t("Le Guide")} sub={index ? t("{n} éclairages lus sur {total}", { n: firstDone + courseDone, total: index.lessons.length }) : undefined} tabs={tabs} foot={foot}>
         <div className={styles.sheet} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {chapter && tab === "chapitre" && (
             <>
@@ -200,7 +200,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                     {chapter.title}
                   </b>
                   <small>
-                    {place && t("leçon {n} sur {total}", { n: pos.index ?? 0, total })}
+                    {place && t("éclairage {n} sur {total}", { n: pos.index ?? 0, total })}
                     {index ? ` · ${t("{n} / {total} lues", { n: mineDone, total })}` : ""}
                     {index && mineLeft > 0 ? ` · ${t("{m} min restantes", { m: mineLeft })}` : ""}
                   </small>
@@ -245,7 +245,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                   {hits.length === 0 && <span className={styles.none}>{index ? t("Aucun résultat") : t("Un instant…")}</span>}
                   {hits.map((e) => (
                     <button key={e.href + e.title} type="button" className={styles.hit} onClick={() => goTo(e)}>
-                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Leçon" : e.kind === "outil" ? "Outil" : "Aide")}</em>
+                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Éclairage" : e.kind === "outil" ? "Outil" : "Aide")}</em>
                       <b>{e.title}</b>
                     </button>
                   ))}

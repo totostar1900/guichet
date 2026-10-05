@@ -40,7 +40,7 @@ function Sources({ lang }: { lang: Lang }) {
     [T(lang, "Base (Supabase, Postgres)", "Database (Supabase, Postgres)"), T(lang, "lignes, cours, intentions, dossiers, journal, versions", "lines, quotes, intentions, files, audit log, versions")],
     [T(lang, "Fichiers « sources »", "Files “sources”"), T(lang, "PDF des bulletins, courriels et pièces reçues", "bulletin PDFs, e-mails and attachments received")],
     [T(lang, "Fichiers « documents » et « pièces »", "Files “documents” and “pieces”"), T(lang, "documents émis aux clients, pièces d'identité", "documents issued to clients, identity papers")],
-    [T(lang, "Le code (dépôt Git)", "The code (Git repository)"), T(lang, "registre des émetteurs, modalités, modèles, leçons, documentation", "issuer registry, bond terms, models, lessons, documentation")],
+    [T(lang, "Le code (dépôt Git)", "The code (Git repository)"), T(lang, "registre des émetteurs, modalités, modèles, éclairages, documentation", "issuer registry, bond terms, models, insights, documentation")],
   ];
   return (
     <svg viewBox="0 0 760 330" role="img" aria-label={T(lang, "Sources et stockage", "Sources and storage")}>

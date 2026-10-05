@@ -47,7 +47,7 @@ export default async function AidePage() {
           <ChapterLinks chapters={chapters.map((c) => ({ id: c.id, title: c.title }))} label={t("Sujet")} pageTitle={t("Aide : vos questions, nos réponses")} />
         </div>
         <span className={styles.group}>{t("Pour aller plus loin")}</span>
-        <Link href="/info">{t("Glossaire et leçons")}</Link>
+        <Link href="/info">{t("Glossaire et éclairages")}</Link>
         <Link href="/info#simulateur">{t("Simulateur")}</Link>
         <Link href="/comparer">{t("Comparer deux lignes")}</Link>
         <Link href="/info/mentions">{t("Mentions et responsabilités")}</Link>

@@ -21,13 +21,13 @@ import { isFundsSection, isInstrumentsSection, isTitresSection } from "./nav-sec
  *
  * ELLE NE TIENT PLUS SA LISTE. Les pages de chaque siège sont déclarées une
  * fois, dans « nav-groups », et la feuille du dock les lit déjà : deux listes
- * de la même chose divergent toujours, et c'est la leçon que ce fichier-là
+ * de la même chose divergent toujours, et c'est l'éclairage que ce fichier-là
  * porte depuis « Mes documents », qui a existé une journée sans qu'aucun menu
  * n'y mène.
  *
  * ET LE MARCHÉ N'EN A PAS BESOIN : IL AVAIT DÉJÀ LA SIENNE. Ses sept pages
  * sont listées par les pastilles sur téléphone et par le rail de gauche sur
- * écran large, chacune complète, la leçon comprise. La rangée y faisait donc
+ * écran large, chacune complète, l'éclairage comprise. La rangée y faisait donc
  * un SECOND bandeau disant la même chose : 93 pixels de navigation empilés
  * avant la page sur un téléphone, deux listes intitulées « Les pages du
  * marché » sur un ordinateur. Mesuré le 5 octobre 2026, et c'est ce que la

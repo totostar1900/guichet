@@ -271,7 +271,7 @@ describe("la pile collante", () => {
        Une hauteur que deux fichiers doivent dire pareil appartient à
        « globals.css », et celui qui la dessine la VAUT au lieu de la tenir de
        son contenu. La page des fonds n'a plus de bande du tout — son titre
-       est le sommaire — mais celle des titres en garde une, et la leçon
+       est le sommaire — mais celle des titres en garde une, et l'éclairage
        vaut pour elle. */
     expect(readFileSync("src/app/globals.css", "utf8"), "la hauteur du sommaire doit être nommée une fois, pour tous").toMatch(/--sections-h:/);
     expect(BANDE_CSS, "la bande reçoit de nouveau sa hauteur de son contenu : personne ne peut plus s'y caler").toMatch(/\.bar \{[^}]*height: var\(--sections-h\);/);
@@ -279,7 +279,7 @@ describe("la pile collante", () => {
   });
 
   it("couvre toute la largeur, sinon la liste défile visiblement à côté", () => {
-    /* Deuxième fois que cette leçon se paie : arrêté à la gouttière, un
+    /* Deuxième fois que cet éclairage se paie : arrêté à la gouttière, un
        bandeau collant laisse passer les chiffres dans ses marges. */
     expect(TETE_CSS, "le titre de groupe s'arrête à la gouttière").toMatch(/\.teteGroupe \{[^}]*margin: var\(--s-8\) -20px var\(--s-4\);/);
     expect(TETE_CSS, "sans rembourrage, le texte du titre collerait au bord").toMatch(/\.teteBouton \{[^}]*padding: var\(--s-3\) 20px;/);

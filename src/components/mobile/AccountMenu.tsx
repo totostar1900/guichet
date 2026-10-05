@@ -146,7 +146,7 @@ export function AccountMenu(p: AccountProps) {
    * une fois.
    */
   const comprendre: Tuile[] = [
-    { key: "guide", icone: ICONE_PAGE.guide, nom: t("Le Guide"), mots: t("glossaire, leçons"), href: "/info" },
+    { key: "guide", icone: ICONE_PAGE.guide, nom: t("Le Guide"), mots: t("glossaire, éclairages"), href: "/info" },
     { key: "aide", icone: ICONE_PAGE.aide, nom: t("Aide"), mots: t("les questions reçues"), href: "/info/aide" },
     { key: "risques", icone: ICONE_PAGE.risques, nom: t("Risques"), mots: t("ce que ça engage"), href: "/info/risques" },
     { key: "mentions", icone: ICONE_PAGE.mentions, nom: t("Mentions"), mots: t("agrément COSUMAF"), href: "/info/mentions" },

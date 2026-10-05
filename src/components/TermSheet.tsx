@@ -140,7 +140,7 @@ export function TermSheetHost() {
             </Link>
             {lesson && (
               <Link href={`/info/${lesson.key}`} onClick={close}>
-                {t("La leçon qui en parle")} : {t(lesson.title)} →
+                {t("L'éclairage qui en parle")} : {t(lesson.title)} →
               </Link>
             )}
           </div>

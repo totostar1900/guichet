@@ -16,7 +16,7 @@ import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
 
 const KINDS = Object.values(REF) as string[];
-const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme", lesson: "leçon", policy: "règle" };
+const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme", lesson: "éclairage", policy: "règle" };
 
 function revalidateAll() {
   for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/comparer", "/info"]) revalidatePath(p);
@@ -137,7 +137,7 @@ export async function saveGlossaryAction(_p: RefResult | null, form: FormData): 
   done(REF.glossary, key);
 }
 
-/* ---------- Leçons (Info) ---------- */
+/* ---------- Éclairages (Info) ---------- */
 
 const lessonSchema = z.object({
   key: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,40}$/, "Clé : minuscules, chiffres et tirets."),
@@ -145,7 +145,7 @@ const lessonSchema = z.object({
   minutes: z.coerce.number().int().min(1).max(30).default(2),
   title: z.string().trim().min(4, "Titre requis."),
   intro: z.string().trim().min(10, "Une phrase d'introduction est requise."),
-  body: z.string().trim().min(20, "Le corps de la leçon est requis (paragraphes séparés par une ligne vide)."),
+  body: z.string().trim().min(20, "Le corps de l'éclairage est requis (paragraphes séparés par une ligne vide)."),
   widget: z.enum(["bond_price", "bta_rate", "tenor", "equity", "fund", "auction", "risks", "read_ota", "carte", "chemin", "vie", "categories", "indice"]),
   section: z.enum(["", "acteurs", "instruments", "risques", "ordre", "cadre"]).default(""),
   q: z.string().trim().min(5, "La question est requise."),
@@ -165,7 +165,7 @@ export async function saveLessonAction(_p: RefResult | null, form: FormData): Pr
   if (form.get("nouvelle") === "1") {
     // a copy (or a new lesson) must not silently overwrite an existing key
     const taken = LESSONS.some((l) => l.key === d.key) || (await repo().listReference(REF.lessons)).some((r) => r.key === d.key);
-    if (taken) return { ok: false, error: `La clé « ${d.key} » existe déjà : choisissez-en une autre pour cette nouvelle leçon.` };
+    if (taken) return { ok: false, error: `La clé « ${d.key} » existe déjà : choisissez-en une autre pour ce nouvel éclairage.` };
   }
   const data = {
     key: d.key,
@@ -182,7 +182,7 @@ export async function saveLessonAction(_p: RefResult | null, form: FormData): Pr
   const before = (await repo().listReference(REF.lessons)).find((r) => r.key === d.key)?.data;
   await repo().saveReferenceDraft(REF.lessons, d.key, { op: "set", data: data }, desk.name);
   await audit("reference.draft", "reference", `${REF.lessons}/${d.key}`, { before, after: data });
-  await log(`Leçon <b>${d.title}</b> en brouillon`, desk.name);
+  await log(`Éclairage <b>${d.title}</b> en brouillon`, desk.name);
   done(REF.lessons, d.key);
 }
 

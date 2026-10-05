@@ -7,7 +7,7 @@ import { isTombstone, TOMBSTONE } from "@/lib/reference";
  * Le danger d'une pierre tombale est qu'elle ressemble à une valeur : une
  * ligne du référentiel dont le contenu dit « rien ». Si la reconnaissance se
  * relâche, une entrée supprimée revient dans les listes sous la forme d'un
- * objet vide, avec un terme sans texte et une leçon sans titre.
+ * objet vide, avec un terme sans texte et un éclairage sans titre.
  */
 describe("la pierre tombale du référentiel", () => {
   it("se reconnaît, et ne se confond avec aucune valeur", () => {

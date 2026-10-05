@@ -139,7 +139,7 @@ export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const box = useRef<HTMLDivElement>(null);
-  const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Leçon"), outil: t("Outil"), page: t("Page") };
+  const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Éclairage"), outil: t("Outil"), page: t("Page") };
 
   const { results, words, asked } = useMemo(() => rankEntries(entries, q), [q, entries]);
 

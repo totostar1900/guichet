@@ -10,12 +10,12 @@ import { GUIDE } from "@/data/desk-guide";
  * lecteur ne voit pas qu'il n'est pas arrivé là où on le menait. Rien ne
  * l'aurait signalé.
  *
- * Le cliquet tient donc deux choses : que chaque clef citée désigne une leçon
+ * Le cliquet tient donc deux choses : que chaque clef citée désigne un éclairage
  * ou une section qui existe, et que les familles d'écrans ne se volent pas
  * leurs adresses, la fiche d'un fonds étant aussi une fiche.
  */
 describe("la porte du guide depuis une page", () => {
-  it("ne cite que des leçons qui existent", () => {
+  it("ne cite que des éclairages qui existent", () => {
     const connues = new Set(LESSONS.map((l) => l.key));
     for (const cle of CLES_LECONS) expect(connues.has(cle), cle).toBe(true);
   });
@@ -34,7 +34,7 @@ describe("la porte du guide depuis une page", () => {
     expect(leconDuClient("/offres/boc-cm0000020388")!.href).toBe("/info/lire-une-ota");
   });
 
-  it("mène chaque famille d'écrans à sa leçon", () => {
+  it("mène chaque famille d'écrans à sa éclairage", () => {
     const attendu: [string, string][] = [
       ["/fonds", "/info/fonds-vl"],
       ["/titres", "/info/lire-une-ota"],
@@ -46,7 +46,7 @@ describe("la porte du guide depuis une page", () => {
     for (const [page, href] of attendu) expect(leconDuClient(page)?.href, page).toBe(href);
   });
 
-  it("ne force pas une leçon là où aucune ne parle de la page", () => {
+  it("ne force pas un éclairage là où aucune ne parle de la page", () => {
     /* Un lien qui mènerait « quelque part dans le guide » vaut moins que pas de
        lien : il apprend au lecteur que la porte ne sert à rien. */
     for (const p of ["/", "/trader", "/moi/profil", "/moi/performance", "/moi/documents"]) expect(leconDuClient(p), p).toBeUndefined();

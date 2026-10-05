@@ -136,7 +136,7 @@ const SLIDES = [
   },
   {
     title: "Comprendre, et trouver de l'aide",
-    text: "Le Guide explique chaque mot en une phrase, propose huit leçons de deux minutes et un simulateur. La page Aide répond à vos questions : se connecter, ouvrir un compte, lire une ligne, régler, nous joindre.",
+    text: "Le Guide explique chaque mot en une phrase, propose huit éclairages de deux minutes et un simulateur. La page Aide répond à vos questions : se connecter, ouvrir un compte, lire une ligne, régler, nous joindre.",
     art: (
       <div className={styles.shotPair}>
         <div className={styles.shotFrame}>

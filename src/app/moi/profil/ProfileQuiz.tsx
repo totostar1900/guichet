@@ -229,13 +229,13 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
                   <li key={vq.key} className={ok ? styles.checkOk : styles.checkTodo}>
                     <i aria-hidden="true">{ok ? "✓" : "→"}</i>
                     <span>{vq.eyebrow[lang].replace(/^(Vérifions|Let us check) · /, "")}</span>
-                    {ok ? <small>{t("su")}</small> : <Link href={`/info/${vq.lesson}`}>{t("lire la leçon")} →</Link>}
+                    {ok ? <small>{t("su")}</small> : <Link href={`/info/${vq.lesson}`}>{t("lire l'éclairage")} →</Link>}
                   </li>
                 );
               })}
             </ul>
           )}
-          <span className={styles.hint}>{v2 && (p.lessonsRead ?? 0) > 0 ? t("{n} leçons du Guide lues : elles comptent.", { n: p.lessonsRead ?? 0 }) : t("Chaque leçon du Guide lue fait monter cette mesure : le Guide est à portée, dans l'onglet en bas.")}</span>
+          <span className={styles.hint}>{v2 && (p.lessonsRead ?? 0) > 0 ? t("{n} éclairages du Guide lues : elles comptent.", { n: p.lessonsRead ?? 0 }) : t("Chaque éclairage du Guide lue fait monter cette mesure : le Guide est à portée, dans l'onglet en bas.")}</span>
         </div>
 
         <div className={styles.panel}>
@@ -380,7 +380,7 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
             <span>
               <b>{t("La bonne réponse est en vert.")}</b> {t("Deux minutes suffisent pour l'avoir pour de bon :")}{" "}
               <Link href={`/info/${q.lesson}`} target="_blank" rel="noopener">
-                {t("lire la leçon")} →
+                {t("lire l'éclairage")} →
               </Link>
             </span>
           )}

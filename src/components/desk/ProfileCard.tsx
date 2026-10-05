@@ -42,7 +42,7 @@ export function ProfileCard({ profile, lang, t, amount }: { profile: FinancialPr
         <dt>{t("Connaît")}</dt>
         <dd>
           {p.knowledge ? KNOWLEDGE_LABEL[p.knowledge][lang] : `${Math.round(p.measures.knowledge * 4)} / 4`}
-          {v2 ? ` · ${t("{n} / 4 vérifiées", { n: p.verified ?? 0 })}${p.lessonsRead ? ` · ${t("{n} leçons lues", { n: p.lessonsRead })}` : ""}` : ""}
+          {v2 ? ` · ${t("{n} / 4 vérifiées", { n: p.verified ?? 0 })}${p.lessonsRead ? ` · ${t("{n} éclairages lus", { n: p.lessonsRead })}` : ""}` : ""}
         </dd>
         <dt>{t("Peut engager")}</dt>
         <dd>
@@ -69,7 +69,7 @@ export function ProfileCard({ profile, lang, t, amount }: { profile: FinancialPr
                 <li key={c.key}>
                   {c[lang]}
                   <Link href={`/info/${c.lesson}`} target="_blank" rel="noopener">
-                    {t("leçon")} →
+                    {t("éclairage")} →
                   </Link>
                 </li>
               ))}
