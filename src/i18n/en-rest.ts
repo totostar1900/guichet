@@ -1069,6 +1069,10 @@ export const EN_REST: Record<string, string> = {
   "Toutes les actualités": "All the news",
   "La dernière note": "The latest note",
   "Le pouls du trimestre, en une page.": "The pulse of the quarter, on one page.",
+  /* Un douze mois vide : le fonds n'a pas un an, ou nos VL ne remontent pas
+     si loin. La case ne peut pas confondre les deux. */
+  "pas encore un an": "not a year old yet",
+  "VL lues sur moins d'un an": "NAVs read over less than a year",
   "dernier mouvement le {d}, {v}": "last move on {d}, {v}",
   "aucun mouvement depuis la première séance lue, le {d}": "no move since the first session read, on {d}",
   "Comment lire l'indice": "How to read the index",

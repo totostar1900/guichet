@@ -9,6 +9,7 @@ import { SwipeActions } from "@/components/mobile/SwipeActions";
 import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fundYtdPct } from "@/lib/domain/fund-curve";
+import { raisonSansDouzeMois } from "@/lib/domain/fund-perf";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
 import styles from "@/components/OfferCard.module.css";
@@ -51,6 +52,9 @@ const cls = (v?: number | null) => (v == null ? "" : v > 0 ? styles.up : v < 0 ?
  * souscrit, mais au bout de la bande, avec sa date et son dernier mouvement.
  */
 export function FundCard({ r }: { r: FundRow }) {
+  /* Un douze mois vide veut dire deux choses : le fonds n'a pas un an, ou nos
+     VL ne remontent pas à un an. La case ne peut pas les confondre. */
+  const raison = r.perf1yPct == null ? raisonSansDouzeMois(r.inceptionDate, r.navDate) : undefined;
   const t = useT();
   const compact = useDensity() === "compact";
   const href = useLineHref()(r.id);
@@ -105,6 +109,10 @@ export function FundCard({ r }: { r: FundRow }) {
         <div>
           <span>{t("12 mois")}</span>
           <b className={cls(r.perf1yPct)}>{signed(r.perf1yPct)}</b>
+          {/* Deux appels littéraux, et non un ternaire dans t() : le scanner de clefs
+              ne voit pas une chaîne qui lui arrive en variable. */}
+          {raison === "jeune" && <em>{t("pas encore un an")}</em>}
+          {raison === "lecture-courte" && <em>{t("VL lues sur moins d'un an")}</em>}
         </div>
         <div>
           <span>{t("Depuis l'origine")}</span>
