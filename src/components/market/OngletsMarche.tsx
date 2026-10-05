@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { estIci, ongletsDuSiege } from "@/lib/nav-onglets";
-import { isInstrumentsSection } from "@/lib/nav-section";
 import styles from "./OngletsMarche.module.css";
 
 /**
- * La rangée du siège où l'on est, et d'un seul. Elle ne tient pas sa liste :
- * « nav-onglets » la lui donne, et porte la décision et ce qu'elle corrige.
+ * La rangée du siège Instruments. Elle ne tient pas sa liste : « nav-onglets »
+ * la lui donne, et porte la décision et ce qu'elle corrige, dont la raison
+ * pour laquelle le marché n'en a pas.
  *
  * Chaque onglet porte le nom court de sa page, quand elle en a un : « Le
  * marché » devient « Vue d'ensemble », parce qu'à côté de ses propres pages le
@@ -18,10 +18,14 @@ import styles from "./OngletsMarche.module.css";
 export function OngletsMarche() {
   const path = usePathname();
   const t = useT();
-  const instruments = isInstrumentsSection(path);
+  const pages = ongletsDuSiege(path);
+  /* Hors du siège Instruments, elle n'a rien à dire : le marché a ses
+     pastilles et son rail. Se retirer ici plutôt que de compter sur les pages
+     pour ne pas la poser, parce qu'une page de plus naîtrait en la posant. */
+  if (pages.length === 0) return null;
   return (
-    <nav className={styles.onglets} aria-label={t(instruments ? "Ce qui s'achète" : "Les pages du marché")}>
-      {ongletsDuSiege(path).map((p) => (
+    <nav className={styles.onglets} aria-label={t("Ce qui s'achète")}>
+      {pages.map((p) => (
         <Link key={p.key} href={p.href} className={styles.onglet} aria-current={estIci(p, path) ? "page" : undefined}>
           {t(p.short ?? p.label)}
         </Link>

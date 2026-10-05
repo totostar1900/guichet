@@ -1,7 +1,10 @@
+/* La bande part a distance de la marque : a 8 px, « Portefeuille » se lisait
+   comme la suite de « Guichet ». Et les onglets respirent : a 4 px d ecart,
+   deux noms courts se touchaient presque. */
 .tabs {
   display: flex;
-  gap: 4px;
-  margin-left: 8px;
+  gap: var(--s-6);
+  margin-left: var(--s-10);
 }
 .tab {
   color: var(--on-navy-2);
@@ -15,15 +18,17 @@
   color: #fff;
   border-bottom-color: #e0b65a;
 }
-.count {
-  margin-left: 6px;
-  font-size: 0.68rem;
+/* LE COMPTE EST DESCENDU DANS LA LISTE. « Instruments 105 » ne disait pas de
+   quoi : c etait la somme des trois pages, affichee la ou aucune des trois
+   n est nommee. Chaque page porte maintenant le sien, dans le menu qui
+   l ouvre, comme les tuiles du telephone. */
+.nb {
+  float: right;
+  font-style: normal;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  vertical-align: 1px;
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
 }
 .tab:hover {
   color: #fff;
@@ -57,15 +62,17 @@
   display: flex;
   align-items: stretch;
 }
+/* Le chevron vit DANS l onglet, et l onglet garde son retrait : en lui
+   retirant son padding gauche pour le tirer de huit pixels, son nom venait
+   toucher le chevron du voisin. */
 .chev {
   background: none;
   border: 0;
   color: var(--on-navy-2);
-  padding: 0 10px 0 0;
-  margin-left: -8px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: var(--s-3);
 }
 .chev:hover,
 .chev[aria-expanded="true"] {

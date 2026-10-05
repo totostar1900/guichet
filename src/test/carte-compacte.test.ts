@@ -359,7 +359,7 @@ describe("les deux bandes collantes", () => {
     /* Elle ne tient plus sa liste en dur : elle lit celle du siège, dans
        « nav-onglets ». Ce qui est tenu ici reste qu'elle porte bien des lieux,
        donc qu'une seconde bande n'a pas à en porter. */
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "c'est elle qui porte les pages du siège").toMatch(/ongletsDuSiege\(path\)\.map/);
+    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "c'est elle qui porte les pages du siège").toMatch(/pages = ongletsDuSiege\(path\)/);
   });
 
   it("les pastilles ne vivent pas dans un bloc court", () => {

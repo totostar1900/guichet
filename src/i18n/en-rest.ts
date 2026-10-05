@@ -1090,6 +1090,8 @@ export const EN_REST: Record<string, string> = {
   "les questions reçues": "the questions we get",
   "ce que ça engage": "what it commits you to",
   "ce qui s'achète": "what can be bought",
+  /* L'étiquette de la rangée d'onglets : la même phrase, en tête de phrase. */
+  "Ce qui s'achète": "What can be bought",
   "Cette page expliquée": "This page explained",
 /* ---------- les trois lieux et leurs sections ---------- */
   "La cote": "The exchange",

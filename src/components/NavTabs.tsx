@@ -81,6 +81,13 @@ const TABS = [
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk"), connecte: true },
 ];
 
+/** Ce que chaque page d'achat contient, pour le dire avant le toucher. */
+const COMPTES: Record<string, (c: ComptesParLieu) => number | undefined> = {
+  titres: (c) => c.titres,
+  fonds: (c) => c.fonds,
+  calendrier: (c) => c.calendrier,
+};
+
 /** `mode`: "client" hides the Desk tab (the desk has its own host), "desk" keeps only it, "all" is the one-host setup. */
 export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: ComptesParLieu; mode?: "all" | "client" | "desk"; connecte?: boolean }) {
   const path = usePathname();
@@ -121,14 +128,7 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: C
   return (
     <nav className={styles.tabs} aria-label="Sections">
       {tabs.map((tab) => {
-        const dedans = (
-          <>
-            {t(tab.label)}
-            {/* Le compte est celui de tout ce qui s'achète : les deux chiffres
-                tenaient sous deux onglets, ils tiennent sous Instruments. */}
-            {counts && tab.href === "/titres" && <b className={styles.count}>{counts.titres + counts.fonds + counts.calendrier}</b>}
-          </>
-        );
+        const dedans = <>{t(tab.label)}</>;
         if (!tab.pages)
           return (
             <Link key={tab.href} href={tab.href} className={styles.tab} aria-current={tab.match(path) ? "page" : undefined}>
@@ -161,12 +161,18 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: C
             </button>
             {ouvert && (
               <div className={styles.menu}>
-                {tab.pages.map((p) => (
-                  <Link key={p.key} href={p.href} className={styles.item}>
-                    <b>{t(p.label)}</b>
-                    <small>{t(p.hint)}</small>
-                  </Link>
-                ))}
+                {tab.pages.map((p) => {
+                  /* Le chiffre à côté du nom de SA page : « Titres 45 » se lit,
+                     « Instruments 105 » demandait de quoi il s'agissait. */
+                  const n = counts ? COMPTES[p.key]?.(counts) : undefined;
+                  return (
+                    <Link key={p.key} href={p.href} className={styles.item}>
+                      {n != null && <em className={styles.nb}>{n}</em>}
+                      <b>{t(p.label)}</b>
+                      <small>{t(p.hint)}</small>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -1,5 +1,4 @@
 import { IndexPulse } from "@/components/IndexPulse";
-import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { fold } from "@/lib/text";
 import Link from "next/link";
 import { Toolbar } from "@/components/ui/Toolbar";
@@ -62,9 +61,6 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className={styles.page}>
-      {/* La rangee du siege « Marche », sur toutes ses pages : sans elle,
-          cette page etait une impasse dont on ne sortait que par le dock. */}
-      <OngletsMarche />
       <div className={styles.main}>
         <div className={styles.head}>
           <span className="eyebrow">{t("Actualités")}</span>

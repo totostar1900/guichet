@@ -1,5 +1,4 @@
-import { currentMarketPage } from "./market/pages";
-import { INSTRUMENTS_PAGES, MARCHE_PAGES, type NavPage } from "./nav-groups";
+import { INSTRUMENTS_PAGES, type NavPage } from "./nav-groups";
 import { isFundsSection, isInstrumentsSection, isTitresSection } from "./nav-section";
 
 /**
@@ -26,9 +25,14 @@ import { isFundsSection, isInstrumentsSection, isTitresSection } from "./nav-sec
  * porte depuis « Mes documents », qui a existé une journée sans qu'aucun menu
  * n'y mène.
  *
- * LA LEÇON N'EST PAS UN ONGLET. Elle vit sous « /info », donc hors des deux
- * sièges : en faire un onglet donnerait une pastille qui ne s'allume jamais.
- * Elle reste dans la feuille du dock et au pied des articles.
+ * ET LE MARCHÉ N'EN A PAS BESOIN : IL AVAIT DÉJÀ LA SIENNE. Ses sept pages
+ * sont listées par les pastilles sur téléphone et par le rail de gauche sur
+ * écran large, chacune complète, la leçon comprise. La rangée y faisait donc
+ * un SECOND bandeau disant la même chose : 93 pixels de navigation empilés
+ * avant la page sur un téléphone, deux listes intitulées « Les pages du
+ * marché » sur un ordinateur. Mesuré le 5 octobre 2026, et c'est ce que la
+ * veille avait posé. Une liste par siège et par largeur : la rangée sert
+ * Instruments, qui n'avait rien.
  *
  * TITRES ET FONDS NE FUSIONNENT PAS, ILS SE RANGENT. Les mettre dans une même
  * liste serait l'erreur inverse : un fonds ne se lit pas comme une ligne. Sa
@@ -39,7 +43,7 @@ import { isFundsSection, isInstrumentsSection, isTitresSection } from "./nav-sec
  * La décision vit ici, hors du composant, pour qu'un cliquet puisse la lire
  * sans monter un rendu.
  */
-export const ongletsDuSiege = (path: string): NavPage[] => (isInstrumentsSection(path) ? INSTRUMENTS_PAGES : MARCHE_PAGES.filter((p) => !p.guide));
+export const ongletsDuSiege = (path: string): NavPage[] => (isInstrumentsSection(path) ? INSTRUMENTS_PAGES : []);
 
 /**
  * Où l'on est, pour les onglets dont l'adresse ne suffit pas à le dire.
@@ -55,6 +59,5 @@ export const ongletsDuSiege = (path: string): NavPage[] => (isInstrumentsSection
 export const estIci = (p: NavPage, path: string): boolean => {
   if (p.key === "titres") return isTitresSection(path);
   if (p.key === "fonds") return isFundsSection(path);
-  if (isInstrumentsSection(path)) return path.startsWith(p.href);
-  return currentMarketPage(path) === p.key;
+  return path.startsWith(p.href);
 };
