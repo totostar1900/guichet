@@ -55,62 +55,23 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
         </Link>
       </div>
 
+      {/* LE TABLEAU DES SÉANCES EST PARTI AU DOMICILE DU SUJET, le 6 octobre
+          2026. Il portait Séance, N°, Lu le, Par, Lignes, État et les deux
+          liens : « Bulletins » porte tout cela, les trois comptes séparément
+          au lieu de leur somme, les 808 séances au lieu de 60, et des filtres.
+          Ce qui appartient à cette page-ci reste : le seau, le gabarit de la
+          clef, et combien de documents pèsent dessus. */}
       <section className="panel">
         <div className="panel-h">
           <h2>{t("Bulletins Officiels de la Cote")}</h2>
           <span className="muted">{t("{n} séances lues · {k} PDF conservés (bucket « sources », boc/BOC-AAAAMMJJ.pdf) · la source BVMAC reste en lien", { n: String(bulletins.length), k: String(kept) })}</span>
         </div>
-        <TallTable total={bulletins.length}>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>{t("Séance")}</th>
-                <th>{t("N°")}</th>
-                <th>{t("Lu le")}</th>
-                <th>{t("Par")}</th>
-                <th>{t("Lignes")}</th>
-                <th>{t("État")}</th>
-                <th>{t("Fichier")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bulletins.map((b) => (
-                <tr key={b.id}>
-                  <td>{fmtDate(b.sessionDate)}</td>
-                  <td className="mono">{b.number || "—"}</td>
-                  <td>{fmtDateTime(b.ingestedAt)}</td>
-                  <td>{b.ingestedBy === "cron" ? t("automatique") : t("desk")}</td>
-                  <td className="num">{b.counts.equities + b.counts.bonds + b.counts.funds}</td>
-                  <td>
-                    <span className={`st ${b.status === "ok" ? "reglee" : b.status === "partiel" ? "transmise" : "annulee"}`}>{t(b.status === "ok" ? "complet" : b.status === "partiel" ? "à vérifier" : "échec")}</span>
-                  </td>
-                  <td className={styles.files}>
-                    {b.fileKey && (
-                      <a className="btn sm" href={`/desk/depot/boc/${b.sessionDate}`} target="_blank" rel="noreferrer">
-                        {t("PDF conservé")}
-                      </a>
-                    )}
-                    <a href={b.sourceUrl?.startsWith("http") ? b.sourceUrl : bocUrl(b.sessionDate)} target="_blank" rel="noreferrer">
-                      {t("source BVMAC")}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-              {bulletins.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="muted">
-                    {t("Aucun bulletin lu pour l'instant.")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </TallTable>
-        {bulletins.length >= 60 && sp.n !== "tous" && (
-          <p className={styles.more}>
-            <Link href="/desk/depot?n=tous">{t("Toutes les séances")} →</Link>
-          </p>
-        )}
+        <p className={styles.p}>
+          {t("Le rattrapage de l'historique ne gardait pas les PDF : la plupart des séances n'existent chez nous que par leur adresse d'origine, chez la bourse. Séance par séance, avec les deux liens et les filtres, c'est la page des bulletins qui les montre.")}
+        </p>
+        <p className={styles.more}>
+          <Link href="/desk/bulletins">{t("Toutes les séances")} →</Link>
+        </p>
       </section>
 
       <section className="panel">

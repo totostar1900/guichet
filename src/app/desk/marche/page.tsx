@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { PageOutline } from "@/components/PageOutline";
 import { FromSante } from "@/components/desk/FromSante";
+import { Reread } from "@/components/desk/Reread";
 import type { Offer } from "@/lib/domain/types";
 import { repo } from "@/lib/data";
 import { positionFor } from "@/lib/documents/position";
@@ -11,6 +12,8 @@ import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/for
 import { bocUrl } from "@/lib/market/boc";
 import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, SignalForm, UploadForm } from "./Forms";
 import { loadCrossPolicy } from "@/lib/policy";
+import { lineIssues } from "@/lib/health";
+import { backfillLastTradedAction, withdrawLineAction } from "./actions";
 import { isResponsable } from "@/lib/auth/types";
 import { getSession } from "@/lib/auth";
 import { FundGroups, type FundGroup } from "./FundGroups";
@@ -32,11 +35,19 @@ const GROUPINGS: [string, string][] = [
 ];
 export const metadata = { title: "Marché secondaire" };
 
+/* Les six écarts que la réconciliation sait nommer. Venue de Santé avec son
+   tableau, le 6 octobre 2026. */
+const KIND_LABEL: Record<string, string> = { sortie: "Sortie de cote", absente: "Non publiée", prix: "Cours", date: "Date", instrument: "Instrument", doublon: "Doublon" };
+
 export default async function MarketPage({ searchParams }: { searchParams: Promise<{ filtre?: string; depuis?: string; point?: string; groupe?: string }> }) {
   const sp = await searchParams;
   const t = await getT();
   const r = repo();
-  const [offers, intents, bulletins, fills, signal, me] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10), lineFills(), loadCrossPolicy(), getSession()]);
+  const [offers, intents, bulletins, fills, signal, me, ecarts] = await Promise.all([r.listOffers(), r.listIntents(), r.listBulletins(10), lineFills(), loadCrossPolicy(), getSession(), lineIssues()]);
+  /* Le dernier échange d'une ligne n'est retenu que depuis peu : celles qui
+     n'ont pas traité depuis le sont muettes tant que les cotes déjà lues n'ont
+     pas été reprises. Le bouton ne paraît que tant qu'il reste du travail. */
+  const sansEchange = offers.filter((o) => o.kind === "MARCHE" && o.isin && !o.hidden && !o.lastTradedOn);
   // Ce que nos propres ordres sont devenus, ligne par ligne : à côté de ce que le marché offrait.
   const ours = deskFills(intents);
   const lastSession = bulletins.filter((b) => b.status === "ok").map((b) => b.sessionDate).sort().reverse()[0];
@@ -236,6 +247,78 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
           </p>
         )}
       </div>
+
+      {/* CE QUE SANTÉ DÉTECTAIT, ET QUI SE RÉPARE ICI.
+
+          Les deux blocs vivaient sur la page Santé, faute d'un endroit où une
+          ligne se répare. Santé garde les deux contrôles qui les signalent et
+          renvoie ici : elle détecte, le domicile répare. Déplacés tels quels,
+          phrases et boutons compris. */}
+      {ecarts.length > 0 && (
+        <section className="panel" id="lignes">
+          <div className="panel-h">
+            <h2>{t("Lignes et bulletin")}</h2>
+            <span className="muted">{t("{n} écart entre ce que le Guichet publie et ce que le bulletin cote.", { n: ecarts.length })}</span>
+          </div>
+          <p className={styles.p}>
+            {t("Une ligne sortie de la cote dont l'échéance est passée se clôture seule à la lecture du bulletin : elle cesse d'être commandable, sa page reste consultable, et rien n'est dit au client sur la raison. Celles dont l'échéance est inconnue ou estimée attendent une décision. Le bulletin dit ce qui se cote, pas ce qui a été payé : quand des clients détiennent encore la ligne, le remboursement se vérifie auprès du dépositaire avant tout, et l'avis de remboursement est ce qui l'atteste. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.")}
+          </p>
+          <div className="scroll-x">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>{t("Écart")}</th>
+                  <th>ISIN</th>
+                  <th>{t("Ligne")}</th>
+                  <th>{t("Ce que dit le bulletin")}</th>
+                  <th className="r">{t("Porteurs")}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {ecarts.map((e, i) => (
+                  <tr key={`${e.kind}-${e.isin}-${i}`}>
+                    <td>
+                      <span className={`st ${e.kind === "sortie" ? "recue" : "annulee"}`}>{t(KIND_LABEL[e.kind])}</span>
+                    </td>
+                    <td className="mono">{e.isin}</td>
+                    <td>{e.title}</td>
+                    <td className="muted">{t(e.detail)}</td>
+                    <td className="r num">
+                      {e.holders ? (
+                        <b title={t("Des clients détiennent encore cette ligne : le remboursement se vérifie auprès du dépositaire avant toute chose.")}>{e.holders}</b>
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
+                    </td>
+                    <td className="r">
+                      {e.kind === "sortie" && e.offerId ? <Reread action={withdrawLineAction} label={t("Clôturer")} date={undefined} offerId={e.offerId} /> : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {sansEchange.length > 0 && (
+        <section className="panel" id="echanges">
+          <div className="panel-h">
+            <h2>{t("Dernier échange à retrouver")}</h2>
+            <span className="muted">{t("{n} lignes cotées sans date de dernier échange.", { n: String(sansEchange.length) })}</span>
+          </div>
+          <p className={styles.p}>
+            {t("Le bulletin cote chaque ligne à chaque séance, qu'elle ait traité ou non : la date du dernier échange est ce qui dit à un client si son ordre a une chance d'être servi. Elle se retrouve dans les cotes déjà en base, il n'y a rien à retélécharger.")}
+          </p>
+          <div className={styles.actions}>
+            <Reread action={backfillLastTradedAction} label={t("Retrouver dans les cotes")} primary />
+            <Link className="btn sm ghost" href="/desk/marche">
+              {t("Marché")} →
+            </Link>
+          </div>
+        </section>
+      )}
 
       <div className="panel" id="cotations">
         {sp.filtre === "sans-cours" && (

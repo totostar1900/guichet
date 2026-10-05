@@ -22,7 +22,6 @@ export const EN_PROSE: Record<string, string> = {
   "Retirer l'accès ne supprime rien : le compte redevient client, l'historique de ses actions reste dans le journal.": "Removing access deletes nothing: the account becomes a client again, the history of their actions stays in the log.",
   "Téléphone perdu : un responsable retire l'accès puis le redonne ; la personne réactive son second facteur.": "Lost phone: a manager removes the access then grants it again; the person reactivates their second factor.",
   "est vide, seule cette page donne l'accès.": "is empty, only this page grants access.",
-  "Chaque action métier laisse une ligne immuable : qui, quoi, l'enregistrement avant et après, le motif, l'adresse d'origine. Les lignes sont chaînées par empreinte : une ligne modifiée ou retirée casserait la chaîne.": "Every business action leaves an immutable line: who, what, the record before and after, the reason, the origin address. Lines are hash-chained: an edited or removed line would break the chain.",
   "Chaque publication garde la fiche complète ; restaurer crée une nouvelle version, jamais un effacement.": "Every publication keeps the full page; restoring creates a new version, never an erasure.",
   "Aucune version enregistrée (ligne antérieure à l'historique ou reprise du bulletin).": "No version saved (line predating the history or taken from the bulletin).",
   "Qui, quoi, quand, d'où : chaîné, jamais modifié.": "Who, what, when, from where : chained, never edited.",

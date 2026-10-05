@@ -223,3 +223,18 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Venues de Santé avec les deux blocs de lignes, le 6 octobre 2026 : le même
+   bloc doit avoir la même allure sur les deux pages. */
+.p {
+  color: var(--ink-2);
+  max-width: 78ch;
+  margin: 0 0 12px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+}

@@ -437,8 +437,12 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <div className="panel" id="flux" data-coach="feed">
           <div className="panel-h">
             <h2>{t("Flux en direct")}</h2>
+            {/* IL DIT CE QU'IL EST, ET CE QU'IL N'EST PAS. Le desk a cinq
+                ruisseaux de « ce qui vient de se passer » ; celui-ci et le
+                Journal sont les deux qu'on confond, et ce sont justement les
+                deux qu'il faut garder séparés : l'un raconte, l'autre prouve. */}
             <span className="muted" style={{ fontSize: ".8rem" }}>
-              {t("Chaque intention client apparaît ici dès son enregistrement")}
+              {t("Le récit de la journée : chaque intention client y paraît dès son enregistrement. Pour savoir qui a changé quoi, avec l'avant et l'après, c'est le Journal d'audit.")}
             </span>
           </div>
           <div className={styles.feed}>

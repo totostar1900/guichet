@@ -7,6 +7,10 @@ import { isResponsable } from "@/lib/auth/types";
 import { audit } from "@/lib/audit";
 import { z } from "zod";
 import { requireDesk, requireResponsable } from "@/lib/auth";
+// Ce dont les deux gestes venus de Sante ont besoin, et rien de plus.
+import { tradedSession } from "@/lib/domain/market";
+import type { RereadResult } from "@/lib/desk/reprise";
+export type { RereadResult } from "@/lib/desk/reprise";
 import { REF } from "@/lib/reference";
 import { CROSS_CLOSED, crossCheck, crossOrder, type CrossPolicy } from "@/lib/domain/crossing";
 import { switchBlock, switchProceeds } from "@/lib/domain/switch";
@@ -433,4 +437,74 @@ export async function toggleHiddenAction(form: FormData): Promise<void> {
   await r.logEvent({ kind: "desk", offerId: o.id, html: `Ligne <b>${o.title}</b> ${o.hidden ? "affichée au" : "masquée du"} Guichet · par ${desk.name}` });
   revalidatePath("/");
   revalidatePath("/desk/marche");
+}
+
+
+/* ──────────── Ce que Santé détectait, et que cette page répare ────────────
+ *
+ * Deux gestes portant sur des LIGNES vivaient sur la page Santé, faute d'un
+ * endroit où une ligne se répare. Santé garde les deux contrôles qui les
+ * signalent, et renvoie ici. Code déplacé tel quel, chemins rafraîchis mis à
+ * jour. */
+
+/**
+ * Retrouve, dans les séances déjà lues, la dernière où chaque ligne s'est
+ * échangée.
+ *
+ * La colonne est née vide : sans ce rattrapage, une ligne resterait muette
+ * jusqu'à ce qu'elle traite de nouveau, ce qui peut prendre des mois sur ce
+ * marché et priverait le client de l'information au moment précis où elle lui
+ * sert le plus. Les cotes sont déjà en base : il n'y a rien à retélécharger.
+ *
+ * La version de la ligne ne bouge pas. On ne change pas ses conditions, on
+ * écrit un fait qu'elle portait depuis toujours et que personne n'avait noté.
+ */
+export async function backfillLastTradedAction(_prev: RereadResult | null): Promise<RereadResult> {
+  const desk = await requireDesk("/desk/marche");
+  const r = repo();
+  const lines = (await r.listOffers()).filter((o) => o.kind === "MARCHE" && o.isin && !o.lastTradedOn);
+  if (lines.length === 0) return { ok: "Toutes les lignes cotées portent déjà leur dernier échange." };
+
+  let set = 0;
+  let silent = 0;
+  for (const o of lines) {
+    const quotes = await r.listQuotes(o.isin, 2000);
+    const traded = quotes.filter(tradedSession).sort((a, b) => b.sessionDate.localeCompare(a.sessionDate))[0];
+    if (!traded) {
+      silent++;
+      continue;
+    }
+    await r.upsertOffer({ ...o, lastTradedOn: traded.sessionDate });
+    set++;
+  }
+
+  const parts = [`${set} ligne${set > 1 ? "s" : ""} datée${set > 1 ? "s" : ""}`];
+  if (silent) parts.push(`${silent} sans aucun échange dans les séances lues`);
+  await repo().logEvent({ kind: "desk", html: `<b>Dernier échange</b> : ${parts.join(" · ")} · retrouvé dans les cotes · par ${desk.name}` });
+  revalidatePath("/desk/marche");
+  revalidatePath("/desk/marche");
+  revalidatePath("/titres");
+  revalidatePath("/offres/[id]", "page");
+  return { ok: parts.join(" · ") };
+}
+
+/**
+ * Clôture une ligne cotée qui a quitté la cote : elle cesse d'être
+ * commandable, sa page reste consultable. Réservé aux absences que l'échéance
+ * ne tranche pas seule. Ce n'est pas un retrait : la maison ne retire rien,
+ * la ligne n'est plus à la cote. Un vrai retrait se fait depuis la fiche de la
+ * ligne, avec un motif et une seconde paire d'yeux.
+ */
+export async function withdrawLineAction(_prev: RereadResult | null, form: FormData): Promise<RereadResult> {
+  const desk = await requireDesk("/desk/marche");
+  const id = String(form.get("offerId") ?? "").trim();
+  if (!id) return { error: "Ligne inconnue." };
+  const offer = (await repo().listOffers()).find((o) => o.id === id);
+  if (!offer) return { error: "Ligne introuvable." };
+  if (offer.kind !== "MARCHE") return { error: "Seule une ligne cotée se retire ainsi." };
+  await repo().upsertOffer({ ...offer, status: "matured", version: offer.version + 1 });
+  await repo().logEvent({ kind: "desk", html: `<b>Ligne clôturée</b> : ${offer.title} · à la main · par ${desk.name}` });
+  revalidatePath("/desk/marche");
+  revalidatePath("/titres");
+  return { ok: `${offer.title} : clôturée, la page reste consultable.` };
 }

@@ -1,12 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import type { RereadResult } from "./actions";
+import type { RereadResult } from "@/lib/desk/reprise";
 
 /**
- * Le bouton qui relance la lecture d'un bulletin, ou des plus anciens de la
- * liste quand aucune date n'est donnée. La ligne de résultat reste sous le
- * bouton : c'est elle qui dit ce que la relecture a changé.
+ * Le bouton d'une action de desk qui rend une phrase, et la phrase reste
+ * sous lui : c'est elle qui dit ce que le geste a changé.
+ *
+ * Il est né pour la relecture d'un bulletin, d'où son nom ; il sert aussi au
+ * rattrapage des derniers échanges et à la clôture d'une ligne sortie de la
+ * cote. Trois pages l'utilisent depuis que chaque sujet a rejoint son
+ * domicile, donc il vit avec les composants du desk et non dans l'une d'elles.
  */
 export function Reread({
   action,

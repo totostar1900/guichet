@@ -24,14 +24,17 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
   },
   lignes: {
     label: "Lignes publiées contre le bulletin",
-    href: "/desk/sante#lignes",
-    how: "Le tableau « Lignes et bulletin », plus bas sur cette page. Une sortie de cote dont l'échéance est passée se retire seule à la lecture du bulletin ; celles dont l'échéance est inconnue attendent un « Retirer ». Un cours ou un instrument qui diffère du bulletin est un défaut de lecture : relancer la lecture de la séance.",
+    // Santé détecte, le domicile répare : le tableau vit avec les lignes depuis le 6 octobre 2026.
+    href: "/desk/marche#lignes",
+    how: "Le tableau « Lignes et bulletin », sur la page Marché. Une sortie de cote dont l'échéance est passée se retire seule à la lecture du bulletin ; celles dont l'échéance est inconnue attendent un « Retirer ». Un cours ou un instrument qui diffère du bulletin est un défaut de lecture : relancer la lecture de la séance.",
     docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
   },
   relire: {
     label: "Bulletins à relire",
-    href: "/desk/sante#relire",
-    how: "Le tableau « Bulletins à relire », plus bas sur cette page : « Relire les plus anciens » reprend six séances depuis l'adresse d'origine du bulletin, « Relire » en fait une seule. À relancer après chaque correction du lecteur.",
+    // Même règle, et le nom du bouton avait déjà dérivé : il s'appelait encore
+    // « Relire les plus anciens » ici, trois heures après avoir été renommé.
+    href: "/desk/bulletins#relire",
+    how: "Le tableau « Bulletins de la BVMAC à relire », sur la page Bulletins : « Relire 6 séances » reprend les six les moins récemment reprises depuis l'adresse d'origine, « Confier 60 séances au robot » envoie la suite au robot de lecture, et « Relire » sur une ligne en fait une seule. À relancer après chaque correction du lecteur.",
     docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
   },
   ingests: {

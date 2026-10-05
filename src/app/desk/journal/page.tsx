@@ -61,7 +61,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         <div>
           <h1>{t("Journal d'audit")}</h1>
           <p className="muted">
-            {t("Chaque action métier laisse une ligne immuable : qui, quoi, l'enregistrement avant et après, le motif, l'adresse d'origine. Les lignes sont chaînées par empreinte : une ligne modifiée ou retirée casserait la chaîne.")}
+            {t("Chaque action métier laisse une ligne immuable : qui, quoi, l'enregistrement avant et après, le motif, l'adresse d'origine. Les lignes sont chaînées par empreinte : une ligne modifiée ou retirée casserait la chaîne. Ce journal prouve ; il ne raconte pas la journée, et c'est le « Flux en direct » du Carnet qui le fait.")}
           </p>
         </div>
         {/* Le libellé ne promet que ce qui a été vérifié, et nomme la ligne en
