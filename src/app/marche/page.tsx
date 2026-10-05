@@ -3,6 +3,7 @@ import { IndexPulse } from "@/components/IndexPulse";
 import { MarketStrip } from "@/components/MarketStrip";
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
+import { dernierMouvement, echangesDeLaSeance } from "@/lib/market/echanges";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { loadCompanies } from "@/lib/reference";
@@ -12,12 +13,6 @@ import { OngletsMarche } from "@/components/market/OngletsMarche";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Le marché" };
-
-const signed = (v?: number, d = 2) => {
-  if (v == null) return "—";
-  const r = Number(v.toFixed(d));
-  return `${r > 0 ? "+" : ""}${fmtPct(r === 0 ? 0 : v, d)}`;
-};
 
 /**
  * Le marché : la porte d'entrée de l'environnement BVMAC.
@@ -32,12 +27,22 @@ const signed = (v?: number, d = 2) => {
 export default async function MarchePage() {
   const t = await getT();
   const [data, companies] = await Promise.all([indexPageData(), loadCompanies().catch(() => [])]);
-  const { weights, nameOf, lastBulletin, movers } = data;
+  const { weights, nameOf, lastBulletin, histories, trading } = data;
   const notes = quarters(data).slice(0, 4);
   const capTotal = weights.reduce((s, w) => s + w.capTotal, 0);
   const capFloat = weights.reduce((s, w) => s + w.capFloat, 0);
-  const day = lastBulletin ? (movers.get(lastBulletin.sessionDate) ?? []) : [];
-  const moveOf = (mnemo: string) => day.find((m) => m.mnemo === mnemo)?.variationPct;
+  /**
+   * CE QUI S'EST ÉCHANGÉ, ET QUAND CHAQUE LIGNE A BOUGÉ.
+   *
+   * L'indice bouge sur 70 des 271 séances lues, et une action garde son cours
+   * dans 95 % d'entre elles : une page qui ne montre que la variation du jour
+   * n'affiche que des zéros, trois fois sur quatre. Les deux lectures qui
+   * suivent sont dans la base depuis le premier jour et ne paraissaient nulle
+   * part. Elles ne coûtent aucune lecture de plus : « indexPageData » les
+   * portait déjà.
+   */
+  const ech = lastBulletin ? echangesDeLaSeance(trading, lastBulletin.sessionDate, weights.length) : undefined;
+  const bougeLe = (mnemo: string) => dernierMouvement(histories.find((h) => h.w.mnemo === mnemo)?.quotes ?? []);
 
   return (
     <>
@@ -52,6 +57,43 @@ export default async function MarchePage() {
       </header>
 
       <IndexPulse />
+
+      {ech && lastBulletin && (
+        <section className="panel" id="echanges">
+          <div className="panel-h">
+            <h2>{t("Ce qui s'est échangé")}</h2>
+            <Link className="btn sm ghost" href="/indice">
+              {t("Séance par séance")} →
+            </Link>
+          </div>
+          <div className={styles.ech}>
+            <div>
+              <b>
+                {ech.lignes}
+                <small> / {ech.cotees}</small>
+              </b>
+              <span>{t("lignes servies le {d}", { d: fmtDate(lastBulletin.sessionDate, false) })}</span>
+            </div>
+            <div>
+              <b>{fmt(ech.transactions)}</b>
+              <span>{t("transactions")}</span>
+            </div>
+            <div>
+              <b>{money(ech.montant)}</b>
+              <span>{t("FCFA échangés")}</span>
+            </div>
+          </div>
+          <p className={styles.note}>
+            {ech.servies.length > 0 ? `${ech.servies.map((x) => `${x.mnemo} ${fmt(x.titres)}`).join(" · ")}. ` : `${t("Aucun titre n'a changé de mains ce jour-là.")} `}
+            {ech.part != null &&
+              t("Cette séance pèse {p} des trente derniers jours, qui ont vu {m} FCFA s'échanger en {n} séances.", {
+                p: fmtPct(ech.part, 0),
+                m: money(ech.fenetreMontant),
+                n: ech.fenetreSeances,
+              })}
+          </p>
+        </section>
+      )}
 
       {weights.length > 0 && (
         <section className="panel" id="societes">
@@ -68,14 +110,14 @@ export default async function MarchePage() {
                   <th>{t("Société")}</th>
                   <th>{t("Activité")}</th>
                   <th className={styles.num}>{t("Cours")}</th>
-                  <th className={styles.num}>{t("Séance")}</th>
                   <th className={styles.num}>{t("Poids")}</th>
+                  <th className={styles.num}>{t("Dernier mouvement")}</th>
                 </tr>
               </thead>
               <tbody>
                 {weights.map((w) => {
                   const c = companies.find((x) => x.mnemo === w.mnemo);
-                  const mv = moveOf(w.mnemo);
+                  const bouge = bougeLe(w.mnemo);
                   return (
                     <tr key={w.mnemo}>
                       <td>
@@ -85,8 +127,10 @@ export default async function MarchePage() {
                       </td>
                       <td className="muted">{c?.sector ? t(c.sector) : "—"}</td>
                       <td className={styles.num}>{fmt(w.close)}</td>
-                      <td className={`${styles.num} ${mv && mv > 0 ? styles.up : mv && mv < 0 ? styles.down : ""}`}>{signed(mv ?? 0)}</td>
                       <td className={styles.num}>{fmtPct(w.weightTotal, 1)}</td>
+                      {/* La date, et non la variation du jour : sept zéros ne
+                          disaient rien que l'indice n'ait déjà dit. */}
+                      <td className={styles.num}>{bouge ? fmtDate(bouge, false) : "—"}</td>
                     </tr>
                   );
                 })}
@@ -100,8 +144,7 @@ export default async function MarchePage() {
         </section>
       )}
 
-      <div className={styles.cols}>
-        <section className="panel" id="notes">
+      <section className="panel" id="notes">
           <div className="panel-h">
             <h2>{t("Les notes de marché")}</h2>
             <Link className="btn sm ghost" href="/indice#notes">
@@ -119,29 +162,16 @@ export default async function MarchePage() {
               ))}
             </div>
           )}
-          <p className={styles.note}>{t("Une note par trimestre : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé, et ce que l'indice ne dit pas. Publique, et en PDF.")}</p>
-        </section>
+        <p className={styles.note}>{t("Une note par trimestre : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé, et ce que l'indice ne dit pas. Publique, et en PDF.")}</p>
+      </section>
 
-        <section className="panel" id="comprendre">
-          <div className="panel-h">
-            <h2>{t("Comprendre")}</h2>
-          </div>
-          <div className={styles.chips}>
-            <Link className="btn sm" href="/info/indice-bvmac">
-              {t("La leçon : comment lire l'indice")} →
-            </Link>
-            <Link className="btn sm" href="/comparer">
-              {t("Comparer deux lignes")} →
-            </Link>
-            <Link className="btn sm" href="/indice#donnees">
-              {t("Ce que publie le bulletin")} →
-            </Link>
-          </div>
-          <p className={styles.note}>{t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Le Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}</p>
-        </section>
-      </div>
-
+      {/* TROIS LIENS NE FONT PAS UN PANNEAU. « Comprendre » en occupait un
+          quart de page, pour trois destinations dont la pulsation portait déjà
+          l'une. Ils tiennent au pied, avec la source. */}
       <p className={styles.source}>
+        <Link href="/info/indice-bvmac">{t("Comment lire l'indice")}</Link> · <Link href="/comparer">{t("Comparer deux lignes")}</Link> · <Link href="/indice#donnees">{t("Ce que publie le bulletin")}</Link>
+        <br />
+        {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Le Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
         {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}
       </p>
 

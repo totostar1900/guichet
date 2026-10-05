@@ -1052,6 +1052,18 @@ export const EN_REST: Record<string, string> = {
   "obligations, bons du Trésor et actions de la zone CEMAC": "bonds, treasury bills and shares of the CEMAC zone",
   "les OPCVM de la zone, leur valeur liquidative et leurs frais": "the mutual funds of the zone, their net asset value and their fees",
   "ce que vous avez, et ce qui en découle": "what you hold, and what follows from it",
+  /* La vue d'ensemble : ce qui s'est échangé, et la date du dernier mouvement
+     à la place d'une colonne de sept zéros. */
+  "Ce qui s'est échangé": "What changed hands",
+  "Séance par séance": "Session by session",
+  "lignes servies le {d}": "lines served on {d}",
+  "FCFA échangés": "FCFA changed hands",
+  "Aucun titre n'a changé de mains ce jour-là.": "No share changed hands that day.",
+  "Cette séance pèse {p} des trente derniers jours, qui ont vu {m} FCFA s'échanger en {n} séances.": "This session is {p} of the last thirty days, which saw {m} FCFA change hands over {n} sessions.",
+  "Dernier mouvement": "Last move",
+  "dernier mouvement le {d}, {v}": "last move on {d}, {v}",
+  "aucun mouvement depuis la première séance lue, le {d}": "no move since the first session read, on {d}",
+  "Comment lire l'indice": "How to read the index",
   /* Les trois ou quatre mots sous une tuile du dock. Ils vivent dans une table
      et traversent t() en variable, donc le scanner de clefs ne les voit pas :
      c'est « tuiles-en.test.ts » qui tient leur couverture. */

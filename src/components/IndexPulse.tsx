@@ -19,6 +19,17 @@ export async function IndexPulse({ compact }: { compact?: boolean }) {
   const bulletins = await repo().listBulletins(400).catch(() => []);
   const stats = indexStats(indexSeries(bulletins));
   if (!stats.last) return null;
+  /**
+   * LA SÉANCE PLATE EST LA RÈGLE, ET ELLE DOIT LE DIRE.
+   *
+   * L'indice bouge sur 70 des 271 séances lues depuis le 1er septembre 2025.
+   * Un « 0,00 % » seul se lit « rien ne se passe », ou pire, « la page est
+   * cassée » ; daté, il se lit « au repos depuis le 30 septembre ». Le seuil
+   * est celui de l'affichage : une variation arrondie à zéro à l'écran n'est
+   * pas un mouvement pour le lecteur.
+   */
+  const plat = stats.day == null || Math.abs(stats.day) < 0.005;
+  const bouge = plat ? [...stats.points].reverse().find((x) => x.variationPct != null && Math.abs(x.variationPct) >= 0.005) : undefined;
   const pts = stats.points.slice(-60);
   const min = Math.min(...pts.map((p) => p.value));
   const max = Math.max(...pts.map((p) => p.value));
@@ -50,6 +61,8 @@ export async function IndexPulse({ compact }: { compact?: boolean }) {
           <span>
             {t("douze mois")} <b className={tone(stats.year)}>{signed(stats.year)}</b>
           </span>
+          {plat && bouge && <span className={styles.calme}>{t("dernier mouvement le {d}, {v}", { d: fmtDate(bouge.date, false), v: signed(bouge.variationPct, 2) })}</span>}
+          {plat && !bouge && stats.points.length > 1 && <span className={styles.calme}>{t("aucun mouvement depuis la première séance lue, le {d}", { d: fmtDate(stats.points[0].date) })}</span>}
           <Link href="/indice" className={styles.how}>
             {t("voir l'indice")} →
           </Link>

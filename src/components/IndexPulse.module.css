@@ -101,3 +101,10 @@
     justify-self: start;
   }
 }
+
+/* « dernier mouvement le 30 sept., −0,79 % » : une phrase à côté des chiffres,
+   qui dit pourquoi la séance est à zéro. Elle ne paraît que dans ce cas. */
+.calme {
+  color: var(--ink-3);
+  font-style: italic;
+}

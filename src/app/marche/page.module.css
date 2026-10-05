@@ -15,12 +15,6 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.up {
-  color: var(--good);
-}
-.down {
-  color: var(--warn);
-}
 .note {
   font-size: 0.84rem;
   color: var(--ink-3);
@@ -33,14 +27,43 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-/* les notes et « comprendre » côte à côte, empilés au téléphone */
-.cols {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
+/**
+ * CE QUI S'EST ÉCHANGÉ : trois nombres, et rien autour.
+ *
+ * C'est la seule mesure d'activité de la page. Trois colonnes sur une ligne,
+ * qui se replient sous 300 px : à cette largeur, trois nombres côte à côte
+ * deviennent trois colonnes d'un caractère.
+ */
+.ech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-7);
+}
+.ech > div {
+  flex: 1 1 100px;
+}
+.ech b {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.ech b small {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.ech span {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--ink-3);
+  line-height: 1.3;
+  margin-top: var(--s-1);
 }
 .source {
   font-size: 0.78rem;
   color: var(--ink-3);
   margin: 18px 0 0;
+  line-height: 1.6;
 }
