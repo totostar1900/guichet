@@ -107,6 +107,12 @@
   max-width: 78ch;
   margin: 0 0 12px;
 }
+/* Sous la date, et non a cote : « mar 6 oct 18:30 dans 20 heures » se lisait
+   comme une seule phrase, et les deux chiffres se melangeaient. */
+.sous {
+  display: block;
+  color: var(--ink-3);
+}
 .actions {
   display: flex;
   gap: 10px;

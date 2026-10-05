@@ -257,11 +257,22 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                   </div>
                   <div className={styles.group}>{t("Couleurs")}</div>
                   <PaletteSwitch lang={lang} />
-                  {/* LA LANGUE ET L'ENTRÉE ONT QUITTÉ CETTE FEUILLE le 6 octobre
-                      2026. Toutes deux vivent maintenant dans la barre du haut, à
-                      côté du « ⋮ », à toute largeur : les ranger ici en plus les
-                      mettait plus loin que l'original, et un réglage qu'on trouve
-                      à deux endroits est un réglage qu'on cherche aux deux. */}
+                  {/* L'ENTRÉE A QUITTÉ CETTE FEUILLE le 6 octobre 2026 : la barre
+                      du haut l'affiche déjà à côté du « ⋮ », à toute largeur, et un
+                      doublon rangé plus loin que l'original ne sert personne.
+
+                      LA LANGUE RESTE, et c'est le seul endroit où elle vit pour un
+                      visiteur : la feuille « Bonjour » n'existe que pour qui est
+                      entré. Nommée, cette fois, et non posée nue au bout d'une
+                      ligne. */}
+                  <div className={styles.group}>{t("Langue")}</div>
+                  <div className={styles.item}>
+                    <Icon d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+                    <span>
+                      <b>{t("Français ou anglais")}</b>
+                    </span>
+                    <LangSwitch compact />
+                  </div>
                   <div className={styles.group}>{t("Nous joindre")}</div>
                   {contactBlock}
                 </>

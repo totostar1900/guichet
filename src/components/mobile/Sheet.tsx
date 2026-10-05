@@ -28,7 +28,7 @@ import { deverrouiller, verrouiller } from "./verrou-defilement";
  * de fois par jour, en bas de l’écran où se tient le pouce ; le principe les
  * désigne, la décision du 23 septembre 2026 est de ne pas y toucher.
  */
-export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, anchorTop, tabs, tall, foot }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" | "under"; /** avec dock « under » : le bas du déclencheur, mesuré à l'ouverture */ anchorTop?: number; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; foot?: React.ReactNode }) {
+export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, anchorTop, tabs, tall, foot, action }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" | "under"; /** avec dock « under » : le bas du déclencheur, mesuré à l'ouverture */ anchorTop?: number; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; foot?: React.ReactNode; /** un objet posé à droite du titre, avant la croix : un réglage qu'on veut en tête et non au fond */ action?: React.ReactNode }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -95,6 +95,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
               {title}
               {sub && <small className={styles.sub}>{sub}</small>}
             </b>
+            {action}
             <button type="button" className={styles.close} onClick={onClose} aria-label={t("Fermer")}>
               ×
             </button>

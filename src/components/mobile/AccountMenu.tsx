@@ -206,6 +206,12 @@ export function AccountMenu(p: AccountProps) {
         dock="top-right"
         tall
         title={t("Bonjour {name}", { name: who.name.split(/\s+/)[0] })}
+        /* LA LANGUE EN TÊTE, le 6 octobre 2026. Elle était la première ligne de
+           « Préférences », donc après la recherche, le statut, deux canaux et
+           dix-sept tuiles : un réglage qu'on cherche ne se trouve pas au fond
+           d'un défilement. À côté du nom, elle se voit sans rien déplacer, et
+           la recherche garde la première ligne du corps. */
+        action={<LangSwitch compact />}
         foot={
           <div className={styles.out}>
             <form action={logout}>
@@ -310,12 +316,6 @@ export function AccountMenu(p: AccountProps) {
 
         <div className={styles.group}>{t("Préférences")}</div>
         <div className={styles.rows}>
-          <div className={styles.pref}>
-            <span>
-              <b>{t("Langue")}</b>
-            </span>
-            <LangSwitch compact />
-          </div>
           {p.vapidKey && (
             <div className={`${styles.pref} ${styles.prefCol}`}>
               <span>

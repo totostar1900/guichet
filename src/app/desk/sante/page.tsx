@@ -168,7 +168,6 @@ export default async function SantePage() {
                 <th>{t("Fréquence")}</th>
                 <th>{t("Prochain tour")}</th>
                 <th>{t("Dernier tour")}</th>
-                <th className="r">{t("Depuis")}</th>
                 <th>{t("État")}</th>
               </tr>
             </thead>
@@ -190,7 +189,7 @@ export default async function SantePage() {
                       return (
                         <>
                           {n.quand}
-                          <small className="muted"> {n.dans}</small>
+                          <small className={styles.sous}>{n.dans}</small>
                         </>
                       );
                     })()}
@@ -201,7 +200,6 @@ export default async function SantePage() {
                         pas que l'ordonnanceur vit. */}
                     {r.dernier?.par === "main" && <small className="muted"> {t("à la main")}</small>}
                   </td>
-                  <td className="r">{r.depuis == null ? "—" : t("depuis {n} heures", { n: Math.round(r.depuis) })}</td>
                   <td>
                     {/* Muet et échoué ne se réparent pas pareil : l'un demande de
                         regarder l'ordonnanceur, l'autre le code. */}
@@ -305,7 +303,20 @@ export default async function SantePage() {
               une action de page doit repondre dans le delai de la fonction, et la
               serie entiere se compte en dizaines de minutes. */}
           <p className={styles.p}>
-            {t("Une passe reprend {n} séances, les moins récemment reprises de la liste : la file tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. {n} et non toutes, parce qu'un bulletin demande environ quatre secondes et qu'un bouton de page doit répondre avant le délai de la fonction. Pour reprendre toute la série d'un coup, c'est la route qui le fait, en dizaines de minutes : « /api/cron/boc?from=AAAA-MM-JJ&to=AAAA-MM-JJ&relire=1 ».", { n: String(REREAD_BATCH) })}
+            {t("Une passe reprend {n} séances, les moins récemment reprises de la liste : la file tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. {n} et non toutes, parce qu'un bulletin demande environ quatre secondes et qu'un bouton de page doit répondre avant le délai de la fonction.", { n: String(REREAD_BATCH) })}
+          </p>
+          <p className={styles.p}>
+            {t("Toute la série d'un coup ne passe pas par cette page : c'est le robot de lecture qu'on appelle directement, en lui donnant deux dates et l'ordre de relire, c'est à dire de repasser sur les séances déjà lues au lieu de les sauter comme il le fait chaque soir. Cela se lance depuis un terminal, avec le secret des robots, et tourne des dizaines de minutes sans surveillance. L'adresse, pour qui la lance :")}
+            <br />
+            <code>{"/api/cron/boc?from=AAAA-MM-JJ&to=AAAA-MM-JJ&relire=1"}</code>
+          </p>
+          {/* DEUX MOTS QUI NE SE DEVINENT PAS. Ils sortent du lecteur et
+              designent deux pannes qui ne se reparent pas pareil : l'une laisse
+              la seance a moitie en base, l'autre n'y laisse rien. */}
+          <p className={styles.p}>
+            {t("« partiel » : le bulletin a été lu, et le contrôle a relevé quelque chose. Une section plus courte que la veille, un cours hors de ses seuils, une ligne présente hier et absente aujourd'hui. Ce qui a été lu est en base, le reste manque.")}
+            <br />
+            {t("« échec » : l'en-tête du PDF n'a pas été reconnu, donc le numéro du bulletin non plus. Aucun cours de cette séance n'est entré : elle est entièrement à reprendre.")}
           </p>
           <div className={styles.actions}>
             <Reread action={rereadAction} label={t("Relire {n} séances", { n: String(REREAD_BATCH) })} primary />
