@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { cadence, etatDesRobots, prochainTour, robotsAVoir } from "@/lib/domain/robots";
 import { DeskNav } from "@/components/DeskNav";
-import { bulletinsToReread, healthChecks, lineIssues, REREAD_BATCH } from "@/lib/health";
+import { ARRIERE_PAR_TOUR, bulletinsToReread, healthChecks, lineIssues, REREAD_BATCH } from "@/lib/health";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
-import { backfillLastTradedAction, rereadAction, withdrawLineAction } from "./actions";
+import { backfillLastTradedAction, lancerArriereAction, rereadAction, withdrawLineAction } from "./actions";
 import { Reread } from "./Reread";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -305,10 +305,11 @@ export default async function SantePage() {
           <p className={styles.p}>
             {t("Une passe reprend {n} séances, les moins récemment reprises de la liste : la file tourne, et une séance qui ne s'améliore pas ne bloque plus les autres. {n} et non toutes, parce qu'un bulletin demande environ quatre secondes et qu'un bouton de page doit répondre avant le délai de la fonction.", { n: String(REREAD_BATCH) })}
           </p>
+          {/* DEUX GESTES, ET ILS NE SE RESSEMBLENT PAS. Le premier travaille
+              devant vous et dit ce qu'il a changé ; le second part et ne revient
+              pas, c'est le compte en attente qui répondra. */}
           <p className={styles.p}>
-            {t("Toute la série d'un coup ne passe pas par cette page : c'est le robot de lecture qu'on appelle directement, en lui donnant deux dates et l'ordre de relire, c'est à dire de repasser sur les séances déjà lues au lieu de les sauter comme il le fait chaque soir. Cela se lance depuis un terminal, avec le secret des robots, et tourne des dizaines de minutes sans surveillance. L'adresse, pour qui la lance :")}
-            <br />
-            <code>{"/api/cron/boc?from=AAAA-MM-JJ&to=AAAA-MM-JJ&relire=1"}</code>
+            {t("« Confier au robot » ne fait pas le travail ici : il envoie la liste au robot de lecture, qui dispose de trois cents secondes par tour là où un bouton de page n'en a que quelques-unes. Il part avec {k} séances et rend la main aussitôt, sans rien afficher de plus. Revenez sur cette page dans quelques minutes : c'est le nombre de séances en attente, en tête de ce cadre, qui dira où il en est. Le tour s'inscrit au registre des robots comme un tour lancé à la main, donc il n'éteint aucune alarme.", { k: String(ARRIERE_PAR_TOUR) })}
           </p>
           {/* DEUX MOTS QUI NE SE DEVINENT PAS. Ils sortent du lecteur et
               designent deux pannes qui ne se reparent pas pareil : l'une laisse
@@ -326,6 +327,7 @@ export default async function SantePage() {
           </p>
           <div className={styles.actions}>
             <Reread action={rereadAction} label={t("Relire {n} séances", { n: String(REREAD_BATCH) })} primary />
+            <Reread action={lancerArriereAction} label={t("Confier {k} séances au robot", { k: String(Math.min(ARRIERE_PAR_TOUR, arriere.length)) })} />
             <Link className="btn sm ghost" href="/desk/marche">
               {t("Marché")} →
             </Link>

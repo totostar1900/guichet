@@ -2889,4 +2889,16 @@ export const EN_MORE: Record<string, string> = {
     "« Read again » fetches the session's PDF from the address kept with it and puts it through today's reader. Each quote it finds overwrites the one for the same line on the same session; the ones it does not find stay as they are, so a re-read adds or corrects and never removes. The gesture repeats safely: a session only gains prices on the day the reader improves. A session with no equity price skews the index, and that is the one to take first.",
   "Après la passe, une séance qui repasse en « ok » quitte ce tableau : elle rejoint les bulletins ordinaires, ses cours alimentent l'indice et les fiches comme les autres. Une séance qui n'a rien gagné reste ici, et passe en queue de file : la liste tourne, et les suivantes sont servies avant qu'on ne revienne sur elle.":
     "After the pass, a session back to « ok » leaves this table: it joins the ordinary bulletins, and its prices feed the index and the line pages like any other. A session that gained nothing stays here, and goes to the back of the queue: the list turns, and the ones behind it are served before it comes round again.",
+  // Le dépôt des bulletins.
+  "Bulletins de la BVMAC": "BVMAC bulletins",
+  "Le bulletin officiel de la cote, séance par séance, depuis la première lue. Chaque ligne mène à son document : notre copie quand nous l'avons gardée, et l'adresse d'origine dans tous les cas.":
+    "The official list bulletin, session by session, since the first one read. Every row leads to its document: our own copy where we kept it, and the original address in every case.",
+  "Séances à relire": "Sessions to read again",
+  "{n} séances": "{n} sessions",
+  "{n} avec notre copie du PDF ; les autres n'ont que l'adresse d'origine.": "{n} with our own copy of the PDF; the others have only the original address.",
+  lien: "link",
+  // Le bouton qui confie l'arriéré au robot.
+  "« Confier au robot » ne fait pas le travail ici : il envoie la liste au robot de lecture, qui dispose de trois cents secondes par tour là où un bouton de page n'en a que quelques-unes. Il part avec {k} séances et rend la main aussitôt, sans rien afficher de plus. Revenez sur cette page dans quelques minutes : c'est le nombre de séances en attente, en tête de ce cadre, qui dira où il en est. Le tour s'inscrit au registre des robots comme un tour lancé à la main, donc il n'éteint aucune alarme.":
+    "« Hand to the robot » does not do the work here: it sends the list to the reading robot, which has three hundred seconds per run where a page button has only a few. It leaves with {k} sessions and hands back at once, showing nothing more. Come back to this page in a few minutes: it is the number of waiting sessions, at the top of this panel, that will say where it got to. The run is recorded as one launched by hand, so it silences no alarm.",
+  "Confier {k} séances au robot": "Hand {k} sessions to the robot",
 };

@@ -38,6 +38,11 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     label: "Marché",
     tabs: [
       ["/desk/marche", "Cotes & VL"],
+      // Le depot des bulletins : huit cents seances et le document de chacune.
+      // Meme raison que « Seances » plus bas : relire une seance et retrouver
+      // celle d il y a deux ans ne sont pas le meme travail, et la seconde ne
+      // se cache pas derriere un lien au bas de la premiere.
+      ["/desk/bulletins", "Bulletins"],
       // La mémoire du marché primaire : ce que les six Trésors ont payé, séance
       // par séance. Le taux indicatif d'un bon s'y fonde.
       ["/desk/adjudications", "Adjudications"],

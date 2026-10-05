@@ -1,0 +1,59 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.head h1 {
+  font-size: 1.3rem;
+  margin: 0 0 4px;
+}
+.head p {
+  margin: 0;
+  font-size: 0.86rem;
+  max-width: 70ch;
+}
+
+/* Les filtres : une rangée par question, l'année puis l'état. Le retrait
+   horizontal appartient au panneau, la rangée ne le redit pas. */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding-block: 4px;
+}
+.titreFiltre {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin-right: 4px;
+}
+.filtres a {
+  font-size: 0.82rem;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.filtres a:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+/* Le choix courant bat le survol : c'est l'inverse qui avait rendu une pastille
+   choisie indistincte, au contraste de 1,65. */
+.filtres a.on,
+.filtres a.on:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--on-navy);
+}
+
+/* Deux liens dans une colonne étroite : notre copie, puis celle de la bourse. */
+.doc {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}

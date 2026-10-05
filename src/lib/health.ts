@@ -7,6 +7,7 @@ import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { indexCheck } from "@/lib/market/index";
+import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
 import { ABSENCE_SESSIONS, reconcileLines, reconcileSummary, type LineIssue } from "@/lib/market/reconcile";
 import { positionsFrom } from "@/lib/positions";
@@ -41,6 +42,17 @@ export async function bulletinsToReread(): Promise<MarketBulletin[]> {
 export const REREAD_BATCH = 6;
 
 /**
+ * Combien de séances le ROBOT reprend par tour, lui qui n'est pas pressé.
+ *
+ * Six est le plafond d'un bouton de page, borné par le délai d'une action.
+ * Le robot de lecture dispose de trois cents secondes, et un bulletin
+ * demande environ quatre secondes : soixante en laissent soixante de marge,
+ * ce qui couvre un PDF lourd et une BVMAC lente sans se faire couper au
+ * milieu d'une séance.
+ */
+export const ARRIERE_PAR_TOUR = 60;
+
+/**
  * L'ordre dans lequel on reprend les séances : la moins récemment relue
  * d'abord.
  *
@@ -56,6 +68,59 @@ export const REREAD_BATCH = 6;
  * un lecteur corrigé mérite un nouvel essai sur tout le monde.
  */
 export const rereadOrder = (list: MarketBulletin[]): MarketBulletin[] => [...list].sort((a, b) => a.ingestedAt.localeCompare(b.ingestedAt) || a.sessionDate.localeCompare(b.sessionDate));
+
+/** Ce qu'une passe de relecture a changé, en chiffres et en dates. */
+export interface PasseDeRelecture {
+  /** Les séances effectivement reprises, dans l'ordre où elles l'ont été. */
+  pris: string[];
+  /** Celles qui ont gagné des cours d'action. */
+  gagne: number;
+  /** Celles qui sont repassées en « ok » et quittent donc l'arriéré. */
+  closes: number;
+  /** Celles que le lecteur n'a pas pu reprendre du tout. */
+  echecs: number;
+  /** Ce qui reste à reprendre après la passe. */
+  reste: number;
+}
+
+/**
+ * UNE PASSE DE RELECTURE, ÉCRITE À UN SEUL ENDROIT.
+ *
+ * Deux appelants : le bouton de la page Santé, qui en prend six dans le temps
+ * d'une action de formulaire, et le robot de lecture, qui en prend soixante
+ * dans ses trois cents secondes. La même boucle écrite deux fois aurait fini
+ * par se répondre différemment, et un écart entre deux chemins vers le même
+ * résultat ne se voit jamais avant qu'il ne coûte.
+ *
+ * « seules » sert les boutons d'une ligne : on reprend ces séances-là, qu'elles
+ * soient en tête de file ou non. Sans elle, ce sont les moins récemment
+ * reprises, parce que trier par date de séance ramenait éternellement les
+ * mêmes six et n'atteignait jamais la fin de la liste.
+ */
+export async function relireArriere(by: MarketBulletin["ingestedBy"], n: number, seules?: string[]): Promise<PasseDeRelecture> {
+  const enAttente = await bulletinsToReread();
+  const todo = seules?.length ? enAttente.filter((b) => seules.includes(b.sessionDate)) : rereadOrder(enAttente).slice(0, Math.max(0, n));
+
+  const out: PasseDeRelecture = { pris: [], gagne: 0, closes: 0, echecs: 0, reste: Math.max(0, enAttente.length - todo.length) };
+  for (const b of todo) {
+    /* « upload: » désigne un PDF déposé à la main : il n'a pas d'adresse à
+       reprendre, et sans ce garde le lecteur irait chercher celle du jour. */
+    const sourceUrl = b.sourceUrl && !b.sourceUrl.startsWith("upload:") ? b.sourceUrl : undefined;
+    out.pris.push(b.sessionDate);
+    try {
+      const res = await ingestBoc({ sessionDate: b.sessionDate, sourceUrl, by });
+      if (!res.found || !res.bulletin) {
+        out.echecs += 1;
+        continue;
+      }
+      if ((res.bulletin.counts?.equities ?? 0) > (b.counts?.equities ?? 0)) out.gagne += 1;
+      if (res.bulletin.status === "ok") out.closes += 1;
+    } catch {
+      out.echecs += 1;
+    }
+  }
+  return out;
+}
 
 /**
  * Les écarts entre les lignes cotées publiées et le bulletin, sur la

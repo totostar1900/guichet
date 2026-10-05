@@ -287,6 +287,9 @@ export const EN_TEMPLATES: Record<string, string> = {
   "est encore renseigné ({n} adresse). Chaque adresse devient responsable à sa première connexion ; une fois l'équipe en place, videz la variable sur Vercel.": "is still set ({n} address). Each address becomes a manager at first sign-in; once the team is in place, clear the variable on Vercel.",
   "est encore renseigné ({n} adresses). Chaque adresse devient responsable à sa première connexion ; une fois l'équipe en place, videz la variable sur Vercel.": "is still set ({n} addresses). Each address becomes a manager at first sign-in; once the team is in place, clear the variable on Vercel.",
   "partiel": "partial",
+  // « echec » voyage par t(b.status) : invisible au scanner des clefs, et il
+  // s affichait donc brut en anglais dans la colonne Etat des bulletins.
+  "echec": "failed",
   "ok": "ok",
 
   "Les {n} OPCVM agréés par la COSUMAF dont la valeur liquidative est publiée au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.": "The {n} COSUMAF-licensed funds whose net asset value is published in the Official Bulletin, with their manager and custodian.",
