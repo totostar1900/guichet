@@ -2,6 +2,7 @@ import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { REF_AUCTIONS, REF_OFFERS } from "@/data/reference";
 import { SEED_NEWS } from "@/data/news-seed";
+import { coteDEssai } from "@/data/cote-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
@@ -192,8 +193,10 @@ function store(): Store {
       clientFiles: seedClientFiles(),
       standing: [],
       avisGarde: [],
-      bulletins: [],
-      quotes: [],
+      ...(() => {
+        const c = coteDEssai();
+        return { bulletins: c.bulletins, quotes: c.quotes };
+      })(),
       fundNavs: [],
       issuerDocs: [],
       auctionResults: structuredClone(REF_AUCTIONS),
@@ -216,8 +219,14 @@ function store(): Store {
   if (!g.__guichetStore.audit) g.__guichetStore.audit = [];
   if (!g.__guichetStore.approvals) g.__guichetStore.approvals = [];
   if (!g.__guichetStore.push) g.__guichetStore.push = [];
-  if (!g.__guichetStore.bulletins) g.__guichetStore.bulletins = [];
-  if (!g.__guichetStore.quotes) g.__guichetStore.quotes = [];
+  /* Le rechargement à chaud peut garder un magasin d'une forme plus ancienne.
+     La condition porte sur la CLEF ABSENTE, et non sur un tableau vide : une
+     cote vidée exprès, comme le fait le test d'ingestion, doit le rester. */
+  if (!g.__guichetStore.bulletins || !g.__guichetStore.quotes) {
+    const c = coteDEssai();
+    g.__guichetStore.bulletins = c.bulletins;
+    g.__guichetStore.quotes = c.quotes;
+  }
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
@@ -238,6 +247,21 @@ function cleIci(tous: InboundMessage[], m: Omit<InboundMessage, "id">): string |
     { channel: m.channel, from: m.from, subject: m.subject, receivedAt: m.receivedAt, inReplyTo: m.inReplyTo },
     { cleDuParent: parent?.convKey, dernier: dernier ? { receivedAt: dernier.receivedAt, convKey: dernier.convKey } : undefined },
   ).cle;
+}
+
+/**
+ * Vide la cote du jeu de démonstration.
+ *
+ * L'ingestion d'un bulletin se teste sur un dépôt qui n'en a pas encore : avec
+ * la cote d'essai en place, le lecteur compare le cours du PDF à un cours
+ * inventé et signale un écart, ce qui est exactement son travail. Nommé ici
+ * plutôt que bricolé depuis un test, parce qu'un test qui va fouiller dans
+ * « globalThis » dépend d'une forme que personne ne lui a promise.
+ */
+export function viderLaCote(): void {
+  const s = store();
+  s.bulletins = [];
+  s.quotes = [];
 }
 
 export const memoryRepository: Repository = {
