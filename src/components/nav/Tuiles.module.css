@@ -21,14 +21,17 @@
 }
 /* Le cadre porte l'icône ET l'état « où l'on est » : le trait, lui, ne change
    jamais de couleur, sinon la silhouette se lit deux fois. */
-/* Moitie plus grand qu au premier jet : a 54 px, la silhouette se devinait
-   plus qu elle ne se lisait, et le nom dessous tenait de la legende. Puis un
-   dixieme de moins le 5 octobre 2026, une fois les trois mots partis : sans
-   sous-titre, la tuile prenait plus de place pour dire moins. */
+/* LE CADRE D'AGIR, 50 PX, le 5 octobre 2026.
+   Il a valu 54 au premier jet, puis 80, puis 72 : à chaque fois une question
+   de lisibilité de la silhouette, jamais de famille. Or une ligne de service
+   porte un cadre de 50 et un dessin de 26, à deux touchers d'ici : deux
+   échelles dans la même application se voient, et celle qui reste est celle
+   qui tient dans une rangée comme sous un nom. Le dessin suit la proportion
+   d'Agir, 26 dans 50, et non les 31 d'avant, taillés pour le 72. */
 .ico {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 50px;
+  height: 50px;
   margin: 0 auto var(--s-3);
   display: flex;
   align-items: center;
@@ -37,8 +40,8 @@
   background: var(--surface-2);
 }
 .ico svg {
-  width: 31px;
-  height: 31px;
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: var(--gold);
   stroke-width: 1.6;
