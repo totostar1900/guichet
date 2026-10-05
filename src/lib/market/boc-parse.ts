@@ -275,7 +275,12 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
     const issuerLines: string[] = [];
     for (let j = i - 1; j >= 0 && j >= i - 3; j--) {
       const l = section[j];
-      if (!l || /^[\d\s,.%-]+$/.test(l) || ISIN_LOOSE.test(l) || /^(Haut|Bas|Variation)\b/.test(l) || /\d{2}\/\d{2}\/\d{4}/.test(l)) break;
+      /* Un nom d'émetteur ne commence jamais par un chiffre. La ligne dense de
+         la valeur précédente, elle, commence par son cours et porte son statut
+         en lettres (« 2230000NC26 500… ») : faite de chiffres ET de lettres,
+         elle passait le filtre et entrait dans le nom. 525 cotations en
+         portaient la trace. */
+      if (!l || /^\d/.test(l) || /^[\d\s,.%-]+$/.test(l) || ISIN_LOOSE.test(l) || /^(Haut|Bas|Variation)\b/.test(l) || /\d{2}\/\d{2}\/\d{4}/.test(l)) break;
       issuerLines.unshift(l);
     }
     const issuer = [...issuerLines, loose[1]].join(" ").replace(/\s+/g, " ").trim();

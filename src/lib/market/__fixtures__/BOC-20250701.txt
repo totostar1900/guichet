@@ -1,0 +1,2606 @@
+
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+1 
+ 
+ 
+ 
+ 
+BOURSE DES VALEURS MOBILIERES DE L’AFRIQUE CENTRALE 
+ BULLETIN OFFICIEL DE LA COTE 
+BULLETIN NUMERO 2290
+ 
+BVMAC ALL SHARE INDEX 
+943,89
+          
+ 
+0,00%
+BVMAC-AS
+Variation jour
+ 
+902
+922
+942
+962
+982
+1002
+Evolution de l'indice
+Total
+ 
+BVMAC-AS 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+2 
+SYNTHESE DU MARCHE 
+INSTRUMENTSVolume transigéValeur transigéeNombre de transactionsNombre d'émetteurs
+ACTIONS441 807 00026
+OBLIGATIONS0007
+TOTAL441 807 000213
+ 
+ 
+PHYSIONOMIE DU MARCHE   
+MARCHE DES ACTIONS 
+CoursDate
+Volume 
+demandé
+Volume 
+offert
+Volume 
+transigé
+Valeur transigée
+Nbr 
+de 
+trans
+StatutOuver.Clôt.Seuil HautSeuil BasVariation     %HautBas
+SOCIETE DES EAUX MINERALES 
+DU CAMEROUN
+CM 0000010009SEM CSEM C
+50 000
+30/06/2025
+400000NC50 00050 00055 00045 0000,00%50 00050 00045 0006,38
+SOCIETE AFRICAINE FORESTIERE 
+ET AGRICOLE DU CAMEROUN
+CM 0000010017SA FSA FA CA M
+26 500
+30/06/2025
+2230000NC26 50026 50029 15023 8500,00%26 50026 80025 0000,00
+SOCIETE CAMEROUNAISE DE 
+PALMERAIE
+CM 0000010025SOCA PSOCA P A LM
+45 000
+30/06/2025
+530000NC45 00045 00049 500       40 500       0,00%45 00046 00043 000-9,09
+LA REGIONALE EPARGNE CREDIT
+CM 0000010041REG	LA  REGIONA LE
+42 500
+30/06/2025
+4195411 742 5001PEq42 50042 50046 75038 2500,00%42 50043 00042 0000,00
+BANCO NACIONAL DE GUINEA 
+ECUATORIAL
+GQ0000010050B A NGEB A NGE
+207 300
+30/06/2025
+100000NC207 300207 300228 030186 5700,00%207 300207 300207 3000,02
+SOCIETE COMMERCIALE 
+GABONAISE DE REASSURANCE
+GA 0000010066SCGRESCG-Re
+21 500
+30/06/2025
+3632364 5001PEq21 50021 50023 65019 3500,00%21 50021 50021 0002,38
+441 807 0002Total
+Variation 
+de l'année 
+précédente 
+Code ISINDésignation de l'émetteurMnemo
+Nom court 
+de 
+l'émetteur
+Cours du jourCours précédentSéance de cotationCours de 
+référence de 
+la séance 
+suivante
+Cours depuis janvier
+ 
+ 
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+3 
+MARCHE DES OBLIGATIONS 
+Date
+Cours 
+en    %
+Cours en 
+FCFA
+Volume 
+demand
+é
+Volume 
+offert
+Volume 
+transigé
+Valeur 
+transigée
+Nbr 
+de 
+tran
+s
+Statut
+Ouver
+Clôt
+Seuil 
+Haut
+Seuil 
+Bas
+Variation
+ETAT DU CONGO
+EOCG 6.25% NET 2021-2026
+CG0000020238
+ECG02
+30/06/2025
+95,00
+3 166,67
+3 333,333
+59,360
+0
+0
+0
+0
+0
+NC
+95,00
+95,00
+100,70
+89,30
+0,00%
+3166,67
+ETAT DU GABON
+EOG 6.00% NET 2021-2026
+GA 0000020248
+EGA 06
+30/06/2025
+99,50
+2 487,50
+2 500,000
+12,330
+0
+0
+0
+0
+0
+NC
+99,50
+99,50
+105,47
+93,53
+0,00%
+2487,50
+ETAT DU CAMEROUN
+ECM R 6.25% NET 2022-2029
+CM 0000020305
+ECM R6
+30/06/2025
+98,00
+7 840,00
+8 000,000
+52,050
+0
+0
+0
+0
+0
+NC
+98,00
+98,00
+103,88
+92,12
+0,00%
+7840,00
+ETAT DU GABON
+EOG 6.25% NET 2022-2028
+GA 0000020313
+EGA 07
+30/06/2025
+100,00
+8 000,00
+8 000,000
+335,620
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+8000,00
+ETAT DU TCHAD
+EOTD 6.5% NET 2022-2027
+TD0000020331
+ETD01
+30/06/2025
+100,00
+7 500,00
+7 500,000
+248,420
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+7500,00
+ETAT DU CAMEROUN
+ECM R 5.8% NET 2023-2026
+CM 0000020354
+ECM R7
+30/06/2025
+100,00
+10 000,00
+10 000,000
+17,480
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU CAMEROUN
+ECM R 6.00% NET 2023-2027
+CM 0000020362
+ECM R8
+30/06/2025
+100,00
+10 000,00
+10 000,000
+18,080
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU CAMEROUN
+ECM R 6.75% NET 2023-2029
+CM 0000020370
+ECM R9
+30/06/2025
+100,00
+10 000,00
+10 000,000
+20,340
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU CAMEROUN
+ECM R 7.25% NET 2023-2031
+CM 0000020388
+ECM 10
+30/06/2025
+99,00
+9 900,00
+10 000,000
+21,850
+0
+0
+0
+0
+0
+NC
+99,00
+99,00
+104,94
+93,06
+0,00%
+9900,00
+ETAT DU GABON
+EOG 6.25% NET 2023-2028
+GA 0000020396
+EGA 08
+30/06/2025
+100,00
+10 000,00
+10 000,000
+606,160
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG 6% NET 2024-2027
+GA 0000020487
+EGA 09
+30/06/2025
+100,00
+10 000,00
+10 000,000
+159,450
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG 6,5% NET 2024-2029
+GA 0000020495
+EGA 10
+30/06/2025
+100,00
+10 000,00
+10 000,000
+172,740
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG 7,5% NET 2024-2031
+GA 0000020503
+EGA 11
+30/06/2025
+100,00
+10 000,00
+10 000,000
+199,320
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG M T 6,60% NET 2024-2027
+GA 0000020511
+EGA 12
+30/06/2025
+100,00
+10 000,00
+10 000,000
+5,420
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG M T 6,75% NET 2024-2028
+GA 0000020529
+EGA 13
+30/06/2025
+100,00
+10 000,00
+10 000,000
+5,550
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG M T 7% NET 2024-2030
+GA 0000020537
+EGA 14
+30/06/2025
+100,00
+10 000,00
+10 000,000
+5,750
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG M T 6,6% NET 2024-2027-II
+GA 0000020552
+EGA 15
+30/06/2025
+100,00
+10 000,00
+10 000,000
+336,330
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG M T 6,75% NET 2024-2028-II
+GA 0000020560
+EGA 16
+30/06/2025
+100,00
+10 000,00
+10 000,000
+343,970
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+ETAT DU GABON
+EOG M T 7,00% NET 2024-2030-II
+GA 0000020578
+EGA 17
+30/06/2025
+100,00
+10 000,00
+10 000,000
+356,710
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+0
+0
+0
+OBLIGATIONS DES ETATS
+Cours du jour
+Cours de 
+référence 
+de la 
+séance 
+suivante 
+en FCFA
+Désignation de 
+l'émetteur
+Désignation du titre
+Code ISIN
+Mnemo
+Cours précédent
+Séance de cotation
+Coupon 
+couru (j+3) 
+au 
+04/07/2025
+Nominal 
+(j+3) au 
+04/07/2025
+Total
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+4 
+Date
+Cours en    
+%
+Cours en 
+FCFA
+Volume 
+demandé
+Volume 
+offert
+Volume 
+transigé
+Valeur transigée
+Nbr 
+trans
+Statut
+Ouver
+Clôt
+Seuil 
+Haut
+Seuil 
+Bas
+Variation
+BDEAC
+BDEAC 5.45% NET 2020 - 2027
+CG0000020220
+EBD01
+30/06/2025
+100,00
+6000
+6000
+165,74
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+6 000,00
+BDEAC
+BDEAC 5.6% NET 2021-2028
+CG0000020261
+EBD02
+30/06/2025
+98,00
+7840
+8000
+255,3
+0
+0
+0
+0
+0
+NC
+98,00
+98,00
+103,88
+92,12
+0,00%
+7 840,00
+BDEAC
+BDEAC 6% NET 2022-2029
+CG0000020329
+EBD03
+30/06/2025
+99,99
+9999
+10000
+305,75
+0
+0
+0
+0
+0
+NC
+99,99
+99,99
+105,99
+93,99
+0,00%
+9 999,00
+BDEAC
+BDEAC 6,20% NET 2024-2031
+CG0000020469
+EBD04
+30/06/2025
+100,00
+10000
+10000
+176,66
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10 000,00
+BDEAC
+BDEAC 5,95% NET 2024-2029
+CG0000020436
+EBD05
+30/06/2025
+100,00
+10000
+10000
+169,53
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10 000,00
+BDEAC
+BDEAC 4,70% NET 2024-2027
+CG0000020444
+EBD06
+30/06/2025
+100,00
+10000
+10000
+133,92
+0
+300000
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10 000,00
+0
+0
+0
+ OBLIGATIONS REGIONALES
+Cours du jour
+Cours de 
+référence de 
+la séance 
+suivante en 
+FCFA
+Nominal (j+3) 
+au 
+04/07/2025
+Total
+Désignation 
+de 
+l'émetteur
+Désignation du titre
+Code ISIN
+Mnemo
+Cours précédent
+Coupon 
+couru (j+3) au 
+04/07/2025
+Séance de cotation
+ 
+ 
+OBLIGATIONS PRIVEES
+Date
+Cours 
+en    %
+Cours en 
+FCFA
+Volume 
+demandé
+Volume 
+offert
+Volume 
+transigé
+Valeur 
+transigée
+Nbr 
+trans
+Statut
+Ouver.
+Clôt.
+Seuil 
+Haut
+Seuil 
+Bas
+Variation
+ALIOS FINANCE
+ALIOS 5.40% BRUT 2021-2025
+CM0000020255
+AFC02
+30/06/2025
+100,00
+714,286
+714,286
+5,81
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+714,29
+ALIOS FINANCE
+ALIOS 6.5% BRUT 2023-2028
+CM0000020412
+AFC03
+30/06/2025
+100,00
+8750
+8750,000
+215,03
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+8750,00
+ALIOS FINANCE
+ALIOS 6.00% BRUT 2023-2026
+CM0000020404
+AFC04
+30/06/2025
+100,00
+7500
+7500,000
+170,14
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+7500,00
+ACEP CAMEROUN
+ACEP 7% BRUT 2024-2027
+CM0000020545
+ACEP1
+30/06/2025
+100,00
+10000
+10000,000
+7,67
+0
+0
+0
+0
+0
+NC
+100,00
+100,00
+106,00
+94,00
+0,00%
+10000,00
+0
+0
+0
+Désignation de 
+l'émetteur
+Désignation du titre
+Code ISIN
+Mnemo
+Cours précédent
+Cours de 
+référence 
+de la séance 
+suivante en 
+FCFA
+Coupon 
+couru (j+3) au 
+04/07/2025
+Séance de cotation
+Cours du jour
+Nominal 
+(j+3) au 
+04/07/2025
+Total
+ 
+ 
+ 
+ 
+ 
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+5 
+CAPITALISATION BOURSIERE ET ENCOURS DES TITRES DE DETTES 
+ 
+MARCHE DES ACTIONS : 6 EMETTEURS INSCRITS A LA COTE 
+Flottant coté
+Global
+Montant
+Année
+Date 
+Flottante cotée
+Globale
+SEMC
+CM0000010009
+SEMC
+SEMC
+50 000,00
+38 367
+192 473
+540,00
+2023
+27/06/2024
+0,03
+-
+-
+1 918 350 000
+9 623 650 000
+SAFACAM
+CM0000010017
+SAF
+SAFACAM
+26 500,00
+248 400
+1 242 000
+436,10
+2023
+22/07/2024
+0,01
+-
+-
+6 582 600 000
+32 913 000 000
+SOCAPALM
+CM0000010025
+SOCAP
+SOCAPALM
+45 000,00
+787 080
+4 575 789
+2 600,00
+2023
+01/08/2024
+0,00
+-
+-
+35 418 600 000
+205 910 505 000
+	LA REGIONALE
+CM0000010041
+REG
+	LA REGIONALE
+42 500,00
+72 089
+1 012 536
+894,00
+2022
+03/11/2023
+0,01
+-
+-
+3 063 782 500
+43 032 780 000
+BANGE
+GQ0000010050
+BANGE
+BANGE
+207 300,00
+50 000
+558 960
+8 397,40
+2022
+29/07/2023
+0,00
+-
+-
+10 365 000 000
+115 872 408 000
+SCG-Re
+GA0000010066
+SCGRE
+SCG-Re
+21 500,00
+300 000
+1 500 000
+728,00
+2023
+20/09/2024
+0,01
+-
+-
+6 450 000 000
+32 250 000 000
+Total
+63 798 332 500
+439 602 343 000
+Dernier dividende payé
+Liquidité des 
+titres ( sur 3 mois)
+Bénéfice net 
+par action
+PER
+Capitalisation boursière
+Volume des titres
+Désignation de 
+l'émetteur
+Code ISIN
+Mnemo
+Nom court de 
+l'émetteur
+Cours de 
+clôture
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+6 
+MARCHE DES OBLIGATIONS : 29 LIGNES OBLIGATAIRES 
+OBLIGATIONS DES ETATS
+Date de la 
+précédente 
+échéance
+Date 
+théorique de 
+l'échéance 
+suivante
+ETAT DU CONGO
+EOCG 6.25% NET 2021-2026
+CG0000020238
+ECG02
+6,25
+30/07/2021
+113 230 000 000
+11 323 000
+3 333,33
+95,00
+5
+CONSTANT
+AN
+22/03/2025
+22/03/2026
+35 856 204 410
+       
+ 
+6,2
+0
+ETAT DU GABON
+EOG 6.00% NET 2021-2026
+GA0000020248
+EGA06
+6
+30/07/2021
+188 827 750 000
+18 882 775
+2 500
+99,50
+5
+CONSTANT
+AN
+04/06/2025
+04/06/2026
+46 970 902 813
+       
+ 
+6,0
+0
+ETAT DU CAMEROUN
+ECMR 6.25% NET 2022-2029
+CM0000020305
+ECMR6
+6,25
+28/09/2022
+235 000 000 000
+23 500 000
+8 000
+98,00
+7
+CONSTANT
+AN
+27/05/2025
+27/05/2026
+184 240 000 000
+    
+ 
+6,2
+0
+ETAT DU GABON
+EOG 6.25% NET 2022-2028
+GA0000020313
+EGA07
+6,25
+26/01/2023
+175 000 000 000
+17 500 000
+8 000
+100,00
+6
+CONSTANT
+AN
+01/11/2024
+01/11/2025
+140 000 000 000
+    
+ 
+6,3
+0
+ETAT DU TCHAD
+EOTD 6.5% NET 2022-2027
+TD0000020331
+ETD01
+6,5
+24/03/2023
+100 000 000 000
+10 000 000
+7 500
+100,00
+5
+CONSTANT
+AN
+30/12/2024
+30/12/2025
+75 000 000 000
+       
+ 
+6,5
+0
+ETAT DU CAMEROUN
+ECMR 5.8% NET 2023-2026
+CM0000020354
+ECMR7
+5,8
+23/11/2023
+78 676 830 000
+7 867 683
+10 000
+100,00
+3
+IN FINE
+AN
+23/06/2025
+23/06/2026
+78 676 830 000
+       
+ 
+5,8
+2
+ETAT DU CAMEROUN
+ECMR 6.00% NET 2023-2027
+CM0000020362
+ECMR8
+6
+23/11/2023
+61 514 680 000
+6 151 468
+10 000
+100,00
+4
+CONSTANT
+AN
+23/06/2025
+23/06/2026
+61 514 680 000
+       
+ 
+6,0
+0
+ETAT DU CAMEROUN
+ECMR 6.75% NET 2023-2029
+CM0000020370
+ECMR9
+6,75
+23/11/2023
+25 052 520 000
+2 505 252
+10 000
+100,00
+6
+CONSTANT
+AN
+23/06/2025
+23/06/2026
+25 052 520 000
+       
+ 
+6,8
+0
+ETAT DU CAMEROUN
+ECMR 7.25% NET 2023-2031
+CM0000020388
+ECM10
+7,25
+23/11/2023
+11 032 250 000
+1 103 225
+10 000
+99,00
+8
+CONSTANT
+AN
+23/06/2025
+23/06/2026
+10 921 927 500
+       
+ 
+7,2
+0
+ETAT DU GABON
+EOG 6.25% NET 2023-2028
+GA0000020396
+EGA08
+6,25
+30/12/2024
+154 605 500 000
+15 460 550
+10 000
+100,00
+5
+CONSTANT
+AN
+15/07/2024
+15/07/2025
+154 605 500 000
+    
+ 
+6,3
+0
+ETAT DU GABON
+EOG 6% NET 2024-2027
+GA0000020487
+EGA09
+6
+30/12/2024
+109 889 950 000
+10 988 995
+10 000
+100,00
+3
+IN FINE
+AN
+29/03/2025
+29/03/2026
+109 889 950 000
+    
+ 
+6,0
+0
+ETAT DU GABON
+EOG 6,5% NET 2024-2029
+GA0000020495
+EGA10
+6,5
+30/12/2024
+8 272 950 000
+827 295
+10 000
+100,00
+5
+CONSTANT
+AN
+29/03/2025
+29/03/2026
+8 272 950 000
+          
+ 
+6,5
+0
+ETAT DU GABON
+EOG 7,5% NET 2024-2031
+GA0000020503
+EGA11
+7,5
+30/12/2024
+50 945 040 000
+5 094 504
+10 000
+100,00
+7
+CONSTANT
+AN
+29/03/2025
+29/03/2026
+50 945 040 000
+       
+ 
+7,5
+0
+ETAT DU GABON
+EOG M T 6,60% NET 2024-2027
+GA0000020511
+EGA12
+6,6
+30/12/2024
+46 629 860 000
+4 662 986
+10 000
+100,00
+3
+CONSTANT
+AN
+01/07/2025
+01/07/2026
+46 629 860 000
+       
+ 
+6,6
+0
+ETAT DU GABON
+EOG M T 6,75% NET 2024-2028
+GA0000020529
+EGA13
+6,75
+30/12/2024
+120 300 000
+12 030
+10 000
+100,00
+4
+CONSTANT
+AN
+01/07/2025
+01/07/2026
+120 300 000
+              
+ 
+6,8
+0
+ETAT DU GABON
+EOG MT 7% NET 2024-2030
+GA0000020537
+EGA14
+7
+30/12/2024
+1 691 350 000
+169 135
+10 000
+100,00
+6
+CONSTANT
+AN
+01/07/2025
+01/07/2026
+1 691 350 000
+          
+ 
+7,0
+0
+ETAT DU GABON
+EOG M T 6 ,6 % NET 2 0 2 4 -2 0 2 7-II
+GA0000020552
+EGA15
+6,6
+30/05/2025
+66 249 570 000
+6 624 957
+10 000
+100,00
+3
+CONSTANT
+AN
+30/12/2024
+30/12/2025
+66 249 570 000
+       
+ 
+6,6
+0
+ETAT DU GABON
+EOG M T 6 ,75% NET 2 0 2 4 -2 0 2 8 -II
+GA0000020560
+EGA16
+6,75
+30/05/2025
+356 230 000
+35 623
+10 000
+100,00
+4
+CONSTANT
+AN
+30/12/2024
+30/12/2025
+356 230 000
+              
+ 
+6,8
+0
+ETAT DU GABON
+EOG M T 7,0 0 % NET 2 0 2 4 -2 0 3 0 -II
+GA0000020578
+EGA17
+7
+30/05/2025
+13 459 960 000
+1 345 996
+10 000
+100,00
+6
+CONSTANT
+AN
+30/12/2024
+30/12/2025
+13 459 960 000
+       
+ 
+7,0
+0
+Total
+1 110 453 774 723 
+Date 1ère 
+cotation
+Désignation de 
+l'émetteur
+Désignation du titre
+Code ISIN
+Mnemo
+Taux 
+facial
+Encours calculé à ce 
+jour
+Rend 
+net
+Taux de 
+rotation 
+(Liquidité)
+Nominal
+Montant levé
+Nombre de 
+titres cotés
+Mat
+Amortiss
+Périod
+Échéance
+Cours 
+en %
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+7 
+Date de la 
+précédente 
+échéance
+Date 
+théorique de 
+l'échéance 
+suivante
+BDEAC
+BDEAC 5.45% NET 2020 - 2027
+CG0000020220
+EBD01
+5,45
+03/02/2021
+106 791 920 000
+ 
+ 
+10 679 192 
+6 000
+    
+ 
+100,00
+7
+CONSTANT
+AN
+31/12/2024
+31/12/2025
+64 075 152 000
+         
+ 
+5,45
+0
+BDEAC
+BDEAC 5.6% NET 2021-2028
+CG0000020261
+EBD02
+5,6
+11/03/2022
+114 873 410 000
+ 
+ 
+11 487 341 
+8 000
+    
+ 
+98,00
+7
+CONSTANT
+AN
+08/12/2024
+08/12/2025
+90 060 753 440
+         
+ 
+5,58
+0
+BDEAC
+BDEAC 6% NET 2022-2029
+CG0000020329
+EBD03
+6
+15/02/2023
+110 856 330 000
+ 
+ 
+11 085 633 
+10 000
+ 
+ 
+99,99
+7
+CONSTANT
+AN
+30/12/2024
+30/12/2025
+110 845 244 367
+      
+ 
+6
+1
+BDEAC
+BDEAC 6,20% NET 2024-2031
+CG0000020469
+EBD04
+6,2
+07/08/2024
+23 615 870 000
+    
+ 
+2 361 587
+   
+ 
+10 000
+ 
+ 
+100
+7
+CONSTANT
+AN
+22/03/2025
+22/03/2026
+23 615 870 000
+         
+ 
+6,2
+0
+BDEAC
+BDEAC 5,95% NET 2024-2029
+CG0000020436
+EBD05
+5,95
+07/08/2024
+15 386 850 000
+    
+ 
+1 538 685
+   
+ 
+10 000
+ 
+ 
+100
+5
+CONSTANT
+AN
+22/03/2025
+22/03/2026
+15 386 850 000
+         
+ 
+5,95
+0
+BDEAC
+BDEAC 4,70% NET 2024-2027
+CG0000020444
+EBD06
+4,7
+07/08/2024
+15 766 990 000
+    
+ 
+1 576 699
+   
+ 
+10 000
+ 
+ 
+100
+3
+IN FINE
+AN
+22/03/2025
+22/03/2026
+15 766 990 000
+         
+ 
+4,7
+0
+Total :
+319 750 859 807
+  
+ 
+Mat
+Nominal
+OBLIGATIONS REGIONALES
+Encours calculé à ce 
+jour
+Rend 
+net
+Taux de 
+rotation 
+(Liquidité)
+Échéance
+Désignation 
+de 
+l'émetteur
+Désignation du titre
+Code ISIN
+Mnemo
+Taux 
+facial
+Date 1ère 
+cotation
+Montant levé
+Nombre de 
+titres cotés
+Cours 
+en %
+Amortiss
+Périod
+ 
+ 
+Date de la 
+précédente 
+échéance
+Date 
+théorique de 
+l'échéance 
+suivante
+ALIOS FINANCEALIOS 5.40% BRUT 2021-2025CM0000020255AFC025,408/12/20218 542 500 000 854 250 714,286100,004CONSTANTTRIM10/05/202510/08/2025610 182 233               5,400
+ALIOS FINANCEALIOS 6.5% BRUT 2023-2028CM0000020412AFC036,505/02/20243 473 030 000 347 303 2500100,005CONSTANTSEM16/02/202516/08/20253 038 901 250           6,500
+ALIOS FINANCEALIOS 6.00% BRUT 2023-2026CM0000020404AFC04605/02/20244 607 850 000 460 785 7500100,003CONSTANTSEM16/02/202516/08/20253 455 887 500           6,004
+ACEP CAMEROUNACEP 7% BRUT 2024-2027CM0000020545ACEP1708/04/20255 000 000 000 500 000 10000100,003CONSTANTSEM30/06/202531/12/20255 000 000 000           7,000
+Total:12 104 970 983
+OBLIGATIONS PRIVEES
+Encours calculé à ce 
+jour
+Rend 
+brut
+Taux de 
+rotation 
+(Liquidité)
+Échéance
+Désignation de 
+l'émetteur
+Désignation du titreCode ISINMnemo
+Taux 
+facial
+Date 1ère 
+cotation
+Montant levé
+Nombre 
+de titres 
+cotés
+MatAmortiss
+Cours 
+en %
+PériodNominal
+ 
+Total des encours
+1 442 309 605 513
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+8 
+ 
+La Bourse des Valeurs Mobilières de l’Afrique Centrale a clôturé sa séance de cotation du 01 juillet 2025. 
+La cotation se tient tous les jours ouvrés de la semaine de lundi à vendredi pour l’ensemble des valeurs inscrites à la cote de la BVMAC. 
+ 
+FAITS MARQUANTS DU COMPARTIMENT « ACTIONS »  
+En termes de physionomie de marché, plusieurs transactions ont été enregistrées sur ce compartiment : 
+• 41 actions LA REGIONALE ont été échangées au prix unitaire de FCFA 42 500 (avec un cours stable par rapport à son niveau de clôture de la veille), pour un montant global 
+de FCFA 1 742 500 (un million sept cent quarante-deux mille cinq cents) ; 
+• 3 actions SCG-Ré ont été échangées au prix unitaire de FCFA 21 500 (avec un cours stable par rapport à son niveau de clôture de la veille), pour un montant global de 
+FCFA 64 500 (soixante-quatre mille cinq cents) ; 
+Les prix des autres instruments financiers cotés restent inchangés par rapport à leur situation de clôture de la veille (30/06/2025). 
+ 
+La capitalisation boursière se maintient à 439 602 343 000 (quatre cent trente-neuf milliards six cent deux millions trois cent quarante-trois mille) FCFA, de même le flottant 
+reste stable à 63 798 332 500 (soixante-trois milliards sept cent quatre-vingt-dix-huit millions trois cent trente-deux mille cinq cents) FCFA. 
+Toutefois, plusieurs propositions d’achat et de vente de titres demeurent en carnet dans les livres des sociétés de bourse :  
+• Titres demandés à l’achat : 40 actions SEMC, 223 actions SAFACAM, 53 actions SOCAPALM et 10 actions BANGE ; 
+• Titres offerts à la vente : 54 actions LA REGIONALE et 629 actions SCG-Ré. 
+ 
+L’Indice « BVMAC All Share Index » reste stable à 943,89 points par rapport à son niveau de la veille.  
+FAITS MARQUANTS DU COMPARTIMENT « OBLIGATIONS »  
+Sur le compartiment "C" des Obligations où les valeurs sont cotées pied de coupon, la séance de ce jour n’enregistre aucune transaction. Les prix des actifs restent inchangés par 
+rapport à leur situation de clôture de la veille (30/06/2025). 
+ 
+L’encours des dettes cotées reste stable à 1 442 309 605 513 (mille quatre cent quarante-deux milliards trois cent neuf millions six cent cinq mille cinq cent treize) FCFA, sauf 
+erreur ou omission de notre part ; 
+ 
+Toutefois, l’offre de vente ci-après reste en carnet dans les livres des sociétés de bourse : 
+ 
+ 
+Désignation du titre Mnemo 
+Coupon couru (j+3) au 
+04/07/2025 
+Volume demandé Volume offert Cours du jour 
+BDEAC « BDEAC 4,70% NET 2024-2027 » EBD06 133,92 0 300 000 100% 
+COMMENTAIRES DU BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01 JUILLET 2025 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+9 
+AVIS A L’ATTENTION DES PARTIES PRENANTES DU MARCHE FINANCIER REGIONAL CEMAC 
+ 
+AVIS N°037/2025/BVMAC/DG 
+-------------------------------- 
+PAIEMENT DES INTERETS 
+« EOG MULTI-TRANCHES 2024-2030 » 
+Codes ISIN GA000002051-1, GA000002052-9 et GA000002053-7 
+--------------------------------- 
+ 
+La Bourse des Valeurs Mobilières de l’Afrique Centrale porte à la connaissance du public et des intervenants du marché, que l’Etat du Gabon, émetteur de l’Emprunt 
+Obligataire « EOG MULTI-TRANCHES 2024-2030 » Codes ISIN GA000002051-1, GA000002052-9 et GA000002053-7, procédera le 1
+er
+ juillet 2025, au paiement de la 1
+ère
+ 
+échéance des intérêts dudit Emprunt, pour un montant total de FCFA 3 204 085 510 (trois milliards deux cent quatre millions quatre-vingt-cinq mille cinq cent dix).  
+ 
+Le coupon net à percevoir par tranche d’obligation seront respectivement de F CFA 660 pour la tranche A, FCFA 675 pour la tranche B et FCFA 700 pour la tranche C. Les 
+opérations d’encaissement débuteront le 02 juillet 2025 auprès des guichets des Sociétés de Bourse. 
+ 
+Pour toute information complémentaire, veuillez contacter la Bourse des Valeurs Mobilières de l’Afrique Centrale au (237) 233 43 85 83 / 233 43 85 87 ou à l’adresse e-mail : 
+bvmac@bvmac.cm. 
+ 
+                                                                  Fait à Douala, le 24juin 2025. 
+ 
+Pour le Directeur Général et par ordre 
+ 
+ 
+ Directeur des Marchés                                                                                                                                                                                                                    Directeur Financier  
+ 
+ 
+ 
+ 
+ 
+ Taoufiq SEBTI                                                                                                                                                                                                                                       Jean NDZIE 
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+10 
+OPCVM : FONDS COMMUN DE PLACEMENT ET SOCIETE D'INVESTISSEMENT A 
+CAPITAL VARIABLE   
+Société de gestion Dépositaire OPCVM Catégorie 
+Valeur liquidative 
+Origine 
+Précédente Actuelle 
+Variation 
+Origine Préc. 
+Valeur Date Valeur Date Date % % 
+Quotidiennes 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+BGFIBANK 
+CAMEROUN 
+FCP AB AVENIR D 1 000 1 193,41 20/06/2025 1 193,99 27/06/2025 21/09/2023 19,40% 0,05% 
+EDC ASSET 
+MANAGEMENT CEMAC 
+ECOBANK CAMEROUN 
+FCP ECOBANK 
+MONETAIRE CEMAC 
+M 1 000 1 102,62 26/06/2025 1 102,79 30/06/2025 07/03/2020 10,28% 0,02% 
+Hebdomadaires 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+UBA BANK 
+CAMEROUN 
+FCP AB CASH M 10 000 12 029,03 20/06/2025 12 040,48 27/06/2025 19/08/2021 20,40% 0,10% 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+UBA BANK 
+CAMEROUN 
+FCP AB INVEST O 10 000 12 148,27 20/06/2025 12 158,84 27/06/2025 19/08/2021 21,59% 0,09% 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+ORABANK GABON FCP PERFORMANCE O 10 000 11 330,22 20/06/2025 11 339,55 27/06/2025 11/08/2022 13,40% 0,08% 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+BGFIBANK 
+CAMEROUN 
+FCP CAP OBLIGATIONS O 10000 11 777,20 20/06/2025 11 787,10 27/06/2025 25/03/2022 17,87% 0,08% 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+BGFIBANK 
+CAMEROUN 
+FCP AB DIVERSIFIE D 10000 10 849,00 20/06/2025 10 858,15 27/06/2025 18/09/2023 8,58% 0,08% 
+ASCA ASSET 
+MANAGEMENT 
+ASCA FCP ASCA LIQUIDITES M 10000 14 088,11 13/06/2025 14 098,63 20/06/2025 03/02/2017 40,99% 0,07% 
+ASCA ASSET 
+MANAGEMENT 
+ASCA FCP ASCA PATRIMOINE O 10000 15 226,45 13/06/2025 15 238,85 20/06/2025 03/02/2017 52,39% 0,08% 
+ASCA ASSET 
+MANAGEMENT 
+CREDIT DU CONGO FCP ASCA HORIZON O 10 000 14 280,92 13/06/2025 14 296,09 20/06/2025 11/05/2018 42,96% 0,11% 
+ASCA ASSET 
+MANAGEMENT 
+ASCA FCP CRBC PROSPERITE 0 10 000 13 117,45 13/06/2025 13 130,38 20/06/2025 26/06/2020 31,30% 0,10% 
+ASCA ASSET 
+MANAGEMENT 
+CREDIT DU CONGO 
+FCP WAFA ASSURANCE 
+CEMAC 
+0 10 000 11 028,31 13/06/2025 11 041,51 20/06/2025 26/11/2021 10,42% 0,12% 
+CORRIDOR ASSET 
+MANAGEMENT 
+LCB BANK 
+FCP CORRIDOR 
+RENDEMENT 
+D 7 723 10 517,50 13/06/2025 10 612,22 20/06/2025 27/12/2019 37,41% 0,90% 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+11 
+Société de gestion Dépositaire OPCVM Catégorie 
+Valeur liquidative 
+Origine 
+Précédente Actuelle 
+Variation 
+Origine Préc. 
+Valeur Date Valeur Date Date % % 
+EDC ASSET 
+MANAGEMENT CEMAC 
+ECOBANK CAMEROUN 
+FCP ECOBANK 
+OBLIGATAIRE CEMAC 
+M 10 000 13 682,00 11/06/2025 13 697,35 18/06/2025 21/07/2020 36,97% 0,11% 
+ELITE CAPITAL ASSET 
+MANAGEMENT S.A. 
+Afriland First Bank 
+FCP ELITE CAPITAL 
+INVEST 
+O 10 000 11 986,12 13/06/2025 12 001,09 20/06/2025 12/08/2022 20,01% 0,12% 
+ELITE CAPITAL ASSET 
+MANAGEMENT S.A. 
+Afriland First Bank 
+FCP ELITE CAPITAL 
+RECORD 
+D 10 000 11 916,73 13/06/2025 11 938,13 20/06/2025 12/08/2022 19,38% 0,18% 
+ELITE CAPITAL ASSET 
+MANAGEMENT S.A. 
+CCA -Bank FCP CCA PERFORMANCE O 10 000 12 021,19 13/06/2025 12 033,69 20/06/2025 20/01/2023 20,34% 0,10% 
+ENKO CAPITAL CENTRAL 
+AFRICA 
+UBA CAMEROUN 
+FCP ENKO CAPITAL 
+PALMARES 
+O 10 000 12 009,05 19/06/2025 12 023,07 26/06/2025 20/12/2022 20,23% 0,12% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS CONFORT O 10 000 11 973,00 27/05/2025 11 985,00 03/06/2025 19/07/2022 19,85% 0,10% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS TRESO PRIVILEGE M 10 000 11 740,00 27/05/2025 11 752,00 03/06/2025 19/07/2022 17,52% 0,10% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS PROMO PME M 10 000 11 501,00 27/05/2025 11 511,00 03/06/2025 19/07/2022 15,11% 0,09% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP ATLANTIQUE 
+PERFORMANCE 
+0 10 000 14 390,72 20/06/2025 14 404,89 27/06/2025 21/12/2018 44,05% 0,10% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP HARVEST LIQUIDITÉS M 10 000 12 037,26 20/06/2025 12 047,49 27/06/2025 17/09/2021 20,47% 0,08% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP EVEREST FINANCE 
+RENDEMENT 
+O 100 000 121 597,72 20/06/2025 121 701,42 27/06/2025 05/04/2021 21,70% 0,09% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP HARVEST ACTIONS 
+CEMAC 
+A 100 000 118 983,76 09/06/2025 118 940,85 20/06/2025 06/08/2021 18,94% -0,04% 
+HARVEST ASSET 
+MANAGEMENT 
+ECOBANK CAMEROUN 
+FCP HARVEST 
+TRÉSORERIE 
+M 10 000 13 271,11 20/06/2025 13 282,19 27/06/2025 11/10/2019 32,82% 0,08% 
+HARVEST ASSET 
+MANAGEMENT 
+BGFIBANK 
+CAMEROUN 
+FCP BGFIBank ATLAS O 100 000 114 564,54 20/06/2025 114 667,86 27/06/2025 18/11/2022 14,67% 0,09% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP CRBC LONGEVITÉ O 1 000 000 1 177 381,49 16/06/2025 1 178 544,07 23/06/2025 28/10/2022 17,85% 0,10% 
+L'ARCHER CAPITAL ASSET 
+MANAGEMENT 
+UBA CAMEROUN FCP L'ACM KIMIA M 10 000 11 235,00 20/06/2025 11 277,00 27/06/2025 28/10/2022 12,77% 0,37% 
+L'ARCHER CAPITAL ASSET 
+MANAGEMENT 
+UBA CAMEROUN 
+FCP L'ACM 
+PERFORMANCE 
+O 10 000 12 562,00 20/06/2025 12 587,00 27/06/2025 28/10/2022 25,87% 0,20% 
+L'ARCHER CAPITAL ASSET 
+MANAGEMENT 
+UBA CAMEROUN FCP RAPEC O 10 000 11 411,00 20/06/2025 11 422,00 27/06/2025 11/11/2022 14,22% 0,10% 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+12 
+Société de gestion Dépositaire OPCVM Catégorie 
+Valeur liquidative 
+Origine 
+Précédente Actuelle 
+Variation 
+Origine Préc. 
+Valeur Date Valeur Date Date % % 
+MAKEDA ASSET 
+MANAGEMENT 
+UBA CAMEROUN FCP MAKEDA HORIZON O 10 000 11 266,16 06/06/2025 11 280,40 13/06/2025 11/05/2023 12,80% 0,13% 
+SOCIETE GENERALE 
+CAPITAL ASSET 
+MANAGEMENT CENTRAL 
+AFRICA 
+SOCIETE GENERALE 
+CAMEROUN 
+FCP SOGEFIRST O 10 000 10 613,00 19/06/2025 10 624,00 26/06/2025 18/01/2024 6,24% 0,10% 
+Mensuelles 
+AFRICA BRIGHT ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ABD KOMO A 10 000 11 324,47 20/06/2025 11 296,55 27/06/2025 11/08/2022 12,97% -0,25% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS CONFORT O 10 000 11 926,00 30/04/2025 11 985,00 03/06/2025 19/07/2022 19,85% 0,49% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS TRESO PRIVILEGE M 10 000 11 693,00 30/04/2025 11 752,00 03/06/2025 19/07/2022 17,52% 0,50% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS PROMO PME M 10 000 11 465,00 30/04/2025 11 511,00 03/06/2025 19/07/2022 15,11% 0,40% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP ATLANTIQUE 
+PERFORMANCE 
+0 10 000 14 348,97 30/05/2025 14 404,89 27/06/2025 21/12/2018 44,05% 0,39% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP HARVEST LIQUIDITÉS M 10 000 12 005,46 30/05/2025 12 047,49 27/06/2025 17/09/2021 20,47% 0,35% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP EVEREST FINANCE 
+RENDEMENT 
+O 100 000 121 291,73 30/05/2025 121 701,42 27/06/2025 05/04/2021 21,70% 0,34% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP HARVEST ACTIONS 
+CEMAC 
+A 100 000 119 216,35 23/05/2025 118 940,85 20/06/2025 06/08/2021 18,94% -0,23% 
+HARVEST ASSET 
+MANAGEMENT 
+ECOBANK CAMEROUN 
+FCP HARVEST 
+TRÉSORERIE 
+M 10 000 13 236,90 30/05/2025 13 282,19 27/06/2025 11/10/2019 32,82% 0,34% 
+HARVEST ASSET 
+MANAGEMENT 
+BGFIBANK 
+CAMEROUN 
+FCP BGFIBank ATLAS O 100 000 113 318,18 30/05/2025 114 667,86 27/06/2025 18/11/2022 14,67% 1,19% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP CRBC LONGEVITÉ O 1 000 000 1 173 024,48 12/05/2025 1 178 544,07 23/06/2025 06/02/2023 17,85% 0,47% 
+Trimestrielles 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS CONFORT O 10 000 11 821,00 28/02/2025 11 985,00 03/06/2025 19/07/2022 19,85% 1,39% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS TRESO PRIVILEGE M 10 000 11 589,00 28/02/2025 11 752,00 03/06/2025 19/07/2022 17,52% 1,41% 
+ESS ASSET 
+MANAGEMENT 
+ORABANK GABON FCP ESS PROMO PME M 10 000 11 383,00 28/02/2025 11 511,00 03/06/2025 19/07/2022 15,11% 1,12% 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+13 
+Société de gestion Dépositaire OPCVM Catégorie 
+Valeur liquidative 
+Origine 
+Précédente Actuelle 
+Variation 
+Origine Préc. 
+Valeur Date Valeur Date Date % % 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP ATLANTIQUE 
+PERFORMANCE 
+0 10 000 14 219,14 28/03/2025 14 404,89 27/06/2025 21/12/2018 44,05% 1,31% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP HARVEST LIQUIDITÉS M 10 000 11 908,00 28/03/2025 12 047,49 27/06/2025 17/09/2021 20,47% 1,17% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP EVEREST FINANCE 
+RENDEMENT 
+O 100 000 120 344,29 28/03/2025 121 701,42 27/06/2025 05/04/2021 21,70% 1,13% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP HARVEST ACTIONS 
+CEMAC 
+A 100 000 116 324,09 28/03/2025 118 940,85 20/06/2025 06/08/2021 18,94% 2,25% 
+HARVEST ASSET 
+MANAGEMENT 
+ECOBANK CAMEROUN 
+FCP HARVEST 
+TRÉSORERIE 
+M 10 000 13 135,03 28/03/2025 13 282,19 27/06/2025 11/10/2019 32,82% 1,12% 
+HARVEST ASSET 
+MANAGEMENT 
+BGFIBANK 
+CAMEROUN 
+FCP BGFIBank ATLAS O 100 000 113 318,18 28/03/2025 114 667,86 27/06/2025 18/11/2022 14,67% 1,19% 
+HARVEST ASSET 
+MANAGEMENT 
+BANQUE ATLANTQUE 
+CAMEROUN 
+FCP CRBC LONGEVITÉ O 1 000 000 1 148 473,01 24/03/2025 1 178 544,07 23/06/2025 06/02/2023 17,85% 2,62% 
+ 
+OPCVM : Organisme de Placement Collectif en Valeurs Mobilières 
+ND: Non Disponible 
+Catégories :  
+A : Actions 
+O : Obligations 
+C : Contractuels 
+D : Diversifié 
+M : Monétaire 
+ 
+ 
+ 
+Source : Sociétés de Gestion de Portefeuilles agréées COSUMAF 
+ 
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+14 
+NOTE A L’ATTENTION DES INVESTISSEURS : Votre société de bourse reste votre principal interlocuteur, intermédiaire et conseil en matière de 
+transactions boursières (Achat/vente d’actions), de dénouement des Opérations sur Titre (OST) et des Evènements sur Valeur (ESV).  Votre 
+société la SEMC vous  informe  à  travers  la  présente  FICHE,  sur la  situation financière,  le  profil  de  rendement  des  actions,  la  composition  de 
+l’actionnariat et l’identité des mandataires sociaux. Elle organise la tenue des Organes sociaux, vous transmet les invitations du  Conseil 
+d’Administration aux Assemblées Générales assorties des projets de résolutions à soumettre à vos votes. 
+ 
+  
+ 
+ 
+ 
+ 
+PROFIL DE L’ENTREPRISE 
+Dénomination sociale : Société des Eaux Minérales du Cameroun 
+Sigle sociale : SEMC 
+Secteur d’activité : Agro-Alimentaire 
+Date d’introduction à la BVMAC : 30/06/2006 
+Capital Social : 1 924 730 000 FCFA 
+Acronyme de la valeur en Bourse (Mnemo) : SEMC 
+ 
+CONSEIL D’ADMINISTRATION 
+Noms & Prénoms Fonction 
+Aïssatou YAOU Présidente du Conseil d’Administration 
+Guy DE CLERCQ Administrateur 
+Jean-Claude PALU Administrateur 
+André SIAKA Administrateur 
+Paul Alain DANG BABAGNA, représentant permanent SNI Administrateur 
+Stéphane DESCAZEAUD, représentant permanent SABC Administrateur 
+Michel PALU Administrateur 
+Simon Pierre MVONDO EYA Administrateur 
+Mathurin NDOUMBE EPEE Administrateur 
+Gil MARTIGNAC Administrateur 
+Directeur Général : Stéphane DESCAZEAUD 
+ 
+ACTIONNARIAT 
+Nombre total d’actions Actionnaires Parts (en nombre) Parts (en %) 
+192 473 
+Nominatif pur (noyau dur) dont :  154 106 80,07% 
+1.Société Anonyme des Brasseries du Cameroun (SABC) 109 524 56,90% 
+2.Société Nationale d’Investissement (SNI) 33 694 17,51% 
+3.NESTLE WATERS France 
+10 888 5,66% 
+Bloc Flottant 38 367 19,93% 
+ 
+INDICATEURS D’ACTIVITE AU 31 DECEMBRE 
+(En FCFA) 2020 2021 2022 2023 
+Total Bilan 9 274 579 610 8 584 602 374 6 891 925 812 6 243 670 659 
+Capitaux Propres 1 027 720 901 1 900 342 515 2 405 262 981 3 385 320 228 
+Chiffre d’Affaires 8 565 279 093 9 907 385 790 10 528 222 112 9 788 997 070 
+Valeur Ajoutée 3 277 890 510 4 071 272 023 3 267 736 337 3 209 348 246 
+Résultat Net 331 053 212 872 621 614 504 920 466 980 057 247 
+Dividende brut unitaire 0 0 0 600 
+Taux de rendement brut (en %) 0 0 0 1,27 
+ 
+ 
+ADRESSES ET CONTACTS 
+ 
+Adresse : 77 rue prince Bell BP 4036 Douala Cameroun 
+Nos contacts : sabc.siège@castel-afrique.com 
+Site Web : Les Brasseries du Cameroun | Plus d'un demi-siècle de qualité ! (boissonsducameroun.com)
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+15 
+NOTE A L’ATTENTION DES INVESTISSEURS : Votre société de bourse reste votre  principal interlocuteur, intermédiaire et conseil  en 
+matière de transactions boursières (Achat/vente d’actions), de dénouement des Opérations sur Titre (OST) et des Evènements sur 
+Valeur (ESV). Votre société la SAFACAM vous informe à travers la présente FICHE, sur la situation financière, le profil de rendement 
+des actions, la composition de l’actionnariat et l’identité des mandataires sociaux. Elle organise la tenue des Organes sociaux, vous 
+transmet les invitations du Conseil d’Administration aux Assemblées Générales assorties des projets de résolutions à soumettre à vos 
+votes. 
+ 
+  
+ 
+ 
+ 
+PROFIL DE L’ENTREPRISE  
+Dénomination sociale : Société Africaine Forestière et Agricole du Cameroun 
+Sigle social : SAFACAM 
+Secteur d’activité : Agro-Industrie Palmier /Hévéa 
+Date d’introduction à la BVMAC : 09/07/2008 
+Capital social : 6 210 000 000 FCFA 
+Acronyme de la valeur en Bourse (Mnemo) : SAF 
+ 
+CONSEIL D’ADMINISTRATION  
+Noms & Prénoms Fonction 
+Régis HELSMOORTEL Président du Conseil d’Administration 
+François FABRI Administrateur 
+Philippe FABRI Administrateur 
+Elisabeth NKONO Administrateur représentant les actionnaires boursiers 
+Société National d’Investissement (SNI) Administrateur 
+Société Anonyme Forestière et Agricole (SAFA) Administrateur 
+Bolloré Participations Administrateur 
+ 
+ 
+Directeur Général : Jean François PAJOT 
+ 
+ 
+ACTIONNARIAT  
+Nombre total d’action Actionnaires Parts (en nombre) Parts (en %) 
+1 242 000 
+Nominatif pur (noyau dur) dont : 993 600 80% 
+1. Société Anonyme Forestière et Agricole (SAFA) 854 979 68,839% 
+2. Société Nationale d’Investissement (SNI) 138594 11,159% 
+3. Autres 27 0.002% 
+Bloc Flottant 248 400 20% 
+ 
+ 
+INDICATEURS D’ACTIVITE AU 31 DECEMBRE  
+(En F CFA) 
+2020 2021 2022 2023
+ 
+Total Bilan 
+29 699 514 611 31 820 100 823 30 151 841 941 31 708 610 667 
+Capitaux Propres 
+19 627 792 738 21 105 234 527 21 373 900 522 19 241 624 597 
+Chiffre d’Affaires 
+16 720 336 073 21 508 842 830 23 224 733 981 23 577 227 331 
+Valeur Ajoutée 
+7 732 533 015 10 351 609 546 10 961 193 659 9 084 692 605 
+Résultat Net 
+679 924 167 2 478 493 789 2 747 697 994 612 544 286 
+Dividende brut unitaire 
+806 1 996 2 210 490 
+Taux de rendement brut (en %) 
+4,03 9,24 4,70 1,84 
+ 
+ADRESSES ET CONTACTS 
+Adresse : Avenue de Japoma, BP 100 Douala, Cameroun 
+Nos contacts : safacam@safacam.com 
+Site Web: https://www.socfin.com/fr/implantations/safacam/ 
+Comptes sociaux : 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+16 
+ 
+  
+ 
+Certifié 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PROFIL DE L'ENTREPRISE 
+D é n o m i n a t i o n   S o c i a l e : S o ciété C a m e r o u n aise de Pa l m e r a i es 
+Si g le S o c ial : S O C A P A LM 
+Secteur d ' acti v i té : A g ro-al i m e n t a ire 
+Date d ' i n t rodu c t i on à la B V M AC : 07/0 4 / 2 0 09 
+Ca p i t al S o cial (au 31 d é c e m b re 2 0 2 2) : 45 757 890 000 FCFA 
+Ac r o n y me de la v a leur en Bo u r se ( M n e m o) : SOCAP 
+ 
+CONSEIL D'ADMINISTRATION 
+J o s e p h   O W O N A   K O N O, Président du Conseil d’Administration 
+S O C F I N A F, repr é s e n t ée par P h i lippe F A B RI, 
+L’E t a t du C a m ero u n, re p r é senté par Ab d o u l a ye H A Y A T OU WELL 
+A F I C O, r e p rés e n té par D a n i e l   H A A S, 
+B O L L O RE Pa r t ici p a t i ons, re p r é s enté par Vinc e nt BO L L O RE 
+F r a n ç ois F A B R I, A d m ini s t r a teur, 
+R é g is H E L S M O O R T E L, A d m i nis t r a teur, 
+O l i v i e r   D O N T S O P, A d m i n i str a t e u r r e p r é s e n t a n t   l e s   A c t i o n n a i r e s   B o u r s i e r s, 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+D I R E C T E U R   G E N E R A L   :   D O M I N I Q U E   C O R N E T 
+ 
+ACTIONNARIAT  
+N o m b r e   t o t a l   d’a c t i o n s A c t i o n n a i r e s P a r t s   ( e n   n o m b r e ) P a r t s   ( e n % ) 
+4 5 7 5   7 8 9 
+N o m i n a t i f   p u r   ( n o y a u  d u r ) d o n t : 
+3 788 709 8 2 , 8 0 % 
+1 . S O C F I N A F   S A 
+2 7 6 5   7 3 6 6 0 , 4 4 % 
+2 . E t a t   d u   C a m e r o u n 
+1 0 2 2   9 5 2 2 2 , 3 6 % 
+3 . A u t r e s 
+21 0 , 0 0 % 
+B l o c   f l o t t a n t 7 8 7   0 8 0 1 7 , 2 0 % 
+ 
+INDICATEURS D’ACTIVITES ( F C F A ) 
+(En FCFA) 2020 2021 2022 2023 
+Total Bilan 96 841 597 020 89 665 957 532 95 255 878 836 92 057 745 683 
+Capitaux Propres 96 841 597 020 71 153 220 730 66 264 320 498 67 900 464 710 
+Chiffre d’affaires 71 003 902 607 75 258 704 648 74 025 856 390 84 620 196 144 
+Valeur ajoutée 33 722 909 888 35 546 493 671 33 528 441 628 34 100 468 185 
+Résultat Net 11 650 698 984 13 743 634 055 10 671 602 107 11 934 489 201 
+Dividende brut unitaire 3 825 3 400 2 250 2 600 
+Taux de rendement brut (en%)  16,62 9,95 4,68 5,59 
+N° Télép h o n e : 69 5 3 5 5 911 
+A d r e s se M a il : info-scp@socapalm.org 
+S i te Web: www.socapalm.com 
+F a c e b o ok: Soca p a lm 
+ 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+17 
+NOTE A L’ATTENTION DES INVESTISSEURS : Votre  société  de  bourse  reste  votre  principal  interlocuteur,  intermédiaire  et  conseil  en  matière  de 
+transactions boursières (Achat/vente d’actions), de dénouement des Opérations sur Titre (OST) et des Evènements sur Valeur (ESV). Votre société LA 
+REGIONALE BANK vous informe à travers la présente FICHE, sur la santé financière, le profil de rendement des actions, la composition de l’actionnariat 
+et l’identité des mandataires sociaux. Elle organise la tenue des Organes sociaux, vous transmet les invitations du Conseil d’Administration aux 
+Assemblées Générales assorties des projets de résolutions à soumettre à vos votes. 
+ 
+  
+ 
+ 
+ 
+PROFIL DE L’ENTREPRISE  
+Dénomination sociale : La Régionale BANK 
+Sigle sociale : LA REGIONALE 
+Secteur d’activité : Banque  
+Date d’introduction à la BVMAC : 16/07/2021 
+Capital social : 10 125 360 000 FCFA 
+Acronyme de la valeur en Bourse (Mnemo) : REG 
+ 
+CONSEIL D’ADMINISTRATION   
+Noms & Prénoms Fonction 
+Isaac KUL Président du Conseil d’Administration 
+Charles Rollin OMBANG EKATH Administrateur Membre du Conseil 
+Henri Blaise TIAM, Représentant NORDIC MICROCAP INVESTMENT Administrateur Membre du Conseil 
+Patrice BESSOUBEL  Administrateur Membre du Conseil 
+Jean Claude EBE EVINA Administrateur indépendant 
+Directeur Général : Charles Rollin OMBANG EKATH 
+ 
+ACTIONNARIAT  
+Nombre total d’action  Actionnaires  Parts (en nombre) Parts (en %) 
+1 012 536 
+Nominatif pur (noyau dur) 940 447 92,88% 
+Bloc Flottant 72 089 7,12% 
+ 
+INDICATEURS D’ACTIVITE AU 31 DECEMBRE 
+(En F CFA) 2019 2020 2021 2022 
+Total Bilan 25 071 641 952 28 893 893 697 35 293 587 227 40 005 863 069 
+Capitaux Propres 7 713 703 419 9 495 754 860 13 352 863 237 13 472 883 815 
+Produit Net Bancaire  4 146 498 615 5 271 228 748 5 943 912 015 
+Résultat Net 1 561 184 238 1 012 558 424 1 112 842 792 1 221 117 869 
+Dividende versé    1 499 565 816 
+Dividende Net / par Action R A S R A S R A S 
+A communiquer 
+ 
+ADRESSES ET CONTACTS 
+ 
+Adresse : 30145 Rond –Point Nlongkak 
+Nos contacts : 650 26 51 45 – 673 38 45 16 – 673 45 65 71  
+Site Web : www.laregionalebank.com 
+ 
+Comptes Réseaux sociaux :  
+Facebook: La Regionale BANK     Instagram: la_regionale_bank    
+LinkedIn : La Regionale BANK     YouTube : La Régionale BANK 
+Twitter : @Regionale_BANK 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+18 
+A L’ATTENTION DES INVESTISSEURS : Votre société de bourse reste votre principal interlocuteur, intermédiaire et conseil en matière de transactions boursières 
+(Achat/vente d’actions), de dénouement des Opérations sur Titre (OST) et des Evènements sur Valeur (ESV). Votre société la Banco Nacional De Guinea Ecuatorial 
+vous  informe  à  travers  la  présente  FICHE,  sur  la  situation  financière,  le  profil  de  rendement  des  actions,  la  composition  de l’actionnariat et l’identité des 
+mandataires sociaux. Elle organise la tenue des Organes sociaux, vous transmet les invitations du Conseil d’Administration aux Assemblées Générales assorties 
+des projets de résolutions à soumettre à vos votes. 
+ 
+  
+ 
+ 
+ 
+PROFIL DE L’ENTREPRISE  
+Dénomination sociale : Banco Nacional de Guinea Ecuatorial S.A 
+Sigle sociale : BANGE S.A 
+Secteur d’activité : Banque 
+Date d’introduction à la BVMAC : 28/09/2022 
+Capital social : 55 896 000 000 FCFA 
+Acronyme de la valeur en Bourse (Mnemo) : BANGE 
+CONSEIL D’ADMINISTRATION  
+Noms & Prénoms Fonction  
+Sr. D. Martin Crisanto EBE MBA Président du Conseil d’Administration 
+Sr. D. Carlos NZE NSUGA Administrateur indépendant 
+Sr. D. Jaime ELA NDONG Administrateur représentant l’Etat de Guinée Equatoriale 
+Sr. D. Juan OVONO ESONO AVONO Administrateur représentant ABAYAK 
+Sr. D.  Hassan Pastor OBIANG Administrateur 
+Sr. D.  Antonio OBURU ONDO Administrateur représentant GE PETROL 
+Sr. D.  Edward ZHORSNAK Administrateur représentant la Banque des Philippines 
+Sra. Francisca TATCHOUOP BELOBE Administrateur représentant les Investisseurs privés 
+ 
+Directeur Général : Manuel Osa NSUE NSUA 
+ACTIONNARIAT  
+Nombre total d’action  Actionnaires  Parts (en nombre) Parts (en %) 
+558 960 
+Nominatif pur (noyau dur) 508 960 91,06% 
+Bloc Flottant 50 000 8,94% 
+ 
+INDICATEURS D’ACTIVITE AU 31 DECEMBRE 
+(En FCFA) 2019 2020 2021 2022  
+Total Bilan 328 000 000 000 313 205 166 356 379 535 385 750 427 944 480 363 
+Capitaux Propres 31 888 000 000 31 753 302 966 34 331 542 919 80 753 891 397 
+Produit bancaire Net 33 646 000 000 23 140 117 041 24 338 220 647 31 281 043 130 
+Résultat Net 3 574 000 000 1 294 262 783 2 578 239 953 5 215 348 478 
+Dividende versé 1 426 442 326 0 0 4 693 813 630 
+Dividende Net / par Action 7 147 0 0 8 397 
+ 
+ 
+ADRESSES ET CONTACTS 
+Adresse : Avda. De las Naciones Unidas, n°28 Apdo 430, Malabo, Guinea Ecuatorial 
+Nos contacts :00240333099575 
+ 
+Site Web : www.bannge.com 
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+19 
+A L’ATTENTION DES INVESTISSEURS : Votre société de bourse reste votre principal interlocuteur, intermédiaire et conseil en matière de transactions 
+boursières (Achat/vente d’actions), de dénouement des Opérations sur Titre (OST) et des Evènements sur Valeur (ESV). Votre société la SCG-Ré vous 
+informe à travers la présente FICHE, sur sa situation financière, le profil de rendement des actions, la composition de l’actionnariat et l’identité des 
+mandataires sociaux. Elle organise la tenue des Organes sociaux, vous transmet les invitations du Conseil d’Administration aux Assemblées Générales 
+assorties des projets de résolutions à soumettre à vos votes.   
+ 
+ 
+             PROFIL DE L’ENTREPRISE 
+              Dénomination : Société Commerciale Gabonaise de Réassurance 
+              Sigle social : SCG-Ré 
+              Secteur d’activité : Réassurance  
+              Date d’introduction à la BVMAC : 26/01/2023 
+              Capital social : 15 000 000 000 FCFA 
+              Acronyme de la valeur en Bourse (Mnemo) : SCGRE  
+ 
+            CONSEIL D’ADMINISTRATION   
+ 
+ 
+ 
+ 
+ 
+ 
+     
+           Administrateur-Directeur Général : M. Thierry ABELOKO 
+          ACTIONNARIAT   
+Nombre total d’actions Actionnaires Parts (en nombre) Parts (en %) 
+1 500 000 
+Nominatif pur (noyau dur) dont : 
+1.Groupe Etat Gabonais 
+2.Groupe des Compagnies 
+d’Assurances du Gabon 
+1 200 000 80% 
+826 680 55% 
+373 320 25% 
+Porteurs (Bloc flottant) 300 000 20% 
+ 
+ 
+         INDICATEURS D’ACTIVITE AU 31 DECEMBRE  
+(En FCFA)  2020 2021 2022 2023 
+Total Bilan  32 096 042 306 39 223 374 169 48 556 853 541 50 167 646 021 
+Capitaux Propres  9 365 383 677 11 551 490 514 12 169 629 122 17 706 803 122 
+Primes acquises brutes (équivalent Chiffre d’Affaires)  13 730 601 516 14 643 569 322 17 671 523 492 19 644 862 829 
+Résultat Net  1 405 306 837 1 018 138 609 1 442 174 000 1 524 415 047 
+Dividende brut unitaire 0 400 724 728 
+Taux de rendement brut (en %)  15,01% 8,81% 11,85% 8,61% 
+ 
+   
+     COMMISSAIRES AUX COMPTES AU 31 DECEMBRE 
+ 
+ 
+ 
+  
+ 
+ 
+ADRESSES ET CONTACTS   
+  Site Web: www.scg-re.ga  
+  E-mail : Infos@scg-reass.com  
+  Tél. : (+241) 011 74 80 80 / (+241) 011 74 80 81/ (+241) 011 74 80 83  
+ 
+ 
+COMPTES SOCIAUX    
+– Compte Twitter : @SCG-Ré  
+– Compte Instagram : Scgreass  
+– Compte Facebook : Société Commerciale Gabonaise de Réassurance 
+– Compte LinkedIn : Société Commerciale Gabonaise de Réassurance 
+  
+ 
+  
+TI TU LAI RES
+S U P P LEAN TS
+–
+   
+N E W   A CE   BA K E R  T I L L Y   G A BO N  
+– 
+ 
+CA BI N E T   E X P E RT S  MA C
+–
+   
+DE L O I T T E   T O U CHE   T O HMA T SU   G A BO N
+– 
+ 
+CA BI N E T   F I G E A C
+Groupe ETAT
+Groupe des Assureurs Gabonais
+Nouveaux Administrateurs
+Fonds Gabonais d'Investissements Stratégiques (FGIS)
+SANLAM
+Caisse Nationale de Prévoyance Sociale du Cameroun (CNPS)
+Fonds Souverain de la République Gabonaise (FSRG)
+OGAR
+Société Centrale de Réassurance du Maroc (SCR)
+Caisse des Dépôts & Consignations (CDC)
+ASSINCO SA
+Représentant des petits porteurs
+AXA GABON
+Représentant des salariés & Dirigeants du Groupe FGIS & ses filiales
+Administrateur Indépendant
+
+BULLETIN OFFICIEL DE LA COTE N° 2290 DU 01/07/2025 
+ 
+ 
+20 
+A L’ATTENTION DES INVESTISSEURS : Votre société de bourse reste votre principal interlocuteur, intermédiaire et conseil en matière de transactions boursières (Achat/vente des obligations), de 
+dénouement des Opérations sur Titre (OST) et des Evènements sur Valeur (ESV). Votre société ALIOS FINANCE CAMEROUN vous informe à travers la présente FICHE, sur sa situation financière,  
+le profil de rendement de ses obligations et la composition de son actionnariat. 
+ 
+ 
+ 
+PROFIL DE L’ENTREPRISE  
+Dénomination sociale : Société Camerounaise de Crédit Automobile (SOCCA) 
+Nom commercial : ALIOS FINANCE Cameroun 
+Secteur d’activité :  Finance - Leasing 
+Capital social : 2 499 200 000 FCFA 
+Acronyme de la valeur en Bourse (Mnemo) : AFC 
+Encours de titres circulant à la Cote : 9 911 418 155 FCFA 
+ 
+I. CONSEIL D’ADMINISTRATION 
+Noms & Prénoms Fonction  
+Hicham DAOUK Président du Conseil d’Administration, Directeur Général du groupe ALIOS Finance 
+Hichem ZGAL Administrateur représentant SAFCA (ALIOS Finance Cote d’ivoire) 
+Skander ZOUCH Administrateur représentant SOGACA (ALIOS Finance Gabon) 
+Denis ZAPULLA Administrateur représentant CAMI (Cameroon Motors Industries) 
+Zouhir RHAZI Administrateur représentant Tractafric Motors Cameroun 
+Hassene ZAAZAA Administrateur représentant ALIOS Finance S. A 
+MITCAM S. A Administrateur 
+Philippe se LAPLAGNOLLE Administrateur indépendant 
+ 
+II. DIRECTEUR GÉNÉRAL ALIOS FINANCE CAMEROUN : Olivier BAMAN 
+ 
+III. ACTIONNARIAT  
+Nombre total d’action  Actionnaires  Parts (en nombre d’actions) Parts (en %) 
+249 920 
+ 
+ 
+ALIOS Finance Group 176 407 70.59 
+RCI BANQUE 27 418 10.97 
+MITCAM/SACAM 15 110 6.04 
+BICEC 7 620 3.05 
+SGC 4 428 1.77 
+TRACTAFRIC MOTORS CMR 797 0.32 
+BAT CAMEROUN 787 0.31 
+RW KING 72 0.03 
+AXA ASSURANCES CMR 847 0.34 
+Autres privés camerounais 16 434 6.58 
+ 
+IV. INDICATEURS D’ACTIVITÉ AU 31 DÉCEMBRE 
+(En millions FCFA) 2019 2020 2021 2022  2023 
+Total Bilan 55 585 54 748 56 405 64 130 74 691 
+Produit bancaire Net 4 012 4 325 4 534 4 649 4 902 
+Résultat Net 981 739 792 1 049 1 569 
+ 
+V. PARCOURS DE L’ÉMETTEUR SUR LE MARCHÉ FINANCIER RÉGIONAL  
+ 
+Historique des émissions 
+Nom Montant Taux d’intérêt Date de cotation Date d’échéance 
+ALIOS 01 5.75% BRUT 2018-2023 8 000 000 000 5,75% 06/02/2019 19/12/2023 
+ALIOS 02 5.40% BRUT 2021-2025 8 542 500 000 5,40% 14/09/2021 10/08/2025 
+ALIOS 03 6.50% BRUT 2023-2028 3 468 030 000 6,50% 05/02/2024 22/08/2028 
+ALIOS 04 6.00% BRUT 2023-2026 4 612 850 000 6% 05/02/2024 22/08/2026 
+ 
+VI. ECHÉANCIER DES EMPRUNTS : 
+ 
+▪ VALEUR : « ALIOS 02 5.40% BRUT 2021-2025 » 
+Echéances Amortissement du capital + intérêts 
+10/02/2025 634 890 804 
+10/05/2025 626 653 393 
+10/08/2025 618 415 982 
+   
+ 
+ 
+ 
+ 
+ 
+ 
+VI. ADRESSES ET CONTACTS 
+Adresse : BP 554 DOUALA 
+Nos contacts : +237 2 33 50 23 00 ; cameroun@alios-finance.com 
+Point focal : Irène Bertille AMAYANA /TEL : 6 99 26 67 75/233 50 23 30/ 233 50 23 00 
+Site Web : https://www.alios-finance.com 
+Echéances Amortissement du capital + intérêts 
+16/02/2025 1 291 598 000 
+16/08/2025 1 257 001 625 
+16/02/2026 1 222 405 250 
+16/08/2026 1 187 808 875 
+Echéances Amortissement du capital + intérêts 
+16/02/2025 546 214 725 
+16/08/2025 532 125 853 
+16/02/2026 518 036 981 
+16/08/2026 503 948 109 
+16/02/2027 489 859 238 
+16/08/2027 475 770 366 
+16/02/2028 461 681 494 
+16/08/2028 447 592 622 
+ 
+▪ VALEUR : « ALIOS 03 6.50% BRUT 2023-2028 » 
+ 
+▪ VALEUR : « ALIOS 04 6.00% BRUT 2023-2026 » 
+ 
