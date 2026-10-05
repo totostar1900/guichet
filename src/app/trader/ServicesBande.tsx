@@ -48,12 +48,11 @@ export function ServicesBande({ services, etapes }: { services: ServiceVu[]; eta
               onClick={() => setOuvert(ici ? null : sv.cle)}
             >
               <span className={styles.ico}>{ICONE_SERVICE[sv.cle]}</span>
+              {/* LE NOM SEUL. Le lieu (« Portefeuille › Espèces ») tenait une
+                  seconde ligne sous chacun des neuf : neuf adresses à lire pour
+                  choisir un service, quand le lien les y mène déjà. */}
               <span className={styles.quoi}>
                 <b>{t(sv.nom)}</b>
-                {/* Le lieu, court : la phrase du service et sa precision se lisent
-                    dans la fiche. En sous-titre, elles faisaient des lignes de
-                    95 px et la liste cessait de se parcourir. */}
-                <small>{t(sv.ou)}</small>
               </span>
               <span className={styles.chev} aria-hidden="true">
                 {ici ? "–" : "+"}
@@ -61,8 +60,10 @@ export function ServicesBande({ services, etapes }: { services: ServiceVu[]; eta
             </button>
             {ici && (
               <div className={styles.fiche} id={`${id}-${sv.cle}`}>
+                {/* UNE PHRASE, PAS DEUX. La précision dessous redisait la même
+                    chose d'un cran plus bas, et une fiche ouverte doit mener au
+                    geste. Ce qui conditionne l'accès, lui, reste. */}
                 <p>{t(sv.phrase.key, sv.phrase.params)}</p>
-                {sv.sinon && <p className={styles.sinon}>{t(sv.sinon.key, sv.sinon.params)}</p>}
                 {/* Ce qu'il faut avoir d'abord, dit ici et pas dans la liste. */}
                 {sv.porte && <p className={styles.porte}>{t(sv.porte.key, sv.porte.params)}</p>}
                 {pas && (

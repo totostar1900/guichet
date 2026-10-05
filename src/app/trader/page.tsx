@@ -45,12 +45,11 @@ export default async function TraderPage() {
   const r = repo();
   const aujourdHui = localIso(new Date());
 
-  const [intents, offers, cash, standing, avis, feed, advisor, dossier] = await Promise.all([
+  const [intents, offers, cash, standing, feed, advisor, dossier] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(s.userId).catch(() => []),
     r.listStandingOrders(s.userId).catch(() => []),
-    r.listCustodyNotices({ userId: s.userId }).catch(() => []),
     loadBeacAuctions().catch(() => ({ auctions: [] as BeacAuction[] })),
     r.findAdvisor(s.userId).catch(() => undefined),
     r.getClientFileByUser(s.userId).catch(() => undefined),
@@ -80,10 +79,9 @@ export default async function TraderPage() {
     disponible: poche.idle,
     attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
     reinvestissement: reinv
-      ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount, dernier: reinv.lastRunOn ? { montant: 0, le: fmtDate(reinv.lastRunOn) } : undefined }
+      ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount }
       : undefined,
     epargne: epargne ? { montant: epargne.amount, jour: epargne.dayOfMonth, destination: offers.find((o) => o.id === epargne.offerId)?.title ?? epargne.offerId } : undefined,
-    garde: avis[0] ? { periode: avis[0].period, du: avis[0].du } : undefined,
     prochaineSeance: devant ? { pays: devant.country ?? t("la zone"), quoi: [devant.instrument, devant.tenor].filter(Boolean).join(" ") || t("une séance"), le: fmtDate(devant.on!) } : undefined,
     moisDHistorique: positions.length ? 12 : 0,
     appariementExecutable: false,

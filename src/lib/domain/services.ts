@@ -39,14 +39,10 @@ export interface ServiceVu {
   n: string;
   cle: string;
   nom: string;
-  /** Où il vit dans l'application, pour qui veut y retourner sans passer par ici. */
-  ou: string;
   href: string;
   etat: EtatService;
   /** Ce qu'il fait, ou ferait, avec les chiffres du client. */
   phrase: Dit;
-  /** La précision dessous : le dernier passage, la limite, la raison. */
-  sinon?: Dit;
   /**
    * Ce que le bouton dit, et où il mène.
    *
@@ -92,11 +88,9 @@ export interface ContexteClient {
   /** Ce qui est échu et pas encore arrivé, et depuis combien de jours. */
   attendu?: { montant: number; retardJours: number };
   /** Le réinvestissement en place, s'il l'est. */
-  reinvestissement?: { destination: string; plancher: number; dernier?: { montant: number; le: string } };
+  reinvestissement?: { destination: string; plancher: number };
   /** L'épargne programmée en place, s'il y en a une. */
-  epargne?: { montant: number; jour: number; destination: string; prochain?: string };
-  /** Le dernier avis de droits de garde émis. */
-  garde?: { periode: string; du: number };
+  epargne?: { montant: number; jour: number; destination: string };
   /** La prochaine séance annoncée, si le calendrier en porte une. */
   prochaineSeance?: { pays: string; quoi: string; le: string };
   /** Les mois d'historique : sous douze, la performance ne dit pas grand-chose. */
@@ -137,27 +131,21 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "06",
           cle: "reinvestissement",
           nom: "Réinvestissement",
-          ou: "Portefeuille › Espèces",
           href: "/moi/reinvestir",
           phrase: {
             key: "Vos encaissements partent vers {d} dès qu'ils atteignent {m} FCFA.",
             params: { d: c.reinvestissement.destination, m: c.reinvestissement.plancher },
           },
-          sinon: c.reinvestissement.dernier
-            ? { key: "Dernier versement : {m} FCFA le {d}.", params: { m: c.reinvestissement.dernier.montant, d: c.reinvestissement.dernier.le } }
-            : { key: "Aucun versement encore produit : il partira au premier encaissement." },
         })
       : aActiver({
           n: "06",
           cle: "reinvestissement",
           nom: "Réinvestissement",
-          ou: "Portefeuille › Espèces",
           href: "/moi/reinvestir",
           phrase:
             c.disponible > 0
               ? { key: "{m} FCFA sont disponibles et n'attendent rien : ils repartiraient sur la ligne que vous choisiriez.", params: { m: c.disponible } }
               : { key: "Dès qu'un coupon arrivera, il repartirait sur la ligne que vous auriez choisie d'avance." },
-          sinon: { key: "Il ne part que sur de l'argent constaté reçu, jamais sur une échéance simplement passée." },
         }),
   );
 
@@ -168,21 +156,15 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "03",
           cle: "epargne",
           nom: "Épargne programmée",
-          ou: "Trader",
           href: "/trader",
           phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
-          sinon: c.epargne.prochain
-            ? { key: "Prochain versement le {d}. Arrêtable d'un bouton, sans motif à donner.", params: { d: c.epargne.prochain } }
-            : { key: "Arrêtable d'un bouton, sans motif à donner." },
         })
       : aActiver({
           n: "03",
           cle: "epargne",
           nom: "Épargne programmée",
-          ou: "Fonds › une part",
           href: "/fonds",
           phrase: { key: "Un montant, un jour du mois, une destination fixée à la signature." },
-          sinon: { key: "La destination est une ligne précise, jamais une catégorie : choisir chaque mois serait de la gestion." },
         }),
   );
 
@@ -193,27 +175,19 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "07",
           cle: "garde",
           nom: "Conservation et tenue de compte",
-          ou: "Portefeuille",
           href: "/moi",
           // « 1 lignes inscrites » se lisait sur la première page qu'un client
           // ouvre. Deux clefs plutôt qu'une règle de pluriel : le dictionnaire
           // est indexé par le français, et une règle de pluriel française ne
           // vaut pas pour l'anglais.
           phrase: c.lignes === 1 ? { key: "1 ligne inscrite à votre nom au dépositaire." } : { key: "{n} lignes inscrites à votre nom au dépositaire.", params: { n: c.lignes } },
-          sinon: c.garde
-            ? c.garde.du > 0
-              ? { key: "Avis du {p} : {m} FCFA de droits de garde.", params: { p: c.garde.periode, m: c.garde.du } }
-              : { key: "Avis du {p} émis : la conservation ne vous a rien coûté.", params: { p: c.garde.periode } }
-            : { key: "Aucun avis encore émis sur cette période." },
         })
       : aActiver({
           n: "07",
           cle: "garde",
           nom: "Conservation et tenue de compte",
-          ou: "Titres",
           href: "/titres",
           phrase: { key: "Dès votre première ligne, elle sera inscrite à votre nom au dépositaire." },
-          sinon: { key: "Le relevé porte chaque ligne, son échéancier et ce qui reste à venir." },
         }),
   );
 
@@ -223,12 +197,10 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       n: "01",
       cle: "primaire",
       nom: "Placement primaire",
-      ou: "Titres › une séance annoncée",
       href: "/calendrier",
       phrase: c.prochaineSeance
         ? { key: "Une séance {p} est annoncée le {d} : {q}.", params: { p: c.prochaineSeance.pays, d: c.prochaineSeance.le, q: c.prochaineSeance.quoi } }
-        : { key: "Aucune séance n'est annoncée pour l'instant : le calendrier les porte dès leur publication." },
-      sinon: { key: "Une intention n'est pas une garantie d'allocation : le Trésor sert qui il veut, au prix qu'il retient." },
+        : { key: "Le calendrier porte toutes les séances annoncées dès leur publication." },
     }),
   );
 
@@ -239,16 +211,13 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "09",
           cle: "sondage",
           nom: "Sondage avant adjudication",
-          ou: "Titres › la séance annoncée",
           href: "/calendrier",
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
-          sinon: { key: "L'émetteur voit une demande chiffrée, jamais un nom." },
         })
       : aActiver({
           n: "09",
           cle: "sondage",
           nom: "Sondage avant adjudication",
-          ou: "Titres › une séance annoncée",
           href: "/calendrier",
           phrase: { key: "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne." },
         }),
@@ -261,16 +230,13 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "08",
           cle: "passage",
           nom: "Passage d'un fonds à l'autre",
-          ou: "Fonds › votre part",
           href: "/fonds",
           phrase: { key: "Vous détenez {n} parts de {d}, rachetables.", params: { n: c.partsDeFonds.parts, d: c.partsDeFonds.titre } },
-          sinon: { key: "Le rachat et la souscription seraient tenus ensemble, sans passer par votre banque." },
         })
       : aActiver({
           n: "08",
           cle: "passage",
           nom: "Passage d'un fonds à l'autre",
-          ou: "Fonds",
           href: "/fonds",
           phrase: { key: "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez." },
         }),
@@ -282,13 +248,11 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       n: "02",
       cle: "fonds",
       nom: "Intermédiation sur les fonds",
-      ou: "Fonds",
       href: "/fonds",
       phrase:
         c.fondsOuverts > 0
-          ? { key: "{n} fonds de la zone sont ouverts à la souscription.", params: { n: c.fondsOuverts } }
+          ? { key: "Les fonds de la zone sont ouverts à la souscription." }
           : { key: "Aucun fonds n'est ouvert à la souscription en ce moment." },
-      sinon: { key: "Leurs frais et leurs valeurs liquidatives se comparent sur une même page." },
     }),
   );
 
@@ -298,12 +262,10 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       n: "05",
       cle: "actions",
       nom: "Courtage sur actions cotées",
-      ou: "Marché",
       href: "/marche",
       phrase: c.actions
         ? { key: "Vous détenez {n} actions {d}, vendables sur la BVMAC.", params: { n: c.actions.n, d: c.actions.titre } }
         : { key: "Achat et vente sur la BVMAC, au dernier cours publié et à sa date." },
-      sinon: { key: "Une ligne qui n'a jamais traité n'a pas de prix de marché : son cours affiché est un prix de référence reporté." },
     }),
   );
 
@@ -314,7 +276,6 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "04",
           cle: "appariement",
           nom: "Appariement des intentions",
-          ou: "Automatique",
           href: "/trader",
           phrase: { key: "Quand une intention inverse existe en interne, elle vous est signalée avant toute sortie sur le marché." },
         })
@@ -322,7 +283,6 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           n: "04",
           cle: "appariement",
           nom: "Appariement des intentions",
-          ou: "Automatique",
           href: "/trader",
           phrase: { key: "La maison détecte une intention inverse et vous la signale." },
         }),

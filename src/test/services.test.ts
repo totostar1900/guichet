@@ -29,9 +29,8 @@ const garni: ContexteClient = {
   actions: { titre: "SEMC", n: 40 },
   disponible: 180_000,
   attendu: { montant: 90_000, retardJours: 28 },
-  reinvestissement: { destination: "Fonds Obligataire CEMAC", plancher: 25_000, dernier: { montant: 120_000, le: "14 juin" } },
-  epargne: { montant: 50_000, jour: 5, destination: "Fonds Obligataire CEMAC", prochain: "5 octobre" },
-  garde: { periode: "2026-T3", du: 0 },
+  reinvestissement: { destination: "Fonds Obligataire CEMAC", plancher: 25_000 },
+  epargne: { montant: 50_000, jour: 5, destination: "Fonds Obligataire CEMAC" },
   prochaineSeance: { pays: "Cameroun", quoi: "BTA 26 semaines", le: "2 octobre" },
   moisDHistorique: 14,
   appariementExecutable: false,
@@ -59,11 +58,12 @@ describe("les neuf services, quel que soit le client", () => {
     for (const s of servicesDuClient(garni)) expect(s.phrase.key.length).toBeGreaterThan(20);
   });
 
-  it("disent toujours où le service vit", () => {
-    for (const s of servicesDuClient(vide)) {
-      expect(s.ou.length).toBeGreaterThan(2);
-      expect(s.href.startsWith("/")).toBe(true);
-    }
+  /* Le lieu écrit (« Portefeuille › Espèces ») est parti le 5 octobre 2026 :
+     il tenait une seconde ligne sous chacun des neuf. Le lien, lui, reste la
+     seule chose qui mène quelque part, et un service sans destination est une
+     impasse qui ne se voit pas. */
+  it("mènent tous quelque part", () => {
+    for (const s of servicesDuClient(vide)) expect(s.href.startsWith("/")).toBe(true);
   });
 });
 
@@ -93,9 +93,6 @@ describe("l'état suit la donnée du client", () => {
     expect(m.get("passage")!.phrase.key).toMatch(/^Commencez par/);
     expect(m.get("sondage")!.etat).toBe("a_activer");
     expect(m.get("sondage")!.phrase.key).toMatch(/^Commencez par/);
-    // La phrase suffit : la sous-phrase justifiait, et elle ne s'affiche plus.
-    expect(m.get("passage")!.sinon).toBeUndefined();
-    expect(m.get("sondage")!.sinon).toBeUndefined();
   });
 
   /* AUCUN SERVICE N'EST FERMÉ. L'appariement que la maison n'exécute pas
@@ -169,10 +166,10 @@ describe("ce qu'une phrase dit, et ce qu'elle ne dit pas", () => {
     expect(dort.phrase.key).toMatch(/Dès qu'un coupon arrivera/);
   });
 
-  it("dit qu'une conservation n'a rien coûté plutôt que de se taire", () => {
-    expect(parCle(garni).get("garde")!.sinon?.key).toMatch(/ne vous a rien coûté/);
-    expect(parCle({ ...garni, garde: { periode: "2026-T3", du: 6301 } }).get("garde")!.sinon?.key).toMatch(/droits de garde/);
-  });
+  /* « L'avis du T3 ne vous a rien coûté » était une sous-phrase de la fiche du
+     service, et les sous-phrases sont parties le 5 octobre 2026. Le chiffre des
+     droits de garde se lit sur l'avis lui-même, qui est le document qui le
+     porte ; cette page n'en gardait qu'un écho. */
 });
 
 describe("ce qui attend une décision aujourd'hui", () => {

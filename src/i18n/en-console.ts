@@ -71,43 +71,27 @@ export const EN_CONSOLE: Record<string, string> = {
   /* ---------- ce que chaque service dit, avec vos chiffres ---------- */
   "Vos encaissements partent vers {d} dès qu'ils atteignent {m} FCFA.": "Your receipts go to {d} as soon as they reach {m} FCFA.",
   "Dernier versement : {m} FCFA le {d}.": "Last instalment: {m} FCFA on {d}.",
-  "Aucun versement encore produit : il partira au premier encaissement.": "No instalment produced yet: it will go on the first receipt.",
   "{m} FCFA sont disponibles et n'attendent rien : ils repartiraient sur la ligne que vous choisiriez.":
     "{m} FCFA are available and awaiting nothing: they would go back into the line you chose.",
   "Dès qu'un coupon arrivera, il repartirait sur la ligne que vous auriez choisie d'avance.":
     "As soon as a coupon arrives, it would go back into the line you had chosen in advance.",
   "{m} FCFA partent le {j} de chaque mois vers {d}.": "{m} FCFA go on the {j} of each month to {d}.",
-  "Prochain versement le {d}. Arrêtable d'un bouton, sans motif à donner.": "Next instalment on {d}. Stoppable with one button, with no reason to give.",
-  "Arrêtable d'un bouton, sans motif à donner.": "Stoppable with one button, with no reason to give.",
   "Un montant, un jour du mois, une destination fixée à la signature.": "An amount, a day of the month, a destination fixed at signing.",
-  "La destination est une ligne précise, jamais une catégorie : choisir chaque mois serait de la gestion.":
-    "The destination is a specific line, never a category: choosing each month would be portfolio management.",
   "{n} lignes inscrites à votre nom au dépositaire.": "{n} lines registered in your name at the depositary.",
-  "Avis du {p} : {m} FCFA de droits de garde.": "Statement for {p}: {m} FCFA of custody fees.",
-  "Avis du {p} émis : la conservation ne vous a rien coûté.": "Statement for {p} issued: custody cost you nothing.",
-  "Aucun avis encore émis sur cette période.": "No statement issued yet for this period.",
   "Dès votre première ligne, elle sera inscrite à votre nom au dépositaire.": "From your first line, it will be registered in your name at the depositary.",
-  "Le relevé porte chaque ligne, son échéancier et ce qui reste à venir.": "The statement carries every line, its schedule and what is still to come.",
   "Une séance {p} est annoncée le {d} : {q}.": "A {p} session is announced for {d}: {q}.",
-  "Aucune séance n'est annoncée pour l'instant : le calendrier les porte dès leur publication.":
-    "No session is announced right now: the calendar carries them as soon as they are published.",
+  "Le calendrier porte toutes les séances annoncées dès leur publication.": "The calendar carries all the announced sessions as soon as they are published.",
   "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.":
     "You can say at what rate you would be a buyer in the session of {d}, without committing.",
-  "L'émetteur voit une demande chiffrée, jamais un nom.": "The issuer sees a demand in figures, never a name.",
   "Aucune séance n'est annoncée : un sondage se tient devant une date.": "No session is announced: a survey stands in front of a date.",
   "Il rouvrira dès qu'un Trésor publiera son avis d'annonce.": "It will reopen as soon as a Treasury publishes its announcement notice.",
   "Vous détenez {n} parts de {d}, rachetables.": "You hold {n} units of {d}, redeemable.",
-  "Le rachat et la souscription seraient tenus ensemble, sans passer par votre banque.":
-    "The redemption and the subscription would be held together, without going through your bank.",
   "Vous ne détenez aucune part de fonds : un passage part d'un rachat.": "You hold no fund units: a switch starts from a redemption.",
   "Il s'ouvrira dès votre première souscription.": "It will open from your first subscription.",
-  "{n} fonds de la zone sont ouverts à la souscription.": "{n} funds of the zone are open for subscription.",
+  "Les fonds de la zone sont ouverts à la souscription.": "The funds of the zone are open for subscription.",
   "Aucun fonds n'est ouvert à la souscription en ce moment.": "No fund is open for subscription at the moment.",
-  "Leurs frais et leurs valeurs liquidatives se comparent sur une même page.": "Their fees and net asset values compare on a single page.",
   "Vous détenez {n} actions {d}, vendables sur la BVMAC.": "You hold {n} {d} shares, sellable on the BVMAC.",
   "Achat et vente sur la BVMAC, au dernier cours publié et à sa date.": "Buying and selling on the BVMAC, at the last published price and its date.",
-  "Une ligne qui n'a jamais traité n'a pas de prix de marché : son cours affiché est un prix de référence reporté.":
-    "A line that has never traded has no market price: the price shown is a carried-over reference price.",
   "Quand une intention inverse existe en interne, elle vous est signalée avant toute sortie sur le marché.":
     "When an opposite intention exists in house, you are told before anything goes out to the market.",
   "La maison détecte une intention inverse et vous la signale.": "The firm detects an opposite intention and tells you.",
@@ -151,8 +135,6 @@ export const EN_CONSOLE: Record<string, string> = {
   Réinvestissement: "Reinvestment",
   "Dès qu'un coupon ou un remboursement arrive réellement sur le compte, il repart sur la ligne que vous avez choisie d'avance.":
     "As soon as a coupon or a redemption actually reaches the account, it goes back into the line you chose in advance.",
-  "Il ne part que sur de l'argent constaté reçu, jamais sur une échéance simplement passée.":
-    "It only goes on money confirmed as received, never on a due date that has merely passed.",
   "Épargne programmée": "Savings plan",
   "Un montant, un jour du mois, une destination fixée à la signature. La maison exécute sans jamais rien choisir.":
     "An amount, a day of the month, a destination fixed at signing. The firm carries it out without ever choosing anything.",

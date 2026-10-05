@@ -22,11 +22,13 @@
 /* Le cadre porte l'icône ET l'état « où l'on est » : le trait, lui, ne change
    jamais de couleur, sinon la silhouette se lit deux fois. */
 /* Moitie plus grand qu au premier jet : a 54 px, la silhouette se devinait
-   plus qu elle ne se lisait, et le nom dessous tenait de la legende. */
+   plus qu elle ne se lisait, et le nom dessous tenait de la legende. Puis un
+   dixieme de moins le 5 octobre 2026, une fois les trois mots partis : sans
+   sous-titre, la tuile prenait plus de place pour dire moins. */
 .ico {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   margin: 0 auto var(--s-3);
   display: flex;
   align-items: center;
@@ -35,8 +37,8 @@
   background: var(--surface-2);
 }
 .ico svg {
-  width: 34px;
-  height: 34px;
+  width: 31px;
+  height: 31px;
   fill: none;
   stroke: var(--gold);
   stroke-width: 1.6;
@@ -45,14 +47,14 @@
 }
 .tuile b {
   display: block;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.25;
 }
 .tuile em {
   display: block;
   font-style: normal;
-  font-size: 0.9rem;
+  font-size: 0.81rem;
   color: var(--ink-3);
   line-height: 1.25;
   margin-top: var(--s-1);
