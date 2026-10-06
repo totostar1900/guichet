@@ -66,6 +66,11 @@ export const FAMILLES: Famille[] = [
   /* Prévue par le lecteur, jamais vue en production : sans elle, le jour où
      elle paraît, elle tombe au fourre-tout et fausse les comptes en silence. */
   { code: "T", genre: "avertissement", libelle: "Obligation : cellules incomplètes", quoiFaire: "La ligne est trouvée mais une de ses colonnes manque.", motif: /^Obligation.*cellules incomplètes/ },
+  /* La lecture géométrique est le dernier recours du lecteur. Quand elle non
+     plus ne sait pas ouvrir le document, la séance reste au texte aplati et
+     il faut le savoir : un recours qui renonce en silence ne vaut rien.
+     Prévue par le lecteur, jamais vue en production. */
+  { code: "U", genre: "anomalie", libelle: "Lecture géométrique impossible", quoiFaire: "Le document n'a pas pu être ouvert par la lecture de secours : la séance reste lue au texte seul.", motif: /^Lecture géométrique impossible/ },
 ];
 
 const PAR_CODE = new Map(FAMILLES.map((f) => [f.code, f]));

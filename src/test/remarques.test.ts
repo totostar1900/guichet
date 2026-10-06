@@ -36,6 +36,7 @@ const RÉELS: [string, string][] = [
   ["R", "En-tête du bulletin non reconnu : aucun cours n'a été retenu."],
   ["S", "En-tête du bulletin non reconnu (numéro / date)."],
   ["T", "Obligation CM0000020115 : cellules incomplètes."],
+  ["U", "Lecture géométrique impossible : Invalid PDF structure."],
 ];
 
 describe("chaque phrase du lecteur trouve sa famille", () => {
@@ -52,7 +53,7 @@ describe("chaque phrase du lecteur trouve sa famille", () => {
     expect(perdues).toEqual([]);
   });
 
-  it("les dix-huit familles sont toutes exercées, et leurs lettres sont uniques", () => {
+  it("les vingt-et-une familles sont toutes exercées, et leurs lettres sont uniques", () => {
     // Non vacuité : une famille sans exemple ne serait vérifiée par personne.
     expect(RÉELS.length).toBe(FAMILLES.length);
     expect(new Set(FAMILLES.map((f) => f.code)).size).toBe(FAMILLES.length);
@@ -135,7 +136,7 @@ describe("ce qu'une relecture peut encore gagner", () => {
 /**
  * LE CLIQUET CONTRE LA PRODUCTION, et non contre mes exemples.
  *
- * Les dix-huit phrases ci-dessus, je les ai choisies : elles prouvent que
+ * Les vingt-et-une phrases ci-dessus, je les ai choisies : elles prouvent que
  * chaque famille sait reconnaître ce que j'attends d'elle, pas qu'elle couvre
  * ce que le lecteur produit vraiment.
  *
@@ -154,9 +155,10 @@ describe("les formes relevées en production", () => {
   });
 
   /* T est prévue par le lecteur et n'a jamais paru en huit cents séances.
-     La déclarer ici vaut mieux que d'affaiblir l'assertion : le jour où elle
+     Il en va de même de U, le renoncement de la lecture géométrique.
+     Les déclarer ici vaut mieux que d'affaiblir l'assertion : le jour où elle
      paraît, le gabarit la verra, et la liste devra maigrir. */
-  const JAMAIS_VUES = ["T"];
+  const JAMAIS_VUES = ["T", "U"];
 
   it("et elles exercent toutes les familles, sauf celles déclarées jamais vues", () => {
     /* Non vacuité à l'envers : si le gabarit ne couvrait que trois familles,

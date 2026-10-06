@@ -3066,4 +3066,7 @@ export const EN_MORE: Record<string, string> = {
   "par date": "by date",
   "par ampleur": "by size",
   "Un compte qui baisse désigne un couple à ouvrir, il ne conclut pas : une ligne partie contre une ligne arrivée laisse le compte intact. Les séances dont rien n'a été lu sont écartées, leur état le dit déjà dans le tableau.": "A falling count points at a pair worth opening, it does not conclude: one line gone against one line arrived leaves the count untouched. Sessions where nothing at all was read are left out, since their status already says so in the table.",
+  // La famille U : le renoncement de la lecture géométrique.
+  "Lecture géométrique impossible": "Geometric read not possible",
+  "Le document n'a pas pu être ouvert par la lecture de secours : la séance reste lue au texte seul.": "The fallback reader could not open the document: the session stays read from the flat text alone.",
 };

@@ -6,6 +6,7 @@ import { fmt, fmtDate, localIso } from "@/lib/format";
 import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
+import { completerObligations } from "./boc-geometrie";
 import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
 import { loadCompanies, loadRegistry } from "@/lib/reference";
@@ -357,6 +358,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
 
   const text = await pdfText(bytes);
   const parsed = parseBoc(text);
+  const rattrapees = await completerObligations(parsed, bytes);
   const sessionDate = parsed.sessionDate || opts.sessionDate;
   /* « NE PAS GARDER » N EST PAS « OUBLIER ». Cette ligne écrivait undefined
      dès que keepPdf était faux, donc une relecture effaçait le pointeur d'une
@@ -467,7 +469,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     const flag = anomalies.length ? ` : <b>${anomalies.length} anomalie${anomalies.length > 1 ? "s" : ""} à vérifier</b>` : "";
     const newLines = created.filter((id) => id.startsWith("boc-")).length;
     const newFunds = created.filter((id) => id.startsWith("fund-")).length;
-    await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC n° ${parsed.bulletinNo}</b> du ${fmtDate(sessionDate)} ingéré : ${parsed.equities.length} actions, ${parsed.bonds.length} obligations, ${parsed.funds.length} OPCVM${idx}${newLines ? ` · ${newLines} nouvelle(s) ligne(s) cotée(s)` : ""}${newFunds ? ` · ${newFunds} fonds ajouté(s) (sur demande)` : ""}${flag}` });
+    await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC n° ${parsed.bulletinNo}</b> du ${fmtDate(sessionDate)} ingéré : ${parsed.equities.length} actions, ${parsed.bonds.length} obligations, ${parsed.funds.length} OPCVM${idx}${newLines ? ` · ${newLines} nouvelle(s) ligne(s) cotée(s)` : ""}${newFunds ? ` · ${newFunds} fonds ajouté(s) (sur demande)` : ""}${rattrapees.length ? ` · ${rattrapees.length} obligation(s) retrouvée(s) par la lecture géométrique` : ""}${flag}` });
     for (const n of parsed.notices) await r.logEvent({ kind: "desk", html: `<b>Avis BVMAC</b> (BOC n° ${parsed.bulletinNo}) : ${n.replace(/</g, "&lt;")}` });
   }
   return { found: true, bulletin, created, refreshed };
