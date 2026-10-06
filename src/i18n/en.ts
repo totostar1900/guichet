@@ -363,4 +363,16 @@ export const EN: Record<string, string> = {
   "Le fonds n'a pas encore {f} : il n'y a rien à mesurer sur cette fenêtre.": "The fund is not yet {f} old: there is nothing to measure over this window.",
   "Le fonds est à la cote depuis moins de {f} : le bulletin ne publie pas de VL plus ancienne.": "The fund has been listed for less than {f}: the bulletin publishes no earlier NAV.",
   "Nos VL ne remontent pas à {f} : le chiffre existe, nous ne l'avons pas encore lu.": "Our NAVs do not go back {f}: the figure exists, we have not read it yet.",
+  // Le nuage de la cote : rendement contre vie restante.
+  "Les deux": "Both",
+  "Vie restante": "Time left",
+  "Rendement et durée des lignes cotées": "Yield and time left of the listed lines",
+  "Ce qu'on regarde": "What is shown",
+  "{n} ligne(s) sur le tracé": "{n} line(s) plotted",
+  "{n} sans rendement calculable": "{n} with no computable yield",
+  "a quitté le pair": "has left par",
+  "rendement inconnu": "yield unknown",
+  "{n} ligne(s) retenue(s) sur {m}": "{n} line(s) kept out of {m}",
+  "Tirez un rectangle pour ne garder qu'une poignée de lignes. Un point mène à la ligne.": "Drag a rectangle to keep only a handful of lines. A dot leads to the line.",
+  "Tirez à même la bande pour ne garder qu'une plage. Un point mène à la ligne.": "Drag across the band to keep only one range. A dot leads to the line.",
 };

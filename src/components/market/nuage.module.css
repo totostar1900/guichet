@@ -1,0 +1,208 @@
+/* Le nuage de la cote : rendement contre vie restante.
+   Les espaces viennent de l'échelle (--s-1 à --s-11), les tailles de la sienne.
+
+   LES QUATRE TEINTES SONT VALIDÉES, pas choisies à l'œil : bande de clarté,
+   plancher de chroma, séparation en vision daltonienne (pire paire adjacente
+   ΔE 14,0 en deutan pour un plancher de 8), plancher en vision normale et
+   contraste sur le fond. Les cinq contrôles passent en clair ET en sombre,
+   avec les mêmes valeurs : c'est pourquoi elles ne changent pas d'un thème à
+   l'autre. Les retoucher demande de repasser le validateur. */
+.bloc {
+  padding-block: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-5);
+}
+.tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.mesures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+.mesEtiq {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-right: var(--s-1);
+}
+.mes {
+  font: inherit;
+  font-size: var(--t-2);
+  font-weight: 600;
+  padding: var(--s-2) var(--s-4);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  cursor: pointer;
+}
+.mes:hover {
+  border-color: var(--ink-3);
+}
+/* La mesure choisie porte un fond plein ET son filet : un fond seul perd
+   contre le survol, qui gagne sur l'élément choisi. */
+.mes[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+.compte {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.legende span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.legende i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.t1 { background: #5496dd; }
+.t2 { background: #cf7f2e; }
+.t3 { background: #b474d4; }
+.t4 { background: #53a173; }
+/* Les deux pays de la CEMAC qui n'ont pas de ligne cotée partagent ce gris,
+   nommé « autres » : une cinquième teinte fabriquée ne tiendrait pas les
+   contrôles, et une teinte qu'on ne distingue pas ne dit rien. */
+.tx { background: var(--ink-3); }
+
+/* ---- Le tracé ---- */
+.trace {
+  position: relative;
+  margin-top: var(--s-4);
+  cursor: crosshair;
+  /* « pan-y » et non « none » : le tiré horizontal est à nous, le défilement
+     vertical reste au doigt. */
+  touch-action: pan-y;
+  user-select: none;
+}
+.traceNuage {
+  height: 300px;
+  padding-left: var(--s-7);
+}
+.gx,
+.gy {
+  position: absolute;
+  background: var(--line-2);
+}
+.gx {
+  width: 1px;
+  top: 0;
+  bottom: 18px;
+}
+.gy {
+  height: 1px;
+  left: 0;
+  right: 0;
+}
+.gx b,
+.gy b {
+  position: absolute;
+  font-size: var(--t-1);
+  font-weight: 400;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gx b {
+  bottom: -18px;
+  left: 0;
+
+}
+.gy b {
+  left: -34px;
+  top: -0.6em;
+}
+
+/* Le point EST la ligne : c'est un lien, et il doit s'en avoir l'air au
+   survol comme au clavier. */
+.pt {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, 50%);
+  box-shadow: 0 0 0 2px var(--surface);
+  text-decoration: none;
+}
+.pt:hover,
+.pt:focus-visible {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+  z-index: 6;
+  outline: none;
+}
+/* L'anneau or dit « cette ligne a quitté le pair », c'est-à-dire que son
+   rendement n'est plus son coupon. La couleur, elle, dit déjà le pays : deux
+   faits, deux encodages, jamais la même teinte pour les deux. */
+.anneau {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold, var(--warn));
+}
+.anneau:hover,
+.anneau:focus-visible {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold, var(--warn)), 0 0 0 6px var(--ink-3);
+}
+/* Hors plage : le point reste, pâli. Le retirer ferait croire qu'il n'existe
+   pas, là où il est seulement écarté. */
+.hors {
+  opacity: 0.17;
+}
+.nom {
+  position: absolute;
+  font-size: var(--t-1);
+  color: var(--ink-2);
+  white-space: nowrap;
+  pointer-events: none;
+
+}
+
+.etat {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+.muet {
+  color: var(--ink-3);
+}
+.vider {
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink);
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: var(--s-2);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .traceNuage {
+    height: 230px;
+  }
+}

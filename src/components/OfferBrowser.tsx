@@ -16,6 +16,8 @@ import { DensitySwitch, useDistinction } from "./Density";
 import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
 import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
+import { NuageTitres } from "./market/NuageTitres";
+import { estMesure, MESURE_PAR_DEFAUT, type MesureNuage } from "@/lib/domain/nuage";
 import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
@@ -404,6 +406,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const status = setOf("statut");
   const tenor = setOf("duree");
   const yr = parseYieldRange(sp.get("rendement"));
+  /* Ce que le nuage montre : les deux axes, ou l'un des deux seul. */
+  const mesure: MesureNuage = estMesure(sp.get("mesure")) ? (sp.get("mesure") as MesureNuage) : MESURE_PAR_DEFAUT;
   /**
    * LA PAGE DES ADJUDICATIONS N'EST PAS UNE COTE, ET SA BARRE NE DOIT PAS
    * L'ÊTRE.
@@ -424,7 +428,11 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
      titre figé par bloc, qui est le sommaire. */
   const sommaire = adj || lieu === "cote";
   const armees = useMemo(() => new Set(suivis ?? []), [suivis]);
-  const dr = parseDureeRange(adj ? sp.get("ans") : null);
+  /* LA PLAGE DE DURÉE VAUT AUSSI SUR LA COTE DEPUIS LE NUAGE. Elle n'était
+     lue qu'aux adjudications, où la jauge la pose ; le nuage de la cote la
+     pose à son tour, et une adresse qui porte « ans » doit filtrer là où le
+     geste existe, sinon le tracé se resserre et la liste ne bouge pas. */
+  const dr = parseDureeRange(adj || lieu === "cote" ? sp.get("ans") : null);
   /* Les durées de TOUTES les lignes du lieu : les barres de la jauge doivent
      montrer la distribution entière, pas celle de ce qui reste après filtre,
      sinon la jauge se vide à mesure qu'on s'en sert. */
@@ -503,11 +511,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   /* TOUT EFFACER VEUT DIRE TOUT : les filtres, la recherche, la section
      choisie, l'ordre et son sens. Il ne remettait que les filtres, et qui
      avait trié gardait son ordre après l'avoir touché. */
-  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined });
+  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined, mesure: undefined });
   const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
   /* Ce que « Tout effacer » aurait à défaire : il se lit après le compte des
      filtres, qui en fait partie. */
-  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionChoisie);
+  /* « mesure » n'est pas un filtre, elle ne retire aucune ligne : elle est
+     dans « Tout effacer » pour la raison du tri, parce qu'effacer veut dire
+     rendre la page telle qu'elle s'ouvre. */
+  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionChoisie) || Boolean(sp.get("mesure"));
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
@@ -554,42 +565,52 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     return c;
   }, [offers]);
 
+  /**
+   * LE CRIBLE, ÉCRIT UNE FOIS, ET SES DEUX PLAGES EN OPTION.
+   *
+   * Le nuage doit montrer les lignes que les AUTRES filtres retiennent, sans
+   * se filtrer lui-même : s'il ne montrait que sa propre plage, resserrer
+   * ferait disparaître le reste de la distribution et on ne saurait plus par
+   * rapport à quoi on s'est resserré. Il lui faut donc la même liste, moins
+   * les deux bornes qu'il pose. Recopier le crible pour cela, c'était deux
+   * vérités sur la même page le jour où l'une des deux change.
+   */
+  const garde = (o: Offer, ql: string, avecPlages: boolean): boolean => {
+    const st = displayStatus(o, now);
+    const fam = offerFamily(o);
+    if (segment && familySegment(fam) !== segment) return false;
+    if (sectionChoisie && sectionDe(o) !== sectionChoisie) return false;
+    if (kind.size && !kind.has(fam)) return false;
+    if (country.size && !country.has(o.country)) return false;
+    if (status.size) {
+      const sel = status.has("selection") && summarize(o, now).badges.some((b) => b.key === "selection");
+      const rest = new Set([...status].filter((x) => x !== "selection"));
+      if (!sel && (rest.size === 0 || !rest.has(normStatus(st)))) return false;
+    }
+    if (tenor.size) {
+      const t = tenorYears(o);
+      const k = o.kind === "ACTIONS" || o.kind === "FONDS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
+      if (!tenor.has(k)) return false;
+    }
+    if (avecPlages && (dr.min != null || dr.max != null)) {
+      const an = tenorYears(o);
+      if (!(an > 0) || (dr.min != null && an < dr.min) || (dr.max != null && an > dr.max)) return false;
+    }
+    if (avecPlages && (yr.min != null || yr.max != null)) {
+      const y = headlineYield(o);
+      if (y == null || (yr.min != null && y < yr.min) || (yr.max != null && y > yr.max)) return false;
+    }
+    if (ql) {
+      // les deux écritures : celle de la ligne et celle du registre, qui rassemble les alias
+      const hay = [o.title, o.isin, o.issuer, issuerKey(o), o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ");
+      if (!fold(hay).includes(ql)) return false;
+    }
+    return true;
+  };
+
   const rows = useMemo(() => {
     const ql = fold(q.trim());
-    const out = offers
-      .filter((o) => {
-        const st = displayStatus(o, now);
-        const fam = offerFamily(o);
-        if (segment && familySegment(fam) !== segment) return false;
-        if (sectionChoisie && sectionDe(o) !== sectionChoisie) return false;
-        if (kind.size && !kind.has(fam)) return false;
-        if (country.size && !country.has(o.country)) return false;
-        if (status.size) {
-          const sel = status.has("selection") && summarize(o, now).badges.some((b) => b.key === "selection");
-          const rest = new Set([...status].filter((x) => x !== "selection"));
-          if (!sel && (rest.size === 0 || !rest.has(normStatus(st)))) return false;
-        }
-        if (tenor.size) {
-          const t = tenorYears(o);
-          const k = o.kind === "ACTIONS" || o.kind === "FONDS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
-          if (!tenor.has(k)) return false;
-        }
-        if (dr.min != null || dr.max != null) {
-          const an = tenorYears(o);
-          if (!(an > 0) || (dr.min != null && an < dr.min) || (dr.max != null && an > dr.max)) return false;
-        }
-        if (yr.min != null || yr.max != null) {
-          const y = headlineYield(o);
-          if (y == null || (yr.min != null && y < yr.min) || (yr.max != null && y > yr.max)) return false;
-        }
-        if (ql) {
-          // les deux écritures : celle de la ligne et celle du registre, qui rassemble les alias
-          const hay = [o.title, o.isin, o.issuer, issuerKey(o), o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ");
-          if (!fold(hay).includes(ql)) return false;
-        }
-        return true;
-      })
-      .map((o) => ({ o, s: summarize(o, now) }));
+    const out = offers.filter((o) => garde(o, ql, true)).map((o) => ({ o, s: summarize(o, now) }));
     const cmp = (a: { o: Offer; s: OfferSummary }, b: { o: Offer; s: OfferSummary }): number => {
       switch (sort) {
         case "deadline": {
@@ -621,6 +642,20 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offers, now, sp, sort, dir]);
+
+  /**
+   * LES POINTS DU NUAGE : les lignes à échéance, sans les deux plages qu'il
+   * pose lui-même. Une action n'y figure pas, et ce n'est pas un oubli :
+   * sans échéance ni rendement actuariel, elle n'a aucun des deux axes.
+   */
+  const pointsDuNuage = useMemo(() => {
+    const ql = fold(q.trim());
+    return offers
+      .filter((o) => o.maturityOn && garde(o, ql, false))
+      .map((o) => ({ id: o.id, titre: o.title, pays: o.country, ans: tenorYears(o), ytm: headlineYield(o) ?? null, coupon: o.couponRate, cours: o.pricePct ?? o.lastPrice }))
+      .filter((p) => p.ans > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers, now, sp]);
 
   const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
   // « À la une » : the desk's picks, in their own frame under the toolbar, in the same view as the list.
@@ -960,6 +995,27 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         )}
         {view === "cards" && !desk && !sommaire && <DensitySwitch />}
       </div>
+
+      {/* LE NUAGE NE PARAÎT QUE SUR LA COTE. Aux adjudications, huit séances
+          de la même famille se lisent dans leurs deux jauges, qui posent déjà
+          les mêmes bornes ; ailleurs il n'y a pas d'échéance à porter en
+          abscisse. Il se tient entre les commandes et la liste parce qu'il
+          est les deux : il montre, et il resserre. */}
+      {lieu === "cote" && (
+        <NuageTitres
+          points={pointsDuNuage}
+          mesure={mesure}
+          surMesure={(m) => update({ mesure: m === MESURE_PAR_DEFAUT ? undefined : m })}
+          duree={dr}
+          rendement={yr}
+          surZone={(z) =>
+            update({
+              ...(z.duree ? { ans: dureeRangeParam(z.duree.min, z.duree.max) } : {}),
+              ...(z.rendement ? { rendement: yieldRangeParam(z.rendement.min, z.rendement.max) } : {}),
+            })
+          }
+        />
+      )}
 
       {picks.length > 0 && (
         <section className={styles.featured} aria-label={t("À la une")}>
