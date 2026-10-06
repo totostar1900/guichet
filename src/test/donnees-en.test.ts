@@ -5,6 +5,7 @@ import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { DESK_GROUPS } from "@/components/DeskNav";
+import { FAMILLES, VUES } from "@/lib/market/remarques";
 
 /**
  * LES DONNÉES LIVRÉES PASSENT EN ANGLAIS, ELLES AUSSI.
@@ -100,5 +101,33 @@ describe("la barre du desk passe en anglais", () => {
     // Une barre vidée passerait le test précédent sans rien couvrir.
     expect(DESK_GROUPS.length).toBeGreaterThanOrEqual(4);
     expect(DESK_GROUPS.flatMap((g) => g.tabs).length).toBeGreaterThan(25);
+  });
+});
+
+/**
+ * LES MOTS DU BULLETIN : familles de remarques et vues du dépôt.
+ *
+ * Vingt libellés de famille, vingt conseils, cinq noms de vue et cinq
+ * phrases : tous traversent t() sous forme de VARIABLE, donc le scanner de
+ * clefs ne les voit pas. C'est le même angle mort que la barre du desk, qui a
+ * laissé passer quatre étiquettes le matin même du 6 octobre 2026.
+ *
+ * La règle qui en sort : toute table de mots affichés a besoin de son propre
+ * cliquet de couverture. Celle-ci est la troisième, après la barre du desk et
+ * les contrôles de Santé.
+ */
+describe("les mots du dépôt des bulletins passent en anglais", () => {
+  it("chaque famille de remarque : son libellé et son conseil", () => {
+    vide("familles", inventaire(FAMILLES.flatMap((f) => [f.libelle, f.quoiFaire])));
+  });
+
+  it("chaque vue : son nom et sa phrase", () => {
+    vide("vues", inventaire(VUES.flatMap((v) => [v.nom, v.dit])));
+  });
+
+  it("et les deux tables regardent bien quelque chose", () => {
+    // Une table vidée passerait les deux tests précédents sans rien couvrir.
+    expect(FAMILLES.length).toBeGreaterThanOrEqual(18);
+    expect(VUES.length).toBeGreaterThanOrEqual(4);
   });
 });

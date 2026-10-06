@@ -57,3 +57,160 @@
   gap: 8px;
   white-space: nowrap;
 }
+
+/* ---------- les vues : des préréglages, pas des filtres ----------
+   Elles se distinguent de la rangée du dessous, qui affine ce qu'une vue a
+   posé : même grammaire visuelle, un cran plus affirmé. */
+.vues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-block: 8px 4px;
+}
+.vue,
+.vueOn {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.vue:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+.vueOn {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--on-navy);
+}
+.vue em,
+.vueOn em {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+/* ---------- le tableau et sa matrice ---------- */
+.avecMatrice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 272px;
+  gap: 16px;
+  align-items: start;
+}
+/* Sous 1100 px la matrice prendrait la place du tableau : elle passe dessous,
+   où elle reste une légende utile même sans servir de filtre. */
+@media (max-width: 1100px) {
+  .avecMatrice {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.matrice {
+  border: 1px solid var(--line);
+}
+.matrice > .titreFiltre {
+  display: block;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+.mrow,
+.mrowOn {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-2);
+  text-decoration: none;
+  color: inherit;
+}
+.mrow:hover {
+  background: var(--surface-2);
+}
+.mrowOn {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+.mrow b,
+.mrowOn b {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.mrow small,
+.mrowOn small {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+.mrowOn small {
+  color: var(--on-navy-2, #b9c6da);
+}
+.mrow em,
+.mrowOn em {
+  font-style: normal;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.mrowOn em {
+  color: var(--on-navy);
+}
+.notule {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+/* ---------- les pastilles de code ---------- */
+.codes {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+.code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 5px;
+  border: 1px solid;
+}
+.code sup {
+  font-size: 0.52rem;
+  margin-left: 1px;
+}
+/* Anomalie et avertissement ne se réparent pas pareil : la couleur le dit
+   avant la lecture. */
+.codeA {
+  color: var(--crit);
+  border-color: var(--crit);
+  background: var(--crit-soft);
+}
+.codeW {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.muetTri {
+  opacity: 0.35;
+}
+.groupe td {
+  background: var(--surface-2);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.groupe td span {
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 8px;
+}

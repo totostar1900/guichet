@@ -122,3 +122,33 @@ export function jamaisReparable(b: Pick<MarketBulletin, "anomalies" | "warnings"
 /** Elle porte au moins un défaut que le lecteur peut encore corriger. */
 export const reparable = (b: Pick<MarketBulletin, "anomalies" | "warnings" | "status" | "counts">): boolean =>
   enAttente(b) && codes(b).some((x) => !CODES_DE_DATE.has(x));
+
+/**
+ * LES VUES DU DÉPÔT : des préréglages, et non des tableaux séparés.
+ *
+ * « À reprendre » n'est pas une seconde table : c'est la même, filtrée et
+ * remise dans l'ordre de la file. Les séparer mettait deux fois les mêmes
+ * séances sur une page, ce qui est le défaut que l'audit du 6 octobre 2026 a
+ * passé la journée à retirer d'ailleurs.
+ *
+ * Elles vivent ici, et non dans la page, pour deux raisons : « ce qui
+ * attend », « ce qui est réparable » et « ce qui ne le sera jamais » sont des
+ * notions du bulletin ; et leurs noms traversent t() sous forme de variable,
+ * donc seuls un module de domaine et son cliquet peuvent les couvrir.
+ */
+export interface Vue {
+  id: string;
+  nom: string;
+  ou: (b: MarketBulletin) => boolean;
+  /** Une vue de travail : la file passe en tête, dans son ordre à elle. */
+  file?: boolean;
+  dit: string;
+}
+
+export const VUES: Vue[] = [
+  { id: "tout", nom: "Tout le dépôt", ou: () => true, dit: "Les séances lues, la plus récente d'abord." },
+  { id: "reprendre", nom: "À reprendre", ou: enAttente, file: true, dit: "La file de relecture, la moins récemment reprise en tête : c'est cet ordre qui empêche les mêmes de revenir sans fin." },
+  { id: "reparable", nom: "Réparable", ou: reparable, file: true, dit: "Au moins un défaut que le lecteur peut encore corriger. C'est le vrai arriéré." },
+  { id: "jamais", nom: "Jamais réparable", ou: jamaisReparable, dit: "Retenues par les seuls codes de date : elles réclament un indice ou une table OPCVM qui n'existaient pas encore. Aucune relecture ne les libérera." },
+  { id: "sanscopie", nom: "Sans notre copie", ou: (b) => !b.fileKey, dit: "Le PDF n'existe que chez la bourse. Si elle réorganise ses dossiers, la séance devient irrelisable." },
+];
