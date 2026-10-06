@@ -6,6 +6,7 @@ import { readSource } from "@/lib/intake/storage";
 import { bocUrl, bondQuote, equityQuote, fetchBoc, fundNav, pdfText, validate } from "@/lib/market/boc";
 import { parseBoc } from "@/lib/market/boc-parse";
 import { classer, codes as codesDe, famille, remarques } from "@/lib/market/remarques";
+import { comparer, verdict, type Ecart } from "@/lib/market/comparer";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -93,6 +94,41 @@ export default async function RapportPage({ params }: { params: Promise<{ seance
       panne = e instanceof Error ? e.message : t("Lecture impossible.");
     }
   }
+
+  /* LA COMPARAISON AVEC LA VEILLE.
+
+     Le desk ouvre un rapport parce que la séance a quelque chose, et le
+     tableau lui dit « 17 obligations au lieu de 29 » sans dire LESQUELLES.
+     Surtout, il ne dit pas si elles sont sorties de la cote ou si le lecteur
+     les a ratées : seule la suite de la série tranche, et c'est une requête
+     par ligne partie, soit une à trois par couple. */
+  const avant = bulletins.filter((x) => x.sessionDate < seance).sort((x, y) => y.sessionDate.localeCompare(x.sessionDate))[0];
+  let ecart: Ecart | undefined;
+  if (avant) {
+    const [ca, cb] = await Promise.all([r.quotesOn(avant.sessionDate).catch(() => []), r.quotesOn(seance).catch(() => [])]);
+    if (ca.length || cb.length) {
+      ecart = comparer(ca, cb);
+      /* Chaque ligne partie est jugée par la suite de la série : si elle
+         reparaît, elle n'est jamais sortie de la cote. */
+      await Promise.all(
+        ecart.partis.map(async (x) => {
+          const suite = await r.listQuotes(x.isin, 2000).catch(() => []);
+          const apres = suite.filter((z) => z.sessionDate > seance).sort((z, y) => z.sessionDate.localeCompare(y.sessionDate))[0];
+          if (apres) x.retour = apres.sessionDate;
+        }),
+      );
+      /* Une arrivée est une première cotation si la ligne n'a jamais été vue. */
+      await Promise.all(
+        ecart.arrivees.map(async (x) => {
+          const suite = await r.listQuotes(x.isin, 2000).catch(() => []);
+          x.premiere = !suite.some((z) => z.sessionDate < seance);
+        }),
+      );
+    }
+  }
+  const dit = ecart ? verdict(ecart) : undefined;
+  const passageres = ecart?.partis.filter((x) => x.retour) ?? [];
+  const durables = ecart?.partis.filter((x) => !x.retour) ?? [];
 
   const enBase = remarques(b);
   const statutFrais = frais ? (frais.anomalies.length || frais.notes.length ? "partiel" : "ok") : undefined;
@@ -218,6 +254,78 @@ export default async function RapportPage({ params }: { params: Promise<{ seance
                   {n.attendu && <small>{t("attendu")} : {n.attendu}</small>}
                 </div>
               ))}
+          </div>
+        </section>
+      )}
+
+      {ecart && avant && (
+        <section className="panel">
+          <div className="panel-h">
+            <h2>{t("Ce qui a changé depuis le {d}", { d: avant.sessionDate })}</h2>
+            <span className="muted">{t("{n} lignes cotées des deux côtés", { n: ecart.communes })}</span>
+          </div>
+
+          {/* LE VERDICT D'ABORD. Une ligne qui revient n'est jamais sortie de la
+              cote : sur les 805 couples de la série, 398 disparitions sur 406
+              sont des défauts de lecture, et les nommer « sortie de cote »
+              enverrait le desk vérifier un remboursement qui n'a pas eu lieu. */}
+          <p className={dit === "rien" ? styles.verdictNon : passageres.length ? styles.verdictOui : styles.verdictNon}>
+            {dit === "rien"
+              ? t("Aucune rupture : les deux séances cotent exactement les mêmes lignes.")
+              : [
+                  durables.length ? t("{n} ligne(s) quittent la cote pour de bon.", { n: durables.length }) : "",
+                  passageres.length ? t("{n} ligne(s) manquent ici et reviennent plus tard : ce n'est pas une sortie de cote, c'est une lecture incomplète.", { n: passageres.length }) : "",
+                  ecart.arrivees.length ? t("{n} ligne(s) apparaissent.", { n: ecart.arrivees.length }) : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+          </p>
+
+          <div className={styles.colonnes}>
+            <div>
+              <h3>{t("Parties")}</h3>
+              {ecart.partis.length === 0 ? (
+                <p className="muted">{t("Aucune.")}</p>
+              ) : (
+                ecart.partis.map((x) => (
+                  <div key={x.isin} className={styles.diff}>
+                    <b className="mono">{x.mnemo}</b>
+                    <span className={x.retour ? styles.passagere : styles.durable}>{x.retour ? t("passagère") : t("définitive")}</span>
+                    <small>{x.retour ? t("revient le {d}", { d: x.retour }) : t("ne revient jamais : sortie de cote")}</small>
+                  </div>
+                ))
+              )}
+            </div>
+            <div>
+              <h3>{t("Apparues")}</h3>
+              {ecart.arrivees.length === 0 ? (
+                <p className="muted">{t("Aucune.")}</p>
+              ) : (
+                ecart.arrivees.map((x) => (
+                  <div key={x.isin} className={styles.diff}>
+                    <b className="mono">{x.mnemo}</b>
+                    <span className={x.premiere ? styles.neuve : styles.passagere}>{x.premiere ? t("première cotation") : t("retour")}</span>
+                    <small>{x.premiere ? t("jamais cotée avant") : t("déjà vue auparavant")}</small>
+                  </div>
+                ))
+              )}
+            </div>
+            <div>
+              <h3>{t("Cours qui bougent ({n})", { n: ecart.bouges.length })}</h3>
+              {ecart.bouges.length === 0 ? (
+                <p className="muted">{t("Aucun.")}</p>
+              ) : (
+                ecart.bouges.slice(0, 20).map((x) => (
+                  <div key={x.isin} className={styles.diff}>
+                    <b className="mono">{x.mnemo}</b>
+                    <small>
+                      {x.avant.toLocaleString("fr-FR")} → {x.apres.toLocaleString("fr-FR")}
+                      {x.variation == null ? "" : ` · ${x.variation > 0 ? "+" : ""}${x.variation.toFixed(2).replace(".", ",")} %`}
+                    </small>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </section>
       )}

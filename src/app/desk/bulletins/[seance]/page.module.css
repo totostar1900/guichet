@@ -160,3 +160,66 @@
   border-color: var(--warn);
   background: var(--warn-soft);
 }
+
+/* Les trois colonnes de la comparaison : parties, apparues, cours bougés. */
+.colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.colonnes h3 {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.colonnes p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+.diff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.diff b {
+  font-size: 0.84rem;
+}
+.diff small {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+/* Définitive et passagère ne demandent pas le même geste : l'une se constate,
+   l'autre se corrige. La couleur le dit avant la lecture. */
+.durable,
+.passagere,
+.neuve {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border: 1px solid;
+}
+/* Pas de blanc sur --crit : en thème sombre c est un saumon clair, et le
+   contraste tombe à 2,42:1. La même recette que les pastilles de code, la
+   teinte portant la distinction plutôt que le renversement. */
+.durable {
+  color: var(--crit);
+  background: var(--crit-soft);
+  border-color: var(--crit);
+}
+.passagere {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+.neuve {
+  color: var(--good);
+  border-color: var(--good);
+}
