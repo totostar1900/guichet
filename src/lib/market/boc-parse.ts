@@ -95,6 +95,9 @@ export interface BocParsed {
   capitalisation: BocCapitalisation[];
   notices: string[]; // titles of the avis (amortissements, paiements d'intérêts…)
   warnings: string[];
+  /* Les mêmes phrases, avec la ligne fautive quand il y en a une. Le rapport
+     d'une séance s'en sert ; l'ingestion n'en garde que « warnings ». */
+  notes: Note[];
 }
 
 const ISIN_RE = /^([A-Z]{2})\s?(\d{10})$/;
@@ -111,9 +114,42 @@ export const isoDate = (d: string): string => {
   return m ? `${m[3]}-${m[2].slice(-2)}-${m[1]}` : d;
 };
 
+/** Une phrase du lecteur, et ce sur quoi il a buté quand il y a de quoi. */
+export interface Note {
+  message: string;
+  /** Le texte du PDF que le lecteur n'a pas su lire, tel quel. */
+  brut?: string;
+  /** Ce qu'il y cherchait, en clair. */
+  attendu?: string;
+}
+
+/**
+ * LE CARNET DU LECTEUR.
+ *
+ * Il remplace le tableau de chaînes que les cinq fonctions de section se
+ * passaient, et il garde `push` : les dix-sept appels existants n'ont pas
+ * bougé. Les huit endroits où une ligne fautive existe appellent `sur`, qui
+ * garde en plus le texte brut et le motif attendu.
+ *
+ * Sans cela, un rapport ne peut rien dire de plus que la phrase : le texte
+ * sur lequel le lecteur a buté était jeté à l'instant même de l'échec.
+ */
+export class Carnet {
+  readonly notes: Note[] = [];
+  push(message: string): void {
+    this.notes.push({ message });
+  }
+  sur(message: string, brut: string, attendu?: string): void {
+    this.notes.push({ message, brut: brut.slice(0, 400), attendu });
+  }
+  get messages(): string[] {
+    return this.notes.map((n) => n.message);
+  }
+}
+
 export function parseBoc(text: string): BocParsed {
   const lines = text.split(/\r?\n/).map((l) => l.replace(/ /g, " ").trim());
-  const warnings: string[] = [];
+  const warnings = new Carnet();
 
   const head = text.match(/BULLETIN OFFICIEL DE LA COTE N°\s*(\d+)\s+DU\s+(\d{2}\/\d{2}\/\d{4})/);
   const bulletinNo = head ? Number(head[1]) : 0;
@@ -138,13 +174,13 @@ export function parseBoc(text: string): BocParsed {
   const capitalisation = parseCapitalisation(lines, warnings);
   const notices = lines.filter((l) => /^«.*»\s*$/.test(l)).map((l) => l.replace(/[«»]/g, "").trim());
 
-  return { bulletinNo, sessionDate, index, equities, bonds, funds, capitalisation, notices, warnings };
+  return { bulletinNo, sessionDate, index, equities, bonds, funds, capitalisation, notices, warnings: warnings.messages, notes: warnings.notes };
 }
 
 /* ---------------- Capitalisation boursière ---------------- */
 // One cell per line after the ISIN: mnemo, short name, close, float shares, total shares,
 // then either "dividend amount / year / date" or "-", liquidity, "-", EPS (or "-"), float cap, global cap.
-function parseCapitalisation(lines: string[], warnings: string[]): BocCapitalisation[] {
+function parseCapitalisation(lines: string[], warnings: Carnet): BocCapitalisation[] {
   const out: BocCapitalisation[] = [];
   const start = lines.findIndex((l) => /^CAPITALISATION BOURSIERE/.test(l));
   if (start < 0) {
@@ -165,7 +201,7 @@ function parseCapitalisation(lines: string[], warnings: string[]): BocCapitalisa
     const nums = cells.filter(isNum).map(num);
     const mnemo = cells[0];
     if (nums.length < 5) {
-      warnings.push(`Capitalisation ${isin} : cellules incomplètes.`);
+      warnings.sur(`Capitalisation ${isin} : cellules incomplètes.`, cells.join(" | "), "douze cellules : mnémonique, nom, cours, flottant, total, dividende, année, date, liquidité, bénéfice, capitalisation flottante, capitalisation globale");
       continue;
     }
     const [close, sharesFloat, sharesTotal] = nums;
@@ -258,7 +294,7 @@ function parseEquityDense(isin: string, issuer: string, line: string): BocEquity
   };
 }
 
-function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
+function parseEquities(lines: string[], warnings: Carnet): BocEquity[] {
   const out: BocEquity[] = [];
   const start = lines.findIndex((l) => /^MARCHE DES ACTIONS/.test(l));
   const end = lines.findIndex((l, i) => i > start && /^MARCHE DES OBLIGATIONS/.test(l));
@@ -287,8 +323,13 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
     // The row sits on the next 1 to 4 lines: today everything is glued together,
     // before November 2025 the close, the date and the rest came out separately.
     let dense: BocEquity | undefined;
+    /* Le dernier candidat examiné survit à la boucle : c'est lui que le
+       rapport montre quand aucun des quatre n'a été reconnu. Sans cela, le
+       texte sur lequel le lecteur bute est jeté à l'instant de l'échec. */
+    let dernier = "";
     for (let k = 1; k <= 4 && !dense; k++) {
       const cand = section.slice(i + 1, i + 1 + k).join("").replace(/^[A-Za-z\s-]+(?=\d)/, "");
+      dernier = cand;
       // La virgule du cours précédent fait partie du nombre : « 50 000,0031/05/2024 ».
       if (/^[\d ,]+\d{2}\/\d{2}\/\d{4}/.test(cand)) dense = parseEquityDense(isin, issuer, cand);
     }
@@ -298,7 +339,7 @@ function parseEquities(lines: string[], warnings: string[]): BocEquity[] {
     }
     const m = section[i].match(ISIN_RE);
     if (!m) {
-      warnings.push(`Action ${isin} : ligne dense non reconnue.`);
+      warnings.sur(`Action ${isin} : ligne dense non reconnue.`, dernier, "cours précédent, date, cours du jour, statut, volumes et seuils, collés sur une ligne");
       continue;
     }
     const cells = section.slice(i + 1, i + 24);
@@ -401,7 +442,7 @@ function splitOld(digits: string, dec: string, pct: number): { price: number; no
   return undefined;
 }
 
-function parseBonds(lines: string[], warnings: string[]): BocBond[] {
+function parseBonds(lines: string[], warnings: Carnet): BocBond[] {
   const out: BocBond[] = [];
   const start = lines.findIndex((l) => /^MARCHE DES OBLIGATIONS/.test(l));
   const end = lines.findIndex((l, i) => i > start && /^CAPITALISATION BOURSIERE/.test(l));
@@ -431,13 +472,13 @@ function parseBonds(lines: string[], warnings: string[]): BocBond[] {
       }
       const m0 = r ?? old;
       if (!m0) {
-        warnings.push(`Obligation ${isin} : ligne de cours non reconnue.`);
+        warnings.sur(`Obligation ${isin} : ligne de cours non reconnue.`, cand, "cours précédent, date, pourcentage, prix et nominal, coupon couru");
         continue;
       }
       const pct = num(m0[2]);
       const pn = r ? splitPriceNominal(r[3], pct) : splitOld(old![3], old![4], pct);
       if (!pn) {
-        warnings.push(`Obligation ${isin} : prix / nominal ambigus (« ${m0[3]} »).`);
+        warnings.sur(`Obligation ${isin} : prix / nominal ambigus (« ${m0[3]} »).`, cand, "deux nombres séparables : le prix en pourcentage, puis le nominal restant");
         continue;
       }
       const accrued = r ? num(r[4]) : ((pn as { accrued?: number }).accrued ?? 0);
@@ -475,7 +516,7 @@ const MANAGER_RE = /^(.*?(ASSET MANAGEMENT(?: S\.A\.?| CEMAC| CENTRAL AFRICA)?|C
 const FUND_SKIP = /^(BULLETIN OFFICIEL|Société de gestion|Valeur liquidative|Origine|Précédente|Variation|Valeur Date|CAPITAL VARIABLE|\d{1,2}$)/;
 const SECTION: Record<string, BocFund["frequency"]> = { quotidiennes: "quotidienne", hebdomadaires: "hebdomadaire", mensuelles: "mensuelle", trimestrielles: "trimestrielle" };
 
-function parseFunds(lines: string[], warnings: string[]): BocFund[] {
+function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
   const out: BocFund[] = [];
   const start = lines.findIndex((l) => /^OPCVM\s*:/.test(l));
   if (start < 0) {
