@@ -3107,4 +3107,7 @@ export const EN_MORE: Record<string, string> = {
   "{n} contrôles passés sur {m} applicables": "{n} checks passed out of {m} applicable",
   "Ce que le bulletin dit": "What the bulletin says",
   "Ce que la règle veut": "What the rule requires",
+  // Ce que le volet d'un contrôle de cohérence annonce avant de montrer ses lignes.
+  "Les lignes que la règle refuse.": "The lines the rule rejects.",
+  "Trois lignes parmi les {m} que la règle a vues passer : à droite ce qu'elle exigeait, à gauche ce que le bulletin a répondu.": "Three of the {m} lines the rule saw pass: on the right what it required, on the left what the bulletin answered.",
 };

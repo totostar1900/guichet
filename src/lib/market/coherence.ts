@@ -41,6 +41,17 @@ export interface Controle {
   /** Combien de lignes la règle a pu examiner. */
   examinees: number;
   fautes: Faute[];
+  /**
+   * TROIS LIGNES QUI PASSENT, et c'est la correction d'un défaut de principe.
+   *
+   * Un contrôle sans faute n'avait rien à montrer : il ne s'ouvrait pas. Mais
+   * à l'écran il ressemblait trait pour trait à celui qui s'ouvre, donc on le
+   * touchait et rien ne venait. Et surtout : UN CONTRÔLE QUI NE MONTRE JAMAIS
+   * RIEN EST INDISCERNABLE D'UN CONTRÔLE QUI NE TOURNE PAS, qui est la famille
+   * de pannes la plus coûteuse de ce projet. Trois lignes vues passer, avec à
+   * côté ce que la règle exigeait d'elles, prouvent qu'elle a bien mordu.
+   */
+  temoins: Faute[];
 }
 
 const nom = (q: Quote) => q.mnemo || q.isin;
@@ -65,6 +76,28 @@ export const bande = (q: Quote): number | undefined => {
   return q.sessionDate >= BANDE_ACTION_DEPUIS ? 0.1 : 0;
 };
 
+/** Assez pour prouver que la règle a mordu, trop peu pour noyer le verdict. */
+const TEMOINS = 3;
+
+/**
+ * LA FABRIQUE D'UN CONTRÔLE, et les cinq y passent.
+ *
+ * Les cinq blocs se ressemblaient à la virgule près : même filtre, même mise
+ * en forme, chacun recopié. Deux parcours de la même liste au lieu d'un, et
+ * surtout cinq endroits à corriger pour une règle commune, ce qui est la
+ * manière habituelle de les laisser dériver. `dire` ne s'appelle plus que sur
+ * les lignes retenues : fautes d'un côté, trois témoins de l'autre.
+ */
+function controle<T>(id: Controle["id"], applicable: boolean, lignes: T[], fautive: (x: T) => boolean, dire: (x: T) => Faute): Controle {
+  const fautes: Faute[] = [];
+  const temoins: Faute[] = [];
+  for (const x of lignes) {
+    if (fautive(x)) fautes.push(dire(x));
+    else if (temoins.length < TEMOINS) temoins.push(dire(x));
+  }
+  return { id, applicable, examinees: lignes.length, fautes, temoins };
+}
+
 /**
  * Les cinq contrôles, sur un couple de séances.
  *
@@ -80,16 +113,13 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
   /* 1. LE CHAÎNAGE. Le « cours précédent » d'une séance est la clôture de la
      veille. C'est la plus forte des cinq : elle lie deux documents entre eux,
      donc elle attrape une ligne mal lue d'un côté comme de l'autre. */
-  const chainage: Controle = {
-    id: "chainage",
-    applicable: voisines,
-    examinees: voisines ? communes.length : 0,
-    fautes: !voisines
-      ? []
-      : communes
-          .filter((q) => !proche(q.previousClose, a.get(q.isin)!.close, 0.011))
-          .map((q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.previousClose), attendu: fmt(a.get(q.isin)!.close) })),
-  };
+  const chainage = controle(
+    "chainage",
+    voisines,
+    voisines ? communes : [],
+    (q) => !proche(q.previousClose, a.get(q.isin)!.close, 0.011),
+    (q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.previousClose), attendu: fmt(a.get(q.isin)!.close) }),
+  );
 
   /* 2. LA BANDE. Les seuils se calculent du cours précédent, ils ne se
      constatent pas.
@@ -98,46 +128,43 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
      205 276,5. Il arrondit à l'unité, donc l'écart maximal est d'un demi.
      Six centimes, ma première valeur, condamnaient une ligne juste. */
   const avecBande = apres.filter((q) => (bande(q) ?? 0) > 0 && q.previousClose > 0 && q.thresholdHigh > 0);
-  const bandeC: Controle = {
-    id: "bande",
-    applicable: true,
-    examinees: avecBande.length,
-    fautes: avecBande
-      .filter((q) => {
-        const k = bande(q)!;
-        return !proche(q.thresholdHigh, q.previousClose * (1 + k), ARRONDI) || !proche(q.thresholdLow, q.previousClose * (1 - k), ARRONDI);
-      })
-      .map((q) => {
-        const k = bande(q)!;
-        return { isin: q.isin, nom: nom(q), lu: `${fmt(q.thresholdHigh)} / ${fmt(q.thresholdLow)}`, attendu: `${fmt(q.previousClose * (1 + k))} / ${fmt(q.previousClose * (1 - k))}` };
-      }),
-  };
+  const bandeC = controle(
+    "bande",
+    true,
+    avecBande,
+    (q) => {
+      const k = bande(q)!;
+      return !proche(q.thresholdHigh, q.previousClose * (1 + k), ARRONDI) || !proche(q.thresholdLow, q.previousClose * (1 - k), ARRONDI);
+    },
+    (q) => {
+      const k = bande(q)!;
+      return { isin: q.isin, nom: nom(q), lu: `${fmt(q.thresholdHigh)} / ${fmt(q.thresholdLow)}`, attendu: `${fmt(q.previousClose * (1 + k))} / ${fmt(q.previousClose * (1 - k))}` };
+    },
+  );
 
   /* 3. LE NOMINAL NE REMONTE PAS. Une obligation amortit : son nominal
      restant décroît. Une remontée est un chiffre mal lu, ou deux lignes
      confondues. Vrai même entre séances éloignées, donc toujours applicable. */
   const avecNominal = communes.filter((q) => q.nominalRemaining != null && a.get(q.isin)!.nominalRemaining != null);
-  const nominal: Controle = {
-    id: "nominal",
-    applicable: true,
-    examinees: avecNominal.length,
-    fautes: avecNominal
-      .filter((q) => q.nominalRemaining! > a.get(q.isin)!.nominalRemaining! + 0.011)
-      .map((q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.nominalRemaining!), attendu: `≤ ${fmt(a.get(q.isin)!.nominalRemaining!)}` })),
-  };
+  const nominal = controle(
+    "nominal",
+    true,
+    avecNominal,
+    (q) => q.nominalRemaining! > a.get(q.isin)!.nominalRemaining! + 0.011,
+    (q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.nominalRemaining!), attendu: `≤ ${fmt(a.get(q.isin)!.nominalRemaining!)}` }),
+  );
 
   /* 4. AUCUN COURS NE SAUTE SA BANDE. Une clôture ne peut pas franchir les
      seuils que la veille lui a fixés : c'est le mécanisme même de la bourse.
      Si elle le fait, l'un des deux chiffres est faux. */
   const sautables = voisines ? communes.filter((q) => a.get(q.isin)!.thresholdHigh > 0 && a.get(q.isin)!.thresholdLow > 0 && q.close > 0) : [];
-  const saut: Controle = {
-    id: "saut",
-    applicable: voisines,
-    examinees: sautables.length,
-    fautes: sautables
-      .filter((q) => q.close > a.get(q.isin)!.thresholdHigh + 0.011 || q.close < a.get(q.isin)!.thresholdLow - 0.011)
-      .map((q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.close), attendu: `${fmt(a.get(q.isin)!.thresholdLow)} – ${fmt(a.get(q.isin)!.thresholdHigh)}` })),
-  };
+  const saut = controle(
+    "saut",
+    voisines,
+    sautables,
+    (q) => q.close > a.get(q.isin)!.thresholdHigh + 0.011 || q.close < a.get(q.isin)!.thresholdLow - 0.011,
+    (q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.close), attendu: `${fmt(a.get(q.isin)!.thresholdLow)} – ${fmt(a.get(q.isin)!.thresholdHigh)}` }),
+  );
 
   /* 5. UN ISIN GARDE SON NOM. Le cinquième, et il vient d'une leçon chère :
      la bourse a écrit « FCP BGFI Bank ATLAS » puis « FCP BGFIBank ATLAS », et
@@ -147,21 +174,22 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
      que la maison doit connaître. On compare sur les lettres et les chiffres
      seuls : une espace ou un trait d'union de plus ne sont pas un autre nom. */
   const forme = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const identite: Controle = {
-    id: "identite",
-    applicable: true,
-    examinees: communes.length,
-    fautes: communes
-      .filter((q) => {
-        const v = a.get(q.isin)!;
-        return (!!q.mnemo && !!v.mnemo && forme(q.mnemo) !== forme(v.mnemo)) || (!!q.issuer && !!v.issuer && forme(q.issuer) !== forme(v.issuer));
-      })
-      .map((q) => {
-        const v = a.get(q.isin)!;
-        const surLeMnemo = forme(q.mnemo) !== forme(v.mnemo);
-        return { isin: q.isin, nom: nom(q), lu: court(surLeMnemo ? q.mnemo : q.issuer), attendu: court(surLeMnemo ? v.mnemo : v.issuer) };
-      }),
-  };
+  const identite = controle(
+    "identite",
+    true,
+    communes,
+    (q) => {
+      const v = a.get(q.isin)!;
+      return (!!q.mnemo && !!v.mnemo && forme(q.mnemo) !== forme(v.mnemo)) || (!!q.issuer && !!v.issuer && forme(q.issuer) !== forme(v.issuer));
+    },
+    (q) => {
+      const v = a.get(q.isin)!;
+      /* Le témoin d'une ligne saine montre le mnémonique, qui est ce que le
+         desk reconnaît ; une faute montre celle des deux valeurs qui a bougé. */
+      const surLeMnemo = forme(q.mnemo) !== forme(v.mnemo);
+      return { isin: q.isin, nom: nom(q), lu: court(surLeMnemo ? q.mnemo : q.issuer), attendu: court(surLeMnemo ? v.mnemo : v.issuer) };
+    },
+  );
 
   return [chainage, bandeC, nominal, saut, identite];
 }

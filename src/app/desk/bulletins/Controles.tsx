@@ -14,8 +14,13 @@ import styles from "./comparateur.module.css";
  * parce que deux listes de montants côte à côte ne se comparent pas, elles
  * se confondent.
  *
- * Un contrôle qui passe n'a rien à déplier : il n'est pas un bouton, et son
- * entête ne doit donc pas en avoir l'air.
+ * TOUT CONTRÔLE APPLICABLE S'OUVRE, MÊME SANS FAUTE, et c'est une correction.
+ * Seul le contrôle fautif était un bouton : les autres lui ressemblaient trait
+ * pour trait, on les touchait, rien ne venait. Pire, un contrôle qui ne montre
+ * jamais rien est indiscernable d'un contrôle qui ne tourne pas. Celui qui
+ * passe montre donc trois lignes vues passer, avec à droite ce que la règle
+ * exigeait : la preuve qu'elle a mordu. Seul « sans objet » reste muet, et il
+ * dit déjà pourquoi.
  *
  * LE RÉSULTAT EST ÉCRIT EN MOTS, PAS EN FRACTION. « 12 / 12 » voulait dire
  * douze lignes bonnes sur douze, et « 1 / 12 » une faute sur douze : le
@@ -25,7 +30,6 @@ import styles from "./comparateur.module.css";
 export function Controles({ controles }: { controles: Controle[] }) {
   const t = useT();
   const [ouvert, setOuvert] = useState<string | null>(null);
-
 
   const nom: Record<Controle["id"], string> = {
     chainage: t("Le chaînage des cours"),
@@ -51,6 +55,10 @@ export function Controles({ controles }: { controles: Controle[] }) {
     <div>
       {controles.map((c) => {
         const fautif = c.applicable && c.fautes.length > 0;
+        /* Un contrôle applicable qui n'a examiné aucune ligne n'a pas de
+           témoin à montrer : il ne promet donc pas de s'ouvrir. */
+        const pliant = c.applicable && (fautif || c.temoins.length > 0);
+        const montrees = fautif ? c.fautes : c.temoins;
         const tete = (
           <>
             <span className={`${styles.puce} ${!c.applicable ? styles.puceNa : c.fautes.length ? styles.puceKo : styles.puceOk}`} aria-hidden="true">
@@ -62,11 +70,11 @@ export function Controles({ controles }: { controles: Controle[] }) {
             </span>
             <span className={styles.ctrlRes}>
               {resultat(c)}
-              {fautif ? <span className={`${styles.chev} ${ouvert === c.id ? styles.chevOuvert : ""}`} aria-hidden="true">▾</span> : null}
+              {pliant ? <span className={`${styles.chev} ${ouvert === c.id ? styles.chevOuvert : ""}`} aria-hidden="true">▾</span> : null}
             </span>
           </>
         );
-        if (!fautif) return <div key={c.id} className={styles.ctrl}>{tete}</div>;
+        if (!pliant) return <div key={c.id} className={styles.ctrl}>{tete}</div>;
         return (
           <div key={c.id} className={styles.ctrlPliant}>
             <button type="button" className={styles.ctrlBouton} aria-expanded={ouvert === c.id} onClick={() => setOuvert(ouvert === c.id ? null : c.id)}>
@@ -74,6 +82,14 @@ export function Controles({ controles }: { controles: Controle[] }) {
             </button>
             {ouvert === c.id && (
               <div className={styles.volet}>
+                {/* Le volet dit CE QU'ON REGARDE avant de le montrer : sans
+                    cette phrase, trois lignes saines ressemblaient à trois
+                    fautes dont on n'aurait pas vu l'écart. */}
+                <p className={styles.voletQuoi}>
+                  {fautif
+                    ? t("Les lignes que la règle refuse.")
+                    : t("Trois lignes parmi les {m} que la règle a vues passer : à droite ce qu'elle exigeait, à gauche ce que le bulletin a répondu.", { m: c.examinees })}
+                </p>
                 {/* Le chiffre fautif se tient à côté de celui qui l'attendait :
                     c'est le rapprochement qui informe, pas la couleur seule. */}
                 <table className={styles.fautes}>
@@ -89,10 +105,10 @@ export function Controles({ controles }: { controles: Controle[] }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {c.fautes.map((f) => (
+                    {montrees.map((f) => (
                       <tr key={f.isin}>
                         <td className="mono">{f.nom}</td>
-                        <td className={`r ${styles.mal}`}>{f.lu}</td>
+                        <td className={`r ${fautif ? styles.mal : ""}`}>{f.lu}</td>
                         <td className="r">{f.attendu}</td>
                       </tr>
                     ))}

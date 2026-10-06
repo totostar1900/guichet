@@ -159,3 +159,60 @@ describe("le compte d'ensemble", () => {
     expect(cs.every((c) => c.examinees === 0)).toBe(true);
   });
 });
+
+/**
+ * LES TÉMOINS, et ce qu'ils empêchent.
+ *
+ * Un contrôle sans faute n'avait rien à montrer, donc ne s'ouvrait pas, donc
+ * ressemblait à un contrôle cassé — et un contrôle qui ne montre jamais rien
+ * est indiscernable d'un contrôle qui ne tourne pas, la famille de pannes la
+ * plus coûteuse de ce projet. Trois lignes vues passer prouvent qu'il a mordu.
+ */
+describe("les témoins d'un contrôle", () => {
+  it("un contrôle qui passe en garde, donc il a quelque chose à ouvrir", () => {
+    const a = [q({ isin: "X", close: 1000 })];
+    const b = [q({ isin: "X", previousClose: 1000, close: 1050, thresholdHigh: 1100, thresholdLow: 900 })];
+    const cs = controler(a, b, true);
+    expect(cs.every((c) => c.fautes.length === 0)).toBe(true);
+    /* Quatre sur cinq : le nominal n'examine rien sur une action, qui n'en a
+       pas. C'EST LE TROISIÈME ÉTAT — applicable, sans faute, et sans rien à
+       montrer non plus — et l'écran ne doit pas lui promettre de s'ouvrir. */
+    expect(cs.filter((c) => c.temoins.length === 1).map((c) => c.id)).toEqual(["chainage", "bande", "saut", "identite"]);
+    expect(cs.find((c) => c.id === "nominal")).toMatchObject({ applicable: true, examinees: 0, temoins: [] });
+  });
+
+  it("ils ne dépassent jamais trois, même sur vingt lignes saines", () => {
+    const vingt = Array.from({ length: 20 }, (_, i) => `L${i}`);
+    const a = vingt.map((isin) => q({ isin, close: 1000 }));
+    const b = vingt.map((isin) => q({ isin, previousClose: 1000, close: 1000 }));
+    const cs = controler(a, b, true);
+    expect(cs.map((c) => c.temoins.length)).toEqual([3, 3, 0, 3, 3]);
+  });
+
+  it("un contrôle sans objet n'en a aucun : il reste muet et le dit", () => {
+    const a = [q({ isin: "X", close: 1000 })];
+    const b = [q({ isin: "X", previousClose: 1000 })];
+    const cs = controler(a, b, false);
+    for (const c of cs.filter((x) => !x.applicable)) expect(c.temoins).toEqual([]);
+  });
+
+  it("la ligne fautive ne devient pas un témoin", () => {
+    const a = [q({ isin: "BON", close: 1000 }), q({ isin: "MAL", close: 1000 })];
+    const b = [q({ isin: "BON", previousClose: 1000 }), q({ isin: "MAL", previousClose: 777 })];
+    const chainage = controler(a, b, true)[0];
+    expect(chainage.fautes.map((f) => f.isin)).toEqual(["MAL"]);
+    expect(chainage.temoins.map((f) => f.isin)).toEqual(["BON"]);
+  });
+
+  it("et le témoin tient les deux montants que la règle a rapprochés", () => {
+    const a = [q({ isin: "X", close: 1234 })];
+    const b = [q({ isin: "X", previousClose: 1234, close: 1234, thresholdHigh: 1357.4, thresholdLow: 1110.6 })];
+    const [chainage] = controler(a, b, true);
+    /* L'espace est NORMALISÉE : « fr-FR » sépare les milliers par une espace
+       fine insécable (U+202F), qui ne s'écrit pas au clavier et rend une
+       assertion littérale illisible à l'échec — « 1 234 » contre « 1 234 ». */
+    const plat = (s: string) => s.replace(/\s/g, " ");
+    expect(plat(chainage.temoins[0].lu)).toBe("1 234");
+    expect(plat(chainage.temoins[0].attendu)).toBe("1 234");
+  });
+});
