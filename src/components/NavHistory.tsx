@@ -1,4 +1,5 @@
 import type { FundNav } from "@/lib/domain/market";
+import { TOLERANCE_MOIS, TOLERANCE_TRIMESTRE, variationSurMois } from "@/lib/domain/fund-perf";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { NavPeriod } from "./NavPeriod";
 import styles from "./QuoteHistory.module.css";
@@ -11,6 +12,15 @@ export async function NavHistory({ navs, benchmark, narrow }: { navs: FundNav[];
   const latest = navs[0];
   const series = [...navs].reverse(); // oldest → newest, the whole history: the reader picks the window
   const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
+
+  /* LE MOIS ET LE TRIMESTRE, DU BULLETIN QUAND IL LES DONNE, DE NOTRE SÉRIE
+     SINON. Le bulletin ne les imprime que pour les fonds dont la société de
+     gestion l'a demandé : onze sur quarante-six, appartenant à deux maisons
+     sur douze. Les trente-cinq autres affichaient un tiret, ce qui laissait
+     croire à une donnée manquante là où il n'y avait qu'un choix éditorial
+     étranger. La série, elle, est la même pour tous. */
+  const mois = latest.variationMonthlyPct ?? variationSurMois(navs, latest, 1, TOLERANCE_MOIS)?.pct;
+  const trimestre = latest.variationQuarterlyPct ?? variationSurMois(navs, latest, 3, TOLERANCE_TRIMESTRE)?.pct;
 
   return (
     <div className={styles.wrap}>
@@ -27,7 +37,7 @@ export async function NavHistory({ navs, benchmark, narrow }: { navs: FundNav[];
         <div>
           <dt>{t("Sur un mois · un trimestre")}</dt>
           <dd>
-            {signed(latest.variationMonthlyPct)} · {signed(latest.variationQuarterlyPct)}
+            {signed(mois)} · {signed(trimestre)}
           </dd>
         </div>
         <div>
