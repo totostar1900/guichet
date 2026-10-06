@@ -8,6 +8,7 @@ import { ARRIERE_PAR_TOUR, bulletinsToReread, REREAD_BATCH } from "@/lib/health"
 import { codes as codesDe, FAMILLES, famille, parCode, VUES } from "@/lib/market/remarques";
 import type { MarketBulletin } from "@/lib/domain/market";
 import { lancerArriereAction, rereadAction } from "./actions";
+import { Comparateur } from "./Comparateur";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -39,7 +40,7 @@ const ANNEES_VISIBLES = 6;
 
 type Tri = "d" | "n" | "s" | "a" | "o" | "v" | "c" | "r";
 
-export default async function BulletinsPage({ searchParams }: { searchParams: Promise<{ vue?: string; an?: string; etat?: string; code?: string; grp?: string; tri?: string; sens?: string }> }) {
+export default async function BulletinsPage({ searchParams }: { searchParams: Promise<{ vue?: string; an?: string; etat?: string; code?: string; grp?: string; tri?: string; sens?: string; cmpA?: string; cmpB?: string; cmpTri?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const [tous, arriere] = await Promise.all([repo().listBulletins(2000), bulletinsToReread()]);
@@ -53,6 +54,15 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
   const grp = ["an", "mois", "etat", "nb"].includes(sp.grp ?? "") ? sp.grp : undefined;
   const tri = (["d", "n", "s", "a", "o", "v", "c", "r"].includes(sp.tri ?? "") ? sp.tri : vue.file ? "r" : "d") as Tri;
   const sens = sp.sens === "asc" ? 1 : sp.sens === "desc" ? -1 : tri === "r" && vue.file ? 1 : -1;
+
+  /* LE COUPLE DU COMPARATEUR, dans l'adresse comme tout le reste. Par défaut
+     les deux dernières séances : un outil qui s'ouvre vide ne montre pas ce
+     qu'il sait faire, et deux séances voisines ne coûtent que deux lectures. */
+  const parDate = tous.map((b) => b.sessionDate).sort().reverse();
+  const connue = (d?: string) => (d && parDate.includes(d) ? d : undefined);
+  const cmpB = connue(sp.cmpB) ?? parDate[0];
+  const cmpA = connue(sp.cmpA) ?? parDate[1] ?? parDate[0];
+  const cmpTri = sp.cmpTri === "ampleur";
 
   const codesPar = new Map(tous.map((b) => [b.id, codesDe(b)]));
   const liste = tous
@@ -85,12 +95,15 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
       bornes[c] = bornes[c] ? [bornes[c][0] < b.sessionDate ? bornes[c][0] : b.sessionDate, bornes[c][1] > b.sessionDate ? bornes[c][1] : b.sessionDate] : [b.sessionDate, b.sessionDate];
     }
 
-  const lien = (o: Partial<{ vue: string; an: string; etat: string; code: string; grp: string; tri: string; sens: string }>) => {
+  const lien = (o: Partial<{ vue: string; an: string; etat: string; code: string; grp: string; tri: string; sens: string; cmpA: string; cmpB: string; cmpTri: string }>) => {
     const q = new URLSearchParams();
-    const mis = { vue: vue.id === "tout" ? "" : vue.id, an: an ?? "", etat: etat ?? "", code: retenus.join(","), grp: grp ?? "", tri: sp.tri ?? "", sens: sp.sens ?? "", ...o };
+    const mis = { vue: vue.id === "tout" ? "" : vue.id, an: an ?? "", etat: etat ?? "", code: retenus.join(","), grp: grp ?? "", tri: sp.tri ?? "", sens: sp.sens ?? "", cmpA: sp.cmpA ?? "", cmpB: sp.cmpB ?? "", cmpTri: cmpTri ? "ampleur" : "", ...o };
     for (const [k, v] of Object.entries(mis)) if (v) q.set(k, v);
     return `/desk/bulletins${q.toString() ? `?${q}` : ""}`;
   };
+  /* Le comparateur garde les filtres du tableau : on y arrive en ayant déjà
+     restreint la sélection, et les perdre obligerait à tout refaire. */
+  const versCouple = (A: string, B: string) => `${lien({ cmpA: A, cmpB: B })}#comparer`;
   /* Toucher un code l'ajoute, le retoucher l'enlève : la matrice est un filtre
      à bascule, et l'adresse en porte la trace. */
   const bascule = (c: string) => lien({ code: (retenus.includes(c) ? retenus.filter((x) => x !== c) : [...retenus, c]).join(",") });
@@ -326,6 +339,23 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
           </aside>
         </div>
       </section>
+
+      {/* LE COMPARATEUR SOUS LE TABLEAU, et non sur une page à lui : on vient
+          de lire qu'une séance porte dix-sept obligations au lieu de
+          vingt-neuf, et la question suivante est « lesquelles ». Elle se pose
+          là, sans changer d'adresse. */}
+      {parDate.length > 1 && (
+        <Comparateur
+          tous={tous}
+          a={cmpA}
+          b={cmpB}
+          versCouple={versCouple}
+          gabaritA={versCouple("__D__", cmpB)}
+          gabaritB={versCouple(cmpA, "__D__")}
+          parAmpleur={cmpTri}
+          versTri={(amp) => `${lien({ cmpTri: amp ? "ampleur" : "" })}#comparer`}
+        />
+      )}
     </>
   );
 }

@@ -1,0 +1,242 @@
+/* Le comparateur de deux cotes, sous le tableau des séances.
+   Les tailles viennent de l'échelle (--t-1 à --t-7), les espaces de la sienne. */
+
+/* LA BARRE DE CHOIX. Les deux côtés se ressemblent trait pour trait : s'ils
+   ne se ressemblaient pas, l'œil chercherait lequel est lequel. */
+.barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  padding-block: var(--s-3);
+}
+.cote {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.etiquette {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.choix {
+  font: inherit;
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+  padding: var(--s-2) var(--s-3);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+}
+.pas,
+.pasMort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Quarante-quatre pixels : le pas de un se touche au pouce, et c'est le
+     geste le plus répété de la page. */
+  min-width: 44px;
+  min-height: 32px;
+  font-size: var(--t-5);
+  line-height: 1;
+  border: 1px solid var(--line-2);
+  text-decoration: none;
+}
+.pas {
+  color: var(--ink);
+}
+.pas:hover {
+  background: var(--surface-2);
+}
+.pasMort {
+  color: var(--ink-3);
+  opacity: 0.4;
+}
+.fleche {
+  font-size: var(--t-6);
+  color: var(--ink-3);
+}
+.sens {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Le verdict, même grammaire que celui du rapport d'une séance : une phrase
+   posée sur un fond qui dit s'il y a quelque chose à faire. */
+.verdictOui,
+.verdictNon {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--t-4);
+  line-height: 1.5;
+  max-width: 88ch;
+}
+.verdictOui {
+  background: var(--good-soft);
+  color: var(--ink);
+}
+.verdictNon {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.comptes {
+  margin-bottom: var(--s-5);
+}
+.aPart {
+  margin-left: var(--s-2);
+  font-size: var(--t-1);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.baisse {
+  color: var(--crit);
+}
+.hausse {
+  color: var(--good);
+}
+
+/* Les trois colonnes : parties, apparues, cours bougés. */
+.colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-5);
+}
+.colonnes h3 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-2);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.colonnes p {
+  margin: 0;
+  font-size: var(--t-4);
+}
+.diff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.diff b,
+.diff small {
+  font-size: var(--t-3);
+}
+.diff small {
+  color: var(--ink-3);
+}
+/* Définitive et passagère ne demandent pas le même geste : l'une se constate,
+   l'autre se corrige. Pas de blanc sur --crit, qui est un saumon clair en
+   thème sombre : la teinte porte la distinction, pas le renversement. */
+.durable,
+.passagere,
+.neuve {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid;
+}
+.durable {
+  color: var(--crit);
+  background: var(--crit-soft);
+  border-color: var(--crit);
+}
+.passagere {
+  color: var(--warn);
+  background: var(--warn-soft);
+  border-color: var(--warn);
+}
+.neuve {
+  color: var(--good);
+  border-color: var(--good);
+}
+
+/* LA PISTE : les couples à ouvrir. Elle se détache du reste par un filet,
+   parce qu'elle ne décrit pas le couple ouvert mais mène ailleurs. */
+.piste {
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+.pisteTete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.pisteTete h3 {
+  margin: 0;
+  font-size: var(--t-2);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tris {
+  display: flex;
+  gap: var(--s-3);
+  font-size: var(--t-2);
+}
+.triOn {
+  font-weight: 700;
+  color: var(--ink);
+}
+.pastilles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--s-2);
+}
+.couple,
+.coupleOn {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line-2);
+  text-decoration: none;
+}
+.couple {
+  color: var(--ink);
+}
+.couple:hover {
+  background: var(--surface-2);
+}
+/* Le couple ouvert porte un fond ET un filet épais : un fond seul perdait
+   contre le survol, qui gagnait sur la pastille choisie. */
+.coupleOn {
+  color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--ink-3);
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+.couple b,
+.coupleOn b {
+  font-size: var(--t-2);
+  font-variant-numeric: tabular-nums;
+}
+.couple small,
+.coupleOn small {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+
+.notule {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 92ch;
+}

@@ -5,7 +5,7 @@ import { readSource } from "@/lib/intake/storage";
 import { bocUrl, bondQuote, equityQuote, fetchBoc, fundNav, pdfText, validate } from "@/lib/market/boc";
 import { parseBoc } from "@/lib/market/boc-parse";
 import { classer, codes as codesDe, famille, remarques } from "@/lib/market/remarques";
-import { comparer, verdict, type Ecart } from "@/lib/market/comparer";
+import { comparer, juger, verdict, type Ecart } from "@/lib/market/comparer";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -106,22 +106,10 @@ export async function Rapport({ seance }: { seance: string }) {
     const [ca, cb] = await Promise.all([r.quotesOn(avant.sessionDate).catch(() => []), r.quotesOn(seance).catch(() => [])]);
     if (ca.length || cb.length) {
       ecart = comparer(ca, cb);
-      /* Chaque ligne partie est jugée par la suite de la série : si elle
-         reparaît, elle n'est jamais sortie de la cote. */
-      await Promise.all(
-        ecart.partis.map(async (x) => {
-          const suite = await r.listQuotes(x.isin, 2000).catch(() => []);
-          const apres = suite.filter((z) => z.sessionDate > seance).sort((z, y) => z.sessionDate.localeCompare(y.sessionDate))[0];
-          if (apres) x.retour = apres.sessionDate;
-        }),
-      );
-      /* Une arrivée est une première cotation si la ligne n'a jamais été vue. */
-      await Promise.all(
-        ecart.arrivees.map(async (x) => {
-          const suite = await r.listQuotes(x.isin, 2000).catch(() => []);
-          x.premiere = !suite.some((z) => z.sessionDate < seance);
-        }),
-      );
+      /* Le jugement vit dans le module, parce que le comparateur de la page
+         des bulletins le demande mot pour mot : une règle écrite deux fois
+         finit par diverger. */
+      await juger(ecart, seance, (isin) => r.listQuotes(isin, 2000).catch(() => []));
     }
   }
   const dit = ecart ? verdict(ecart) : undefined;
