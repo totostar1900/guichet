@@ -3069,4 +3069,8 @@ export const EN_MORE: Record<string, string> = {
   // La famille U : le renoncement de la lecture géométrique.
   "Lecture géométrique impossible": "Geometric read not possible",
   "Le document n'a pas pu être ouvert par la lecture de secours : la séance reste lue au texte seul.": "The fallback reader could not open the document: the session stays read from the flat text alone.",
+  // Le compte des lignes OPCVM, et les deux contrôles de santé sur les fonds.
+  "dont lignes imprimées": "of which printed rows",
+  "{n} répétées aux tables mensuelle et trimestrielle": "{n} repeated in the monthly and quarterly tables",
+  "Fonds connus sous deux clefs (une variante d'orthographe)": "Funds known under two keys (a spelling variant)",
 };

@@ -52,6 +52,17 @@
 .moins {
   color: var(--crit);
 }
+/* Ni gain ni perte : une précision sur ce que le nombre compte. Elle ne
+   prend donc ni la couleur de l'un ni celle de l'autre, et passe à la ligne
+   plutôt que de pousser le chiffre hors de sa case. */
+.muetNote {
+  display: block;
+  margin-left: 0;
+  font-size: var(--t-1);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
 
 /* Le verdict de l'essai à blanc : la phrase que le desk vient chercher. */
 .verdictOui,

@@ -244,14 +244,40 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     detail: stale.length ? stale.slice(0, 6).map((o) => `${o.title.slice(0, 40)} (${o.lastPriceOn})`).join(" · ") : "toutes au dernier bulletin",
   });
 
-  // 4. NAVs: a weekly fund older than 3 weeks is suspect.
-  const oldNavs = navs.filter((n) => businessDaysBetween(n.navDate, today) > 15 && (n.frequency === "quotidienne" || n.frequency === "hebdomadaire"));
+  /* 4. VL en retard. UN PEU EN RETARD ET FIGÉ NE SONT PAS LA MÊME CHOSE, et
+     le seuil « plus de cinq » les confondait : un fonds dont la VL n'a pas
+     bougé depuis MILLE CENT CINQUANTE-HUIT jours comptait pour un, donc le
+     contrôle restait vert. C'est ainsi qu'un fonds dédoublé est resté publié
+     trois ans avec le prix de sa première séance. Un retard se compte, un
+     gel se nomme. */
+  const enRetard = navs.filter((n) => businessDaysBetween(n.navDate, today) > 15 && (n.frequency === "quotidienne" || n.frequency === "hebdomadaire"));
+  const geles = enRetard.filter((n) => businessDaysBetween(n.navDate, today) > 60);
   out.push({
     key: "navs",
     label: "VL quotidiennes / hebdomadaires en retard (> 3 semaines)",
-    level: oldNavs.length > 5 ? "warn" : "ok",
-    value: `${oldNavs.length} / ${navs.length}`,
-    detail: oldNavs.slice(0, 6).map((n) => `${n.name} (${n.navDate})`).join(" · ") || "à jour",
+    level: geles.length ? "crit" : enRetard.length > 5 ? "warn" : "ok",
+    value: `${enRetard.length} / ${navs.length}${geles.length ? ` · ${geles.length} figée(s)` : ""}`,
+    detail: geles.length
+      ? `Figée(s) depuis plus de trois mois, à vérifier : ${geles.slice(0, 6).map((n) => `${n.name} (${n.navDate})`).join(" · ")}`
+      : enRetard.slice(0, 6).map((n) => `${n.name} (${n.navDate})`).join(" · ") || "à jour",
+  });
+
+  /* 4 bis. LE MÊME FONDS SOUS DEUX CLEFS. Le bulletin a écrit une fois
+     « FCP BGFI Bank ATLAS » et cent trente et une fois « FCP BGFIBank
+     ATLAS » : une espace, deux clefs, deux lignes publiées, et le client
+     voyait le même fonds deux fois dont une au prix de 2023. La clef se
+     fabrique du nom, donc elle suit ses variantes d'orthographe ; on
+     détecte ici, une personne décide de fusionner. */
+  const forme = (k: string) => k.replace(/[^a-z0-9]/g, "");
+  const parForme = new Map<string, string[]>();
+  for (const n of navs) parForme.set(forme(n.fundKey), [...(parForme.get(forme(n.fundKey)) ?? []), n.fundKey]);
+  const doubles = [...parForme.values()].filter((ks) => ks.length > 1);
+  out.push({
+    key: "fonds-doubles",
+    label: "Fonds connus sous deux clefs (une variante d'orthographe)",
+    level: doubles.length ? "crit" : "ok",
+    value: `${doubles.length}`,
+    detail: doubles.length ? doubles.map((ks) => ks.join(" ≠ ")).join(" · ") : "aucun",
   });
 
   // 5. Messaging.

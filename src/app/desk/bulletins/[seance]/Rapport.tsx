@@ -72,7 +72,7 @@ export async function Rapport({ seance }: { seance: string }) {
   /* La relecture à blanc. Elle n'écrit rien : ni cotation, ni statut, ni date
      de lecture. Le bulletin en base n'est pas touché par l'ouverture d'un
      rapport, et c'est ce qui permet de l'ouvrir sans y penser. */
-  let frais: { actions: number; obligations: number; opcvm: number; indice?: number; anomalies: string[]; notes: ReturnType<typeof parseBoc>["notes"] } | undefined;
+  let frais: { actions: number; obligations: number; opcvm: number; lignesOpcvm: number; indice?: number; anomalies: string[]; notes: ReturnType<typeof parseBoc>["notes"] } | undefined;
   if (bytes) {
     try {
       const parsed = parseBoc(await pdfText(bytes));
@@ -84,6 +84,16 @@ export async function Rapport({ seance }: { seance: string }) {
         actions: parsed.equities.length,
         obligations: parsed.bonds.length,
         opcvm: parsed.funds.length,
+        /* LE BULLETIN IMPRIME PLUS DE LIGNES QU'IL N'Y A DE FONDS, et le
+           compter sans le dire a coûté une enquête : le 11 décembre 2023 il
+           porte 51 lignes pour 31 fonds. La table des OPCVM est publiée
+           quatre fois, par période de variation, et un fonds hebdomadaire
+           reparaît au mensuel puis au trimestriel avec la même valeur
+           liquidative et une comparaison plus lointaine. Le lecteur ne le
+           compte qu'une fois et range les deux variations sur lui, donc rien
+           n'est perdu, mais un nombre qui ne dit pas ce qu'il compte invite
+           à croire à une perte. */
+        lignesOpcvm: parsed.funds.length + parsed.funds.filter((f) => f.variationMonthlyPct !== undefined).length + parsed.funds.filter((f) => f.variationQuarterlyPct !== undefined).length,
         indice: parsed.index?.value,
         anomalies: validate(parsed, quotes, navs, precedentes, avant?.counts?.funds ?? 0),
         notes: parsed.notes,
@@ -158,6 +168,14 @@ export async function Rapport({ seance }: { seance: string }) {
           {ligne(t("Actions"), b.counts?.equities ?? 0, frais?.actions)}
           {ligne(t("Obligations"), b.counts?.bonds ?? 0, frais?.obligations)}
           {ligne(t("OPCVM"), b.counts?.funds ?? 0, frais?.opcvm)}
+          {/* Le nombre dit ce qu'il compte : des fonds, pas des lignes. */}
+          {frais && frais.lignesOpcvm > frais.opcvm ? (
+            <div className={styles.chiffre}>
+              <span>{t("dont lignes imprimées")}</span>
+              <b>{frais.lignesOpcvm}</b>
+              <em className={styles.muetNote}>{t("{n} répétées aux tables mensuelle et trimestrielle", { n: frais.lignesOpcvm - frais.opcvm })}</em>
+            </div>
+          ) : null}
           <div className={styles.chiffre}>
             <span>{t("État")}</span>
             <b className={`st ${b.status === "ok" ? "confirmee" : b.status === "partiel" ? "recue" : "annulee"}`}>{t(b.status)}</b>
