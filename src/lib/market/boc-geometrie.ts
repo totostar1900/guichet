@@ -54,6 +54,15 @@ export interface Cellule {
   texte: string;
   x: number;
   largeur: number;
+  /**
+   * Vraie quand cette cellule sort d'une coupure, et non du PDF.
+   *
+   * C'est ce qui décide si l'identité prix / nominal doit être exigée : une
+   * valeur imprimée telle quelle se croit sur parole, une valeur obtenue en
+   * coupant doit se justifier. Sans cette marque, « 2 500 » coupé en « 2 » et
+   * « 500 » par un bord de colonne passait pour deux valeurs imprimées.
+   */
+  coupee?: boolean;
 }
 
 export interface Rangee {
@@ -86,7 +95,12 @@ const bord = (c: Cellule) => c.x + c.largeur;
  */
 export async function rangeesDuPdf(bytes: Uint8Array): Promise<Rangee[]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const doc = await pdfjs.getDocument({ data: bytes, disableFontFace: true, useSystemFonts: false, isEvalSupported: false }).promise;
+  /* PDF.JS PREND LA PROPRIÉTÉ DU TAMPON QU'ON LUI DONNE et le détache. Un
+     second appel sur le même tableau lit donc du vide, en silence : c'est ce
+     qui a rendu un balayage entier à zéro ligne rattrapée alors que le
+     lecteur fonctionnait. On lui passe une copie, et l'appelant garde le
+     sien, notamment pour l'archiver. */
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(bytes), disableFontFace: true, useSystemFonts: false, isEvalSupported: false }).promise;
   const out: Rangee[] = [];
   for (let p = 1; p <= doc.numPages; p++) {
     const page = await doc.getPage(p);
@@ -150,8 +164,24 @@ export function colonnes(rangees: Rangee[], minimum = 4): number[] {
 
 /* ---------------- Le découpage d'un fragment fusionné ---------------- */
 
+/**
+ * UN NOMBRE NE COMMENCE PAS PAR DES ZÉROS, et cette règle a rattrapé une
+ * vraie régression. Sans elle, « 10 000,000 » pouvait se couper en « 10 » et
+ * « 000,000 » : les deux morceaux passaient pour des montants, la rangée
+ * paraissait ensuite entière, et le nominal restant d'une obligation tombait
+ * de dix mille à dix. Mesuré le 6 octobre 2026 sur les séances de novembre
+ * 2024, par le contrôle de non-régression contre la lecture aplatie.
+ *
+ * Les groupes de milliers restent facultatifs : les bulletins anciens
+ * impriment « 10000 » et « 787391 » sans séparateur, et l'exiger perdait
+ * toute la section des régionales, qui est justement imprimée ainsi.
+ */
+const TETE = "(?:0|[1-9]\\d*)";
+const MONTANT = new RegExp(`^-?${TETE}(?: \\d{3})*(?:,\\d{1,3})?$`);
+const POURCENT = new RegExp(`^-?${TETE}(?: \\d{3})*(?:,\\d{1,3})?%$`);
+
 /** Ce qu'une cellule peut contenir : un montant, un pourcentage, une date, un statut. */
-const JETON = /^(?:-|-?\d{1,3}(?: \d{3})*(?:,\d{1,3})?%?|\d{2}\/\d{2}\/\d{4}|[A-Z]{1,3}[a-z]?)$/;
+const JETON = new RegExp(`^(?:-|-?${TETE}(?: \\d{3})*(?:,\\d{1,3})?%?|\\d{2}/\\d{2}/\\d{4}|[A-Z]{1,3}[a-z]?)$`);
 
 /**
  * Une frontière que la grammaire seule tranche : un chiffre, une espace, une
@@ -164,7 +194,7 @@ const JETON = /^(?:-|-?\d{1,3}(?: \d{3})*(?:,\d{1,3})?%?|\d{2}\/\d{2}\/\d{4}|[A-
  * donc enseigné par aucune rangée, et une grille apprise ne peut pas montrer
  * une colonne qu'elle n'a jamais vue.
  */
-const FRONTIERE = /^(-?\d+(?: \d{3})*(?:,\d{1,3})?%?) ([A-Z]{1,3}[a-z]?)$/;
+const FRONTIERE = new RegExp(`^(-?${TETE}(?: \\d{3})*(?:,\\d{1,3})?%?) ([A-Z]{1,3}[a-z]?)$`);
 
 /**
  * Séparer un fragment qui porte plusieurs cellules.
@@ -185,7 +215,10 @@ export function separer(c: Cellule, grille: number[]): Cellule[] {
   const f = c.texte.match(FRONTIERE);
   if (f) {
     const parCaractere = c.largeur / c.texte.length;
-    const nombre: Cellule = { texte: f[1], x: c.x, largeur: parCaractere * f[1].length };
+    /* Cette coupure-là n'invente rien : chiffres d'un côté, lettres de
+       l'autre, aucune mesure n'est en jeu. Elle ne marque donc pas le
+       nombre comme suspect. */
+    const nombre: Cellule = { texte: f[1], x: c.x, largeur: parCaractere * f[1].length, coupee: c.coupee };
     const statut: Cellule = { texte: f[2], x: c.x + parCaractere * (f[1].length + 1), largeur: parCaractere * f[2].length };
     return [...separer(nombre, grille), statut];
   }
@@ -221,7 +254,7 @@ export function separer(c: Cellule, grille: number[]): Cellule[] {
   const out: Cellule[] = [];
   let debut = 0;
   for (const m of morceaux) {
-    out.push({ texte: m, x: c.x + parCaractere * debut, largeur: parCaractere * m.length });
+    out.push({ texte: m, x: c.x + parCaractere * debut, largeur: parCaractere * m.length, coupee: true });
     debut += m.length + 1;
   }
   return out;
@@ -246,11 +279,6 @@ export const rangeeSeparee = (r: Rangee, grille: number[]): Cellule[] => r.cellu
 const ISIN = /^[A-Z]{2}\d{10}$/;
 const DATE = /^\d{2}\/\d{2}\/\d{4}$/;
 const STATUT = /^[A-Z]{1,3}[a-z]?$/;
-/* Les groupes de milliers sont facultatifs : les bulletins anciens impriment
-   « 10000 » et « 787391 » sans séparateur, et l'exiger perdait toute la
-   section des régionales, qui est justement imprimée ainsi. */
-const MONTANT = /^-?\d+(?: \d{3})*(?:,\d{1,3})?$/;
-const POURCENT = /^-?\d+(?: \d{3})*(?:,\d{1,3})?%$/;
 
 interface Valeurs {
   pct: number;
@@ -300,13 +328,30 @@ function lectures(cellules: string[]): string[][] {
  * satisfait est la bonne, et quand aucune ne les satisfait la rangée est
  * refusée avec son texte plutôt que lue de travers.
  */
-export function lireValeurs(avant: string[], apres: string[]): Valeurs | undefined {
+export function lireValeurs(avant: string[], apres: string[], exigerIdentite = false): Valeurs | undefined {
   for (const a of lectures(avant)) {
     if (a.length < 4) continue;
     const pct = num(a[0]);
     const prix = num(a[1]);
     const nominal = num(a[2]);
-    if (!(nominal > 0) || !(pct > 0) || Math.abs(prix - (pct * nominal) / 100) > 1.5) continue;
+    if (!(nominal > 0) || !(pct > 0)) continue;
+    /* L'IDENTITÉ DÉPARTAGE UNE DÉCOUPE, ELLE N'AUTORISE PAS UNE LECTURE, et
+       cette nuance a coûté vingt-et-une séances.
+       Elle ne tient pas pour une ligne AMORTISSABLE : le 5 décembre 2024, la
+       BDEAC 5,6 % cote 100,00 % pour un cours de 10 000 francs et un nominal
+       restant de 8 000, parce que le cours reste rapporté au nominal
+       d'origine. Exiger l'égalité refusait donc ces lignes alors qu'elles
+       étaient lues parfaitement, et c'est aussi ce qui fait échouer le
+       lecteur aplati sur elles (« prix / nominal ambigus », 78 remarques sur
+       66 séances : il ne trouve aucune découpe qui la satisfasse).
+       ELLE EST DONC EXIGÉE EXACTEMENT QUAND UNE COUPURE A PU INVENTER LES
+       NOMBRES, et pas autrement. Une valeur imprimée telle quelle se croit
+       sur parole ; une valeur obtenue en coupant doit se justifier. Sans
+       cette distinction, « 2 500 » coupé en « 2 » et « 500 » par un bord de
+       colonne passait pour deux valeurs imprimées, et le 7 août 2024 un
+       nominal de 2 500 devenait 500 : mesuré par la comparaison avec la
+       lecture aplatie, jamais par un test écrit à la main. */
+    if ((exigerIdentite || a.length !== avant.length) && Math.abs(prix - (pct * nominal) / 100) > 1.5) continue;
     for (const b of lectures(apres)) {
       if (b.length < 6) continue;
       const [ouverture, cloture, haut, bas, variation, reference] = b.slice(-6).map(num);
@@ -354,9 +399,26 @@ export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet): Boc
   const out: BocBond[] = [];
   const vus = new Set<string>();
 
-  for (const r of section) {
+  for (const [i, r] of section.entries()) {
     const grille = parPage.get(r.page) ?? [];
-    const cells = rangeeSeparee(r, grille).map((c) => c.texte);
+    const cellules = rangeeSeparee(r, grille);
+    const cells = cellules.map((c) => c.texte);
+    /* LA QUEUE QUI A DÉBORDÉ. Le 2 mai 2024, la ligne BDEAC se termine par
+       « 0,00% | 8 000,00 » posés 2,6 points plus bas, donc sur une rangée à
+       eux. Élargir la tolérance générale aurait été tentant et imprudent :
+       les lignes d'en-tête de ce même bulletin ne sont séparées que de 4,4
+       points. On reconnaît plutôt la suite à ce qu'elle est : juste en
+       dessous, rien que des valeurs, ni ISIN ni date. Quinze séances en
+       dépendaient. */
+    const suite = section[i + 1];
+    if (suite && suite.page === r.page && r.y - suite.y < 6) {
+      const qc = rangeeSeparee(suite, grille);
+      const q = qc.map((c) => c.texte);
+      if (q.length <= 3 && q.every((c) => MONTANT.test(c) || POURCENT.test(c))) {
+        cells.push(...q);
+        cellules.push(...qc);
+      }
+    }
     const iIsin = cells.findIndex((c) => ISIN.test(c));
     if (iIsin < 0) continue;
     const isin = cells[iIsin];
@@ -385,7 +447,11 @@ export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet): Boc
        vaut le pourcentage du nominal, et les seuils encadrent le cours
        précédent de six pour cent. Une découpe fausse ne peut pas satisfaire
        les deux, donc la recherche ne devine pas, elle vérifie. */
-    const lu = lireValeurs(cells.slice(iDate + 1, iStatut), cells.slice(iStatut + 1));
+    /* Si une seule des valeurs d'avant le statut sort d'une coupure, toute la
+       rangée doit se justifier par l'identité : c'est là que vivent le prix
+       et le nominal. */
+    const coupe = cellules.slice(iDate + 1, iStatut).some((c) => c.coupee);
+    const lu = lireValeurs(cells.slice(iDate + 1, iStatut), cells.slice(iStatut + 1), coupe);
     if (!lu) {
       refuser(`aucune découpe de la rangée n'accorde le prix, le nominal et la bande de six pour cent (${cells.length} cellules).`);
       continue;

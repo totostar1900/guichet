@@ -73,8 +73,17 @@ export const rereadOrder = (list: MarketBulletin[]): MarketBulletin[] => [...lis
 export interface PasseDeRelecture {
   /** Les séances effectivement reprises, dans l'ordre où elles l'ont été. */
   pris: string[];
-  /** Celles qui ont gagné des cours d'action. */
+  /**
+   * Celles qui ont gagné des cours, QUEL QUE SOIT L'INSTRUMENT.
+   *
+   * Ce compte ne regardait que les actions. La lecture géométrique rend des
+   * OBLIGATIONS, donc une passe qui en rattrape cent trente-trois aurait
+   * annoncé « 0 séance améliorée » : un progrès réel, invisible dans le seul
+   * chiffre que la page montre.
+   */
   gagne: number;
+  /** Ce que le lecteur a dit des séances qu'il n'a pas pu reprendre. */
+  motifs: string[];
   /** Celles qui sont repassées en « ok » et quittent donc l'arriéré. */
   closes: number;
   /** Celles que le lecteur n'a pas pu reprendre du tout. */
@@ -101,7 +110,7 @@ export async function relireArriere(by: MarketBulletin["ingestedBy"], n: number,
   const enAttente = await bulletinsToReread();
   const todo = seules?.length ? enAttente.filter((b) => seules.includes(b.sessionDate)) : rereadOrder(enAttente).slice(0, Math.max(0, n));
 
-  const out: PasseDeRelecture = { pris: [], gagne: 0, closes: 0, echecs: 0, reste: Math.max(0, enAttente.length - todo.length) };
+  const out: PasseDeRelecture = { pris: [], gagne: 0, closes: 0, echecs: 0, motifs: [], reste: Math.max(0, enAttente.length - todo.length) };
   for (const b of todo) {
     /* « upload: » désigne un PDF déposé à la main : il n'a pas d'adresse à
        reprendre, et sans ce garde le lecteur irait chercher celle du jour. */
@@ -118,12 +127,23 @@ export async function relireArriere(by: MarketBulletin["ingestedBy"], n: number,
       const res = await ingestBoc({ sessionDate: b.sessionDate, sourceUrl, by, keepPdf: false });
       if (!res.found || !res.bulletin) {
         out.echecs += 1;
+        out.motifs.push(`${b.sessionDate} : la bourse ne sert pas ce document.`);
         continue;
       }
-      if ((res.bulletin.counts?.equities ?? 0) > (b.counts?.equities ?? 0)) out.gagne += 1;
+      /* Les trois instruments, pas seulement les actions : les lignes que la
+         lecture géométrique rattrape sont des obligations. */
+      const avant = b.counts;
+      const apres = res.bulletin.counts;
+      if ((apres?.equities ?? 0) > (avant?.equities ?? 0) || (apres?.bonds ?? 0) > (avant?.bonds ?? 0) || (apres?.funds ?? 0) > (avant?.funds ?? 0)) out.gagne += 1;
       if (res.bulletin.status === "ok") out.closes += 1;
-    } catch {
+    } catch (e) {
+      /* UN ÉCHEC SE DIT. Ce catch était muet : une séance qui lève, comme le
+         22 décembre 2023 dont un cours déborde la colonne numérique, se
+         comptait sans que personne ne puisse savoir pourquoi, et l'on
+         reprenait indéfiniment une séance dont l'échec était connu du seul
+         moteur de base de données. */
       out.echecs += 1;
+      out.motifs.push(`${b.sessionDate} : ${(e as Error).message}`);
     }
   }
   return out;

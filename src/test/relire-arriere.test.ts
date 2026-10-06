@@ -163,3 +163,43 @@ describe("une relecture lit sans archiver, et sans rien effacer", () => {
     expect(src, "et ne réécrire le fichier que lorsque c'est nous qui l'archivons").toContain('if (fileKey && opts.keepPdf !== false)');
   });
 });
+
+describe("ce qu'une passe rapporte d'elle-même", () => {
+  it("compte une séance qui gagne des OBLIGATIONS, pas seulement des actions", async () => {
+    /* La lecture géométrique rend des obligations. Ce compte ne regardait que
+       les actions : une passe qui rattrape cent trente-trois lignes
+       obligataires aurait annoncé « 0 séance améliorée », et un progrès réel
+       serait resté invisible dans le seul chiffre que la page montre. */
+    const { ingestBoc } = await import("@/lib/market/boc");
+    vi.mocked(ingestBoc).mockImplementationOnce(async (opts) => ({
+      found: true,
+      bulletin: { ...bulletin(opts.sessionDate, "partiel", 0), counts: { equities: 0, bonds: 14, funds: 20 }, ingestedAt: new Date().toISOString() },
+      created: [],
+      refreshed: [],
+    }));
+    const out = await relireArriere("desk", 6, ["2024-01-02"]);
+    expect(out.pris).toEqual(["2024-01-02"]);
+    expect(out.gagne, "quatre obligations de plus, et la passe l'ignorait").toBe(1);
+  });
+
+  it("dit pourquoi une séance a échoué, au lieu de l'avaler", async () => {
+    /* Le 22 décembre 2023 lève « numeric field overflow » dans la base. Le
+       catch était muet : la séance se comptait en échec et la raison
+       n'existait nulle part, donc on la reprenait sans jamais savoir. */
+    const { ingestBoc } = await import("@/lib/market/boc");
+    vi.mocked(ingestBoc).mockImplementationOnce(async () => {
+      throw new Error("upsertQuotes: numeric field overflow");
+    });
+    const out = await relireArriere("desk", 6, ["2024-01-02"]);
+    expect(out.echecs).toBe(1);
+    expect(out.motifs).toEqual(["2024-01-02 : upsertQuotes: numeric field overflow"]);
+  });
+
+  it("et une séance que la bourse ne sert pas se nomme aussi", async () => {
+    const { ingestBoc } = await import("@/lib/market/boc");
+    vi.mocked(ingestBoc).mockImplementationOnce(async () => ({ found: false, created: [], refreshed: [] }));
+    const out = await relireArriere("desk", 6, ["2024-01-02"]);
+    expect(out.echecs).toBe(1);
+    expect(out.motifs[0]).toContain("2024-01-02");
+  });
+});
