@@ -25,7 +25,7 @@
   flex-direction: column;
   gap: var(--s-2);
   position: sticky;
-  top: 78px;
+  top: calc(var(--gel-desk) + var(--s-4));
   max-height: calc(100vh - 96px);
   min-height: 0;
 }

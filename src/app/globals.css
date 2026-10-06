@@ -12,6 +12,25 @@
      disparait, et soixante pixels de lignes defilent a decouvert la ou il
      devrait etre. C est ce qu on lisait sur « Diffusion ». */
   --bar-h: 62px;
+
+  /* CE QUI EST GELÉ EN HAUT, NOMMÉ UNE FOIS POUR TOUTES.
+     Audit du 6 octobre 2026 : TREIZE expressions différentes désignaient le
+     même bord, dispersées dans autant de feuilles — 78px, 72px, 52px, 0,
+     var(--bar-h), var(--s-7), des calc() à rallonge. Chacune avait été réglée
+     le jour où sa page a été écrite, sur l'état du haut de l'écran CE
+     jour-là. La barre du desk est devenue collante le matin même : tous ces
+     décalages sont devenus faux d'un coup, et les rails de gauche du Carnet
+     et de « Cotes et VL » ont disparu derrière elle.
+     C'est la maladie des espaces et des tailles, une troisième fois : une
+     valeur sans nom ne se voit pas vieillir. */
+  --barre-collante: calc(var(--bar-h) + env(safe-area-inset-top, 0px));
+  /* La hauteur réelle de la barre du desk, POSÉE PAR ELLE-MÊME : elle passe
+     d'une à deux lignes selon la largeur, et une constante mentirait la
+     moitié du temps. Zéro hors du desk, où elle n'existe pas. */
+  --desk-bar-h: 0px;
+  /* Le bord sous lequel une page du desk doit figer ce qu'elle fige. */
+  --gel-desk: calc(var(--barre-collante) + var(--desk-bar-h));
+
   /* the four fund categories (monétaire, obligataire, diversifié, actions): dots and rails on the funds page */
   --cat-M: #0e7490;
   --cat-O: #15803d;
@@ -1028,5 +1047,8 @@ h3 {
 @media (max-width: 760px) {
   :root {
     --barre-app: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
+    /* Sous 760 px l'en-tête de bureau est masqué : c'est la barre du
+       téléphone qui colle, et tout ce qui se fige se fige sous elle. */
+    --barre-collante: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
   }
 }

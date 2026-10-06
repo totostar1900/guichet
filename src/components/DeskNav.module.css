@@ -3,8 +3,16 @@
   align-items: center;
   gap: 4px 10px;
   flex-wrap: wrap;
-  /* the one gap between the desk bar and every page's content : pages add none of their own */
-  margin-bottom: 42px;
+  /* L'ÉCART SOUS LA BARRE SE PARTAGE, ET C'EST TOUT LE SUJET.
+     Il valait 42 px de marge, donc entièrement TRANSPARENTS : le fond opaque
+     s'arrêtait au ras des onglets, et une page qui défile traversait cette
+     bande pour venir toucher leur bord. D'où l'impression de chevauchement,
+     signalée le 6 octobre 2026.
+     Dix pixels passent donc à l'intérieur (voir padding plus bas) : le
+     contenu disparaît dix pixels avant d'atteindre les onglets, sous un fond
+     qui le couvre. Les trente-deux autres restent dehors : avec le filet,
+     l'écart total passe de 42 à 43 px, un pixel que personne ne verra. */
+  margin-bottom: var(--s-10);
 
   /* ELLE RESTE EN HAUT, demandé le 6 octobre 2026. Le desk se lit en
      descendant, et changer de page demandait de remonter.
@@ -21,11 +29,15 @@
      · Les marges négatives et le fond déborderaient la gouttière de la page :
        le fond s'étend donc de 16 px de chaque côté, et le contenu non. */
   position: sticky;
-  top: calc(62px + env(safe-area-inset-top, 0px));
+  top: var(--barre-collante);
   z-index: 20;
   background: var(--paper);
   margin-inline: -16px;
-  padding: 10px 16px 0;
+  padding: var(--s-5) 16px var(--s-5);
+  /* LE BORD DE LA ZONE GELÉE SE VOIT, sans quoi rien ne dit où elle finit.
+     Un filet d'un pixel suffit : la barre est déjà posée sur le fond de la
+     page, c'est la frontière qui manquait, pas le contraste. */
+  border-bottom: 1px solid var(--line);
 }
 .group {
   display: flex;
@@ -101,17 +113,12 @@
   .nav {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 6px;
+    /* Même bande opaque que sur grand écran : elle servait de place à la
+       barre de défilement, elle sert maintenant aussi de séparation. */
+    padding-bottom: var(--s-5);
     margin-inline: -16px;
     padding-inline: 16px;
     scrollbar-width: none;
-  }
-  /* Sous 760 px l'en-tête de bureau est masqué et c'est la barre du téléphone
-     qui colle, d'une autre hauteur : la barre du desk se range dessous. */
-  @media (max-width: 760px) {
-    .nav {
-      top: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
-    }
   }
   .nav::-webkit-scrollbar {
     display: none;

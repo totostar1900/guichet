@@ -3,7 +3,9 @@
    contenu. */
 .rail {
   position: sticky;
-  top: var(--s-7);
+  /* Sous ce qui est gelé en haut : seize pixels du bord de la fenêtre le
+     faisaient glisser derrière la barre du desk et disparaître. */
+  top: calc(var(--gel-desk) + var(--s-7));
   align-self: start;
   max-height: calc(100vh - var(--s-10));
   overflow: auto;

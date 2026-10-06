@@ -33,7 +33,7 @@
    propre défilement, comme les autres rails de l’application. */
 .types {
   position: sticky;
-  top: 72px;
+  top: calc(var(--gel-desk) + var(--s-5));
   max-height: calc(100vh - 96px);
   display: flex;
   flex-direction: column;

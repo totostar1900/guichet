@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./DeskNav.module.css";
+import { BarreGelee } from "./BarreGelee";
 import { getT } from "@/i18n/server";
 
 /**
@@ -110,7 +111,7 @@ export const DESK_TABS: [string, string][] = DESK_GROUPS.flatMap((g) => g.tabs);
 export async function DeskNav({ current, badges = {} }: { current: string; badges?: Record<string, number> }) {
   const t = await getT();
   return (
-    <nav className={styles.nav} aria-label="Desk" data-coach="nav">
+    <BarreGelee className={styles.nav} aria-label="Desk" data-coach="nav">
       {DESK_GROUPS.map((g) => (
         <div key={g.label} className={styles.group}>
           <span className={styles.label}>{t(g.label)}</span>
@@ -131,6 +132,6 @@ export async function DeskNav({ current, badges = {} }: { current: string; badge
         </svg>
         {t("Guide")}
       </Link>
-    </nav>
+    </BarreGelee>
   );
 }

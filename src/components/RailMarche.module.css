@@ -17,7 +17,7 @@
 }
 .rail {
   position: sticky;
-  top: calc(var(--bar-h) + var(--s-7));
+  top: calc(var(--gel-desk) + var(--s-7));
   display: grid;
   gap: var(--s-2);
   padding-right: var(--s-7);

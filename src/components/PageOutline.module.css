@@ -1,7 +1,7 @@
 /* Le rail « Sur cette page », à droite de l'article sur ordinateur. */
 .rail {
   position: sticky;
-  top: calc(72px + env(safe-area-inset-top, 0px));
+  top: calc(var(--gel-desk) + var(--s-5));
   max-height: calc(100vh - 96px);
   display: flex;
   flex-direction: column;
@@ -57,7 +57,7 @@
        Sous la barre du téléphone : à zéro elle se figeait derrière elle, gelée et
        invisible, ce qui se lit comme une ligne qui ne gèle pas. */
     position: sticky;
-    top: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
+    top: var(--gel-desk);
     z-index: 6;
     background: var(--paper);
     margin-bottom: 14px;

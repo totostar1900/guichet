@@ -216,7 +216,7 @@
 }
 .avecRail > nav {
   position: sticky;
-  top: calc(72px + env(safe-area-inset-top, 0px));
+  top: calc(var(--gel-desk) + var(--s-5));
 }
 @media (max-width: 1100px) {
   .avecRail {

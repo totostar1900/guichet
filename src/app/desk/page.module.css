@@ -41,7 +41,7 @@
 }
 .feedTable thead th {
   position: sticky;
-  top: var(--bar-h);
+  top: var(--gel-desk);
   z-index: 2;
   /* Opaque, et sur sa propre couche : c'est ce qui masque les lignes qui
      défilent dessous. Le filet lui appartient maintenant qu'il est séparé. */
@@ -178,7 +178,7 @@
    éléments collants dans une même colonne se chevauchent au défilement. */
 .colRail {
   position: sticky;
-  top: calc(72px + env(safe-area-inset-top, 0px));
+  top: calc(var(--gel-desk) + var(--s-5));
   max-height: calc(100vh - 96px);
   overflow: auto;
   display: grid;

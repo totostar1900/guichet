@@ -111,7 +111,7 @@
 }
 .table th {
   position: sticky;
-  top: var(--bar-h);
+  top: var(--gel-desk);
   z-index: 1;
   background: var(--surface);
   border-bottom: 1px solid var(--ink-3);

@@ -37,7 +37,7 @@
 .outline,
 .outlineLeft {
   position: sticky;
-  top: 72px;
+  top: calc(var(--gel-desk) + var(--s-5));
   max-height: calc(100vh - 84px);
   overflow-y: auto;
   font-size: 0.82rem;
@@ -489,7 +489,8 @@
   /* On a phone the pane becomes one row of chapter chips, stuck under the phone header; the rest of the tree is reachable from the tab bar. */
   .nav {
     position: sticky;
-    top: 52px;
+    /* Sous ce qui est gelé : la barre du téléphone et celle du desk. */
+    top: var(--gel-desk);
     z-index: 5;
     max-height: none;
     overflow: visible;
@@ -583,7 +584,8 @@
   .phoneOnly {
     display: block;
     position: sticky;
-    top: 52px;
+    /* Sous ce qui est gelé : la barre du téléphone et celle du desk. */
+    top: var(--gel-desk);
     z-index: 5;
     background: var(--paper);
   }

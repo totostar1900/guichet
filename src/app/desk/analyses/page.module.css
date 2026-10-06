@@ -236,10 +236,14 @@
    s'en va avec elle. */
 .sec > aside {
   position: sticky;
-  top: var(--s-7);
+  /* Sous tout ce qui est gelé, et non à seize pixels du haut de la fenêtre :
+     la note passait derrière la barre du desk. */
+  top: calc(var(--gel-desk) + var(--s-7));
 }
 .sec > section {
-  scroll-margin-top: var(--s-7);
+  /* Une ancre doit s'arrêter sous la zone gelée, sinon elle amène la
+     section juste dessous et le titre reste caché. */
+  scroll-margin-top: calc(var(--gel-desk) + var(--s-7));
 }
 /* Sous 1400 px le commentaire passe sous son contenu plutôt que de l'écraser ;
    sous 1040 px le rail disparaît, la table des matières ne valant rien sur un

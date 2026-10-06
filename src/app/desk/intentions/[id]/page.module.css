@@ -156,7 +156,7 @@
   gap: 8px;
   align-content: start;
   position: sticky;
-  top: 72px;
+  top: calc(var(--gel-desk) + var(--s-5));
 }
 .side h4 {
   margin: 10px 0 0;
