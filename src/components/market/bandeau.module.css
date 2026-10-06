@@ -1,0 +1,72 @@
+/* Le bandeau qui se déplie, partagé par le nuage de la cote et la bande des
+   fonds. Les espaces viennent de l'échelle (--s-1 à --s-11). */
+
+.bandeau {
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-5);
+}
+.tirette {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: var(--s-4);
+  align-items: center;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: var(--s-4) var(--s-5);
+  cursor: pointer;
+}
+.tirette:hover {
+  background: var(--surface-2);
+}
+.tirette:focus-visible {
+  outline: 2px solid var(--select, var(--ink-3));
+  outline-offset: -2px;
+}
+.chev {
+  color: var(--ink-3);
+  transition: transform 0.18s;
+}
+.ouvert .chev {
+  transform: rotate(90deg);
+}
+.quoi {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.titre {
+  font-size: var(--t-3);
+  font-weight: 600;
+}
+/* LE RÉSUMÉ EST CE QUI FAIT OUVRIR. Deux ou trois chiffres, pas une phrase :
+   une porte sans écriteau ne s'ouvre pas deux fois. */
+.resume {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.resume b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.action {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.corps {
+  border-top: 1px solid var(--line);
+  padding: var(--s-2) var(--s-5) var(--s-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chev {
+    transition: none;
+  }
+}

@@ -46,8 +46,12 @@ export function ChoixFenetre({ fenetre, comptes, surChoix }: { fenetre: FenetreI
           onClick={() => surChoix(f.id)}
           disabled={comptes[f.id] === 0}
         >
-          <b>{noms[f.id]}</b>
-          <small>{t("{n} fonds", { n: comptes[f.id] })}</small>
+          {/* LE COMPTE A QUITTÉ LE BOUTON. Il servait à dire pourquoi « 5 ans »
+              était éteint ; les cinq durées qui restent couvrent toutes la
+              plupart des fonds, et six nombres sous six mots faisaient une
+              rangée qu'on déchiffre au lieu de la lire. Ce que chaque fenêtre
+              mesure se dit maintenant dans le bandeau, une fois. */}
+          {noms[f.id]}
         </button>
       ))}
     </div>

@@ -936,3 +936,70 @@
   cursor: default;
   text-decoration: none;
 }
+
+/* Le bandeau replié dit qu'une plage est posée : sans cela, on referme le
+   tracé en croyant avoir tout sous les yeux, et la liste en cache une part. */
+.resumePose {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+/* ---- Les lignes épinglées, sous le tracé ---- */
+.epingles {
+  border: 1px solid var(--gold, var(--warn));
+  background: var(--warn-soft);
+  padding: var(--s-3) var(--s-4) var(--s-4);
+  margin-bottom: var(--s-5);
+}
+.epinglesTete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.epinglesTete span {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold, var(--warn));
+}
+.detacherTout {
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* La croix se tient sur la carte, au coin : c'est elle qu'on cherche pour
+   renvoyer la ligne à sa place. */
+.epingle {
+  position: relative;
+}
+.epingle + .epingle {
+  margin-top: var(--s-3);
+}
+.detacher {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  font: inherit;
+  font-size: var(--t-4);
+  line-height: 1;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.detacher:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}

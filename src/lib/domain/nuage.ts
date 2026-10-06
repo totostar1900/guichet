@@ -43,18 +43,24 @@ const TEINTES: Record<string, string> = { CM: "t1", CG: "t2", GA: "t3", TD: "t4"
 export const teinteDe = (pays: string): string => TEINTES[pays] ?? "tx";
 
 /**
- * AU-DELÀ D'UN DEMI-POINT, L'ÉCART AU COUPON VIENT DU COURS.
+ * LE PRIX SOUS 100 %, ET NON « UN ÉCART AU COUPON ».
  *
- * Mesuré le 6 octobre 2026 sur les trente-deux obligations cotées :
- * vingt-cinq cotent exactement 100,00 et leur rendement est leur coupon à
- * quelques points de base de convention près, jusqu'à +18 pb pour les
- * amortisseurs fréquents. Les six autres s'en écartent de 138 à 452 points de
- * base, et c'est leur cours qui le dit. Un demi-point sépare proprement les
- * deux familles, et c'est ce que l'anneau or signale sur le tracé.
+ * La marque répondait d'abord à « le rendement s'éloigne du coupon de plus
+ * d'un demi-point ». Elle était juste et illisible : « a quitté le pair » est
+ * du jargon, et il a fallu l'expliquer. Elle répond maintenant à la cause,
+ * qui se lit sans glossaire : LE PRIX EST SOUS 100 %, donc on achète moins
+ * de cent ce qui sera remboursé cent, et le rendement dépasse le coupon.
+ *
+ * Ce que le changement gagne et ce qu'il coûte, mesuré le 7 octobre 2026 sur
+ * les 32 obligations cotées. L'ancienne règle en désignait six. La nouvelle
+ * en désigne huit : elle ajoute ECMR 7,25 % à 99 (+40 pb, sous l'ancien
+ * seuil) et EOCG 6,25 % à 95, dont le rendement ne se calcule pas faute
+ * d'échéancier — et qui est pourtant la ligne la plus décotée de la cote.
+ * Elle ne dira rien d'une ligne au-dessus de 100, dont le rendement passe
+ * sous son coupon ; il n'y en a aucune aujourd'hui, et le jour venu c'est une
+ * seconde marque qu'il faudra, pas celle-ci élargie.
  */
-export const ECART_PAIR = 0.5;
-export const horsDuPair = (p: Pick<PointTitre, "ytm" | "coupon">): boolean =>
-  p.ytm != null && p.coupon != null && Math.abs(p.ytm - p.coupon) > ECART_PAIR;
+export const horsDuPair = (p: Pick<PointTitre, "cours">): boolean => p.cours != null && p.cours < 100;
 
 /**
  * LE NOM COURT D'UNE LIGNE, et il n'est pas toujours au même bout du titre.

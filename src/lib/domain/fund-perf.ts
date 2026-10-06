@@ -191,7 +191,11 @@ export const TOLERANCE_AN = 45;
  * d'un fonds, où l'on regarde une courbe et non un rang, il garde son sens
  * et il y reste.
  */
-export type FenetreId = "m3" | "m6" | "a1" | "a2" | "a3" | "a4";
+/* QUATRE ANS A ÉTÉ OFFERT UN JOUR, PUIS RETIRÉ. Il ne couvrait personne : la
+   plus ancienne VL du dépôt est du 5 janvier 2023, donc il n'ouvrira qu'en
+   janvier 2027. Un bouton éteint qui ne s'allumera pas de l'année occupe la
+   place d'une durée qui sert. */
+export type FenetreId = "m3" | "m6" | "a1" | "a2" | "a3";
 
 export const FENETRES: { id: FenetreId; mois: number; tolerance: number; nom: string }[] = [
   { id: "m3", mois: 3, tolerance: TOLERANCE_TRIMESTRE, nom: "3 mois" },
@@ -201,9 +205,6 @@ export const FENETRES: { id: FenetreId; mois: number; tolerance: number; nom: st
   { id: "a1", mois: 12, tolerance: TOLERANCE_AN, nom: "12 mois" },
   { id: "a2", mois: 24, tolerance: TOLERANCE_AN, nom: "2 ans" },
   { id: "a3", mois: 36, tolerance: TOLERANCE_AN, nom: "3 ans" },
-  /* Quatre ans ne couvre personne avant janvier 2027 : la plus ancienne VL
-     du dépôt est du 5 janvier 2023. Le bouton est là, éteint, et il le dit. */
-  { id: "a4", mois: 48, tolerance: TOLERANCE_AN, nom: "4 ans" },
 ];
 
 /**

@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
-import { useLineHref } from "@/components/DeskView";
 import { fmtPct } from "@/lib/format";
 import { bornesAxe, horsDuPair, type MesureNuage, MESURES, nomCourt, type PointTitre, teinteDe } from "@/lib/domain/nuage";
 import styles from "./nuage.module.css";
@@ -65,6 +63,8 @@ export function NuageTitres({
   duree,
   rendement,
   surZone,
+  epingles,
+  surEpingle,
 }: {
   points: PointTitre[];
   mesure: MesureNuage;
@@ -73,9 +73,11 @@ export function NuageTitres({
   rendement: Plage;
   /** Écrit les deux plages d'un coup : le nuage en règle deux, une bande une seule. */
   surZone: (z: { duree?: Plage; rendement?: Plage }) => void;
+  /** Les lignes épinglées, et la bascule : un point les pose et les retire. */
+  epingles: string[];
+  surEpingle: (id: string) => void;
 }) {
   const t = useT();
-  const href = useLineHref();
 
   const nuage = mesure === "nuage";
   const surRendement = mesure === "rendement";
@@ -234,7 +236,7 @@ export function NuageTitres({
         ))}
         <span>
           <i className={`${styles.t1} ${styles.anneau}`} aria-hidden="true" />
-          {t("cours éloigné de 100 %")}
+          {t("prix sous 100 %")}
         </span>
       </div>
 
@@ -274,16 +276,28 @@ export function NuageTitres({
             />
           ) : null}
 
-          {places.map(({ p, X, etage, Y }) => (
-            <Link
-              key={p.id}
-              href={href(p.id)}
-              className={`${styles.pt} ${styles[teinteDe(p.pays)]} ${horsDuPair(p) ? styles.anneau : ""} ${dedans(p) ? "" : styles.hors}`}
-              style={nuage ? { left: `${X}%`, bottom: `${Y}%` } : { left: `${X}%`, bottom: `${16 + etage * 13}px` }}
-              title={`${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`}
-              aria-label={`${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`}
-            />
-          ))}
+          {/* LE POINT ÉPINGLE SA LIGNE, IL NE L'OUVRE PLUS. Ouvrir, c'était
+              quitter le tracé pour lire trois chiffres, puis revenir ; or ce
+              qu'on veut en pointant un point, c'est le lire SANS perdre le
+              nuage. La ligne vient donc se poser sous le tracé, et « Voir la
+              fiche » reste au bout de sa rangée pour qui veut vraiment
+              partir. */}
+          {places.map(({ p, X, etage, Y }) => {
+            const pose = epingles.includes(p.id);
+            const dit = `${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                aria-pressed={pose}
+                className={`${styles.pt} ${styles[teinteDe(p.pays)]} ${horsDuPair(p) ? styles.anneau : ""} ${dedans(p) ? "" : styles.hors} ${pose ? styles.pose : ""}`}
+                style={nuage ? { left: `${X}%`, bottom: `${Y}%` } : { left: `${X}%`, bottom: `${16 + etage * 13}px` }}
+                title={dit}
+                aria-label={`${dit} — ${pose ? t("détacher") : t("épingler")}`}
+                onClick={() => surEpingle(p.id)}
+              />
+            );
+          })}
 
           {/* Le nom des lignes dont le cours s'est éloigné de 100 : c'est ce
               qu'un tracé sait faire et qu'un histogramme ne sait pas. */}

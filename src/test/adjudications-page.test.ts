@@ -80,7 +80,11 @@ describe("la page des adjudications", () => {
 
   it("groupe par type ou par émetteur, avec un seul titre par groupe", () => {
     expect(BROWSER, "les deux rangements ont disparu").toMatch(/const GROUPEMENTS: \[string, string\]\[\][\s\S]*?\["type", "Type"\],\s*\["emetteur", "Émetteur"\],/);
-    expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single effacable=\{grouped\} items=\{GROUPEMENTS\}/);
+    /* « Aucun » est une valeur depuis le 7 octobre 2026 : « Effacer »
+       ramenait sur « Type », qui est un rangement, et la liste à plat était
+       donc impossible à obtenir. La liste n'a plus d'« Effacer ». */
+    expect(BROWSER, "le troisième rangement a disparu").toMatch(/\["aucun", "Aucun"\]/);
+    expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single effacable=\{false\} items=\{GROUPEMENTS\}/);
     /* « EFFACER » NE S'OFFRE QUE S'IL EFFACE QUELQUE CHOSE. Un rangement est
        toujours à une valeur : sur « Type », qui est le défaut, le mot ne
        changeait rien. Signalé à l'écran. */

@@ -618,3 +618,75 @@
   opacity: 0.55;
   cursor: default;
 }
+
+/* Une mention n'est pas un chiffre : elle se dit en petit, en gris, et sans
+   la graisse que porte une performance. Trois colonnes de tirets se lisaient
+   « rien » alors qu'elles disent trois choses différentes. */
+.mention {
+  font-size: var(--t-1);
+  font-weight: 400;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* ---- Les fonds épinglés, sous le tracé ---- */
+.resumePose {
+  color: var(--warn);
+  font-weight: 600;
+}
+.epingles {
+  border: 1px solid var(--gold, var(--warn));
+  background: var(--warn-soft);
+  padding: var(--s-3) var(--s-4) var(--s-4);
+  margin-bottom: var(--s-5);
+}
+.epinglesTete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.epinglesTete span {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold, var(--warn));
+}
+.detacherTout {
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.epingle {
+  position: relative;
+}
+.epingle + .epingle {
+  margin-top: var(--s-3);
+}
+.detacher {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  font: inherit;
+  font-size: var(--t-4);
+  line-height: 1;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.detacher:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}

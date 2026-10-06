@@ -147,6 +147,9 @@
    survol comme au clavier. */
 .pt {
   position: absolute;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -329,4 +332,13 @@
   .reglage {
     grid-template-columns: 5.2rem minmax(0, 1fr);
   }
+}
+
+/* Le point épinglé grossit et porte un halo : c'est lui qu'on suit des yeux
+   en lisant la rangée venue se poser dessous. */
+.pose {
+  width: 15px;
+  height: 15px;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 0 0 7px color-mix(in srgb, var(--gold, var(--warn)) 45%, transparent);
+  z-index: 7;
 }

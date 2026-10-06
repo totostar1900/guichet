@@ -17,6 +17,8 @@ import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
 import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
 import { NuageTitres } from "./market/NuageTitres";
+import { BandeauRepliable } from "./market/BandeauRepliable";
+import { fmtPct } from "@/lib/format";
 import { estMesure, MESURE_PAR_DEFAUT, type MesureNuage } from "@/lib/domain/nuage";
 import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
 import { nomsCourts } from "@/lib/domain/nom-court";
@@ -69,6 +71,10 @@ const GROUPEMENTS: [string, string][] = [
      d'un rangement ; « Type » suffit à dire lequel. */
   ["type", "Type"],
   ["emetteur", "Émetteur"],
+  /* « Aucun » est une valeur, pas l'absence d'une valeur : sans elle, il n'y
+     avait aucun moyen d'obtenir la liste à plat, « Effacer » ramenant sur
+     « Type », qui est un rangement comme les autres. */
+  ["aucun", "Aucun"],
 ];
 const TENORS: [string, string][] = [
   ["lt1", "Moins d'un an"],
@@ -76,7 +82,7 @@ const TENORS: [string, string][] = [
   ["gt3", "Plus de 3 ans"],
   ["eq", "Actions et fonds"],
 ];
-export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer" | "recent";
+export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer";
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
 /**
@@ -97,7 +103,11 @@ type View = "table" | "list" | "cards";
  */
 const VIEWS: View[] = ["table", "list", "cards"];
 const VIEW_LABEL: Record<View, string> = { table: "Tableau", list: "Liste", cards: "Cartes" };
-const SORT_LABEL: Record<SortKey, string> ={ deadline: "clôture la plus proche", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", recent: "plus récent" };
+/* « Date de clôture » et non « clôture la plus proche » : le second nommait
+   l'ordre, pas la colonne, et un ordre se renverse — « la plus proche »
+   devenait faux dès qu'on inversait la flèche. « Plus récent » est parti : il
+   range sur la date d'entrée au référentiel, qui ne dit rien de la ligne. */
+const SORT_LABEL: Record<SortKey, string> ={ deadline: "Date de clôture", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
 const normStatus = (s: DisplayStatus): string => clientStatusGroup(s);
@@ -413,6 +423,22 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const yr = parseYieldRange(sp.get("rendement"));
   /* Ce que le nuage montre : les deux axes, ou l'un des deux seul. */
   const mesure: MesureNuage = estMesure(sp.get("mesure")) ? (sp.get("mesure") as MesureNuage) : MESURE_PAR_DEFAUT;
+  /* LE TRACÉ S'OUVRE FERMÉ. La liste est ce pour quoi on vient ; le tracé
+     sert à choisir où regarder, ce qui est une seconde question. */
+  const nuageOuvert = sp.get("nuage") === "1";
+  /**
+   * LES LIGNES ÉPINGLÉES, DANS L'ADRESSE COMME LE RESTE.
+   *
+   * Un point du tracé fait monter sa ligne juste sous le nuage, au lieu de
+   * quitter la page : les deux sont alors sous les yeux en même temps, ce qui
+   * est tout l'objet du geste. Plusieurs épingles, parce qu'on ne pointe pas
+   * un point pour l'admirer mais pour le comparer à son voisin.
+   */
+  const epingles = (sp.get("epingle") ?? "").split(",").filter(Boolean);
+  const basculerEpingle = (id: string) => {
+    const n = epingles.includes(id) ? epingles.filter((x) => x !== id) : [...epingles, id];
+    update({ epingle: n.join(",") || undefined, nuage: "1" });
+  };
   /**
    * LA PAGE DES ADJUDICATIONS N'EST PAS UNE COTE, ET SA BARRE NE DOIT PAS
    * L'ÊTRE.
@@ -456,10 +482,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * trois pastilles pour trois types n'avaient pas besoin d'une barre à
    * elles, et deux rangements auraient demandé deux barres.
    */
+  /* TROIS RANGEMENTS, DONT « AUCUN ». « Effacer » ramenait sur « Type »,
+     qui est un rangement : il n'y avait pas moyen d'obtenir une liste à plat.
+     Le vide est donc une valeur offerte, et non l'absence d'une valeur. */
+  const sansGroupe = sp.get("groupe") === "aucun";
   const parEmetteur = sommaire && grouped;
   const q = sp.get("q") ?? "";
   const sort = (sp.get("tri") as SortKey) || "deadline";
-  const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" || sort === "recent" ? "desc" : "asc");
+  const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" ? "desc" : "asc");
   const desk = useDeskView();
   // The phone reads cards, the desk a table: decided from the media query at hydration, not after a first paint (no compact flash).
   const phone = usePhone();
@@ -537,7 +567,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
     { key: "pays", label: t("Pays"), items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
     { key: "statut", label: t("Statut"), items: STATUSES, selected: status },
-    ...(adj ? [] : [{ key: "duree", label: t("Durée"), items: TENORS, selected: tenor }]),
+    /* LES PALIERS DE DURÉE SONT PARTIS DU FILTRE. Le nuage règle la même
+       borne, en continu et à la barre : trois paliers à côté d'une barre,
+       c'est la même question posée deux fois, et deux réponses possibles. */
   ];
   const toggle = (key: string, value: string, single?: boolean) => {
     if (key === "rendement") return update({ rendement: undefined });
@@ -670,13 +702,32 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offers, now, sp]);
 
+  /* CE QUE LE BANDEAU REPLIÉ MONTRE : les trois chiffres qui décident
+     d'ouvrir. Calculés sur les points du tracé, donc après les autres
+     filtres et avant les deux plages qu'il règle lui-même. */
+  const resumeNuage = useMemo(() => {
+    const ys = pointsDuNuage.map((p) => p.ytm).filter((v): v is number => v != null);
+    return {
+      n: pointsDuNuage.length,
+      bas: ys.length ? Math.min(...ys) : 0,
+      haut: ys.length ? Math.max(...ys) : 0,
+      decotees: pointsDuNuage.filter((p) => p.cours != null && p.cours < 100).length,
+    };
+  }, [pointsDuNuage]);
+
+  /* Les lignes épinglées sortent de la liste : elles sont montrées à part,
+     et les voir deux fois ferait croire à un doublon de la cote. */
+  const lignesEpinglees = rows.filter((r) => epingles.includes(r.o.id));
+
   const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
   // « À la une » : the desk's picks, in their own frame under the toolbar, in the same view as the list.
   const today = nowIso.slice(0, 10);
   // « À la une » only while a client can act on the line: a closed line leaves the frame by itself.
   const picks = rows.filter(({ o, s }) => o.featured && o.featured.until >= today && !s.past).slice(0, 3);
   const pickIds = new Set(picks.map(({ o }) => o.id));
-  const rest = pickIds.size ? rows.filter(({ o }) => !pickIds.has(o.id)) : rows;
+  /* Les épinglées sortent aussi : elles sont montrées sous le tracé, et les
+     voir deux fois ferait croire à un doublon de la cote. */
+  const rest = rows.filter(({ o }) => !pickIds.has(o.id) && !epingles.includes(o.id));
   // The line pages step through this exact order and come back to this exact list.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const orderKey = [...picks, ...rest].map(({ o }) => o.id).join(",");
@@ -737,7 +788,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const render = (list: Row[], featured: boolean) =>
     view === "table" ? (
       <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
-    ) : sommaire && !featured ? (
+    ) : sommaire && !featured && !sansGroupe ? (
       (() => {
         const blocs = blocsDuSommaire(list);
         /* LES NOMS COURTS NE VALENT QUE POUR LES ÉMETTEURS. « Trésor public
@@ -855,7 +906,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               Elles étaient sur trois lignes, « Filtrer » seule en haut et les
               deux autres soixante pixels plus bas. */}
           {sommaire && (
-            <Dropdown label="Grouper" single effacable={grouped} items={GROUPEMENTS} selected={new Set([grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "emetteur" ? "emetteur" : undefined })} />
+            <Dropdown label="Grouper" single effacable={false} items={GROUPEMENTS} selected={new Set([sansGroupe ? "aucun" : grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "type" ? undefined : [...x][0] })} />
           )}
           {sommaire && view === "cards" && !desk && <DensitySwitch />}
           {/* TOUT EFFACER RESTE À SA PLACE, MÊME SANS RIEN À EFFACER.
@@ -999,12 +1050,34 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           abscisse. Il se tient entre les commandes et la liste parce qu'il
           est les deux : il montre, et il resserre. */}
       {lieu === "cote" && (
+        <BandeauRepliable
+          titre={t("Rendement et durée")}
+          ouvert={nuageOuvert}
+          surOuvrir={(v) => update({ nuage: v ? "1" : undefined })}
+          resume={
+            <>
+              <span>
+                <b>{resumeNuage.n}</b> {t("lignes")}
+              </span>
+              {/* UNE SEULE CLEF POUR LA FOURCHETTE. « de » et « à »
+                  traduits séparément donnaient « of 4,6 % at 11,1 % » :
+                  deux mots-outils n'ont pas de sens hors de leur phrase. */}
+              {resumeNuage.n > 0 && <span>{t("de {bas} à {haut}", { bas: fmtPct(resumeNuage.bas, 1), haut: fmtPct(resumeNuage.haut, 1) })}</span>}
+              <span>
+                <b>{resumeNuage.decotees}</b> {t("sous 100 %")}
+              </span>
+              {dr.min != null || dr.max != null || yr.min != null || yr.max != null ? <span className={styles.resumePose}>{t("plage posée")}</span> : null}
+            </>
+          }
+        >
         <NuageTitres
           points={pointsDuNuage}
           mesure={mesure}
           surMesure={(m) => update({ mesure: m === MESURE_PAR_DEFAUT ? undefined : m })}
           duree={dr}
           rendement={yr}
+          epingles={epingles}
+          surEpingle={basculerEpingle}
           surZone={(z) =>
             update({
               ...(z.duree ? { ans: dureeRangeParam(z.duree.min, z.duree.max) } : {}),
@@ -1012,6 +1085,29 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             })
           }
         />
+        </BandeauRepliable>
+      )}
+
+      {/* LES LIGNES ÉPINGLÉES, JUSTE SOUS LE TRACÉ. Elles quittent la liste
+          et viennent se poser là, pour qu'un point désigné se lise sans
+          perdre le nuage de vue. La croix les renvoie à leur place. */}
+      {lieu === "cote" && lignesEpinglees.length > 0 && (
+        <section className={styles.epingles} aria-label={t("Lignes épinglées")}>
+          <div className={styles.epinglesTete}>
+            <span>{lignesEpinglees.length > 1 ? t("{n} lignes épinglées", { n: lignesEpinglees.length }) : t("1 ligne épinglée")}</span>
+            <button type="button" className={styles.detacherTout} onClick={() => update({ epingle: undefined })}>
+              {t("Tout détacher")}
+            </button>
+          </div>
+          {lignesEpinglees.map(({ o, s: som }) => (
+            <div key={o.id} className={styles.epingle}>
+              <OfferCard o={o} s={som} suivi={armees.has(o.id)} />
+              <button type="button" className={styles.detacher} onClick={() => basculerEpingle(o.id)} aria-label={`${t("Détacher")} ${o.title}`} title={t("Détacher")}>
+                ×
+              </button>
+            </div>
+          ))}
+        </section>
       )}
 
       {picks.length > 0 && (

@@ -21,8 +21,11 @@ export function TitresHead({ fundsCount }: { fundsCount: number }) {
   const t = useT();
   return (
     <div className="mtogglesHead">
+      {/* LE SURTITRE EST PARTI. « Titres » au-dessus de « Obligations, bons
+          du Trésor et actions de la zone CEMAC » ne disait rien de plus que
+          la phrase qu'il surmontait, et l'onglet de la page porte déjà ce
+          mot-là. */}
       <div>
-        <span className="eyebrow">{t("Titres")}</span>
         <h1 className="display">{t("Obligations, bons du Trésor et actions de la zone CEMAC")}</h1>
       </div>
     </div>

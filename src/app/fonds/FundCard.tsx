@@ -123,6 +123,10 @@ export function FundCard({ r }: { r: FundRow }) {
           {/* Trois appels littéraux, et non un ternaire dans t() : le scanner de
               clefs ne voit pas une chaîne qui lui arrive en variable. Le nom de
               la fenêtre, lui, est un paramètre et non la clef. */}
+          {/* Le trou passe avant les trois raisons : le fonds est assez
+              vieux et nos VL assez longues, il manque juste une VL là où il
+              en faudrait une. */}
+          {perf == null && r.curve?.trous?.includes(fenetre) && <em>{t("série trouée")}</em>}
           {raison === "jeune" && <em>{t("pas encore {f}", { f: noms[fenetre] })}</em>}
           {raison === "cote-recente" && <em>{t("à la cote depuis moins de {f}", { f: noms[fenetre] })}</em>}
           {raison === "lecture-courte" && <em>{t("VL lues sur moins de {f}", { f: noms[fenetre] })}</em>}

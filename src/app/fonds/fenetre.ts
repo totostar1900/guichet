@@ -36,7 +36,7 @@ export const useFenetre = (): FenetreId => useContext(FenetreCtx);
  */
 export function useNomFenetre(): Record<FenetreId, string> {
   const t = useT();
-  return { m3: t("3 mois"), m6: t("6 mois"), a1: t("12 mois"), a2: t("2 ans"), a3: t("3 ans"), a4: t("4 ans") };
+  return { m3: t("3 mois"), m6: t("6 mois"), a1: t("12 mois"), a2: t("2 ans"), a3: t("3 ans") };
 }
 
 /** Ce qu'il faut d'une ligne pour lire sa fenêtre : rien de plus que sa courbe. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bornesAxe, ECART_PAIR, estMesure, horsDuPair, MESURES, nomCourt, teinteDe } from "@/lib/domain/nuage";
+import { bornesAxe, estMesure, horsDuPair, MESURES, nomCourt, teinteDe } from "@/lib/domain/nuage";
 
 /**
  * LE NUAGE DE LA COTE : ce que ça rapporte contre combien de temps.
@@ -11,30 +11,32 @@ import { bornesAxe, ECART_PAIR, estMesure, horsDuPair, MESURES, nomCourt, teinte
  * du tracé.
  */
 
-describe("ce qui a quitté le pair", () => {
-  it("un écart au coupon de plus d'un demi-point vient du cours", () => {
-    /* Les six vraies, telles que la base les donne. */
-    expect(horsDuPair({ ytm: 11.12, coupon: 6.6 })).toBe(true);
-    expect(horsDuPair({ ytm: 9.85, coupon: 5.95 })).toBe(true);
-    expect(horsDuPair({ ytm: 6.98, coupon: 5.6 })).toBe(true);
+describe("le prix sous 100 %", () => {
+  it("marque les lignes décotées, qui sont celles qui rapportent plus que leur coupon", () => {
+    /* Les six que l'ancienne règle du demi-point désignait déjà : on achète
+       moins de cent ce qui sera remboursé cent. */
+    expect(horsDuPair({ cours: 97 })).toBe(true);
+    expect(horsDuPair({ cours: 94.96 })).toBe(true);
+    expect(horsDuPair({ cours: 98.5 })).toBe(true);
   });
 
-  it("mais la convention de calcul ne compte pas, amortisseurs compris", () => {
-    /* Au pair, le calcul s'écarte de 0 à +18 pb selon la ligne : ACEP 7 %
-       rend 7,10, ALIOS-06 7 % rend 7,18. Ce n'est pas le cours qui parle,
-       c'est le capital qui revient par tranches et se replace. */
-    expect(horsDuPair({ ytm: 7.1, coupon: 7 })).toBe(false);
-    expect(horsDuPair({ ytm: 7.18, coupon: 7 })).toBe(false);
-    expect(horsDuPair({ ytm: 6.59, coupon: 6.5 })).toBe(false);
-    expect(ECART_PAIR).toBe(0.5);
+  it("et les deux que l'écart au coupon laissait passer", () => {
+    /* ECMR 7,25 % à 99 ne s'écartait que de 40 pb, sous l'ancien seuil.
+       EOCG 6,25 % à 95 n'a pas de rendement calculable faute d'échéancier,
+       et c'est pourtant la ligne la plus décotée de la cote : l'ancienne
+       règle, qui partait du rendement, ne pouvait rien en dire. */
+    expect(horsDuPair({ cours: 99 })).toBe(true);
+    expect(horsDuPair({ cours: 95 })).toBe(true);
   });
 
-  it("une ligne sans rendement n'est pas déclarée au pair : elle est sans réponse", () => {
-    /* EOCG 6,25 % 2026 : son échéancier d'amortissement manque au
-       référentiel. Le tiret vaut mieux qu'un chiffre inventé, et surtout
-       mieux qu'un anneau qui dirait « celle-ci est normale ». */
-    expect(horsDuPair({ ytm: null, coupon: 6.25 })).toBe(false);
-    expect(horsDuPair({ ytm: 9, coupon: undefined })).toBe(false);
+  it("ne marque pas le pair, ni ce qui le dépasse", () => {
+    /* Au pair, l'écart au coupon qui subsiste est de convention, jusqu'à
+       +18 pb pour un amortisseur fréquent : ce n'est pas le cours qui parle.
+       Au-dessus de cent, le rendement passe sous le coupon : c'est un autre
+       fait, qui demandera sa propre marque le jour où il arrivera. */
+    expect(horsDuPair({ cours: 100 })).toBe(false);
+    expect(horsDuPair({ cours: 103 })).toBe(false);
+    expect(horsDuPair({ cours: undefined })).toBe(false);
   });
 });
 

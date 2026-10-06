@@ -199,6 +199,9 @@
    survol comme au clavier. */
 .point {
   position: absolute;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -301,4 +304,13 @@
   margin-left: var(--s-2);
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* Le point épinglé grossit et porte un halo : c'est lui qu'on suit des yeux
+   en lisant la rangée venue se poser dessous. */
+.pointPose {
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 0 0 7px color-mix(in srgb, var(--gold, var(--warn)) 45%, transparent);
+  z-index: 5;
 }

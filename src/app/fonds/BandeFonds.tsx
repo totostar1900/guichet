@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
-import { useLineHref } from "@/components/DeskView";
 import { fmtPct } from "@/lib/format";
 import styles from "./bande.module.css";
 
@@ -52,15 +50,19 @@ export function BandeFonds({
   nomFenetre,
   plage,
   surPlage,
+  epingles,
+  surEpingle,
 }: {
   points: PointFonds[];
   nomFenetre: string;
   /** La plage retenue, ou rien quand on les regarde tous. */
   plage?: [number, number];
   surPlage: (p: [number, number] | undefined) => void;
+  /** Les fonds épinglés, et la bascule : un point les pose et les retire. */
+  epingles: string[];
+  surEpingle: (id: string) => void;
 }) {
   const t = useT();
-  const href = useLineHref();
 
   const vue = useMemo(() => {
     if (points.length < 2) return undefined;
@@ -164,16 +166,25 @@ export function BandeFonds({
             aria-hidden="true"
           />
         ) : null}
-        {places.map((p) => (
-          <Link
-            key={p.id}
-            href={href(p.id)}
-            className={`${styles.point} ${p.valeur < 0 ? styles.pointNeg : ""} ${dedans(p.valeur) ? "" : styles.pointHors}`}
-            style={{ left: `${p.x}%`, bottom: `${26 + p.etage * 13}px` }}
-            title={`${p.titre} · ${fmtPct(p.valeur, 2)}`}
-            aria-label={`${p.titre} · ${fmtPct(p.valeur, 2)}`}
-          />
-        ))}
+        {/* LE POINT ÉPINGLE SON FONDS, IL NE L'OUVRE PLUS. Ouvrir, c'était
+            quitter la bande pour lire trois chiffres, puis revenir ; or ce
+            qu'on veut en pointant un point, c'est le lire SANS perdre la
+            distribution. « Voir la fiche » reste au bout de sa rangée. */}
+        {places.map((p) => {
+          const pose = epingles.includes(p.id);
+          return (
+            <button
+              key={p.id}
+              type="button"
+              aria-pressed={pose}
+              className={`${styles.point} ${p.valeur < 0 ? styles.pointNeg : ""} ${dedans(p.valeur) ? "" : styles.pointHors} ${pose ? styles.pointPose : ""}`}
+              style={{ left: `${p.x}%`, bottom: `${26 + p.etage * 13}px` }}
+              title={`${p.titre} · ${fmtPct(p.valeur, 2)}`}
+              aria-label={`${p.titre} · ${fmtPct(p.valeur, 2)} — ${pose ? t("détacher") : t("épingler")}`}
+              onClick={() => surEpingle(p.id)}
+            />
+          );
+        })}
         <span className={styles.axe} aria-hidden="true" />
         {ticks.map((v) => (
           <span key={v} className={styles.tick} style={{ left: `${placer(v, min, max)}%` }} aria-hidden="true">

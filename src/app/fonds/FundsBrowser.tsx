@@ -19,6 +19,7 @@ import { FundCard } from "./FundCard";
 import { BandeFonds } from "./BandeFonds";
 import { depuisQuand, FenetreCtx, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
 import { ChoixFenetre } from "./ChoixFenetre";
+import { BandeauRepliable } from "@/components/market/BandeauRepliable";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { useDeskView, useLineHref } from "@/components/DeskView";
@@ -151,7 +152,7 @@ function useDouzeMois() {
        n'est ni jeune ni mal lu : il manque juste une VL là où il en
        faudrait une, et aucune des trois autres phrases ne le disait. */
     if (r.curve?.trous?.includes(fenetre)) {
-      return { texte: "—", titre: t("Aucune VL publiée autour d'il y a {f} : la série a un trou à cet endroit, et une valeur plus ancienne ne serait pas {f}.", { f: nom }) };
+      return { texte: t("série trouée"), mention: true, titre: t("Aucune VL publiée autour d'il y a {f} : la série a un trou à cet endroit, et une valeur plus ancienne ne serait pas {f}.", { f: nom }) };
     }
     const raison = raisonSansFenetre(def.mois, r.inceptionDate, r.navDate, r.curve?.from);
     const titre =
@@ -159,7 +160,17 @@ function useDouzeMois() {
       : raison === "cote-recente" ? t("Le fonds est à la cote depuis moins de {f} : le bulletin ne publie pas de VL plus ancienne.", { f: nom })
       : raison === "lecture-courte" ? t("Nos VL ne remontent pas à {f} : le chiffre existe, nous ne l'avons pas encore lu.", { f: nom })
       : undefined;
-    return { texte: "—", titre };
+    /* UN MOT PLUTÔT QU'UN TIRET. Le tiret portait son explication dans un
+       survol, que le doigt n'a pas et que l'œil ne cherche pas : trois
+       colonnes de tirets se lisaient « rien », alors qu'elles disent trois
+       choses différentes. Le mot tient dans la colonne, et le survol garde
+       la phrase entière. */
+    const mot =
+      raison === "jeune" ? t("trop jeune")
+      : raison === "cote-recente" ? t("coté depuis peu")
+      : raison === "lecture-courte" ? t("pas encore lu")
+      : "—";
+    return { texte: mot, mention: raison != null, titre };
   };
 }
 
@@ -194,7 +205,9 @@ function FundTr({ r }: { r: FundRow }) {
         <small className="muted">{fmtDate(r.navDate)}</small>
       </td>
       <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
-      <td className={`${styles.r} ${cls(valeurFenetre(r, fenetre))}`} title={douze.titre}>{douze.texte}</td>
+      <td className={`${styles.r} ${cls(valeurFenetre(r, fenetre))}`} title={douze.titre}>
+        {douze.mention ? <small className={styles.mention}>{douze.texte}</small> : douze.texte}
+      </td>
       <td className={styles.r}>{r.managementFeePct != null ? fmtPct(r.managementFeePct, 2) : <span className="muted" title={t("Frais de gestion non renseignés : demandez le prospectus au desk.")}>—</span>}</td>
       {/* LE CUMUL, PUIS LE TAUX PAR AN. Les créations s'étalent de 2017 à
           2026 : trié sur le cumul, ce tableau classait l'âge. ASCA Patrimoine
@@ -260,7 +273,7 @@ function FundLi({ r }: { r: FundRow }) {
         </small>
       </span>
       <span className={`${styles.liPerf} ${cls(valeurFenetre(r, fenetre))}`} title={douze.titre}>
-        <b>{douze.texte}</b>
+        <b className={douze.mention ? styles.mention : undefined}>{douze.texte}</b>
         <small className="muted">{noms[fenetre]}</small>
       </span>
       <span className={styles.rowBtns}>
@@ -302,6 +315,23 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
      se met en favori, et revient telle qu'on l'a laissée. */
   const fenetre: FenetreId = estFenetre(sp.get("periode")) ? (sp.get("periode") as FenetreId) : FENETRE_PAR_DEFAUT;
   const noms = useNomFenetre();
+  /* LA BANDE S'OUVRE FERMÉE. La liste est ce pour quoi on vient ; le tracé
+     sert à choisir où regarder, ce qui est une seconde question. */
+  const bandeOuverte = sp.get("bande") === "1";
+  /**
+   * LES FONDS ÉPINGLÉS, DANS L'ADRESSE COMME LE RESTE. Un point de la bande
+   * fait monter son fonds juste dessous, au lieu de quitter la page : les
+   * deux sont alors sous les yeux en même temps.
+   */
+  /* La liste épinglée est gardée SOUS SA FORME DE TEXTE pour les tableaux de
+     dépendances : « epingles.join(",") » y est une expression composée, que
+     le compilateur de React refuse. */
+  const epingleParam = sp.get("epingle") ?? "";
+  const epingles = useMemo(() => epingleParam.split(",").filter(Boolean), [epingleParam]);
+  const basculerEpingle = (id: string) => {
+    const n = epingles.includes(id) ? epingles.filter((x) => x !== id) : [...epingles, id];
+    update({ epingle: n.join(",") || undefined, bande: "1" });
+  };
   const bornes = (sp.get("perf") ?? "").split(":").map(Number);
   const plage: [number, number] | undefined = bornes.length === 2 && bornes.every((n) => Number.isFinite(n)) ? [bornes[0], bornes[1]] : undefined;
   const update = (patch: Record<string, string | undefined>) => {
@@ -461,7 +491,17 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, draft, cat, manager, depositary, sort, asc, fenetre, plage?.[0], plage?.[1]]);
 
-  const rowsShown = sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered;
+  /* Les épinglés sortent de la liste : ils sont montrés à part, et les voir
+     deux fois ferait croire à un doublon.
+     MÉMOÏSÉ, et pas par goût : « rowsShown » nourrit le calcul des groupes,
+     qui l'est aussi. Une liste refabriquée à chaque rendu défait la
+     mémoïsation de celui qui la lit, et le compilateur de React le refuse
+     plutôt que de la perdre en silence. */
+  const fondsEpingles = useMemo(() => rows.filter((r) => epingles.includes(r.id)), [rows, epingles]);
+  const rowsShown = useMemo(() => {
+    const sans = filtered.filter((r) => !epingles.includes(r.id));
+    return sort === "categorie" ? CATS.flatMap((c) => sans.filter((r) => r.category === c)) : sans;
+  }, [filtered, sort, epingles]);
 
   /**
    * LA BANDE NE SE FILTRE PAS ELLE-MÊME. Elle montre les fonds retenus par
@@ -789,13 +829,55 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           change ce que la colonne MESURE. Les mêler ferait croire que choisir
           « 3 ans » retire les fonds plus jeunes, alors qu'elle les laisse
           avec un tiret qui dit pourquoi. */}
-      <ChoixFenetre fenetre={fenetre} comptes={comptes} surChoix={(f) => update({ periode: f === FENETRE_PAR_DEFAUT ? undefined : f, perf: undefined })} />
-      <BandeFonds
-        points={pourLaBande}
-        nomFenetre={noms[fenetre]}
-        plage={plage}
-        surPlage={(p) => update({ perf: p ? `${p[0]}:${p[1]}` : undefined })}
-      />
+      <BandeauRepliable
+        titre={t("Rentabilité des fonds")}
+        ouvert={bandeOuverte}
+        surOuvrir={(v) => update({ bande: v ? "1" : undefined })}
+        resume={
+          <>
+            <span>
+              <b>{pourLaBande.length}</b> {t("fonds mesurables")}
+            </span>
+            {pourLaBande.length > 0 && <span>{t("de {bas} à {haut}", { bas: fmtPct(Math.min(...pourLaBande.map((p) => p.valeur)), 1), haut: fmtPct(Math.max(...pourLaBande.map((p) => p.valeur)), 1) })}</span>}
+            <span>{t("mesurés sur {f}", { f: noms[fenetre] })}</span>
+            {plage ? <span className={styles.resumePose}>{t("plage posée")}</span> : null}
+          </>
+        }
+      >
+        {/* LA FENÊTRE EST DANS LE BANDEAU, avec la bande qu'elle commande :
+            posée dehors, elle réglait une mesure dont le tracé était replié,
+            et on changeait de durée sans rien voir changer. La colonne du
+            tableau, elle, suit toujours. */}
+        <ChoixFenetre fenetre={fenetre} comptes={comptes} surChoix={(f) => update({ periode: f === FENETRE_PAR_DEFAUT ? undefined : f, perf: undefined })} />
+        <BandeFonds
+          points={pourLaBande}
+          nomFenetre={noms[fenetre]}
+          plage={plage}
+          epingles={epingles}
+          surEpingle={basculerEpingle}
+          surPlage={(p) => update({ perf: p ? `${p[0]}:${p[1]}` : undefined })}
+        />
+      </BandeauRepliable>
+
+      {/* LES FONDS ÉPINGLÉS, JUSTE SOUS LE TRACÉ. */}
+      {fondsEpingles.length > 0 && (
+        <section className={styles.epingles} aria-label={t("Fonds épinglés")}>
+          <div className={styles.epinglesTete}>
+            <span>{fondsEpingles.length > 1 ? t("{n} fonds épinglés", { n: fondsEpingles.length }) : t("1 fonds épinglé")}</span>
+            <button type="button" className={styles.detacherTout} onClick={() => update({ epingle: undefined })}>
+              {t("Tout détacher")}
+            </button>
+          </div>
+          {fondsEpingles.map((r) => (
+            <div key={r.id} className={styles.epingle}>
+              <FundCard r={r} />
+              <button type="button" className={styles.detacher} onClick={() => basculerEpingle(r.id)} aria-label={`${t("Détacher")} ${r.title}`} title={t("Détacher")}>
+                ×
+              </button>
+            </div>
+          ))}
+        </section>
+      )}
 
       {rowsShown.length > 0 && vue === "cards" && (
         <div data-coach="fonds-table" ref={searchList}>
