@@ -1,0 +1,272 @@
+[
+ [
+  "avertissement",
+  "Obligation CG0000020220 : ligne de cours non reconnue.",
+  650
+ ],
+ [
+  "avertissement",
+  "Indice BVMAC ALL SHARE introuvable.",
+  111
+ ],
+ [
+  "anomalie",
+  "Seulement 31 obligation(s) lue(s) contre 33 la séance précédente : la section semble incomplète.",
+  61
+ ],
+ [
+  "avertissement",
+  "Section OPCVM introuvable.",
+  59
+ ],
+ [
+  "anomalie",
+  "Seulement 0 OPCVM lu(s) : la table semble incomplète.",
+  58
+ ],
+ [
+  "avertissement",
+  "Obligation GA0000020248 : prix / nominal ambigus (« 2 487,500,000 »).",
+  41
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CM0000020354, CM0000020362.",
+  37
+ ],
+ [
+  "avertissement",
+  "Obligation GA0000020248 : prix / nominal ambigus («  462,507 500,000 »).",
+  37
+ ],
+ [
+  "anomalie",
+  "Seulement 36 OPCVM lu(s) contre 41 la séance précédente : la table semble incomplète.",
+  29
+ ],
+ [
+  "anomalie",
+  "REG (CM0000010041) : cours de clôture nul ou illisible.",
+  27
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP AB DIVERSIFIE : VL du 1930-11-19 ignorée (date ou valeur invraisemblable).",
+  24
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP AB AVENIR : VL du 2023-01-26 ignorée (date ou valeur invraisemblable).",
+  22
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020220.",
+  18
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020261, CG0000020436, CG0000020444.",
+  17
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « HARVEST ASSET MANAGEMENT BANQUE ATLANTQU »",
+  17
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « ELITE CAPITAL ASSET MANAGEMENT S.A. Afri »",
+  15
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP ECOBANK MONETAIRE CEMAC : VL du 2023-01-26 ignorée (date ou valeur invraisemblable).",
+  15
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « EDC ASSET MANAGEMENT CEMAC ECOBANK CAMER »",
+  14
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020238, CM0000020305, CM0000020354, CM0000020362, CM0000020370, CM0000020388, GA0000020206, GA0000020248, GA0000020313, TD0000020331.",
+  13
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP KORI SERENITE : VL du 2029-03-13 ignorée (date ou valeur invraisemblable).",
+  8
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020238, CM0000020107, CM0000020305, GA0000020206, GA0000020248, GA0000020313, TD0000020331.",
+  7
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « ESS ASSET MANAGEMENT ORABANK GABON FCP E »",
+  7
+ ],
+ [
+  "anomalie",
+  "FCP ABD KOMO : VL 11 297 vs 45 842 précédente (> 10 %).",
+  7
+ ],
+ [
+  "avertissement",
+  "Action CM0000010041 : ligne dense non reconnue.",
+  7
+ ],
+ [
+  "anomalie",
+  "FCP RAPEC : VL 11 310 vs 10 000 précédente (> 10 %).",
+  5
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020238, CM0000020255, CM0000020305, CM0000020354, CM0000020362, CM0000020370, CM0000020388, CM0000020404, CM0000020412, GA0000020206, GA0000020248, GA0000020313, TD0000020331.",
+  4
+ ],
+ [
+  "avertissement",
+  "Capitalisation CG0000020469 : cellules incomplètes.",
+  4
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP ECOBANK OBLIGATAIRE CEMAC : VL du 2025-05-05 ignorée (date ou valeur invraisemblable).",
+  4
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP ELITE CAPITAL RECORD : VL du 2025-05-03 ignorée (date ou valeur invraisemblable).",
+  4
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP CCA PERFORMANCE : VL du 2025-05-03 ignorée (date ou valeur invraisemblable).",
+  4
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « HARVEST ASSET MANAGEMENT ECOBANK CAMEROU »",
+  3
+ ],
+ [
+  "anomalie",
+  "REG (CM0000010041) : 100.0 % d'écart avec le dernier cours ingéré (42500 le 4 oct. 2023).",
+  3
+ ],
+ [
+  "avertissement",
+  "Section « Capitalisation boursière » présente mais illisible : aucune ligne.",
+  2
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP AB CASH : VL du 1936-01-10 ignorée (date ou valeur invraisemblable).",
+  2
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP AB INVEST : VL du 1934-07-25 ignorée (date ou valeur invraisemblable).",
+  2
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP PERFORMANCE : VL du 1932-06-16 ignorée (date ou valeur invraisemblable).",
+  2
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP CAP OBLIGATIONS : VL du 1934-07-22 ignorée (date ou valeur invraisemblable).",
+  2
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « AFRICA BRIGHT ASSET MANAGEMENT ORABANK G »",
+  2
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP CORRIDOR RENDEMENT : VL du 1927-07-17 ignorée (date ou valeur invraisemblable).",
+  2
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020220, CG0000020261, CM0000020255, CM0000020404, CM0000020412.",
+  2
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CM0000020305, CM0000020354, CM0000020362, CM0000020370, CM0000020388, GA0000020248, GA0000020313, GA0000020396, GA0000020487, GA0000020495, GA0000020503, GA0000020511, GA0000020529, GA0000020537, GA0000020552, GA0000020560, GA0000020578.",
+  1
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « L'ARCHER CAPITAL ASSET MANAGEMENT UBA CA »",
+  1
+ ],
+ [
+  "avertissement",
+  "OPCVM FCP ABD KOMO : VL du 2022-08-11 ignorée (date ou valeur invraisemblable).",
+  1
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020220, CG0000020261, CG0000020329, CM0000020255.",
+  1
+ ],
+ [
+  "anomalie",
+  "Seulement 5 action(s) lue(s) contre 6 la séance précédente : la section semble incomplète.",
+  1
+ ],
+ [
+  "avertissement",
+  "Indice BVMAC ALL SHARE non lu.",
+  1
+ ],
+ [
+  "anomalie",
+  "Seulement 0 action(s) lue(s) : la section semble incomplète.",
+  1
+ ],
+ [
+  "anomalie",
+  "Seulement 0 obligation(s) lue(s) : la section semble incomplète.",
+  1
+ ],
+ [
+  "anomalie",
+  "Lignes présentes au bulletin précédent et absentes aujourd'hui : CG0000020220, CG0000020238, CG0000020261, CG0000020329, CM0000010009, CM0000010017, CM0000010025, CM0000010041, CM0000020255, CM0000020305, CM0000020354, CM0000020362, CM0000020370, CM0000020388, GA0000010066, GA0000020206, GA0000020248, GA0000020313, GQ0000010050, TD0000020331.",
+  1
+ ],
+ [
+  "avertissement",
+  "OPCVM : ligne ignorée (format inattendu) avant « ASCA ASSET MANAGEMENT ASCA FCP ASCA PATR »",
+  1
+ ],
+ [
+  "anomalie",
+  "FCP CORRIDOR RENDEMENT : VL 8 826 vs 723 802 précédente (> 10 %).",
+  1
+ ],
+ [
+  "anomalie",
+  "REG (CM0000010041) : 100.0 % d'écart avec le dernier cours ingéré (42500 le 6 sept. 2023).",
+  1
+ ],
+ [
+  "anomalie",
+  "En-tête du bulletin non reconnu : aucun cours n'a été retenu.",
+  1
+ ],
+ [
+  "avertissement",
+  "En-tête du bulletin non reconnu (numéro / date).",
+  1
+ ]
+]
