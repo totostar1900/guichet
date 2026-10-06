@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { repo } from "@/lib/data";
-import { comparer, couplesSuspects, juger, verdict, type Couple } from "@/lib/market/comparer";
+import { comparer, juger, verdict } from "@/lib/market/comparer";
 import type { MarketBulletin } from "@/lib/domain/market";
 import { fmt } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -31,8 +31,6 @@ import styles from "./comparateur.module.css";
 
 /** Au-delà, le jugement ligne à ligne coûterait trop de lectures pour une page. */
 const PLAFOND_JUGEMENT = 60;
-/** Ce qu'on montre de la liste des couples avant de renvoyer au tableau. */
-const COUPLES_MONTRES = 14;
 
 interface Props {
   tous: MarketBulletin[];
@@ -43,12 +41,9 @@ interface Props {
   /** Les deux gabarits de la liste déroulante, avec __D__ à la place de la date. */
   gabaritA: string;
   gabaritB: string;
-  /** Le classement des couples, et le lien pour en changer. */
-  parAmpleur: boolean;
-  versTri: (parAmpleur: boolean) => string;
 }
 
-export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB, parAmpleur, versTri }: Props) {
+export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }: Props) {
   const t = await getT();
   const r = repo();
 
@@ -56,9 +51,6 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB, 
   const [debut, fin] = a <= b ? [a, b] : [b, a];
   const bulDebut = tous.find((x) => x.sessionDate === debut);
   const bulFin = tous.find((x) => x.sessionDate === fin);
-
-  const couples = couplesSuspects(tous);
-  const classes = parAmpleur ? [...couples].sort((x, y) => y.perte - x.perte || y.apres.localeCompare(x.apres)) : couples;
 
   /* Le pas de un, dans la série réelle : les séances ne sont pas tous les
      jours, et « la veille » d'un lundi est un vendredi. */
@@ -99,17 +91,7 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB, 
     );
   };
 
-  const deltaCouple = (c: Couple) =>
-    ([
-      [c.actions, t("act.")],
-      [c.obligations, t("obl.")],
-      [c.opcvm, t("OPCVM")],
-    ] as const)
-      .filter(([d]) => d !== 0)
-      .map(([d, nom]) => `${d > 0 ? "+" : ""}${d} ${nom}`)
-      .join(" · ");
-
-  return (
+    return (
     <section className="panel" id="comparer">
       <div className="panel-h">
         <h2>{t("Comparer deux cotes")}</h2>
@@ -242,35 +224,21 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB, 
         </>
       )}
 
-      {/* OÙ REGARDER. Sans cette liste, le comparateur demanderait de deviner
-          le couple intéressant parmi huit cents : c'est ce qui sépare un outil
-          d'une curiosité. */}
-      <div className={styles.piste}>
-        <div className={styles.pisteTete}>
-          <h3>{t("{n} couples où le compte baisse", { n: couples.length })}</h3>
-          <span className={styles.tris}>
-            <Link href={versTri(false)} className={parAmpleur ? undefined : styles.triOn}>
-              {t("par date")}
-            </Link>
-            <Link href={versTri(true)} className={parAmpleur ? styles.triOn : undefined}>
-              {t("par ampleur")}
-            </Link>
-          </span>
-        </div>
-        <div className={styles.pastilles}>
-          {classes.slice(0, COUPLES_MONTRES).map((c) => (
-            <Link key={`${c.avant}-${c.apres}`} href={versCouple(c.avant, c.apres)} className={c.avant === debut && c.apres === fin ? styles.coupleOn : styles.couple}>
-              <b className="mono">
-                {c.avant} → {c.apres}
-              </b>
-              <small>{deltaCouple(c)}</small>
-            </Link>
-          ))}
-        </div>
-        <p className={styles.notule}>
-          {t("Un compte qui baisse désigne un couple à ouvrir, il ne conclut pas : une ligne partie contre une ligne arrivée laisse le compte intact. Les séances dont rien n'a été lu sont écartées, leur état le dit déjà dans le tableau.")}
-        </p>
-      </div>
+      {/* OÙ REGARDER : LA LISTE PAR LES COMPTES EST PARTIE, et elle est
+          partie sur une mesure.
+
+          Elle désignait les couples dont le compte de lignes baisse, faute de
+          pouvoir comparer les ensembles — ce que je croyais trop coûteux.
+          Mesuré le 6 octobre 2026 sur les 807 couples consécutifs : 74
+          portent un vrai mouvement, cette liste en signalait 40 dont 6 sans
+          aucun mouvement. Elle en attrapait donc 34, soit 46 %, et en ratait
+          40. Un outil de navigation qui rate plus de la moitié de ce qu'il
+          doit désigner ne manque pas de précision : il donne une fausse
+          confiance, ce qui est pire que de ne rien montrer.
+
+          Et le calcul exact tient en une requête : la base fait la différence
+          d'ensembles elle-même, là où je supposais devoir charger vingt-deux
+          mille cotations. La frise des mouvements prendra cette place. */}
     </section>
   );
 }

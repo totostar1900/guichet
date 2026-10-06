@@ -352,8 +352,6 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
           versCouple={versCouple}
           gabaritA={versCouple("__D__", cmpB)}
           gabaritB={versCouple(cmpA, "__D__")}
-          parAmpleur={cmpTri}
-          versTri={(amp) => `${lien({ cmpTri: amp ? "ampleur" : "" })}#comparer`}
         />
       )}
     </>

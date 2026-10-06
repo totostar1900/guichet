@@ -136,51 +136,21 @@ export async function juger(e: Ecart, fin: string, suite: (isin: string) => Prom
 
 /* ---------------- Où regarder ---------------- */
 
-export interface Couple {
-  avant: string;
-  apres: string;
-  actions: number;
-  obligations: number;
-  opcvm: number;
-  /** La somme des baisses, qui sert à classer : une perte de douze passe devant une perte d'une. */
-  perte: number;
-}
-
-interface Compte {
-  sessionDate: string;
-  counts?: { equities: number; bonds: number; funds: number };
-}
-
 /**
- * LES COUPLES OÙ LE COMPTE BAISSE, et pourquoi c'est la bonne porte d'entrée.
+ * LA DÉSIGNATION PAR LES COMPTES EST PARTIE, et elle est partie sur une
+ * mesure.
  *
- * Comparer deux cotes au hasard ne sert à rien : encore faut-il savoir OÙ
- * regarder. Les comptes de chaque séance sont déjà en main quand la page
- * s'affiche, donc cette liste ne coûte aucune lecture de plus : elle désigne
- * les couples, et la comparaison ligne à ligne dit ensuite ce qui s'est
- * réellement passé.
+ * `couplesSuspects` désignait les couples dont le compte de lignes baisse,
+ * faute de pouvoir comparer les ensembles — ce que je croyais trop coûteux
+ * pour une page. Mesuré le 6 octobre 2026 sur les 807 couples consécutifs :
+ * 74 portent un vrai mouvement, la fonction en signalait 40 dont 6 sans
+ * aucun mouvement. Elle en attrapait 34, soit 46 %, et en ratait 40.
  *
- * ELLE DÉSIGNE, ELLE NE CONCLUT PAS. Un compte stable peut cacher une ligne
- * partie contre une ligne arrivée, et seule l'ouverture du couple le montre.
- * C'est un filet à gros trous posé sur huit cents séances, pas un verdict.
+ * Un outil de navigation qui rate plus de la moitié de ce qu'il doit
+ * désigner ne manque pas de précision : il donne une fausse confiance, et
+ * c'est pire que de ne rien montrer. On ne garde pas une approximation
+ * mesurée fausse « au cas où ».
  *
- * LES SÉANCES VIDES SONT ÉCARTÉES : une séance dont rien n'a été lu tombe à
- * zéro puis remonte, ce qui produirait deux couples par échec et noierait la
- * liste. Cet échec-là porte déjà son état et son code dans le tableau.
+ * Le calcul exact tient d'ailleurs en une requête : la base fait la
+ * différence d'ensembles elle-même.
  */
-export function couplesSuspects(bulletins: Compte[]): Couple[] {
-  const ordre = [...bulletins].sort((x, y) => x.sessionDate.localeCompare(y.sessionDate));
-  const out: Couple[] = [];
-  for (let i = 1; i < ordre.length; i++) {
-    const a = ordre[i - 1].counts;
-    const b = ordre[i].counts;
-    if (!a || !b) continue;
-    if (a.equities + a.bonds + a.funds === 0 || b.equities + b.bonds + b.funds === 0) continue;
-    const actions = b.equities - a.equities;
-    const obligations = b.bonds - a.bonds;
-    const opcvm = b.funds - a.funds;
-    const perte = [actions, obligations, opcvm].reduce((s, d) => s + (d < 0 ? -d : 0), 0);
-    if (perte > 0) out.push({ avant: ordre[i - 1].sessionDate, apres: ordre[i].sessionDate, actions, obligations, opcvm, perte });
-  }
-  return out.sort((x, y) => y.apres.localeCompare(x.apres));
-}

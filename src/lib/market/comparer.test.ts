@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { comparer, couplesSuspects, juger, verdict } from "./comparer";
+import { comparer, juger, verdict } from "./comparer";
 import type { Quote } from "@/lib/domain/market";
 
 /**
@@ -91,35 +91,3 @@ describe("juger par la suite de la série", () => {
   });
 });
 
-describe("les couples où le compte baisse", () => {
-  const b = (sessionDate: string, equities: number, bonds: number, funds: number) => ({ sessionDate, counts: { equities, bonds, funds } });
-
-  it("retient la baisse et laisse passer la hausse", () => {
-    const cs = couplesSuspects([b("2026-01-01", 7, 29, 45), b("2026-01-02", 7, 17, 45), b("2026-01-03", 7, 29, 45)]);
-    expect(cs.map((c) => c.apres)).toEqual(["2026-01-02"]);
-    expect(cs[0].obligations).toBe(-12);
-    expect(cs[0].perte).toBe(12);
-  });
-
-  it("écarte les séances dont rien n'a été lu, qui produiraient deux couples par échec", () => {
-    const cs = couplesSuspects([b("2026-01-01", 7, 29, 45), b("2026-01-02", 0, 0, 0), b("2026-01-03", 7, 29, 45)]);
-    expect(cs).toEqual([]);
-  });
-
-  it("additionne les baisses des trois familles, et ignore la famille qui monte", () => {
-    const cs = couplesSuspects([b("2026-01-01", 7, 29, 45), b("2026-01-02", 5, 29, 50)]);
-    expect(cs[0].perte).toBe(2);
-    expect(cs[0].opcvm).toBe(5);
-  });
-
-  it("classe du plus récent au plus ancien, quel que soit l'ordre reçu", () => {
-    /* Reçues en désordre, et deux baisses de suite : si le tri de départ
-       manquait, le couple 02 n'existerait même pas. */
-    const cs = couplesSuspects([b("2026-01-03", 5, 29, 45), b("2026-01-01", 7, 29, 45), b("2026-01-02", 6, 29, 45)]);
-    expect(cs.map((c) => c.apres)).toEqual(["2026-01-03", "2026-01-02"]);
-  });
-
-  it("ne compare pas une séance à elle-même ni une liste d'une seule séance", () => {
-    expect(couplesSuspects([b("2026-01-01", 7, 29, 45)])).toEqual([]);
-  });
-});
