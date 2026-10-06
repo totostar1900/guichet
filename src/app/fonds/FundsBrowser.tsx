@@ -12,10 +12,13 @@ import { usePhone } from "@/components/chart-utils";
 import { BackToTop } from "@/components/BackToTop";
 import { FilterFab } from "@/components/FilterFab";
 import { nomsCourts } from "@/lib/domain/nom-court";
-import { raisonSansDouzeMois } from "@/lib/domain/fund-perf";
+import { estFenetre, FENETRE_PAR_DEFAUT, FENETRES, type FenetreId, raisonSansFenetre } from "@/lib/domain/fund-perf";
 import { TeteGroupe } from "@/components/market/TeteGroupe";
 import { Dropdown } from "@/components/market/Dropdown";
 import { FundCard } from "./FundCard";
+import { BandeFonds } from "./BandeFonds";
+import { depuisQuand, FenetreCtx, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
+import { ChoixFenetre } from "./ChoixFenetre";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { useDeskView, useLineHref } from "@/components/DeskView";
@@ -39,6 +42,14 @@ export interface FundRow {
   variationPct?: number;
   perf1yPct?: number;
   perfSinceInceptionPct: number;
+  /**
+   * Le taux constant qui, composé sur la vie du fonds, donnerait le cumul
+   * depuis l'origine. CALCULÉ SUR LE SERVEUR, parce qu'il dépend de la date
+   * du jour : calculé dans le navigateur, il diffère de celui qui a été rendu
+   * et React le signale comme un désaccord d'hydratation. La machine est à
+   * UTC+3, Vercel à UTC, et le piège a déjà coûté une fois.
+   */
+  annualPct?: number;
   inceptionDate?: string;
   open: boolean; // open to subscription (the desk can close one)
   entryFeePct: number;
@@ -112,17 +123,23 @@ const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct
  */
 function useDouzeMois() {
   const t = useT();
+  const fenetre = useFenetre();
+  const noms = useNomFenetre();
+  const def = FENETRES.find((f) => f.id === fenetre)!;
   return (r: FundRow) => {
-    if (r.perf1yPct != null) return { texte: signed(r.perf1yPct), titre: undefined };
-    const raison = raisonSansDouzeMois(r.inceptionDate, r.navDate, r.curve?.from);
+    const v = valeurFenetre(r, fenetre);
+    if (v != null) return { texte: signed(v), titre: depuisQuand(r, fenetre) };
+    const raison = raisonSansFenetre(def.mois, r.inceptionDate, r.navDate, r.curve?.from);
+    const nom = noms[fenetre];
     const titre =
-      raison === "jeune" ? t("Le fonds n'a pas encore un an : il n'y a pas de douze mois à mesurer.")
-      : raison === "cote-recente" ? t("Le fonds est à la cote depuis moins d'un an : le bulletin ne publie pas de VL plus ancienne.")
-      : raison === "lecture-courte" ? t("Nos VL ne remontent pas à un an : le chiffre existe, nous ne l'avons pas encore lu.")
+      raison === "jeune" ? t("Le fonds n'a pas encore {f} : il n'y a rien à mesurer sur cette fenêtre.", { f: nom })
+      : raison === "cote-recente" ? t("Le fonds est à la cote depuis moins de {f} : le bulletin ne publie pas de VL plus ancienne.", { f: nom })
+      : raison === "lecture-courte" ? t("Nos VL ne remontent pas à {f} : le chiffre existe, nous ne l'avons pas encore lu.", { f: nom })
       : undefined;
     return { texte: "—", titre };
   };
 }
+
 const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
 const num = (v?: number) => (v == null ? -Infinity : v);
 
@@ -130,6 +147,7 @@ const num = (v?: number) => (v == null ? -Infinity : v);
 /** One row of the table, with its « ··· ». */
 function FundTr({ r }: { r: FundRow }) {
   const t = useT();
+  const fenetre = useFenetre();
   const douze = useDouzeMois()(r);
   const href = useLineHref()(r.id);
   const desk = useDeskView();
@@ -153,14 +171,26 @@ function FundTr({ r }: { r: FundRow }) {
         <small className="muted">{fmtDate(r.navDate)}</small>
       </td>
       <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
-      <td className={`${styles.r} ${cls(r.perf1yPct)}`} title={douze.titre}>{douze.texte}</td>
+      <td className={`${styles.r} ${cls(valeurFenetre(r, fenetre))}`} title={douze.titre}>{douze.texte}</td>
       <td className={styles.r}>{r.managementFeePct != null ? fmtPct(r.managementFeePct, 2) : <span className="muted" title={t("Frais de gestion non renseignés : demandez le prospectus au desk.")}>—</span>}</td>
+      {/* LE CUMUL, PUIS LE TAUX PAR AN. Les créations s'étalent de 2017 à
+          2026 : trié sur le cumul, ce tableau classait l'âge. ASCA Patrimoine
+          est premier avec +62,08 % et ne fait que 5,12 % par an, c'est-à-dire
+          le ventre du peloton. Le taux par an est ce qui se compare, la date
+          est ce qui explique l'écart. */}
       <td className={`${styles.r} ${styles.hideSm} ${cls(r.perfSinceInceptionPct)}`}>
         {signed(r.perfSinceInceptionPct)}
-        {r.inceptionDate && (
+        {(r.annualPct != null || r.inceptionDate) && (
           <>
             <br />
-            <small className="muted">{t("depuis le")} {fmtDate(r.inceptionDate)}</small>
+            <small className="muted">
+              {/* « {p} par an » et non « {p}/an » : une clef de trois lettres
+                  se recopie d'un écran à l'autre et finit par vouloir dire
+                  deux choses, ce que le cliquet des clefs presque vides
+                  interdit depuis le comparateur. */}
+              {r.annualPct != null ? t("{p} par an", { p: signed(r.annualPct) }) : t("moins de six mois")}
+              {r.inceptionDate ? ` · ${r.inceptionDate.slice(0, 4)}` : ""}
+            </small>
           </>
         )}
       </td>
@@ -187,6 +217,8 @@ function FundTr({ r }: { r: FundRow }) {
  */
 function FundLi({ r }: { r: FundRow }) {
   const t = useT();
+  const fenetre = useFenetre();
+  const noms = useNomFenetre();
   const douze = useDouzeMois()(r);
   const href = useLineHref()(r.id);
   const desk = useDeskView();
@@ -204,9 +236,9 @@ function FundLi({ r }: { r: FundRow }) {
           {t("au")} {fmtDate(r.navDate, false)}
         </small>
       </span>
-      <span className={`${styles.liPerf} ${cls(r.perf1yPct)}`} title={douze.titre}>
+      <span className={`${styles.liPerf} ${cls(valeurFenetre(r, fenetre))}`} title={douze.titre}>
         <b>{douze.texte}</b>
-        <small className="muted">{t("12 mois")}</small>
+        <small className="muted">{noms[fenetre]}</small>
       </span>
       <span className={styles.rowBtns}>
         <Link className="btn sm ghost" href={href}>
@@ -243,6 +275,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
   const asc = (sp.get("sens") ?? NATURAL[sort]) === "asc";
   const vueChoisie = sp.get("vue") as Vue | null;
+  /* LA FENÊTRE ET SA PLAGE VIVENT DANS L'ADRESSE, comme les filtres : une
+     liste resserrée sur « les fonds entre 5 et 8 % sur trois ans » se partage,
+     se met en favori, et revient telle qu'on l'a laissée. */
+  const fenetre: FenetreId = estFenetre(sp.get("periode")) ? (sp.get("periode") as FenetreId) : FENETRE_PAR_DEFAUT;
+  const noms = useNomFenetre();
+  const bornes = (sp.get("perf") ?? "").split(":").map(Number);
+  const plage: [number, number] | undefined = bornes.length === 2 && bornes.every((n) => Number.isFinite(n)) ? [bornes[0], bornes[1]] : undefined;
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(sp.toString());
     for (const [k, v] of Object.entries(patch)) {
@@ -309,7 +348,11 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const clearAll = () => {
     pushed.current = "";
     setDraft("");
-    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, vl: undefined, tri: undefined, sens: undefined });
+    /* La fenêtre et sa plage partent avec le reste. La fenêtre n'est pas un
+       filtre, mais « tout effacer » veut dire « rends-moi la liste comme elle
+       s'ouvre », et elle s'ouvre sur un an sans plage. C'est déjà la règle du
+       tri, qui n'est pas un filtre non plus. */
+    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, vl: undefined, tri: undefined, sens: undefined, periode: undefined, perf: undefined });
   };
   const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
   const setManager = (v: string) => update({ gestion: v || undefined });
@@ -369,7 +412,15 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   const filtered = useMemo(() => {
     const ql = fold(draft.trim());
-    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
+    /* La plage ne retire que des fonds MESURABLES sur la fenêtre : un fonds
+       sans chiffre n'est pas « hors plage », il est hors mesure, et le faire
+       disparaître ferait croire qu'il a été jugé. */
+    const dansLaPlage = (r: FundRow) => {
+      if (!plage) return true;
+      const v = valeurFenetre(r, fenetre);
+      return v != null && v >= plage[0] - 0.001 && v <= plage[1] + 0.001;
+    };
+    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && dansLaPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":
@@ -381,7 +432,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         case "var":
           return num(a.variationPct) - num(b.variationPct);
         case "an":
-          return num(a.perf1yPct) - num(b.perf1yPct);
+          return num(valeurFenetre(a, fenetre)) - num(valeurFenetre(b, fenetre));
         case "origine":
           return a.perfSinceInceptionPct - b.perfSinceInceptionPct;
         case "date":
@@ -393,9 +444,35 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     // « par catégorie » est un rangement, pas une mesure : il garde son ordre.
     const dir = sort === "categorie" ? 1 : asc ? 1 : -1;
     return [...list].sort((a, b) => dir * cmp(a, b));
-  }, [rows, draft, cat, manager, depositary, freq, sort, asc]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, draft, cat, manager, depositary, freq, sort, asc, fenetre, plage?.[0], plage?.[1]]);
 
   const rowsShown = sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered;
+
+  /**
+   * LA BANDE NE SE FILTRE PAS ELLE-MÊME. Elle montre les fonds retenus par
+   * tous les autres filtres, plage comprise ou non : si elle ne montrait que
+   * la plage, resserrer ferait disparaître le reste de la distribution et on
+   * ne saurait plus par rapport à quoi on s'est resserré.
+   */
+  const pourLaBande = useMemo(() => {
+    const ql = fold(draft.trim());
+    return rows
+      .filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)))
+      .flatMap((r) => {
+        const v = valeurFenetre(r, fenetre);
+        return v == null ? [] : [{ id: r.id, titre: r.title, valeur: v }];
+      });
+  }, [rows, draft, cat, manager, depositary, freq, fenetre]);
+
+  /* Le compte de chaque bouton : les fonds MESURABLES sur cette fenêtre,
+     tous filtres appliqués sauf la plage. Un bouton qui annonce quarante-cinq
+     et rend trente-huit lignes ment sur ce qu'il va faire. */
+  const comptes = useMemo(() => {
+    const ql = fold(draft.trim());
+    const base = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
+    return Object.fromEntries(FENETRES.map((f) => [f.id, base.filter((r) => valeurFenetre(r, f.id) != null).length])) as Record<FenetreId, number>;
+  }, [rows, draft, cat, manager, depositary, freq]);
   /**
    * LES GROUPES SUIVENT L'ORDRE DE LA LISTE, pas un ordre à eux.
    *
@@ -448,7 +525,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   /* CE QUI EST POSÉ SUR LA LISTE, tri compris : le bouton doit paraître quand
      la liste n'est plus celle qu'on trouve en arrivant, et un ordre choisi
      suffit à l'en éloigner. */
-  const poseSurLaListe = active > 0 || Boolean(draft) || sort !== "categorie" || Boolean(sp.get("sens"));
+  const poseSurLaListe = active > 0 || Boolean(draft) || sort !== "categorie" || Boolean(sp.get("sens")) || fenetre !== FENETRE_PAR_DEFAUT || Boolean(plage);
 
   // Remember this list (URL + order shown) so a fund's page can bring the reader back and step to the next fund.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
@@ -601,7 +678,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   );
 
   return (
-    <>
+    <FenetreCtx.Provider value={fenetre}>
       {/* LE BOUTON DES FILTRES RAMÈNE EN HAUT, puisqu'il n'y a plus de
           feuille ici : les commandes sont à plat, et c'est vers elles qu'il
           conduit. Il ne paraît qu'une fois la barre passée sous l'en-tête ;
@@ -690,6 +767,19 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       </div>
 
+      {/* LA FENÊTRE, PUIS LA BANDE, PUIS LA LISTE. Elles sont hors du bloc des
+          filtres, et c'est voulu : un filtre retire des fonds, la fenêtre
+          change ce que la colonne MESURE. Les mêler ferait croire que choisir
+          « 3 ans » retire les fonds plus jeunes, alors qu'elle les laisse
+          avec un tiret qui dit pourquoi. */}
+      <ChoixFenetre fenetre={fenetre} comptes={comptes} surChoix={(f) => update({ periode: f === FENETRE_PAR_DEFAUT ? undefined : f, perf: undefined })} />
+      <BandeFonds
+        points={pourLaBande}
+        nomFenetre={noms[fenetre]}
+        plage={plage}
+        surPlage={(p) => update({ perf: p ? `${p[0]}:${p[1]}` : undefined })}
+      />
+
       {rowsShown.length > 0 && vue === "cards" && (
         <div data-coach="fonds-table" ref={searchList}>
           {blocs.map((b) => (
@@ -745,7 +835,11 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                     </button>{" "}
                     <Info term="variation_vl" subtle />
                   </th>
-                  {sortTh("an", t("12 mois"), styles.r)}
+                  {/* LA COLONNE PORTE LE NOM DE LA FENÊTRE. Elle disait
+                      « 12 mois » en dur : une colonne qui change de contenu
+                      sans changer de nom est un chiffre qu'on lira de
+                      travers. */}
+                  {sortTh("an", noms[fenetre], styles.r)}
                   {/* Les frais de gestion sont prélevés dans la VL : la performance
                       affichée en est déjà nette, mais c'est le coût qui décide de ce
                       qu'un épargnant garde sur cinq ans, et personne ne le publie. */}
@@ -786,6 +880,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.") },
         ]}
       />}
-    </>
+    </FenetreCtx.Provider>
   );
 }

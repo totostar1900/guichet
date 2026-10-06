@@ -1,3 +1,5 @@
+import { fenetresDe, type FenetreId, type VariationMesuree } from "./fund-perf";
+
 /**
  * La courbe d'un fonds, réduite à ce qui se dessine.
  *
@@ -35,6 +37,15 @@ export interface FundCurve {
    */
   ytdFrom?: number;
   ytdDate?: string;
+  /**
+   * LES FENÊTRES D'OBSERVATION, pour la même raison que la référence de
+   * l'année : elles se choisissent sur la série datée complète, qui n'existe
+   * qu'ici. La courbe affichée ne garde que les soixante dernières VL et ne
+   * transporte pas leurs dates, donc y chercher la borne d'il y a trois ans
+   * serait interpoler. Quatre nombres et quatre dates par fonds, soit moins
+   * d'un kilo-octet pour les quarante-cinq.
+   */
+  fenetres?: Partial<Record<FenetreId, VariationMesuree>>;
 }
 
 /**
@@ -52,7 +63,12 @@ export function fundCurveFrom(navs: { navDate: string; nav: number }[], points =
      loin : c'est la série entière qui le porte. */
   const premierJanvier = kept[kept.length - 1].navDate.slice(0, 4) + "-01-01";
   const base = [...tout].reverse().find((n) => n.navDate < premierJanvier);
-  return { from: kept[0].navDate, to: kept[kept.length - 1].navDate, ys: kept.map((n) => n.nav), ytdFrom: base?.nav, ytdDate: base?.navDate };
+  /* Les fenêtres aussi se mesurent sur « tout » et non sur « kept ». Un fonds
+     trop jeune n'en a aucune : la clef ne part pas alors, plutôt qu'un objet
+     vide répété quarante-cinq fois. */
+  const fenetres = fenetresDe(tout, tout[tout.length - 1]);
+  const avecFenetres = Object.keys(fenetres).length ? { fenetres } : {};
+  return { from: kept[0].navDate, to: kept[kept.length - 1].navDate, ys: kept.map((n) => n.nav), ytdFrom: base?.nav, ytdDate: base?.navDate, ...avecFenetres };
 }
 
 /**

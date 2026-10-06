@@ -51,8 +51,29 @@ export const PREMIERE_SEANCE_LUE = "2023-03-03";
  * aujourd'hui, et c'est une bonne nouvelle qu'on veut pouvoir constater.
  */
 export function raisonSansDouzeMois(inceptionDate?: string, navDate?: string, premiereVL?: string): RaisonSansDouzeMois | undefined {
+  return raisonSansFenetre(12, inceptionDate, navDate, premiereVL);
+}
+
+/**
+ * LA MÊME QUESTION, POUR N'IMPORTE QUELLE FENÊTRE.
+ *
+ * La liste offre désormais trois mois, six mois, un an et trois ans : le
+ * tiret peut tomber sur chacune, et pour les mêmes trois raisons. Les écrire
+ * une fois par fenêtre serait quatre endroits où elles se contrediraient. La
+ * seule chose qui change est la durée exigée.
+ *
+ * LE RECUL SE COMPTE EN MOIS DE CALENDRIER, exactement comme la mesure le
+ * compte. Une moyenne de trente jours et demi paraissait suffire puisqu'on
+ * ne décide pas d'un chiffre mais d'une phrase : elle a fait rater la borne
+ * d'un an d'un quart de jour, et un fonds né il y a tout juste un an est
+ * redevenu « trop jeune ». L'explication doit tomber au même endroit que le
+ * chiffre qu'elle explique.
+ */
+export function raisonSansFenetre(mois: number, inceptionDate?: string, navDate?: string, premiereVL?: string): RaisonSansDouzeMois | undefined {
   if (!inceptionDate || !navDate) return undefined;
-  if ((Date.parse(navDate) - Date.parse(inceptionDate)) / 86_400_000 < 365) return "jeune";
+  const cible = new Date(parseDate(navDate));
+  cible.setMonth(cible.getMonth() - mois);
+  if (parseDate(inceptionDate).getTime() > cible.getTime()) return "jeune";
   /* Un mois de marge : un fonds coté la semaine où nous avons commencé n'est
      pas un fonds que nous aurions manqué. */
   if (premiereVL && Date.parse(premiereVL) > Date.parse(PREMIERE_SEANCE_LUE) + 31 * 86_400_000) return "cote-recente";
@@ -72,7 +93,7 @@ export function raisonSansDouzeMois(inceptionDate?: string, navDate?: string, pr
  * constant. C'est le seul des deux qui compare un fonds né l'an dernier avec
  * un fonds né en 2019.
  */
-export const fundYears = (f: Fund, now: Date): number =>
+export const fundYears = (f: Pick<Fund, "inceptionDate">, now: Date): number =>
   (parseDate(localIso(now)).getTime() - parseDate(f.inceptionDate).getTime()) / (365.25 * 24 * 3600 * 1000);
 
 /**
@@ -80,7 +101,7 @@ export const fundYears = (f: Fund, now: Date): number =>
  * performance cumulée depuis l'origine. Rien en dessous de six mois : sur
  * un trimestre l'annualisation multiplie le bruit par quatre.
  */
-export function fundAnnualPct(f: Fund, now: Date): number | null {
+export function fundAnnualPct(f: Pick<Fund, "inceptionDate" | "perfSinceInceptionPct">, now: Date): number | null {
   const years = fundYears(f, now);
   if (!(years > 0.5) || f.perfSinceInceptionPct == null) return null;
   return (Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / years) - 1) * 100;
@@ -139,6 +160,67 @@ export function variationSurMois(history: PointDeVL[], to: PointDeVL, mois: numb
  */
 export const TOLERANCE_MOIS = 7;
 export const TOLERANCE_TRIMESTRE = 14;
+/**
+ * Au-delà d'un an, quarante-cinq jours et pas davantage.
+ *
+ * C'est la tolérance que l'ingestion applique déjà aux douze mois, et il n'y
+ * a pas de raison de l'élargir sur trois ans : la borne est de toute façon
+ * lointaine, l'élargir n'ajouterait que de l'imprécision à un chiffre qu'on
+ * nomme « 3 ans ». Un quart d'année de jeu sous ce nom-là serait un abus.
+ */
+export const TOLERANCE_AN = 45;
+
+/**
+ * LES FENÊTRES D'OBSERVATION DE LA LISTE DES FONDS.
+ *
+ * Mesuré le 6 octobre 2026 sur les 28 fonds comparables aux trois fenêtres :
+ * la corrélation des rangs entre un an et trois ans vaut 0,83, le
+ * déplacement moyen est de 6,5 places sur 28, et VINGT FONDS SUR VINGT-HUIT
+ * bougent d'au moins cinq places. Entre trois mois et un an la corrélation
+ * tombe à 0,68. La fenêtre n'est donc pas un confort : elle change la
+ * réponse pour sept fonds sur dix, et une liste qui n'en offre qu'une en
+ * cache neuf autres.
+ *
+ * CINQ ANS N'EST PAS OFFERT, et ce n'est pas un oubli : la plus ancienne VL
+ * du dépôt est du 5 janvier 2023, donc aucun fonds ne peut en porter avant
+ * janvier 2028. Un bouton éteint le dit ; un curseur ne l'aurait pas pu.
+ *
+ * UN MOIS N'EST PAS OFFERT NON PLUS, ici. Quarante fonds sur quarante-cinq
+ * publient une VL par semaine : un mois, c'est quatre points, et classer
+ * quarante fonds sur quatre points, c'est classer du bruit. Sur la fiche
+ * d'un fonds, où l'on regarde une courbe et non un rang, il garde son sens
+ * et il y reste.
+ */
+export type FenetreId = "m3" | "m6" | "a1" | "a3";
+
+export const FENETRES: { id: FenetreId; mois: number; tolerance: number; nom: string }[] = [
+  { id: "m3", mois: 3, tolerance: TOLERANCE_TRIMESTRE, nom: "3 mois" },
+  /* Vingt-huit jours sur six mois tient le même rapport que quatorze sur
+     trois : c'est la règle de la tolérance, pas un chiffre rond. */
+  { id: "m6", mois: 6, tolerance: 28, nom: "6 mois" },
+  { id: "a1", mois: 12, tolerance: TOLERANCE_AN, nom: "1 an" },
+  { id: "a3", mois: 36, tolerance: TOLERANCE_AN, nom: "3 ans" },
+];
+
+export const FENETRE_PAR_DEFAUT: FenetreId = "a1";
+export const estFenetre = (v: string | null | undefined): v is FenetreId => FENETRES.some((f) => f.id === v);
+
+/**
+ * Les quatre fenêtres d'un fonds, mesurées sur sa série datée complète.
+ *
+ * Elles se calculent LÀ OÙ LA SÉRIE EST ENTIÈRE, et jamais depuis la courbe
+ * qui voyage avec la page : celle-ci ne garde que les soixante dernières VL
+ * et ne transporte pas leurs dates. Y chercher la borne d'il y a trois ans
+ * reviendrait à interpoler, c'est-à-dire à inventer un chiffre.
+ */
+export function fenetresDe(history: PointDeVL[], to: PointDeVL): Partial<Record<FenetreId, VariationMesuree>> {
+  const out: Partial<Record<FenetreId, VariationMesuree>> = {};
+  for (const f of FENETRES) {
+    const v = variationSurMois(history, to, f.mois, f.tolerance);
+    if (v) out[f.id] = v;
+  }
+  return out;
+}
 
 /** Le rythme auquel un fonds publie réellement, lu sur ses dates. */
 export type Rythme = "quotidienne" | "hebdomadaire" | "mensuelle" | "trimestrielle" | "?";

@@ -1,5 +1,6 @@
 import { repo } from "@/lib/data";
 import { fondsListes } from "@/lib/domain/listes";
+import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import { FundsBrowser } from "./FundsBrowser";
 import { FondsEnBref } from "./FondsEnBref";
 import styles from "./page.module.css";
@@ -26,6 +27,11 @@ export async function FondsBody() {
   // Les courbes partent avec la page : une carte retournée les dessine tout de suite,
   // au lieu d'aller les demander et de montrer « Courbe en cours de lecture… ».
   const curves = await r.listFundCurves(funds.map((o) => o.fund.key));
+  /* L'ANNUALISÉ SE CALCULE ICI, UNE FOIS, parce qu'il dépend de la date du
+     jour : calculé dans le navigateur, il diffère de celui qui vient d'être
+     rendu, et React le signale comme un désaccord d'hydratation. La machine
+     est à UTC+3, Vercel à UTC, et ce décalage a déjà coûté une fois. */
+  const maintenant = new Date();
 
   return (
     <>
@@ -44,7 +50,7 @@ export async function FondsBody() {
         <FondsEnBref />
       </div>
 
-      <FundsBrowser rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />
+      <FundsBrowser rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, annualPct: fundAnnualPct(o.fund, maintenant) ?? undefined, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />
       {funds.length === 0 && <p className={styles.note}>{t("Les fonds apparaissent dès que le premier Bulletin Officiel de la Cote est lu par le desk.")}</p>}
       <p className={styles.note}>
         {t("Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds. Purpose Capital agit en distributeur : aucune détention pour compte de tiers, les parts sont au nom du porteur au registre du dépositaire.")}

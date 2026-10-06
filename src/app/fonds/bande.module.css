@@ -1,0 +1,254 @@
+/* La bande à points de la liste des fonds, et sa barre à deux poignées.
+   Les espaces viennent de l'échelle (--s-1 à --s-11), les tailles de la sienne. */
+
+/* ---- La rangée des fenêtres ---- */
+.fenetres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  padding-block: var(--s-4) var(--s-2);
+}
+.fenEtiq {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-right: var(--s-2);
+}
+.fen,
+.fenVide {
+  display: grid;
+  gap: var(--s-1);
+  justify-items: start;
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  padding: var(--s-2) var(--s-4);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  cursor: pointer;
+}
+.fen small,
+.fenVide small {
+  font-size: var(--t-1);
+  font-weight: 400;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.fen:hover {
+  border-color: var(--ink-3);
+}
+/* La fenêtre choisie porte un fond plein ET son filet : un fond seul perdait
+   contre le survol, qui gagnait sur l'élément choisi. */
+.fen[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+.fen[aria-pressed="true"] small {
+  color: var(--surface);
+  opacity: 0.75;
+}
+.fen:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* Cinq ans : présent, éteint, et pas un bouton. Rien à toucher, donc rien
+   qui promette une réponse. */
+.fenVide {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.bloc {
+  padding-block: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-5);
+}
+.tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.tete h2 {
+  margin: 0;
+  font-size: var(--t-2);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tete p {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.bande {
+  position: relative;
+  margin-top: var(--s-4);
+  cursor: crosshair;
+  /* « pan-y » et non « none » : le tiré horizontal est à nous, le défilement
+     vertical reste au doigt. Sans cela la page se bloque sous la bande. */
+  touch-action: pan-y;
+  user-select: none;
+}
+.axe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  height: 1px;
+  background: var(--line);
+}
+.borne {
+  position: absolute;
+  bottom: 0;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.borneD {
+  text-align: right;
+}
+/* La médiane se marque : sans elle, l'amas n'a pas de centre et les deux
+   queues n'ont rien à quoi se rapporter. */
+.mediane {
+  position: absolute;
+  top: 0;
+  bottom: 16px;
+  width: 1px;
+  background: var(--ink-3);
+  opacity: 0.55;
+}
+.zone {
+  position: absolute;
+  top: 0;
+  bottom: 16px;
+  background: var(--select-soft, var(--surface-2));
+  border-left: 1px solid var(--select, var(--ink-3));
+  border-right: 1px solid var(--select, var(--ink-3));
+}
+
+/* Le point EST le fonds : c'est un lien, et il doit s'en avoir l'air au
+   survol comme au clavier. */
+.point {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--select, var(--ink-2));
+  transform: translate(-50%, 50%);
+  box-shadow: 0 0 0 2px var(--surface);
+  text-decoration: none;
+}
+.point:hover,
+.point:focus-visible {
+  background: var(--ink);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink-3);
+  z-index: 3;
+  outline: none;
+}
+.pointNeg {
+  background: var(--crit);
+}
+/* Hors plage : le point reste, pâli. Le retirer ferait croire qu'il n'existe
+   pas, là où il est seulement écarté par la barre. */
+.pointHors {
+  opacity: 0.2;
+}
+.extreme {
+  position: absolute;
+  bottom: 0;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---- La barre à deux poignées ---- */
+.barre {
+  position: relative;
+  height: 28px;
+  margin-top: var(--s-3);
+}
+.piste,
+.pisteOn {
+  position: absolute;
+  top: 13px;
+  height: 2px;
+}
+.piste {
+  left: 0;
+  right: 0;
+  background: var(--line-2);
+}
+.pisteOn {
+  background: var(--ink);
+}
+/* Les deux curseurs se superposent exactement. Sans « pointer-events: none »
+   sur la piste, le second couvrirait le premier sur toute sa longueur et une
+   seule poignée serait prenable. */
+.barre input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  pointer-events: none;
+}
+.barre input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  cursor: grab;
+}
+.barre input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  cursor: grab;
+}
+.barre input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--select, var(--ink-3));
+  outline-offset: 2px;
+}
+.barre input:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--select, var(--ink-3));
+  outline-offset: 2px;
+}
+
+.etat {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.vider {
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink);
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: var(--s-2);
+  text-decoration: underline;
+  cursor: pointer;
+}

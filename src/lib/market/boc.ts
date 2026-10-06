@@ -11,6 +11,7 @@ import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
 import { loadCompanies, loadRegistry } from "@/lib/reference";
 import { bondTerms, SANS_CLOTURE } from "@/lib/domain/status";
+import { TOLERANCE_AN, variationSurMois } from "@/lib/domain/fund-perf";
 import { ABSENCE_SESSIONS, reconcileLines } from "./reconcile";
 
 const COMPANY_DOC_LABEL: Record<string, string> = { fiche: "Fiche signalétique", etats_ohada: "États financiers OHADA", etats_ifrs: "États financiers IFRS", rapport_gestion: "Rapport de gestion", rapport_semestriel: "Rapport semestriel", note_information: "Note d'information", autre: "Document" };
@@ -254,16 +255,19 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, c
 }
 
 /** An OPCVM line of the Guichet: information only until the desk records a distribution agreement. */
-/** NAV one year before the print (closest earlier one, at most 45 days off) → 12-month performance. */
+/**
+ * La VL d'il y a un an (la plus proche en deçà, à 45 jours près) → les douze
+ * mois.
+ *
+ * ELLE NE SE CALCULE PLUS ICI. Cette fonction écrivait mot pour mot la règle
+ * de « variationSurMois », avec ses douze mois et sa tolérance, et la liste
+ * des fonds allait en avoir besoin pour trois autres fenêtres. Deux écritures
+ * de la même règle, c'est une qui dérive. Il ne reste que le nom, parce que
+ * l'ingestion le connaît, et la forme de son résultat.
+ */
 export function perf1y(history: FundNav[], to: FundNav): { pct: number; from: string } | undefined {
-  const target = new Date(parseDate(to.navDate));
-  target.setFullYear(target.getFullYear() - 1);
-  const t = localIso(target);
-  const before = history.filter((h) => h.navDate <= t).sort((a, b) => b.navDate.localeCompare(a.navDate))[0];
-  if (!before || !before.nav) return undefined;
-  const gap = (parseDate(t).getTime() - parseDate(before.navDate).getTime()) / 86_400_000;
-  if (gap > 45) return undefined;
-  return { pct: (to.nav / before.nav - 1) * 100, from: before.navDate };
+  const v = variationSurMois(history, to, 12, TOLERANCE_AN);
+  return v && { pct: v.pct, from: v.depuis };
 }
 
 /**

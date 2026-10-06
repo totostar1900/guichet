@@ -9,7 +9,8 @@ import { SwipeActions } from "@/components/mobile/SwipeActions";
 import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fundYtdPct } from "@/lib/domain/fund-curve";
-import { raisonSansDouzeMois } from "@/lib/domain/fund-perf";
+import { FENETRES, raisonSansFenetre } from "@/lib/domain/fund-perf";
+import { depuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
 import styles from "@/components/OfferCard.module.css";
@@ -57,7 +58,14 @@ export function FundCard({ r }: { r: FundRow }) {
   /* La première VL de la courbe est le début réel de la série pour ces
      fonds-là : un fonds dont la série dépasse soixante VS a par construction
      ses douze mois, donc n'arrive jamais ici. */
-  const raison = r.perf1yPct == null ? raisonSansDouzeMois(r.inceptionDate, r.navDate, r.curve?.from) : undefined;
+  /* LA CARTE SUIT LA FENÊTRE CHOISIE comme le tableau et la liste : trois
+     vues de la même liste qui ne mesureraient pas la même chose seraient
+     trois listes. Le nom de la case change avec elle. */
+  const fenetre = useFenetre();
+  const noms = useNomFenetre();
+  const def = FENETRES.find((f) => f.id === fenetre)!;
+  const perf = valeurFenetre(r, fenetre);
+  const raison = perf == null ? raisonSansFenetre(def.mois, r.inceptionDate, r.navDate, r.curve?.from) : undefined;
   const t = useT();
   const compact = useDensity() === "compact";
   const href = useLineHref()(r.id);
@@ -109,14 +117,15 @@ export function FundCard({ r }: { r: FundRow }) {
           <b className={cls(ytd)}>{signed(ytd)}</b>
           {ytd == null && <em>{t("année incomplète")}</em>}
         </div>
-        <div>
-          <span>{t("12 mois")}</span>
-          <b className={cls(r.perf1yPct)}>{signed(r.perf1yPct)}</b>
-          {/* Deux appels littéraux, et non un ternaire dans t() : le scanner de clefs
-              ne voit pas une chaîne qui lui arrive en variable. */}
-          {raison === "jeune" && <em>{t("pas encore un an")}</em>}
-          {raison === "cote-recente" && <em>{t("à la cote depuis moins d'un an")}</em>}
-          {raison === "lecture-courte" && <em>{t("VL lues sur moins d'un an")}</em>}
+        <div title={depuisQuand(r, fenetre)}>
+          <span>{noms[fenetre]}</span>
+          <b className={cls(perf)}>{signed(perf)}</b>
+          {/* Trois appels littéraux, et non un ternaire dans t() : le scanner de
+              clefs ne voit pas une chaîne qui lui arrive en variable. Le nom de
+              la fenêtre, lui, est un paramètre et non la clef. */}
+          {raison === "jeune" && <em>{t("pas encore {f}", { f: noms[fenetre] })}</em>}
+          {raison === "cote-recente" && <em>{t("à la cote depuis moins de {f}", { f: noms[fenetre] })}</em>}
+          {raison === "lecture-courte" && <em>{t("VL lues sur moins de {f}", { f: noms[fenetre] })}</em>}
         </div>
         <div>
           <span>{t("Depuis l'origine")}</span>
@@ -180,8 +189,8 @@ export function FundCard({ r }: { r: FundRow }) {
             </small>
           </span>
           <span className={propres.cPerf}>
-            <b className={cls(r.perf1yPct)}>{signed(r.perf1yPct)}</b>
-            <em>{t("12 mois")}</em>
+            <b className={cls(perf)}>{signed(perf)}</b>
+            <em>{noms[fenetre]}</em>
           </span>
         </Link>
         <span className={propres.cOutils}>
