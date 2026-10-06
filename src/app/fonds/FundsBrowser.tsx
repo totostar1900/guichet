@@ -71,20 +71,34 @@ export interface FundRow {
  */
 type Vue = "table" | "list" | "cards";
 
-type SortKey = "categorie" | "nom" | "gestion" | "vl" | "var" | "an" | "origine" | "date";
+/**
+ * CINQ RANGEMENTS, ET « RENTABILITÉ » N'EN NOMME PLUS UN SEUL.
+ *
+ * La liste offrait « 12 mois » et « depuis l'origine » comme deux ordres
+ * distincts, ce qui posait la question à l'envers : on choisissait une durée
+ * dans le tri, et une autre au-dessus dans la fenêtre d'observation. Deux
+ * commandes pour la même chose, et rien ne disait laquelle gagnait.
+ *
+ * L'ordre s'appelle donc « Rentabilité » et porte sur LA FENÊTRE CHOISIE : on
+ * choisit d'abord sur quoi l'on mesure, on trie ensuite. « Depuis l'origine »
+ * disparaît du tri pour la raison déjà mesurée : les créations s'étalent de
+ * 2017 à 2026, et trier le cumul classe l'âge, pas le gérant.
+ *
+ * « Variation » et « VL la plus récente » partent aussi : la première est le
+ * pas d'une semaine, qui ne range rien, la seconde est une date de
+ * publication, qui ne dit rien du fonds.
+ */
+type SortKey = "categorie" | "nom" | "gestion" | "vl" | "an";
 const SORT: [SortKey, string][] = [
   ["categorie", "par catégorie"],
-  ["an", "12 mois"],
-  ["var", "variation"],
-  ["origine", "depuis l'origine"],
+  ["an", "rentabilité"],
   ["vl", "valeur liquidative"],
-  ["date", "VL la plus récente"],
   ["nom", "nom"],
   ["gestion", "société de gestion"],
 ];
 /** Le sens qu'on attend d'une colonne au premier clic : un rendement du plus fort,
     un nom de A à Z. Le second clic inverse, et c'est lui qui écrit « sens ». */
-const NATURAL: Record<SortKey, "asc" | "desc"> = { categorie: "asc", nom: "asc", gestion: "asc", vl: "desc", var: "desc", an: "desc", origine: "desc", date: "desc" };
+const NATURAL: Record<SortKey, "asc" | "desc"> = { categorie: "asc", nom: "asc", gestion: "asc", vl: "desc", an: "desc" };
 const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
 /**
  * TROIS FAÇONS DE RANGER LA LISTE, ET PAS UNE DE PLUS.
@@ -129,8 +143,17 @@ function useDouzeMois() {
   return (r: FundRow) => {
     const v = valeurFenetre(r, fenetre);
     if (v != null) return { texte: signed(v), titre: depuisQuand(r, fenetre) };
-    const raison = raisonSansFenetre(def.mois, r.inceptionDate, r.navDate, r.curve?.from);
     const nom = noms[fenetre];
+    /* LE TROU PASSE AVANT LES TROIS AUTRES RAISONS, et c'est ce qui explique
+       pourquoi trois mois rend moins de fonds que douze : la borne tombe
+       dans une interruption de la série. Makeda Horizon n'a rien publié
+       pendant 111 jours autour d'elle, Ecobank Obligataire 104. Le fonds
+       n'est ni jeune ni mal lu : il manque juste une VL là où il en
+       faudrait une, et aucune des trois autres phrases ne le disait. */
+    if (r.curve?.trous?.includes(fenetre)) {
+      return { texte: "—", titre: t("Aucune VL publiée autour d'il y a {f} : la série a un trou à cet endroit, et une valeur plus ancienne ne serait pas {f}.", { f: nom }) };
+    }
+    const raison = raisonSansFenetre(def.mois, r.inceptionDate, r.navDate, r.curve?.from);
     const titre =
       raison === "jeune" ? t("Le fonds n'a pas encore {f} : il n'y a rien à mesurer sur cette fenêtre.", { f: nom })
       : raison === "cote-recente" ? t("Le fonds est à la cote depuis moins de {f} : le bulletin ne publie pas de VL plus ancienne.", { f: nom })
@@ -270,7 +293,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const cat = (sp.get("cat") ?? "") as FundNav["category"] | "";
   const manager = sp.get("gestion") ?? "";
   const depositary = sp.get("depositaire") ?? "";
-  const freq = (sp.get("vl") ?? "") as FundNav["frequency"] | "";
   const groupe = (GROUPES.some(([k]) => k === sp.get("groupe")) ? sp.get("groupe") : "") as GroupKey | "";
   const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
   const asc = (sp.get("sens") ?? NATURAL[sort]) === "asc";
@@ -352,12 +374,11 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
        filtre, mais « tout effacer » veut dire « rends-moi la liste comme elle
        s'ouvre », et elle s'ouvre sur un an sans plage. C'est déjà la règle du
        tri, qui n'est pas un filtre non plus. */
-    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, vl: undefined, tri: undefined, sens: undefined, periode: undefined, perf: undefined });
+    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, tri: undefined, sens: undefined, periode: undefined, perf: undefined });
   };
   const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
   const setManager = (v: string) => update({ gestion: v || undefined });
   const setDepositary = (v: string) => update({ depositaire: v || undefined });
-  const setFreq = (v: FundNav["frequency"] | "") => update({ vl: v || undefined });
   const setGroupe = (v: GroupKey | "") => update({ groupe: v || undefined });
   const setSort = (v: SortKey) => update({ tri: v === "categorie" ? undefined : v, sens: undefined });
   // Depuis l'en-tête d'une colonne : la première fois son sens naturel, la
@@ -408,7 +429,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       ...rows.filter((r) => fold(r.title).includes(d) && fold(r.title) !== d).map((r) => ({ kind: "fonds" as const, text: r.title })),
     ].slice(0, 8);
   }, [draft, typing, managers, manager, depositaries, depositary, rows]);
-  const freqs = useMemo(() => [...new Set(rows.map((r) => r.frequency))].filter((f) => f !== "?"), [rows]);
 
   const filtered = useMemo(() => {
     const ql = fold(draft.trim());
@@ -420,7 +440,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       const v = valeurFenetre(r, fenetre);
       return v != null && v >= plage[0] - 0.001 && v <= plage[1] + 0.001;
     };
-    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && dansLaPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
+    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && dansLaPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":
@@ -429,14 +449,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           return a.manager.localeCompare(b.manager, "fr") || a.title.localeCompare(b.title, "fr");
         case "vl":
           return a.nav - b.nav;
-        case "var":
-          return num(a.variationPct) - num(b.variationPct);
         case "an":
           return num(valeurFenetre(a, fenetre)) - num(valeurFenetre(b, fenetre));
-        case "origine":
-          return a.perfSinceInceptionPct - b.perfSinceInceptionPct;
-        case "date":
-          return a.navDate.localeCompare(b.navDate);
         default:
           return Number(b.open) - Number(a.open) || a.title.localeCompare(b.title, "fr");
       }
@@ -445,7 +459,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
     const dir = sort === "categorie" ? 1 : asc ? 1 : -1;
     return [...list].sort((a, b) => dir * cmp(a, b));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, draft, cat, manager, depositary, freq, sort, asc, fenetre, plage?.[0], plage?.[1]]);
+  }, [rows, draft, cat, manager, depositary, sort, asc, fenetre, plage?.[0], plage?.[1]]);
 
   const rowsShown = sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered;
 
@@ -458,21 +472,21 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const pourLaBande = useMemo(() => {
     const ql = fold(draft.trim());
     return rows
-      .filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)))
+      .filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)))
       .flatMap((r) => {
         const v = valeurFenetre(r, fenetre);
         return v == null ? [] : [{ id: r.id, titre: r.title, valeur: v }];
       });
-  }, [rows, draft, cat, manager, depositary, freq, fenetre]);
+  }, [rows, draft, cat, manager, depositary, fenetre]);
 
   /* Le compte de chaque bouton : les fonds MESURABLES sur cette fenêtre,
      tous filtres appliqués sauf la plage. Un bouton qui annonce quarante-cinq
      et rend trente-huit lignes ment sur ce qu'il va faire. */
   const comptes = useMemo(() => {
     const ql = fold(draft.trim());
-    const base = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!freq || r.frequency === freq) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
+    const base = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     return Object.fromEntries(FENETRES.map((f) => [f.id, base.filter((r) => valeurFenetre(r, f.id) != null).length])) as Record<FenetreId, number>;
-  }, [rows, draft, cat, manager, depositary, freq]);
+  }, [rows, draft, cat, manager, depositary]);
   /**
    * LES GROUPES SUIVENT L'ORDRE DE LA LISTE, pas un ordre à eux.
    *
@@ -521,7 +535,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       </button>
     </th>
   );
-  const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(depositary)) + Number(Boolean(freq));
+  const active = Number(Boolean(cat)) + Number(Boolean(manager)) + Number(Boolean(depositary));
   /* CE QUI EST POSÉ SUR LA LISTE, tri compris : le bouton doit paraître quand
      la liste n'est plus celle qu'on trouve en arrivant, et un ordre choisi
      suffit à l'en éloigner. */
@@ -541,7 +555,15 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   // Le téléphone garde sa carte par défaut, l'ordinateur son tableau : c'est ce
   // que la page faisait déjà. Ce qui change est qu'un choix explicite l'emporte,
   // et qu'il tient dans l'adresse comme sur les titres.
-  const vue: Vue = vueChoisie ?? (phone ? "cards" : "table");
+  /**
+   * EN PORTRAIT, LA CARTE ET RIEN D'AUTRE, et le choix des vues disparaît.
+   *
+   * Un tableau de sept colonnes dans 384 px se lit en le faisant glisser de
+   * côté, et une liste d'un trait y perd ses chiffres. Les deux étaient
+   * offertes, donc choisies, donc subies. Ce qui reste est ce qui sert : la
+   * densité des cartes, et la feuille qui dit ce qu'une carte porte.
+   */
+  const vue: Vue = phone ? "cards" : (vueChoisie ?? "table");
   const sep = useDistinction();
   const toolsRef = useRef<HTMLDivElement>(null);
   /**
@@ -712,13 +734,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               La flèche ne paraît pas sur « par catégorie », qui est un
               rangement et non une mesure : il n'y a pas de sens à inverser. */}
           <div className={styles.rangee}>
-            <Dropdown
-              label="VL"
-              single
-              items={freqs.map((f) => [f, FUND_FREQUENCY_LABEL[f]])}
-              selected={new Set(freq ? [freq] : [])}
-              onChange={(s) => setFreq(([...s][0] ?? "") as FundNav["frequency"] | "")}
-            />
             <Dropdown label="Grouper" single effacable={Boolean(groupe)} items={GROUPES} selected={new Set(groupe ? [groupe] : [])} onChange={(s) => setGroupe(([...s][0] ?? "") as GroupKey | "")} />
             <Dropdown label="Tri" single effacable={sort !== "categorie"} items={SORT} selected={new Set([sort])} onChange={(s) => setSort((([...s][0] as SortKey) ?? "categorie") as SortKey)} />
             {sort !== "categorie" && (
@@ -751,13 +766,15 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           <button type="button" className={styles.clear} onClick={clearAll} disabled={!poseSurLaListe} title={poseSurLaListe ? undefined : t("Rien à effacer")}>
             {t("Tout effacer")}
           </button>
-          <div className={styles.seg} role="group" aria-label={t("Affichage")}>
-            {(["table", "list", "cards"] as Vue[]).map((v) => (
-              <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
-                {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
-              </button>
-            ))}
-          </div>
+          {!phone && (
+            <div className={styles.seg} role="group" aria-label={t("Affichage")}>
+              {(["table", "list", "cards"] as Vue[]).map((v) => (
+                <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
+                  {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
+                </button>
+              ))}
+            </div>
+          )}
           {/* LE RESSERREMENT DES CARTES SUIT LE CHOIX DES VUES, à sa droite :
               il ne règle que la vue cartes, et il se lisait mal posé avant
               elle, comme s'il commandait les trois. Il ne paraît d'ailleurs
@@ -822,18 +839,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                       <i aria-hidden="true">{sort === "vl" ? (asc ? "↑" : "↓") : "↕"}</i>
                     </button>{" "}
                     <Info term="vl" subtle />
-                    <br />
-                    <button type="button" className={`${styles.sortTh} ${styles.sortThSub} ${sort === "date" ? styles.sortOn : ""}`} onClick={() => pickSort("date")} title={t("Trier par date de VL")}>
-                      {t("date")}
-                      <i aria-hidden="true">{sort === "date" ? (asc ? "↑" : "↓") : "↕"}</i>
-                    </button>
                   </th>
+                  {/* « Var. » et « Depuis l'origine » restent des colonnes et
+                      ne sont plus des ordres : la première est le pas d'une
+                      semaine, la seconde classe l'âge du fonds. */}
                   <th className={styles.r}>
-                    <button type="button" className={`${styles.sortTh} ${sort === "var" ? styles.sortOn : ""}`} onClick={() => pickSort("var")} title={sort === "var" ? t("Inverser l'ordre") : t("Trier par cette colonne")}>
-                      {t("Var.")}
-                      <i aria-hidden="true">{sort === "var" ? (asc ? "↑" : "↓") : "↕"}</i>
-                    </button>{" "}
-                    <Info term="variation_vl" subtle />
+                    {t("Var.")} <Info term="variation_vl" subtle />
                   </th>
                   {/* LA COLONNE PORTE LE NOM DE LA FENÊTRE. Elle disait
                       « 12 mois » en dur : une colonne qui change de contenu
@@ -844,7 +855,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                       affichée en est déjà nette, mais c'est le coût qui décide de ce
                       qu'un épargnant garde sur cinq ans, et personne ne le publie. */}
                   <th className={styles.r}>{t("Frais/an")}</th>
-                  {sortTh("origine", t("Depuis l'origine"), `${styles.r} ${styles.hideSm}`)}
+                  <th className={`${styles.r} ${styles.hideSm}`}>{t("Depuis l'origine")}</th>
                   <th></th>
                 </tr>
               </thead>

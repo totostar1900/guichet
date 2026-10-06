@@ -458,7 +458,15 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const desk = useDeskView();
   // The phone reads cards, the desk a table: decided from the media query at hydration, not after a first paint (no compact flash).
   const phone = usePhone();
-  const view = (sp.get("vue") as View) || (phone ? "cards" : "table");
+  /**
+   * EN PORTRAIT, LA CARTE ET RIEN D'AUTRE, et le choix des vues disparaît.
+   *
+   * Un tableau de huit colonnes dans 384 px se lit en le faisant glisser de
+   * côté, et une liste d'un trait y perd ses chiffres. Les deux étaient
+   * offertes, donc choisies, donc subies. Ce qui reste est ce qui sert : la
+   * densité des cartes, et la feuille qui dit ce qu'une carte porte.
+   */
+  const view: View = phone ? "cards" : ((sp.get("vue") as View) || "table");
   const [sheet, setSheet] = useState(false);
   // The search's suggestions while typing: distinct lines, issuers and ISINs that contain the letters.
   const [draft, setDraft] = useState("");
@@ -873,13 +881,15 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               {t("Effacer")}
             </button>
           )}
-          <div className={styles.seg} role="group" aria-label={t("Affichage")} data-coach="titres-vues">
-            {VIEWS.map((v) => (
-              <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
-                {t(VIEW_LABEL[v])}
-              </button>
-            ))}
-          </div>
+          {!phone && (
+            <div className={styles.seg} role="group" aria-label={t("Affichage")} data-coach="titres-vues">
+              {VIEWS.map((v) => (
+                <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
+                  {t(VIEW_LABEL[v])}
+                </button>
+              ))}
+            </div>
+          )}
           </div>
         </div>
         {activeChips.length > 0 && (

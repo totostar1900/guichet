@@ -5,13 +5,17 @@
 .fenetres {
   display: flex;
   flex-wrap: wrap;
+  row-gap: var(--s-2);
   align-items: center;
   gap: var(--s-2);
   padding-block: var(--s-4) var(--s-2);
 }
+/* Deux lignes, pour que les six durées tiennent sur une. La hauteur de
+   l'étiquette est alors celle d'un bouton, et la rangée reste d'un bloc. */
 .fenEtiq {
   font-size: var(--t-1);
   font-weight: 700;
+  line-height: 1.15;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -91,14 +95,68 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* LE BANDEAU DE SUIVI : hauteur fixe, trois zones, toujours présent. Une
+   valeur qui suit un geste ne se met pas dans une bulle qui apparaît et
+   disparaît : règle de la maison du 5 octobre 2026. */
+.suivi {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--s-4);
+  align-items: baseline;
+  min-height: 30px;
+  padding: var(--s-2) 0;
+  margin-top: var(--s-3);
+  border-bottom: 1px solid var(--line-2);
+}
+.suiviPlage {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  font-variant-numeric: tabular-nums;
+}
+.suiviPlage b {
+  font-size: var(--t-4);
+  font-weight: 700;
+}
+.suiviPlage i {
+  font-style: normal;
+  color: var(--ink-3);
+}
+.suiviQuoi {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.suiviMed {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Les graduations portent des valeurs : un axe se lit en chiffres, et les
+   noms se trouvent au survol de leur point. */
+.tick {
+  position: absolute;
+  bottom: 0;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.tick::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  width: 1px;
+  height: 4px;
+  background: var(--line-2);
+}
+
 .bande {
   position: relative;
   margin-top: var(--s-4);
-  cursor: crosshair;
-  /* « pan-y » et non « none » : le tiré horizontal est à nous, le défilement
-     vertical reste au doigt. Sans cela la page se bloque sous la bande. */
-  touch-action: pan-y;
-  user-select: none;
 }
 .axe {
   position: absolute;
@@ -163,14 +221,6 @@
    pas, là où il est seulement écarté par la barre. */
 .pointHors {
   opacity: 0.2;
-}
-.extreme {
-  position: absolute;
-  bottom: 0;
-  font-size: var(--t-1);
-  color: var(--ink-3);
-  white-space: nowrap;
-  pointer-events: none;
 }
 
 /* ---- La barre à deux poignées ---- */

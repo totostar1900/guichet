@@ -95,7 +95,6 @@ describe("les commandes de la page des fonds", () => {
       sens: { quoi: "la flèche qui retourne l'ordre", preuve: /styles\.dirBtn/ },
       q: { quoi: "le champ de recherche", preuve: /type="search"/ },
       cat: { quoi: "la rangée des catégories, à plat", preuve: /rangee\(\s*"Catégorie"/ },
-      vl: { quoi: "la liste des périodicités", preuve: /<Dropdown\s+label="VL"/ },
       gestion: { quoi: "la pastille de la société de gestion", preuve: /clef: "gestion"/ },
       depositaire: { quoi: "la pastille du dépositaire", preuve: /clef: "depositaire"/ },
       /* La fenêtre d'observation n'est pas un filtre — elle ne retire aucun
@@ -130,12 +129,13 @@ describe("les commandes de la page des fonds", () => {
 
   it("n'offre que des valeurs présentes dans les lignes reçues", () => {
     /* Une pastille qui mène à « Aucun fonds ne correspond » est une fausse
-       promesse. Les catégories sont filtrées sur les lignes, les périodicités
-       viennent de « freqs », qui est lui-même construit sur les lignes. */
+       promesse : les catégories sont filtrées sur les lignes reçues.
+       La liste des périodicités a été retirée le 7 octobre 2026 : on ne
+       choisit pas un fonds sur le rythme auquel sa VL est frappée, et elle
+       reste écrite sous le nom de chaque fonds, où elle se lit. */
     const rang = SRC.slice(SRC.indexOf('rangee(\n            "Catégorie"'), SRC.indexOf('rangee(\n            "Catégorie"') + 400);
     expect(rang, "les catégories ne sont plus filtrées sur les lignes reçues").toMatch(/rows\.some\(/);
-    expect(SRC, "les périodicités ne viennent plus des lignes reçues").toMatch(/items=\{freqs\.map/);
-    expect(SRC, "« freqs » ne se construit plus sur les lignes").toMatch(/const freqs = useMemo\(\(\) => \[\.\.\.new Set\(rows\.map/);
+    expect(SRC, "la liste des périodicités est revenue : elle a été retirée exprès").not.toMatch(/<Dropdown\s+label="VL"/);
   });
 
   it("fait du titre le sommaire, sans bande au-dessus", () => {
@@ -194,13 +194,14 @@ describe("les commandes de la page des fonds", () => {
     expect(SRC).toMatch(/else if \(sug\.kind === "depositaire"\) update\(\{ depositaire: sug\.text/);
   });
 
-  it("range les trois listes sur une seule rangée, et retire la flèche là où elle ne veut rien dire", () => {
-    /* VL, Grouper et Tri sont trois choix de même nature : ils tiennent sur
-       une rangée, et ils y tiennent VRAIMENT — mesuré à 412 px, « Grouper ·
+  it("range les deux listes sur une seule rangée, et retire la flèche là où elle ne veut rien dire", () => {
+    /* Grouper et Tri sont deux choix de même nature : ils tiennent sur une
+       rangée, et ils y tiennent VRAIMENT — mesuré à 412 px, « Grouper ·
        Société de gestion » faisait 177 px et les renvoyait à la ligne, d'où
-       les étiquettes d'un mot. */
+       les étiquettes d'un mot. « VL » les accompagnait jusqu'au 7 octobre
+       2026 : on ne choisit pas un fonds sur le rythme de sa VL. */
     const rang = SRC.slice(SRC.indexOf("<div className={styles.rangee}>"), SRC.indexOf("{actifs.map("));
-    for (const liste of ['label="VL"', 'label="Grouper"', 'label="Tri"']) {
+    for (const liste of ['label="Grouper"', 'label="Tri"']) {
       expect(rang, `${liste} a quitté la rangée des listes`).toContain(liste);
     }
     expect(rang, "la liste des ordres ne vient plus de SORT").toMatch(/items=\{SORT\}/);

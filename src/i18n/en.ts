@@ -375,4 +375,17 @@ export const EN: Record<string, string> = {
   "{n} ligne(s) retenue(s) sur {m}": "{n} line(s) kept out of {m}",
   "Tirez un rectangle pour ne garder qu'une poignée de lignes. Un point mène à la ligne.": "Drag a rectangle to keep only a handful of lines. A dot leads to the line.",
   "Tirez à même la bande pour ne garder qu'une plage. Un point mène à la ligne.": "Drag across the band to keep only one range. A dot leads to the line.",
+  // La fenêtre de rentabilité des fonds, sa bande et son bandeau de suivi.
+  "Rentabilité": "Return",
+  "rentabilité": "return",
+  "4 ans": "4 years",
+  "{n} fonds sur {m}": "{n} funds out of {m}",
+  "{n} fonds mesurables sur {f}": "{n} funds measurable over {f}",
+  "médiane {v}": "median {v}",
+  "Rentabilité minimale": "Lowest return",
+  "Rentabilité maximale": "Highest return",
+  "Resserrez la barre pour ne garder qu'une plage. Un point mène au fonds.": "Narrow the bar to keep only one range. A dot leads to the fund.",
+  "Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds.": "Past performance does not predict future performance. A subscription is executed at the next net asset value; entry and exit fees follow each fund's rules.",
+  "Aucune VL publiée autour d'il y a {f} : la série a un trou à cet endroit, et une valeur plus ancienne ne serait pas {f}.": "No NAV published around {f} ago: the series has a gap there, and an older value would not be {f}.",
+  "mesurée sur": "measured over",
 };

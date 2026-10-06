@@ -24,7 +24,19 @@ export function ChoixFenetre({ fenetre, comptes, surChoix }: { fenetre: FenetreI
   const noms = useNomFenetre();
   return (
     <div className={styles.fenetres} role="group" aria-label={t("Fenêtre d'observation")}>
-      <span className={styles.fenEtiq}>{t("Mesurer sur")}</span>
+      {/* L'ÉTIQUETTE TIENT SUR DEUX LIGNES pour que les six durées tiennent
+          sur une seule. Écrite d'un trait, « Rentabilité sur » prend la place
+          d'un bouton et demi, et le dernier passait à la ligne suivante : on
+          ne comparait plus six durées, on en comparait cinq puis une. */}
+      {/* « mesurée sur » et non « sur » : la clef de trois lettres existe
+          déjà ailleurs et veut dire « of », ce qui donnait « RETURN OF ».
+          Une clef presque vide se recopie d'un écran à l'autre et finit par
+          vouloir dire deux choses, et le cliquet l'interdit justement. */}
+      <span className={styles.fenEtiq}>
+        {t("Rentabilité")}
+        <br />
+        {t("mesurée sur")}
+      </span>
       {FENETRES.map((f) => (
         <button
           key={f.id}
@@ -38,11 +50,6 @@ export function ChoixFenetre({ fenetre, comptes, surChoix }: { fenetre: FenetreI
           <small>{t("{n} fonds", { n: comptes[f.id] })}</small>
         </button>
       ))}
-      {/* Cinq ans n'est pas un oubli : il est là, éteint, et il dit pourquoi. */}
-      <span className={styles.fenVide} title={t("La plus ancienne valeur liquidative que nous ayons lue est du 5 janvier 2023 : cinq ans ne sera mesurable qu'en janvier 2028.")}>
-        <b>{t("5 ans")}</b>
-        <small>{t("pas avant 2028")}</small>
-      </span>
     </div>
   );
 }

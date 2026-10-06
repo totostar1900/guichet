@@ -23,17 +23,19 @@ const serie = (depuis: string, semaines: number, parSemaine = 0.1) => {
   return out;
 };
 
-describe("les quatre fenêtres", () => {
+describe("les six fenêtres", () => {
   it("se mesurent toutes sur une série assez longue", () => {
-    const s = serie("2022-01-03", 210); // quatre ans
+    const s = serie("2021-01-04", 300); // presque six ans
     const f = fenetresDe(s, s[s.length - 1]);
-    expect(Object.keys(f).sort()).toEqual(["a1", "a3", "m3", "m6"]);
+    expect(Object.keys(f).sort()).toEqual(["a1", "a2", "a3", "a4", "m3", "m6"]);
     /* La série monte régulièrement, donc plus la fenêtre est longue, plus le
        chiffre est grand : c'est la vérification que chacune mesure bien sa
        propre durée et non celle d'à côté. */
     expect(f.m3!.pct).toBeLessThan(f.m6!.pct);
     expect(f.m6!.pct).toBeLessThan(f.a1!.pct);
-    expect(f.a1!.pct).toBeLessThan(f.a3!.pct);
+    expect(f.a1!.pct).toBeLessThan(f.a2!.pct);
+    expect(f.a2!.pct).toBeLessThan(f.a3!.pct);
+    expect(f.a3!.pct).toBeLessThan(f.a4!.pct);
   });
 
   it("manquent toutes quand la série est trop courte, et ne rendent pas zéro", () => {
@@ -95,8 +97,10 @@ describe("pourquoi une fenêtre est vide", () => {
 });
 
 describe("ce que la rangée de boutons promet", () => {
-  it("n'offre pas cinq ans, qui n'existe pour personne avant 2028", () => {
-    expect(FENETRES.map((f) => f.id)).toEqual(["m3", "m6", "a1", "a3"]);
+  it("s'arrête à quatre ans : cinq n'existe pour personne avant 2028", () => {
+    /* La plus ancienne VL du dépôt est du 5 janvier 2023. Quatre ans
+       n'ouvre qu'en janvier 2027, cinq ans en janvier 2028. */
+    expect(FENETRES.map((f) => f.id)).toEqual(["m3", "m6", "a1", "a2", "a3", "a4"]);
     expect(FENETRES.some((f) => f.mois >= 60)).toBe(false);
   });
 

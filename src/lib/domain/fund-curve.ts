@@ -1,4 +1,4 @@
-import { fenetresDe, type FenetreId, type VariationMesuree } from "./fund-perf";
+import { fenetresDe, type FenetreId, trousDe, type VariationMesuree } from "./fund-perf";
 
 /**
  * La courbe d'un fonds, réduite à ce qui se dessine.
@@ -46,6 +46,12 @@ export interface FundCurve {
    * d'un kilo-octet pour les quarante-cinq.
    */
   fenetres?: Partial<Record<FenetreId, VariationMesuree>>;
+  /**
+   * Les fenêtres dont la borne tombe dans un TROU de la série : le fonds est
+   * assez vieux et nos VL remontent assez loin, mais il n'a rien publié
+   * autour d'elle. L'écran le dit tel quel plutôt que d'accuser sa jeunesse.
+   */
+  trous?: FenetreId[];
 }
 
 /**
@@ -68,7 +74,9 @@ export function fundCurveFrom(navs: { navDate: string; nav: number }[], points =
      vide répété quarante-cinq fois. */
   const fenetres = fenetresDe(tout, tout[tout.length - 1]);
   const avecFenetres = Object.keys(fenetres).length ? { fenetres } : {};
-  return { from: kept[0].navDate, to: kept[kept.length - 1].navDate, ys: kept.map((n) => n.nav), ytdFrom: base?.nav, ytdDate: base?.navDate, ...avecFenetres };
+  const t = trousDe(tout, tout[tout.length - 1]);
+  const avecTrous = t.length ? { trous: t } : {};
+  return { from: kept[0].navDate, to: kept[kept.length - 1].navDate, ys: kept.map((n) => n.nav), ytdFrom: base?.nav, ytdDate: base?.navDate, ...avecFenetres, ...avecTrous };
 }
 
 /**

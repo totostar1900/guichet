@@ -191,16 +191,42 @@ export const TOLERANCE_AN = 45;
  * d'un fonds, où l'on regarde une courbe et non un rang, il garde son sens
  * et il y reste.
  */
-export type FenetreId = "m3" | "m6" | "a1" | "a3";
+export type FenetreId = "m3" | "m6" | "a1" | "a2" | "a3" | "a4";
 
 export const FENETRES: { id: FenetreId; mois: number; tolerance: number; nom: string }[] = [
   { id: "m3", mois: 3, tolerance: TOLERANCE_TRIMESTRE, nom: "3 mois" },
   /* Vingt-huit jours sur six mois tient le même rapport que quatorze sur
      trois : c'est la règle de la tolérance, pas un chiffre rond. */
   { id: "m6", mois: 6, tolerance: 28, nom: "6 mois" },
-  { id: "a1", mois: 12, tolerance: TOLERANCE_AN, nom: "1 an" },
+  { id: "a1", mois: 12, tolerance: TOLERANCE_AN, nom: "12 mois" },
+  { id: "a2", mois: 24, tolerance: TOLERANCE_AN, nom: "2 ans" },
   { id: "a3", mois: 36, tolerance: TOLERANCE_AN, nom: "3 ans" },
+  /* Quatre ans ne couvre personne avant janvier 2027 : la plus ancienne VL
+     du dépôt est du 5 janvier 2023. Le bouton est là, éteint, et il le dit. */
+  { id: "a4", mois: 48, tolerance: TOLERANCE_AN, nom: "4 ans" },
 ];
+
+/**
+ * LA TOLÉRANCE ADAPTATIVE A ÉTÉ ESSAYÉE, ET MESURÉE MAUVAISE.
+ *
+ * Trois mois rend moins de fonds que douze : 33 contre 38. L'explication
+ * facile était que quatorze jours de tolérance étaient trop stricts pour un
+ * fonds qui publie peu, et la correction évidente de les faire suivre la
+ * cadence de chacun — trois fois l'écart médian, plancher 14, plafond le
+ * tiers de la fenêtre.
+ *
+ * Mesuré le 7 octobre 2026 sur les 45 fonds : la règle adaptative rend 34 à
+ * trois mois (+1) mais 37 à six mois et 37 à un an (−1 chacun). Elle retire
+ * donc deux chiffres pour en ajouter un. Abandonnée.
+ *
+ * LA VRAIE CAUSE EST AILLEURS, et aucune tolérance ne la soigne : ce sont des
+ * TROUS DANS LA SÉRIE. La fenêtre de trois mois tombe dedans, celle de douze
+ * mois tombe avant. Mesuré sur les huit fonds écartés : Makeda Horizon n'a
+ * rien publié pendant 111 jours autour de la borne, Ecobank Obligataire 104,
+ * les trois Contacturer 41, Elite Capital Invest 20. Accepter une VL vieille
+ * de 111 jours sous le nom « 3 mois » serait nommer le chiffre de travers.
+ * Il reste donc un tiret, et le tiret dit « trou ».
+ */
 
 export const FENETRE_PAR_DEFAUT: FenetreId = "a1";
 export const estFenetre = (v: string | null | undefined): v is FenetreId => FENETRES.some((f) => f.id === v);
@@ -218,6 +244,31 @@ export function fenetresDe(history: PointDeVL[], to: PointDeVL): Partial<Record<
   for (const f of FENETRES) {
     const v = variationSurMois(history, to, f.mois, f.tolerance);
     if (v) out[f.id] = v;
+  }
+  return out;
+}
+
+/**
+ * LES FENÊTRES QUI TOMBENT DANS UN TROU DE LA SÉRIE.
+ *
+ * Le fonds est assez vieux, nos VL remontent assez loin, et pourtant la
+ * borne manque : il n'a rien publié autour d'elle. Ce n'est ni sa jeunesse,
+ * ni une cote récente, ni une lecture courte, et lui donner l'une de ces
+ * trois raisons serait accuser à faux. On le constate ici, où la série est
+ * entière, et l'écran le dit tel quel.
+ */
+export function trousDe(history: PointDeVL[], to: PointDeVL): FenetreId[] {
+  const tries = [...history].filter((h) => h.nav > 0).sort((a, b) => a.navDate.localeCompare(b.navDate));
+  if (!tries.length) return [];
+  const debut = tries[0].navDate;
+  const out: FenetreId[] = [];
+  for (const f of FENETRES) {
+    if (variationSurMois(history, to, f.mois, f.tolerance)) continue;
+    const cible = new Date(parseDate(to.navDate));
+    cible.setMonth(cible.getMonth() - f.mois);
+    /* La série doit commencer AVANT la borne : sinon c'est qu'elle est trop
+       courte, ce qui porte déjà son nom. */
+    if (debut <= localIso(cible)) out.push(f.id);
   }
   return out;
 }
