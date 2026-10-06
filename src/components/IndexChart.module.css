@@ -630,3 +630,137 @@ button.calCell:focus-visible {
   border-left: 3px solid var(--gold-line);
   padding: 2px 0 2px 12px;
 }
+
+/* La phrase qui précède un tracé : ce qu'il montre, en un trait. */
+.note {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 84ch;
+}
+
+/* ---- La barre de fenêtre : deux poignées sur la série entière ---- */
+.fenetreBloc {
+  margin-top: var(--s-4);
+}
+.fenetreLu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+  min-height: 26px;
+  font-variant-numeric: tabular-nums;
+}
+.fenetreLu b {
+  font-size: var(--t-3);
+  font-weight: 700;
+}
+.fenetreLu i {
+  font-style: normal;
+  color: var(--ink-3);
+}
+.fenetreLu span {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.fenetreTout {
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--select);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.fenetreBarre {
+  position: relative;
+  height: 28px;
+}
+.fenetrePiste,
+.fenetrePisteOn {
+  position: absolute;
+  top: 13px;
+  height: 2px;
+}
+.fenetrePiste {
+  left: 0;
+  right: 0;
+  background: var(--line-2);
+}
+.fenetrePisteOn {
+  background: var(--select);
+}
+.fenetreBarre input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  pointer-events: none;
+}
+.fenetreBarre input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--select);
+  cursor: grab;
+}
+.fenetreBarre input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--select);
+  cursor: grab;
+}
+
+/* Le calendrier debout : les cinq jours en largeur, les semaines qui
+   descendent. Les cases gardent leur taille quelle que soit la durée, là où
+   la forme couchée les réduisait à deux pixels sur trois ans. */
+.calDebout .calCell {
+  min-height: 22px;
+}
+.calDebout {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* La croix d'une bulle ancrée : c'est elle qu'on cherche pour la refermer,
+   puisqu'elle ne s'en va plus toute seule. */
+.calTipClose {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  font: inherit;
+  font-size: var(--t-4);
+  line-height: 1;
+  color: var(--ink-3);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.calTipClose:hover {
+  color: var(--ink);
+}
+
+/* L'écart des deux épingles, dans la bulle du calendrier : le résultat se
+   lisait sur une autre vue, donc cliquer deux cases ne changeait rien sous
+   les yeux. */
+.calTipEcart {
+  display: block;
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line-2);
+  color: var(--ink-2);
+}

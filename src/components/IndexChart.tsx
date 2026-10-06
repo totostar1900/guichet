@@ -30,19 +30,28 @@ export interface OverlaySeries {
   sharesFloat?: number;
 }
 
-export type IndexView = "niveau" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
+export type IndexView = "niveau" | "variations" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
 type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
 type VolumeKey = "amount" | "titles" | "trades";
 type Marks = "ligne" | "ligne_mouvements" | "points";
 const PERIODS: [PeriodKey, string][] = [
   ["1m", "1 mois"],
   ["3m", "3 mois"],
-  ["ytd", "Depuis le 1er janvier"],
+  /* « 1er janv. » ET NON « Depuis le 1er janvier ». Mesuré à 384 px : les
+     cinq périodes faisaient 441 px et « Tout » passait seul à la ligne
+     suivante, donc hors de vue — et c'est précisément celle qui montre les
+     697 séances lues depuis décembre 2023. */
+  ["ytd", "1er janv."],
   ["12m", "12 mois"],
   ["all", "Tout"],
 ];
 const VIEWS: [IndexView, string][] = [
   ["niveau", "Niveau"],
+  /* LES VARIATIONS SONT UNE VUE, et pas une lecture du niveau. Un indice qui
+     passe de 100 à 101 puis de 1000 à 1010 a bougé deux fois d'un pour cent,
+     et la courbe du niveau ne le montre pas : la seconde marche y paraît dix
+     fois plus haute. */
+  ["variations", "Variations"],
   ["volumes", "Niveau + volumes"],
   ["contributions", "Contributions"],
   ["calendrier", "Calendrier"],
@@ -125,17 +134,47 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const padB = 28;
 
   const last = points[points.length - 1];
-  const from = useMemo(() => {
+  const debutDe = (k: PeriodKey) => {
     if (!last) return "";
-    if (period === "1m") return shift(last.date, 30);
-    if (period === "3m") return shift(last.date, 91);
-    if (period === "12m") return shift(last.date, 365);
-    if (period === "ytd") return `${last.date.slice(0, 4)}-01-01`;
+    if (k === "1m") return shift(last.date, 30);
+    if (k === "3m") return shift(last.date, 91);
+    if (k === "12m") return shift(last.date, 365);
+    if (k === "ytd") return `${last.date.slice(0, 4)}-01-01`;
     return "";
-  }, [period, last]);
-  const pts = useMemo(() => points.filter((p) => p.date >= from), [points, from]);
+  };
+  /**
+   * LA FENÊTRE EST UNE PLAGE D'INDICES, ET C'EST ELLE LE ZOOM.
+   *
+   * Les cinq boutons de période ne posaient qu'une borne gauche, toujours
+   * accrochée à la dernière séance : impossible de regarder le printemps
+   * 2024 sans tout afficher. La fenêtre est maintenant un couple de bornes
+   * sur la série, que les boutons posent et que la barre à deux poignées
+   * déplace. Resserrer, c'est zoomer, et tout ce qui est calculé plus bas
+   * — les graduations, les volumes, les contributions, le calendrier — se
+   * recalcule sur les points retenus, parce que tout part de « pts ».
+   *
+   * Elle vit en mémoire et non dans l'adresse : la page de l'indice est
+   * rendue sur le serveur, et une poignée qui écrirait l'adresse à chaque
+   * pas traînerait d'un aller-retour par pixel.
+   */
+  const [zoom, setZoom] = useState<[number, number] | null>(null);
+  const bornesPeriode = useMemo(() => {
+    const d = debutDe(period);
+    const i = d ? points.findIndex((p) => p.date >= d) : 0;
+    return [i < 0 ? 0 : i, points.length - 1] as [number, number];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, points, last]);
+  const fenetre = zoom ?? bornesPeriode;
+  const pts = useMemo(() => points.slice(fenetre[0], fenetre[1] + 1), [points, fenetre]);
+  const choisirPeriode = (k: PeriodKey) => {
+    setPeriod(k);
+    setZoom(null);
+  };
   const ov = overlays.find((o) => o.mnemo === overlay);
-  const ovPts = useMemo(() => (ov ? ov.points.filter((p) => p.date >= from) : []), [ov, from]);
+  /* La borne gauche de la fenêtre, pour tout ce qui se recoupe par date :
+     la valeur comparée, les petites multiples, les contributions. */
+  const debut = points[fenetre[0]]?.date ?? "";
+  const ovPts = useMemo(() => (ov ? ov.points.filter((p) => p.date >= debut) : []), [ov, debut]);
   const showBase = rebase || Boolean(ov);
   const base = <P extends { date: string; value: number }>(arr: P[]): (P & { y: number })[] => {
     const b = arr[0]?.value;
@@ -268,7 +307,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
       <div className={styles.bar}>
         <div className={styles.pills} role="tablist" aria-label={t("Période")}>
           {PERIODS.map(([k, label]) => (
-            <button key={k} type="button" role="tab" aria-selected={period === k} onClick={() => setPeriod(k)}>
+            <button key={k} type="button" role="tab" aria-selected={period === k && !zoom} onClick={() => choisirPeriode(k)}>
               {t(label)}
             </button>
           ))}
@@ -371,6 +410,51 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               </span>
             )}
           </p>
+          {/* LA BARRE DE FENÊTRE : deux poignées sur la série entière, et
+              c'est le zoom. Les cinq périodes ne posaient qu'une borne
+              gauche accrochée à la dernière séance, donc le printemps 2024
+              ne se regardait qu'en affichant tout. Son bandeau dit ce qu'on
+              tient pendant qu'on le règle, sans quoi on déplace une poignée
+              en cherchant l'effet dans le tracé. */}
+          <div className={styles.fenetreBloc}>
+            <div className={styles.fenetreLu}>
+              <b>{fmtDate(points[fenetre[0]]?.date ?? d0)}</b>
+              <i aria-hidden="true">→</i>
+              <b>{fmtDate(points[fenetre[1]]?.date ?? dN)}</b>
+              <span>{t("{n} séances sur {m}", { n: String(pts.length), m: String(points.length) })}</span>
+              {zoom && (
+                <button type="button" className={styles.fenetreTout} onClick={() => setZoom(null)}>
+                  {t("revenir à la période")}
+                </button>
+              )}
+            </div>
+            <div className={styles.fenetreBarre}>
+              <span className={styles.fenetrePiste} aria-hidden="true" />
+              <span
+                className={styles.fenetrePisteOn}
+                style={{ left: `${(fenetre[0] / Math.max(points.length - 1, 1)) * 100}%`, right: `${100 - (fenetre[1] / Math.max(points.length - 1, 1)) * 100}%` }}
+                aria-hidden="true"
+              />
+              <input
+                type="range"
+                min={0}
+                max={points.length - 1}
+                step={1}
+                value={fenetre[0]}
+                aria-label={t("Première séance affichée")}
+                onChange={(e) => setZoom([Math.min(Number(e.target.value), fenetre[1] - 1), fenetre[1]])}
+              />
+              <input
+                type="range"
+                min={0}
+                max={points.length - 1}
+                step={1}
+                value={fenetre[1]}
+                aria-label={t("Dernière séance affichée")}
+                onChange={(e) => setZoom([fenetre[0], Math.max(Number(e.target.value), fenetre[0] + 1)])}
+              />
+            </div>
+          </div>
           <div className={styles.pinsBar}>
             <label>
               {t("Du")}
@@ -401,18 +485,25 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
       {view === "calendrier" && (
         <Calendar
           points={pts}
+          W={W}
+          pins={pins}
           company={co}
-          from={period === "all" ? d0 : from}
+          from={debut || d0}
           to={dN}
           onPick={(d) => {
+            /* ON NE CHANGE PLUS DE VUE. Le clic épinglait et sautait sur le
+               Niveau : le calendrier disparaissait avec sa bulle avant
+               qu'on l'ait lue. L'épingle est posée, la vue Niveau la
+               montrera quand on ira la voir. */
             if (!at(d)) return;
-            setView("niveau");
             togglePin(d);
           }}
         />
       )}
 
-      {view === "societes" && <SmallMultiples index={pts} overlays={overlays} from={from} />}
+      {view === "societes" && <SmallMultiples index={pts} overlays={overlays} from={debut} />}
+
+      {view === "variations" && <Variations index={pts} W={W} />}
 
       {view === "contributions" && <Contributions index={pts} overlays={overlays} from={pinA && pinB ? pinA.date : d0} to={pinA && pinB ? pinB.date : dN} />}
 
@@ -435,6 +526,77 @@ const capAt = (o: OverlaySeries, date: string, kind: "total" | "float") => {
 };
 
 /** The period's move split by share : weight at the start × the share's own move, on the chosen weighting. */
+/**
+ * LES VARIATIONS SÉANCE PAR SÉANCE, en barres autour de zéro.
+ *
+ * La courbe du niveau ne les montre pas : un indice qui passe de 100 à 101
+ * puis de 1 000 à 1 010 a bougé deux fois d'un pour cent, et la seconde
+ * marche y paraît dix fois plus haute. Sur cette vue, les deux barres ont la
+ * même hauteur, qui est le fait.
+ *
+ * LES SÉANCES IMMOBILES GARDENT LEUR PLACE, en trait sur le zéro : la cote
+ * de la BVMAC ne bouge que quelques dizaines de fois par an, et une vue qui
+ * ne montrerait que les mouvements laisserait croire à un marché agité.
+ */
+function Variations({ index, W }: { index: ChartPoint[]; W: number }) {
+  const t = useT();
+  const H = W < 480 ? 220 : 280;
+  const padL = 44;
+  const padR = 14;
+  const padT = 14;
+  const padB = 28;
+  const vals = index.map((p) => p.variationPct ?? 0);
+  const amp = Math.max(0.5, ...vals.map((v) => Math.abs(v)));
+  const y = (v: number) => padT + ((amp - v) / (2 * amp)) * (H - padT - padB);
+  const x = (i: number) => padL + (index.length < 2 ? 0 : (i / (index.length - 1)) * (W - padL - padR));
+  const bw = Math.max(1.5, Math.min(9, (W - padL - padR) / Math.max(index.length, 1) - 1));
+  const bouges = index.filter((p) => (p.variationPct ?? 0) !== 0);
+  const hausse = bouges.filter((p) => (p.variationPct ?? 0) > 0).length;
+  /* Les graduations tombent sur des valeurs que le tracé atteint. */
+  const pas = amp > 4 ? 2 : amp > 1.5 ? 1 : 0.5;
+  const ticks: number[] = [];
+  for (let v = -Math.floor(amp / pas) * pas; v <= amp + 1e-9; v += pas) ticks.push(Math.round(v * 100) / 100);
+  return (
+    <>
+      <p className={styles.note}>
+        {t("{n} séances sur {m} ont bougé, dont {h} en hausse. Les autres cotent exactement le cours de la veille.", {
+          n: String(bouges.length),
+          m: String(index.length),
+          h: String(hausse),
+        })}
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Variation de l'indice séance par séance")}>
+        {ticks.map((v) => (
+          <g key={v}>
+            <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
+            <text x={padL - 6} y={y(v) + 3} textAnchor="end" className={styles.tick}>
+              {v > 0 ? "+" : ""}
+              {String(v).replace(".", ",")} %
+            </text>
+          </g>
+        ))}
+        {index.map((p, i) => {
+          const v = p.variationPct ?? 0;
+          const h = Math.abs(y(v) - y(0));
+          return (
+            <rect
+              key={p.date}
+              x={x(i) - bw / 2}
+              y={v >= 0 ? y(v) : y(0)}
+              width={bw}
+              height={Math.max(v === 0 ? 1.5 : 1.5, h)}
+              className={v > 0 ? styles.up : v < 0 ? styles.down : styles.vol}
+            >
+              <title>{`${fmtDate(p.date)} · ${v > 0 ? "+" : ""}${String(Math.round(v * 100) / 100).replace(".", ",")} %`}</title>
+            </rect>
+          );
+        })}
+      </svg>
+      <HowTo text={t("Chaque barre est l'écart d'une séance à la précédente, en pour cent. Une barre plate sur le zéro est une séance sans mouvement, et il y en a beaucoup : la cote ne bouge que quelques dizaines de fois par an. C'est la vue qui compare un mouvement d'aujourd'hui à un mouvement d'il y a deux ans, ce que la courbe du niveau ne permet pas.")} />
+    </>
+  );
+}
+
 function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; overlays: OverlaySeries[]; from: string; to: string }) {
   const t = useT();
   const [kind, setKind] = useState<"total" | "float">("total");
@@ -893,12 +1055,22 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
 }
 
 /** A year (or the period) of sessions : one cell per weekday, a column per week ; colour is the move, dashed is a bulletin not read. */
-function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[]; company?: OverlaySeries; from: string; to: string; onPick: (d: string) => void }) {
+function Calendar({ points, company, from, to, onPick, W, pins }: { points: ChartPoint[]; company?: OverlaySeries; from: string; to: string; onPick: (d: string) => void; W: number; pins: string[] }) {
   const t = useT();
   const byDate = new Map(points.map((p) => [p.date, p]));
   const coByDate = new Map((company?.points ?? []).map((p) => [p.date, p]));
   // the bubble is fixed to the viewport (the panel clips its overflow) and kept inside it
-  const [tip, setTip] = useState<{ date: string; x: number; y: number; above: boolean } | null>(null);
+  /**
+   * LA BULLE S'ANCRE AU CLIC, ET LE CALENDRIER RESTE.
+   *
+   * Toucher une case menait à la vue Niveau : le calendrier disparaissait
+   * avec sa bulle, et on n'avait pas eu le temps de la lire. Deux choses
+   * changent. Le clic ÉPINGLE SANS CHANGER DE VUE — l'épingle sert à la vue
+   * Niveau, on y va quand on veut, pas quand le clic le décide. Et la bulle
+   * qu'il ouvre est ANCRÉE : le survol d'une autre case ne la remplace plus,
+   * elle attend sa croix, Échap, ou un clic dehors.
+   */
+  const [tip, setTip] = useState<{ date: string; x: number; y: number; above: boolean; ancre?: boolean } | null>(null);
   const touch = useRef(false);
   const calRef = useRef<HTMLDivElement>(null);
   // the bubble left by a finger closes on the next touch or click elsewhere, on a scroll, or on Escape
@@ -910,7 +1082,9 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
       setTip(null);
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setTip(null);
-    const onScroll = () => setTip(null);
+    /* Une bulle ancrée survit au défilement : on la lit justement en
+       faisant défiler la page sous elle. */
+    const onScroll = () => !tip.ancre && setTip(null);
     document.addEventListener("pointerdown", outside, true);
     document.addEventListener("keydown", onKey);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -922,14 +1096,26 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
       window.removeEventListener("resize", onScroll);
     };
   }, [tip]);
-  const showTip = (date: string, el: HTMLElement) => {
+  const showTip = (date: string, el: HTMLElement, ancre = false) => {
+    /* Une bulle ancrée ne cède pas au survol : seul un nouveau clic, la
+       croix ou Échap la déplacent. */
+    if (tip?.ancre && !ancre) return;
     const r = el.getBoundingClientRect();
     const half = 130;
     const x = Math.min(window.innerWidth - half - 8, Math.max(half + 8, r.left + r.width / 2));
     const above = r.bottom + 200 > window.innerHeight;
-    setTip({ date, x, y: above ? r.top - 6 : r.bottom + 6, above });
+    setTip({ date, x, y: above ? r.top - 6 : r.bottom + 6, above, ancre });
   };
   const tipPoint = tip ? byDate.get(tip.date) : undefined;
+  /* Les deux épingles ne valent quelque chose qu'ensemble : tant qu'il n'y
+     en a qu'une, il n'y a pas d'écart à lire. */
+  const ecartEpingles = (() => {
+    if (pins.length < 2) return undefined;
+    const a = byDate.get(pins[0]);
+    const b = byDate.get(pins[1]);
+    if (!a || !b || !(a.value > 0)) return undefined;
+    return { a: a.date, b: b.date, pct: ((b.value - a.value) / a.value) * 100 };
+  })();
   const prevOf = (d: string) => {
     const i = points.findIndex((p) => p.date === d);
     return i > 0 ? points[i - 1] : undefined;
@@ -967,11 +1153,14 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
     return i === 0 || weeks[i - 1][0].slice(0, 7) !== m ? new Date(`${weeks[i][0]}T12:00:00Z`).toLocaleDateString("fr-FR", { month: "short" }) : "";
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
+  /* Debout en dessous de 560 px : couché, cent quarante semaines donnent
+     deux pixels par colonne et plus personne ne vise une case. */
+  const debout = W < 560;
   return (
     <div
       ref={calRef}
       className={styles.calWrap}
-      onPointerLeave={(e) => e.pointerType !== "touch" && setTip(null)}
+      onPointerLeave={(e) => e.pointerType !== "touch" && !tip?.ancre && setTip(null)}
       onPointerMove={(e) => {
         if (e.pointerType !== "touch" || e.buttons === 0) return;
         const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
@@ -979,18 +1168,28 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
         if (d && d !== tip?.date) showTip(d, el!);
       }}
     >
-      <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
+      {/* EN PORTRAIT, LE CALENDRIER TOURNE D'UN QUART DE TOUR.
+          Couché, il donne une colonne par semaine : sur 697 séances cela
+          fait cent quarante colonnes dans 330 px, soit deux pixels par
+          semaine — on ne vise plus une case, on ne lit plus un mois. Debout,
+          les cinq jours tiennent la largeur et les semaines descendent,
+          ce qui est la forme d'un calendrier et ce que le pouce sait faire :
+          défiler. Les cases gardent leur taille, quelle que soit la durée. */}
+      <div
+        className={`${styles.cal} ${debout ? styles.calDebout : ""}`}
+        style={debout ? { gridTemplateColumns: "3.2rem repeat(5, 1fr)" } : { gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}
+      >
         <span />
-        {weeks.map((w, i) => (
-          <span key={w[0]} className={styles.calMonth}>
-            {monthAt(i)}
+        {(debout ? day : weeks.map((w, i) => monthAt(i))).map((nom, i) => (
+          <span key={`tete-${i}`} className={debout ? styles.calDay : styles.calMonth}>
+            {nom}
           </span>
         ))}
-        {[0, 1, 2, 3, 4].map((k) => (
+        {(debout ? weeks.map((_, i) => i) : [0, 1, 2, 3, 4]).map((k) => (
           <div key={k} style={{ display: "contents" }}>
-            <span className={styles.calDay}>{day[k]}</span>
-            {weeks.map((w) => {
-              const d = w[k];
+            <span className={debout ? styles.calMonth : styles.calDay}>{debout ? monthAt(k) || "" : day[k]}</span>
+            {(debout ? [weeks[k]] : weeks).map((w) => (debout ? [0, 1, 2, 3, 4] : [k]).map((j) => {
+              const d = w[j];
               const p = byDate.get(d);
               const label = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}` : d >= from && d <= to ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
               const inRange = d >= from && d <= to;
@@ -1005,10 +1204,11 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
                     touch.current = e.pointerType === "touch";
                   }}
                   onClick={(e) => {
-                    if (touch.current && tip?.date !== d) {
-                      showTip(d, e.currentTarget);
-                      return;
-                    }
+                    /* Le clic ancre la bulle ET épingle la séance, sans
+                       quitter le calendrier : l'épingle sert à la vue
+                       Niveau, qu'on va voir quand on le décide. */
+                    setTip(null);
+                    showTip(d, e.currentTarget, true);
                     onPick(d);
                   }}
                   onPointerEnter={(e) => {
@@ -1019,13 +1219,28 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
               ) : (
                 <i key={d} className={`${styles.calCell} ${cls(d)}`} aria-label={label || undefined} onPointerEnter={inRange ? (e) => showTip(d, e.currentTarget) : undefined} onClick={inRange ? (e) => showTip(d, e.currentTarget) : undefined} />
               );
-            })}
+            }))}
           </div>
         ))}
       </div>
       {tip && (
         <div className={`${styles.calTip} ${tip.above ? styles.calTipAbove : ""}`} style={{ left: tip.x, top: tip.y }} role="status">
+          {tip.ancre && (
+            <button type="button" className={styles.calTipClose} onClick={() => setTip(null)} aria-label={t("Fermer")} title={t("Fermer")}>
+              ×
+            </button>
+          )}
           <b>{new Date(`${tip.date}T12:00:00Z`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b>
+          {/* L'ÉCART DES DEUX ÉPINGLES, DANS LA BULLE. Épingler depuis le
+              calendrier posait une borne dont le résultat ne se lisait que
+              sur une autre vue : on cliquait deux cases et rien ne changeait
+              sous les yeux. Dès que les deux sont posées, la bulle dit ce
+              qu'elles valent ensemble. */}
+          {ecartEpingles && (
+            <small className={styles.calTipEcart}>
+              {t("du {a} au {b}", { a: fmtDate(ecartEpingles.a), b: fmtDate(ecartEpingles.b) })} : <b>{signed(ecartEpingles.pct)}</b>
+            </small>
+          )}
           {tipPoint && company ? (
             (() => {
               const q = coByDate.get(tip.date);
@@ -1041,7 +1256,7 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
                   <small>
                     {t("l'indice")} : {lvl(tipPoint.value)} · {signed(tipPoint.variationPct)}
                   </small>
-                  <small className={styles.calTipHint}>{t("toucher pour épingler sur la vue Niveau")}</small>
+                  <small className={styles.calTipHint}>{tip.ancre ? t("épinglée : la vue Niveau la montre") : t("toucher pour épingler")}</small>
                 </>
               ) : (
                 <small>{t("cours de cette valeur non lu sur cette séance")}</small>
@@ -1070,7 +1285,7 @@ function Calendar({ points, company, from, to, onPick }: { points: ChartPoint[];
                 <small>{t("cours d'action non lus sur cette séance")}</small>
               ) : null}
               <small>{tipPoint.titles ? `${fmt(tipPoint.titles)} ${t("titres")} · ${money(tipPoint.amount ?? 0)} FCFA · ${tipPoint.trades ?? 0} ${t("transaction(s)")}` : t("aucun échange sur les actions")}</small>
-              <small className={styles.calTipHint}>{t("toucher pour épingler sur la vue Niveau")}</small>
+              <small className={styles.calTipHint}>{tip.ancre ? t("épinglée : la vue Niveau la montre") : t("toucher pour épingler")}</small>
             </>
           ) : (
             <small>{t("Jour ouvré sans bulletin lu : jour férié, séance non tenue ou bulletin non publié.")}</small>
