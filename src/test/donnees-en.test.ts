@@ -4,6 +4,7 @@ import { inventaire } from "./couverture";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
 import { HEALTH_HOW } from "@/lib/health-how";
+import { DESK_GROUPS } from "@/components/DeskNav";
 
 /**
  * LES DONNÉES LIVRÉES PASSENT EN ANGLAIS, ELLES AUSSI.
@@ -74,5 +75,30 @@ describe("l'accueil du desk traduit ce qu'il reprend de Santé", () => {
     const ligne = source.split("\n").find((l) => l.includes("bad.map("));
     expect(ligne, "la tuile Santé ne reprend plus les étiquettes des contrôles").toBeDefined();
     expect(ligne).toContain("t(c.label)");
+  });
+});
+
+/**
+ * LA BARRE DU DESK, ÉTIQUETTE PAR ÉTIQUETTE.
+ *
+ * Elle rend `t(g.label)` et `t(label)` : des variables, donc invisibles au
+ * scanner de clefs. Le 6 octobre 2026, la barre est passée de quatre groupes à
+ * six, et quatre des six étiquettes neuves manquaient au dictionnaire. Le
+ * scanner a répondu « 0 clef à traduire » pendant que la navigation entière
+ * s'apprêtait à sortir en français dans l'interface anglaise.
+ *
+ * C'est le quatrième angle mort du même genre rencontré dans la même journée.
+ * Celui-ci est fermé.
+ */
+describe("la barre du desk passe en anglais", () => {
+  it("chaque groupe et chaque onglet ont leur traduction", () => {
+    const mots = DESK_GROUPS.flatMap((g) => [g.label, ...g.tabs.map(([, label]) => label)]);
+    vide("barre du desk", inventaire(mots));
+  });
+
+  it("et la barre regarde bien quelque chose", () => {
+    // Une barre vidée passerait le test précédent sans rien couvrir.
+    expect(DESK_GROUPS.length).toBeGreaterThanOrEqual(4);
+    expect(DESK_GROUPS.flatMap((g) => g.tabs).length).toBeGreaterThan(25);
   });
 });

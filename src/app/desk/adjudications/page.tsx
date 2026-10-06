@@ -16,6 +16,9 @@ import { SessionList, type LigneSeance } from "./SessionList";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
+/* Sans titre, et sans h1 : sur téléphone la barre lit document.title, et
+   cette page s'y annonçait par un tiret. */
+export const metadata = { title: "Adjudications" };
 
 /**
  * Les adjudications de la zone, séance par séance.

@@ -2043,6 +2043,15 @@ export const EN_MORE: Record<string, string> = {
 
   /* ---------- l'onglet Marché ---------- */
   "Le marché": "The market",
+  /* Les étiquettes des groupes du desk voyagent par t(g.label) : le scanner
+     des clefs ne les voit pas, et quatre d entre elles seraient sorties en
+     français dans l interface anglaise. Quatrième fois que cet angle mort
+     coûte quelque chose aujourd hui. */
+  Bulletins: "Bulletins",
+  "La journée": "The day",
+  "Les clients": "The clients",
+  "Vue client": "Client view",
+  "La maison": "The house",
   "Bourse des Valeurs Mobilières de l'Afrique Centrale": "Central African Securities Exchange",
   "Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.": "What the exchange publishes at every session, and what we read from it: the index, the listed companies, and the notes we draw from them.",
   "Dernier bulletin lu : n° {n} du {d}.": "Last bulletin read: no. {n} of {d}.",

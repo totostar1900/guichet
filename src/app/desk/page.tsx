@@ -21,7 +21,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Desk" };
+export const metadata = { title: "Carnet" };
 
 const FIRM = (i: Intent) => i.type === "ferme" || i.type === "cession";
 const OPEN_STATES: Intent["state"][] = ["recue", "confirmee", "transmise"];

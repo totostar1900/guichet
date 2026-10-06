@@ -11,6 +11,9 @@ import { applyFilter, distinct, sortRows, summarise, toRow, type SortKey, type T
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
+/* Sans titre, et sans h1 : sur téléphone la barre lit document.title, et
+   cette page s'y annonçait par un tiret. */
+export const metadata = { title: "Séances" };
 
 const KEYS: SortKey[] = ["date", "pays", "instrument", "duree", "chiffre", "couverture", "soumis", "servi", "etat"];
 const isKey = (v: string): v is SortKey => (KEYS as string[]).includes(v);

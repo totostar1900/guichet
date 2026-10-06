@@ -6,77 +6,101 @@ import { getT } from "@/i18n/server";
  * The desk's navigation: four groups instead of thirteen tabs. Badges count
  * what waits on a page; the active page is filled. On a phone the row scrolls.
  */
+/**
+ * LES SIX GROUPES RÉPONDENT TOUS À LA MÊME QUESTION : quel travail suis-je en
+ * train de faire ?
+ *
+ * Les quatre précédents n'y répondaient pas ensemble. « Opérations » disait ce
+ * que je fais, « Marché » disait de quoi ça parle : deux questions dans une
+ * même barre, donc un onglet pouvait appartenir aux deux ou à aucun, et
+ * c'était l'auteur du jour qui tranchait. « Marché » avait ainsi absorbé douze
+ * onglets sur trente et un, dont un banc d'essai WhatsApp.
+ *
+ * AUCUNE ADRESSE NE BOUGE ici : seul change le groupe où un onglet se range.
+ * Un lien, un signet ou un renvoi de contrôle ne peut donc pas casser.
+ *
+ * « Vue client » garde ses quatre onglets plutôt que de devenir une page de
+ * menu : une page intermédiaire aurait coûté un clic à chaque consultation
+ * pour économiser trois lignes de barre. Elle ramène /desk/comparer, qui
+ * existait sans figurer dans aucune barre, donc inatteignable autrement qu'en
+ * tapant l'adresse.
+ */
 export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
   {
-    label: "Opérations",
+    // Ce qui attend une décision aujourd'hui, et rien d'autre.
+    label: "La journée",
     tabs: [
       ["/desk", "Carnet"],
       ["/desk/a-valider", "À valider"],
-      /* « Résultats » se confondait avec Adjudications, sous Marché, qui porte
-         les résultats publiés par les Trésors. Celle-ci ne lit rien du marché :
-         elle porte l'allocation sur NOS ordres, puis leur règlement. Deux
-         choses distinctes qui s'appelaient pareil ; c'est le nom qui trompait,
-         pas la page. */
-      ["/desk/resultats", "Allocations et règlement"],
-      ["/desk/encaissements", "Encaissements"],
-      /* Le contrôle que la règle des espèces, ouverte le 2 octobre 2026, rend
-         obligatoire : ce que la maison doit à ses clients face à ce qu'elle
-         tient. Il se range après les encaissements parce qu'il les totalise. */
-      ["/desk/rapprochement", "Rapprochement"],
-      ["/desk/documents", "Documents"],
-    ],
-  },
-  {
-    label: "Clients",
-    tabs: [
-      ["/desk/clients", "Dossiers"],
-      ["/desk/repertoire", "Répertoire"],
+      ["/desk/approbations", "Approbations"],
       ["/desk/messages", "Messages"],
     ],
   },
   {
-    label: "Marché",
+    /* Tout ce qui se fait POUR quelqu'un : son dossier, ce qu'il a reçu, ce
+       qu'il doit, ce qu'on lui a émis. « Allocations et règlement » et
+       « Encaissements » étaient rangés sous Opérations, « Droits de garde »
+       sous Pilotage : trois moments du même client. */
+    label: "Les clients",
     tabs: [
-      ["/desk/marche", "Cotes & VL"],
-      // Le depot des bulletins : huit cents seances et le document de chacune.
-      // Meme raison que « Seances » plus bas : relire une seance et retrouver
-      // celle d il y a deux ans ne sont pas le meme travail, et la seconde ne
-      // se cache pas derriere un lien au bas de la premiere.
-      ["/desk/bulletins", "Bulletins"],
-      // La mémoire du marché primaire : ce que les six Trésors ont payé, séance
-      // par séance. Le taux indicatif d'un bon s'y fonde.
-      ["/desk/adjudications", "Adjudications"],
-      // La table est l'autre moitié du sujet : relire une séance et voir les huit
-      // cents autres ne sont pas le même travail, et l'une ne se cache pas
-      // derrière un lien au bas de l'autre.
-      ["/desk/adjudications/tableau", "Séances"],
-      // Ce qu'on tire du travail de relecture : la courbe et les mesures qui la
-      // rendent lisible, dans une seule page. Elles ne se rangent pas avec les
-      // cotes : leur matière est le marché primaire, relu séance par séance.
-      ["/desk/analyses", "Analyses"],
-      // La lecture, à côté de la saisie : les mêmes listes que le Guichet,
-      // rendues par les mêmes composants, sans quitter le domaine du desk.
-      ["/desk/titres", "Titres"],
-      ["/desk/fonds", "Fonds"],
-      ["/desk/indice/apercu", "Indice"],
-      ["/desk/indice", "Notes"],
-      ["/desk/societes", "Sociétés"],
-      ["/desk/actualites", "Actualités"],
-      ["/desk/robot", "Robot"],
+      ["/desk/clients", "Dossiers"],
+      ["/desk/repertoire", "Répertoire"],
+      ["/desk/resultats", "Allocations et règlement"],
+      ["/desk/encaissements", "Encaissements"],
+      ["/desk/rapprochement", "Rapprochement"],
+      ["/desk/garde", "Droits de garde"],
+      ["/desk/documents", "Documents"],
     ],
   },
   {
-    label: "Pilotage",
+    /* La matière : ce que la maison lit du marché et en tire. Six onglets au
+       lieu de douze, parce que publier n'est pas lire et qu'un miroir de
+       l'application client n'est pas un outil du desk. */
+    label: "Le marché",
     tabs: [
-      ["/desk/approbations", "Approbations"],
+      ["/desk/marche", "Cotes & VL"],
+      ["/desk/bulletins", "Bulletins"],
+      ["/desk/adjudications", "Adjudications"],
+      ["/desk/adjudications/tableau", "Séances"],
+      ["/desk/analyses", "Analyses"],
+      ["/desk/indice/apercu", "Indice"],
+    ],
+  },
+  {
+    // Écrire pour le dehors : la note trimestrielle, et ce qu'on relaie.
+    label: "Publier",
+    tabs: [
+      ["/desk/indice", "Notes"],
+      ["/desk/actualites", "Actualités"],
+    ],
+  },
+  {
+    /* Les mêmes pages que le client, rendues par les mêmes composants, en
+       lecture. Ce ne sont pas des outils : c'est une vérification, « voir ce
+       que le client voit », et elle mérite son propre coin plutôt que d'être
+       mêlée aux cotes. */
+    label: "Vue client",
+    tabs: [
+      ["/desk/titres", "Titres"],
+      ["/desk/fonds", "Fonds"],
+      ["/desk/societes", "Sociétés"],
+      ["/desk/comparer", "Comparer"],
+    ],
+  },
+  {
+    /* Ce qui fait tourner la maison. Le banc d'essai WhatsApp arrive de
+       « Marché », où il n'avait rien à faire entre les cotes et les
+       adjudications : c'est un canal, pas un marché. */
+    label: "La maison",
+    tabs: [
       ["/desk/referentiel", "Référentiel"],
       ["/desk/referentiel/modeles", "Modèles"],
-      ["/desk/journal", "Journal"],
       ["/desk/equipe", "Équipe"],
-      ["/desk/garde", "Droits de garde"],
+      ["/desk/journal", "Journal"],
       ["/desk/reporting", "Reporting"],
       ["/desk/sante", "Santé"],
       ["/desk/depot", "Dépôt"],
+      ["/desk/robot", "Robot"],
       ["/desk/docs", "Documentation"],
     ],
   },

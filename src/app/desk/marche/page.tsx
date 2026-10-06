@@ -33,7 +33,7 @@ const GROUPINGS: [string, string][] = [
   ["gestion", "société de gestion"],
   ["depot", "dépositaire"],
 ];
-export const metadata = { title: "Marché secondaire" };
+export const metadata = { title: "Cotes et VL" };
 
 /* Les six écarts que la réconciliation sait nommer. Venue de Santé avec son
    tableau, le 6 octobre 2026. */

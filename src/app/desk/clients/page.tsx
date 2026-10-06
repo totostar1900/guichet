@@ -17,7 +17,7 @@ import { ReachLine } from "@/components/desk/ReachLine";
 import { removeClientDeviceAction, setAdvisorAction } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Clients" };
+export const metadata = { title: "Dossiers" };
 
 const ROLE = { representant: "Représentant", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
 const ORDER: Record<ClientFile["status"], number> = { soumis: 0, en_revue: 1, complements: 2, brouillon: 3, approuve: 4, en_cloture: 5, refuse: 6, clos: 7 };
