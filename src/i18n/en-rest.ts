@@ -1157,4 +1157,9 @@ export const EN_REST: Record<string, string> = {
   "Message envoyé · {ref}": "Message sent · {ref}",
   "Vous le retrouvez dans vos messages, avec la réponse du desk.": "You will find it in your messages, with the desk's reply.",
   "Bonjour, je m'intéresse à la ligne « {t} » et j'aimerais en parler. Pouvez-vous me recontacter ?": "Hello, I am interested in the line “{t}” and would like to discuss it. Could you get back to me?",
+  // Le tiret du douze mois, et ce qu'il dit selon la raison.
+  "à la cote depuis moins d'un an": "listed for less than a year",
+  "Le fonds n'a pas encore un an : il n'y a pas de douze mois à mesurer.": "The fund is not yet a year old: there are no twelve months to measure.",
+  "Le fonds est à la cote depuis moins d'un an : le bulletin ne publie pas de VL plus ancienne.": "The fund has been listed for less than a year: the bulletin publishes no earlier NAV.",
+  "Nos VL ne remontent pas à un an : le chiffre existe, nous ne l'avons pas encore lu.": "Our NAVs do not go back a year: the figure exists, we have not read it yet.",
 };

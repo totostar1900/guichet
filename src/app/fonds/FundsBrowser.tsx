@@ -12,6 +12,7 @@ import { usePhone } from "@/components/chart-utils";
 import { BackToTop } from "@/components/BackToTop";
 import { FilterFab } from "@/components/FilterFab";
 import { nomsCourts } from "@/lib/domain/nom-court";
+import { raisonSansDouzeMois } from "@/lib/domain/fund-perf";
 import { TeteGroupe } from "@/components/market/TeteGroupe";
 import { Dropdown } from "@/components/market/Dropdown";
 import { FundCard } from "./FundCard";
@@ -99,6 +100,29 @@ const GROUPES: [GroupKey, string][] = [
    « CATS » reste : il donne l'ordre des catégories au tri et aux pastilles. */
 
 const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`);
+
+/**
+ * LE TIRET DU DOUZE MOIS DIT POURQUOI, MÊME DANS UN TABLEAU.
+ *
+ * La carte l'explique depuis le 5 octobre 2026 ; le tableau et la liste
+ * laissaient un tiret nu, et c'est là qu'on l'a cherché. Dix fonds sur
+ * quarante-cinq sont concernés, et la raison n'est pas la même pour tous :
+ * huit sont trop jeunes, deux ne sont à la cote que depuis peu. Le titre
+ * porte l'explication, comme la cellule des frais de gestion juste à côté.
+ */
+function useDouzeMois() {
+  const t = useT();
+  return (r: FundRow) => {
+    if (r.perf1yPct != null) return { texte: signed(r.perf1yPct), titre: undefined };
+    const raison = raisonSansDouzeMois(r.inceptionDate, r.navDate, r.curve?.from);
+    const titre =
+      raison === "jeune" ? t("Le fonds n'a pas encore un an : il n'y a pas de douze mois à mesurer.")
+      : raison === "cote-recente" ? t("Le fonds est à la cote depuis moins d'un an : le bulletin ne publie pas de VL plus ancienne.")
+      : raison === "lecture-courte" ? t("Nos VL ne remontent pas à un an : le chiffre existe, nous ne l'avons pas encore lu.")
+      : undefined;
+    return { texte: "—", titre };
+  };
+}
 const cls = (v?: number) => (v == null || v === 0 ? "" : v > 0 ? styles.up : styles.down);
 const num = (v?: number) => (v == null ? -Infinity : v);
 
@@ -106,6 +130,7 @@ const num = (v?: number) => (v == null ? -Infinity : v);
 /** One row of the table, with its « ··· ». */
 function FundTr({ r }: { r: FundRow }) {
   const t = useT();
+  const douze = useDouzeMois()(r);
   const href = useLineHref()(r.id);
   const desk = useDeskView();
   return (
@@ -128,7 +153,7 @@ function FundTr({ r }: { r: FundRow }) {
         <small className="muted">{fmtDate(r.navDate)}</small>
       </td>
       <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
-      <td className={`${styles.r} ${cls(r.perf1yPct)}`}>{signed(r.perf1yPct)}</td>
+      <td className={`${styles.r} ${cls(r.perf1yPct)}`} title={douze.titre}>{douze.texte}</td>
       <td className={styles.r}>{r.managementFeePct != null ? fmtPct(r.managementFeePct, 2) : <span className="muted" title={t("Frais de gestion non renseignés : demandez le prospectus au desk.")}>—</span>}</td>
       <td className={`${styles.r} ${styles.hideSm} ${cls(r.perfSinceInceptionPct)}`}>
         {signed(r.perfSinceInceptionPct)}
@@ -162,6 +187,7 @@ function FundTr({ r }: { r: FundRow }) {
  */
 function FundLi({ r }: { r: FundRow }) {
   const t = useT();
+  const douze = useDouzeMois()(r);
   const href = useLineHref()(r.id);
   const desk = useDeskView();
   return (
@@ -178,8 +204,8 @@ function FundLi({ r }: { r: FundRow }) {
           {t("au")} {fmtDate(r.navDate, false)}
         </small>
       </span>
-      <span className={`${styles.liPerf} ${cls(r.perf1yPct)}`}>
-        <b>{signed(r.perf1yPct)}</b>
+      <span className={`${styles.liPerf} ${cls(r.perf1yPct)}`} title={douze.titre}>
+        <b>{douze.texte}</b>
         <small className="muted">{t("12 mois")}</small>
       </span>
       <span className={styles.rowBtns}>

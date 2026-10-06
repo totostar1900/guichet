@@ -30,3 +30,42 @@ describe("pourquoi un douze mois est vide", () => {
     expect(raisonSansDouzeMois("2025-09-26", undefined)).toBeUndefined();
   });
 });
+
+/**
+ * « NOS VL » ACCUSAIT NOTRE LECTURE D'UN TORT QUI N'ÉTAIT PAS LE SIEN.
+ *
+ * Audit du 6 octobre 2026 : dix fonds sans douze mois. Huit sont trop
+ * jeunes, les deux autres ont 431 et 1 519 jours, et nous leur disions
+ * « VL lues sur moins d'un an ». Vérifié dans les bulletins eux-mêmes : le
+ * mot « KORI » ne paraît dans AUCUN bulletin avant le 30 octobre 2025, et
+ * « PREMIUM » dans aucun avant le 6 juillet 2026. Ces fonds existaient, ils
+ * n'étaient pas cotés. Il n'y a rien à rattraper, et dire le contraire
+ * envoyait relire des séances qui ne portent pas la ligne.
+ */
+describe("un fonds vieux mais coté d'hier", () => {
+  it("dit la cote récente, et non une lecture courte", () => {
+    /* FCP KORI SERENITE : né le 28 juillet 2025, coté le 30 octobre, et sa
+       première VL est du 24 octobre 2025. */
+    expect(raisonSansDouzeMois("2025-07-28", "2026-10-02", "2025-10-24")).toBe("cote-recente");
+    /* FCP ESS PREMIUM PERSO : né en 2022, coté le 6 juillet 2026. */
+    expect(raisonSansDouzeMois("2022-07-19", "2026-09-15", "2026-06-30")).toBe("cote-recente");
+  });
+
+  it("et garde « lecture courte » pour un fonds coté avant notre première séance", () => {
+    /* Le vrai cas, celui dont nous serions responsables : coté de longue
+       date, et notre série commence avec notre lecture. Il est vide
+       aujourd'hui, et ce test le garde reconnaissable pour le jour où. */
+    expect(raisonSansDouzeMois("2019-01-01", "2026-09-30", "2023-03-06")).toBe("lecture-courte");
+  });
+
+  it("un mois de marge autour de notre première séance", () => {
+    /* Un fonds coté la semaine où nous avons commencé n'est pas un fonds que
+       nous aurions manqué, et ce n'est pas non plus une cote récente. */
+    expect(raisonSansDouzeMois("2019-01-01", "2026-09-30", "2023-03-20")).toBe("lecture-courte");
+    expect(raisonSansDouzeMois("2019-01-01", "2026-09-30", "2023-06-01")).toBe("cote-recente");
+  });
+
+  it("la jeunesse passe avant tout : un fonds de six mois reste jeune", () => {
+    expect(raisonSansDouzeMois("2026-04-24", "2026-09-28", "2026-08-24")).toBe("jeune");
+  });
+});

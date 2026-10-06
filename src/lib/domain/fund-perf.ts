@@ -19,11 +19,44 @@ export type Fund = NonNullable<Offer["fund"]>;
  * avec une VL du 25 septembre 2026. Les deux autres ont 1 519 et 417 jours,
  * et nous n'en lisons que 77 et 329.
  */
-export type RaisonSansDouzeMois = "jeune" | "lecture-courte";
+export type RaisonSansDouzeMois = "jeune" | "cote-recente" | "lecture-courte";
 
-export function raisonSansDouzeMois(inceptionDate?: string, navDate?: string): RaisonSansDouzeMois | undefined {
+/**
+ * LA PREMIÈRE SÉANCE QUE LE DÉPÔT CONNAÎT. Avant elle, nous ne lisions pas
+ * encore ; après, nous avons lu toutes les séances. Un fonds dont la série
+ * commence nettement après cette date n'a donc pas été manqué : il n'était
+ * pas à la cote.
+ */
+export const PREMIERE_SEANCE_LUE = "2023-03-03";
+
+/**
+ * POURQUOI UN DOUZE MOIS EST VIDE, ET POURQUOI « NOS VL » N'EST PAS TOUJOURS
+ * LA BONNE RÉPONSE.
+ *
+ * Audit du 6 octobre 2026 : dix fonds sur quarante-cinq n'ont pas de douze
+ * mois. Huit sont trop jeunes, dont TROIS à un jour près, nés le 26 septembre
+ * 2025 avec une VL du 25 septembre 2026. Les deux autres ont 431 et 1 519
+ * jours, et nous leur disions « VL lues sur moins d'un an », ce qui accuse
+ * notre lecture.
+ *
+ * C'EST FAUX, ET VÉRIFIÉ DANS LES BULLETINS EUX-MÊMES. Le mot « KORI »
+ * n'apparaît dans aucun bulletin avant le 30 octobre 2025, « PREMIUM » dans
+ * aucun avant le 6 juillet 2026 : ces fonds existaient, ils n'étaient pas
+ * cotés. Leur série commence quand la bourse a commencé à les publier, et il
+ * n'y a rien à rattraper. Dire le contraire envoyait relire des séances qui
+ * ne portent pas la ligne.
+ *
+ * Reste « lecture-courte » pour le vrai cas, celui d'un fonds coté avant
+ * notre première séance et dont la série serait pourtant courte. Il est vide
+ * aujourd'hui, et c'est une bonne nouvelle qu'on veut pouvoir constater.
+ */
+export function raisonSansDouzeMois(inceptionDate?: string, navDate?: string, premiereVL?: string): RaisonSansDouzeMois | undefined {
   if (!inceptionDate || !navDate) return undefined;
-  return (Date.parse(navDate) - Date.parse(inceptionDate)) / 86_400_000 < 365 ? "jeune" : "lecture-courte";
+  if ((Date.parse(navDate) - Date.parse(inceptionDate)) / 86_400_000 < 365) return "jeune";
+  /* Un mois de marge : un fonds coté la semaine où nous avons commencé n'est
+     pas un fonds que nous aurions manqué. */
+  if (premiereVL && Date.parse(premiereVL) > Date.parse(PREMIERE_SEANCE_LUE) + 31 * 86_400_000) return "cote-recente";
+  return "lecture-courte";
 }
 
 /**

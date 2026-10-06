@@ -54,7 +54,10 @@ const cls = (v?: number | null) => (v == null ? "" : v > 0 ? styles.up : v < 0 ?
 export function FundCard({ r }: { r: FundRow }) {
   /* Un douze mois vide veut dire deux choses : le fonds n'a pas un an, ou nos
      VL ne remontent pas à un an. La case ne peut pas les confondre. */
-  const raison = r.perf1yPct == null ? raisonSansDouzeMois(r.inceptionDate, r.navDate) : undefined;
+  /* La première VL de la courbe est le début réel de la série pour ces
+     fonds-là : un fonds dont la série dépasse soixante VS a par construction
+     ses douze mois, donc n'arrive jamais ici. */
+  const raison = r.perf1yPct == null ? raisonSansDouzeMois(r.inceptionDate, r.navDate, r.curve?.from) : undefined;
   const t = useT();
   const compact = useDensity() === "compact";
   const href = useLineHref()(r.id);
@@ -112,6 +115,7 @@ export function FundCard({ r }: { r: FundRow }) {
           {/* Deux appels littéraux, et non un ternaire dans t() : le scanner de clefs
               ne voit pas une chaîne qui lui arrive en variable. */}
           {raison === "jeune" && <em>{t("pas encore un an")}</em>}
+          {raison === "cote-recente" && <em>{t("à la cote depuis moins d'un an")}</em>}
           {raison === "lecture-courte" && <em>{t("VL lues sur moins d'un an")}</em>}
         </div>
         <div>
