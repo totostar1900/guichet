@@ -108,7 +108,14 @@ export async function relireArriere(by: MarketBulletin["ingestedBy"], n: number,
     const sourceUrl = b.sourceUrl && !b.sourceUrl.startsWith("upload:") ? b.sourceUrl : undefined;
     out.pris.push(b.sessionDate);
     try {
-      const res = await ingestBoc({ sessionDate: b.sessionDate, sourceUrl, by });
+      /* ELLE LIT, ELLE N ARCHIVE PAS. Le PDF est téléchargé pour être lu,
+         puis jeté. Mesuré le 6 octobre 2026 : 646 Mo sur 1024 déjà pris, un
+         bulletin pèse 1,5 Mo, et 287 séances attendent. Les garder toutes en
+         les relisant demande 424 Mo, donc le plan gratuit cède avant la fin,
+         et il cède DANS le try ci-dessous, qui compterait un disque plein
+         comme un échec de lecture. La reprise des anciens PDF est une
+         opération à part, décidée pour elle-même. */
+      const res = await ingestBoc({ sessionDate: b.sessionDate, sourceUrl, by, keepPdf: false });
       if (!res.found || !res.bulletin) {
         out.echecs += 1;
         continue;

@@ -358,8 +358,17 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   const text = await pdfText(bytes);
   const parsed = parseBoc(text);
   const sessionDate = parsed.sessionDate || opts.sessionDate;
-  const fileKey = opts.keepPdf === false ? undefined : `boc/BOC-${sessionDate.replace(/-/g, "")}.pdf`;
-  if (fileKey) await saveSource(fileKey, bytes, "application/pdf");
+  /* « NE PAS GARDER » N EST PAS « OUBLIER ». Cette ligne écrivait undefined
+     dès que keepPdf était faux, donc une relecture effaçait le pointeur d'une
+     séance dont le PDF est bel et bien dans le seau : 104 fichiers archivés,
+     et des séances sans pointeur en face. Le fichier restait, plus personne ne
+     savait qu'il existait. On ne crée pas d'archive ici, et on ne détruit pas
+     celle d'avant. */
+  const dejaGarde = opts.keepPdf === false ? (await r.getBulletin(sessionDate).catch(() => undefined))?.fileKey : undefined;
+  const fileKey = opts.keepPdf === false ? dejaGarde : `boc/BOC-${sessionDate.replace(/-/g, "")}.pdf`;
+  /* On n'écrit que si c'est NOUS qui créons l'archive : un pointeur hérité
+     désigne un fichier déjà en place, le réécrire ne ferait que dépenser. */
+  if (fileKey && opts.keepPdf !== false) await saveSource(fileKey, bytes, "application/pdf");
 
   if (!parsed.bulletinNo) {
     const bulletin: MarketBulletin = { id: sessionDate, number: 0, sessionDate, sourceUrl, fileKey, ingestedAt: new Date().toISOString(), ingestedBy: opts.by, status: "echec", counts: { equities: 0, bonds: 0, funds: 0 }, warnings: parsed.warnings, anomalies: ["En-tête du bulletin non reconnu : aucun cours n'a été retenu."], notices: [] };

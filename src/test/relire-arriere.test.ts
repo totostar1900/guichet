@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MarketBulletin } from "@/lib/domain/market";
 
@@ -121,5 +122,44 @@ describe("les deux plafonds de passe", () => {
     expect(ARRIERE_PAR_TOUR).toBeGreaterThanOrEqual(30);
     // Quatre secondes par bulletin, trois cents de budget : la marge est tenue.
     expect(ARRIERE_PAR_TOUR * 4).toBeLessThan(300);
+  });
+});
+
+/**
+ * LE DISQUE PLEIN DÉGUISÉ EN ÉCHEC DE LECTURE.
+ *
+ * Mesuré le 6 octobre 2026, deux heures après la mise en service du bouton :
+ * 646 Mo occupés sur les 1024 du plan gratuit, un PDF de bulletin pèse
+ * 1512 ko, et 287 séances attendent une relecture. Les archiver en les
+ * relisant demande 424 Mo, donc le seau cède avant la fin.
+ *
+ * Et il cède à l'intérieur du `try` de la passe, qui compte l'exception comme
+ * un échec de lecture : le desk verrait « 12 en échec » et conclurait que le
+ * lecteur bute sur ces séances, alors que le disque est plein. La famille de
+ * pannes la plus coûteuse de ce dépôt, une fois de plus.
+ *
+ * Une relecture lit donc sans archiver. Elle ne doit pas non plus EFFACER un
+ * pointeur existant : 104 PDF sont dans le seau, et le lecteur écrivait
+ * `fileKey = undefined` dès que `keepPdf` était faux. Les deux règles tiennent
+ * ensemble ; la première sans la seconde détruirait les archives acquises.
+ */
+describe("une relecture lit sans archiver, et sans rien effacer", () => {
+  it("elle ne demande jamais à garder le PDF", async () => {
+    const appels: (boolean | undefined)[] = [];
+    const { ingestBoc } = await import("@/lib/market/boc");
+    const espion = vi.mocked(ingestBoc);
+    espion.mockClear();
+    await relireArriere("desk", 2);
+    for (const appel of espion.mock.calls) appels.push((appel[0] as { keepPdf?: boolean }).keepPdf);
+    expect(appels.length).toBeGreaterThan(0);
+    expect(appels.every((k) => k === false), "une passe qui archive remplit le plan gratuit avant d'avoir fini").toBe(true);
+  });
+
+  it("le lecteur garde le pointeur d'un PDF déjà archivé", async () => {
+    /* « Ne pas garder » ne veut pas dire « oublier » : le fichier reste dans
+       le seau, et effacer son pointeur le rend introuvable. */
+    const src = readFileSync(new URL("../lib/market/boc.ts", import.meta.url), "utf8");
+    expect(src, "keepPdf=false doit hériter du fileKey existant, pas écrire undefined").toContain("const dejaGarde = opts.keepPdf === false");
+    expect(src, "et ne réécrire le fichier que lorsque c'est nous qui l'archivons").toContain('if (fileKey && opts.keepPdf !== false)');
   });
 });
