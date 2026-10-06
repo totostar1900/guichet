@@ -30,7 +30,6 @@ import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
 import { LineMenu } from "./mobile/LineMenu";
 import { useDeskView, useLineHref } from "./DeskView";
 import { Sheet } from "./mobile/Sheet";
-import { FilterFab } from "./FilterFab";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
@@ -435,9 +434,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * un point pour l'admirer mais pour le comparer à son voisin.
    */
   const epingles = (sp.get("epingle") ?? "").split(",").filter(Boolean);
+  /* UNE SEULE ÉPINGLE À LA FOIS. Plusieurs tenaient debout en principe —
+     comparer deux lignes est bien la question — mais elles empilaient des
+     cartes entre le tracé et la liste, et le tracé qu'on voulait garder sous
+     les yeux repartait vers le haut. Un nouveau point remplace donc le
+     précédent, et le même point détache. */
   const basculerEpingle = (id: string) => {
-    const n = epingles.includes(id) ? epingles.filter((x) => x !== id) : [...epingles, id];
-    update({ epingle: n.join(",") || undefined, nuage: "1" });
+    update({ epingle: epingles.includes(id) ? undefined : id, nuage: "1" });
   };
   /**
    * LA PAGE DES ADJUDICATIONS N'EST PAS UNE COTE, ET SA BARRE NE DOIT PAS
@@ -1004,7 +1007,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           les filtres à gauche, le retour en haut à droite. Ils vivaient à
           deux endroits et répondaient à deux questions, donc ils
           paraissaient l'un après l'autre. */}
-      <FilterFab watch={top} onClick={() => setSheet(true)} count={filterCount + Number(Boolean(q))} open={sheet} />
+      {/* LE BOUTON FLOTTANT EST PARTI : il couvrait une rangée de la liste
+          en bas d'écran, là où le pouce lit, et la feuille des filtres se
+          rouvre par sa propre commande en haut. */}
       <BackToTop watch={top} />
 
       <div className={styles.meta}>
@@ -1122,7 +1127,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
 
       {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
       {/* ce que la recherche vient de rendre : c’est cela qu’on ramène sous les yeux quand le clavier se retire */}
-      <div ref={searchList}>{rest.length > 0 && render(rest, false)}</div>
+      <div ref={searchList} className={styles.debutDeListe}>{rest.length > 0 && render(rest, false)}</div>
       {!desk && <CoachMarks
         id="titres"
         replayLabel={t("Comment lire cette page ?")}

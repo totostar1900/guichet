@@ -416,4 +416,5 @@ export const EN: Record<string, string> = {
   "Fonds épinglés": "Pinned funds",
   "{n} fonds épinglés": "{n} pinned funds",
   "1 fonds épinglé": "1 pinned fund",
+  "Aucun": "None",
 };

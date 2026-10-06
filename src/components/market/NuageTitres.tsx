@@ -262,6 +262,27 @@ export function NuageTitres({
                 ))
             : null}
 
+          {/* LES LIGNES DE VISÉE, et pas seulement le rectangle. Le
+              rectangle ne se forme qu'une fois les deux axes resserrés : en
+              réglant le premier, on ne voyait rien bouger sur le tracé et on
+              cherchait l'effet du curseur dans la liste. Chaque borne pose
+              donc son trait, et les quatre traits forment le rectangle quand
+              les deux axes sont posés. */}
+          {axes.map((a) => {
+            const [bMin, bMax] = bornesVives(a);
+            const pose = plageDe(a).min != null || plageDe(a).max != null;
+            if (!pose) return null;
+            const place = (v: number) => (a.clef === "duree" || surRendement ? px(v) : py(v));
+            return [bMin, bMax].map((v, i) => (
+              <span
+                key={`${a.clef}-${i}`}
+                className={a.clef === "duree" && nuage ? styles.viseeX : surRendement ? styles.viseeX : styles.viseeY}
+                style={a.clef === "duree" && nuage ? { left: `${place(v)}%` } : surRendement ? { left: `${place(v)}%` } : { bottom: `${place(v)}%` }}
+                aria-hidden="true"
+              />
+            ));
+          })}
+
           {/* La zone retenue, en filigrane derrière les points. */}
           {posee ? (
             <span

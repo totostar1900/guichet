@@ -276,12 +276,17 @@ export function Select({ value, options, onChange, label, name, placeholder, com
               ) : (
                 <span className={styles.selHeadLabel}>{label ?? placeholder ?? t("{n} choix", { n: String(selectable.length) })}</span>
               )}
-              <button type="button" className={styles.selIcon} onClick={() => setTyping((v) => !v)} aria-label={t("Chercher dans la liste")} aria-pressed={typing}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.5-3.5" />
-                </svg>
-              </button>
+              {/* La loupe suit « cherchable » comme le champ du bureau :
+                  une liste de cinq ordres n'a rien à chercher, et la loupe y
+                  promettait une recherche sans objet. */}
+              {cherchable && (
+                <button type="button" className={styles.selIcon} onClick={() => setTyping((v) => !v)} aria-label={t("Chercher dans la liste")} aria-pressed={typing}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-3.5-3.5" />
+                  </svg>
+                </button>
+              )}
               <button type="button" className={styles.selIcon} onClick={closeMenu} aria-label={t("Fermer")}>
                 ×
               </button>

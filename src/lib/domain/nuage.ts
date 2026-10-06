@@ -39,7 +39,12 @@ export interface PointTitre {
  * personne. C'est pourquoi la table est écrite et non calculée sur ce qui est
  * présent.
  */
-const TEINTES: Record<string, string> = { CM: "t1", CG: "t2", GA: "t3", TD: "t4" };
+/* LES CLEFS SONT LES PAYS TELS QUE LE DOMAINE LES ÉCRIT. Elles étaient des
+   codes ISO — « CM », « GA » — et « Offer.country » porte « Cameroun » et
+   « Gabon » : aucune ne correspondait, et les trente-deux points tombaient
+   tous sur le gris des « autres ». La légende, elle, montrait quatre
+   couleurs que le tracé n'utilisait pas. */
+const TEINTES: Record<string, string> = { Cameroun: "t1", Congo: "t2", Gabon: "t3", Tchad: "t4" };
 export const teinteDe = (pays: string): string => TEINTES[pays] ?? "tx";
 
 /**

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useT } from "@/i18n/client";
 import styles from "./bandeau.module.css";
 
@@ -35,22 +36,42 @@ export function BandeauRepliable({
   children: React.ReactNode;
 }) {
   const t = useT();
+  /**
+   * LE DÉPLIAGE EST IMMÉDIAT, L'ADRESSE SUIT.
+   *
+   * L'état vivait dans l'adresse seule, et la page est rendue sur le serveur
+   * à chaque changement d'adresse : ouvrir le bandeau demandait un
+   * aller-retour, et le chevron restait fermé une seconde entière. Replier
+   * et déplier est un geste de lecture, pas une requête.
+   *
+   * L'adresse est toujours écrite, pour que le lien partagé montre ce qu'on
+   * voyait ; c'est l'affichage qui n'attend plus sa réponse. Et quand elle
+   * revient d'ailleurs — retour arrière, lien ouvert — elle reprend la main,
+   * ce que dit la clef : le choix local ne vaut que pour l'état dont il est
+   * né.
+   */
+  const [choix, setChoix] = useState<{ pour: boolean; v: boolean } | null>(null);
+  const vu = choix?.pour === ouvert ? choix.v : ouvert;
+  const basculer = () => {
+    setChoix({ pour: ouvert, v: !vu });
+    surOuvrir(!vu);
+  };
   return (
-    <section className={`${styles.bandeau} ${ouvert ? styles.ouvert : ""}`}>
-      <button type="button" className={styles.tirette} aria-expanded={ouvert} onClick={() => surOuvrir(!ouvert)}>
+    <section className={`${styles.bandeau} ${vu ? styles.ouvert : ""}`}>
+      <button type="button" className={styles.tirette} aria-expanded={vu} onClick={basculer}>
         <span className={styles.chev} aria-hidden="true">
           ▶
         </span>
         <span className={styles.quoi}>
           <span className={styles.titre}>{titre}</span>
-          {!ouvert && <span className={styles.resume}>{resume}</span>}
+          {!vu && <span className={styles.resume}>{resume}</span>}
         </span>
-        <span className={styles.action}>{ouvert ? t("Replier") : t("Déplier")}</span>
+        <span className={styles.action}>{vu ? t("Replier") : t("Déplier")}</span>
       </button>
       {/* Le corps n'est pas monté quand il est replié : un tracé caché qui
           calcule ses points à chaque rendu coûte autant qu'un tracé visible,
           et il ne rend rien. */}
-      {ouvert ? <div className={styles.corps}>{children}</div> : null}
+      {vu ? <div className={styles.corps}>{children}</div> : null}
     </section>
   );
 }

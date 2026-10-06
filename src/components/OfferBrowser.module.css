@@ -1003,3 +1003,15 @@
   color: var(--ink);
   border-color: var(--ink-3);
 }
+
+/* LA LISTE COMMENCE APRÈS UN FILET, ET LE MÊME DES DEUX CÔTÉS.
+   Les commandes et la première rangée se touchaient : rien ne disait où
+   finissait le réglage et où commençait ce qu'on règle, et l'écart n'était
+   pas le même sur les fonds et sur les titres. Le filet prend « --select »,
+   la couleur que le client a choisie — or sur le thème de nuit, encre sur le
+   thème clair — donc il appartient visiblement à sa page. */
+.debutDeListe {
+  border-top: 2px solid var(--select);
+  margin-top: var(--s-7);
+  padding-top: var(--s-6);
+}

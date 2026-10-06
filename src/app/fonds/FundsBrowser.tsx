@@ -10,7 +10,6 @@ import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { usePhone } from "@/components/chart-utils";
 import { BackToTop } from "@/components/BackToTop";
-import { FilterFab } from "@/components/FilterFab";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { estFenetre, FENETRE_PAR_DEFAUT, FENETRES, type FenetreId, raisonSansFenetre } from "@/lib/domain/fund-perf";
 import { TeteGroupe } from "@/components/market/TeteGroupe";
@@ -108,15 +107,20 @@ const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
  * font chercher un fonds plutôt qu'un autre. Grouper par VL n'aurait rangé
  * que trois tas, grouper par performance n'a pas de sens — c'est un tri.
  */
-type GroupKey = "gestion" | "depositaire" | "categorie";
+type GroupKey = "gestion" | "depositaire" | "categorie" | "aucun";
 /* UN MOT CHACUN. Le bouton répète la valeur choisie à côté de son nom :
    « Grouper · Société de gestion » faisait 177 px sur les 384 d'un téléphone,
    et les trois listes passaient à la ligne. « Gestion » dit la même chose en
    un mot, et les trois tiennent sur une ligne. */
+/* « AUCUN » EST UNE VALEUR, pas l'absence d'une valeur. Le rangement se
+   retirait en vidant la liste, geste qu'il fallait deviner et que rien ne
+   nommait ; la page des titres offrait déjà « Aucun » comme choix, et deux
+   listes voisines doivent nommer la même chose de la même façon. */
 const GROUPES: [GroupKey, string][] = [
   ["gestion", "Gestion"],
   ["depositaire", "Dépositaire"],
   ["categorie", "Catégorie"],
+  ["aucun", "Aucun"],
 ];
 /* LES PHRASES DES CATÉGORIES ONT DÉMÉNAGÉ dans « FondsEnBref ». Le bandeau
    qui les portait en haut de page occupait la première moitié de l'écran à
@@ -328,9 +332,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
      le compilateur de React refuse. */
   const epingleParam = sp.get("epingle") ?? "";
   const epingles = useMemo(() => epingleParam.split(",").filter(Boolean), [epingleParam]);
+  /* UNE SEULE ÉPINGLE À LA FOIS. Plusieurs tenaient debout en principe —
+     comparer deux fonds est bien la question — mais elles empilaient des
+     cartes entre le tracé et la liste, et le tracé qu'on voulait garder sous
+     les yeux repartait vers le haut. Un nouveau point remplace donc le
+     précédent, et le même point détache. */
   const basculerEpingle = (id: string) => {
-    const n = epingles.includes(id) ? epingles.filter((x) => x !== id) : [...epingles, id];
-    update({ epingle: n.join(",") || undefined, bande: "1" });
+    update({ epingle: epingles.includes(id) ? undefined : id, bande: "1" });
   };
   const bornes = (sp.get("perf") ?? "").split(":").map(Number);
   const plage: [number, number] | undefined = bornes.length === 2 && bornes.every((n) => Number.isFinite(n)) ? [bornes[0], bornes[1]] : undefined;
@@ -745,7 +753,9 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           feuille ici : les commandes sont à plat, et c'est vers elles qu'il
           conduit. Il ne paraît qu'une fois la barre passée sous l'en-tête ;
           le retour en haut de page, lui, a son propre bouton à droite. */}
-      <FilterFab watch={toolsRef} ouvre={false} open={false} count={active + Number(Boolean(draft))} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} />
+      {/* LE BOUTON FLOTTANT EST PARTI. Il ramenait en haut, ce que le
+          retour en haut fait déjà à deux centimètres de là, et il couvrait
+          une rangée de la liste en bas d'écran, là où le pouce lit. */}
       <BackToTop watch={toolsRef} />
       <div className={styles.tools} data-coach="fonds-filtres" ref={toolsRef}>
         {/* UN CHAMP, DEUX RANGÉES, PUIS CE QUE LA LISTE DIT D'ELLE-MÊME.
@@ -774,7 +784,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               La flèche ne paraît pas sur « par catégorie », qui est un
               rangement et non une mesure : il n'y a pas de sens à inverser. */}
           <div className={styles.rangee}>
-            <Dropdown label="Grouper" single effacable={Boolean(groupe)} items={GROUPES} selected={new Set(groupe ? [groupe] : [])} onChange={(s) => setGroupe(([...s][0] ?? "") as GroupKey | "")} />
+            <Dropdown label="Grouper" single effacable={false} items={GROUPES} selected={new Set([groupe || "aucun"])} onChange={(s) => setGroupe((([...s][0] ?? "aucun") === "aucun" ? "" : [...s][0]) as GroupKey | "")} />
             <Dropdown label="Tri" single effacable={sort !== "categorie"} items={SORT} selected={new Set([sort])} onChange={(s) => setSort((([...s][0] as SortKey) ?? "categorie") as SortKey)} />
             {sort !== "categorie" && (
               <button type="button" className={styles.dirBtn} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
@@ -880,7 +890,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       )}
 
       {rowsShown.length > 0 && vue === "cards" && (
-        <div data-coach="fonds-table" ref={searchList}>
+        <div data-coach="fonds-table" ref={searchList} className={styles.debutDeListe}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
               {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} n={b.rows.length} groupes={sommaire} unite="fonds" />}
@@ -894,7 +904,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       )}
       {rowsShown.length > 0 && vue === "list" && (
-        <div data-coach="fonds-table" ref={searchList}>
+        <div data-coach="fonds-table" ref={searchList} className={styles.debutDeListe}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
               {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} n={b.rows.length} groupes={sommaire} unite="fonds" />}
@@ -908,7 +918,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         </div>
       )}
       {rowsShown.length > 0 && vue === "table" && (
-        <section className={styles.group} data-coach="fonds-table">
+        <section className={`${styles.group} ${styles.debutDeListe}`} data-coach="fonds-table">
           <div className="scroll-x">
             <table className={styles.tbl}>
               <thead>

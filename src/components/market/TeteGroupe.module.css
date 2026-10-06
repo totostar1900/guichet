@@ -143,3 +143,15 @@
     right: calc(-1 * (var(--s-6) + var(--s-1)));
   }
 }
+
+/* LE TITRE D'UN GROUPE EST EN OR ET EN CAPITALES. Il se confondait avec le
+   nom d'une ligne : même casse, même encre, et sur une liste groupée par
+   société de gestion on ne savait plus lequel des deux on lisait. L'or est
+   la couleur que le client a choisie, donc le repère appartient à sa page. */
+.teteGroupe span:first-child {
+  color: var(--select);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--t-2);
+  font-weight: 800;
+}

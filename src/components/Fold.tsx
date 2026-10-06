@@ -97,8 +97,18 @@ export function FoldAll({ group, ids }: { group: string; ids: string[] }) {
     window.dispatchEvent(new Event(EVENT));
   };
   return (
-    <button type="button" className={`${styles.all} ${anyOpen ? "" : styles.allClosed}`} onClick={() => set(anyOpen ? "closed" : "open")}>
-      {t(anyOpen ? "Tout replier" : "Tout déplier")}
+    /* L'ICÔNE SEULE, ET LE MOT DANS SON ÉTIQUETTE. « Tout replier » tenait
+       sur la ligne des commandes à côté du tri et du groupement, et deux
+       mots de plus y renvoyaient le reste à la ligne sur un téléphone. Le
+       chevron qui se retourne dit déjà l'état ; le mot reste pour qui ne le
+       voit pas et au survol. */
+    <button
+      type="button"
+      className={`${styles.all} ${styles.allIcone} ${anyOpen ? "" : styles.allClosed}`}
+      onClick={() => set(anyOpen ? "closed" : "open")}
+      aria-label={t(anyOpen ? "Tout replier" : "Tout déplier")}
+      title={t(anyOpen ? "Tout replier" : "Tout déplier")}
+    >
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6 9l6 6 6-6" />
       </svg>

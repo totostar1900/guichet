@@ -47,9 +47,11 @@ export function TeteGroupe({ id, nom, entier, n, groupes, unite = "lignes" }: { 
       <h2 id={id} className={styles.teteGroupe} ref={tete} title={entier !== nom ? entier : undefined}>
         <button type="button" className={styles.teteBouton} onClick={() => !seul && setOuvert(!ouvert)} aria-expanded={seul ? undefined : ouvert} disabled={seul} aria-label={`${entier} · ${n} ${t(unite)}${seul ? "" : ` · ${t("Aller à un groupe")}`}`}>
           <span>{nom}</span>
-          <b>
-            {n} {t(unite)}
-          </b>
+          {/* LA QUANTITÉ A QUITTÉ LE TITRE, pas l'étiquette parlée. Elle
+              répétait ce que les rangées montrent, et sur une liste groupée
+              par société de gestion elle mettait un nombre tous les deux
+              centimètres. Le lecteur d'écran, lui, en a besoin : il ne voit
+              pas les rangées, et l'« aria-label » la garde. */}
           {!seul && (
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <path d={ouvert ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} />

@@ -62,16 +62,21 @@ describe("le nom court d'une ligne", () => {
 
 describe("les teintes des pays", () => {
   it("quatre pays gardent la leur, et chacun la même quoi qu'on filtre", () => {
-    expect([teinteDe("CM"), teinteDe("CG"), teinteDe("GA"), teinteDe("TD")]).toEqual(["t1", "t2", "t3", "t4"]);
-    expect(new Set([teinteDe("CM"), teinteDe("CG"), teinteDe("GA"), teinteDe("TD")]).size).toBe(4);
+    /* LES CLEFS SONT CELLES DU DOMAINE, et non des codes ISO : « country »
+       porte « Cameroun », pas « CM ». Avec les codes, les trente-deux points
+       tombaient sur le gris des « autres » tandis que la légende montrait
+       quatre couleurs que le tracé n'utilisait pas. */
+    expect([teinteDe("Cameroun"), teinteDe("Congo"), teinteDe("Gabon"), teinteDe("Tchad")]).toEqual(["t1", "t2", "t3", "t4"]);
+    expect(new Set([teinteDe("Cameroun"), teinteDe("Congo"), teinteDe("Gabon"), teinteDe("Tchad")]).size).toBe(4);
+    expect(teinteDe("CM")).toBe("tx");
   });
 
   it("les deux autres se replient sur un gris nommé, sans teinte fabriquée", () => {
     /* Six teintes distinguables en vision daltonienne dans une bande de
        clarté étroite n'existent pas : trois palettes refusées au validateur,
        la pire paire à ΔE 1,4 pour un plancher de 8. */
-    expect(teinteDe("GQ")).toBe("tx");
-    expect(teinteDe("CF")).toBe("tx");
+    expect(teinteDe("Guinée éq.")).toBe("tx");
+    expect(teinteDe("RCA")).toBe("tx");
   });
 });
 

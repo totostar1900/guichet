@@ -96,9 +96,24 @@ export function Dropdown({ label, items, selected, onChange, single, effacable =
             * des VL est unique et peut être vide, « toutes » étant un état
             * réel. C'est l'appelant qui sait si le vide existe chez lui.
             */}
+          {/* « AUCUN », ET LA LISTE SE FERME. Deux défauts tenaient dans ce
+              bouton. Il s'appelait « Effacer », qui dit ce qu'on fait au
+              réglage, là où les autres lignes disent ce qu'on obtient — et
+              la page des titres offre déjà « Aucun » comme valeur, si bien
+              que les deux listes voisines ne nommaient pas la même chose de
+              la même façon. Et il laissait la liste ouverte sur le résultat
+              qu'elle masque, alors que tout autre choix la referme : on ne
+              voyait pas ce qu'on venait de faire. */}
           {active && effacable && (
-            <button type="button" className={styles.ddClear} onClick={() => onChange(new Set())}>
-              {t("Effacer")}
+            <button
+              type="button"
+              className={styles.ddClear}
+              onClick={() => {
+                onChange(new Set());
+                setOpen(false);
+              }}
+            >
+              {t("Aucun")}
             </button>
           )}
         </div>

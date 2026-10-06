@@ -73,7 +73,12 @@ describe("les commandes de la page des fonds", () => {
        commandes, qui sont en haut et à plat. « ouvre={false} » est ce qui le
        dit, à l'écran comme au lecteur d'écran — sans lui, le bouton
        annoncerait une boîte de dialogue qui ne viendra pas. */
-    expect(SRC, "le bouton flottant annonce de nouveau une feuille").toMatch(/<FilterFab [^>]*ouvre=\{false\}/);
+    /* « FilterFab » EST PARTI À SON TOUR, le 7 octobre 2026. Il avait perdu
+       son objet quand les commandes sont passées à plat en haut de page : il
+       ne faisait plus que ramener en haut, ce que le retour en haut fait à
+       deux centimètres de là, et il couvrait une rangée de la liste en bas
+       d'écran, là où le pouce lit. */
+    expect(SRC, "le bouton flottant est revenu").not.toMatch(/<FilterFab/);
     /* La rangée écrite une fois pour la page et une fois pour la feuille était
        le vrai motif : c'est elle qui obligeait à masquer l'une des deux. */
     expect(SRC, "une rangée d'outils est revenue, avec les deux copies qu'elle entraîne").not.toMatch(/styles\.(toolbar|deskTools|sheetTools)\b/);

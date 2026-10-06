@@ -342,3 +342,33 @@
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 0 0 7px color-mix(in srgb, var(--gold, var(--warn)) 45%, transparent);
   z-index: 7;
 }
+
+/* La zone retenue, en filigrane derrière les points : c'est elle qui forme
+   le rectangle quand les deux axes sont resserrés. */
+.zone {
+  position: absolute;
+  background: color-mix(in srgb, var(--gold, var(--warn)) 13%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Les lignes de visée : une par borne réglée. Elles suivent les poignées et
+   forment le rectangle quand les deux axes sont resserrés. */
+.viseeX,
+.viseeY {
+  position: absolute;
+  background: var(--gold, var(--warn));
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 3;
+}
+.viseeX {
+  width: 1px;
+  top: 0;
+  bottom: 0;
+}
+.viseeY {
+  height: 1px;
+  left: 0;
+  right: 0;
+}
