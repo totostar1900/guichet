@@ -342,7 +342,19 @@ function parseEquities(lines: string[], warnings: Carnet): BocEquity[] {
       warnings.sur(`Action ${isin} : ligne dense non reconnue.`, dernier, "cours précédent, date, cours du jour, statut, volumes et seuils, collés sur une ligne");
       continue;
     }
-    const cells = section.slice(i + 1, i + 24);
+    /* UNE CELLULE BLANCHE N'EST PAS UNE VALEUR ABSENTE, c'est un artefact de
+       mise en page, et la confondre avec une colonne a décalé tout le reste.
+       Mesuré le 6 octobre 2026 : SOCAPALM sort avec « 54 450 », six espaces,
+       une espace, « 44 550 », six espaces, une espace, « 1,01% ». Les deux
+       seuils sont des colonnes VOISINES : ce qui les sépare ne porte rien.
+       Lues comme des cellules, ces quatre respirations poussaient le seuil
+       bas dans la case de la référence, et le seuil bas tombait à zéro.
+       164 lignes en base : SOCAP depuis le 20 janvier 2026 et encore
+       aujourd'hui, REG sur l'hiver 2023 — précisément les deux valeurs que
+       le bulletin imprime avec décimales. Dans 164 cas sur 164 la référence
+       valait exactement le seuil bas, ce qui ne laisse aucun doute.
+       Rien ne l'avait signalé : ces séances sont marquées « ok ». */
+    const cells = section.slice(i + 1, i + 24).filter((c) => c.trim() !== "");
     // mnemo (1–2 lines) until the previous close (a number)
     let k = 0;
     const mnemoParts: string[] = [];
