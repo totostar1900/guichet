@@ -944,6 +944,30 @@ export const memoryRepository: Repository = {
   async quotesOn(sessionDate) {
     return structuredClone(store().quotes.filter((q) => q.sessionDate === sessionDate));
   },
+  async marketMovements() {
+    /* La même différence d'ensembles que la fonction en base, sur le jeu
+       d'essai qui tient en mémoire. Deux écritures d'une règle, et c'est
+       assumé : l'une ne peut pas servir à l'autre, Postgres ne lisant pas le
+       tableau et le tableau n'ayant pas de base. Elles tiennent en dix lignes
+       chacune, et un essai les compare sur le même jeu. */
+    const parDate = new Map<string, Set<string>>();
+    for (const q of store().quotes) {
+      const s = parDate.get(q.sessionDate) ?? new Set<string>();
+      s.add(q.isin);
+      parDate.set(q.sessionDate, s);
+    }
+    const jours = [...parDate.keys()].sort();
+    return jours.slice(1).map((d, i) => {
+      const avant = parDate.get(jours[i])!;
+      const apres = parDate.get(d)!;
+      return {
+        sessionDate: d,
+        prevDate: jours[i],
+        partis: [...avant].filter((x) => !apres.has(x)).length,
+        arrivees: [...apres].filter((x) => !avant.has(x)).length,
+      };
+    });
+  },
   async quoteActivity(since) {
     return store().quotes.filter((q) => q.sessionDate >= since).map((q) => ({ isin: q.isin, sessionDate: q.sessionDate, volumeTraded: q.volumeTraded, valueTraded: q.valueTraded, trades: q.trades }));
   },

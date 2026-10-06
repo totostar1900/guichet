@@ -352,6 +352,11 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
           versCouple={versCouple}
           gabaritA={versCouple("__D__", cmpB)}
           gabaritB={versCouple(cmpA, "__D__")}
+          /* UNE SÉANCE À RELIRE EST CELLE QUE LE LECTEUR A SIGNALÉE, et le
+             jugement vient d'où il vit déjà : son état et ses codes de
+             remarques, les mêmes que la matrice et que Santé. La frise ne
+             refait pas ce verdict, elle le montre au bon endroit. */
+          aRelire={new Set(tous.filter((b) => b.status !== "ok" || codesPar.get(b.id)!.length > 0).map((b) => b.sessionDate))}
         />
       )}
     </>

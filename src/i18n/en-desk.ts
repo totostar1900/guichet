@@ -3110,4 +3110,21 @@ export const EN_MORE: Record<string, string> = {
   // Ce que le volet d'un contrôle de cohérence annonce avant de montrer ses lignes.
   "Les lignes que la règle refuse.": "The lines the rule rejects.",
   "Trois lignes parmi les {m} que la règle a vues passer : à droite ce qu'elle exigeait, à gauche ce que le bulletin a répondu.": "Three of the {m} lines the rule saw pass: on the right what it required, on the left what the bulletin answered.",
+  // Les mois de la frise, et ce que ses cases disent.
+  "janvier": "January",
+  "février": "February",
+  "mars": "March",
+  "avril": "April",
+  "juillet": "July",
+  "septembre": "September",
+  "octobre": "October",
+  "novembre": "November",
+  "décembre": "December",
+  "{mois} : {n} séance(s) où une ligne entre ou sort, {r} à relire, sur {s}": "{mois}: {n} session(s) where a line enters or leaves, {r} to re-read, out of {s}",
+  "Le chiffre : les séances du mois où une ligne entre ou sort de la cote, par différence exacte des deux cotes. Le coin marqué : des séances sur lesquelles le lecteur a laissé une remarque. Un mouvement est un fait de marché, une remarque est un défaut chez nous.": "The figure: the month's sessions where a line enters or leaves the list, by exact difference of the two listings. The marked corner: sessions the reader left a remark on. A movement is a market fact, a remark is a fault of ours.",
+  "{n} séance(s), {b} avec un mouvement": "{n} session(s), {b} with a movement",
+  "−{n} partie(s)": "−{n} gone",
+  "+{n} arrivée(s)": "+{n} new",
+  "aucun mouvement": "no movement",
+  "Le relevé des mouvements n'a pas pu être lu : la frise ne montre donc rien, ce qui n'est pas la même chose qu'un marché immobile. Les deux listes de dates restent utilisables.": "The movement record could not be read: the strip therefore shows nothing, which is not the same as a still market. The two date lists remain usable.",
 };

@@ -8,7 +8,7 @@ import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -238,6 +238,8 @@ export interface Repository {
   quotesOn(sessionDate: string): Promise<Quote[]>;
   /** Les volumes échangés depuis une date, toutes lignes : de quoi calculer un taux de service. */
   quoteActivity(since: string): Promise<QuoteActivity[]>;
+  /** Pour chaque séance, les lignes entrées et sorties depuis la précédente de la série. */
+  marketMovements(): Promise<MouvementSeance[]>;
   /** Idempotent on (fundKey, navDate). */
   upsertFundNavs(navs: FundNav[]): Promise<void>;
   listFundNavs(fundKey: string, limit?: number): Promise<FundNav[]>;

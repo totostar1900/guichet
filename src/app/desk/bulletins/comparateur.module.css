@@ -1,6 +1,148 @@
 /* Le comparateur de deux cotes, sous le tableau des séances.
    Les tailles viennent de l'échelle (--t-1 à --t-7), les espaces de la sienne. */
 
+/* ---- LA FRISE : quatre années de séances, et où regarder ---- */
+.frise {
+  padding-block: var(--s-4) var(--s-3);
+}
+.friseGrille {
+  display: grid;
+  /* Une colonne pour l'année, douze pour les mois, toutes égales : c'est
+     l'alignement d'une année sur l'autre qui fait lire la frise. */
+  grid-template-columns: 2.6rem repeat(12, minmax(0, 1fr));
+  gap: 2px;
+  align-items: stretch;
+  max-width: 44rem;
+}
+.friseMois,
+.friseAn {
+  display: grid;
+  place-items: center;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.friseAn {
+  justify-content: start;
+  font-variant-numeric: tabular-nums;
+}
+.friseCase,
+.friseVide {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 30px;
+  font: inherit;
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line-2);
+}
+/* Un mois sans séance n'est pas un mois calme : il n'y a rien à ouvrir, et
+   la case le dit en n'étant pas une case. */
+.friseVide {
+  border-style: dashed;
+  border-color: var(--line-2);
+  opacity: 0.35;
+}
+.friseCase {
+  color: var(--ink-2);
+  background: var(--surface);
+}
+.friseCase:hover {
+  border-color: var(--ink-3);
+}
+/* Le mois qui porte un mouvement se détache par l'encre, pas par une teinte :
+   la couleur est réservée à ce qui demande un geste. */
+.friseBouge {
+  color: var(--ink);
+  font-weight: 800;
+  background: var(--surface-2);
+}
+.friseCalme {
+  color: var(--ink-3);
+  opacity: 0.5;
+}
+/* Le coin marqué dit « le lecteur a laissé une remarque ici » : un fait sur
+   NOTRE lecture, qui n'est pas le mouvement de marché que porte le chiffre. */
+.friseRelire {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 7px solid var(--warn);
+  border-left: 7px solid transparent;
+}
+/* Le mois ouvert porte un filet épais ET un fond : un fond seul perd contre
+   le survol. Quatrième fois dans ce projet qu'un état se fait manger. */
+.friseIci {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+/* Une mesure qui manque se dit, et sur un fond qui la distingue d'un propos. */
+.friseAbsente {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border-left: 3px solid var(--warn);
+  max-width: 76ch;
+}
+.friseLegende {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 76ch;
+}
+
+/* La feuille du mois : une séance par ligne, celles qui bougent en tête. */
+.feuille {
+  display: grid;
+}
+.feuilleLigne {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto 1rem;
+  gap: var(--s-3);
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: var(--t-3);
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line-2);
+  padding: var(--s-3) var(--s-2);
+}
+.feuilleLigne:hover {
+  background: var(--surface-2);
+}
+.feuilleQuoi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  font-size: var(--t-2);
+}
+.feuilleQuoi small {
+  color: var(--ink-3);
+}
+.feuilleRelire {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--warn);
+  border: 1px solid var(--warn);
+  padding: var(--s-1) var(--s-2);
+  white-space: nowrap;
+}
+.feuilleVa {
+  color: var(--ink-3);
+}
+
 /* LA BARRE DE CHOIX. Les deux côtés se ressemblent trait pour trait : s'ils
    ne se ressemblaient pas, l'œil chercherait lequel est lequel. */
 .barre {

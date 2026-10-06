@@ -1893,6 +1893,20 @@ export const supabaseRepository: Repository = {
     if (error) fail("quotesOn", error);
     return (data as QuoteRow[]).map(toQuote);
   },
+  async marketMovements() {
+    /* UNE FONCTION EN BASE, et non une lecture suivie d'un recoupement ici :
+       la différence d'ensembles porte sur toutes les séances à la fois, donc
+       sur toute la table. La rapatrier coûterait vingt-deux mille cotations
+       par ouverture de page, là où un passage sur place rend 807 lignes. */
+    const { data, error } = await db().rpc("market_movements");
+    if (error) fail("marketMovements", error);
+    return (data as { session_date: string; prev_date: string; partis: number; arrivees: number }[]).map((r) => ({
+      sessionDate: r.session_date,
+      prevDate: r.prev_date,
+      partis: r.partis,
+      arrivees: r.arrivees,
+    }));
+  },
   async quoteActivity(since) {
     // Supabase rend mille lignes par appel : une année de séances en compte dix
     // fois plus, et s'arrêter à la première page donnerait un taux calculé sur

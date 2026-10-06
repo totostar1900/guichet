@@ -7,6 +7,8 @@ import type { MarketBulletin } from "@/lib/domain/market";
 import { fmt } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { ChoixSeance } from "./ChoixSeance";
+import { Frise } from "./Frise";
+import type { CoupleFrise } from "@/lib/market/frise";
 import styles from "./comparateur.module.css";
 
 /**
@@ -43,9 +45,11 @@ interface Props {
   /** Les deux gabarits de la liste déroulante, avec __D__ à la place de la date. */
   gabaritA: string;
   gabaritB: string;
+  /** Les séances sur lesquelles le lecteur a laissé une remarque. */
+  aRelire: Set<string>;
 }
 
-export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }: Props) {
+export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB, aRelire }: Props) {
   const t = await getT();
   const r = repo();
 
@@ -60,7 +64,19 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
   const voisine = (d: string, pas: -1 | 1) => croissant[croissant.indexOf(d) + pas];
 
   const memeSeance = debut === fin;
-  const [qa, qb] = memeSeance ? [[], []] : await Promise.all([r.quotesOn(debut).catch(() => []), r.quotesOn(fin).catch(() => [])]);
+  /* Les trois lectures partent ensemble : la frise ne dépend pas du couple
+     ouvert, et l'attendre après les deux cotes ajouterait son temps au leur
+     sans rien y gagner. */
+  const [qa, qb, mouvements] = await Promise.all([
+    memeSeance ? [] : r.quotesOn(debut).catch(() => []),
+    memeSeance ? [] : r.quotesOn(fin).catch(() => []),
+    /* PAS DE « catch(() => []) » ICI, et c'est une leçon payée cinq fois en
+       une journée : une liste vide rendue sur une panne dessinerait une frise
+       où rien n'a jamais bougé, ce qui est un mensonge et non une absence.
+       Elle rend « undefined », et la vue dit que la mesure manque. */
+    r.marketMovements().catch(() => undefined),
+  ]);
+  const couples: CoupleFrise[] | undefined = mouvements?.map((m) => ({ d: m.sessionDate, p: m.prevDate, s: m.partis, a: m.arrivees, r: aRelire.has(m.sessionDate) }));
   const ecart = comparer(qa, qb);
   const juge = !memeSeance && ecart.partis.length + ecart.arrivees.length <= PLAFOND_JUGEMENT;
   if (juge) await juger(ecart, fin, (isin) => r.listQuotes(isin, 2000).catch(() => []));
@@ -111,6 +127,12 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
           <h2>{t("Comparer deux cotes")}</h2>
           <span className="muted">{t("Ce qui est parti, ce qui est arrivé, et ce qui n'a fait que manquer.")}</span>
         </div>
+
+      {/* LA FRISE D'ABORD, LES DEUX DATES ENSUITE. L'outil savait tout faire
+          sauf dire où regarder : huit cents séances et aucune raison d'en
+          ouvrir une plutôt qu'une autre. La frise répond à cette question, les
+          listes servent à celui qui sait déjà sa date. */}
+      <Frise couples={couples} courant={fin} gabaritCouple={versCouple("__A__", "__B__")} />
 
       {/* LES DEUX CHOIX, AU MÊME NIVEAU. Le pas de un est à portée de pouce
           parce que c'est le geste courant ; la liste sert aux grands écarts. */}

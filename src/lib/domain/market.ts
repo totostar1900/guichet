@@ -66,6 +66,28 @@ export interface QuoteActivity {
   trades: number;
 }
 
+/**
+ * CE QUI A VRAIMENT BOUGÉ ENTRE UNE SÉANCE ET LA PRÉCÉDENTE DE LA SÉRIE.
+ *
+ * La différence exacte des deux ensembles d'ISIN, et non l'écart des comptes
+ * du bulletin. Ce raccourci-là a été mesuré puis retiré : sur les 807 couples
+ * consécutifs il désignait 40 séances, dont 6 sans aucun mouvement, et en
+ * ratait 40 autres. Moins d'une sur deux.
+ *
+ * Le calcul vit en base (fonction « market_movements »), parce qu'il porte
+ * sur toute la cote de toutes les séances : la rapatrier pour la recouper ici
+ * coûterait vingt-deux mille cotations à chaque ouverture de page.
+ */
+export interface MouvementSeance {
+  sessionDate: string;
+  /** La séance précédente DE LA SÉRIE : la veille d'un lundi est un vendredi. */
+  prevDate: string;
+  /** Lignes présentes à la précédente et absentes ici. */
+  partis: number;
+  /** Lignes absentes à la précédente et présentes ici. */
+  arrivees: number;
+}
+
 export interface Quote {
   isin: string;
   sessionDate: string; // YYYY-MM-DD
