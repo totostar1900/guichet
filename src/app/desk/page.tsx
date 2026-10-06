@@ -143,13 +143,18 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
       <DeskLive supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} anonKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
       {sp.depuis === "sante" && <FromSante point={sp.point ?? ""} count={sp.filtre === "sans-prix" ? String(book.length) : undefined} />}
 
+      {/* LA BARRE EST REMONTÉE AU-DESSUS, le 6 octobre 2026, et le carnet
+          cesse d'être la seule page à la porter debout. Elle était descendue
+          dans le rail pour ne pas coûter trois rangées de hauteur et pour
+          rester visible pendant la lecture ; maintenant qu'elle colle en haut
+          sur toutes les pages, elle reste visible sans quitter sa place, et le
+          lecteur retrouve la même barre au même endroit d'une page à l'autre.
+          Le rail ne gardait plus qu'un seul habitant, le sommaire. */}
+      <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} />
+
       {/* Le carnet et son sommaire. Le rail est le même objet que sur les pages
           publiques : le desk se parcourt aussi, et il n’avait rien pour cela. */}
       <div className={styles.withRail}>
-        {/* LA NAVIGATION DESCEND DANS LE RAIL. Couchée au-dessus du carnet elle
-            prenait trois rangées, et l'on descendait pour atteindre ce qu'on
-            venait lire. Debout ici, elle ne coûte rien à la hauteur de la page
-            et reste visible pendant la lecture. Aucun lien n'est perdu. */}
         <div className={styles.colRail}>
         {/* Nommé, parce que PageOutline rend lui aussi un nav : sans cela, la
             règle étroite ne saurait pas lequel des deux effacer. */}
@@ -166,7 +171,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
           ]}
         />
         </div>
-        <DeskNav current="/desk" badges={{ "/desk/approbations": approvals.length }} rail />
         </div>
         <div className={styles.rail}>
         <div id="aujourdhui" />

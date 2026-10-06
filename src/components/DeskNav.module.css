@@ -5,6 +5,27 @@
   flex-wrap: wrap;
   /* the one gap between the desk bar and every page's content : pages add none of their own */
   margin-bottom: 42px;
+
+  /* ELLE RESTE EN HAUT, demandé le 6 octobre 2026. Le desk se lit en
+     descendant, et changer de page demandait de remonter.
+
+     QUATRE POINTS QUI NE SE DEVINENT PAS :
+     · 62 px, c'est la hauteur de l'en-tête de l'application, collant lui aussi.
+       Coller plus haut la ferait passer dessous et son sommet disparaîtrait au
+       premier défilement. Même valeur que les deux rails de la maison.
+     · Un fond opaque, sans quoi le tableau défile en transparence derrière
+       elle. C'est le fond de la page, pas celui d'un panneau.
+     · z-index 20 : sous l'en-tête (30), sous le dock du téléphone (40), sous
+       les feuilles. Une barre de navigation ne passe pas devant une feuille
+       ouverte.
+     · Les marges négatives et le fond déborderaient la gouttière de la page :
+       le fond s'étend donc de 16 px de chaque côté, et le contenu non. */
+  position: sticky;
+  top: calc(62px + env(safe-area-inset-top, 0px));
+  z-index: 20;
+  background: var(--paper);
+  margin-inline: -16px;
+  padding: 10px 16px 0;
 }
 .group {
   display: flex;
@@ -85,6 +106,13 @@
     padding-inline: 16px;
     scrollbar-width: none;
   }
+  /* Sous 760 px l'en-tête de bureau est masqué et c'est la barre du téléphone
+     qui colle, d'une autre hauteur : la barre du desk se range dessous. */
+  @media (max-width: 760px) {
+    .nav {
+      top: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
+    }
+  }
   .nav::-webkit-scrollbar {
     display: none;
   }
@@ -96,64 +124,3 @@
   }
 }
 
-/* Le rail n'existe qu'au-dessus de 1100 px, la largeur à laquelle la colonne
-   de gauche disparaît. En dessous, la barre se recouche au-dessus du carnet :
-   elle est la seule porte vers les autres pages du desk, et une navigation qui
-   disparaît avec sa colonne enferme le lecteur. */
-@media (min-width: 1101px) {
-  /* ---------- la même navigation, debout dans un rail ---------- */
-  /**
-   * LES MÊMES LIENS, EN COLONNE.
-   *
-   * Couchée, la barre prend trois rangées au-dessus du carnet du jour : on
-   * descend pour atteindre ce qu'on vient lire. Debout dans le rail, elle ne
-   * coûte rien à la hauteur de la page, et elle reste visible pendant qu'on lit,
-   * ce qu'une barre qui défile ne fait pas.
-   *
-   * Aucun lien n'est perdu, aucun n'est renommé : c'est la même table.
-   */
-  .navRail {
-    display: grid;
-    gap: var(--s-7);
-    margin-bottom: 0;
-    flex-wrap: nowrap;
-    align-items: stretch;
-  }
-  .navRail .group {
-    display: grid;
-    gap: var(--s-2);
-    align-items: stretch;
-  }
-  .navRail .label {
-    white-space: normal;
-  }
-  .navRail .tabs {
-    display: grid;
-    gap: 0;
-    background: transparent;
-    border: 0;
-    padding: 0;
-  }
-  .navRail .tabs a {
-    display: flex;
-    padding: 3px 8px;
-    border-radius: 0;
-    border-left: 2px solid transparent;
-    font-size: 0.76rem;
-    font-weight: 500;
-    white-space: normal;
-  }
-  /* La page où l'on est : un filet, et non un pavé de couleur. Vingt pavés dans
-     une colonne de 196 px feraient une mosaïque, et le lecteur chercherait
-     lequel est allumé. */
-  .navRail .tabs a[aria-current="page"] {
-    background: transparent;
-    color: var(--ink);
-    font-weight: 700;
-    border-left-color: var(--gold);
-  }
-  .navRail .guide {
-    margin-left: 0;
-    justify-content: flex-start;
-  }
-}
