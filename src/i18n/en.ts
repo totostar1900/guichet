@@ -388,4 +388,8 @@ export const EN: Record<string, string> = {
   "Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds.": "Past performance does not predict future performance. A subscription is executed at the next net asset value; entry and exit fees follow each fund's rules.",
   "Aucune VL publiée autour d'il y a {f} : la série a un trou à cet endroit, et une valeur plus ancienne ne serait pas {f}.": "No NAV published around {f} ago: the series has a gap there, and an older value would not be {f}.",
   "mesurée sur": "measured over",
+  "cours éloigné de 100 %": "price away from 100 %",
+  "minimale": "lowest",
+  "maximale": "highest",
+  "Resserrez une barre pour ne garder qu'une plage. Un point mène à la ligne.": "Narrow one bar to keep only a range. A dot leads to the line.",
 };

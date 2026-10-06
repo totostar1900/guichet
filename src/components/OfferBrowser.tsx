@@ -372,10 +372,15 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
               </div>
             </div>
           ))}
-          <div className={styles.fg}>
-            <span>{t("Rendement")}</span>
-            {gauge}
-          </div>
+          {/* Le titre ne paraît qu'avec sa jauge : la cote n'en a plus, le
+              nuage réglant déjà cette plage, et « Rendement » tout seul
+              annonçait une commande absente. */}
+          {gauge ? (
+            <div className={styles.fg}>
+              <span>{t("Rendement")}</span>
+              {gauge}
+            </div>
+          ) : null}
       </div>
       <div className={styles.sheetFoot}>
         <button type="button" className="btn sm ghost" onClick={onClear}>
@@ -907,14 +912,18 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         )}
       </div>
       <FilterSheet
-        trie={!adj}
+        trie={false}
         open={sheet}
         onClose={() => setSheet(false)}
         groups={groups}
         onToggle={toggle}
         onClear={reset}
         count={rows.length}
-        gauge={<YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} />}
+        /* LA JAUGE DU RENDEMENT A QUITTÉ LA FEUILLE SUR LA COTE : le nuage
+           règle déjà cette plage, et la même borne commandée à deux endroits
+           est une borne dont on ne sait plus lequel la tient. Elle reste aux
+           adjudications, qui n'ont pas de nuage. */
+        gauge={adj ? <YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} /> : null}
         extra={
           adj ? (
             /* LA DURÉE EN JAUGE, et rien d'autre. Ce qui a été retiré de
@@ -930,35 +939,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               <DureeGauge values={durees} min={dr.min} max={dr.max} onChange={(min, max) => update({ ans: dureeRangeParam(min, max) })} />
             </div>
           ) : (
-          <>
-            <div className={styles.fg}>
-              <span>{t("Rechercher")}</span>
-              <input type="search" className={styles.sheetSearch} placeholder={t("Rechercher une ligne, un émetteur, un ISIN")} aria-label={t("Rechercher")} defaultValue={q} onChange={(e) => update({ q: e.target.value || undefined })} />
-            </div>
-            <div className={styles.fg}>
-              <span>{t("Présentation")}</span>
-              <label className={styles.sheetGroup}>
-                <input type="checkbox" checked={grouped} onChange={(e) => update({ groupe: e.target.checked ? "emetteur" : undefined })} />
-                {t("Grouper par émetteur")}
-              </label>
-              <div className={styles.sheetViews} role="group" aria-label={t("Affichage")}>
-                {VIEWS.map((v) => (
-                  <button key={v} type="button" className={view === v ? styles.on : undefined} aria-pressed={view === v} onClick={() => update({ vue: v })}>
-                    {t(VIEW_LABEL[v])}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className={styles.fg}>
-              <span>{t("Tri")}</span>
-              <div className={styles.sheetSort}>
-                <Select value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
-                <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={t(dir === "asc" ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
-                  {dir === "asc" ? "↑" : "↓"}
-                </button>
-              </div>
-            </div>
-          </>
+            /* LA FEUILLE NE PORTE PLUS QUE DES FILTRES, et c'est ce que son
+               titre promet. Elle recopiait la recherche, le groupement, le
+               tri et les vues, tous déjà posés sur la barre au-dessus de la
+               liste : quatre commandes en double, dont deux ne s'accordaient
+               pas toujours avec leur jumelle. Une feuille qui s'appelle
+               « Filtrer » filtre. */
+            null
           )
         }
       />
@@ -997,7 +984,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         {!adj && (
         <label className={styles.sortSel}>
           {t("Tri")}
-          <Select compact value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
+          <Select compact cherchable={false} value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
           <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={t(dir === "asc" ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
             {dir === "asc" ? "↑" : "↓"}
           </button>

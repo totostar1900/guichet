@@ -33,9 +33,11 @@ describe("le sélecteur de vue de la page Titres", () => {
     expect(ordres(source)).toEqual([["table", "list", "cards"]]);
   });
 
-  it("sert ses deux emplacements depuis cette liste", () => {
-    // La barre d'outils et la feuille de filtres : ni l'une ni l'autre ne réénumère.
-    expect(source.split("VIEWS.map(").length - 1).toBe(2);
+  it("sert son emplacement depuis cette liste, sans réénumérer", () => {
+    /* La feuille des filtres en portait une seconde copie jusqu'au 7 octobre
+       2026 : elle recopiait aussi la recherche, le groupement et le tri, tous
+       déjà sur la barre. Une feuille qui s'appelle « Filtrer » filtre. */
+    expect(source.split("VIEWS.map(").length - 1).toBe(1);
   });
 
   it("ne refabrique pas les étiquettes au passage", () => {

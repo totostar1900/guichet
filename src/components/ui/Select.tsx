@@ -27,7 +27,13 @@ export interface SelectOption {
 
 const PHONE = "(max-width: 760px)";
 
-export function Select({ value, options, onChange, label, name, placeholder, compact, block, className = "", disabled, required }: { value: string; options: SelectOption[]; onChange?: (v: string) => void; label?: string; name?: string; placeholder?: string; compact?: boolean; block?: boolean; className?: string; disabled?: boolean; required?: boolean }) {
+/**
+ * `cherchable` à faux : la boîte ne devient pas un champ de recherche quand
+ * elle s'ouvre. Une liste de cinq ordres n'a rien à chercher, et le champ y
+ * promettait une recherche qui n'avait pas d'objet. Les listes longues — un
+ * pays, un émetteur — le gardent.
+ */
+export function Select({ value, options, onChange, label, name, placeholder, compact, block, className = "", disabled, required, cherchable = true }: { value: string; options: SelectOption[]; onChange?: (v: string) => void; label?: string; name?: string; placeholder?: string; compact?: boolean; block?: boolean; className?: string; disabled?: boolean; required?: boolean; cherchable?: boolean }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [inner, setInner] = useState(value);
@@ -209,7 +215,7 @@ export function Select({ value, options, onChange, label, name, placeholder, com
   return (
     <div className={`${styles.sel} ${compact ? styles.selCompact : ""} ${block ? styles.selBlock : ""} ${open ? styles.selOpen : ""} ${className}`} ref={ref}>
       {name && <input type="hidden" name={name} value={cur} required={required} />}
-      {open && !phone ? (
+      {open && !phone && cherchable ? (
         <div className={`${styles.selBtn} ${styles.selHas}`} onClick={() => setTyping(true)}>
           {label && <span className={styles.selLabel}>{label}</span>}
           <span className={styles.selValue}>{typing ? field : current?.label ?? placeholder ?? "—"}</span>
@@ -232,7 +238,7 @@ export function Select({ value, options, onChange, label, name, placeholder, com
             if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               openMenu();
-            } else if (e.key.length === 1 && /S/.test(e.key)) {
+            } else if (cherchable && e.key.length === 1 && /S/.test(e.key)) {
               e.preventDefault();
               openMenu(e.key);
             }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
 import { useLineHref } from "@/components/DeskView";
 import { fmtPct } from "@/lib/format";
@@ -17,37 +17,46 @@ import styles from "./nuage.module.css";
  * règle de rendement, ce sont deux points ; ce ne sont pas du tout les mêmes
  * placements.
  *
- * CE QUE LE NUAGE MONTRE, ET QU'AUCUNE COLONNE NE MONTRAIT. Mesuré le
- * 6 octobre 2026 sur les trente-deux obligations cotées : VINGT-CINQ COTENT
- * EXACTEMENT 100,00, donc leur rendement est leur coupon et elles dessinent
- * ensemble le coupon par échéance. SIX ont quitté le pair, et leur rendement
- * s'écarte du coupon de 138 à 452 points de base. Ces six-là sont la raison
- * d'être du tracé : elles se détachent au-dessus du peloton, et rien dans le
- * tableau ne les désignait.
+ * CE QUE LE NUAGE MONTRE. Mesuré le 6 octobre 2026 sur les trente-deux
+ * obligations cotées : VINGT-CINQ COTENT EXACTEMENT 100,00, donc leur
+ * rendement est leur coupon et elles dessinent ensemble le coupon par
+ * échéance. SIX ont un cours qui s'est éloigné de 100, et leur rendement
+ * s'écarte alors du coupon de 138 à 452 points de base. Ces six-là sont la
+ * raison d'être du tracé : rien dans le tableau ne les désignait.
  *
- * TROIS MESURES, PARCE QUE LA QUESTION N'EST PAS TOUJOURS LA MÊME. Le nuage
- * pour choisir un placement ; la bande du rendement seul quand on cherche le
- * mieux-disant ; la bande de la vie restante quand c'est une échéance de
- * trésorerie qu'on couvre.
+ * LE GESTE SUR LE TRACÉ EST PARTI, et les barres le remplacent. Tirer un
+ * rectangle marchait, mais la surface servait à deux choses — choisir une
+ * plage et ouvrir une ligne — et se défendait par une règle invisible de
+ * quatre pixels. Une barre par axe se voit, se touche, se prend au clavier,
+ * et le point redevient un lien franc.
  *
- * IL COMMANDE LES FILTRES QUI EXISTENT, il n'en ajoute pas. Tirer un rectangle
- * écrit la plage de durée et celle de rendement, c'est-à-dire « ans » et
- * « rendement » dans l'adresse, les deux mêmes que les jauges des
- * adjudications et que les pastilles de filtre. Un second jeu de bornes aurait
- * fait deux vérités sur la même liste.
+ * LE BANDEAU DE SUIVI, de hauteur fixe, au-dessus du tracé : ce qu'on règle,
+ * ce qu'il en reste, où est le milieu. Règle de la maison du 5 octobre 2026,
+ * une valeur qui suit un geste ne va pas dans une bulle qui apparaît et
+ * disparaît.
  *
- * LES ACTIONS N'Y SONT PAS, et le tracé le dit. Sans échéance ni rendement
- * actuariel, elles n'ont aucun des deux axes : leur inventer une mesure pour
- * remplir un graphique serait un chiffre fabriqué.
+ * L'ADRESSE N'EST ÉCRITE QU'AU RELÂCHEMENT. La page est rendue sur le serveur
+ * à chaque changement d'adresse : écrire à chaque pas du curseur, c'était un
+ * aller-retour par pixel, et le tracé traînait derrière le doigt.
  */
-
-const arrondi = (v: number, pas: number) => Math.round(v / pas) * pas;
-const ansTexte = (v: number) => (v < 1 ? `${Math.max(1, Math.round(v * 12))} m` : `${(Math.round(v * 10) / 10).toString().replace(".", ",")} a`);
 
 interface Plage {
   min?: number;
   max?: number;
 }
+
+/** Ce qu'une barre règle : son axe, ses bornes, et ce qu'elle écrit. */
+interface Axe {
+  clef: "duree" | "rendement";
+  nom: string;
+  bas: number;
+  haut: number;
+  pas: number;
+  unite: "pct" | "ans";
+}
+
+const ansTexte = (v: number) => (v < 1 ? `${Math.max(1, Math.round(v * 12))} m` : `${(Math.round(v * 10) / 10).toString().replace(".", ",")} a`);
+const dire = (v: number, u: "pct" | "ans") => (u === "pct" ? fmtPct(v, 1) : ansTexte(v));
 
 export function NuageTitres({
   points,
@@ -62,30 +71,35 @@ export function NuageTitres({
   surMesure: (m: MesureNuage) => void;
   duree: Plage;
   rendement: Plage;
-  /** Écrit les deux plages d'un coup : le nuage en pose deux, une bande une seule. */
+  /** Écrit les deux plages d'un coup : le nuage en règle deux, une bande une seule. */
   surZone: (z: { duree?: Plage; rendement?: Plage }) => void;
 }) {
   const t = useT();
   const href = useLineHref();
-  const boite = useRef<HTMLDivElement>(null);
-  const tire = useRef<{ x0: number; y0: number; r: DOMRect; bouge: boolean } | null>(null);
-  const [glisse, setGlisse] = useState(false);
 
   const nuage = mesure === "nuage";
   const surRendement = mesure === "rendement";
 
   const vue = useMemo(() => {
     /* Le rendement manque pour une ligne dont l'échéancier d'amortissement
-       n'est pas au référentiel : elle sort du tracé, et le pied le dit. */
+       n'est pas au référentiel : elle sort du tracé, et le compte le dit. */
     const avec = points.filter((p) => (surRendement || nuage ? p.ytm != null : p.ans > 0));
     if (avec.length < 2) return undefined;
     const xs = surRendement ? avec.map((p) => p.ytm!) : avec.map((p) => p.ans);
     const ys = nuage ? avec.map((p) => p.ytm!) : null;
-    /* Le plancher à zéro sur une durée : une durée négative n'existe pas, et
-       l'axe partait à moins deux dixièmes d'année. Un rendement, lui, peut
-       être négatif, donc rien ne le borne. */
     return { avec, x: bornesAxe(xs, surRendement ? undefined : 0), y: ys ? bornesAxe(ys) : null };
   }, [points, nuage, surRendement]);
+
+  /**
+   * LES PLAGES EN COURS DE RÉGLAGE, et la clef de celle dont elles sont nées.
+   *
+   * Le réglage se DÉRIVE au lieu de se synchroniser : un effet qui remettait
+   * l'état local à zéro quand l'adresse change déclenche un rendu en cascade.
+   * Quand l'adresse change — retour arrière, lien ouvert — la clef ne
+   * correspond plus et l'adresse reprend la main, sans un seul effet.
+   */
+  const [reglage, setReglage] = useState<{ pour: string; duree: Plage; rendement: Plage } | null>(null);
+  const clef = `${mesure}|${duree.min ?? ""}:${duree.max ?? ""}|${rendement.min ?? ""}:${rendement.max ?? ""}`;
 
   const nom: Record<MesureNuage, string> = {
     nuage: t("Les deux"),
@@ -97,25 +111,52 @@ export function NuageTitres({
   const { avec, x, y } = vue;
   const sansRendement = points.length - avec.length;
 
-  /* En pour cent de la boîte : la mise en page reste au CSS, qui connaît la
-     largeur réelle, là où un calcul en pixels demanderait de la mesurer. */
-  const px = (v: number) => ((v - x[0]) / (x[1] - x[0])) * 100;
-  const py = (v: number) => ((v - y![0]) / (y![1] - y![0])) * 100;
+  const vif = reglage?.pour === clef ? reglage : null;
+  const dureeVive = vif?.duree ?? duree;
+  const rendementVif = vif?.rendement ?? rendement;
+
+  /* Les axes réellement réglables : deux sur le nuage, un sur une bande. */
+  const axes: Axe[] = nuage
+    ? [
+        { clef: "duree", nom: t("Vie restante"), bas: x[0], haut: x[1], pas: 0.25, unite: "ans" },
+        { clef: "rendement", nom: t("Rendement"), bas: y![0], haut: y![1], pas: 0.1, unite: "pct" },
+      ]
+    : surRendement
+      ? [{ clef: "rendement", nom: t("Rendement"), bas: x[0], haut: x[1], pas: 0.1, unite: "pct" }]
+      : [{ clef: "duree", nom: t("Vie restante"), bas: x[0], haut: x[1], pas: 0.25, unite: "ans" }];
+
+  const plageDe = (a: Axe) => (a.clef === "duree" ? dureeVive : rendementVif);
+  const bornesVives = (a: Axe): [number, number] => [plageDe(a).min ?? a.bas, plageDe(a).max ?? a.haut];
 
   const dedans = (p: PointTitre) => {
     const vx = surRendement ? p.ytm : p.ans;
     if (vx == null) return false;
-    const plageX = surRendement ? rendement : duree;
-    if (plageX.min != null && vx < plageX.min) return false;
-    if (plageX.max != null && vx > plageX.max) return false;
+    const px = surRendement ? rendementVif : dureeVive;
+    if (px.min != null && vx < px.min) return false;
+    if (px.max != null && vx > px.max) return false;
     if (nuage && p.ytm != null) {
-      if (rendement.min != null && p.ytm < rendement.min) return false;
-      if (rendement.max != null && p.ytm > rendement.max) return false;
+      if (rendementVif.min != null && p.ytm < rendementVif.min) return false;
+      if (rendementVif.max != null && p.ytm > rendementVif.max) return false;
     }
     return true;
   };
   const retenus = avec.filter(dedans).length;
-  const pose = duree.min != null || duree.max != null || rendement.min != null || rendement.max != null;
+  const posee = axes.some((a) => plageDe(a).min != null || plageDe(a).max != null);
+
+  const bouger = (a: Axe, cote: "min" | "max", brut: number) => {
+    const v = Math.round(brut / a.pas) * a.pas;
+    const [bMin, bMax] = bornesVives(a);
+    const prochain: Plage = cote === "min" ? { min: Math.min(v, bMax), max: bMax } : { min: bMin, max: Math.max(v, bMin) };
+    const net = prochain.min! <= a.bas && prochain.max! >= a.haut ? {} : prochain;
+    setReglage({ pour: clef, duree: a.clef === "duree" ? net : dureeVive, rendement: a.clef === "rendement" ? net : rendementVif });
+  };
+  const poser = () => {
+    if (!vif) return;
+    surZone({ duree: vif.duree, rendement: vif.rendement });
+  };
+
+  const px = (v: number) => ((v - x[0]) / (x[1] - x[0])) * 100;
+  const py = (v: number) => ((v - y![0]) / (y![1] - y![0])) * 100;
 
   /* L'empilement d'une bande : deux lignes trop proches se cachent. Sur un
      nuage, l'ordonnée fait déjà ce travail. */
@@ -138,32 +179,9 @@ export function NuageTitres({
     const out: { v: number; texte: string }[] = [];
     for (let v = Math.ceil(bas / pas) * pas; v <= haut + 1e-9; v += pas) {
       const r = Math.round(v * 100) / 100;
-      out.push({ v: r, texte: unite === "pct" ? `${r} %` : r < 1 ? `${Math.round(r * 12)} m` : `${String(r).replace(".", ",")} a` });
+      out.push({ v: r, texte: unite === "pct" ? `${r} %` : ansTexte(r) });
     }
     return out;
-  };
-
-  const valeurEnX = (clientX: number, r: DOMRect) => {
-    const part = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
-    return arrondi(x[0] + part * (x[1] - x[0]), surRendement ? 0.1 : 0.25);
-  };
-  const valeurEnY = (clientY: number, r: DOMRect) => {
-    const part = Math.min(1, Math.max(0, (r.bottom - clientY) / r.height));
-    return arrondi(y![0] + part * (y![1] - y![0]), 0.1);
-  };
-
-  const SEUIL = 4;
-  const bouger = (clientX: number, clientY: number) => {
-    const d = tire.current!;
-    const xa = valeurEnX(d.x0, d.r);
-    const xb = valeurEnX(clientX, d.r);
-    const bornesX = { min: Math.min(xa, xb), max: Math.max(xa, xb) };
-    if (nuage) {
-      const ya = valeurEnY(d.y0, d.r);
-      const yb = valeurEnY(clientY, d.r);
-      surZone({ duree: bornesX, rendement: { min: Math.min(ya, yb), max: Math.max(ya, yb) } });
-    } else if (surRendement) surZone({ rendement: bornesX });
-    else surZone({ duree: bornesX });
   };
 
   return (
@@ -177,10 +195,27 @@ export function NuageTitres({
             </button>
           ))}
         </div>
-        <p className={styles.compte}>
-          {t("{n} ligne(s) sur le tracé", { n: avec.length })}
+      </div>
+
+      {/* LE BANDEAU DE SUIVI : hauteur fixe, toujours là, trois zones. */}
+      <div className={styles.suivi}>
+        <span className={styles.suiviPlage}>
+          {axes.map((a) => {
+            const [bMin, bMax] = bornesVives(a);
+            return (
+              <span key={a.clef} className={styles.suiviAxe}>
+                <i>{a.nom}</i>
+                <b>
+                  {dire(bMin, a.unite)} <span aria-hidden="true">→</span> {dire(bMax, a.unite)}
+                </b>
+              </span>
+            );
+          })}
+        </span>
+        <span className={styles.suiviQuoi}>
+          {posee ? t("{n} ligne(s) retenue(s) sur {m}", { n: retenus, m: avec.length }) : t("{n} ligne(s) sur le tracé", { n: avec.length })}
           {sansRendement ? ` · ${t("{n} sans rendement calculable", { n: sansRendement })}` : ""}
-        </p>
+        </span>
       </div>
 
       {/* La légende est toujours là dès qu'il y a plus d'une couleur : une
@@ -199,101 +234,130 @@ export function NuageTitres({
         ))}
         <span>
           <i className={`${styles.t1} ${styles.anneau}`} aria-hidden="true" />
-          {t("a quitté le pair")}
+          {t("cours éloigné de 100 %")}
         </span>
       </div>
 
-      <div
-        ref={boite}
-        className={`${styles.trace} ${nuage ? styles.traceNuage : ""}`}
-        style={nuage ? undefined : { height: `${Math.max(etages, 2) * 13 + 34}px` }}
-        onPointerDown={(e) => {
-          tire.current = { x0: e.clientX, y0: e.clientY, r: e.currentTarget.getBoundingClientRect(), bouge: false };
-        }}
-        onPointerMove={(e) => {
-          const d = tire.current;
-          if (!d) return;
-          if (!d.bouge && Math.abs(e.clientX - d.x0) < SEUIL && Math.abs(e.clientY - d.y0) < SEUIL) return;
-          d.bouge = true;
-          setGlisse(true);
-          bouger(e.clientX, e.clientY);
-        }}
-        onPointerUp={() => {
-          if (tire.current?.bouge) window.setTimeout(() => setGlisse(false), 0);
-          tire.current = null;
-        }}
-        onPointerCancel={() => {
-          tire.current = null;
-        }}
-      >
-        {graduations(x[0], x[1], surRendement ? "pct" : "ans").map((g) => (
-          <span key={`x${g.v}`} className={styles.gx} style={{ left: `${px(g.v)}%` }} aria-hidden="true">
-            <b>{g.texte}</b>
-          </span>
-        ))}
-        {nuage
-          ? graduations(y![0], y![1], "pct")
-              .filter((g) => Number.isInteger(g.v))
-              .map((g) => (
-                <span key={`y${g.v}`} className={styles.gy} style={{ bottom: `${py(g.v)}%` }} aria-hidden="true">
-                  <b>{g.texte}</b>
-                </span>
-              ))
-          : null}
-
-        {places.map(({ p, X, etage, Y }) => (
-          <Link
-            key={p.id}
-            href={href(p.id)}
-            className={`${styles.pt} ${styles[teinteDe(p.pays)]} ${horsDuPair(p) ? styles.anneau : ""} ${dedans(p) ? "" : styles.hors}`}
-            style={nuage ? { left: `${X}%`, bottom: `${Y}%` } : { left: `${X}%`, bottom: `${18 + etage * 13}px` }}
-            title={`${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`}
-            aria-label={`${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`}
-            onClick={(e) => {
-              if (glisse) e.preventDefault();
-            }}
-          />
-        ))}
-
-        {/* Le nom des lignes hors du pair : c'est ce qu'un tracé sait faire et
-            qu'un histogramme ne sait pas, et c'est la raison de ce tracé. */}
-        {nuage
-          ? places
-              .filter(({ p }) => horsDuPair(p) && dedans(p))
-              .map(({ p, X, Y }) => {
-                /* L'étiquette passe SOUS son point quand il est en haut du
-                   tracé, et s'ancre par son bord quand il est sur un côté :
-                   posée toujours au-dessus et centrée, celle de la ligne la
-                   plus haute sortait de la boîte, et c'est précisément la
-                   ligne qu'on vient voir. */
-                const dessous = Y! > 86;
-                const bord = X > 80 ? "translateX(-100%)" : X < 12 ? "none" : "translateX(-50%)";
-                return (
-                  <span
-                    key={`n${p.id}`}
-                    className={styles.nom}
-                    style={{ left: `${X}%`, bottom: dessous ? `calc(${Y}% - 20px)` : `calc(${Y}% + 11px)`, transform: bord }}
-                    aria-hidden="true"
-                  >
-                    {nomCourt(p.titre)}
+      {/* LA GOUTTIÈRE DE GAUCHE EST UNE VRAIE COLONNE, et non une marge
+          négative. Les étiquettes de l'axe des ordonnées étaient posées à
+          −34 px du tracé : sur un écran large elles tenaient, en portrait
+          elles sortaient de la page. Le tracé est donc décalé par une boîte,
+          et les étiquettes vivent dans la gouttière qu'elle laisse. */}
+      <div className={`${styles.cadre} ${nuage ? styles.cadreNuage : ""}`} style={nuage ? undefined : { height: `${Math.max(etages, 2) * 13 + 34}px` }}>
+        <div className={styles.plot}>
+          {graduations(x[0], x[1], surRendement ? "pct" : "ans").map((g) => (
+            <span key={`x${g.v}`} className={styles.gx} style={{ left: `${px(g.v)}%` }} aria-hidden="true">
+              <b>{g.texte}</b>
+            </span>
+          ))}
+          {nuage
+            ? graduations(y![0], y![1], "pct")
+                .filter((g) => Number.isInteger(g.v))
+                .map((g) => (
+                  <span key={`y${g.v}`} className={styles.gy} style={{ bottom: `${py(g.v)}%` }} aria-hidden="true">
+                    <b>{g.texte}</b>
                   </span>
-                );
-              })
-          : null}
+                ))
+            : null}
+
+          {/* La zone retenue, en filigrane derrière les points. */}
+          {posee ? (
+            <span
+              className={styles.zone}
+              style={{
+                left: `${px(bornesVives(axes[0])[0])}%`,
+                width: `${px(bornesVives(axes[0])[1]) - px(bornesVives(axes[0])[0])}%`,
+                bottom: nuage ? `${py(bornesVives(axes[1])[0])}%` : 0,
+                height: nuage ? `${py(bornesVives(axes[1])[1]) - py(bornesVives(axes[1])[0])}%` : "100%",
+              }}
+              aria-hidden="true"
+            />
+          ) : null}
+
+          {places.map(({ p, X, etage, Y }) => (
+            <Link
+              key={p.id}
+              href={href(p.id)}
+              className={`${styles.pt} ${styles[teinteDe(p.pays)]} ${horsDuPair(p) ? styles.anneau : ""} ${dedans(p) ? "" : styles.hors}`}
+              style={nuage ? { left: `${X}%`, bottom: `${Y}%` } : { left: `${X}%`, bottom: `${16 + etage * 13}px` }}
+              title={`${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`}
+              aria-label={`${p.titre} · ${p.ytm == null ? t("rendement inconnu") : fmtPct(p.ytm, 2)} · ${ansTexte(p.ans)}`}
+            />
+          ))}
+
+          {/* Le nom des lignes dont le cours s'est éloigné de 100 : c'est ce
+              qu'un tracé sait faire et qu'un histogramme ne sait pas. */}
+          {nuage
+            ? places
+                .filter(({ p }) => horsDuPair(p) && dedans(p))
+                .map(({ p, X, Y }) => {
+                  const dessous = Y! > 86;
+                  const bord = X > 80 ? "translateX(-100%)" : X < 12 ? "none" : "translateX(-50%)";
+                  return (
+                    <span
+                      key={`n${p.id}`}
+                      className={styles.nom}
+                      style={{ left: `${X}%`, bottom: dessous ? `calc(${Y}% - 20px)` : `calc(${Y}% + 11px)`, transform: bord }}
+                      aria-hidden="true"
+                    >
+                      {nomCourt(p.titre)}
+                    </span>
+                  );
+                })
+            : null}
+        </div>
       </div>
 
+      {/* UNE BARRE PAR AXE. Deux curseurs natifs superposés : seules les
+          poignées prennent le doigt, sans quoi le second couvrirait le
+          premier sur toute sa longueur. */}
+      {axes.map((a) => {
+        const [bMin, bMax] = bornesVives(a);
+        const part = (v: number) => ((v - a.bas) / (a.haut - a.bas)) * 100;
+        return (
+          <div key={a.clef} className={styles.reglage}>
+            <span className={styles.reglageNom}>{a.nom}</span>
+            <div className={styles.barre}>
+              <span className={styles.piste} aria-hidden="true" />
+              <span className={styles.pisteOn} style={{ left: `${part(bMin)}%`, right: `${100 - part(bMax)}%` }} aria-hidden="true" />
+              <input
+                id={`cote-${a.clef}-min`}
+                type="range"
+                min={a.bas}
+                max={a.haut}
+                step={a.pas}
+                value={bMin}
+                aria-label={`${a.nom} ${t("minimale")}`}
+                onChange={(e) => bouger(a, "min", Number(e.target.value))}
+                onPointerUp={poser}
+                onKeyUp={poser}
+                onBlur={poser}
+              />
+              <input
+                id={`cote-${a.clef}-max`}
+                type="range"
+                min={a.bas}
+                max={a.haut}
+                step={a.pas}
+                value={bMax}
+                aria-label={`${a.nom} ${t("maximale")}`}
+                onChange={(e) => bouger(a, "max", Number(e.target.value))}
+                onPointerUp={poser}
+                onKeyUp={poser}
+                onBlur={poser}
+              />
+            </div>
+          </div>
+        );
+      })}
+
       <p className={styles.etat}>
-        {pose ? (
-          <>
-            {t("{n} ligne(s) retenue(s) sur {m}", { n: retenus, m: avec.length })}{" "}
-            <button type="button" className={styles.vider} onClick={() => surZone({ duree: {}, rendement: {} })}>
-              {t("Tout revoir")}
-            </button>
-          </>
+        {duree.min != null || duree.max != null || rendement.min != null || rendement.max != null ? (
+          <button type="button" className={styles.vider} onClick={() => surZone({ duree: {}, rendement: {} })}>
+            {t("Tout revoir")}
+          </button>
         ) : (
-          <span className={styles.muet}>
-            {nuage ? t("Tirez un rectangle pour ne garder qu'une poignée de lignes. Un point mène à la ligne.") : t("Tirez à même la bande pour ne garder qu'une plage. Un point mène à la ligne.")}
-          </span>
+          <span className={styles.muet}>{t("Resserrez une barre pour ne garder qu'une plage. Un point mène à la ligne.")}</span>
         )}
       </p>
     </section>

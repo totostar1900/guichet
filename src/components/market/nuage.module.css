@@ -91,18 +91,21 @@
 .tx { background: var(--ink-3); }
 
 /* ---- Le tracé ---- */
-.trace {
+/* LA GOUTTIÈRE EST UNE VRAIE COLONNE. Les étiquettes de l'axe des
+   ordonnées étaient posées à −34 px du tracé : sur un écran large elles
+   tenaient, en portrait elles sortaient de la page. Le cadre réserve donc
+   la place, et le tracé commence après. */
+.cadre {
   position: relative;
   margin-top: var(--s-4);
-  cursor: crosshair;
-  /* « pan-y » et non « none » : le tiré horizontal est à nous, le défilement
-     vertical reste au doigt. */
-  touch-action: pan-y;
-  user-select: none;
+  padding-left: var(--s-11);
 }
-.traceNuage {
+.plot {
+  position: relative;
+  height: 100%;
+}
+.cadreNuage {
   height: 300px;
-  padding-left: var(--s-7);
 }
 .gx,
 .gy {
@@ -134,8 +137,10 @@
 
 }
 .gy b {
-  left: -34px;
+  left: -40px;
   top: -0.6em;
+  width: 36px;
+  text-align: right;
 }
 
 /* Le point EST la ligne : c'est un lien, et il doit s'en avoir l'air au
@@ -201,8 +206,127 @@
   cursor: pointer;
 }
 
+/* Le bandeau de suivi : hauteur fixe, deux zones, toujours présent. */
+.suivi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  min-height: 32px;
+  padding: var(--s-2) 0;
+  margin-top: var(--s-3);
+  border-bottom: 1px solid var(--line-2);
+}
+.suiviPlage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+}
+.suiviAxe {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+.suiviAxe i {
+  font-style: normal;
+  font-size: var(--t-1);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.suiviAxe b {
+  font-size: var(--t-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.suiviQuoi {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+
+/* Une barre par axe, avec son nom devant : deux poignées sans étiquette, on
+   ne sait plus laquelle tient quoi. */
+.reglage {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: center;
+  margin-top: var(--s-2);
+}
+.reglageNom {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.barre {
+  position: relative;
+  height: 28px;
+}
+.piste,
+.pisteOn {
+  position: absolute;
+  top: 13px;
+  height: 2px;
+}
+.piste {
+  left: 0;
+  right: 0;
+  background: var(--line-2);
+}
+.pisteOn {
+  background: var(--ink);
+}
+.barre input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  pointer-events: none;
+}
+.barre input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  cursor: grab;
+}
+.barre input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  cursor: grab;
+}
+.barre input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--select, var(--ink-3));
+  outline-offset: 2px;
+}
+
 @media (max-width: 640px) {
-  .traceNuage {
+  .cadreNuage {
     height: 230px;
+  }
+  /* LE NOM DES POINTS DISPARAÎT EN PORTRAIT. Six étiquettes de vingt
+     caractères dans 330 px se chevauchent : on ne lit plus aucune des six,
+     et un nom illisible vaut moins que pas de nom. Le toucher d'un point
+     donne le sien, et le tableau en dessous les porte tous. */
+  .nom {
+    display: none;
+  }
+  .reglage {
+    grid-template-columns: 5.2rem minmax(0, 1fr);
   }
 }
