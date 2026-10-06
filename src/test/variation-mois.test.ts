@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TOLERANCE_MOIS, TOLERANCE_TRIMESTRE, variationSurMois } from "@/lib/domain/fund-perf";
+import { rythmeObserve, TOLERANCE_MOIS, TOLERANCE_TRIMESTRE, variationSurMois } from "@/lib/domain/fund-perf";
 
 /**
  * LE MOIS ET LE TRIMESTRE D'UN FONDS, MESURÉS SUR NOTRE SÉRIE.
@@ -93,5 +93,57 @@ describe("la variation sur un trimestre", () => {
   it("et une série de deux mois ne peut pas rendre un trimestre", () => {
     const serie = hebdo("2026-08-01", 8);
     expect(variationSurMois(serie, serie[serie.length - 1], 3, TOLERANCE_TRIMESTRE)).toBeUndefined();
+  });
+});
+
+/**
+ * LE RYTHME SE LIT SUR LES DATES, PAS SUR LA SECTION DU BULLETIN.
+ *
+ * La section où paraît un fonds est un horizon de comparaison, pas une
+ * cadence de valorisation : le 25 septembre 2026, FCP HARVEST DIVERSIFIE,
+ * fonds quotidien, figure aussi au mensuel et au trimestriel, et un fonds
+ * valorisé chaque jour ne peut pas l'être chaque mois. Mesuré le 6 octobre
+ * 2026 : deux fonds dits mensuels publient chaque semaine, un fonds dit
+ * quotidien publie chaque semaine, deux fonds dits hebdomadaires ne
+ * publient que tous les quarante-neuf jours.
+ */
+describe("le rythme observé d'un fonds", () => {
+  const tousLes = (jours: number, n: number, debut = "2026-01-05") =>
+    Array.from({ length: n }, (_, i) => ({ navDate: new Date(Date.parse(debut) + i * jours * 86_400_000).toISOString().slice(0, 10), nav: 100 + i }));
+
+  it("reconnaît le quotidien, l'hebdomadaire, le mensuel et le trimestriel", () => {
+    expect(rythmeObserve(tousLes(1, 20))).toBe("quotidienne");
+    expect(rythmeObserve(tousLes(7, 20))).toBe("hebdomadaire");
+    expect(rythmeObserve(tousLes(30, 12))).toBe("mensuelle");
+    expect(rythmeObserve(tousLes(91, 10))).toBe("trimestrielle");
+  });
+
+  it("ne tranche pas sur trois dates : un rythme demande des écarts", () => {
+    expect(rythmeObserve(tousLes(7, 3))).toBe("?");
+    expect(rythmeObserve([])).toBe("?");
+  });
+
+  it("résiste à une interruption, parce qu'il prend la médiane et non la moyenne", () => {
+    /* Un été sans bulletin : un écart de cent jours au milieu d'une série
+       hebdomadaire. La moyenne dirait « mensuelle », la médiane tient. */
+    const s = tousLes(7, 20);
+    const coupe = [...s.slice(0, 10), ...s.slice(10).map((p) => ({ ...p, navDate: new Date(Date.parse(p.navDate) + 100 * 86_400_000).toISOString().slice(0, 10) }))];
+    expect(rythmeObserve(coupe)).toBe("hebdomadaire");
+  });
+
+  it("ne compte pas deux fois une même date lue dans deux bulletins", () => {
+    /* La VL du vendredi reparaît dans les bulletins du lundi et du mardi :
+       sans dédoublonnage, les écarts nuls feraient passer un fonds
+       hebdomadaire pour quotidien. */
+    const s = tousLes(7, 20);
+    expect(rythmeObserve([...s, ...s.slice(0, 8)])).toBe("hebdomadaire");
+  });
+
+  it("ne regarde que la fenêtre récente : un fonds qui change de rythme suit", () => {
+    /* Dix ans de mensuel puis six mois d'hebdomadaire : c'est le rythme
+       d'aujourd'hui qui intéresse, pas celui de 2016. */
+    const vieux = tousLes(30, 40, "2016-01-05");
+    const recent = tousLes(7, 26, "2026-04-06");
+    expect(rythmeObserve([...vieux, ...recent])).toBe("hebdomadaire");
   });
 });

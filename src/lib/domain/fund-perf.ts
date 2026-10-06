@@ -106,3 +106,40 @@ export function variationSurMois(history: PointDeVL[], to: PointDeVL, mois: numb
  */
 export const TOLERANCE_MOIS = 7;
 export const TOLERANCE_TRIMESTRE = 14;
+
+/** Le rythme auquel un fonds publie réellement, lu sur ses dates. */
+export type Rythme = "quotidienne" | "hebdomadaire" | "mensuelle" | "trimestrielle" | "?";
+
+/**
+ * LA FRÉQUENCE DÉCLARÉE N'EST PAS LA FRÉQUENCE OBSERVÉE, et le bulletin ne
+ * permet pas de les distinguer.
+ *
+ * Le lecteur range un fonds dans la section où il paraît d'abord :
+ * quotidiennes, hebdomadaires, mensuelles, trimestrielles. On a longtemps
+ * lu cela comme son rythme de valorisation. C'est faux : ces sections sont
+ * des HORIZONS DE COMPARAISON, et un fonds y reparaît si son gérant le
+ * veut. La preuve est dans le bulletin du 25 septembre 2026, où FCP HARVEST
+ * DIVERSIFIE, fonds quotidien, figure aussi au mensuel et au trimestriel :
+ * un fonds valorisé chaque jour ne peut pas l'être chaque mois.
+ *
+ * Le rythme réel, lui, se lit sur l'écart entre deux VL successives, et
+ * nous l'avons pour tout le monde. Mesuré le 6 octobre 2026 sur les vingt
+ * dernières VL de chaque fonds : 36 sur 45 concordent avec leur
+ * déclaration ; deux fonds dits mensuels publient chaque semaine, un fonds
+ * dit quotidien publie chaque semaine, et deux fonds dits hebdomadaires ne
+ * publient que tous les quarante-neuf jours.
+ *
+ * On rend « ? » en deçà de cinq écarts : trois dates ne font pas un rythme.
+ */
+export function rythmeObserve(history: PointDeVL[], sur = 20): Rythme {
+  const dates = [...new Set(history.map((h) => h.navDate))].sort().slice(-sur);
+  if (dates.length < 6) return "?";
+  const ecarts = dates.slice(1).map((d, i) => (parseDate(d).getTime() - parseDate(dates[i]).getTime()) / 86_400_000).sort((a, b) => a - b);
+  /* La médiane, et non la moyenne : une interruption d'été ou un bulletin
+     manqué tirerait la moyenne sans rien dire du rythme ordinaire. */
+  const m = ecarts[Math.floor(ecarts.length / 2)];
+  if (m <= 3) return "quotidienne";
+  if (m <= 10) return "hebdomadaire";
+  if (m <= 45) return "mensuelle";
+  return "trimestrielle";
+}

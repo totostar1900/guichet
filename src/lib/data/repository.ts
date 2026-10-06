@@ -245,6 +245,15 @@ export interface Repository {
   listFundCurves(keys: string[], points?: number): Promise<Map<string, FundCurve>>;
   /** Latest NAV of every fund. */
   latestFundNavs(): Promise<FundNav[]>;
+  /**
+   * Les dates de VL de tous les fonds depuis une date, et rien d'autre.
+   *
+   * De quoi lire le RYTHME réel d'un fonds, que sa fréquence déclarée ne
+   * donne pas : la section du bulletin où il paraît est un horizon de
+   * comparaison, pas une cadence de valorisation. Une seule lecture bornée
+   * dans le temps, là où une série par fonds en demanderait quarante-six.
+   */
+  fundNavDates(since: string): Promise<{ fundKey: string; navDate: string }[]>;
 
   /**
    * Les résultats des adjudications de la zone, séance par séance.

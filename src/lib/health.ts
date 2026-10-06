@@ -6,6 +6,7 @@ import { repo } from "@/lib/data";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
+import { rythmeObserve } from "@/lib/domain/fund-perf";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
@@ -185,8 +186,23 @@ function businessDaysBetween(from: string, to: string): number {
 export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
   const r = repo();
   const today = localIso(now);
-  const [bulletins, offers, notifications, navs] = await Promise.all([r.listBulletins(30), r.listOffers(), r.listNotifications(300), r.latestFundNavs()]);
+  /* Une année de dates de VL suffit à lire un rythme, et borne la lecture :
+     au-delà on paierait des pages pour des fonds qui ne publient plus. */
+  const depuisUnAn = localIso(new Date(now.getTime() - 365 * 86_400_000));
+  const [bulletins, offers, notifications, navs, datesVL] = await Promise.all([
+    r.listBulletins(30),
+    r.listOffers(),
+    r.listNotifications(300),
+    r.latestFundNavs(),
+    r.fundNavDates(depuisUnAn).catch(() => [] as { fundKey: string; navDate: string }[]),
+  ]);
   const out: HealthCheck[] = [];
+
+  /* Le rythme réellement observé de chaque fonds, par sa série. */
+  const serieDe = new Map<string, { navDate: string; nav: number }[]>();
+  for (const d of datesVL) serieDe.set(d.fundKey, [...(serieDe.get(d.fundKey) ?? []), { navDate: d.navDate, nav: 1 }]);
+  const rythmeDe = new Map<string, ReturnType<typeof rythmeObserve>>();
+  for (const [k, s] of serieDe) rythmeDe.set(k, rythmeObserve(s));
 
   // 1. Last bulletin: the BOC comes out after each session; two missed business days is a problem.
   const last = bulletins[0];
@@ -250,7 +266,17 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
      contrôle restait vert. C'est ainsi qu'un fonds dédoublé est resté publié
      trois ans avec le prix de sa première séance. Un retard se compte, un
      gel se nomme. */
-  const enRetard = navs.filter((n) => businessDaysBetween(n.navDate, today) > 15 && (n.frequency === "quotidienne" || n.frequency === "hebdomadaire"));
+  /* LE RETARD SE JUGE SUR LE RYTHME OBSERVÉ, PAS SUR CELUI DÉCLARÉ, parce
+     que le second se trompe : deux fonds dits mensuels publient chaque
+     semaine, un fonds dit quotidien publie chaque semaine. Juger sur la
+     déclaration laissait donc des fonds hors du contrôle et en mettait
+     d'autres en retard permanent. La déclaration ne sert plus que de
+     repli, quand la série est trop courte pour trancher. */
+  const rythmeDeLaVL = (n: (typeof navs)[number]) => {
+    const vu = rythmeDe.get(n.fundKey);
+    return vu && vu !== "?" ? vu : n.frequency;
+  };
+  const enRetard = navs.filter((n) => businessDaysBetween(n.navDate, today) > 15 && ["quotidienne", "hebdomadaire"].includes(rythmeDeLaVL(n)));
   const geles = enRetard.filter((n) => businessDaysBetween(n.navDate, today) > 60);
   out.push({
     key: "navs",
@@ -278,6 +304,26 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     level: doubles.length ? "crit" : "ok",
     value: `${doubles.length}`,
     detail: doubles.length ? doubles.map((ks) => ks.join(" ≠ ")).join(" · ") : "aucun",
+  });
+
+  /* 4 ter. LA FRÉQUENCE DÉCLARÉE CONTRE LE RYTHME OBSERVÉ.
+     La section du bulletin où paraît un fonds est un horizon de comparaison,
+     pas une cadence : le 25 septembre 2026, FCP HARVEST DIVERSIFIE, fonds
+     quotidien, figure aussi au mensuel et au trimestriel. La fréquence que
+     nous affichons au client vient pourtant de là, et elle lui promet un
+     rythme de publication. Mesuré le 6 octobre 2026 : neuf fonds sur
+     quarante-cinq ne tiennent pas cette promesse. */
+  const divergents = navs
+    .map((n) => ({ n, vu: rythmeDe.get(n.fundKey) }))
+    .filter(({ n, vu }) => vu && vu !== "?" && vu !== n.frequency);
+  out.push({
+    key: "fonds-rythme",
+    label: "Fréquence annoncée ≠ rythme réel des VL",
+    level: divergents.length > 10 ? "warn" : "ok",
+    value: `${divergents.length} / ${navs.length}`,
+    detail: divergents.length
+      ? divergents.slice(0, 8).map(({ n, vu }) => `${n.name} : annoncé ${n.frequency}, observé ${vu}`).join(" · ")
+      : "tous conformes",
   });
 
   // 5. Messaging.

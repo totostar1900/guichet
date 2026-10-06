@@ -60,6 +60,21 @@ describe("Santé détecte, le domicile répare", () => {
     for (const [k, h] of Object.entries(HEALTH_HOW)) expect(h.href, k).toMatch(/^\/desk([/#?]|$)/);
   });
 
+  it("et aucun contrôle ne paraît sans mode d'emploi", () => {
+    /* LE TROU QUE CE CLIQUET FERME. La table disait où réparer les contrôles
+       qu'elle connaissait, et rien ne vérifiait qu'elle les connaissait
+       TOUS : deux contrôles neufs sur les fonds sont nés le 6 octobre 2026
+       sans entrée, donc affichés sur Santé sans dire où aller. Un signal
+       sans geste à faire n'est pas un signal, c'est une inquiétude.
+       Les clefs se lisent dans la source, parce que les produire demanderait
+       une base, et qu'un cliquet de structure doit rester sans dépendance. */
+    const src = readFileSync(path.resolve(__dirname, "../lib/health.ts"), "utf8");
+    const clefs = [...src.matchAll(/^\s*key: "([a-z0-9-]+)",$/gm)].map((m) => m[1]);
+    expect(clefs.length, "aucune clef lue : le motif ne reconnaît plus les contrôles").toBeGreaterThan(8);
+    const sansMode = [...new Set(clefs)].filter((k) => !HEALTH_HOW[k]);
+    expect(sansMode, "ces contrôles paraissent sur Santé sans dire où aller").toEqual([]);
+  });
+
   it("Santé ne porte plus de bouton d'atelier", () => {
     /* Trois panneaux à boutons y vivaient faute de domicile : la relecture des
        bulletins, la clôture d'une ligne sortie de cote, le rattrapage des

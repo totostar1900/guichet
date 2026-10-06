@@ -83,3 +83,41 @@ describe("une valeur liquidative figée", () => {
     expect(c.detail).toContain("FCP-EN-RETARD");
   });
 });
+
+/**
+ * LE RETARD SE JUGE SUR LE RYTHME OBSERVÉ, PAS SUR CELUI DÉCLARÉ.
+ *
+ * La fréquence vient de la section du bulletin où le fonds paraît, et cette
+ * section est un horizon de comparaison, pas une cadence. Mesuré le
+ * 6 octobre 2026 : deux fonds dits mensuels publient chaque semaine, un
+ * fonds dit quotidien publie chaque semaine. Juger sur la déclaration
+ * laissait donc des fonds hors du contrôle et en mettait d'autres en
+ * retard permanent.
+ */
+const serieHebdo = (fundKey: string, fin: string, n = 20, frequence: FundNav["frequency"] = "mensuelle") =>
+  Array.from({ length: n }, (_, i) => nav(fundKey, new Date(Date.parse(fin) - i * 7 * 86_400_000).toISOString().slice(0, 10), frequence));
+
+describe("la fréquence annoncée contre le rythme réel", () => {
+  it("signale un fonds dit mensuel qui publie chaque semaine", async () => {
+    await memoryRepository.upsertFundNavs(serieHebdo("fcp-dit-mensuel", "2026-10-02"));
+    const c = trouve(await healthChecks(AUJOURD_HUI), "fonds-rythme");
+    expect(c.detail).toContain("annoncé mensuelle, observé hebdomadaire");
+  });
+
+  it("et ne signale rien quand la déclaration tient", async () => {
+    await memoryRepository.upsertFundNavs(serieHebdo("fcp-conforme", "2026-10-02", 20, "hebdomadaire"));
+    const c = trouve(await healthChecks(AUJOURD_HUI), "fonds-rythme");
+    expect(c.detail).not.toContain("fcp-conforme");
+    expect(c.detail).not.toContain("FCP-CONFORME");
+  });
+
+  it("met en retard un fonds dit mensuel qui publiait chaque semaine et s'est arrêté", async () => {
+    /* Le cas que la déclaration faisait manquer : « mensuelle » le sortait
+       du contrôle des retards, alors qu'il publiait tous les sept jours et
+       n'a plus rien donné depuis quatre mois. */
+    await memoryRepository.upsertFundNavs(serieHebdo("fcp-arrete", "2026-06-05"));
+    const c = trouve(await healthChecks(AUJOURD_HUI), "navs");
+    expect(c.level).toBe("crit");
+    expect(c.detail).toContain("FCP-ARRETE");
+  });
+});

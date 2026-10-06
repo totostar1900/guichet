@@ -1957,6 +1957,20 @@ export const supabaseRepository: Repository = {
     if (error) fail("latestFundNavs", error);
     return (data as NavRow[]).map(toNav);
   },
+  async fundNavDates(since) {
+    // Mille lignes par page, comme partout : une fenêtre d'un an sur
+    // quarante-six fonds hebdomadaires en compte deux mille quatre cents, et
+    // s'arrêter à la première rendrait un rythme calculé sur la moitié des
+    // fonds sans que rien ne le signale.
+    const out: { fundKey: string; navDate: string }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db().from("fund_navs").select("fund_key, nav_date").gte("nav_date", since).range(from, from + 999);
+      if (error) fail("fundNavDates", error);
+      const page = (data ?? []) as { fund_key: string; nav_date: string }[];
+      out.push(...page.map((r) => ({ fundKey: r.fund_key, navDate: r.nav_date })));
+      if (page.length < 1000) return out;
+    }
+  },
 
   async listAuctionResults(filter) {
     const f = filter ?? {};

@@ -52,7 +52,19 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
   navs: {
     label: "VL en retard",
     href: "/desk/marche?filtre=vl-retard#opcvm",
-    how: "Une VL quotidienne ou hebdomadaire vieille de plus de trois semaines : demander la VL à la société de gestion, la saisir sur le fonds, ou vérifier que le bulletin la publie encore.",
+    how: "Une VL quotidienne ou hebdomadaire vieille de plus de trois semaines : demander la VL à la société de gestion, la saisir sur le fonds, ou vérifier que le bulletin la publie encore. Figée depuis plus de trois mois, la première chose à écarter est un fonds en double sous deux orthographes.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
+  },
+  "fonds-doubles": {
+    label: "Fonds connus sous deux clefs",
+    href: "/desk/fonds",
+    how: "La clef d'un fonds se fabrique de son nom : une orthographe différente dans un seul bulletin en crée un second, qui reste publié avec la VL de ce jour-là. Ouvrir les deux, vérifier que c'est bien le même fonds, puis demander la fusion : la série et la ligne publiée du jumeau sont à retirer.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
+  },
+  "fonds-rythme": {
+    label: "Fréquence annoncée ≠ rythme réel",
+    href: "/desk/fonds",
+    how: "La fréquence vient de la section du bulletin où le fonds paraît, et cette section est un horizon de comparaison, pas une cadence de valorisation. Quand le rythme réel des VL la dément, c'est la promesse faite au client qu'il faut corriger, ou le fonds qui a changé de rythme.",
     docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
   },
   notify: {

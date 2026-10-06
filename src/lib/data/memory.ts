@@ -982,6 +982,11 @@ export const memoryRepository: Repository = {
     }
     return structuredClone([...latest.values()].sort((a, b) => a.name.localeCompare(b.name)));
   },
+  async fundNavDates(since) {
+    return store()
+      .fundNavs.filter((n) => n.navDate >= since)
+      .map((n) => ({ fundKey: n.fundKey, navDate: n.navDate }));
+  },
 
   async listAuctionResults(filter) {
     const f = filter ?? {};
