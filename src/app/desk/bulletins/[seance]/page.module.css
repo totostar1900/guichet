@@ -1,0 +1,162 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.head h1 {
+  font-size: 1.3rem;
+  margin: 0 0 4px;
+}
+.head p {
+  margin: 0;
+  font-size: 0.86rem;
+  max-width: 78ch;
+}
+.p {
+  color: var(--ink-2);
+  max-width: 82ch;
+  margin: 0 0 8px;
+}
+
+/* Les comptes, et l'écart que la relecture à blanc rend. */
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.chiffre span {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.chiffre b {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+.chiffre em {
+  font-style: normal;
+  font-size: 0.86rem;
+  font-weight: 700;
+  margin-left: 6px;
+}
+/* Un écart n'est pas neutre : plus de lignes lues est un gain, moins est une
+   régression, et la couleur le dit avant la lecture du chiffre. */
+.mieux {
+  color: var(--good);
+}
+.moins {
+  color: var(--crit);
+}
+
+/* Le verdict de l'essai à blanc : la phrase que le desk vient chercher. */
+.verdictOui,
+.verdictNon {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 88ch;
+}
+.verdictOui {
+  background: var(--good-soft);
+  color: var(--ink);
+}
+.verdictNon {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.remarques,
+.bruts {
+  display: grid;
+  gap: 8px;
+}
+.rem {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 8px 0 8px 10px;
+  border-left: 3px solid var(--line);
+}
+.remA {
+  border-left-color: var(--crit);
+}
+.remW {
+  border-left-color: var(--warn);
+}
+.rem small {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.rem p {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.conseil {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  margin-top: 4px !important;
+  font-size: 0.78rem !important;
+  font-style: italic;
+}
+
+/* Le texte brut : c'est lui qu'on vient lire, donc il a la place et la
+   police d'un extrait de document, pas d'une note de bas de page. */
+.brut {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+}
+.brutTete {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.brutTete b {
+  font-size: 0.88rem;
+}
+.brut code {
+  display: block;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  word-break: break-all;
+  background: var(--surface-2);
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+}
+.brut small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+
+.code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 5px;
+  border: 1px solid;
+}
+.codeA {
+  color: var(--crit);
+  border-color: var(--crit);
+  background: var(--crit-soft);
+}
+.codeW {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}

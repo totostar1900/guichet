@@ -116,7 +116,11 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
     const n = parCode(b);
     return (
       <tr key={b.id}>
-        <td className="mono">{b.sessionDate}</td>
+        {/* La séance mène à son rapport : la seule page qui dise sur QUOI le
+            lecteur a buté, produite à la demande en reprenant le PDF. */}
+        <td className="mono">
+          <Link href={`/desk/bulletins/${b.sessionDate}`}>{b.sessionDate}</Link>
+        </td>
         <td className="mono">{b.number || "—"}</td>
         <td>
           <span className={`st ${b.status === "ok" ? "confirmee" : b.status === "partiel" ? "recue" : "annulee"}`}>{t(b.status)}</span>
@@ -243,7 +247,11 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
               <tbody>
                 {arriere.slice(0, 30).map((b) => (
                   <tr key={b.id}>
-                    <td className="mono">{b.sessionDate}</td>
+                    {/* La séance mène à son rapport : la seule page qui dise sur QUOI le
+                        lecteur a buté, produite à la demande en reprenant le PDF. */}
+                    <td className="mono">
+                      <Link href={`/desk/bulletins/${b.sessionDate}`}>{b.sessionDate}</Link>
+                    </td>
                     <td className="mono">{b.number}</td>
                     <td>
                       <span className={`st ${b.status === "partiel" ? "recue" : "annulee"}`}>{t(b.status)}</span>

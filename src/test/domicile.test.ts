@@ -113,8 +113,16 @@ describe("les lectures partagées ne se multiplient pas", () => {
     listEvents: 3,
     // le domicile (À valider) et le dépôt, qui en compte le poids
     listIntake: 2,
-    // le domicile (Bulletins), le dépôt qui compte, Marché qui montre le dernier, Analyses qui date la courbe
-    listBulletins: 4,
+    /* Le domicile (Bulletins), son rapport de séance, le dépôt qui compte,
+       Marché qui montre le dernier, Analyses qui date la courbe.
+
+       MONTÉ DE 4 À 5 LE 6 OCTOBRE 2026, délibérément : le rapport d une séance
+       lit la liste pour trouver la séance PRÉCÉDENTE, dont validate() a besoin
+       pour juger « section plus courte que la veille ». Sans elle, le contrôle
+       retombe sur ses planchers absolus et l essai à blanc ne dirait plus ce
+       qu une vraie relecture ferait, ce qui lui ôte sa raison d être. Les deux
+       pages sont le même domicile, sous la même route. */
+    listBulletins: 5,
   };
 
   for (const [table, plafond] of Object.entries(PLAFOND)) {
