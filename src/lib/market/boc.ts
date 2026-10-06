@@ -109,10 +109,29 @@ export function bondQuote(o: BocBond, b: BocParsed): Quote {
   };
 }
 
-export function fundNav(f: BocFund, b: BocParsed): FundNav {
+/**
+ * LA MÊME SUITE DE LETTRES DÉSIGNE LE MÊME FONDS, quelle que soit la place
+ * des espaces.
+ *
+ * La clef se fabrique du nom, donc elle suit son orthographe. Le 7 août 2023
+ * la bourse a écrit DANS LE MÊME BULLETIN « FCP BGFI Bank ATLAS » à la table
+ * quotidienne et « FCP BGFIBank ATLAS » à l'hebdomadaire : une espace, deux
+ * clefs, deux fonds. Dès le surlendemain elle n'en écrivait plus qu'une, si
+ * bien que le vrai fonds a poursuivi sa série et que le jumeau est resté
+ * publié trois ans avec la VL de ce jour-là.
+ *
+ * On ne réécrit pas les clefs existantes pour autant : une clef est aussi
+ * une adresse, `/offres/fund-<clef>`, et la changer casserait les liens
+ * partagés pour un défaut survenu une fois en trois ans. On reconnaît donc
+ * au lieu de renommer : si un fonds connu porte la même suite de lettres et
+ * de chiffres, c'est lui, et sa clef est gardée.
+ */
+export const memeNom = (nom: string): string => fundKey(nom).replace(/-/g, "");
+
+export function fundNav(f: BocFund, b: BocParsed, clefConnue?: (nom: string) => string | undefined): FundNav {
   const fin = (v: number | undefined) => (v != null && Number.isFinite(v) ? v : undefined);
   return {
-    fundKey: fundKey(f.name), name: f.name, manager: f.manager, depositary: f.depositary, category: f.category, frequency: f.frequency, navDate: f.navDate, nav: f.nav,
+    fundKey: clefConnue?.(f.name) ?? fundKey(f.name), name: f.name, manager: f.manager, depositary: f.depositary, category: f.category, frequency: f.frequency, navDate: f.navDate, nav: f.nav,
     previousNav: fin(f.previousNav), previousDate: f.previousDate, navOrigin: f.navOrigin, inceptionDate: f.inceptionDate, perfSinceInceptionPct: f.perfSinceInceptionPct,
     variationPct: fin(f.variationPct), variationMonthlyPct: fin(f.variationMonthlyPct), variationQuarterlyPct: fin(f.variationQuarterlyPct), bulletinNo: b.bulletinNo, sessionDate: b.sessionDate,
   };
@@ -389,7 +408,10 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     if (!ok) parsed.warnings.push(`OPCVM ${n.name} : VL du ${n.navDate} ignorée (date ou valeur invraisemblable).`);
     return ok;
   };
-  const navs = parsed.funds.map((f) => fundNav(f, parsed)).filter(plausible);
+  /* Une orthographe nouvelle rejoint le fonds qu'elle désigne, au lieu d'en
+     créer un second : c'est ici, à l'entrée, que le jumeau se prévient. */
+  const connus = new Map((await r.latestFundNavs().catch(() => [])).map((n) => [memeNom(n.name), n.fundKey]));
+  const navs = parsed.funds.map((f) => fundNav(f, parsed, (nom) => connus.get(memeNom(nom)))).filter(plausible);
   // Reference = the session right before this one (during a backfill the "latest" quotes may be months later).
   const prevDate = (await r.listBulletins(2000)).map((b) => b.sessionDate).filter((d) => d < sessionDate).sort().pop();
   const previous = prevDate ? await r.quotesOn(prevDate) : [];

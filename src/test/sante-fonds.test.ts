@@ -97,6 +97,22 @@ describe("une valeur liquidative figée", () => {
 const serieHebdo = (fundKey: string, fin: string, n = 20, frequence: FundNav["frequency"] = "mensuelle") =>
   Array.from({ length: n }, (_, i) => nav(fundKey, new Date(Date.parse(fin) - i * 7 * 86_400_000).toISOString().slice(0, 10), frequence));
 
+describe("une orthographe nouvelle rejoint le fonds qu'elle désigne", () => {
+  it("reconnaît le même nom à une espace près", async () => {
+    const { memeNom } = await import("@/lib/market/boc");
+    expect(memeNom("FCP BGFI Bank ATLAS")).toBe(memeNom("FCP BGFIBank ATLAS"));
+    expect(memeNom("FCP HARVEST LIQUIDITÉS")).toBe(memeNom("FCP Harvest Liquidites"));
+  });
+
+  it("et ne confond pas deux fonds d'une même maison", async () => {
+    const { memeNom } = await import("@/lib/market/boc");
+    expect(memeNom("FCP ASCA HORIZON")).not.toBe(memeNom("FCP ASCA PATRIMOINE"));
+    expect(memeNom("FCP ESS CONFORT")).not.toBe(memeNom("FCP ESS PROMO PME"));
+    /* Le piège du préfixe : un nom plus long n'est pas le même nom. */
+    expect(memeNom("FCP CCA INVEST")).not.toBe(memeNom("FCP CCA INVEST PLUS"));
+  });
+});
+
 describe("la fréquence annoncée contre le rythme réel", () => {
   it("signale un fonds dit mensuel qui publie chaque semaine", async () => {
     await memoryRepository.upsertFundNavs(serieHebdo("fcp-dit-mensuel", "2026-10-02"));
