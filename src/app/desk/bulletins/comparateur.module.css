@@ -84,6 +84,149 @@
   background: var(--surface-2);
   color: var(--ink-2);
 }
+/* Une cote incohérente n'est pas une cote qui bouge : elle appelle une
+   relecture, et le fond le dit avant la phrase. */
+.verdictMal {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--t-4);
+  line-height: 1.5;
+  max-width: 88ch;
+  background: var(--crit-soft);
+  color: var(--ink);
+  border-left: 3px solid var(--crit);
+}
+
+/* ---- Les contrôles de cohérence ---- */
+.tsec {
+  padding-block: var(--s-5);
+  border-top: 1px solid var(--line);
+  margin-top: var(--s-5);
+}
+.sousTitre {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-2);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ctrl,
+.ctrlBouton {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: var(--s-4);
+  align-items: start;
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line-2);
+}
+/* Le contrôle fautif est un bouton, mais sa tête garde la même grille que
+   celle d'un contrôle muet : sans cela la colonne danserait de l'un à
+   l'autre. */
+.ctrlPliant {
+  border-bottom: 1px solid var(--line-2);
+}
+.ctrlBouton {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 0;
+  cursor: pointer;
+}
+.ctrlBouton:hover .ctrlNom {
+  text-decoration: underline;
+}
+.puce {
+  width: 18px;
+  height: 18px;
+  border: 1px solid;
+  display: grid;
+  place-items: center;
+  font-size: var(--t-2);
+  font-weight: 700;
+  margin-top: 1px;
+}
+.puceOk {
+  color: var(--good);
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.puceKo {
+  color: var(--crit);
+  border-color: var(--crit);
+  background: var(--crit-soft);
+}
+.puceNa {
+  color: var(--ink-3);
+  border-color: var(--line-2);
+}
+.ctrlNom {
+  display: block;
+  font-size: var(--t-4);
+  font-weight: 600;
+}
+.ctrlRegle {
+  display: block;
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.ctrlRes {
+  font-size: var(--t-3);
+  white-space: nowrap;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chev {
+  display: inline-block;
+  margin-left: var(--s-3);
+  color: var(--ink-3);
+  transition: transform 0.15s;
+}
+.chevOuvert {
+  transform: rotate(180deg);
+}
+.volet {
+  padding: 0 0 var(--s-5) 42px;
+}
+.fautes {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--t-3);
+}
+.fautes th {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  padding: var(--s-2) var(--s-4);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.fautes td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fautes tr:last-child td {
+  border-bottom: 0;
+}
+/* Le chiffre fautif se tient à côté de celui qui l'attendait : c'est le
+   rapprochement qui informe, pas la couleur seule. */
+.mal {
+  color: var(--crit);
+  font-weight: 700;
+  background: var(--crit-soft);
+}
 
 .comptes {
   margin-bottom: var(--s-5);

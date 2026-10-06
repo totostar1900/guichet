@@ -20,11 +20,18 @@ import type { Quote } from "@/lib/domain/market";
  * Ces règles ne jugent pas le marché. Elles jugent NOTRE LECTURE.
  */
 
+/**
+ * UNE FAUTE PORTE SES DEUX MONTANTS SÉPARÉMENT, et non une phrase où il
+ * faudrait les chercher : « lu » est ce que le bulletin dit, « attendu » ce
+ * que la règle exige. Mis l'un à côté de l'autre dans deux colonnes, l'écart
+ * se voit sans lire.
+ */
 export interface Faute {
   isin: string;
   /** Le mnémonique quand on l'a : c'est lui que le desk reconnaît. */
   nom: string;
-  dit: string;
+  lu: string;
+  attendu: string;
 }
 
 export interface Controle {
@@ -81,7 +88,7 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
       ? []
       : communes
           .filter((q) => !proche(q.previousClose, a.get(q.isin)!.close, 0.011))
-          .map((q) => ({ isin: q.isin, nom: nom(q), dit: `précédent annoncé ${fmt(q.previousClose)}, clôture de la veille ${fmt(a.get(q.isin)!.close)}` })),
+          .map((q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.previousClose), attendu: fmt(a.get(q.isin)!.close) })),
   };
 
   /* 2. LA BANDE. Les seuils se calculent du cours précédent, ils ne se
@@ -102,7 +109,7 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
       })
       .map((q) => {
         const k = bande(q)!;
-        return { isin: q.isin, nom: nom(q), dit: `seuils lus ${fmt(q.thresholdHigh)} / ${fmt(q.thresholdLow)}, attendus ${fmt(q.previousClose * (1 + k))} / ${fmt(q.previousClose * (1 - k))}` };
+        return { isin: q.isin, nom: nom(q), lu: `${fmt(q.thresholdHigh)} / ${fmt(q.thresholdLow)}`, attendu: `${fmt(q.previousClose * (1 + k))} / ${fmt(q.previousClose * (1 - k))}` };
       }),
   };
 
@@ -116,7 +123,7 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
     examinees: avecNominal.length,
     fautes: avecNominal
       .filter((q) => q.nominalRemaining! > a.get(q.isin)!.nominalRemaining! + 0.011)
-      .map((q) => ({ isin: q.isin, nom: nom(q), dit: `nominal restant ${fmt(a.get(q.isin)!.nominalRemaining!)} → ${fmt(q.nominalRemaining!)}` })),
+      .map((q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.nominalRemaining!), attendu: `≤ ${fmt(a.get(q.isin)!.nominalRemaining!)}` })),
   };
 
   /* 4. AUCUN COURS NE SAUTE SA BANDE. Une clôture ne peut pas franchir les
@@ -129,7 +136,7 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
     examinees: sautables.length,
     fautes: sautables
       .filter((q) => q.close > a.get(q.isin)!.thresholdHigh + 0.011 || q.close < a.get(q.isin)!.thresholdLow - 0.011)
-      .map((q) => ({ isin: q.isin, nom: nom(q), dit: `clôture ${fmt(q.close)} hors des seuils de la veille (${fmt(a.get(q.isin)!.thresholdLow)} – ${fmt(a.get(q.isin)!.thresholdHigh)})` })),
+      .map((q) => ({ isin: q.isin, nom: nom(q), lu: fmt(q.close), attendu: `${fmt(a.get(q.isin)!.thresholdLow)} – ${fmt(a.get(q.isin)!.thresholdHigh)}` })),
   };
 
   /* 5. UN ISIN GARDE SON NOM. Le cinquième, et il vient d'une leçon chère :
@@ -151,8 +158,8 @@ export function controler(avant: Quote[], apres: Quote[], voisines: boolean): Co
       })
       .map((q) => {
         const v = a.get(q.isin)!;
-        const quoi = forme(q.mnemo) !== forme(v.mnemo) ? `mnémonique « ${court(v.mnemo)} » → « ${court(q.mnemo)} »` : `émetteur « ${court(v.issuer)} » → « ${court(q.issuer)} »`;
-        return { isin: q.isin, nom: nom(q), dit: quoi };
+        const surLeMnemo = forme(q.mnemo) !== forme(v.mnemo);
+        return { isin: q.isin, nom: nom(q), lu: court(surLeMnemo ? q.mnemo : q.issuer), attendu: court(surLeMnemo ? v.mnemo : v.issuer) };
       }),
   };
 

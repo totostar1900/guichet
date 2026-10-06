@@ -65,8 +65,8 @@ describe("le chaînage des cours", () => {
     const cs = controler(veille, [q({ isin: "X", previousClose: 980, thresholdHigh: 1078, thresholdLow: 882 })], true);
     const f = trouve(cs, "chainage").fautes;
     expect(f).toHaveLength(1);
-    expect(sansEspaces(f[0].dit)).toContain("980");
-    expect(sansEspaces(f[0].dit)).toContain("1 000");
+    expect(sansEspaces(f[0].lu), "ce que le bulletin dit").toBe("980");
+    expect(sansEspaces(f[0].attendu), "ce que la règle veut").toBe("1 000");
   });
 
   it("se déclare sans objet entre deux séances éloignées, au lieu de mentir", () => {
@@ -81,7 +81,9 @@ describe("le chaînage des cours", () => {
 describe("la bande, le nominal, le saut", () => {
   it("refuse des seuils qui ne sortent pas du cours précédent", () => {
     const cs = controler([], [q({ isin: "X", previousClose: 1000, thresholdHigh: 1200, thresholdLow: 900 })], true);
-    expect(sansEspaces(trouve(cs, "bande").fautes[0].dit)).toContain("1 200");
+    const f = trouve(cs, "bande").fautes[0];
+    expect(sansEspaces(f.lu)).toBe("1 200 / 900");
+    expect(sansEspaces(f.attendu)).toBe("1 100 / 900");
   });
 
   it("tolère l'arrondi du bulletin à six centimes près", () => {
@@ -96,7 +98,9 @@ describe("la bande, le nominal, le saut", () => {
     const b = [q({ isin: "O", instrument: "obligation", nominalRemaining: 10000, previousClose: 100, thresholdHigh: 106, thresholdLow: 94, close: 100 })];
     const cs = controler(a, b, false);
     expect(trouve(cs, "nominal").applicable).toBe(true);
-    expect(sansEspaces(trouve(cs, "nominal").fautes[0].dit)).toContain("8 000");
+    const f = trouve(cs, "nominal").fautes[0];
+    expect(sansEspaces(f.lu)).toBe("10 000");
+    expect(sansEspaces(f.attendu)).toBe("≤ 8 000");
   });
 
   it("accepte qu'il descende, qui est son métier", () => {
@@ -110,7 +114,8 @@ describe("la bande, le nominal, le saut", () => {
     const b = [q({ isin: "X", previousClose: 1000, close: 1250, thresholdHigh: 1100, thresholdLow: 900 })];
     const f = trouve(controler(a, b, true), "saut").fautes;
     expect(f).toHaveLength(1);
-    expect(sansEspaces(f[0].dit)).toContain("1 250");
+    expect(sansEspaces(f[0].lu)).toBe("1 250");
+    expect(sansEspaces(f[0].attendu), "les seuils de la veille").toBe("900 – 1 100");
   });
 });
 
@@ -120,7 +125,9 @@ describe("un ISIN garde son nom", () => {
        sous une identité stable est le signe d'une ligne mal lue. */
     const a = [q({ isin: "X", mnemo: "SOCAP" })];
     const b = [q({ isin: "X", mnemo: "SOCAPALM" })];
-    expect(trouve(controler(a, b, true), "identite").fautes[0].dit).toContain("SOCAPALM");
+    const f = trouve(controler(a, b, true), "identite").fautes[0];
+    expect(f.lu).toBe("SOCAPALM");
+    expect(f.attendu).toBe("SOCAP");
   });
 
   it("mais une espace ou un trait d'union ne font pas un autre nom", () => {

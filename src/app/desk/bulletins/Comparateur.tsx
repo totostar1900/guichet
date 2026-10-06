@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { repo } from "@/lib/data";
 import { comparer, juger, verdict } from "@/lib/market/comparer";
+import { applicables, controler, incoherences, passes } from "@/lib/market/coherence";
+import { Controles } from "./Controles";
 import type { MarketBulletin } from "@/lib/domain/market";
 import { fmt } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -74,8 +76,16 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
   const lignes: [string, number, number, boolean][] = [
     [t("Actions"), compte(qa, "action"), compte(qb, "action"), true],
     [t("Obligations"), compte(qa, "obligation"), compte(qb, "obligation"), true],
+    [t("Total des lignes"), qa.length, qb.length, true],
     [t("OPCVM"), bulDebut?.counts?.funds ?? 0, bulFin?.counts?.funds ?? 0, false],
   ];
+
+  /* LES CONTRÔLES DE COHÉRENCE, et le fait qui les autorise : trois d'entre
+     eux ne valent qu'entre deux séances voisines, et le disent plutôt que de
+     se calculer de travers sur un écart de trois ans. */
+  const voisinesDansLaSerie = voisine(debut, 1) === fin;
+  const ctrls = memeSeance ? [] : controler(qa, qb, voisinesDansLaSerie);
+  const fautes = incoherences(ctrls);
 
   const pas = (d: string, sens: -1 | 1, autre: string, cote: "a" | "b") => {
     const v = voisine(d, sens);
@@ -91,12 +101,16 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
     );
   };
 
-    return (
-    <section className="panel" id="comparer">
-      <div className="panel-h">
-        <h2>{t("Comparer deux cotes")}</h2>
-        <span className="muted">{t("Ce qui est parti, ce qui est arrivé, et ce qui n'a fait que manquer.")}</span>
-      </div>
+  return (
+    <>
+      {/* DEUX PANNEAUX, ET L'ESPACE ENTRE EUX. Le choix se fait, le rapport
+          se lit : ce ne sont pas les mêmes gestes, et les coller donnait
+          l'impression d'un seul objet dont on ne savait où commencer. */}
+      <section className="panel" id="comparer">
+        <div className="panel-h">
+          <h2>{t("Comparer deux cotes")}</h2>
+          <span className="muted">{t("Ce qui est parti, ce qui est arrivé, et ce qui n'a fait que manquer.")}</span>
+        </div>
 
       {/* LES DEUX CHOIX, AU MÊME NIVEAU. Le pas de un est à portée de pouce
           parce que c'est le geste courant ; la liste sert aux grands écarts. */}
@@ -120,11 +134,27 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
           {memeSeance ? t("Une seule et même séance.") : t("Lu du {d} au {f}.", { d: debut, f: fin })}
         </span>
       </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-h">
+          <h2>{t("Le rapport")}</h2>
+          <span className="muted mono">{memeSeance ? "" : `${debut} → ${fin}`}</span>
+        </div>
 
       {memeSeance ? (
         <p className={styles.verdictNon}>{t("Choisissez deux séances différentes : une cote comparée à elle-même ne dit rien.")}</p>
       ) : (
         <>
+          {/* LE VERDICT PORTE D'ABORD SUR LA QUALITÉ, et non sur le mouvement :
+              une cote qui bouge est normale, une cote incohérente ne l'est
+              jamais. Une ligne qui entre ou sort peut être un événement de
+              marché ; une valeur impossible est toujours notre lecture. */}
+          {fautes > 0 ? (
+            <p className={styles.verdictMal}>
+              {t("{n} incohérence(s) dans la cote du {d} : des valeurs que la bourse n'a pas pu publier. À relire avant de s'en servir.", { n: fautes, d: fin })}
+            </p>
+          ) : null}
           <p className={dit === "rien" ? styles.verdictNon : passageres.length ? styles.verdictOui : styles.verdictNon}>
             {dit === "rien"
               ? t("Aucune rupture : les deux séances cotent exactement les mêmes lignes.")
@@ -166,8 +196,34 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
                   <td className={`r num ${y < x ? styles.baisse : y > x ? styles.hausse : ""}`}>{y === x ? "—" : `${y > x ? "+" : ""}${y - x}`}</td>
                 </tr>
               ))}
+              <tr>
+                <td>{t("Cohérence")}</td>
+                <td className="r num muted">—</td>
+                <td className="r num">{t("{n} contrôles passés sur {m} applicables", { n: passes(ctrls), m: applicables(ctrls) })}</td>
+                <td />
+              </tr>
+              <tr>
+                <td>{t("Indice BVMAC")}</td>
+                <td className="r num">{bulDebut?.indexValue != null ? fmt(bulDebut.indexValue) : "—"}</td>
+                <td className="r num">{bulFin?.indexValue != null ? fmt(bulFin.indexValue) : "—"}</td>
+                <td />
+              </tr>
+              <tr>
+                <td>{t("État du bulletin")}</td>
+                <td className="r">{bulDebut ? t(bulDebut.status) : "—"}</td>
+                <td className="r">{bulFin ? t(bulFin.status) : "—"}</td>
+                <td />
+              </tr>
             </tbody>
           </table>
+
+          <div className={styles.tsec}>
+            <h3 className={styles.sousTitre}>{t("Cohérence de la cote du {d}", { d: fin })}</h3>
+            <Controles controles={ctrls} />
+            <p className={styles.notule}>
+              {t("Ces règles tiennent par construction dans le bulletin : la bourse les applique en le fabriquant. Une ligne qui les dément n'est donc pas un événement de marché, c'est un chiffre mal lu. Trois d'entre elles ne valent qu'entre deux séances voisines, d'où le « sans objet » sinon.")}
+            </p>
+          </div>
 
           <div className={styles.colonnes}>
             <div>
@@ -239,6 +295,7 @@ export async function Comparateur({ tous, a, b, versCouple, gabaritA, gabaritB }
           Et le calcul exact tient en une requête : la base fait la différence
           d'ensembles elle-même, là où je supposais devoir charger vingt-deux
           mille cotations. La frise des mouvements prendra cette place. */}
-    </section>
+      </section>
+    </>
   );
 }
