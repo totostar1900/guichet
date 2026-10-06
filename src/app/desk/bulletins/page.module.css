@@ -6,12 +6,12 @@
   margin-bottom: 16px;
 }
 .head h1 {
-  font-size: 1.3rem;
+  font-size: var(--t-7);
   margin: 0 0 4px;
 }
 .head p {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: var(--t-4);
   max-width: 70ch;
 }
 
@@ -25,14 +25,14 @@
   padding-block: 4px;
 }
 .titreFiltre {
-  font-size: 0.72rem;
+  font-size: var(--t-2);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ink-3);
   margin-right: 4px;
 }
 .filtres a {
-  font-size: 0.82rem;
+  font-size: var(--t-3);
   padding: 2px 10px;
   border: 1px solid var(--line);
   color: var(--ink-2);
@@ -72,7 +72,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
-  font-size: 0.84rem;
+  font-size: var(--t-3);
   font-weight: 600;
   padding: 4px 12px;
   border: 1px solid var(--line);
@@ -138,14 +138,14 @@
 .mrow b,
 .mrowOn b {
   display: block;
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   font-weight: 500;
   line-height: 1.3;
 }
 .mrow small,
 .mrowOn small {
   display: block;
-  font-size: 0.68rem;
+  font-size: var(--t-1);
   color: var(--ink-3);
   margin-top: 1px;
 }
@@ -155,7 +155,7 @@
 .mrow em,
 .mrowOn em {
   font-style: normal;
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   font-variant-numeric: tabular-nums;
   color: var(--ink-3);
 }
@@ -165,7 +165,7 @@
 .notule {
   margin: 0;
   padding: 8px 10px;
-  font-size: 0.72rem;
+  font-size: var(--t-2);
   line-height: 1.45;
   color: var(--ink-3);
 }
@@ -178,14 +178,17 @@
 }
 .code {
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.7rem;
+  font-size: var(--t-1);
   font-weight: 700;
   line-height: 1;
   padding: 3px 5px;
   border: 1px solid;
 }
+/* L exposant se mesure sur SA pastille, pas sur la racine : en absolu il
+   finissait aussi gros que la lettre qu il accompagne. Une taille relative ne
+   choisit rien, elle suit, et c est pourquoi elle reste hors echelle. */
 .code sup {
-  font-size: 0.52rem;
+  font-size: 0.72em;
   margin-left: 1px;
 }
 /* Anomalie et avertissement ne se réparent pas pareil : la couleur le dit
@@ -207,10 +210,21 @@
 .groupe td {
   background: var(--surface-2);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: var(--t-3);
 }
 .groupe td span {
   font-weight: 500;
   color: var(--ink-3);
   margin-left: 8px;
+}
+
+/* La prose d'un mode d'emploi se lit une fois ; le tableau se lit tous les
+   jours. Elle prend donc le corps le plus petit de la page, et sa largeur de
+   lecture, pour ne pas disputer l'attention aux chiffres. */
+.mode {
+  margin: 0 0 6px;
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 96ch;
 }

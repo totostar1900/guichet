@@ -3039,4 +3039,10 @@ export const EN_MORE: Record<string, string> = {
   "jamais cotée avant": "never quoted before",
   "déjà vue auparavant": "seen before",
   "Cours qui bougent ({n})": "Prices that move ({n})",
+  // Le tiroir du rapport, et le panneau de relecture allégé.
+  "Le document est repris chez sa source et repassé au lecteur : quelques secondes. Rien n'est écrit en base.": "The document is fetched again from its source and put through the reader: a few seconds. Nothing is written to the database.",
+  "{n} séances du bulletin officiel de la cote lues à moitié.": "{n} sessions of the official list bulletin read halfway.",
+  "Les voir dans le tableau": "See them in the table",
+  "Les deux boutons reprennent le PDF des séances les moins récemment reprises et le repassent au lecteur. Chaque cotation retrouvée écrase la sienne ; celles qu'il ne retrouve pas restent en place, donc une relecture ajoute ou corrige et ne retire jamais. Elle ne gagne des cours que le jour où le lecteur progresse : le rapport d'une séance le dit à l'avance, sans rien écrire.": "Both buttons fetch the PDF of the least recently retried sessions and put it through the reader. Each quote it finds overwrites its own; the ones it does not find stay as they are, so a re-read adds or corrects and never removes. It only gains prices on the day the reader improves, and a session's report says so in advance, without writing anything.",
+  "« Relire {n} séances » travaille devant vous, dans le délai d'une action de page. « Confier {k} séances au robot » envoie la suite au robot de lecture, qui dispose de trois cents secondes : il part aussitôt, sans rien afficher, et c'est le compte ci-dessus qui dira où il en est. Son tour s'inscrit comme lancé à la main, donc il n'éteint aucune alarme.": "« Read {n} sessions again » works in front of you, within a page action's time limit. « Hand {k} sessions to the robot » sends the rest to the reading robot, which has three hundred seconds: it leaves at once, showing nothing, and it is the count above that will say where it got to. Its run is recorded as launched by hand, so it silences no alarm.",
 };

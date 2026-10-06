@@ -130,6 +130,30 @@
   --s-9: 24px;
   --s-10: 32px;
   --s-11: 40px;
+
+  /* L'ECHELLE TYPOGRAPHIQUE, et la meme histoire que celle des espaces.
+
+     Mesure du 6 octobre 2026 : 1 740 declarations de taille dans src, pour
+     SOIXANTE-DEUX valeurs distinctes, dont vingt-huit tiennent entre 9 et
+     14 px. Personne ne distingue 0,78rem de 0,80rem (11,7 px contre 12), et
+     pourtant chacune est posee plus de soixante fois. Ce ne sont pas des
+     choix : ce sont des approximations recopiees d'un fichier a l'autre.
+
+     Sept degres suffisent, et ils se nomment par ce qu'ils portent plutot
+     que par leur taille : une etiquette, une note, un tableau, un corps de
+     panneau, une lecture, un titre de panneau, un titre de page. La racine
+     vaut 15 px, les px en regard sont donc ce que l'ecran rend.
+
+     Le garde-fou de src/test/typographie.test.ts compte ce qui sort de
+     l'echelle et refuse que le compte augmente. Il peut descendre : c'est
+     ainsi que celle des espaces a maigri. */
+  --t-1: 0.68rem; /* 10,2 px : etiquette en majuscules, exposant, mention */
+  --t-2: 0.74rem; /* 11,1 px : note, pastille, legende */
+  --t-3: 0.8rem; /*  12,0 px : tableau, prose secondaire */
+  --t-4: 0.88rem; /* 13,2 px : corps d'un panneau */
+  --t-5: 1rem; /*    15,0 px : corps de lecture */
+  --t-6: 1.15rem; /* 17,2 px : titre de panneau */
+  --t-7: 1.35rem; /* 20,2 px : titre de page */
   /* Le pas du site public, et le seul au-dessus de l'echelle. Une page qui
      vend respire plus large qu'une page qui travaille : c'est cet ecart qui
      distingue les deux, et il porte donc un nom plutot que de se reecrire a la

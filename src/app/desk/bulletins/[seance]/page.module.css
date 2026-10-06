@@ -6,12 +6,12 @@
   margin-bottom: 16px;
 }
 .head h1 {
-  font-size: 1.3rem;
+  font-size: var(--t-7);
   margin: 0 0 4px;
 }
 .head p {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: var(--t-4);
   max-width: 78ch;
 }
 .p {
@@ -29,18 +29,18 @@
 }
 .chiffre span {
   display: block;
-  font-size: 0.68rem;
+  font-size: var(--t-1);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .chiffre b {
-  font-size: 1.2rem;
+  font-size: var(--t-6);
   font-variant-numeric: tabular-nums;
 }
 .chiffre em {
   font-style: normal;
-  font-size: 0.86rem;
+  font-size: var(--t-4);
   font-weight: 700;
   margin-left: 6px;
 }
@@ -58,7 +58,7 @@
 .verdictNon {
   margin: 0;
   padding: 10px 12px;
-  font-size: 0.92rem;
+  font-size: var(--t-4);
   line-height: 1.5;
   max-width: 88ch;
 }
@@ -92,21 +92,21 @@
 }
 .rem small {
   display: block;
-  font-size: 0.7rem;
+  font-size: var(--t-1);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .rem p {
   margin: 2px 0 0;
-  font-size: 0.9rem;
+  font-size: var(--t-4);
   line-height: 1.45;
 }
 .conseil {
   text-transform: none !important;
   letter-spacing: 0 !important;
   margin-top: 4px !important;
-  font-size: 0.78rem !important;
+  font-size: var(--t-3) !important;
   font-style: italic;
 }
 
@@ -123,12 +123,12 @@
   margin-bottom: 6px;
 }
 .brutTete b {
-  font-size: 0.88rem;
+  font-size: var(--t-4);
 }
 .brut code {
   display: block;
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   line-height: 1.6;
   word-break: break-all;
   background: var(--surface-2);
@@ -138,13 +138,13 @@
 .brut small {
   display: block;
   margin-top: 6px;
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   color: var(--ink-3);
 }
 
 .code {
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.7rem;
+  font-size: var(--t-1);
   font-weight: 700;
   line-height: 1;
   padding: 3px 5px;
@@ -169,7 +169,7 @@
 }
 .colonnes h3 {
   margin: 0 0 6px;
-  font-size: 0.72rem;
+  font-size: var(--t-2);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -177,7 +177,7 @@
 }
 .colonnes p {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: var(--t-4);
 }
 .diff {
   display: flex;
@@ -188,10 +188,10 @@
   border-bottom: 1px solid var(--line-2);
 }
 .diff b {
-  font-size: 0.84rem;
+  font-size: var(--t-3);
 }
 .diff small {
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   color: var(--ink-3);
 }
 /* Définitive et passagère ne demandent pas le même geste : l'une se constate,
@@ -199,7 +199,7 @@
 .durable,
 .passagere,
 .neuve {
-  font-size: 0.64rem;
+  font-size: var(--t-1);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
