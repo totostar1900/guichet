@@ -1,0 +1,111 @@
+/* Le niveau de l'indice et le négoce qui est dessous : trois étages, un seul
+   axe du temps, et les cinq chiffres de la plage au-dessus. */
+.totaux {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: var(--s-5);
+  margin-top: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.totaux div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.totaux span {
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.totaux b {
+  font-size: var(--t-4);
+  font-variant-numeric: tabular-nums;
+}
+.or {
+  color: var(--gold);
+}
+.bleu {
+  color: var(--navy-text);
+}
+.rouge {
+  color: var(--crit);
+}
+.hausse {
+  color: var(--good);
+}
+.baisse {
+  color: var(--warn);
+}
+
+/* Le titre d'un étage, et ce que son axe couvre : sans l'intervalle, trois
+   cadres de hauteurs différentes se lisent comme une seule échelle. */
+.etage {
+  margin: var(--s-6) 0 var(--s-2);
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.etage i {
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-3);
+  opacity: 0.75;
+}
+.svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.grille {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.tick {
+  font-size: 9px;
+  fill: var(--ink-3);
+}
+.ligne {
+  fill: none;
+  stroke: var(--good);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.point {
+  fill: var(--gold);
+}
+.curseur {
+  stroke: var(--gold);
+  stroke-width: 1;
+  pointer-events: none;
+}
+/* Les barres n'ont pas de filet : à un pixel et demi de large, un filet à la
+   couleur du fond recouvre exactement la surface, et la vue ne montre rien. */
+.barreOr {
+  fill: var(--gold);
+}
+.barreVide {
+  fill: var(--line-2);
+}
+.barreBleue {
+  fill: var(--navy-text);
+}
+.barreMuette {
+  fill: var(--crit);
+}
+.note {
+  margin: var(--s-5) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.55;
+  color: var(--ink-3);
+  max-width: 88ch;
+}

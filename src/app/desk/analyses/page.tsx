@@ -13,8 +13,8 @@ import { EcartTresors, type Ecart } from "@/components/market/EcartTresors";
 import { PressionDemande } from "@/components/market/PressionDemande";
 import { Reprix, type SerieDuree } from "@/components/market/Reprix";
 import { PointsCourbe } from "@/components/market/PointsCourbe";
+import { IndiceEtNegoce } from "@/components/market/IndiceEtNegoce";
 import { COUNTRY_COLOR } from "@/lib/market/couleurs";
-import { Barres, SerieTemps } from "@/components/market/Traces";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getLang, getT } from "@/i18n/server";
@@ -145,6 +145,18 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
   // deux bornes, donnant une hausse de quinze pour cent pour une baisse de
   // treize.
   const avecIndice = bulletins.filter((b) => b.indexValue != null);
+  /**
+   * LE NIVEAU ET LE NÉGOCE, APPARIÉS PAR DATE, en ordre chronologique.
+   *
+   * Les deux séries existaient déjà et ne se rencontraient nulle part : le
+   * niveau vient des bulletins, les lignes et le montant du repli du carnet.
+   * L'appariement se fait ici, côté serveur, parce que l'écran n'a besoin que
+   * de quatre nombres par séance et non des deux séries entières.
+   */
+  const parSeance = new Map((liq?.bySession ?? []).map((s) => [s.date, s]));
+  const negoce = avecIndice
+    .map((b) => ({ on: b.sessionDate, niveau: b.indexValue!, lignes: parSeance.get(b.sessionDate)?.traded ?? 0, montant: parSeance.get(b.sessionDate)?.value ?? 0 }))
+    .sort((a, b) => a.on.localeCompare(b.on));
   /**
    * Toutes les séries, et l'écran choisit.
    *
@@ -874,31 +886,15 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                   <b className={frais.worstDays > 30 ? styles.crit : undefined}>{t("{n} jours", { n: frais.worstDays })}</b>
                 </div>
               </div>
-              {liq && liq.bySession.length > 2 && (
-                <>
-                  {/* Deux grandeurs sans rapport, un niveau et un compte : collées,
-                      elles se lisaient comme un seul graphique à deux étages. */}
-                  <p className={styles.figTitre}>{t("Niveau de l'indice")}</p>
-                  <SerieTemps
-                    traces={[{ couleur: COUNTRY_COLOR.Cameroun, points: avecIndice.map((b) => ({ on: b.sessionDate, v: b.indexValue! })), aire: true, marques: false }]}
-                    unite=""
-                    decimales={0}
-                    height={170}
-                    ariaLabel={t("Niveau de l'indice, séance par séance")}
-                  />
-                  <p className={styles.figTitre}>{t("Lignes traitées, séance par séance")}</p>
-                  <Barres
-                    points={liq.bySession.map((x) => ({ on: x.date, v: x.traded, couleur: x.traded === 0 ? "var(--crit)" : COUNTRY_COLOR.Congo }))}
-                    height={120}
-                    unite=""
-                    decimales={0}
-                    ariaLabel={t("Lignes traitées à chaque séance")}
-                  />
-                  <p className={styles.note}>
-                    {t("En haut le niveau publié, en bas le nombre de lignes qui ont traité ce jour-là. Les barres rouges sont les séances où rien ne s'est échangé sur toute la cote.")}
-                  </p>
-                </>
-              )}
+              {/* LE MONTANT MANQUAIT, et il était calculé depuis toujours.
+                  Deux étages disaient le niveau et le compte de lignes ; une
+                  séance à trois lignes et cinquante-quatre millions ne se
+                  distinguait donc pas d'une séance à trois lignes et deux
+                  millions. Les trois partagent l'axe du temps, et la plage
+                  qui les règle est la leur : la date d'observation et la
+                  profondeur de la page servent à la courbe, qui regarde des
+                  adjudications et non la cote. */}
+              {negoce.length > 2 && <IndiceEtNegoce seances={negoce} cotees={frais.total} />}
               <p className={styles.strong}>
                 {frais.stale.length > 0
                   ? t("Sur {m} composantes du panier, {liste} n'avaient pas traité depuis plus de {s} jours. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.", {

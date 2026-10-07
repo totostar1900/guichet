@@ -443,6 +443,38 @@ export const EN: Record<string, string> = {
     "What the curve stands for. Yield to maturity depends on the security's coupon: two bonds with the same maturity but different coupons do not share one, and putting them on a single curve mixes two things. The zero-coupon rate is the one at which a franc received at that maturity discounts, and it depends on maturity alone: that is what is properly called a yield curve. It is obtained by stripping from each bond the value of its intermediate coupons, discounted on the same Treasury's own curve, and starting again until the curve stops moving. Bills, which carry no coupon, do not move; the foot of the chart says how many securities moved and by how much.",
   "La figure est refaite telle qu'elle se serait lue ce jour-là : seules les séances antérieures sont ramassées, et chaque point se range à la durée qui lui restait à cette date. La courbe d'aujourd'hui reste en filigrane derrière, pour l'écart. Une réserve, et elle est entière : la reconstruction se fait avec les données D'AUJOURD'HUI. Une séance relue la semaine dernière y figure, et une séance qu'on n'avait pas encore ramassée à l'époque y figure aussi. C'est la courbe de ce jour-là vue d'ici, et non ce que nous en savions alors.":
     "The figure is rebuilt as it would have read on that day: only earlier sessions are collected, and each point sits at the life it had left on that date. Today's curve stays behind it as a watermark, for the gap. One caveat, and it is a whole one: the reconstruction uses TODAY's data. A session re-read last week appears in it, and so does a session we had not yet collected at the time. It is that day's curve seen from here, not what we knew then.",
+  "tout afficher":
+    "show all",
+  "Pas assez de séances lues sur cette plage.":
+    "Not enough sessions read over this range.",
+  "dernière de la plage":
+    "last in the range",
+  "niveau de l'indice":
+    "index level",
+  "aucune ligne, séance muette":
+    "no line, silent session",
+  "{n} lignes sur {m}":
+    "{n} lines out of {m}",
+  "Sur la plage":
+    "Over the range",
+  "Montant échangé":
+    "Amount traded",
+  "Lignes × séances":
+    "Lines × sessions",
+  "L'indice y a fait":
+    "The index did",
+  "plus haut sur la plage : {v} FCFA":
+    "highest over the range: {v} FCFA",
+  "Montant échangé à chaque séance":
+    "Amount traded at each session",
+  "Lignes qui ont traité":
+    "Lines that traded",
+  "0 à {n} sur {m} cotées · rouge : séance muette":
+    "0 to {n} out of {m} listed · red: silent session",
+  "Nombre de lignes ayant traité à chaque séance":
+    "Number of lines that traded at each session",
+  "Trois grandeurs sans rapport d'échelle : un niveau, des francs, un compte. Elles ne peuvent pas partager un cadre sans qu'une des trois mente, donc elles partagent l'axe du temps et rien d'autre, et un seul survol les lit toutes les trois. Les deux étages du bas prennent leur hauteur de la plage affichée : resserrer sur un mois calme fait réapparaître ses petites séances, qu'un gros montant d'un autre mois écrasait. Un montant élevé sans mouvement de l'indice est un bloc négocié au même cours, c'est-à-dire de l'activité sans réévaluation.":
+    "Three quantities with no shared scale: a level, francs, a count. They cannot share one frame without one of the three lying, so they share the time axis and nothing else, and a single hover reads all three. The two lower tiers take their height from the range on show: narrowing onto a quiet month brings its small sessions back, where a large amount from another month flattened them. A large amount with no move in the index is a block traded at the same price, that is activity without any repricing.",
   "Tout afficher": "Show all",
   "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
   /* Le texte du calendrier en portrait passe par t(debout ? … : …) : un

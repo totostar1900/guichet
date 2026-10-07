@@ -6,7 +6,8 @@ import type React from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
-import { ampleurVariations, echelonVariations, poserFenetre as bornerFenetre } from "@/lib/domain/indice-fenetre";
+import { BarreDePlage } from "./charts/BarreDePlage";
+import { ampleurVariations, echelonVariations } from "@/lib/domain/indice-fenetre";
 import { fmt, fmtDate, money } from "@/lib/format";
 import { gouttiere } from "@/components/charts/gouttiere";
 import styles from "./IndexChart.module.css";
@@ -175,26 +176,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     setPeriod(k);
     setZoom(null);
   };
-  /* POSER LA FENÊTRE SANS JAMAIS LA VIDER : deux séances au moins, et dans la
-     série. Une fenêtre d'une seule séance tomberait sur le « pas assez de
-     séances » plus bas, qui emporterait la barre avec laquelle on vient de
-     la poser. */
-  const poserFenetre = (a: number, b: number) => setZoom(bornerFenetre(points.length, a, b));
-  /* UNE DATE SAISIE TOMBE RAREMENT SUR UNE SÉANCE : il y en a 697 sur un peu
-     plus de mille jours, et le champ de date propose tous les jours. On retient
-     la séance la plus proche, plutôt que de ne rien faire. */
-  const indexDe = (d: string) => {
-    let best = 0;
-    let bd = Infinity;
-    for (let i = 0; i < points.length; i++) {
-      const w = Math.abs(daysBetween(points[i].date, d));
-      if (w < bd) {
-        bd = w;
-        best = i;
-      }
-    }
-    return best;
-  };
   const ov = overlays.find((o) => o.mnemo === overlay);
   /* La borne gauche de la fenêtre, pour tout ce qui se recoupe par date :
      la valeur comparée, les petites multiples, les contributions. */
@@ -221,11 +202,10 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const dates = pts.map((p) => p.date);
   const d0 = dates[0] ?? "2000-01-01";
   const dN = dates[dates.length - 1] ?? "2000-01-02";
-  /* Les bornes de la SÉRIE, et non de la fenêtre : ce sont elles qui limitent
-     les deux champs de dates, sans quoi la fenêtre ne pourrait que se
-     resserrer, jamais se rouvrir. */
-  const serieD0 = points[0]?.date ?? d0;
-  const serieDN = points[points.length - 1]?.date ?? dN;
+  /* Toutes les dates de la série, pour la barre de plage : ce sont elles qui
+     la bornent, et non la fenêtre, sans quoi celle-ci ne pourrait que se
+     resserrer et jamais se rouvrir. */
+  const toutesLesDates = points.map((p) => p.date);
   const span = Math.max(1, daysBetween(d0, dN));
   const ys = [...series.map((p) => p.y), ...ovSeries.map((p) => p.y)];
   let lo = Math.min(...ys);
@@ -377,34 +357,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
           chose, la fenêtre ; l'épingle reste un clic sur le tracé ou sur une
           case du calendrier. Et la barre sort de la vue Niveau : les huit vues
           partent toutes des séances retenues, elles ont toutes besoin d'elle. */}
-      <div className={styles.fenetreBloc}>
-        <div className={styles.fenetreLu}>
-          <label>
-            {t("Du")}
-            <input type="date" value={points[fenetre[0]]?.date ?? ""} min={serieD0} max={serieDN} onChange={(e) => e.target.value && poserFenetre(indexDe(e.target.value), fenetre[1])} />
-          </label>
-          <label>
-            {t("Au")}
-            <input type="date" value={points[fenetre[1]]?.date ?? ""} min={serieD0} max={serieDN} onChange={(e) => e.target.value && poserFenetre(fenetre[0], indexDe(e.target.value))} />
-          </label>
-          <span>{t("{n} séances sur {m}", { n: String(pts.length), m: String(points.length) })}</span>
-          {zoom && (
-            <button type="button" className={styles.fenetreTout} onClick={() => setZoom(null)}>
-              {t("revenir à la période")}
-            </button>
-          )}
-        </div>
-        <div className={styles.fenetreBarre}>
-          <span className={styles.fenetrePiste} aria-hidden="true" />
-          <span
-            className={styles.fenetrePisteOn}
-            style={{ left: `${(fenetre[0] / Math.max(points.length - 1, 1)) * 100}%`, right: `${100 - (fenetre[1] / Math.max(points.length - 1, 1)) * 100}%` }}
-            aria-hidden="true"
-          />
-          <input type="range" min={0} max={points.length - 1} step={1} value={fenetre[0]} aria-label={t("Première séance affichée")} onChange={(e) => poserFenetre(Number(e.target.value), fenetre[1])} />
-          <input type="range" min={0} max={points.length - 1} step={1} value={fenetre[1]} aria-label={t("Dernière séance affichée")} onChange={(e) => poserFenetre(fenetre[0], Number(e.target.value))} />
-        </div>
-      </div>
+      <BarreDePlage dates={toutesLesDates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} />
 
       {lineView && (
         <>

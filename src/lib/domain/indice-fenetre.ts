@@ -22,6 +22,29 @@ export function poserFenetre(n: number, a: number, b: number): [number, number] 
 }
 
 /**
+ * LA SÉANCE LA PLUS PROCHE D'UNE DATE SAISIE.
+ *
+ * Un champ de date propose tous les jours de l'année ; il y a 697 séances sur
+ * un peu plus de mille jours. Deux fois sur trois la date tapée n'est donc pas
+ * une séance, et ne rien faire laisserait croire que la commande est cassée.
+ * On retient la plus proche, dans un sens ou dans l'autre.
+ */
+export function indexDeLaDate(dates: string[], jour: string): number {
+  const cible = Date.parse(jour);
+  if (!dates.length || Number.isNaN(cible)) return 0;
+  let best = 0;
+  let bd = Infinity;
+  for (let i = 0; i < dates.length; i++) {
+    const d = Math.abs(Date.parse(dates[i]) - cible);
+    if (d < bd) {
+      bd = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/**
  * L'ÉCHELLE DES VARIATIONS SE RÈGLE SUR LE CORPS DE LA DISTRIBUTION.
  *
  * Mesuré sur les 697 séances du dépôt le 7 octobre 2026 : 136 ont bougé, de
