@@ -758,15 +758,71 @@ button.calCell:focus-visible {
   cursor: grab;
 }
 
-/* Le calendrier debout : les cinq jours en largeur, les semaines qui
-   descendent. Les cases gardent leur taille quelle que soit la durée, là où
-   la forme couchée les réduisait à deux pixels sur trois ans. */
-.calDebout .calCell {
-  min-height: 22px;
+/* LE CALENDRIER EN PORTRAIT : DEUX FORMES, UNE SEULE COMMANDE.
+   La boîte à défilement de 60vh est partie : elle montrait dix semaines sur
+   cinquante-trois et se disputait le pouce avec la page, qui défile déjà.
+
+   Au-delà de trois mois, le ruban : une ligne par mois, les jours de bourse
+   en largeur. Vingt-quatre mois en 360 px, trente-six en 540. */
+.calRuban {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-.calDebout {
-  max-height: 60vh;
-  overflow-y: auto;
+.calRubanLigne {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  gap: var(--s-3);
+  align-items: center;
+}
+.calRubanJours {
+  display: grid;
+  grid-template-columns: repeat(23, 1fr);
+  gap: var(--s-1);
+}
+.calRuban .calCell {
+  aspect-ratio: auto;
+  height: 11px;
+  border-radius: 1px;
+}
+.calAn {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  border-top: 1px solid var(--line-2);
+  padding-top: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+/* En deçà de trois mois, la grille du mois : des cases qu'on touche. */
+.calGrille {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.calMoisTitre {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: var(--s-3);
+}
+.calGrilleJours {
+  display: grid;
+  grid-template-columns: 1.6rem repeat(5, 1fr);
+  gap: var(--s-2);
+  align-items: center;
+}
+.calGrille .calCell {
+  aspect-ratio: auto;
+  height: 44px;
+  border-radius: 3px;
+}
+.calRail {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* La croix d'une bulle ancrée : c'est elle qu'on cherche pour la refermer,

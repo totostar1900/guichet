@@ -79,6 +79,40 @@ describe("le pas des graduations", () => {
   });
 });
 
+describe("le calendrier en portrait", () => {
+  const css = readFileSync("src/components/IndexChart.module.css", "utf8");
+
+  it("ne défile pas dans sa propre boîte", () => {
+    /* Mesuré à 375 px : la forme debout tenait 53 semaines de cases 52 × 52
+       dans une boîte de 60vh, soit 487 px — dix semaines visibles sur
+       cinquante-trois, et une boîte qui se dispute le pouce avec la page,
+       qui défile déjà. La page défile, le calendrier non. */
+    expect(css).not.toMatch(/\.calDebout/);
+    const ruban = css.match(/\.calRuban\s*\{([^}]*)\}/);
+    expect(ruban).toBeTruthy();
+    expect(ruban![1]).not.toMatch(/overflow|max-height/);
+  });
+
+  it("garde une case qu'on touche quand la fenêtre est courte", () => {
+    /* Onze pixels se lisent mais ne se visent pas. Sous trois mois le
+       calendrier reprend la grille du mois, et la case y vaut une cible. */
+    const grille = css.match(/\.calGrille \.calCell\s*\{([^}]*)\}/);
+    expect(grille).toBeTruthy();
+    const h = Number((grille![1].match(/height:\s*(\d+)px/) ?? [])[1]);
+    expect(h).toBeGreaterThanOrEqual(44);
+  });
+
+  it("et une case dense quand elle est longue, sans rapport de forme carré", () => {
+    /* Le carré de .calCell donnerait 13 px de haut par case sur 23 colonnes :
+       trente-six mois feraient 500 px de trop. La ligne par mois impose sa
+       hauteur. */
+    const dense = css.match(/\.calRuban \.calCell\s*\{([^}]*)\}/);
+    expect(dense).toBeTruthy();
+    expect(dense![1]).toMatch(/aspect-ratio:\s*auto/);
+    expect(dense![1]).toMatch(/height:\s*11px/);
+  });
+});
+
 describe("les barres des variations n'ont pas de filet", () => {
   it("sinon elles sont peintes à la couleur du fond, sur le fond", () => {
     /* LE DÉFAUT QUI RENDAIT LA VUE VIDE, et qu'aucun essai ne disait : les

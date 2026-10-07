@@ -430,6 +430,10 @@ export const EN: Record<string, string> = {
   "toucher pour épingler": "tap to pin",
   "Cours + volumes": "Price + volumes",
   "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
+  /* Le texte du calendrier en portrait passe par t(debout ? … : …) : un
+     argument ternaire est l'un des trois angles morts du scanner de clefs. */
+  "Une case par jour ouvré. La couleur dit le mouvement de la séance, l'intensité sa force ; le gris est une séance à 0,00 %, le pointillé un jour sans bulletin lu (jour férié, séance non tenue ou bulletin non publié). Au-delà de trois mois, une ligne par mois et les jours de bourse en largeur : toute la période tient d'un coup. En deçà, la grille du mois, avec des cases qu'on touche et la date des lundis sur le rail de gauche. C'est la barre de plage, en haut, qui fait passer de l'une à l'autre.":
+    "One cell per working day. The colour gives the session's move, the intensity its size; grey is a session at 0.00 %, the dotted outline a day with no bulletin read (public holiday, no session held, or bulletin not published). Beyond three months, one row per month with the trading days across: the whole period fits at once. Below that, the month grid, with cells you can touch and each Monday's date on the left rail. The range bar at the top is what moves between the two.",
   "séances bougées": "sessions moved",
   "{n} en hausse": "{n} up",
   "plus fort : {v}": "largest: {v}",

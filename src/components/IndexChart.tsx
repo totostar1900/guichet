@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
@@ -1228,9 +1228,70 @@ function Calendar({ points, company, from, to, onPick, W, pins }: { points: Char
     return i === 0 || weeks[i - 1][0].slice(0, 7) !== m ? new Date(`${weeks[i][0]}T12:00:00Z`).toLocaleDateString("fr-FR", { month: "short" }) : "";
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
-  /* Debout en dessous de 560 px : couché, cent quarante semaines donnent
-     deux pixels par colonne et plus personne ne vise une case. */
+  /**
+   * EN PORTRAIT, DEUX FORMES, ET UNE SEULE COMMANDE POUR EN CHANGER : LA PLAGE.
+   *
+   * Couché au-dessus de 560 px, une colonne par semaine. En dessous, la forme
+   * debout donnait cinquante-trois lignes de cases carrées de 52 px dans une
+   * boîte à défilement de 487 px : mesuré à 375 px, dix semaines visibles sur
+   * cinquante-trois, une boîte qui défile dans une page qui défile déjà, et
+   * plus aucun repère de mois une fois qu'on était descendu.
+   *
+   * Au-delà de trois mois, UNE LIGNE PAR MOIS : les jours de bourse en
+   * largeur (vingt-trois au plus), les mois qui descendent, l'année marquée
+   * d'un filet. Vingt-quatre mois tiennent en 360 px, trente-six en 540 : la
+   * page défile, le calendrier non.
+   *
+   * En deçà, LA GRILLE DU MOIS, cases de 44 px qu'on touche. La date se lit
+   * sur un rail à gauche, une par semaine, et non dans la case : les fonds
+   * vont d'une teinte à 35 % jusqu'au vert plein, et aucune couleur de texte
+   * ne se lit sur les deux.
+   */
   const debout = W < 560;
+  const joursOuvres = weeks.flat().filter((d) => d >= from && d <= to);
+  const moisGroupes: { cle: string; nom: string; court: string; an: string; jours: string[] }[] = [];
+  for (const d of joursOuvres) {
+    const cle = d.slice(0, 7);
+    const dernier = moisGroupes[moisGroupes.length - 1];
+    if (dernier?.cle === cle) dernier.jours.push(d);
+    else {
+      const j = new Date(`${d}T12:00:00Z`);
+      moisGroupes.push({ cle, nom: j.toLocaleDateString("fr-FR", { month: "long" }), court: j.toLocaleDateString("fr-FR", { month: "short" }), an: cle.slice(0, 4), jours: [d] });
+    }
+  }
+  /* LA BASCULE SE JUGE SUR LA DURÉE, PAS SUR LE NOMBRE DE BLOCS : une
+     fenêtre de deux mois peut toucher quatre mois civils quand elle est
+     rognée des deux bouts, et le compte de blocs la renvoyait alors au
+     ruban. Cent jours laissent le jeu qu'il faut à « trois mois ». */
+  const grilleDuMois = debout && daysBetween(from, to) <= 100 && moisGroupes.length <= 4;
+  const cellule = (d: string) => {
+    const p = byDate.get(d);
+    const inRange = d >= from && d <= to;
+    const label = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}` : inRange ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
+    return p ? (
+      <button
+        key={d}
+        type="button"
+        data-date={d}
+        className={`${styles.calCell} ${cls(d)}`}
+        aria-label={label}
+        onPointerDown={(e) => {
+          touch.current = e.pointerType === "touch";
+        }}
+        onClick={(e) => {
+          setTip(null);
+          showTip(d, e.currentTarget, true);
+          onPick(d);
+        }}
+        onPointerEnter={(e) => {
+          if (e.pointerType !== "touch") showTip(d, e.currentTarget);
+        }}
+        onFocus={(e) => showTip(d, e.currentTarget)}
+      />
+    ) : (
+      <i key={d} className={`${styles.calCell} ${cls(d)}`} aria-label={label || undefined} onPointerEnter={inRange ? (e) => showTip(d, e.currentTarget) : undefined} onClick={inRange ? (e) => showTip(d, e.currentTarget) : undefined} />
+    );
+  };
   return (
     <div
       ref={calRef}
@@ -1243,61 +1304,64 @@ function Calendar({ points, company, from, to, onPick, W, pins }: { points: Char
         if (d && d !== tip?.date) showTip(d, el!);
       }}
     >
-      {/* EN PORTRAIT, LE CALENDRIER TOURNE D'UN QUART DE TOUR.
-          Couché, il donne une colonne par semaine : sur 697 séances cela
-          fait cent quarante colonnes dans 330 px, soit deux pixels par
-          semaine — on ne vise plus une case, on ne lit plus un mois. Debout,
-          les cinq jours tiennent la largeur et les semaines descendent,
-          ce qui est la forme d'un calendrier et ce que le pouce sait faire :
-          défiler. Les cases gardent leur taille, quelle que soit la durée. */}
-      <div
-        className={`${styles.cal} ${debout ? styles.calDebout : ""}`}
-        style={debout ? { gridTemplateColumns: "3.2rem repeat(5, 1fr)" } : { gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}
-      >
-        <span />
-        {(debout ? day : weeks.map((w, i) => monthAt(i))).map((nom, i) => (
-          <span key={`tete-${i}`} className={debout ? styles.calDay : styles.calMonth}>
-            {nom}
-          </span>
-        ))}
-        {(debout ? weeks.map((_, i) => i) : [0, 1, 2, 3, 4]).map((k) => (
-          <div key={k} style={{ display: "contents" }}>
-            <span className={debout ? styles.calMonth : styles.calDay}>{debout ? monthAt(k) || "" : day[k]}</span>
-            {(debout ? [weeks[k]] : weeks).map((w) => (debout ? [0, 1, 2, 3, 4] : [k]).map((j) => {
-              const d = w[j];
-              const p = byDate.get(d);
-              const label = p ? `${fmtDate(d)} · ${lvl(p.value)} · ${signed(p.variationPct)}` : d >= from && d <= to ? `${fmtDate(d)} · ${t("bulletin non lu")}` : "";
-              const inRange = d >= from && d <= to;
-              return p ? (
-                <button
-                  key={d}
-                  type="button"
-                  data-date={d}
-                  className={`${styles.calCell} ${cls(d)}`}
-                  aria-label={label}
-                  onPointerDown={(e) => {
-                    touch.current = e.pointerType === "touch";
-                  }}
-                  onClick={(e) => {
-                    /* Le clic ancre la bulle ET épingle la séance, sans
-                       quitter le calendrier : l'épingle sert à la vue
-                       Niveau, qu'on va voir quand on le décide. */
-                    setTip(null);
-                    showTip(d, e.currentTarget, true);
-                    onPick(d);
-                  }}
-                  onPointerEnter={(e) => {
-                    if (e.pointerType !== "touch") showTip(d, e.currentTarget);
-                  }}
-                  onFocus={(e) => showTip(d, e.currentTarget)}
-                />
-              ) : (
-                <i key={d} className={`${styles.calCell} ${cls(d)}`} aria-label={label || undefined} onPointerEnter={inRange ? (e) => showTip(d, e.currentTarget) : undefined} onClick={inRange ? (e) => showTip(d, e.currentTarget) : undefined} />
-              );
-            }))}
-          </div>
-        ))}
-      </div>
+      {grilleDuMois ? (
+        <div className={styles.calGrille}>
+          {moisGroupes.map((m) => (
+            <div key={m.cle}>
+              <div className={styles.calMoisTitre}>
+                {m.nom} {m.an}
+              </div>
+              <div className={styles.calGrilleJours}>
+                <span />
+                {day.map((nom) => (
+                  <span key={nom} className={styles.calDay}>
+                    {nom}
+                  </span>
+                ))}
+                {weeks
+                  .filter((w) => w.some((d) => d.slice(0, 7) === m.cle))
+                  .map((w) => (
+                    <div key={`${m.cle}-${w[0]}`} style={{ display: "contents" }}>
+                      {/* LA DATE SUR UN RAIL, PAS DANS LA CASE : le lundi de
+                          la semaine, en chiffres, là où aucune couleur de
+                          texte ne tiendrait sur des fonds allant d'une
+                          teinte à 35 % au vert plein. */}
+                      <span className={styles.calRail}>{Number(w[0].slice(8, 10))}</span>
+                      {w.map((d) => (d.slice(0, 7) === m.cle ? cellule(d) : <i key={d} className={`${styles.calCell} ${styles.calOut}`} />))}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : debout ? (
+        <div className={styles.calRuban}>
+          {moisGroupes.map((m, i) => (
+            <Fragment key={m.cle}>
+              {m.an !== moisGroupes[i - 1]?.an && <div className={styles.calAn}>{m.an}</div>}
+              <div className={styles.calRubanLigne}>
+                <span className={styles.calMonth}>{m.court}</span>
+                <div className={styles.calRubanJours}>{m.jours.map((d) => cellule(d))}</div>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.cal} style={{ gridTemplateColumns: `28px repeat(${weeks.length}, 1fr)` }}>
+          <span />
+          {weeks.map((w, i) => (
+            <span key={`tete-${w[0]}`} className={styles.calMonth}>
+              {monthAt(i)}
+            </span>
+          ))}
+          {[0, 1, 2, 3, 4].map((k) => (
+            <div key={k} style={{ display: "contents" }}>
+              <span className={styles.calDay}>{day[k]}</span>
+              {weeks.map((w) => cellule(w[k]))}
+            </div>
+          ))}
+        </div>
+      )}
       {tip && (
         <div className={`${styles.calTip} ${tip.above ? styles.calTipAbove : ""}`} style={{ left: tip.x, top: tip.y }} role="status">
           {tip.ancre && (
@@ -1394,7 +1458,13 @@ function Calendar({ points, company, from, to, onPick, W, pins }: { points: Char
           {points.length} {t("séances lues")}, {points.filter((p) => (p.variationPct ?? 0) !== 0).length} {t("avec mouvement")}, {missing} {t("sans bulletin")} · {t("toucher une séance l'épingle sur la vue Niveau")}
         </span>
       </p>
-      <HowTo text={t("Une case par jour ouvré, une colonne par semaine. La couleur dit le mouvement de la séance, l'intensité sa force ; le gris est une séance à 0,00 %, le pointillé un jour sans bulletin lu (jour férié, séance non tenue ou bulletin non publié). Choisir une société colore les cases avec le cours de cette valeur, hachurées quand elle s'échange sans changer de prix.")} />
+      <HowTo
+        text={t(
+          debout
+            ? "Une case par jour ouvré. La couleur dit le mouvement de la séance, l'intensité sa force ; le gris est une séance à 0,00 %, le pointillé un jour sans bulletin lu (jour férié, séance non tenue ou bulletin non publié). Au-delà de trois mois, une ligne par mois et les jours de bourse en largeur : toute la période tient d'un coup. En deçà, la grille du mois, avec des cases qu'on touche et la date des lundis sur le rail de gauche. C'est la barre de plage, en haut, qui fait passer de l'une à l'autre."
+            : "Une case par jour ouvré, une colonne par semaine. La couleur dit le mouvement de la séance, l'intensité sa force ; le gris est une séance à 0,00 %, le pointillé un jour sans bulletin lu (jour férié, séance non tenue ou bulletin non publié). Choisir une société colore les cases avec le cours de cette valeur, hachurées quand elle s'échange sans changer de prix.",
+        )}
+      />
     </div>
   );
 }
