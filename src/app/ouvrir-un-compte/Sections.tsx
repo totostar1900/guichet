@@ -205,7 +205,12 @@ function DocRow({ kind, file, editable }: { kind: KycDocKind; file: ClientFile; 
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(uploadDocAction, null);
   const have = file.documents.find((d) => d.kind === kind);
-  const photoish = kind === "selfie" || kind.startsWith("piece_identite");
+  /* SEUL LE SELFIE EST UNE PHOTO PAR NATURE. La pièce d identité était rangée
+     avec lui, donc elle n acceptait que « image/* » : un client qui a le scan
+     PDF de son passeport, ce qui est le cas le plus soigné, ne pouvait pas le
+     donner. Le justificatif de domicile acceptait déjà les deux, et c est la
+     bonne forme : on la lui applique. */
+  const photoish = kind === "selfie";
   // The photo is shrunk on the phone before the upload, then handed to the server action.
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -228,12 +233,15 @@ function DocRow({ kind, file, editable }: { kind: KycDocKind; file: ClientFile; 
             Reçue · {have.fileName} · {fmtDateTime(have.uploadedAt)}
           </small>
         ) : (
-          <small className="muted">{kind === "selfie" ? "Prenez-vous en photo, visage dégagé, bon éclairage." : "Photo nette ou PDF."}</small>
+          <small className="muted">{kind === "selfie" ? "Prenez-vous en photo, ou choisissez-en une : visage dégagé, bon éclairage." : "Photo nette ou PDF."}</small>
         )}
         <Msg state={state} />
       </div>
       <fieldset disabled={!editable} className={styles.docInput}>
-        <input type="file" name="file" accept={photoish ? "image/*" : "image/*,application/pdf"} capture={kind === "selfie" ? "user" : undefined} required />
+        {/* PAS DE « capture » : avec lui, le téléphone ouvre la caméra et rien
+            d'autre. Sans lui, il propose caméra OU galerie, et celui qui a
+            déjà une photo de lui n'a pas à la reprendre. */}
+        <input type="file" name="file" accept={photoish ? "image/*" : "image/*,application/pdf"} required />
         <button className="btn sm" type="submit" disabled={pending}>
           {pending ? "Envoi…" : have ? "Remplacer" : "Envoyer"}
         </button>

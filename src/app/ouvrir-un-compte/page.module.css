@@ -194,9 +194,14 @@
   flex-direction: column;
   gap: 8px;
 }
+/* LA RANGÉE « AUTRE PIÈCE » EN PORTE TROIS LÀ OÙ LES AUTRES EN PORTENT DEUX :
+   un intitulé à taper, le fichier, le bouton. Avec « 1fr auto », la colonne de
+   droite prend sa largeur de contenu et la gauche ne descend pas sous son
+   min-content : la rangée débordait. « minmax(0, 1fr) » laisse la gauche
+   rétrécir, et les commandes passent à la ligne plutôt que de sortir. */
 .docRow {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   border: 1px solid var(--line);
@@ -221,12 +226,27 @@
   padding: 0;
   margin: 0;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
 }
 .docInput input {
   font-size: 0.78rem;
+  min-width: 0;
   max-width: 220px;
+}
+/* Sous le pouce, la rangée se met en deux étages plutôt que de serrer trois
+   commandes sur une ligne de téléphone. */
+@media (max-width: 560px) {
+  .docRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .docInput {
+    justify-content: flex-start;
+  }
 }
 .convention {
   background: var(--paper);
