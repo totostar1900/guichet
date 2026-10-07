@@ -22,7 +22,6 @@ import { loadIssuerRegistry, loadRegistry } from "@/lib/reference";
 import { issuersForClient } from "@/data/issuer-registry";
 import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
-import { LangSwitch } from "@/components/LangSwitch";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
 import { ConsentGate } from "@/components/ConsentGate";
@@ -33,7 +32,6 @@ import { BarProbe } from "@/components/mobile/BarProbe";
 import { cookies, headers } from "next/headers";
 import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
-import { ADecider } from "@/components/ADecider";
 import { compterAttentes } from "@/lib/domain/contexte-client";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
@@ -125,7 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      thème basculer en cours de navigation. */
   const surface = session ? "travail" : "vitrine";
 
-  const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
+  const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} aDecider={session && !desk ? attentes : 0} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
       <head>
@@ -149,14 +147,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <NavTabs counts={navCounts} mode={navMode} connecte={Boolean(session)} />
             <div className={styles.right}>
-              {/* Ce qui attend une décision, visible depuis n'importe quelle page. */}
-              {session && !desk && <ADecider n={attentes} />}
+              {/* CE QUI A QUITTÉ LA BARRE, ET POURQUOI.
+                  « À décider » est passé dans le « ⋮ », qui en porte le
+                  compte sur son bouton : la barre n'a pas la largeur en
+                  portrait, et le compteur y disputait sa place au seul appel
+                  à l'action de la page, « Ouvrir un compte titres ».
+                  Le sélecteur de langue part aussi, pour les 67 px qu'il
+                  prenait, mesurés : il vit déjà dans le menu, nommé, et se
+                  touche une fois dans la vie d'un compte. */}
               {backend === "memory" && (
                 <span className={styles.backend} title={t("Aucun backend configuré : données de démonstration en mémoire")}>
                   {t("démo · mémoire")}
                 </span>
               )}
-              <LangSwitch />
               <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) } : undefined} />
               {menu}
             </div>

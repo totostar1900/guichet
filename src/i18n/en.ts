@@ -507,6 +507,9 @@ export const EN: Record<string, string> = {
     "Guichet publishes and explains it: it is a market benchmark, which each investor then measures against their own objectives.",
   /* Le libellé passe par un ternaire : le scanner de clefs ne le voit pas. */
   "Ouvrir un compte titres": "Open a securities account",
+  "Menu : {n} décisions vous attendent": "Menu: {n} decisions are waiting for you",
+  "{n} en attente de votre décision": "{n} awaiting your decision",
+  "Ce qui vous attend": "What is waiting for you",
   "Tout afficher": "Show all",
   "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
   /* Le texte du calendrier en portrait passe par t(debout ? … : …) : un
