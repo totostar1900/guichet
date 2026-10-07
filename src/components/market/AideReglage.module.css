@@ -22,11 +22,11 @@
   border-color: var(--select);
   color: var(--select);
 }
+/* Posée sur le corps du document, à des coordonnées de page : hors de tout
+   panneau à « overflow: hidden » et de tout contexte d'empilement. */
 .bulle {
   position: absolute;
-  z-index: 20;
-  top: calc(100% + var(--s-2));
-  left: 0;
+  z-index: 60;
   /* Jamais plus large que l'écran, quel que soit le côté où elle s'ouvre. */
   width: max-content;
   max-width: min(46ch, calc(100vw - var(--s-9)));

@@ -1,82 +1,104 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useT } from "@/i18n/client";
 import styles from "./AideReglage.module.css";
 
 /**
  * LE « ? » D'UN RÉGLAGE : ce qu'il change, ouvert à sa place.
  *
- * Il était un <details> nu, et deux défauts en sont sortis à l'usage.
+ * Trois défauts l'ont façonné, et le troisième explique les deux premiers.
  *
  * IL NE SE FERMAIT QUE PAR SON PROPRE BOUTON. Un <details> natif ignore le
  * clic ailleurs : on ouvrait une bulle, on allait régler autre chose, et elle
- * restait posée sur la commande suivante. Tout ce qui s'ouvre dans cette
- * maison se ferme d'un clic dehors, d'Échap, ou en ouvrant le suivant ; celui
- * du graphique n'avait pas de raison d'y échapper.
+ * restait posée sur la commande suivante.
  *
- * ET IL SORTAIT DE L'ÉCRAN. La bulle était accrochée au bord gauche de son
- * bouton, ce qui va pour les premiers réglages et déborde pour les derniers :
- * mesuré sur « une séance compte pour moitié après », troisième d'une rangée
- * de huit. La retourner vers la gauche suffit sur un écran large et ne suffit
- * pas sur un téléphone, où elle ressort alors de l'autre bord : mesuré à
- * 375 px, un bord gauche à moins cent soixante-cinq. On ne la retourne donc
- * pas, ON LA BORNE : elle part du bouton, et se décale juste assez pour tenir
- * entre les deux bords, ce qui couvre les deux cas d'un seul calcul.
+ * IL SORTAIT DE L'ÉCRAN. Accroché au bord gauche de son bouton, il débordait
+ * à droite pour les réglages de droite. Le retourner réglait l'écran large et
+ * cassait le téléphone, où il ressortait par l'autre bord ; le borner sur la
+ * largeur de la fenêtre a réglé les deux.
+ *
+ * ET IL ÉTAIT COUPÉ PAR SON PANNEAU, ce que la fenêtre ne pouvait pas dire.
+ * « .panel » porte « overflow: hidden », et une bulle en position absolue
+ * dedans se fait tailler à son bord, quelle que soit sa place dans la
+ * fenêtre : sur un écran large elle disparaissait derrière la colonne de
+ * commentaire, qui commence justement là. Aucun calcul de position n'en sort,
+ * parce que le problème n'est pas la position mais le cadre. La bulle est
+ * donc POSÉE SUR LE CORPS DU DOCUMENT, hors de tout panneau et de tout
+ * contexte d'empilement, à des coordonnées de page : elle suit le défilement
+ * comme le reste, et plus rien ne la découpe.
  */
 const MARGE = 8;
 
 export function AideReglage({ texte }: { texte: string }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
-  const [decalage, setDecalage] = useState(0);
-  const boite = useRef<HTMLDivElement>(null);
+  const [ou, setOu] = useState<{ gauche: number; haut: number } | null>(null);
+  const bouton = useRef<HTMLButtonElement>(null);
+  const bulle = useRef<HTMLParagraphElement>(null);
+
+  /* On place APRÈS le premier rendu : une bulle non rendue n'a pas de
+     largeur, et la poser à l'aveugle la ferait sortir d'un côté ou de
+     l'autre. Les coordonnées sont celles de la page, défilement compris. */
+  const placer = useCallback(() => {
+    const b = bouton.current?.getBoundingClientRect();
+    const p = bulle.current?.getBoundingClientRect();
+    if (!b || !p) return;
+    const gauche = Math.max(MARGE, Math.min(b.left, window.innerWidth - MARGE - p.width));
+    setOu({ gauche: Math.round(gauche + window.scrollX), haut: Math.round(b.bottom + 6 + window.scrollY) });
+  }, []);
 
   useEffect(() => {
     if (!ouvert) return;
-    /* On mesure APRÈS l'ouverture : une bulle non rendue n'a pas de largeur,
-       et la déplacer à l'aveugle la ferait sortir de l'autre côté. */
-    const bulle = boite.current?.querySelector("p");
-    const ancre = boite.current?.getBoundingClientRect();
-    if (bulle && ancre) {
-      const l = bulle.getBoundingClientRect().width;
-      const voulu = Math.max(MARGE, Math.min(ancre.left, window.innerWidth - MARGE - l));
-      setDecalage(Math.round(voulu - ancre.left));
-    }
+    placer();
     const dehors = (e: Event) => {
-      const el = boite.current;
-      if (el && e.target instanceof Node && el.contains(e.target)) return;
+      const n = e.target;
+      if (!(n instanceof Node)) return;
+      if (bouton.current?.contains(n) || bulle.current?.contains(n)) return;
       setOuvert(false);
     };
     const parEchap = (e: KeyboardEvent) => e.key === "Escape" && setOuvert(false);
     document.addEventListener("pointerdown", dehors, true);
     document.addEventListener("keydown", parEchap);
+    window.addEventListener("resize", placer);
     return () => {
       document.removeEventListener("pointerdown", dehors, true);
       document.removeEventListener("keydown", parEchap);
+      window.removeEventListener("resize", placer);
     };
-  }, [ouvert]);
+  }, [ouvert, placer]);
 
   return (
-    <div className={styles.aide} ref={boite}>
+    <div className={styles.aide}>
       <button
+        ref={bouton}
         type="button"
         className={styles.bouton}
         aria-expanded={ouvert}
         aria-label={t("Ce que ce réglage change")}
         title={t("Ce que ce réglage change")}
         onClick={() => {
-          setDecalage(0);
+          setOu(null);
           setOuvert((v) => !v);
         }}
       >
         ?
       </button>
-      {ouvert && (
-        <p className={styles.bulle} style={decalage ? { left: `${decalage}px` } : undefined}>
-          {texte}
-        </p>
-      )}
+      {ouvert &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <p
+            ref={bulle}
+            className={styles.bulle}
+            /* Tant qu'on ne l'a pas mesurée, elle est posée mais invisible :
+               un saut d'un coin de l'écran à sa place se verrait. */
+            style={ou ? { left: `${ou.gauche}px`, top: `${ou.haut}px` } : { left: 0, top: 0, visibility: "hidden" }}
+          >
+            {texte}
+          </p>,
+          document.body,
+        )}
     </div>
   );
 }
