@@ -7,6 +7,7 @@ import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { BarreDePlage } from "./charts/BarreDePlage";
+import { IndiceEtNegoce } from "./market/IndiceEtNegoce";
 import { ampleurVariations, echelonVariations } from "@/lib/domain/indice-fenetre";
 import { fmt, fmtDate, money } from "@/lib/format";
 import { gouttiere } from "@/components/charts/gouttiere";
@@ -34,7 +35,6 @@ export interface OverlaySeries {
 
 export type IndexView = "niveau" | "variations" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
 type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
-type VolumeKey = "amount" | "titles" | "trades";
 type Marks = "ligne" | "ligne_mouvements" | "points";
 const PERIODS: [PeriodKey, string][] = [
   ["1m", "1 mois"],
@@ -114,8 +114,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const [period, setPeriod] = useState<PeriodKey>(defaultPeriod);
   const [rebase, setRebase] = useState(false);
   const [overlay, setOverlay] = useState("");
-  const [volKey, setVolKey] = useState<VolumeKey>("amount");
-  const [volOf, setVolOf] = useState("");
   const [pins, setPins] = useState<string[]>([]);
   const [marks, setMarks] = useState<Marks>("ligne_mouvements");
   // the company dimension of the calendar, the capitalisation and the float
@@ -133,8 +131,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     return () => ro.disconnect();
   }, []);
   const withVol = view === "volumes";
-  const volH = withVol ? (W < 480 ? 70 : 90) : 0;
-  const H = (W < 480 ? 240 : 320) + volH;
+  const H = W < 480 ? 240 : 320;
   const padR = 14;
   const padT = 14;
   const padB = 28;
@@ -189,15 +186,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const series = useMemo(() => (showBase ? base(pts) : pts.map((p) => ({ ...p, y: p.value }))), [pts, showBase]);
   const ovSeries = useMemo(() => (ov ? base(ovPts) : []), [ovPts, ov]);
   // the trading of each session, all shares or one
-  const volSrc = overlays.find((o) => o.mnemo === volOf);
-  const volAt = (date: string): number => {
-    if (volSrc) {
-      const q = volSrc.points.find((p) => p.date === date);
-      return q?.[volKey] ?? 0;
-    }
-    const p = pts.find((q) => q.date === date);
-    return p?.[volKey] ?? 0;
-  };
 
   const dates = pts.map((p) => p.date);
   const d0 = dates[0] ?? "2000-01-01";
@@ -215,14 +203,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   hi += pad;
   const ticks = 4;
   const tickVals = Array.from({ length: ticks + 1 }, (_, i) => lo + ((hi - lo) * i) / ticks);
-  const vols = pts.map((p) => volAt(p.date));
-  const volMax = Math.max(1, ...vols);
-  const volLabel = (v: number) => (volKey === "amount" ? money(v) : fmt(v));
   /* Le niveau de l indice tient en cinq caracteres, le volume d une seance en
      francs non : « 1 182,2 M » en demande neuf, et la gouttiere s y plie. */
-  const padL = gouttiere([...tickVals.map((v) => lvl(v, 0)), withVol ? volLabel(volMax) : ""]);
+  const padL = gouttiere(tickVals.map((v) => lvl(v, 0)));
   const x = (d: string) => padL + (daysBetween(d0, d) / span) * (W - padL - padR);
-  const plotB = H - padB - volH;
+  const plotB = H - padB;
   const y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * (plotB - padT);
   const segments = (arr: { date: string; y: number }[]) => {
     const out: string[] = [];
@@ -245,7 +230,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     for (let k = 0; k <= n; k++) dateTicks.push(shift(dN, Math.round(span - k * step)));
   }
   const tickDate = (d: string) => (W < 480 ? new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" }) : fmtDate(d));
-  const totals = { titles: pts.reduce((a, p) => a + (p.titles ?? 0), 0), amount: pts.reduce((a, p) => a + (p.amount ?? 0), 0), trades: pts.reduce((a, p) => a + (p.trades ?? 0), 0), moved: pts.filter((p) => (p.variationPct ?? 0) !== 0).length };
   const togglePin = (date: string) => setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
   const setRange = (a: string, b: string) => setPins(a === b ? [a] : [a, b]);
   const at = (d: string) => pts.find((p) => p.date === d);
@@ -309,7 +293,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             </>,
           ],
         };
-  const lineView = view === "niveau" || view === "volumes";
+  /* LA VUE « COURS + VOLUMES » EST DÉLÉGUÉE au composant partagé avec le
+     panneau du desk : trois étages, trois axes, un seul axe du temps. Elle ne
+     passe donc plus par le tracé du niveau, qui ne portait qu'une grandeur de
+     volume à la fois et aucune graduation. */
+  const lineView = view === "niveau";
 
   return (
     <div className={styles.wrap} ref={boxRef}>
@@ -339,12 +327,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
         )}
         {(view === "calendrier" || view === "capitalisation" || view === "flottant") && (
           <Select compact label={t("Société")} value={company} onChange={setCompany} options={[{ value: "", label: view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
-        )}
-        {withVol && (
-          <>
-            <Select compact label={t("Volumes")} value={volKey} onChange={(v) => setVolKey(v as VolumeKey)} options={[{ value: "amount", label: t("montant échangé (FCFA)") }, { value: "titles", label: t("titres échangés") }, { value: "trades", label: t("nombre de transactions") }]} />
-            <Select compact label={t("Société")} value={volOf} onChange={setVolOf} options={[{ value: "", label: t("toutes les sociétés") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
-          </>
         )}
       </div>
 
@@ -377,24 +359,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               </text>
             ))}
             {showBase && <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />}
-            {withVol && (
-              <g>
-                <line x1={padL} x2={W - padR} y1={H - padB} y2={H - padB} className={styles.grid} />
-                <text x={padL - 6} y={H - padB - volH + 12} textAnchor="end" className={styles.tick}>
-                  {volLabel(volMax)}
-                </text>
-                <text x={padL - 6} y={H - padB} textAnchor="end" className={styles.tick}>
-                  0
-                </text>
-                {pts.map((p, i) => {
-                  const v = vols[i];
-                  if (!v) return null;
-                  const h = (v / volMax) * (volH - 16);
-                  const bw = Math.max(1.5, Math.min(6, ((W - padL - padR) / Math.max(1, pts.length)) * 0.7));
-                  return <rect key={p.date} x={x(p.date) - bw / 2} y={H - padB - h} width={bw} height={h} className={`${styles.vol} ${(p.variationPct ?? 0) !== 0 ? styles.volMoved : ""}`} />;
-                })}
-              </g>
-            )}
             {segments(ovSeries).map((s, i) => (
               <polyline key={`o${i}`} points={s} className={styles.overlay} />
             ))}
@@ -426,11 +390,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             <span>
               <i className={`${styles.sw} ${styles.kUp}`} /> {t("séance en hausse")} <i className={`${styles.sw} ${styles.kDown}`} /> {t("séance en baisse")}
             </span>
-            {withVol && (
-              <span>
-                <i className={`${styles.sw} ${styles.vol}`} /> {volKey === "amount" ? t("montant échangé") : volKey === "titles" ? t("titres échangés") : t("transactions")} <i className={`${styles.sw} ${styles.volMoved}`} /> {t("séance où l'indice a bougé")}
-              </span>
-            )}
             {pinA && pinB && (
               <span>
                 <i className={`${styles.sw} ${styles.kRange}`} /> {t("intervalle épinglé")}
@@ -439,20 +398,18 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
           </p>
           {pinA ? null : (
             <p className={styles.pinsRead}>
-              {withVol
-                ? t("Sur la période : {a} FCFA échangés, {n} transactions, {m} séances avec mouvement. Barres dorées : l'indice a bougé.", { a: money(totals.amount), n: fmt(totals.trades), m: String(totals.moved) })
-                : t("Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.")}
+              {t("Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.")}
             </p>
           )}
           <HowTo
             text={t(
-              withVol
-                ? "Le niveau de l'indice au-dessus, le négoce de chaque séance au-dessous : barre grise quand l'indice n'a pas bougé, dorée quand il a bougé. Une grande barre grise est un bloc négocié au même cours : de l'activité sans mouvement de prix."
-                : "Le niveau publié de l'indice, séance après séance. Les points colorés sont les séances où il a bougé, vert en hausse, orange en baisse ; les autres séances valent exactement le cours de la veille. Une coupure de la ligne veut dire qu'aucun bulletin n'a été lu pendant plus d'une semaine, jamais qu'il ne s'est rien passé.",
+              "Le niveau publié de l'indice, séance après séance. Les points colorés sont les séances où il a bougé, vert en hausse, orange en baisse ; les autres séances valent exactement le cours de la veille. Une coupure de la ligne veut dire qu'aucun bulletin n'a été lu pendant plus d'une semaine, jamais qu'il ne s'est rien passé.",
             )}
           />
         </>
       )}
+
+      {withVol && <IndiceEtNegoce avecBarre={false} seances={pts.map((p) => ({ on: p.date, niveau: p.value, montant: p.amount ?? 0, transactions: p.trades ?? 0 }))} />}
 
       {view === "calendrier" && (
         <Calendar

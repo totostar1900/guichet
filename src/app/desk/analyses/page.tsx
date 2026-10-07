@@ -155,7 +155,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    */
   const parSeance = new Map((liq?.bySession ?? []).map((s) => [s.date, s]));
   const negoce = avecIndice
-    .map((b) => ({ on: b.sessionDate, niveau: b.indexValue!, lignes: parSeance.get(b.sessionDate)?.traded ?? 0, montant: parSeance.get(b.sessionDate)?.value ?? 0 }))
+    .map((b) => ({ on: b.sessionDate, niveau: b.indexValue!, montant: parSeance.get(b.sessionDate)?.value ?? 0, transactions: parSeance.get(b.sessionDate)?.trades ?? 0 }))
     .sort((a, b) => a.on.localeCompare(b.on));
   /**
    * Toutes les séries, et l'écran choisit.
@@ -903,7 +903,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                   qui les règle est la leur : la date d'observation et la
                   profondeur de la page servent à la courbe, qui regarde des
                   adjudications et non la cote. */}
-              {negoce.length > 2 && <IndiceEtNegoce seances={negoce} cotees={frais.total} />}
+              {negoce.length > 2 && <IndiceEtNegoce seances={negoce} />}
               <p className={styles.strong}>
                 {frais.stale.length > 0
                   ? t("Sur {m} composantes du panier, {liste} n'avaient pas traité depuis plus de {s} jours. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.", {

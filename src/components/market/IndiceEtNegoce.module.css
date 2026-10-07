@@ -53,14 +53,6 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.etage i {
-  font-style: normal;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ink-3);
-  opacity: 0.75;
-}
 .svg {
   display: block;
   width: 100%;
@@ -99,6 +91,7 @@
 .barreBleue {
   fill: var(--navy-text);
 }
+/* Une séance sans aucune transaction : elle se voit, elle ne se devine pas. */
 .barreMuette {
   fill: var(--crit);
 }
