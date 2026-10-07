@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AideReglage } from "./AideReglage";
 import { useT } from "@/i18n/client";
 import styles from "./DateObservation.module.css";
 
@@ -30,16 +31,11 @@ export function DateObservation({ ancres, courant }: { ancres: { cle: string; mo
         <span className={styles.etiq} id="courbe-observation">
           {t("Observée le")}
         </span>
-        <details className={styles.aide}>
-          <summary title={t("Ce que ce réglage change")} aria-label={t("Ce que ce réglage change")}>
-            ?
-          </summary>
-          <p>
-            {t(
-              "La figure est refaite telle qu'elle se serait lue ce jour-là : seules les séances antérieures sont ramassées, et chaque point se range à la durée qui lui restait à cette date. La courbe d'aujourd'hui reste en filigrane derrière, pour l'écart. Une réserve, et elle est entière : la reconstruction se fait avec les données D'AUJOURD'HUI. Une séance relue la semaine dernière y figure, et une séance qu'on n'avait pas encore ramassée à l'époque y figure aussi. C'est la courbe de ce jour-là vue d'ici, et non ce que nous en savions alors.",
-            )}
-          </p>
-        </details>
+        <AideReglage
+          texte={t(
+            "La date depuis laquelle on regarde, et non un âge qu'on privilégie. Reculer d'un an ne donne pas plus de poids aux séances anciennes : cela IGNORE purement et simplement tout ce qui s'est adjugé après cette date. La profondeur se compte ensuite à rebours depuis elle, si bien que les deux réglages découpent ensemble une tranche fermée des deux côtés : observée il y a 5 ans sur une profondeur d'un an, ce sont les séances d'il y a 6 à 5 ans, et aucune autre. Chaque point se range à la durée qui lui restait au jour de SA séance. Une réserve, et elle est entière : la reconstruction se fait avec les données d'aujourd'hui, donc une séance relue la semaine dernière y figure. C'est la courbe de ce jour-là vue d'ici, et non ce que nous en savions alors.",
+          )}
+        />
       </div>
       <div className={styles.seg} role="group" aria-labelledby="courbe-observation">
         {ancres.map((a) => (

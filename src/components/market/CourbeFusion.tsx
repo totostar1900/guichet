@@ -7,6 +7,7 @@ import { depouiller } from "@/lib/market/zero-coupon";
 import { abouti, ajuster, tauxCourt, type Ajustement, type Refus } from "@/lib/market/nelson-siegel";
 import { consolide } from "@/lib/market/zone";
 import { LectureCourbe } from "./LectureCourbe";
+import { AideReglage } from "./AideReglage";
 import { useT } from "@/i18n/client";
 import { coupeAu, serieBeacDe, type CourbePays, type Fenetre, type ReleveBeacVu } from "@/lib/market/courbe-vue";
 import styles from "./CourbeFusion.module.css";
@@ -413,14 +414,7 @@ export function CourbeFusion({
         <span className={styles.etiq} id={id}>
           {etiq}
         </span>
-        {aide && (
-          <details className={styles.aide}>
-            <summary title={t("Ce que ce réglage change")} aria-label={t("Ce que ce réglage change")}>
-              ?
-            </summary>
-            <p>{aide}</p>
-          </details>
-        )}
+        {aide && <AideReglage texte={aide} />}
       </div>
       <div className={styles.seg} role="group" aria-labelledby={id}>
         {enfants}
