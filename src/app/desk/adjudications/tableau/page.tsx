@@ -115,9 +115,21 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
             <span>{t("Trésors")}</span>
             <b>{fmt(s.pays)}</b>
           </div>
+          {/* LA PÉRIODE SUR DEUX LIGNES, début au-dessus, fin au-dessous.
+              « 2019-08-21 → 2026-09-15 » sur une ligne est deux fois plus
+              long que les six autres valeurs de la bande : il se repliait
+              où il pouvait, la flèche restant seule en bout de ligne. Et les
+              dates s'écrivent comme partout ailleurs, pas en ISO. */}
           <div>
             <span>{t("Période")}</span>
-            <b>{s.du ? `${s.du} → ${s.au}` : "—"}</b>
+            {s.du ? (
+              <b className={styles.periode}>
+                <span>{fmtDate(s.du)}</span>
+                <span>{fmtDate(s.au!)}</span>
+              </b>
+            ) : (
+              <b>—</b>
+            )}
           </div>
           <div>
             <span>{t("Taux moyen, relus")}</span>
@@ -134,10 +146,12 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
           </p>
         )}
 
-        {rows.length === 0 ? (
-          <div className="empty">{t("Aucune séance ne répond à ces filtres.")}</div>
-        ) : (
-          <TallTable total={rows.length}>
+        {/* LA TABLE RESTE MÊME VIDE, PARCE QU'ELLE PORTE SES PROPRES
+            COMMANDES. Zéro ligne remplaçait tout le bloc par un « aucune
+            séance » : les quatre filtres partaient avec, et le seul moyen de
+            défaire celui qui venait de tout exclure était de retaper
+            l'adresse. Une commande ne détruit pas la commande qui l'annule. */}
+        <TallTable total={rows.length}>
             <form method="get" id="filtrage" className={styles.filtrage}>
               <FiltreAuto formId="filtrage" />
               <input type="hidden" name="tri" value={tri} />
@@ -162,22 +176,29 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   {th("servi", "Servi", true)}
                   {th("etat", "État")}
                   </tr>
-                  {/* Chaque commande sous la colonne qu'elle resserre. */}
+                  {/* Chaque commande sous la colonne qu'elle resserre.
+                      SANS BOUTON « FILTRER » : chaque commande part en
+                      changeant, le bouton ne faisait que répéter un geste
+                      déjà fait, et sa cellule à cheval sur six colonnes
+                      laissait une bande vide de 521 px au milieu de la
+                      rangée. Il reste dans un <noscript>, pour le cas où le
+                      script n'a pas tourné. */}
                   <tr className={styles.filters}>
                     <th>
-                      <input type="date" name="du" defaultValue={sp.du ?? ""} aria-label={t("Du")} />
-                      <input type="date" name="au" defaultValue={sp.au ?? ""} aria-label={t("Au")} />
+                      <div className={styles.bornes}>
+                        <input type="date" name="du" defaultValue={sp.du ?? ""} aria-label={t("Du")} />
+                        <input type="date" name="au" defaultValue={sp.au ?? ""} aria-label={t("Au")} />
+                      </div>
                     </th>
                     <th>{filtre("pays", distinct(all, (x) => x.country), "tous")}</th>
                     <th>{filtre("instrument", distinct(all, (x) => x.instrument), "tous")}</th>
                     <th>{filtre("duree", distinct(all, (x) => x.tenor), "toutes")}</th>
-                    <th colSpan={6} className={styles.r}>
-                      <button className="btn sm" type="submit">
-                        {t("Filtrer")}
-                      </button>{" "}
-                      <Link className="btn sm ghost" href="/desk/adjudications/tableau">
-                        {t("Tout")}
-                      </Link>
+                    <th colSpan={6}>
+                      <noscript>
+                        <button className="btn sm" type="submit">
+                          {t("Filtrer")}
+                        </button>
+                      </noscript>
                     </th>
                     <th>
                       {filtre("etat", [
@@ -189,6 +210,14 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   </tr>
                 </thead>
                 <tbody>
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={11} className={styles.rienDuTout}>
+                      {t("Aucune séance ne répond à ces filtres.")}{" "}
+                      <Link href="/desk/adjudications/tableau">{t("Tout afficher")}</Link>
+                    </td>
+                  </tr>
+                )}
                 {rows.map(({ r: x, chiffre, unite, plage, couverture, mince }) => (
                   <tr key={x.id} className={x.confirmedBy ? undefined : styles.draft}>
                     <td>
@@ -228,8 +257,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                 </tbody>
               </table>
             </form>
-          </TallTable>
-        )}
+        </TallTable>
       </div>
     </>
   );

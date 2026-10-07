@@ -12,11 +12,11 @@
 }
 .head h1 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: var(--t-6);
 }
 .head p {
   margin: var(--s-1) 0 0;
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   max-width: 62ch;
 }
 
@@ -37,15 +37,30 @@
   min-width: 0;
 }
 .band span {
-  font-size: 0.64rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .band b {
-  font-size: 0.95rem;
+  font-size: var(--t-4);
   font-variant-numeric: tabular-nums;
+}
+/* La période est la seule valeur de la bande qui en porte deux : début
+   au-dessus, fin au-dessous, à la place d'une ligne deux fois plus longue
+   que ses six voisines, qui se repliait où elle pouvait. */
+.periode {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+/* Zéro ligne : la phrase se dit DANS la table, qui garde ses filtres. */
+.rienDuTout {
+  padding: var(--s-9) var(--s-4);
+  text-align: center;
+  color: var(--ink-3);
+  white-space: normal;
 }
 /* Zéro séance relue : la moyenne n'existe pas, et le chiffre ne doit pas
    ressembler à une mesure. */
@@ -60,7 +75,7 @@
   background: var(--gold-soft);
   border: 1px solid var(--gold-line);
   color: var(--gold-ink);
-  font-size: 0.78rem;
+  font-size: var(--t-3);
 }
 
 /* La rangée des filtres se colle sous celle des titres : on garde les deux
@@ -88,18 +103,25 @@
   border-radius: 5px;
   background: var(--surface);
   font: inherit;
-  font-size: 0.7rem;
+  font-size: var(--t-2);
   color: var(--ink);
 }
-.table tr.filters input + input {
-  margin-top: var(--s-1);
+/* LES DEUX BORNES EMPILÉES, ET DANS LEUR CELLULE.
+   « input + input { margin-top } » suppose une pile ; deux champs restaient
+   côte à côte, chacun large de 227 px dans une cellule de 243, et le second
+   débordait sur la colonne du Trésor. Une colonne flex les empile pour de
+   bon. */
+.bornes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
 }
 
 .table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   font-variant-numeric: tabular-nums;
 }
 .table th,
@@ -115,7 +137,7 @@
   z-index: 1;
   background: var(--surface);
   border-bottom: 1px solid var(--ink-3);
-  font-size: 0.64rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;

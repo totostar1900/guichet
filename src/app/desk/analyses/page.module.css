@@ -12,11 +12,11 @@
 }
 .head h1 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: var(--t-6);
 }
 .head p {
   margin: var(--s-1) 0 0;
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   max-width: 76ch;
 }
 
@@ -38,7 +38,7 @@
 }
 .band span,
 .kpis span {
-  font-size: 0.64rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -46,7 +46,7 @@
 }
 .band b,
 .kpis b {
-  font-size: 0.95rem;
+  font-size: var(--t-4);
   font-variant-numeric: tabular-nums;
 }
 .warnb {
@@ -86,11 +86,11 @@
   gap: var(--s-2);
 }
 .tile b {
-  font-size: 0.9rem;
+  font-size: var(--t-4);
 }
 .tile em {
   font-style: normal;
-  font-size: 0.7rem;
+  font-size: var(--t-1);
   color: var(--ink-3);
 }
 .dot {
@@ -104,7 +104,7 @@
   flex-direction: column;
   gap: var(--s-1);
   margin-top: var(--s-2);
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   font-variant-numeric: tabular-nums;
 }
 .pts span {
@@ -114,7 +114,7 @@
   color: var(--ink-2);
 }
 .pts b {
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   color: var(--ink);
 }
 
@@ -135,7 +135,7 @@
   padding: var(--s-5) var(--panel-inset);
   border-top: 1px solid var(--line);
   color: var(--ink-2);
-  font-size: 0.78rem;
+  font-size: var(--t-3);
 }
 .pb .note {
   padding: var(--s-5) 0 0;
@@ -150,13 +150,13 @@
   background: var(--gold-soft);
   border: 1px solid var(--gold-line);
   color: var(--gold-ink);
-  font-size: 0.82rem;
+  font-size: var(--t-3);
 }
 
 .steps {
   margin: 0;
   padding-left: var(--s-8);
-  font-size: 0.82rem;
+  font-size: var(--t-3);
   color: var(--ink-2);
 }
 .steps li {
@@ -170,7 +170,7 @@
   gap: var(--s-7);
   flex-wrap: wrap;
   margin: var(--s-5) 0 0;
-  font-size: 0.76rem;
+  font-size: var(--t-2);
   color: var(--ink-2);
 }
 .legende span {
@@ -270,7 +270,7 @@
    collées, elles se lisaient comme un seul graphique à deux étages. */
 .figTitre {
   margin: var(--s-9) 0 var(--s-4);
-  font-size: 0.66rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -284,10 +284,10 @@
    descend à celle du rail : sur un écran de desk, quelques centièmes de rem
    rendent la largeur d'une colonne sans rien coûter à la lecture. */
 .crible {
-  font-size: 0.77rem;
+  font-size: var(--t-2);
 }
 .crible th {
-  font-size: 0.62rem;
+  font-size: var(--t-1);
 }
 /* Un code se lit caractère par caractère : chiffres de même largeur, et pas de
    retour à la ligne au milieu. */

@@ -68,12 +68,14 @@ const horsEchelle = (): string[] => {
  *
  * Parti de 1 244, il est descendu à 1 215 le jour même : les trois feuilles du
  * dépôt des bulletins sont passées à l'échelle, trente-quatre déclarations.
+ * Le 7 octobre, 1 183 : la page Analyse et la courbe fusionnée, trente-deux
+ * déclarations, rangées en répondant à « on ne les veut pas trop grosses ».
  *
  * Il descend quand une page passe à l'échelle. S'il remonte, c'est qu'une
  * taille neuve a été inventée, et c'est précisément le moment où la question
  * « laquelle des sept ? » doit se poser.
  */
-const PLAFOND = 1215;
+const PLAFOND = 1183;
 
 describe("l'échelle typographique", () => {
   it("ne laisse pas les tailles hors échelle se multiplier", () => {

@@ -429,6 +429,7 @@ export const EN: Record<string, string> = {
   "épinglée : la vue Niveau la montre": "pinned: the Level view shows it",
   "toucher pour épingler": "tap to pin",
   "Cours + volumes": "Price + volumes",
+  "Tout afficher": "Show all",
   "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
   /* Le texte du calendrier en portrait passe par t(debout ? … : …) : un
      argument ternaire est l'un des trois angles morts du scanner de clefs. */

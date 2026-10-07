@@ -28,12 +28,12 @@
   color: var(--ink-2);
 }
 .vision button b {
-  font-size: 0.95rem;
+  font-size: var(--t-4);
   font-weight: 700;
   color: var(--ink);
 }
 .vision button span {
-  font-size: 0.76rem;
+  font-size: var(--t-2);
   line-height: 1.45;
 }
 .vision button[aria-pressed="true"] {
@@ -66,7 +66,7 @@
   opacity: 0.42;
 }
 .etiq {
-  font-size: 0.63rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -88,7 +88,7 @@
   color: var(--ink-2);
   cursor: pointer;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: var(--t-2);
   padding: var(--s-4) var(--s-6);
   white-space: nowrap;
 }
@@ -139,7 +139,7 @@
   margin-bottom: var(--s-4);
 }
 .chQuoi {
-  font-size: 0.63rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -147,7 +147,7 @@
 }
 .phrase {
   margin: 0 0 var(--s-6);
-  font-size: 1.02rem;
+  font-size: var(--t-4);
   line-height: 1.55;
   color: var(--ink);
   text-wrap: balance;
@@ -171,7 +171,7 @@
   min-width: 0;
 }
 .kpis dt {
-  font-size: 0.6rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -179,13 +179,13 @@
 }
 .kpis dd {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--t-4);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 .kpis span {
-  font-size: 0.7rem;
+  font-size: var(--t-1);
   line-height: 1.35;
   color: var(--ink-3);
 }
@@ -202,7 +202,7 @@
   border-left: 3px solid var(--crit);
   border-radius: 0 7px 7px 0;
   background: var(--surface-2);
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   line-height: 1.55;
   color: var(--ink-2);
 }
@@ -282,13 +282,13 @@
   border-radius: 8px;
   background: #0d1526;
   color: #fff;
-  font-size: 0.74rem;
+  font-size: var(--t-2);
   line-height: 1.45;
   box-shadow: 0 6px 22px rgba(4, 10, 22, 0.32);
 }
 .bulleTitre {
   margin-bottom: var(--s-3);
-  font-size: 0.72rem;
+  font-size: var(--t-2);
   font-weight: 700;
   color: #c8d4e6;
 }
@@ -309,7 +309,7 @@
 .bulleDate {
   display: block;
   font-style: normal;
-  font-size: 0.68rem;
+  font-size: var(--t-1);
   opacity: 0.72;
 }
 .bulleNote {
@@ -317,7 +317,7 @@
   padding-top: var(--s-3);
   border-top: 1px solid #24324a;
   color: #9fb0c9;
-  font-size: 0.68rem;
+  font-size: var(--t-1);
 }
 
 .legende {
@@ -325,7 +325,7 @@
   flex-wrap: wrap;
   gap: var(--s-4) var(--s-7);
   margin-top: var(--s-5);
-  font-size: 0.74rem;
+  font-size: var(--t-2);
   color: var(--ink-2);
 }
 .legende span {
@@ -370,22 +370,52 @@
 }
 
 .params,
+/* LE TABLEAU SE PARCOURT SANS PERDRE SES REPÈRES.
+   Il porte une ligne par durée et une colonne par Trésor : en descendant on
+   ne savait plus quel Trésor tient la colonne, en allant à droite on ne
+   savait plus de quelle durée on lit le taux. L'en-tête et la première
+   colonne restent donc en place, et la boîte prend sa propre barre.
+   « border-collapse: separate » est la condition d'un en-tête collant : avec
+   « collapse », les bordures appartiennent à la table et la cellule collée
+   perd la sienne en chemin. */
 .usuels {
   margin-top: var(--s-6);
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 60vh;
+  overscroll-behavior: contain;
+}
+.usuels thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+}
+.usuels th:first-child,
+.usuels td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--line-2);
+}
+.usuels tbody td:first-child {
+  z-index: 1;
+}
+/* Le coin passe devant les deux, sans quoi il glisse sous l'un ou sous l'autre. */
+.usuels thead th:first-child {
+  z-index: 3;
 }
 .params table,
 .usuels table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.78rem;
+  font-size: var(--t-3);
   font-variant-numeric: tabular-nums;
 }
 .params th,
 .usuels th {
   text-align: left;
-  font-size: 0.66rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -410,7 +440,7 @@
 }
 .pm {
   color: var(--ink-3);
-  font-size: 0.72rem;
+  font-size: var(--t-2);
 }
 .hors {
   opacity: 0.55;
@@ -419,18 +449,18 @@
 .extra {
   display: block;
   font-style: normal;
-  font-size: 0.66rem;
+  font-size: var(--t-1);
   opacity: 0.7;
 }
 .note {
   margin: var(--s-5) 0 0;
-  font-size: 0.74rem;
+  font-size: var(--t-2);
   color: var(--ink-3);
   line-height: 1.5;
 }
 .beacNote {
   margin: var(--s-5) 0 0;
-  font-size: 0.74rem;
+  font-size: var(--t-2);
   line-height: 1.5;
   color: var(--ink-3);
 }

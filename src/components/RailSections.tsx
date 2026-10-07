@@ -46,21 +46,50 @@ export function RailSections({ sections }: { sections: SectionRail[] }) {
 
   useEffect(() => {
     /**
-     * La marge haute écarte l'en-tête, la marge basse empêche qu'une section
-     * traversée en diagonale prenne la main : ce qui compte est celle qui
-     * occupe le haut de l'écran, pas celle qui l'effleure.
+     * CE N'EST PLUS UNE BANDE QUI DÉSIGNE LA SECTION, MAIS UNE LIGNE.
+     *
+     * L'observation d'intersection ne retenait une section que si elle
+     * croisait les 10 % à 25 % de la hauteur d'écran. Deux défauts, et le
+     * second est celui qu'on voyait : une section plus courte que la bande ne
+     * la remplit jamais, et surtout LA DERNIÈRE NE PEUT PAS L'ATTEINDRE. Une
+     * fois la page au bout de son défilement, elle reste plus bas que la
+     * ligne, et le rail continuait de désigner l'avant-dernière. Rien ne
+     * recalculait non plus quand une section SORTAIT de la bande : la
+     * sélection restait sur la dernière entrée vue, laquelle dépendait de
+     * l'ordre d'arrivée des notifications.
+     *
+     * On prend donc la dernière section dont le haut est passé au-dessus du
+     * quart de l'écran, et le bas de page désigne la dernière, point final.
+     * Les douze mesures tiennent dans une image : la lecture est demandée par
+     * « requestAnimationFrame », jamais une par événement de défilement.
      */
-    const obs = new IntersectionObserver(
-      (entrees) => {
-        for (const e of entrees) if (e.isIntersecting) setCourante(e.target.id);
-      },
-      { rootMargin: "-10% 0px -75% 0px" },
-    );
-    for (const s of sections) {
-      const el = document.getElementById(s.id);
-      if (el) obs.observe(el);
-    }
-    return () => obs.disconnect();
+    const ids = sections.map((s) => s.id);
+    const els = ids.map((id) => document.getElementById(id)).filter((e): e is HTMLElement => Boolean(e));
+    if (!els.length) return;
+    let demande = 0;
+    const mesurer = () => {
+      demande = 0;
+      const doc = document.documentElement;
+      if (window.scrollY + window.innerHeight >= doc.scrollHeight - 2) {
+        setCourante(els[els.length - 1].id);
+        return;
+      }
+      const ligne = window.innerHeight * 0.25;
+      let vu = els[0].id;
+      for (const el of els) if (el.getBoundingClientRect().top <= ligne) vu = el.id;
+      setCourante(vu);
+    };
+    const planifier = () => {
+      if (!demande) demande = window.requestAnimationFrame(mesurer);
+    };
+    window.addEventListener("scroll", planifier, { passive: true });
+    window.addEventListener("resize", planifier);
+    planifier();
+    return () => {
+      if (demande) window.cancelAnimationFrame(demande);
+      window.removeEventListener("scroll", planifier);
+      window.removeEventListener("resize", planifier);
+    };
   }, [sections]);
 
   // Le groupe se décide avant le rendu : muter une variable pendant qu'on rend
