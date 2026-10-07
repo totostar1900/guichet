@@ -63,14 +63,22 @@
     display: none;
   }
 }
+/* « OUVRIR UN COMPTE » NE DISAIT PAS QUEL COMPTE. Le libellé entier ne tient
+   pas sur une ligne dans une barre qui porte déjà la navigation, le nom et
+   l'avatar : il passe donc sur deux lignes serrées, assez petites pour ne pas
+   pousser ses voisins, assez grandes pour se lire. La hauteur de la barre ne
+   bouge pas, les deux lignes tenant dans l'interligne qu'elle avait déjà. */
 .open {
   color: #e0b65a;
   border: 1px solid rgba(224, 182, 90, 0.6);
   border-radius: var(--radius);
-  padding: 5px 10px;
-  font-size: 0.76rem;
+  padding: var(--s-2) var(--s-4);
+  font-size: var(--t-1);
+  line-height: 1.15;
+  text-align: center;
   text-decoration: none;
-  white-space: nowrap;
+  text-wrap: balance;
+  max-width: 11ch;
 }
 .open:hover {
   background: rgba(224, 182, 90, 0.15);

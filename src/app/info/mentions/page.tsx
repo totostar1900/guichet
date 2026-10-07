@@ -16,7 +16,7 @@ export default async function MentionsPage() {
   return (
     <div className={styles.wrap}>
       <div className="eyebrow">{t("Mentions et responsabilités")}</div>
-      <h1 className="display">{t("Ce que vous acceptez en utilisant le Guichet")}</h1>
+      <h1 className="display">{t("Ce que vous acceptez en utilisant Guichet")}</h1>
       <p className={styles.version}>{t("Version du {date}", { date: fmtDate(LEGAL_VERSION) })}</p>
       {LEGAL.map((s) => (
         <section key={s.id} id={s.id} className={styles.section}>

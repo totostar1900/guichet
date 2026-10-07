@@ -426,7 +426,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             </p>
             <p>{t("Ce que l'indice dit réellement tient en trois points, et ils ont leur valeur : le niveau de prix du segment coté, utile pour situer une souscription ; l'état d'avancement du marché lui-même, mesuré par le nombre d'émetteurs, la taille du flottant et la rotation ; et la concentration du risque, qui est une information de gouvernance autant que de marché.")}</p>
             <p>
-              {t("Pour lire l'économie de la zone, deux séries voisines sont plus solides, et le Guichet les porte déjà : le marché des titres publics, où une seule adjudication du Trésor porte sur des montants sans commune mesure avec les échanges d'actions d'une année entière, avec des taux et une fréquence hebdomadaire ; et les valeurs liquidatives des OPCVM, publiées elles aussi à chaque bulletin. Ce sont elles qui portent le signal du coût de l'argent dans la région.")}
+              {t("Pour lire l'économie de la zone, deux séries voisines sont plus solides, et Guichet les porte déjà : le marché des titres publics, où une seule adjudication du Trésor porte sur des montants sans commune mesure avec les échanges d'actions d'une année entière, avec des taux et une fréquence hebdomadaire ; et les valeurs liquidatives des OPCVM, publiées elles aussi à chaque bulletin. Ce sont elles qui portent le signal du coût de l'argent dans la région.")}
             </p>
             <h3>{t("Ce qui ferait de cet indice un vrai baromètre")}</h3>
             <ul className={styles.list}>

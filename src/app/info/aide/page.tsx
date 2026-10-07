@@ -34,7 +34,7 @@ export default async function AidePage() {
     intro: <DocBlockList blocks={c.blocks.filter((b) => b.type !== "table")} lang={lang} />,
     rows: rows.filter((r) => r.chapter === c.id),
   }));
-  const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("Bonjour, j'ai une question sur le Guichet…"))}`;
+  const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("Bonjour, j'ai une question sur Guichet…"))}`;
   return (
     <div className={`${styles.reader} ${styles.readerTwo}`}>
       <nav className={styles.nav} aria-label={t("Aide")}>

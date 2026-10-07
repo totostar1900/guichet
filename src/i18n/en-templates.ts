@@ -245,7 +245,7 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Personnes physiques + groupements": "Individuals + groups",
   "Porteurs de la ligne": "Holders of the line",
   "Complétez les dates et le taux pour voir l'aperçu.": "Fill in the dates and the rate to see the preview.",
-  "Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées.": "Publishing creates version 1 of the offer, shows it in the Guichet and triggers the ticked broadcasts.",
+  "Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées.": "Publishing creates version 1 of the offer, shows it in Guichet and triggers the ticked broadcasts.",
   "Champs manquants pour publier": "Fields missing to publish",
   "Déjà publié le {d}. Publier à nouveau crée la version {v} et renotifie les clients.": "Already published on {d}. Publishing again creates version {v} and notifies clients again.",
   "{y} de rendement actuariel annuel brut si servi à {p} · coupon {c} · {tenor} · décaissement {o} pour 10 M de nominal (dont {a} de coupon couru)": "{y} gross annual yield to maturity if served at {p} · coupon {c} · {tenor} · outlay {o} for 10 M of par (of which {a} accrued interest)",

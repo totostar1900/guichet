@@ -7,7 +7,7 @@ export const EN_NEWS: Record<string, string> = {
 
   /* reader's page */
   "Ce qui bouge sur le marché, en trois lignes": "What is moving on the market, in three lines",
-  "Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : le Guichet renvoie vers l'original.":
+  "Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : Guichet renvoie vers l'original.":
     "Every day the desk picks the publications that matter for your lines, Treasury notices, BVMAC bulletins, COSUMAF decisions, the business press, and says why. Articles stay with their publishers: the Guichet sends you to the original.",
   "Une ligne, un émetteur, un mot": "A line, an issuer, a word",
   "Tout": "All",
@@ -25,7 +25,7 @@ export const EN_NEWS: Record<string, string> = {
   "{n} publication cette semaine · {m} en tout": "{n} publication this week · {m} in all",
   "Semaines précédentes": "Previous weeks",
   "Retour au mois en cours": "Back to the current month",
-  "Les articles et communiqués appartiennent à leurs éditeurs ; le Guichet n'en reproduit ni le texte ni les images. La sélection et les deux lignes de lecture sont rédigées par le desk de Purpose Capital et n'ont pas valeur de conseil.":
+  "Les articles et communiqués appartiennent à leurs éditeurs ; Guichet n'en reproduit ni le texte ni les images. La sélection et les deux lignes de lecture sont rédigées par le desk de Purpose Capital et n'ont pas valeur de conseil.":
     "Articles and notices belong to their publishers; the Guichet reproduces neither their text nor their images. The selection and the two lines of reading are written by Purpose Capital's desk and are not advice.",
   "En lien avec vos lignes": "About your lines",
   "Rien de publié ce mois-ci sur les lignes que vous détenez ou avez demandées.": "Nothing published this month about the lines you hold or asked for.",
@@ -49,7 +49,7 @@ export const EN_NEWS: Record<string, string> = {
   "PDF · {n} p.": "PDF · {n} p.",
 
   /* desk */
-  "Des liens vers ce que d'autres publient, Trésors, BVMAC, COSUMAF, presse, sociétés cotées, sociétés de gestion, avec deux lignes du desk sur ce que cela change pour les lignes du Guichet. Jamais l'article lui-même : le lecteur est renvoyé à l'original.":
+  "Des liens vers ce que d'autres publient, Trésors, BVMAC, COSUMAF, presse, sociétés cotées, sociétés de gestion, avec deux lignes du desk sur ce que cela change pour les lignes de Guichet. Jamais l'article lui-même : le lecteur est renvoyé à l'original.":
     "Links to what others publish, Treasuries, BVMAC, COSUMAF, press, listed companies, fund managers, with two lines from the desk on what it changes for the Guichet's lines. Never the article itself: the reader is sent to the original.",
   "Veille": "Watch",
   "flux": "feed(s)",

@@ -87,7 +87,7 @@ export const FONCTIONNEMENT: DocPage = {
         { type: "lead", text: l("Une ligne naît d'un communiqué, vit une fenêtre de souscription, puis continue jusqu'à son échéance. À chaque étape, l'application dit qui agit et garde une version.", "A line is born from a notice, lives through a subscription window, then continues to maturity. At every step the app says who acts and keeps a version.") },
         {
           type: "flow",
-          steps: [l("Communiqué reçu", "Notice received"), l("À valider : extraction + contrôles", "To validate: extraction + checks"), l("Publiée sur le Guichet", "Published"), l("Intentions des clients", "Client intentions"), l("Bordereau au SVT", "Slip to the primary dealer"), l("Résultats saisis", "Results entered"), l("Règlement", "Settlement"), l("Vie du titre : coupons, cotation, rachat", "Life of the security: coupons, prices, buyback")],
+          steps: [l("Communiqué reçu", "Notice received"), l("À valider : extraction + contrôles", "To validate: extraction + checks"), l("Publiée sur Guichet", "Published"), l("Intentions des clients", "Client intentions"), l("Bordereau au SVT", "Slip to the primary dealer"), l("Résultats saisis", "Results entered"), l("Règlement", "Settlement"), l("Vie du titre : coupons, cotation, rachat", "Life of the security: coupons, prices, buyback")],
         },
         {
           type: "table",

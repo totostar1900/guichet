@@ -37,7 +37,7 @@ function LiveLine({ live }: { live: Live }) {
   const t = useT();
   return (
     <div className={styles.live}>
-      <b>{t("Sur une vraie ligne du Guichet")}</b>
+      <b>{t("Sur une vraie ligne de Guichet")}</b>
       {live.href ? <a href={live.href}>{live.title}</a> : live.title}
       {live.exampleNote && <small> · {live.exampleNote}</small>}
     </div>

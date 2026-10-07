@@ -57,7 +57,7 @@ describe("ce qui empêche un passage", () => {
     expect(switchBlock(a, fonds({ id: "c", fund: { ...b.fund!, distributed: false } }))).toMatch(/pas encore distribué/);
   });
 
-  it("refuse un fonds retiré du Guichet", () => {
+  it("refuse un fonds retiré de Guichet", () => {
     expect(switchBlock(a, { ...b, hidden: true })).toMatch(/plus proposé/);
     expect(switchBlock(a, { ...b, status: "withdrawn" })).toMatch(/plus proposé/);
   });

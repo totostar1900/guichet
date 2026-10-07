@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import { useT } from "@/i18n/client";
@@ -108,17 +109,46 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
  * listed shares as small charts against the index. Sessions further than
  * a week apart are not joined : a missing bulletin is a gap, not a line.
  */
-export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey }) {
+export function IndexChart({ points, overlays, defaultPeriod = "12m", societeInitiale = "", lieSocieteALAdresse = false }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey; /** La société que l'adresse porte déjà pour le tableau des séances. */ societeInitiale?: string; /** Écrire le choix dans l'adresse, pour que le tableau des séances suive. */ lieSocieteALAdresse?: boolean }) {
   const t = useT();
   const [view, setView] = useState<IndexView>("niveau");
   const [period, setPeriod] = useState<PeriodKey>(defaultPeriod);
   const [rebase, setRebase] = useState(false);
-  const [overlay, setOverlay] = useState("");
   const [pins, setPins] = useState<string[]>([]);
   const [marks, setMarks] = useState<Marks>("ligne_mouvements");
-  // the company dimension of the calendar, the capitalisation and the float
-  const [company, setCompany] = useState("");
-  const co = overlays.find((o) => o.mnemo === company);
+  /**
+   * UNE SEULE SOCIÉTÉ CHOISIE, POUR TOUTES LES VUES QUI PEUVENT L'HONORER.
+   *
+   * Il y en avait trois, et c'est pour cela qu'on choisissait une valeur sans
+   * rien voir changer : « Comparer à » sur le cours, « Société » sur le
+   * calendrier, la capitalisation et le flottant, et « Volumes de » sur le
+   * négoce. Trois états indépendants pour une seule question — laquelle je
+   * regarde — donc un choix posé sur une vue était ignoré par la suivante.
+   *
+   * C'est maintenant un seul état. Les vues qui savent en faire quelque chose
+   * le reçoivent, celles qui n'ont rien à en faire — les variations de
+   * l'indice, les contributions, les petites multiples qui les montrent déjà
+   * toutes — n'affichent simplement pas la commande.
+   */
+  const [societe, setSocieteEtat] = useState(societeInitiale);
+  /* LE CALENDRIER ET LE TABLEAU DES SÉANCES DISENT LA MÊME CHOSE SOUS DEUX
+     FORMES, donc ils suivent la même société. Le tableau la porte déjà dans
+     l'adresse ; le graphique s'y range plutôt que d'en garder une à lui,
+     sans quoi on colorait un calendrier pour une valeur et on lisait le
+     tableau d'une autre. */
+  const routeur = useRouter();
+  const chemin = usePathname();
+  const adresse = useSearchParams();
+  const setSociete = (m: string) => {
+    setSocieteEtat(m);
+    if (!lieSocieteALAdresse) return;
+    const q = new URLSearchParams(adresse.toString());
+    if (m) q.set("societe", m);
+    else q.delete("societe");
+    q.delete("page");
+    routeur.replace(`${chemin}${q.toString() ? `?${q}` : ""}`, { scroll: false });
+  };
+  const co = overlays.find((o) => o.mnemo === societe);
   const boxRef = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(760);
   useEffect(() => {
@@ -173,7 +203,8 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     setPeriod(k);
     setZoom(null);
   };
-  const ov = overlays.find((o) => o.mnemo === overlay);
+  /* Sur la vue du cours, la société choisie se superpose en base 100. */
+  const ov = co;
   /* La borne gauche de la fenêtre, pour tout ce qui se recoupe par date :
      la valeur comparée, les petites multiples, les contributions. */
   const debut = points[fenetre[0]]?.date ?? "";
@@ -321,12 +352,27 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             <label className={styles.check}>
               <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
             </label>
-            <Select compact label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
-            <Select compact label={t("Comparer à")} value={overlay} onChange={setOverlay} options={[{ value: "", label: t("aucune valeur") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
+            <Select compact cherchable={false} label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
           </>
         )}
-        {(view === "calendrier" || view === "capitalisation" || view === "flottant") && (
-          <Select compact label={t("Société")} value={company} onChange={setCompany} options={[{ value: "", label: view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
+        {/* UNE SEULE COMMANDE DE SOCIÉTÉ, sur toutes les vues qui savent en
+            faire quelque chose. Son libellé dit ce qu'elle fera ici : le
+            cours la superpose en base 100, le négoce montre ses volumes, le
+            calendrier colore ses séances, la capitalisation et le flottant
+            l'isolent de la pile. Les trois autres vues ne l'affichent pas,
+            faute de pouvoir l'honorer. */}
+        {view !== "variations" && view !== "contributions" && view !== "societes" && (
+          <Select
+            compact
+            cherchable={false}
+            label={view === "niveau" ? t("Comparer à") : view === "volumes" ? t("Volumes de") : t("Société")}
+            value={societe}
+            onChange={setSociete}
+            options={[
+              { value: "", label: view === "niveau" ? t("aucune valeur") : view === "volumes" ? t("toute la cote") : view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") },
+              ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name })),
+            ]}
+          />
         )}
       </div>
 
@@ -412,6 +458,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
       {withVol && (
         <IndiceEtNegoce
           avecBarre={false}
+          societe={societe}
           seances={pts.map((p) => ({ on: p.date, niveau: p.value, montant: p.amount ?? 0, transactions: p.trades ?? 0 }))}
           societes={overlays.map((o) => ({ mnemo: o.mnemo, nom: o.name, points: o.points.map((q) => ({ on: q.date, montant: q.amount ?? 0, transactions: q.trades ?? 0 })) }))}
         />
@@ -615,7 +662,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
         <span>
           {t("du {a} au {b}", { a: fmtDate(a.date), b: fmtDate(b.date) })} · {t("indice")} <b className={published >= 0 ? styles.upT : styles.downT}>{signed(published)}</b>
         </span>
-        <Select compact label={t("pondération")} value={kind} onChange={(v) => setKind(v as "total" | "float")} options={[{ value: "total", label: t("capital global") }, { value: "float", label: t("flottant coté") }]} />
+        <Select compact cherchable={false} label={t("pondération")} value={kind} onChange={(v) => setKind(v as "total" | "float")} options={[{ value: "total", label: t("capital global") }, { value: "float", label: t("flottant coté") }]} />
       </div>
       <div className={styles.contrib}>
         {rows.map((r) => (

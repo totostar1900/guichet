@@ -41,7 +41,7 @@ export const EN_TRADER: Record<string, string> = {
 
   /* ---------- « Votre conseiller » dans Trader ---------- */
   "Votre conseiller": "Your adviser",
-  "Le desk du Guichet": "The Guichet desk",
+  "Le desk de Guichet": "Guichet desk",
   "Répond sur WhatsApp en journée, du lundi au vendredi.": "Answers on WhatsApp during the day, Monday to Friday.",
   "La personne disponible au desk vous répond, sur WhatsApp en journée.": "Whoever is free at the desk answers you, on WhatsApp during the day.",
   "Le message part avec": "The message carries",
@@ -206,7 +206,7 @@ export const EN_TRADER: Record<string, string> = {
   "Trader maintenant": "Trade now",
   /* Le siège s'appelle Agir depuis le 5 octobre 2026 : un verbe parmi trois
      noms, et c'est ce qui le distingue. L'adresse reste « /trader ». */
-  "Ce que le Guichet peut faire pour vous, et par où chaque geste commence.": "What Guichet can do for you, and where each step begins.",
+  "Ce que Guichet peut faire pour vous, et par où chaque geste commence.": "What Guichet can do for you, and where each step begins.",
   "Ouvrir un compte-titres": "Open a securities account",
   "Écrivez sur WhatsApp, appelez, ou envoyez un e-mail : le desk répond en journée, du lundi au vendredi.": "Message on WhatsApp, call, or send an e-mail: the desk answers during the day, Monday to Friday.",
   "Ce service s'écrit sur un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces.": "This service is written on a securities account in your name. Opening is done online and the desk checks the papers.",

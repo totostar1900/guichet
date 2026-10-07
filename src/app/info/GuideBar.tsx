@@ -295,7 +295,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                   {t("Comparer deux lignes")}
                 </Link>
                 <Link href="/info#glossaire" onClick={close}>
-                  {t("Les mots du Guichet")}
+                  {t("Les mots de Guichet")}
                 </Link>
                 <Link href="/info/aide" onClick={close}>
                   {t("Aide : vos questions, nos réponses")}

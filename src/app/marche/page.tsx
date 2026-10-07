@@ -193,7 +193,7 @@ export default async function MarchePage() {
       <p className={styles.source}>
         <Link href="/info/indice-bvmac">{t("Comment lire l'indice")}</Link> · <Link href="/comparer">{t("Comparer deux lignes")}</Link> · <Link href="/indice#donnees">{t("Ce que publie le bulletin")}</Link>
         <br />
-        {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Le Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
+        {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
         {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}
       </p>
 

@@ -50,7 +50,7 @@ const PATTERNS: [string, RegExp][] = [
 export function TermWord({ k, children, subtle }: { k: string; children: ReactNode; subtle?: boolean }) {
   const t = useT();
   return (
-    <button type="button" className={`${styles.word} ${subtle ? styles.subtle : ""}`} onClick={() => openTerm(k)} aria-label={`${children} : ${t("un mot du Guichet")}`}>
+    <button type="button" className={`${styles.word} ${subtle ? styles.subtle : ""}`} onClick={() => openTerm(k)} aria-label={`${children} : ${t("un mot de Guichet")}`}>
       {children}
     </button>
   );

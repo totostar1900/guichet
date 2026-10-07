@@ -13,7 +13,7 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 /* Sans titre, et sans h1 : sur téléphone la barre lit document.title, et
    cette page s'y annonçait par un tiret. */
-export const metadata = { title: "Séances" };
+export const metadata = { title: "Résultats des adjudications" };
 
 const KEYS: SortKey[] = ["date", "pays", "instrument", "duree", "chiffre", "couverture", "soumis", "servi", "etat"];
 const isKey = (v: string): v is SortKey => (KEYS as string[]).includes(v);
@@ -86,9 +86,8 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
       <div className={styles.page}>
         <header className={styles.head}>
           <div>
-            <h1>{t("Adjudications de la zone")}</h1>
+            <h1>{t("Résultats des adjudications de la zone")}</h1>
             <p className="muted">
-              {t("Toute la CEMAC par défaut : un Trésor se lit contre les cinq autres. Les filtres resserrent ensuite.")}{" "}
               <Link href="/desk/adjudications">{t("Revenir à la relecture")} →</Link>
             </p>
           </div>

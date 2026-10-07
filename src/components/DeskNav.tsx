@@ -62,7 +62,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/marche", "Cotes & VL"],
       ["/desk/bulletins", "Bulletins"],
       ["/desk/adjudications", "Adjudications"],
-      ["/desk/adjudications/tableau", "Séances"],
+      ["/desk/adjudications/tableau", "Résultats"],
       ["/desk/analyses", "Courbe des taux"],
       ["/desk/indice/apercu", "Indice"],
     ],

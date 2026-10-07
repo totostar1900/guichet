@@ -260,7 +260,7 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
         </div>
 
         <div className={styles.panel}>
-          <b>{t("Ce que cela change sur le Guichet")}</b>
+          <b>{t("Ce que cela change sur Guichet")}</b>
           <div className={styles.changes}>
             <div>
               <span className={styles.dot} style={{ background: "var(--good)" }} />

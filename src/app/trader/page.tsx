@@ -110,7 +110,7 @@ export default async function TraderPage() {
 
       <header className={styles.tete}>
         <h1>{t("Agir")}</h1>
-        <p>{t("Ce que le Guichet peut faire pour vous, et par où chaque geste commence.")}</p>
+        <p>{t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")}</p>
       </header>
 
       {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui

@@ -39,7 +39,7 @@ export default async function ParcoursPage() {
         <span className={docs.group}>{t("Pour aller plus loin")}</span>
         <Link href="/info#lecons">{t("Lire une ligne en trente secondes")}</Link>
         <Link href="/info/aide">{t("Aide : vos questions, nos réponses")}</Link>
-        <Link href="/info#glossaire">{t("Les mots du Guichet")}</Link>
+        <Link href="/info#glossaire">{t("Les mots de Guichet")}</Link>
       </nav>
       <div className={styles.wrap}>
         <div className={styles.head} data-coach="parcours-head">

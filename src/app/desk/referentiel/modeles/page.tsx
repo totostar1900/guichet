@@ -63,7 +63,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
         <div>
           <div className="eyebrow">{t("Référentiel · Modèles")}</div>
           <h1 className="display">{t("Modèles de documents")}</h1>
-          <p className="muted">{t("Ce que disent les documents que le Guichet produit. Chaque passage a une version en vigueur, son historique, et sa règle pour entrer en vigueur ; la mise en page, les chiffres et les références restent dans le code. Un document généré garde la version de chaque passage qu'il portait.")}</p>
+          <p className="muted">{t("Ce que disent les documents que Guichet produit. Chaque passage a une version en vigueur, son historique, et sa règle pour entrer en vigueur ; la mise en page, les chiffres et les références restent dans le code. Un document généré garde la version de chaque passage qu'il portait.")}</p>
         </div>
         <div className={styles.headLinks}>
           {pendingAll > 0 && <span className={styles.pending}>{t("{n} version(s) en attente", { n: String(pendingAll) })}</span>}

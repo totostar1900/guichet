@@ -112,7 +112,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             {desk ? "BVMAC" : <Link href="/marche">BVMAC</Link>} · {t("indice de prix")} · {t("lu à chaque bulletin")}
           </div>
           <h1 className="display">{t("L'indice BVMAC All Share")}</h1>
-          <p className={styles.lead}>{t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Le Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}</p>
+          <p className={styles.lead}>{t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}</p>
         </div>
         <div className={styles.links}>
           <Link className="btn sm" href="/info/indice-bvmac">
@@ -189,7 +189,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               <span className="muted">{t("lu depuis le bulletin du {d}", { d: fmtDate(stats.points[0].date) })}</span>
             </div>
             <div className={styles.chart}>
-              <IndexChart points={points} overlays={overlays} />
+              <IndexChart points={points} overlays={overlays} societeInitiale={societe} lieSocieteALAdresse />
             </div>
           </section>
 
@@ -272,7 +272,6 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
                 <dt>{t("Méthode")}</dt>
                 <dd>
                   {t("indice de prix, pondéré par la capitalisation")}
-                  <small>{t("base, date de base et règle de pondération : à confirmer auprès de la BVMAC")}</small>
                 </dd>
               </div>
               <div>
@@ -473,8 +472,8 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             </summary>
             <p className={styles.method}>
               {t("Indice de prix pondéré par la capitalisation, lu dans chaque bulletin officiel de la cote de la BVMAC et montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.")}{" "}
-              {t("La base, la date de base et la règle de pondération sont à confirmer auprès de la BVMAC. L'historique commence au premier bulletin lu par le Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
-              {t("Le Guichet le publie et l'explique : c'est un repère de lecture du marché, que chacun rapporte ensuite à ses propres objectifs.")}
+              {t("L'historique commence au premier bulletin lu par Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
+              {t("Guichet le publie et l'explique : c'est un repère de marché, que chaque investisseur rapporte ensuite à ses propres objectifs.")}
             </p>
             {/* La fraîcheur du panier : elle qualifie le niveau, et c'est une
                 précision de méthode plutôt qu'une phrase de carte. */}

@@ -9,7 +9,7 @@ import { l, type DocPage } from "./types";
 export const INDICE: DocPage = {
   slug: "indice",
   title: l("L'indice BVMAC All Share", "The BVMAC All Share Index"),
-  summary: l("Le seul chiffre du marché des actions que la presse reprend : ce qu'il est, comment il se calcule, qui pèse quoi, comment le lire avec sept valeurs, et où le Guichet le montre.", "The one figure of the equity market the press quotes: what it is, how it is computed, who weighs what, how to read it with seven shares, and where Guichet shows it."),
+  summary: l("Le seul chiffre du marché des actions que la presse reprend : ce qu'il est, comment il se calcule, qui pèse quoi, comment le lire avec sept valeurs, et où Guichet le montre.", "The one figure of the equity market the press quotes: what it is, how it is computed, who weighs what, how to read it with seven shares, and where Guichet shows it."),
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 4,
@@ -29,8 +29,8 @@ export const INDICE: DocPage = {
       id: "bulletin",
       title: l("Ce que publie le bulletin, et ce que Guichet en lit", "What the bulletin publishes, and what Guichet reads"),
       blocks: [
-        { type: "p", text: l("En tête de chaque Bulletin Officiel de la Cote, avant la synthèse du marché, le bloc « BVMAC ALL SHARE INDEX » porte le niveau (1 132,95 points le 4 août 2026), la variation du jour (0,00 %) et une petite courbe à l'échelle serrée. Le lecteur de bulletin du Guichet le capte à chaque séance : market_bulletins.index_value et index_variation_pct, une ligne par séance depuis le premier bulletin lu.", "At the head of every Official Quotation Bulletin, before the market summary, the “BVMAC ALL SHARE INDEX” block carries the level (1 132.95 points on 4 August 2026), the day's variation (0.00 %) and a small tight-scale curve. Guichet's bulletin reader captures it every session: market_bulletins.index_value and index_variation_pct, one row per session since the first bulletin read.") },
-        { type: "p", text: l("Plus loin, la page « Capitalisation boursière et encours des titres de dettes » donne, pour chaque émetteur, le cours de clôture, le nombre de titres du flottant coté et du capital global, les deux capitalisations, le dernier dividende et la liquidité sur trois mois. Le Guichet la lit aussi : ces champs sont sur la cotation de chaque action (quotes.market_cap_total, market_cap_float, shares_total, shares_float, last_dividend, liquidity_3m_pct). C'est là que se lit le poids de chacun.", "Further, the page “Market capitalisation and outstanding debt securities” gives, per issuer, the closing price, the number of shares in the quoted float and in the global capital, the two capitalisations, the last dividend and the three-month liquidity. Guichet reads it too: those fields sit on each share's quote (quotes.market_cap_total, market_cap_float, shares_total, shares_float, last_dividend, liquidity_3m_pct). That is where each weight is read.") },
+        { type: "p", text: l("En tête de chaque Bulletin Officiel de la Cote, avant la synthèse du marché, le bloc « BVMAC ALL SHARE INDEX » porte le niveau (1 132,95 points le 4 août 2026), la variation du jour (0,00 %) et une petite courbe à l'échelle serrée. Le lecteur de bulletin de Guichet le capte à chaque séance : market_bulletins.index_value et index_variation_pct, une ligne par séance depuis le premier bulletin lu.", "At the head of every Official Quotation Bulletin, before the market summary, the “BVMAC ALL SHARE INDEX” block carries the level (1 132.95 points on 4 August 2026), the day's variation (0.00 %) and a small tight-scale curve. Guichet's bulletin reader captures it every session: market_bulletins.index_value and index_variation_pct, one row per session since the first bulletin read.") },
+        { type: "p", text: l("Plus loin, la page « Capitalisation boursière et encours des titres de dettes » donne, pour chaque émetteur, le cours de clôture, le nombre de titres du flottant coté et du capital global, les deux capitalisations, le dernier dividende et la liquidité sur trois mois. Guichet la lit aussi : ces champs sont sur la cotation de chaque action (quotes.market_cap_total, market_cap_float, shares_total, shares_float, last_dividend, liquidity_3m_pct). C'est là que se lit le poids de chacun.", "Further, the page “Market capitalisation and outstanding debt securities” gives, per issuer, the closing price, the number of shares in the quoted float and in the global capital, the two capitalisations, the last dividend and the three-month liquidity. Guichet reads it too: those fields sit on each share's quote (quotes.market_cap_total, market_cap_float, shares_total, shares_float, last_dividend, liquidity_3m_pct). That is where each weight is read.") },
         { type: "link", href: "/desk/depot", label: l("Les bulletins conservés au Dépôt", "The bulletins kept in the Repository"), hint: l("le PDF de chaque séance, le bloc de l'indice en page 1", "each session's PDF, the index block on page 1") },
       ],
     },
@@ -100,7 +100,7 @@ export const INDICE: DocPage = {
     },
     {
       id: "guichet",
-      title: l("Où le Guichet le montre", "Where Guichet shows it"),
+      title: l("Où Guichet le montre", "Where Guichet shows it"),
       blocks: [
         {
           type: "table",
@@ -116,7 +116,7 @@ export const INDICE: DocPage = {
         {
           type: "steps",
           items: [
-            l("La méthodologie : écrire à la BVMAC (courrier dans docs/courrier-bvmac-indice.md), verser la réponse au Dépôt › Références, reprendre ses termes dans cette page et dans l'éclairage ; alors le Guichet recalcule l'indice à partir des cours lus et le contrôle Santé devient exact.", "The methodology: write to the BVMAC (letter in docs/courrier-bvmac-indice.md), file the answer at Repository › References, take its terms into this page and the insight; Guichet then recomputes the index from the prices read and the Health check becomes exact."),
+            l("La méthodologie : écrire à la BVMAC (courrier dans docs/courrier-bvmac-indice.md), verser la réponse au Dépôt › Références, reprendre ses termes dans cette page et dans l'éclairage ; alors Guichet recalcule l'indice à partir des cours lus et le contrôle Santé devient exact.", "The methodology: write to the BVMAC (letter in docs/courrier-bvmac-indice.md), file the answer at Repository › References, take its terms into this page and the insight; Guichet then recomputes the index from the prices read and the Health check becomes exact."),
             l("Le pouls dit « indice de prix » tant que la BVMAC n'a pas confirmé ; les poids sont montrés dans les deux lectures, marquées.", "The pulse says “price index” until the BVMAC confirms; weights are shown in both readings, marked."),
           ],
         },

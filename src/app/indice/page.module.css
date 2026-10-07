@@ -288,7 +288,12 @@ tfoot .when {
   /* le titre ne se cache pas sous la ligne collante quand on saute à l'ancre */
   scroll-margin-top: 78px;
 }
-.sections > section h2 {
+/* Le pli « Données et méthode » est un <details> et non un <section> : il
+   manquait donc cette règle, et son titre sortait à 22,5 px en graisse 600 là
+   où ses six voisins font 19,8 px en 800. Un titre plus gros et plus maigre
+   que ses pairs se lit comme un autre niveau de plan. */
+.sections > section h2,
+.sections > details h2 {
   font-size: 1.32rem;
   letter-spacing: -0.015em;
   font-weight: 800;

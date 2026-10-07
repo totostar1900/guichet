@@ -63,7 +63,7 @@ export default async function CalendrierPage() {
       {seances.length > 0 ? (
         <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
       ) : (
-        <p className="muted">{t("Aucune séance ouverte au Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
+        <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
       )}
 
       <p className={styles.note}>

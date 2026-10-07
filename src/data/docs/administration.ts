@@ -71,7 +71,7 @@ export const ADMINISTRATION: DocPage = {
           type: "table",
           head: [l("Onglet", "Tab"), l("Ce qu'on y règle", "What is set there"), l("Effet immédiat sur", "Immediate effect on")],
           rows: [
-            [l("Types de produits", "Product types"), l("Nom, badge, couleur, points d'attention, liste de contrôle avant publication, intentions ouvertes, champs libres, bornes de prix, moteur de calcul.", "Name, badge, colour, cautions, pre-publication checklist, open intentions, free fields, price bounds, calculation engine."), l("Filtres du Guichet, fiches, À valider, approbations.", "Guichet filters, line pages, To validate, approvals.")],
+            [l("Types de produits", "Product types"), l("Nom, badge, couleur, points d'attention, liste de contrôle avant publication, intentions ouvertes, champs libres, bornes de prix, moteur de calcul.", "Name, badge, colour, cautions, pre-publication checklist, open intentions, free fields, price bounds, calculation engine."), l("Filtres de Guichet, fiches, À valider, approbations.", "Guichet filters, line pages, To validate, approvals.")],
             [l("Échéanciers", "Schedules"), l("Les dates exactes de coupon et d'amortissement d'une obligation cotée.", "The exact coupon and amortisation dates of a listed bond."), l("Rendement affiché, avis de coupon.", "Displayed yield, coupon notices.")],
             [l("Glossaire", "Glossary"), l("Chaque terme : libellé, définition en deux phrases.", "Every term: label, two-sentence definition."), l("Bulles « i », Info, robot.", "\"i\" bubbles, Info, the robot.")],
             [l("Éclairages", "Insights"), l("Les huit éclairages d'Info.", "The eight Info insights."), l("Info, onboarding.", "Info, onboarding.")],

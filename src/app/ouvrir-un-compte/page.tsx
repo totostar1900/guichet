@@ -53,7 +53,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           {file.status === "approuve" && file.review.custodianAccount && <small className="muted">{t(`sous-compte n° ${file.review.custodianAccount}`)}</small>}
           {file.status === "approuve" && (
             <Link href={sp.next && sp.next.startsWith("/") ? sp.next : "/"} className="btn primary sm">
-              {t("Aller au Guichet")}
+              {t("Aller à Guichet")}
             </Link>
           )}
         </div>

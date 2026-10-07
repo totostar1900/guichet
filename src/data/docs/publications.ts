@@ -20,7 +20,7 @@ export const PUBLICATIONS: DocPage = {
       id: "deux-notes",
       title: l("Les deux notes", "The two notes"),
       blocks: [
-        { type: "lead", text: l("Le Guichet écrit deux notes sur l'indice BVMAC All Share, à partir des mêmes bulletins. La trimestrielle sort : elle est publique, elle se lit sans compte, elle s'adresse à un client. La mensuelle reste au desk : elle sert au contrôle et prépare la trimestrielle.", "Guichet writes two notes on the BVMAC All Share index, from the same bulletins. The quarterly one goes out: it is public, it reads without an account, it speaks to a client. The monthly one stays at the desk: it serves control and feeds the quarterly.") },
+        { type: "lead", text: l("Guichet écrit deux notes sur l'indice BVMAC All Share, à partir des mêmes bulletins. La trimestrielle sort : elle est publique, elle se lit sans compte, elle s'adresse à un client. La mensuelle reste au desk : elle sert au contrôle et prépare la trimestrielle.", "Guichet writes two notes on the BVMAC All Share index, from the same bulletins. The quarterly one goes out: it is public, it reads without an account, it speaks to a client. The monthly one stays at the desk: it serves control and feeds the quarterly.") },
         {
           type: "table",
           head: [l("", ""), l("Note trimestrielle", "Quarterly note"), l("Note mensuelle", "Monthly note")],
@@ -108,7 +108,7 @@ export const PUBLICATIONS: DocPage = {
             l("La page publique est rafraîchie et porte sa date.", "The public page is refreshed and carries its date."),
           ],
         },
-        { type: "p", text: l("Le PDF publié est l'exemplaire de référence : celui qu'on envoie, qu'on joint à un dossier, qu'on archive. La page, elle, reste vivante et mène au reste du Guichet.", "The published PDF is the reference copy: the one that is sent, attached to a file, archived. The page stays alive and leads to the rest of Guichet.") },
+        { type: "p", text: l("Le PDF publié est l'exemplaire de référence : celui qu'on envoie, qu'on joint à un dossier, qu'on archive. La page, elle, reste vivante et mène au reste de Guichet.", "The published PDF is the reference copy: the one that is sent, attached to a file, archived. The page stays alive and leads to the rest of Guichet.") },
       ],
     },
     {

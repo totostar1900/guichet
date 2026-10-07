@@ -170,7 +170,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         <div className="panel-h">
           <h2>{t("Bulletin Officiel de la Cote : BVMAC")}</h2>
           <span className="muted" style={{ fontSize: ".8rem" }}>
-            {t("Téléchargé chaque jour de bourse à 18 h 30 UTC, lu automatiquement, cours et VL versés dans le Guichet · le PDF est conservé")}
+            {t("Téléchargé chaque jour de bourse à 18 h 30 UTC, lu automatiquement, cours et VL versés dans Guichet · le PDF est conservé")}
           </span>
         </div>
         {last ? (
@@ -258,7 +258,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         <section className="panel" id="lignes">
           <div className="panel-h">
             <h2>{t("Lignes et bulletin")}</h2>
-            <span className="muted">{t("{n} écart entre ce que le Guichet publie et ce que le bulletin cote.", { n: ecarts.length })}</span>
+            <span className="muted">{t("{n} écart entre ce que Guichet publie et ce que le bulletin cote.", { n: ecarts.length })}</span>
           </div>
           <p className={styles.p}>
             {t("Une ligne sortie de la cote dont l'échéance est passée se clôture seule à la lecture du bulletin : elle cesse d'être commandable, sa page reste consultable, et rien n'est dit au client sur la raison. Celles dont l'échéance est inconnue ou estimée attendent une décision. Le bulletin dit ce qui se cote, pas ce qui a été payé : quand des clients détiennent encore la ligne, le remboursement se vérifie auprès du dépositaire avant tout, et l'avis de remboursement est ce qui l'atteste. Un cours ou un instrument qui diffère du bulletin est un défaut de lecture, pas une décision : relancer la lecture de la séance.")}
@@ -372,7 +372,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                       {o.hidden && (
                         <>
                           <br />
-                          <small className="muted">{t("masquée du Guichet")}</small>
+                          <small className="muted">{t("masquée de Guichet")}</small>
                         </>
                       )}
                     </td>

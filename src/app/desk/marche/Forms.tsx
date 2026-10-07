@@ -104,7 +104,7 @@ export function FundTermsForm({ offerId, fund }: { offerId: string; fund: { dist
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="offerId" value={offerId} />
-      <label className={styles.check} title={t("Convention de distribution signée : le fonds apparaît dans le Guichet avec « Souscrire »")}>
+      <label className={styles.check} title={t("Convention de distribution signée : le fonds apparaît dans Guichet avec « Souscrire »")}>
         <input type="checkbox" name="distributed" value="on" defaultChecked={fund.distributed} /> {t("distribué")}
       </label>
       <input name="agreementRef" defaultValue={fund.agreementRef ?? ""} placeholder={t("réf. convention")} aria-label={t("Référence de la convention")} className={styles.num} />

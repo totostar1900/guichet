@@ -95,7 +95,7 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
         <div className={styles.others}>
           <div>
             <h4>
-              {t("Ses autres lignes au Guichet")} <small>{others.length}</small>
+              {t("Ses autres lignes à Guichet")} <small>{others.length}</small>
             </h4>
             <p className={styles.lead}>{lead}</p>
           </div>

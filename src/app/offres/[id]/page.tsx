@@ -72,7 +72,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <h1 className="display" style={{ marginTop: 12 }}>
             {o.title}
           </h1>
-          <p className="muted">{t("Cette ligne a été retirée du Guichet. Pour toute question, contactez le desk.")}</p>
+          <p className="muted">{t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")}</p>
         </div>
       </div>
     );

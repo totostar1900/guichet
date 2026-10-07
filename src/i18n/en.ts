@@ -499,6 +499,14 @@ export const EN: Record<string, string> = {
     "Three quantities with no shared scale: a level, francs, a count. Each keeps its own axis; they share only time, and a single gesture reads all three. The two lower axes are framed on the range on show and not on the whole history: narrowing onto a quiet month brings its small sessions back. A large amount on few transactions is a block traded at the same price, many transactions for a small amount is a swarm of tiny trades, and neither can be read from one of the two measures alone.",
   "Touchez une séance pour la lire, une seconde fois pour l'épingler ; deux épingles donnent ce qui s'est passé entre elles.":
     "Touch a session to read it, a second time to pin it; two pins give what happened between them.",
+  "Résultats des adjudications de la zone":
+    "Auction results across the zone",
+  "L'historique commence au premier bulletin lu par Guichet, le {d}.":
+    "The history starts at the first bulletin Guichet read, on {d}.",
+  "Guichet le publie et l'explique : c'est un repère de marché, que chaque investisseur rapporte ensuite à ses propres objectifs.":
+    "Guichet publishes and explains it: it is a market benchmark, which each investor then measures against their own objectives.",
+  /* Le libellé passe par un ternaire : le scanner de clefs ne le voit pas. */
+  "Ouvrir un compte titres": "Open a securities account",
   "Tout afficher": "Show all",
   "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
   /* Le texte du calendrier en portrait passe par t(debout ? … : …) : un

@@ -188,7 +188,7 @@ export async function Releve({ session: s }: { session: Session }) {
           <Link href="/moi/performance#operations">{t("Vos ordres passés")} →</Link>
         </div>
       <div className="panel">
-        {open.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans le Guichet.")}</div>}
+        {open.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans Guichet.")}</div>}
         {open.length > 0 && (
           <div className={styles.cards}>
             {open.map((i) => {

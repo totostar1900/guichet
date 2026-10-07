@@ -48,7 +48,7 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
         <div>
           <div className="eyebrow">{t("Desk · Dépôt")}</div>
           <h1 className="display">{t("Dépôt de documents")}</h1>
-          <p className="muted">{t("Tout ce que le Guichet a lu, reçu, produit ou cité, avec l'endroit où il est gardé. Les règles de conservation sont dans la documentation « Sources, stockage et dépôt ».")}</p>
+          <p className="muted">{t("Tout ce que Guichet a lu, reçu, produit ou cité, avec l'endroit où il est gardé. Les règles de conservation sont dans la documentation « Sources, stockage et dépôt ».")}</p>
         </div>
         <Link className="btn sm" href="/desk/docs/sources">
           {t("Sources, stockage et dépôt")} →
@@ -121,7 +121,7 @@ export default async function DepotPage({ searchParams }: { searchParams: Promis
       <section className="panel">
         <div className="panel-h">
           <h2>{t("Documents émis aux clients")}</h2>
-          <span className="muted">{t("{n} documents · générés par le Guichet, table « documents », PDF dans le bucket « documents » · liste et recherche dans Documents", { n: String(documents.length) })}</span>
+          <span className="muted">{t("{n} documents · générés par Guichet, table « documents », PDF dans le bucket « documents » · liste et recherche dans Documents", { n: String(documents.length) })}</span>
         </div>
         <p className={styles.p}>
           <Link className="btn sm" href="/desk/documents">

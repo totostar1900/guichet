@@ -4,7 +4,7 @@ export const EN_LESSONS: Record<string, string> = {
   "Éclairage": "Insight",
   "Bonne réponse": "Right answer",
   "Question de fin": "Closing question",
-  "Sur une vraie ligne du Guichet": "On a real line of the Guichet",
+  "Sur une vraie ligne de Guichet": "On a real line of Guichet",
   "exemple": "example",
   "Exemple : OTA 6,00 % · 31 mars 2028": "Example: Treasury bond 6.00% · 31 March 2028",
   "Exemple : BTA 52 semaines": "Example: 52-week Treasury bill",
@@ -28,8 +28,8 @@ export const EN_LESSONS: Record<string, string> = {
   /* lesson 2 */
   "Sous le pair (moins de 100 %), vous touchez le même coupon pour moins cher et récupérez 100 à l'échéance : le rendement dépasse le coupon.": "Below par (under 100%), you get the same coupon for less and recover 100 at maturity: the yield exceeds the coupon.",
   "Au-dessus du pair, c'est l'inverse : vous payez une prime que vous ne reverrez pas, le rendement passe sous le coupon.": "Above par it is the reverse: you pay a premium you will not see again, the yield drops below the coupon.",
-  "Au pair exactement, rendement et coupon coïncident. C'est pourquoi le Guichet affiche le taux nominal quand une ligne est au pair, et le rendement actuariel dès qu'il y a décote ou prime.": "Exactly at par, yield and coupon coincide. That is why the Guichet shows the coupon rate when a line is at par, and the yield to maturity as soon as there is a discount or premium.",
-  "Faites glisser le prix ci-dessous : le rendement est recalculé avec le moteur du Guichet, sur une vraie ligne.": "Drag the price below: the yield is recomputed with the Guichet's engine, on a real line.",
+  "Au pair exactement, rendement et coupon coïncident. C'est pourquoi le Guichet affiche le taux nominal quand une ligne est au pair, et le rendement actuariel dès qu'il y a décote ou prime.": "Exactly at par, yield and coupon coincide. That is why Guichet shows the coupon rate when a line is at par, and the yield to maturity as soon as there is a discount or premium.",
+  "Faites glisser le prix ci-dessous : le rendement est recalculé avec le moteur du Guichet, sur une vraie ligne.": "Drag the price below: the yield is recomputed with Guichet's engine, on a real line.",
   "À 100 % (au pair), le rendement actuariel est…": "At 100% (at par), the yield to maturity is…",
   "plus élevé que le coupon": "higher than the coupon",
   "égal au coupon nominal": "equal to the coupon rate",
@@ -60,7 +60,7 @@ export const EN_LESSONS: Record<string, string> = {
   /* lesson 4 */
   "Un BTA dure moins de deux ans. Son intérêt est « précompté » : déduit du prix d'achat au départ. À 5,5 % sur 52 semaines, un bon de 1 000 000 se paie environ 944 400 et rembourse 1 000 000.": "A Treasury bill lasts under two years. Its interest is “discounted”: deducted from the purchase price up front. At 5.5% over 52 weeks, a 1,000,000 bill costs about 944,400 and repays 1,000,000.",
   "Le taux précompté n'est pas le rendement : comme vous avancez moins que le nominal, le rendement réel est un peu plus élevé que le taux affiché.": "The discount rate is not the yield: since you advance less than par, the real yield is a little higher than the rate shown.",
-  "Ici aussi, le taux servi dépend de l'adjudication ; le Guichet affiche un taux indicatif fixé par le desk.": "Here too, the rate served depends on the auction; the Guichet shows an indicative rate set by the desk.",
+  "Ici aussi, le taux servi dépend de l'adjudication ; le Guichet affiche un taux indicatif fixé par le desk.": "Here too, the rate served depends on the auction; Guichet shows an indicative rate set by the desk.",
   "Sur un BTA à intérêts précomptés, vous recevez les intérêts…": "On a discounted Treasury bill, you receive the interest…",
   "à l'achat, déduits du prix payé": "at purchase, deducted from the price paid",
   "à l'échéance, en recevant le nominal": "at maturity, on receiving par",

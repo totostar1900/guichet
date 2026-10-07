@@ -79,7 +79,7 @@ export default async function EquipePage() {
               <h2>{t("Donner l'accès")}</h2>
             </div>
             <AddStaffForm />
-            <p className={styles.note}>{t("La personne se connecte d'abord une fois au Guichet avec son adresse (code e-mail) ; vous lui donnez ensuite l'accès ici. À sa connexion suivante, elle active son second facteur (application d'authentification), puis entre sur le desk.")}</p>
+            <p className={styles.note}>{t("La personne se connecte d'abord une fois à Guichet avec son adresse (code e-mail) ; vous lui donnez ensuite l'accès ici. À sa connexion suivante, elle active son second facteur (application d'authentification), puis entre sur le desk.")}</p>
           </div>
           <div className="panel">
             <div className="panel-h">

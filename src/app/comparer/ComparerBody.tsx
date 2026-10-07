@@ -93,9 +93,9 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
   return (
     <div className={styles.page}>
       <div className={styles.head}>
-        <BackButton fallbackHref="/" fallbackLabel={t("Retour au Guichet")} />
+        <BackButton fallbackHref="/" fallbackLabel={t("Retour à Guichet")} />
         <h1>{t("Comparer deux lignes")}</h1>
-        <p className="muted">{t("Choisissez deux lignes du Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}</p>
+        <p className="muted">{t("Choisissez deux lignes de Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}</p>
       </div>
 
       <form className={styles.pick} method="get">

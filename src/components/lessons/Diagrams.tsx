@@ -48,7 +48,7 @@ function Node({ kind, x, y, w, focus, scale = 0.55, dark }: { kind: ActorKind; x
   );
   const g = GLOSS[kind];
   return (
-    <g className={styles.node} role="button" tabIndex={0} aria-label={`${t(ACTOR_LABEL[kind])} : ${t("un mot du Guichet")}`} onClick={() => openTerm(g)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openTerm(g)}>
+    <g className={styles.node} role="button" tabIndex={0} aria-label={`${t(ACTOR_LABEL[kind])} : ${t("un mot de Guichet")}`} onClick={() => openTerm(g)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openTerm(g)}>
       {label}
     </g>
   );

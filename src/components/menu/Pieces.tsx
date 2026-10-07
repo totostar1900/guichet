@@ -140,7 +140,7 @@ export function MenuContact({ close, surFiche, compact }: { close: () => void; /
      mécanisme que le reste du menu : une lecture, pas un état. */
   const ouvertMaintenant = useSyncExternalStore(rien, auDesk, () => false);
   const ligne = useSyncExternalStore(rien, () => (surFiche ? document.title.replace(/\s*·\s*Guichet.*$/i, "") : undefined), () => undefined);
-  const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(ligne ? t("Bonjour, je regarde {line} sur le Guichet et…", { line: ligne }) : t("Bonjour, j'ai une question sur le Guichet…"))}`;
+  const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(ligne ? t("Bonjour, je regarde {line} sur Guichet et…", { line: ligne }) : t("Bonjour, j'ai une question sur Guichet…"))}`;
   if (compact)
     return (
       <>

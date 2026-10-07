@@ -40,7 +40,7 @@ export default async function InfoPage() {
     { id: "parcours", title: t("Comprendre le marché CEMAC") },
     { id: "simulateur", title: t("Simulateur d'obligation") },
     { id: "outils", title: t("Outils et repères") },
-    { id: "glossaire", title: t("Les mots du Guichet") },
+    { id: "glossaire", title: t("Les mots de Guichet") },
   ];
   return (
     <div className={`${docs.reader} ${docs.readerTwo}`}>
@@ -49,7 +49,7 @@ export default async function InfoPage() {
         <div className={styles.head}>
           <div className="eyebrow">Guide</div>
           <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
-          <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre du Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
+          <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre de Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
         </div>
         <div data-coach="info-search" id="recherche" className={styles.anchor}>
           <InfoSearch entries={entries} />
@@ -104,7 +104,7 @@ export default async function InfoPage() {
 
         <FoldSection group="info" id="simulateur" title={t("Simulateur d'obligation")}>
         <div className={styles.sim} data-coach="info-sim">
-          <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans le Guichet.")}</p>
+          <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans Guichet.")}</p>
           <div className={styles.warn}>{t("Outil pédagogique : résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
           <Simulator />
         </div>
@@ -132,18 +132,18 @@ export default async function InfoPage() {
 
         <BackToTop lift />
         <GuideBar pos={{ label: t("Le Guide") }} />
-        <FoldSection group="info" id="glossaire" title={t("Les mots du Guichet")}>
+        <FoldSection group="info" id="glossaire" title={t("Les mots de Guichet")}>
         <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
         </FoldSection>
         <CoachMarks
           id="info"
           replayLabel={t("Comment utiliser le Guide ?")}
           stops={[
-            { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.") },
+            { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.") },
             { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page, la recherche, les éclairages, le simulateur, les outils, le glossaire, et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
             { target: "info-insights", title: t("Huit éclairages de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux minutes et se coche une fois lue.") },
-            { target: "info-glossaire", title: t("Les mots du Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
+            { target: "info-glossaire", title: t("Les mots de Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
             { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
           ]}
         />

@@ -56,7 +56,7 @@ const PAD_R = 10;
 const PAD_B = 20;
 const BAS_VOL = H_VOL - PAD_B;
 
-export function IndiceEtNegoce({ seances, societes = [], avecBarre = true }: { seances: SeanceNegoce[]; societes?: NegoceSociete[]; avecBarre?: boolean }) {
+export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, societe }: { seances: SeanceNegoce[]; societes?: NegoceSociete[]; avecBarre?: boolean; /** La société choisie par l'écran qui nous accueille ; sans elle, la nôtre. */ societe?: string }) {
   const t = useT();
   const boite = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(760);
@@ -70,7 +70,11 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true }: { s
 
   const dates = useMemo(() => seances.map((s) => s.on), [seances]);
   const [zoom, setZoom] = useState<[number, number] | null>(null);
-  const [qui, setQui] = useState("");
+  const [sien, setSien] = useState("");
+  /* Commandée du dehors quand l'écran porte déjà sa commande de société :
+     deux listes pour une seule question, c'est la question qu'on perd. */
+  const pilote = societe !== undefined;
+  const qui = pilote ? societe : sien;
   const [pins, setPins] = useState<string[]>([]);
   const fenetre: [number, number] = useMemo(() => zoom ?? [0, Math.max(0, seances.length - 1)], [zoom, seances.length]);
   const fenetrees = useMemo(() => (avecBarre ? seances.slice(fenetre[0], fenetre[1] + 1) : seances), [seances, fenetre, avecBarre]);
@@ -119,13 +123,14 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true }: { s
 
   const barre = avecBarre ? <BarreDePlage dates={dates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} /> : null;
   const choixSociete =
-    societes.length > 0 ? (
+    societes.length > 0 && !pilote ? (
       <div className={styles.quoi}>
         <Select
           compact
+          cherchable={false}
           label={t("Volumes de")}
           value={qui}
-          onChange={setQui}
+          onChange={setSien}
           options={[{ value: "", label: t("toute la cote") }, ...societes.map((s) => ({ value: s.mnemo, label: s.mnemo, hint: s.nom }))]}
         />
       </div>

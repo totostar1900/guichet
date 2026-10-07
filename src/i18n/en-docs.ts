@@ -47,7 +47,7 @@ export const EN_DOCS: Record<string, string> = {
   "Premiers pas : l'écran « Comprendre, et trouver de l'aide » (téléphone)": "First steps: the 'Understanding, and finding help' screen (phone)",
   "Comment utiliser le Guide ?": "How to use the Guide?",
   "Cherchez un mot, une notion": "Search a word, a notion",
-  "Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service du Guichet.": "A glossary term, a insight, a tool, a page, a help question: type the word, open the result. It is the Guichet's self-service support.",
+  "Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.": "A glossary term, a insight, a tool, a page, a help question: type the word, open the result. It is Guichet's self-service support.",
   "Vos questions, nos réponses": "Your questions, our answers",
   "La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.": "The Help page answers what we are asked most: signing in, opening an account, reading a line, declaring an intention, settling, receiving documents, reaching us.",
   "Huit éclairages de deux minutes": "Eight two-minute insights",
