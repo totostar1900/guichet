@@ -233,8 +233,24 @@ const StatusPill = ({ s }: { s: OfferSummary }) => {
   return <span className={`pill ${s.statusClass}`}>{s.countdown ? `${t("Clôture")} ${s.countdown}` : t(s.status)}</span>;
 };
 
-function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean }) {
-  const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
+/**
+ * LE TABLEAU GROUPE AUSSI PAR TYPE, et c'est ce qui manquait.
+ *
+ * Il ne connaissait qu'un rangement, celui par émetteur : « Type », qui est
+ * le rangement par défaut, y rendait donc une table d'un seul tenant. Les
+ * deux valeurs « Type » et « Aucun » donnaient exactement le même écran, et
+ * personne ne pouvait voir à quoi servait la liste déroulante.
+ *
+ * Les sections arrivent toutes faites : le parent les connaît déjà, puisque
+ * les cartes et la liste les affichent. Les recalculer ici aurait fait un
+ * second découpage à tenir d'accord avec le premier.
+ */
+function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
+  const groups = sections
+    ? sections.map((x) => ({ issuer: x.nom, zone: "Cameroun" as const, countryName: "", rows: x.rows, section: x.clef }))
+    : grouped
+      ? groupByIssuer(rows)
+      : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
   const t = useT();
   return (
     <div className={styles.tableWrap} data-chosen={chosen ? "1" : undefined}>
@@ -253,8 +269,17 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen }: { rows: R
         </thead>
         <tbody>
           {groups.flatMap((g) => [
-            ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
-            <GroupBody key={`b-${g.issuer}`} issuer={grouped ? g.issuer : ""}>
+            /* Un titre de section est une rangée pleine largeur, comme celui
+               d'un émetteur : le tableau n'a pas deux façons de nommer un
+               groupe. */
+            ...(sections ? [
+              <tr key={`s-${g.issuer}`} className={styles.secRow}>
+                <th colSpan={8} scope="colgroup" id={`sec-${(g as { section?: string }).section ?? g.issuer}`}>
+                  {g.issuer}
+                </th>
+              </tr>,
+            ] : grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
+            <GroupBody key={`b-${g.issuer}`} issuer={grouped && !sections ? g.issuer : ""}>
               {g.rows.map(({ o, s }) => (
                 <TableRow key={o.id} o={o} s={s} featured={featured} />
               ))}
@@ -750,7 +775,12 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * Et quand une pastille est touchée, il ne reste qu'une section : son titre
    * ne se répète pas au-dessus, la pastille le dit déjà.
    */
-  const parSections = !sectionChoisie && view !== "table";
+  /* « AUCUN » DOIT DÉSARMER LES TROIS BRANCHES, et il n'en désarmait que
+     deux. Celle-ci rendait les cinq sections — En souscription, États,
+     Institutions régionales, Entreprises, Actions — alors que la liste
+     déroulante affichait bien « Aucun » : le réglage disait une chose et
+     l'écran en montrait une autre. */
+  const parSections = !sectionChoisie && view !== "table" && !sansGroupe;
   const renderUn = (list: Row[], featured: boolean, deja = false) =>
     view === "list" ? (
       <List rows={list} grouped={grouped && !featured && !deja} featured={featured} />
@@ -790,7 +820,16 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
 
   const render = (list: Row[], featured: boolean) =>
     view === "table" ? (
-      <Table rows={list} sort={sort} dir={dir} onSort={onSort} grouped={grouped && !featured} featured={featured} chosen={Boolean(sp.get("vue"))} />
+      <Table
+        rows={list}
+        sort={sort}
+        dir={dir}
+        onSort={onSort}
+        grouped={grouped && !featured}
+        featured={featured}
+        chosen={Boolean(sp.get("vue"))}
+        sections={!featured && !sansGroupe && !grouped && !sectionChoisie ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
+      />
     ) : sommaire && !featured && !sansGroupe ? (
       (() => {
         const blocs = blocsDuSommaire(list);

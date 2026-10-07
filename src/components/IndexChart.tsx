@@ -6,6 +6,7 @@ import type React from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
+import { ampleurVariations, echelonVariations, poserFenetre as bornerFenetre } from "@/lib/domain/indice-fenetre";
 import { fmt, fmtDate, money } from "@/lib/format";
 import { gouttiere } from "@/components/charts/gouttiere";
 import styles from "./IndexChart.module.css";
@@ -46,13 +47,17 @@ const PERIODS: [PeriodKey, string][] = [
   ["all", "Tout"],
 ];
 const VIEWS: [IndexView, string][] = [
-  ["niveau", "Niveau"],
+  /* « COURS » ET NON « NIVEAU ». Le second est le terme exact d'un indice et
+     se lit comme du jargon ; « cours » est le mot de marché, et il laisse
+     « Variations » à côté sans ambiguïté. La clef interne reste « niveau »,
+     qui est dans des adresses partagées. */
+  ["niveau", "Cours"],
   /* LES VARIATIONS SONT UNE VUE, et pas une lecture du niveau. Un indice qui
      passe de 100 à 101 puis de 1000 à 1010 a bougé deux fois d'un pour cent,
      et la courbe du niveau ne le montre pas : la seconde marche y paraît dix
      fois plus haute. */
   ["variations", "Variations"],
-  ["volumes", "Niveau + volumes"],
+  ["volumes", "Cours + volumes"],
   ["contributions", "Contributions"],
   ["calendrier", "Calendrier"],
   ["societes", "Sociétés en base 100"],
@@ -170,6 +175,26 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
     setPeriod(k);
     setZoom(null);
   };
+  /* POSER LA FENÊTRE SANS JAMAIS LA VIDER : deux séances au moins, et dans la
+     série. Une fenêtre d'une seule séance tomberait sur le « pas assez de
+     séances » plus bas, qui emporterait la barre avec laquelle on vient de
+     la poser. */
+  const poserFenetre = (a: number, b: number) => setZoom(bornerFenetre(points.length, a, b));
+  /* UNE DATE SAISIE TOMBE RAREMENT SUR UNE SÉANCE : il y en a 697 sur un peu
+     plus de mille jours, et le champ de date propose tous les jours. On retient
+     la séance la plus proche, plutôt que de ne rien faire. */
+  const indexDe = (d: string) => {
+    let best = 0;
+    let bd = Infinity;
+    for (let i = 0; i < points.length; i++) {
+      const w = Math.abs(daysBetween(points[i].date, d));
+      if (w < bd) {
+        bd = w;
+        best = i;
+      }
+    }
+    return best;
+  };
   const ov = overlays.find((o) => o.mnemo === overlay);
   /* La borne gauche de la fenêtre, pour tout ce qui se recoupe par date :
      la valeur comparée, les petites multiples, les contributions. */
@@ -196,6 +221,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
   const dates = pts.map((p) => p.date);
   const d0 = dates[0] ?? "2000-01-01";
   const dN = dates[dates.length - 1] ?? "2000-01-02";
+  /* Les bornes de la SÉRIE, et non de la fenêtre : ce sont elles qui limitent
+     les deux champs de dates, sans quoi la fenêtre ne pourrait que se
+     resserrer, jamais se rouvrir. */
+  const serieD0 = points[0]?.date ?? d0;
+  const serieDN = points[points.length - 1]?.date ?? dN;
   const span = Math.max(1, daysBetween(d0, dN));
   const ys = [...series.map((p) => p.y), ...ovSeries.map((p) => p.y)];
   let lo = Math.min(...ys);
@@ -288,8 +318,14 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               <em className={(vu.variationPct ?? 0) > 0 ? styles.upT : (vu.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(vu.variationPct)}</em>
               {ov && oInfo(vu.date) ? ` · ${ov.mnemo} ${lvl(oInfo(vu.date)!.y, 1)}` : ""}
             </>,
+            /* CE QUE LE BANDEAU NOMME, C'EST LA FENÊTRE, PAS LE BOUTON.
+               L'écart se mesurait déjà depuis la première séance affichée,
+               mais la ligne s'intitulait « 12 mois » même après qu'on ait
+               déplacé la barre : le chiffre bougeait sous une étiquette qui
+               ne bougeait pas, et on croyait que rien ne s'était mis à jour. */
             <>
-              {t(PERIODS.find(([k]) => k === period)?.[1] ?? "Tout")} <em className={vu.value >= pts[0].value ? styles.upT : styles.downT}>{signed(((vu.value - pts[0].value) / pts[0].value) * 100)}</em>
+              {zoom ? t("depuis le {d}", { d: fmtDate(d0) }) : t(PERIODS.find(([k]) => k === period)?.[1] ?? "Tout")}{" "}
+              <em className={vu.value >= pts[0].value ? styles.upT : styles.downT}>{signed(((vu.value - pts[0].value) / pts[0].value) * 100)}</em>
             </>,
           ],
         };
@@ -330,6 +366,44 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
             <Select compact label={t("Société")} value={volOf} onChange={setVolOf} options={[{ value: "", label: t("toutes les sociétés") }, ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name }))]} />
           </>
         )}
+      </div>
+
+      {/* UNE SEULE BARRE DE PLAGE, ET POUR TOUTES LES VUES.
+          Il y en avait deux, qui ne disaient pas la même chose : des poignées
+          qui déplaçaient la fenêtre, et deux champs de dates qui posaient des
+          épingles. Choisir une date ne changeait donc rien à ce qu'on voyait,
+          d'autant qu'une épingle hors de la fenêtre ne se résolvait pas du
+          tout. Les deux champs et les deux poignées règlent maintenant la même
+          chose, la fenêtre ; l'épingle reste un clic sur le tracé ou sur une
+          case du calendrier. Et la barre sort de la vue Niveau : les huit vues
+          partent toutes des séances retenues, elles ont toutes besoin d'elle. */}
+      <div className={styles.fenetreBloc}>
+        <div className={styles.fenetreLu}>
+          <label>
+            {t("Du")}
+            <input type="date" value={points[fenetre[0]]?.date ?? ""} min={serieD0} max={serieDN} onChange={(e) => e.target.value && poserFenetre(indexDe(e.target.value), fenetre[1])} />
+          </label>
+          <label>
+            {t("Au")}
+            <input type="date" value={points[fenetre[1]]?.date ?? ""} min={serieD0} max={serieDN} onChange={(e) => e.target.value && poserFenetre(fenetre[0], indexDe(e.target.value))} />
+          </label>
+          <span>{t("{n} séances sur {m}", { n: String(pts.length), m: String(points.length) })}</span>
+          {zoom && (
+            <button type="button" className={styles.fenetreTout} onClick={() => setZoom(null)}>
+              {t("revenir à la période")}
+            </button>
+          )}
+        </div>
+        <div className={styles.fenetreBarre}>
+          <span className={styles.fenetrePiste} aria-hidden="true" />
+          <span
+            className={styles.fenetrePisteOn}
+            style={{ left: `${(fenetre[0] / Math.max(points.length - 1, 1)) * 100}%`, right: `${100 - (fenetre[1] / Math.max(points.length - 1, 1)) * 100}%` }}
+            aria-hidden="true"
+          />
+          <input type="range" min={0} max={points.length - 1} step={1} value={fenetre[0]} aria-label={t("Première séance affichée")} onChange={(e) => poserFenetre(Number(e.target.value), fenetre[1])} />
+          <input type="range" min={0} max={points.length - 1} step={1} value={fenetre[1]} aria-label={t("Dernière séance affichée")} onChange={(e) => poserFenetre(fenetre[0], Number(e.target.value))} />
+        </div>
       </div>
 
       {lineView && (
@@ -410,68 +484,13 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
               </span>
             )}
           </p>
-          {/* LA BARRE DE FENÊTRE : deux poignées sur la série entière, et
-              c'est le zoom. Les cinq périodes ne posaient qu'une borne
-              gauche accrochée à la dernière séance, donc le printemps 2024
-              ne se regardait qu'en affichant tout. Son bandeau dit ce qu'on
-              tient pendant qu'on le règle, sans quoi on déplace une poignée
-              en cherchant l'effet dans le tracé. */}
-          <div className={styles.fenetreBloc}>
-            <div className={styles.fenetreLu}>
-              <b>{fmtDate(points[fenetre[0]]?.date ?? d0)}</b>
-              <i aria-hidden="true">→</i>
-              <b>{fmtDate(points[fenetre[1]]?.date ?? dN)}</b>
-              <span>{t("{n} séances sur {m}", { n: String(pts.length), m: String(points.length) })}</span>
-              {zoom && (
-                <button type="button" className={styles.fenetreTout} onClick={() => setZoom(null)}>
-                  {t("revenir à la période")}
-                </button>
-              )}
-            </div>
-            <div className={styles.fenetreBarre}>
-              <span className={styles.fenetrePiste} aria-hidden="true" />
-              <span
-                className={styles.fenetrePisteOn}
-                style={{ left: `${(fenetre[0] / Math.max(points.length - 1, 1)) * 100}%`, right: `${100 - (fenetre[1] / Math.max(points.length - 1, 1)) * 100}%` }}
-                aria-hidden="true"
-              />
-              <input
-                type="range"
-                min={0}
-                max={points.length - 1}
-                step={1}
-                value={fenetre[0]}
-                aria-label={t("Première séance affichée")}
-                onChange={(e) => setZoom([Math.min(Number(e.target.value), fenetre[1] - 1), fenetre[1]])}
-              />
-              <input
-                type="range"
-                min={0}
-                max={points.length - 1}
-                step={1}
-                value={fenetre[1]}
-                aria-label={t("Dernière séance affichée")}
-                onChange={(e) => setZoom([fenetre[0], Math.max(Number(e.target.value), fenetre[0] + 1)])}
-              />
-            </div>
-          </div>
-          <div className={styles.pinsBar}>
-            <label>
-              {t("Du")}
-              <input type="date" value={pins[0] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [e.target.value, ...cur.slice(1)].sort() : cur.slice(1)))} />
-            </label>
-            <label>
-              {t("Au")}
-              <input type="date" value={pins[1] ?? ""} min={d0} max={dN} onChange={(e) => setPins((cur) => (e.target.value ? [cur[0] ?? d0, e.target.value].sort() : cur.slice(0, 1)))} />
-            </label>
-            {pinA ? null : (
-              <p className={styles.pinsRead}>
-                {withVol
-                  ? t("Sur la période : {a} FCFA échangés, {n} transactions, {m} séances avec mouvement. Barres dorées : l'indice a bougé.", { a: money(totals.amount), n: fmt(totals.trades), m: String(totals.moved) })
-                  : t("Survolez pour lire une séance ; touchez deux points (ou choisissez deux dates) pour lire l'écart entre eux.")}
-              </p>
-            )}
-          </div>
+          {pinA ? null : (
+            <p className={styles.pinsRead}>
+              {withVol
+                ? t("Sur la période : {a} FCFA échangés, {n} transactions, {m} séances avec mouvement. Barres dorées : l'indice a bougé.", { a: money(totals.amount), n: fmt(totals.trades), m: String(totals.moved) })
+                : t("Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.")}
+            </p>
+          )}
           <HowTo
             text={t(
               withVol
@@ -503,7 +522,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
 
       {view === "societes" && <SmallMultiples index={pts} overlays={overlays} from={debut} />}
 
-      {view === "variations" && <Variations index={pts} W={W} />}
+      {view === "variations" && <Variations index={pts} W={W} pins={pins} onPin={togglePin} onRange={setRange} />}
 
       {view === "contributions" && <Contributions index={pts} overlays={overlays} from={pinA && pinB ? pinA.date : d0} to={pinA && pinB ? pinB.date : dN} />}
 
@@ -537,8 +556,19 @@ const capAt = (o: OverlaySeries, date: string, kind: "total" | "float") => {
  * LES SÉANCES IMMOBILES GARDENT LEUR PLACE, en trait sur le zéro : la cote
  * de la BVMAC ne bouge que quelques dizaines de fois par an, et une vue qui
  * ne montrerait que les mouvements laisserait croire à un marché agité.
+ *
+ * L'ÉCHELLE NE SE RÈGLE PLUS SUR LE PLUS GRAND MOUVEMENT. Mesuré sur les 697
+ * séances du dépôt : 136 ont bougé, de 0,415 % au milieu, et quinze au-delà de
+ * 3 %, jusqu'à 6,78 %. Un axe tendu à ±6,78 donnait sept pixels au mouvement
+ * médian : la vue montrait cinq pics et une ligne plate, c'est-à-dire rien.
+ * L'axe tient donc le corps de la distribution — le neuvième décile des
+ * séances qui ont bougé dans la fenêtre — et les barres qui le dépassent sont
+ * coupées net, prolongées d'un trait pointillé, et comptées sous le tracé. Le
+ * neuvième décile se mesure dans la fenêtre et non une fois pour toutes :
+ * le marché a changé d'amplitude, le mouvement médian passant de 0,06 % en
+ * 2024 à 0,99 % en 2026.
  */
-function Variations({ index, W }: { index: ChartPoint[]; W: number }) {
+function Variations({ index, W, pins, onPin, onRange }: { index: ChartPoint[]; W: number; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
   const t = useT();
   const H = W < 480 ? 220 : 280;
   const padL = 44;
@@ -546,26 +576,50 @@ function Variations({ index, W }: { index: ChartPoint[]; W: number }) {
   const padT = 14;
   const padB = 28;
   const vals = index.map((p) => p.variationPct ?? 0);
-  const amp = Math.max(0.5, ...vals.map((v) => Math.abs(v)));
-  const y = (v: number) => padT + ((amp - v) / (2 * amp)) * (H - padT - padB);
+  const amp = ampleurVariations(vals);
+  const dehors = index.filter((p) => Math.abs(p.variationPct ?? 0) > amp + 1e-9);
+  const y = (v: number) => padT + ((amp - Math.max(-amp, Math.min(amp, v))) / (2 * amp)) * (H - padT - padB);
   const x = (i: number) => padL + (index.length < 2 ? 0 : (i / (index.length - 1)) * (W - padL - padR));
   const bw = Math.max(1.5, Math.min(9, (W - padL - padR) / Math.max(index.length, 1) - 1));
   const bouges = index.filter((p) => (p.variationPct ?? 0) !== 0);
   const hausse = bouges.filter((p) => (p.variationPct ?? 0) > 0).length;
   /* Les graduations tombent sur des valeurs que le tracé atteint. */
-  const pas = amp > 4 ? 2 : amp > 1.5 ? 1 : 0.5;
+  const pas = echelonVariations(amp);
   const ticks: number[] = [];
-  for (let v = -Math.floor(amp / pas) * pas; v <= amp + 1e-9; v += pas) ticks.push(Math.round(v * 100) / 100);
+  for (let v = -Math.floor(amp / pas) * pas; v <= amp + 1e-9; v += pas) ticks.push(Math.round(v * 1000) / 1000);
+  const dates = index.map((p) => p.date);
+  const pct = (v: number) => `${v > 0 ? "+" : ""}${String(Math.round(v * 100) / 100).replace(".", ",")} %`;
+  const track = useTracker({ keys: dates, x: (i) => x(i), W, pins, onPin, onRange });
+  const iDe = (d: string) => Math.max(0, dates.indexOf(d));
+  const vu = track.hover != null ? index[track.hover] : undefined;
+  const a = track.pinA ? index[iDe(track.pinA)] : undefined;
+  const b = track.pinB ? index[iDe(track.pinB)] : undefined;
+  const entre = a && b ? index.filter((p) => p.date > a.date && p.date <= b.date) : [];
+  /* Le bandeau dit la séance lue, ou ce que les deux épingles enferment : une
+     vue des mouvements se lit en comptant ceux qui ont eu lieu. */
+  const lu: Lu =
+    !vu && a && b
+      ? {
+          quand: fmtDate(a.date),
+          dit: t("au {d}", { d: fmtDate(b.date) }),
+          valeur: `${entre.filter((p) => (p.variationPct ?? 0) !== 0).length} / ${entre.length}`,
+          sous: t("séances bougées"),
+          droite: [<>{t("{n} en hausse", { n: String(entre.filter((p) => (p.variationPct ?? 0) > 0).length) })}</>, <>{t("plus fort : {v}", { v: pct(entre.reduce((m, p) => (Math.abs(p.variationPct ?? 0) > Math.abs(m) ? (p.variationPct ?? 0) : m), 0)) })}</>],
+        }
+      : {
+          quand: fmtDate((vu ?? a ?? index[index.length - 1]).date),
+          dit: vu ? t("séance lue") : a ? t("épinglée") : t("dernière séance"),
+          valeur: (() => {
+            const v = (vu ?? a ?? index[index.length - 1]).variationPct ?? 0;
+            return <em className={v > 0 ? styles.upT : v < 0 ? styles.downT : ""}>{pct(v)}</em>;
+          })(),
+          sous: ((vu ?? a ?? index[index.length - 1]).variationPct ?? 0) === 0 ? t("le cours de la veille") : undefined,
+          droite: [<>{t("{n} bougées sur {m}", { n: String(bouges.length), m: String(index.length) })}</>, <>{t("axe à ±{v}", { v: pct(amp).replace("+", "") })}</>],
+        };
   return (
     <>
-      <p className={styles.note}>
-        {t("{n} séances sur {m} ont bougé, dont {h} en hausse. Les autres cotent exactement le cours de la veille.", {
-          n: String(bouges.length),
-          m: String(index.length),
-          h: String(hausse),
-        })}
-      </p>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={t("Variation de l'indice séance par séance")}>
+      <TrackBand lu={lu} onClear={track.pinA ? () => onPin(track.pinA!) : undefined} clearLabel={t("effacer")} />
+      <svg viewBox={`0 0 ${W} ${H}`} className={`${styles.svg} ${trackStyles.track}`} role="img" aria-label={t("Variation de l'indice séance par séance")} {...track.handlers}>
         {ticks.map((v) => (
           <g key={v}>
             <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} className={styles.grid} />
@@ -578,21 +632,42 @@ function Variations({ index, W }: { index: ChartPoint[]; W: number }) {
         {index.map((p, i) => {
           const v = p.variationPct ?? 0;
           const h = Math.abs(y(v) - y(0));
+          const coupe = Math.abs(v) > amp + 1e-9;
           return (
-            <rect
-              key={p.date}
-              x={x(i) - bw / 2}
-              y={v >= 0 ? y(v) : y(0)}
-              width={bw}
-              height={Math.max(v === 0 ? 1.5 : 1.5, h)}
-              className={v > 0 ? styles.up : v < 0 ? styles.down : styles.vol}
-            >
-              <title>{`${fmtDate(p.date)} · ${v > 0 ? "+" : ""}${String(Math.round(v * 100) / 100).replace(".", ",")} %`}</title>
-            </rect>
+            <g key={p.date}>
+              <rect x={x(i) - bw / 2} y={v >= 0 ? y(v) : y(0)} width={bw} height={Math.max(1.5, h)} className={v > 0 ? styles.varUp : v < 0 ? styles.varDown : styles.varPlat}>
+                <title>{`${fmtDate(p.date)} · ${pct(v)}`}</title>
+              </rect>
+              {/* COUPÉE NET, ET ELLE LE DIT : une pointe au bout de la barre,
+                  qui sort du cadre. Un pointillé, essayé d'abord, se lisait
+                  comme trois points flottant au-dessus du tracé : à deux
+                  pixels de large, une barre ne se prolonge pas, elle se
+                  termine autrement. */}
+              {coupe && (
+                <polygon
+                  points={v > 0 ? `${x(i) - 4},${padT} ${x(i) + 4},${padT} ${x(i)},${padT - 7}` : `${x(i) - 4},${H - padB} ${x(i) + 4},${H - padB} ${x(i)},${H - padB + 7}`}
+                  className={v > 0 ? styles.varUp : styles.varDown}
+                />
+              )}
+            </g>
           );
         })}
+        <TrackMarks x={(d) => x(iDe(d))} y={(d) => y(index[iDe(d)]?.variationPct ?? 0)} hover={track.hover != null ? dates[track.hover] : undefined} pinA={track.pinA} pinB={track.pinB} padT={padT} padB={padB} H={H} />
       </svg>
-      <HowTo text={t("Chaque barre est l'écart d'une séance à la précédente, en pour cent. Une barre plate sur le zéro est une séance sans mouvement, et il y en a beaucoup : la cote ne bouge que quelques dizaines de fois par an. C'est la vue qui compare un mouvement d'aujourd'hui à un mouvement d'il y a deux ans, ce que la courbe du niveau ne permet pas.")} />
+      <p className={styles.note}>
+        {t("{n} séances sur {m} ont bougé, dont {h} en hausse. Les autres cotent exactement le cours de la veille.", {
+          n: String(bouges.length),
+          m: String(index.length),
+          h: String(hausse),
+        })}
+        {dehors.length > 0
+          ? ` ${t("{k} dépassent l'échelle, jusqu'à {v} : leur barre est coupée, et sa pointe sort du cadre.", {
+              k: String(dehors.length),
+              v: pct(dehors.reduce((m, p) => (Math.abs(p.variationPct ?? 0) > Math.abs(m) ? (p.variationPct ?? 0) : m), 0)),
+            })}`
+          : ""}
+      </p>
+      <HowTo text={t("Chaque barre est l'écart d'une séance à la précédente, en pour cent. Une barre plate sur le zéro est une séance sans mouvement, et il y en a beaucoup : la cote ne bouge que quelques dizaines de fois par an. L'axe tient le corps des mouvements de la fenêtre et non le plus grand d'entre eux : tendu sur le plus grand, il donnait sept pixels au mouvement médian. C'est la vue qui compare un mouvement d'aujourd'hui à un mouvement d'il y a deux ans, ce que la courbe du cours ne permet pas.")} />
     </>
   );
 }

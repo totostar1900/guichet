@@ -428,4 +428,15 @@ export const EN: Record<string, string> = {
   "Variations": "Changes",
   "épinglée : la vue Niveau la montre": "pinned: the Level view shows it",
   "toucher pour épingler": "tap to pin",
+  "Cours + volumes": "Price + volumes",
+  "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
+  "séances bougées": "sessions moved",
+  "{n} en hausse": "{n} up",
+  "plus fort : {v}": "largest: {v}",
+  "le cours de la veille": "the previous close",
+  "{n} bougées sur {m}": "{n} moved out of {m}",
+  "axe à ±{v}": "axis at ±{v}",
+  "{k} dépassent l'échelle, jusqu'à {v} : leur barre est coupée, et sa pointe sort du cadre.": "{k} go past the scale, up to {v}: their bar is cut, and its tip points out of the frame.",
+  "Chaque barre est l'écart d'une séance à la précédente, en pour cent. Une barre plate sur le zéro est une séance sans mouvement, et il y en a beaucoup : la cote ne bouge que quelques dizaines de fois par an. L'axe tient le corps des mouvements de la fenêtre et non le plus grand d'entre eux : tendu sur le plus grand, il donnait sept pixels au mouvement médian. C'est la vue qui compare un mouvement d'aujourd'hui à un mouvement d'il y a deux ans, ce que la courbe du cours ne permet pas.":
+    "Each bar is one session's change from the previous one, in per cent. A flat bar on zero is a session with no movement, and there are many: the list moves only a few dozen times a year. The axis holds the body of the window's movements rather than the largest of them: stretched to the largest, it gave the median move seven pixels. This is the view that compares today's move with one from two years ago, which the price curve cannot.",
 };

@@ -199,6 +199,21 @@
 .vol {
   fill: var(--line-2);
 }
+/* LES BARRES DES VARIATIONS N'ONT PAS DE FILET.
+   Le filet de 1,5 px à la couleur du fond sépare deux aplats voisins ; ici
+   les barres font 1,5 px de large, 262 séances dans 702 px, et le filet
+   recouvrait exactement la surface : chaque barre était peinte en bleu nuit
+   sur bleu nuit, et la vue ne montrait rien. L'écart entre deux barres suffit
+   à les séparer, il est déjà réservé dans leur largeur. */
+.varUp {
+  fill: var(--good);
+}
+.varDown {
+  fill: var(--warn);
+}
+.varPlat {
+  fill: var(--line-2);
+}
 .volMoved {
   fill: var(--gold);
 }
@@ -659,6 +674,26 @@ button.calCell:focus-visible {
 .fenetreLu i {
   font-style: normal;
   color: var(--ink-3);
+}
+/* Les deux bornes se lisent ET se saisissent : ce sont les mêmes que les
+   poignées règlent, donc elles gardent la taille d'une valeur affichée. */
+.fenetreLu label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.fenetreLu input[type="date"] {
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  padding: 2px var(--s-2);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface);
 }
 .fenetreLu span {
   font-size: var(--t-2);

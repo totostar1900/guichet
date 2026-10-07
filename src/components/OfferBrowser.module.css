@@ -1011,7 +1011,21 @@
    la couleur que le client a choisie — or sur le thème de nuit, encre sur le
    thème clair — donc il appartient visiblement à sa page. */
 .debutDeListe {
-  border-top: 2px solid var(--select);
+  border-top: 1px solid var(--select);
   margin-top: var(--s-7);
   padding-top: var(--s-6);
+}
+
+/* Le titre d'une section dans le tableau : même rangée pleine largeur que
+   celle d'un émetteur, et la même couleur or que les autres listes. */
+.secRow th {
+  text-align: left;
+  padding: var(--s-4) var(--s-3) var(--s-2);
+  color: var(--select);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--t-2);
+  font-weight: 800;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
