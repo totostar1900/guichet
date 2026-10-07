@@ -457,7 +457,16 @@ export function CourbeFusion({
           </>,
         )}
 
-        {choixDate}
+        {/* UN ÉLÉMENT REÇU EN PROPRIÉTÉ N'EST JAMAIS « VALIDÉ » PAR JSX.
+            React marque les enfants écrits en JSX au moment où il les crée,
+            et vérifie les clefs des autres au moment de les réconcilier.
+            « choixDate » est fabriqué par la page comme VALEUR D'UNE
+            PROPRIÉTÉ, donc personne ne le marque ; rendu ici au milieu de
+            sept frères, le réconciliateur le découvre sans clef et réclame.
+            L'envelopper dans un fragment le replace en enfant unique d'un
+            élément écrit ici : il est validé à la création, et le fragment,
+            lui, est un enfant statique. Zéro nœud de plus dans le DOM. */}
+        <>{choixDate}</>
 
         {groupe(
           "fu-profondeur",
