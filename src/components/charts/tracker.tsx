@@ -43,12 +43,15 @@ export interface TrackerArgs {
   onRange?: (a: string, b: string) => void;
 }
 
-export function useTracker({ keys, x, W, pins = [], onPin, onRange }: TrackerArgs) {
-  const svgRef = useRef<SVGSVGElement>(null);
+export function useTracker<E extends Element = SVGSVGElement>({ keys, x, W, pins = [], onPin, onRange }: TrackerArgs) {
+  /* Générique sur son élément : le suivi se pose sur un <svg> dans la plupart
+     des graphiques, et sur le bloc qui enveloppe trois étages quand un seul
+     geste doit les désigner tous. */
+  const svgRef = useRef<E>(null);
   const [hover, setHover] = useState<number | null>(null);
   // the finger : where it landed, whether it moved, whether the long press turned the drag into a range
   const touch = useRef<{ id: number; x0: number; i0: number; moved: boolean; range: boolean; wasReading: boolean; timer: number | null } | null>(null);
-  const nearest = (clientX: number, svg: SVGSVGElement) => {
+  const nearest = (clientX: number, svg: E) => {
     const r = svg.getBoundingClientRect();
     if (r.width < 1) return hover ?? 0; // not laid out (a closed fold, a hidden tab) : keep what was read
     const px = ((clientX - r.left) / r.width) * W;
@@ -93,7 +96,7 @@ export function useTracker({ keys, x, W, pins = [], onPin, onRange }: TrackerArg
   };
   const handlers = {
     ref: svgRef,
-    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+    onPointerDown: (e: React.PointerEvent<E>) => {
       if (e.pointerType !== "touch") return;
       const svg = e.currentTarget;
       const i = nearest(e.clientX, svg);
@@ -115,7 +118,7 @@ export function useTracker({ keys, x, W, pins = [], onPin, onRange }: TrackerArg
         }, 420);
       }
     },
-    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
+    onPointerMove: (e: React.PointerEvent<E>) => {
       if (e.pointerType !== "touch") {
         show(nearest(e.clientX, e.currentTarget));
         return;
@@ -135,7 +138,7 @@ export function useTracker({ keys, x, W, pins = [], onPin, onRange }: TrackerArg
         onRange(p, q);
       }
     },
-    onPointerUp: (e: React.PointerEvent<SVGSVGElement>) => {
+    onPointerUp: (e: React.PointerEvent<E>) => {
       if (e.pointerType !== "touch") return;
       const tch = touch.current;
       clearTimer();
@@ -148,10 +151,10 @@ export function useTracker({ keys, x, W, pins = [], onPin, onRange }: TrackerArg
       clearTimer();
       touch.current = null;
     },
-    onPointerLeave: (e: React.PointerEvent<SVGSVGElement>) => {
+    onPointerLeave: (e: React.PointerEvent<E>) => {
       if (e.pointerType !== "touch") hide();
     },
-    onClick: (e: React.MouseEvent<SVGSVGElement>) => {
+    onClick: (e: React.MouseEvent<E>) => {
       // the mouse : a click pins ; the finger's taps are handled above (its click follows and is ignored)
       if (touch.current || e.nativeEvent.detail === 0 || (e.nativeEvent as PointerEvent).pointerType === "touch") return;
       if (onPin) onPin(keys[nearest(e.clientX, e.currentTarget)]);

@@ -487,6 +487,18 @@ export const EN: Record<string, string> = {
     "Number of transactions at each session",
   "Trois grandeurs sans rapport d'échelle : un niveau, des francs, un compte. Chacune garde son axe ; elles ne partagent que le temps, et un seul survol les lit toutes les trois. Les deux axes du bas se cadrent sur la plage affichée et non sur l'historique : resserrer sur un mois calme fait réapparaître ses petites séances. Un gros montant sur peu de transactions est un bloc négocié au même cours, beaucoup de transactions pour un petit montant est une nuée de menus échanges, et ni l'un ni l'autre ne se lit sur une seule des deux mesures.":
     "Three quantities with no shared scale: a level, francs, a count. Each keeps its own axis; they share only time, and a single hover reads all three. The two lower axes are framed on the range on show and not on the whole history: narrowing onto a quiet month brings its small sessions back. A large amount on few transactions is a block traded at the same price, many transactions for a small amount is a swarm of tiny trades, and neither can be read from one of the two measures alone.",
+  "Volumes de":
+    "Volumes of",
+  "toute la cote":
+    "the whole list",
+  "Montant échangé par {m}, en FCFA":
+    "Amount traded by {m}, in FCFA",
+  "Transactions de {m}":
+    "{m} transactions",
+  "Trois grandeurs sans rapport d'échelle : un niveau, des francs, un compte. Chacune garde son axe ; elles ne partagent que le temps, et un seul geste les lit toutes les trois. Les deux axes du bas se cadrent sur la plage affichée et non sur l'historique : resserrer sur un mois calme fait réapparaître ses petites séances. Un gros montant sur peu de transactions est un bloc négocié au même cours, beaucoup de transactions pour un petit montant est une nuée de menus échanges, et ni l'un ni l'autre ne se lit sur une seule des deux mesures.":
+    "Three quantities with no shared scale: a level, francs, a count. Each keeps its own axis; they share only time, and a single gesture reads all three. The two lower axes are framed on the range on show and not on the whole history: narrowing onto a quiet month brings its small sessions back. A large amount on few transactions is a block traded at the same price, many transactions for a small amount is a swarm of tiny trades, and neither can be read from one of the two measures alone.",
+  "Touchez une séance pour la lire, une seconde fois pour l'épingler ; deux épingles donnent ce qui s'est passé entre elles.":
+    "Touch a session to read it, a second time to pin it; two pins give what happened between them.",
   "Tout afficher": "Show all",
   "Touchez un point pour lire sa séance, deux pour lire l'écart entre elles.": "Touch a point to read its session, two to read the gap between them.",
   /* Le texte du calendrier en portrait passe par t(debout ? … : …) : un

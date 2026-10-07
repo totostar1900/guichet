@@ -158,6 +158,31 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     .map((b) => ({ on: b.sessionDate, niveau: b.indexValue!, montant: parSeance.get(b.sessionDate)?.value ?? 0, transactions: parSeance.get(b.sessionDate)?.trades ?? 0 }))
     .sort((a, b) => a.on.localeCompare(b.on));
   /**
+   * Le négoce valeur par valeur, pour le sélecteur de société.
+   *
+   * L'activité ne connaît que des ISIN ; la cote leur donne un mnémonique et
+   * un nom, sans quoi l'écran afficherait des identifiants. Une valeur qui n'a
+   * jamais rien échangé sur la période n'entre pas dans la liste : un choix
+   * qui ne montre que des zéros n'est pas un choix.
+   */
+  const nomDe = new Map(cotes.map((q) => [q.isin, { mnemo: q.mnemo, nom: q.issuer }]));
+  const parValeur = new Map<string, Map<string, { montant: number; transactions: number }>>();
+  for (const q of activite) {
+    if (!nomDe.has(q.isin)) continue;
+    const jours = parValeur.get(q.isin) ?? new Map();
+    const d = jours.get(q.sessionDate) ?? { montant: 0, transactions: 0 };
+    jours.set(q.sessionDate, { montant: d.montant + q.valueTraded, transactions: d.transactions + q.trades });
+    parValeur.set(q.isin, jours);
+  }
+  const societes = [...parValeur.entries()]
+    .map(([isin, jours]) => ({
+      mnemo: nomDe.get(isin)!.mnemo,
+      nom: nomDe.get(isin)!.nom,
+      points: [...jours.entries()].map(([on, v]) => ({ on, ...v })).sort((a, b) => a.on.localeCompare(b.on)),
+    }))
+    .filter((s) => s.points.some((p) => p.transactions > 0 || p.montant > 0))
+    .sort((a, b) => a.mnemo.localeCompare(b.mnemo));
+  /**
    * Toutes les séries, et l'écran choisit.
    *
    * Prendre d'office les trois mieux garnies revenait à montrer deux Trésors
@@ -903,7 +928,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                   qui les règle est la leur : la date d'observation et la
                   profondeur de la page servent à la courbe, qui regarde des
                   adjudications et non la cote. */}
-              {negoce.length > 2 && <IndiceEtNegoce seances={negoce} />}
+              {negoce.length > 2 && <IndiceEtNegoce seances={negoce} societes={societes} />}
               <p className={styles.strong}>
                 {frais.stale.length > 0
                   ? t("Sur {m} composantes du panier, {liste} n'avaient pas traité depuis plus de {s} jours. L'indice n'est pas faux, il est calculé sur des cours qui datent, et c'est cette phrase qui doit accompagner le niveau publié.", {

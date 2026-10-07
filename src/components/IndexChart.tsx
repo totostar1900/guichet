@@ -409,7 +409,13 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m" }: { points
         </>
       )}
 
-      {withVol && <IndiceEtNegoce avecBarre={false} seances={pts.map((p) => ({ on: p.date, niveau: p.value, montant: p.amount ?? 0, transactions: p.trades ?? 0 }))} />}
+      {withVol && (
+        <IndiceEtNegoce
+          avecBarre={false}
+          seances={pts.map((p) => ({ on: p.date, niveau: p.value, montant: p.amount ?? 0, transactions: p.trades ?? 0 }))}
+          societes={overlays.map((o) => ({ mnemo: o.mnemo, nom: o.name, points: o.points.map((q) => ({ on: q.date, montant: q.amount ?? 0, transactions: q.trades ?? 0 })) }))}
+        />
+      )}
 
       {view === "calendrier" && (
         <Calendar

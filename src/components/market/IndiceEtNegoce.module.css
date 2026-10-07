@@ -102,3 +102,19 @@
   color: var(--ink-3);
   max-width: 88ch;
 }
+/* Le sélecteur de société : au-dessus des totaux, parce qu'il change ce
+   qu'ils comptent. */
+.quoi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+}
+/* L'épingle sur les deux étages de volume : le tracé du niveau a les siennes,
+   dessinées par TrackMarks, mais une plage épinglée doit se voir sur les
+   trois, sinon on ne sait pas ce qu'on additionne. */
+.epingle {
+  stroke: var(--gold);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
