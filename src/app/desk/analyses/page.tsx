@@ -30,7 +30,7 @@ import { freshness, liquidity } from "@/lib/market/liquidity";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Analyses de marché" };
+export const metadata = { title: "Courbe des taux" };
 
 const pct = (v: number | null | undefined, d = 1) => (v == null ? "—" : `${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`);
 const md = (v: number) => `${(v / 1e9).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Md`;
@@ -330,7 +330,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
       <div className={styles.page}>
         <header className={styles.head}>
           <div>
-            <h1>{t("Analyses de marché")}</h1>
+            <h1>{t("Courbe des taux")}</h1>
             <p className="muted">
               {t(
                 "Ce que la maison sait mesurer sur les deux marchés qu'elle suit, et ce que chaque mesure vaut. Rien n'est calculé sur une séance non relue ; ce qui manque est compté plutôt que comblé.",

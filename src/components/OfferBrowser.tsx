@@ -743,8 +743,18 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     };
   }, [pointsDuNuage]);
 
-  /* Les lignes épinglées sortent de la liste : elles sont montrées à part,
-     et les voir deux fois ferait croire à un doublon de la cote. */
+  /**
+   * LA LIGNE ÉPINGLÉE RESTE DANS LA LISTE, et ce qui paraît sous le tracé en
+   * est une COPIE.
+   *
+   * Elle en sortait, au motif qu'on ne veut pas croire à un doublon de la
+   * cote. L'argument ne tient pas : épingler est un geste de lecture, pas un
+   * filtre, et une liste qui perd une ligne quand on la désigne cesse d'être
+   * la liste. On cherchait ensuite sa voisine à la place où elle n'était
+   * plus, et le compte des lignes affichées baissait d'un sans raison
+   * visible. La copie sous le tracé est là pour qu'on garde la ligne sous les
+   * yeux en faisant défiler ; l'originale reste à son rang.
+   */
   const lignesEpinglees = rows.filter((r) => epingles.includes(r.o.id));
 
   const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
@@ -753,9 +763,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   // « À la une » only while a client can act on the line: a closed line leaves the frame by itself.
   const picks = rows.filter(({ o, s }) => o.featured && o.featured.until >= today && !s.past).slice(0, 3);
   const pickIds = new Set(picks.map(({ o }) => o.id));
-  /* Les épinglées sortent aussi : elles sont montrées sous le tracé, et les
-     voir deux fois ferait croire à un doublon de la cote. */
-  const rest = rows.filter(({ o }) => !pickIds.has(o.id) && !epingles.includes(o.id));
+  /* Seules les lignes « à la une » sortent d'ici, parce qu'elles ont leur
+     propre cadre au-dessus. L'épinglée, elle, garde son rang. */
+  const rest = rows.filter(({ o }) => !pickIds.has(o.id));
   // The line pages step through this exact order and come back to this exact list.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const orderKey = [...picks, ...rest].map(({ o }) => o.id).join(",");

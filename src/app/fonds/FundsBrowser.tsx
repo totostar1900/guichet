@@ -505,11 +505,12 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
      qui l'est aussi. Une liste refabriquée à chaque rendu défait la
      mémoïsation de celui qui la lit, et le compilateur de React le refuse
      plutôt que de la perdre en silence. */
+  /* LE FONDS ÉPINGLÉ RESTE DANS LA LISTE, et ce qui paraît sous le tracé en
+     est une copie. Il en sortait, pour ne pas le montrer deux fois ; mais
+     épingler est un geste de lecture et non un filtre, et une liste qui perd
+     une ligne quand on la désigne cesse d'être la liste. */
   const fondsEpingles = useMemo(() => rows.filter((r) => epingles.includes(r.id)), [rows, epingles]);
-  const rowsShown = useMemo(() => {
-    const sans = filtered.filter((r) => !epingles.includes(r.id));
-    return sort === "categorie" ? CATS.flatMap((c) => sans.filter((r) => r.category === c)) : sans;
-  }, [filtered, sort, epingles]);
+  const rowsShown = useMemo(() => (sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered), [filtered, sort]);
 
   /**
    * LA BANDE NE SE FILTRE PAS ELLE-MÊME. Elle montre les fonds retenus par
