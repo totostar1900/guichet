@@ -710,7 +710,13 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
   const shares = (company ? [company] : overlays).map((o) => ({ o, pts: index.map((p) => { const tot = overlays.reduce((s2, q) => s2 + capAt(q, p.date, kind), 0); return { date: p.date, y: tot ? (capAt(o, p.date, kind) / tot) * 100 : 0 }; }) }));
   const logLo = Math.max(1, Math.min(...rows.flatMap((r) => [r.total, r.float]).filter((v) => v > 0)) * 0.8);
   const logHi = Math.max(logLo * 2, ...rows.map((r) => r.total)) * 1.25;
-  const lg = (v: number) => Math.log10(Math.max(logLo, v));
+  /* Arrondi au centième, pour la même raison que la courbe fusionnée : la
+     norme n'oblige pas « Math.log10 » à être correctement arrondie, et le V8
+     du serveur et celui du navigateur peuvent différer d'un ulp. L'écart ne
+     se verrait jamais à l'écran, mais il suffit à faire échouer l'hydratation
+     et à faire refaire toute la page. L'arithmétique ordinaire, elle, est
+     déterministe : seules les fonctions transcendantes sont en cause. */
+  const lg = (v: number) => Math.round(Math.log10(Math.max(logLo, v)) * 1e6) / 1e6;
   const decades: number[] = [];
   for (let p = Math.floor(Math.log10(logLo)); Math.pow(10, p) <= logHi; p++) for (const m of [1, 3]) { const v = m * Math.pow(10, p); if (v >= logLo && v <= logHi) decades.push(v); }
   const flat = reading === "francs" || reading === "log";

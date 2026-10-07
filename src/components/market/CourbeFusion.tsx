@@ -341,8 +341,24 @@ export function CourbeFusion({
         { mot: "Séances minces", valeur: String(tous.filter((o) => o.mince).length), sous: t("vraies, non représentatives") },
       ];
 
-  const X = (a: number) => (echelle ? P.l + ((Math.log(a) - echelle.x0) / (echelle.x1 - echelle.x0 || 1)) * (W - P.l - P.r) : 0);
-  const Y = (v: number) => (echelle ? H - P.b - ((v - echelle.lo) / (echelle.hi - echelle.lo || 1)) * (H - P.t - P.b) : 0);
+  /**
+   * LES DEUX PROJECTIONS ARRONDISSENT, ET C'EST « Math.log » QUI L'EXIGE.
+   *
+   * Le rendu serveur écrivait x1 = 662,686260951308 et le navigateur
+   * recalculait 662,6862609513081 : deux flottants différents au treizième
+   * chiffre, donc deux chaînes différentes dans l'attribut, donc une
+   * hydratation ratée et TOUTE LA PAGE refaite côté client. La cause n'est
+   * pas l'arithmétique, qui est déterministe : la norme n'oblige pas
+   * « Math.log » à être correctement arrondie, et le V8 de Node et celui de
+   * Chrome ne donnent pas le même dernier ulp.
+   *
+   * On arrondit donc ici plutôt qu'à chaque appel : il y en a une vingtaine,
+   * et un seul oubli ramène le défaut. Deux décimales valent très au-delà du
+   * pixel, et aucun écart d'un ulp ne leur survit.
+   */
+  const auCent = (v: number) => Math.round(v * 100) / 100;
+  const X = (a: number) => (echelle ? auCent(P.l + ((Math.log(a) - echelle.x0) / (echelle.x1 - echelle.x0 || 1)) * (W - P.l - P.r)) : 0);
+  const Y = (v: number) => (echelle ? auCent(H - P.b - ((v - echelle.lo) / (echelle.hi - echelle.lo || 1)) * (H - P.t - P.b)) : 0);
 
   /**
    * Le suivi : un taux à n'importe quelle durée pour la courbe, la durée

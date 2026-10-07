@@ -556,8 +556,16 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             <h2>{t("Ce qui manque à la courbe")}</h2>
             <span className="muted">{t("{n} séances relues sans rendement", { n: courbe.gaps.length })}</span>
           </div>
+          {/* LA TABLE MANQUAIT, et ce n'était pas qu'une balise oubliée : un
+              « thead » enfant direct d'un « div » est un vice de structure
+              que le navigateur rattrape à sa façon, autrement que React au
+              rendu serveur. L'hydratation échouait donc, et toute la page se
+              refaisait côté client. Les quatre autres appels de TallTable
+              portent « table.tbl » ; celui-ci l'avait perdu, avec son style
+              au passage. */}
           {courbe.gaps.length ? (
             <TallTable total={courbe.gaps.length}>
+              <table className="tbl">
               <thead>
                 <tr>
                   <th>{t("Séance")}</th>
@@ -591,6 +599,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                   </tr>
                 ))}
               </tbody>
+              </table>
             </TallTable>
           ) : (
             <div className="empty">{t("Aucune séance relue ne reste sans rendement.")}</div>
