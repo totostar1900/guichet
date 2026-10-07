@@ -381,12 +381,31 @@ export function CourbeFusion({
     },
   ];
 
-  /** Un groupe de commandes, endormi quand il ne commande rien dans cette vision. */
-  const groupe = (id: string, etiq: string, dort: boolean, enfants: React.ReactNode) => (
+  /**
+   * Un groupe de commandes, endormi quand il ne commande rien dans cette vision.
+   *
+   * CHAQUE RÉGLAGE DIT CE QU'IL CHANGE, SUR LE GRAPHIQUE MÊME. Les six
+   * explications existaient dans la lettre de méthode, c'est-à-dire ailleurs,
+   * et pour deux d'entre elles dans un « title » que le doigt n'atteint pas.
+   * Un réglage dont on ne sait pas ce qu'il fait ne se touche pas, ou se
+   * touche à l'aveugle, ce qui est pire sur une courbe qui sert à décider.
+   * Le « ? » ouvre la phrase à sa place, sans quitter la page.
+   */
+  const groupe = (id: string, etiq: string, dort: boolean, enfants: React.ReactNode, aide?: string) => (
     <div className={`${styles.grp} ${dort ? styles.dort : ""}`}>
-      <span className={styles.etiq} id={id}>
-        {etiq}
-      </span>
+      <div className={styles.tete}>
+        <span className={styles.etiq} id={id}>
+          {etiq}
+        </span>
+        {aide && (
+          <details className={styles.aide}>
+            <summary title={t("Ce que ce réglage change")} aria-label={t("Ce que ce réglage change")}>
+              ?
+            </summary>
+            <p>{aide}</p>
+          </details>
+        )}
+      </div>
       <div className={styles.seg} role="group" aria-labelledby={id}>
         {enfants}
       </div>
@@ -439,6 +458,9 @@ export function CourbeFusion({
               {f.mot}
             </button>
           )),
+          t(
+            "Jusqu'où on remonte pour ramasser des séances. Plus la fenêtre est profonde, plus il y a de points, et plus les anciens pèsent sur la forme. Mesuré sur nos données : une vingtaine de points à trois mois comme à un an, une trentaine à deux ans, une soixantaine à cinq, dont les deux tiers gabonais. Un Trésor qui n'apporte pas deux durées distinctes n'est pas tracé du tout.",
+          ),
         )}
 
         {/* Relier deux points affirme une droite : le pouvoir de les délier est
@@ -471,6 +493,9 @@ export function CourbeFusion({
               {o.m}
             </button>
           )),
+          t(
+            "Le poids d'une séance décroît avec son âge : poids = 0,5 puissance (âge ÷ demi-vie). À 180 jours, une séance d'il y a six mois pèse moitié moins qu'une d'aujourd'hui, et une d'il y a un an quatre fois moins. « Jamais » les met toutes à égalité, et une adjudication de 2019 compte alors autant que celle de la semaine dernière. Cela ne déplace aucun point : cela ne change que la courbe ajustée, qui s'approche davantage des séances récentes. L'opacité d'un point montre le poids qu'il a reçu.",
+          ),
         )}
 
         {groupe(
@@ -488,6 +513,9 @@ export function CourbeFusion({
               {m}
             </button>
           )),
+          t(
+            "Une séance est dite mince quand elle n'a qu'un soumissionnaire, ou quand la demande n'a pas couvert le montant offert. Le taux qui en sort est le prix d'une négociation à deux, pas celui d'un marché, et il tire la courbe autant qu'un vrai. Trois traitements : à part entière, sous-pondérée au tiers environ, ou écartée, c'est-à-dire de poids nul. Les points minces se dessinent en cercles creux, quel que soit le traitement, pour qu'on voie toujours lesquels ils sont.",
+          ),
         )}
 
         {groupe(
@@ -508,6 +536,9 @@ export function CourbeFusion({
               {t("propre à chacun")}
             </button>
           </>,
+          t(
+            "La courbe ajustée est un Nelson-Siegel : taux(durée) = niveau long + pente × f1 + courbure × f2, où λ, en années, dit OÙ la courbe se creuse ou se bombe — la bosse tombe vers 1,79 λ. À λ fixé le modèle est linéaire en ses trois coefficients, donc il se résout d'un coup, sans optimiseur : seul λ se cherche, par balayage. Un Trésor qui n'apporte que six durées n'a pas de quoi trouver la sienne ; « celle de la zone » lui impose le λ ajusté sur tous les Trésors et n'estime que ses trois coefficients. Le piège que cela évite : un λ qui placerait la bosse hors des durées observées rend les deux facteurs presque identiques, et le modèle part en vrille sans que la courbe bouge — mesuré chez nous, un niveau long de moins six cent vingt-huit pour cent sur le Gabon.",
+          ),
         )}
 
         {groupe(
@@ -534,6 +565,9 @@ export function CourbeFusion({
               {t("le taux zéro-coupon")}
             </button>
           </>,
+          t(
+            "Ce que la courbe représente. Le rendement actuariel dépend du coupon du titre : deux obligations de même échéance mais de coupons différents n'ont pas le même, et les mettre sur une même courbe revient à mélanger deux choses. Le taux zéro-coupon est celui auquel un franc reçu à cette durée s'actualise, et il ne dépend que de la durée : c'est lui qu'on appelle proprement une courbe des taux. On l'obtient en retirant de chaque obligation la valeur de ses coupons intermédiaires, actualisés sur la courbe du même Trésor, et en recommençant jusqu'à ce que la courbe ne bouge plus. Les bons, qui n'ont pas de coupon, ne bougent pas ; le pied du graphique dit combien de titres ont bougé et de combien.",
+          ),
         )}
 
         {groupe(
