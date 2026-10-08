@@ -52,3 +52,19 @@
     height: 62vh;
   }
 }
+/* Les deux gestes sont des icônes : le texte y tenait mal à côté du numéro. */
+.geste {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-3) var(--s-5);
+}
+.icone {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

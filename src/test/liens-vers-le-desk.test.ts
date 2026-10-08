@@ -86,7 +86,9 @@ describe("les sorties se ferment dans l'app installée", () => {
      se partage. */
   it("ce qui s'emporte est le fichier, pas son adresse", () => {
     const src = readFileSync("src/app/moi/documents/[id]/Sorties.tsx", "utf8");
-    expect(src).toContain("navigator.canShare({ files: [f] })");
-    expect(src).not.toMatch(/navigator\.share\(\{\s*title[^}]*url:/);
+    expect(src).toMatch(/navigator\.share\(\{ files: \[f\]/);
+    expect(src).toContain("navigator.canShare");
+    // Jamais une adresse : elle ne s'ouvre chez personne d'autre.
+    expect(src).not.toMatch(/navigator\.share\([^)]*url:/);
   });
 });

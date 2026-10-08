@@ -1192,6 +1192,8 @@ export const EN_REST: Record<string, string> = {
   "Établi le {d}.": "Issued on {d}.",
   "Ouvrir à part": "Open separately",
   "Enregistrer sur l'appareil": "Save to the device",
+  "Partager": "Share",
+  "Enregistré : {f}": "Saved: {f}",
   "L'enregistrement n'a pas abouti. Le document reste lisible ci-dessous.": "Saving did not complete. The document is still readable below.",
   "Dès votre première opération réglée, le relevé de position et l'attestation de détention s'éditent ici.":
     "From your first settled operation, the position statement and the holding certificate are issued here.",

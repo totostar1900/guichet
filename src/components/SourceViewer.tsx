@@ -170,21 +170,61 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
     if (state === "ready") void draw();
   }, [state, draw]);
 
+  /**
+   * LE GESTE À DEUX DOIGTS AGRANDIT, COMME PARTOUT AILLEURS.
+   *
+   * La page se déplaçait d'un doigt et s'agrandissait à la molette : sur un
+   * téléphone, il n'y a pas de molette, et les boutons − et + d'une barre sont
+   * le dernier endroit où une main va chercher un zoom. Pincer est le geste que
+   * tout le monde connaît, et sans lui un document lu au téléphone reste à la
+   * taille qu'on lui a donnée.
+   *
+   * Les doigts sont suivis par identifiant : dès qu'il y en a deux, l'écart
+   * entre eux pilote le grossissement, en proportion de l'écart de départ, et
+   * le déplacement s'interrompt le temps du pincement, sans quoi la page
+   * filerait sous les doigts pendant qu'elle grandit.
+   */
+  const doigts = useRef(new Map<number, { x: number; y: number }>());
+  const pince = useRef<{ ecart: number; zoom: number } | null>(null);
+  const ecartDesDoigts = (): number => {
+    const [a, b] = [...doigts.current.values()];
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  };
+
   const onDown = (e: React.PointerEvent) => {
     const box = wrap.current;
-    if (!box || tool !== "main") return;
+    if (!box) return;
+    doigts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (doigts.current.size === 2) {
+      pince.current = { ecart: ecartDesDoigts(), zoom };
+      drag.current = null;
+      setGrabbing(false);
+      return;
+    }
+    if (tool !== "main") return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     drag.current = { x: e.clientX, y: e.clientY, left: box.scrollLeft, top: box.scrollTop };
     setGrabbing(true);
   };
   const onMove = (e: React.PointerEvent) => {
     const box = wrap.current;
+    if (!box) return;
+    if (doigts.current.has(e.pointerId)) doigts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const p = pince.current;
+    if (p && doigts.current.size === 2) {
+      const ecart = ecartDesDoigts();
+      if (p.ecart > 0 && ecart > 0) setZoom(Math.min(4, Math.max(0.5, (p.zoom * ecart) / p.ecart)));
+      return;
+    }
     const d = drag.current;
-    if (!box || !d) return;
+    if (!d) return;
     box.scrollLeft = d.left - (e.clientX - d.x);
     box.scrollTop = d.top - (e.clientY - d.y);
   };
-  const onUp = () => {
+  const onUp = (e?: React.PointerEvent) => {
+    if (e) doigts.current.delete(e.pointerId);
+    else doigts.current.clear();
+    if (doigts.current.size < 2) pince.current = null;
     drag.current = null;
     setGrabbing(false);
   };
@@ -200,7 +240,9 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
     return (
       <p className="muted">
         {t("Le document ne s'affiche pas ici.")}{" "}
-        <a href={src} target="_blank" rel="noreferrer">
+        {/* Troisième sortie du même piège : dans l'app installée, un onglet
+            n'existe pas, et le lien emporterait l'app sans rien rendre. */}
+        <a href={src} target="_blank" rel="noreferrer" hidden={sansFenetreAPart(mode)}>
           {t("L'ouvrir dans un onglet")}
         </a>
       </p>
