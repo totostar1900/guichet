@@ -417,9 +417,16 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
               .filter((p) => marks !== "ligne" && (p.variationPct ?? 0) !== 0)
               .map((p) => (
                 <circle key={p.date} cx={x(p.date)} cy={y(p.y)} r={3.5} className={(p.variationPct ?? 0) > 0 ? styles.up : styles.down}>
-                  <title>
-                    {fmtDate(p.date)} · {signed(p.variationPct)} {p.movers?.length ? `· ${p.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(", ")}` : ""}
-                  </title>
+                  {/* UN <title> NE PREND QU'UN SEUL ENFANT, ET C'EST MESURÉ.
+                      Écrit en morceaux — « {date} · {variation} {contributeurs} » —
+                      React y voit un tableau de trois enfants : le navigateur
+                      l'affiche sans broncher, le serveur rend « <title></title> »
+                      VIDE. Soixante-quatorze infobulles vides contre soixante-
+                      quatorze pleines, donc un échec d'hydratation qui régénère
+                      toute la page. C'était le défaut qui restait sur /indice le
+                      8 octobre 2026, longtemps pris pour une affaire de fuseau
+                      puis de langue. Une seule chaîne, et il disparaît. */}
+                  <title>{`${fmtDate(p.date)} · ${signed(p.variationPct)}${p.movers?.length ? ` · ${p.movers.map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(", ")}` : ""}`}</title>
                 </circle>
               ))}
             <TrackMarks x={(k) => x(k)} y={(k) => y(sInfo(k)?.y ?? 0)} hover={hp?.date} pinA={pinA?.date} pinB={pinB?.date} padT={padT} padB={padB} H={H} />
