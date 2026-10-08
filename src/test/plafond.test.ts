@@ -116,3 +116,40 @@ describe("la signature s'ouvre aux titres, mais pas à vide", () => {
     expect(src).toContain("plafondPropose(intent, offer)");
   });
 });
+
+/**
+ * UN DÉPOUILLEMENT PASSE, ET IL SIGNALE.
+ *
+ * Décision du 9 octobre 2026, posée par le dirigeant : une ligne au-delà du
+ * plafond signé ne doit pas arrêter l'import. Un dépouillement porte cinquante
+ * lignes ; s'arrêter sur une ferait attendre quarante-neuf clients pour un, et
+ * le desk recommencerait son import au lieu de régler le cas.
+ *
+ * Ce qui rend la décision tenable, c'est la seconde moitié : le signal doit se
+ * VOIR. Une trace au journal d'un dépouillement de cinquante lignes ne se lit
+ * pas ; le compte rendu la redit donc en haut de l'écran, avec le geste à
+ * faire. Sans cela on aurait arrêté l'import pour rien, puis signalé dans le
+ * vide, ce qui est la panne muette de la maison.
+ */
+describe("le dépouillement d'une adjudication", () => {
+  const src = () => readFileSync("src/lib/results/service.ts", "utf8");
+
+  it("ne sert pas au-delà de la borne, et continue le lot", () => {
+    const s = src();
+    expect(s).toContain("depasseLePlafond");
+    // La ligne devient non servie, elle n'interrompt pas la boucle.
+    expect(s).toContain("units = 0");
+    expect(s).not.toMatch(/depasse[^\n]*\n\s*(throw|return)/);
+  });
+
+  it("le journal nomme la cause et les deux chiffres", () => {
+    expect(src()).toContain("au-delà du plafond signé");
+    expect(src()).toContain("appelez le client");
+  });
+
+  it("le compte rendu de l'écran le redit, parce qu'un journal de cinquante lignes ne se lit pas", () => {
+    const a = readFileSync("src/app/desk/resultats/actions.ts", "utf8");
+    expect(a).toContain("horsPlafond");
+    expect(a).toContain("à appeler");
+  });
+});

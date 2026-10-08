@@ -46,12 +46,18 @@ export async function applyResultsAction(_p: ResultsOutcome | null, form: FormDa
     lines.push({ offerId, servedPricePct: price ? Number(price) : undefined, servedRatePct: rate ? Number(rate) : undefined, allocations });
   }
   try {
-    const { served, notServed } = await applyResults(lines, desk.name);
+    const { served, notServed, horsPlafond } = await applyResults(lines, desk.name);
     revalidatePath("/desk");
     revalidatePath("/desk/resultats");
     revalidatePath("/desk/documents");
     revalidatePath("/");
-    return { ok: true, message: `Résultats appliqués : ${served} ordre${served > 1 ? "s" : ""} servi${served > 1 ? "s" : ""}, ${notServed} non servi${notServed > 1 ? "s" : ""}. Avis générés et clients prévenus.` };
+    /* « PASSER ET SIGNALER » N'EST TENU QUE SI LE SIGNAL SE VOIT.
+       Une ligne au-delà du plafond signé laisse une trace au journal, et le
+       journal d'un dépouillement de cinquante lignes ne se lit pas. Le compte
+       rendu la redit donc en haut de l'écran, avec le geste à faire : sans
+       cela on aurait arrêté l'import pour rien, puis signalé dans le vide. */
+    const alerte = horsPlafond > 0 ? ` ${horsPlafond} ordre${horsPlafond > 1 ? "s" : ""} au-delà du plafond signé : non servi${horsPlafond > 1 ? "s" : ""}, à appeler. Voir le journal.` : "";
+    return { ok: true, message: `Résultats appliqués : ${served} ordre${served > 1 ? "s" : ""} servi${served > 1 ? "s" : ""}, ${notServed} non servi${notServed > 1 ? "s" : ""}. Avis générés et clients prévenus.${alerte}` };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Échec." };
   }
