@@ -40,6 +40,7 @@
   height: min(78vh, 900px);
   display: flex;
   min-height: 0;
+  min-width: 0;
 }
 .note {
   font-size: var(--t-2);
@@ -67,4 +68,28 @@
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+/* La bande de confirmation : elle prend toute la largeur de la rangée, parce
+   que sur un téléphone c'est le seul signal qu'il se soit passé quelque chose. */
+.bande {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin: var(--s-4) 0 0;
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-radius: var(--radius);
+  font-size: var(--t-3);
+  line-height: 1.4;
+}
+.bande .icone {
+  flex: none;
+}
+.bandeEchec {
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--ink-2);
 }

@@ -8,6 +8,10 @@
   flex-direction: column;
   gap: var(--s-3);
   margin-bottom: var(--s-5);
+  /* La chaine des min-width : un seul maillon a auto, et toute la colonne
+     s elargit au contenu de la page au lieu de la contraindre. */
+  min-width: 0;
+  max-width: 100%;
 }
 /* Posé dans un volet qui tient la hauteur, le visualiseur la prend : sa boîte
    cesse d'avoir une taille à elle et s'étire jusqu'en bas. */
@@ -47,6 +51,20 @@
   position: relative;
   height: 460px;
   overflow: auto;
+  /* UN CONTENU PLUS LARGE QUE SON CADRE DOIT RESTER ATTEIGNABLE.
+     La feuille etait centree par « margin: 0 auto ». Des quelle depasse, les
+     marges automatiques se calculent en negatif : la page est bien centree, et
+     son debordement devient inatteignable DES DEUX COTES. Mesure le 8 octobre
+     2026 sur un ecran de 375 px : canevas de 654 px, scrollWidth egal a
+     clientWidth, donc rien a faire defiler et un deplacement a un doigt qui ne
+     repondait pas. Le geste marchait ; il n y avait rien a deplacer.
+     En flex, « margin: auto » sur l enfant centre quand ca tient et laisse le
+     debordement defilable quand ca ne tient pas. */
+  display: flex;
+  /* Sans cela la boite s elargit a son contenu au lieu de le contraindre :
+     un enfant en max-content pousse la taille minimale d un conteneur flex. */
+  min-width: 0;
+  width: 100%;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -91,7 +109,8 @@
 .feuille {
   position: relative;
   width: max-content;
-  margin: 0 auto;
+  /* « auto » sur un enfant de flex, et non sur un bloc : voir .viewerBox. */
+  margin: auto;
 }
 /* pdf.js pose ici des <span> calés sur les mots, invisibles et sélectionnables.
    Au repos ils laissent passer la main qui déplace la page ; c'est l'outil

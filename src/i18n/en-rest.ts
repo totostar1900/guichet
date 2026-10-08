@@ -1193,6 +1193,7 @@ export const EN_REST: Record<string, string> = {
   "Ouvrir à part": "Open separately",
   "Enregistrer sur l'appareil": "Save to the device",
   "Partager": "Share",
+  "Dans les téléchargements de votre appareil.": "In your device's downloads.",
   "Enregistré : {f}": "Saved: {f}",
   "L'enregistrement n'a pas abouti. Le document reste lisible ci-dessous.": "Saving did not complete. The document is still readable below.",
   "Dès votre première opération réglée, le relevé de position et l'attestation de détention s'éditent ici.":

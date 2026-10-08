@@ -87,8 +87,20 @@ describe("les sorties se ferment dans l'app installée", () => {
   it("ce qui s'emporte est le fichier, pas son adresse", () => {
     const src = readFileSync("src/app/moi/documents/[id]/Sorties.tsx", "utf8");
     expect(src).toMatch(/navigator\.share\(\{ files: \[f\]/);
-    expect(src).toContain("navigator.canShare");
     // Jamais une adresse : elle ne s'ouvre chez personne d'autre.
     expect(src).not.toMatch(/navigator\.share\([^)]*url:/);
+    // La capacité se teste, elle ne se devine pas.
+    expect(readFileSync("src/components/useModeAffichage.ts", "utf8")).toContain("navigator.canShare");
+  });
+
+  /* Sur iOS, dans une app de l'écran d'accueil, « a download » ne fait RIEN :
+     ni fichier, ni notification, ni erreur. C'est le téléchargement muet du
+     8 octobre 2026. Le seul chemin qui y pose un fichier est la feuille. */
+  it("sur iOS installée, enregistrer passe par la feuille et non par un téléchargement", () => {
+    const hook = readFileSync("src/components/useModeAffichage.ts", "utf8");
+    expect(hook).toContain("installee-ios");
+    expect(hook).toMatch(/telechargementFiable = \(m: ModeAffichage\): boolean => m !== "installee-ios"/);
+    const src = readFileSync("src/app/moi/documents/[id]/Sorties.tsx", "utf8");
+    expect(src).toContain("!telechargementFiable(mode)");
   });
 });

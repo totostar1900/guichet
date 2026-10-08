@@ -65,15 +65,26 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
    * refait le même réglage à chaque communiqué, vingt fois de suite. La lecture
    * est gardée, un navigateur pouvant refuser le stockage sans prévenir.
    */
-  const [zoom, setZoom] = useState(() => {
+  const garde = (): number | null => {
     try {
       const v = Number(localStorage.getItem(MEMOIRE_ZOOM));
-      return Number.isFinite(v) && v >= 0.5 && v <= 4 ? v : ZOOM_USINE;
+      return Number.isFinite(v) && v >= 0.5 && v <= 4 ? v : null;
     } catch {
-      return ZOOM_USINE;
+      return null;
     }
-  });
+  };
+  /* LE STOCKAGE NE SE LIT PAS PENDANT LE RENDU.
+     Il se lisait dans l initialisateur : le serveur, qui n a pas de stockage,
+     rendait 110 % pendant que le navigateur rendait la valeur gardee, et les
+     deux textes differaient. Echec d hydratation, arbre regenere. La valeur
+     d usine sort donc des deux cotes, et la vraie se pose apres, dans l effet
+     qui ajuste. */
+  const [zoom, setZoom] = useState(ZOOM_USINE);
+  /* Rien n est ecrit tant que la valeur gardee n a pas ete relue, sinon la
+     valeur d usine l ecraserait avant qu on la lise. */
+  const restaure = useRef(false);
   useEffect(() => {
+    if (!restaure.current) return;
     try {
       localStorage.setItem(MEMOIRE_ZOOM, String(zoom));
     } catch {
@@ -86,6 +97,32 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
   // La main déplace la page ; la flèche rend le curseur ordinaire, pour viser un
   // détail ou laisser le navigateur faire ce qu'il fait d'habitude. Le lecteur
   // natif offrait les deux, et les reprendre ne coûte qu'un état.
+  /**
+   * « AJUSTER » AJUSTE, AU LIEU DE REMETTRE UN CHIFFRE D'USINE.
+   *
+   * Il remettait 1,1, la valeur qui va bien au panneau large du desk. Sur un
+   * téléphone de 375 px, une page A4 y fait 654 px : le bouton promettait un
+   * ajustement et rendait un débordement. Il calcule maintenant le
+   * grossissement auquel la page tient dans la largeur disponible, ce que son
+   * nom a toujours dit.
+   *
+   * C'est aussi la valeur de départ quand la personne n'en a pas choisi une :
+   * un document s'ouvre entier, et on agrandit ensuite si on veut regarder de
+   * près.
+   */
+  const tache = useRef<{ cancel: () => void } | null>(null);
+  const largeurPage = useRef(0);
+  const ajusterAuDebut = useRef(true);
+  const ajusterALaLargeur = useCallback(() => {
+    const box = wrap.current;
+    const w = largeurPage.current;
+    if (!box || !w) return;
+    // La marge intérieure du cadre, pour que la page ne colle pas aux bords.
+    const utile = box.clientWidth - 12;
+    if (utile <= 0) return;
+    setZoom(Math.min(4, Math.max(0.5, utile / w)));
+  }, []);
+
   const [tool, setTool] = useState<"main" | "fleche">("main");
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   /**
@@ -126,6 +163,9 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
     const el = canvas.current;
     if (!d || !el) return;
     const p = await d.getPage(page);
+    /* La largeur de la page à l'échelle 1, gardée pour « Ajuster » : c'est le
+       seul endroit où on tient la page, et l'ajustement en a besoin. */
+    largeurPage.current = p.getViewport({ scale: 1, rotation: rot }).width;
     // Le rendu suit la densité de l'écran : sur un portable récent, une page
     // peinte à un pour un se lit floue, et un scan flou ne se valide pas.
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -138,7 +178,18 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
     if (!ctx) return;
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, el.width, el.height);
-    await p.render({ canvasContext: ctx, viewport: vp, canvas: el }).promise;
+    /* UN SEUL RENDU A LA FOIS SUR LE MEME CANEVAS.
+       pdf.js refuse deux rendus concurrents, et un pincement en produit des
+       dizaines : chaque pas de zoom redessine. Le precedent est donc annule
+       avant d en lancer un autre, et son abandon n est pas une panne. */
+    tache.current?.cancel();
+    const rendu = p.render({ canvasContext: ctx, viewport: vp, canvas: el });
+    tache.current = rendu;
+    try {
+      await rendu.promise;
+    } catch {
+      return;
+    }
 
     /**
      * La couche de texte, posée par-dessus le dessin.
@@ -167,8 +218,18 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
   }, [page, zoom, rot]);
 
   useEffect(() => {
-    if (state === "ready") void draw();
-  }, [state, draw]);
+    if (state !== "ready") return;
+    void draw().then(() => {
+      /* Une seule fois, et seulement si la personne n a pas choisi son
+         grossissement : son reglage lui appartient, on ne le reecrit pas. */
+      if (!ajusterAuDebut.current) return;
+      ajusterAuDebut.current = false;
+      const garde_ = garde();
+      restaure.current = true;
+      if (garde_ !== null) setZoom(garde_);
+      else ajusterALaLargeur();
+    });
+  }, [state, draw, ajusterALaLargeur]);
 
   /**
    * LE GESTE À DEUX DOIGTS AGRANDIT, COMME PARTOUT AILLEURS.
@@ -259,7 +320,7 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
         <button type="button" className="btn sm ghost" onClick={() => setZoom((z) => Math.min(4, z * 1.15))} aria-label={t("Agrandir")}>
           +
         </button>
-        <button type="button" className="btn sm ghost" onClick={() => setZoom(ZOOM_USINE)}>
+        <button type="button" className="btn sm ghost" onClick={ajusterALaLargeur}>
           {t("Ajuster")}
         </button>
         <span className={styles.tools} role="group" aria-label={t("Outil")}>
@@ -340,7 +401,7 @@ interface PdfTextItem {
 }
 interface PdfPage {
   getViewport: (o: { scale: number; rotation?: number }) => { width: number; height: number };
-  render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown; canvas: HTMLCanvasElement }) => { promise: Promise<void> };
+  render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown; canvas: HTMLCanvasElement }) => { promise: Promise<void>; cancel: () => void };
   getTextContent: () => Promise<{ items: ({ str: string } | Record<string, unknown>)[] }>;
 }
 interface PdfLib {
