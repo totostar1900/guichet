@@ -492,8 +492,13 @@ export function ConventionSection({ file, signable, canal, enTete = false }: { f
         <b>{t("Convention d'ouverture de compte-titres : l'essentiel")}</b>
         <ul>
           <li>{t("Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.")}</li>
-          <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom.")}</li>
-          <li>{t("Une intention n'est pas un ordre : un ordre naît d'une confirmation et d'un bulletin accepté.")}</li>
+          {/* LE MANDAT EST LA CLEF DE VOÛTE DE CETTE SIGNATURE : c'est lui qui
+              fait qu'il n'y en aura pas d'autre. Il se dit donc ici, en toutes
+              lettres, et non seulement à l'article 2 du texte complet. */}
+          <li>{t("Vous nous donnez mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez rien d'autre pour cela, et l'ouverture est sans frais.")}</li>
+          <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom. Votre solde ne porte pas intérêt, et vous pouvez le placer en parts de fonds monétaire à votre nom.")}</li>
+          <li>{t("Un ordre naît de votre signature. Si vous le réglez tout de suite par un moyen authentifié, le reçu du paiement vaut signature ; l'argent ne précède jamais l'ordre.")}</li>
+          <li>{t("Vous demandez le versement de votre solde disponible quand vous voulez : il part sous 72 heures ouvrables, vers votre compte bancaire et vers lui seul.")}</li>
           <li>{t("Tarifs : selon l'annexe tarifaire remise par votre conseiller ; aucun frais d'ouverture.")}</li>
           <li>{t("Vous recevez un avis d'opéré par opération et un relevé de position ; réclamations et médiation COSUMAF décrites en annexe.")}</li>
           <li>{t("Données : conservées 10 ans après la fin de la relation (obligation LBC/FT), utilisées pour la relation et le reporting réglementaire.")}</li>
