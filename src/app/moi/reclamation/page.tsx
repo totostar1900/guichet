@@ -50,7 +50,7 @@ export default async function ComplaintPage() {
             {mine.map((d) => (
               <li key={d.id}>
                 <span className="mono">{d.number}</span> · {fmtDate(d.createdAt)} ·{" "}
-                <a href={`/api/documents/${d.id}`} target="_blank" rel="noreferrer">
+                <a href={`/moi/documents/${d.id}`}>
                   PDF
                 </a>
               </li>

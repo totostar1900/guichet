@@ -1187,6 +1187,12 @@ export const EN_REST: Record<string, string> = {
   "Approuvé : compte en cours d'ouverture": "Approved: account being opened",
   "En cours": "In progress",
   "Convention à accepter": "Agreement to accept",
+
+  /* ---------- la page d'un document, pour ne plus sortir de l'app (8 octobre 2026) ---------- */
+  "Établi le {d}.": "Issued on {d}.",
+  "Télécharger le PDF": "Download the PDF",
+  "Ouvrir à part": "Open separately",
+  "Votre navigateur n'affiche pas les PDF dans la page.": "Your browser does not display PDFs in the page.",
   "Votre convention est acceptée. Le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception.":
     "Your agreement is accepted. The sub-account in your name is being opened at the account keeper, usually within 24 to 48 h; we confirm its number as soon as we have it.",
   "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents.":

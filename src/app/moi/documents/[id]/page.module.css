@@ -1,0 +1,61 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  /* La visionneuse prend ce qui reste : le document se lit, il ne se devine pas. */
+  min-height: 0;
+}
+.back {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.back:hover {
+  color: var(--ink);
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.head h1 {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-7);
+}
+.lead {
+  margin: var(--s-3) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+}
+.actions {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.visionneuse {
+  width: 100%;
+  /* Assez haut pour lire une page entière, sans dépasser l'écran. */
+  height: min(78vh, 900px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.repli {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-6);
+  height: 100%;
+  padding: var(--s-9);
+  text-align: center;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+}
+@media (max-width: 640px) {
+  .visionneuse {
+    height: 62vh;
+  }
+}

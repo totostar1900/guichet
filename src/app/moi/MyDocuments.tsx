@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { useT } from "@/i18n/client";
 import { fmtDateTime } from "@/lib/format";
@@ -94,9 +95,12 @@ export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[
         <td className="num">{fmtDateTime(d.createdAt)}</td>
         <td>{t(d.status === "signe" ? "Signé" : d.status === "envoye" ? "Envoyé" : "Disponible")}</td>
         <td>
-          <a className="btn sm" href={d.href} target="_blank" rel="noreferrer">
+          {/* La pièce s ouvre DANS l app, sur une page qui porte le retour :
+              l app installée tourne en standalone, sans barre d adresse, et un
+              PDF ouvert à part y piégeait le lecteur. */}
+          <Link className="btn sm" href={d.href}>
             {t("Ouvrir le PDF")}
-          </a>
+          </Link>
         </td>
       </tr>
     );
@@ -115,9 +119,9 @@ export function MyDocuments({ docs, ops, inFold }: { docs: DocRow[]; ops: DocOp[
         </div>
         <div className={styles.docCardSide}>
           <span className={`st ${d.status === "signe" ? "reglee" : d.status === "envoye" ? "transmise" : "recue"}`}>{t(d.status === "signe" ? "Signé" : d.status === "envoye" ? "Envoyé" : "Disponible")}</span>
-          <a className="btn sm" href={d.href} target="_blank" rel="noreferrer">
+          <Link className="btn sm" href={d.href}>
             PDF
-          </a>
+          </Link>
         </div>
       </div>
     );
