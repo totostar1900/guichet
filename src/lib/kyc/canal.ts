@@ -1,4 +1,5 @@
 import "server-only";
+import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import type { ClientFile } from "@/lib/domain/kyc";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
@@ -35,13 +36,28 @@ export type CanalDuCode = {
  * WhatsApp quand le client l'a demandé, le code d'acceptation garde l'e-mail.
  */
 export async function canalDuCode(userId: string, f: ClientFile, prefererWhatsApp = false): Promise<CanalDuCode | undefined> {
-  const ch = await repo()
-    .getChannelStatus(userId)
-    .catch(() => undefined);
+  const [ch, s] = await Promise.all([
+    repo()
+      .getChannelStatus(userId)
+      .catch(() => undefined),
+    getSession().catch(() => null),
+  ]);
+  /* LA PREUVE LA PLUS FORTE EST CELLE QU'ON NE RANGEAIT NULLE PART.
+     S'être connecté avec une adresse la prouve : c'est un code reçu à cette
+     adresse qui a ouvert la session. Mais la connexion par code e-mail n'écrit
+     pas « email_verified_at » dans le profil, si bien que cette règle, qui ne
+     lisait que cette colonne, tenait l'adresse du compte pour non prouvée et
+     pouvait repasser derrière le champ libre du formulaire. L'écran Sécurité,
+     lui, dit « prouvé par votre connexion » depuis toujours : les deux disent
+     maintenant la même chose. Même raison pour le numéro, que la session
+     marque « phoneVerified » quand un code l'a confirmé. */
+  const moi = s && s.userId === userId ? s : undefined;
   const mail = emailConfigured();
   const wa = whatsappConfigured();
-  const parMail = mail && ch?.email && ch.emailVerifiedAt ? ({ channel: "email", to: ch.email, prouve: true } as const) : undefined;
-  const parWa = wa && ch?.phone && ch.phoneVerifiedAt ? ({ channel: "whatsapp", to: ch.phone, prouve: true } as const) : undefined;
+  const mailProuve = moi?.email ?? (ch?.emailVerifiedAt ? ch.email : undefined);
+  const telProuve = moi?.phoneVerified ? moi.phone : ch?.phoneVerifiedAt ? ch.phone : undefined;
+  const parMail = mail && mailProuve ? ({ channel: "email", to: mailProuve, prouve: true } as const) : undefined;
+  const parWa = wa && telProuve ? ({ channel: "whatsapp", to: telProuve, prouve: true } as const) : undefined;
   const prouve = prefererWhatsApp ? (parWa ?? parMail) : (parMail ?? parWa);
   if (prouve) return prouve;
   if (prefererWhatsApp && wa && f.identity.phone) return { channel: "whatsapp", to: f.identity.phone, prouve: false };

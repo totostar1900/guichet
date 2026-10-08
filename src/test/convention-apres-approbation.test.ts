@@ -57,10 +57,11 @@ describe("la convention s'accepte après l'approbation", () => {
  * désormais devant un champ libre.
  */
 describe("le canal du code suit ce qui est prouvé", () => {
-  const poser = (profil: { phone?: string; email?: string; phoneVerifiedAt?: string; emailVerifiedAt?: string }) => {
+  const poser = (profil: { phone?: string; email?: string; phoneVerifiedAt?: string; emailVerifiedAt?: string }, session?: { userId: string; email?: string; phone?: string; phoneVerified?: boolean }) => {
     vi.resetModules();
     vi.doMock("@/lib/data", () => ({ repo: () => ({ getChannelStatus: async () => profil }) }));
     vi.doMock("@/lib/notify/providers", () => ({ emailConfigured: () => true, whatsappConfigured: () => true }));
+    vi.doMock("@/lib/auth", () => ({ getSession: async () => session ?? null }));
   };
 
   it("préfère l'adresse prouvée au champ du formulaire", async () => {
@@ -80,6 +81,29 @@ describe("le canal du code suit ce qui est prouvé", () => {
     poser({});
     const { canalDuCode } = await import("@/lib/kyc/canal");
     expect(await canalDuCode("u1", fiche())).toEqual({ channel: "email", to: "forme@exemple.com", prouve: false });
+  });
+
+  /* S'être connecté avec une adresse la prouve, et c'est la preuve que la base
+     ne range nulle part : la connexion par code e-mail n'écrit pas
+     « email_verified_at ». Mesuré en production le 8 octobre 2026, où l'écran
+     annonçait « cette adresse vient de votre formulaire » pour l'adresse même
+     de la session. */
+  it("compte l'adresse de la session comme prouvée, colonne vide ou non", async () => {
+    poser({}, { userId: "u1", email: "connexion@exemple.com" });
+    const { canalDuCode } = await import("@/lib/kyc/canal");
+    expect(await canalDuCode("u1", fiche())).toEqual({ channel: "email", to: "connexion@exemple.com", prouve: true });
+  });
+
+  it("ne prend la session que si c'est bien le même utilisateur", async () => {
+    poser({}, { userId: "autre", email: "quelquun.dautre@exemple.com" });
+    const { canalDuCode } = await import("@/lib/kyc/canal");
+    expect(await canalDuCode("u1", fiche())).toEqual({ channel: "email", to: "forme@exemple.com", prouve: false });
+  });
+
+  it("le numéro confirmé à la connexion vaut preuve aussi", async () => {
+    poser({}, { userId: "u1", phone: "+237600000099", phoneVerified: true });
+    const { canalDuCode } = await import("@/lib/kyc/canal");
+    expect(await canalDuCode("u1", fiche(), true)).toEqual({ channel: "whatsapp", to: "+237600000099", prouve: true });
   });
 });
 
