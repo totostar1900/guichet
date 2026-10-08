@@ -107,7 +107,7 @@ export interface ContexteClient {
    * liste de devoirs qui contient une invitation cesse d'être une liste de
    * devoirs, et le compteur qui la compte cesse de vouloir dire quelque chose.
    */
-  dossier?: "convention" | "complements";
+  dossier?: "convention" | "convention_reprise" | "complements";
   /** Ce qui est échu et pas encore arrivé, et depuis combien de jours. */
   attendu?: { montant: number; retardJours: number };
   /** Le réinvestissement en place, s'il l'est. */
@@ -466,6 +466,19 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: { key: "Convention" },
       quoi: { key: "Votre dossier est approuvé. Votre compte s'ouvre dès que la convention est acceptée, par un code à usage unique." },
       geste: "Accepter ma convention",
+      href: "/ouvrir-un-compte",
+      ton: "retard",
+    });
+  /* UNE REPRISE SE DIT AUTREMENT, parce que le compte, lui, n'attend rien.
+     « Votre compte s'ouvre dès que la convention est acceptée » serait faux
+     pour quelqu'un dont le compte est ouvert depuis des mois. */
+  if (c.dossier === "convention_reprise")
+    out.push({
+      cle: "convention",
+      quand: { key: "La convention a changé" },
+      chiffre: { key: "Convention" },
+      quoi: { key: "Un point qui vous engage a changé : le mandat d'ouverture. Relisez-la et reprenez-la par un code ; vos positions ne changent pas." },
+      geste: "Reprendre ma convention",
       href: "/ouvrir-un-compte",
       ton: "retard",
     });

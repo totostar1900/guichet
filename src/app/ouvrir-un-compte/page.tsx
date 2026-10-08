@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emptyClientFile } from "@/lib/domain/kyc";
-import { conventionSignable, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
+import { conventionAReprendre, conventionSignable, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
 import { setKindAction } from "./actions";
 import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentitySection, PersonsSection, SubmitSection } from "./Sections";
@@ -36,6 +36,10 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const editable = file.status === "brouillon" || file.status === "complements";
   const missing = missingForSubmission(file);
   const signable = conventionSignable(file);
+  /* UNE REPRISE N EST PAS UNE PREMIERE SIGNATURE. Le compte existe, il n est
+     pas « en cours d ouverture » : c est le texte qui a change, et le dire
+     autrement ferait croire a un recommencement. */
+  const reprise = conventionAReprendre(file);
   /* La destination du code se lit à l'écran avant de l'envoyer : le canal prouvé
      à la connexion passe devant le champ du formulaire (voir lib/kyc/canal). */
   const canal = file.consents.conventionAt ? undefined : await canalDuCode(s.userId, file);
@@ -62,7 +66,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       ? "En cours"
       : file.status === "approuve"
         ? signable
-          ? "Approuvé : convention à accepter"
+          ? reprise
+            ? "Approuvé : convention à reprendre"
+            : "Approuvé : convention à accepter"
           : // « Approuvé : compte actif » annonçait un compte actif avant que le teneur n'ait rendu le sous-compte, à deux lignes d'un titre qui disait le contraire.
             file.review.custodianAccount
             ? "Approuvé : compte actif"
@@ -74,13 +80,15 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       <div className={styles.head}>
         <div>
           <div className="eyebrow">{t("Ouverture de compte-titres")}</div>
-          <h1 className="display">{t(file.status === "approuve" ? (signable ? "Dossier approuvé : acceptez votre convention" : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
+          <h1 className="display">{t(file.status === "approuve" ? (signable ? (reprise ? "Votre convention a changé" : "Dossier approuvé : acceptez votre convention") : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
           <p className={styles.lead}>
             {/* Une fois le dossier approuvé, l'accroche ne reprend pas
                 l'argumentaire du début : elle dit où en est le compte. */}
             {t(
               signable
-                ? "Votre dossier est approuvé. Dernière étape : acceptez la convention par un code à usage unique, ci-dessous. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte."
+                ? reprise
+                  ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Relisez-la, puis reprenez-la par un code à usage unique, ci-dessous. Vos positions et votre compte ne changent pas."
+                  : "Votre dossier est approuvé. Dernière étape : acceptez la convention par un code à usage unique, ci-dessous. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte."
                 : file.status === "approuve"
                   ? file.review.custodianAccount
                     ? "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents."

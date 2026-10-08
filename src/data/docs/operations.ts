@@ -134,6 +134,14 @@ export const OPERATIONS: DocPage = {
         },
         {
           type: "note",
+          kind: "rule",
+          text: l(
+            "Elle n'est jamais obligatoire, et le desk ne la propose jamais comme une condition. Le choix du moyen de règlement appartient au client : il peut payer chaque ordre au coup par coup, y compris par virement après l'avoir signé, et ne jamais constituer de provision. Une commodité présentée comme un passage obligé est une friction de plus, pas une de moins.",
+            "It is never compulsory, and the desk never offers it as a condition. The choice of means of settlement belongs to the client: they may pay for each order one at a time, including by transfer after signing it, and never build up a provision. A convenience presented as a required step is one more friction, not one fewer.",
+          ),
+        },
+        {
+          type: "note",
           kind: "warn",
           text: l(
             "La provision ne porte pas intérêt, et ce n'est pas une pingrerie : rémunérer des fonds reçus du public est le métier d'un établissement de crédit, sous COBAC, pas celui d'une société de bourse. Promettre un intérêt sur un solde client, c'est changer la qualification de l'activité.",

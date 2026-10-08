@@ -1,3 +1,4 @@
+import { CONVENTION_VERSION } from "@/data/legal";
 import type { ClientFile, ClientKind, KycDocKind, RiskRating } from "@/lib/domain/kyc";
 
 /** Groupements: an informal group (indivision de mandataires) may hold at most this nominal; above it, the group must be a declared association. */
@@ -104,7 +105,21 @@ export function missingForSubmission(f: ClientFile): string[] {
  * La règle vit ici plutôt que près des actions : un module « use server » ne peut
  * exporter que des fonctions async, et ni le typage ni les tests ne le disent.
  */
-export const conventionSignable = (f: ClientFile): boolean => f.status === "approuve" && !f.consents.conventionAt;
+export const conventionSignable = (f: ClientFile): boolean => f.status === "approuve" && !conventionAJour(f);
+
+/**
+ * La convention acceptée est-elle celle qui est en vigueur ?
+ *
+ * Une acceptation sans version est antérieure au 9 octobre 2026, donc à un
+ * texte sans mandat d'ouverture : la maison ne peut pas se prévaloir d'un
+ * mandat que le signataire n'a pas lu. On redemande, une fois, avec un code.
+ *
+ * Le texte ne change pas de version pour une virgule : voir CONVENTION_VERSION.
+ */
+export const conventionAJour = (f: ClientFile): boolean => Boolean(f.consents.conventionAt) && f.consents.conventionVersion === CONVENTION_VERSION;
+
+/** Acceptée, mais sous un texte qui n'est plus celui en vigueur : il faut la reprendre. */
+export const conventionAReprendre = (f: ClientFile): boolean => Boolean(f.consents.conventionAt) && !conventionAJour(f);
 
 /** Everything the desk still needs before approving: identity details, representatives, every required piece. */
 export function missingForApproval(f: ClientFile): string[] {

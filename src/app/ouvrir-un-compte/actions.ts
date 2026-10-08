@@ -8,7 +8,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emptyClientFile, type ClientFile, type ClientKind, type KycDocKind, type KycPerson } from "@/lib/domain/kyc";
 import { saveSource } from "@/lib/intake/storage";
-import { conventionSignable, DOC_LABEL, missingForSubmission } from "@/lib/kyc/checklist";
+import { conventionAJour, conventionSignable, DOC_LABEL, missingForSubmission } from "@/lib/kyc/checklist";
 
 export type StepResult = { ok: true; message?: string; code?: string } | { ok: false; error: string };
 
@@ -187,8 +187,11 @@ export async function saveConsentsAction(_p: StepResult | null, form: FormData):
 // La signature reste celle de useActionState : le formulaire ne porte plus rien, les consentements ont leur propre action.
 export async function sendConventionCodeAction(_p: StepResult | null, _form: FormData): Promise<StepResult> {
   const { file, userId } = await myFile();
-  if (file.consents.conventionAt) return { ok: false, error: "Convention déjà acceptée." };
-  if (!conventionSignable(file)) return { ok: false, error: "La convention s'accepte dès que votre dossier est approuvé : nous vous prévenons de la décision." };
+  /* ON LIT LA RÈGLE, PAS LA DATE. « conventionAt existe » voulait dire
+     « déjà acceptée » : à la première reprise du texte, la date était là et
+     ce garde refusait le code sans que rien sur la page ne le laisse prévoir.
+     Troisième endroit du même jour à confondre la date et la question. */
+  if (!conventionSignable(file)) return { ok: false, error: conventionAJour(file) ? "Convention déjà acceptée." : "La convention s'accepte dès que votre dossier est approuvé : nous vous prévenons de la décision." };
   if (!file.consents.dataAt) return { ok: false, error: "Donnez d'abord votre consentement au traitement des données." };
   const attente = attenteAvantRenvoi(file.consents.pendingCodeAt);
   if (attente) return { ok: false, error: `Un code vient de partir. Attendez ${attente} secondes avant d'en demander un autre.` };
@@ -209,7 +212,7 @@ export async function sendConventionCodeAction(_p: StepResult | null, _form: For
 
 export async function verifyConventionCodeAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
-  if (file.consents.conventionAt) return { ok: true, message: "Convention déjà acceptée." };
+  if (conventionAJour(file)) return { ok: true, message: "Convention déjà acceptée." };
   if (!conventionSignable(file)) return { ok: false, error: "La convention s'accepte dès que votre dossier est approuvé." };
   const { pendingCodeHash, pendingCodeAt, pendingCodeTries, pendingCodeTo, ...rest } = file.consents;
   const verdict = verifier(String(form.get("code") ?? ""), { hash: pendingCodeHash, at: pendingCodeAt, tries: pendingCodeTries, to: pendingCodeTo });
@@ -222,7 +225,8 @@ export async function verifyConventionCodeAction(_p: StepResult | null, form: Fo
     return { ok: false, error: verdict.erreur };
   }
   const r = repo();
-  const updated = await r.updateClientFile(file.id, { consents: { ...rest, conventionAt: new Date().toISOString(), conventionMethod: "code à usage unique", conventionTo: pendingCodeTo } });
+  const { CONVENTION_VERSION } = await import("@/data/legal");
+  const updated = await r.updateClientFile(file.id, { consents: { ...rest, conventionAt: new Date().toISOString(), conventionMethod: "code à usage unique", conventionTo: pendingCodeTo, conventionVersion: CONVENTION_VERSION } });
   /* La convention se produit maintenant, parce que c'est maintenant qu'elle est
      signée : à l'approbation, elle sortait en portant « non acceptée ». */
   const { generateKycDocument } = await import("@/lib/documents/generate");

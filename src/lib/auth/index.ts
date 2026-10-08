@@ -26,7 +26,15 @@ export const getSession = cache(async (): Promise<Session | null> => {
          sub-account number AND the client has accepted the convention, which now
          comes after the desk's approval. An approved file without that signature
          binds nobody : it opens nothing. */
-      s.conventionAccepted = Boolean(f.consents.conventionAt);
+      /* « ACCEPTÉE » VEUT DIRE « À JOUR », ET PAS SEULEMENT « SIGNÉE UN JOUR ».
+         Le 9 octobre 2026 la convention reçoit le mandat d'ouverture : la
+         maison ouvre des comptes au nom du client sur la foi de ce texte. Un
+         client qui a signé la veille n'a mandaté personne, et le laisser
+         passer pour habilité ferait reposer chaque ouverture sur un
+         consentement qu'il n'a pas donné. Un seul point de vérité, ici :
+         peutOPCVM, peutTitres et le palier en découlent sans le savoir. */
+      const { conventionAJour } = await import("@/lib/kyc/checklist");
+      s.conventionAccepted = conventionAJour(f);
       s.tier = f.status === "approuve" && f.review.custodianAccount && s.conventionAccepted ? 2 : 1;
       s.kycStatus = f.status;
       if (f.identity.name) s.name = f.identity.name;

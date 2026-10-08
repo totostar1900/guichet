@@ -36,7 +36,59 @@ describe("la convention s'accepte après l'approbation", () => {
     expect(conventionSignable(fiche({ status: "brouillon" }))).toBe(false);
     expect(conventionSignable(fiche({ status: "soumis" }))).toBe(false);
     expect(conventionSignable(fiche({ status: "approuve" }))).toBe(true);
-    expect(conventionSignable(fiche({ status: "approuve", consents: { conventionAt: new Date().toISOString() } }))).toBe(false);
+    const { CONVENTION_VERSION } = await import("@/data/legal");
+    expect(conventionSignable(fiche({ status: "approuve", consents: { conventionAt: new Date().toISOString(), conventionVersion: CONVENTION_VERSION } }))).toBe(false);
+  });
+
+  /**
+   * ET UNE SECONDE FOIS QUAND LE TEXTE A CHANGÉ CE À QUOI ON S'ENGAGE.
+   *
+   * Le 9 octobre 2026 la convention reçoit le mandat d'ouverture : la maison
+   * ouvre des comptes au nom du client sur la foi de ce texte. Deux clients
+   * l'avaient acceptée la veille, sous un texte qui ne contenait aucun
+   * mandat, et rien en base ne permettait de les distinguer : l'acceptation
+   * portait une date et pas de version.
+   */
+  it("se reprend quand la version acceptée n'est plus celle en vigueur", async () => {
+    const { conventionSignable, conventionAJour, conventionAReprendre } = await import("@/lib/kyc/checklist");
+    const vieille = fiche({ status: "approuve", consents: { conventionAt: "2026-10-08T09:56:28.522Z" } });
+    expect(conventionAJour(vieille)).toBe(false);
+    expect(conventionAReprendre(vieille)).toBe(true);
+    expect(conventionSignable(vieille)).toBe(true);
+    // Jamais acceptée : à signer, mais ce n'est pas une reprise.
+    expect(conventionAReprendre(fiche({ status: "approuve" }))).toBe(false);
+  });
+
+  /**
+   * TROIS ENDROITS LISAIENT LA DATE AU LIEU DE LA RÈGLE, et le défaut ne s'est
+   * vu qu'à l'écran, à la première reprise : la page annonçait « Votre
+   * convention a changé », et dessous le bloc affichait « Convention acceptée
+   * le 7 octobre », sans bouton. Les deux actions, elles, refusaient le code.
+   * « conventionAt existe » n'est pas la question ; « est-elle à jour » l'est.
+   */
+  it("aucun garde ne se contente de la date d'acceptation", async () => {
+    const { readFileSync } = await import("node:fs");
+    const actions = readFileSync("src/app/ouvrir-un-compte/actions.ts", "utf8");
+    expect(actions).not.toContain("if (file.consents.conventionAt) return");
+    expect(actions).toContain("conventionAJour(file)");
+    const sections = readFileSync("src/app/ouvrir-un-compte/Sections.tsx", "utf8");
+    expect(sections).toContain("const accepted = Boolean(c.conventionAt) && !signable");
+  });
+
+  it("la convention dit que la provision n'est jamais obligatoire", async () => {
+    const { PASSAGES } = await import("@/lib/documents/passages-catalog");
+    const especes = (PASSAGES.convention ?? []).find((p) => p.key === "art_especes");
+    // Une commodité présentée comme un passage obligé est une friction de plus.
+    expect(especes?.fr).toContain("Elle n'est jamais obligatoire");
+    expect(especes?.fr).toContain("ne peut lui en imposer une");
+    expect(especes?.en).toContain("never compulsory");
+  });
+
+  it("la convention porte le mandat d'ouverture, qui est la raison de cette version", async () => {
+    const { PASSAGES } = await import("@/lib/documents/passages-catalog");
+    const garde = (PASSAGES.convention ?? []).find((p) => p.key === "art_conservation");
+    expect(garde?.fr).toContain("donne mandat à l'Intermédiaire d'ouvrir en son nom");
+    expect(garde?.en).toContain("mandate to open in their name");
   });
 
   it("un dossier approuvé sans signature n'ouvre aucune porte", () => {

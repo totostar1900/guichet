@@ -6,6 +6,27 @@
  */
 export const LEGAL_VERSION = "2026-09-20";
 
+/**
+ * LA VERSION DE LA CONVENTION, ET POURQUOI ELLE MANQUAIT.
+ *
+ * Le texte des conditions légales portait sa version depuis le début ; la
+ * convention, non. On savait donc QUAND un client l'avait acceptée, jamais
+ * QUOI. Tant que le texte ne bougeait pas, personne ne voyait le trou. Le
+ * 9 octobre 2026, l'article 2 reçoit le mandat d'ouverture, l'article 3 la
+ * provision et les soixante-douze heures, l'article 4 est renversé : les
+ * clients qui avaient signé la veille n'avaient mandaté personne, et rien
+ * dans la base ne permettait de les distinguer.
+ *
+ * ELLE SE LÈVE À LA MAIN, et c'est voulu. Une version qui suivrait la date
+ * du dernier mot corrigé redemanderait une signature pour une virgule, et on
+ * apprendrait à signer sans lire. On la lève quand le texte change ce à quoi
+ * le client s'engage : un mandat, un délai, une règle d'argent.
+ *
+ * L'exemplaire signé reste la preuve : chaque acceptation produit le PDF du
+ * texte en vigueur ce jour-là, rangé dans les documents du client.
+ */
+export const CONVENTION_VERSION = "2026-10-09";
+
 export interface LegalSection {
   id: string;
   title: { fr: string; en: string };

@@ -122,6 +122,13 @@ export interface ClientFile {
     whatsappAt?: string;
     conventionAt?: string;
     conventionMethod?: string;
+    /**
+     * La version du texte accepté (voir CONVENTION_VERSION).
+     *
+     * Absente, elle signifie « acceptée avant que les versions existent »,
+     * donc un texte antérieur au mandat d'ouverture : la maison redemande.
+     */
+    conventionVersion?: string;
     /** Où le code d'acceptation est parti : la convention imprimée le nomme, et le client peut le relire à l'écran. */
     conventionTo?: string;
     pendingCodeHash?: string;

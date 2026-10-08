@@ -215,6 +215,17 @@ export const EN_CONSOLE: Record<string, string> = {
      rangées ont suffi à montrer « 1 ordre » en français au milieu d'une page
      anglaise. Un montant et le libellé d'une séance restent des données et ne
      sont pas ici. */
+  /* La reprise de la convention (version du 9 octobre 2026 : le mandat
+     d'ouverture). Clefs invisibles au scanner : les unes passent par un
+     ternaire dans t(), les autres par `a.quoi.key`. */
+  "Approuvé : convention à reprendre": "Approved: agreement to confirm again",
+  "Votre convention a changé": "Your agreement has changed",
+  "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Relisez-la, puis reprenez-la par un code à usage unique, ci-dessous. Vos positions et votre compte ne changent pas.":
+    "The agreement has changed on a point that binds you: you now give us a mandate to open, in your name, the accounts your orders need, and you will sign nothing else for that. Read it again, then confirm it with a one-time code below. Your positions and your account do not change.",
+  "La convention a changé": "The agreement has changed",
+  "Un point qui vous engage a changé : le mandat d'ouverture. Relisez-la et reprenez-la par un code ; vos positions ne changent pas.":
+    "A point that binds you has changed: the opening mandate. Read it again and confirm it with a code; your positions do not change.",
+  "Reprendre ma convention": "Confirm my agreement again",
   "1 ordre": "1 order",
   "{n} ordres": "{n} orders",
   "1 proposition": "1 proposal",

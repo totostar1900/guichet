@@ -479,7 +479,13 @@ export function ConventionSection({ file, signable, canal, enTete = false }: { f
   const [sendState, sendAct, sending] = useActionState<StepResult | null, FormData>(sendConventionCodeAction, null);
   const [verState, verAct, verifying] = useActionState<StepResult | null, FormData>(verifyConventionCodeAction, null);
   const c = file.consents;
-  const accepted = Boolean(c.conventionAt);
+  /* « ACCEPTÉE » DOIT VOULOIR DIRE « ET IL N'Y A PLUS RIEN À SIGNER ».
+     Mesuré à l'écran le 9 octobre 2026, à la première reprise : la page
+     annonçait « Votre convention a changé », l'étiquette disait « convention
+     à reprendre », et ce bloc affichait tranquillement « Convention acceptée
+     le 7 octobre » sans aucun bouton. Il lisait la date, qui existe toujours
+     après une reprise ; c'est `signable` qui porte la question. */
+  const accepted = Boolean(c.conventionAt) && !signable;
   const attente = useReste(c.pendingCodeAt, 45_000);
   const validite = useReste(c.pendingCodeAt, 10 * 60_000);
   const envoye = Boolean(c.pendingCodeAt) && validite !== 0;

@@ -5,6 +5,7 @@ import { loadBeacAuctions } from "@/lib/market/beac-feed";
 import type { BeacAuction } from "@/lib/market/beac";
 import { positionsFrom } from "@/lib/positions";
 import { attendUneSignature } from "@/lib/domain/intent";
+import { conventionAReprendre } from "@/lib/kyc/checklist";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { attentesDuClient, type ContexteClient } from "@/lib/domain/services";
@@ -75,7 +76,7 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
        pouvait traverser l'application entière sans croiser le geste qui la
        déverrouille. Les deux états retenus sont ceux où le desk a joué et
        rend la main ; le brouillon n'attend personne. */
-    dossier: fiche?.status === "approuve" && !fiche.consents.conventionAt ? "convention" : fiche?.status === "complements" ? "complements" : undefined,
+    dossier: fiche?.status === "approuve" && !fiche.consents.conventionAt ? "convention" : fiche && conventionAReprendre(fiche) ? "convention_reprise" : fiche?.status === "complements" ? "complements" : undefined,
     attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
     reinvestissement: reinv ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount } : undefined,
     epargne: epargne ? { montant: epargne.amount, jour: epargne.dayOfMonth, destination: offers.find((o) => o.id === epargne.offerId)?.title ?? epargne.offerId } : undefined,
