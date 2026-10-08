@@ -40,18 +40,18 @@ describe("la visionneuse tient sur un écran de téléphone", () => {
   it("un contenu plus large que son cadre reste atteignable", () => {
     const feuilles = css();
     // « margin: 0 auto » sur un bloc rend le débordement inatteignable ; en flex, « margin: auto » non.
-    expect(feuilles).not.toMatch(/\.feuille \{[^}]*margin: 0 auto/s);
-    expect(feuilles).toMatch(/\.feuille \{[^}]*margin: auto/s);
+    expect(feuilles).not.toMatch(/\.feuille \{[^}]*margin: 0 auto/);
+    expect(feuilles).toMatch(/\.feuille \{[^}]*margin: auto/);
     // Et la chaîne des min-width, sans quoi le cadre s'élargit à son contenu.
-    expect(feuilles).toMatch(/\.viewer \{[^}]*min-width: 0/s);
-    expect(feuilles).toMatch(/\.viewerBox \{[^}]*min-width: 0/s);
+    expect(feuilles).toMatch(/\.viewer \{[^}]*min-width: 0/);
+    expect(feuilles).toMatch(/\.viewerBox \{[^}]*min-width: 0/);
   });
 
   it("le stockage ne se lit pas pendant le rendu", () => {
     const src = viewer();
     expect(src).toContain("useState(ZOOM_USINE)");
     // Un getItem dans un initialisateur d'état fait diverger serveur et client.
-    expect(src).not.toMatch(/useState\(\(\) => \{[^}]*getItem/s);
+    expect(src).not.toMatch(/useState\(\(\) => \{[^}]*getItem/);
   });
 
   it("un seul rendu à la fois sur le même canevas", () => {
