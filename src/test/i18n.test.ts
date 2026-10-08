@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { translate } from "@/i18n/core";
 import { EN_ALL } from "@/i18n/core";
@@ -53,5 +54,36 @@ describe("les clefs à trous", () => {
     const short = templates.filter((k) => literal(k) <= 3);
     // le compte du 23 septembre 2026 : il peut descendre, pas monter
     expect(short.length, `clefs à trous très courtes : ${short.join(" · ")}`).toBeLessThanOrEqual(6);
+  });
+});
+
+/**
+ * LA LANGUE SUIT LA PERSONNE, PAS SEULEMENT LE NAVIGATEUR.
+ *
+ * Le choix était écrit au compte depuis le 6 octobre 2026
+ * (`ClientPrefs.lang`, posé par display-actions) avec, en toutes lettres,
+ * « gardée au compte pour qu'elle suive ailleurs ». Personne ne la relisait :
+ * `getLang` s'arrêtait au cookie puis à l'en-tête du navigateur. Mesuré le
+ * 8 octobre : le même client lisait le français sur un appareil et l'anglais
+ * sur l'autre. Une préférence qu'on écrit sans jamais la relire est une panne
+ * muette de plus.
+ */
+describe("d'où vient la langue", () => {
+  it("getLang consulte le compte entre le cookie et le navigateur", () => {
+    const src = readFileSync("src/i18n/server.ts", "utf8");
+    expect(src).toContain("langueDuCompte");
+    expect(src).toContain("getPrefs");
+    // L'ordre : cookie de cet appareil, puis compte, puis accept-language.
+    const i = src.indexOf("isLang(c) ? c");
+    const j = src.indexOf("await langueDuCompte()");
+    const k = src.indexOf("accept.split");
+    expect(i).toBeGreaterThan(0);
+    expect(j).toBeGreaterThan(i);
+    expect(k).toBeGreaterThan(j);
+  });
+
+  it("et le choix se garde au compte quand on le change", () => {
+    const src = readFileSync("src/lib/display-actions.ts", "utf8");
+    expect(src).toContain("lang: d.lang");
   });
 });
