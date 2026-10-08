@@ -272,8 +272,19 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               {state.sent.some((x) => x.status === "skipped") ? t(" (envoi automatique en cours d'activation : le desk vous écrit à la main)") : state.sent.some((x) => x.status === "failed") ? t(" : un envoi a échoué, le desk vous recontacte") : ""}.
             </li>
             <li>{t("Un conseiller vous confirme {by} : vérifiez que ce numéro reçoit bien les appels et WhatsApp.", { by: t(BY[state.channel]) })}</li>
-            <li>{t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
+            {/* UN ORDRE OPCVM SE SIGNE TOUT DE SUITE, et le reçu y conduit au
+                lieu d'annoncer une attente. L'ancienne phrase promettait un
+                bulletin par e-mail, donc un aller-retour : c'est exactement ce
+                qu'on supprime. */}
+            <li>{state.aSigner ? t("Il vous reste à lire et signer votre ordre, ici même : c'est le dernier geste avant le go du desk.") : t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
           </ul>
+          {state.aSigner && (
+            <div className={styles.needAccount}>
+              <Link className="btn primary sm" href={`/moi/ordres/${state.id}`}>
+                {t("Lire et signer mon ordre")}
+              </Link>
+            </div>
+          )}
           {/* Un accusé de réception part d’un domaine que la boîte du client ne connaît pas encore : il finit souvent au courrier indésirable. */}
           <p className={styles.spam}>
             {t("Si l’accusé n’arrive pas dans quelques minutes, regardez vos courriers indésirables, et marquez-le comme légitime : les suivants arriveront dans la boîte de réception.")}

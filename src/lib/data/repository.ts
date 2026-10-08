@@ -39,7 +39,33 @@ export interface Repository {
   createIntent(input: NewIntentInput): Promise<Intent>;
   /** `closedReason` n’a de sens qu’avec l’état « annulee » : c’est le motif que le client lit. */
   setIntentState(id: string, state: IntentState, closedReason?: string): Promise<Intent>;
-  updateIntent(id: string, patch: Partial<Pick<Intent, "state" | "allocationPct" | "servedUnits" | "message" | "executedPrice" | "amount" | "limitPrice" | "counter" | "switchToOfferId" | "switchFromIntentId">>): Promise<Intent>;
+  updateIntent(
+    id: string,
+    patch: Partial<
+      Pick<
+        Intent,
+        | "state"
+        | "allocationPct"
+        | "servedUnits"
+        | "message"
+        | "executedPrice"
+        | "amount"
+        | "limitPrice"
+        | "counter"
+        | "switchToOfferId"
+        | "switchFromIntentId"
+        // La signature de l'ordre et le code qui la donne : migration 0071.
+        | "pendingCodeHash"
+        | "pendingCodeAt"
+        | "pendingCodeTries"
+        | "pendingCodeTo"
+        | "signedAt"
+        | "signedMethod"
+        | "signedTo"
+        | "orderDocId"
+      >
+    >,
+  ): Promise<Intent>;
 
   listEvents(limit?: number): Promise<EventLog[]>;
   logEvent(e: Omit<EventLog, "id" | "at">): Promise<EventLog>;

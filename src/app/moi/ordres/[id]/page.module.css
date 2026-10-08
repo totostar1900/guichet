@@ -1,0 +1,199 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  max-width: 56ch;
+}
+.back {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.back:hover {
+  color: var(--ink);
+}
+.head h1 {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-7);
+}
+.lead {
+  margin: var(--s-3) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+}
+.recap,
+.signer,
+.suite {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-7) var(--s-8);
+}
+/* Ce qui attend un geste porte le filet d'or : la même marque que la convention. */
+.signer {
+  border-left: 4px solid var(--gold);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.recapH {
+  font-size: var(--t-1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+  margin-bottom: var(--s-6);
+}
+.lignes {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.lignes > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-6);
+  align-items: baseline;
+}
+.lignes dt {
+  color: var(--ink-2);
+  font-size: var(--t-4);
+}
+.lignes dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: var(--t-4);
+}
+.second,
+.approx {
+  color: var(--ink-2) !important;
+  font-weight: 500 !important;
+}
+/* Dire où est l'incertitude, et où elle n'est pas. */
+.ferme {
+  margin: var(--s-6) 0 0;
+  padding: var(--s-4) var(--s-6);
+  background: var(--gold-soft);
+  border-left: 2px solid var(--gold-line);
+  color: var(--gold-ink);
+  font-size: var(--t-3);
+  line-height: 1.5;
+}
+.fin {
+  margin: var(--s-5) 0 0;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  line-height: 1.5;
+}
+.lire {
+  margin: var(--s-5) 0 0;
+  font-size: var(--t-3);
+}
+.destinataire {
+  margin: 0;
+  padding: var(--s-4) var(--s-6);
+  border-left: 2px solid var(--gold);
+  background: var(--surface-2);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.destinataire b {
+  color: var(--ink);
+}
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  align-items: flex-start;
+}
+.codeRow {
+  display: flex;
+  gap: var(--s-5);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.attente {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.ok {
+  color: var(--good);
+  font-size: var(--t-3);
+}
+.err {
+  color: var(--crit);
+  font-size: var(--t-3);
+}
+.demo {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-radius: var(--radius);
+  padding: var(--s-4) var(--s-6);
+  font-size: var(--t-3);
+}
+.hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  line-height: 1.5;
+}
+.signe {
+  background: var(--good-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-6) var(--s-7);
+  color: var(--ink);
+  font-size: var(--t-3);
+  line-height: 1.5;
+}
+.aide {
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.aide > summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 700;
+  padding: var(--s-3) 0;
+}
+.aide ul {
+  margin: var(--s-3) 0 0;
+  padding-left: var(--s-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  line-height: 1.5;
+}
+/* Trois cases, pas un diagramme : il reste UN seul geste après la signature. */
+.etapes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s-4);
+}
+.etapes li {
+  background: var(--surface-2);
+  padding: var(--s-4) var(--s-6);
+  display: grid;
+  gap: var(--s-2);
+}
+.etapes b {
+  font-size: var(--t-3);
+}
+.etapes small {
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+.encours {
+  border-left: 2px solid var(--gold);
+}
+.fait {
+  border-left: 2px solid var(--good);
+}

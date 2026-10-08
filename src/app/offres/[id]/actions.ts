@@ -38,7 +38,20 @@ const schema = z.object({
 
 
 export type IntentResult =
-  | { ok: true; ref: string; type: z.infer<typeof schema>["type"]; channel: z.infer<typeof schema>["channel"]; needsAccount?: boolean; phone: string; email: string; sent: { channel: NotifyChannel; status: string }[] }
+  | {
+      ok: true;
+      ref: string;
+      /** L'identifiant mène à l'écran 2, celui où l'ordre se lit et se signe. */
+      id: string;
+      /** Un ordre OPCVM se signe tout de suite : le reçu y conduit au lieu d'annoncer une attente. */
+      aSigner?: boolean;
+      type: z.infer<typeof schema>["type"];
+      channel: z.infer<typeof schema>["channel"];
+      needsAccount?: boolean;
+      phone: string;
+      email: string;
+      sent: { channel: NotifyChannel; status: string }[];
+    }
   | { ok: false; error: string };
 
 /**
@@ -152,7 +165,8 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} : <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
   const sent = (await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined)).map((n) => ({ channel: n.channel, status: n.status }));
   revalidatePath("/desk");
-  return { ok: true, ref: intent.ref, type, channel, needsAccount, phone: contactPhone, email: contactEmail, sent };
+  const { ordreSignable } = await import("@/lib/domain/intent");
+  return { ok: true, ref: intent.ref, id: intent.id, aSigner: ordreSignable(intent) && !needsAccount, type, channel, needsAccount, phone: contactPhone, email: contactEmail, sent };
 }
 
 /** Follow / unfollow a line from its fiche; the daily alert takes it from there. */

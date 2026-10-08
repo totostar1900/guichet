@@ -108,6 +108,14 @@ type IntentRow = {
   phone_verified?: boolean | null;
   profile_flag?: string | null;
   email_verified?: boolean | null;
+  pending_code_hash?: string | null;
+  pending_code_at?: string | null;
+  pending_code_tries?: number | null;
+  pending_code_to?: string | null;
+  signed_at?: string | null;
+  signed_method?: string | null;
+  signed_to?: string | null;
+  order_doc_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -201,6 +209,15 @@ function toIntent(r: IntentRow): Intent {
     executedPrice: r.executed_price === null ? null : Number(r.executed_price),
     closedReason: u(r.closed_reason),
     counter: (r.counter as Intent["counter"]) ?? undefined,
+    // La signature de l'ordre, et le code qui la donne : migration 0071.
+    pendingCodeHash: u(r.pending_code_hash),
+    pendingCodeAt: u(r.pending_code_at),
+    pendingCodeTries: r.pending_code_tries ?? undefined,
+    pendingCodeTo: u(r.pending_code_to),
+    signedAt: u(r.signed_at),
+    signedMethod: u(r.signed_method),
+    signedTo: u(r.signed_to),
+    orderDocId: u(r.order_doc_id),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -990,6 +1007,16 @@ export const supabaseRepository: Repository = {
     if (patch.switchToOfferId !== undefined) row.switch_to_offer = patch.switchToOfferId;
     if (patch.switchFromIntentId !== undefined) row.switch_from_intent = patch.switchFromIntentId;
     if (patch.counter !== undefined) row.counter = patch.counter ?? null;
+    // La signature de l'ordre : « null » efface, et c'est voulu à la signature,
+    // où le code consommé doit disparaître plutôt que rester rejouable.
+    if (patch.pendingCodeHash !== undefined) row.pending_code_hash = patch.pendingCodeHash ?? null;
+    if (patch.pendingCodeAt !== undefined) row.pending_code_at = patch.pendingCodeAt ?? null;
+    if (patch.pendingCodeTries !== undefined) row.pending_code_tries = patch.pendingCodeTries ?? 0;
+    if (patch.pendingCodeTo !== undefined) row.pending_code_to = patch.pendingCodeTo ?? null;
+    if (patch.signedAt !== undefined) row.signed_at = patch.signedAt ?? null;
+    if (patch.signedMethod !== undefined) row.signed_method = patch.signedMethod ?? null;
+    if (patch.signedTo !== undefined) row.signed_to = patch.signedTo ?? null;
+    if (patch.orderDocId !== undefined) row.order_doc_id = patch.orderDocId ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);
     return toIntent(data as IntentRow);

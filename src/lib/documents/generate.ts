@@ -45,6 +45,41 @@ export interface GenerateOpts {
   allocation?: number; // 0..1, result documents
 }
 
+/**
+ * LE MÊME DOCUMENT, RENDU SANS ÊTRE RANGÉ.
+ *
+ * Ce que le client lit AVANT de signer. Il ne consomme aucun numéro du
+ * registre et ne laisse aucune trace : un texte qu'on relit trois fois avant de
+ * s'engager ne doit pas produire trois pièces. Le numéro porte « APERÇU »,
+ * pour qu'une copie d'écran ne puisse pas passer pour l'ordre lui-même.
+ *
+ * C'est la leçon de la convention, ce même 8 octobre 2026 : on demandait une
+ * signature sur un texte que le signataire ne pouvait pas ouvrir.
+ */
+export async function renderForIntent(type: IntentDocumentType, intentId: string): Promise<Buffer> {
+  await loadRegistry();
+  const r = repo();
+  const intent = (await r.listIntents()).find((i) => i.id === intentId);
+  if (!intent) throw new Error("Intention introuvable");
+  const offer = await r.getOffer(intent.offerId);
+  if (!offer) throw new Error("Offre introuvable");
+  const now = new Date();
+  const file = intent.clientId ? await r.getClientFileByUser(intent.clientId) : undefined;
+  const wording = await resolvePassages(type);
+  const ctx: ClientDocCtx = {
+    number: "APERÇU",
+    intent,
+    offer,
+    position: positionFor(intent, offer),
+    now,
+    allocation: 1,
+    account: file?.review.custodianAccount,
+    payout: file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined,
+    texts: wording.text,
+  };
+  return renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
+}
+
 export async function generateForIntent(type: IntentDocumentType, intentId: string, opts: GenerateOpts = {}): Promise<GeneratedDocument> {
   await loadRegistry();
   const r = repo();

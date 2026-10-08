@@ -222,6 +222,29 @@ export interface Intent {
   switchFromIntentId?: string;
   /** Épargne programmée : l'instruction permanente qui a produit cet ordre. */
   standingId?: string;
+  /**
+   * L'ORDRE PORTE SA PROPRE SIGNATURE.
+   *
+   * Elle se donnait hors de l'application : le desk cochait « signé » dans
+   * l'écran des documents, une fois le papier revenu. C'était la vraie source
+   * des allers-retours, et elle obligeait le client à attendre que le desk
+   * fabrique le bulletin avant de pouvoir le signer. Le client signe désormais
+   * au moment où il passe l'ordre, par le code à usage unique qui sert déjà à
+   * la convention, et il ne reste au desk qu'un seul geste.
+   *
+   * « pendingCode* » porte le code en cours ; il est vidé à la signature,
+   * parce qu'un code consommé ne se rejoue pas.
+   */
+  pendingCodeHash?: string;
+  pendingCodeAt?: string;
+  pendingCodeTries?: number;
+  pendingCodeTo?: string;
+  /** Quand, comment, et où le code est parti : c'est ce qui prouve la signature. */
+  signedAt?: string;
+  signedMethod?: string;
+  signedTo?: string;
+  /** Le document d'ordre produit à la signature : un seul, et il est signé. */
+  orderDocId?: string;
   createdAt: string;
   updatedAt: string;
 }

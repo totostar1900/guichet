@@ -1,4 +1,4 @@
-import type { DisplayStatus, IntentState, IntentType, Offer } from "./types";
+import type { DisplayStatus, Intent, IntentState, IntentType, Offer } from "./types";
 import { typeOf } from "@/lib/registry";
 import { isPast } from "./status";
 
@@ -110,3 +110,13 @@ export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
   reglee: "Réglée",
   annulee: "Annuler",
 };
+
+/**
+ * QUELS ORDRES SE SIGNENT ICI.
+ *
+ * Les parts d'OPCVM d'abord, et c'est un choix : le montant y est ferme, les
+ * droits d'entrée sont au référentiel, seul le nombre de parts dépend de la VL
+ * de centralisation. Sur un titre, le montant lui-même dépend du prix servi, et
+ * il faudra signer un plafond : même mécanisme, une borne de plus, plus tard.
+ */
+export const ordreSignable = (i: Intent): boolean => (i.type === "souscription" || i.type === "rachat") && !i.signedAt && i.state === "recue";
