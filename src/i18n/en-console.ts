@@ -200,6 +200,17 @@ export const EN_CONSOLE: Record<string, string> = {
   "Une ligne arrive à échéance": "A line reaches maturity",
   "Le portefeuille propose ce qui la remplacerait, à durée et à signature comparables":
     "The portfolio offers what would replace it, at comparable maturity and comparable credit",
+  /* Le dossier d'ouverture, en tête de ce qui attend le lecteur. Ces clefs
+     arrivent par `a.quoi.key`, donc le scanner des clefs ne les voit pas : il
+     cherche des littéraux dans t(), et celles-ci passent par une variable. */
+  "Dernière étape de l'ouverture": "Last step of the account opening",
+  "Votre dossier est approuvé. Votre compte s'ouvre dès que la convention est acceptée, par un code à usage unique.":
+    "Your file is approved. Your account opens as soon as the agreement is accepted, with a one-time code.",
+  "Accepter ma convention": "Accept my agreement",
+  "Le desk attend vos pièces": "The desk is waiting for your documents",
+  "Des compléments ont été demandés : l'examen de votre dossier reprend dès qu'ils sont déposés.":
+    "Further documents have been requested: the review of your file resumes as soon as they are filed.",
+  "La sélection du desk": "The desk's selection",
   "Votre signature": "Your signature",
   "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait.": "The form is ready. The order goes out as soon as it is signed and the transfer made.",
   "Votre réponse": "Your answer",

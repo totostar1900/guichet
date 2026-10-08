@@ -85,6 +85,17 @@ export interface ContexteClient {
   aSigner: number;
   /** Les contre-propositions en attente de son oui ou de son non. */
   aRepondre: number;
+  /**
+   * Ce que le dossier d'ouverture attend de son côté, s'il attend quelque chose.
+   *
+   * « convention » : le desk a approuvé, et rien ne s'ouvre avant l'acceptation.
+   * « complements » : le desk a demandé des pièces, l'examen est suspendu.
+   *
+   * Le brouillon n'y figure pas, et c'est voulu : personne ne l'attend. Une
+   * liste de devoirs qui contient une invitation cesse d'être une liste de
+   * devoirs, et le compteur qui la compte cesse de vouloir dire quelque chose.
+   */
+  dossier?: "convention" | "complements";
   /** Ce qui est échu et pas encore arrivé, et depuis combien de jours. */
   attendu?: { montant: number; retardJours: number };
   /** Le réinvestissement en place, s'il l'est. */
@@ -421,6 +432,33 @@ export interface Attente {
  */
 export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string): Attente[] {
   const out: Attente[] = [];
+  /* LE DOSSIER PASSE DEVANT TOUT, PARCE QU'IL TIENT TOUT LE RESTE.
+     Tant que la convention n'est pas acceptée, peutOPCVM est faux : pas de
+     souscription, pas de rachat, donc pas d'ordre à signer. C'était la seule
+     action qui bloquait la maison entière, et la seule que cette liste ne
+     comptait pas : ni la pastille du menu ni la bande ne la nommaient, et la
+     page du portefeuille l'écrivait en gris sous « Bonjour ». Un état affiché
+     n'est pas une action proposée. */
+  if (c.dossier === "convention")
+    out.push({
+      cle: "convention",
+      quand: { key: "Dernière étape de l'ouverture" },
+      chiffre: "Convention",
+      quoi: { key: "Votre dossier est approuvé. Votre compte s'ouvre dès que la convention est acceptée, par un code à usage unique." },
+      geste: "Accepter ma convention",
+      href: "/ouvrir-un-compte",
+      ton: "retard",
+    });
+  if (c.dossier === "complements")
+    out.push({
+      cle: "complements",
+      quand: { key: "Le desk attend vos pièces" },
+      chiffre: "Dossier",
+      quoi: { key: "Des compléments ont été demandés : l'examen de votre dossier reprend dès qu'ils sont déposés." },
+      geste: "Compléter mon dossier",
+      href: "/ouvrir-un-compte",
+      ton: "retard",
+    });
   if (c.aSigner > 0)
     out.push({
       cle: "signer",

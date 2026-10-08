@@ -9,6 +9,8 @@ import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
+import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
+import { SelectionDuDesk } from "@/components/SelectionDuDesk";
 import { buildPerformanceParts } from "@/lib/performance-report";
 import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
 import { famillesDuPortefeuille, NOM_FAMILLE, type Famille } from "@/lib/domain/familles-actifs";
@@ -96,21 +98,25 @@ export async function Console({ session }: { session: Session }) {
             client dont le compte est ouvert depuis des mois lisait « Dossier à
             compléter ». La règle du compte ouvert vit dans peutOPCVM, et
             l'état intermédiaire a maintenant ses propres mots. */}
-        <span className={`${styles.canaux} ${peutOPCVM(session) ? "" : styles.canauxManque}`}>
-          {peutOPCVM(session) ? t("Dossier complet") : session.kycStatus === "approuve" ? t("Convention à accepter") : t("Dossier à compléter")}
-        </span>
+        {/* UNE ÉTIQUETTE QUI DIT « À FAIRE » SE CLIQUE. Celle-ci annonçait
+            « Convention à accepter » en gris depuis des semaines, sans lien :
+            elle décrivait un devoir au lieu de l'ouvrir, et son lecteur a fini
+            par demander où se trouvait la convention. Complet, l'état reste un
+            constat et garde sa place de constat. */}
+        {peutOPCVM(session) ? (
+          <span className={styles.canaux}>{t("Dossier complet")}</span>
+        ) : (
+          <Link className={`${styles.canaux} ${styles.canauxManque}`} href="/ouvrir-un-compte">
+            {session.kycStatus === "approuve" ? t("Convention à accepter") : t("Dossier à compléter")}
+          </Link>
+        )}
       </div>
 
-      {/* CE QUI ATTEND LE LECTEUR EST PASSÉ SUR AGIR, et ne paraît plus ici.
-          La bande demande un geste, et Agir est le siège du geste : la tenir
-          aux deux endroits, c'est la duplication que l'audit du marché vient
-          de retirer ailleurs. Décision du 5 octobre 2026.
-
-          CE QU'IL FAUT SURVEILLER AVEC : « À décider » a quitté le dock le
-          2 octobre PARCE QUE cette bande le disait ici. Un ordre à signer se
-          lit maintenant sur Agir, à un toucher, et plus sur cette page. Si
-          cela se paie en signatures en retard, la réponse n'est pas de
-          remettre la bande : c'est une ligne qui compte et qui mène à Agir. */}
+      {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.
+          Le robot exécutait puis prévenait ; prévenir sans bouton d'arrêt
+          n'aurait déplacé le problème que d'une case. Cette bande expire, d'où
+          sa place : une information qui périme ne se range pas au milieu d'un
+          relevé qu'on consulte à loisir. Vide, le composant ne rend rien. */}
 
       {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.
           Le robot exécutait puis prévenait ; prévenir sans bouton d'arrêt
@@ -121,6 +127,25 @@ export async function Console({ session }: { session: Session }) {
         preavis={arretables(preavis, aujourdHui)}
         titres={Object.fromEntries(standing.map((x) => [x.id, offers.find((o) => o.id === x.offerId)?.title ?? x.ref]))}
       />
+
+      {/* LES DEVOIRS, PUIS LES OCCASIONS, PUIS LE CONSTAT : C'EST L'ORDRE
+          D'UN RETOUR. Un client qui revient après une semaine demande d'abord
+          ce qu'on attend de lui, ensuite ce qui s'est ouvert pendant son
+          absence ; sa valorisation, elle, l'attendra trois lignes de plus.
+
+          LA BANDE REVIENT ICI, et c'est un revirement assumé. Le 5 octobre
+          2026 elle avait quitté cette page pour Agir, au motif qu'un geste se
+          range au siège du geste, et la note de l'époque prévoyait la suite :
+          « si cela se paie en signatures en retard, la réponse n'est pas de
+          remettre la bande ». Le prix a été pire qu'une signature en retard.
+          La convention à accepter, qui ferme à elle seule toute souscription,
+          ne figurait NI dans cette liste, ni dans la pastille du menu : elle
+          se lisait en gris sous « Bonjour », et un dossier approuvé est resté
+          en plan sans que personne, dans la maison, voie où cliquer. Un geste
+          rangé au bon endroit reste invisible s'il faut déjà savoir qu'il
+          existe pour aller le chercher. */}
+      <CeQuiVousAttend userId={session.userId} />
+      <SelectionDuDesk />
 
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
       {positions.length > 0 ? (

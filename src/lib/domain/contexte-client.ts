@@ -28,12 +28,13 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   const r = repo();
   const aujourdHui = localIso(new Date());
 
-  const [intents, offers, cash, standing, feed] = await Promise.all([
+  const [intents, offers, cash, standing, feed, fiche] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(userId).catch(() => []),
     r.listStandingOrders(userId).catch(() => []),
     loadBeacAuctions().catch(() => ({ auctions: [] as BeacAuction[] })),
+    r.getClientFileByUser(userId).catch(() => undefined),
   ]);
 
   const mine = intents.filter((i) => i.clientId === userId);
@@ -59,6 +60,12 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
        trancher. Ils se comptent sur les ordres du client, déjà lus ici. */
     aSigner: mine.filter((i) => i.state === "confirmee").length,
     aRepondre: mine.filter((i) => i.state === "contre_proposee").length,
+    /* LE TROISIÈME DEVOIR, QUI MANQUAIT. Le dossier se lisait sur sa page et
+       nulle part ailleurs : un client approuvé dont la convention attendait
+       pouvait traverser l'application entière sans croiser le geste qui la
+       déverrouille. Les deux états retenus sont ceux où le desk a joué et
+       rend la main ; le brouillon n'attend personne. */
+    dossier: fiche?.status === "approuve" && !fiche.consents.conventionAt ? "convention" : fiche?.status === "complements" ? "complements" : undefined,
     attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
     reinvestissement: reinv ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount } : undefined,
     epargne: epargne ? { montant: epargne.amount, jour: epargne.dayOfMonth, destination: offers.find((o) => o.id === epargne.offerId)?.title ?? epargne.offerId } : undefined,
@@ -67,6 +74,12 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
       : undefined,
     moisDHistorique: positions.length ? 12 : 0,
     appariementExecutable: false,
+    /* Le champ existait, documenté, et personne ne le remplissait ici : la
+       console et la bande supposaient donc le compte ouvert, y compris pour un
+       dossier au brouillon. La seconde condition tient parce qu'un client qui
+       tient des lignes a forcément un compte : sans elle, un référentiel
+       incomplet renverrait ouvrir un compte déjà ouvert. */
+    compteOuvert: Boolean(fiche?.review.custodianAccount) || positions.length > 0,
   };
 });
 

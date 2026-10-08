@@ -249,6 +249,14 @@ export const EN_REST: Record<string, string> = {
   "Rachat": "Buyback",
   "Abondement": "Tap",
   "Nouvelle ligne": "New line",
+  /* Les motifs d'une mise en avant (domain/featured.ts). Ils sont écrits par
+     le desk et lus tels quels : seuls ceux du menu déroulant se traduisent,
+     un motif libre reste dans la langue où il a été écrit. */
+  "Clôture cette semaine": "Closing this week",
+  "Rendement le plus élevé du primaire en ce moment": "Highest yield in the primary market right now",
+  "Réouverture d'une ligne connue": "Reopening of a known line",
+  "Première introduction en bourse de l'année": "First listing of the year",
+  "Fonds ouvert à la souscription": "Fund open for subscription",
   "Emprunt obligataire": "Bond issue",
   "Fonds commun de placement": "Mutual fund",
   "Fonds communs de placement": "Mutual funds",

@@ -1,16 +1,11 @@
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { loadBeacAuctions } from "@/lib/market/beac-feed";
-import type { BeacAuction } from "@/lib/market/beac";
-import { positionsFrom } from "@/lib/positions";
-import { cashPosition } from "@/lib/domain/cash";
-import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { ETAPES, servicesDuClient, type ContexteClient } from "@/lib/domain/services";
+import { ETAPES, servicesDuClient } from "@/lib/domain/services";
+import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { getT } from "@/i18n/server";
 import { ConseillerCard } from "./ConseillerCard";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { ServicesBande } from "./ServicesBande";
-import { fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -43,53 +38,23 @@ export default async function TraderPage() {
   const s = await requireSession("/trader");
   const t = await getT();
   const r = repo();
-  const aujourdHui = localIso(new Date());
 
-  const [intents, offers, cash, standing, feed, advisor, dossier] = await Promise.all([
+  /* UN SEUL ASSEMBLAGE, ET C'EST CELUI DE contexte-client.
+     Cette page en refaisait un deuxième, ligne pour ligne, pendant que la
+     bande « Ce qui vous attend » lisait le premier : deux lectures du même
+     client dans la même requête, donc deux occasions de diverger. C'est
+     exactement ce que le dossier vient de prouver : le champ compteOuvert
+     n'était rempli qu'ici, et la bande supposait partout le compte ouvert. */
+  const [ctx, intents, advisor, dossier] = await Promise.all([
+    contexteDuClient(s.userId),
     r.listIntents(),
-    r.listOffers(),
-    r.listCash(s.userId).catch(() => []),
-    r.listStandingOrders(s.userId).catch(() => []),
-    loadBeacAuctions().catch(() => ({ auctions: [] as BeacAuction[] })),
     r.findAdvisor(s.userId).catch(() => undefined),
     r.getClientFileByUser(s.userId).catch(() => undefined),
   ]);
 
-  const mine = intents.filter((i) => i.clientId === s.userId);
   // La dernière intention par la date, pas par l'ordre de la table : une
   // lecture qui suppose un tri que personne ne garantit finit par mentir.
-  const derniere = [...mine].sort((a, b2) => b2.createdAt.localeCompare(a.createdAt))[0]?.ref;
-  const positions = positionsFrom(mine, offers);
-  const poche = cashPosition(cash, mine);
-  const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
-  const b = bilan(suivre(lignes, cash));
-  const part = positions.find((p) => p.offer.kind === "FONDS");
-  const action = positions.find((p) => p.offer.kind === "ACTIONS");
-  const reinv = standing.find((x) => x.state === "active" && x.source === "encaissements");
-  const epargne = standing.find((x) => x.state === "active" && x.source === "virement");
-  const devant = feed.auctions.filter((a) => a.kind === "annonce" && a.on && a.on >= aujourdHui).sort((a, b2) => a.on!.localeCompare(b2.on!))[0];
-
-  const ctx: ContexteClient = {
-    lignes: positions.length,
-    aSigner: mine.filter((i) => i.state === "confirmee").length,
-    aRepondre: mine.filter((i) => i.state === "contre_proposee").length,
-    partsDeFonds: part ? { titre: part.offer.title, parts: part.units } : undefined,
-    fondsOuverts: offers.filter((o) => o.kind === "FONDS" && o.fund?.distributed && !o.hidden).length,
-    actions: action ? { titre: action.offer.title, n: action.units } : undefined,
-    disponible: poche.idle,
-    attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
-    reinvestissement: reinv
-      ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount }
-      : undefined,
-    epargne: epargne ? { montant: epargne.amount, jour: epargne.dayOfMonth, destination: offers.find((o) => o.id === epargne.offerId)?.title ?? epargne.offerId } : undefined,
-    prochaineSeance: devant ? { pays: devant.country ?? t("la zone"), quoi: [devant.instrument, devant.tenor].filter(Boolean).join(" ") || t("une séance"), le: fmtDate(devant.on!) } : undefined,
-    moisDHistorique: positions.length ? 12 : 0,
-    appariementExecutable: false,
-    /* Un client qui tient des lignes a forcément un compte : sans cette
-       seconde condition, un dossier incomplet au référentiel renverrait vers
-       une ouverture déjà faite. */
-    compteOuvert: Boolean(dossier?.review.custodianAccount) || positions.length > 0,
-  };
+  const derniere = [...intents.filter((i) => i.clientId === s.userId)].sort((a, b2) => b2.createdAt.localeCompare(a.createdAt))[0]?.ref;
 
   const services = servicesDuClient(ctx);
 
@@ -120,7 +85,7 @@ export default async function TraderPage() {
 
       <div className={styles.deuxColonnes}>
         <ServicesBande services={services} etapes={ETAPES} />
-        <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: positions.length, derniere }} />
+        <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere }} />
       </div>
 
 

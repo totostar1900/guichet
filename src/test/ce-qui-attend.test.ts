@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { attentesDuClient, type ContexteClient } from "@/lib/domain/services";
 
@@ -62,6 +63,81 @@ describe("l'ordre, qui est une règle", () => {
   it("met l'argent déjà arrivé avant l'occasion qui n'est qu'annoncée", () => {
     const c: ContexteClient = { ...vide, disponible: 500_000, prochaineSeance: { pays: "Cameroun", quoi: "BTA", le: "9 octobre" } };
     expect(cles(c)).toEqual(["disponible", "seance"]);
+  });
+});
+
+/**
+ * LE DOSSIER, TROISIÈME DEVOIR, ET LE PLUS COÛTEUX DES TROIS.
+ *
+ * Mesuré le 8 octobre 2026 sur la base de production : un dossier approuvé, la
+ * convention jamais acceptée, un code envoyé puis périmé, et pas une ligne de
+ * l'application pour nommer le geste. La convention ferme `peutOPCVM`, donc
+ * toute souscription, donc tout bulletin à signer : c'était la seule attente
+ * qui bloquait les autres, et la seule qui ne se comptait pas.
+ */
+describe("le dossier d'ouverture", () => {
+  it("passe devant tout, parce qu'il ferme tout", () => {
+    const c: ContexteClient = { ...vide, dossier: "convention", aSigner: 1, disponible: 500_000 };
+    expect(cles(c)).toEqual(["convention", "signer", "disponible"]);
+  });
+
+  it("mène à la page du dossier, et nomme le geste", () => {
+    const a = attentesDuClient({ ...vide, dossier: "convention" }, fmt)[0];
+    expect(a.href).toBe("/ouvrir-un-compte");
+    expect(a.geste).toBe("Accepter ma convention");
+    // Le ton du retard : ce qui bloque se dit comme ce qui bloque.
+    expect(a.ton).toBe("retard");
+  });
+
+  it("dit l'autre état où le desk rend la main", () => {
+    const a = attentesDuClient({ ...vide, dossier: "complements" }, fmt)[0];
+    expect(a.cle).toBe("complements");
+    expect(a.href).toBe("/ouvrir-un-compte");
+  });
+
+  it("ne dit rien quand personne n'attend", () => {
+    /* Le brouillon n'est pas un devoir : c'est une invitation, et une liste de
+       devoirs qui contient une invitation ne veut plus rien dire. L'absence de
+       champ est le cas d'un compte ouvert comme d'un dossier jamais commencé. */
+    expect(cles(vide)).toEqual([]);
+  });
+});
+
+/**
+ * OÙ LA LISTE SE LIT, ET POURQUOI C'EST LA PREMIÈRE PAGE.
+ *
+ * Elle a vécu trois mois sur « Agir » seulement, au motif qu'un geste se range
+ * au siège du geste. La leçon du 8 octobre : un geste bien rangé reste
+ * invisible s'il faut déjà savoir qu'il existe pour aller le chercher. La page
+ * d'arrivée d'un client connecté la porte donc, et les occasions du desk
+ * viennent dessous, dans cet ordre.
+ */
+describe("où la liste se lit", () => {
+  const lire = (p: string) => readFileSync(p, "utf8");
+
+  it("la page d'arrivée porte les devoirs, puis les occasions", () => {
+    const src = lire("src/app/Console.tsx");
+    const attend = src.indexOf("<CeQuiVousAttend");
+    const offres = src.indexOf("<SelectionDuDesk");
+    const valeur = src.indexOf("styles.valeur");
+    expect(attend).toBeGreaterThan(0);
+    expect(offres).toBeGreaterThan(attend);
+    expect(valeur).toBeGreaterThan(offres);
+  });
+
+  it("un seul assemblage sert la bande et les services", () => {
+    // La page « Agir » en refaisait un deuxième, et lui seul remplissait
+    // compteOuvert : la bande supposait donc partout le compte ouvert.
+    const src = lire("src/app/trader/page.tsx");
+    expect(src).toContain("contexteDuClient(s.userId)");
+    expect(src).not.toContain("const ctx: ContexteClient = {");
+  });
+
+  it("l'assemblage lit le dossier, et ne suppose plus le compte ouvert", () => {
+    const src = lire("src/lib/domain/contexte-client.ts");
+    expect(src).toContain("getClientFileByUser");
+    expect(src).toContain("dossier:");
+    expect(src).toContain("compteOuvert:");
   });
 });
 
