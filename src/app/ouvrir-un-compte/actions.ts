@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createHash } from "node:crypto";
+import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -182,11 +182,7 @@ export async function saveConsentsAction(_p: StepResult | null, form: FormData):
 }
 
 /* ---------- 5b. Convention : acceptation par code, après l'approbation ---------- */
-const hash = (code: string) => createHash("sha256").update(`${process.env.AUTH_SECRET ?? "guichet"}:${code}`).digest("hex");
-/** Un code vient de partir : on ne le refait pas partir avant ce délai (secondes affichées au client). */
-const DELAI_RENVOI = 45_000;
-/** Au-delà, le code est brûlé : il faut en demander un autre. */
-const ESSAIS_MAX = 5;
+// La mécanique du code vit dans lib/signature/code : elle sert aussi à signer un ordre.
 
 // La signature reste celle de useActionState : le formulaire ne porte plus rien, les consentements ont leur propre action.
 export async function sendConventionCodeAction(_p: StepResult | null, _form: FormData): Promise<StepResult> {
@@ -194,18 +190,18 @@ export async function sendConventionCodeAction(_p: StepResult | null, _form: For
   if (file.consents.conventionAt) return { ok: false, error: "Convention déjà acceptée." };
   if (!conventionSignable(file)) return { ok: false, error: "La convention s'accepte dès que votre dossier est approuvé : nous vous prévenons de la décision." };
   if (!file.consents.dataAt) return { ok: false, error: "Donnez d'abord votre consentement au traitement des données." };
-  const depuis = file.consents.pendingCodeAt ? Date.now() - new Date(file.consents.pendingCodeAt).getTime() : Infinity;
-  if (depuis < DELAI_RENVOI) return { ok: false, error: `Un code vient de partir. Attendez ${Math.ceil((DELAI_RENVOI - depuis) / 1000)} secondes avant d'en demander un autre.` };
+  const attente = attenteAvantRenvoi(file.consents.pendingCodeAt);
+  if (attente) return { ok: false, error: `Un code vient de partir. Attendez ${attente} secondes avant d'en demander un autre.` };
   const { canalDuCode, nommerCanal } = await import("@/lib/kyc/canal");
   const canal = await canalDuCode(userId, file);
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const code = nouveauCode();
   const { notifyCode } = await import("@/lib/kyc/notify");
   const envoi = await notifyCode(file, code, canal);
   /* L'ancien code n'est remplacé que si le nouveau est bien parti : un envoi
      refusé par le fournisseur brûlait le code que le client avait peut-être
      sous les yeux. */
   if (envoi.via === "echec") return { ok: false, error: `Le code n'a pas pu partir vers ${envoi.to} : ${envoi.raison}. Réessayez dans un instant ; si cela se répète, écrivez-nous depuis vos messages et nous l'enverrons autrement.` };
-  await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeHash: hash(code), pendingCodeAt: new Date().toISOString(), pendingCodeTries: 0, pendingCodeTo: canal?.to } });
+  await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeHash: empreinte(code), pendingCodeAt: new Date().toISOString(), pendingCodeTries: 0, pendingCodeTo: canal?.to } });
   revalidatePath(PATH);
   if (envoi.via === "demo") return { ok: true, message: "Mode démonstration : le code s'affiche ci-dessous.", code };
   return { ok: true, message: `Code envoyé par ${nommerCanal(canal)}.` };
@@ -215,16 +211,15 @@ export async function verifyConventionCodeAction(_p: StepResult | null, form: Fo
   const { file } = await myFile();
   if (file.consents.conventionAt) return { ok: true, message: "Convention déjà acceptée." };
   if (!conventionSignable(file)) return { ok: false, error: "La convention s'accepte dès que votre dossier est approuvé." };
-  const code = String(form.get("code") ?? "").replace(/\s/g, "");
   const { pendingCodeHash, pendingCodeAt, pendingCodeTries, pendingCodeTo, ...rest } = file.consents;
-  if (!pendingCodeHash || !pendingCodeAt || Date.now() - new Date(pendingCodeAt).getTime() > 10 * 60_000) return { ok: false, error: "Code expiré : demandez-en un nouveau." };
-  const essais = pendingCodeTries ?? 0;
-  if (essais >= ESSAIS_MAX) return { ok: false, error: "Trop d'essais sur ce code : demandez-en un nouveau." };
-  if (hash(code) !== pendingCodeHash) {
-    await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeTries: essais + 1 } });
-    revalidatePath(PATH);
-    const reste = ESSAIS_MAX - essais - 1;
-    return { ok: false, error: reste > 0 ? `Code incorrect : ${reste} essai${reste > 1 ? "s" : ""} avant de devoir en demander un nouveau.` : "Code incorrect : ce code est épuisé, demandez-en un nouveau." };
+  const verdict = verifier(String(form.get("code") ?? ""), { hash: pendingCodeHash, at: pendingCodeAt, tries: pendingCodeTries, to: pendingCodeTo });
+  if (!verdict.ok) {
+    // Un essai raté se compte : c'est ce qui finit par brûler le code.
+    if (verdict.essais !== (pendingCodeTries ?? 0)) {
+      await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeTries: verdict.essais } });
+      revalidatePath(PATH);
+    }
+    return { ok: false, error: verdict.erreur };
   }
   const r = repo();
   const updated = await r.updateClientFile(file.id, { consents: { ...rest, conventionAt: new Date().toISOString(), conventionMethod: "code à usage unique", conventionTo: pendingCodeTo } });
