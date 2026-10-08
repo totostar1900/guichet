@@ -32,6 +32,24 @@ export async function transitionIntent(form: FormData): Promise<void> {
   const it = intents.find((x) => x.id === intentId);
   if (!it || !nextStates(it.state, it.type).includes(state)) return;
   if (state === "annulee" && !closedReason) return;
+  /* ON NE TRANSMET PAS UN TITRE SANS LE COMPTE QUI LE RECEVRA.
+     Depuis le 9 octobre 2026, l'ordre sur titre d'un résident est accepté
+     avant l'ouverture du sous-compte : c'est la maison qui ouvre, le client
+     n'attend plus. Ce que la convention promet en échange, c'est que l'ordre
+     ne parte pas dans le vide : la transmission attend le sous-compte, et si
+     l'ouverture n'aboutit pas l'ordre devient caduc.
+
+     Le refus se dit. Un garde qui rend la main sans un mot est la panne la
+     plus chère de ce projet : le desk cliquerait, rien ne bougerait, et
+     personne ne saurait pourquoi. */
+  if (state === "transmise" && it.clientId) {
+    const { enAttenteDOuverture, cequiManque } = await import("@/lib/domain/ouverture");
+    const fiche = await r.getClientFileByUser(it.clientId).catch(() => undefined);
+    if (enAttenteDOuverture(it.type, fiche)) {
+      await r.logEvent({ kind: "system", intentId, html: `${it.ref} : <b>transmission refusée</b>, ${cequiManque(it.type, fiche)}. L'ordre reste pris ; il part dès l'ouverture.` });
+      return;
+    }
+  }
   const updated = await r.setIntentState(intentId, state, closedReason);
   await audit("intent.transition", "intent", intentId, { before: { state: it.state }, after: { state, closedReason }, reason: closedReason ? reasonForDesk(closedReason) : `${it.ref} · ${it.clientName}` });
   const offer = await r.getOffer(updated.offerId);
