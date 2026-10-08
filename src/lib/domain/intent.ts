@@ -1,4 +1,3 @@
-import { docsForTransition } from "@/lib/documents/registry";
 import type { DisplayStatus, Intent, IntentState, IntentType, Offer } from "./types";
 import { typeOf } from "@/lib/registry";
 import { isPast } from "./status";
@@ -120,21 +119,38 @@ export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
  * de centralisation. Sur un titre, le montant lui-même dépend du prix servi, et
  * il faudra signer un plafond : même mécanisme, une borne de plus, plus tard.
  */
-export const ordreSignable = (i: Intent): boolean => (i.type === "souscription" || i.type === "rachat") && !i.signedAt && i.state === "recue";
+/*
+ * L'ÉTAT « CONFIRMÉE » SE SIGNE AUSSI, ET IL LE FAUT.
+ *
+ * La première écriture n'acceptait que « reçue », l'ordre tout neuf du nouveau
+ * parcours. Mesuré le 8 octobre 2026 en production : une souscription de
+ * 100 000 FCFA confirmée le 5 octobre, donc AVANT que la signature dans
+ * l'application existe, attendait toujours une signature que le desk devait
+ * récolter dehors. La bande disait « Signer », la page de l'ordre s'ouvrait,
+ * et elle n'offrait rien : « ordreSignable » y était faux. Un ordre pour
+ * lequel la maison attend une signature doit pouvoir se signer là où on
+ * l'envoie, sinon la bande ment et la page la contredit.
+ */
+export const ordreSignable = (i: Intent): boolean =>
+  (i.type === "souscription" || i.type === "rachat") && !i.signedAt && (i.state === "recue" || i.state === "confirmee");
 
 /**
- * QUELS ORDRES ATTENDENT UNE SIGNATURE DU CLIENT, APRÈS LE GO DU DESK.
+ * CE QUE LA BANDE COMPTE SOUS « VOTRE SIGNATURE », ET POURQUOI C'EST LA MÊME
+ * RÈGLE QUE CI-DESSUS.
  *
- * LE DÉFAUT QUE CETTE FONCTION FERME, mesuré le 8 octobre 2026 en production.
- * Le compteur de la bande comptait « état confirmée », tous types confondus.
- * Une QUESTION posée au desk (type « info ») que le desk avait prise en main
- * passait donc pour un bulletin à signer : le client lisait « 1 ordre · le
- * bulletin est prêt », appuyait sur Signer, et il n'y avait rien à signer.
+ * Deux défauts mesurés le 8 octobre 2026, en production, le même jour.
  *
- * La règle vraie était déjà écrite, dans le registre des documents : un ordre
- * attend une signature quand sa confirmation produit un bulletin ou une
- * demande de rachat. Une question n'en produit aucun, un rappel non plus.
- * On lit donc cette table plutôt que d'en recopier la liste des types.
+ * Le compteur prenait « état confirmée », tous TYPES confondus : une question
+ * posée au desk (type « info »), prise en main par lui, s'annonçait « 1 ordre,
+ * le bulletin est prêt ». Il n'y avait rien à signer, et pour cause.
+ *
+ * Puis, le type corrigé, le compteur aurait compté des ordres que cette
+ * application ne sait PAS signer : un ordre ferme sur un titre attend un
+ * plafond qui n'existe pas encore. La bande aurait envoyé sur une page sans
+ * bouton, ce qui est le défaut qu'on vient de fermer.
+ *
+ * Le compteur suit donc `ordreSignable`, mot pour mot : on n'annonce une
+ * signature que là où on sait la recueillir. Ce qui se signe encore dehors
+ * reste au desk, qui l'envoie par son canal.
  */
-export const attendUneSignature = (i: Intent): boolean =>
-  i.state === "confirmee" && !i.signedAt && docsForTransition(i.type, "confirmee").some((d) => d === "bulletin" || d === "cession");
+export const attendUneSignature = ordreSignable;

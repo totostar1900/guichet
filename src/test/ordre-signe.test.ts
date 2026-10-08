@@ -40,11 +40,22 @@ describe("quels ordres se signent dans l'app", () => {
     expect(ordreSignable(ordre({ type: "info" }))).toBe(false);
   });
 
-  it("une fois signé, ou une fois pris en main par le desk, on ne resigne pas", () => {
+  it("une fois signé, ou une fois parti au marché, on ne resigne pas", () => {
     expect(ordreSignable(ordre({ signedAt: new Date().toISOString() }))).toBe(false);
-    expect(ordreSignable(ordre({ state: "confirmee" }))).toBe(false);
     expect(ordreSignable(ordre({ state: "transmise" }))).toBe(false);
     expect(ordreSignable(ordre({ state: "annulee" }))).toBe(false);
+  });
+
+  /* « CONFIRMÉE » SE SIGNE, et c'est un revirement du 8 octobre 2026, écrit
+     par un cas réel : une souscription confirmée le 5 octobre, donc avant que
+     la signature dans l'application existe, attendait une signature que le
+     desk devait récolter dehors. La bande disait « Signer », la page s'ouvrait
+     vide. Un ordre où la maison attend une signature doit pouvoir se signer
+     là où elle l'envoie. */
+  it("un ordre confirmé avant la signature dans l'app se signe quand même", () => {
+    expect(ordreSignable(ordre({ state: "confirmee" }))).toBe(true);
+    expect(ordreSignable(ordre({ type: "rachat", state: "confirmee" }))).toBe(true);
+    expect(ordreSignable(ordre({ type: "ferme", state: "confirmee" }))).toBe(false);
   });
 });
 
@@ -138,23 +149,25 @@ describe("le go du desk", () => {
  * demande de rachat.
  */
 describe("quels ordres attendent une signature après le go du desk", () => {
-  it("ceux dont la confirmation produit une pièce à signer", async () => {
-    const { attendUneSignature } = await import("@/lib/domain/intent");
-    for (const type of ["ferme", "achat", "vente", "souscription", "cession", "rachat"] as const) {
-      expect(attendUneSignature(ordre({ type, state: "confirmee" }))).toBe(true);
-    }
+  it("exactement ce que l'application sait signer, pas un de plus", async () => {
+    const { attendUneSignature, ordreSignable: signable } = await import("@/lib/domain/intent");
+    /* LE COMPTEUR EST LA RÈGLE DE SIGNATURE, pas une liste parallèle. Deux
+       écritures voisines, c'est une bande qui annonce un geste et une page
+       qui ne l'offre pas : le défaut du 8 octobre 2026, deux fois dans la
+       même journée. */
+    expect(attendUneSignature).toBe(signable);
   });
 
-  it("ni une question, ni un rappel, ni un appétit : ils ne produisent rien à signer", async () => {
+  it("ni une question, ni un rappel, ni un appétit : il n'y a rien à y signer", async () => {
     const { attendUneSignature } = await import("@/lib/domain/intent");
     for (const type of ["info", "rappel", "appetit"] as const) {
       expect(attendUneSignature(ordre({ type, state: "confirmee" }))).toBe(false);
     }
   });
 
-  it("ni un ordre déjà signé dans l'application, ni un ordre que le desk n'a pas confirmé", async () => {
+  it("ni un ordre déjà signé, ni un ordre déjà transmis au marché", async () => {
     const { attendUneSignature } = await import("@/lib/domain/intent");
     expect(attendUneSignature(ordre({ type: "souscription", state: "confirmee", signedAt: new Date().toISOString() }))).toBe(false);
-    expect(attendUneSignature(ordre({ type: "souscription", state: "recue" }))).toBe(false);
+    expect(attendUneSignature(ordre({ type: "souscription", state: "transmise" }))).toBe(false);
   });
 });
