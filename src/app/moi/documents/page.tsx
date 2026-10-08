@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
+import { positionsFrom } from "@/lib/positions";
 import type { Intent } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import { MyDocuments } from "../MyDocuments";
@@ -48,6 +49,8 @@ export default async function DocumentsPage() {
   for (const o of await Promise.all(manquantes.map((id) => r.getOffer(id).catch(() => undefined)))) if (o) byOffer.set(o.id, o);
 
   const miens = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
+  /* La même lecture que le générateur : une position naît d'une opération réglée. */
+  const tientQuelqueChose = positionsFrom(mine, offers).length > 0;
   const montant = (i: Intent, kind?: string) => (i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${kind === "RACHAT" ? "titres" : "FCFA"}`) : "");
 
   return (
@@ -59,13 +62,19 @@ export default async function DocumentsPage() {
       <p className={styles.lead}>{t("Vos relevés, et tout ce qui est tombé de vos opérations : avis d'opéré, bulletins, appels de fonds.")}</p>
 
       {/* LE RELEVÉ SE FABRIQUE : c'est le seul document qu'on demande, et il a
-          donc sa bande, séparée de ceux qui sont arrivés tout seuls. */}
+          donc sa bande, séparée de ceux qui sont arrivés tout seuls.
+          SANS POSITION, IL N'Y A RIEN À ÉDITER : l'attestation sortait avec un
+          tableau vide, un total de zéro et une place pour le cachet, soit un
+          papier signé qui ne déclare rien. La condition n'est pas le compte mais
+          la position, et elle vaut pour les deux familles d'actifs : on ne
+          détient rien tant qu'une opération n'est pas réglée, et une opération
+          réglée veut dire que la conservation a suivi, titres ou parts. */}
       <section className={styles.editer}>
         <div>
           <b>{t("Éditer un relevé")}</b>
-          <small>{t("Il se fabrique à la demande, à la date que vous choisissez.")}</small>
+          <small>{tientQuelqueChose ? t("Il se fabrique à la demande, à la date que vous choisissez.") : t("Dès votre première opération réglée, le relevé de position et l'attestation de détention s'éditent ici.")}</small>
         </div>
-        <StatementButtons />
+        {tientQuelqueChose && <StatementButtons />}
       </section>
 
       <MyDocuments

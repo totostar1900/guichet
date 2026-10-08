@@ -38,14 +38,25 @@ export interface Session {
 }
 
 /**
- * Le dossier est approuvé ET la convention acceptée.
+ * DEUX CHAÎNES DE CONSERVATION, DONC DEUX CAPACITÉS, ET NON UNE ÉCHELLE.
  *
- * C'est la porte des fonds : ils s'inscrivent au nom du client chez le
- * dépositaire, sans sous-compte SVT, donc le dossier suffit. Mais « approuvé »
- * seul ne suffit plus depuis que la signature vient après la décision. La règle
- * tient ici pour qu'elle ne soit pas réécrite trois fois.
+ * Un titre public ou une ligne cotée s'inscrit dans un compte-titres, au
+ * dépositaire, par un sous-compte nominatif ouvert chez le teneur de compte.
+ * Une part d'OPCVM, non : elle s'inscrit au registre des porteurs tenu par le
+ * dépositaire du fonds, au nom du porteur, et ne demande aucun compte-titres.
+ *
+ * Le code le savait à un seul endroit, dans la règle des intentions, et partout
+ * ailleurs un « palier » unique servait de mesure. Or ce palier ne mesure que la
+ * chaîne titres : un client parfaitement en règle qui ne détient que des parts
+ * n'y arrive jamais. Les deux capacités portent donc leur nom.
+ *
+ * Le palier reste ce qui les stocke : on nomme la lecture, on ne refait pas la
+ * plomberie.
  */
-export const compteOuvert = (s: Session | null | undefined): boolean => !!s && s.kycStatus === "approuve" && Boolean(s.conventionAccepted);
+/** Souscrire et faire racheter des parts d'OPCVM : dossier approuvé et convention acceptée suffisent. */
+export const peutOPCVM = (s: Session | null | undefined): boolean => !!s && s.kycStatus === "approuve" && Boolean(s.conventionAccepted);
+/** Passer des ordres sur des titres : il y faut en plus le sous-compte nominatif rendu par le teneur. */
+export const peutTitres = (s: Session | null | undefined): boolean => peutOPCVM(s) && (s?.tier ?? 0) >= 2;
 
 export const isDesk = (s: Session | null): boolean => !!s && (s.role === "desk" || s.role === "responsable");
 export const isResponsable = (s: Session | null): boolean => !!s && s.role === "responsable";

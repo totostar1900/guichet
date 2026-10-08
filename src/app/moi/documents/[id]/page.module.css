@@ -35,24 +35,17 @@
   flex-wrap: wrap;
 }
 .visionneuse {
-  width: 100%;
-  /* Assez haut pour lire une page entière, sans dépasser l'écran. */
+  /* La visionneuse peint le PDF elle-meme : on lui donne une hauteur ferme,
+     assez pour une page entiere sans depasser l ecran du telephone. */
   height: min(78vh, 900px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.repli {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-6);
-  height: 100%;
-  padding: var(--s-9);
-  text-align: center;
-  color: var(--ink-2);
-  font-size: var(--t-4);
+  min-height: 0;
+}
+.note {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  max-width: 30ch;
+  line-height: 1.4;
 }
 @media (max-width: 640px) {
   .visionneuse {

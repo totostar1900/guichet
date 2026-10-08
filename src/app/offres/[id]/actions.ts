@@ -119,9 +119,17 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
       if (held + amt > INDIVISION_CEILING) return { ok: false, error: `Un groupement en indivision est limité à ${fmt(INDIVISION_CEILING)} FCFA de nominal (déjà détenu : ${fmt(held)}). Au-delà, le groupe doit être une association déclarée : parlez-en au desk.` };
     }
   }
-  // Funds are registered at the depositary in the client's name: an approved file is enough, no SVT sub-account needed. The convention still has to be accepted: see compteOuvert.
-  const { compteOuvert } = await import("@/lib/auth/types");
-  const needsAccount = (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && session.tier < 2 ? true : (type === "souscription" || type === "rachat") && session.tier < 2 && !compteOuvert(session);
+  /* CE QU'IL FAUT DÉPEND DE CE QU'ON ACHÈTE, ET LES DEUX RÉPONSES ONT UN NOM.
+     Une part d'OPCVM s'inscrit au registre des porteurs du fonds : le dossier
+     approuvé et la convention suffisent. Un titre s'inscrit dans un
+     compte-titres : il y faut en plus le sous-compte du teneur. La marque ne
+     bloque pas l'intention, elle dit au desk ce qu'il reste à ouvrir. */
+  const { peutOPCVM, peutTitres } = await import("@/lib/auth/types");
+  const surDesParts = type === "souscription" || type === "rachat";
+  const surDesTitres = type === "ferme" || type === "cession" || type === "achat" || type === "vente";
+  // « appetit », « info » et « rappel » n'engagent rien : ils ne demandent aucune chaîne de conservation.
+  const needsAccount = surDesParts ? !peutOPCVM(session) : surDesTitres ? !peutTitres(session) : false;
+  const aOuvrir = surDesParts ? "dossier à ouvrir" : "compte-titres à ouvrir";
   const intent = await r.createIntent({
     offerId,
     type,
@@ -131,7 +139,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     channel,
     contactPhone: contactPhone || undefined,
     contactEmail: contactEmail || undefined,
-    message: needsAccount ? `[compte-titres à ouvrir] ${message ?? ""}`.trim() : message,
+    message: needsAccount ? `[${aOuvrir}] ${message ?? ""}`.trim() : message,
     clientId: session.userId,
     clientName,
     clientSegment: session.segment,

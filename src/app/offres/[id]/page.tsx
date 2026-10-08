@@ -12,7 +12,7 @@ import { FicheReading, loadFiche } from "./FicheReading";
 import { FicheHead } from "./FicheHead";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
-import { compteOuvert, isDesk } from "@/lib/auth/types";
+import { peutOPCVM, isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import { ficheStops } from "@/lib/domain/fiche-stops";
@@ -121,7 +121,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
             canalInitial={canalDemande}
           />
         </div>
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && compteOuvert(session) ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
+        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
         {o.maturityOn && !past && (
           <div className={styles.sideNote}>
             {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

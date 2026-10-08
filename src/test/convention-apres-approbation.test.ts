@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import { missingForSubmission } from "@/lib/kyc/checklist";
-import { compteOuvert } from "@/lib/auth/types";
+import { peutOPCVM } from "@/lib/auth/types";
 import type { Session } from "@/lib/auth/types";
 
 const fiche = (p: Partial<ClientFile> = {}): ClientFile => ({
@@ -41,10 +41,10 @@ describe("la convention s'accepte après l'approbation", () => {
 
   it("un dossier approuvé sans signature n'ouvre aucune porte", () => {
     const s = (p: Partial<Session>): Session => ({ userId: "u1", role: "client", name: "Essai", segment: "Personne physique", tier: 1, provider: "dev", mfaEnrolled: false, mfaVerified: false, ...p });
-    expect(compteOuvert(s({ kycStatus: "approuve" }))).toBe(false);
-    expect(compteOuvert(s({ kycStatus: "approuve", conventionAccepted: true }))).toBe(true);
-    expect(compteOuvert(s({ kycStatus: "soumis", conventionAccepted: true }))).toBe(false);
-    expect(compteOuvert(null)).toBe(false);
+    expect(peutOPCVM(s({ kycStatus: "approuve" }))).toBe(false);
+    expect(peutOPCVM(s({ kycStatus: "approuve", conventionAccepted: true }))).toBe(true);
+    expect(peutOPCVM(s({ kycStatus: "soumis", conventionAccepted: true }))).toBe(false);
+    expect(peutOPCVM(null)).toBe(false);
   });
 });
 

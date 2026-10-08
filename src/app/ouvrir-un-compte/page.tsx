@@ -84,8 +84,13 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                 : file.status === "approuve"
                   ? file.review.custodianAccount
                     ? "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents."
-                    : "Votre convention est acceptée. Le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
-                  : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger ; vous n'acceptez la convention qu'une fois votre dossier approuvé.",
+                    : /* CE QUE LE DOSSIER OUVRE, ET QUAND : deux chaînes de
+                         conservation, deux moments. Les parts d'OPCVM
+                         s'inscrivent au registre du fonds et sont donc déjà
+                         accessibles ; les titres attendent le sous-compte. Le
+                         dire évite de laisser croire que tout est bloqué. */
+                      "Votre convention est acceptée : vous pouvez dès maintenant souscrire des parts de fonds, qui s'inscrivent à votre nom au registre du fonds. Pour les titres du Trésor et les lignes cotées, le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
+                  : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger ; vous n'acceptez la convention qu'une fois votre dossier approuvé.",
             )}
           </p>
         </div>

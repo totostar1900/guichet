@@ -156,6 +156,14 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   if (!contact) throw new Error("Client introuvable");
   const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
   const positions = positionsFrom(intents.filter((i) => i.clientId === clientId), offers);
+  /* UN RELEVÉ SANS LIGNE N'ATTESTE RIEN.
+     L'attestation imprimait un tableau vide et un bloc « signature et cachet » :
+     un papier signé qui déclare zéro. Et la question n'est pas le compte, c'est
+     la position : on ne détient rien tant qu'une opération n'est pas réglée, et
+     une opération réglée implique que la chaîne de conservation a fonctionné,
+     titres ou parts. La porte est donc ici, et elle vaut pour les deux familles
+     d'actifs sans avoir à les distinguer. */
+  if (positions.length === 0) throw new Error("Vous n'avez aucune position à ce jour : un relevé et une attestation s'éditent dès votre première opération réglée.");
   const now = new Date();
   const { number, registerNo } = await nextNumbers(type, now);
   const wording = await resolvePassages(type);

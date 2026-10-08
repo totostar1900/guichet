@@ -6,6 +6,8 @@ import { peutLireLeDocument } from "@/lib/documents/acces";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
+import { SourceViewer } from "@/components/SourceViewer";
+import { SortiesDuDocument } from "./Sorties";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,28 +52,22 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
           <h1 className="display mono">{doc.number}</h1>
           <p className={styles.lead}>{t("Établi le {d}.", { d: fmtDateTime(doc.createdAt) })}</p>
         </div>
-        <div className={styles.actions}>
-          <a className="btn primary sm" href={`${fichier}?telecharger=1`}>
-            {t("Télécharger le PDF")}
-          </a>
-          <a className="btn sm" href={fichier} target="_blank" rel="noreferrer">
-            {t("Ouvrir à part")}
-          </a>
-        </div>
+        <SortiesDuDocument fichier={fichier} />
       </div>
 
-      {/* « object » plutôt qu'« iframe » : son contenu de repli s'affiche quand
-          le navigateur ne sait pas rendre un PDF en place, ce qui est le cas de
-          beaucoup de téléphones. Le lecteur voit alors quoi faire, au lieu d'un
-          cadre vide. */}
-      <object className={styles.visionneuse} data={fichier} type="application/pdf" aria-label={`${t(DOC_LABEL[doc.type])} ${doc.number}`}>
-        <div className={styles.repli}>
-          <p>{t("Votre navigateur n'affiche pas les PDF dans la page.")}</p>
-          <a className="btn primary" href={`${fichier}?telecharger=1`}>
-            {t("Télécharger le PDF")}
-          </a>
-        </div>
-      </object>
+      {/* LA PAGE EST PEINTE ICI, ET C'EST LA SEULE FAÇON QUI TIENNE.
+          « object » et « iframe » s'en remettent à la visionneuse du système :
+          sur un téléphone elle n'existe pas, et dans l'app installée, qui tourne
+          en standalone, l'ouvrir emporte l'app. Mesuré le 8 octobre 2026 : le
+          cadre restait vide, « ouvrir à part » faisait disparaître l'app, et le
+          téléchargement ne donnait aucune notification. Trois issues, trois
+          impasses.
+          SourceViewer peint le PDF lui-même avec pdf.js, sur un canevas : rien
+          ne sort de la page, donc rien ne peut s'y perdre. La maison s'en sert
+          déjà pour les communiqués des Trésors. */}
+      <div className={styles.visionneuse}>
+        <SourceViewer src={fichier} title={`${t(DOC_LABEL[doc.type])} ${doc.number}`} fill />
+      </div>
     </div>
   );
 }

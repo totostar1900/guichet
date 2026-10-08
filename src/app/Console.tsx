@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { compteOuvert, type Session } from "@/lib/auth/types";
+import { peutOPCVM, type Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
@@ -94,10 +94,10 @@ export async function Console({ session }: { session: Session }) {
         {/* « valide » n'a jamais été un état de dossier : les huit valeurs vont
             de brouillon à clos. La comparaison était donc toujours fausse, et un
             client dont le compte est ouvert depuis des mois lisait « Dossier à
-            compléter ». La règle du compte ouvert vit dans compteOuvert, et
+            compléter ». La règle du compte ouvert vit dans peutOPCVM, et
             l'état intermédiaire a maintenant ses propres mots. */}
-        <span className={`${styles.canaux} ${compteOuvert(session) ? "" : styles.canauxManque}`}>
-          {compteOuvert(session) ? t("Dossier complet") : session.kycStatus === "approuve" ? t("Convention à accepter") : t("Dossier à compléter")}
+        <span className={`${styles.canaux} ${peutOPCVM(session) ? "" : styles.canauxManque}`}>
+          {peutOPCVM(session) ? t("Dossier complet") : session.kycStatus === "approuve" ? t("Convention à accepter") : t("Dossier à compléter")}
         </span>
       </div>
 
