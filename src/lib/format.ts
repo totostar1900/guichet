@@ -1,4 +1,3 @@
-import { parseDate } from "./finance";
 
 const nf = new Intl.NumberFormat("fr-FR");
 /**
@@ -37,26 +36,62 @@ export const fmtPct = (v: number, decimals = 1): string =>
 /** Price in % of nominal : 3 decimals only when needed. */
 export const fmtPrice = (v: number): string => fmtPct(v, Number.isInteger(v) ? 0 : 3);
 
+/**
+ * L'HEURE DE LA PLACE, ÉPINGLÉE.
+ *
+ * Ces quatre formateurs lisaient l'heure LOCALE du moteur qui les exécute. Le
+ * même horodatage sortait donc « 18 h 42 » sur Vercel, qui tourne en UTC, et
+ * « 21 h 42 » dans un navigateur à UTC+3 : deux heures différentes pour la même
+ * pièce, et surtout un texte rendu par le serveur que le client réécrit, donc
+ * un échec d'hydratation (React #418) qui casse la page entière. Mesuré le
+ * 8 octobre 2026 sur « Ouvrir un compte », où plus aucun bouton ne répondait.
+ *
+ * La place est en Afrique centrale, UTC+01:00 toute l'année, sans heure d'été :
+ * un décalage fixe suffit, et les parties se lisent ensuite en UTC, donc à
+ * l'identique partout. Trois formes d'entrée, trois lectures :
+ *
+ *   « 2026-10-08 »             une date seule ne porte pas d'heure : son jour
+ *                              est son jour, on ne le déplace pas.
+ *   « 2026-09-22T09:00:00 »    sans fuseau : c'est l'heure écrite sur la pièce,
+ *                              donc déjà l'heure de la place, lue telle quelle.
+ *   « 2026-10-07T23:30:00Z »   un instant : projeté sur la place, ici le
+ *                              8 octobre à 00 h 30.
+ */
+const ZONE_MINUTES = 60;
+const SANS_FUSEAU = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/;
+const AVEC_FUSEAU = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+function partsDeLaPlace(iso: string): { a: number; m: number; j: number; js: number; h: number; min: number } {
+  const brut = SANS_FUSEAU.exec(iso);
+  if (brut && !AVEC_FUSEAU.test(iso)) {
+    const [, a, m, j, h, min] = brut;
+    return { a: +a, m: +m - 1, j: +j, js: new Date(Date.UTC(+a, +m - 1, +j)).getUTCDay(), h: +(h ?? 0), min: +(min ?? 0) };
+  }
+  const z = new Date(new Date(iso).getTime() + ZONE_MINUTES * 60_000);
+  return { a: z.getUTCFullYear(), m: z.getUTCMonth(), j: z.getUTCDate(), js: z.getUTCDay(), h: z.getUTCHours(), min: z.getUTCMinutes() };
+}
+
+const hhmm = (h: number, min: number): string => `${String(h).padStart(2, "0")}${formatLang === "en" ? ":" : " h "}${String(min).padStart(2, "0")}`;
+
 export const fmtDate = (iso: string, withYear = true): string => {
-  const d = parseDate(iso);
-  return `${d.getDate()} ${MONTHS[d.getMonth()]}${withYear ? ` ${d.getFullYear()}` : ""}`;
+  const d = partsDeLaPlace(iso);
+  return `${d.j} ${MONTHS[d.m]}${withYear ? ` ${d.a}` : ""}`;
 };
 
 export const fmtDateTime = (iso: string): string => {
-  const d = parseDate(iso);
-  const hm = formatLang === "en" ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : `${String(d.getHours()).padStart(2, "0")} h ${String(d.getMinutes()).padStart(2, "0")}`;
-  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${hm}`;
+  const d = partsDeLaPlace(iso);
+  return `${DAYS[d.js]} ${d.j} ${MONTHS[d.m]} ${hhmm(d.h, d.min)}`;
 };
 
 /** Weekday, day, month and year : the heading of a day in a feed. */
 export const fmtDay = (iso: string): string => {
-  const d = parseDate(iso);
-  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  const d = partsDeLaPlace(iso);
+  return `${DAYS[d.js]} ${d.j} ${MONTHS[d.m]} ${d.a}`;
 };
 
 export const fmtTime = (iso: string): string => {
-  const d = parseDate(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const d = partsDeLaPlace(iso);
+  return `${String(d.h).padStart(2, "0")}:${String(d.min).padStart(2, "0")}`;
 };
 
 export const fmtMillions = (n: number): string => `${nf.format(Math.round(n / 1e6))} M`;
