@@ -35,8 +35,6 @@ export interface AppMenuProps {
   /** Kept for the layout's call; the alerts row lives on Mon espace now. */
   vapidKey?: string;
   build?: string;
-  /** Ce qui attend une décision du client. Zéro : rien ne paraît. */
-  aDecider?: number;
 }
 
 const COACH_KEY = "guichet:coach:menu";
@@ -79,7 +77,7 @@ const D = {
   pin: "M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
 };
 
-export function AppMenu({ signedIn, desk, name, build, aDecider = 0 }: AppMenuProps) {
+export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
   const t = useT();
   const lang = useLang();
   const path = usePathname();
@@ -141,20 +139,21 @@ export function AppMenu({ signedIn, desk, name, build, aDecider = 0 }: AppMenuPr
 
   return (
     <>
-      {/* LA PASTILLE DIT QU'IL Y A QUELQUE CHOSE DEDANS.
-          « À décider » tenait sa place dans la barre ; en portrait cette barre
-          n'a plus la largeur, et un compteur qu'on retire sans le remplacer
-          est un compteur qu'on perd. Il entre donc dans le menu, et le menu le
-          porte sur son bouton : on voit qu'il y a trois décisions sans
-          l'ouvrir. À zéro rien ne paraît, une pastille qui annonce « rien »
-          apprenant à ne plus la regarder. */}
+      {/* LE COMPTEUR N'EST PLUS ICI, ET IL NE DOIT PAS Y REVENIR.
+          Il a porté la pastille tant que le « ⋮ » existait pour un client. Le
+          5 octobre 2026 ce bouton a disparu pour les clients connectés (voir
+          le retour null ci-dessus) et le compteur est resté dessus : la
+          couche entière continuait de le calculer à chaque page, de le passer
+          de main en main, et de le rendre dans une branche que plus personne
+          n'atteignait. Il vit maintenant sur l'initiale, qui est la porte du
+          client, dans AccountMenu. Un compteur n'a qu'un domicile. */}
       <button
         type="button"
         className={`${styles.dots} ${coach ? styles.dotsCoach : ""}`}
         onClick={show}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={aDecider > 0 ? t("Menu : {n} décisions vous attendent", { n: String(aDecider) }) : t("Menu : aide, contact, réglages")}
+        aria-label={t("Menu : aide, contact, réglages")}
         title={t("Aide, contact, réglages")}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -162,11 +161,6 @@ export function AppMenu({ signedIn, desk, name, build, aDecider = 0 }: AppMenuPr
           <circle cx="12" cy="12" r="1.7" />
           <circle cx="12" cy="19" r="1.7" />
         </svg>
-        {aDecider > 0 && (
-          <b className={styles.pastille} aria-hidden="true">
-            {aDecider}
-          </b>
-        )}
       </button>
 
       {coach && (
@@ -198,18 +192,6 @@ export function AppMenu({ signedIn, desk, name, build, aDecider = 0 }: AppMenuPr
           {(tab === "aide" || tab === "guichet" || !deskTabs) && (
             <>
               <MenuRecherche index={index} close={close} />
-              {aDecider > 0 && (
-                <>
-                  <div className={styles.group}>{t("Ce qui vous attend")}</div>
-                  <Link className={`${styles.item} ${styles.here}`} href="/#a-decider" onClick={close}>
-                    <Icon d={D.steps} gold />
-                    <span>
-                      <b>{t("À décider")}</b>
-                      <small>{t("{n} en attente de votre décision", { n: String(aDecider) })}</small>
-                    </span>
-                  </Link>
-                </>
-              )}
               {coachLabel && (
                 <>
                   <div className={styles.group}>{t("Sur cette page")}</div>

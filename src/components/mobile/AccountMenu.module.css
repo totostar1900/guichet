@@ -12,6 +12,7 @@
   place-items: center;
   cursor: pointer;
   padding: 0;
+  position: relative;
 }
 /* Le statut : ce que la carte disait, moins le nom et l'initiale, que le
    titre de la feuille porte déjà. */
@@ -325,4 +326,34 @@
   cursor: pointer;
   text-decoration: underline dotted 1px;
   text-underline-offset: 3px;
+}
+
+/* LE COMPTEUR SUR L'INITIALE.
+   Il vivait sur le « ⋮ », qui n'existe plus pour un client connecté : la
+   pastille y était calculée à chaque page et rendue par une branche que
+   personne n'atteignait. Elle n'est pas dorée : l'initiale l'est déjà, et une
+   pastille d'or sur un rond d'or ne se voit pas. Le rouge de la maison dit en
+   plus ce qu'elle veut dire, que quelque chose attend. */
+.pastille {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  /* La barre est toujours bleu nuit, à toute surface : le rouge de la pastille
+     ne peut donc pas suivre --crit, qui s éclaircit en surface nuit pour rester
+     lisible sur un fond sombre. Ici le fond est la pastille elle-même, et un
+     rouge clair sous du blanc ne se lit pas (rapport 2,4). Le rouge profond de
+     la palette claire, lui, tient le blanc et se détache du navy. */
+  background: #b3261e;
+  color: #fff;
+  font-size: var(--t-1);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  border: 1.5px solid var(--navy);
 }

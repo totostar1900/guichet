@@ -133,6 +133,28 @@ describe("où la liste se lit", () => {
     expect(src).not.toContain("const ctx: ContexteClient = {");
   });
 
+  /**
+   * LE COMPTEUR DOIT ÊTRE RENDU PAR UN COMPOSANT QUE LE CLIENT VOIT.
+   *
+   * Il a vécu trois jours sur le « ⋮ » APRÈS que ce bouton eut cessé
+   * d'exister pour les clients connectés (AppMenu : `if (signedIn && !desk)
+   * return null`). La couche entière restait en place : le layout appelait
+   * compterAttentes à chaque page, passait le nombre de main en main, et la
+   * pastille se rendait dans une branche morte. Rien n'échouait, rien ne se
+   * voyait. Le compteur vit maintenant sur l'initiale, qui est la seule porte
+   * du client depuis le 5 octobre 2026.
+   */
+  it("la pastille est rendue là où le client connecté regarde", () => {
+    const menu = lire("src/components/AppMenu.tsx");
+    // Le « ⋮ » n'existe pas pour un client connecté : il ne doit donc plus rien compter.
+    expect(menu).toContain("if (signedIn && !desk) return null");
+    expect(menu).not.toContain("aDecider");
+    const compte = lire("src/components/mobile/AccountMenu.tsx");
+    expect(compte).toContain("aDecider");
+    const layout = lire("src/app/layout.tsx");
+    expect(layout).toContain("aDecider={desk ? 0 : attentes}");
+  });
+
   it("l'assemblage lit le dossier, et ne suppose plus le compte ouvert", () => {
     const src = lire("src/lib/domain/contexte-client.ts");
     expect(src).toContain("getClientFileByUser");

@@ -59,6 +59,15 @@ export interface AccountProps {
   profile?: "prudent" | "equilibre" | "dynamique";
   /** La version, au pied de la feuille. */
   build?: string;
+  /**
+   * Combien de décisions attendent ce client : la pastille sur l'initiale.
+   *
+   * Elle vivait sur le « ⋮ », qui a cessé d'exister pour un client connecté le
+   * 5 octobre 2026 : tout est passé derrière l'initiale, et le compteur est
+   * resté sur le bouton supprimé. Calculé à chaque page, passé de main en
+   * main, affiché par une branche que plus aucun client n'atteignait.
+   */
+  aDecider?: number;
 }
 
 const D = {
@@ -196,8 +205,23 @@ export function AccountMenu(p: AccountProps) {
 
   return (
     <>
-      <button type="button" className={styles.avatar} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={t("Mon compte")} title={who.name}>
+      {/* À zéro rien ne paraît : une pastille qui annonce « rien » apprend à
+          l'oeil à ne plus la regarder, y compris le jour où elle dit un. */}
+      <button
+        type="button"
+        className={styles.avatar}
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={p.aDecider ? t("Mon compte : {n} décisions vous attendent", { n: String(p.aDecider) }) : t("Mon compte")}
+        title={who.name}
+      >
         {initial}
+        {p.aDecider ? (
+          <b className={styles.pastille} aria-hidden="true">
+            {p.aDecider}
+          </b>
+        ) : null}
       </button>
       <Sheet
         open={open}
