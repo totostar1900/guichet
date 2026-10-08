@@ -264,6 +264,16 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                       <td className="num">{fmtTime(i.createdAt)}</td>
                       <td>
                         <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
+                        {/* UN ORDRE SIGNÉ N'ATTEND PLUS QUE LE DESK, et le carnet
+                            doit le dire : sans cette marque, rien ne distingue
+                            celui qui demande un geste de celui qui attend encore
+                            son client. */}
+                        {i.signedAt && (
+                          <>
+                            <br />
+                            <small className={styles.signe}>{t("signé")}</small>
+                          </>
+                        )}
                       </td>
                       <td>
                         {/* OUVRIR, ET RIEN D'AUTRE.

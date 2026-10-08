@@ -90,3 +90,37 @@ describe("la signature par code à usage unique", () => {
     expect(reste).toBeLessThanOrEqual(25);
   });
 });
+
+/**
+ * LE GO DU DESK EST UN SEUL GESTE, ET IL NE REFAIT PAS CE QUI EST SIGNÉ.
+ *
+ * Le cycle produisait le bulletin à la confirmation, pour que le client le
+ * signe et le renvoie : c'était l'aller-retour. Quand l'ordre porte déjà sa
+ * signature, le réémettre créerait un second exemplaire vierge, et plus
+ * personne ne saurait lequel vaut. Reste l'appel de fonds, qui n'est pas une
+ * signature mais une instruction de virement.
+ */
+describe("le go du desk", () => {
+  it("ne réémet ni le bulletin ni la demande de rachat quand l'ordre est signé", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync("src/app/desk/actions.ts", "utf8");
+    expect(src).toContain("const dejaSigne = Boolean(updated.orderDocId)");
+    expect(src).toMatch(/filter\(\(d\) => !\(dejaSigne && \(d === "bulletin" \|\| d === "cession"\)\)\)/);
+  });
+
+  it("l'appel de fonds reste : c'est une instruction de virement, pas une signature", async () => {
+    const { docsForTransition } = await import("@/lib/documents/registry");
+    expect(docsForTransition("souscription", "confirmee")).toContain("fonds");
+  });
+
+  it("le message du go ne promet plus un bulletin à signer", async () => {
+    const { intentUpdated } = await import("@/lib/notify/compose");
+    const o = { id: "fund-x", kind: "FONDS", title: "FCP Essai", fund: { manager: "SG Essai" } } as never;
+    const signe = intentUpdated(ordre({ signedAt: new Date().toISOString() }), o, "confirmee", "Georges");
+    expect(signe.text).toContain("PF-1008-AAAA");
+    expect(signe.text).not.toContain("à signer");
+    // Sans signature, l'ancien chemin reste : tous les ordres ne se signent pas encore dans l'app.
+    const pasSigne = intentUpdated(ordre(), o, "confirmee", "Georges");
+    expect(pasSigne.text).toContain("à signer");
+  });
+});

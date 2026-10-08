@@ -41,8 +41,16 @@ export async function transitionIntent(form: FormData): Promise<void> {
     offerId: updated.offerId,
     html: `${updated.ref} (${updated.clientName}) : <b>${INTENT_STATE_LABEL[state]}</b>${closedReason ? ` · ${reasonForDesk(closedReason)}` : ""}${offer ? ` · ${offer.title}` : ""} · par ${desk.name}`,
   });
-  // The lifecycle produces its paperwork: bulletin + appel de fonds on confirmation, avis on results, avis d'opéré on settlement.
-  for (const type of docsForTransition(updated.type, state)) {
+  /* LE DOCUMENT QUE LE CLIENT A SIGNÉ NE SE REFAIT PAS.
+     Le cycle produisait le bulletin à la confirmation, pour que le client le
+     signe et le renvoie : c'était l'aller-retour. Quand l'ordre porte déjà sa
+     signature, le bulletin existe, signé, et le réémettre créerait un second
+     exemplaire vierge qui ferait douter duquel vaut. Reste l'appel de fonds,
+     qui n'est pas une signature mais une instruction de virement, et qui part
+     donc avec le go. */
+  const dejaSigne = Boolean(updated.orderDocId);
+  const aProduire = docsForTransition(updated.type, state).filter((d) => !(dejaSigne && (d === "bulletin" || d === "cession")));
+  for (const type of aProduire) {
     try {
       await generateForIntent(type, intentId, { advisor: desk.name });
     } catch (e) {

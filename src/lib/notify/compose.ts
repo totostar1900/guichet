@@ -81,10 +81,18 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
     confirmee:
       i.type === "ferme"
         ? `Votre prise ferme est confirmée${advisor ? ` par ${advisor}` : ""}. Le bulletin à signer et l'appel de fonds suivent dans ce fil.`
-        : i.type === "souscription"
-          ? `Votre souscription est confirmée${advisor ? ` par ${advisor}` : ""}. Le bulletin de souscription à signer et l'appel de fonds suivent dans ce fil ; exécution à la prochaine VL.`
+        : /* UN ORDRE DÉJÀ SIGNÉ NE SE FAIT PAS SIGNER DEUX FOIS.
+             Le message annonçait « le bulletin à signer suit dans ce fil » :
+             c'était l'aller-retour. Quand le client a signé en passant l'ordre,
+             le go lui dit ce qui reste, et une seule chose reste. */
+          i.type === "souscription"
+          ? i.signedAt
+            ? `C'est parti pour votre souscription ${i.ref}${advisor ? `, confirmée par ${advisor}` : ""}. Vous pouvez virer dès maintenant en citant ${i.ref} ; l'appel de fonds porte les coordonnées. Exécution à la prochaine VL.`
+            : `Votre souscription est confirmée${advisor ? ` par ${advisor}` : ""}. Le bulletin de souscription à signer et l'appel de fonds suivent dans ce fil ; exécution à la prochaine VL.`
         : i.type === "rachat"
-          ? `Votre demande de rachat est confirmée${advisor ? ` par ${advisor}` : ""}. La demande à signer suit dans ce fil ; exécution à la prochaine VL de rachat.`
+          ? i.signedAt
+            ? `C'est parti pour votre rachat ${i.ref}${advisor ? `, confirmé par ${advisor}` : ""}. Rien à faire de votre côté : exécution à la prochaine VL de rachat, puis le produit est viré sur votre compte de règlement.`
+            : `Votre demande de rachat est confirmée${advisor ? ` par ${advisor}` : ""}. La demande à signer suit dans ce fil ; exécution à la prochaine VL de rachat.`
         : i.type === "cession"
           ? `Votre ordre de cession est confirmé${advisor ? ` par ${advisor}` : ""}. L'ordre à signer suit dans ce fil.`
           : `Votre ${INTENT_LABEL[i.type].toLowerCase()} est pris en compte${advisor ? ` par ${advisor}` : ""}. Nous revenons vers vous avant la clôture pour arrêter le montant.`,

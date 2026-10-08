@@ -235,3 +235,9 @@
   opacity: 1;
   color: var(--gold-ink);
 }
+
+/* L'ordre déjà signé par le client : il n'attend plus que le go du desk. */
+.signe {
+  color: var(--good);
+  font-weight: 700;
+}
