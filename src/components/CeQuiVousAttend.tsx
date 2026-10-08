@@ -38,7 +38,9 @@ export async function CeQuiVousAttend({ userId }: { userId: string }) {
         {attentes.map((a) => (
           <li key={a.cle} className={styles.ligne} data-ton={a.ton}>
             <span className={styles.quoi}>
-              <b>{a.chiffre}</b> · {t(a.quoi.key, a.quoi.params)}
+              {/* Un mot passe par le dictionnaire, une donnée sort telle quelle :
+                  voir la note sur `chiffre` dans domain/services. */}
+              <b>{typeof a.chiffre === "string" ? a.chiffre : t(a.chiffre.key, a.chiffre.params)}</b> · {t(a.quoi.key, a.quoi.params)}
             </span>
             <small className={styles.quand}>{t(a.quand.key, a.quand.params)}</small>
             <Link className="btn sm primary" href={a.href}>

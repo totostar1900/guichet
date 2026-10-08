@@ -107,8 +107,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const onDeskHost = isDeskHost(hdrs.get("host"));
   const deskUi = desk && (!deskSplit() || onDeskHost);
   const navMode = deskSplit() ? (onDeskHost ? "desk" : "client") : "all";
+  /* LE COMPTEUR SUIT LA SURFACE, PAS LE RÔLE.
+     Il était éteint pour quiconque a le rôle « desk » ou « responsable ». Or
+     un membre de la maison est aussi client chez elle : mesuré le 8 octobre
+     2026, un compte « responsable » avec sa propre convention à accepter
+     voyait la bande « Ce qui vous attend » sur sa page d'arrivée, puisque la
+     bande, elle, ne regarde pas le rôle, et n'avait AUCUNE pastille. Deux
+     lectures de la même chose, deux réponses. C'est la surface qui tranche :
+     sur le site client, on est client, quel que soit son rôle ailleurs. */
   const [account, profile, attentes] = session
-    ? await Promise.all([accountLine(session.userId), desk ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined), desk ? [] : attentesPourLaBarre(session.userId)])
+    ? await Promise.all([accountLine(session.userId), deskUi ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined), deskUi ? [] : attentesPourLaBarre(session.userId)])
     : [undefined, undefined, []];
   const security = desk ? undefined : account?.security;
   // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
@@ -160,12 +168,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {t("démo · mémoire")}
                 </span>
               )}
-              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: desk ? [] : attentes } : undefined} />
+              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: deskUi ? [] : attentes } : undefined} />
               {menu}
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} security={security} profile={profile?.kind} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} attentes={desk ? [] : attentes} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} security={security} profile={profile?.kind} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} attentes={deskUi ? [] : attentes} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />

@@ -47,8 +47,9 @@ describe("ce qui entre dans la liste", () => {
   });
 
   it("accorde le mot au nombre", () => {
-    expect(attentesDuClient({ ...vide, aSigner: 1 }, fmt)[0].chiffre).toBe("1 ordre");
-    expect(attentesDuClient({ ...vide, aSigner: 3 }, fmt)[0].chiffre).toBe("3 ordres");
+    expect(attentesDuClient({ ...vide, aSigner: 1 }, fmt)[0].chiffre).toEqual({ key: "1 ordre" });
+    // Le mot passe par le dictionnaire : trois rangées ont montré « 1 ordre » en français dans une page anglaise.
+    expect(attentesDuClient({ ...vide, aSigner: 3 }, fmt)[0].chiffre).toEqual({ key: "{n} ordres", params: { n: 3 } });
   });
 });
 
@@ -154,7 +155,7 @@ describe("où la liste se lit", () => {
     expect(compte).toContain("styles.alerte");
     expect(compte).toContain('attentes.length === 1 ? attentes[0].href : "/#a-decider"');
     const layout = lire("src/app/layout.tsx");
-    expect(layout).toContain("attentes={desk ? [] : attentes}");
+    expect(layout).toContain("attentes={deskUi ? [] : attentes}");
   });
 
   it("l'assemblage lit le dossier, et ne suppose plus le compte ouvert", () => {

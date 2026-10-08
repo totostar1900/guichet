@@ -211,6 +211,14 @@ export const EN_CONSOLE: Record<string, string> = {
   "Des compléments ont été demandés : l'examen de votre dossier reprend dès qu'ils sont déposés.":
     "Further documents have been requested: the review of your file resumes as soon as they are filed.",
   "La sélection du desk": "The desk's selection",
+  /* Le gros caractère de chaque ligne de la bande. Il passait tel quel : trois
+     rangées ont suffi à montrer « 1 ordre » en français au milieu d'une page
+     anglaise. Un montant et le libellé d'une séance restent des données et ne
+     sont pas ici. */
+  "1 ordre": "1 order",
+  "{n} ordres": "{n} orders",
+  "1 proposition": "1 proposal",
+  "{n} propositions": "{n} proposals",
   "Votre signature": "Your signature",
   "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait.": "The form is ready. The order goes out as soon as it is signed and the transfer made.",
   "Votre réponse": "Your answer",

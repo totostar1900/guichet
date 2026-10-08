@@ -423,7 +423,15 @@ export function compteDesEtats(services: ServiceVu[]): Record<EtatService, numbe
 export interface Attente {
   cle: string;
   quand: Dit;
-  chiffre: string;
+  /**
+   * Le gros caractère de la ligne. Un mot se traduit, une donnée non : un
+   * montant en FCFA et le libellé d une séance de la BEAC sortent tels quels,
+   * « 1 ordre » doit passer par le dictionnaire. Les deux formes cohabitent
+   * donc ici, parce que ce sont deux natures et non deux styles ; il a fallu
+   * trois rangées dans la bande pour voir « 1 ordre » en français au milieu
+   * d une page anglaise (2026-10-08).
+   */
+  chiffre: Dit | string;
   quoi: Dit;
   geste: string;
   href: string;
@@ -455,7 +463,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
     out.push({
       cle: "convention",
       quand: { key: "Dernière étape de l'ouverture" },
-      chiffre: "Convention",
+      chiffre: { key: "Convention" },
       quoi: { key: "Votre dossier est approuvé. Votre compte s'ouvre dès que la convention est acceptée, par un code à usage unique." },
       geste: "Accepter ma convention",
       href: "/ouvrir-un-compte",
@@ -465,7 +473,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
     out.push({
       cle: "complements",
       quand: { key: "Le desk attend vos pièces" },
-      chiffre: "Dossier",
+      chiffre: { key: "Dossier" },
       quoi: { key: "Des compléments ont été demandés : l'examen de votre dossier reprend dès qu'ils sont déposés." },
       geste: "Compléter mon dossier",
       href: "/ouvrir-un-compte",
@@ -475,7 +483,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
     out.push({
       cle: "signer",
       quand: { key: "Votre signature" },
-      chiffre: c.aSigner > 1 ? `${c.aSigner} ordres` : "1 ordre",
+      chiffre: c.aSigner > 1 ? { key: "{n} ordres", params: { n: c.aSigner } } : { key: "1 ordre" },
       quoi: { key: "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait." },
       geste: "Signer",
       href: c.ouSigner ? `/moi/ordres/${c.ouSigner}` : "/moi#ordres-en-cours",
@@ -485,7 +493,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
     out.push({
       cle: "repondre",
       quand: { key: "Votre réponse" },
-      chiffre: c.aRepondre > 1 ? `${c.aRepondre} propositions` : "1 proposition",
+      chiffre: c.aRepondre > 1 ? { key: "{n} propositions", params: { n: c.aRepondre } } : { key: "1 proposition" },
       quoi: { key: "D'autres conditions vous sont proposées : c'est votre réponse qui change l'ordre." },
       geste: "Répondre",
       href: c.ouRepondre ? `/moi/ordres/${c.ouRepondre}` : "/moi#ordres-en-cours",
