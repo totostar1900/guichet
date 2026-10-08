@@ -119,8 +119,9 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
       if (held + amt > INDIVISION_CEILING) return { ok: false, error: `Un groupement en indivision est limité à ${fmt(INDIVISION_CEILING)} FCFA de nominal (déjà détenu : ${fmt(held)}). Au-delà, le groupe doit être une association déclarée : parlez-en au desk.` };
     }
   }
-  // Funds are registered at the depositary in the client's name: an approved file is enough, no SVT sub-account needed.
-  const needsAccount = (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && session.tier < 2 ? true : (type === "souscription" || type === "rachat") && session.tier < 2 && session.kycStatus !== "approuve";
+  // Funds are registered at the depositary in the client's name: an approved file is enough, no SVT sub-account needed. The convention still has to be accepted: see compteOuvert.
+  const { compteOuvert } = await import("@/lib/auth/types");
+  const needsAccount = (type === "ferme" || type === "cession" || type === "achat" || type === "vente") && session.tier < 2 ? true : (type === "souscription" || type === "rachat") && session.tier < 2 && !compteOuvert(session);
   const intent = await r.createIntent({
     offerId,
     type,

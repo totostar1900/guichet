@@ -82,9 +82,29 @@ export function missingForSubmission(f: ClientFile): string[] {
   if (!f.funds.source) out.push("origine des fonds");
   if (!f.profile.objectives || !f.profile.horizon || !f.profile.riskTolerance) out.push("questionnaire investisseur");
   if (!f.consents.dataAt) out.push("consentement données");
-  if (!f.consents.conventionAt) out.push("acceptation de la convention");
+  /* L'ACCEPTATION DE LA CONVENTION N'EST PLUS ICI.
+     Elle y bloquait l'envoi du dossier, donc le client signait avant de savoir si
+     son compte serait ouvert, et le desk refusait d'approuver sans cette
+     signature. La maison documente l'ordre inverse (src/data/flows.ts, parcours
+     « ouverture ») : dossier, revue, approbation, puis acceptation par code. Le
+     consentement aux données reste, lui : sans lui le desk ne peut pas instruire. */
   return out;
 }
+
+/**
+ * QUAND LA CONVENTION SE SIGNE.
+ *
+ * Le code d'acceptation était exigé AVANT l'envoi du dossier : on faisait donc
+ * signer une convention d'ouverture de compte à quelqu'un dont on ne savait pas
+ * encore si le compte serait ouvert, et le desk refusait d'approuver sans cette
+ * signature. La maison documente l'inverse depuis le début : « Rien ne se signe
+ * avant l'approbation du dossier » (src/data/flows.ts, parcours « ouverture »),
+ * et c'est la documentation qui a raison.
+ *
+ * La règle vit ici plutôt que près des actions : un module « use server » ne peut
+ * exporter que des fonctions async, et ni le typage ni les tests ne le disent.
+ */
+export const conventionSignable = (f: ClientFile): boolean => f.status === "approuve" && !f.consents.conventionAt;
 
 /** Everything the desk still needs before approving: identity details, representatives, every required piece. */
 export function missingForApproval(f: ClientFile): string[] {

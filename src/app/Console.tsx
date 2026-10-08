@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Session } from "@/lib/auth/types";
+import { compteOuvert, type Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
@@ -91,8 +91,13 @@ export async function Console({ session }: { session: Session }) {
 
       <div className={styles.bonjour}>
         <h1>{t("Bonjour {p}", { p: session.name.split(" ")[0] })}</h1>
-        <span className={`${styles.canaux} ${session.kycStatus === "valide" ? "" : styles.canauxManque}`}>
-          {session.kycStatus === "valide" ? t("Dossier complet") : t("Dossier à compléter")}
+        {/* « valide » n'a jamais été un état de dossier : les huit valeurs vont
+            de brouillon à clos. La comparaison était donc toujours fausse, et un
+            client dont le compte est ouvert depuis des mois lisait « Dossier à
+            compléter ». La règle du compte ouvert vit dans compteOuvert, et
+            l'état intermédiaire a maintenant ses propres mots. */}
+        <span className={`${styles.canaux} ${compteOuvert(session) ? "" : styles.canauxManque}`}>
+          {compteOuvert(session) ? t("Dossier complet") : session.kycStatus === "approuve" ? t("Convention à accepter") : t("Dossier à compléter")}
         </span>
       </div>
 

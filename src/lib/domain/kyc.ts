@@ -117,7 +117,20 @@ export interface ClientFile {
     pepDetails?: string;
   };
   profile: { objectives?: string; horizon?: string; experience?: string; riskTolerance?: string; lossCapacity?: string; category: "non_professionnel" | "professionnel" };
-  consents: { dataAt?: string; whatsappAt?: string; conventionAt?: string; conventionMethod?: string; pendingCodeHash?: string; pendingCodeAt?: string };
+  consents: {
+    dataAt?: string;
+    whatsappAt?: string;
+    conventionAt?: string;
+    conventionMethod?: string;
+    /** Où le code d'acceptation est parti : la convention imprimée le nomme, et le client peut le relire à l'écran. */
+    conventionTo?: string;
+    pendingCodeHash?: string;
+    pendingCodeAt?: string;
+    /** Essais ratés sur le code en cours : au-delà de cinq il est brûlé. */
+    pendingCodeTries?: number;
+    /** La destination du code en cours, pour que l'écran puisse la nommer après un rechargement. */
+    pendingCodeTo?: string;
+  };
   review: { risk?: RiskRating; notes?: string; reviewedBy?: string; reviewedAt?: string; nextReviewOn?: string; custodianAccount?: string; requestedItems?: string };
   /** Sanctions / PEP screening: the officer's attestation (mandatory) and the last automatic pre-check (optional). */
   /** Acts on the file: mandates given, the closure in progress. */

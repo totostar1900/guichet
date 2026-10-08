@@ -8,7 +8,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emptyClientFile, type ClientFile, type ClientKind, type KycDocKind, type KycPerson } from "@/lib/domain/kyc";
 import { saveSource } from "@/lib/intake/storage";
-import { DOC_LABEL, missingForSubmission } from "@/lib/kyc/checklist";
+import { conventionSignable, DOC_LABEL, missingForSubmission } from "@/lib/kyc/checklist";
 
 export type StepResult = { ok: true; message?: string; code?: string } | { ok: false; error: string };
 
@@ -41,11 +41,18 @@ export async function setKindAction(form: FormData): Promise<void> {
 export async function saveIdentityAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
   if (!editable(file)) return { ok: false, error: "Dossier en cours de revue : il n'est plus modifiable." };
+  /* UN CONTACT NE S'EFFACE PAS EN LE LAISSANT VIDE.
+     Le nom avait son repli, le téléphone et l'adresse n'en avaient pas :
+     enregistrer la section avec la case vidée supprimait le contact du dossier,
+     alors que la session, elle, le connaissait toujours. Le garde-fou en dessous
+     laissait passer dès qu'il restait l'autre des deux. Vider un champ n'est
+     jamais une demande de suppression ici : c'est le remplacer qui compte, et le
+     client change de canal dans Sécurité, où un code le prouve. */
   const identity: ClientFile["identity"] = {
     ...file.identity,
     name: str(form, "name") ?? file.identity.name,
-    phone: str(form, "phone"),
-    email: str(form, "email"),
+    phone: str(form, "phone") ?? file.identity.phone,
+    email: str(form, "email") ?? file.identity.email,
     address: str(form, "address"),
     city: str(form, "city"),
     country: str(form, "country") ?? "Cameroun",
@@ -156,32 +163,79 @@ export async function saveFundsProfileAction(_p: StepResult | null, form: FormDa
   return { ok: true, message: "Profil enregistré." };
 }
 
-/* ---------- 5. Consentements et convention (acceptation par code) ---------- */
-const hash = (code: string) => createHash("sha256").update(`${process.env.AUTH_SECRET ?? "guichet"}:${code}`).digest("hex");
-
-export async function sendConventionCodeAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
+/* ---------- 5a. Consentements (ce qu'il faut pour envoyer le dossier) ---------- */
+/**
+ * Le consentement au traitement des données se donne à l'envoi du dossier : sans
+ * lui, le desk n'a pas le droit d'instruire. Il est séparé de l'acceptation de la
+ * convention, qui vient après l'approbation ; les deux tenaient dans un seul
+ * bouton, et le client signait donc avant de savoir si son compte serait ouvert.
+ */
+export async function saveConsentsAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
-  if (!editable(file)) return { ok: false, error: "Dossier non modifiable." };
-  const data = form.get("data") === "on";
-  if (!data) return { ok: false, error: "Le consentement au traitement des données est nécessaire pour ouvrir un compte." };
-  const code = String(Math.floor(100000 + Math.random() * 900000));
-  const consents = { ...file.consents, dataAt: file.consents.dataAt ?? new Date().toISOString(), whatsappAt: form.get("whatsapp") === "on" ? (file.consents.whatsappAt ?? new Date().toISOString()) : undefined, pendingCodeHash: hash(code), pendingCodeAt: new Date().toISOString() };
+  if (!editable(file)) return { ok: false, error: "Dossier en cours de revue : il n'est plus modifiable." };
+  if (form.get("data") !== "on") return { ok: false, error: "Le consentement au traitement des données est nécessaire pour ouvrir un compte." };
+  const now = new Date().toISOString();
+  const consents = { ...file.consents, dataAt: file.consents.dataAt ?? now, whatsappAt: form.get("whatsapp") === "on" ? (file.consents.whatsappAt ?? now) : undefined };
   await repo().updateClientFile(file.id, { consents });
-  const { notifyCode } = await import("@/lib/kyc/notify");
-  const via = await notifyCode(file, code);
   revalidatePath(PATH);
-  return { ok: true, message: via === "demo" ? "Mode démonstration : le code s'affiche ci-dessous." : `Code envoyé par ${via}.`, code: via === "demo" ? code : undefined };
+  return { ok: true, message: "Consentements enregistrés." };
+}
+
+/* ---------- 5b. Convention : acceptation par code, après l'approbation ---------- */
+const hash = (code: string) => createHash("sha256").update(`${process.env.AUTH_SECRET ?? "guichet"}:${code}`).digest("hex");
+/** Un code vient de partir : on ne le refait pas partir avant ce délai (secondes affichées au client). */
+const DELAI_RENVOI = 45_000;
+/** Au-delà, le code est brûlé : il faut en demander un autre. */
+const ESSAIS_MAX = 5;
+
+// La signature reste celle de useActionState : le formulaire ne porte plus rien, les consentements ont leur propre action.
+export async function sendConventionCodeAction(_p: StepResult | null, _form: FormData): Promise<StepResult> {
+  const { file, userId } = await myFile();
+  if (file.consents.conventionAt) return { ok: false, error: "Convention déjà acceptée." };
+  if (!conventionSignable(file)) return { ok: false, error: "La convention s'accepte dès que votre dossier est approuvé : nous vous prévenons de la décision." };
+  if (!file.consents.dataAt) return { ok: false, error: "Donnez d'abord votre consentement au traitement des données." };
+  const depuis = file.consents.pendingCodeAt ? Date.now() - new Date(file.consents.pendingCodeAt).getTime() : Infinity;
+  if (depuis < DELAI_RENVOI) return { ok: false, error: `Un code vient de partir. Attendez ${Math.ceil((DELAI_RENVOI - depuis) / 1000)} secondes avant d'en demander un autre.` };
+  const { canalDuCode, nommerCanal } = await import("@/lib/kyc/canal");
+  const canal = await canalDuCode(userId, file);
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const { notifyCode } = await import("@/lib/kyc/notify");
+  const envoi = await notifyCode(file, code, canal);
+  /* L'ancien code n'est remplacé que si le nouveau est bien parti : un envoi
+     refusé par le fournisseur brûlait le code que le client avait peut-être
+     sous les yeux. */
+  if (envoi.via === "echec") return { ok: false, error: `Le code n'a pas pu partir vers ${envoi.to} : ${envoi.raison}. Réessayez dans un instant ; si cela se répète, écrivez-nous depuis vos messages et nous l'enverrons autrement.` };
+  await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeHash: hash(code), pendingCodeAt: new Date().toISOString(), pendingCodeTries: 0, pendingCodeTo: canal?.to } });
+  revalidatePath(PATH);
+  if (envoi.via === "demo") return { ok: true, message: "Mode démonstration : le code s'affiche ci-dessous.", code };
+  return { ok: true, message: `Code envoyé par ${nommerCanal(canal)}.` };
 }
 
 export async function verifyConventionCodeAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
+  if (file.consents.conventionAt) return { ok: true, message: "Convention déjà acceptée." };
+  if (!conventionSignable(file)) return { ok: false, error: "La convention s'accepte dès que votre dossier est approuvé." };
   const code = String(form.get("code") ?? "").replace(/\s/g, "");
-  const { pendingCodeHash, pendingCodeAt, ...rest } = file.consents;
+  const { pendingCodeHash, pendingCodeAt, pendingCodeTries, pendingCodeTo, ...rest } = file.consents;
   if (!pendingCodeHash || !pendingCodeAt || Date.now() - new Date(pendingCodeAt).getTime() > 10 * 60_000) return { ok: false, error: "Code expiré : demandez-en un nouveau." };
-  if (hash(code) !== pendingCodeHash) return { ok: false, error: "Code incorrect." };
-  await repo().updateClientFile(file.id, { consents: { ...rest, conventionAt: new Date().toISOString(), conventionMethod: "code à usage unique" } });
+  const essais = pendingCodeTries ?? 0;
+  if (essais >= ESSAIS_MAX) return { ok: false, error: "Trop d'essais sur ce code : demandez-en un nouveau." };
+  if (hash(code) !== pendingCodeHash) {
+    await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeTries: essais + 1 } });
+    revalidatePath(PATH);
+    const reste = ESSAIS_MAX - essais - 1;
+    return { ok: false, error: reste > 0 ? `Code incorrect : ${reste} essai${reste > 1 ? "s" : ""} avant de devoir en demander un nouveau.` : "Code incorrect : ce code est épuisé, demandez-en un nouveau." };
+  }
+  const r = repo();
+  const updated = await r.updateClientFile(file.id, { consents: { ...rest, conventionAt: new Date().toISOString(), conventionMethod: "code à usage unique", conventionTo: pendingCodeTo } });
+  /* La convention se produit maintenant, parce que c'est maintenant qu'elle est
+     signée : à l'approbation, elle sortait en portant « non acceptée ». */
+  const { generateKycDocument } = await import("@/lib/documents/generate");
+  await generateKycDocument("convention", updated);
+  await r.logEvent({ kind: "system", html: `<b>Convention acceptée</b> par ${updated.identity.name}${pendingCodeTo ? ` (code envoyé à ${pendingCodeTo})` : ""}` });
   revalidatePath(PATH);
-  return { ok: true, message: "Convention acceptée." };
+  revalidatePath("/desk/clients");
+  return { ok: true, message: "Convention acceptée. Votre exemplaire est dans vos documents." };
 }
 
 /* ---------- 6. Soumettre ---------- */

@@ -43,7 +43,12 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
 
   if (decision === "approuve") {
     if (!risk) return { ok: false, error: "Attribuez une notation de risque avant d'approuver." };
-    if (!f.consents.conventionAt) return { ok: false, error: "La convention n'a pas été acceptée par le client." };
+    /* LA CONVENTION N'EST PLUS UNE CONDITION DE L'APPROBATION.
+       Elle l'était, et elle inversait le parcours documenté : le client signait
+       avant de savoir si son compte serait ouvert. L'approbation est désormais la
+       décision du desk ; l'acceptation par code suit, et c'est elle qui produit la
+       convention. Le compte ne devient actif que quand les deux sont là, plus le
+       sous-compte du teneur (voir getSession). */
     if (!screening?.attestedAt) return { ok: false, error: "Renseignez le contrôle sanctions / PPE (listes consultées et résultat) avant d'approuver." };
     if (screening.outcome === "confirme") return { ok: false, error: "Correspondance sanctions / PPE confirmée : approbation impossible sans diligence renforcée documentée (notes) et changement de résultat." };
     const next = new Date(now);
@@ -54,13 +59,15 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
       screening,
       review: { ...f.review, risk, notes, reviewedBy: desk.name, reviewedAt: now.toISOString(), nextReviewOn: next.toISOString().slice(0, 10), custodianAccount: custodianAccount || f.review.custodianAccount },
     });
-    await generateKycDocument("convention", updated, desk.name);
+    /* La convention sort à l'acceptation du client, pas ici : générée à
+       l'approbation, elle portait un bloc de signature vide et se présentait
+       pourtant comme la convention du dossier. */
     await generateKycDocument("dossier_svt", updated, desk.name);
     await r.logEvent({ kind: "desk", html: `<b>Dossier approuvé</b> : ${updated.identity.name} (${updated.kind}, risque ${risk}${custodianAccount ? `, compte ${custodianAccount}` : ""}) · par ${desk.name}` });
     await notifyKycDecision(updated, "approuve");
     revalidatePath("/desk/clients");
     revalidatePath("/desk");
-    return { ok: true, message: custodianAccount ? "Compte actif : convention et dossier d'ouverture générés, client prévenu." : "Dossier approuvé : convention et demande d'ouverture de sous-compte générées. Saisissez le numéro de sous-compte dès retour du SVT." };
+    return { ok: true, message: updated.consents.conventionAt ? "Dossier approuvé : demande d'ouverture de sous-compte générée." : "Dossier approuvé, client prévenu : il lui reste à accepter la convention par code. Saisissez le numéro de sous-compte dès retour du SVT." };
   }
   if (decision === "complements") {
     if (!requestedItems) return { ok: false, error: "Indiquez les compléments demandés dans le champ « Compléments à demander » (ex. justificatif de domicile lisible), puis cliquez à nouveau." };

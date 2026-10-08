@@ -21,12 +21,31 @@ export interface Session {
   tier: Tier;
   /** KYC file status when one exists (brouillon → approuve). */
   kycStatus?: string;
+  /**
+   * La convention d'ouverture est acceptée.
+   *
+   * Elle se signe après l'approbation, donc « approuvé » ne suffit plus à ouvrir
+   * un passage : sans cette signature, rien ne lie encore le client, et aucune
+   * prise ne doit partir. Les deux portes qui lisaient « approuvé » lisent aussi
+   * ceci.
+   */
+  conventionAccepted?: boolean;
   /** Which auth backed this session : useful in the header and for debugging. */
   provider: "supabase" | "dev";
   /** Second factor: a verified TOTP factor exists, and this session entered its code (aal2). */
   mfaEnrolled: boolean;
   mfaVerified: boolean;
 }
+
+/**
+ * Le dossier est approuvé ET la convention acceptée.
+ *
+ * C'est la porte des fonds : ils s'inscrivent au nom du client chez le
+ * dépositaire, sans sous-compte SVT, donc le dossier suffit. Mais « approuvé »
+ * seul ne suffit plus depuis que la signature vient après la décision. La règle
+ * tient ici pour qu'elle ne soit pas réécrite trois fois.
+ */
+export const compteOuvert = (s: Session | null | undefined): boolean => !!s && s.kycStatus === "approuve" && Boolean(s.conventionAccepted);
 
 export const isDesk = (s: Session | null): boolean => !!s && (s.role === "desk" || s.role === "responsable");
 export const isResponsable = (s: Session | null): boolean => !!s && s.role === "responsable";

@@ -52,7 +52,8 @@ function seedClientFiles(): ClientFile[] {
       ],
       funds: { pep: false, source: "Salaire", expectedAmount: "10 à 50 M FCFA", bankName: "Afriland First Bank", bankAccount: "CM21 10005 00001 12345678901 23", bankHolder: "Jean-Paul Onana" },
       profile: { category: "non_professionnel", objectives: "Épargne à moyen terme", horizon: "3 à 5 ans", experience: "Quelques placements", riskTolerance: "faible", lossCapacity: "moins de 10 %" },
-      consents: { dataAt: day(2), whatsappAt: day(2), conventionAt: day(2), conventionMethod: "code WhatsApp" },
+      // Dossier soumis, pas encore approuvé : la convention ne se signe qu'après la décision, elle n'est donc pas là.
+      consents: { dataAt: day(2), whatsappAt: day(2) },
       submittedAt: day(2),
       createdAt: day(3),
       updatedAt: day(2),

@@ -22,8 +22,12 @@ export const getSession = cache(async (): Promise<Session | null> => {
     const { repo } = await import("@/lib/data");
     const f = await repo().getClientFileByUser(s.userId);
     if (f) {
-      // Nominative structure: the account is active once the SVT has returned the sub-account number.
-      s.tier = f.status === "approuve" && f.review.custodianAccount ? 2 : 1;
+      /* Nominative structure: the account is active once the SVT has returned the
+         sub-account number AND the client has accepted the convention, which now
+         comes after the desk's approval. An approved file without that signature
+         binds nobody : it opens nothing. */
+      s.conventionAccepted = Boolean(f.consents.conventionAt);
+      s.tier = f.status === "approuve" && f.review.custodianAccount && s.conventionAccepted ? 2 : 1;
       s.kycStatus = f.status;
       if (f.identity.name) s.name = f.identity.name;
     }

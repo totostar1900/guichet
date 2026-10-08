@@ -47,7 +47,9 @@ export async function UserMenu({ session, deskUi, account }: { session: Session 
       </Link>
       {session.role === "client" && session.tier < 2 && (
         <Link href="/ouvrir-un-compte" className={styles.open} title={t("Ouvrir mon compte-titres")}>
-          {t(session.kycStatus === "soumis" || session.kycStatus === "en_revue" ? "Dossier en revue" : session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? "Compte en cours d'ouverture" : "Ouvrir un compte titres")}
+          {/* Approuvé sans signature : c'est au client de jouer, le bouton le dit
+              plutôt que d'annoncer une attente qui n'existe pas. */}
+          {t(session.kycStatus === "soumis" || session.kycStatus === "en_revue" ? "Dossier en revue" : session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? (session.conventionAccepted ? "Compte en cours d'ouverture" : "Accepter ma convention") : "Ouvrir un compte titres")}
         </Link>
       )}
     </div>

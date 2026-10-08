@@ -2,12 +2,12 @@
 
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { shrinkPhoto } from "@/lib/image-client";
 import type { ClientFile, KycDocKind, KycDocument } from "@/lib/domain/kyc";
 import { DOC_LABEL, requiredDocs } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
-import { addPersonAction, removeDocAction, removePersonAction, saveFundsProfileAction, saveIdentityAction, sendConventionCodeAction, submitFileAction, uploadDocAction, verifyConventionCodeAction, type StepResult } from "./actions";
+import { addPersonAction, removeDocAction, removePersonAction, saveConsentsAction, saveFundsProfileAction, saveIdentityAction, sendConventionCodeAction, submitFileAction, uploadDocAction, verifyConventionCodeAction, type StepResult } from "./actions";
 import styles from "./page.module.css";
 
 type P = { file: ClientFile; editable: boolean };
@@ -409,16 +409,83 @@ export function FundsSection({ file, editable }: P) {
   );
 }
 
-/* ---------------- 5 · Consentements & convention ---------------- */
+/* ---------------- 5 · Consentements ---------------- */
 export function ConsentSection({ file, editable }: P) {
+  const t = useT();
+  const [state, action, pending] = useActionState<StepResult | null, FormData>(saveConsentsAction, null);
+  const c = file.consents;
+  return (
+    <section className={styles.sec}>
+      <h2 className="display">{t("5 · Consentements")}</h2>
+      <p className={styles.hint}>{t("Le premier est nécessaire pour que nous puissions instruire votre dossier. Le second est libre, et se retire à tout moment. L'acceptation de la convention, elle, vient après l'approbation : plus bas sur cette page.")}</p>
+      <form action={action} className={styles.form}>
+        <fieldset disabled={!editable} className={styles.consents}>
+          <label className={styles.check}>
+            <input type="checkbox" name="data" defaultChecked={Boolean(c.dataAt)} required /> {t("J'accepte le traitement de mes données pour l'ouverture et la tenue de mon compte (obligatoire).")}
+          </label>
+          <label className={styles.check}>
+            <input type="checkbox" name="whatsapp" defaultChecked={Boolean(c.whatsappAt)} /> {t("J'accepte de recevoir les offres et avis sur WhatsApp (STOP à tout moment).")}
+          </label>
+        </fieldset>
+        <Msg state={state} />
+        {c.dataAt && <p className={styles.okText}>{t("Consentement aux données donné le {d}.", { d: fmtDateTime(c.dataAt) })}</p>}
+        <div className={styles.actions}>
+          <Save pending={pending} editable={editable} />
+        </div>
+      </form>
+    </section>
+  );
+}
+
+/**
+ * LE TEMPS QUI RESTE, SANS CASSER L'HYDRATATION.
+ *
+ * Le décompte part de « null » et ne se remplit qu'au montage : le serveur ne
+ * peut pas connaître l'heure du navigateur, et rendre un chiffre des deux côtés
+ * est le plus sûr moyen d'en rendre deux différents.
+ */
+function useReste(depuis: string | undefined, duree: number): number | null {
+  const [reste, setReste] = useState<number | null>(null);
+  useEffect(() => {
+    if (!depuis) return;
+    const fin = new Date(depuis).getTime() + duree;
+    const battre = () => setReste(Math.max(0, Math.ceil((fin - Date.now()) / 1000)));
+    battre();
+    const id = setInterval(battre, 1000);
+    return () => clearInterval(id);
+  }, [depuis, duree]);
+  /* Sans date de départ, aucune horloge ne court et l'ancienne valeur ne vaut
+     plus rien : on la dérive, plutôt que de la remettre à zéro depuis l'effet,
+     ce qui déclencherait un rendu en cascade. */
+  return depuis ? reste : null;
+}
+
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+/* ---------------- Après l'approbation · la convention ---------------- */
+/**
+ * LA SIGNATURE, ET CE QU'IL FAUT QUAND ELLE N'ARRIVE PAS.
+ *
+ * Le code partait sans que personne ne dise où : trois codes bien envoyés à une
+ * adresse que le client ne regardait pas, et aucun moyen de s'en apercevoir
+ * depuis l'écran. La destination est donc nommée AVANT l'envoi, le temps qui
+ * reste est visible, et « Je n'ai rien reçu » existe : renvoyer, savoir où
+ * chercher, et changer de canal là où un code le prouve.
+ */
+export function ConventionSection({ file, signable, canal }: { file: ClientFile; signable: boolean; canal?: { to: string; channel: "whatsapp" | "email"; prouve: boolean } }) {
   const t = useT();
   const [sendState, sendAct, sending] = useActionState<StepResult | null, FormData>(sendConventionCodeAction, null);
   const [verState, verAct, verifying] = useActionState<StepResult | null, FormData>(verifyConventionCodeAction, null);
   const c = file.consents;
   const accepted = Boolean(c.conventionAt);
+  const attente = useReste(c.pendingCodeAt, 45_000);
+  const validite = useReste(c.pendingCodeAt, 10 * 60_000);
+  const envoye = Boolean(c.pendingCodeAt) && validite !== 0;
+  const ou = c.pendingCodeTo ?? canal?.to;
+  const parMail = canal?.channel === "email";
   return (
     <section className={styles.sec}>
-      <h2 className="display">{t("5 · Convention et consentements")}</h2>
+      <h2 className="display">{t("Votre convention")}</h2>
       <div className={styles.convention}>
         <b>{t("Convention d'ouverture de compte-titres : l'essentiel")}</b>
         <ul>
@@ -435,19 +502,23 @@ export function ConsentSection({ file, editable }: P) {
       </div>
       {accepted ? (
         <div className={styles.ok}>
-          {t(`Convention acceptée le ${fmtDateTime(c.conventionAt!)} par ${c.conventionMethod}.`)} {t(c.whatsappAt ? "Notifications WhatsApp activées." : "Notifications par e-mail.")}
+          {t("Convention acceptée le {d} par {m}.", { d: fmtDateTime(c.conventionAt!), m: t(c.conventionMethod ?? "code à usage unique") })} {t("Votre exemplaire est dans vos documents.")}
         </div>
+      ) : !signable ? (
+        <p className={styles.hint}>
+          {t("Rien ne se signe avant l'approbation de votre dossier : vous accepterez la convention ici, par un code à usage unique, dès que le desk aura statué. Vous pouvez la lire dès maintenant.")}
+        </p>
       ) : (
         <>
           <form action={sendAct} className={styles.form}>
-            <fieldset disabled={!editable} className={styles.consents}>
-              <label className={styles.check}>
-                <input type="checkbox" name="data" defaultChecked={Boolean(c.dataAt)} required /> {t("J'accepte le traitement de mes données pour l'ouverture et la tenue de mon compte (obligatoire).")}
-              </label>
-              <label className={styles.check}>
-                <input type="checkbox" name="whatsapp" defaultChecked={Boolean(c.whatsappAt)} /> {t("J'accepte de recevoir les offres et avis sur WhatsApp (STOP à tout moment).")}
-              </label>
-            </fieldset>
+            {ou ? (
+              <p className={styles.destinataire}>
+                {t(parMail ? "Le code part par e-mail, à" : "Le code part par WhatsApp, au")} <b>{ou}</b>
+                {canal && !canal.prouve ? <> · {t("cette adresse vient de votre formulaire : vérifiez-la")}</> : null}
+              </p>
+            ) : (
+              <p className={styles.hint}>{t("Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.")}</p>
+            )}
             <Msg state={sendState} />
             {sendState?.ok && sendState.code && (
               <div className={styles.demoCode}>
@@ -455,21 +526,39 @@ export function ConsentSection({ file, editable }: P) {
               </div>
             )}
             <div className={styles.actions}>
-              <Save pending={sending} editable={editable} label={t("Recevoir mon code d'acceptation")} />
+              <button className="btn primary" type="submit" disabled={sending || Boolean(attente)}>
+                {sending ? "…" : envoye ? (attente ? t("Renvoyer dans {s} s", { s: String(attente) }) : t("Renvoyer un code")) : t("Recevoir mon code d'acceptation")}
+              </button>
             </div>
           </form>
           <form action={verAct} className={styles.form}>
-            <fieldset disabled={!editable} className={styles.codeRow}>
+            <fieldset className={styles.codeRow}>
               <label className="field">
                 {t("Code reçu")}
-                <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} />
+                <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
               </label>
               <button className="btn primary" type="submit" disabled={verifying}>
-                {t(verifying ? "…" : "J'accepte la convention")}
+                {verifying ? "…" : t("J'accepte la convention")}
               </button>
             </fieldset>
+            {validite ? <p className={styles.attente}>{t("Ce code reste valable {t}.", { t: mmss(validite) })}</p> : null}
             <Msg state={verState} />
           </form>
+          {envoye && (
+            <details className={styles.aide}>
+              <summary>{t("Je n'ai rien reçu")}</summary>
+              <ul>
+                {ou && <li>{t(parMail ? "Regardez la boîte {o}, courrier indésirable compris : un expéditeur récent y tombe souvent." : "Regardez les messages du numéro {o}, y compris les demandes de message.", { o: ou })}</li>}
+                <li>{t("Un code vaut dix minutes ; passé ce délai, demandez-en un autre avec le bouton ci-dessus.")}</li>
+                <li>
+                  {t("Ce n'est pas le bon numéro ou la bonne adresse ?")}{" "}
+                  <a href="/moi/securite">{t("Prouvez le bon canal dans Sécurité")}</a>
+                  {t(" : le code suivra celui que vous aurez prouvé.")}
+                </li>
+                <li>{t("Rien ne marche ? Écrivez-nous depuis vos messages : un conseiller vous rappelle et nous vous l'envoyons autrement.")}</li>
+              </ul>
+            </details>
+          )}
         </>
       )}
     </section>

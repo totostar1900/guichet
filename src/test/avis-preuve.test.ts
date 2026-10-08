@@ -66,8 +66,9 @@ describe("l'avis de coupon et sa preuve", () => {
     // et le teneur de compte au nom duquel l'inscription est faite.
     const notify = lire("lib/kyc/notify.ts");
     expect(notify).not.toContain("chez le dépositaire");
-    // Les deux messages, le compte actif et le compte en cours d'ouverture.
-    expect(notify.split("chez le teneur de compte").length - 1).toBe(2);
+    // Les trois messages d'approbation : la convention reste à accepter, le
+    // compte est en cours d'ouverture, le compte est actif.
+    expect(notify.split("chez le teneur de compte").length - 1).toBe(3);
   });
 
   it("regarde bien quelque chose", () => {

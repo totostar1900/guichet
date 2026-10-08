@@ -49,7 +49,7 @@ export function Convention({ number, file, now, texts }: { number: string; file?
       {file?.consents.conventionAt ? (
         <View style={s.box}>
           <Text>
-            <Text style={s.b}>Acceptation électronique.</Text> Convention acceptée le {fmtDateTime(file.consents.conventionAt)} par {file.consents.conventionMethod ?? "code à usage unique"} envoyé au {file.identity.phone ?? file.identity.email}. Consentement données : {file.consents.dataAt ? fmtDateTime(file.consents.dataAt) : "—"}. Notifications WhatsApp : {file.consents.whatsappAt ? `oui (${fmtDateTime(file.consents.whatsappAt)})` : "non"}.
+            <Text style={s.b}>Acceptation électronique.</Text> Convention acceptée le {fmtDateTime(file.consents.conventionAt)} par {file.consents.conventionMethod ?? "code à usage unique"} envoyé au {file.consents.conventionTo ?? file.identity.phone ?? file.identity.email}. Consentement données : {file.consents.dataAt ? fmtDateTime(file.consents.dataAt) : "—"}. Notifications WhatsApp : {file.consents.whatsappAt ? `oui (${fmtDateTime(file.consents.whatsappAt)})` : "non"}.
           </Text>
         </View>
       ) : (

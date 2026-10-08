@@ -1162,4 +1162,51 @@ export const EN_REST: Record<string, string> = {
   "Le fonds n'a pas encore un an : il n'y a pas de douze mois à mesurer.": "The fund is not yet a year old: there are no twelve months to measure.",
   "Le fonds est à la cote depuis moins d'un an : le bulletin ne publie pas de VL plus ancienne.": "The fund has been listed for less than a year: the bulletin publishes no earlier NAV.",
   "Nos VL ne remontent pas à un an : le chiffre existe, nous ne l'avons pas encore lu.": "Our NAVs do not go back a year: the figure exists, we have not read it yet.",
+
+  /* ---------- l'ouverture de compte : consentements, convention après l'approbation, « je n'ai rien reçu » (8 octobre 2026) ---------- */
+  "Consentements": "Consents",
+  "5 · Consentements": "5 · Consents",
+  "Le premier est nécessaire pour que nous puissions instruire votre dossier. Le second est libre, et se retire à tout moment. L'acceptation de la convention, elle, vient après l'approbation : plus bas sur cette page.":
+    "The first is needed for us to review your file. The second is free, and can be withdrawn at any time. Accepting the agreement comes later, after approval: further down this page.",
+  "Consentement aux données donné le {d}.": "Data consent given on {d}.",
+  "Dossier reçu. Nous vous prévenons": "File received. We will let you know",
+  "dès la décision : en général sous 24 h ouvrées. Vous accepterez la convention ici même, par code, une fois le dossier approuvé.":
+    "as soon as the decision is made: usually within 24 working hours. You will accept the agreement right here, by code, once the file is approved.",
+  "Votre convention": "Your agreement",
+  "Convention acceptée le {d} par {m}.": "Agreement accepted on {d} by {m}.",
+  "Votre exemplaire est dans vos documents.": "Your copy is in your documents.",
+  "Rien ne se signe avant l'approbation de votre dossier : vous accepterez la convention ici, par un code à usage unique, dès que le desk aura statué. Vous pouvez la lire dès maintenant.":
+    "Nothing is signed before your file is approved: you will accept the agreement here, with a one-time code, as soon as the desk has decided. You can read it right now.",
+  "Dossier approuvé : acceptez votre convention": "File approved: accept your agreement",
+  "Votre dossier est approuvé. Dernière étape : acceptez la convention par un code à usage unique, ci-dessous. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte.":
+    "Your file is approved. Last step: accept the agreement with a one-time code, below. We then open the sub-account in your name at the account keeper.",
+  "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger ; vous n'acceptez la convention qu'une fois votre dossier approuvé.":
+    "Ten minutes on your phone: your identity, a few documents photographed, the source of funds and your profile. An adviser validates within 24 h for a resident, 48 h with a video call from abroad; you accept the agreement only once your file is approved.",
+  "Approuvé : convention à accepter": "Approved: agreement to accept",
+  // Le scanner de clefs ne voit pas un t(ternaire) : ces deux-là s'ajoutent à la main.
+  "Approuvé : compte en cours d'ouverture": "Approved: account being opened",
+  "En cours": "In progress",
+  "Convention à accepter": "Agreement to accept",
+  "Votre convention est acceptée. Le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception.":
+    "Your agreement is accepted. The sub-account in your name is being opened at the account keeper, usually within 24 to 48 h; we confirm its number as soon as we have it.",
+  "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents.":
+    "Your agreement is accepted and your sub-account is open in your name: you can place firm orders. Your copy of the agreement is in your documents.",
+  "code à usage unique": "one-time code",
+  "Accepter ma convention": "Accept my agreement",
+  "Le code part par e-mail, à": "The code goes by e-mail, to",
+  "Le code part par WhatsApp, au": "The code goes by WhatsApp, to",
+  "cette adresse vient de votre formulaire : vérifiez-la": "this address comes from your form: check it",
+  "Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.": "No sending channel is configured: the code will be shown on screen.",
+  "Renvoyer dans {s} s": "Resend in {s} s",
+  "Renvoyer un code": "Send another code",
+  "Ce code reste valable {t}.": "This code stays valid for {t}.",
+  "Je n'ai rien reçu": "I did not get it",
+  "Regardez la boîte {o}, courrier indésirable compris : un expéditeur récent y tombe souvent.": "Check the {o} mailbox, junk mail included: a recent sender often lands there.",
+  "Regardez les messages du numéro {o}, y compris les demandes de message.": "Check the messages for {o}, including message requests.",
+  "Un code vaut dix minutes ; passé ce délai, demandez-en un autre avec le bouton ci-dessus.": "A code lasts ten minutes; after that, ask for another one with the button above.",
+  "Ce n'est pas le bon numéro ou la bonne adresse ?": "Not the right number or address?",
+  "Prouvez le bon canal dans Sécurité": "Prove the right channel in Security",
+  " : le code suivra celui que vous aurez prouvé.": ": the code will follow the one you have proven.",
+  "Rien ne marche ? Écrivez-nous depuis vos messages : un conseiller vous rappelle et nous vous l'envoyons autrement.":
+    "Nothing works? Write to us from your messages: an adviser will call you back and we will send it another way.",
 };

@@ -6,7 +6,7 @@ import { StandingForm } from "@/components/Standing";
 import { recurringMinimum } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
-import { isDesk } from "@/lib/auth/types";
+import { compteOuvert, isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { statusLabel } from "@/lib/domain/status";
 import { fmtDate, fmtDateTime } from "@/lib/format";
@@ -79,7 +79,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
           switchTargets={c.switchTargets}
           past={c.past}
           signedIn={Boolean(session)}
-          tier={o.kind === "FONDS" && session?.kycStatus === "approuve" ? 2 : (session?.tier ?? 0)}
+          tier={o.kind === "FONDS" && compteOuvert(session) ? 2 : (session?.tier ?? 0)}
           phone={session?.phone ?? ""}
           phoneProven={Boolean(session?.phoneVerified)}
           email={session?.email ?? ""}
