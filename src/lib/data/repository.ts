@@ -63,6 +63,7 @@ export interface Repository {
         | "signedMethod"
         | "signedTo"
         | "orderDocId"
+        | "maxAmount"
       >
     >,
   ): Promise<Intent>;

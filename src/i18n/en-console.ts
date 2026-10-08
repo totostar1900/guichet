@@ -226,6 +226,20 @@ export const EN_CONSOLE: Record<string, string> = {
   "Un point qui vous engage a changé : le mandat d'ouverture. Relisez-la et reprenez-la par un code ; vos positions ne changent pas.":
     "A point that binds you has changed: the opening mandate. Read it again and confirm it with a code; your positions do not change.",
   "Reprendre ma convention": "Confirm my agreement again",
+  /* Le récapitulatif d'un ordre sur titre : la quantité est ferme, c'est la
+     dépense qui flotte, d'où la borne « au plus ». */
+  "Vous réglez": "You settle",
+  "au plus le plafond, avec la référence de l'ordre": "at most the ceiling, quoting the order's reference",
+  "Le desk transmet": "The desk transmits",
+  "au marché, puis le résultat": "to the market, then the result",
+  "Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.":
+    "You never pay more than the ceiling. Served in part, you pay only your share; not served, it all comes back to you, and the balance leaves within 72 working hours if you ask for it.",
+  "Quantité demandée": "Quantity asked for",
+  "Au prix maximum de": "At a maximum price of",
+  "dont commission {p} %": "of which commission {p} %",
+  "Vous engagez au plus": "You commit at most",
+  "C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.":
+    "This ceiling is what you sign, and nothing beyond it. If the price served is better, you pay less; if it goes above, the order is not executed for you. You may also be served only in part: you then pay only for what you get.",
   "1 ordre": "1 order",
   "{n} ordres": "{n} orders",
   "1 proposition": "1 proposal",

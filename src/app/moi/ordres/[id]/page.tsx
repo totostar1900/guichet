@@ -4,6 +4,9 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { ordreSignable } from "@/lib/domain/intent";
+import { plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from "@/lib/domain/plafond";
+import { ordreAcceptable } from "@/lib/domain/ouverture";
+import { positionFor } from "@/lib/documents/position";
 import { peutOPCVM } from "@/lib/auth/types";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -67,7 +70,14 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
      acceptée. Les deux se lisent ici, sinon l'écran offrirait une signature que
      l'action refuserait ensuite. */
   const dossier = await r.getClientFileByUser(s.userId);
-  const habilite = peutOPCVM(s);
+  /* UN TITRE NE DEMANDE PAS LE SOUS-COMPTE POUR SE SIGNER, et c'est la règle
+     du 9 octobre 2026 : l'ordre d'un résident est pris sans attendre
+     l'ouverture, et c'est la TRANSMISSION qui patiente. Exiger ici le palier 2
+     remettrait l'attente là où on vient de l'enlever. `ordreAcceptable` dit
+     la vraie condition : dossier approuvé, convention à jour, et le
+     sous-compte seulement pour un non-résident. */
+  const titre = seSigneAuPlafond(intent.type);
+  const habilite = titre ? ordreAcceptable(intent.type, dossier) : peutOPCVM(s);
   const signable = ordreSignable(intent) && habilite && Boolean(dossier);
   const canal = signable && dossier ? await canalDuCode(s.userId, dossier) : undefined;
 
@@ -90,7 +100,33 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
       <section className={styles.recap}>
         <div className={styles.recapH}>{t("Ce que vous signez")}</div>
         <dl className={styles.lignes}>
-          {rachat ? (
+          {titre ? (
+            /* UN TITRE SE LIT À L'ENVERS D'UNE PART : la quantité est ferme,
+               c'est la dépense qui flotte. Le plafond vient donc en dernier
+               et en gras, parce que c'est LUI qu'on signe ; le reste l'explique. */
+            <>
+              <div>
+                <dt>{t("Quantité demandée")}</dt>
+                <dd>{positionFor(intent, offer).label}</dd>
+              </div>
+              {intent.limitPrice != null && (
+                <div>
+                  <dt>{t("Au prix maximum de")}</dt>
+                  <dd>{intent.limitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %</dd>
+                </div>
+              )}
+              {offer.commissionPct > 0 && (
+                <div>
+                  <dt>{t("dont commission {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
+                  <dd className={styles.second}>{fmt(Math.round(positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission))} FCFA</dd>
+                </div>
+              )}
+              <div>
+                <dt>{t("Vous engagez au plus")}</dt>
+                <dd>{fmt(plafondEnVigueur(intent, offer))} FCFA</dd>
+              </div>
+            </>
+          ) : rachat ? (
             <>
               <div>
                 <dt>{t("Parts rachetées")}</dt>
@@ -132,9 +168,11 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
             montant est ferme et seule la quantité flotte : un client qui l'a lu
             ici ne sera pas surpris par son avis d'opéré. */}
         <p className={styles.ferme}>
-          {rachat
-            ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
-            : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
+          {titre
+            ? t("C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.")
+            : rachat
+              ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
+              : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
         </p>
         <p className={styles.fin}>
           {f ? t("Dépositaire {d} · parts inscrites à votre nom au registre du fonds", { d: f.depositary }) : ""}
@@ -167,16 +205,41 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
             <b>{t("Vous signez")}</b>
             <small>{intent.signedAt ? fmtDateTime(intent.signedAt) : t("maintenant")}</small>
           </li>
-          <li>
-            <b>{t("Le desk donne le go")}</b>
-            <small>{t("un numéro d'opération")}</small>
-          </li>
-          <li>
-            <b>{rachat ? t("Vous êtes payé") : t("Vous virez")}</b>
-            <small>{rachat ? t("sur votre compte de règlement") : t("avec ce numéro")}</small>
-          </li>
+          {/* L'ORDRE DES DEUX ÉTAPES SUIVANTES N'EST PAS LE MÊME SELON CE
+              QU'ON ACHÈTE, et s'y tromper ferait attendre le client pour rien
+              ou le ferait payer trop tôt. Sur une part, le desk centralise
+              puis appelle les fonds. Sur un titre, on ne transmet au marché
+              qu'un ordre COUVERT (convention, article 4) : le règlement
+              précède donc la transmission, à hauteur du plafond signé. */}
+          {titre ? (
+            <>
+              <li>
+                <b>{t("Vous réglez")}</b>
+                <small>{t("au plus le plafond, avec la référence de l'ordre")}</small>
+              </li>
+              <li>
+                <b>{t("Le desk transmet")}</b>
+                <small>{t("au marché, puis le résultat")}</small>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <b>{t("Le desk donne le go")}</b>
+                <small>{t("un numéro d'opération")}</small>
+              </li>
+              <li>
+                <b>{rachat ? t("Vous êtes payé") : t("Vous virez")}</b>
+                <small>{rachat ? t("sur votre compte de règlement") : t("avec ce numéro")}</small>
+              </li>
+            </>
+          )}
         </ol>
-        {!rachat && <p className={styles.fin}>{t("Signer n'est pas payer : rien n'est à verser avant le go.")}</p>}
+        {titre ? (
+          <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
+        ) : (
+          !rachat && <p className={styles.fin}>{t("Signer n'est pas payer : rien n'est à verser avant le go.")}</p>
+        )}
       </section>
     </div>
   );

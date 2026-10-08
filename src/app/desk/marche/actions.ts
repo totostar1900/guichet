@@ -96,6 +96,17 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
   const asked = positionFor(i, o).units;
   // Funds: the subscription amount is fixed, units follow the NAV retained : accept what the manager confirms.
   const units = o.kind === "FONDS" ? p.data.executedUnits : Math.min(p.data.executedUnits, asked);
+  /* ON NE SERT PAS AU-DELÀ DE CE QUI A ÉTÉ SIGNÉ.
+     Quand le client a signé un plafond « au plus », ce n'est pas une
+     indication : c'est la borne de son engagement, et la convention dit que
+     la maison ne l'engage jamais au-delà. Un prix exécuté qui la dépasse se
+     refuse ici, pas après l'avis d'opéré. Le refus nomme les deux chiffres,
+     parce qu'un desk qui lit « refusé » sans l'écart ne sait pas quoi faire. */
+  if (i.maxAmount != null && i.signedAt && o.instrument === "obligation") {
+    const { depasseLePlafond } = await import("@/lib/domain/plafond");
+    const v = depasseLePlafond({ ...i, amount: units * o.nominal }, o, p.data.executedPrice);
+    if (v.depasse) return { ok: false, error: `Ce prix porte l'ordre à ${fmt(Math.round(v.cout))} FCFA, au-delà du plafond de ${fmt(v.plafond)} FCFA signé par ${i.clientName}. Servez une quantité moindre, ou revenez vers le client avant d'exécuter.` };
+  }
   const updated = await r.updateIntent(i.id, { state: "servie", executedPrice: p.data.executedPrice, servedUnits: units, allocationPct: Math.round((units / Math.max(asked, 1)) * 100) });
   const unitsText = o.kind === "FONDS" ? `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL ${fmt(p.data.executedPrice)} FCFA` : `${fmt(units)} / ${fmt(asked)} à ${o.instrument === "obligation" ? fmtPrice(p.data.executedPrice) : fmt(p.data.executedPrice) + " FCFA"}`;
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>exécuté</b> ${unitsText} · par ${desk.name}` });

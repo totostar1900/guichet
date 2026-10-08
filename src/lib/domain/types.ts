@@ -245,6 +245,20 @@ export interface Intent {
   signedTo?: string;
   /** Le document d'ordre produit à la signature : un seul, et il est signé. */
   orderDocId?: string;
+  /**
+   * LE PLAFOND, EN FRANCS : « au plus ceci », et pas un de plus.
+   *
+   * Sur une part d'OPCVM le montant versé est ferme et seule la quantité
+   * flotte : il n'y a rien à borner. Sur un titre, c'est l'inverse, le prix
+   * servi décide de la dépense, et on ne peut pas demander à quelqu'un de
+   * signer un montant qu'on ne connaît pas. Il signe donc une borne, calculée
+   * au prix le plus cher qu'il ait accepté, et la maison ne l'engage jamais
+   * au-delà (convention, article 4).
+   *
+   * Il est FIGÉ à la déclaration : recalculé plus tard, il suivrait les
+   * conditions du jour et ne serait plus ce que le client a signé.
+   */
+  maxAmount?: number;
   createdAt: string;
   updatedAt: string;
 }

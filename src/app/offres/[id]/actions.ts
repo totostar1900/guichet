@@ -16,6 +16,7 @@ import { estimate } from "@/lib/domain/estimate";
 import { notifyIntentReceived } from "@/lib/notify/dispatch";
 import { INDIVISION_CEILING, isIndivision } from "@/lib/kyc/checklist";
 import { positionsFrom } from "@/lib/positions";
+import { plafondPropose, seSigneAuPlafond } from "@/lib/domain/plafond";
 import { blocking, orderChecks } from "@/lib/domain/checks";
 import { fmt } from "@/lib/format";
 import { confirmPhoneProof, requestPhoneProof, type ProofCheck, type ProofRequest } from "@/lib/channels";
@@ -160,6 +161,20 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     profileFlag: parsed.data.profileFlag?.trim() || undefined,
     emailVerified: true,
   });
+  /* LE PLAFOND SE FIGE ICI, ET NULLE PART AILLEURS.
+     Sur un titre, c'est la dépense qui flotte, pas la quantité : on ne peut
+     pas demander une signature sur un montant inconnu, et c'est ce qui
+     obligeait encore ces ordres à faire un aller-retour par le desk. Le
+     chiffre existe pourtant d'avance : ce que l'ordre coûterait au prix le
+     plus cher que le client ait accepté. Calculé plus tard, il suivrait les
+     conditions du jour et ne serait plus ce qu'il a lu en déclarant. */
+  if (seSigneAuPlafond(type) && offer) {
+    try {
+      await r.updateIntent(intent.id, { maxAmount: plafondPropose(intent, offer) });
+    } catch (e) {
+      await r.logEvent({ kind: "system", intentId: intent.id, html: `${intent.ref} : <b>plafond non calculé</b> (${e instanceof Error ? e.message : "erreur"}). L'ordre ne pourra pas se signer tant qu'il manque.` });
+    }
+  }
   // Keep the profile reachable with what the client just typed (the desk calls from there).
   await r.updateContact(session.userId, { name: clientName, phone: contactPhone || undefined, email: contactEmail || undefined });
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} : <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });

@@ -116,6 +116,7 @@ type IntentRow = {
   signed_method?: string | null;
   signed_to?: string | null;
   order_doc_id?: string | null;
+  max_amount?: number | string | null;
   created_at: string;
   updated_at: string;
 };
@@ -218,6 +219,7 @@ function toIntent(r: IntentRow): Intent {
     signedMethod: u(r.signed_method),
     signedTo: u(r.signed_to),
     orderDocId: u(r.order_doc_id),
+    maxAmount: r.max_amount == null ? undefined : Number(r.max_amount),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -1017,6 +1019,7 @@ export const supabaseRepository: Repository = {
     if (patch.signedMethod !== undefined) row.signed_method = patch.signedMethod ?? null;
     if (patch.signedTo !== undefined) row.signed_to = patch.signedTo ?? null;
     if (patch.orderDocId !== undefined) row.order_doc_id = patch.orderDocId ?? null;
+    if (patch.maxAmount !== undefined) row.max_amount = patch.maxAmount ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);
     return toIntent(data as IntentRow);
