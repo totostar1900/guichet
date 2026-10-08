@@ -1,3 +1,4 @@
+import { View } from "@react-pdf/renderer";
 import { COMPANY, SETTLEMENT } from "@/lib/config";
 import type { FundTerms, Intent, Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
@@ -16,6 +17,58 @@ import { passage } from "../passages-catalog";
 const units3 = (u: number) => u.toLocaleString("fr-FR", { maximumFractionDigits: 3 });
 const fundOf = (o: Offer): FundTerms => o.fund ?? { key: o.id, manager: o.issuer, depositary: "—", category: "?", frequency: "?", nav: o.lastPrice ?? 0, navDate: o.lastPriceOn ?? "", navOrigin: 0, inceptionDate: "", perfSinceInceptionPct: 0, distributed: false, entryFeePct: 0, exitFeePct: 0, minAmount: 0 };
 const clientBlock = (i: Intent): [string, string[]] => ["Souscripteur", [i.clientName, i.clientSegment, "Parts inscrites à son nom au registre du dépositaire"]];
+
+/**
+ * LA SIGNATURE, OU SA PLACE.
+ *
+ * Un ordre signé dans l'application portait quand même la ligne « lu et
+ * approuvé, date et signature » : un bloc vide sous un document déjà engagé.
+ * Quand la signature existe, elle s'imprime, avec ce qui la prouve — l'heure
+ * et le canal où le code est parti — exactement comme la convention le fait.
+ * Sinon la ligne manuscrite reste : tous les ordres ne se signent pas encore
+ * dans l'application.
+ */
+function Signature({ intent, advisor }: { intent: Intent; advisor?: string }) {
+  if (!intent.signedAt) return <Sig left="Le souscripteur : « lu et approuvé », date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />;
+  return (
+    <View style={s.box}>
+      <Text>
+        <Text style={s.b}>Signature électronique.</Text> Ordre signé le {fmtDateTime(intent.signedAt)} par {intent.signedMethod ?? "code à usage unique"}
+        {intent.signedTo ? ` envoyé au ${intent.signedTo}` : ""}. Référence de l&apos;ordre : {intent.ref}.
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * OÙ VIRER, SUR L'ORDRE LUI-MÊME.
+ *
+ * L'appel de fonds était une seconde pièce, émise par le desk après coup : le
+ * client signait d'un côté et apprenait de l'autre où payer. Le montant est
+ * ferme dès la signature et le compte ségrégué ne change pas : les coordonnées
+ * tiennent donc sur l'ordre, et il ne reste qu'une pièce pour toute
+ * l'opération. Elle ne paraît que sur un ordre signé, parce que c'est lui qui
+ * vaut engagement.
+ */
+function OuVirer({ intent, cutoff }: { intent: Intent; cutoff?: string }) {
+  return (
+    <>
+      <Text style={[s.p, s.b]}>Règlement{cutoff ? ` · à créditer avant la centralisation (${cutoff})` : ""}</Text>
+      <KV
+        rows={[
+          ["Bénéficiaire", SETTLEMENT.beneficiary],
+          ["Banque", SETTLEMENT.bank],
+          ["RIB / IBAN", SETTLEMENT.iban],
+          ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`],
+        ]}
+        total={["Montant à virer", `${fmt(intent.amount ?? 0)} FCFA`]}
+      />
+      <Text style={s.small}>
+        Les fonds doivent provenir d&apos;un compte au nom du souscripteur. Le compte de règlement clients est ségrégué des fonds propres de {COMPANY.legalName} et ne sert qu&apos;au règlement des opérations de la clientèle. En l&apos;absence de fonds à la centralisation, l&apos;ordre est reporté à la valeur liquidative suivante.
+      </Text>
+    </>
+  );
+}
 
 /* ---------------- Bulletin de souscription ---------------- */
 export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, now, advisor }: ClientDocCtx) {
@@ -40,7 +93,9 @@ export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, 
         Le souscripteur demande à {COMPANY.legalName}, distributeur, de transmettre cet ordre à {prettyName(f.manager)} pour exécution à la <Text style={s.b}>prochaine valeur liquidative</Text> suivant la centralisation
         {f.cutoff ? ` (${f.cutoff})` : ""}. Le nombre de parts est arrêté par la société de gestion à cette VL et confirmé par avis ; il peut différer de l&apos;estimation ci-dessus. Les parts sont inscrites au nom du souscripteur au registre tenu par le dépositaire. Le souscripteur reconnaît avoir reçu le document d&apos;information clé du fonds et accepte le règlement du fonds ; il a été informé que la valeur liquidative peut baisser et que les performances passées ne préjugent pas des performances futures.
       </Text>
-      <Sig left="Le souscripteur : « lu et approuvé », date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      {/* Signé, l'ordre porte aussi où virer : une pièce au lieu de deux. */}
+      {intent.signedAt && <OuVirer intent={intent} cutoff={f.cutoff} />}
+      <Signature intent={intent} advisor={advisor} />
     </Letter>
   );
 }
@@ -94,7 +149,9 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
       <Text style={s.p}>
         Le porteur demande à {COMPANY.legalName} de transmettre cette demande à {prettyName(f.manager)} pour exécution à la prochaine valeur liquidative de rachat. Le produit, arrêté à cette VL, est viré sur le compte de règlement ci-dessus, ouvert au nom du porteur, dans le délai prévu par le règlement du fonds{f.settlementDays != null ? ` (J+${f.settlementDays} après la VL)` : ""}.
       </Text>
-      <Sig left="Le porteur : date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />
+      {/* Un rachat n'appelle aucun fonds : le produit vient au porteur. Seule
+          la signature change de forme quand elle est donnée dans l'app. */}
+      {intent.signedAt ? <Signature intent={intent} advisor={advisor} /> : <Sig left="Le porteur : date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />}
     </Letter>
   );
 }

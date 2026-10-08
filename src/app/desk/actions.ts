@@ -45,11 +45,14 @@ export async function transitionIntent(form: FormData): Promise<void> {
      Le cycle produisait le bulletin à la confirmation, pour que le client le
      signe et le renvoie : c'était l'aller-retour. Quand l'ordre porte déjà sa
      signature, le bulletin existe, signé, et le réémettre créerait un second
-     exemplaire vierge qui ferait douter duquel vaut. Reste l'appel de fonds,
-     qui n'est pas une signature mais une instruction de virement, et qui part
-     donc avec le go. */
+     exemplaire vierge qui ferait douter duquel vaut.
+
+     ET L'APPEL DE FONDS NON PLUS : l'ordre signé porte désormais où virer. Le
+     montant est ferme dès la signature et le compte ségrégué ne change pas, si
+     bien qu'une seconde pièce ne disait rien de neuf — elle obligeait
+     seulement le client à tenir deux papiers pour une opération. */
   const dejaSigne = Boolean(updated.orderDocId);
-  const aProduire = docsForTransition(updated.type, state).filter((d) => !(dejaSigne && (d === "bulletin" || d === "cession")));
+  const aProduire = docsForTransition(updated.type, state).filter((d) => !(dejaSigne && (d === "bulletin" || d === "cession" || d === "fonds")));
   for (const type of aProduire) {
     try {
       await generateForIntent(type, intentId, { advisor: desk.name });

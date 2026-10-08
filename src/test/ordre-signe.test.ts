@@ -101,14 +101,15 @@ describe("la signature par code à usage unique", () => {
  * signature mais une instruction de virement.
  */
 describe("le go du desk", () => {
-  it("ne réémet ni le bulletin ni la demande de rachat quand l'ordre est signé", async () => {
+  it("ne réémet aucune des pièces que l'ordre signé porte déjà", async () => {
     const { readFileSync } = await import("node:fs");
     const src = readFileSync("src/app/desk/actions.ts", "utf8");
     expect(src).toContain("const dejaSigne = Boolean(updated.orderDocId)");
-    expect(src).toMatch(/filter\(\(d\) => !\(dejaSigne && \(d === "bulletin" \|\| d === "cession"\)\)\)/);
+    // Le bulletin et la demande de rachat sont signés ; l'appel de fonds est fondu dedans.
+    for (const d of ["bulletin", "cession", "fonds"]) expect(src).toContain(`d === "${d}"`);
   });
 
-  it("l'appel de fonds reste : c'est une instruction de virement, pas une signature", async () => {
+  it("sans signature, l'appel de fonds reste une pièce à part", async () => {
     const { docsForTransition } = await import("@/lib/documents/registry");
     expect(docsForTransition("souscription", "confirmee")).toContain("fonds");
   });
