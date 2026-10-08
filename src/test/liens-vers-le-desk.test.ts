@@ -58,3 +58,35 @@ describe("les pages du client ne renvoient pas vers le desk", () => {
     expect(deskHostServes("/moi/documents")).toBe(false);
   });
 });
+
+/**
+ * AUCUNE SORTIE QUAND IL N'Y A PAS DE FENÊTRE OÙ SORTIR.
+ *
+ * L'app installée tourne en « standalone » : pas de barre d'adresse, pas
+ * d'onglets, donc rien pour revenir. Tout « target=_blank » y est un aller
+ * simple. Trois fois le 8 octobre 2026 l'app a disparu ainsi : le PDF ouvert à
+ * part, puis le « Plein écran » de la visionneuse, qui est le même piège sous
+ * un autre nom, et que j'avais laissé en réutilisant le composant du desk.
+ */
+describe("les sorties se ferment dans l'app installée", () => {
+  it("la visionneuse cache son plein écran quand il n'y a pas de fenêtre à part", () => {
+    const src = readFileSync("src/components/SourceViewer.tsx", "utf8");
+    expect(src).toContain("sansFenetreAPart(mode)");
+    // Le lien existe toujours, mais derrière la garde.
+    expect(src).toMatch(/!sansFenetreAPart\(mode\) && \(\s*\n\s*<a className=\{styles\.viewerOpen\}/);
+  });
+
+  it("la page d'un document ne propose un onglet qu'au navigateur", () => {
+    const src = readFileSync("src/app/moi/documents/[id]/Sorties.tsx", "utf8");
+    expect(src).toContain("!sansFenetreAPart(mode)");
+  });
+
+  /* Partager l'ADRESSE d'une pièce privée ne sert à personne : le destinataire
+     n'a pas la session, et soi-même on retombe dans l'app. C'est le fichier qui
+     se partage. */
+  it("ce qui s'emporte est le fichier, pas son adresse", () => {
+    const src = readFileSync("src/app/moi/documents/[id]/Sorties.tsx", "utf8");
+    expect(src).toContain("navigator.canShare({ files: [f] })");
+    expect(src).not.toMatch(/navigator\.share\(\{\s*title[^}]*url:/);
+  });
+});

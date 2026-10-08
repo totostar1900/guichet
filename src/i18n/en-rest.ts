@@ -1190,9 +1190,9 @@ export const EN_REST: Record<string, string> = {
 
   /* ---------- la page d'un document, pour ne plus sortir de l'app (8 octobre 2026) ---------- */
   "Établi le {d}.": "Issued on {d}.",
-  "Télécharger le PDF": "Download the PDF",
   "Ouvrir à part": "Open separately",
-  "Partager le PDF": "Share the PDF",
+  "Enregistrer sur l'appareil": "Save to the device",
+  "L'enregistrement n'a pas abouti. Le document reste lisible ci-dessous.": "Saving did not complete. The document is still readable below.",
   "Dès votre première opération réglée, le relevé de position et l'attestation de détention s'éditent ici.":
     "From your first settled operation, the position statement and the holding certificate are issued here.",
   /* Les deux chaînes de conservation, dites au client (le scanner ne voit pas un t(ternaire)). */
@@ -1200,7 +1200,6 @@ export const EN_REST: Record<string, string> = {
     "Your agreement is accepted: you can already subscribe to fund units, registered in your name in the fund's register. For Treasury securities and listed lines, the sub-account in your name is being opened at the account keeper, usually within 24 to 48 h; we confirm its number as soon as we have it.",
   "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger ; vous n'acceptez la convention qu'une fois votre dossier approuvé.":
     "Ten minutes on your phone: your identity, a few documents photographed, the source of funds and your profile. One file opens both: fund units, registered in the fund's register, and securities, which also need a securities account in your name. An adviser validates within 24 h for a resident, 48 h with a video call from abroad; you accept the agreement only once your file is approved.",
-  "Le document se lit ci-dessous : l'app n'a pas de fenêtre à part.": "The document is shown below: the app has no separate window.",
   "Votre convention est acceptée. Le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception.":
     "Your agreement is accepted. The sub-account in your name is being opened at the account keeper, usually within 24 to 48 h; we confirm its number as soon as we have it.",
   "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents.":

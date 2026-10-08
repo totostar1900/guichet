@@ -52,7 +52,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
           <h1 className="display mono">{doc.number}</h1>
           <p className={styles.lead}>{t("Établi le {d}.", { d: fmtDateTime(doc.createdAt) })}</p>
         </div>
-        <SortiesDuDocument fichier={fichier} />
+        <SortiesDuDocument fichier={fichier} nom={doc.number} />
       </div>
 
       {/* LA PAGE EST PEINTE ICI, ET C'EST LA SEULE FAÇON QUI TIENNE.

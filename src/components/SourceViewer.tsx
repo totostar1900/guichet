@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
+import { sansFenetreAPart, useModeAffichage } from "./useModeAffichage";
 import styles from "./SourceViewer.module.css";
 
 /**
@@ -48,6 +49,7 @@ const MEMOIRE_ZOOM = "source.zoom";
 
 export function SourceViewer({ src, title, fill }: { src: string; title: string; fill?: boolean }) {
   const t = useT();
+  const mode = useModeAffichage();
   const wrap = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const couche = useRef<HTMLDivElement | null>(null);
@@ -259,9 +261,14 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
             </button>
           </span>
         )}
-        <a className={styles.viewerOpen} href={src} target="_blank" rel="noreferrer">
-          {t("Plein écran")} ↗
-        </a>
+        {/* AUCUNE SORTIE QUAND IL N Y A PAS DE FENETRE OU SORTIR.
+            Installee, l app tourne en standalone : ce lien emporte l app et ne
+            rend rien. Au navigateur il reste, il y est utile. */}
+        {!sansFenetreAPart(mode) && (
+          <a className={styles.viewerOpen} href={src} target="_blank" rel="noreferrer">
+            {t("Plein écran")} ↗
+          </a>
+        )}
       </div>
       <div
         ref={wrap}

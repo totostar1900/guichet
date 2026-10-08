@@ -1,38 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useT } from "@/i18n/client";
+import { sansFenetreAPart, useModeAffichage } from "@/components/useModeAffichage";
 import styles from "./page.module.css";
-
-/**
- * Comment la page est affichée, lu comme un système extérieur.
- *
- * Une chaîne et non un objet : « useSyncExternalStore » compare les instantanés
- * par identité, et un objet neuf à chaque lecture bouclerait. Le serveur rend
- * « inconnu », et le navigateur tranche après l'hydratation sans désaccord.
- */
-type Mode = "inconnu" | "navigateur" | "installee" | "installee-partage";
-
-const lireLeMode = (): Mode => {
-  try {
-    const nav = window.navigator as Navigator & { standalone?: boolean };
-    const installee = window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
-    if (!installee) return "navigateur";
-    return typeof navigator.share === "function" ? "installee-partage" : "installee";
-  } catch {
-    return "navigateur";
-  }
-};
-
-const sAbonner = (cb: () => void) => {
-  try {
-    const mq = window.matchMedia("(display-mode: standalone)");
-    mq.addEventListener("change", cb);
-    return () => mq.removeEventListener("change", cb);
-  } catch {
-    return () => {};
-  }
-};
 
 /**
  * EMPORTER LE DOCUMENT, SANS PERDRE L'APP.
@@ -42,48 +13,69 @@ const sAbonner = (cb: () => void) => {
  * part » faisait disparaître l'app installée, et le téléchargement ne donnait
  * aucune notification.
  *
- * L'app installée tourne en « standalone » (manifest.ts) : pas de barre
- * d'adresse, pas d'onglets, donc rien pour revenir d'une page ouverte à côté.
- * On n'y propose donc plus de sortir : le document est peint dans la page
- * au-dessous, et le partage du système prend le relais pour l'envoyer ailleurs,
- * parce que lui sait où il va.
+ * DEUX CORRECTIONS, ET LA SECONDE EST UN AVEU. Le partage envoyait l'ADRESSE du
+ * document : pour une pièce privée derrière une session, le destinataire ne
+ * peut rien en faire, et soi-même on retombe dans l'app d'où l'on vient. Ce qui
+ * se partage, c'est le FICHIER. On le récupère, on l'enveloppe, et la feuille du
+ * système prend le relais : « Enregistrer dans Fichiers », WhatsApp, courriel.
+ * C'est elle qui sait poser un fichier sur un téléphone, pas nous.
  *
- * Au navigateur ordinaire, les deux sorties restent : elles y fonctionnent, et
- * un onglet se referme.
+ * Le téléchargement de repli passe par un lien d'objet construit ici plutôt que
+ * par une navigation vers l'adresse : dans une app installée, une navigation
+ * qui ne rend pas de page peut ne rien donner du tout, et c'est exactement ce
+ * qui n'a produit aucune notification.
  */
-export function SortiesDuDocument({ fichier }: { fichier: string }) {
+export function SortiesDuDocument({ fichier, nom }: { fichier: string; nom: string }) {
   const t = useT();
-  const mode = useSyncExternalStore(sAbonner, lireLeMode, () => "inconnu" as Mode);
+  const mode = useModeAffichage();
+  const [etat, setEtat] = useState<"repos" | "en_cours" | "echec">("repos");
+
+  const recuperer = async (): Promise<File> => {
+    const r = await fetch(fichier);
+    if (!r.ok) throw new Error(String(r.status));
+    return new File([await r.blob()], `${nom}.pdf`, { type: "application/pdf" });
+  };
+
+  /** Poser le fichier sur l'appareil : la feuille du système d'abord, le téléchargement sinon. */
+  const emporter = async () => {
+    setEtat("en_cours");
+    try {
+      const f = await recuperer();
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [f] })) {
+        await navigator.share({ files: [f], title: nom });
+        setEtat("repos");
+        return;
+      }
+      const url = URL.createObjectURL(f);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = f.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      setEtat("repos");
+    } catch (e) {
+      // Une feuille de partage refermée par la personne n'est pas un échec.
+      setEtat(e instanceof DOMException && e.name === "AbortError" ? "repos" : "echec");
+    }
+  };
 
   if (mode === "inconnu") return <div className={styles.actions} />;
 
-  if (mode !== "navigateur") {
-    return (
-      <div className={styles.actions}>
-        {mode === "installee-partage" && (
-          <button
-            type="button"
-            className="btn primary sm"
-            onClick={() => {
-              navigator.share({ title: document.title, url: new URL(fichier, location.href).toString() }).catch(() => {});
-            }}
-          >
-            {t("Partager le PDF")}
-          </button>
-        )}
-        <span className={styles.note}>{t("Le document se lit ci-dessous : l'app n'a pas de fenêtre à part.")}</span>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.actions}>
-      <a className="btn primary sm" href={`${fichier}?telecharger=1`}>
-        {t("Télécharger le PDF")}
-      </a>
-      <a className="btn sm" href={fichier} target="_blank" rel="noreferrer">
-        {t("Ouvrir à part")}
-      </a>
+      <button type="button" className="btn primary sm" onClick={emporter} disabled={etat === "en_cours"}>
+        {etat === "en_cours" ? "…" : t("Enregistrer sur l'appareil")}
+      </button>
+      {/* Au navigateur, l'onglet est une vraie sortie : il se referme. Dans l'app
+          installée il n'y a pas d'onglet, donc pas de retour : on ne le propose pas. */}
+      {!sansFenetreAPart(mode) && (
+        <a className="btn sm" href={fichier} target="_blank" rel="noreferrer">
+          {t("Ouvrir à part")}
+        </a>
+      )}
+      {etat === "echec" && <span className={styles.note}>{t("L'enregistrement n'a pas abouti. Le document reste lisible ci-dessous.")}</span>}
     </div>
   );
 }
