@@ -64,3 +64,62 @@ describe("l'ordre signé porte sa signature et où virer", () => {
     expect(t).not.toMatch(/Montant à virer/);
   }, 30_000);
 });
+
+/**
+ * LE BULLETIN D'UN TITRE PORTE LA BORNE, PAS UNE ESTIMATION.
+ *
+ * Tant que ces ordres n'étaient pas signables, « montant total estimé »
+ * suffisait à informer. Du moment qu'on demande une signature, la pièce doit
+ * porter CE QUI EST SIGNÉ : le plafond « au plus », et la signature
+ * électronique à la place du bloc manuscrit vide. Lu dans le PDF, comme
+ * au-dessus, parce que c'est la seule lecture qui ait déjà démenti le code.
+ */
+describe("l'ordre signé sur un titre", () => {
+  const ligne = {
+    id: "rca-ota",
+    kind: "OTA",
+    title: "OTA 6,50 % · 14 févr. 2028",
+    issuer: "Trésor public de la République centrafricaine",
+    country: "RCA",
+    isin: "CF2K00000056",
+    nominal: 10_000,
+    couponRate: 6.5,
+    pricePct: 94,
+    commissionPct: 0,
+    version: 1,
+    settleOn: "2026-09-16",
+    maturityOn: "2028-02-14",
+    lastCouponOn: "2026-02-14",
+    deadlineAt: "2026-10-14T12:00:00",
+  } as unknown as Offer;
+
+  const titre = async (intent: Intent): Promise<string> => {
+    const { Document, Page, renderToBuffer } = await import("@react-pdf/renderer");
+    const { Bulletin } = await import("@/lib/documents/pdf/templates");
+    const { positionFor } = await import("@/lib/documents/position");
+    const ctx = { number: "PC-BUL-2026-0010", intent, offer: ligne, position: positionFor(intent, ligne), now: new Date("2026-10-09T10:00:00Z"), texts: {} } as never;
+    const buf = await renderToBuffer(createElement(Document, null, createElement(Page, { size: "A4" }, createElement(Bulletin, ctx))) as never);
+    const parse = (await import("pdf-parse/lib/pdf-parse.js")).default;
+    return (await parse(buf as Buffer)).text.replace(/\s+/g, " ");
+  };
+
+  const ferme: Intent = { ...base, id: "i2", ref: "PF-1009-ZZZZ", offerId: "rca-ota", type: "ferme", amount: 10_000_000, limitPrice: 94 };
+
+  it("imprime « au plus », la signature, et ce que la borne protège", async () => {
+    const t = await titre({ ...ferme, maxAmount: 9_460_000, signedAt: "2026-10-09T09:00:00Z", signedMethod: "code à usage unique", signedTo: "georges.nitcheu@gmail.com" });
+    expect(t).toContain("Vous engagez au plus");
+    expect(t).toContain("Plafond signé");
+    expect(t).toContain("9 460 000");
+    expect(t).toContain("Signature électronique");
+    expect(t).not.toMatch(/lu et approuvé/);
+    // Ce que la borne protège se dit sur la pièce, pas seulement à l'écran.
+    expect(t).toMatch(/servi en partie/i);
+  }, 30_000);
+
+  it("non signé, il garde l'estimation et la ligne manuscrite", async () => {
+    const t = await titre(ferme);
+    expect(t).not.toContain("Vous engagez au plus");
+    expect(t).not.toContain("Plafond signé");
+    expect(t).toMatch(/lu et approuvé/);
+  }, 30_000);
+});

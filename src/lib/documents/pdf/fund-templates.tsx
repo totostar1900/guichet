@@ -4,7 +4,7 @@ import type { FundTerms, Intent, Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
 import type { Position } from "../position";
 import { payoutLine, type ClientDocCtx } from "./templates";
-import { Addr, KV, Letter, Sig, Table, Text, s } from "./primitives";
+import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
 import { prettyName } from "@/lib/market/names";
 import { passage } from "../passages-catalog";
 
@@ -28,17 +28,8 @@ const clientBlock = (i: Intent): [string, string[]] => ["Souscripteur", [i.clien
  * Sinon la ligne manuscrite reste : tous les ordres ne se signent pas encore
  * dans l'application.
  */
-function Signature({ intent, advisor }: { intent: Intent; advisor?: string }) {
-  if (!intent.signedAt) return <Sig left="Le souscripteur : « lu et approuvé », date et signature" right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />;
-  return (
-    <View style={s.box}>
-      <Text>
-        <Text style={s.b}>Signature électronique.</Text> Ordre signé le {fmtDateTime(intent.signedAt)} par {intent.signedMethod ?? "code à usage unique"}
-        {intent.signedTo ? ` envoyé au ${intent.signedTo}` : ""}. Référence de l&apos;ordre : {intent.ref}.
-      </Text>
-    </View>
-  );
-}
+/* Elle vit maintenant dans primitives : les titres signent aussi depuis le
+   9 octobre 2026, et deux copies auraient divergé. */
 
 /**
  * OÙ VIRER, SUR L'ORDRE LUI-MÊME.

@@ -3,7 +3,7 @@ import { COMPANY, SETTLEMENT, SVT_BY_COUNTRY } from "@/lib/config";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, fmtPct, localIso } from "@/lib/format";
 import { positionFor, type Position } from "../position";
-import { Addr, KV, Letter, Sig, Table, Text, s } from "./primitives";
+import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
 import { passage } from "../passages-catalog";
 
 /** Everything a client document needs. */
@@ -34,6 +34,10 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
   const isBond = offer.kind === "OTA" || offer.kind === "APE" || (offer.kind === "MARCHE" && offer.instrument === "obligation");
   const market = offer.kind === "MARCHE";
   const sell = intent.type === "vente";
+  /* La borne ne paraît que sur un ordre SIGNÉ : c'est la signature qui en
+     fait un engagement, et un plafond imprimé sur une pièce non signée se
+     lirait comme un prix. */
+  const plafond = intent.signedAt && intent.maxAmount != null ? intent.maxAmount : null;
   return (
     <Letter heading={`Bulletin d'ordre · ${number}`}>
       <Text style={s.h1}>{market ? `Ordre de bourse : ${sell ? "vente" : "achat"} · ${offer.market}` : `Ordre de souscription : ${offer.issuer}`}</Text>
@@ -56,8 +60,27 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
           ...(isBond ? ([[`Coupon couru${p.accruedDays ? ` du ${offer.lastCouponOn ? fmtDate(offer.lastCouponOn, false) : "—"} au ${fmtDate(offer.settleOn, false)} (${p.accruedDays} jours)` : " (ligne nouvelle)"}`, p.accruedDays ? fmt(p.accrued) : "néant"]] as [string, string][]) : []),
           ...(offer.commissionPct > 0 ? ([[`Commission d'intermédiation ${fmtPct(offer.commissionPct, 2)}`, fmt(p.commission)]] as [string, string][]) : []),
         ]}
-        total={market ? [sell ? `Produit net estimé, règlement T+${offer.settlementDays ?? 3}` : `Montant total estimé, règlement T+${offer.settlementDays ?? 3}`, `${fmt(Math.abs(p.total))} FCFA`] : [`Montant total à régler, valeur ${fmtDate(offer.settleOn)}`, `${fmt(p.total)} FCFA`]}
+        total={
+          /* « ESTIMÉ » N'EST PAS CE QUI SE SIGNE. Sur un titre, la dépense
+             dépend du prix servi : tant que l'ordre n'était pas signable, un
+             montant estimé suffisait à informer. Du moment qu'on demande une
+             signature, la pièce doit porter CE QUI EST SIGNÉ, c'est-à-dire la
+             borne, et non une approximation du jour. */
+          plafond != null
+            ? ["Vous engagez au plus", `${fmt(plafond)} FCFA`]
+            : market
+              ? [sell ? `Produit net estimé, règlement T+${offer.settlementDays ?? 3}` : `Montant total estimé, règlement T+${offer.settlementDays ?? 3}`, `${fmt(Math.abs(p.total))} FCFA`]
+              : [`Montant total à régler, valeur ${fmtDate(offer.settleOn)}`, `${fmt(p.total)} FCFA`]
+        }
       />
+      {plafond != null && (
+        <View style={s.box}>
+          <Text>
+            <Text style={s.b}>Plafond signé.</Text> {COMPANY.legalName} ne vous engage pas au-delà de {fmt(plafond)} FCFA, commission comprise, calculés au prix maximum que vous avez accepté
+            {intent.limitPrice != null ? ` (${fmtPct(intent.limitPrice, 3)})` : ""}. Servi à un meilleur prix, vous payez moins ; servi en partie, vous ne payez que votre part ; non servi, la totalité vous revient et votre solde disponible vous est versé sous soixante-douze heures ouvrables sur demande.
+          </Text>
+        </View>
+      )}
       {p.irr != null && (
         <View style={s.box}>
           <Text>
@@ -73,7 +96,14 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
           : passage("bulletin", "ordre_primaire", texts, { societe: COMPANY.legalName, date_adjudication: fmtDate(offer.deadlineAt) })}{" "}
         {passage("bulletin", "irrevocable", texts)}
       </Text>
-      <Sig left={passage("bulletin", "signature_client", texts)} right={passage("bulletin", "signature_societe", texts, { societe: COMPANY.legalName, conseiller: advisor ? ` · ${advisor}` : "" })} />
+      {/* MÊME LEÇON QUE POUR LES PARTS, LE 8 OCTOBRE 2026 : un ordre signé
+          dans l'application ne doit pas porter un bloc manuscrit vide sous un
+          engagement déjà pris. Non signé, la ligne du référentiel reste. */}
+      {intent.signedAt ? (
+        <Signature intent={intent} advisor={advisor} qui={sell ? "vendeur" : "souscripteur"} />
+      ) : (
+        <Sig left={passage("bulletin", "signature_client", texts)} right={passage("bulletin", "signature_societe", texts, { societe: COMPANY.legalName, conseiller: advisor ? ` · ${advisor}` : "" })} />
+      )}
     </Letter>
   );
 }

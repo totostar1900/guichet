@@ -148,3 +148,30 @@ export function Sig({ left, right }: { left: string; right: string }) {
     </View>
   );
 }
+
+/**
+ * LA SIGNATURE, OU SA PLACE.
+ *
+ * Un ordre signé dans l'application portait quand même la ligne « lu et
+ * approuvé, date et signature » : un bloc vide sous un document déjà engagé.
+ * Quand la signature existe, elle s'imprime, avec ce qui la prouve, l'heure et
+ * le canal où le code est parti, exactement comme la convention le fait.
+ * Sinon la ligne manuscrite reste : tous les ordres ne se signent pas encore
+ * dans l'application.
+ *
+ * Elle vivait chez les fonds, qui ont signé les premiers. Les titres signent
+ * depuis le 9 octobre 2026, et une seconde copie aurait divergé de la
+ * première : elle est donc ici, avec les autres pièces de mise en page.
+ */
+export function Signature({ intent, advisor, qui = "souscripteur" }: { intent: { signedAt?: string; signedMethod?: string; signedTo?: string; ref: string }; advisor?: string; qui?: string }) {
+  if (!intent.signedAt) return <Sig left={`Le ${qui} : « lu et approuvé », date et signature`} right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />;
+  const quand = new Date(intent.signedAt).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
+  return (
+    <View style={s.box}>
+      <Text>
+        <Text style={s.b}>Signature électronique.</Text> Ordre signé le {quand} par {intent.signedMethod ?? "code à usage unique"}
+        {intent.signedTo ? ` envoyé au ${intent.signedTo}` : ""}. Référence de l&apos;ordre : {intent.ref}.
+      </Text>
+    </View>
+  );
+}
