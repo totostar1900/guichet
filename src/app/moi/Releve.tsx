@@ -191,7 +191,7 @@ export async function Releve({ session: s }: { session: Session }) {
           étaient dites deux fois, ici et en chiffre dans un compteur plus
           haut : le compteur est parti, les cartes portent le nombre par leur
           présence. */}
-      <section className={styles.sec}>
+      <section className={styles.sec} id="ordres-en-cours">
         <div className={styles.secTete}>
           <h2>{t("Vos intentions en cours")}</h2>
           <span className="muted">{t("reçue → confirmée → transmise → servie → réglée")}</span>

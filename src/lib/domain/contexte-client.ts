@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { loadBeacAuctions } from "@/lib/market/beac-feed";
 import type { BeacAuction } from "@/lib/market/beac";
 import { positionsFrom } from "@/lib/positions";
+import { attendUneSignature } from "@/lib/domain/intent";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { attentesDuClient, type ContexteClient } from "@/lib/domain/services";
@@ -38,6 +39,8 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   ]);
 
   const mine = intents.filter((i) => i.clientId === userId);
+  const aSigner = mine.filter(attendUneSignature);
+  const aRepondre = mine.filter((i) => i.state === "contre_proposee");
   const positions = positionsFrom(mine, offers);
   const poche = cashPosition(cash, mine);
   const lignes: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
@@ -58,8 +61,15 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
     disponible: poche.idle,
     /* Les deux devoirs : un bulletin à signer, une contre-proposition à
        trancher. Ils se comptent sur les ordres du client, déjà lus ici. */
-    aSigner: mine.filter((i) => i.state === "confirmee").length,
-    aRepondre: mine.filter((i) => i.state === "contre_proposee").length,
+    /* UNE QUESTION N'EST PAS UN BULLETIN. Le compte prenait « état confirmée »
+       tous types confondus : une question posée au desk, qu'il avait prise en
+       main, s'annonçait « 1 ordre · le bulletin est prêt ». La règle vraie vit
+       dans le registre des documents, et attendUneSignature la lit. */
+    aSigner: aSigner.length,
+    aRepondre: aRepondre.length,
+    // Seules : le bouton va droit à l'ordre. Plusieurs : il va à leur liste.
+    ouSigner: aSigner.length === 1 ? aSigner[0].id : undefined,
+    ouRepondre: aRepondre.length === 1 ? aRepondre[0].id : undefined,
     /* LE TROISIÈME DEVOIR, QUI MANQUAIT. Le dossier se lisait sur sa page et
        nulle part ailleurs : un client approuvé dont la convention attendait
        pouvait traverser l'application entière sans croiser le geste qui la
@@ -84,19 +94,28 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
 });
 
 /**
- * Combien de décisions attendent ce client.
+ * Ce qui attend ce client, pour la barre : le compte ET la destination.
  *
  * Le même calcul que la page, jamais un raccourci : un compteur qui compte
  * autrement que la liste qu'il ouvre ment deux fois, une fois dans la bande et
  * une fois quand on clique.
+ *
+ * ELLE REND LA LISTE, ET PAS SEULEMENT SA LONGUEUR. Une pastille qui annonce
+ * un nombre sans mener nulle part demande au lecteur de deviner où aller : la
+ * barre a besoin du geste autant que du chiffre. Une seule attente, et la
+ * pastille y va tout droit ; plusieurs, elle ouvre la bande qui les porte.
  */
-export const compterAttentes = cache(async (userId: string): Promise<number> => {
+export interface AttenteDeBarre {
+  cle: string;
+  href: string;
+}
+export const attentesPourLaBarre = cache(async (userId: string): Promise<AttenteDeBarre[]> => {
   try {
     const ctx = await contexteDuClient(userId);
-    // Le formateur ne sert qu'aux libellés, dont on ne garde ici que le compte.
-    return attentesDuClient(ctx, fmt).length;
+    // Le formateur ne sert qu'aux libellés, dont on ne garde ici que la destination.
+    return attentesDuClient(ctx, fmt).map((a) => ({ cle: a.cle, href: a.href }));
   } catch {
-    // Le compteur ne fait jamais tomber une page : sans chiffre, pas de pastille.
-    return 0;
+    // Le compteur ne fait jamais tomber une page : sans liste, pas de pastille.
+    return [];
   }
 });

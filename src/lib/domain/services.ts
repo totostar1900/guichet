@@ -86,6 +86,18 @@ export interface ContexteClient {
   /** Les contre-propositions en attente de son oui ou de son non. */
   aRepondre: number;
   /**
+   * Où mènent « Signer » et « Répondre » : l'ordre lui-même, quand il est
+   * seul.
+   *
+   * Ils menaient à « / », écrit quand la bande vivait sur Agir : depuis
+   * qu'elle est sur la page d'arrivée, ce bouton renvoyait à la page qu'on
+   * avait sous les yeux. Mesuré le 8 octobre 2026 en production : le client
+   * appuyait sur « Signer » et rien ne se passait, ce qui est exactement ce
+   * qu'on lui avait programmé.
+   */
+  ouSigner?: string;
+  ouRepondre?: string;
+  /**
    * Ce que le dossier d'ouverture attend de son côté, s'il attend quelque chose.
    *
    * « convention » : le desk a approuvé, et rien ne s'ouvre avant l'acceptation.
@@ -466,7 +478,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: c.aSigner > 1 ? `${c.aSigner} ordres` : "1 ordre",
       quoi: { key: "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait." },
       geste: "Signer",
-      href: "/",
+      href: c.ouSigner ? `/moi/ordres/${c.ouSigner}` : "/moi#ordres-en-cours",
       ton: "retard",
     });
   if (c.aRepondre > 0)
@@ -476,7 +488,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: c.aRepondre > 1 ? `${c.aRepondre} propositions` : "1 proposition",
       quoi: { key: "D'autres conditions vous sont proposées : c'est votre réponse qui change l'ordre." },
       geste: "Répondre",
-      href: "/",
+      href: c.ouRepondre ? `/moi/ordres/${c.ouRepondre}` : "/moi#ordres-en-cours",
       ton: "retard",
     });
   if (c.disponible > 0)

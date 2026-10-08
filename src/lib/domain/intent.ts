@@ -1,3 +1,4 @@
+import { docsForTransition } from "@/lib/documents/registry";
 import type { DisplayStatus, Intent, IntentState, IntentType, Offer } from "./types";
 import { typeOf } from "@/lib/registry";
 import { isPast } from "./status";
@@ -120,3 +121,20 @@ export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
  * il faudra signer un plafond : même mécanisme, une borne de plus, plus tard.
  */
 export const ordreSignable = (i: Intent): boolean => (i.type === "souscription" || i.type === "rachat") && !i.signedAt && i.state === "recue";
+
+/**
+ * QUELS ORDRES ATTENDENT UNE SIGNATURE DU CLIENT, APRÈS LE GO DU DESK.
+ *
+ * LE DÉFAUT QUE CETTE FONCTION FERME, mesuré le 8 octobre 2026 en production.
+ * Le compteur de la bande comptait « état confirmée », tous types confondus.
+ * Une QUESTION posée au desk (type « info ») que le desk avait prise en main
+ * passait donc pour un bulletin à signer : le client lisait « 1 ordre · le
+ * bulletin est prêt », appuyait sur Signer, et il n'y avait rien à signer.
+ *
+ * La règle vraie était déjà écrite, dans le registre des documents : un ordre
+ * attend une signature quand sa confirmation produit un bulletin ou une
+ * demande de rachat. Une question n'en produit aucun, un rappel non plus.
+ * On lit donc cette table plutôt que d'en recopier la liste des types.
+ */
+export const attendUneSignature = (i: Intent): boolean =>
+  i.state === "confirmee" && !i.signedAt && docsForTransition(i.type, "confirmee").some((d) => d === "bulletin" || d === "cession");

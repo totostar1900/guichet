@@ -125,3 +125,36 @@ describe("le go du desk", () => {
     expect(pasSigne.text).toContain("à signer");
   });
 });
+
+/**
+ * UNE QUESTION N'EST PAS UN BULLETIN.
+ *
+ * Mesuré en production le 8 octobre 2026. Le compteur des signatures en
+ * attente ne regardait que l'état : une question posée au desk (type
+ * « info »), prise en main par lui, portait « confirmée » et s'annonçait donc
+ * « 1 ordre · le bulletin est prêt ». Le client appuyait sur Signer et ne
+ * trouvait rien. La règle vraie était déjà écrite au registre des documents :
+ * une signature attend là où la confirmation produit un bulletin ou une
+ * demande de rachat.
+ */
+describe("quels ordres attendent une signature après le go du desk", () => {
+  it("ceux dont la confirmation produit une pièce à signer", async () => {
+    const { attendUneSignature } = await import("@/lib/domain/intent");
+    for (const type of ["ferme", "achat", "vente", "souscription", "cession", "rachat"] as const) {
+      expect(attendUneSignature(ordre({ type, state: "confirmee" }))).toBe(true);
+    }
+  });
+
+  it("ni une question, ni un rappel, ni un appétit : ils ne produisent rien à signer", async () => {
+    const { attendUneSignature } = await import("@/lib/domain/intent");
+    for (const type of ["info", "rappel", "appetit"] as const) {
+      expect(attendUneSignature(ordre({ type, state: "confirmee" }))).toBe(false);
+    }
+  });
+
+  it("ni un ordre déjà signé dans l'application, ni un ordre que le desk n'a pas confirmé", async () => {
+    const { attendUneSignature } = await import("@/lib/domain/intent");
+    expect(attendUneSignature(ordre({ type: "souscription", state: "confirmee", signedAt: new Date().toISOString() }))).toBe(false);
+    expect(attendUneSignature(ordre({ type: "souscription", state: "recue" }))).toBe(false);
+  });
+});

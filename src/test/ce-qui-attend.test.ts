@@ -144,15 +144,17 @@ describe("où la liste se lit", () => {
    * voyait. Le compteur vit maintenant sur l'initiale, qui est la seule porte
    * du client depuis le 5 octobre 2026.
    */
-  it("la pastille est rendue là où le client connecté regarde", () => {
+  it("la pastille est rendue là où le client connecté regarde, et elle mène quelque part", () => {
     const menu = lire("src/components/AppMenu.tsx");
     // Le « ⋮ » n'existe pas pour un client connecté : il ne doit donc plus rien compter.
     expect(menu).toContain("if (signedIn && !desk) return null");
     expect(menu).not.toContain("aDecider");
     const compte = lire("src/components/mobile/AccountMenu.tsx");
-    expect(compte).toContain("aDecider");
+    // Un lien, pas un ornement : une attente y va tout droit, plusieurs ouvrent la bande.
+    expect(compte).toContain("styles.alerte");
+    expect(compte).toContain('attentes.length === 1 ? attentes[0].href : "/#a-decider"');
     const layout = lire("src/app/layout.tsx");
-    expect(layout).toContain("aDecider={desk ? 0 : attentes}");
+    expect(layout).toContain("attentes={desk ? [] : attentes}");
   });
 
   it("l'assemblage lit le dossier, et ne suppose plus le compte ouvert", () => {
@@ -160,6 +162,39 @@ describe("où la liste se lit", () => {
     expect(src).toContain("getClientFileByUser");
     expect(src).toContain("dossier:");
     expect(src).toContain("compteOuvert:");
+  });
+});
+
+/**
+ * LE BOUTON QUI NE MÈNE NULLE PART, ET LE DEVOIR QUI N'EN EST PAS UN.
+ *
+ * Mesuré en production le 8 octobre 2026, sur le compte qui se plaignait de
+ * ne pas pouvoir signer. Deux défauts se superposaient :
+ *
+ * 1. Une QUESTION posée au desk (type « info »), que le desk avait prise en
+ *    main, portait l'état « confirmée ». Le compte des bulletins à signer ne
+ *    regardait que l'état : la bande annonçait « 1 ordre · le bulletin est
+ *    prêt » pour une question.
+ * 2. Son bouton « Signer » menait à « / ». C'était juste tant que la bande
+ *    vivait sur Agir ; depuis qu'elle est sur la page d'arrivée, il renvoyait
+ *    à la page qu'on avait déjà sous les yeux. Rien ne s'ouvrait, et c'était
+ *    exactement ce qui était écrit.
+ */
+describe("signer mène à l'ordre à signer", () => {
+  it("une seule attente : le bouton va droit à l'ordre", () => {
+    const a = attentesDuClient({ ...vide, aSigner: 1, ouSigner: "i-42" }, fmt)[0];
+    expect(a.href).toBe("/moi/ordres/i-42");
+  });
+
+  it("plusieurs : il va à leur liste, jamais à la page où l'on est", () => {
+    const a = attentesDuClient({ ...vide, aSigner: 3 }, fmt)[0];
+    expect(a.href).toBe("/moi#ordres-en-cours");
+    expect(a.href).not.toBe("/");
+  });
+
+  it("aucune attente ne renvoie plus à la racine", () => {
+    const c: ContexteClient = { ...vide, aSigner: 1, aRepondre: 1, dossier: "convention", disponible: 500_000 };
+    for (const a of attentesDuClient(c, fmt)) expect(a.href).not.toBe("/");
   });
 });
 

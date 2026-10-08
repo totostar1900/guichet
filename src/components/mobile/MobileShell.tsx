@@ -112,7 +112,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, security, profile, build, aDecider = 0, menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que la feuille du compte dit sous « Sécurité », « Mon profil » et au pied */ security?: { channels: number; devices: number }; profile?: "prudent" | "equilibre" | "dynamique"; build?: string; /** Le compteur des décisions, sur l'initiale : voir AccountProps. */ aDecider?: number; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, security, profile, build, attentes = [], menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que la feuille du compte dit sous « Sécurité », « Mon profil » et au pied */ security?: { channels: number; devices: number }; profile?: "prudent" | "equilibre" | "dynamique"; build?: string; /** Ce qui attend le client, pour la pastille de la barre : voir AccountProps. */ attentes?: { cle: string; href: string }[]; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -212,7 +212,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
             </Link>
           )}
           {signedIn ? (
-            <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} phone={phone} phoneOk={phoneOk} emailOk={emailOk} prefs={prefs} kycStatus={kycStatus} vapidKey={vapidKey} security={security} profile={profile} build={build} aDecider={aDecider} />
+            <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} phone={phone} phoneOk={phoneOk} emailOk={emailOk} prefs={prefs} kycStatus={kycStatus} vapidKey={vapidKey} security={security} profile={profile} build={build} attentes={attentes} />
           ) : (
             !path.startsWith("/connexion") && (
               <Link href={`/connexion?next=${encodeURIComponent(path)}`} className={styles.signin}>

@@ -60,14 +60,20 @@ export interface AccountProps {
   /** La version, au pied de la feuille. */
   build?: string;
   /**
-   * Combien de décisions attendent ce client : la pastille sur l'initiale.
+   * Ce qui attend ce client : la pastille de la barre, et où elle mène.
    *
-   * Elle vivait sur le « ⋮ », qui a cessé d'exister pour un client connecté le
-   * 5 octobre 2026 : tout est passé derrière l'initiale, et le compteur est
-   * resté sur le bouton supprimé. Calculé à chaque page, passé de main en
-   * main, affiché par une branche que plus aucun client n'atteignait.
+   * Elle a d'abord vécu sur le « ⋮ », qui a cessé d'exister pour un client
+   * connecté le 5 octobre 2026 : le compteur est resté sur le bouton
+   * supprimé, calculé à chaque page et rendu dans une branche morte.
+   *
+   * Puis elle s'est posée SUR l'initiale, et elle n'y servait qu'à moitié :
+   * elle disait « une chose vous attend » et ouvrait la feuille du compte,
+   * où cette chose ne figure pas. Un signal qui ne mène pas à ce qu'il
+   * signale laisse son lecteur chercher. Elle est donc un bouton à elle,
+   * posé à côté de l'initiale : une attente, elle y va ; plusieurs, elle
+   * ouvre la bande qui les porte toutes.
    */
-  aDecider?: number;
+  attentes?: { cle: string; href: string }[];
 }
 
 const D = {
@@ -139,6 +145,7 @@ export function AccountMenu(p: AccountProps) {
   const [kind, city = ""] = who.segment.split("·").map((s) => s.trim());
   const { index, lues } = useGuideIndex(open);
   const lecon = leconDuClient(path);
+  const attentes = p.attentes ?? [];
 
   const setPref = (patch: ClientPrefs) => {
     const before = prefs;
@@ -205,23 +212,27 @@ export function AccountMenu(p: AccountProps) {
 
   return (
     <>
-      {/* À zéro rien ne paraît : une pastille qui annonce « rien » apprend à
+      {/* UNE PASTILLE QUI NE MÈNE À RIEN N'EST QU'UN REPROCHE.
+          Elle a été posée sur l'initiale, et elle n'y servait qu'à moitié :
+          elle disait « une chose vous attend » et ouvrait la feuille du
+          compte, où cette chose ne figure pas. Elle est donc un bouton à
+          elle, à côté de l'initiale et non dessus, parce que deux cibles qui
+          se chevauchent au doigt n'en font qu'une. Une attente : elle y va.
+          Plusieurs : elle ouvre la bande qui les porte toutes.
+          À zéro, rien ne paraît : une pastille qui annonce « rien » apprend à
           l'oeil à ne plus la regarder, y compris le jour où elle dit un. */}
-      <button
-        type="button"
-        className={styles.avatar}
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={p.aDecider ? t("Mon compte : {n} décisions vous attendent", { n: String(p.aDecider) }) : t("Mon compte")}
-        title={who.name}
-      >
+      {attentes.length > 0 && (
+        <Link
+          className={styles.alerte}
+          href={attentes.length === 1 ? attentes[0].href : "/#a-decider"}
+          aria-label={t("{n} décisions vous attendent", { n: String(attentes.length) })}
+          title={t("{n} décisions vous attendent", { n: String(attentes.length) })}
+        >
+          {attentes.length}
+        </Link>
+      )}
+      <button type="button" className={styles.avatar} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={t("Mon compte")} title={who.name}>
         {initial}
-        {p.aDecider ? (
-          <b className={styles.pastille} aria-hidden="true">
-            {p.aDecider}
-          </b>
-        ) : null}
       </button>
       <Sheet
         open={open}

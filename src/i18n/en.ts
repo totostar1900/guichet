@@ -15,7 +15,6 @@ export const EN: Record<string, string> = {
   "Se déconnecter": "Sign out",
   "Retour": "Back",
   "Mon compte": "My account",
-  "Mon compte : {n} décisions vous attendent": "My account: {n} decisions are waiting for you",
   "démo · mémoire": "demo · memory",
   "Aucun backend configuré : données de démonstration en mémoire": "No backend configured: demonstration data in memory",
   "Ouvrir mon compte-titres": "Open my securities account",
