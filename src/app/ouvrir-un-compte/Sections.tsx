@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { startTransition, useActionState, useEffect, useState } from "react";
@@ -496,9 +498,12 @@ export function ConventionSection({ file, signable, canal, enTete = false }: { f
           <li>{t("Vous recevez un avis d'opéré par opération et un relevé de position ; réclamations et médiation COSUMAF décrites en annexe.")}</li>
           <li>{t("Données : conservées 10 ans après la fin de la relation (obligation LBC/FT), utilisées pour la relation et le reporting réglementaire.")}</li>
         </ul>
-        <a className="btn sm" href="/api/documents/convention-modele" target="_blank" rel="noreferrer">
-          {t("Lire la convention complète (PDF)")}
-        </a>
+        {/* La convention se lit DANS l app : ouverte a part, elle emporte
+            l app installee, et on demandait une signature sur un texte que le
+            signataire ne pouvait pas lire. */}
+        <Link className="btn sm" href="/ouvrir-un-compte/convention">
+          {t("Lire la convention complète")}
+        </Link>
       </div>
       {accepted ? (
         <div className={styles.ok}>

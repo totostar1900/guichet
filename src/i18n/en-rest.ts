@@ -1193,6 +1193,14 @@ export const EN_REST: Record<string, string> = {
   "Ouvrir à part": "Open separately",
   "Enregistrer sur l'appareil": "Save to the device",
   "Partager": "Share",
+  "La convention": "The agreement",
+  "Lire la convention complète": "Read the full agreement",
+  "Le texte complet, tel que vous l'accepterez. Vous pouvez le lire autant de fois que vous le voulez avant de signer.":
+    "The full text, as you will accept it. You can read it as often as you like before signing.",
+  "Dossier reçu. Un conseiller l'examine et vous écrit": "File received. An adviser is reviewing it and will write to you",
+  "dès que la décision est prise. L'acceptation de la convention vient ensuite, sur cette page.": "as soon as the decision is made. Accepting the agreement comes next, on this page.",
+  "Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.":
+    "An adviser reviews your file and writes to you as soon as the decision is made; from abroad, a video call is added. You accept the agreement only once the file is approved.",
   "Dans les téléchargements de votre appareil.": "In your device's downloads.",
   "Enregistré : {f}": "Saved: {f}",
   "L'enregistrement n'a pas abouti. Le document reste lisible ci-dessous.": "Saving did not complete. The document is still readable below.",

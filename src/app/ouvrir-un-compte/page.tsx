@@ -90,7 +90,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                          accessibles ; les titres attendent le sous-compte. Le
                          dire évite de laisser croire que tout est bloqué. */
                       "Votre convention est acceptée : vous pouvez dès maintenant souscrire des parts de fonds, qui s'inscrivent à votre nom au registre du fonds. Pour les titres du Trésor et les lignes cotées, le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
-                  : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller valide sous 24 h pour un résident, 48 h avec un appel vidéo depuis l'étranger ; vous n'acceptez la convention qu'une fois votre dossier approuvé.",
+                  : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.",
             )}
           </p>
         </div>
@@ -112,7 +112,11 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
 
       {sp.soumis === "1" && file.status === "soumis" && (
         <div className={styles.okBanner}>
-          {t("Dossier reçu. Nous vous prévenons")} {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} {t("dès la décision : en général sous 24 h ouvrées. Vous accepterez la convention ici même, par code, une fois le dossier approuvé.")}
+          {/* INFORMER SANS PROMETTRE. Le message annonçait « en général sous
+              24 h ouvrées » : un délai qu'on ne tient pas toujours, affiché au
+              moment précis où le client commence à compter. Il dit maintenant ce
+              qui se passe et ce qui suivra, sans engager une heure. */}
+          {t("Dossier reçu. Un conseiller l'examine et vous écrit")} {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} {t("dès que la décision est prise. L'acceptation de la convention vient ensuite, sur cette page.")}
         </div>
       )}
 

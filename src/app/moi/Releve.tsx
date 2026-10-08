@@ -104,13 +104,23 @@ export async function Releve({ session: s }: { session: Session }) {
     <div className={styles.wrap} id="releve">
       {/* Le seul reste de l'ancien en-tête : un appel à agir, pas une redite du
           nom ni du palier, que le portefeuille dit déjà au-dessus. */}
-      {s.tier < 2 && (
-        <p className={styles.reportLink}>
-          <Link href="/ouvrir-un-compte" className="btn primary">
-            {t(s.kycStatus ? "Mon dossier d'ouverture" : "Ouvrir mon compte")}
-          </Link>
-        </p>
-      )}
+      {/* Le même partage qu'ailleurs : un bouton plein pour ce qui attend la
+          main du client, un lien discret pour ce qui attend le desk, et rien du
+          tout quand le compte est ouvert. Répéter « Ouvrir mon compte » à
+          quelqu'un dont le dossier est en revue, c'est lui demander de refaire
+          ce qu'il a déjà fait. */}
+      {s.tier < 2 &&
+        (!s.kycStatus || s.kycStatus === "complements" || (s.kycStatus === "approuve" && !s.conventionAccepted) ? (
+          <p className={styles.reportLink}>
+            <Link href="/ouvrir-un-compte" className="btn primary">
+              {t(s.kycStatus === "complements" ? "Compléter mon dossier" : s.kycStatus === "approuve" ? "Accepter ma convention" : "Ouvrir mon compte")}
+            </Link>
+          </p>
+        ) : s.kycStatus ? (
+          <p className={styles.reportLink}>
+            <Link href="/ouvrir-un-compte">{t("Mon dossier d'ouverture")}</Link>
+          </p>
+        ) : null)}
       <TrustNudge />
       {/* La question qu un releve laisse ouverte : ai-je gagne, et combien. */}
       {positions.length > 0 && (

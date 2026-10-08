@@ -45,11 +45,16 @@ export async function UserMenu({ session, deskUi, account }: { session: Session 
       <Link href={deskUi ? "/desk" : "/"} className={`${styles.avatar} ${deskUi ? styles.desk : ""} ${account ? styles.full : ""}`} title={session.email ?? session.segment}>
         {initials}
       </Link>
-      {session.role === "client" && session.tier < 2 && (
+      {/* ON N'OFFRE PAS D'OUVRIR CE QUI EST DÉJÀ EN TRAIN DE S'OUVRIR.
+          Le bouton paraissait à tous les paliers sous 2, et répétait donc son
+          invitation à un client dont le dossier dormait chez nous, en revue. Un
+          appel à l'action qui ne mène à rien qu'on puisse faire se lit comme un
+          reproche. Il ne reste que dans deux cas : rien n'est commencé, ou
+          quelque chose attend la main du client. L'attente, elle, se lit dans la
+          feuille du compte et sur la page du dossier, à leur place. */}
+      {session.role === "client" && session.tier < 2 && (!session.kycStatus || session.kycStatus === "complements" || (session.kycStatus === "approuve" && !session.conventionAccepted)) && (
         <Link href="/ouvrir-un-compte" className={styles.open} title={t("Ouvrir mon compte-titres")}>
-          {/* Approuvé sans signature : c'est au client de jouer, le bouton le dit
-              plutôt que d'annoncer une attente qui n'existe pas. */}
-          {t(session.kycStatus === "soumis" || session.kycStatus === "en_revue" ? "Dossier en revue" : session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? (session.conventionAccepted ? "Compte en cours d'ouverture" : "Accepter ma convention") : "Ouvrir un compte titres")}
+          {t(session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? "Accepter ma convention" : "Ouvrir un compte titres")}
         </Link>
       )}
     </div>
