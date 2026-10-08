@@ -18,7 +18,7 @@ export function GenerateButton({ type, intentId, label, withAllocation }: { type
         {pending ? "…" : label}
       </button>
       {state?.ok && (
-        <a className="btn sm primary" href={`/desk/documents/pdf/${state.id}`} target="_blank" rel="noreferrer">
+        <a className="btn sm primary" href={`/api/documents/${state.id}`} target="_blank" rel="noreferrer">
           {t("Ouvrir")}
         </a>
       )}
@@ -38,7 +38,7 @@ export function BordereauButton({ country, deadlineAt, disabled, label }: { coun
         {pending ? "Génération…" : label}
       </button>
       {state?.ok && (
-        <a className="btn sm" href={`/desk/documents/pdf/${state.id}`} target="_blank" rel="noreferrer">
+        <a className="btn sm" href={`/api/documents/${state.id}`} target="_blank" rel="noreferrer">
           {t("Ouvrir")}
         </a>
       )}

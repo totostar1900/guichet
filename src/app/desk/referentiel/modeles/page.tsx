@@ -146,7 +146,7 @@ export default async function ModelesPage({ searchParams }: { searchParams: Prom
               <>
                 {t("Dernier émis")} : <span className="mono">{last.number}</span> · {fmtDateTime(last.createdAt)}
                 {last.clientName ? ` · ${last.clientName}` : ""} ·{" "}
-                <a href={`/desk/documents/pdf/${last.id}`} target="_blank" rel="noreferrer">
+                <a href={`/api/documents/${last.id}`} target="_blank" rel="noreferrer">
                   PDF
                 </a>{" "}
                 · <Link href={`/desk/documents?type=${open}`}>{t("{n} émis", { n: String(issued.length) })}</Link>

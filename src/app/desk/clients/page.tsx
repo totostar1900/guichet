@@ -287,7 +287,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     <ul className={styles.pieces}>
                       {kycDocs.map((d) => (
                         <li key={d.id}>
-                          <a href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer" className="mono">
+                          <a href={`/api/documents/${d.id}`} target="_blank" rel="noreferrer" className="mono">
                             {d.number}
                           </a>{" "}
                           · {d.title}

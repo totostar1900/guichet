@@ -34,7 +34,7 @@ function Msg({ state }: { state: ActResult | null }) {
       {state.ok && state.docId && (
         <>
           {" "}
-          <a href={`/desk/documents/pdf/${state.docId}`} target="_blank" rel="noreferrer">
+          <a href={`/api/documents/${state.docId}`} target="_blank" rel="noreferrer">
             PDF
           </a>
         </>

@@ -104,7 +104,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   <td className="r num">{fmtMillions(a.amount)}</td>
                   <td>
                     {a.existing.map((d) => (
-                      <a key={d.id} href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer" className="mono" style={{ marginRight: 8 }}>
+                      <a key={d.id} href={`/api/documents/${d.id}`} target="_blank" rel="noreferrer" className="mono" style={{ marginRight: 8 }}>
                         {d.number}
                       </a>
                     ))}
@@ -230,7 +230,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 return (
                   <tr key={d.id}>
                     <td className="mono">
-                      <a href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer">
+                      <a href={`/api/documents/${d.id}`} target="_blank" rel="noreferrer">
                         {d.number}
                       </a>
                       {registerOf(d) !== d.number && (
@@ -252,7 +252,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     </td>
                     <td>
                       <div className={styles.right}>
-                        <a className="btn sm" href={`/desk/documents/pdf/${d.id}`} target="_blank" rel="noreferrer">
+                        <a className="btn sm" href={`/api/documents/${d.id}`} target="_blank" rel="noreferrer">
                           {t("Ouvrir")}
                         </a>
                         {d.type !== "bordereau" &&

@@ -101,7 +101,7 @@ export function ComplaintForm({ ops, phoneProven, phone, email }: { ops: { ref: 
           </p>
           <p>{t("Accusé de réception au plus tard le {a} ; réponse au plus tard le {b}. La copie signée est dans Mes documents.", { a: fmtDate(dep.ackBy), b: fmtDate(dep.answerBy) })}</p>
           <div className={styles.foot}>
-            <a className="btn sm primary" href={`/desk/documents/pdf/${dep.id}`} target="_blank" rel="noreferrer">
+            <a className="btn sm primary" href={`/api/documents/${dep.id}`} target="_blank" rel="noreferrer">
               {t("Voir le document")}
             </a>
             <Link className="btn sm" href="/moi#documents">

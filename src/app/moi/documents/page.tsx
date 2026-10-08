@@ -69,7 +69,7 @@ export default async function DocumentsPage() {
       </section>
 
       <MyDocuments
-        docs={miens.map((d) => ({ id: d.id, number: d.number, label: t(DOC_LABEL[d.type]), createdAt: d.createdAt, status: d.status, href: `/desk/documents/pdf/${d.id}`, intentId: d.intentId }))}
+        docs={miens.map((d) => ({ id: d.id, number: d.number, label: t(DOC_LABEL[d.type]), createdAt: d.createdAt, status: d.status, href: `/api/documents/${d.id}`, intentId: d.intentId }))}
         ops={mine
           .slice()
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

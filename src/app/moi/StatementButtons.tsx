@@ -15,7 +15,7 @@ export function StatementButtons() {
         Attestation de détention
       </button>
       {state?.ok && (
-        <a className="btn sm primary" href={`/desk/documents/pdf/${state.id}`} target="_blank" rel="noreferrer">
+        <a className="btn sm primary" href={`/api/documents/${state.id}`} target="_blank" rel="noreferrer">
           Ouvrir {state.number}
         </a>
       )}

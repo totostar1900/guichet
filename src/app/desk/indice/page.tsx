@@ -137,7 +137,7 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
               </a>
               {already ? (
                 <>
-                  <a className="btn sm" href={`/desk/documents/pdf/${already.id}`} target="_blank" rel="noreferrer">
+                  <a className="btn sm" href={`/api/documents/${already.id}`} target="_blank" rel="noreferrer">
                     {t("La note publiée")}
                   </a>
                   <span className="muted">{t("publiée le {d} par {who}", { d: fmtDateTime(already.createdAt), who: already.createdBy ?? "—" })}</span>
