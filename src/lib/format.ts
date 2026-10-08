@@ -20,13 +20,36 @@ const MONTHS_FR = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "a
 const DAYS_FR = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-/** Dates follow the viewer's language (numbers keep the FCFA convention); set by the language provider. */
-let formatLang: "fr" | "en" = "fr";
-export const setFormatLang = (l: "fr" | "en"): void => {
-  formatLang = l;
+/**
+ * LA LANGUE DES DATES, ET POURQUOI CE N'EST PLUS UNE VARIABLE DE MODULE.
+ *
+ * Elle l'était, et le serveur l'écrivait à chaque requête : un processus Node
+ * sert plusieurs lecteurs à la fois, deux requêtes de langues différentes se la
+ * disputaient, et la dernière posée gagnait pour tout ce qui restait à rendre.
+ * Trois conséquences, par ordre de gravité : un PDF réglementaire pouvait
+ * sortir avec les mois d'un autre lecteur ; une page française recevait « 3 Oct
+ * 2025 » là où le navigateur réécrivait « 3 oct. 2025 », donc un échec
+ * d'hydratation ; et personne ne pouvait le reproduire, puisqu'il faut deux
+ * requêtes simultanées pour le voir.
+ *
+ * Le navigateur n'a pas ce problème : un document, un lecteur, une langue pour
+ * toute sa vie. « setFormatLang » reste donc pour lui, et pour les tests.
+ * Le serveur, lui, pose une LECTURE au lieu d'une valeur : i18n/server.ts lui
+ * donne une fonction qui lit la langue de la requête en cours. La fonction est
+ * posée une fois, au chargement du module, pas à chaque requête.
+ */
+type LangueDesDates = "fr" | "en";
+let lireLaLangue: () => LangueDesDates = () => "fr";
+/** Une langue fixe, pour toute la vie du document : le navigateur, et les tests. */
+export const setFormatLang = (l: LangueDesDates): void => {
+  lireLaLangue = () => l;
 };
-const MONTHS = new Proxy([] as string[], { get: (_t, i) => (formatLang === "en" ? MONTHS_EN : MONTHS_FR)[i as unknown as number] });
-const DAYS = new Proxy([] as string[], { get: (_t, i) => (formatLang === "en" ? DAYS_EN : DAYS_FR)[i as unknown as number] });
+/** Une lecture par requête : le serveur la pose une fois, voir src/i18n/server.ts. */
+export const setFormatLangSource = (lecture: () => LangueDesDates): void => {
+  lireLaLangue = lecture;
+};
+const MONTHS = new Proxy([] as string[], { get: (_t, i) => (lireLaLangue() === "en" ? MONTHS_EN : MONTHS_FR)[i as unknown as number] });
+const DAYS = new Proxy([] as string[], { get: (_t, i) => (lireLaLangue() === "en" ? DAYS_EN : DAYS_FR)[i as unknown as number] });
 
 export const fmt = (n: number): string => nf.format(Math.round(n)).split(" ").join(ESPACE_DES_MILLIERS);
 
@@ -71,7 +94,7 @@ function partsDeLaPlace(iso: string): { a: number; m: number; j: number; js: num
   return { a: z.getUTCFullYear(), m: z.getUTCMonth(), j: z.getUTCDate(), js: z.getUTCDay(), h: z.getUTCHours(), min: z.getUTCMinutes() };
 }
 
-const hhmm = (h: number, min: number): string => `${String(h).padStart(2, "0")}${formatLang === "en" ? ":" : " h "}${String(min).padStart(2, "0")}`;
+const hhmm = (h: number, min: number): string => `${String(h).padStart(2, "0")}${lireLaLangue() === "en" ? ":" : " h "}${String(min).padStart(2, "0")}`;
 
 export const fmtDate = (iso: string, withYear = true): string => {
   const d = partsDeLaPlace(iso);

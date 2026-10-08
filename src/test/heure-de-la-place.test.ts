@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { fmtDate, fmtDateTime, fmtDay, fmtTime, fmtWhen, setFormatLang } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtDay, fmtTime, fmtWhen, setFormatLang, setFormatLangSource } from "@/lib/format";
 
 /**
  * L'HEURE AFFICHÉE NE DÉPEND PLUS DE LA MACHINE QUI L'AFFICHE.
@@ -56,5 +57,52 @@ describe("l'heure de la place est épinglée", () => {
     setFormatLang("en");
     expect(fmtDateTime("2026-10-07T23:30:00Z")).toBe("Thu 8 Oct 00:30");
     setFormatLang("fr");
+  });
+});
+
+/**
+ * LA LANGUE DES DATES NE SE PARTAGE PAS ENTRE DEUX LECTEURS.
+ *
+ * Elle vivait dans une variable de module que le serveur réécrivait à chaque
+ * requête. Un processus Node sert plusieurs lecteurs à la fois : la dernière
+ * langue posée gagnait pour tout ce qui restait à rendre, y compris dans la
+ * requête d'à côté. Un PDF réglementaire pouvait sortir avec les mois d'un
+ * inconnu, et une page française recevoir « 3 Oct 2025 » que le navigateur
+ * réécrivait aussitôt en « 3 oct. 2025 », donc un échec d'hydratation de plus.
+ *
+ * Le formateur reçoit maintenant une LECTURE, interrogée à chaque date écrite,
+ * et c'est elle que le serveur branche sur la requête en cours.
+ */
+describe("la langue des dates suit son lecteur", () => {
+  it("se relit à chaque date, au lieu de figer la dernière posée", () => {
+    let courant: "fr" | "en" = "fr";
+    setFormatLangSource(() => courant);
+    courant = "en";
+    const anglais = fmtDate("2026-10-08");
+    courant = "fr";
+    const francais = fmtDate("2026-10-08");
+    // Deux lectures du même formateur, deux langues : aucune n'a écrasé l'autre.
+    expect(anglais).toBe("8 Oct 2026");
+    expect(francais).toBe("8 oct. 2026");
+    setFormatLang("fr");
+  });
+
+  it("le serveur ne pose plus une valeur, mais une lecture", () => {
+    const serveur = readFileSync("src/i18n/server.ts", "utf8");
+    // setFormatLang écrit un global : sur le serveur il traverse les requêtes.
+    expect(serveur).not.toMatch(/\bsetFormatLang\s*\(/);
+    expect(serveur).toContain("setFormatLangSource");
+  });
+});
+
+/**
+ * Le fournisseur de langue est un composant « client », mais il s'exécute aussi
+ * au rendu serveur : y poser une valeur fixe écrase la lecture par requête et
+ * ramène la fuite entre lecteurs, par la porte de derrière.
+ */
+describe("le fournisseur ne pose la langue que dans le navigateur", () => {
+  it("garde setFormatLang derrière une garde de navigateur", () => {
+    const provider = readFileSync("src/i18n/client.tsx", "utf8");
+    expect(provider).toMatch(/typeof window !== "undefined"\s*&&\s*setFormatLang|if \(typeof window !== "undefined"\) setFormatLang/);
   });
 });
