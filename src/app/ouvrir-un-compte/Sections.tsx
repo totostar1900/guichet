@@ -472,7 +472,7 @@ const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, 
  * reste est visible, et « Je n'ai rien reçu » existe : renvoyer, savoir où
  * chercher, et changer de canal là où un code le prouve.
  */
-export function ConventionSection({ file, signable, canal }: { file: ClientFile; signable: boolean; canal?: { to: string; channel: "whatsapp" | "email"; prouve: boolean } }) {
+export function ConventionSection({ file, signable, canal, enTete = false }: { file: ClientFile; signable: boolean; canal?: { to: string; channel: "whatsapp" | "email"; prouve: boolean }; /** Elle ouvre la page parce qu'elle attend un geste : le filet d'or le dit. */ enTete?: boolean }) {
   const t = useT();
   const [sendState, sendAct, sending] = useActionState<StepResult | null, FormData>(sendConventionCodeAction, null);
   const [verState, verAct, verifying] = useActionState<StepResult | null, FormData>(verifyConventionCodeAction, null);
@@ -484,7 +484,7 @@ export function ConventionSection({ file, signable, canal }: { file: ClientFile;
   const ou = c.pendingCodeTo ?? canal?.to;
   const parMail = canal?.channel === "email";
   return (
-    <section className={styles.sec}>
+    <section className={`${styles.sec} ${enTete ? styles.secAction : ""}`}>
       <h2 className="display">{t("Votre convention")}</h2>
       <div className={styles.convention}>
         <b>{t("Convention d'ouverture de compte-titres : l'essentiel")}</b>

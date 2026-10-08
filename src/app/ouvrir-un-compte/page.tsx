@@ -39,6 +39,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   /* La destination du code se lit à l'écran avant de l'envoyer : le canal prouvé
      à la connexion passe devant le champ du formulaire (voir lib/kyc/canal). */
   const canal = file.consents.conventionAt ? undefined : await canalDuCode(s.userId, file);
+  /* Le même bloc, à deux places selon le moment : en tête quand il attend un
+     geste, en pied quand il n'est plus qu'une pièce du dossier. */
+  const conventionBloc = <ConventionSection file={file} signable={signable} canal={canal} enTete={signable} />;
 
   const steps: [string, boolean][] = [
     [t("Type de client"), true],
@@ -108,6 +111,17 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         </div>
       )}
 
+      {/* CE QUI RESTE À FAIRE PASSE DEVANT CE QUI EST DÉJÀ FAIT.
+          Quand le dossier est approuvé, la convention est la SEULE chose qui
+          attende le client : tout le reste de la page est son dossier, en
+          lecture seule. Elle vivait pourtant tout en bas, après six sections
+          verrouillées, à trois mille pixels du haut dans une fenêtre de neuf
+          cents : le 8 octobre 2026 le bouton n'a pas reçu trois clics de suite,
+          les miens compris, parce qu'il n'était jamais là où on le visait. Et
+          l'accroche promettait « ci-dessous », ce qui n'était vrai qu'au prix
+          d'un très long défilement. */}
+      {signable && conventionBloc}
+
       <ol className={styles.rail}>
         {steps.map(([label, done], i) => (
           <li key={label} className={done ? styles.done : ""}>
@@ -140,9 +154,10 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       <FundsSection file={file} editable={editable} />
       <ConsentSection file={file} editable={editable} />
       <SubmitSection file={file} editable={editable} missing={missing} />
-      {/* La convention ferme la page : dans l'ordre du temps, elle vient après
+      {/* Tant qu'elle n'est pas à portée, ou qu'elle est déjà signée, la
+          convention ferme la page : dans l'ordre du temps, elle vient après
           l'envoi du dossier et après la décision du desk. */}
-      <ConventionSection file={file} signable={signable} canal={canal} />
+      {!signable && conventionBloc}
     </div>
   );
 }

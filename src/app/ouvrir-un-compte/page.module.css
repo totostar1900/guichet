@@ -347,3 +347,12 @@
   gap: var(--s-4);
   line-height: 1.5;
 }
+
+/* LA SECTION QUI ATTEND UN GESTE PORTE LE FILET D'OR.
+   Quand le dossier est approuvé, la convention ouvre la page au lieu de la
+   fermer, et elle est alors la seule chose à faire parmi six sections
+   verrouillées. Le filet est celui de la carte du niveau sur l'indice : la
+   maison s'en sert déjà pour dire « regardez ici d'abord ». */
+.secAction {
+  border-left: 4px solid var(--gold);
+}
