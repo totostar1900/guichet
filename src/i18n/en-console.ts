@@ -242,8 +242,8 @@ export const EN_CONSOLE: Record<string, string> = {
   "Bénéficiaire": "Beneficiary",
   "Banque du bénéficiaire": "Beneficiary's bank",
   "Votre argent chez nous": "Your money with us",
-  "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison, et elle ne porte pas intérêt.":
-    "What you leave here settles your orders without waiting for a transfer. It is never compulsory: you may pay for each order one at a time. It remains your money, on an account separate from the firm's, and it bears no interest.",
+  "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison.":
+    "What you leave here settles your orders without waiting for a transfer. It is never compulsory: you may pay for each order one at a time. It remains your money, on an account separate from the firm's.",
   "FCFA, pour votre prochain ordre": "FCFA, for your next order",
   "Mis de côté": "Set aside",
   "par vos ordres signés": "by your signed orders",
@@ -260,8 +260,8 @@ export const EN_CONSOLE: Record<string, string> = {
   "Votre solde disponible vous est versé sur demande, sur le compte bancaire déclaré à l'ouverture et sur lui seul. Il part dans les soixante-douze heures ouvrables qui suivent votre demande.":
     "Your available balance is paid out on request, to the bank account declared at opening and to that account only. It leaves within seventy-two working hours of your request.",
   "Le faire travailler": "Putting it to work",
-  "Votre provision ne porte pas intérêt : elle vous appartient et attend vos ordres. Pour qu'elle ne dorme pas, vous pouvez en placer tout ou partie en parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.":
-    "Your provision bears no interest: it is yours and it waits for your orders. So that it does not lie idle, you may place all or part of it in money market fund units registered in your name. The return is the fund's; we promise none.",
+  "Votre provision vous appartient et attend vos ordres. Pour qu'elle ne dorme pas, vous pouvez en placer tout ou partie en parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.":
+    "Your provision is yours and it waits for your orders. So that it does not lie idle, you may place all or part of it in money market fund units registered in your name. The return is the fund's; we promise none.",
   "Placer {m} FCFA": "Place {m} FCFA",
   "Rien de disponible à placer pour l'instant.": "Nothing available to place for now.",
   "Une fois placée, la somme n'est plus disponible pour régler un ordre : il faut d'abord racheter les parts, ce qui prend le délai de centralisation du fonds.":

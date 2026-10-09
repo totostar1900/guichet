@@ -24,8 +24,15 @@ export const LEGAL_VERSION = "2026-09-20";
  *
  * L'exemplaire signé reste la preuve : chaque acceptation produit le PDF du
  * texte en vigueur ce jour-là, rangé dans les documents du client.
+ *
+ * UNE DATE NE SÉPARE PAS DEUX TEXTES DU MÊME JOUR, d'où la lettre. Le
+ * 9 octobre au soir, l'article 3 perd la phrase qui disait au client que son
+ * solde ne porte pas intérêt : la maison reste muette là-dessus, et aucun
+ * intérêt n'est dû sans stipulation. Les exemplaires signés le matin portent
+ * encore la phrase. Laisser la même version sur les deux textes aurait fait
+ * mentir le repère au premier litige, pour une suppression d'une ligne.
  */
-export const CONVENTION_VERSION = "2026-10-09";
+export const CONVENTION_VERSION = "2026-10-09b";
 
 export interface LegalSection {
   id: string;

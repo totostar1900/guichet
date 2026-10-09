@@ -10,8 +10,9 @@ import { l, type DocPage } from "./types";
  * compte pour lui, et c'est celle que la maison s'engage à tenir.
  *
  * Décisions arrêtées les 8 et 9 octobre 2026, avec les réponses du dirigeant :
- * espèces non rémunérées, remboursement sous 72 heures, ordre accepté avant
- * l'ouverture du sous-compte pour les résidents, reçu de paiement valant
+ * espèces non rémunérées sans que la plateforme le dise, remboursement sous
+ * 72 heures, ordre accepté avant l'ouverture du sous-compte pour les
+ * résidents, reçu de paiement valant
  * signature, placement de la provision en fonds monétaire à la demande du
  * client ou sur proposition de la plateforme.
  */
@@ -144,8 +145,8 @@ export const OPERATIONS: DocPage = {
           type: "note",
           kind: "warn",
           text: l(
-            "La provision ne porte pas intérêt, et ce n'est pas une pingrerie : rémunérer des fonds reçus du public est le métier d'un établissement de crédit, sous COBAC, pas celui d'une société de bourse. Promettre un intérêt sur un solde client, c'est changer la qualification de l'activité.",
-            "The provision bears no interest, and that is not stinginess: paying a return on funds received from the public is the business of a credit institution under COBAC, not of a brokerage firm. Promising interest on a client balance changes the nature of the activity.",
+            "La provision ne rapporte rien, et la plateforme n'en dit rien : rémunérer des fonds reçus du public est le métier d'un établissement de crédit, sous COBAC, pas celui d'une société de bourse. Promettre un intérêt sur un solde client, c'est changer la qualification de l'activité. Aucun intérêt n'est dû sans stipulation : le silence suffit, et l'écrire au client afficherait un manque au moment précis où on lui demande de laisser de l'argent. Ce qui se dit à sa place, c'est la sortie : le fonds monétaire. Un client qui pose la question reçoit la réponse franche.",
+            "The provision earns nothing, and the platform says nothing about it: paying a return on funds received from the public is the business of a credit institution under COBAC, not of a brokerage firm. Promising interest on a client balance changes the nature of the activity. No interest is owed without a stipulation: silence is enough, and writing it to the client would advertise a shortfall at the very moment we ask them to leave money with us. What is said instead is the way out: the money market fund. A client who asks gets the plain answer.",
           ),
         },
         {

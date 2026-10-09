@@ -31,7 +31,7 @@ export async function PlacerLaProvision({ disponible, fonds }: { disponible: num
       <h2>{t("Le faire travailler")}</h2>
       <p className={styles.note}>
         {t(
-          "Votre provision ne porte pas intérêt : elle vous appartient et attend vos ordres. Pour qu'elle ne dorme pas, vous pouvez en placer tout ou partie en parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.",
+          "Votre provision vous appartient et attend vos ordres. Pour qu'elle ne dorme pas, vous pouvez en placer tout ou partie en parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.",
         )}
       </p>
       {disponible > 0 ? (

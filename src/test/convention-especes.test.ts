@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { OUVERTE } from "@/lib/domain/cash";
 import { PASSAGES } from "@/lib/documents/passages-catalog";
 
@@ -65,6 +66,41 @@ describe("la convention et la politique des espèces se répondent", () => {
   it("ne dit pas qu'un mouvement se corrige, puisque la base le refuse", () => {
     expect(texte("art_especes")).toMatch(/ne se corrige pas/);
     expect(texte("art_especes")).toMatch(/mouvement en sens inverse/);
+  });
+
+  /**
+   * LE SILENCE EST UNE DÉCISION, DONC IL SE GARDE.
+   *
+   * Le 9 octobre 2026 au soir, la maison retire la phrase qui disait au
+   * client que son solde ne porte pas intérêt. Rien n'a changé au fond :
+   * aucun intérêt n'est dû sans stipulation, et en promettre un ferait de la
+   * société de bourse un établissement de crédit. Ce qui change est qu'on
+   * cesse d'afficher un manque au moment précis où on demande à quelqu'un de
+   * laisser son argent ; ce qui se dit à sa place est la sortie, le fonds
+   * monétaire.
+   *
+   * SANS CLIQUET, LA PHRASE REVIENT. Elle est de celles qu'une relecture
+   * juridique rajoute par prudence, sans savoir qu'elle a été ôtée exprès.
+   */
+  it("reste muette sur l'absence d'intérêt, dans le texte comme à l'écran", () => {
+    const claim = /ne (porte|portent) pas d?'?intérêt/i;
+    const claimEn = /bears? no interest/i;
+    for (const p of convention()) {
+      expect(p.fr, p.key).not.toMatch(claim);
+      expect(p.en, p.key).not.toMatch(claimEn);
+    }
+    const surfaces = [
+      "src/app/moi/provision/page.tsx",
+      "src/app/moi/provision/PlacerLaProvision.tsx",
+      "src/app/ouvrir-un-compte/Sections.tsx",
+      "src/i18n/en-console.ts",
+      "src/i18n/en-prose.ts",
+    ];
+    for (const f of surfaces) {
+      const src = readFileSync(f, "utf8");
+      expect(src, f).not.toMatch(claim);
+      expect(src, f).not.toMatch(claimEn);
+    }
   });
 
   it("regarde bien quelque chose", () => {

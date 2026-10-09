@@ -56,12 +56,13 @@ export const EN_PROSE: Record<string, string> = {
   "Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.": "Your securities are dematerialised, registered in your name, held at the designated custodian; Purpose Capital acts as intermediary.",
   "Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom.": "Cash passes through a segregated settlement account; funds must come from an account in your name.",
   /* L'essentiel de la convention, version du 9 octobre 2026 : mandat
-     d'ouverture, provision non rémunérée plaçable en fonds monétaire, l'ordre
-     naît de la signature, et les 72 heures. */
+     d'ouverture, provision plaçable en fonds monétaire, l'ordre naît de la
+     signature, et les 72 heures. La ligne des espèces dit la sortie, pas le
+     rendement nul du solde : le texte opposable est muet sur ce point. */
   "Vous nous donnez mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez rien d'autre pour cela, et l'ouverture est sans frais.":
     "You give us a mandate to open, in your name, the accounts your orders need: you will sign nothing else for that, and opening is free.",
-  "Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom. Votre solde ne porte pas intérêt, et vous pouvez le placer en parts de fonds monétaire à votre nom.":
-    "Cash passes through a segregated settlement account; funds must come from an account in your name. Your balance bears no interest, and you may place it in money market fund units registered in your name.",
+  "Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom. Vous pouvez placer votre solde en parts de fonds monétaire inscrites à votre nom.":
+    "Cash passes through a segregated settlement account; funds must come from an account in your name. You may place your balance in money market fund units registered in your name.",
   "Un ordre naît de votre signature. Si vous le réglez tout de suite par un moyen authentifié, le reçu du paiement vaut signature ; l'argent ne précède jamais l'ordre.":
     "An order arises from your signature. If you settle it at once by an authenticated means, the payment receipt stands as that signature; money never precedes the order.",
   "Vous demandez le versement de votre solde disponible quand vous voulez : il part sous 72 heures ouvrables, vers votre compte bancaire et vers lui seul.":

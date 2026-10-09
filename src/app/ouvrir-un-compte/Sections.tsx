@@ -502,7 +502,7 @@ export function ConventionSection({ file, signable, canal, enTete = false }: { f
               fait qu'il n'y en aura pas d'autre. Il se dit donc ici, en toutes
               lettres, et non seulement à l'article 2 du texte complet. */}
           <li>{t("Vous nous donnez mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez rien d'autre pour cela, et l'ouverture est sans frais.")}</li>
-          <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom. Votre solde ne porte pas intérêt, et vous pouvez le placer en parts de fonds monétaire à votre nom.")}</li>
+          <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom. Vous pouvez placer votre solde en parts de fonds monétaire inscrites à votre nom.")}</li>
           <li>{t("Un ordre naît de votre signature. Si vous le réglez tout de suite par un moyen authentifié, le reçu du paiement vaut signature ; l'argent ne précède jamais l'ordre.")}</li>
           <li>{t("Vous demandez le versement de votre solde disponible quand vous voulez : il part sous 72 heures ouvrables, vers votre compte bancaire et vers lui seul.")}</li>
           <li>{t("Tarifs : selon l'annexe tarifaire remise par votre conseiller ; aucun frais d'ouverture.")}</li>
