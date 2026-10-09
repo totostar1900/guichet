@@ -250,10 +250,20 @@ export function MesMandats({
               </div>
             )}
 
-            <label className="field">
-              {t("Plafond par échéance : nous ne prélèverons jamais plus")}
-              <input name="maxAmount" inputMode="numeric" placeholder="100 000" value={plafond} {...groupedInput(setPlafond)} />
-            </label>
+            {/* UN SEUL MONTANT POUR LA PROVISION. Le plafond protège le jour
+                où le montant pourrait changer sans le client, ce qui est le cas
+                d'une épargne programmée dont le montant vient de l'instruction.
+                Ici le client écrit lui-même son montant : deux chiffres pour un
+                seul étaient une friction sans contrepartie. Le plafond existe
+                toujours, il vaut le montant, et la phrase le dit. */}
+            {objet === "provision" ? (
+              <p className={styles.note}>{t("Ce montant est aussi votre plafond : nous ne prélèverons jamais plus, et jamais autre chose.")}</p>
+            ) : (
+              <label className="field">
+                {t("Plafond par échéance : nous ne prélèverons jamais plus")}
+                <input name="maxAmount" inputMode="numeric" placeholder="100 000" value={plafond} {...groupedInput(setPlafond)} />
+              </label>
+            )}
 
             <div className={styles.deux}>
               <label className="field">

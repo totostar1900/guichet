@@ -203,4 +203,6 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
     "We need an e-mail address before you sign: that is where the code goes, and then the notice of every debit.",
   "Ajouter mon adresse →":
     "Add my address →",
+  "Ce montant est aussi votre plafond : nous ne prélèverons jamais plus, et jamais autre chose.":
+    "This amount is also your ceiling: we will never debit more, and never anything else.",
 };
