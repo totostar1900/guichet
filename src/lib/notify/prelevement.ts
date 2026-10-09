@@ -3,6 +3,7 @@ import { repo } from "@/lib/data";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import { MOTIFS, type MotifDeRejet } from "@/lib/domain/prelevement";
 import { fmt, fmtDate } from "@/lib/format";
+import { tmpl } from "./compose";
 import { notifyRaw } from "./dispatch";
 
 /**
@@ -32,14 +33,14 @@ async function contactDe(userId: string, m: MandatPrelevement) {
  *
  * Un préavis part cinq jours avant l'échéance, donc hors de la fenêtre de
  * vingt-quatre heures où Meta tolère un texte libre : il lui faut un modèle
- * approuvé. Le texte soumis vit dans `docs/modele-whatsapp-prelevement.md`,
+ * approuvé. Le texte soumis vit dans `docs/modeles-whatsapp.md`,
  * et l'ordre ci-dessous est celui de ses variables.
  *
  * Un modèle approuvé avec cinq variables et un envoi qui en passe quatre est
  * refusé à CHAQUE message, et le refus ne se lit que dans la réponse de
  * l'API. Un cliquet compare donc les deux.
  */
-const MODELE_PREAVIS = () => process.env.WA_TEMPLATE_PRELEVEMENT || "guichet_prelevement";
+const MODELE_PREAVIS = () => tmpl("WA_TEMPLATE_PRELEVEMENT", "guichet_prelevement");
 
 export async function envoyerPreavisDePrelevement(m: MandatPrelevement, p: { dueOn: string; amount: number }): Promise<{ sent: boolean; error?: string }> {
   const quoi = m.objet === "provision" ? "votre provision" : "votre épargne programmée";
@@ -70,7 +71,7 @@ export async function direLeRejet(m: MandatPrelevement, p: { dueOn: string; amou
        dont « opposition du client » et « compte clos » : des phrases que
        personne n'a envie de voir figées dans un catalogue chez un tiers. La
        ligne reste de notre côté, et elle se corrige sans soumission. */
-    const template = { name: process.env.WA_TEMPLATE_UPDATE || "guichet_maj", params: [m.accountHolder, text] };
+    const template = { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [m.accountHolder, text] };
     const rows = await notifyRaw("intent_update", contact, { subject: `Prélèvement du ${fmtDate(p.dueOn)} non abouti`, text, template });
     return rows.some((x) => x.status === "sent") ? { sent: true } : { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}`).join(" · ") || "aucun canal joignable" };
   } catch (e) {

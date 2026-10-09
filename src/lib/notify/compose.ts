@@ -22,7 +22,16 @@ export interface Message {
 
 const base = () => process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const link = (o: Offer) => `${base()}/offres/${o.id}`;
-const tmpl = (key: string, fallback: string) => process.env[key] || fallback;
+/**
+ * LE NOM D UN MODÈLE : la variable si elle dit quelque chose, le défaut sinon.
+ *
+ * « || » et non « ?? », et la différence n est pas théorique : une variable
+ * posée VIDE sur Vercel arrive comme une chaîne vide, que « ?? » laisserait
+ * passer. Le nom du modèle envoyé à Meta serait alors « », et chaque envoi
+ * échouerait sans que rien ne dise pourquoi. Cette fonction est exportée pour
+ * qu il n existe qu un seul endroit où la règle se décide.
+ */
+export const tmpl = (key: string, fallback: string) => process.env[key] || fallback;
 
 export function offerPublished(o: Offer, firstName?: string): Message {
   const y = headlineYield(o);

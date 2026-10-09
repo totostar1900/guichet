@@ -3,7 +3,7 @@ import { repo } from "@/lib/data";
 import type { Contact, Notification, NotifyChannel, Offer } from "@/lib/domain/types";
 import { summarize } from "@/lib/domain/summary";
 import { fmtDateTime } from "@/lib/format";
-import { emailHtml, type Message } from "./compose";
+import { emailHtml, tmpl, type Message } from "./compose";
 import { emailConfigured, sendEmail, sendWhatsAppTemplate, sendWhatsAppText, whatsappConfigured } from "./providers";
 import { pushConfigured, sendPush } from "./push";
 import { mayReceive } from "./consent";
@@ -76,7 +76,7 @@ function message(o: Offer, reason: string, firstName?: string): Message & { push
   return {
     subject: `Opportunité du moment : ${o.title}`,
     text,
-    template: { name: process.env.WA_TEMPLATE_OFFER ?? "guichet_offre", params: [o.title, `${hero}${when} · ${reason}`, s.deadline, url] },
+    template: { name: tmpl("WA_TEMPLATE_OFFER", "guichet_offre"), params: [o.title, `${hero}${when} · ${reason}`, s.deadline, url] },
     push: { title: `${o.title} · ${hero}`, body: `${reason}${when}. Ouvrir la fiche.` },
   };
 }

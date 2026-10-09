@@ -25,12 +25,37 @@ async function graph(path: string, body: unknown): Promise<{ id: string }> {
 }
 
 /** Approved marketing/utility template with positional body parameters. */
+/**
+ * CE QU'UN PARAMÈTRE DE MODÈLE N'A PAS LE DROIT DE CONTENIR.
+ *
+ * Meta refuse un paramètre qui porte un retour à la ligne, une tabulation ou
+ * quatre espaces de suite : l'envoi échoue en entier, avec un code, et rien
+ * dans le message ne laisse deviner que la faute est une mise en forme. Or nos
+ * textes sont écrits pour l'e-mail, en paragraphes : l'accusé de réception
+ * d'une intention passe trois retours à la ligne dans sa seule variable.
+ *
+ * La mise à plat se fait ICI, au seul endroit que tous les modèles traversent,
+ * plutôt que chez chacun des appelants : une règle de Meta n'a pas à être
+ * connue de celui qui rédige une phrase.
+ *
+ * LA LONGUEUR SE BORNE AUSSI, pour la même raison : un corps rendu au-delà de
+ * 1 024 caractères est refusé. Couper vaut mieux que ne rien envoyer, parce
+ * que le texte entier part de toute façon par e-mail et que chacun de ces
+ * modèles finit en disant que le détail est dans le Guichet.
+ */
+const PARAM_MAX = 900;
+export const parametreDeModele = (s: string): string => {
+  const plat = s.replace(/\s+/g, " ").trim();
+  return plat.length > PARAM_MAX ? `${plat.slice(0, PARAM_MAX - 1).trimEnd()}…` : plat;
+};
+
 export async function sendWhatsAppTemplate(to: string, template: string, params: string[], lang = "fr"): Promise<string> {
+  const propres = params.map(parametreDeModele);
   const r = await graph("messages", {
     messaging_product: "whatsapp",
     to: to.replace(/[^\d]/g, ""),
     type: "template",
-    template: { name: template, language: { code: lang }, components: params.length ? [{ type: "body", parameters: params.map((text) => ({ type: "text", text })) }] : [] },
+    template: { name: template, language: { code: lang }, components: propres.length ? [{ type: "body", parameters: propres.map((text) => ({ type: "text", text })) }] : [] },
   });
   return r.id;
 }
