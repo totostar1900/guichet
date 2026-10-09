@@ -13,6 +13,7 @@ import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { AvisGarde } from "@/lib/domain/garde";
+import { CONVENTION_VERSION } from "@/data/legal";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
@@ -70,6 +71,57 @@ function seedMandats(): MandatPrelevement[] {
       updatedAt: iso,
     },
   ];
+}
+
+/**
+ * LE CLIENT DE DÉMONSTRATION A UN DOSSIER, ET IL EST APPROUVÉ.
+ *
+ * Sans lui, la moitié de l'application est inatteignable en local : un ordre
+ * ne se signe pas, une provision ne s'alimente pas, un mandat ne se signe
+ * pas. Deux fonctionnalités livrées le 9 octobre 2026 n'ont pas pu être
+ * jouées à l'écran pour cette seule raison, et une fonctionnalité qu'on ne
+ * peut pas essayer est une fonctionnalité qu'on livre sur la foi des tests.
+ *
+ * IL SE CRÉE À LA PREMIÈRE LECTURE, et non dans le semis, parce que
+ * l'identifiant dépend du nom tapé à l'écran de connexion
+ * (« dev-client-<nom> ») : un dossier écrit d'avance ne vaudrait que pour un
+ * seul nom. Il entre ensuite dans le magasin, donc le desk le voit comme les
+ * autres.
+ *
+ * LE PRÉFIXE EST LA GARDE. Seul `devLogin` fabrique des identifiants qui
+ * commencent par « dev-client- » ; une session Supabase porte un UUID. Ce
+ * dossier ne peut donc pas naître en production.
+ */
+function dossierDeDemonstration(userId: string): ClientFile | undefined {
+  if (!userId.startsWith("dev-client-")) return undefined;
+  const nom =
+    userId
+      .slice("dev-client-".length)
+      .split("-")
+      .filter(Boolean)
+      .map((m) => m.charAt(0).toUpperCase() + m.slice(1))
+      .join(" ") || "Client de démonstration";
+  const now = nowIso();
+  const row: ClientFile = {
+    ...emptyClientFile(userId, "physique", nom, { phone: "+237600000099", email: "demo@example.cm" }),
+    id: `kyc-${userId}`,
+    status: "approuve",
+    identity: { name: nom, phone: "+237600000099", email: "demo@example.cm", country: "Cameroun", city: "Yaoundé", birthDate: "1986-05-04", nationality: "Camerounaise", profession: "Cadre", idType: "CNI", idNumber: "987654321", idExpiresOn: "2030-01-31", address: "Bastos, Yaoundé" },
+    funds: { pep: false, source: "Salaire", expectedAmount: "10 à 50 M FCFA", bankName: "Afriland First Bank", bankAccount: "CM21 10005 00001 98765432109 87", bankHolder: nom },
+    profile: { category: "non_professionnel", objectives: "Épargne à moyen terme", horizon: "3 à 5 ans", experience: "Quelques placements", riskTolerance: "moyenne", lossCapacity: "moins de 20 %" },
+    /* La convention porte la VERSION EN VIGUEUR : semée avec une version
+       ancienne, elle enverrait le client de démonstration signer une reprise
+       à chaque connexion, et on croirait à un défaut. */
+    consents: { dataAt: now, whatsappAt: now, conventionAt: now, conventionMethod: "code à usage unique", conventionVersion: CONVENTION_VERSION },
+    /* Le sous-compte est ce qui fait passer le palier à 2, donc ce qui rend
+       un ordre sur TITRE signable. Sans lui, seules les parts d'OPCVM se
+       signent, et la moitié des écrans reste hors d'atteinte. */
+    review: { custodianAccount: "CT-DEMO-0001", reviewedBy: "Georges", reviewedAt: now },
+    createdAt: now,
+    updatedAt: now,
+  };
+  store().clientFiles.push(row);
+  return row;
 }
 
 function seedClientFiles(): ClientFile[] {
@@ -1012,7 +1064,7 @@ export const memoryRepository: Repository = {
     return f ? structuredClone(f) : undefined;
   },
   async getClientFileByUser(userId) {
-    const f = store().clientFiles.find((x) => x.userId === userId);
+    const f = store().clientFiles.find((x) => x.userId === userId) ?? dossierDeDemonstration(userId);
     return f ? structuredClone(f) : undefined;
   },
   async createClientFile(f) {
