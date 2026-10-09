@@ -7,6 +7,7 @@ import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
+import type { MandatPrelevement, NewMandat } from "@/lib/domain/mandat";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
@@ -184,6 +185,22 @@ export interface Repository {
    * ensemble, sans quoi un client se retrouverait avec deux instructions actives.
    */
   remplacerStandingOrder(id: string, input: NewStandingOrder): Promise<StandingOrder>;
+
+  /**
+   * Les mandats de prélèvement : ceux d'un client pour sa page, tous pour le
+   * robot qui prépare les tirages du jour.
+   *
+   * Un mandat révoqué ne disparaît pas de la liste : une contestation porte
+   * sur un tirage passé, et une ligne effacée ne se conteste plus.
+   */
+  listMandats(userId?: string): Promise<MandatPrelevement[]>;
+  createMandat(input: NewMandat): Promise<MandatPrelevement>;
+  updateMandat(
+    id: string,
+    patch: Partial<
+      Pick<MandatPrelevement, "state" | "signedAt" | "signedMethod" | "signedTo" | "docId" | "pendingCodeHash" | "pendingCodeAt" | "pendingCodeTries" | "pendingCodeTo" | "revokedAt" | "revokedReason" | "rejects">
+    >,
+  ): Promise<MandatPrelevement>;
 
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;
@@ -383,3 +400,18 @@ export function makeRef(type: NewIntentInput["type"], now = new Date()): string 
  * It is never printed on what a client receives.
  */
 export const makeOrderNo = (seq: number): string => `PC-ORD-${String(seq).padStart(6, "0")}`;
+
+/**
+ * MP-K7Q4 : la référence d'un mandat de prélèvement.
+ *
+ * Elle est imprimée sur chaque opération présentée à la banque du client et
+ * citée dans toute contestation : elle doit donc se lire au téléphone et se
+ * recopier sans faute. Même alphabet que les autres références de la maison,
+ * qui écarte déjà ce qui se confond.
+ */
+export function makeMandatRef(now = new Date()): string {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const tail = [...bytes].map((b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
+  return `MP-${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, "0")}-${tail}`;
+}

@@ -505,3 +505,25 @@ export function previewLine(type: DocumentType, key: string, text: string): stri
   void key;
   return fill(text, vars);
 }
+
+/* ---------------- Mandat de prélèvement ---------------- */
+import { MandatPrelevementDoc } from "./pdf/kyc-templates";
+
+/**
+ * L'exemplaire signé d'un mandat de prélèvement.
+ *
+ * Il se produit AU MOMENT DE LA SIGNATURE, comme la convention et comme
+ * l'ordre : un document fabriqué avant porterait un bloc vide sous une
+ * autorisation déjà donnée, et c'est l'erreur que la maison a déjà commise
+ * une fois. Sa banque le demandera ; une autorisation qu'on ne peut pas
+ * produire ne vaut rien.
+ */
+export async function generateMandat(mandatId: string): Promise<GeneratedDocument> {
+  const r = repo();
+  const mandat = (await r.listMandats()).find((m) => m.id === mandatId);
+  if (!mandat) throw new Error("Mandat introuvable");
+  const now = new Date();
+  const { number, registerNo } = await nextNumbers("prelevement", now);
+  const pdf = await renderToBuffer(el(createElement(MandatPrelevementDoc, { number, mandat, now })));
+  return store({ type: "prelevement", number, registerNo, title: `Mandat de prélèvement : ${mandat.accountHolder}`, clientId: mandat.userId, clientName: mandat.accountHolder }, pdf, now);
+}

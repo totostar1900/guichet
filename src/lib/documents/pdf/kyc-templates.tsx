@@ -1,10 +1,11 @@
 import { View } from "@react-pdf/renderer";
 import { passage } from "../passages-catalog";
-import { COMPANY } from "@/lib/config";
+import { COMPANY, SETTLEMENT } from "@/lib/config";
 import type { ClientFile } from "@/lib/domain/kyc";
-import { fmtDate, fmtDateTime, localIso } from "@/lib/format";
+import type { MandatPrelevement } from "@/lib/domain/mandat";
+import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { DOC_LABEL, KIND_LABEL, RISK_LABEL } from "@/lib/kyc/checklist";
-import { Addr, KV, Letter, Sig, Table, Text, s } from "./primitives";
+import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
 
 const ROLE = { representant: "Représentant légal", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
 
@@ -95,6 +96,58 @@ export function DossierOuverture({ number, file, now, texts }: { number: string;
         Convention d&apos;ouverture de compte-titres acceptée le {file.consents.conventionAt ? fmtDateTime(file.consents.conventionAt) : "—"}. Prochaine revue KYC : {file.review.nextReviewOn ? fmtDate(file.review.nextReviewOn) : "—"}.
       </Text>
       <Sig left={`Pour ${COMPANY.legalName} : responsable de la conformité`} right="Réception du dépositaire : n° de compte attribué, date, visa" />
+    </Letter>
+  );
+}
+
+/* ---------------- Mandat de prélèvement ---------------- */
+
+/**
+ * CE QUE LE CLIENT AUTORISE, EN UNE PAGE QU'IL GARDE.
+ *
+ * Un prélèvement se conteste. La pièce doit donc porter tout ce qu'une
+ * contestation invoque : qui débite, quel compte, jusqu'à combien, quand, et
+ * sous quelle référence. Sa banque la demandera, et une autorisation qu'on ne
+ * peut pas produire ne vaut rien.
+ *
+ * Le plafond est écrit en gras et séparé du montant courant : c'est lui
+ * l'engagement, et c'est la même règle que le plafond « au plus » d'un ordre.
+ */
+export function MandatPrelevementDoc({ number, mandat, now }: { number: string; mandat: MandatPrelevement; now: Date }) {
+  const mensuel = mandat.objet === "provision" && mandat.amount != null;
+  return (
+    <Letter heading={`Mandat de prélèvement · ${number}`}>
+      <Text style={s.h1}>Autorisation de prélèvement sur compte bancaire</Text>
+      <Text style={s.ref}>
+        {number} · établi le {fmtDate(localIso(now))} · référence du mandat {mandat.ref}
+      </Text>
+      <Addr
+        blocks={[
+          ["Débiteur", [mandat.accountHolder, mandat.bankName, mandat.bankAccount]],
+          ["Créancier", [COMPANY.legalName, "Compte de règlement clients (ségrégué)", SETTLEMENT.bank]],
+        ]}
+      />
+      <KV
+        rows={[
+          ["Objet du mandat", mandat.objet === "provision" ? "Alimentation de la provision du client" : "Alimentation d'une instruction permanente"],
+          ...(mensuel ? ([["Montant prélevé chaque mois", `${fmt(mandat.amount ?? 0)} FCFA`]] as [string, string][]) : []),
+          ...(mandat.dayOfMonth ? ([["Jour du prélèvement", `le ${mandat.dayOfMonth} de chaque mois`]] as [string, string][]) : []),
+        ]}
+        total={["Plafond par échéance, que la maison ne dépasse jamais", `${fmt(mandat.maxAmount)} FCFA`]}
+      />
+      <Text style={s.p}>
+        Le débiteur autorise {COMPANY.legalName} à présenter des ordres de prélèvement sur le compte désigné ci-dessus, et sa banque à les régler, dans la limite du plafond par échéance. Le compte débité est ouvert au nom du
+        débiteur ; aucun prélèvement n&apos;est présenté sur le compte d&apos;un tiers.
+      </Text>
+      <Text style={s.p}>
+        Chaque prélèvement est annoncé avant d&apos;être présenté, avec son montant et sa date, et le débiteur peut l&apos;arrêter jusqu&apos;à la veille. Il peut révoquer ce mandat à tout moment, sans motif et sans frais, depuis son
+        espace ; la révocation prend effet avant l&apos;échéance suivante. Le présent mandat ne vaut que pour l&apos;objet désigné : il n&apos;autorise aucun autre prélèvement.
+      </Text>
+      <Text style={s.p}>
+        En cas de rejet faute de provision, {COMPANY.legalName} ne représente le prélèvement qu&apos;une fois, après en avoir informé le débiteur. Au second rejet, le mandat est suspendu et un conseiller prend contact. Toute
+        contestation d&apos;un prélèvement se fait auprès de sa banque dans les délais qu&apos;elle applique, en citant la référence {mandat.ref}.
+      </Text>
+      <Signature intent={{ signedAt: mandat.signedAt, signedMethod: mandat.signedMethod, signedTo: mandat.signedTo, ref: mandat.ref }} qui="débiteur" />
     </Letter>
   );
 }

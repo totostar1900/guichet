@@ -20,7 +20,8 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeOrderNo, makeRef, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, type Repository } from "./repository";
+import type { MandatPrelevement } from "@/lib/domain/mandat";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 import { cleDEchange } from "@/lib/domain/echange";
 
@@ -107,6 +108,7 @@ interface Store {
   deskExchanges: DeskExchange[];
   watches: Watch[];
   cash: CashEntry[];
+  mandats: MandatPrelevement[];
   payouts: CashPayout[];
   rapprochements: Rapprochement[];
   temoignages: Temoignage[];
@@ -176,6 +178,7 @@ function store(): Store {
       deskExchanges: [],
       watches: [],
       cash: [],
+      mandats: [],
       payouts: [],
       rapprochements: [],
       temoignages: [],
@@ -214,6 +217,8 @@ function store(): Store {
   if (!g.__guichetStore.inbound) g.__guichetStore.inbound = seedInbound();
   if (!g.__guichetStore.notifications) g.__guichetStore.notifications = [];
   if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = seedClientFiles();
+  // Un store déjà en mémoire d'une version d'avant la table : sans ce garde, toute lecture de mandats tomberait sur undefined.
+  if (!g.__guichetStore.mandats) g.__guichetStore.mandats = [];
   if (!g.__guichetStore.standing) g.__guichetStore.standing = [];
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
@@ -596,6 +601,22 @@ export const memoryRepository: Repository = {
     if (row.state !== "active") throw new Error("standing_orders : cette instruction ne court plus");
     Object.assign(row, { state: "remplacee", stopReason: "remplacée par une nouvelle version", updatedAt: nowIso() });
     return this.createStandingOrder({ ...input, supersedes: id });
+  },
+  async listMandats(userId) {
+    const all = store().mandats.filter((m) => !userId || m.userId === userId);
+    return structuredClone(all.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+  },
+  async createMandat(input) {
+    const now = nowIso();
+    const row: MandatPrelevement = { id: `mp-${store().mandats.length + 1}`, ref: makeMandatRef(), state: "actif", pendingCodeTries: 0, rejects: 0, createdAt: now, updatedAt: now, ...input };
+    store().mandats.unshift(row);
+    return structuredClone(row);
+  },
+  async updateMandat(id, patch) {
+    const row = store().mandats.find((m) => m.id === id);
+    if (!row) throw new Error(`direct_debit_mandates ${id} introuvable`);
+    Object.assign(row, patch, { updatedAt: nowIso() });
+    return structuredClone(row);
   },
   async listCash(userId) {
     return structuredClone(store().cash.filter((c) => c.userId === userId).sort((a, b) => a.at.localeCompare(b.at)));

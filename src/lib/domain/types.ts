@@ -417,7 +417,11 @@ export interface IntakeItem {
 
 /* ---------------- Documents ---------------- */
 
-export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "coupon" | "reclamation" | "transfert" | "note_indice";
+/* « mandat » est le mandat de GESTION DES ORDRES, « prelevement » celui qui
+   autorise la maison à débiter un compte bancaire. Deux autorisations
+   différentes, deux pièces : les confondre ferait signer l'une en croyant
+   signer l'autre. */
+export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice";
 export type DocumentStatus = "genere" | "envoye" | "signe";
 
 export interface GeneratedDocument {

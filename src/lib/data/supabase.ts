@@ -16,7 +16,8 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeOrderNo, makeRef, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, type Repository } from "./repository";
+import type { MandatPrelevement } from "@/lib/domain/mandat";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 import { cleDEchange, normaliserObjet } from "@/lib/domain/echange";
 
@@ -1370,6 +1371,52 @@ export const supabaseRepository: Repository = {
     if (error) fail("remplacerStandingOrder", error);
     return this.createStandingOrder({ ...input, supersedes: id });
   },
+  async listMandats(userId) {
+    let q = db().from("direct_debit_mandates").select("*").order("created_at", { ascending: false });
+    if (userId) q = q.eq("user_id", userId);
+    const { data, error } = await q;
+    if (error) {
+      // Migration 0074 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/direct_debit_mandates/.test(error.message)) return [];
+      fail("listMandats", error);
+    }
+    return (data as MandatRow[]).map(toMandat);
+  },
+  async createMandat(input) {
+    const row = {
+      ref: makeMandatRef(),
+      user_id: input.userId,
+      objet: input.objet,
+      standing_id: input.standingId ?? null,
+      bank_name: input.bankName,
+      bank_account: input.bankAccount,
+      account_holder: input.accountHolder,
+      max_amount: input.maxAmount,
+      day_of_month: input.dayOfMonth ?? null,
+      amount: input.amount ?? null,
+    };
+    const { data, error } = await db().from("direct_debit_mandates").insert(row).select("*").single();
+    if (error) fail("createMandat", error);
+    return toMandat(data as MandatRow);
+  },
+  async updateMandat(id, patch) {
+    const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (patch.state !== undefined) row.state = patch.state;
+    if (patch.signedAt !== undefined) row.signed_at = patch.signedAt ?? null;
+    if (patch.signedMethod !== undefined) row.signed_method = patch.signedMethod ?? null;
+    if (patch.signedTo !== undefined) row.signed_to = patch.signedTo ?? null;
+    if (patch.docId !== undefined) row.doc_id = patch.docId ?? null;
+    if (patch.pendingCodeHash !== undefined) row.pending_code_hash = patch.pendingCodeHash ?? null;
+    if (patch.pendingCodeAt !== undefined) row.pending_code_at = patch.pendingCodeAt ?? null;
+    if (patch.pendingCodeTries !== undefined) row.pending_code_tries = patch.pendingCodeTries ?? 0;
+    if (patch.pendingCodeTo !== undefined) row.pending_code_to = patch.pendingCodeTo ?? null;
+    if (patch.revokedAt !== undefined) row.revoked_at = patch.revokedAt ?? null;
+    if (patch.revokedReason !== undefined) row.revoked_reason = patch.revokedReason ?? null;
+    if (patch.rejects !== undefined) row.rejects = patch.rejects ?? 0;
+    const { data, error } = await db().from("direct_debit_mandates").update(row).eq("id", id).select("*").single();
+    if (error) fail("updateMandat", error);
+    return toMandat(data as MandatRow);
+  },
   async listCash(userId) {
     const { data, error } = await db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true });
     if (error) {
@@ -2236,4 +2283,62 @@ const fromNews = (n: NewsItem): NewsRow => ({
   updated_by: n.updatedBy ?? null,
   published_by: n.publishedBy ?? null,
   version: n.version,
+});
+
+/* ---------------- Mandats de prélèvement (migration 0074) ---------------- */
+
+type MandatRow = {
+  id: string;
+  ref: string;
+  user_id: string;
+  objet: "provision" | "instruction";
+  standing_id?: string | null;
+  bank_name: string;
+  bank_account: string;
+  account_holder: string;
+  max_amount: number | string;
+  day_of_month?: number | null;
+  amount?: number | string | null;
+  state: "actif" | "suspendu" | "revoque";
+  signed_at?: string | null;
+  signed_method?: string | null;
+  signed_to?: string | null;
+  doc_id?: string | null;
+  pending_code_hash?: string | null;
+  pending_code_at?: string | null;
+  pending_code_tries?: number | null;
+  pending_code_to?: string | null;
+  revoked_at?: string | null;
+  revoked_reason?: string | null;
+  rejects?: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const toMandat = (r: MandatRow): MandatPrelevement => ({
+  id: r.id,
+  ref: r.ref,
+  userId: r.user_id,
+  objet: r.objet,
+  standingId: u(r.standing_id),
+  bankName: r.bank_name,
+  bankAccount: r.bank_account,
+  accountHolder: r.account_holder,
+  maxAmount: Number(r.max_amount),
+  dayOfMonth: r.day_of_month ?? undefined,
+  amount: r.amount == null ? undefined : Number(r.amount),
+  state: r.state,
+  signedAt: u(r.signed_at),
+  signedMethod: u(r.signed_method),
+  signedTo: u(r.signed_to),
+  docId: u(r.doc_id),
+  pendingCodeHash: u(r.pending_code_hash),
+  pendingCodeAt: u(r.pending_code_at),
+  pendingCodeTries: r.pending_code_tries ?? 0,
+  pendingCodeTo: u(r.pending_code_to),
+  revokedAt: u(r.revoked_at),
+  revokedReason: u(r.revoked_reason),
+  rejects: r.rejects ?? 0,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
 });
