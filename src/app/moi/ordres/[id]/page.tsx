@@ -4,7 +4,8 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { ordreSignable } from "@/lib/domain/intent";
-import { plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from "@/lib/domain/plafond";
+import { aCouvrirPour, plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from "@/lib/domain/plafond";
+import { disponibleDe } from "@/lib/domain/provision";
 import { ordreAcceptable } from "@/lib/domain/ouverture";
 import { positionFor } from "@/lib/documents/position";
 import { peutOPCVM } from "@/lib/auth/types";
@@ -78,6 +79,15 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
      sous-compte seulement pour un non-résident. */
   const titre = seSigneAuPlafond(intent.type);
   const habilite = titre ? ordreAcceptable(intent.type, dossier) : peutOPCVM(s);
+  /* LA BONNE NOUVELLE SE DIT AVANT, PAS APRÈS.
+     « Votre provision couvre cet ordre, vous n'aurez rien à virer » change la
+     décision qu'on est en train de prendre : l'apprendre après la signature,
+     c'est l'apprendre trop tard. Le solde se lit donc ici, et la même règle
+     décidera à la signature, sur le solde de cet instant-là. */
+  const aRegler = aCouvrirPour(intent, offer);
+  const dispo = intent.signedAt ? 0 : await disponibleDe(s.userId);
+  const couvrirait = !intent.signedAt && aRegler > 0 && dispo >= aRegler;
+  const couvert = Boolean(intent.coveredAt);
   const signable = ordreSignable(intent) && habilite && Boolean(dossier);
   const canal = signable && dossier ? await canalDuCode(s.userId, dossier) : undefined;
 
@@ -211,7 +221,21 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
               puis appelle les fonds. Sur un titre, on ne transmet au marché
               qu'un ordre COUVERT (convention, article 4) : le règlement
               précède donc la transmission, à hauteur du plafond signé. */}
-          {titre ? (
+          {couvert || couvrirait ? (
+            /* COUVERT, IL N'Y A PLUS DE SECOND GESTE. Garder « vous virez »
+               sur un ordre déjà payé par la provision enverrait le client à
+               sa banque pour rien, ce qui est la friction qu'on retire. */
+            <>
+              <li className={couvert ? styles.fait : undefined}>
+                <b>{t("Réglé sur votre provision")}</b>
+                <small>{t("{m} FCFA réservés, rien à virer", { m: fmt(couvert ? (intent.coveredAmount ?? 0) : aRegler) })}</small>
+              </li>
+              <li>
+                <b>{titre ? t("Le desk transmet") : t("Le desk donne le go")}</b>
+                <small>{titre ? t("au marché, puis le résultat") : t("puis la centralisation")}</small>
+              </li>
+            </>
+          ) : titre ? (
             <>
               <li>
                 <b>{t("Vous réglez")}</b>
@@ -235,7 +259,11 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
             </>
           )}
         </ol>
-        {titre ? (
+        {couvert ? (
+          <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
+        ) : couvrirait ? (
+          <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
+        ) : titre ? (
           <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
         ) : (
           !rachat && <p className={styles.fin}>{t("Signer n'est pas payer : rien n'est à verser avant le go.")}</p>

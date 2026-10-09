@@ -117,6 +117,8 @@ type IntentRow = {
   signed_to?: string | null;
   order_doc_id?: string | null;
   max_amount?: number | string | null;
+  covered_at?: string | null;
+  covered_amount?: number | string | null;
   created_at: string;
   updated_at: string;
 };
@@ -220,6 +222,8 @@ function toIntent(r: IntentRow): Intent {
     signedTo: u(r.signed_to),
     orderDocId: u(r.order_doc_id),
     maxAmount: r.max_amount == null ? undefined : Number(r.max_amount),
+    coveredAt: u(r.covered_at),
+    coveredAmount: r.covered_amount == null ? undefined : Number(r.covered_amount),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -1020,6 +1024,8 @@ export const supabaseRepository: Repository = {
     if (patch.signedTo !== undefined) row.signed_to = patch.signedTo ?? null;
     if (patch.orderDocId !== undefined) row.order_doc_id = patch.orderDocId ?? null;
     if (patch.maxAmount !== undefined) row.max_amount = patch.maxAmount ?? null;
+    if (patch.coveredAt !== undefined) row.covered_at = patch.coveredAt ?? null;
+    if (patch.coveredAmount !== undefined) row.covered_amount = patch.coveredAmount ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);
     return toIntent(data as IntentRow);

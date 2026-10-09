@@ -76,3 +76,18 @@ export function depasseLePlafond(intent: Intent, offer: Offer, prixServi: number
   // Le franc d'arrondi du calcul de position ne fait pas un dépassement.
   return { depasse: cout > plafond + 1, cout, plafond };
 }
+
+/**
+ * CE QU'IL Y A À COUVRIR POUR CET ORDRE, EN FRANCS.
+ *
+ * Trois réponses, et elles suivent la nature de l'ordre. Une part d'OPCVM se
+ * règle pour son montant, qui est ferme. Un titre se règle au plus pour sa
+ * borne signée, parce que c'est elle l'engagement. Un rachat, une vente, une
+ * cession ne coûtent rien : ils rapportent.
+ */
+export function aCouvrirPour(intent: Intent, offer: Offer | undefined): number {
+  if (rapporteAuLieuDeCouter(intent.type)) return 0;
+  if (seSigneAuPlafond(intent.type)) return offer ? plafondEnVigueur(intent, offer) : (intent.maxAmount ?? 0);
+  if (intent.type === "souscription") return intent.amount ?? 0;
+  return 0;
+}

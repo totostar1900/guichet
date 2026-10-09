@@ -153,3 +153,69 @@ describe("le dépouillement d'une adjudication", () => {
     expect(a).toContain("à appeler");
   });
 });
+
+/**
+ * LA PROVISION PAIE, ET RIEN NE BOUGE AVANT LE RÈGLEMENT.
+ *
+ * Un ordre dont l'argent est déjà chez nous n'a aucune raison d'envoyer son
+ * client à sa banque : c'était trois gestes et deux moments pour une
+ * opération couverte. La couverture se décide à la signature, parce que
+ * c'est là que le solde est connu et que l'engagement naît.
+ *
+ * Le piège évité : débiter à la signature compterait la dépense DEUX FOIS,
+ * puisque le règlement écrit déjà son mouvement. La somme est donc réservée,
+ * pas dépensée, et la réservation s'éteint d'elle-même quand l'ordre est
+ * réglé, annulé ou non servi.
+ */
+describe("la couverture sur provision", () => {
+  it("ce qu'il y a à couvrir suit la nature de l'ordre", async () => {
+    const { aCouvrirPour } = await import("@/lib/domain/plafond");
+    // Une part : le montant versé, qui est ferme.
+    expect(aCouvrirPour({ ...ordre(), type: "souscription", amount: 250_000 }, undefined)).toBe(250_000);
+    // Un titre : la borne signée, parce que c'est elle l'engagement.
+    expect(aCouvrirPour({ ...ordre(), maxAmount: 9_460_000 }, undefined)).toBe(9_460_000);
+    // Ce qui rapporte ne se couvre pas.
+    for (const type of ["rachat", "vente", "cession"] as const) expect(aCouvrirPour({ ...ordre(), type }, undefined)).toBe(0);
+  });
+
+  it("le réservé sort du disponible, sans sortir du solde", async () => {
+    const { cashPosition } = await import("@/lib/domain/cash");
+    const entries = [{ id: "c1", userId: "u1", at: "2026-10-01", amount: 1_000_000, kind: "provision" as const, label: "Provision" }];
+    const sans = cashPosition(entries, []);
+    expect(sans.idle).toBe(1_000_000);
+    expect(sans.reserve).toBe(0);
+
+    const couvert = { ...ordre(), id: "i9", type: "souscription" as const, state: "recue" as const, coveredAt: "2026-10-09T09:00:00Z", coveredAmount: 400_000 };
+    const avec = cashPosition(entries, [couvert]);
+    // Le solde n'a pas bougé : l'argent est toujours là, il garantit une opération.
+    expect(avec.balance).toBe(1_000_000);
+    expect(avec.reserve).toBe(400_000);
+    expect(avec.idle).toBe(600_000);
+  });
+
+  it("la réservation s'éteint d'elle-même, sans geste pour la défaire", async () => {
+    const { cashPosition } = await import("@/lib/domain/cash");
+    const entries = [{ id: "c1", userId: "u1", at: "2026-10-01", amount: 1_000_000, kind: "provision" as const, label: "Provision" }];
+    const couvert = { ...ordre(), id: "i9", type: "souscription" as const, coveredAt: "2026-10-09T09:00:00Z", coveredAmount: 400_000 };
+    /* Réglé, annulé, non servi : l'ordre sort des opérations en cours, et le
+       franc redevient disponible. C'est la définition du disponible dans la
+       convention, pas une règle de plus à tenir. */
+    for (const state of ["reglee", "annulee", "non_servie"] as const) {
+      expect(cashPosition(entries, [{ ...couvert, state }]).idle).toBe(1_000_000);
+    }
+  });
+
+  it("la signature couvre si le solde suffit, et ne débite jamais", () => {
+    const src = readFileSync("src/app/moi/ordres/[id]/actions.ts", "utf8");
+    expect(src).toContain("disponibleDe(mien.userId)) >= du");
+    expect(src).toContain("coveredAt:");
+    // Aucun mouvement d'espèces à la signature : c'est le règlement qui l'écrit.
+    expect(src).not.toContain("addCash");
+  });
+
+  it("l'écran le dit AVANT de signer, pas après", () => {
+    const src = readFileSync("src/app/moi/ordres/[id]/page.tsx", "utf8");
+    expect(src).toContain("couvrirait");
+    expect(src).toContain("Réglé sur votre provision");
+  });
+});

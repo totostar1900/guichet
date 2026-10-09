@@ -5,6 +5,9 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
 import { ordreSignable } from "@/lib/domain/intent";
+import { aCouvrirPour } from "@/lib/domain/plafond";
+import { disponibleDe } from "@/lib/domain/provision";
+import { fmt } from "@/lib/format";
 import type { Intent } from "@/lib/domain/types";
 
 export type OrdreResult = { ok: true; message?: string; code?: string } | { ok: false; error: string };
@@ -70,18 +73,41 @@ export async function signerOrdreAction(_p: OrdreResult | null, form: FormData):
      cocherait plus tard. Le code consommé disparaît, il ne se rejoue pas. */
   const { generateForIntent } = await import("@/lib/documents/generate");
   const doc = await generateForIntent(intent.type === "rachat" ? "cession" : "bulletin", intent.id);
+  /* LA PROVISION PAIE SI ELLE PEUT, ET LE CLIENT N'EN SAIT RIEN AVANT.
+     Un ordre dont l'argent est déjà chez nous n'a aucune raison d'envoyer son
+     client à sa banque : c'était trois gestes et deux moments pour une
+     opération couverte. La couverture se décide ICI, au moment de la
+     signature, parce que c'est à cet instant que le solde est connu et que
+     l'engagement naît.
+
+     Rien ne bouge au journal : la somme est RÉSERVÉE (voir domain/cash), et
+     elle ne sortira qu'au règlement, par l'écriture habituelle. La débiter
+     maintenant compterait la dépense deux fois. */
+  const du = aCouvrirPour(intent, await r.getOffer(intent.offerId));
+  const couverture = du > 0 && (await disponibleDe(mien.userId)) >= du;
   await r.updateIntent(intent.id, {
     signedAt: new Date().toISOString(),
     signedMethod: "code à usage unique",
     signedTo: intent.pendingCodeTo,
     orderDocId: doc.id,
+    ...(couverture ? { coveredAt: new Date().toISOString(), coveredAmount: du } : {}),
     pendingCodeHash: undefined,
     pendingCodeAt: undefined,
     pendingCodeTries: 0,
     pendingCodeTo: undefined,
   });
-  await r.logEvent({ kind: "intent", intentId: intent.id, html: `<b>Ordre signé</b> par ${intent.clientName} · ${intent.ref} · ${doc.number}` });
+  await r.logEvent({
+    kind: "intent",
+    intentId: intent.id,
+    html: `<b>Ordre signé</b> par ${intent.clientName} · ${intent.ref} · ${doc.number}${couverture ? ` · <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés)` : ""}`,
+  });
   revalidatePath(chemin(id));
+  revalidatePath("/");
   revalidatePath("/desk");
-  return { ok: true, message: "Ordre signé. Votre exemplaire est dans vos documents." };
+  return {
+    ok: true,
+    message: couverture
+      ? "Ordre signé et couvert par votre provision : rien à virer. Votre exemplaire est dans vos documents."
+      : "Ordre signé. Votre exemplaire est dans vos documents.",
+  };
 }

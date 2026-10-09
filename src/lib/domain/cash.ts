@@ -148,6 +148,13 @@ export interface CashPosition {
   balance: number;
   /** Affecté à une opération encore vivante. */
   assigned: number;
+  /**
+   * Mis de côté par un ordre signé et couvert sur la provision.
+   *
+   * Ni dépensé ni disponible : l'argent est toujours au solde, il garantit une
+   * opération en cours. Il en sortira au règlement, par l'écriture habituelle.
+   */
+  reserve: number;
   /** Sans destination, ou dont l'affectation est échue : à restituer. */
   idle: number;
   /** Depuis quand le plus ancien franc inoccupé l'est. */
@@ -218,10 +225,20 @@ export function cashPosition(entries: CashEntry[], intents: Intent[], now = new 
     if (held(e, open, today)) assigned += e.amount;
     else if (!idleSince || e.at < idleSince) idleSince = e.at;
   }
-  // Le solde peut être inférieur à l'affecté quand des frais l'ont entamé :
-  // l'inoccupé ne descend alors pas sous zéro, il n'y a simplement plus rien.
-  const idle = Math.max(0, balance - assigned);
-  return { balance, assigned, idle, idleSince: idle > 0 ? idleSince : undefined };
+  /* CE QUI EST RÉSERVÉ N'EST PLUS DISPONIBLE, ET N'EST PAS ENCORE DÉPENSÉ.
+     Un ordre signé et couvert par la provision ne déplace aucun franc : il en
+     met de côté, jusqu'au règlement qui les sortira pour de bon. Sans cette
+     soustraction, le même franc couvrirait deux ordres, ou repartirait à la
+     banque du client pendant qu'il garantit une opération en cours. C'est mot
+     pour mot la définition du disponible dans la convention : ce qui n'est pas
+     affecté au règlement d'une opération en cours.
+
+     La réservation s'éteint d'elle-même : un ordre réglé, annulé ou non servi
+     sort de `open`, et le franc redevient disponible sans qu'un geste ait eu
+     à le libérer. */
+  const reserve = intents.filter((i) => open.has(i.id) && i.coveredAt).reduce((s, i) => s + (i.coveredAmount ?? 0), 0);
+  const idle = Math.max(0, balance - assigned - reserve);
+  return { balance, assigned, idle, reserve, idleSince: idle > 0 ? idleSince : undefined };
 }
 
 /**

@@ -228,6 +228,14 @@ export const EN_CONSOLE: Record<string, string> = {
   "Reprendre ma convention": "Confirm my agreement again",
   /* Le récapitulatif d'un ordre sur titre : la quantité est ferme, c'est la
      dépense qui flotte, d'où la borne « au plus ». */
+  /* La provision qui règle l'ordre : plus de second geste. */
+  "Réglé sur votre provision": "Settled from your provision",
+  "{m} FCFA réservés, rien à virer": "{m} FCFA set aside, nothing to transfer",
+  "puis la centralisation": "then the centralisation",
+  "Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.":
+    "This sum is set aside on your balance: it leaves only when the operation settles. Whatever is not used comes back to it.",
+  "Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.":
+    "Your available balance covers this order: on signature the sum will be set aside and you will have nothing to transfer.",
   "Vous réglez": "You settle",
   "au plus le plafond, avec la référence de l'ordre": "at most the ceiling, quoting the order's reference",
   "Le desk transmet": "The desk transmits",

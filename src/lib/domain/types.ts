@@ -259,6 +259,21 @@ export interface Intent {
    * conditions du jour et ne serait plus ce que le client a signé.
    */
   maxAmount?: number;
+  /**
+   * LA PROVISION COUVRE CET ORDRE : rien à virer.
+   *
+   * Posé à la signature quand le solde disponible du client suffit. Ce n'est
+   * PAS un mouvement d'espèces : rien ne bouge, la somme est réservée, et elle
+   * ne quitte le solde qu'au règlement, par l'écriture habituelle. Les
+   * confondre compterait la dépense deux fois.
+   *
+   * La réservation cesse d'elle-même quand l'ordre est réglé, annulé ou non
+   * servi : c'est la définition du disponible dans la convention, « ce qui
+   * n'est pas affecté au règlement d'une opération en cours ».
+   */
+  coveredAt?: string;
+  /** La somme réservée : le montant ferme, ou le plafond quand le prix est inconnu. */
+  coveredAmount?: number;
   createdAt: string;
   updatedAt: string;
 }
