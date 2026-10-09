@@ -2841,6 +2841,11 @@ export const EN_MORE: Record<string, string> = {
      de clefs ne les voit pas : trois « comment » et une etiquette etaient restes
      en francais depuis l ouverture de la page. Cliquet : donnees-en.test.ts. */
   "Actualités : liens à trier / liens morts": "News: links to sort / dead links",
+  /* Le libellé d un point de Santé passe par t(variable) : le scanner des clefs
+     ne le voit pas, et seul l écran le montre non traduit. Troisième fois. */
+  "Virements reçus sans nom": "Transfers received with no name",
+  "La file « En attente, sans nom », rangée par ancienneté. Quand le motif approche d'une référence à un caractère près, le client est proposé : il reste à l'appeler pour qu'il confirme, puis « Rattacher ». Si personne ne le reconnaît, « Restituer » avec son motif, et le virement de retour se fait en banque.":
+    "The queue « Waiting, with no name », ordered by age. When the reference is one character away from a real one, the client is proposed: it remains to call them so they confirm, then « Match ». If nobody recognises it, « Return it » with its reason, and the return transfer is made at the bank.",
   // Les deux modes d'emploi qui mènent désormais au domicile du sujet.
   "Le tableau « Lignes et bulletin », sur la page Marché. Une sortie de cote dont l'échéance est passée se retire seule à la lecture du bulletin ; celles dont l'échéance est inconnue attendent un « Retirer ». Un cours ou un instrument qui diffère du bulletin est un défaut de lecture : relancer la lecture de la séance.":
     "The « Lines against the bulletin » table, on the Market page. A delisting whose maturity has passed clears itself when the bulletin is read; those whose maturity is unknown wait for a « Retirer ». A price or an instrument differing from the bulletin is a reading fault: run the session again.",

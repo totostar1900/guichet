@@ -18,6 +18,7 @@ import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeMandatRef, makeOrderNo, makeRef, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
+import type { VirementRecu } from "@/lib/domain/virement";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 import { cleDEchange, normaliserObjet } from "@/lib/domain/echange";
 
@@ -1417,6 +1418,48 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateMandat", error);
     return toMandat(data as MandatRow);
   },
+  async listVirements(q) {
+    let sel = db().from("incoming_transfers").select("*").order("at", { ascending: false }).order("created_at", { ascending: false });
+    if (q?.state) sel = sel.eq("state", q.state);
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    const { data, error } = await sel;
+    if (error) {
+      // Migration 0075 pas encore appliquée : une file vide vaut mieux qu'une page en erreur.
+      if (/incoming_transfers/.test(error.message)) return [];
+      fail("listVirements", error);
+    }
+    return (data as VirementRow[]).map(toVirement);
+  },
+  async addVirement(input) {
+    const row = {
+      fingerprint: input.fingerprint,
+      at: input.at.slice(0, 10),
+      amount: input.amount,
+      payer: input.payer,
+      motif: input.motif ?? null,
+      bank_ref: input.bankRef ?? null,
+      user_id: input.userId ?? null,
+      note: input.note ?? null,
+      read_by: input.readBy ?? null,
+    };
+    const { data, error } = await db().from("incoming_transfers").insert(row).select("*").single();
+    if (error) fail("addVirement", error);
+    return toVirement(data as VirementRow);
+  },
+  async closeVirement(id, p) {
+    const row: Record<string, unknown> = { state: p.state, closed_at: new Date().toISOString(), closed_by: p.closedBy };
+    if (p.userId !== undefined) row.user_id = p.userId;
+    if (p.cashEntry !== undefined) row.cash_entry = p.cashEntry;
+    if (p.closedReason !== undefined) row.closed_reason = p.closedReason ?? null;
+    if (p.note !== undefined) row.note = p.note ?? null;
+    /* `eq("state", "recu")` est le garde : deux onglets ouverts sur la même
+       file, ou un double clic, ne doivent pas rattacher deux fois le même
+       crédit. La seconde écriture ne trouve alors aucune ligne et échoue, ce
+       qui est le comportement voulu. */
+    const { data, error } = await db().from("incoming_transfers").update(row).eq("id", id).eq("state", "recu").select("*").single();
+    if (error) fail("closeVirement", error);
+    return toVirement(data as VirementRow);
+  },
   async listCash(userId) {
     const { data, error } = await db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true });
     if (error) {
@@ -2341,4 +2384,44 @@ const toMandat = (r: MandatRow): MandatPrelevement => ({
   rejects: r.rejects ?? 0,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
+});
+
+/* ---------------- Virements entrants (migration 0075) ---------------- */
+
+type VirementRow = {
+  id: string;
+  fingerprint: string;
+  at: string;
+  amount: number | string;
+  payer: string;
+  motif?: string | null;
+  bank_ref?: string | null;
+  state: "recu" | "rattache" | "restitue";
+  user_id?: string | null;
+  cash_entry?: string | null;
+  note?: string | null;
+  read_by?: string | null;
+  closed_at?: string | null;
+  closed_by?: string | null;
+  closed_reason?: string | null;
+  created_at: string;
+};
+
+const toVirement = (r: VirementRow): VirementRecu => ({
+  id: r.id,
+  fingerprint: r.fingerprint,
+  at: r.at,
+  amount: Number(r.amount),
+  payer: r.payer,
+  motif: u(r.motif),
+  bankRef: u(r.bank_ref),
+  state: r.state,
+  userId: u(r.user_id),
+  cashEntry: u(r.cash_entry),
+  note: u(r.note),
+  readBy: u(r.read_by),
+  closedAt: u(r.closed_at),
+  closedBy: u(r.closed_by),
+  closedReason: u(r.closed_reason),
+  createdAt: r.created_at,
 });

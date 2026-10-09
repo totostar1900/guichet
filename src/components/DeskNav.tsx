@@ -48,6 +48,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/repertoire", "Répertoire"],
       ["/desk/resultats", "Allocations et règlement"],
       ["/desk/encaissements", "Encaissements"],
+      /* Voisin d'Encaissements, et pas dedans : là, un émetteur doit une
+         échéance annoncée et le défaut est le retard ; ici, un client vire
+         quand il veut et le défaut est l'anonymat. */
+      ["/desk/virements", "Virements reçus"],
       ["/desk/rapprochement", "Rapprochement"],
       ["/desk/garde", "Droits de garde"],
       ["/desk/documents", "Documents"],

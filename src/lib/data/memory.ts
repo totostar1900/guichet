@@ -22,6 +22,7 @@ import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeMandatRef, makeOrderNo, makeRef, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
+import type { VirementRecu } from "@/lib/domain/virement";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 import { cleDEchange } from "@/lib/domain/echange";
 
@@ -109,6 +110,7 @@ interface Store {
   watches: Watch[];
   cash: CashEntry[];
   mandats: MandatPrelevement[];
+  virements: VirementRecu[];
   payouts: CashPayout[];
   rapprochements: Rapprochement[];
   temoignages: Temoignage[];
@@ -179,6 +181,7 @@ function store(): Store {
       watches: [],
       cash: [],
       mandats: [],
+      virements: [],
       payouts: [],
       rapprochements: [],
       temoignages: [],
@@ -219,6 +222,7 @@ function store(): Store {
   if (!g.__guichetStore.clientFiles) g.__guichetStore.clientFiles = seedClientFiles();
   // Un store déjà en mémoire d'une version d'avant la table : sans ce garde, toute lecture de mandats tomberait sur undefined.
   if (!g.__guichetStore.mandats) g.__guichetStore.mandats = [];
+  if (!g.__guichetStore.virements) g.__guichetStore.virements = [];
   if (!g.__guichetStore.standing) g.__guichetStore.standing = [];
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
@@ -616,6 +620,28 @@ export const memoryRepository: Repository = {
     const row = store().mandats.find((m) => m.id === id);
     if (!row) throw new Error(`direct_debit_mandates ${id} introuvable`);
     Object.assign(row, patch, { updatedAt: nowIso() });
+    return structuredClone(row);
+  },
+  async listVirements(q) {
+    const all = store().virements.filter((v) => (!q?.state || v.state === q.state) && (!q?.userId || v.userId === q.userId));
+    /* Par date de valeur décroissante : le relevé du jour se lit en premier,
+       et la file des sans-nom se range par ancienneté sur la page. */
+    return structuredClone(all.sort((a, b) => b.at.localeCompare(a.at) || b.createdAt.localeCompare(a.createdAt)));
+  },
+  async addVirement(input) {
+    /* L'empreinte unique, à la main : en base c'est une contrainte, ici c'est
+       ce garde. Sans lui, le mode mémoire laisserait passer un double crédit et
+       l'essai à blanc ne dirait pas ce que la production fait. */
+    if (store().virements.some((v) => v.fingerprint === input.fingerprint)) throw new Error(`incoming_transfers ${input.fingerprint} déjà lu`);
+    const row: VirementRecu = { id: `vir-${store().virements.length + 1}`, state: "recu", createdAt: nowIso(), ...input };
+    store().virements.unshift(row);
+    return structuredClone(row);
+  },
+  async closeVirement(id, p) {
+    const row = store().virements.find((v) => v.id === id);
+    if (!row) throw new Error(`incoming_transfers ${id} introuvable`);
+    if (row.state !== "recu") throw new Error(`incoming_transfers ${id} déjà ${row.state}`);
+    Object.assign(row, { state: p.state, userId: p.userId ?? row.userId, cashEntry: p.cashEntry, closedAt: nowIso(), closedBy: p.closedBy, closedReason: p.closedReason, note: p.note ?? row.note });
     return structuredClone(row);
   },
   async listCash(userId) {

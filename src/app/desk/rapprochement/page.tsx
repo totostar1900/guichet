@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
@@ -32,7 +33,7 @@ export default async function RapprochementPage() {
   await requireDesk("/desk/rapprochement");
   const t = await getT();
   const r = repo();
-  const [du, historique] = await Promise.all([duDuJour(), r.listRapprochements(24).catch(() => [])]);
+  const [du, historique, sansNom] = await Promise.all([duDuJour(), r.listRapprochements(24).catch(() => []), r.listVirements({ state: "recu" }).catch(() => [])]);
   const aujourdHui = localIso(new Date());
   const dernier = historique[0];
 
@@ -73,6 +74,21 @@ export default async function RapprochementPage() {
             <b>{dernier ? fmtDate(dernier.onDate) : "—"}</b>
           </div>
         </div>
+
+        {/* L'EXTRAIT QUI MÈNE À SON DOMICILE. Un virement reçu sans nom n'est
+            dû à personne, donc il ne figure pas dans « Dû aux clients » : il
+            explique pourtant une part de l'écart avec le relevé de la banque,
+            et sans cette ligne on chercherait ailleurs. La file, elle, vit sur
+            sa propre page. */}
+        {sansNom.length > 0 && (
+          <p className={styles.sansNom}>
+            {t("{m} FCFA sont arrivés sans nom ({n} virements) : ils ne sont dus à personne et n'entrent pas dans le chiffre ci-dessus, mais ils sont bien en banque.", {
+              m: fmt(Math.round(sansNom.reduce((s, v) => s + v.amount, 0))),
+              n: String(sansNom.length),
+            })}{" "}
+            <Link href="/desk/virements">{t("Les rattacher →")}</Link>
+          </p>
+        )}
 
         <section className="panel">
           <div className="panel-h">

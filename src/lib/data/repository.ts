@@ -8,6 +8,7 @@ import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { MandatPrelevement, NewMandat } from "@/lib/domain/mandat";
+import type { NewVirement, VirementRecu } from "@/lib/domain/virement";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
@@ -201,6 +202,24 @@ export interface Repository {
       Pick<MandatPrelevement, "state" | "signedAt" | "signedMethod" | "signedTo" | "docId" | "pendingCodeHash" | "pendingCodeAt" | "pendingCodeTries" | "pendingCodeTo" | "revokedAt" | "revokedReason" | "rejects">
     >,
   ): Promise<MandatPrelevement>;
+
+  /**
+   * Les crédits reçus sur le compte de règlement, lus au relevé.
+   *
+   * La liste entière, parce que la page du desk a besoin des trois états
+   * ensemble : ce qui attend un nom, ce qui a été rattaché, ce qui est reparti.
+   * Un crédit ne disparaît jamais de cette liste : c'est le registre de ce qui
+   * est arrivé, et un rattachement est une décision qui doit rester lisible.
+   */
+  listVirements(q?: { state?: VirementRecu["state"]; userId?: string }): Promise<VirementRecu[]>;
+  /**
+   * Inscrire une ligne de relevé. L'empreinte est unique en base : une même
+   * ligne relue ne crée pas un second crédit, et c'est la base qui le garantit
+   * plutôt qu'un contrôle d'écran qu'une relecture simultanée contournerait.
+   */
+  addVirement(input: NewVirement & { fingerprint: string }): Promise<VirementRecu>;
+  /** Rattacher à un client, ou restituer avec son motif. Un crédit ne se clôt qu'une fois. */
+  closeVirement(id: string, p: { state: "rattache" | "restitue"; userId?: string; cashEntry?: string; closedBy: string; closedReason?: string; note?: string }): Promise<VirementRecu>;
 
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;

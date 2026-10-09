@@ -7,6 +7,7 @@ import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { rythmeObserve } from "@/lib/domain/fund-perf";
+import { JOURS_AVANT_ALERTE } from "@/lib/domain/virement";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
@@ -421,6 +422,25 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
       ]
         .slice(0, 3)
         .join(" · ") || "aucun lien en attente, aucun lien mort",
+  });
+
+  /* Les virements arrivés sans nom.
+     C'est un défaut MUET par nature : l'argent est bien sur le compte de la
+     maison, le rapprochement est juste au franc près, et pourtant un client
+     regarde une page vide en se demandant où est son virement. Rien d'autre
+     dans l'application ne regarde de ce côté, puisque le crédit n'a pas de
+     client à qui s'inscrire. L'âge décide, pas le montant : trois jours est le
+     délai d'un virement de place. */
+  const virements = await r.listVirements({ state: "recu" }).catch(() => []);
+  const ageDe = (v: { at: string }) => Math.floor((now.getTime() - new Date(`${v.at.slice(0, 10)}T00:00:00Z`).getTime()) / 86_400_000);
+  const vieux = virements.filter((v) => ageDe(v) > JOURS_AVANT_ALERTE);
+  const plusVieux = [...virements].sort((a, b) => a.at.localeCompare(b.at))[0];
+  out.push({
+    key: "virements",
+    label: "Virements reçus sans nom",
+    level: vieux.length ? "crit" : virements.length ? "warn" : "ok",
+    value: `${virements.length}`,
+    detail: plusVieux ? `le plus ancien attend depuis ${ageDe(plusVieux)} jour${ageDe(plusVieux) > 1 ? "s" : ""} : ${plusVieux.amount.toLocaleString("fr-FR")} FCFA de ${plusVieux.payer}` : "tout est rattaché",
   });
 
   return out;

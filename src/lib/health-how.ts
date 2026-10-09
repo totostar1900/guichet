@@ -97,4 +97,10 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Un lien mort se retire ou se remplace. Un lien reçu se publie, avec son titre réécrit pour le client et ses deux lignes de « pourquoi ça compte », ou se rejette : la file se vide chaque semaine, elle ne se laisse pas vieillir.",
     docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque information" },
   },
+  virements: {
+    label: "Virements reçus sans nom",
+    href: "/desk/virements",
+    how: "La file « En attente, sans nom », rangée par ancienneté. Quand le motif approche d'une référence à un caractère près, le client est proposé : il reste à l'appeler pour qu'il confirme, puis « Rattacher ». Si personne ne le reconnaît, « Restituer » avec son motif, et le virement de retour se fait en banque.",
+    docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
+  },
 };

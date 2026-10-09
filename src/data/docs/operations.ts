@@ -157,6 +157,13 @@ export const OPERATIONS: DocPage = {
           ),
         },
         {
+          type: "p",
+          text: l(
+            "Un virement entrant arrive sur un compte unique, et c'est le motif recopié par le client qui le rattache. Son domicile est /desk/virements : le relevé s'y colle, la machine propose un client par crédit, une personne confirme. Ce qui arrive sans nom y attend dans une file rangée par ancienneté, et Santé le signale au-delà de trois jours, parce que c'est un défaut muet : l'argent est en banque, le rapprochement est juste, et pourtant un client regarde une page vide.",
+            "An incoming transfer arrives on a single account, and it is the reference copied by the client that matches it. Its home is /desk/virements: the statement is pasted there, the machine proposes a client for each credit, a person confirms. What arrives with no name waits there in a queue ordered by age, and Health flags it beyond three days, because it is a silent fault: the money is at the bank, the reconciliation is right, and yet a client is looking at an empty page.",
+          ),
+        },
+        {
           type: "table",
           head: [l("Poche", "Pocket"), l("Rendement", "Return"), l("Disponible", "Available")],
           rows: [
@@ -211,9 +218,8 @@ export const OPERATIONS: DocPage = {
           items: [
             l("Le reçu d'un paiement authentifié valant signature : il faut d'abord un encaissement en ligne, carte ou mobile money, et la preuve que le payeur est le client.", "The receipt of an authenticated payment standing as the signature: it first needs online collection, card or mobile money, and proof that the payer is the client."),
             l("La provision et son règlement en un geste, avec la signature au doigt plutôt qu'un code reçu par courriel.", "The provision and its one-move settlement, with a touch signature rather than a code received by e-mail."),
-            l("Le plafond « au plus » sur les ordres de titres et d'adjudication : aujourd'hui seules les parts d'OPCVM se signent, parce que leur montant est ferme.", "The “at most” ceiling on securities and auction orders: today only fund units can be signed, because their amount is firm."),
-            l("L'état d'un ordre accepté mais en attente de l'ouverture du sous-compte : ni refusé, ni transmis, et visible des deux côtés.", "The state of an order accepted but waiting for the sub-account to open: neither refused nor transmitted, and visible on both sides."),
-            l("Le numéro de compte bancaire distinct par client pour les virements entrants : il supprime la référence à recopier, donc la famille entière des paiements orphelins. Il dépend de ce que la banque sait faire.", "A distinct bank account number per client for incoming transfers: it removes the reference to copy, and with it the whole family of orphan payments. It depends on what the bank can do."),
+            l("Le lien avec la banque. Le numéro de compte par client, qui aurait supprimé la référence à recopier, a reçu un non le 9 octobre 2026 : le relevé se colle donc à la main sur /desk/virements, et c'est cette moitié-là qui disparaîtra le jour où GIMACPAY nous parlera. Le contrôle, lui, restera.", "The link with the bank. A per-client account number, which would have removed the reference to copy, was refused on 9 October 2026: the statement is therefore pasted by hand on /desk/virements, and it is that half which will disappear the day GIMACPAY talks to us. The control itself will remain."),
+            l("Le prélèvement lui-même : le fichier remis à la banque, et le traitement des rejets. Un tirage a trois issues, et « sans nouvelle » est la pire des trois. Le mandat, lui, se signe déjà.", "The direct debit itself: the file handed to the bank, and the handling of rejects. A draw has three outcomes, and “no news” is the worst of them. The mandate itself can already be signed."),
           ],
         },
         {
