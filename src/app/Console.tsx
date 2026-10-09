@@ -196,10 +196,15 @@ export async function Console({ session }: { session: Session }) {
               <small>{t("Prochaine échéance")}</small>
               <b>{prochaine ? fmtDate(prochaine.date) : "—"}</b>
             </span>
-            <span className={poche.idle > 0 ? styles.dispo : undefined}>
+            {/* LE CHIFFRE MÈNE À SA PAGE DEPUIS LE 9 OCTOBRE 2026. Il se lisait
+                ici, dans Trader et sur le réinvestissement, et nulle part on ne
+                pouvait l'alimenter, voir ce qu'un ordre signé en avait mis de
+                côté, ni savoir en combien de temps il repart. Un solde qu'on
+                voit sans pouvoir agir dessus est un chiffre, pas un service. */}
+            <Link href="/moi/provision" className={poche.idle > 0 ? styles.dispo : undefined}>
               <small>{t("Disponible")}</small>
               <b>{fmt(Math.round(poche.idle))}</b>
-            </span>
+            </Link>
           </div>
           {/* Ce solde appartient au client : il le lit ici, donc il le réclame ici. */}
           <DemanderVersement montant={poche.idle} demande={derniereDemande} />

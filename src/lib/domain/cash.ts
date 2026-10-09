@@ -276,3 +276,36 @@ export function mayHold(entry: Pick<CashEntry, "kind" | "intentId">, policy: Cas
   if (!isIncoming(entry.kind)) return true;
   return Boolean(entry.intentId) || policy.holdIdle;
 }
+
+/**
+ * LA RÉFÉRENCE PERMANENTE D'ALIMENTATION D'UN CLIENT.
+ *
+ * Sans numéro de compte bancaire par client, et la banque a dit non le
+ * 9 octobre 2026, un virement entrant n'est rattachable que par ce que le
+ * client écrit en motif. Lui demander d'inventer ce motif, c'est garantir les
+ * paiements orphelins : la maison lui en donne donc un, toujours le même,
+ * qu'il retrouve sur sa page et sur chaque document.
+ *
+ * Elle est DÉRIVÉE de l'identifiant et non tirée au sort : elle ne se range
+ * nulle part, elle ne peut pas se perdre, et deux écrans qui ne se parlent pas
+ * la calculent pareil. Elle est opaque, parce qu'un motif de virement voyage
+ * chez un tiers : il ne dit ni le nom, ni le montant, ni ce qu'on achète.
+ *
+ * L'alphabet écarte B, I, O, S, Z, 0, 1, 2, 5, 8 : cette référence se recopie
+ * à la main dans un formulaire de banque, parfois lue au téléphone, et un zéro
+ * pris pour un O revient en paiement orphelin, c'est-à-dire en rien.
+ */
+const REF_PROVISION = "ACDEFGHJKLMNPQRTUVWXY349";
+export function referenceDeProvision(userId: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < userId.length; i += 1) {
+    h ^= userId.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  let out = "";
+  for (let i = 0; i < 6; i += 1) {
+    out += REF_PROVISION[h % REF_PROVISION.length];
+    h = Math.floor(h / REF_PROVISION.length) + 7919 * (i + 1);
+  }
+  return `PR-${out}`;
+}

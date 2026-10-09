@@ -219,3 +219,35 @@ describe("la couverture sur provision", () => {
     expect(src).toContain("Réglé sur votre provision");
   });
 });
+
+/**
+ * LA RÉFÉRENCE D'ALIMENTATION, ET POURQUOI ELLE NE SE RANGE PAS.
+ *
+ * La banque a refusé un numéro de compte par client le 9 octobre 2026 : un
+ * virement entrant n'est donc rattachable que par son motif. Laisser le client
+ * l'inventer, c'est fabriquer des paiements orphelins, la famille de défauts
+ * la plus chère de ce projet. La maison lui en donne un, dérivé de son
+ * identifiant : rien à ranger, rien à perdre, et deux écrans qui ne se parlent
+ * pas le calculent pareil.
+ */
+describe("la référence de provision", () => {
+  it("est stable, et propre à chacun", async () => {
+    const { referenceDeProvision } = await import("@/lib/domain/cash");
+    expect(referenceDeProvision("u-1")).toBe(referenceDeProvision("u-1"));
+    expect(referenceDeProvision("u-1")).not.toBe(referenceDeProvision("u-2"));
+    expect(referenceDeProvision("3553a84b-09c6-45d7-9835-28ceb365e585")).toMatch(/^PR-[A-Z0-9]{6}$/);
+  });
+
+  it("n'emploie aucun caractère qu'on confond en recopiant", async () => {
+    const { referenceDeProvision } = await import("@/lib/domain/cash");
+    /* Elle se recopie à la main dans un formulaire de banque, parfois lue au
+       téléphone : un zéro pris pour un O revient en paiement orphelin. */
+    const interdits = /[BIOSZ01258]/;
+    for (let i = 0; i < 400; i += 1) expect(referenceDeProvision(`client-${i}`).slice(3)).not.toMatch(interdits);
+  });
+
+  it("ne dit ni le nom, ni le montant : un motif de virement voyage chez un tiers", async () => {
+    const { referenceDeProvision } = await import("@/lib/domain/cash");
+    expect(referenceDeProvision("georges.nitcheu@gmail.com")).not.toMatch(/georges|nitcheu/i);
+  });
+});

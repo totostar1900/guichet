@@ -236,6 +236,36 @@ export const EN_CONSOLE: Record<string, string> = {
     "This sum is set aside on your balance: it leaves only when the operation settles. Whatever is not used comes back to it.",
   "Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.":
     "Your available balance covers this order: on signature the sum will be set aside and you will have nothing to transfer.",
+  /* La page de la provision : son domicile, le 9 octobre 2026. */
+  "Votre provision": "Your provision",
+  "Total": "Total",
+  "Bénéficiaire": "Beneficiary",
+  "Banque du bénéficiaire": "Beneficiary's bank",
+  "Votre argent chez nous": "Your money with us",
+  "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison, et elle ne porte pas intérêt.":
+    "What you leave here settles your orders without waiting for a transfer. It is never compulsory: you may pay for each order one at a time. It remains your money, on an account separate from the firm's, and it bears no interest.",
+  "FCFA, pour votre prochain ordre": "FCFA, for your next order",
+  "Mis de côté": "Set aside",
+  "par vos ordres signés": "by your signed orders",
+  "ce que la maison vous doit": "what the firm owes you",
+  "Ce qui est mis de côté, et pour quoi": "What is set aside, and for what",
+  "Cette somme reste sur votre solde : elle n'en sort qu'au règlement de l'opération, et ce qui n'est pas consommé y revient.":
+    "This sum stays on your balance: it leaves only when the operation settles, and whatever is not used comes back to it.",
+  "L'alimenter": "Funding it",
+  "Virez depuis un compte à votre nom, en portant ce motif. C'est lui qui rattache votre virement à votre compte : sans lui, il arrive sans nom.":
+    "Transfer from an account in your name, quoting this reference. It is what attaches your transfer to your account: without it, the money arrives with no name.",
+  "Motif du virement": "Transfer reference",
+  "RIB / IBAN": "Bank details / IBAN",
+  "Le reprendre": "Taking it back",
+  "Votre solde disponible vous est versé sur demande, sur le compte bancaire déclaré à l'ouverture et sur lui seul. Il part dans les soixante-douze heures ouvrables qui suivent votre demande.":
+    "Your available balance is paid out on request, to the bank account declared at opening and to that account only. It leaves within seventy-two working hours of your request.",
+  "Le faire travailler": "Putting it to work",
+  "Votre provision ne porte pas intérêt : elle vous appartient et attend vos ordres. Pour qu'elle ne dorme pas, vous pouvez en placer tout ou partie en parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.":
+    "Your provision bears no interest: it is yours and it waits for your orders. So that it does not lie idle, you may place all or part of it in money market fund units registered in your name. The return is the fund's; we promise none.",
+  "Placer {m} FCFA": "Place {m} FCFA",
+  "Rien de disponible à placer pour l'instant.": "Nothing available to place for now.",
+  "Une fois placée, la somme n'est plus disponible pour régler un ordre : il faut d'abord racheter les parts, ce qui prend le délai de centralisation du fonds.":
+    "Once placed, the sum is no longer available to settle an order: the units must first be redeemed, which takes the fund's centralisation period.",
   "Vous réglez": "You settle",
   "au plus le plafond, avec la référence de l'ordre": "at most the ceiling, quoting the order's reference",
   "Le desk transmet": "The desk transmits",
