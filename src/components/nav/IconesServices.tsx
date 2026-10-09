@@ -71,6 +71,21 @@ export const ICONE_SERVICE: Record<string, React.ReactNode> = {
       <path d="M9.6 9a2.2 2.2 0 1 1 2.6 2.5v.9" />
     </>,
   ),
+  // La provision : une réserve posée, prête à régler.
+  provision: svg(
+    <>
+      <path d="M4 9h16v9H4z" />
+      <path d="M4 9V6h12v3" />
+      <circle cx="16" cy="13.5" r="1.6" />
+    </>,
+  ),
+  // Le prélèvement : la maison va chercher, au jour dit.
+  prelevement: svg(
+    <>
+      <path d="M12 3v10l3-3M12 13l-3-3" />
+      <path d="M4 16v3h16v-3" />
+    </>,
+  ),
   // Deux intentions inverses qui se rencontrent.
   appariement: svg(
     <>

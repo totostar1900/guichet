@@ -111,17 +111,9 @@ export const EN_CONSOLE: Record<string, string> = {
   /* ---------- la page publique des services ---------- */
   "Les services": "The services",
   "les neuf, avec leur état": "the nine, with their state",
-  "les neuf, et leur limite": "the nine, and their limit",
-  "Neuf services, et ce que chacun fait exactement": "Nine services, and exactly what each one does",
   "Purpose Capital est société de bourse : elle exécute ce que vous décidez, elle ne décide pas à votre place. Chaque service dit donc ce qu'il fait, et la limite qu'il porte.":
     "Purpose Capital is a brokerage firm: it carries out what you decide, it does not decide for you. So each service states what it does, and the limit it carries.",
-  Placer: "Invest",
-  "entrer sur le marché, par le primaire ou par la cote": "getting into the market, through the primary market or the exchange",
-  "Faire vivre": "Keep it working",
-  "ce qui revient ne doit pas dormir": "what comes back must not sit idle",
-  Tenir: "Hold",
-  "savoir ce que vous avez, et ce qu'il a rapporté": "knowing what you hold, and what it has returned",
-  "Placement primaire": "Primary placement",
+  "Adjudications et émissions": "Auctions and new issues",
   "Votre demande part au Trésor avec celles des autres, puis l'allocation vous revient à votre nom. Vous voyez le prix servi et ce qu'il rapporte.":
     "Your order goes to the Treasury with everyone else's, then the allocation comes back in your own name. You see the price awarded and what it yields.",
   "Une intention n'est pas une garantie d'allocation : le Trésor sert qui il veut, au prix qu'il retient.":
@@ -376,4 +368,44 @@ export const EN_CONSOLE: Record<string, string> = {
     "Or sign with a code you receive, below.",
   "clé d'accès": "passkey",
   "code de l'appareil": "the device's code",
+  "Avant de placer, comprendre":
+    "Before placing, understanding",
+  "Ceux-là ne se prennent pas, ils se lisent : la courbe des taux de la zone, l'indice de la BVMAC et ses notes, les fiches des émetteurs, les leçons.":
+    "These are not taken up, they are read: the zone's yield curve, the BVMAC index and its notes, the issuer sheets, the lessons.",
+  "Les émetteurs":
+    "The issuers",
+  "Les leçons":
+    "The lessons",
+  "Placer":
+    "Placing",
+  "Programmer":
+    "Scheduling",
+  "Tenir":
+    "Holding",
+  "Où va mon argent, cette fois-ci.":
+    "Where my money goes, this time.",
+  "Le faire sans y penser, chaque mois.":
+    "Doing it without thinking, every month.",
+  "Garder, suivre, et pouvoir le prouver.":
+    "Keeping, following, and being able to prove it.",
+  "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.":
+    "{m} FCFA are waiting for you and settle your next order without a transfer.",
+  "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande.":
+    "What you leave with us settles your orders without waiting for a transfer, and goes back on request.",
+  "Prélèvement automatique":
+    "Direct debit",
+  "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe, sous un plafond que vous fixez.":
+    "You authorise us to debit a sum from your account, on a fixed date, under a ceiling you set.",
+  "Virer la somme en citant la référence qui figure sur votre page : c'est elle qui l'attache à votre compte.":
+    "Transfer the sum quoting the reference shown on your page: it is what attaches it to your account.",
+  "Elle attend, et elle reste la vôtre : rien ne vous oblige à l'employer.":
+    "It waits, and it stays yours: nothing obliges you to use it.",
+  "Au prochain ordre couvert, rien n'est à virer ; le reste repart sur demande, sous 72 heures ouvrables.":
+    "On the next covered order, there is nothing to transfer; the rest goes back on request, within 72 working hours.",
+  "Dire ce qu'il alimente, le montant, le jour du mois et le plafond que vous ne voulez pas dépasser.":
+    "Say what it funds, the amount, the day of the month and the ceiling you do not want to exceed.",
+  "Signer le mandat une fois, par un code reçu.":
+    "Sign the mandate once, with a code you receive.",
+  "Chaque prélèvement est annoncé cinq jours avant, et le mandat se révoque à tout moment, sans motif.":
+    "Every debit is announced five days ahead, and the mandate can be revoked at any time, without a reason.",
 };

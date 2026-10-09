@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient } from "@/lib/domain/services";
+import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient, RAYONS } from "@/lib/domain/services";
 
 /**
  * Un service se présente par son état, jamais par sa description.
@@ -17,7 +17,6 @@ const vide: ContexteClient = {
   fondsOuverts: 9,
   disponible: 0,
   moisDHistorique: 0,
-  appariementExecutable: false,
 };
 
 const garni: ContexteClient = {
@@ -33,25 +32,39 @@ const garni: ContexteClient = {
   epargne: { montant: 50_000, jour: 5, destination: "Fonds Obligataire CEMAC" },
   prochaineSeance: { pays: "Cameroun", quoi: "BTA 26 semaines", le: "2 octobre" },
   moisDHistorique: 14,
-  appariementExecutable: false,
 };
 
 const parCle = (c: ContexteClient) => new Map(servicesDuClient(c).map((s) => [s.cle, s]));
 
-describe("les neuf services, quel que soit le client", () => {
-  it("sont toujours neuf, et chacun une seule fois", () => {
+describe("les services de la vitrine, quel que soit le client", () => {
+  it("tiennent dans les trois rayons, chacun une seule fois", () => {
     for (const c of [vide, garni]) {
       const v = servicesDuClient(c);
-      expect(v).toHaveLength(9);
-      expect(new Set(v.map((s) => s.cle)).size).toBe(9);
-      expect(new Set(v.map((s) => s.n)).size).toBe(9);
+      expect(v).toHaveLength(10);
+      expect(new Set(v.map((s) => s.cle)).size).toBe(10);
+      /* Aucun rayon vide : un rayon sans ligne est un rayon mal nommé, et
+         « Tenir » n'en aurait eu qu'une avant que la provision n'y entre. */
+      for (const r of RAYONS) expect(v.filter((x) => x.rayon === r.cle).length, r.cle).toBeGreaterThan(0);
     }
   });
 
-  it("rangent ce qui tourne avant ce qui dort, et ce qui est fermé en dernier", () => {
-    const etats = servicesDuClient(garni).map((s) => s.etat);
-    const rang = { en_place: 0, a_activer: 1, indisponible: 2 } as const;
-    expect(etats.every((e, i) => i === 0 || rang[etats[i - 1]] <= rang[e])).toBe(true);
+  it("les rangent par rayon, dans l'ordre de la vitrine", () => {
+    /* Placer, puis Programmer, puis Tenir : où va mon argent, comment le
+       faire sans y penser, comment le garder. */
+    const vus = servicesDuClient(garni).map((s) => RAYONS.findIndex((r) => r.cle === s.rayon));
+    expect(vus).toEqual([...vus].sort((a, b) => a - b));
+  });
+
+  it("rangent ce qui tourne avant ce qui dort, DANS chaque rayon", () => {
+    /* Le rayon trie d'abord : l'état ne se compare donc qu'entre voisins de
+       rayon. Comparé sur toute la liste, il dirait qu'un service en place de
+       « Tenir » doit passer devant un service à activer de « Placer », ce qui
+       défait les rayons. */
+    const rang = { en_place: 0, a_activer: 1 } as const;
+    for (const r of RAYONS) {
+      const etats = servicesDuClient(garni).filter((s) => s.rayon === r.cle).map((s) => rang[s.etat]);
+      expect(etats, r.cle).toEqual([...etats].sort((a, b) => a - b));
+    }
   });
 
   it("portent tous une phrase, et jamais une phrase vide", () => {
@@ -95,18 +108,21 @@ describe("l'état suit la donnée du client", () => {
     expect(m.get("sondage")!.phrase.key).toMatch(/^Commencez par/);
   });
 
-  /* AUCUN SERVICE N'EST FERMÉ. L'appariement que la maison n'exécute pas
-     encore reste à activer, et sa phrase dit ce qu'il fait en attendant :
-     griser apprend à ne plus toucher, proposer apprend par où commencer. */
-  it("laisse l'appariement à activer tant que la maison n'a pas tranché", () => {
-    expect(parCle(garni).get("appariement")!.etat).toBe("a_activer");
-    expect(parCle({ ...garni, appariementExecutable: true }).get("appariement")!.etat).toBe("en_place");
+  /* L'APPARIEMENT A QUITTÉ LA VITRINE le 9 octobre 2026, et ce cliquet le
+     garde dehors. La plateforme recueille les ordres et les transmet à la
+     BVMAC, qui seule décide de l'exécution : aucun rapprochement fait ici ne
+     produit une transaction. Le nommer en vitrine promettait une exécution
+     que la maison ne peut pas donner. Ce qu'il est vraiment, une lecture de
+     notre propre carnet, reste au desk. */
+  it("ne propose pas l'appariement, que la maison n'exécute pas", () => {
+    expect(parCle(garni).has("appariement")).toBe(false);
+    expect(parCle(vide).has("appariement")).toBe(false);
   });
 
   it("compte les deux états sans en perdre un", () => {
     const c = compteDesEtats(servicesDuClient(garni));
-    expect(c.en_place + c.a_activer).toBe(9);
-    expect(c.en_place).toBe(3);
+    expect(c.en_place + c.a_activer).toBe(10);
+    expect(c.en_place).toBe(4);
   });
 
   /**
@@ -124,9 +140,9 @@ describe("l'état suit la donnée du client", () => {
    */
   it("ne propose l'ouverture du compte que là où elle est la première étape", () => {
     const sans = servicesDuClient({ ...garni, compteOuvert: false });
-    expect(sans.length).toBe(9);
+    expect(sans.length).toBe(10);
     const surLeCompte = sans.filter((x) => x.href === "/ouvrir-un-compte");
-    expect(surLeCompte.map((x) => x.cle).sort()).toEqual(["appariement", "epargne", "garde", "reinvestissement"]);
+    expect(surLeCompte.map((x) => x.cle).sort()).toEqual(["epargne", "garde", "prelevement", "provision", "reinvestissement"]);
     expect([...new Set(surLeCompte.map((x) => x.geste.key))]).toEqual(["Ouvrir un compte-titres"]);
     expect(surLeCompte.every((x) => x.porte)).toBe(true);
     /* Les cinq autres gardent leur chemin : regarder ne demande rien. */
@@ -134,7 +150,7 @@ describe("l'état suit la donnée du client", () => {
     expect(libres.map((x) => x.cle).sort()).toEqual(["actions", "fonds", "passage", "primaire", "sondage"]);
     expect(libres.some((x) => x.porte)).toBe(false);
     /* Et les états restent lisibles : on ne perd pas ce qui tourne déjà. */
-    expect(sans.filter((x) => x.etat === "en_place").length).toBe(3);
+    expect(sans.filter((x) => x.etat === "en_place").length).toBe(4);
   });
 
   it("laisse chaque service nommer son geste quand le compte est ouvert", () => {

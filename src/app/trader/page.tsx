@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { ETAPES, servicesDuClient } from "@/lib/domain/services";
@@ -85,6 +86,22 @@ export default async function TraderPage() {
 
       <div className={styles.deuxColonnes}>
         <ServicesBande services={services} etapes={ETAPES} />
+
+        {/* CE QUI SE LIT ET NE SE PREND PAS. La courbe, l'indice, les fiches
+            et les leçons ne sont pas des services : rien ne s'y active, rien
+            ne s'y signe. Les mêler aux rayons aurait fait croire à des gestes
+            à faire, et c'est la seule raison pour laquelle ils sont ici et
+            non dedans. */}
+        <section className={styles.comprendre}>
+          <h3>{t("Avant de placer, comprendre")}</h3>
+          <p>{t("Ceux-là ne se prennent pas, ils se lisent : la courbe des taux de la zone, l'indice de la BVMAC et ses notes, les fiches des émetteurs, les leçons.")}</p>
+          <div className={styles.comprendreLiens}>
+            <Link href="/marche">{t("Le marché")}</Link>
+            <Link href="/indice">{t("L'indice BVMAC")}</Link>
+            <Link href="/emetteurs">{t("Les émetteurs")}</Link>
+            <Link href="/info/aide">{t("Les leçons")}</Link>
+          </div>
+        </section>
         <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere }} />
       </div>
 

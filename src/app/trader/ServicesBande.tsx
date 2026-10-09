@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { useT } from "@/i18n/client";
 import { ICONE_SERVICE } from "@/components/nav/IconesServices";
-import type { ServiceVu } from "@/lib/domain/services";
+import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import styles from "./page.module.css";
 
 /**
@@ -33,9 +33,24 @@ export function ServicesBande({ services, etapes }: { services: ServiceVu[]; eta
   const t = useT();
   const [ouvert, setOuvert] = useState<string | null>(null);
   const id = useId();
+  /* TROIS RAYONS, ET LA QUESTION DE CHACUN SOUS SON NOM. Une bande unique
+     de dix lignes ne dit pas par où commencer ; trois rayons nommés par
+     l'intention répondent avant qu'on ait lu une ligne. L'ordre ne change
+     pas à l'intérieur : ce qui tourne déjà passe devant ce qui reste à
+     prendre. */
   return (
-    <div className={styles.bande}>
-      {services.map((sv) => {
+    <div className={styles.rayons}>
+      {RAYONS.map((r) => {
+        const siens = services.filter((sv) => sv.rayon === r.cle);
+        if (!siens.length) return null;
+        return (
+          <section key={r.cle} className={styles.rayon}>
+            <div className={styles.rayonTete}>
+              <h3>{t(r.nom)}</h3>
+              <span>{t(r.quoi)}</span>
+            </div>
+            <div className={styles.bande}>
+              {siens.map((sv) => {
         const ici = ouvert === sv.cle;
         const pas = etapes[sv.cle];
         return (
@@ -78,7 +93,11 @@ export function ServicesBande({ services, etapes }: { services: ServiceVu[]; eta
                 </Link>
               </div>
             )}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         );
       })}
     </div>

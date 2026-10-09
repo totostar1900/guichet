@@ -34,9 +34,31 @@ export interface Dit {
   params?: Record<string, string | number>;
 }
 
+/**
+ * LES TROIS RAYONS, ET LA QUESTION QUE CHACUN RÉSOUT.
+ *
+ * La liste rangeait neuf services à plat, et deux axes s'y mêlaient sans que
+ * rien ne le dise : l'intention du client et l'instrument. Un même geste,
+ * passer d'un fonds à l'autre, tombait alors dans deux familles, et c'est la
+ * marque d'une découpe qui pose deux questions à la fois. Le desk avait eu la
+ * même en septembre, « ce que je fais » contre « de quoi ça parle ».
+ *
+ * UN SEUL AXE RESTE, celui du client : où va mon argent, comment le faire sans
+ * y penser, comment le garder. L'INSTRUMENT N'EST PAS UN RAYON : personne ne
+ * se réveille en voulant un OPCVM. On veut placer, et l'instrument est la
+ * réponse, pas la question. Il reste donc un filtre à l'intérieur de
+ * « Placer », là où il a toujours été.
+ */
+export type Rayon = "placer" | "programmer" | "tenir";
+
+export const RAYONS: { cle: Rayon; nom: string; quoi: string }[] = [
+  { cle: "placer", nom: "Placer", quoi: "Où va mon argent, cette fois-ci." },
+  { cle: "programmer", nom: "Programmer", quoi: "Le faire sans y penser, chaque mois." },
+  { cle: "tenir", nom: "Tenir", quoi: "Garder, suivre, et pouvoir le prouver." },
+];
+
 export interface ServiceVu {
-  /** Le numéro du service au périmètre de la maison, « 01 » à « 09 ». */
-  n: string;
+  rayon: Rayon;
   cle: string;
   nom: string;
   href: string;
@@ -118,8 +140,6 @@ export interface ContexteClient {
   prochaineSeance?: { pays: string; quoi: string; le: string };
   /** Les mois d'historique : sous douze, la performance ne dit pas grand-chose. */
   moisDHistorique: number;
-  /** L'appariement est-il exécutable, ou seulement détecté ? */
-  appariementExecutable: boolean;
   /**
    * Le compte-titres est-il ouvert ?
    *
@@ -151,7 +171,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.reinvestissement
       ? enPlace({
-          n: "06",
+          rayon: "programmer",
           cle: "reinvestissement",
           nom: "Réinvestissement",
           href: "/moi/reinvestir",
@@ -161,7 +181,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           },
         })
       : aActiver({
-          n: "06",
+          rayon: "programmer",
           cle: "reinvestissement",
           nom: "Réinvestissement",
           href: "/moi/reinvestir",
@@ -176,14 +196,14 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.epargne
       ? enPlace({
-          n: "03",
+          rayon: "programmer",
           cle: "epargne",
           nom: "Épargne programmée",
           href: "/trader",
           phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
         })
       : aActiver({
-          n: "03",
+          rayon: "programmer",
           cle: "epargne",
           nom: "Épargne programmée",
           href: "/fonds",
@@ -195,7 +215,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.lignes > 0
       ? enPlace({
-          n: "07",
+          rayon: "tenir",
           cle: "garde",
           nom: "Conservation et tenue de compte",
           href: "/moi",
@@ -206,7 +226,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           phrase: c.lignes === 1 ? { key: "1 ligne inscrite à votre nom au dépositaire." } : { key: "{n} lignes inscrites à votre nom au dépositaire.", params: { n: c.lignes } },
         })
       : aActiver({
-          n: "07",
+          rayon: "tenir",
           cle: "garde",
           nom: "Conservation et tenue de compte",
           href: "/titres",
@@ -214,12 +234,16 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
         }),
   );
 
-  /* 01 · Placement primaire. */
+  /* ADJUDICATIONS ET ÉMISSIONS, et non « placement primaire ».
+     « Primaire » oppose au secondaire, et cette opposition n'existe que pour
+     qui connaît déjà les deux. Le client, lui, voit une séance du Trésor ou
+     une émission ouverte : ce sont ces deux mots-là qu'il faut dire, et ce
+     sont ceux que la barre de navigation emploie déjà. */
   out.push(
     aActiver({
-      n: "01",
+      rayon: "placer",
       cle: "primaire",
-      nom: "Placement primaire",
+      nom: "Adjudications et émissions",
       href: "/calendrier",
       phrase: c.prochaineSeance
         ? { key: "Une séance {p} est annoncée le {d} : {q}.", params: { p: c.prochaineSeance.pays, d: c.prochaineSeance.le, q: c.prochaineSeance.quoi } }
@@ -231,14 +255,14 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.prochaineSeance
       ? aActiver({
-          n: "09",
+          rayon: "placer",
           cle: "sondage",
           nom: "Sondage avant adjudication",
           href: "/calendrier",
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
         })
       : aActiver({
-          n: "09",
+          rayon: "placer",
           cle: "sondage",
           nom: "Sondage avant adjudication",
           href: "/calendrier",
@@ -250,14 +274,14 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.partsDeFonds
       ? aActiver({
-          n: "08",
+          rayon: "placer",
           cle: "passage",
           nom: "Passage d'un fonds à l'autre",
           href: "/fonds",
           phrase: { key: "Vous détenez {n} parts de {d}, rachetables.", params: { n: c.partsDeFonds.parts, d: c.partsDeFonds.titre } },
         })
       : aActiver({
-          n: "08",
+          rayon: "placer",
           cle: "passage",
           nom: "Passage d'un fonds à l'autre",
           href: "/fonds",
@@ -265,12 +289,17 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
         }),
   );
 
-  /* 02 · Intermédiation sur les fonds. */
+  /* INVESTIR DANS UN FONDS, et non « intermédiation sur les fonds ».
+     Le client investit ; l'intermédiation est ce que la maison fait pour que
+     ce soit possible, et elle va de soi puisque la plateforme ne détient
+     aucun de ces fonds. Nommer la fonction de la maison à la place du geste
+     du client est le même défaut que « services de compte » : on décrit le
+     dos de l'écran. */
   out.push(
     aActiver({
-      n: "02",
+      rayon: "placer",
       cle: "fonds",
-      nom: "Intermédiation sur les fonds",
+      nom: "Investir dans un fonds",
       href: "/fonds",
       phrase:
         c.fondsOuverts > 0
@@ -282,7 +311,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   /* 05 · Courtage sur actions cotées. */
   out.push(
     aActiver({
-      n: "05",
+      rayon: "placer",
       cle: "actions",
       nom: "Courtage sur actions cotées",
       href: "/marche",
@@ -292,23 +321,29 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
     }),
   );
 
-  /* 04 · Appariement. Le seul qui puisse être fermé par décision de maison. */
+  /* L'APPARIEMENT N'EST PAS UN SERVICE, ET IL A QUITTÉ CETTE LISTE.
+     La plateforme recueille les ordres et les transmet à la BVMAC, qui seule
+     décide de l'exécution : aucun rapprochement fait ici ne produit une
+     transaction. Le nommer « appariement » en vitrine promettait donc une
+     exécution que la maison ne peut pas donner, et laissait entendre une
+     internalisation, qui est une activité à part.
+     Ce qu'il est vraiment reste au desk, comme le taux de service : une
+     lecture de notre propre carnet qui dit à un vendeur qu'un acheteur existe
+     et permet de faire arriver les deux ordres à la même séance. Voir
+     domain/crossing.ts, dont la doctrine disait déjà « il n'exécute rien ». */
+
+  /* LA PROVISION ET LE PRÉLÈVEMENT ENTRENT, et ils ne sont pas des ajouts
+     de confort. Le premier est l'argent du client chez nous, qui règle un
+     ordre sans virement ; le second est ce qui rend l'épargne programmée
+     autonome. Les taire laissait « Tenir » avec une seule ligne, ce qui est
+     la preuve qu'un rayon est mal nommé. */
   out.push(
-    c.appariementExecutable
-      ? enPlace({
-          n: "04",
-          cle: "appariement",
-          nom: "Appariement des intentions",
-          href: "/trader",
-          phrase: { key: "Quand une intention inverse existe en interne, elle vous est signalée avant toute sortie sur le marché." },
-        })
-      : aActiver({
-          n: "04",
-          cle: "appariement",
-          nom: "Appariement des intentions",
-          href: "/trader",
-          phrase: { key: "La maison détecte une intention inverse et vous la signale." },
-        }),
+    c.disponible > 0
+      ? enPlace({ rayon: "tenir", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: c.disponible } } })
+      : aActiver({ rayon: "tenir", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
+  );
+  out.push(
+    aActiver({ rayon: "programmer", cle: "prelevement", nom: "Prélèvement automatique", href: "/moi/prelevements", phrase: { key: "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe, sous un plafond que vous fixez." } }),
   );
 
   const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1 };
@@ -316,8 +351,8 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
    * LA PORTE AVANT LE SERVICE, MAIS PAS DEVANT TOUS.
    *
    * Sans compte-titres, celui qui touche « Conservation », « Réinvestissement »,
-   * « Épargne programmée » ou « Appariement » ne peut rien faire d'autre que
-   * l'ouvrir : ces quatre-là SONT le compte, ou s'écrivent dessus.
+   * « Épargne programmée », « Prélèvement » ou « Votre provision » ne peut rien
+   * faire d'autre que l'ouvrir : ceux-là SONT le compte, ou s'écrivent dessus.
    *
    * Les cinq autres commencent par regarder, et regarder ne demande rien : le
    * calendrier des séances, le catalogue des fonds, la cote, le passage d'un
@@ -325,7 +360,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
    * de non-recevoir déguisée ; c'est l'ordre qui demandera le compte, et il le
    * demandera à son heure.
    */
-  const surLeCompte = new Set(["garde", "reinvestissement", "epargne", "appariement"]);
+  const surLeCompte = new Set(["garde", "reinvestissement", "epargne", "prelevement", "provision"]);
   const ouverts =
     c.compteOuvert === false
       ? out.map((x) => (!surLeCompte.has(x.cle) ? x : {
@@ -335,7 +370,10 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           porte: { key: "Ce service s'écrit sur un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces." },
         }))
       : out;
-  return ouverts.sort((a, b) => rang[a.etat] - rang[b.etat]);
+  /* Par rayon d'abord, l'état ensuite : à l'intérieur d'un rayon, ce qui
+     tourne déjà passe devant ce qui reste à prendre. */
+  const ordre = (r: Rayon) => RAYONS.findIndex((x) => x.cle === r);
+  return ouverts.sort((a, b) => ordre(a.rayon) - ordre(b.rayon) || rang[a.etat] - rang[b.etat]);
 }
 
 /**
@@ -397,10 +435,15 @@ export const ETAPES: Record<string, string[]> = {
     "Choisir le fonds d'arrivée.",
     "Le rachat et la souscription se signent ensemble, et les deux VL retenues sont dites avant la signature.",
   ],
-  appariement: [
-    "Ouvrir le signal, fermé par défaut : sans lui, rien n'est rapproché.",
-    "Une intention de sens inverse peut alors croiser la vôtre.",
-    "Le desk vous prévient avant tout rapprochement : il ne se fait jamais dans votre dos.",
+  provision: [
+    "Virer la somme en citant la référence qui figure sur votre page : c'est elle qui l'attache à votre compte.",
+    "Elle attend, et elle reste la vôtre : rien ne vous oblige à l'employer.",
+    "Au prochain ordre couvert, rien n'est à virer ; le reste repart sur demande, sous 72 heures ouvrables.",
+  ],
+  prelevement: [
+    "Dire ce qu'il alimente, le montant, le jour du mois et le plafond que vous ne voulez pas dépasser.",
+    "Signer le mandat une fois, par un code reçu.",
+    "Chaque prélèvement est annoncé cinq jours avant, et le mandat se révoque à tout moment, sans motif.",
   ],
 };
 

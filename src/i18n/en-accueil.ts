@@ -47,7 +47,7 @@ export const EN_ACCUEIL: Record<string, string> = {
   "Le primaire des six Trésors, les fonds de la zone et les actions cotées, avec la même exigence de preuve sur chaque chiffre.":
     "The primary market of the six Treasuries, the funds of the zone and listed shares, with the same demand for proof on every figure.",
   "Carnet de demande et placement primaire": "Order book and primary placement",
-  "Intermédiation sur les fonds": "Fund intermediation",
+  "Investir dans un fonds": "Invest in a fund",
   "Courtage sur les actions cotées": "Brokerage on listed shares",
   "Ne rien laisser dormir": "Letting nothing sit idle",
   "Un coupon tombé sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé, elle, continue.":

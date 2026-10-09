@@ -84,7 +84,6 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
       ? { pays: devant.country ?? t("la zone"), quoi: [devant.instrument, devant.tenor].filter(Boolean).join(" ") || t("une séance"), le: fmtDate(devant.on!) }
       : undefined,
     moisDHistorique: positions.length ? 12 : 0,
-    appariementExecutable: false,
     /* Le champ existait, documenté, et personne ne le remplissait ici : la
        console et la bande supposaient donc le compte ouvert, y compris pour un
        dossier au brouillon. La seconde condition tient parce qu'un client qui

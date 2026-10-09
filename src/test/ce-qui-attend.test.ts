@@ -27,7 +27,6 @@ const vide: ContexteClient = {
   aSigner: 0,
   aRepondre: 0,
   moisDHistorique: 0,
-  appariementExecutable: false,
 };
 
 const cles = (c: ContexteClient) => attentesDuClient(c, fmt).map((a) => a.cle);

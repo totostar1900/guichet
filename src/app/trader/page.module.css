@@ -551,3 +551,57 @@
 .porte {
   color: var(--gold-ink);
 }
+
+/* LES TROIS RAYONS. Une bande unique de dix lignes ne dit pas par où
+   commencer ; trois rayons nommés par l'intention répondent avant qu'on ait
+   lu une ligne. Le filet sous le nom sépare sans encadrer : ce sont des
+   rayons, pas des boîtes. */
+.rayons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+.rayonTete {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+.rayonTete h3 {
+  margin: 0;
+  font-size: var(--t-5);
+  letter-spacing: -0.01em;
+}
+.rayonTete span {
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+
+/* Ce qui se lit et ne se prend pas : à côté de la bande, jamais dedans. */
+.comprendre {
+  margin-top: var(--s-8);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: var(--s-6) var(--s-7);
+}
+.comprendre h3 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-4);
+}
+.comprendre p {
+  margin: 0 0 var(--s-5);
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  max-width: 62ch;
+  line-height: 1.5;
+}
+.comprendreLiens {
+  display: flex;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+  font-size: var(--t-3);
+}
