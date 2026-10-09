@@ -27,13 +27,28 @@ async function contactDe(userId: string, m: MandatPrelevement) {
   return { id: userId, name: m.accountHolder, segment: "particulier", phone, email, whatsappOptIn: Boolean(phone) };
 }
 
+/**
+ * LE MODÈLE DU PRÉAVIS, ET POURQUOI SES CINQ PARAMÈTRES SONT UN CONTRAT.
+ *
+ * Un préavis part cinq jours avant l'échéance, donc hors de la fenêtre de
+ * vingt-quatre heures où Meta tolère un texte libre : il lui faut un modèle
+ * approuvé. Le texte soumis vit dans `docs/modele-whatsapp-prelevement.md`,
+ * et l'ordre ci-dessous est celui de ses variables.
+ *
+ * Un modèle approuvé avec cinq variables et un envoi qui en passe quatre est
+ * refusé à CHAQUE message, et le refus ne se lit que dans la réponse de
+ * l'API. Un cliquet compare donc les deux.
+ */
+const MODELE_PREAVIS = () => process.env.WA_TEMPLATE_PRELEVEMENT || "guichet_prelevement";
+
 export async function envoyerPreavisDePrelevement(m: MandatPrelevement, p: { dueOn: string; amount: number }): Promise<{ sent: boolean; error?: string }> {
   const quoi = m.objet === "provision" ? "votre provision" : "votre épargne programmée";
   const text = `Purpose Capital : le ${fmtDate(p.dueOn)}, nous présenterons un prélèvement de ${fmt(p.amount)} FCFA sur votre compte ${m.bankName}, pour alimenter ${quoi}, selon votre mandat ${m.ref}. Assurez-vous que le compte est approvisionné. Vous pouvez révoquer ce mandat à tout moment dans le Guichet, sans motif.`;
+  const template = { name: MODELE_PREAVIS(), params: [fmtDate(p.dueOn), fmt(p.amount), m.bankName, quoi, m.ref] };
   try {
     const contact = await contactDe(m.userId, m);
     if (!contact) return { sent: false, error: "Aucun canal : ni numéro WhatsApp avec opt-in, ni adresse e-mail." };
-    const rows = await notifyRaw("intent_update", contact, { subject: `Prélèvement du ${fmtDate(p.dueOn)}`, text });
+    const rows = await notifyRaw("intent_update", contact, { subject: `Prélèvement du ${fmtDate(p.dueOn)}`, text, template });
     if (rows.some((x) => x.status === "sent")) return { sent: true };
     /* Dire lequel a échoué et pourquoi : « préavis non envoyé » sans raison est
        exactement la panne muette que tout ce lot évite. */
@@ -49,7 +64,14 @@ export async function direLeRejet(m: MandatPrelevement, p: { dueOn: string; amou
   try {
     const contact = await contactDe(m.userId, m);
     if (!contact) return { sent: false, error: "Aucun canal joignable pour annoncer le rejet." };
-    const rows = await notifyRaw("intent_update", contact, { subject: `Prélèvement du ${fmtDate(p.dueOn)} non abouti`, text });
+    /* LE REJET N'A PAS SON MODÈLE, et c'est délibéré : il passe par le modèle
+       générique de mise à jour, un nom puis une ligne. Lui en donner un
+       propre obligerait à faire approuver par Meta les six causes de rejet,
+       dont « opposition du client » et « compte clos » : des phrases que
+       personne n'a envie de voir figées dans un catalogue chez un tiers. La
+       ligne reste de notre côté, et elle se corrige sans soumission. */
+    const template = { name: process.env.WA_TEMPLATE_UPDATE || "guichet_maj", params: [m.accountHolder, text] };
+    const rows = await notifyRaw("intent_update", contact, { subject: `Prélèvement du ${fmtDate(p.dueOn)} non abouti`, text, template });
     return rows.some((x) => x.status === "sent") ? { sent: true } : { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}`).join(" · ") || "aucun canal joignable" };
   } catch (e) {
     return { sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" };

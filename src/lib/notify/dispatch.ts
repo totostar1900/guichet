@@ -208,9 +208,20 @@ export async function notifyClientDocument(d: GeneratedDocument, c: Contact, cha
   return deliver("document", t, m, { intentId: d.intentId, offerId: d.offerId, documentId: d.id, pdf: { bytes, filename: `${d.number}.pdf` } });
 }
 
-/** A plain message to one contact on every channel they have (used by the followed-lines alerts). */
-export async function notifyRaw(kind: NotifyKind, c: Contact, m: { subject: string; text: string }, refs: { offerId?: string } = {}): Promise<Notification[]> {
+/**
+ * A plain message to one contact on every channel they have (used by the
+ * followed-lines alerts).
+ *
+ * LE MODÈLE EST FACULTATIF, ET SON ABSENCE A UN PRIX. Meta n'accepte un texte
+ * libre que dans la fenêtre de vingt-quatre heures ouverte par le client ;
+ * hors de cette fenêtre, seul un modèle approuvé passe. Un message qu'on
+ * envoie au moment qu'on choisit, et non en réponse, doit donc en porter un,
+ * sans quoi il échoue à l'envoi pour une raison qui n'a rien à voir avec son
+ * contenu. L'e-mail, lui, ne lit que le sujet et le texte : un modèle ne
+ * change rien de ce côté.
+ */
+export async function notifyRaw(kind: NotifyKind, c: Contact, m: { subject: string; text: string; template?: { name: string; params: string[] } }, refs: { offerId?: string } = {}): Promise<Notification[]> {
   const out: Notification[] = [];
-  for (const t of targets(c, ["whatsapp", "email"], kind)) out.push(await deliver(kind, t, { subject: m.subject, text: m.text }, refs));
+  for (const t of targets(c, ["whatsapp", "email"], kind)) out.push(await deliver(kind, t, { subject: m.subject, text: m.text, template: m.template }, refs));
   return out;
 }
