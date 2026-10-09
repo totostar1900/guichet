@@ -81,9 +81,12 @@ describe("le dossier d'ouverture", () => {
     expect(cles(c)).toEqual(["convention", "signer", "disponible"]);
   });
 
-  it("mène à la page du dossier, et nomme le geste", () => {
+  it("mène à la page de la convention, et nomme le geste", () => {
+    /* Depuis le 9 octobre 2026 la convention a sa page : un bouton mène là où
+       se fait ce qu'il annonce, et le dossier n'en garde qu'une carte. */
     const a = attentesDuClient({ ...vide, dossier: "convention" }, fmt)[0];
-    expect(a.href).toBe("/ouvrir-un-compte");
+    expect(a.href).toBe("/ouvrir-un-compte/convention");
+    expect(attentesDuClient({ ...vide, dossier: "convention_reprise" }, fmt)[0].href).toBe("/ouvrir-un-compte/convention");
     expect(a.geste).toBe("Accepter ma convention");
     // Le ton du retard : ce qui bloque se dit comme ce qui bloque.
     expect(a.ton).toBe("retard");

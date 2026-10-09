@@ -34,6 +34,25 @@ export const LEGAL_VERSION = "2026-09-20";
  */
 export const CONVENTION_VERSION = "2026-10-09b";
 
+/**
+ * CE QUI A CHANGÉ, DIT AU SIGNATAIRE QUI DOIT REPRENDRE.
+ *
+ * Une reprise redemandait une signature sans dire sur quoi : « la convention
+ * a changé », dix articles, et au client de trouver. La page de la convention
+ * s'ouvre donc sur la différence, et marque la COLONNE concernée de la
+ * balance : on ne refait pas lire dix articles pour une phrase.
+ *
+ * Elle se lève à la main avec CONVENTION_VERSION, et dit la même chose
+ * qu'elle : si le texte change ce à quoi le client s'engage, la phrase ici
+ * nomme l'engagement. « cote » désigne le côté de la balance : ce que le
+ * client donne, ou ce que la maison doit.
+ */
+export const CONVENTION_CHANGE: { version: string; quoi: string; cote: "donne" | "devons" } = {
+  version: CONVENTION_VERSION,
+  quoi: "Vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez plus rien pour cela, et l'ouverture reste sans frais.",
+  cote: "donne",
+};
+
 export interface LegalSection {
   id: string;
   title: { fr: string; en: string };

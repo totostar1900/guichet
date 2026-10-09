@@ -14,6 +14,17 @@ export type StepResult = { ok: true; message?: string; code?: string } | { ok: f
 
 const PATH = "/ouvrir-un-compte";
 
+/**
+ * LA CONVENTION A SA PAGE DEPUIS LE 9 OCTOBRE 2026, DONC DEUX ÉCRANS À
+ * RAFRAÎCHIR. « revalidatePath » ne descend pas dans les routes filles : un
+ * code parti, une acceptation reçue ne se voyaient pas là où on les fait, et
+ * c'est exactement la famille des pannes muettes.
+ */
+const revaliderLaConvention = () => {
+  revalidatePath(PATH);
+  revalidatePath(`${PATH}/convention`);
+};
+
 async function myFile(): Promise<{ file: ClientFile; userId: string; name: string }> {
   const s = await requireSession(PATH);
   const r = repo();
@@ -205,7 +216,7 @@ export async function sendConventionCodeAction(_p: StepResult | null, _form: For
      sous les yeux. */
   if (envoi.via === "echec") return { ok: false, error: `Le code n'a pas pu partir vers ${envoi.to} : ${envoi.raison}. Réessayez dans un instant ; si cela se répète, écrivez-nous depuis vos messages et nous l'enverrons autrement.` };
   await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeHash: empreinte(code), pendingCodeAt: new Date().toISOString(), pendingCodeTries: 0, pendingCodeTo: canal?.to } });
-  revalidatePath(PATH);
+  revaliderLaConvention();
   if (envoi.via === "demo") return { ok: true, message: "Mode démonstration : le code s'affiche ci-dessous.", code };
   return { ok: true, message: `Code envoyé par ${nommerCanal(canal)}.` };
 }
@@ -220,7 +231,7 @@ export async function verifyConventionCodeAction(_p: StepResult | null, form: Fo
     // Un essai raté se compte : c'est ce qui finit par brûler le code.
     if (verdict.essais !== (pendingCodeTries ?? 0)) {
       await repo().updateClientFile(file.id, { consents: { ...file.consents, pendingCodeTries: verdict.essais } });
-      revalidatePath(PATH);
+      revaliderLaConvention();
     }
     return { ok: false, error: verdict.erreur };
   }
@@ -232,7 +243,7 @@ export async function verifyConventionCodeAction(_p: StepResult | null, form: Fo
   const { generateKycDocument } = await import("@/lib/documents/generate");
   await generateKycDocument("convention", updated);
   await r.logEvent({ kind: "system", html: `<b>Convention acceptée</b> par ${updated.identity.name}${pendingCodeTo ? ` (code envoyé à ${pendingCodeTo})` : ""}` });
-  revalidatePath(PATH);
+  revaliderLaConvention();
   revalidatePath("/desk/clients");
   return { ok: true, message: "Convention acceptée. Votre exemplaire est dans vos documents." };
 }

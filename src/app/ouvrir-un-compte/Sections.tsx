@@ -4,12 +4,12 @@ import Link from "next/link";
 
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState } from "react";
 import { shrinkPhoto } from "@/lib/image-client";
 import type { ClientFile, KycDocKind, KycDocument } from "@/lib/domain/kyc";
 import { DOC_LABEL, requiredDocs } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
-import { addPersonAction, removeDocAction, removePersonAction, saveConsentsAction, saveFundsProfileAction, saveIdentityAction, sendConventionCodeAction, submitFileAction, uploadDocAction, verifyConventionCodeAction, type StepResult } from "./actions";
+import { addPersonAction, removeDocAction, removePersonAction, saveConsentsAction, saveFundsProfileAction, saveIdentityAction, submitFileAction, uploadDocAction, type StepResult } from "./actions";
 import styles from "./page.module.css";
 
 type P = { file: ClientFile; editable: boolean };
@@ -419,7 +419,7 @@ export function ConsentSection({ file, editable }: P) {
   return (
     <section className={styles.sec}>
       <h2 className="display">{t("5 · Consentements")}</h2>
-      <p className={styles.hint}>{t("Le premier est nécessaire pour que nous puissions instruire votre dossier. Le second est libre, et se retire à tout moment. L'acceptation de la convention, elle, vient après l'approbation : plus bas sur cette page.")}</p>
+      <p className={styles.hint}>{t("Le premier est nécessaire pour que nous puissions instruire votre dossier. Le second est libre, et se retire à tout moment. L'acceptation de la convention, elle, vient après l'approbation, et elle a sa propre page.")}</p>
       <form action={action} className={styles.form}>
         <fieldset disabled={!editable} className={styles.consents}>
           <label className={styles.check}>
@@ -439,144 +439,51 @@ export function ConsentSection({ file, editable }: P) {
   );
 }
 
-/**
- * LE TEMPS QUI RESTE, SANS CASSER L'HYDRATATION.
- *
- * Le décompte part de « null » et ne se remplit qu'au montage : le serveur ne
- * peut pas connaître l'heure du navigateur, et rendre un chiffre des deux côtés
- * est le plus sûr moyen d'en rendre deux différents.
- */
-function useReste(depuis: string | undefined, duree: number): number | null {
-  const [reste, setReste] = useState<number | null>(null);
-  useEffect(() => {
-    if (!depuis) return;
-    const fin = new Date(depuis).getTime() + duree;
-    const battre = () => setReste(Math.max(0, Math.ceil((fin - Date.now()) / 1000)));
-    battre();
-    const id = setInterval(battre, 1000);
-    return () => clearInterval(id);
-  }, [depuis, duree]);
-  /* Sans date de départ, aucune horloge ne court et l'ancienne valeur ne vaut
-     plus rien : on la dérive, plutôt que de la remettre à zéro depuis l'effet,
-     ce qui déclencherait un rendu en cascade. */
-  return depuis ? reste : null;
-}
-
-const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-
 /* ---------------- Après l'approbation · la convention ---------------- */
 /**
- * LA SIGNATURE, ET CE QU'IL FAUT QUAND ELLE N'ARRIVE PAS.
+ * LA CONVENTION N'EST PLUS ICI : ELLE A SA PAGE.
  *
- * Le code partait sans que personne ne dise où : trois codes bien envoyés à une
- * adresse que le client ne regardait pas, et aucun moyen de s'en apercevoir
- * depuis l'écran. La destination est donc nommée AVANT l'envoi, le temps qui
- * reste est visible, et « Je n'ai rien reçu » existe : renvoyer, savoir où
- * chercher, et changer de canal là où un code le prouve.
+ * Ce bloc a porté pendant des mois huit puces d'« essentiel », le lien vers le
+ * texte complet et la signature, au milieu d'un écran qui parlait aussi
+ * d'identité, de pièces et de profil. « Un mélange des genres », dit le
+ * 9 octobre 2026 : trois tâches de natures différentes dans une page, et la
+ * seule qui engage le client était la moins visible.
+ *
+ * Il ne reste donc qu'une CARTE : l'état de la convention, et la porte. Le
+ * texte, la balance et la signature vivent sur /ouvrir-un-compte/convention,
+ * qui est leur domicile. Ce qui se dit ici se dit en une phrase, et jamais
+ * deux fois : une carte qui résumerait les engagements referait le mélange.
  */
-export function ConventionSection({ file, signable, canal, enTete = false }: { file: ClientFile; signable: boolean; canal?: { to: string; channel: "whatsapp" | "email"; prouve: boolean }; /** Elle ouvre la page parce qu'elle attend un geste : le filet d'or le dit. */ enTete?: boolean }) {
+export function ConventionSection({ file, signable, enTete = false }: { file: ClientFile; signable: boolean; /** Elle ouvre la page parce qu'elle attend un geste : le filet d'or le dit. */ enTete?: boolean }) {
   const t = useT();
-  const [sendState, sendAct, sending] = useActionState<StepResult | null, FormData>(sendConventionCodeAction, null);
-  const [verState, verAct, verifying] = useActionState<StepResult | null, FormData>(verifyConventionCodeAction, null);
   const c = file.consents;
   /* « ACCEPTÉE » DOIT VOULOIR DIRE « ET IL N'Y A PLUS RIEN À SIGNER ».
      Mesuré à l'écran le 9 octobre 2026, à la première reprise : la page
      annonçait « Votre convention a changé », l'étiquette disait « convention
      à reprendre », et ce bloc affichait tranquillement « Convention acceptée
-     le 7 octobre » sans aucun bouton. Il lisait la date, qui existe toujours
-     après une reprise ; c'est `signable` qui porte la question. */
+     le 7 octobre ». Il lisait la date, qui existe toujours après une reprise ;
+     c'est `signable` qui porte la question. */
   const accepted = Boolean(c.conventionAt) && !signable;
-  const attente = useReste(c.pendingCodeAt, 45_000);
-  const validite = useReste(c.pendingCodeAt, 10 * 60_000);
-  const envoye = Boolean(c.pendingCodeAt) && validite !== 0;
-  const ou = c.pendingCodeTo ?? canal?.to;
-  const parMail = canal?.channel === "email";
+  const reprise = Boolean(c.conventionAt) && signable;
   return (
     <section className={`${styles.sec} ${enTete ? styles.secAction : ""}`}>
       <h2 className="display">{t("Votre convention")}</h2>
-      <div className={styles.convention}>
-        <b>{t("Convention d'ouverture de compte-titres : l'essentiel")}</b>
-        <ul>
-          <li>{t("Vos titres sont dématérialisés, inscrits à votre nom, conservés chez le dépositaire désigné ; Purpose Capital intervient comme intermédiaire.")}</li>
-          {/* LE MANDAT EST LA CLEF DE VOÛTE DE CETTE SIGNATURE : c'est lui qui
-              fait qu'il n'y en aura pas d'autre. Il se dit donc ici, en toutes
-              lettres, et non seulement à l'article 2 du texte complet. */}
-          <li>{t("Vous nous donnez mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez rien d'autre pour cela, et l'ouverture est sans frais.")}</li>
-          <li>{t("Les espèces transitent par un compte de règlement ségrégué ; les fonds doivent provenir d'un compte à votre nom. Vous pouvez placer votre solde en parts de fonds monétaire inscrites à votre nom.")}</li>
-          <li>{t("Un ordre naît de votre signature. Si vous le réglez tout de suite par un moyen authentifié, le reçu du paiement vaut signature ; l'argent ne précède jamais l'ordre.")}</li>
-          <li>{t("Vous demandez le versement de votre solde disponible quand vous voulez : il part sous 72 heures ouvrables, vers votre compte bancaire et vers lui seul.")}</li>
-          <li>{t("Tarifs : selon l'annexe tarifaire remise par votre conseiller ; aucun frais d'ouverture.")}</li>
-          <li>{t("Vous recevez un avis d'opéré par opération et un relevé de position ; réclamations et médiation COSUMAF décrites en annexe.")}</li>
-          <li>{t("Données : conservées 10 ans après la fin de la relation (obligation LBC/FT), utilisées pour la relation et le reporting réglementaire.")}</li>
-        </ul>
-        {/* La convention se lit DANS l app : ouverte a part, elle emporte
-            l app installee, et on demandait une signature sur un texte que le
-            signataire ne pouvait pas lire. */}
-        <Link className="btn sm" href="/ouvrir-un-compte/convention">
-          {t("Lire la convention complète")}
+      <p className={styles.hint}>
+        {t(
+          accepted
+            ? "Elle est acceptée : votre exemplaire daté est dans vos documents, et vous pouvez la relire quand vous voulez."
+            : reprise
+              ? "Le texte a changé sur un point qui vous engage. Sa page dit lequel, puis vous la reprenez par un code à usage unique."
+              : signable
+                ? "Dernière étape : elle se lit et se signe sur sa page, par un code à usage unique."
+                : "Rien ne se signe avant l'approbation de votre dossier. Vous pouvez la lire dès maintenant, sur sa page.",
+        )}
+      </p>
+      <div className={styles.actions}>
+        <Link className={`btn ${signable ? "primary" : "sm"}`} href="/ouvrir-un-compte/convention">
+          {t(accepted ? "Relire ma convention" : reprise ? "Relire et reprendre ma convention" : signable ? "Lire et signer ma convention" : "Lire la convention")}
         </Link>
       </div>
-      {accepted ? (
-        <div className={styles.ok}>
-          {t("Convention acceptée le {d} par {m}.", { d: fmtDateTime(c.conventionAt!), m: t(c.conventionMethod ?? "code à usage unique") })} {t("Votre exemplaire est dans vos documents.")}
-        </div>
-      ) : !signable ? (
-        <p className={styles.hint}>
-          {t("Rien ne se signe avant l'approbation de votre dossier : vous accepterez la convention ici, par un code à usage unique, dès que le desk aura statué. Vous pouvez la lire dès maintenant.")}
-        </p>
-      ) : (
-        <>
-          <form action={sendAct} className={styles.form}>
-            {ou ? (
-              <p className={styles.destinataire}>
-                {t(parMail ? "Le code part par e-mail, à" : "Le code part par WhatsApp, au")} <b>{ou}</b>
-                {canal && !canal.prouve ? <> · {t("cette adresse vient de votre formulaire : vérifiez-la")}</> : null}
-              </p>
-            ) : (
-              <p className={styles.hint}>{t("Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.")}</p>
-            )}
-            <Msg state={sendState} />
-            {sendState?.ok && sendState.code && (
-              <div className={styles.demoCode}>
-                {t("Code de démonstration :")} <b className="mono">{sendState.code}</b>
-              </div>
-            )}
-            <div className={styles.actions}>
-              <button className="btn primary" type="submit" disabled={sending || Boolean(attente)}>
-                {sending ? "…" : envoye ? (attente ? t("Renvoyer dans {s} s", { s: String(attente) }) : t("Renvoyer un code")) : t("Recevoir mon code d'acceptation")}
-              </button>
-            </div>
-          </form>
-          <form action={verAct} className={styles.form}>
-            <fieldset className={styles.codeRow}>
-              <label className="field">
-                {t("Code reçu")}
-                <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
-              </label>
-              <button className="btn primary" type="submit" disabled={verifying}>
-                {verifying ? "…" : t("J'accepte la convention")}
-              </button>
-            </fieldset>
-            {validite ? <p className={styles.attente}>{t("Ce code reste valable {t}.", { t: mmss(validite) })}</p> : null}
-            <Msg state={verState} />
-          </form>
-          {envoye && (
-            <details className={styles.aide}>
-              <summary>{t("Je n'ai rien reçu")}</summary>
-              <ul>
-                {ou && <li>{t(parMail ? "Regardez la boîte {o}, courrier indésirable compris : un expéditeur récent y tombe souvent." : "Regardez les messages du numéro {o}, y compris les demandes de message.", { o: ou })}</li>}
-                <li>{t("Un code vaut dix minutes ; passé ce délai, demandez-en un autre avec le bouton ci-dessus.")}</li>
-                <li>
-                  {t("Ce n'est pas le bon numéro ou la bonne adresse ?")}{" "}
-                  <a href="/moi/securite">{t("Prouvez le bon canal dans Sécurité")}</a>
-                  {t(" : le code suivra celui que vous aurez prouvé.")}
-                </li>
-                <li>{t("Rien ne marche ? Écrivez-nous depuis vos messages : un conseiller vous rappelle et nous vous l'envoyons autrement.")}</li>
-              </ul>
-            </details>
-          )}
-        </>
-      )}
     </section>
   );
 }

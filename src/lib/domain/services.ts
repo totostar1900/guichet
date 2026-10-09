@@ -522,7 +522,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: { key: "Convention" },
       quoi: { key: "Votre dossier est approuvé. Votre compte s'ouvre dès que la convention est acceptée, par un code à usage unique." },
       geste: "Accepter ma convention",
-      href: "/ouvrir-un-compte",
+      href: "/ouvrir-un-compte/convention",
       ton: "retard",
     });
   /* UNE REPRISE SE DIT AUTREMENT, parce que le compte, lui, n'attend rien.
@@ -535,7 +535,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: { key: "Convention" },
       quoi: { key: "Un point qui vous engage a changé : le mandat d'ouverture. Relisez-la et reprenez-la par un code ; vos positions ne changent pas." },
       geste: "Reprendre ma convention",
-      href: "/ouvrir-un-compte",
+      href: "/ouvrir-un-compte/convention",
       ton: "retard",
     });
   if (c.dossier === "complements")

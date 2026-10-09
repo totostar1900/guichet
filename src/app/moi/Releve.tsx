@@ -112,7 +112,10 @@ export async function Releve({ session: s }: { session: Session }) {
       {s.tier < 2 &&
         (!s.kycStatus || s.kycStatus === "complements" || (s.kycStatus === "approuve" && !s.conventionAccepted) ? (
           <p className={styles.reportLink}>
-            <Link href="/ouvrir-un-compte" className="btn primary">
+            {/* Un bouton mène là où se fait ce qu'il annonce : la convention a
+                sa page depuis le 9 octobre 2026, et le dossier n'en garde
+                qu'une carte. */}
+            <Link href={s.kycStatus === "approuve" ? "/ouvrir-un-compte/convention" : "/ouvrir-un-compte"} className="btn primary">
               {t(s.kycStatus === "complements" ? "Compléter mon dossier" : s.kycStatus === "approuve" ? "Accepter ma convention" : "Ouvrir mon compte")}
             </Link>
           </p>

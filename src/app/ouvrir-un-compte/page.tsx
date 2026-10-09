@@ -6,7 +6,6 @@ import { conventionAReprendre, conventionSignable, KIND_LABEL, missingForSubmiss
 import { fmtDateTime } from "@/lib/format";
 import { setKindAction } from "./actions";
 import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentitySection, PersonsSection, SubmitSection } from "./Sections";
-import { canalDuCode } from "@/lib/kyc/canal";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -40,12 +39,10 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
      pas « en cours d ouverture » : c est le texte qui a change, et le dire
      autrement ferait croire a un recommencement. */
   const reprise = conventionAReprendre(file);
-  /* La destination du code se lit à l'écran avant de l'envoyer : le canal prouvé
-     à la connexion passe devant le champ du formulaire (voir lib/kyc/canal). */
-  const canal = file.consents.conventionAt ? undefined : await canalDuCode(s.userId, file);
-  /* Le même bloc, à deux places selon le moment : en tête quand il attend un
-     geste, en pied quand il n'est plus qu'une pièce du dossier. */
-  const conventionBloc = <ConventionSection file={file} signable={signable} canal={canal} enTete={signable} />;
+  /* La même carte, à deux places selon le moment : en tête quand la convention
+     attend un geste, en pied quand elle n'est plus qu'une pièce du dossier. La
+     convention elle-même, son texte et sa signature vivent sur sa page. */
+  const conventionBloc = <ConventionSection file={file} signable={signable} enTete={signable} />;
 
   const steps: [string, boolean][] = [
     [t("Type de client"), true],
@@ -87,8 +84,8 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             {t(
               signable
                 ? reprise
-                  ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Relisez-la, puis reprenez-la par un code à usage unique, ci-dessous. Vos positions et votre compte ne changent pas."
-                  : "Votre dossier est approuvé. Dernière étape : acceptez la convention par un code à usage unique, ci-dessous. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte."
+                  ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Sa page dit ce qui a changé, puis vous la reprenez par un code à usage unique. Vos positions et votre compte ne changent pas."
+                  : "Votre dossier est approuvé. Dernière étape : la convention, qui se lit et se signe sur sa page, par un code à usage unique. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte."
                 : file.status === "approuve"
                   ? file.review.custodianAccount
                     ? "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents."
@@ -124,7 +121,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
               24 h ouvrées » : un délai qu'on ne tient pas toujours, affiché au
               moment précis où le client commence à compter. Il dit maintenant ce
               qui se passe et ce qui suivra, sans engager une heure. */}
-          {t("Dossier reçu. Un conseiller l'examine et vous écrit")} {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} {t("dès que la décision est prise. L'acceptation de la convention vient ensuite, sur cette page.")}
+          {t("Dossier reçu. Un conseiller l'examine et vous écrit")} {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} {t("dès que la décision est prise. La convention vient ensuite, sur sa page.")}
         </div>
       )}
 
