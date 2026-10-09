@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
 import { JOUR_MAX, JOUR_MIN, mandatVivant, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
+import { parseAmount } from "@/lib/format";
 
 export type MandatResult = { ok: true; message?: string; code?: string } | { ok: false; error: string };
 
@@ -24,9 +25,9 @@ const creation = z.object({
   bankName: z.string().trim().min(2).max(80),
   bankAccount: z.string().trim().min(6).max(60),
   accountHolder: z.string().trim().min(2).max(80),
-  maxAmount: z.coerce.number().positive(),
+  maxAmount: z.string().transform(parseAmount).pipe(z.number().positive()),
   dayOfMonth: z.coerce.number().int().min(JOUR_MIN).max(JOUR_MAX).optional(),
-  amount: z.coerce.number().positive().optional(),
+  amount: z.string().transform(parseAmount).pipe(z.number().positive()).optional(),
 });
 
 /**

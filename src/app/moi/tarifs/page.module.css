@@ -1,0 +1,128 @@
+/* L'annexe tarifaire : un document, pas un tableau de bord. Beaucoup d'air,
+   des filets, et le prix lisible avant la phrase qui l'explique. */
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--s-9) var(--s-7) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
+}
+.tete {
+  display: grid;
+  gap: var(--s-3);
+}
+.lead {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+  line-height: 1.55;
+}
+.bloc {
+  display: grid;
+  gap: var(--s-4);
+}
+.bloc h2 {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.sous {
+  margin: 0 0 var(--s-2);
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  max-width: 66ch;
+}
+
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: var(--t-3);
+}
+.tbl th {
+  text-align: left;
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: var(--s-5) var(--s-6);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.tbl td {
+  padding: var(--s-6);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.tbl tr:last-child td {
+  border-bottom: 0;
+}
+/* Le prix se lit avant la phrase : c'est la colonne qu'on vient chercher. */
+.prix {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--good, #15803d);
+}
+.tiers {
+  color: var(--ink-2);
+}
+
+.gratuits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.gratuits li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-3);
+}
+.gratuits li:last-child {
+  border-bottom: 0;
+}
+
+/* Ce qui ne nous revient pas : encadré, parce que c'est la moitié qu'une
+   annexe tarifaire tait d'habitude. */
+.apart {
+  border: 1px solid var(--gold-line, var(--line));
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: var(--s-7) var(--s-8);
+  display: grid;
+  gap: var(--s-5);
+}
+.apart h2 {
+  margin: 0;
+  font-size: var(--t-5);
+  color: var(--gold-ink, var(--gold));
+}
+.apart p {
+  margin: 0;
+  max-width: 66ch;
+  font-size: var(--t-3);
+  line-height: 1.55;
+}
+
+.pied {
+  margin: 0;
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  max-width: 66ch;
+  line-height: 1.5;
+}

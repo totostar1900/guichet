@@ -6,6 +6,7 @@ import { OUVERTE, type CashPolicy } from "@/lib/domain/cash";
 import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
 import { PREAVIS_DEFAUT, type StandingPolicy } from "@/lib/domain/preavis";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
+import { TARIFS_FERMES, type Tarifs } from "@/lib/domain/tarifs";
 import { REF } from "@/lib/reference";
 
 /**
@@ -71,6 +72,30 @@ export const loadCrossPolicy = cache(async (): Promise<CrossPolicy> => {
  * n'y a pas de tarif par défaut, parce qu'un tarif par défaut serait un
  * prélèvement décidé par le code.
  */
+/**
+ * L'ANNEXE TARIFAIRE : ce que la maison prend, et qui n'a pas d'autre toit.
+ *
+ * Elle se range avec les autres décisions de maison pour la même raison
+ * qu'elles : un prix est une décision, pas une constante. Et elle est fermée
+ * par défaut pour la même raison que le barème de garde : un tarif posé par
+ * défaut serait un prélèvement décidé par le code.
+ *
+ * Ce qui a déjà un toit n'est PAS ici : les droits d'entrée d'un fonds vivent
+ * sur le fonds, le barème de garde dans sa propre clef. L'annexe les compose
+ * à la lecture, elle n'en garde pas de copie.
+ */
+export const TARIFS_POLICY_KEY = "tarifs";
+
+export const loadTarifs = cache(async (): Promise<Tarifs> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const row = rows.find((r) => r.key === TARIFS_POLICY_KEY);
+    return row ? { ...TARIFS_FERMES, ...(row.data as Partial<Tarifs>) } : TARIFS_FERMES;
+  } catch {
+    return TARIFS_FERMES;
+  }
+});
+
 export const GARDE_POLICY_KEY = "droits-de-garde";
 
 export const loadBaremeGarde = cache(async (): Promise<BaremeGarde> => {

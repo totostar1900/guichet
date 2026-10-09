@@ -68,9 +68,15 @@ export interface ServiceVu {
   /**
    * Ce que le bouton dit, et où il mène.
    *
-   * « Allons-y » partout ne disait rien de ce qui allait se passer. Et quand
-   * le compte-titres n'est pas encore ouvert, aucun des neuf ne commence par
-   * lui-même : le geste devient l'ouverture, une fois, pour tous.
+   * « Voir le détail » promettait une lecture là où la ligne invite à agir,
+   * et un service déjà en place n'a pas de détail à faire lire : il a une
+   * page où continuer. Les deux états disent donc « Allons-y » depuis le
+   * 9 octobre 2026, sur décision du dirigeant.
+   *
+   * Ce qui ne change pas : un geste PARTICULIER l'emporte toujours sur le
+   * défaut, et c'est ce que la règle d'avant défendait. Quand le compte-titres
+   * n'est pas ouvert, aucun service ne commence par lui-même : le geste
+   * devient l'ouverture, une fois, pour tous.
    */
   geste: Dit;
   /**
@@ -152,7 +158,7 @@ export interface ContexteClient {
   compteOuvert?: boolean;
 }
 
-const enPlace = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "en_place", geste: s.geste ?? { key: "Voir le détail" } });
+const enPlace = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "en_place", geste: s.geste ?? { key: "Allons-y" } });
 const aActiver = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "a_activer", geste: s.geste ?? { key: "Allons-y" } });
 
 /**
@@ -199,7 +205,10 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           rayon: "programmer",
           cle: "epargne",
           nom: "Épargne programmée",
-          href: "/trader",
+          /* Jamais la page où l'on se trouve déjà : un geste qui ne déplace
+             rien se lit comme un bouton cassé, et c'est la seconde fois dans
+             la journée. Les versements programmés vivent au Portefeuille. */
+          href: "/#versements",
           phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
         })
       : aActiver({

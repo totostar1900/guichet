@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
 import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
 import styles from "./page.module.css";
@@ -73,6 +74,10 @@ export function MesMandats({
   const [ouvert, setOuvert] = useState(false);
   const [aRevoquer, setARevoquer] = useState<string | null>(null);
   const [quelle, setQuelle] = useState(instructions[0]?.id ?? "");
+  /* Contrôlés, parce que le regroupement replace le curseur après chaque
+     touche : un champ non contrôlé renverrait le curseur au bout. */
+  const [montant, setMontant] = useState("");
+  const [plafond, setPlafond] = useState("");
 
   const vivants = mandats.filter((m) => m.etat !== "revoque");
   const anciens = mandats.filter((m) => m.etat === "revoque");
@@ -236,7 +241,7 @@ export function MesMandats({
               <div className={styles.deux}>
                 <label className="field">
                   {t("Montant prélevé chaque mois")}
-                  <input name="amount" inputMode="numeric" placeholder="50000" />
+                  <input name="amount" inputMode="numeric" placeholder="50 000" value={montant} {...groupedInput(setMontant)} />
                 </label>
                 <label className="field">
                   {t("Jour du mois ({a} à {b})", { a: String(jourMin), b: String(jourMax) })}
@@ -247,7 +252,7 @@ export function MesMandats({
 
             <label className="field">
               {t("Plafond par échéance : nous ne prélèverons jamais plus")}
-              <input name="maxAmount" inputMode="numeric" placeholder="100000" />
+              <input name="maxAmount" inputMode="numeric" placeholder="100 000" value={plafond} {...groupedInput(setPlafond)} />
             </label>
 
             <div className={styles.deux}>

@@ -141,7 +141,7 @@ export async function Releve({ session: s }: { session: Session }) {
       )}
 
       {standing.length > 0 && (
-        <section className={styles.sec}>
+        <section className={styles.sec} id="versements">
           <h2>{t("Vos versements programmés")}</h2>
           <StandingList
             rows={standing.map((x) => {

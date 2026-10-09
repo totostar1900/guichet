@@ -69,6 +69,20 @@ export default async function DocumentsPage() {
           la position, et elle vaut pour les deux familles d'actifs : on ne
           détient rien tant qu'une opération n'est pas réglée, et une opération
           réglée veut dire que la conservation a suivi, titres ou parts. */}
+      {/* L'ANNEXE TARIFAIRE VIT ICI, et nulle part ailleurs. L'article 6 de
+          la convention la rend opposable ; elle a donc sa place auprès de la
+          convention et des avis, et non en vitrine : un prix mis en avant
+          devient un argument, et la maison n'en fait pas un. */}
+      <section className={styles.editer}>
+        <div>
+          <b>{t("Ce que vous payez")}</b>
+          <small>{t("L'annexe tarifaire que cite l'article 6 de votre convention : ce qui se facture, et ce qui ne se facture pas.")}</small>
+        </div>
+        <Link className="btn sm" href="/moi/tarifs">
+          {t("Lire l'annexe")}
+        </Link>
+      </section>
+
       <section className={styles.editer}>
         <div>
           <b>{t("Éditer un relevé")}</b>
