@@ -143,7 +143,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const surDesTitres = type === "ferme" || type === "cession" || type === "achat" || type === "vente";
   // « appetit », « info » et « rappel » n'engagent rien : ils ne demandent aucune chaîne de conservation.
   const needsAccount = surDesParts ? !peutOPCVM(session) : surDesTitres ? !peutTitres(session) : false;
-  const aOuvrir = surDesParts ? "dossier à ouvrir" : "compte-titres à ouvrir";
+
   const intent = await r.createIntent({
     offerId,
     type,
@@ -153,7 +153,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     channel,
     contactPhone: contactPhone || undefined,
     contactEmail: contactEmail || undefined,
-    message: needsAccount ? `[${aOuvrir}] ${message ?? ""}`.trim() : message,
+    message,
     clientId: session.userId,
     clientName,
     clientSegment: session.segment,

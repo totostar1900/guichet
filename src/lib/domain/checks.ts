@@ -1,5 +1,6 @@
 import type { IntentType, Offer } from "./types";
 import { estimate } from "./estimate";
+import { surDesTitres } from "./ouverture";
 import { surveyLimitBlock, surveyUnit } from "./survey";
 import { fmt, fmtPct, fmtPrice } from "@/lib/format";
 
@@ -147,7 +148,16 @@ export function orderChecks(o: Offer, type: IntentType, amount: number | null | 
   // Buybacks: whole titles.
   if (o.kind === "RACHAT" && amt !== Math.floor(amt)) out.push({ key: "whole", level: "warn", text: `Nombre de titres arrondi à ${fmt(Math.floor(amt))}.`, why: "Le Trésor rachète des titres entiers." });
 
-  if (ctx?.needsAccount) out.push({ key: "account", level: "warn", text: "Un compte-titres doit être ouvert avant le règlement : le desk vous rappelle pour finaliser le dossier.", why: "Les titres sont inscrits à votre nom chez le teneur de compte ; sans compte, l'ordre est gardé mais ne peut pas être réglé." });
+  /* CE QUI RESTE À OUVRIR DÉPEND DE CE QU'ON ACHÈTE, et le dire de travers
+     est pire que se taire : annoncer un compte-titres à quelqu'un qui souscrit
+     des parts lui fait chercher une ouverture qui n'aura pas lieu. Le type de
+     l'ordre est là, il suffit de le lire. */
+  if (ctx?.needsAccount)
+    out.push(
+      surDesTitres(type)
+        ? { key: "account", level: "warn", text: "Un compte-titres doit être ouvert avant le règlement : le desk vous rappelle pour finaliser le dossier.", why: "Les titres sont inscrits à votre nom chez le teneur de compte ; sans compte, l'ordre est gardé mais ne peut pas être réglé." }
+        : { key: "account", level: "warn", text: "Votre dossier doit être approuvé avant le règlement : le desk vous rappelle pour le finaliser.", why: "Les parts sont inscrites à votre nom au registre du fonds ; sans dossier approuvé, l'ordre est gardé mais ne peut pas être réglé." },
+    );
   return out;
 }
 

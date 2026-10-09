@@ -7,6 +7,7 @@ import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { orderChecks } from "@/lib/domain/checks";
+import { cequiManque } from "@/lib/domain/ouverture";
 import { estimate } from "@/lib/domain/estimate";
 import { avancement, INTENT_LABEL, INTENT_STATE_LABEL, nextStates, STATE_ACTION_LABEL, STATE_EFFECT, STATE_FINAL, STATE_PASSAGE } from "@/lib/domain/intent";
 import { summarize } from "@/lib/domain/summary";
@@ -67,7 +68,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
   const held = positions.filter((p) => p.offer.isin === o.isin).reduce((sum, p) => sum + p.units, 0);
   const valued = positions.reduce((sum, p) => sum + (p.marketValue ?? p.nominalAmount), 0);
   const nextFlow = positions.map((p) => p.nextFlow).filter(Boolean).sort((a, b) => a!.date.localeCompare(b!.date))[0];
-  const checks = orderChecks(o, it.type, it.amount, it.limitPrice, { held: it.type === "vente" || it.type === "rachat" ? held : undefined, needsAccount: /compte-titres à ouvrir/.test(it.message ?? "") });
+  const checks = orderChecks(o, it.type, it.amount, it.limitPrice, { held: it.type === "vente" || it.type === "rachat" ? held : undefined, needsAccount: Boolean(cequiManque(it.type, file)) });
   const est = it.amount ? estimate(o, it.amount) : undefined;
   const ids = new Set([it.id, ...history.map((x) => x.id)]);
   const outbound = notifications.filter((n) => (n.intentId && ids.has(n.intentId)) || (it.contactPhone && n.to === it.contactPhone) || (it.contactEmail && n.to === it.contactEmail));

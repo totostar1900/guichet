@@ -154,6 +154,10 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Nombre de titres arrondi à {n}.": "Number of securities rounded to {n}.",
   "Le Trésor rachète des titres entiers.": "The Treasury buys back whole securities.",
   "Un compte-titres doit être ouvert avant le règlement : le desk vous rappelle pour finaliser le dossier.": "A securities account must be open before settlement: the desk calls you back to finish the file.",
+  "Votre dossier doit être approuvé avant le règlement : le desk vous rappelle pour le finaliser.":
+    "Your account-opening file must be approved before settlement: the desk calls you back to finish it.",
+  "Les parts sont inscrites à votre nom au registre du fonds ; sans dossier approuvé, l'ordre est gardé mais ne peut pas être réglé.":
+    "The units are registered in your name in the fund's register; without an approved file, the order is held but cannot be settled.",
   "Les titres sont inscrits à votre nom chez le teneur de compte ; sans compte, l'ordre est gardé mais ne peut pas être réglé.": "Securities are registered in your name at the account keeper; without an account the order is kept but cannot be settled.",
 
   /* ---------- desk figures ---------- */
