@@ -68,8 +68,22 @@ export async function envoyerCodeMandatAction(_p: MandatResult | null, form: For
   const r = repo();
   const file = await r.getClientFileByUser(userId);
   if (!file) return { ok: false, error: "Dossier introuvable." };
-  const { canalDuCode, nommerCanal } = await import("@/lib/kyc/canal");
+  const { aucunCanalPossible, canalDuCode, nommerCanal } = await import("@/lib/kyc/canal");
   const canal = await canalDuCode(userId, file);
+  /* UN MANDAT NE SE SIGNE PAS SANS ADRESSE OÙ RECEVOIR LE CODE, et la raison
+     va plus loin que la signature. Le prélèvement promet « chaque prélèvement
+     est annoncé avant de partir », et rien ne part sans que son préavis soit
+     parti : un client injoignable signerait donc un mandat qui ne tirerait
+     jamais rien, sans que rien ne le lui dise.
+     Le dossier n'exige qu'un téléphone OU un e-mail, et WhatsApp Cloud API
+     n'est pas posé en production au 9 octobre 2026 : le cas n'est pas
+     théorique. */
+  if (aucunCanalPossible(canal)) {
+    return {
+      ok: false,
+      error: "Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement. Ajoutez-la dans Mon espace, Sécurité, puis revenez ici.",
+    };
+  }
   const code = nouveauCode();
   const { notifyCode } = await import("@/lib/kyc/notify");
   const envoi = await notifyCode(file, code, canal);

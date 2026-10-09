@@ -199,4 +199,8 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
     "The debit did not go through. Your mandate is paused while we work out why.",
   "Votre dossier doit être ouvert avant de signer un mandat : c'est lui qui porte le canal par lequel le code vous parvient.":
     "Your account-opening file must exist before you sign a mandate: it carries the channel the code reaches you by.",
+  "Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement.":
+    "We need an e-mail address before you sign: that is where the code goes, and then the notice of every debit.",
+  "Ajouter mon adresse →":
+    "Add my address →",
 };

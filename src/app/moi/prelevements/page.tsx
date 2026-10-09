@@ -4,7 +4,7 @@ import { getT } from "@/i18n/server";
 import { JOUR_MAX, JOUR_MIN } from "@/lib/domain/mandat";
 import { MOTIFS } from "@/lib/domain/prelevement";
 import { fmt, fmtDate } from "@/lib/format";
-import { canalDuCode } from "@/lib/kyc/canal";
+import { aucunCanalPossible, canalDuCode } from "@/lib/kyc/canal";
 import { MesMandats } from "./MesMandats";
 import styles from "./page.module.css";
 
@@ -37,6 +37,10 @@ export default async function PrelevementsPage() {
     r.listTirages({ userId: s.userId }).catch(() => []),
   ]);
   const canal = fiche ? await canalDuCode(s.userId, fiche) : undefined;
+  /* Injoignable : un mandat signé ici ne tirerait jamais rien, puisque rien ne
+     part sans que son préavis soit parti. La page le dit avant, et non après
+     un code demandé pour rien. */
+  const injoignable = aucunCanalPossible(canal);
   const instructions = standing.filter((x) => x.state === "active" && x.source === "virement").map((x) => ({ id: x.id, ref: x.ref, montant: x.amount, jour: x.dayOfMonth }));
 
   return (
@@ -78,6 +82,7 @@ export default async function PrelevementsPage() {
         compteParDefaut={fiche?.funds.bankAccount ?? ""}
         canal={canal ? { to: canal.to, parMail: canal.channel === "email" } : undefined}
         dossier={Boolean(fiche)}
+        injoignable={injoignable}
         jourMin={JOUR_MIN}
         jourMax={JOUR_MAX}
       />

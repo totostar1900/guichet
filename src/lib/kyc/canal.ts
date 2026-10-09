@@ -66,6 +66,31 @@ export async function canalDuCode(userId: string, f: ClientFile, prefererWhatsAp
   return undefined;
 }
 
+/**
+ * LA MAISON PEUT-ELLE VRAIMENT FAIRE PARVENIR UN CODE À CE CLIENT ?
+ *
+ * `canalDuCode` rend « rien » dans deux situations qui n'ont pas du tout le
+ * même sens, et les confondre a deux conséquences opposées.
+ *
+ *   AUCUN FOURNISSEUR N'EST CONFIGURÉ : la maison est en démonstration, et le
+ *   code s'affiche à l'écran. C'est le mode local, et refuser là rendrait
+ *   l'application inessayable.
+ *
+ *   UN FOURNISSEUR EST CONFIGURÉ, MAIS CE CLIENT N'A AUCUNE ADRESSE QU'IL
+ *   PUISSE SERVIR. Là, le code part dans le vide. C'est le cas réel depuis le
+ *   9 octobre 2026 : WhatsApp Cloud API n'est pas posé en production, le
+ *   dossier n'exige qu'« un téléphone OU un e-mail », donc un client prouvé
+ *   par son seul numéro est injoignable sans que rien ne le dise.
+ *
+ * Cette fonction nomme la seconde. Elle se lit de l'état des fournisseurs, et
+ * non d'un « il faut un e-mail » écrit en dur : le jour où WhatsApp sera posé,
+ * un client au seul numéro redeviendra joignable sans qu'une ligne change.
+ */
+export function aucunCanalPossible(canal: CanalDuCode | undefined): boolean {
+  if (canal) return false;
+  return emailConfigured() || whatsappConfigured();
+}
+
 /** Comment le dire au client : « par e-mail à georges@… » plutôt qu'un nom de canal seul. */
 export function nommerCanal(c: CanalDuCode | undefined): string {
   if (!c) return "";

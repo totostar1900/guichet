@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
@@ -46,6 +47,7 @@ export function MesMandats({
   compteParDefaut,
   canal,
   dossier,
+  injoignable,
   jourMin,
   jourMax,
 }: {
@@ -57,6 +59,8 @@ export function MesMandats({
   canal?: { to: string; parMail: boolean };
   /** Le dossier existe-t-il ? Sans lui, aucun code ne peut partir. */
   dossier: boolean;
+  /** Aucune adresse où faire parvenir le code, ni plus tard les préavis. */
+  injoignable: boolean;
   jourMin: number;
   jourMax: number;
 }) {
@@ -122,13 +126,15 @@ export function MesMandats({
                     <p className={styles.note}>
                       {!dossier
                         ? t("Votre dossier doit être ouvert avant de signer un mandat : c'est lui qui porte le canal par lequel le code vous parvient.")
-                        : canal
+                        : injoignable
+                          ? t("Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement.")
+                          : canal
                           ? t(canal.parMail ? "Le code part par e-mail, à {o}" : "Le code part par WhatsApp, au {o}", { o: canal.to })
                           : t("Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.")}
                     </p>
                     <form action={envoiAct}>
                       <input type="hidden" name="id" value={m.id} />
-                      <button className="btn primary" type="submit" disabled={envoyant || !dossier}>
+                      <button className="btn primary" type="submit" disabled={envoyant || !dossier || injoignable}>
                         {envoyant ? "…" : m.codeEnvoyeLe ? t("Renvoyer un code") : t("Recevoir mon code")}
                       </button>
                     </form>
@@ -182,7 +188,16 @@ export function MesMandats({
 
       <section className={styles.bloc}>
         <h2>{vivants.length ? t("En ajouter un") : t("Autoriser un prélèvement")}</h2>
-        {!ouvert ? (
+        {/* LE DIRE AVANT, PAS APRÈS. Préparer un mandat qu'on ne pourra pas
+            signer, c'est remplir sept champs pour s'entendre refuser au
+            dernier geste. La condition se lit donc ici aussi, et elle est la
+            même : une adresse où le code, puis chaque préavis, peut arriver. */}
+        {injoignable ? (
+          <p className={styles.note}>
+            {t("Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement.")}{" "}
+            <Link href="/moi/securite#canaux">{t("Ajouter mon adresse →")}</Link>
+          </p>
+        ) : !ouvert ? (
           <button type="button" className="btn primary" onClick={() => setOuvert(true)}>
             {t("Préparer un mandat")}
           </button>
