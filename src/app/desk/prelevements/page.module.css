@@ -1,0 +1,405 @@
+/* Les virements reçus : une file de travail, un geste par ligne. */
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--s-8) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.head h1 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-7);
+}
+.head p {
+  margin: 0;
+  max-width: 76ch;
+  font-size: var(--t-3);
+  line-height: 1.55;
+}
+
+.band {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-1);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+@media (max-width: 760px) {
+  .band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.band > div {
+  background: var(--surface);
+  padding: var(--s-5) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.band span {
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.band b {
+  font-size: var(--t-6);
+  font-variant-numeric: tabular-nums;
+}
+.warn {
+  color: var(--warn);
+}
+.crit,
+.alerte {
+  color: var(--crit);
+}
+
+.pb {
+  padding: var(--s-6) var(--s-7) var(--s-7);
+}
+.pbMince {
+  padding: 0 var(--s-7) var(--s-6);
+}
+.note {
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  max-width: 82ch;
+}
+.vide {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+
+.releve {
+  width: 100%;
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: var(--t-2);
+  line-height: 1.7;
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--line-2, var(--line));
+  border-radius: 6px;
+  background: var(--surface-2, var(--surface));
+  color: inherit;
+  resize: vertical;
+}
+
+/* Les lignes non lues se montrent : une ligne tombée sans bruit est un
+   virement orphelin de plus. */
+.illisibles {
+  margin-top: var(--s-5);
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--warn);
+  border-left-width: 3px;
+  border-radius: 6px;
+  display: grid;
+  gap: var(--s-3);
+  font-size: var(--t-2);
+}
+.illisibles ul {
+  margin: 0;
+  padding-left: var(--s-7);
+  display: grid;
+  gap: var(--s-2);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+
+/* UNE LIGNE = UN FORMULAIRE. Les colonnes sont une grille et non un tableau :
+   chaque ligne porte ses propres boutons et son propre champ de motif, et un
+   <td> contenant un formulaire se comporte mal dès qu'il grandit. */
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  display: grid;
+  grid-template-columns: 5.5rem 7rem minmax(10rem, 1.2fr) minmax(12rem, 1.4fr) minmax(12rem, 1.3fr) minmax(14rem, auto);
+  gap: var(--s-5);
+  align-items: start;
+  padding: var(--s-6) var(--s-7);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+}
+.row:first-child {
+  border-top: 0;
+}
+@media (max-width: 1100px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.row small {
+  display: block;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+/* Les fonds d'un tiers ne se lisent pas comme le reste : la convention les
+   refuse, et la ligne doit le dire avant qu'on lise le verdict. */
+.rowTiers {
+  background: var(--warn-soft, rgba(161, 98, 7, 0.06));
+  border-left: 3px solid var(--warn);
+}
+.deja {
+  opacity: 0.62;
+}
+
+.cellJour {
+  font-variant-numeric: tabular-nums;
+}
+.cellMontant {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
+.cellQui,
+.cellClient,
+.cellVerdict {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cellClient select {
+  width: 100%;
+  max-width: 100%;
+  font-size: var(--t-3);
+}
+.cellGeste {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.vOk,
+.vDoute,
+.vNon,
+.vDeja {
+  display: inline-block;
+  font-size: var(--t-2);
+  font-weight: 700;
+  padding: var(--s-1) var(--s-4);
+  border-radius: 4px;
+}
+.vOk {
+  color: var(--good, #1b4d3e);
+  background: var(--good-soft, #e4efe9);
+}
+.vDoute {
+  color: var(--warn);
+  background: var(--warn-soft, rgba(161, 98, 7, 0.1));
+}
+.vNon {
+  color: var(--crit);
+  background: var(--crit-soft, rgba(179, 38, 30, 0.08));
+}
+.vDeja {
+  color: var(--ink-3);
+  background: var(--surface-2, transparent);
+}
+
+/* Le motif de restitution s'ouvre à la place des boutons : la question se pose
+   là où le geste se fait. */
+.refus {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  width: 100%;
+}
+.refus input {
+  flex: 1;
+  min-width: 9rem;
+  font-size: var(--t-3);
+}
+
+.ok {
+  font-size: var(--t-2);
+  font-weight: 700;
+  color: var(--good, #1b4d3e);
+}
+.ko {
+  font-size: var(--t-2);
+  color: var(--crit);
+}
+
+.histo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.histo li {
+  display: grid;
+  grid-template-columns: 9rem minmax(8rem, 1fr) 7rem minmax(8rem, 1.4fr) 7rem;
+  gap: var(--s-5);
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+  align-items: baseline;
+}
+.histo li:first-child {
+  border-top: 0;
+}
+@media (max-width: 900px) {
+  .histo li {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.hQuand,
+.hMontant {
+  font-variant-numeric: tabular-nums;
+}
+.hMontant {
+  text-align: right;
+  font-weight: 700;
+}
+.hMotif,
+.hPar {
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+/* Les règles de la page, écrites une fois : elles ne sont pas une aide, elles
+   sont ce que la page refuse de faire autrement. */
+.regles {
+  border: 1px solid var(--gold-line, var(--line));
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: var(--s-6) var(--s-8);
+}
+.regles h2 {
+  margin: 0 0 var(--s-5);
+  font-size: var(--t-5);
+  color: var(--gold-ink, var(--gold));
+}
+.regles ol {
+  margin: 0;
+  padding-left: var(--s-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: var(--t-3);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 96ch;
+}
+
+/* ---- propre aux prélèvements ---- */
+
+/* La grille d'une ligne d'échéance : qui, quoi, combien, où, état, geste. */
+.row {
+  grid-template-columns: minmax(9rem, 1.2fr) minmax(8rem, 1fr) 8rem minmax(9rem, 1fr) minmax(10rem, 1.1fr) minmax(12rem, auto);
+}
+@media (max-width: 1100px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.cQui,
+.cObjet,
+.cCompte,
+.cEtat {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cMontant {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.cMontant b {
+  font-weight: 700;
+}
+.cGeste {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.cEtat select,
+.cGeste select {
+  max-width: 100%;
+  font-size: var(--t-2);
+}
+/* Un tirage sans nouvelle ne se lit pas comme les autres : rien ne s'est
+   passé, et c'est justement ce qui ne se voit pas. */
+.rowAlerte {
+  background: var(--crit-soft, rgba(179, 38, 30, 0.05));
+  border-left: 3px solid var(--crit);
+}
+.vGris {
+  display: inline-block;
+  font-size: var(--t-2);
+  font-weight: 700;
+  padding: var(--s-1) var(--s-4);
+  border-radius: 4px;
+  color: var(--ink-3);
+  background: var(--surface-2, transparent);
+}
+
+.pied {
+  display: flex;
+  gap: var(--s-5);
+  align-items: center;
+  flex-wrap: wrap;
+  padding: var(--s-6) var(--s-7);
+  border-top: 1px solid var(--line);
+}
+.pied .note {
+  margin: 0;
+}
+
+.causes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-6);
+}
+.causes li {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(0, 2fr);
+  gap: var(--s-3) var(--s-6);
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-3);
+  line-height: 1.5;
+}
+.causes li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.causes em {
+  grid-column: 2;
+  font-style: italic;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+@media (max-width: 760px) {
+  .causes li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .causes em {
+    grid-column: 1;
+  }
+}
+
+.histo li {
+  grid-template-columns: 8rem 7rem 7rem 8rem minmax(10rem, 1fr) 7rem;
+}

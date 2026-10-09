@@ -167,3 +167,47 @@
     min-width: 100%;
   }
 }
+
+/* Ce qui est annoncé, et ce qui est arrivé. Une ligne par prélèvement, et le
+   motif d'un rejet en toutes lettres : le client le relit ici parce que sa
+   banque le lui a peut-être facturé. */
+.tirages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tirages li {
+  display: grid;
+  grid-template-columns: 7rem 8rem minmax(8rem, 1fr) minmax(0, 2fr);
+  gap: var(--s-4) var(--s-5);
+  align-items: baseline;
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+}
+.tirages li:first-child {
+  border-top: 0;
+}
+@media (max-width: 700px) {
+  .tirages li {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.tQuand,
+.tMontant {
+  font-variant-numeric: tabular-nums;
+}
+.tQuoi {
+  color: var(--ink-2);
+}
+.tOk {
+  color: var(--good, #15803d);
+}
+.tAttente {
+  color: var(--ink-2);
+}
+.tRejet {
+  color: var(--crit);
+}

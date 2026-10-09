@@ -2,6 +2,8 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { JOUR_MAX, JOUR_MIN } from "@/lib/domain/mandat";
+import { MOTIFS } from "@/lib/domain/prelevement";
+import { fmt, fmtDate } from "@/lib/format";
 import { canalDuCode } from "@/lib/kyc/canal";
 import { MesMandats } from "./MesMandats";
 import styles from "./page.module.css";
@@ -28,7 +30,12 @@ export default async function PrelevementsPage() {
   const t = await getT();
   const s = await requireSession("/moi/prelevements");
   const r = repo();
-  const [mandats, standing, fiche] = await Promise.all([r.listMandats(s.userId), r.listStandingOrders(s.userId).catch(() => []), r.getClientFileByUser(s.userId)]);
+  const [mandats, standing, fiche, tirages] = await Promise.all([
+    r.listMandats(s.userId),
+    r.listStandingOrders(s.userId).catch(() => []),
+    r.getClientFileByUser(s.userId),
+    r.listTirages({ userId: s.userId }).catch(() => []),
+  ]);
   const canal = fiche ? await canalDuCode(s.userId, fiche) : undefined;
   const instructions = standing.filter((x) => x.state === "active" && x.source === "virement").map((x) => ({ id: x.id, ref: x.ref, montant: x.amount, jour: x.dayOfMonth }));
 
@@ -70,9 +77,45 @@ export default async function PrelevementsPage() {
         banqueParDefaut={fiche?.funds.bankName ?? ""}
         compteParDefaut={fiche?.funds.bankAccount ?? ""}
         canal={canal ? { to: canal.to, parMail: canal.channel === "email" } : undefined}
+        dossier={Boolean(fiche)}
         jourMin={JOUR_MIN}
         jourMax={JOUR_MAX}
       />
+
+      {/* CE QUI EST ANNONCÉ, ET CE QUI EST ARRIVÉ.
+          La page promettait « chaque prélèvement est annoncé avant de partir »
+          et ne montrait aucun prélèvement : la promesse vivait dans un message
+          que le client reçoit une fois et qu'il perd. Un rejet, surtout, doit
+          se relire ici : sa banque le lui a peut-être facturé, et deviner
+          pourquoi n'est pas à lui de le faire. */}
+      {tirages.length > 0 && (
+        <section className={styles.bloc}>
+          <h2>{t("Vos prélèvements")}</h2>
+          <ul className={styles.tirages}>
+            {tirages.slice(0, 12).map((x) => {
+              const m = mandats.find((y) => y.id === x.mandatId);
+              return (
+                <li key={x.id}>
+                  <span className={styles.tQuand}>{fmtDate(x.dueOn)}</span>
+                  <b className={styles.tMontant}>{t("{m} FCFA", { m: fmt(x.amount) })}</b>
+                  <span className={styles.tQuoi}>{m?.objet === "instruction" ? t("Épargne programmée") : t("Provision")}</span>
+                  <span className={x.state === "rejete" ? styles.tRejet : x.state === "encaisse" ? styles.tOk : styles.tAttente}>
+                    {x.state === "encaisse"
+                      ? t("reçu")
+                      : x.state === "rejete"
+                        ? t(MOTIFS[x.rejectCode ?? "autre"].auClient)
+                        : x.state === "remis"
+                          ? t("présenté à votre banque")
+                          : x.announcedAt
+                            ? t("annoncé, à venir")
+                            : t("à venir")}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

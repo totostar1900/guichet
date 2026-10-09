@@ -8,6 +8,7 @@ import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { rythmeObserve } from "@/lib/domain/fund-perf";
 import { JOURS_AVANT_ALERTE } from "@/lib/domain/virement";
+import { ageDeLaRemise, sansNouvelle } from "@/lib/domain/prelevement";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
@@ -441,6 +442,26 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     level: vieux.length ? "crit" : virements.length ? "warn" : "ok",
     value: `${virements.length}`,
     detail: plusVieux ? `le plus ancien attend depuis ${ageDe(plusVieux)} jour${ageDe(plusVieux) > 1 ? "s" : ""} : ${plusVieux.amount.toLocaleString("fr-FR")} FCFA de ${plusVieux.payer}` : "tout est rattaché",
+  });
+
+  /* Les prélèvements remis dont on n'a aucune nouvelle.
+     Troisième issue d'un tirage, et la pire : l'argent a pu être débité chez
+     le client sans nous parvenir, ou n'avoir jamais été présenté, et les deux
+     se ressemblent de notre côté. Rien d'autre ne regarde là : un tirage sans
+     sort n'est ni au journal d'un client, ni dans un écart de rapprochement. */
+  const remis = await r.listTirages({ state: "remis" }).catch(() => []);
+  const muets = remis.filter((x) => sansNouvelle(x, now));
+  const plusVieuxTirage = [...muets].sort((a, b) => (a.handedAt ?? "").localeCompare(b.handedAt ?? ""))[0];
+  out.push({
+    key: "prelevements",
+    label: "Prélèvements remis sans nouvelle",
+    level: muets.length ? "crit" : "ok",
+    value: `${muets.length} / ${remis.length}`,
+    detail: plusVieuxTirage
+      ? `le plus ancien attend depuis ${ageDeLaRemise(plusVieuxTirage, now)} jours : ${plusVieuxTirage.amount.toLocaleString("fr-FR")} FCFA, tirage ${plusVieuxTirage.ref}`
+      : remis.length
+        ? "tous remis depuis moins de dix jours"
+        : "aucun tirage en attente de sort",
   });
 
   return out;

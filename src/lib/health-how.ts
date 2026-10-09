@@ -103,4 +103,10 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "La file « En attente, sans nom », rangée par ancienneté. Quand le motif approche d'une référence à un caractère près, le client est proposé : il reste à l'appeler pour qu'il confirme, puis « Rattacher ». Si personne ne le reconnaît, « Restituer » avec son motif, et le virement de retour se fait en banque.",
     docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
   },
+  prelevements: {
+    label: "Prélèvements remis sans nouvelle",
+    href: "/desk/prelevements",
+    how: "Le panneau « Remises en attente de sort », rangé par ancienneté. Un tirage remis depuis plus de dix jours sans encaissement ni rejet appelle la banque, pas le client : c'est elle qui sait si l'opération a été présentée. La réponse obtenue s'inscrit ici, « Encaissé » ou « Rejeté » avec sa cause, et la cause décide de la suite.",
+    docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
+  },
 };

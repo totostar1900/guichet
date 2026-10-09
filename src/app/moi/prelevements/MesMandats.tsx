@@ -45,6 +45,7 @@ export function MesMandats({
   banqueParDefaut,
   compteParDefaut,
   canal,
+  dossier,
   jourMin,
   jourMax,
 }: {
@@ -54,6 +55,8 @@ export function MesMandats({
   banqueParDefaut: string;
   compteParDefaut: string;
   canal?: { to: string; parMail: boolean };
+  /** Le dossier existe-t-il ? Sans lui, aucun code ne peut partir. */
+  dossier: boolean;
   jourMin: number;
   jourMax: number;
 }) {
@@ -111,12 +114,21 @@ export function MesMandats({
                   <p className={styles.note}>{t("Signé le {d}. Votre exemplaire est dans vos documents : votre banque peut vous le demander.", { d: fmtDateTime(m.signeLe) })}</p>
                 ) : (
                   <div className={styles.signer}>
+                    {/* LA PAGE ET L'ACTION DOIVENT DIRE LA MÊME CHOSE. Sans
+                        dossier, la page annonçait « le code s'affichera à
+                        l'écran » et le bouton répondait « Dossier
+                        introuvable » : deux vérités, dont une seule tenait.
+                        Vu à l'écran le 9 octobre 2026. */}
                     <p className={styles.note}>
-                      {canal ? t(canal.parMail ? "Le code part par e-mail, à {o}" : "Le code part par WhatsApp, au {o}", { o: canal.to }) : t("Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.")}
+                      {!dossier
+                        ? t("Votre dossier doit être ouvert avant de signer un mandat : c'est lui qui porte le canal par lequel le code vous parvient.")
+                        : canal
+                          ? t(canal.parMail ? "Le code part par e-mail, à {o}" : "Le code part par WhatsApp, au {o}", { o: canal.to })
+                          : t("Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.")}
                     </p>
                     <form action={envoiAct}>
                       <input type="hidden" name="id" value={m.id} />
-                      <button className="btn primary" type="submit" disabled={envoyant}>
+                      <button className="btn primary" type="submit" disabled={envoyant || !dossier}>
                         {envoyant ? "…" : m.codeEnvoyeLe ? t("Renvoyer un code") : t("Recevoir mon code")}
                       </button>
                     </form>

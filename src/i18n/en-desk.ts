@@ -2844,6 +2844,10 @@ export const EN_MORE: Record<string, string> = {
   /* Le libellé d un point de Santé passe par t(variable) : le scanner des clefs
      ne le voit pas, et seul l écran le montre non traduit. Troisième fois. */
   "Virements reçus sans nom": "Transfers received with no name",
+  "Prélèvements remis sans nouvelle":
+    "Direct debits handed over with no news",
+  "Le panneau « Remises en attente de sort », rangé par ancienneté. Un tirage remis depuis plus de dix jours sans encaissement ni rejet appelle la banque, pas le client : c'est elle qui sait si l'opération a été présentée. La réponse obtenue s'inscrit ici, « Encaissé » ou « Rejeté » avec sa cause, et la cause décide de la suite.":
+    "The panel « Batches awaiting their outcome », ordered by age. A draw handed over more than ten days ago with neither collection nor reject calls for the bank, not the client: the bank is the one that knows whether the operation was presented. The answer obtained is recorded here, « Collected » or « Rejected » with its cause, and the cause decides what follows.",
   "La file « En attente, sans nom », rangée par ancienneté. Quand le motif approche d'une référence à un caractère près, le client est proposé : il reste à l'appeler pour qu'il confirme, puis « Rattacher ». Si personne ne le reconnaît, « Restituer » avec son motif, et le virement de retour se fait en banque.":
     "The queue « Waiting, with no name », ordered by age. When the reference is one character away from a real one, the client is proposed: it remains to call them so they confirm, then « Match ». If nobody recognises it, « Return it » with its reason, and the return transfer is made at the bank.",
   // Les deux modes d'emploi qui mènent désormais au domicile du sujet.

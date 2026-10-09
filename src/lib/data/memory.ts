@@ -20,9 +20,10 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
+import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 import { cleDEchange } from "@/lib/domain/echange";
 
@@ -37,6 +38,40 @@ function seedInbound(): InboundMessage[] {
 }
 
 /** Two example files so the desk's client review is not empty in demo mode: one submitted, one approved. */
+/**
+ * UN MANDAT SIGNÉ DANS LE JEU D'ESSAI, et pourquoi son jour suit l'horloge.
+ *
+ * Sans lui, /desk/prelevements est une page vide qu'on ne peut ni montrer ni
+ * vérifier : l'échéance du jour n'existe que s'il y a un mandat qui tombe ce
+ * jour-là, et un jour écrit en dur ne tomberait qu'une fois par mois. Le jour
+ * est donc celui d'aujourd'hui, borné à 28 comme tous les mandats.
+ */
+function seedMandats(): MandatPrelevement[] {
+  const now = new Date();
+  const iso = now.toISOString();
+  return [
+    {
+      id: "mp-seed-jpo",
+      ref: "MP-2610-DEMO",
+      userId: "c-jpo",
+      objet: "provision",
+      bankName: "Afriland First Bank",
+      bankAccount: "CM21 10005 00001 12345678901 23",
+      accountHolder: "Jean-Paul Onana",
+      maxAmount: 100_000,
+      dayOfMonth: Math.min(28, now.getDate()),
+      amount: 50_000,
+      state: "actif",
+      signedAt: iso,
+      signedMethod: "code à usage unique",
+      pendingCodeTries: 0,
+      rejects: 0,
+      createdAt: iso,
+      updatedAt: iso,
+    },
+  ];
+}
+
 function seedClientFiles(): ClientFile[] {
   const day = (d: number) => new Date(Date.now() - d * 86400e3).toISOString();
   const jpo = emptyClientFile("c-jpo", "physique", "J.-P. Onana", { phone: "+237600000017", email: "jp.onana@example.cm" });
@@ -111,6 +146,8 @@ interface Store {
   cash: CashEntry[];
   mandats: MandatPrelevement[];
   virements: VirementRecu[];
+  remises: RemiseDePrelevement[];
+  tirages: Tirage[];
   payouts: CashPayout[];
   rapprochements: Rapprochement[];
   temoignages: Temoignage[];
@@ -180,8 +217,10 @@ function store(): Store {
       deskExchanges: [],
       watches: [],
       cash: [],
-      mandats: [],
+      mandats: seedMandats(),
       virements: [],
+      remises: [],
+      tirages: [],
       payouts: [],
       rapprochements: [],
       temoignages: [],
@@ -223,6 +262,8 @@ function store(): Store {
   // Un store déjà en mémoire d'une version d'avant la table : sans ce garde, toute lecture de mandats tomberait sur undefined.
   if (!g.__guichetStore.mandats) g.__guichetStore.mandats = [];
   if (!g.__guichetStore.virements) g.__guichetStore.virements = [];
+  if (!g.__guichetStore.remises) g.__guichetStore.remises = [];
+  if (!g.__guichetStore.tirages) g.__guichetStore.tirages = [];
   if (!g.__guichetStore.standing) g.__guichetStore.standing = [];
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
@@ -635,6 +676,40 @@ export const memoryRepository: Repository = {
     if (store().virements.some((v) => v.fingerprint === input.fingerprint)) throw new Error(`incoming_transfers ${input.fingerprint} déjà lu`);
     const row: VirementRecu = { id: `vir-${store().virements.length + 1}`, state: "recu", createdAt: nowIso(), ...input };
     store().virements.unshift(row);
+    return structuredClone(row);
+  },
+  async listRemises(limit = 60) {
+    return structuredClone([...store().remises].sort((a, b) => b.dueOn.localeCompare(a.dueOn)).slice(0, limit));
+  },
+  async creerRemise(p) {
+    /* Une seule remise par échéance : en base c'est une contrainte, ici ce
+       garde. Deux fichiers pour le même jour sont un double prélèvement chez
+       chaque client de la liste. */
+    if (store().remises.some((r) => r.dueOn === p.dueOn)) throw new Error(`debit_batches ${p.dueOn} existe déjà`);
+    const row: RemiseDePrelevement = { id: `rp-${store().remises.length + 1}`, ref: p.ref, dueOn: p.dueOn, state: "preparee", createdAt: nowIso(), createdBy: p.createdBy };
+    store().remises.unshift(row);
+    return structuredClone(row);
+  },
+  async remettreRemise(id, p) {
+    const row = store().remises.find((r) => r.id === id);
+    if (!row) throw new Error(`debit_batches ${id} introuvable`);
+    Object.assign(row, { state: "remise", handedAt: nowIso(), handedBy: p.handedBy });
+    return structuredClone(row);
+  },
+  async listTirages(q) {
+    const all = store().tirages.filter((t) => (!q?.dueOn || t.dueOn === q.dueOn) && (!q?.userId || t.userId === q.userId) && (!q?.state || t.state === q.state) && (!q?.batchId || t.remiseId === q.batchId));
+    return structuredClone(all.sort((a, b) => b.dueOn.localeCompare(a.dueOn) || a.createdAt.localeCompare(b.createdAt)));
+  },
+  async creerTirage(input) {
+    if (store().tirages.some((t) => t.mandatId === input.mandatId && t.dueOn === input.dueOn)) throw new Error(`debit_draws ${input.mandatId}/${input.dueOn} existe déjà`);
+    const row: Tirage = { id: `tp-${store().tirages.length + 1}`, ref: makeTirageRef(), state: "prepare", noticeSent: false, createdAt: nowIso(), ...input };
+    store().tirages.push(row);
+    return structuredClone(row);
+  },
+  async updateTirage(id, patch) {
+    const row = store().tirages.find((t) => t.id === id);
+    if (!row) throw new Error(`debit_draws ${id} introuvable`);
+    Object.assign(row, patch);
     return structuredClone(row);
   },
   async closeVirement(id, p) {

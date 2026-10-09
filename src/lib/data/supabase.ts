@@ -16,9 +16,10 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
+import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
 import { fundCurveFrom, type FundCurve } from "@/lib/domain/fund-curve";
 import { cleDEchange, normaliserObjet } from "@/lib/domain/echange";
 
@@ -1446,6 +1447,62 @@ export const supabaseRepository: Repository = {
     if (error) fail("addVirement", error);
     return toVirement(data as VirementRow);
   },
+  async listRemises(limit = 60) {
+    const { data, error } = await db().from("debit_batches").select("*").order("due_on", { ascending: false }).limit(limit);
+    if (error) {
+      // Migration 0076 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/debit_batches/.test(error.message)) return [];
+      fail("listRemises", error);
+    }
+    return (data as RemiseRow[]).map(toRemise);
+  },
+  async creerRemise(p) {
+    const { data, error } = await db().from("debit_batches").insert({ ref: p.ref, due_on: p.dueOn, created_by: p.createdBy ?? null }).select("*").single();
+    if (error) fail("creerRemise", error);
+    return toRemise(data as RemiseRow);
+  },
+  async remettreRemise(id, p) {
+    /* `eq("state", "preparee")` est le garde : deux onglets ouverts sur la même
+       échéance ne remettent pas deux fois le même fichier. */
+    const { data, error } = await db().from("debit_batches").update({ state: "remise", handed_at: new Date().toISOString(), handed_by: p.handedBy }).eq("id", id).eq("state", "preparee").select("*").single();
+    if (error) fail("remettreRemise", error);
+    return toRemise(data as RemiseRow);
+  },
+  async listTirages(q) {
+    let sel = db().from("debit_draws").select("*").order("due_on", { ascending: false }).order("created_at", { ascending: true });
+    if (q?.dueOn) sel = sel.eq("due_on", q.dueOn);
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    if (q?.state) sel = sel.eq("state", q.state);
+    if (q?.batchId) sel = sel.eq("batch_id", q.batchId);
+    const { data, error } = await sel;
+    if (error) {
+      if (/debit_draws/.test(error.message)) return [];
+      fail("listTirages", error);
+    }
+    return (data as TirageRow[]).map(toTirage);
+  },
+  async creerTirage(input) {
+    const row = { ref: makeTirageRef(), mandate_id: input.mandatId, user_id: input.userId, due_on: input.dueOn, amount: input.amount, retry_of: input.retryOf ?? null };
+    const { data, error } = await db().from("debit_draws").insert(row).select("*").single();
+    if (error) fail("creerTirage", error);
+    return toTirage(data as TirageRow);
+  },
+  async updateTirage(id, patch) {
+    const row: Record<string, unknown> = {};
+    if (patch.state !== undefined) row.state = patch.state;
+    if (patch.remiseId !== undefined) row.batch_id = patch.remiseId ?? null;
+    if (patch.announcedAt !== undefined) row.announced_at = patch.announcedAt ?? null;
+    if (patch.noticeSent !== undefined) row.notice_sent = patch.noticeSent;
+    if (patch.noticeError !== undefined) row.notice_error = patch.noticeError ?? null;
+    if (patch.handedAt !== undefined) row.handed_at = patch.handedAt ?? null;
+    if (patch.settledAt !== undefined) row.settled_at = patch.settledAt ?? null;
+    if (patch.rejectCode !== undefined) row.reject_code = patch.rejectCode ?? null;
+    if (patch.rejectNote !== undefined) row.reject_note = patch.rejectNote ?? null;
+    if (patch.cashEntry !== undefined) row.cash_entry = patch.cashEntry ?? null;
+    const { data, error } = await db().from("debit_draws").update(row).eq("id", id).select("*").single();
+    if (error) fail("updateTirage", error);
+    return toTirage(data as TirageRow);
+  },
   async closeVirement(id, p) {
     const row: Record<string, unknown> = { state: p.state, closed_at: new Date().toISOString(), closed_by: p.closedBy };
     if (p.userId !== undefined) row.user_id = p.userId;
@@ -2406,6 +2463,63 @@ type VirementRow = {
   closed_reason?: string | null;
   created_at: string;
 };
+
+/* ---------------- Remises et tirages (migration 0076) ---------------- */
+
+type RemiseRow = { id: string; ref: string; due_on: string; state: "preparee" | "remise"; created_at: string; created_by?: string | null; handed_at?: string | null; handed_by?: string | null };
+
+const toRemise = (r: RemiseRow): RemiseDePrelevement => ({
+  id: r.id,
+  ref: r.ref,
+  dueOn: r.due_on,
+  state: r.state,
+  createdAt: r.created_at,
+  createdBy: u(r.created_by),
+  handedAt: u(r.handed_at),
+  handedBy: u(r.handed_by),
+});
+
+type TirageRow = {
+  id: string;
+  ref: string;
+  batch_id?: string | null;
+  mandate_id: string;
+  user_id: string;
+  due_on: string;
+  amount: number | string;
+  state: Tirage["state"];
+  announced_at?: string | null;
+  notice_sent: boolean;
+  notice_error?: string | null;
+  handed_at?: string | null;
+  settled_at?: string | null;
+  reject_code?: Tirage["rejectCode"] | null;
+  reject_note?: string | null;
+  cash_entry?: string | null;
+  retry_of?: string | null;
+  created_at: string;
+};
+
+const toTirage = (r: TirageRow): Tirage => ({
+  id: r.id,
+  ref: r.ref,
+  remiseId: u(r.batch_id),
+  mandatId: r.mandate_id,
+  userId: r.user_id,
+  dueOn: r.due_on,
+  amount: Number(r.amount),
+  state: r.state,
+  announcedAt: u(r.announced_at),
+  noticeSent: Boolean(r.notice_sent),
+  noticeError: u(r.notice_error),
+  handedAt: u(r.handed_at),
+  settledAt: u(r.settled_at),
+  rejectCode: r.reject_code ?? undefined,
+  rejectNote: u(r.reject_note),
+  cashEntry: u(r.cash_entry),
+  retryOf: u(r.retry_of),
+  createdAt: r.created_at,
+});
 
 const toVirement = (r: VirementRow): VirementRecu => ({
   id: r.id,

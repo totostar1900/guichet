@@ -9,6 +9,7 @@ import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
 import type { MandatPrelevement, NewMandat } from "@/lib/domain/mandat";
 import type { NewVirement, VirementRecu } from "@/lib/domain/virement";
+import type { NewTirage, RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
@@ -220,6 +221,24 @@ export interface Repository {
   addVirement(input: NewVirement & { fingerprint: string }): Promise<VirementRecu>;
   /** Rattacher à un client, ou restituer avec son motif. Un crédit ne se clôt qu'une fois. */
   closeVirement(id: string, p: { state: "rattache" | "restitue"; userId?: string; cashEntry?: string; closedBy: string; closedReason?: string; note?: string }): Promise<VirementRecu>;
+
+  /**
+   * Les remises de prélèvement : le fichier tel qu'il a été déposé.
+   *
+   * Une seule par échéance, et la base le garantit : deux fichiers pour le
+   * même jour, c'est un double prélèvement chez chaque client de la liste.
+   */
+  listRemises(limit?: number): Promise<RemiseDePrelevement[]>;
+  creerRemise(p: { ref: string; dueOn: string; createdBy?: string }): Promise<RemiseDePrelevement>;
+  remettreRemise(id: string, p: { handedBy: string }): Promise<RemiseDePrelevement>;
+
+  /** Les tirages : ceux d'une échéance pour le desk, ceux d'un client pour sa page. */
+  listTirages(q?: { dueOn?: string; userId?: string; state?: Tirage["state"]; batchId?: string }): Promise<Tirage[]>;
+  creerTirage(input: NewTirage): Promise<Tirage>;
+  updateTirage(
+    id: string,
+    patch: Partial<Pick<Tirage, "state" | "remiseId" | "announcedAt" | "noticeSent" | "noticeError" | "handedAt" | "settledAt" | "rejectCode" | "rejectNote" | "cashEntry">>,
+  ): Promise<Tirage>;
 
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;
@@ -433,4 +452,19 @@ export function makeMandatRef(now = new Date()): string {
   crypto.getRandomValues(bytes);
   const tail = [...bytes].map((b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
   return `MP-${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, "0")}-${tail}`;
+}
+
+/**
+ * TP-2610-K7Q4 : la référence d'un tirage, celle qui part dans le fichier.
+ *
+ * Elle est distincte de celle du mandat, et c'est la raison d'être des deux :
+ * la banque répond sur un tirage, pas sur une autorisation. Sans une référence
+ * par ligne, un rejet dirait « le mandat MP-… » et on ne saurait pas laquelle
+ * des deux présentations du mois il refuse.
+ */
+export function makeTirageRef(now = new Date()): string {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const tail = [...bytes].map((b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
+  return `TP-${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, "0")}-${tail}`;
 }

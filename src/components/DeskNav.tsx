@@ -52,6 +52,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          échéance annoncée et le défaut est le retard ; ici, un client vire
          quand il veut et le défaut est l'anonymat. */
       ["/desk/virements", "Virements reçus"],
+      /* Le mandat se signe chez le client, il s'exécute ici : deux pages pour
+         un sujet, parce qu'une autorisation qu'on donne et un travail qu'on
+         fait n'ont ni le même lecteur ni le même geste. */
+      ["/desk/prelevements", "Prélèvements"],
       ["/desk/rapprochement", "Rapprochement"],
       ["/desk/garde", "Droits de garde"],
       ["/desk/documents", "Documents"],
