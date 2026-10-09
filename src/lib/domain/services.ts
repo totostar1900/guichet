@@ -251,20 +251,22 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
     }),
   );
 
-  /* 09 · Sondage. Il n'a de sens que devant une séance à venir. */
+  /* SE DIRE PRENEUR, et non « sondage ». « Sondage » dit ce que la maison
+     en fait ; le client, lui, se dit preneur à un taux, sans engagement, et
+     c'est le mot que la phrase du service emploie déjà. */
   out.push(
     c.prochaineSeance
       ? aActiver({
           rayon: "placer",
           cle: "sondage",
-          nom: "Sondage avant adjudication",
+          nom: "Se dire preneur avant une adjudication",
           href: "/calendrier",
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
         })
       : aActiver({
           rayon: "placer",
           cle: "sondage",
-          nom: "Sondage avant adjudication",
+          nom: "Se dire preneur avant une adjudication",
           href: "/calendrier",
           phrase: { key: "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne." },
         }),
@@ -308,12 +310,14 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
     }),
   );
 
-  /* 05 · Courtage sur actions cotées. */
+  /* ACHETER ET VENDRE EN BOURSE, et non « courtage ». Le courtage est notre
+     métier ; le client, lui, achète et vend. Nommer la fonction de la maison
+     à la place du geste est le défaut qui a touché trois noms sur dix. */
   out.push(
     aActiver({
       rayon: "placer",
       cle: "actions",
-      nom: "Courtage sur actions cotées",
+      nom: "Acheter et vendre en bourse",
       href: "/marche",
       phrase: c.actions
         ? { key: "Vous détenez {n} actions {d}, vendables sur la BVMAC.", params: { n: c.actions.n, d: c.actions.titre } }

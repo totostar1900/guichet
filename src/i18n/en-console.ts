@@ -121,7 +121,7 @@ export const EN_CONSOLE: Record<string, string> = {
   "Souscription et rachat des fonds de la zone, avec la valeur liquidative, ses frais et sa date, comparés honnêtement entre eux.":
     "Subscription and redemption of the funds of the zone, with the net asset value, its fees and its date, compared honestly against each other.",
   "Nous distribuons, nous ne gérons pas : le choix du fonds reste le vôtre.": "We distribute, we do not manage: the choice of fund stays yours.",
-  "Courtage sur actions cotées": "Brokerage on listed shares",
+  "Acheter et vendre en bourse": "Buy and sell on the exchange",
   "Achat et vente sur la BVMAC, avec le dernier cours publié, sa date, et le fait qu'une ligne ait traité ou non.":
     "Buying and selling on the BVMAC, with the last published price, its date, and whether a line has traded at all.",
   Réinvestissement: "Reinvestment",
@@ -140,7 +140,7 @@ export const EN_CONSOLE: Record<string, string> = {
     "Your securities are registered in your own name at the depositary. The statement carries every line, its schedule and what is still to come.",
   "Les droits de garde sont calculés et détaillés ligne à ligne avant tout prélèvement.":
     "Custody fees are calculated and detailed line by line before anything is charged.",
-  "Sondage avant adjudication": "Survey ahead of an auction",
+  "Se dire preneur avant une adjudication": "Say you would be a taker, ahead of an auction",
   "Vous dites ce que vous seriez prêt à payer sur une séance à venir. L'émetteur voit une demande chiffrée, jamais un nom.":
     "You say what you would be prepared to pay in a coming session. The issuer sees a demand in figures, never a name.",
   "Un sondage n'engage personne, et ne vous réserve rien.": "A survey commits nobody, and reserves you nothing.",
