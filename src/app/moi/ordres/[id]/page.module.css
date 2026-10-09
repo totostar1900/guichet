@@ -197,3 +197,61 @@
 .fait {
   border-left: 2px solid var(--good);
 }
+
+/* Signer au doigt : le bloc de l'appareil, au-dessus du code reçu. Il se
+   peint après la première image, parce que le serveur ignore quel appareil
+   ce navigateur connaît. */
+.auDoigt {
+  display: grid;
+  gap: var(--s-4);
+  border: 1px solid var(--gold-line, var(--line));
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: var(--s-6) var(--s-7);
+  margin-bottom: var(--s-6);
+}
+.auDoigtTete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.auDoigtTete b {
+  font-size: var(--t-5);
+}
+.auDoigtNote {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  max-width: 62ch;
+  line-height: 1.5;
+}
+.auDoigtFin {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.pinField {
+  display: grid;
+  gap: var(--s-2);
+  max-width: 11rem;
+}
+.pinField span {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.pinField input {
+  font-size: var(--t-6);
+  letter-spacing: 0.5em;
+  text-align: center;
+}
+.lien {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--gold-ink, var(--gold));
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -68,6 +68,23 @@ export async function signerOrdreAction(_p: OrdreResult | null, form: FormData):
     return { ok: false, error: verdict.erreur };
   }
 
+  return acheverLaSignature(intent, mien.userId, "code à usage unique", intent.pendingCodeTo);
+}
+
+/**
+ * LA FIN D'UNE SIGNATURE, LA MÊME QUEL QUE SOIT LE GESTE QUI L'A DONNÉE.
+ *
+ * Deux chemins mènent ici, le code reçu et l'appareil déjà reconnu, et ils ne
+ * doivent produire qu'un seul effet : le même document, la même couverture,
+ * la même ligne au journal. Deux copies auraient divergé au premier détail
+ * ajouté d'un côté, et c'est le genre d'écart qu'on ne voit qu'en comparant
+ * deux ordres d'un même client.
+ *
+ * Seule la MANIÈRE change, et elle se garde : l'exemplaire imprime « signé
+ * le … par … », et c'est cette phrase qu'un contrôleur lit.
+ */
+async function acheverLaSignature(intent: Intent, userId: string, methode: string, to?: string): Promise<OrdreResult> {
+  const r = repo();
   /* Le document se produit MAINTENANT, parce que c'est maintenant qu'il est
      signé : il porte donc la signature, au lieu d'un bloc vide que le desk
      cocherait plus tard. Le code consommé disparaît, il ne se rejoue pas. */
@@ -84,11 +101,11 @@ export async function signerOrdreAction(_p: OrdreResult | null, form: FormData):
      elle ne sortira qu'au règlement, par l'écriture habituelle. La débiter
      maintenant compterait la dépense deux fois. */
   const du = aCouvrirPour(intent, await r.getOffer(intent.offerId));
-  const couverture = du > 0 && (await disponibleDe(mien.userId)) >= du;
+  const couverture = du > 0 && (await disponibleDe(userId)) >= du;
   await r.updateIntent(intent.id, {
     signedAt: new Date().toISOString(),
-    signedMethod: "code à usage unique",
-    signedTo: intent.pendingCodeTo,
+    signedMethod: methode,
+    signedTo: to,
     orderDocId: doc.id,
     ...(couverture ? { coveredAt: new Date().toISOString(), coveredAmount: du } : {}),
     pendingCodeHash: undefined,
@@ -101,7 +118,7 @@ export async function signerOrdreAction(_p: OrdreResult | null, form: FormData):
     intentId: intent.id,
     html: `<b>Ordre signé</b> par ${intent.clientName} · ${intent.ref} · ${doc.number}${couverture ? ` · <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés)` : ""}`,
   });
-  revalidatePath(chemin(id));
+  revalidatePath(chemin(intent.id));
   revalidatePath("/");
   revalidatePath("/desk");
   return {
@@ -110,4 +127,54 @@ export async function signerOrdreAction(_p: OrdreResult | null, form: FormData):
       ? "Ordre signé et couvert par votre provision : rien à virer. Votre exemplaire est dans vos documents."
       : "Ordre signé. Votre exemplaire est dans vos documents.",
   };
+}
+
+/* ---------- Signer avec l'appareil déjà reconnu ---------- */
+
+/**
+ * SIGNER AU DOIGT, ET POURQUOI C'EST UNE PREUVE AU MOINS AUSSI FORTE.
+ *
+ * Un code à usage unique prouve qu'on tient la boîte aux lettres ; une clef
+ * d'accès prouve qu'on tient l'appareil ET qu'on en a passé le verrou, le
+ * visage, l'empreinte ou le code du téléphone. Le code reçu reste, pour
+ * l'appareil qu'on n'a pas enregistré et pour celui qui préfère.
+ *
+ * CE QUI NE CHANGE PAS : l'ordre doit être signable, l'appareil doit
+ * appartenir à la personne connectée, et la fin est la même pour les deux
+ * chemins. Ce qui change est le nombre de gestes : trois et deux écrans
+ * deviennent un, et c'est tout l'objet de ce lot.
+ */
+export async function optionsDeClefAction(): Promise<unknown> {
+  await requireSession("/moi");
+  const { passkeyAuthenticationOptions } = await import("@/lib/auth/devices");
+  return passkeyAuthenticationOptions();
+}
+
+export async function signerAvecLaClefAction(id: string, response: unknown): Promise<OrdreResult> {
+  const mien = await monOrdre(id);
+  if (!mien) return { ok: false, error: "Ordre introuvable." };
+  const { intent, userId } = mien;
+  if (intent.signedAt) return { ok: true, message: "Cet ordre est déjà signé." };
+  if (!ordreSignable(intent)) return { ok: false, error: "Cet ordre ne se signe plus ici : le desk l'a déjà pris en main." };
+  const { confirmerParClef } = await import("@/lib/auth/devices");
+  const v = await confirmerParClef(userId, response as Parameters<typeof confirmerParClef>[1]);
+  if (!v.ok) return { ok: false, error: v.error };
+  /* LA MÉTHODE RESTE COURTE ET STABLE, le nom de l'appareil va dans la
+     destination. Composer « clé d'accès de l'appareil « X » » en une seule
+     chaîne aurait produit une phrase qu'aucun dictionnaire ne peut traduire,
+     et l'écran l'affiche telle quelle : c'est l'angle mort t(variable), vu
+     quatre fois aujourd'hui. */
+  return acheverLaSignature(intent, userId, "clé d'accès", v.name);
+}
+
+export async function signerAvecLeCodeDeLAppareilAction(id: string, deviceId: string, token: string, pin: string): Promise<OrdreResult> {
+  const mien = await monOrdre(id);
+  if (!mien) return { ok: false, error: "Ordre introuvable." };
+  const { intent, userId } = mien;
+  if (intent.signedAt) return { ok: true, message: "Cet ordre est déjà signé." };
+  if (!ordreSignable(intent)) return { ok: false, error: "Cet ordre ne se signe plus ici : le desk l'a déjà pris en main." };
+  const { confirmerParCode } = await import("@/lib/auth/devices");
+  const v = await confirmerParCode(userId, deviceId, token, pin);
+  if (!v.ok) return { ok: false, error: v.error };
+  return acheverLaSignature(intent, userId, "code de l'appareil", v.name);
 }

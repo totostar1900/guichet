@@ -127,7 +127,17 @@ export async function passkeyAuthenticationOptions(): Promise<PublicKeyCredentia
   return options;
 }
 
-export async function passkeyAuthenticate(response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+/**
+ * LA VÉRIFICATION SEULE, SÉPARÉE DE CE QU'ON EN FAIT.
+ *
+ * Elle servait à une chose, ouvrir une session, et la fonction faisait les
+ * deux d'un bloc. Signer un ordre demande la même preuve et surtout PAS la
+ * seconde moitié : une signature n'ouvre pas de session, et rejouer
+ * `mintSession` au milieu d'un ordre ferait d'une confirmation un acte de
+ * connexion, avec tout ce qu'il emporte. Les deux usages partagent donc la
+ * preuve et divergent après.
+ */
+async function verifierLaClef(response: AuthenticationResponseJSON): Promise<{ ok: true; device: TrustedDevice } | { ok: false; error: string }> {
   const challenge = await takeChallenge();
   if (!challenge) return { ok: false, error: "La demande a expiré : recommencez." };
   const d = await repo().findDevice({ credentialId: response.id });
@@ -141,8 +151,29 @@ export async function passkeyAuthenticate(response: AuthenticationResponseJSON):
   }
   if (!v.verified) return { ok: false, error: "Clé refusée." };
   await repo().updateDevice(d.id, { counter: v.authenticationInfo.newCounter, lastUsedAt: new Date().toISOString(), failures: 0 });
-  const m = await mintSession(d.userId);
-  return m.ok ? { ok: true, name: d.name } : m;
+  return { ok: true, device: d };
+}
+
+export async function passkeyAuthenticate(response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+  const v = await verifierLaClef(response);
+  if (!v.ok) return v;
+  const m = await mintSession(v.device.userId);
+  return m.ok ? { ok: true, name: v.device.name } : m;
+}
+
+/**
+ * CONFIRMER UN ACTE AVEC LA CLEF DÉJÀ ENREGISTRÉE, sans toucher à la session.
+ *
+ * La clef doit appartenir à la personne CONNECTÉE, et pas seulement être une
+ * clef valable : une clef découvrable laisse le téléphone choisir le compte,
+ * et sans ce contrôle on signerait l'ordre d'un autre avec son propre doigt
+ * sur un appareil partagé.
+ */
+export async function confirmerParClef(userId: string, response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+  const v = await verifierLaClef(response);
+  if (!v.ok) return v;
+  if (v.device.userId !== userId) return { ok: false, error: "Cette clé appartient à un autre compte : signez avec un code reçu." };
+  return { ok: true, name: v.device.name };
 }
 
 /* ---------- four-digit code, bound to this browser ---------- */
@@ -163,7 +194,7 @@ export async function pinEnrol(s: Session, token: string, pin: string, name: str
   return { ok: true, device };
 }
 
-export async function pinAuthenticate(deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
+async function verifierLeCode(deviceId: string, token: string, pin: string): Promise<{ ok: true; device: TrustedDevice } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
   const d = await repo().findDevice({ id: deviceId });
   if (!d || d.kind !== "pin" || !d.secretHash) return { ok: false, error: "Cet appareil n'est plus reconnu : connectez-vous par code.", forgotten: true };
   const expected = d.secretHash;
@@ -180,8 +211,22 @@ export async function pinAuthenticate(deviceId: string, token: string, pin: stri
     return { ok: false, error: `Code incorrect. ${left} essai${left > 1 ? "s" : ""} restant${left > 1 ? "s" : ""}.`, left };
   }
   await repo().updateDevice(d.id, { failures: 0, lastUsedAt: new Date().toISOString() });
-  const m = await mintSession(d.userId);
-  return m.ok ? { ok: true, name: d.name } : m;
+  return { ok: true, device: d };
+}
+
+export async function pinAuthenticate(deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
+  const v = await verifierLeCode(deviceId, token, pin);
+  if (!v.ok) return v;
+  const m = await mintSession(v.device.userId);
+  return m.ok ? { ok: true, name: v.device.name } : m;
+}
+
+/** Confirmer un acte avec le code de cet appareil, sans toucher à la session. Voir `confirmerParClef`. */
+export async function confirmerParCode(userId: string, deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
+  const v = await verifierLeCode(deviceId, token, pin);
+  if (!v.ok) return v;
+  if (v.device.userId !== userId) return { ok: false, error: "Cet appareil appartient à un autre compte : signez avec un code reçu." };
+  return { ok: true, name: v.device.name };
 }
 
 /* ---------- removal and the word sent on both channels ---------- */

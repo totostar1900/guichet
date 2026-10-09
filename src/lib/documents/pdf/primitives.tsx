@@ -163,6 +163,9 @@ export function Sig({ left, right }: { left: string; right: string }) {
  * depuis le 9 octobre 2026, et une seconde copie aurait divergé de la
  * première : elle est donc ici, avec les autres pièces de mise en page.
  */
+/** Les méthodes qui désignent un appareil, et non une boîte aux lettres. */
+const surLAppareil = (m: string | undefined): boolean => m === "clé d'accès" || m === "code de l'appareil";
+
 export function Signature({ intent, advisor, qui = "souscripteur" }: { intent: { signedAt?: string; signedMethod?: string; signedTo?: string; ref: string }; advisor?: string; qui?: string }) {
   if (!intent.signedAt) return <Sig left={`Le ${qui} : « lu et approuvé », date et signature`} right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />;
   const quand = new Date(intent.signedAt).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
@@ -170,7 +173,11 @@ export function Signature({ intent, advisor, qui = "souscripteur" }: { intent: {
     <View style={s.box}>
       <Text>
         <Text style={s.b}>Signature électronique.</Text> Ordre signé le {quand} par {intent.signedMethod ?? "code à usage unique"}
-        {intent.signedTo ? ` envoyé au ${intent.signedTo}` : ""}. Référence de l&apos;ordre : {intent.ref}.
+        {/* « ENVOYÉ AU » NE VAUT QUE POUR UNE DESTINATION. Depuis que l'ordre
+            se signe aussi avec l'appareil déjà reconnu, `signedTo` porte
+            parfois le nom de cet appareil, et « envoyé au iPhone de Georges »
+            aurait été faux dans une pièce opposable. */}
+        {intent.signedTo ? (surLAppareil(intent.signedMethod) ? ` sur l'appareil « ${intent.signedTo} »` : ` envoyé au ${intent.signedTo}`) : ""}. Référence de l&apos;ordre : {intent.ref}.
       </Text>
     </View>
   );

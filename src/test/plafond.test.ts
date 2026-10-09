@@ -206,9 +206,15 @@ describe("la couverture sur provision", () => {
   });
 
   it("la signature couvre si le solde suffit, et ne débite jamais", () => {
+    /* La couverture a déménagé dans `acheverLaSignature` le 9 octobre 2026,
+       quand l'ordre est devenu signable aussi avec l'appareil déjà reconnu :
+       elle vaut donc pour les trois chemins, et c'est mieux qu'avant, où elle
+       vivait dans le seul chemin du code reçu. */
     const src = readFileSync("src/app/moi/ordres/[id]/actions.ts", "utf8");
-    expect(src).toContain("disponibleDe(mien.userId)) >= du");
+    expect(src).toContain("disponibleDe(userId)) >= du");
     expect(src).toContain("coveredAt:");
+    const fin = src.slice(src.indexOf("async function acheverLaSignature"));
+    expect(fin, "la couverture appartient à la fin commune, pas à un seul geste").toContain("disponibleDe(userId)) >= du");
     // Aucun mouvement d'espèces à la signature : c'est le règlement qui l'écrit.
     expect(src).not.toContain("addCash");
   });

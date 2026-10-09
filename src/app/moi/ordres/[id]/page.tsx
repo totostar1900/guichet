@@ -12,6 +12,7 @@ import { peutOPCVM } from "@/lib/auth/types";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { canalDuCode } from "@/lib/kyc/canal";
+import { AuDoigt } from "./AuDoigt";
 import { SignatureOrdre } from "./Signature";
 import styles from "./page.module.css";
 
@@ -198,7 +199,15 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
           {t("Ordre signé le {d} par {m}.", { d: fmtDateTime(intent.signedAt), m: t(intent.signedMethod ?? "code à usage unique") })} {t("Référence")} <b className="mono">{intent.ref}</b>
         </div>
       ) : signable ? (
-        <SignatureOrdre id={intent.id} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} />
+        <>
+          {/* L'APPAREIL D'ABORD, LE CODE ENSUITE. Un ordre couvert par la
+              provision n'attend plus rien : l'argent est là, le plafond est
+              signé, et il restait un code à aller chercher dans une boîte aux
+              lettres. Le bloc ne paraît que si le navigateur connaît un
+              appareil, ce que le serveur ignore : il se peint après. */}
+          <AuDoigt id={intent.id} couvert={couvrirait} />
+          <SignatureOrdre id={intent.id} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} />
+        </>
       ) : ordreSignable(intent) && !habilite ? (
         <p className={styles.hint}>
           {t("Votre ordre est enregistré. Il se signera dès que votre dossier sera approuvé et votre convention acceptée.")}{" "}

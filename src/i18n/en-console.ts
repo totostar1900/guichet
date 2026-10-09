@@ -358,4 +358,22 @@ export const EN_CONSOLE: Record<string, string> = {
   "Masquer les instructions arrêtées": "Hide the stopped instructions",
   "Voir les {n} instructions arrêtées": "Show the {n} stopped instructions",
   "Remplacée": "Replaced",
+  "Annulé, ou l'appareil n'a pas reconnu le doigt. Réessayez, ou signez avec un code reçu.":
+    "Cancelled, or the device did not recognise the finger. Try again, or sign with a code you receive.",
+  "Clé indisponible : {m}":
+    "Key unavailable: {m}",
+  "Signer avec ma clé d'accès":
+    "Sign with my passkey",
+  "Signer, et c'est tout":
+    "Sign, and that is all",
+  "Signer sans attendre un code":
+    "Sign without waiting for a code",
+  "Cet ordre est couvert par votre provision : une fois signé, il n'y a rien à virer.":
+    "This order is covered by your provision: once signed, there is nothing to transfer.",
+  "Signer avec Face ID, empreinte ou code du téléphone":
+    "Sign with Face ID, fingerprint or the phone code",
+  "Ou signez avec un code reçu, ci-dessous.":
+    "Or sign with a code you receive, below.",
+  "clé d'accès": "passkey",
+  "code de l'appareil": "the device's code",
 };
