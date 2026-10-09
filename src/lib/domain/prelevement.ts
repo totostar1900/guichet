@@ -255,6 +255,28 @@ export function echeanceDuJour(
 /** Le jour où le préavis d'une échéance doit partir. */
 export const jourDuPreavis = (dueOn: string): string => jourPlus(dueOn, -PREAVIS_JOURS);
 
+/**
+ * LA PROCHAINE DATE OÙ CE MANDAT SE PRÉSENTERA, DITE AU CLIENT.
+ *
+ * Le desk raisonne par journée : « quelles échéances tombent aujourd'hui ».
+ * Le client, lui, demande l'inverse, « et la mienne, c'est quand », et cette
+ * question n'avait pas de réponse dans le code. Elle se calcule ici, à un
+ * seul endroit, parce que deux calculs de date finissent toujours par rendre
+ * deux dates.
+ *
+ * Le jour va de 1 à 28 (voir JOUR_MIN/JOUR_MAX) : tous les mois les ont, donc
+ * aucune décision de février à prendre. Le jour même compte encore comme une
+ * échéance à venir tant qu'elle n'est pas remise : le préavis, lui, est déjà
+ * parti cinq jours plus tôt.
+ */
+export function prochaineEcheance(jourDuMois: number, aujourdHui: string): string {
+  const [an, mois] = [Number(aujourdHui.slice(0, 4)), Number(aujourdHui.slice(5, 7))];
+  const pose = (a: number, m: number) => `${a}-${String(m).padStart(2, "0")}-${String(jourDuMois).padStart(2, "0")}`;
+  const ceMois = pose(an, mois);
+  if (ceMois >= jour(aujourdHui)) return ceMois;
+  return mois === 12 ? pose(an + 1, 1) : pose(an, mois + 1);
+}
+
 export type RefusDeRemise = "pas_annonce" | "pas_parti" | "trop_tot" | "deja_remis" | "abandonne";
 
 /**
