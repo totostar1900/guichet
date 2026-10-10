@@ -15,7 +15,7 @@ import { buildIssuerRegistry, setIssuerRegistry, type IssuerProfile } from "@/da
  * `reference` table : so an empty table changes nothing. The desk's changes
  * wait as drafts on the row until « Publier » ; only `data` is read here.
  */
-export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson", bareme: "bareme" } as const;
+export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson", bareme: "bareme", ecartes: "ecarte" } as const;
 
 /**
  * Supprimer une entrée que le code livre.

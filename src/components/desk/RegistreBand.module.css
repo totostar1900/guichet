@@ -1,0 +1,49 @@
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+}
+.dur {
+  border-color: var(--crit);
+  background: var(--crit-soft);
+}
+.doux {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+.eyebrow {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.dur .eyebrow {
+  color: var(--crit);
+}
+.doux .eyebrow {
+  color: var(--warn);
+}
+.band b {
+  color: var(--ink);
+}
+.liste {
+  margin: 0;
+  padding-left: var(--s-7);
+  line-height: 1.6;
+}
+.role {
+  color: var(--ink-3);
+}
+.quoi {
+  color: var(--ink-2);
+}
+.pied {
+  color: var(--ink-2);
+  line-height: 1.5;
+}

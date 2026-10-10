@@ -3176,4 +3176,75 @@ export const EN_MORE: Record<string, string> = {
   "+{n} arrivée(s)": "+{n} new",
   "aucun mouvement": "no movement",
   "Le relevé des mouvements n'a pas pu être lu : la frise ne montre donc rien, ce qui n'est pas la même chose qu'un marché immobile. Les deux listes de dates restent utilisables.": "The movement record could not be read: the strip therefore shows nothing, which is not the same as a still market. The two date lists remain usable.",
+
+  /* LE REGISTRE DES PERSONNES ÉCARTÉES.
+     Les six motifs et les quatre rôles passent par t() depuis une variable :
+     le scanner de clefs ne les voit pas, et un cliquet les tient. */
+  "Registre des personnes écartées": "Register of barred persons",
+  "{n} inscription(s) vivante(s)": "{n} live entr(ies)",
+  "Une mesure vit sur un compte : fermer le compte l'efface, et la même personne peut revenir le lendemain avec une autre adresse et un autre numéro. Ce registre vit à côté des comptes, et c'est pour cela qu'il existe.":
+    "A measure lives on an account: closing the account erases it, and the same person can come back the next day with another address and another number. This register lives beside the accounts, and that is why it exists.",
+  "Il ne refuse jamais tout seul : une correspondance lève un drapeau sur le dossier, et une personne nommée tranche en disant pourquoi. C'est un filet, pas un mur : il attrape celui qui revient, pas celui qui se fabrique une identité.":
+    "It never refuses by itself: a match raises a flag on the file, and a named person settles it saying why. It is a net, not a wall: it catches the one who comes back, not the one who manufactures an identity.",
+  "Inscrire quelqu'un": "List someone",
+  "{n} brouillon(s) en attente": "{n} draft(s) waiting",
+  "Ce que la publication poserait": "What publishing would set",
+  "Levée": "Lifted",
+  "pièce": "document",
+  "sans terme": "no end",
+  "Les inscriptions vivantes": "The live entries",
+  "Personne. C'est le bon état : le registre n'est pas une liste qu'on remplit, c'est une exception qu'on documente.":
+    "Nobody. That is the right state: the register is not a list one fills, it is an exception one documents.",
+  "Inscrit": "Listed",
+  "Lever": "Lift",
+  "ne se dit pas": "never told",
+  "levée en brouillon": "lift in draft",
+  "Un motif de conformité ne se dit jamais à la personne : prévenir quelqu'un qu'il est soupçonné est une faute au regard des textes LBC/FT. Ce silence est la loi, pas une pudeur.":
+    "A compliance reason is never told to the person: warning someone that they are suspected is an offence under AML/CFT rules. That silence is the law, not coyness.",
+  "Levées et échues": "Lifted and expired",
+  "elles n'écartent plus personne": "they bar nobody any more",
+  "levée le {d} par {q}": "lifted on {d} by {q}",
+  "échue le {d}": "expired on {d}",
+  "Une inscription levée n'est jamais supprimée : savoir qu'on a écarté quelqu'un puis qu'on s'est ravisé vaut mieux qu'une ligne disparue, et c'est la seule façon de répondre à quelqu'un qui demande pourquoi il a été refusé l'an dernier.":
+    "A lifted entry is never deleted: knowing we barred someone and then changed our mind is worth more than a vanished line, and it is the only way to answer someone asking why they were refused last year.",
+  "Nom, tel qu'il figure sur la pièce": "Name, as it appears on the document",
+  "Type de pièce": "Document type",
+  "CNI, Passeport…": "ID card, passport…",
+  "Numéro de pièce": "Document number",
+  "Terme (vide : celui du motif)": "End (blank: the reason's own)",
+  "Note pour le desk": "Note for the desk",
+  "ce que la personne suivante doit savoir": "what the next person needs to know",
+  "Inscrire en brouillon": "List as a draft",
+  "Sans numéro de pièce, la date de naissance est obligatoire : un nom seul n'accroche rien. Terme par défaut : {n} ans, sauf motifs sans terme.":
+    "Without a document number, the date of birth is required: a name alone catches nothing. Default end: {n} years, except for reasons with no end.",
+  "Pourquoi vous la levez": "Why you are lifting it",
+  "dette réglée le 12 novembre": "debt settled on 12 November",
+  "Publier {n} changement(s)": "Publish {n} change(s)",
+  "Une seconde personne confirme : écarter quelqu'un vaut une mesure posée d'avance sur un compte qui n'existe pas encore.":
+    "A second person confirms: barring someone is worth a measure set in advance on an account that does not yet exist.",
+  "Une pièce de ce dossier figure au registre.": "A document in this file is on the register.",
+  "Une personne de ce dossier ressemble à une inscription du registre.": "A person in this file resembles an entry on the register.",
+  "même pièce": "same document",
+  "même nom et même date de naissance": "same name and same date of birth",
+  "Inscrit le {d} par {q}": "Listed on {d} by {q}",
+  "motif de conformité": "compliance reason",
+  "Le registre ne refuse pas : il vous le dit. Pour approuver malgré tout, écrivez dans « Notes internes » ce qui écarte la correspondance (homonymie, pièce rendue, inscription levée ailleurs), puis approuvez : la note est gardée avec la décision.":
+    "The register does not refuse: it tells you. To approve anyway, write in « Internal notes » what rules the match out (namesake, document surrendered, entry lifted elsewhere), then approve: the note is kept with the decision.",
+  "Fraude avérée": "Confirmed fraud",
+  "Pièces falsifiées": "Forged documents",
+  "Déclaration à l'ANIF": "Report to the financial intelligence unit",
+  "Figure sur une liste de sanctions": "On a sanctions list",
+  "Dette non réglée envers la maison": "Unsettled debt to the firm",
+  "À la demande de la personne": "At the person's own request",
+  "le titulaire": "the holder",
+  "représentant": "representative",
+  "mandataire": "agent",
+  "bénéficiaire effectif": "beneficial owner",
+
+  // Le point de Santé du registre : son texte traverse t() depuis HEALTH_HOW.
+  "Un dossier en cours accroche une inscription du registre. Ouvrir le dossier : le bandeau au-dessus de la décision nomme la personne, ce sur quoi elle a accroché et ce que la maison avait écrit ce jour-là. Une correspondance de pièce est presque sûrement la même personne ; une ressemblance de nom et de date de naissance peut être un homonyme. Le registre ne refuse pas : il faut écrire dans « Notes internes » ce qui écarte la correspondance avant de pouvoir approuver, et cette phrase reste avec la décision. Un brouillon au registre n'écarte encore personne : il attend sa publication.":
+    "A file under way catches an entry on the register. Open the file: the band above the decision names the person, what they caught on, and what the firm wrote that day. A document match is almost certainly the same person; a resemblance of name and date of birth may be a namesake. The register does not refuse: you must write in « Internal notes » what rules the match out before you can approve, and that sentence stays with the decision. A draft on the register bars nobody yet: it is waiting to be published.",
+  "Le registre des personnes écartées": "The register of barred persons",
+
+  "ne se dit pas à la personne": "never told to the person",
 };

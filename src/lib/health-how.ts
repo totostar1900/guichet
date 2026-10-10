@@ -139,6 +139,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Un brouillon attend d'être publié. Les scores affichés restent ceux du barème en vigueur, ce qui est juste, mais un brouillon qui dort est une décision que personne n'a prise pendant que le desk croit l'avoir prise. Ouvrir l'écran, lire qui bouge, puis publier ou abandonner. Les cohortes commandent les envois : publier change qui reçoit les annonces de lignes.",
     docs: { href: "/desk/docs/clientele#activite", label: "L'activité et son barème" },
   },
+  "registre-ecartes": {
+    label: "Registre des personnes écartées",
+    href: "/desk/clients",
+    how: "Un dossier en cours accroche une inscription du registre. Ouvrir le dossier : le bandeau au-dessus de la décision nomme la personne, ce sur quoi elle a accroché et ce que la maison avait écrit ce jour-là. Une correspondance de pièce est presque sûrement la même personne ; une ressemblance de nom et de date de naissance peut être un homonyme. Le registre ne refuse pas : il faut écrire dans « Notes internes » ce qui écarte la correspondance avant de pouvoir approuver, et cette phrase reste avec la décision. Un brouillon au registre n'écarte encore personne : il attend sa publication.",
+    docs: { href: "/desk/docs/clientele#registre-ecartes", label: "Le registre des personnes écartées" },
+  },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",
     href: "/desk/approbations",

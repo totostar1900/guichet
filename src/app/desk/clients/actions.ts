@@ -9,6 +9,7 @@ import { generateKycDocument } from "@/lib/documents/generate";
 import { REVIEW_YEARS } from "@/lib/kyc/checklist";
 import { notifyKycDecision } from "@/lib/kyc/notify";
 import { screenFile } from "@/lib/kyc/screening";
+import { correspondancesDuDossier } from "@/lib/desk/registre-data";
 
 export type ReviewResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -51,6 +52,27 @@ export async function reviewAction(_p: ReviewResult | null, form: FormData): Pro
        sous-compte du teneur (voir getSession). */
     if (!screening?.attestedAt) return { ok: false, error: "Renseignez le contrôle sanctions / PPE (listes consultées et résultat) avant d'approuver." };
     if (screening.outcome === "confirme") return { ok: false, error: "Correspondance sanctions / PPE confirmée : approbation impossible sans diligence renforcée documentée (notes) et changement de résultat." };
+    /* LE REGISTRE N'EST PAS UN AVIS, C'EST UN ARRÊT.
+       Le bandeau au-dessus de la décision serait décoratif si l'approbation
+       passait quand même : c'est exactement ce que le garde des mesures a
+       appris il y a deux jours. Il ne refuse pas pour autant, parce qu'une
+       homonymie n'est pas une fraude : il exige que la personne qui approuve
+       ÉCRIVE ce qui écarte la correspondance, et cette phrase reste avec la
+       décision. Une note déjà présente ne suffit pas : elle doit avoir été
+       écrite en voyant le registre, donc nommer ce qu'on écarte. */
+    const hits = await correspondancesDuDossier(f);
+    if (hits.length > 0) {
+      const dit = (notes ?? "").trim();
+      if (dit.length < 20) {
+        const qui = hits.map((h) => `${h.personne.nom} (${h.personne.role})`).join(", ");
+        return {
+          ok: false,
+          error: `Registre des personnes écartées : ${hits.length} correspondance(s) sur ce dossier (${qui}). Approbation possible, mais écrivez d'abord dans « Notes internes » ce qui l'écarte (homonymie vérifiée, inscription levée, pièce rendue).`,
+        };
+      }
+      await audit("registre.passe_outre", "kyc_file", fileId, { after: { hits: hits.map((h) => ({ nom: h.personne.nom, role: h.personne.role, niveau: h.niveau, ecarte: h.ecarte.id })) }, reason: dit });
+      await r.logEvent({ kind: "desk", html: `Dossier ${f.identity.name} : <b>approuvé malgré ${hits.length} correspondance(s)</b> au registre des personnes écartées · ${desk.name} · ${dit}` });
+    }
     const next = new Date(now);
     next.setFullYear(next.getFullYear() + REVIEW_YEARS[risk]);
     const updated = await r.updateClientFile(fileId, {

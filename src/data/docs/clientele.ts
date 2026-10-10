@@ -292,6 +292,88 @@ export const CLIENTELE: DocPage = {
       ],
     },
     {
+      id: "registre-ecartes",
+      title: l("Le registre des personnes écartées", "The register of barred persons"),
+      blocks: [
+        {
+          type: "lead",
+          text: l(
+            "Une mesure vit sur un compte. Fermer le compte l'efface donc, et rien n'empêche la même personne de revenir le lendemain avec une autre adresse et un autre numéro : c'est le seul endroit du produit où tout le travail de la tenue et des mesures s'annule d'un geste. Ce registre vit à côté des comptes, et c'est pour cela qu'il existe.",
+            "A measure lives on an account. Closing the account therefore erases it, and nothing stops the same person coming back the next day with another address and another number: it is the one place in the product where all the work of conduct and measures is undone in a single move. This register lives beside the accounts, and that is why it exists.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "IL NE REFUSE JAMAIS TOUT SEUL. Une correspondance lève un drapeau au-dessus de la décision, et une personne nommée tranche en disant pourquoi. Refuser d'ouvrir un compte est une décision qui doit porter un nom : une machine qui la prendrait sur une homonymie en ferait une décision que personne n'a prise, et que personne ne peut donc expliquer.",
+            "IT NEVER REFUSES BY ITSELF. A match raises a flag above the decision, and a named person settles it saying why. Refusing to open an account is a decision that must carry a name: a machine taking it on a namesake would make it a decision nobody took, and that nobody can therefore explain.",
+          ),
+        },
+        {
+          type: "table",
+          head: [l("Ce qui accroche", "What catches"), l("Ce que ça vaut", "What it is worth")],
+          rows: [
+            [
+              l("Correspondance : le même numéro de pièce", "Match: the same document number"),
+              l("à une faute de saisie près, c'est la même personne", "bar a typing slip, it is the same person"),
+            ],
+            [
+              l("Ressemblance : même nom ET même date de naissance, autre pièce", "Resemblance: same name AND same date of birth, different document"),
+              l(
+                "c'est celui qui revient avec un passeport neuf, ou c'est un homonyme né le même jour. Le nom SEUL ne produit rien : « Jean Nguema » accrocherait tous les Jean Nguema du pays, et un drapeau qui se lève toujours cesse d'être lu.",
+                "it is the one coming back with a new passport, or a namesake born the same day. The name ALONE produces nothing: « Jean Nguema » would catch every Jean Nguema in the country, and a flag that always rises stops being read.",
+              ),
+            ],
+          ],
+        },
+        {
+          type: "p",
+          text: l(
+            "Le registre regarde TOUTES les personnes d'un dossier, pas seulement son titulaire, parce que c'est le cas qui compte : quelqu'un d'écarté revient rarement en son nom propre. Il revient comme représentant d'une société, comme mandataire sur le compte d'un proche, ou comme bénéficiaire effectif d'un groupement.",
+            "The register looks at EVERY person in a file, not only its holder, because that is the case that matters: someone barred rarely comes back in their own name. They come back as a company's representative, as an agent on a relative's account, or as a group's beneficial owner.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "info",
+          text: l(
+            "LE NUMÉRO DE PIÈCE EST ÉCRIT EN CLAIR, et ce choix mérite sa phrase. On peut n'en garder qu'une empreinte, pour que le registre ne soit pas une liste lisible de gens qu'on refuse. Trois raisons l'ont emporté : la personne inscrite était presque toujours cliente, donc la maison détient déjà son numéro dans son dossier et le hacher ici ne protège rien ; personne ne pourrait plus vérifier une inscription, ni voir la faute de frappe qui l'empêche de jamais correspondre ; et une empreinte ne compare qu'à l'identique, là où une ressemblance attrape celui qui revient avec une pièce neuve. Le registre est donc protégé exactement comme les dossiers dont il sort : desk seulement.",
+            "THE DOCUMENT NUMBER IS WRITTEN IN CLEAR, and that choice deserves its sentence. One can keep only a hash of it, so the register is not a readable list of people we refuse. Three reasons won: the person listed was almost always a client, so the firm already holds their number in their file and hashing it here protects nothing; nobody could verify an entry any more, nor see the typo that keeps it from ever matching; and a hash only compares identically, where a resemblance catches the one coming back with a new document. The register is therefore protected exactly like the files it comes from: desk only.",
+          ),
+        },
+        {
+          type: "steps",
+          items: [
+            l(
+              "Le motif vient d'une liste fermée, comme pour une mesure, et quatre des six sont des motifs de conformité qui ne se disent jamais à la personne : fraude avérée, pièces falsifiées, déclaration à l'ANIF, liste de sanctions. Les deux autres se disent : une dette non réglée envers la maison, et la demande de la personne elle-même.",
+              "The reason comes from a closed list, as for a measure, and four of the six are compliance reasons never told to the person: confirmed fraud, forged documents, report to the financial intelligence unit, sanctions list. The other two can be said: an unsettled debt to the firm, and the person's own request.",
+            ),
+            l(
+              "Une inscription finit, cinq ans par défaut, la durée pendant laquelle les textes imposent déjà de garder les pièces : au-delà, la maison n'a plus la trace qui la justifierait, donc elle ne peut plus la défendre. Seuls la déclaration à l'ANIF, les sanctions et la demande de la personne peuvent ne pas finir.",
+              "An entry ends, five years by default, the period for which the rules already require keeping the documents: beyond it, the firm no longer has the trace that would justify it, so it can no longer defend it. Only the intelligence-unit report, sanctions and the person's own request may have no end.",
+            ),
+            l(
+              "Une inscription se publie, comme tout le référentiel, et sa publication demande une SECONDE PERSONNE : écarter quelqu'un vaut une mesure posée d'avance sur un compte qui n'existe pas encore, et dont l'intéressé ne saura donc rien.",
+              "An entry is published, like all reference data, and its publication requires a SECOND PERSON: barring someone is worth a measure set in advance on an account that does not yet exist, and of which the person will therefore know nothing.",
+            ),
+            l(
+              "Une inscription levée n'est jamais supprimée. C'est la règle des instructions arrêtées, et c'est aussi la seule façon de répondre à quelqu'un qui demande pourquoi il a été refusé l'an dernier.",
+              "A lifted entry is never deleted. It is the rule of stopped instructions, and it is also the only way to answer someone who asks why they were refused last year.",
+            ),
+          ],
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "CE N'EST PAS UN MUR, C'EST UN FILET, et deux trous sont connus. Un chiffre inversé dans un numéro y passe : le registre attrape celui qui revient, pas celui qui se fabrique une identité. Et un mandataire ne donne au dossier que son numéro, ni sa date de naissance ni le type de sa pièce : il peut donc produire une correspondance de numéro, jamais une ressemblance de nom. Demander la date de naissance des mandataires fermerait ce second trou, et c'est un changement au formulaire du client.",
+            "IT IS NOT A WALL, IT IS A NET, and two holes are known. A transposed digit in a number goes through: the register catches the one who comes back, not the one who manufactures an identity. And an agent gives the file only their number, neither their date of birth nor their document type: they can therefore produce a number match, never a name resemblance. Asking agents for their date of birth would close that second hole, and that is a change to the client's own form.",
+          ),
+        },
+      ],
+    },
+    {
       id: "ou",
       title: l("Où regarder", "Where to look"),
       blocks: [
@@ -305,6 +387,7 @@ export const CLIENTELE: DocPage = {
             [l("Les gestes de tout le monde", "Everyone's moves"), l("Journal › Gestes des clients", "Journal › Client moves")],
             [l("Régler les poids du score", "Setting the score's weights"), l("Référentiel › Barème", "Reference data › Scale")],
             [l("Écrire à un groupe", "Writing to a group"), l("Carnet › la ligne à la une › Segment", "Book › the featured line › Segment")],
+            [l("Écarter quelqu'un, ou lever une inscription", "Barring someone, or lifting an entry"), l("Référentiel › Registre", "Reference data › Register")],
             [l("Ce que le client voit de lui-même", "What the client sees of themselves"), l("Son espace › Votre activité", "Their space › Your activity")],
           ],
         },

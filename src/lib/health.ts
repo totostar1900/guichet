@@ -15,6 +15,8 @@ import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
 import { tenuesDeTous } from "@/lib/desk/tenue-data";
 import { baremeCourant, baremeEnBrouillon } from "@/lib/desk/activite-data";
 import { mesureVivante } from "@/lib/domain/mesure";
+import { registreEnBrouillon, registrePublie, personnesDuDossier } from "@/lib/desk/registre-data";
+import { correspondances, ecartVivant } from "@/lib/domain/registre-ecartes";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
@@ -606,6 +608,30 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     detail: brouillon
       ? "un barème attend d'être publié : les scores affichés sont encore ceux de la version en vigueur"
       : "publié, et c'est lui que tous les scores citent",
+  });
+
+  /* UN DOSSIER QUI ACCROCHE AU REGISTRE ET QUE PERSONNE N'A TRANCHÉ.
+     Le bandeau ne se voit que par celui qui ouvre le dossier, et un dossier
+     soumis peut attendre une semaine. La correspondance la plus utile est
+     celle qu'on voit AVANT d'avoir commencé l'instruction : ce point
+     l'amène au tableau du matin. Un brouillon au registre y vient aussi,
+     par la même raison que le barème : il n'écarte encore personne, et le
+     desk croit l'avoir posé. */
+  const [registre, enAttenteRegistre, dossiers] = await Promise.all([registrePublie().catch(() => []), registreEnBrouillon().catch(() => []), r.listClientFiles().catch(() => [])]);
+  const soumis = dossiers.filter((f) => f.status === "soumis" || f.status === "en_revue" || f.status === "complements");
+  const accroches = soumis
+    .map((f) => ({ f, hits: correspondances(registre, personnesDuDossier(f), now) }))
+    .filter((x) => x.hits.length > 0);
+  out.push({
+    key: "registre-ecartes",
+    label: "Registre des personnes écartées",
+    level: accroches.length ? "crit" : enAttenteRegistre.length ? "warn" : "ok",
+    value: accroches.length ? `${accroches.length} dossier(s)` : `${registre.filter((e) => ecartVivant(e, now)).length} inscription(s)`,
+    detail: accroches.length
+      ? `${accroches.map((x) => `${x.f.identity.name} (${x.hits[0].niveau})`).join(" · ")} : à trancher avant toute approbation`
+      : enAttenteRegistre.length
+        ? `${enAttenteRegistre.length} changement(s) en brouillon : ils n'écartent encore personne`
+        : "aucun dossier en cours n'accroche",
   });
 
   return out;
