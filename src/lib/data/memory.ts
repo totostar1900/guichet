@@ -215,6 +215,8 @@ interface Store {
   audit: AuditEntry[];
   /** Les gestes des clients ; la clef du jour reste en memoire pour refuser un doublon. */
   gestes: (ActionClient & { clefDuJour?: string })[];
+  /** Ce qui reste des gestes purges : un compteur par client, mois et famille. */
+  gestesMensuel: Record<string, number>;
   approvals: Approval[];
   push: PushSubscription[];
   clientFiles: ClientFile[];
@@ -286,6 +288,7 @@ function store(): Store {
       versions: [],
       audit: [],
       gestes: [],
+      gestesMensuel: {},
       approvals: [],
       push: [],
       staff: [
@@ -326,6 +329,7 @@ function store(): Store {
   if (!g.__guichetStore.versions) g.__guichetStore.versions = [];
   if (!g.__guichetStore.audit) g.__guichetStore.audit = [];
   if (!g.__guichetStore.gestes) g.__guichetStore.gestes = [];
+  if (!g.__guichetStore.gestesMensuel) g.__guichetStore.gestesMensuel = {};
   if (!g.__guichetStore.approvals) g.__guichetStore.approvals = [];
   if (!g.__guichetStore.push) g.__guichetStore.push = [];
   /* Le rechargement à chaud peut garder un magasin d'une forme plus ancienne.
@@ -517,6 +521,17 @@ export const memoryRepository: Repository = {
       )
       .sort((a, b) => b.at.localeCompare(a.at));
     return structuredClone(rows.slice(0, filter.limit ?? 200).map(({ clefDuJour: _c, ...r }) => r));
+  },
+  async purgerGestes(avant) {
+    const st = store();
+    const limite = avant.toISOString();
+    const partis = st.gestes.filter((g) => g.at < limite);
+    for (const g of partis) {
+      const clef = g.userId + "|" + g.at.slice(0, 7) + "|" + g.genre;
+      st.gestesMensuel[clef] = (st.gestesMensuel[clef] ?? 0) + 1;
+    }
+    st.gestes = st.gestes.filter((g) => g.at >= limite);
+    return partis.length;
   },
   async listPushSubscriptions(userIds) {
     return structuredClone(store().push.filter((p) => !userIds || userIds.includes(p.userId)));

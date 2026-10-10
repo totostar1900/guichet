@@ -1176,6 +1176,16 @@ export const supabaseRepository: Repository = {
     if (error) return [];
     return (data as ActionRow[]).map(toAction);
   },
+  async purgerGestes(avant) {
+    /* Un seul ordre : la fonction compte ce qu elle supprime, de sorte qu un
+       arret au milieu ne laisse ni compteur double ni geste perdu. */
+    const { data, error } = await db().rpc("purger_gestes", { avant: avant.toISOString() });
+    if (error) {
+      console.error("purgerGestes", error.message);
+      return 0;
+    }
+    return Number(data ?? 0);
+  },
   async listPushSubscriptions(userIds) {
     let q = db().from("push_subscriptions").select("*");
     if (userIds) q = q.in("user_id", userIds);

@@ -147,4 +147,22 @@ export const clefDuJour = (userId: string, geste: string, objet: string | undefi
   `${userId}|${geste}|${objet ?? ""}|${jour}`;
 
 /** Les gestes dont on ne garde qu'une occurrence par jour. */
+/**
+ * TREIZE MOIS DE DÉTAIL, PUIS DES COMPTEURS, et c'est écrit à l'article 8 de
+ * la convention : ce n'est donc plus un réglage, c'est une promesse.
+ *
+ * Treize et non douze : une comparaison d'une année sur l'autre doit toujours
+ * tomber dans le détail, sinon le mois de référence disparaît la veille du
+ * jour où on le compare. Le score, lui, ne regarde que douze mois : il n'est
+ * donc jamais touché par la purge.
+ */
+export const MOIS_DE_DETAIL = 13;
+
+/** La borne : tout geste antérieur se résume et part. */
+export function borneDeLaPurge(now = new Date()): Date {
+  const d = new Date(now);
+  d.setMonth(d.getMonth() - MOIS_DE_DETAIL);
+  return d;
+}
+
 export const estQuotidien = (geste: string): boolean => genreDe(geste) === "consultation";

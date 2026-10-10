@@ -51,7 +51,7 @@ export const REPRISE: DocPage = {
           rows: [
             [
               l("La propriété des comptes", "Ownership of the accounts"),
-              l("Une adresse de rôle de la maison, tech@purposecapital.africa", "A firm role address, tech@purposecapital.africa"),
+              l("Une adresse de rôle de la maison, techguichet@purposecapital.africa", "A firm role address, techguichet@purposecapital.africa"),
               l(
                 "Elle survit aux personnes. Elle ne sert jamais à travailler au quotidien : on s'en sert pour inviter, pour transférer et pour reprendre la main.",
                 "It outlives people. It is never used for day-to-day work: it is used to invite, to transfer and to take the keys back.",
@@ -104,8 +104,8 @@ export const REPRISE: DocPage = {
               l("1", "1"),
               l("Microsoft 365", "Microsoft 365"),
               l(
-                "Créer tech@purposecapital.africa, poser son second facteur, ranger identifiants et clés de secours dans le coffre partagé, et désigner une deuxième personne qui détient la clé de secours.",
-                "Create tech@purposecapital.africa, set its second factor, store credentials and recovery keys in the shared vault, and name a second person who holds the recovery key.",
+                "Créer techguichet@purposecapital.africa, poser son second facteur, ranger identifiants et clés de secours dans le coffre partagé, et désigner une deuxième personne qui détient la clé de secours.",
+                "Create techguichet@purposecapital.africa, set its second factor, store credentials and recovery keys in the shared vault, and name a second person who holds the recovery key.",
               ),
               l("Rien ne peut commencer : les sept transferts suivants visent cette adresse.", "Nothing can start: the next seven transfers all point at this address."),
             ],
@@ -208,8 +208,8 @@ export const REPRISE: DocPage = {
           type: "steps",
           items: [
             l(
-              "Ouvrir le coffre partagé et prendre les identifiants de tech@purposecapital.africa. La clé de secours est chez la deuxième personne désignée ; elle seule permet de passer le second facteur.",
-              "Open the shared vault and take the credentials of tech@purposecapital.africa. The recovery key is with the designated second person; it alone gets past the second factor.",
+              "Ouvrir le coffre partagé et prendre les identifiants de techguichet@purposecapital.africa. La clé de secours est chez la deuxième personne désignée ; elle seule permet de passer le second facteur.",
+              "Open the shared vault and take the credentials of techguichet@purposecapital.africa. The recovery key is with the designated second person; it alone gets past the second factor.",
             ),
             l(
               "Entrer dans Vercel avec l'adresse de rôle : tout part de là, puisque les clés y sont. Vérifier que le dernier déploiement est bien celui du dernier envoi sur master.",

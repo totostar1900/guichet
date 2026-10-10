@@ -318,3 +318,63 @@ describe("ce qui note les consultations", () => {
     expect(src).toMatch(/objet\.slice\(0, 120\)/);
   });
 });
+
+/**
+ * LA PURGE : UNE PROMESSE ÉCRITE DANS UN CONTRAT.
+ *
+ * L'article 8 de la convention dit treize mois de détail, puis des compteurs
+ * sans le geste. Ce n'est donc plus un réglage qu'on ajuste : une promesse
+ * écrite et tenue par personne est pire que pas de promesse.
+ */
+describe("la purge du registre", () => {
+  it("garde treize mois, et pas douze", async () => {
+    /* Une comparaison d'une année sur l'autre doit toujours tomber dans le
+       détail, sinon le mois de référence disparaît la veille du jour où on
+       le compare. Et le score ne regarde que douze mois : il n'est jamais
+       touché par la purge. */
+    const { MOIS_DE_DETAIL, borneDeLaPurge } = await import("@/lib/domain/journal-client");
+    expect(MOIS_DE_DETAIL).toBe(13);
+    expect(borneDeLaPurge(new Date("2027-12-10T12:00:00Z")).toISOString().slice(0, 10)).toBe("2026-11-10");
+  });
+
+  it("résume puis supprime, et rend le compte", async () => {
+    delete (globalThis as { __guichetStore?: unknown }).__guichetStore;
+    const { memoryRepository: m } = await import("@/lib/data/memory");
+    const vieux = { userId: "u1", geste: "vu.fiche", genre: "consultation" as const, objet: "o1" };
+    // Deux gestes anciens du même mois et de la même famille, un récent.
+    await m.logClientAction({ ...vieux });
+    await m.logClientAction({ ...vieux, objet: "o2" });
+    const n = await m.purgerGestes(new Date(Date.now() + 86_400_000));
+    expect(n).toBe(2);
+    expect(await m.listClientActions({ userId: "u1" })).toHaveLength(0);
+  });
+
+  it("ne touche à rien quand rien n'est assez vieux", async () => {
+    /* Le registre a commencé le 10 octobre 2026 : le robot ne supprimera rien
+       avant novembre 2027, et il doit le dire plutôt que laisser croire qu'il
+       a travaillé. */
+    delete (globalThis as { __guichetStore?: unknown }).__guichetStore;
+    const { memoryRepository: m } = await import("@/lib/data/memory");
+    await m.logClientAction({ userId: "u1", geste: "ordre.depose", genre: "ordre" });
+    expect(await m.purgerGestes(new Date("2020-01-01"))).toBe(0);
+    expect(await m.listClientActions({ userId: "u1" })).toHaveLength(1);
+  });
+
+  it("l'agrégation et la suppression sont un seul ordre en base", () => {
+    /* Deux instructions séparées laisseraient, en cas d'arrêt entre les deux,
+       soit des compteurs doublés, soit des gestes perdus sans compteur. */
+    const sql = readFileSync(path.join(ROOT, "supabase/migrations/0083_purge_du_journal_des_gestes.sql"), "utf8");
+    expect(sql).toMatch(/with partis as \(\s*delete from client_actions where at < avant/);
+    expect(sql).toMatch(/on conflict \(user_id, mois, genre\) do update set n = client_actions_mensuel\.n \+ excluded\.n/);
+    expect(sql).toMatch(/create policy "client lit ses compteurs"/);
+  });
+
+  it("et le robot est déclaré, surveillé, et ne décide de rien", () => {
+    expect(readFileSync(path.join(ROOT, "vercel.json"), "utf8")).toContain("/api/cron/purge-gestes");
+    expect(readFileSync(path.join(ROOT, "src/lib/domain/robots.ts"), "utf8")).toMatch(/cle: "purge-gestes"/);
+    const route = readFileSync(path.join(ROOT, "src/app/api/cron/purge-gestes/route.ts"), "utf8");
+    expect(route).toMatch(/borneDeLaPurge\(\)/);
+    // La borne vit dans le domaine : le robot donne l'heure, il ne la fixe pas.
+    expect(route).not.toMatch(/setMonth|13/);
+  });
+});

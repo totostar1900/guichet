@@ -47,6 +47,10 @@
     {
       "path": "/api/cron/beac-courbe",
       "schedule": "0 5 3 * *"
+    },
+    {
+      "path": "/api/cron/purge-gestes",
+      "schedule": "0 3 2 * *"
     }
   ]
 }

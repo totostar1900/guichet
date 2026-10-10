@@ -93,6 +93,8 @@ export interface Repository {
   /** Registre des gestes des clients : memes colonnes que l audit, sans la chaine. */
   logClientAction(e: NouvelleActionClient): Promise<void>;
   listClientActions(filter?: { userId?: string; genre?: Genre; from?: string; to?: string; limit?: number }): Promise<ActionClient[]>;
+  /** Resume puis supprime les gestes anterieurs a cette date ; rend le nombre resume. */
+  purgerGestes(avant: Date): Promise<number>;
   /** Four-eyes: proposals waiting for a responsable. */
   listApprovals(open?: boolean): Promise<Approval[]>;
   createApproval(a: Omit<Approval, "id" | "requestedAt">): Promise<Approval>;

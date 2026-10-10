@@ -57,6 +57,10 @@ export const ROBOTS: Robot[] = [
   { cle: "epargne", quoi: "Préavis et exécution des instructions permanentes", heures: 48, cron: "0 8 * * *" },
   { cle: "beac", quoi: "Collecte des adjudications BEAC", heures: 48, cron: "0 9 * * *" },
   { cle: "beac-courbe", quoi: "Courbe mensuelle de la BEAC", heures: 24 * 62, cron: "0 5 3 * *" },
+  /* Soixante-deux heures de tolérance comme les autres mensuels : un tour
+     manqué se voit, et celui-ci tient une promesse écrite à l'article 8 de la
+     convention, pas un simple réglage. */
+  { cle: "purge-gestes", quoi: "Résumé puis purge du registre des gestes", heures: 24 * 62, cron: "0 3 2 * *" },
 ];
 
 export interface TourVu {
