@@ -11,6 +11,10 @@ export interface LigneDEcheance {
   client: string;
   objet: "provision" | "instruction";
   detail?: string;
+  /** Pourquoi cette ligne revient : un rejet, ou un tirage préparé d'avance.
+      Le serveur nomme le cas, le client écrit la phrase : une phrase bâtie
+      ici sortirait en français dans la version anglaise. */
+  repasse?: "rejet" | "prepare";
   amount: number;
   plafond: number;
   banque: string;
@@ -42,6 +46,7 @@ export function Echeance({
   remise,
   remettable,
   enAttenteDePreavis,
+  arrivesApres = 0,
 }: {
   dueOn: string;
   /** La date déjà mise en forme AU SERVEUR : la langue d un composant client
@@ -53,6 +58,8 @@ export function Echeance({
   remise?: { ref: string; remiseLe?: string };
   remettable: number;
   enAttenteDePreavis: number;
+  /** Prêts, mais arrivés après le départ du fichier : ils ne peuvent pas partir aujourd'hui. */
+  arrivesApres?: number;
 }) {
   const t = useT();
   const [prep, prepAct, enPrep] = useActionState<PrelevementResult | null, FormData>(preparerLEcheance, null);
@@ -82,6 +89,7 @@ export function Echeance({
               <div className={styles.cObjet}>
                 {l.objet === "provision" ? t("Provision") : t("Épargne programmée")}
                 {l.detail && <small>{l.detail}</small>}
+                {l.repasse && <small>{l.repasse === "rejet" ? t("seconde présentation, après un rejet") : t("tirage déjà préparé")}</small>}
               </div>
               <div className={styles.cMontant}>
                 <b>{fmt(l.amount)}</b>
@@ -139,7 +147,15 @@ export function Echeance({
           </button>
         </form>
         {remise?.remiseLe ? (
-          <p className={styles.note}>{t("Remise {r} partie le {d}. Le fichier se retélécharge ci-dessous.", { r: remise.ref, d: remise.remiseLe })}</p>
+          <p className={styles.note}>
+            {t("Remise {r} partie le {d}. Le fichier se retélécharge ci-dessous.", { r: remise.ref, d: remise.remiseLe })}
+            {arrivesApres > 0 && (
+              <>
+                {" "}
+                <b>{t("{n} tirage(s) prêt(s) sont arrivés après son départ : ils ne peuvent pas partir aujourd'hui, un second fichier le même jour ferait un double prélèvement. Appelez le client, ou laissez-les à l'échéance suivante.", { n: String(arrivesApres) })}</b>
+              </>
+            )}
+          </p>
         ) : (
           <p className={styles.note}>
             {t("{n} prêts sur {total} · {m} FCFA", { n: String(remettable), total: String(lignes.length), m: fmt(total) })}

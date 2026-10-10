@@ -5,7 +5,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { REJETS_AVANT_SUSPENSION } from "@/lib/domain/mandat";
+import { REJETS_AVANT_SUSPENSION, type MandatPrelevement } from "@/lib/domain/mandat";
 import { echeanceDuJour, jourDuPreavis, MOTIFS, pourquoiPasRemettre, refDeLaRemise, suiteDuRejet, type MotifDeRejet } from "@/lib/domain/prelevement";
 import { direLeRejet, envoyerPreavisDePrelevement } from "@/lib/notify/prelevement";
 import { escapeHtml, fmt, fmtDate } from "@/lib/format";
@@ -36,14 +36,26 @@ export async function preparerLEcheance(_p: PrelevementResult | null, form: Form
   const r = repo();
   const [mandats, standings, deja] = await Promise.all([r.listMandats(), r.listStandingOrders().catch(() => []), r.listTirages({ dueOn })]);
   const { aTirer } = echeanceDuJour(mandats, standings, dueOn);
-  if (!aTirer.length) return { ok: false, error: "Aucun mandat ne se présente à cette échéance." };
-
+  /* LES SECONDES PRÉSENTATIONS SONT DE LA PARTIE.
+     Un tirage né d'un rejet tombe quinze jours plus tard, un jour qui n'est
+     celui d'aucun mandat : « aTirer » est alors vide, l'action refusait tout,
+     et le tirage restait préparé sans jamais être annoncé ni remis. La
+     promesse « nous le représenterons une fois, et nous vous préviendrons
+     avant » ne pouvait pas être tenue. Mesuré à l'écran le 10 octobre 2026. */
   const parMandat = new Map(deja.map((t) => [t.mandatId, t]));
+  const aAnnoncer = [
+    ...aTirer,
+    ...deja
+      .filter((t) => t.state === "prepare" && !t.noticeSent && !aTirer.some((a) => a.mandat.id === t.mandatId))
+      .map((t) => ({ mandat: mandats.find((m) => m.id === t.mandatId), amount: t.amount }))
+      .filter((x): x is { mandat: MandatPrelevement; amount: number } => Boolean(x.mandat)),
+  ];
+  if (!aAnnoncer.length) return { ok: false, error: "Aucun mandat ne se présente à cette échéance." };
   let crees = 0;
   let partis = 0;
   const muets: string[] = [];
 
-  for (const { mandat, amount } of aTirer) {
+  for (const { mandat, amount } of aAnnoncer) {
     let t = parMandat.get(mandat.id);
     if (!t) {
       try {
@@ -61,8 +73,8 @@ export async function preparerLEcheance(_p: PrelevementResult | null, form: Form
     else muets.push(`${mandat.ref} (${envoi.error ?? "canal muet"})`);
   }
 
-  await audit("prelevement.echeance", "echeance", dueOn, { after: { crees, partis, muets: muets.length }, reason: `Échéance du ${dueOn} : ${aTirer.length} tirages, ${partis} préavis partis` });
-  await r.logEvent({ kind: "desk", html: `Échéance de prélèvement du ${dueOn} préparée : <b>${aTirer.length} tirages</b>, ${partis} préavis partis${muets.length ? `, <b>${muets.length} sans canal</b>` : ""} · par ${desk.name}` });
+  await audit("prelevement.echeance", "echeance", dueOn, { after: { crees, partis, muets: muets.length }, reason: `Échéance du ${dueOn} : ${aAnnoncer.length} tirages, ${partis} préavis partis` });
+  await r.logEvent({ kind: "desk", html: `Échéance de prélèvement du ${dueOn} préparée : <b>${aAnnoncer.length} tirages</b>, ${partis} préavis partis${muets.length ? `, <b>${muets.length} sans canal</b>` : ""} · par ${desk.name}` });
   revalidatePath("/desk/prelevements");
   revalidatePath("/moi/prelevements");
   return {

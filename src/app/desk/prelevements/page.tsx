@@ -53,7 +53,11 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
   const prochaine = (): string => {
     for (let i = -10; i <= 40; i += 1) {
       const d = jourPlus(aujourdHui, i);
-      if (!echeanceDuJour(mandats, standings, d).aTirer.length) continue;
+      /* Une seconde présentation tombe un jour qui n'est celui d'aucun
+         mandat : sans elle ici, la page sautait par-dessus et le tirage
+         préparé n'était jamais remis. */
+      const attend = tirages.some((x) => x.dueOn === d && x.state === "prepare");
+      if (!attend && !echeanceDuJour(mandats, standings, d).aTirer.length) continue;
       if (remises.some((x) => x.dueOn === d && x.state === "remise")) continue;
       return d;
     }
@@ -80,9 +84,43 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
       preavis: t2?.announcedAt ? { parti: t2.noticeSent, le: t2.announcedAt, erreur: t2.noticeError } : undefined,
     };
   });
+  /* UNE SECONDE PRÉSENTATION N'EST PAS UNE ÉCHÉANCE DU CALENDRIER.
+     Elle naît d'un rejet, quinze jours plus tard, un jour qui n'est celui
+     d'aucun mandat. La liste, bâtie des seuls mandats du jour, ne la montrait
+     pas : « Remettre à la banque » comptait zéro, le tirage restait
+     « préparé » pour toujours, et la promesse faite au client (« nous le
+     représenterons une fois ») ne pouvait pas être tenue. Mesuré à l'écran le
+     10 octobre 2026, en traversant la page pour la première fois. */
+  const repasses = duJour.filter((x) => x.state === "prepare" && !aTirer.some((a) => a.mandat.id === x.mandatId));
+  for (const x of repasses) {
+    const m = mandats.find((y) => y.id === x.mandatId);
+    if (!m) continue;
+    lignes.push({
+      mandatRef: m.ref,
+      client: nomDe.get(m.userId) ?? m.accountHolder,
+      objet: m.objet,
+      repasse: x.retryOf ? "rejet" : "prepare",
+      amount: x.amount,
+      plafond: m.maxAmount,
+      banque: m.bankName,
+      compte: m.bankAccount,
+      preavis: x.announcedAt ? { parti: x.noticeSent, le: x.announcedAt, erreur: x.noticeError } : undefined,
+    });
+  }
+
   const ecartesVus: LigneEcartee[] = ecartes.map((e) => ({ mandatRef: e.mandat.ref, client: nomDe.get(e.mandat.userId) ?? e.mandat.accountHolder, raison: e.raison, montant: e.montant }));
 
-  const remettable = duJour.filter((x) => pourquoiPasRemettre(x, aujourdHui) === null).length;
+  /* ARRIVÉS APRÈS LE DÉPART DE LA REMISE.
+     Un mandat signé à 10 h 26 pour une échéance dont le fichier est parti à
+     10 h 20 produit un tirage prêt que plus rien ne peut emporter : la règle
+     interdit un second fichier le même jour, à juste titre, et celui-là n'a
+     jamais été dedans. L'écran comptait pourtant « Remettre à la banque (1) »
+     sur un bouton désactivé, sans un mot : le desk clique, et rien. Mesuré à
+     l'écran le 10 octobre 2026. Ils sortent donc du compte, et se disent. */
+  const partie = remises.find((x) => x.dueOn === dueOn && x.state === "remise");
+  const prets = duJour.filter((x) => pourquoiPasRemettre(x, aujourdHui) === null);
+  const arrivesApres = partie ? prets.filter((x) => x.remiseId !== partie.id) : [];
+  const remettable = prets.length - arrivesApres.length;
   const enAttenteDePreavis = duJour.filter((x) => pourquoiPasRemettre(x, aujourdHui) === "pas_parti").length;
   const remise = remises.find((x) => x.dueOn === dueOn);
 
@@ -160,6 +198,7 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
           remise={remise ? { ref: remise.ref, remiseLe: remise.handedAt ? fmtDate(remise.handedAt) : undefined } : undefined}
           remettable={remettable}
           enAttenteDePreavis={enAttenteDePreavis}
+          arrivesApres={arrivesApres.length}
         />
 
         {remise?.handedAt && (

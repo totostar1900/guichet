@@ -77,6 +77,12 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
     "Hand to the bank ({n})",
   "Remise {r} partie le {d}. Le fichier se retélécharge ci-dessous.":
     "Batch {r} handed over on {d}. The file can be downloaded again below.",
+  "{n} tirage(s) prêt(s) sont arrivés après son départ : ils ne peuvent pas partir aujourd'hui, un second fichier le même jour ferait un double prélèvement. Appelez le client, ou laissez-les à l'échéance suivante.":
+    "{n} ready draw(s) arrived after it left: they cannot leave today, as a second file on the same day would debit twice. Call the client, or leave them to the next instalment.",
+  "seconde présentation, après un rejet":
+    "second presentation, after a reject",
+  "tirage déjà préparé":
+    "draw already prepared",
   "{n} prêts sur {total} · {m} FCFA":
     "{n} ready out of {total} · {m} FCFA",
   "{n} attendent que leur préavis parte":

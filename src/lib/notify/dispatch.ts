@@ -43,6 +43,20 @@ async function deliver(kind: NotifyKind, t: Target, m: Message, refs: { intentId
   const r = repo();
   const row = await r.createNotification({ kind, channel: t.channel, to: t.to, contactName: t.name, subject: t.channel === "email" ? m.subject : m.template?.name, body: m.text, intentId: refs.intentId, offerId: refs.offerId, documentId: refs.documentId, status: "queued" });
   const configured = t.channel === "whatsapp" ? whatsappConfigured() : emailConfigured();
+  /* LE MODE DÉMONSTRATION DES ENVOIS, et pourquoi il est explicite.
+     Sans fournisseur, une notification est « skipped », et c'est juste : rien
+     n'est parti. Mais plusieurs écrans refusent d'avancer tant qu'un message
+     n'est pas parti, à commencer par la remise d'une échéance de prélèvement
+     (« pas d'exécution sans préavis réellement parti ») : en local, où aucun
+     fournisseur n'est posé, ces écrans n'étaient tout simplement PAS
+     PARCOURABLES. C'est ainsi que la moitié desk des prélèvements est restée
+     des semaines sans que personne ne l'ait vue fonctionner.
+     NOTIFY_DEMO=1, posé à la main dans .env.local, fait comme si le canal
+     avait répondu. La ligne porte « sent » et un identifiant « demo-… » :
+     rien ne ressemble à un vrai envoi, et le journal des notifications le dit.
+     Jamais en production, où la variable n'existe pas et où un fournisseur
+     absent doit rester un envoi absent. */
+  if (!configured && process.env.NOTIFY_DEMO === "1") return r.updateNotification(row.id, { status: "sent", providerId: `demo-${t.channel}`, sentAt: new Date().toISOString() });
   if (!configured) return r.updateNotification(row.id, { status: "skipped", error: `${t.channel === "whatsapp" ? "WhatsApp Cloud API" : "E-mail"} non configuré` });
   try {
     let providerId: string;
