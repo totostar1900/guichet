@@ -106,6 +106,9 @@ describe("la question posée à la signature de l'instruction", () => {
       repo: () => ({
         getOffer: async () => ({ id: "f1", kind: "FONDS", title: "FCP Essai", status: "published", fund: { minAmount: 0, distributed: true }, opensAt: "2020-01-01T00:00:00", deadlineAt: "2099-12-31T00:00:00" }),
         getChannelStatus: async () => ({ email: "essai@exemple.cm" }),
+        /* Le garde des mesures lit le contact : sans mesure posée, il laisse passer. */
+        getContact: async () => ({ id: "u1", name: "Essai", segment: "", whatsappOptIn: false }),
+        listCash: async () => [],
         listStandingOrders: async () => [],
         createStandingOrder: async (x: Record<string, unknown>) => ({ ...x, id: "st-9", ref: "EP-0001" }),
         logEvent: async () => undefined,
@@ -132,6 +135,9 @@ describe("la question posée à la signature de l'instruction", () => {
       repo: () => ({
         getOffer: async () => ({ id: "f1", kind: "FONDS", title: "FCP Essai", status: "published", fund: { minAmount: 0, distributed: true }, opensAt: "2020-01-01T00:00:00", deadlineAt: "2099-12-31T00:00:00" }),
         getChannelStatus: async () => ({ email: "essai@exemple.cm" }),
+        /* Le garde des mesures lit le contact : sans mesure posée, il laisse passer. */
+        getContact: async () => ({ id: "u1", name: "Essai", segment: "", whatsappOptIn: false }),
+        listCash: async () => [],
         listStandingOrders: async () => [],
         createStandingOrder: async (x: Record<string, unknown>) => ({ ...x, id: "st-9", ref: "EP-0001" }),
         logEvent: async () => undefined,

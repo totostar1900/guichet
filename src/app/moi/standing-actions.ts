@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { audit } from "@/lib/audit";
 import { noter } from "@/lib/journal";
+import { garde } from "@/lib/garde";
 import { fmt, localIso, parseAmount } from "@/lib/format";
 import { standingBlock } from "@/lib/domain/standing";
 
@@ -45,6 +46,8 @@ const schema = z.object({
 export async function createStandingAction(_p: StandingResult | null, form: FormData): Promise<StandingResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: "Connectez-vous pour programmer un versement." };
+  const passeE = await garde("epargne.creer");
+  if (!passeE.ok) return { ok: false, error: passeE.raison! };
   const p = schema.safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: "Montant et jour du mois requis." };
   const r = repo();
@@ -119,6 +122,8 @@ const reinvestSchema = z.object({
 export async function createReinvestAction(_p: StandingResult | null, form: FormData): Promise<StandingResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: "Connectez-vous pour programmer un réinvestissement." };
+  const passeR = await garde("reinvestir");
+  if (!passeR.ok) return { ok: false, error: passeR.raison! };
   const p = reinvestSchema.safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: "Destination requise." };
   const r = repo();
@@ -173,6 +178,9 @@ export async function createReinvestAction(_p: StandingResult | null, form: Form
  */
 export async function stopStandingAction(_p: StandingResult | null, form: FormData): Promise<StandingResult> {
   const session = await getSession();
+  /* PAS DE GARDE ICI, ET C'EST LA RÈGLE : arrêter son épargne est une
+     libération, pas un engagement. Un compte sous mesure doit pouvoir cesser
+     de s'engager, sinon la mesure aggraverait ce qu'elle veut arrêter. */
   if (!session) return { ok: false, error: "Connectez-vous." };
   const id = String(form.get("id") ?? "");
   const r = repo();

@@ -5,6 +5,7 @@ import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { arretables } from "@/lib/domain/preavis";
 import { Annonce } from "./Annonce";
+import { diteAuClient } from "@/lib/domain/mesure";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
@@ -49,6 +50,8 @@ export async function Console({ session }: { session: Session }) {
 
   /* Le contexte est déjà assemblé pour le compteur de la bande : le cache de
      React fait que cette page le lit sans le repayer. */
+  const moi = await r.getContact(session.userId).catch(() => undefined);
+  const mesureDite = diteAuClient(moi?.mesure);
   const [ctx, intents, offers, cash, payouts, preavis, standing] = await Promise.all([
     contexteDuClient(session.userId),
     r.listIntents(),
@@ -123,6 +126,16 @@ export async function Console({ session }: { session: Session }) {
           n'aurait déplacé le problème que d'une case. Cette bande expire, d'où
           sa place : une information qui périme ne se range pas au milieu d'un
           relevé qu'on consulte à loisir. Vide, le composant ne rend rien. */}
+      {/* UNE MESURE SE DIT AU CLIENT, ET D ABORD. Une restriction qu il
+          découvre en butant dessus est une panne muette : il croit avoir mal
+          cliqué. Le motif de conformité, lui, ne se dit jamais, et ce silence
+          est la loi, pas une pudeur. */}
+      {mesureDite && (
+        <p className="panel" style={{ borderLeft: "2px solid var(--crit)", padding: "var(--s-5) var(--s-6)" }}>
+          {mesureDite}
+        </p>
+      )}
+
       <Annonce
         preavis={arretables(preavis, aujourdHui)}
         titres={Object.fromEntries(standing.map((x) => [x.id, offers.find((o) => o.id === x.offerId)?.title ?? x.ref]))}

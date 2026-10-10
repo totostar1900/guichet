@@ -12,6 +12,7 @@ import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LAB
 import { ReviewForm } from "./ReviewForm";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
 import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
+import { MesureForm } from "./MesureForm";
 import { clientDirectory, waiting } from "@/lib/kyc/queue";
 import { positionsFrom } from "@/lib/positions";
 import { INTENT_LABEL } from "@/lib/domain/intent";
@@ -173,6 +174,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     </dl>
                   </div>
                 )}
+                <MesureForm userId={selected.userId} posee={compte?.mesure} />
                 <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>
                   {t("Ce qu'il a traité avec nous")}
                 </Link>

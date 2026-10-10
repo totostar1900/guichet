@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { noter } from "@/lib/journal";
+import { garde } from "@/lib/garde";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
@@ -103,6 +104,11 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
      maintenant compterait la dépense deux fois. */
   const du = aCouvrirPour(intent, await r.getOffer(intent.offerId));
   const couverture = du > 0 && (await disponibleDe(userId)) >= du;
+  /* LA SIGNATURE EST L ENGAGEMENT LUI-MÊME : le garde pèse ici, au seul
+     endroit que les trois façons de signer traversent, et la couverture qui
+     vient d être calculée lui sert de réponse pour le prépaiement. */
+  const passe = await garde("ordre.signer", { couvert: du === 0 || couverture });
+  if (!passe.ok) return { ok: false, error: passe.raison! };
   await r.updateIntent(intent.id, {
     signedAt: new Date().toISOString(),
     signedMethod: methode,

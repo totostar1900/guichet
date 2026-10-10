@@ -9,6 +9,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { noter } from "@/lib/journal";
+import { garde } from "@/lib/garde";
 import { switchBlock } from "@/lib/domain/switch";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
@@ -101,7 +102,11 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   const phoneUnprovable = !whatsappConfigured() && !proofDemoAllowed();
   if (!phoneOk && !phoneUnprovable) return { ok: false, error: "Ce numéro WhatsApp n'est pas encore prouvé : saisissez le code reçu avant d'envoyer." };
   if (!allowedIntents(offer, displayStatus(offer)).includes(type)) return { ok: false, error: "Cette intention n'est plus possible sur cette offre." };
-  if (session.kycStatus === "en_cloture" || session.kycStatus === "clos") return { ok: false, error: "Votre compte est en cours de clôture : aucune nouvelle intention n'est possible. Écrivez-nous si ce n'est pas votre demande." };
+  /* LE GARDE, ET NON UN TEST DE PLUS. La clôture était vérifiée ici et à un
+     seul autre endroit sur quarante et un gestes ; les mesures passent
+     désormais par la même porte, et le refus porte sa phrase. */
+  const passe = await garde("ordre.deposer", { montant: type === "souscription" || type === "ferme" ? (parseAmount(amount) ?? 0) : 0 });
+  if (!passe.ok) return { ok: false, error: passe.raison! };
 
   const amt = offer.kind === "FONDS" && type === "rachat" ? parseUnits(amount) : parseAmount(amount);
   if ((type === "ferme" || type === "cession") && !amt) return { ok: false, error: "Indiquez un montant pour une prise ferme ou une cession." };

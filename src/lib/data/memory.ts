@@ -582,6 +582,10 @@ export const memoryRepository: Repository = {
     const c = store().contacts.find((x) => x.id === id);
     if (c) c.emailOptIn = optIn;
   },
+  async setMesure(userId, mes) {
+    const c = store().contacts.find((x) => x.id === userId);
+    if (c) c.mesure = structuredClone(mes);
+  },
   async setContactOptIn(id, optIn) {
     const c = store().contacts.find((x) => x.id === id);
     if (c) c.whatsappOptIn = optIn;

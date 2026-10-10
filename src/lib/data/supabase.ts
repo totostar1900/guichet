@@ -1,4 +1,5 @@
 import type { ActionClient } from "@/lib/domain/journal-client";
+import type { MesurePosee } from "@/lib/domain/mesure";
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
@@ -315,13 +316,13 @@ const fromDoc = (p: Partial<GeneratedDocument>): Partial<DocRow> => {
   return row;
 };
 
-type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean; email_opt_in?: boolean | null; tier?: number | null; created_at?: string | null; demo?: boolean | null };
+type ProfileRow = { id: string; display_name: string | null; segment: string | null; phone: string | null; email: string | null; whatsapp_opt_in: boolean; email_opt_in?: boolean | null; tier?: number | null; created_at?: string | null; demo?: boolean | null; mesure?: string | null; mesure_motif?: string | null; mesure_par?: string | null; mesure_le?: string | null; mesure_jusqu_au?: string | null };
 type CodeRow = { id: string; user_id: string | null; channel: ProofChannel; target: string; code_hash: string; expires_at: string; attempts: number; verified_at: string | null; created_at: string };
 const toCode = (r: CodeRow): ChannelCode => ({ id: r.id, userId: u(r.user_id), channel: r.channel, target: r.target, codeHash: r.code_hash, expiresAt: r.expires_at, attempts: r.attempts, verifiedAt: u(r.verified_at), createdAt: r.created_at });
 type DeviceRow = { id: string; user_id: string; kind: DeviceKind; name: string; credential_id: string | null; public_key: string | null; counter: number | null; secret_hash: string | null; failures: number; created_at: string; last_used_at: string | null };
 const toDevice = (r: DeviceRow): TrustedDevice => ({ id: r.id, userId: r.user_id, kind: r.kind, name: r.name, credentialId: u(r.credential_id), publicKey: u(r.public_key), counter: r.counter ?? undefined, secretHash: u(r.secret_hash), failures: r.failures, createdAt: r.created_at, lastUsedAt: u(r.last_used_at) });
-const PROFILE_COLS = "id, display_name, segment, phone, email, whatsapp_opt_in, email_opt_in, tier, created_at, demo";
-const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in, emailOptIn: Boolean(r.email_opt_in), tier: (r.tier ?? 1) as 0 | 1 | 2, since: u(r.created_at), demo: Boolean(r.demo) });
+const PROFILE_COLS = "id, display_name, segment, phone, email, whatsapp_opt_in, email_opt_in, tier, created_at, demo, mesure, mesure_motif, mesure_par, mesure_le, mesure_jusqu_au";
+const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, segment: r.segment ?? "", phone: u(r.phone), email: u(r.email), whatsappOptIn: r.whatsapp_opt_in, emailOptIn: Boolean(r.email_opt_in), tier: (r.tier ?? 1) as 0 | 1 | 2, since: u(r.created_at), demo: Boolean(r.demo), mesure: { mesure: (r.mesure ?? "aucune") as MesurePosee["mesure"], motif: u(r.mesure_motif) as MesurePosee["motif"], par: u(r.mesure_par), le: u(r.mesure_le), jusquAu: u(r.mesure_jusqu_au) } });
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
 const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
@@ -1246,6 +1247,13 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("profiles").select(PROFILE_COLS).eq("id", id).maybeSingle();
     if (error) fail("getContact", error);
     return data ? toContact(data as ProfileRow) : undefined;
+  },
+  async setMesure(userId, m) {
+    const { error } = await db()
+      .from("profiles")
+      .update({ mesure: m.mesure, mesure_motif: m.motif ?? null, mesure_par: m.par ?? null, mesure_le: m.le ?? null, mesure_jusqu_au: m.jusquAu ?? null })
+      .eq("id", userId);
+    if (error) fail("setMesure", error);
   },
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);

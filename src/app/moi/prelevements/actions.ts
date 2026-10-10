@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { noter } from "@/lib/journal";
+import { garde } from "@/lib/garde";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
 import { JOUR_MAX, JOUR_MIN, mandatVivant, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
@@ -63,6 +64,8 @@ export async function creerMandatAction(_p: MandatResult | null, form: FormData)
   const m = await repo().createMandat({ ...d, maxAmount: d.maxAmount, userId: s.userId });
   await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement créé</b> par ${s.name} · ${m.ref} · plafond ${m.maxAmount} FCFA · à signer` });
   revalidatePath(PATH);
+  const passeM = await garde("mandat.creer");
+  if (!passeM.ok) return { ok: false, error: passeM.raison! };
   await noter("mandat.cree", { objet: m.ref, detail: m.bankName });
   return { ok: true, message: "Mandat préparé. Relisez-le, puis signez-le par un code à usage unique." };
 }
@@ -144,6 +147,8 @@ export async function signerMandatAction(_p: MandatResult | null, form: FormData
   await r.logEvent({ kind: "system", html: `<b>Mandat de prélèvement signé</b> · ${m.ref} · ${m.accountHolder} · plafond ${m.maxAmount} FCFA par échéance` });
   revalidatePath(PATH);
   revalidatePath("/desk");
+  const passeS = await garde("mandat.signer");
+  if (!passeS.ok) return { ok: false, error: passeS.raison! };
   await noter("mandat.signe", { objet: m.ref, detail: m.bankName });
   return { ok: true, message: "Mandat signé. Votre exemplaire est dans vos documents." };
 }

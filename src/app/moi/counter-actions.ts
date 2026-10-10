@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
 import { noter } from "@/lib/journal";
+import { garde } from "@/lib/garde";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { packReason } from "@/lib/domain/cancel-reasons";
@@ -59,6 +60,11 @@ export async function answerCounter(form: FormData): Promise<void> {
     limitPrice: it.counter.limitPrice ?? it.limitPrice,
     counter: undefined,
   });
+  /* ACCEPTER UNE CONTRE-PROPOSITION ENGAGE, LA REFUSER NON : le garde ne
+     tient que la première branche, sinon une mesure empêcherait un client de
+     dire non, ce qui serait l inverse du but. */
+  const passe = await garde("ordre.accepter_contre");
+  if (!passe.ok) return;
   await noter("ordre.contre.acceptee", { objet: it.ref, detail: terms });
   await audit("intent.counter.accepted", "intent", intentId, { before: { amount: it.amount, limitPrice: it.limitPrice }, after: { amount: updated.amount, limitPrice: updated.limitPrice }, reason: terms });
   await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>acceptée</b>${terms ? ` · ${terms}` : ""}` });

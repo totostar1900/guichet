@@ -111,7 +111,12 @@ describe("la règle s'applique aux trois pièces, et nulle part ailleurs", () =>
 
   it("le drapeau remonte de la base jusqu'au contact", () => {
     const sb = lire("src/lib/data/supabase.ts");
-    expect(sb).toMatch(/const PROFILE_COLS = ".*, demo";/);
+    /* Les colonnes se lisent en clair plutôt que par un motif : la liste
+       s'allonge (les mesures s'y sont ajoutées le 10 octobre), et un motif
+       qui épouse sa forme du jour casse à chaque colonne nouvelle. */
+    const debut = sb.indexOf("const PROFILE_COLS");
+    const cols = sb.slice(debut, sb.indexOf(";", debut));
+    expect(cols, "la colonne demo doit être lue avec le profil").toContain(" demo");
     expect(sb).toMatch(/demo: Boolean\(r\.demo\)/);
     expect(lire("supabase/migrations/0080_compte_de_demonstration.sql")).toMatch(/alter table profiles add column if not exists demo boolean not null default false/);
   });

@@ -88,6 +88,35 @@ export const EN_JOURNAL: Record<string, string> = {
   Barème: "Scale",
   retour: "back",
 
+  /* Les mesures sur un compte : crans, définitions, motifs, et ce que le
+     client en lit. */
+  Mesure: "Measure",
+  Cran: "Level",
+  Motif: "Reason",
+  Jours: "Days",
+  choisir: "choose",
+  "jusqu'au {d}": "until {d}",
+  "Aucune mesure": "No measure",
+  "Prépaiement exigé": "Prepayment required",
+  "Compte suspendu": "Account suspended",
+  "le compte fonctionne normalement": "the account works normally",
+  "aucun ordre ferme sans provision disponible ; le reste normal": "no firm order without available funds; everything else normal",
+  "aucun geste engageant ; lire, retirer son argent et nous écrire restent possibles":
+    "no committing move; reading, withdrawing your money and writing to us remain possible",
+  "Aucune mesure ne retient les espèces ni les titres du client, et aucune ne coupe son chemin vers le desk.":
+    "No measure holds the client's cash or securities, and none cuts their way to the desk.",
+  "Ordre servi non réglé": "Order allotted, not settled",
+  "Appétits répétés sans suite": "Repeated appetites with no follow-up",
+  "Prélèvements rejetés en série": "Direct debits rejected in a row",
+  "Coordonnées fausses ou injoignables": "Contact details wrong or unreachable",
+  "Demande du client": "At the client's request",
+  "Vérification de conformité": "Compliance check",
+  "Un ordre qui vous a été servi n'a pas été réglé.": "An order allotted to you has not been settled.",
+  "Plusieurs intentions annoncées n'ont pas été confirmées.": "Several announced intentions were not confirmed.",
+  "Plusieurs prélèvements ont été rejetés par votre banque.": "Several direct debits were rejected by your bank.",
+  "Nous ne parvenons plus à vous joindre sur les canaux déclarés.": "We can no longer reach you on the channels you declared.",
+  "À votre demande.": "At your request.",
+
   /* Les quatre cohortes, et ce qui les définit. */
   Dormants: "Dormant",
   Fidèles: "Loyal",

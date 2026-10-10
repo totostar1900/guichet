@@ -1,3 +1,4 @@
+import type { MesurePosee } from "@/lib/domain/mesure";
 import type { Counter } from "./counter";
 /**
  * Domain model of the Guichet.
@@ -501,6 +502,8 @@ export interface Contact {
    * (dossier, ordres, positions) est de la démonstration par son propriétaire.
    */
   demo?: boolean;
+  /** La mesure en cours sur le compte ; « aucune » le plus souvent. */
+  mesure?: MesurePosee;
 }
 
 /** One line of the audit trail: who did what to which record, before/after, why, from where. Hash-chained, never edited. */

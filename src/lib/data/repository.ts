@@ -1,5 +1,6 @@
 import type { FinancialProfile } from "@/data/profile";
 import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/journal-client";
+import type { MesurePosee } from "@/lib/domain/mesure";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -107,6 +108,8 @@ export interface Repository {
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
+  /** Pose ou lève la mesure qui pèse sur un compte ; l histoire vit dans l audit. */
+  setMesure(userId: string, m: MesurePosee): Promise<void>;
   /** Le consentement aux informations par courrier : le service n’en dépend pas. */
   setEmailOptIn(id: string, optIn: boolean): Promise<void>;
   /** Desk team: who has desk access, at which level, with MFA or not. */
