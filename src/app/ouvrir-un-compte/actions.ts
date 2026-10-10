@@ -6,6 +6,7 @@ import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/sign
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { noter } from "@/lib/journal";
 import { emptyClientFile, type ClientFile, type ClientKind, type KycDocKind, type KycPerson } from "@/lib/domain/kyc";
 import { saveSource } from "@/lib/intake/storage";
 import { conventionAJour, conventionSignable, DOC_LABEL, missingForSubmission } from "@/lib/kyc/checklist";
@@ -44,6 +45,7 @@ export async function setKindAction(form: FormData): Promise<void> {
   const { file } = await myFile();
   const kind = z.enum(["physique", "morale", "groupement", "institutionnel"]).safeParse(form.get("kind"));
   if (!kind.success || !editable(file)) return;
+  await noter("dossier.ouvert", { detail: kind.data });
   await repo().updateClientFile(file.id, { kind: kind.data as ClientKind, profile: { ...file.profile, category: kind.data === "institutionnel" ? "professionnel" : "non_professionnel" } });
   revalidatePath(PATH);
 }
@@ -84,6 +86,7 @@ export async function saveIdentityAction(_p: StepResult | null, form: FormData):
   if (identity.phone && !/^\+?\d{8,15}$/.test(identity.phone.replace(/\s/g, ""))) return { ok: false, error: "Téléphone au format international, ex. +237 6 87 67 67 67." };
   if (identity.phone) identity.phone = `+${identity.phone.replace(/[^\d]/g, "")}`;
   await repo().updateClientFile(file.id, { identity });
+  await noter("dossier.identite");
   revalidatePath(PATH);
   return { ok: true, message: "Identité enregistrée." };
 }
@@ -96,6 +99,7 @@ export async function addPersonAction(_p: StepResult | null, form: FormData): Pr
   if (!p.success) return { ok: false, error: "Nom et rôle sont obligatoires." };
   const person: KycPerson = { role: p.data.role, name: p.data.name, idNumber: p.data.idNumber || undefined, share: p.data.share || undefined, pep: p.data.pep === "on" };
   await repo().updateClientFile(file.id, { persons: [...file.persons, person] });
+  await noter("dossier.personne.ajoutee", { detail: p.data.role });
   revalidatePath(PATH);
   return { ok: true };
 }
@@ -105,6 +109,7 @@ export async function removePersonAction(form: FormData): Promise<void> {
   if (!editable(file)) return;
   const idx = Number(form.get("index"));
   await repo().updateClientFile(file.id, { persons: file.persons.filter((_, i) => i !== idx) });
+  await noter("dossier.personne.retiree");
   revalidatePath(PATH);
 }
 
@@ -137,6 +142,7 @@ export async function uploadDocAction(_p: StepResult | null, form: FormData): Pr
   const docs = libre ? [...file.documents] : file.documents.filter((d) => d.kind !== kind);
   docs.push({ kind: kind as KycDocKind, label, fileKey, fileName: f.name, mimeType: mime, uploadedAt: new Date().toISOString() });
   await repo().updateClientFile(file.id, { documents: docs });
+  await noter("dossier.piece.deposee", { objet: kind, detail: label ?? DOC_LABEL[kind as KycDocKind] });
   revalidatePath(PATH);
   return { ok: true, message: `${label ?? DOC_LABEL[kind as KycDocKind]} reçue.` };
 }
@@ -158,6 +164,7 @@ export async function removeDocAction(_p: StepResult | null, form: FormData): Pr
   const doc = file.documents.find((d) => d.fileKey === fileKey);
   if (!doc) return { ok: false, error: "Pièce introuvable." };
   await repo().updateClientFile(file.id, { documents: file.documents.filter((d) => d.fileKey !== fileKey) });
+  await noter("dossier.piece.retiree", { objet: doc.kind, detail: doc.label ?? DOC_LABEL[doc.kind] });
   revalidatePath(PATH);
   return { ok: true, message: `${doc.label ?? DOC_LABEL[doc.kind]} retirée.` };
 }
@@ -170,6 +177,7 @@ export async function saveFundsProfileAction(_p: StepResult | null, form: FormDa
   const profile: ClientFile["profile"] = { ...file.profile, objectives: str(form, "objectives"), horizon: str(form, "horizon"), experience: str(form, "experience"), riskTolerance: str(form, "riskTolerance"), lossCapacity: str(form, "lossCapacity") };
   if (!funds.source) return { ok: false, error: "Indiquez l'origine des fonds." };
   await repo().updateClientFile(file.id, { funds, profile });
+  await noter("dossier.finances");
   revalidatePath(PATH);
   return { ok: true, message: "Profil enregistré." };
 }
@@ -188,6 +196,7 @@ export async function saveConsentsAction(_p: StepResult | null, form: FormData):
   const now = new Date().toISOString();
   const consents = { ...file.consents, dataAt: file.consents.dataAt ?? now, whatsappAt: form.get("whatsapp") === "on" ? (file.consents.whatsappAt ?? now) : undefined };
   await repo().updateClientFile(file.id, { consents });
+  await noter("consentement.pose", { detail: "à l ouverture du compte" });
   revalidatePath(PATH);
   return { ok: true, message: "Consentements enregistrés." };
 }
@@ -244,6 +253,7 @@ export async function verifyConventionCodeAction(_p: StepResult | null, form: Fo
   await generateKycDocument("convention", updated);
   await r.logEvent({ kind: "system", html: `<b>Convention acceptée</b> par ${updated.identity.name}${pendingCodeTo ? ` (code envoyé à ${pendingCodeTo})` : ""}` });
   revaliderLaConvention();
+  await noter("convention.acceptee");
   revalidatePath("/desk/clients");
   return { ok: true, message: "Convention acceptée. Votre exemplaire est dans vos documents." };
 }
@@ -257,6 +267,7 @@ export async function submitFileAction(): Promise<StepResult> {
   const r = repo();
   await r.updateClientFile(file.id, { status: "soumis", submittedAt: new Date().toISOString() });
   await r.logEvent({ kind: "system", html: `<b>Dossier client soumis</b>, ${file.identity.name} (${file.kind}), à revoir dans Desk › Clients` });
+  await noter("dossier.soumis", { objet: file.id });
   revalidatePath(PATH);
   revalidatePath("/desk/clients");
   redirect(`${PATH}?soumis=1`);

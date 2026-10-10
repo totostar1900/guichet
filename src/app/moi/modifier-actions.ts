@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
+import { noter } from "@/lib/journal";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { standingBlock } from "@/lib/domain/standing";
@@ -109,6 +110,7 @@ export async function modifierStandingAction(_p: ModifResult | null, form: FormD
     offerId: cle[0].offerId,
     html: `${neuve.ref} (${neuve.clientName}) : <b>nouvelle version</b> de ${s.ref} · ${dit} · ${cleEnMots(cle, titre)}${ouvertes.length ? ` · l'opération annoncée a été annulée` : ""}`,
   });
+  await noter("epargne.modifiee", { objet: neuve.ref });
   await audit("standing.modifier", "standing", neuve.id, {
     before: { ref: s.ref, amount: s.amount, dayOfMonth: s.dayOfMonth, minAmount: s.minAmount, splits: s.splits },
     after: { ref: neuve.ref, amount: neuve.amount, dayOfMonth: neuve.dayOfMonth, minAmount: neuve.minAmount, splits: neuve.splits, perimees: ouvertes.length },

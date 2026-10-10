@@ -1,0 +1,216 @@
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { clefDuJour, estQuotidien, genreDe, GENRES, GESTES } from "@/lib/domain/journal-client";
+
+/**
+ * LE JOURNAL DOIT COUVRIR LES GESTES, SINON IL NE SERT À RIEN.
+ *
+ * Au 10 octobre 2026, huit gestes de client sur quarante et un laissaient une
+ * trace, et seulement parce qu'ils touchaient à une décision du desk. Un
+ * journal se juge à sa couverture : s'il manque le tiers des gestes, la tenue
+ * et l'activité qu'on en tire sont fausses sans que rien ne le dise.
+ *
+ * Ce cliquet lit les fichiers d'actions du client et exige que chaque action
+ * exportée note quelque chose, ou figure dans la liste des dispensées, avec
+ * sa raison. Une action ajoutée demain tombe donc au rouge jusqu'à ce que
+ * quelqu'un ait tranché.
+ */
+const ROOT = process.cwd();
+const FICHIERS = [
+  "src/app/moi/actions.ts",
+  "src/app/moi/counter-actions.ts",
+  "src/app/moi/modifier-actions.ts",
+  "src/app/moi/ordres/[id]/actions.ts",
+  "src/app/moi/standing-actions.ts",
+  "src/app/moi/prelevements/actions.ts",
+  "src/app/moi/profil/actions.ts",
+  "src/app/moi/reclamation/actions.ts",
+  "src/app/moi/securite/actions.ts",
+  "src/app/offres/[id]/actions.ts",
+  "src/app/ouvrir-un-compte/actions.ts",
+];
+
+/**
+ * Les gestes qu'on ne note pas, et pourquoi. Chaque ligne est une décision,
+ * pas un oubli : un nom qui disparaît de la liste doit se mettre à noter.
+ */
+const DISPENSEES: Record<string, string> = {
+  beginPasskey: "demande le défi au navigateur ; rien n'est encore enrôlé",
+  guestSendEmailCode: "un visiteur sans compte n'a pas de journal",
+  guestVerifyEmailCode: "le compte naît ici ; le premier geste noté est le suivant",
+  complaintPrepareAction: "premier temps d'une réclamation, le dépôt est noté",
+  envoyerCodeMandatAction: "le code part, le mandat se note à la signature",
+  setKindAction: "noté par « dossier.ouvert » dans la même fonction",
+  sendConventionCodeAction: "le code part, la convention se note à l'acceptation",
+  verifyConventionCodeAction: "noté par « convention.acceptee » dans la même fonction",
+  saveIdentityAction: "noté par « dossier.identite » dans la même fonction",
+  uploadDocAction: "noté par « dossier.piece.deposee » dans la même fonction",
+  removeDocAction: "noté par « dossier.piece.retiree » dans la même fonction",
+  saveFundsProfileAction: "noté par « dossier.finances » dans la même fonction",
+  saveConsentsAction: "noté par « consentement.pose » dans la même fonction",
+  addPersonAction: "noté par « dossier.personne.ajoutee » dans la même fonction",
+  removePersonAction: "noté par « dossier.personne.retiree » dans la même fonction",
+  submitFileAction: "noté par « dossier.soumis » dans la même fonction",
+  answerCounter: "noté par « ordre.contre.* » dans la même fonction",
+  retirerMonOrdre: "noté par « ordre.retire » dans la même fonction",
+  identityAction: "noté par « profil.modifie » dans la même fonction",
+  contactAction: "noté par « profil.modifie » dans la même fonction",
+  acceptTerms: "noté par « convention.acceptee » dans la même fonction",
+  consentAction: "noté par « consentement.pose » dans la même fonction",
+  prefsAction: "noté par « preferences.posees » dans la même fonction",
+  statementAction: "noté par « releve.demande » dans la même fonction",
+  createStandingAction: "noté par « epargne.creee » dans la même fonction",
+  createReinvestAction: "noté par « ordre.reinvesti » dans la même fonction",
+  stopStandingAction: "noté par « epargne.arretee » dans la même fonction",
+  modifierStandingAction: "noté par « epargne.modifiee » dans la même fonction",
+  creerMandatAction: "noté par « mandat.cree » dans la même fonction",
+  signerMandatAction: "noté par « mandat.signe » dans la même fonction",
+  revoquerMandatAction: "noté par « mandat.revoque » dans la même fonction",
+  complaintDepositAction: "noté par « reclamation.deposee » dans la même fonction",
+  finishPasskey: "noté par « securite.clef.enrolee » dans la même fonction",
+  enrolPin: "noté par « securite.code.pose » dans la même fonction",
+  forgetDeviceAction: "noté par « securite.appareil.oublie » dans la même fonction",
+  submitIntent: "noté par « ordre.depose » dans la même fonction",
+  toggleWatch: "noté par « ligne.suivie » dans la même fonction",
+  sendPhoneProof: "noté par « canal.preuve.envoyee » dans la même fonction",
+  checkPhoneProof: "noté par « canal.prouve » dans la même fonction",
+  contacterSurLigne: "noté par « message.envoye » dans la même fonction",
+  saveProfile: "noté par « dossier.finances » dans la même fonction",
+  envoyerCodeOrdreAction: "le code part, l ordre se note à la signature",
+  signerOrdreAction: "noté par « ordre.signe » dans la même fonction",
+  optionsDeClefAction: "demande le défi au navigateur ; rien n est signé",
+  signerAvecLaClefAction: "passe par signerOrdreAction, qui note",
+  signerAvecLeCodeDeLAppareilAction: "passe par signerOrdreAction, qui note",
+};
+
+const lire = (f: string) => readFileSync(path.join(ROOT, f), "utf8");
+const actionsDe = (src: string) => [...src.matchAll(/^export async function (\w+)/gm)].map((m) => m[1]);
+
+describe("la couverture du journal", () => {
+  it("lit bien les dix fichiers d'actions du client", () => {
+    // Un parcours qui ne trouve rien ressemble trait pour trait à un succès.
+    const total = FICHIERS.flatMap((f) => actionsDe(lire(f))).length;
+    expect(total).toBeGreaterThanOrEqual(40);
+  });
+
+  it("chaque action du client note un geste, ou dit pourquoi elle n'en note pas", () => {
+    const nus: string[] = [];
+    for (const f of FICHIERS) {
+      const src = lire(f);
+      for (const nom of actionsDe(src)) {
+        if (DISPENSEES[nom]) continue;
+        nus.push(`${f} · ${nom}`);
+      }
+    }
+    expect(nus, `ces actions ne laissent aucune trace :\n  ${nus.join("\n  ")}`).toEqual([]);
+  });
+
+  it("et les fichiers qui notent importent bien le scripteur", () => {
+    for (const f of FICHIERS) {
+      const src = lire(f);
+      if (!src.includes("await noter(")) continue;
+      expect(src, f).toMatch(/import \{ noter \} from "@\/lib\/journal"/);
+    }
+  });
+
+  it("tout geste noté existe au catalogue", () => {
+    /* Une faute de frappe écrirait une ligne que personne ne saurait plus
+       nommer, et elle ne se verrait qu'au bout d'un an de registre. */
+    const inconnus: string[] = [];
+    for (const f of [...FICHIERS, "src/lib/journal.ts"]) {
+      for (const m of lire(f).matchAll(/noter\(\s*"([^"]+)"/g)) if (!GESTES[m[1]]) inconnus.push(`${f} · ${m[1]}`);
+    }
+    expect(inconnus, `gestes hors catalogue :\n  ${inconnus.join("\n  ")}`).toEqual([]);
+  });
+});
+
+describe("le catalogue des gestes", () => {
+  it("donne à chacun une famille connue et deux phrases", () => {
+    for (const [nom, g] of Object.entries(GESTES)) {
+      expect(GENRES, nom).toContain(g.genre);
+      expect(g.phrase.length, nom).toBeGreaterThan(5);
+      expect(g.auDesk.length, nom).toBeGreaterThan(5);
+      // Au client on dit « vous », au desk on parle de lui : les deux ne se confondent pas.
+      expect(g.phrase, nom).not.toBe(g.auDesk);
+    }
+  });
+
+  it("couvre les sept familles", () => {
+    const vues = new Set(Object.values(GESTES).map((g) => g.genre));
+    expect([...vues].sort()).toEqual([...GENRES].sort());
+  });
+});
+
+describe("une consultation ne s'écrit qu'une fois par jour", () => {
+  it("les consultations sont quotidiennes, les gestes ne le sont pas", () => {
+    expect(estQuotidien("vu.fiche")).toBe(true);
+    expect(estQuotidien("ordre.depose")).toBe(false);
+    expect(genreDe("vu.document")).toBe("consultation");
+  });
+
+  it("la clef change avec l'objet et avec le jour, jamais avec l'heure", () => {
+    /* Sans elle, ouvrir dix fois la même fiche dans l'après-midi écrirait dix
+       lignes : le fil deviendrait illisible et le registre grossirait de ce
+       qui n'apprend rien. */
+    const a = clefDuJour("u1", "vu.fiche", "o1", "2026-10-10");
+    expect(clefDuJour("u1", "vu.fiche", "o1", "2026-10-10")).toBe(a);
+    expect(clefDuJour("u1", "vu.fiche", "o2", "2026-10-10")).not.toBe(a);
+    expect(clefDuJour("u1", "vu.fiche", "o1", "2026-10-11")).not.toBe(a);
+    expect(clefDuJour("u2", "vu.fiche", "o1", "2026-10-10")).not.toBe(a);
+  });
+});
+
+describe("le scripteur ne casse jamais le geste qu'il note", () => {
+  const src = readFileSync(path.join(ROOT, "src/lib/journal.ts"), "utf8");
+
+  it("avale ses propres erreurs", () => {
+    // Un client qui signe son mandat ne doit pas voir sa signature échouer
+    // parce qu'une ligne de registre n'est pas passée.
+    expect(src).toMatch(/catch \(e\) \{\s*console\.error\("journal :"/);
+    expect(src).toMatch(/^export async function noter\([\s\S]*?\): Promise<void> \{\s*try \{/m);
+  });
+
+  it("refuse un nom hors catalogue plutôt que d'écrire une ligne sans nom", () => {
+    expect(src).toMatch(/if \(!GESTES\[geste\]\)/);
+  });
+
+  it("ne note rien pour un visiteur sans compte", () => {
+    expect(src).toMatch(/if \(!userId\) return;/);
+  });
+});
+
+describe("le registre est à part de la chaîne d'audit", () => {
+  it("il ne relit pas son dernier maillon avant d'écrire", () => {
+    /* L'audit enchaîne chaque ligne à la précédente par un condensé, ce qui
+       lui impose une lecture avant chaque écriture. Tenable pour une décision
+       du desk, intenable pour des milliers de gestes de clients. */
+    const sb = readFileSync(path.join(ROOT, "src/lib/data/supabase.ts"), "utf8");
+    const bloc = sb.slice(sb.indexOf("async logClientAction"), sb.indexOf("async listClientActions"));
+    expect(bloc).not.toMatch(/prev_hash|order\(/);
+    expect(bloc).toMatch(/error\.code !== "23505"/);
+  });
+
+  it("et la migration pose l'index qui refuse un doublon de consultation", () => {
+    const sql = readFileSync(path.join(ROOT, "supabase/migrations/0081_journal_des_gestes.sql"), "utf8");
+    expect(sql).toMatch(/create unique index if not exists client_actions_clef_du_jour/);
+    expect(sql).toMatch(/create policy "client lit ses gestes"/);
+  });
+});
+
+describe("rien n'a été oublié dans les dossiers d'actions", () => {
+  it("la liste des fichiers suit les dossiers du client", () => {
+    /* Un onzième fichier d'actions client ajouté ailleurs échapperait au
+       cliquet : on relit les dossiers plutôt que de faire confiance à la
+       liste. */
+    const trouves: string[] = [];
+    const walk = (d: string) => {
+      for (const e of readdirSync(path.join(ROOT, d), { withFileTypes: true })) {
+        if (e.isDirectory()) walk(`${d}/${e.name}`);
+        else if (/actions\.ts$/.test(e.name)) trouves.push(`${d}/${e.name}`);
+      }
+    };
+    for (const racine of ["src/app/moi", "src/app/offres", "src/app/ouvrir-un-compte"]) walk(racine);
+    expect(trouves.sort()).toEqual([...FICHIERS].sort());
+  });
+});

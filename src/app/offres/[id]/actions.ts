@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { noter } from "@/lib/journal";
 import { switchBlock } from "@/lib/domain/switch";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
@@ -179,6 +180,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   await r.updateContact(session.userId, { name: clientName, phone: contactPhone || undefined, email: contactEmail || undefined });
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} : <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
   const sent = (await notifyIntentReceived(intent, offer, amt ? estimate(offer, amt).text : undefined)).map((n) => ({ channel: n.channel, status: n.status }));
+  await noter(type === "appetit" ? "ordre.appetit" : "ordre.depose", { objet: intent.ref, detail: offer?.title, canal: channel });
   revalidatePath("/desk");
   const { ordreSignable } = await import("@/lib/domain/intent");
   return { ok: true, ref: intent.ref, id: intent.id, aSigner: ordreSignable(intent) && !needsAccount, type, channel, needsAccount, phone: contactPhone, email: contactEmail, sent };
@@ -199,6 +201,7 @@ export async function toggleWatch(offerId: string, on: boolean, mode?: "evenemen
   } catch {
     return { ok: false, watching: false }; // table missing (migration 0014) : the button stays off
   }
+  await noter(on ? "ligne.suivie" : "ligne.delaissee", { objet: offerId, detail: offer.title });
   revalidatePath(`/offres/${offerId}`);
   revalidatePath("/");
   return { ok: true, watching: on };
@@ -209,6 +212,7 @@ export async function toggleWatch(offerId: string, on: boolean, mode?: "evenemen
 export async function sendPhoneProof(rawPhone: string): Promise<ProofRequest> {
   const session = await getSession();
   if (!session) return { ok: false, error: "Connectez-vous d'abord." };
+  await noter("canal.preuve.envoyee", { objet: "téléphone" });
   return requestPhoneProof(session.userId, rawPhone);
 }
 
@@ -217,6 +221,7 @@ export async function checkPhoneProof(rawPhone: string, code: string): Promise<P
   if (!session) return { ok: false, error: "Connectez-vous d'abord." };
   const res = await confirmPhoneProof(session.userId, rawPhone, code);
   if (res.ok) {
+    await noter("canal.prouve", { objet: "téléphone" });
     revalidatePath(`/offres`);
     revalidatePath("/");
   }
@@ -311,6 +316,7 @@ export async function contacterSurLigne(offerId: string, canal: Channel, message
     emailVerified: emailProuve,
   });
   await notifyIntentReceived(intent, offer);
+  await noter("message.envoye", { objet: offerId, detail: offer.title, canal });
   revalidatePath("/desk");
   revalidatePath(`/offres/${offerId}`);
   return { ok: true, ref: intent.ref, canal };

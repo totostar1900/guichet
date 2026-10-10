@@ -1,3 +1,4 @@
+import type { ActionClient } from "@/lib/domain/journal-client";
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
@@ -324,6 +325,8 @@ const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name 
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
 const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
+type ActionRow = { id: string; at: string; user_id: string; geste: string; genre: string; objet: string | null; detail: string | null; canal: string | null; ip: string | null; user_agent: string | null };
+const toAction = (r: ActionRow): ActionClient => ({ id: r.id, at: r.at, userId: r.user_id, geste: r.geste, genre: r.genre as ActionClient["genre"], objet: u(r.objet), detail: u(r.detail), canal: u(r.canal), ip: u(r.ip), userAgent: u(r.user_agent) });
 type PushRow = { id: string; user_id: string; endpoint: string; keys: { p256dh: string; auth: string }; user_agent: string | null; created_at: string; failures: number };
 type AuditRow = { id: number; at: string; actor: string; actor_id: string | null; action: string; entity: string; entity_id: string; before: unknown; after: unknown; reason: string | null; ip: string | null; user_agent: string | null; prev_hash: string | null; hash: string };
 const toAudit = (r: AuditRow): AuditEntry => ({ id: String(r.id), at: r.at, actor: r.actor, actorId: u(r.actor_id), action: r.action, entity: r.entity, entityId: r.entity_id, before: r.before ?? undefined, after: r.after ?? undefined, reason: u(r.reason), ip: u(r.ip), userAgent: u(r.user_agent), prevHash: u(r.prev_hash), hash: r.hash });
@@ -1150,6 +1153,27 @@ export const supabaseRepository: Repository = {
     const { data, error } = await q;
     if (error) return [];
     return (data as AuditRow[]).map(toAudit);
+  },
+  async logClientAction(e) {
+    /* UN JOURNAL QUI CASSE UN GESTE EST PIRE QUE PAS DE JOURNAL. L'écriture
+       ne remonte jamais : un client qui signe son mandat ne doit pas voir son
+       geste échouer parce que la ligne de registre n'est pas passée. Le
+       doublon d'une consultation (23505 sur la clef du jour) est le cas
+       normal, pas une panne. */
+    const { error } = await db()
+      .from("client_actions")
+      .insert({ user_id: e.userId, geste: e.geste, genre: e.genre, objet: e.objet ?? null, detail: e.detail ?? null, canal: e.canal ?? null, ip: e.ip ?? null, user_agent: e.userAgent ?? null, clef_du_jour: e.clefDuJour ?? null });
+    if (error && error.code !== "23505") console.error("logClientAction", error.message);
+  },
+  async listClientActions(filter = {}) {
+    let q = db().from("client_actions").select("*").order("at", { ascending: false }).limit(filter.limit ?? 200);
+    if (filter.userId) q = q.eq("user_id", filter.userId);
+    if (filter.genre) q = q.eq("genre", filter.genre);
+    if (filter.from) q = q.gte("at", `${filter.from}T00:00:00Z`);
+    if (filter.to) q = q.lte("at", `${filter.to}T23:59:59Z`);
+    const { data, error } = await q;
+    if (error) return [];
+    return (data as ActionRow[]).map(toAction);
   },
   async listPushSubscriptions(userIds) {
     let q = db().from("push_subscriptions").select("*");

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { generateStatement } from "@/lib/documents/generate";
 import { repo } from "@/lib/data";
+import { noter } from "@/lib/journal";
 import { normalizePhone } from "@/lib/format";
 
 export type StatementResult = { ok: true; id: string; number: string } | { ok: false; error: string };
@@ -13,6 +14,7 @@ export async function statementAction(_p: StatementResult | null, form: FormData
   const type = form.get("type") === "attestation" ? "attestation" : "releve";
   try {
     const d = await generateStatement(type, s.userId, s.name);
+    await noter("releve.demande", { objet: d.number, detail: type });
     revalidatePath("/");
     return { ok: true, id: d.id, number: d.number };
   } catch (e) {
@@ -30,6 +32,7 @@ export async function contactAction(_p: ContactResult | null, form: FormData): P
   if (!/^\+\d{8,15}$/.test(phone)) return { ok: false, error: "Numéro de téléphone incomplet : indicatif compris, ex. +237 6 87 67 67 67." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Adresse e-mail invalide." };
   await repo().updateContact(s.userId, { phone, email });
+  await noter("profil.modifie", { detail: "numéro et adresse" });
   revalidatePath("/");
   return { ok: true, phone, email };
 }
@@ -41,6 +44,7 @@ export async function acceptTerms(version: string): Promise<{ ok: true } | { ok:
   if (version !== LEGAL_VERSION) return { ok: false, error: "Le texte a changé entre-temps : rechargez la page." };
   await repo().setConsent(s.userId, version);
   await repo().logEvent({ kind: "system", html: `Mentions acceptées (version ${version}) par <b>${s.name}</b>` });
+  await noter("convention.acceptee", { objet: version });
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -57,6 +61,7 @@ export async function identityAction(_p: IdentityResult | null, form: FormData):
   const kind = s.segment.split("·")[0].trim() || "Personne physique";
   const segment = city ? `${kind} · ${city}` : kind;
   await repo().updateContact(s.userId, { name, segment });
+  await noter("profil.modifie", { detail: "nom et ville" });
   revalidatePath("/", "layout");
   return { ok: true, name, segment };
 }
@@ -73,6 +78,7 @@ export async function consentAction(channel: "whatsapp" | "email", on: boolean):
   try {
     if (channel === "email") await repo().setEmailOptIn(s.userId, on);
     else await repo().setContactOptIn(s.userId, on);
+    await noter("consentement.pose", { objet: channel, detail: on ? "accepté" : "retiré" });
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
   }
@@ -89,6 +95,7 @@ export async function prefsAction(p: { reach?: "whatsapp" | "email" | "call"; st
   if (!Object.keys(patch).length) return { ok: false, error: "Rien à enregistrer." };
   try {
     await repo().setPrefs(s.userId, patch);
+    await noter("preferences.posees", { detail: Object.keys(patch).join(", ") });
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
   }

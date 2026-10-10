@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { computeProfile, PROFILE_QUESTIONS, type FinancialProfile } from "@/data/profile";
 import { audit } from "@/lib/audit";
+import { noter } from "@/lib/journal";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 
@@ -42,6 +43,7 @@ export async function saveProfile(answers: Record<string, number>, lessonsRead =
   const profile = computeProfile(answers, Math.max(0, Math.min(60, Math.floor(Number(lessonsRead) || 0))));
   await repo().setFinancialProfile(s.userId, profile);
   const change = Boolean(avant && avant.kind !== profile.kind);
+  await noter("dossier.finances");
   await audit("profile.set", "financial_profile", s.userId, {
     before: avant ? { kind: avant.kind, measures: avant.measures, updatedAt: avant.updatedAt } : null,
     after: { kind: profile.kind, measures: profile.measures, updatedAt: profile.updatedAt },

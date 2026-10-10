@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
+import { noter } from "@/lib/journal";
 import { confirmPhoneProof, proofDemoAllowed, requestPhoneProof } from "@/lib/channels";
 import { repo } from "@/lib/data";
 import { generateComplaint } from "@/lib/documents/generate";
@@ -80,5 +81,6 @@ export async function complaintDepositAction(_p: ComplaintStep | null, form: For
   await r.logEvent({ kind: "desk", html: `<b>Réclamation</b> ${doc.number} déposée par ${s.name} depuis Mon espace · accusé de réception avant le ${doc.ackBy}` });
   revalidatePath("/");
   revalidatePath("/desk/messages");
+  await noter("reclamation.deposee", { objet: doc.number });
   return { ok: true, step: "done", number: doc.number, id: doc.id, ackBy: doc.ackBy, answerBy: doc.answerBy };
 }

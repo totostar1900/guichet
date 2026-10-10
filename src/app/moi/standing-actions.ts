@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { audit } from "@/lib/audit";
+import { noter } from "@/lib/journal";
 import { fmt, localIso, parseAmount } from "@/lib/format";
 import { standingBlock } from "@/lib/domain/standing";
 
@@ -82,6 +83,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
     html: `${s.ref} (${s.clientName}) : <b>épargne programmée</b> de ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois sur ${o?.title ?? p.data.offerId}`,
   });
   await audit("standing.create", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, amount: s.amount, dayOfMonth: s.dayOfMonth, endsOn: s.endsOn } });
+  await noter("epargne.creee", { objet: s.ref, detail: fmt(s.amount) });
   revalidatePath("/");
   /* Le prélèvement ne se met pas en place ici : il se SIGNE, par un code, sur
      sa propre page. On y mène, l'instruction déjà choisie, plutôt que de
@@ -156,6 +158,7 @@ export async function createReinvestAction(_p: StandingResult | null, form: Form
     html: `${s.ref} (${s.clientName}) : <b>réinvestissement des encaissements</b> sur ${o?.title ?? p.data.offerId}${s.minAmount ? ` · à partir de ${fmt(s.minAmount)} FCFA` : ""}`,
   });
   await audit("standing.reinvest", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, minAmount: s.minAmount, source: s.source } });
+  await noter("ordre.reinvesti", { objet: s.ref, detail: o?.title });
   revalidatePath("/");
   revalidatePath("/moi/reinvestir");
   return { ok: true, message: `Réinvestissement en place sur ${o?.title ?? "cette ligne"}. Référence ${s.ref}.` };
@@ -180,6 +183,7 @@ export async function stopStandingAction(_p: StandingResult | null, form: FormDa
   await r.updateStandingOrder(s.id, { state: "annulee", stopReason: "arrêté par le client" });
   await r.logEvent({ kind: "intent", offerId: s.offerId, html: `${s.ref} (${s.clientName}) : épargne programmée <b>arrêtée</b> par le client` });
   await audit("standing.stop", "standing", s.id, { before: { state: s.state }, after: { state: "annulee" } });
+  await noter("epargne.arretee", { objet: s.ref });
   revalidatePath("/");
   return { ok: true, message: "Versement arrêté. Rien ne partira le mois prochain." };
 }

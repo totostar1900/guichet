@@ -1,4 +1,5 @@
 import type { FinancialProfile } from "@/data/profile";
+import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/journal-client";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -88,6 +89,9 @@ export interface Repository {
   /** Audit trail (append-only, hash-chained). */
   logAudit(e: NewAuditEntry): Promise<AuditEntry>;
   listAudit(filter?: { entity?: string; entityId?: string; limit?: number }): Promise<AuditEntry[]>;
+  /** Registre des gestes des clients : memes colonnes que l audit, sans la chaine. */
+  logClientAction(e: NouvelleActionClient): Promise<void>;
+  listClientActions(filter?: { userId?: string; genre?: Genre; from?: string; to?: string; limit?: number }): Promise<ActionClient[]>;
   /** Four-eyes: proposals waiting for a responsable. */
   listApprovals(open?: boolean): Promise<Approval[]>;
   createApproval(a: Omit<Approval, "id" | "requestedAt">): Promise<Approval>;

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
+import { noter } from "@/lib/journal";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
 import { JOUR_MAX, JOUR_MIN, mandatVivant, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
@@ -62,6 +63,7 @@ export async function creerMandatAction(_p: MandatResult | null, form: FormData)
   const m = await repo().createMandat({ ...d, maxAmount: d.maxAmount, userId: s.userId });
   await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement créé</b> par ${s.name} · ${m.ref} · plafond ${m.maxAmount} FCFA · à signer` });
   revalidatePath(PATH);
+  await noter("mandat.cree", { objet: m.ref, detail: m.bankName });
   return { ok: true, message: "Mandat préparé. Relisez-le, puis signez-le par un code à usage unique." };
 }
 
@@ -142,6 +144,7 @@ export async function signerMandatAction(_p: MandatResult | null, form: FormData
   await r.logEvent({ kind: "system", html: `<b>Mandat de prélèvement signé</b> · ${m.ref} · ${m.accountHolder} · plafond ${m.maxAmount} FCFA par échéance` });
   revalidatePath(PATH);
   revalidatePath("/desk");
+  await noter("mandat.signe", { objet: m.ref, detail: m.bankName });
   return { ok: true, message: "Mandat signé. Votre exemplaire est dans vos documents." };
 }
 
@@ -162,5 +165,6 @@ export async function revoquerMandatAction(_p: MandatResult | null, form: FormDa
   await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement révoqué</b> · ${m.ref}${motif ? ` · ${motif}` : ""}` });
   revalidatePath(PATH);
   revalidatePath("/desk");
+  await noter("mandat.revoque", { objet: m.ref });
   return { ok: true, message: mandatVivant(m) ? "Mandat révoqué. Plus aucun prélèvement ne partira." : "Mandat révoqué." };
 }

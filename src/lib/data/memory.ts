@@ -1,3 +1,4 @@
+import type { ActionClient } from "@/lib/domain/journal-client";
 import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { REF_AUCTIONS, REF_OFFERS, semisDense } from "@/data/reference";
@@ -212,6 +213,8 @@ interface Store {
   staff: StaffMember[];
   versions: OfferVersion[];
   audit: AuditEntry[];
+  /** Les gestes des clients ; la clef du jour reste en memoire pour refuser un doublon. */
+  gestes: (ActionClient & { clefDuJour?: string })[];
   approvals: Approval[];
   push: PushSubscription[];
   clientFiles: ClientFile[];
@@ -282,6 +285,7 @@ function store(): Store {
       news: structuredClone(SEED_NEWS),
       versions: [],
       audit: [],
+      gestes: [],
       approvals: [],
       push: [],
       staff: [
@@ -321,6 +325,7 @@ function store(): Store {
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
   if (!g.__guichetStore.versions) g.__guichetStore.versions = [];
   if (!g.__guichetStore.audit) g.__guichetStore.audit = [];
+  if (!g.__guichetStore.gestes) g.__guichetStore.gestes = [];
   if (!g.__guichetStore.approvals) g.__guichetStore.approvals = [];
   if (!g.__guichetStore.push) g.__guichetStore.push = [];
   /* Le rechargement à chaud peut garder un magasin d'une forme plus ancienne.
@@ -492,6 +497,26 @@ export const memoryRepository: Repository = {
   async listAudit(filter = {}) {
     const rows = store().audit.filter((a) => (!filter.entity || a.entity === filter.entity) && (!filter.entityId || a.entityId === filter.entityId));
     return structuredClone(rows.slice(-(filter.limit ?? 100)).reverse());
+  },
+  async logClientAction(e) {
+    const s = store();
+    /* La clef du jour refuse le doublon, comme l'index unique en base : une
+       fiche ouverte dix fois dans l'après-midi n'écrit qu'une ligne. */
+    if (e.clefDuJour && s.gestes.some((g) => g.clefDuJour === e.clefDuJour)) return;
+    const { clefDuJour, ...reste } = e;
+    s.gestes.push({ ...reste, clefDuJour, id: `ac-${++s.seq}`, at: nowIso() });
+  },
+  async listClientActions(filter = {}) {
+    const rows = store()
+      .gestes.filter(
+        (g) =>
+          (!filter.userId || g.userId === filter.userId) &&
+          (!filter.genre || g.genre === filter.genre) &&
+          (!filter.from || g.at.slice(0, 10) >= filter.from) &&
+          (!filter.to || g.at.slice(0, 10) <= filter.to),
+      )
+      .sort((a, b) => b.at.localeCompare(a.at));
+    return structuredClone(rows.slice(0, filter.limit ?? 200).map(({ clefDuJour: _c, ...r }) => r));
   },
   async listPushSubscriptions(userIds) {
     return structuredClone(store().push.filter((p) => !userIds || userIds.includes(p.userId)));

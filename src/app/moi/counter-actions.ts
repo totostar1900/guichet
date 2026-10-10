@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
+import { noter } from "@/lib/journal";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { packReason } from "@/lib/domain/cancel-reasons";
@@ -42,6 +43,7 @@ export async function answerCounter(form: FormData): Promise<void> {
 
   if (answer === "non" || lapsed) {
     const updated = await r.updateIntent(intentId, { state: "recue", counter: undefined });
+    await noter("ordre.contre.refusee", { objet: it.ref });
     await audit("intent.counter.refused", "intent", intentId, { before: it.counter, after: { state: "recue" }, reason: lapsed ? "échéance dépassée" : "refus du client" });
     await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>${lapsed ? "caduque" : "refusée"}</b>${terms ? ` · ${terms}` : ""}` });
     if (offer && !lapsed) await notifyIntentUpdated(updated, offer, "recue");
@@ -57,6 +59,7 @@ export async function answerCounter(form: FormData): Promise<void> {
     limitPrice: it.counter.limitPrice ?? it.limitPrice,
     counter: undefined,
   });
+  await noter("ordre.contre.acceptee", { objet: it.ref, detail: terms });
   await audit("intent.counter.accepted", "intent", intentId, { before: { amount: it.amount, limitPrice: it.limitPrice }, after: { amount: updated.amount, limitPrice: updated.limitPrice }, reason: terms });
   await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>acceptée</b>${terms ? ` · ${terms}` : ""}` });
   if (offer) await notifyIntentUpdated(updated, offer, "confirmee");
@@ -95,6 +98,7 @@ export async function retirerMonOrdre(form: FormData): Promise<void> {
   if (it.state !== "recue" && it.state !== "contre_proposee") return;
 
   const updated = await r.setIntentState(intentId, "annulee", packReason("client"));
+  await noter("ordre.retire", { objet: it.ref });
   await audit("intent.withdraw", "intent", intentId, {
     before: { state: it.state },
     after: { state: "annulee" },

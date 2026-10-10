@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { noter } from "@/lib/journal";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
@@ -118,6 +119,7 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
     intentId: intent.id,
     html: `<b>Ordre signé</b> par ${intent.clientName} · ${intent.ref} · ${doc.number}${couverture ? ` · <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés)` : ""}`,
   });
+  await noter("ordre.signe", { objet: intent.ref, detail: doc.number });
   revalidatePath(chemin(intent.id));
   revalidatePath("/");
   revalidatePath("/desk");
