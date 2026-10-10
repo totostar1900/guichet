@@ -87,6 +87,10 @@ export const EN_CONVENTION: Record<string, string> = {
      main avec la version, et sa traduction avec elle. */
   "Vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez plus rien pour cela, et l'ouverture reste sans frais.":
     "You now give us a mandate to open in your name the accounts needed for your orders: you will sign nothing more for that, and opening remains free.",
+  /* La phrase de reprise du 10 octobre 2026 : l'article 8 dit désormais ce qui
+     est enregistré des gestes du client, et ce qui ne l'est pas. */
+  "Vos gestes dans le Guichet sont enregistrés, et l'article 8 dit lesquels : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine.":
+    "Your moves in the Guichet are recorded, and article 8 says which: you read them yourself under « Your activity », the detail is kept for thirteen months, and no decision about you is taken by a machine.",
 
   /* ---- la signature ---- */
   "Reprendre ma convention": "Sign my agreement again",

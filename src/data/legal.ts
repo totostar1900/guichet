@@ -32,7 +32,7 @@ export const LEGAL_VERSION = "2026-09-20";
  * encore la phrase. Laisser la même version sur les deux textes aurait fait
  * mentir le repère au premier litige, pour une suppression d'une ligne.
  */
-export const CONVENTION_VERSION = "2026-10-09b";
+export const CONVENTION_VERSION = "2026-10-10";
 
 /**
  * CE QUI A CHANGÉ, DIT AU SIGNATAIRE QUI DOIT REPRENDRE.
@@ -49,8 +49,8 @@ export const CONVENTION_VERSION = "2026-10-09b";
  */
 export const CONVENTION_CHANGE: { version: string; quoi: string; cote: "donne" | "devons" } = {
   version: CONVENTION_VERSION,
-  quoi: "Vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez plus rien pour cela, et l'ouverture reste sans frais.",
-  cote: "donne",
+  quoi: "Vos gestes dans le Guichet sont enregistrés, et l'article 8 dit lesquels : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine.",
+  cote: "devons",
 };
 
 export interface LegalSection {
