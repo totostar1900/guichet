@@ -80,6 +80,7 @@ describe("la procuration n'existe plus", () => {
       "src/data/docs/fonctionnement.ts",
       "src/data/docs/aide.ts",
       "src/data/docs/relation.ts",
+      "src/data/docs/comptes-a-plusieurs-mains.ts",
       "src/data/docs/clientele.ts",
       "src/app/ouvrir-un-compte/Sections.tsx",
       "src/app/ouvrir-un-compte/page.tsx",

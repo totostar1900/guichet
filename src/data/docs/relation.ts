@@ -96,135 +96,10 @@ export const RELATION: DocPage = {
       ],
     },
     {
-      id: "donneur-d-ordres",
-      title: l("Un seul donneur d'ordres, et les comptes à plusieurs mains", "A single order-giver, and accounts with several hands"),
-      blocks: [
-        {
-          type: "lead",
-          text: l(
-            "Le titulaire est SEUL à donner ses ordres. La maison n'accepte aucune procuration, n'en prépare aucune, et n'exécute l'ordre d'aucun tiers, quels que soient le lien de parenté, l'insistance ou le papier présenté.",
-            "The holder ALONE gives their orders. The firm accepts no power of attorney, prepares none, and executes no third party's order, whatever the family tie, the insistence or the paper produced.",
-          ),
-        },
-        {
-          type: "p",
-          text: l(
-            "Ce n'est pas une prudence, c'est la règle de la maison, arrêtée le 10 octobre 2026. Le produit l'honorait déjà sans le dire : aucun mandataire n'a jamais pu se connecter. Mais il offrait une procuration de papier, un acte réglementaire que rien à l'écran ne faisait vivre. Un acte que le produit n'honore pas est une promesse qu'il ne tiendra pas le jour où on l'invoque : la procuration a donc été retirée, et l'article 9 de la convention le dit maintenant au client.",
-            "This is not caution, it is the firm's rule, settled on 10 October 2026. The product already honoured it without saying so: no agent could ever sign in. But it offered a paper power of attorney, a regulated deed that nothing on screen brought to life. A deed the product does not honour is a promise it will not keep the day it is invoked: the power of attorney was therefore withdrawn, and article 9 of the agreement now says so to the client.",
-          ),
-        },
-        {
-          type: "table",
-          head: [l("Qui", "Who"), l("Peut-il donner un ordre ?", "May they give an order?")],
-          rows: [
-            [l("Le titulaire, personne physique", "The holder, a natural person"), l("oui, et lui seul", "yes, and they alone")],
-            [
-              l("Le représentant légal d'une société ou d'une association", "The legal representative of a company or association"),
-              l("oui, parce qu'il EST le titulaire qui agit : une personne morale n'a pas d'autres mains. Il doit être déclaré au dossier.", "yes, because they ARE the holder acting: a legal entity has no other hands. They must be declared in the file."),
-            ],
-            [
-              l("Les cotitulaires désignés d'un groupement", "The designated co-holders of a group"),
-              l("oui, dans la règle de décision que le PV a fixée : le compte est à eux, en indivision.", "yes, within the decision rule set by the minutes: the account is theirs, undivided."),
-            ],
-            [l("Un bénéficiaire effectif", "A beneficial owner"), l("non. Détenir plus de 25 % n'est pas agir.", "no. Holding more than 25 % is not acting.")],
-            [
-              l("Un proche, un conseiller, un gérant de fortune, qui que ce soit d'autre", "A relative, an adviser, a wealth manager, anyone else"),
-              l("non, sans exception et quel que soit le document produit.", "no, without exception and whatever document is produced."),
-            ],
-          ],
-        },
-        {
-          type: "note",
-          kind: "warn",
-          text: l(
-            "LA BONNE RÉPONSE AU TÉLÉPHONE EST LA MÊME POUR TOUS : « Je ne peux prendre un ordre que du titulaire lui-même. Demandez-lui de nous écrire ou de nous appeler, nous le rappelons dans l'heure. » Ne rien promettre de recontacter le tiers, ne rien dire du dossier, et proposer le rappel du titulaire : c'est la seule issue, et elle est rapide.",
-            "THE RIGHT ANSWER ON THE PHONE IS THE SAME FOR EVERYONE: « I can only take an order from the holder themselves. Ask them to write or call us, we call back within the hour. » Promise nothing about calling the third party back, say nothing about the file, and offer to call the holder: it is the only way through, and it is quick.",
-          ),
-        },
-        {
-          type: "p",
-          text: l(
-            "Le seul cas où la position cesse de dépendre du titulaire est son décès : elle est alors conservée jusqu'à instruction des ayants droit dûment justifiés, et c'est l'article 9 qui le règle, pas une procuration.",
-            "The only case where the position stops depending on the holder is their death: it is then kept until instructed by the duly evidenced heirs, and article 9 settles that, not a power of attorney.",
-          ),
-        },
-        {
-          type: "lead",
-          text: l(
-            "QUAND LE TITULAIRE N'EST PAS UNE PERSONNE PHYSIQUE, IL A PLUSIEURS MAINS, et chacune a désormais sa clef. Un compte porte un identifiant, donc une connexion : pour une société, une association ou une indivision, deux ou trois personnes la partageaient. Le journal ne pouvait jamais dire laquelle avait agi, retirer quelqu'un du conseil obligeait à changer le code de tout le monde, et la règle de décision d'un PV ne pouvait pas exister derrière un seul jeu d'identifiants.",
-            "WHEN THE HOLDER IS NOT A NATURAL PERSON, IT HAS SEVERAL HANDS, and each now has its own key. An account carries one identity, hence one sign-in: for a company, an association or an undivided account, two or three people shared it. The log could never say which one had acted, removing someone from the board meant changing everyone's code, and the decision rule of a minute could not exist behind a single set of credentials.",
-          ),
-        },
-        {
-          type: "steps",
-          items: [
-            l(
-              "L'accès se donne depuis le dossier, à une personne DÉCLARÉE et qui peut agir : un représentant légal, un cotitulaire désigné. Un bénéficiaire effectif n'en reçoit pas, parce que détenir plus de 25 % n'est pas agir. Taper un nom libre reviendrait à recréer la procuration par la porte de service.",
-              "Access is granted from the file, to a DECLARED person who may act: a legal representative, a designated co-holder. A beneficial owner gets none, because holding more than 25 % is not acting. Typing a free name would recreate the power of attorney through the back door.",
-            ),
-            l(
-              "Il se donne à un NUMÉRO OU UNE ADRESSE, pas à un compte : le desk n'a de compte à créer pour personne. Le premier code reçu à ce canal lie l'accès à l'identité qui l'a reçu, une fois, et le canal cesse alors de suffire.",
-              "It is granted to a NUMBER OR AN ADDRESS, not to an account: the desk has no account to create for anybody. The first code received at that channel binds the access to the identity that received it, once, and the channel then stops being enough.",
-            ),
-            l(
-              "La personne se connecte avec son propre code et arrive sur le compte, que l'écran lui nomme en haut de page. Le compte reste le titulaire : les positions, les espèces et les documents ne bougent pas. Ce qui change est que CHAQUE GESTE PORTE LE NOM DE LA MAIN qui l'a fait, au registre des gestes comme à l'audit.",
-              "The person signs in with their own code and lands on the account, which the screen names at the top of the page. The account remains the holder: positions, cash and documents do not move. What changes is that EVERY MOVE CARRIES THE NAME OF THE HAND that made it, in the register of moves as in the audit.",
-            ),
-            l(
-              "Donner un accès demande une seconde personne ; le retirer, non. Fermer une porte dans l'urgence doit se faire d'une main ; c'est l'ouvrir qui mérite deux regards.",
-              "Granting access requires a second person; withdrawing it does not. Closing a door in a hurry must take one hand; it is opening it that deserves two pairs of eyes.",
-            ),
-          ],
-        },
-        {
-          type: "note",
-          kind: "warn",
-          text: l(
-            "QUI ÉCRIT LA LISTE DES PERSONNES COMMANDE QUI PEUT RECEVOIR UN ACCÈS, et c est pour cela que l ajout d un signataire est le geste le plus contrôlé du lot. Le client déclare ses personnes à l ouverture et n y touche plus après l approbation ; le desk le peut, parce qu un conseil change et qu un dossier ne doit pas geler avec lui, mais il lui faut une seconde personne et l acte qui désigne le nouveau venu. Un signataire ne s ajoute pas sur un appel téléphonique.",
-            "WHOEVER WRITES THE LIST OF PERSONS COMMANDS WHO MAY RECEIVE AN ACCESS, which is why adding a signatory is the most controlled move of the lot. The client declares their persons at opening and no longer touches them after approval; the desk may, because a board changes and a file must not freeze with it, but it needs a second person and the deed that appoints the newcomer. A signatory is not added on a phone call.",
-          ),
-        },
-        {
-          type: "note",
-          kind: "warn",
-          text: l(
-            "RETIRER QUELQU UN FERME SON ACCÈS DANS LE MÊME GESTE, et c est tout le point. Les deux séparés laisseraient un ancien administrateur se connecter et passer des ordres sur un compte dont il ne répond plus : on ne peut pas compter sur le souvenir de faire le second. Un point de Santé compte les accès dont la personne n est plus déclarée ; il devrait toujours valoir zéro, et c est précisément pour cela qu il existe.",
-            "REMOVING SOMEONE CLOSES THEIR ACCESS IN THE SAME MOVE, and that is the whole point. The two apart would let a former director sign in and place orders on an account they no longer answer for: one cannot rely on remembering to do the second. A health point counts accesses whose person is no longer declared; it should always read zero, and that is precisely why it exists.",
-          ),
-        },
-        {
-          type: "note",
-          kind: "info",
-          text: l(
-            "LE SECOND REGARD EST PLACÉ LÀ OÙ LA PLACE LE MET, et pas sur les ordres. Interactive Brokers n'impose pas deux personnes sur une transaction : il les impose sur l'ajout d'un utilisateur et sur le changement de ses droits. La raison est bonne, et nous la reprenons : un ordre est borné par un plafond, réversible et tracé ; donner à quelqu'un la main sur un compte ne l'est pas. Un ordre à deux signatures paralyserait le compte sans fermer le vrai risque.",
-            "THE SECOND PAIR OF EYES SITS WHERE THE MARKET PUTS IT, and not on orders. Interactive Brokers does not require two people on a trade: it requires them on adding a user and on changing their rights. The reason is sound, and we take it: an order is capped, reversible and traced; giving someone the keys to an account is not. A two-signature order would paralyse the account without closing the real risk.",
-          ),
-        },
-        {
-          type: "table",
-          head: [l("Le plafond", "The cap"), l("Ce qu il fait", "What it does")],
-          rows: [
-            [l("Deux étages", "Two tiers"), l("celui du compte vient du PV ; une personne peut en porter un plus bas quand le PV donne des pouvoirs inégaux. Le plus bas gagne : une délégation ne dépasse jamais le mandat dont elle sort.", "the account s comes from the minutes; a person may carry a lower one where the minutes give unequal powers. The lower wins: a delegation never exceeds the mandate it comes from.")],
-            [l("Il ne regarde que ce qui engage", "It only looks at what commits"), l("vendre, racheter des parts et sortir ses espèces ne sont jamais bornés : les borner enfermerait le groupe dans son compte.", "selling, redeeming units and withdrawing cash are never capped: capping them would lock the group inside its account.")],
-            [l("Il se dit avant, pas au refus", "It is said beforehand, not at the refusal"), l("le client le lit en haut de son espace. Le découvrir en butant dessus au moment de signer est une panne muette : il a déjà réuni le groupe.", "the client reads it at the top of their space. Discovering it by bumping into it at signing time is a silent failure: they have already gathered the group.")],
-            [l("Relever demande deux regards", "Raising requires two pairs of eyes"), l("abaisser, non. Élargir ce qu une personne engage seule est le même geste que lui donner un accès ; le restreindre doit pouvoir se faire d une main.", "lowering does not. Widening what one person commits alone is the same move as granting them access; restricting it must take one hand.")],
-          ],
-        },
-        {
-          type: "note",
-          kind: "warn",
-          text: l(
-            "LE PLAFOND PAR ORDRE DU PV EST APPLIQUÉ depuis le 11 octobre 2026, et il faut dire comment : PAS par une double signature. Demander deux signatures sur un ordre obligerait deux personnes à être devant leur téléphone au moment où une adjudication se clôt, et la place ne le fait nulle part. Ce que le PV veut dire est qu'au-delà d'un montant, le groupe ne veut pas qu'une seule personne engage la caisse d'un geste. Nous le tenons autrement : au-delà du plafond, l'ordre QUITTE LE LIBRE-SERVICE et se passe avec un conseiller, qui parle au groupe. Rien n'est refusé ; un chemin plus lent est imposé, ce qui est exactement le but.",
-            "THE PER-ORDER CAP OF THE MINUTES IS ENFORCED since 11 October 2026, and it must be said how: NOT by a double signature. Requiring two signatures on an order would force two people to be at their phone when an auction closes, and the market does it nowhere. What the minutes mean is that beyond an amount, the group does not want one person committing the fund in a single move. We hold it otherwise: beyond the cap, the order LEAVES SELF-SERVICE and is placed with an adviser, who speaks to the group. Nothing is refused; a slower path is imposed, which is exactly the point.",
-          ),
-        },
-      ],
-    },
-    {
       id: "situations",
       title: l("Situations et conduite à tenir", "Situations and what to do"),
       blocks: [
-        { type: "p", text: l("Trois actes ont leur document et leur circuit : l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis Mon espace, signée par code ; accusé de réception sous deux jours ouvrés, réponse sous trente jours, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Four acts have their document and their circuit: the mandate when a third party places orders (desk › Files › Acts and notices, signed by the client and the agent), the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from My space, signed by code; acknowledgement within two business days, answer within thirty days, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
+        { type: "p", text: l("Trois actes ont leur document et leur circuit : l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis Mon espace, signée par code ; accusé de réception sous deux jours ouvrés, réponse sous trente jours, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Three acts have their document and their circuit: the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from My space, signed by code; acknowledgement within two business days, answer within thirty days, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
         {
           type: "table",
           head: [l("Situation", "Situation"), l("Conduite", "What to do")],
@@ -237,6 +112,12 @@ export const RELATION: DocPage = {
             [l("Un client demande à être oublié", "A client asks to be forgotten"), l("Le responsable archive le dossier (jamais supprimé : obligations de conservation), coupe les envois, note la demande au journal, répond par écrit.", "The manager archives the file (never deleted: retention duties), stops sends, notes the request in the log, answers in writing.")],
             [l("Un proche appelle pour le client", "A relative calls for the client"), l("On ne parle d'un dossier qu'au titulaire, ou au représentant légal déclaré quand le titulaire est une personne morale. La maison n'accepte aucune procuration : il n'y a personne d'autre à qui parler. Proposer que le client écrive lui-même.", "A file is discussed only with its holder, or with the declared legal representative when the holder is a legal entity. The firm accepts no power of attorney: there is nobody else to speak to. Suggest the client writes themself.")],
           ],
+        },
+        {
+          type: "link",
+          href: "/desk/docs/comptes-a-plusieurs-mains",
+          label: l("Les comptes à plusieurs mains", "Accounts with several hands"),
+          hint: l("Une société, une association, une indivision : qui peut agir, qui reçoit un accès, jusqu à quel montant, et ce qu on fait le jour où le conseil change.", "A company, an association, an undivided account: who may act, who receives an access, up to what amount, and what to do the day the board changes."),
         },
       ],
     },

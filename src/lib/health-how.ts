@@ -149,7 +149,7 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     label: "Accès sans personne déclarée",
     href: "/desk/clients",
     how: "Quelqu'un peut se connecter sur un compte dont le dossier ne le connaît plus : un ancien administrateur qui passe encore des ordres. Ce point devrait toujours valoir zéro, puisque retirer un signataire ferme son accès dans le même geste ; s'il monte, c'est que la règle a été contournée, ou qu'une reprise de données a laissé un accès derrière elle. Ouvrir le dossier du compte, fermer l'accès, puis chercher dans l'audit comment il a survécu.",
-    docs: { href: "/desk/docs/relation#donneur-d-ordres", label: "Un seul donneur d'ordres, et les comptes à plusieurs mains" },
+    docs: { href: "/desk/docs/comptes-a-plusieurs-mains#personnes", label: "Un seul donneur d'ordres, et les comptes à plusieurs mains" },
   },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",

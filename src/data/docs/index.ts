@@ -2,6 +2,7 @@ import { ADMINISTRATION } from "./administration";
 import { ANALYSES } from "./analyses";
 import { AIDE } from "./aide";
 import { CLIENTELE } from "./clientele";
+import { COMPTES_A_PLUSIEURS_MAINS } from "./comptes-a-plusieurs-mains";
 import { COURBE } from "./courbe";
 import { DOCUMENTS } from "./documents";
 import { FONCTIONNEMENT } from "./fonctionnement";
@@ -19,7 +20,7 @@ import type { Audience, DocBlock, DocPage, L } from "./types";
 export * from "./types";
 
 /** Every documentation page, in reading order. */
-export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, OPERATIONS, RELATION, CLIENTELE, DOCUMENTS, SOURCES, COURBE, INDICE, ANALYSES, PUBLICATIONS, PLATEFORMES, REPRISE, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
+export const DOCS: DocPage[] = [AIDE, FONCTIONNEMENT, OPERATIONS, RELATION, COMPTES_A_PLUSIEURS_MAINS, CLIENTELE, DOCUMENTS, SOURCES, COURBE, INDICE, ANALYSES, PUBLICATIONS, PLATEFORMES, REPRISE, SUPPORT, ADMINISTRATION, TECHNIQUE].sort((a, b) => a.order - b.order);
 
 /** What a client may read: public pages only. Everything else stays behind the desk. */
 export const PUBLIC_DOCS: DocPage[] = DOCS.filter((d) => d.visibility === "public");
