@@ -2844,6 +2844,26 @@ export const EN_MORE: Record<string, string> = {
   /* Le libellé d un point de Santé passe par t(variable) : le scanner des clefs
      ne le voit pas, et seul l écran le montre non traduit. Troisième fois. */
   "Virements reçus sans nom": "Transfers received with no name",
+
+  /* LE MOTIF DU REJET D'UNE PIÈCE D'ENTRÉE (10 octobre 2026). Les libellés et
+     les suites passent par tr(variable) depuis le catalogue : le scanner de
+     clefs ne les voit pas, un cliquet les compte (src/test/motif-du-rejet). */
+  "Cause du rejet": "Reason for the rejection",
+  "Rejeter parce que…": "Reject because…",
+  "Précision (obligatoire sous « Autre »)": "Detail (required under « Other »)",
+  "Précision du rejet": "Detail of the rejection",
+  "Ce n'est pas une offre": "This is not an offer",
+  "Rien à publier : accusé de réception, lettre d'information, message sans pièce.": "Nothing to publish: an acknowledgement, a newsletter, a message with no attachment.",
+  "Déjà traitée": "Already handled",
+  "La pièce d'origine reste la référence ; celle-ci ne crée pas de seconde version.": "The original stays the reference; this one creates no second version.",
+  "Échéance passée": "Deadline passed",
+  "L'opération est close avant d'avoir été publiée : rien ne part aux clients.": "The operation closed before being published: nothing goes out to clients.",
+  "Pièce illisible ou incomplète": "Unreadable or incomplete document",
+  "Redemander la source à l'émetteur, puis déposer la nouvelle pièce.": "Ask the issuer for the source again, then upload the new document.",
+  "Retirée par l'émetteur": "Withdrawn by the issuer",
+  "L'émetteur a annulé son opération : garder la trace, ne rien publier.": "The issuer cancelled its operation: keep the trace, publish nothing.",
+  Autre: "Other",
+  "Dites-le en une phrase : c'est ce qui restera au journal.": "Say it in one sentence: that is what stays in the log.",
   "Gestes passés sans second regard": "Actions passed without a second pair of eyes",
   "Un geste sensible attend une seconde personne : celle qui propose ne peut pas approuver, quel que soit son rôle. Quand la maison n'a qu'un seul responsable, le contrôle est impossible et le geste passe en le disant : c'est ce qui se compte ici. Un chiffre qui monte appelle une décision d'effectif, pas un réglage : nommer un second responsable dans Référentiel › Personnel, ou accepter que ces gestes-là restent à une paire d'yeux.":
     "A sensitive action waits for a second person: whoever proposes cannot approve, whatever their role. When the firm has a single manager the control is impossible and the action goes through saying so: that is what is counted here. A rising number calls for a staffing decision, not a setting: appoint a second manager under Reference data › Staff, or accept that those actions stay with one pair of eyes.",

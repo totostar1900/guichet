@@ -1,0 +1,12 @@
+-- POURQUOI UNE PIÈCE D'ENTRÉE EST REJETÉE.
+--
+-- « Rejeter » était la seule décision du desk qui n'enregistrait aucun motif :
+-- refuser une approbation, renvoyer un brouillon, annuler un ordre, écarter
+-- une séance, refuser un versement, tous demandent une note et la gardent.
+-- Une pièce rejetée changeait d'état en silence. Audité le 26 septembre 2026,
+-- réparé le 10 octobre.
+--
+-- La cause est nommée (voir src/lib/desk/rejet.ts) parce que c'est elle qui
+-- décide de la suite et qu'une phrase libre ne se compte pas ; la précision
+-- libre reste dans « notes ».
+alter table public.intake_items add column if not exists reject_reason text;

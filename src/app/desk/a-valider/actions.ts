@@ -6,6 +6,7 @@ import { ConflictError } from "@/lib/domain/types";
 import { audit } from "@/lib/audit";
 import { direLeGestePasseSeul, quatreYeux } from "@/lib/desk/quatre-yeux";
 import { demandeurDeLaRevue } from "@/lib/desk/revue";
+import { CAUSES_DE_REJET, estUneCauseDeRejet, phraseDuRejet } from "@/lib/desk/rejet";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -275,11 +276,33 @@ export async function lireSourceAction(form: FormData): Promise<void> {
   revalidatePath("/desk/a-valider");
 }
 
-export async function rejectAction(form: FormData): Promise<void> {
-  await requireDesk("/desk/a-valider");
+/**
+ * REJETER UNE PIÈCE, AVEC SA CAUSE.
+ *
+ * C'était la seule décision du desk qui n'enregistrait aucun motif : refuser
+ * une approbation, renvoyer un brouillon, annuler un ordre, écarter une
+ * séance, refuser un versement, tous demandent une note et la gardent. Une
+ * pièce rejetée changeait d'état en silence, et six mois plus tard personne
+ * ne pouvait dire pourquoi une offre n'avait pas été publiée.
+ *
+ * La cause est nommée parce que c'est elle qui décide de la suite, et parce
+ * qu'une phrase libre ne se compte pas. La précision est obligatoire sous
+ * « Autre », sans quoi « Autre » deviendrait le bouton de ceux qui sont
+ * pressés.
+ */
+export async function rejectAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
+  const desk = await requireDesk("/desk/a-valider");
   const id = String(form.get("itemId") ?? "");
+  const cause = String(form.get("rejectReason") ?? "").trim();
+  const precision = String(form.get("rejectNote") ?? "").trim().slice(0, 300);
   const item = await repo().getIntake(id);
-  await repo().updateIntake(id, { state: "rejete" });
-  await audit("intake.reject", "intake", id, { before: { state: item?.state }, after: { state: "rejete" } });
+  if (!item) return { ok: false, error: "Source introuvable." };
+  if (!estUneCauseDeRejet(cause)) return { ok: false, error: "Dites pourquoi : une pièce rejetée sans cause ne s'explique plus six mois après." };
+  if (CAUSES_DE_REJET[cause].precisionRequise && !precision) return { ok: false, error: "« Autre » n'explique rien tout seul : dites-le en une phrase." };
+  const phrase = phraseDuRejet(cause, precision);
+  await repo().updateIntake(id, { state: "rejete", rejectReason: cause, notes: `Rejetée par ${desk.name} : ${phrase}` });
+  await audit("intake.reject", "intake", id, { before: { state: item.state }, after: { state: "rejete", cause }, reason: phrase });
+  await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : source rejetée par ${desk.name} · ${phrase}` });
   revalidatePath("/desk/a-valider");
+  return { ok: true };
 }

@@ -11,6 +11,7 @@ import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
 import { lireSourceAction, publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
+import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
 import { SourceViewer } from "@/components/SourceViewer";
 import { referenceLine, type RateReference } from "@/lib/market/auction-results";
 import styles from "./page.module.css";
@@ -90,6 +91,8 @@ function Reference({ r, tr }: { r?: RateReference; tr: (s: string, v?: Record<st
     </small>
   );
 }
+const CAUSES = Object.entries(CAUSES_DE_REJET);
+
 export function ValidateForm({ item, offer, reference }: { item: IntakeItem; offer?: Offer; reference?: RateReference }) {
   const tr = useT();
   const d = item.draft;
@@ -98,6 +101,10 @@ export function ValidateForm({ item, offer, reference }: { item: IntakeItem; off
   const [pubState, pubAct, publishing] = useActionState<IntakeResult | null, FormData>(publishAction, null);
   const [revState, revAct, reviewing] = useActionState<IntakeResult | null, FormData>(requestReviewAction, null);
   const [backState, backAct, sendingBack] = useActionState<IntakeResult | null, FormData>(sendBackAction, null);
+  const [rejState, rejAct, rejecting] = useActionState<IntakeResult | null, FormData>(rejectAction, null);
+  /* La cause choisie dit ce qui suit : un rejet n'est pas toujours une fin,
+     et « redemander la source » n'est pas « ne rien publier ». */
+  const [cause, setCause] = useState<string>("");
   const inReview = item.state === "en_revue";
 
   const v = (k: string, fallback?: unknown) => snap[k] ?? (fallback == null ? "" : String(fallback));
@@ -340,7 +347,7 @@ export function ValidateForm({ item, offer, reference }: { item: IntakeItem; off
           </div>
         </div>
 
-        {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>) || (revState && !revState.ok && <div className={styles.error}>{revState.error}</div>) || (backState && !backState.ok && <div className={styles.error}>{backState.error}</div>)}
+        {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>) || (revState && !revState.ok && <div className={styles.error}>{revState.error}</div>) || (backState && !backState.ok && <div className={styles.error}>{backState.error}</div>) || (rejState && !rejState.ok && <div className={styles.error}>{rejState.error}</div>)}
         {item.notes && (
           <div className={styles.reviewNote}>
             <span className="eyebrow">{tr(inReview ? "En revue" : "Dernière note")}</span> {item.notes}
@@ -376,9 +383,26 @@ export function ValidateForm({ item, offer, reference }: { item: IntakeItem; off
           <button className="btn ghost sm" type="submit" formAction={lireSourceAction} formNoValidate>
             {tr(item.readAt ? "Relire la pièce" : "Lire la pièce")}
           </button>
-          <button className="btn ghost sm" type="submit" formAction={rejectAction} formNoValidate>
-            {tr("Rejeter")}
-          </button>
+          {/* REJETER DIT POURQUOI : c'était la seule décision du desk sans
+              motif. La cause est nommée (elle décide de la suite et elle se
+              compte), la précision est libre et obligatoire sous « Autre ». */}
+          <span className={styles.reviewBox}>
+            <select name="rejectReason" aria-label={tr("Cause du rejet")} value={cause} onChange={(e) => setCause(e.target.value)}>
+              <option value="" disabled>
+                {tr("Rejeter parce que…")}
+              </option>
+              {CAUSES.map(([cle, m]) => (
+                <option key={cle} value={cle}>
+                  {tr(m.libelle)}
+                </option>
+              ))}
+            </select>
+            <input name="rejectNote" placeholder={tr("Précision (obligatoire sous « Autre »)")} aria-label={tr("Précision du rejet")} maxLength={300} />
+            <button className="btn ghost sm" type="submit" formAction={rejAct} disabled={rejecting} formNoValidate>
+              {tr(rejecting ? "…" : "Rejeter")}
+            </button>
+            {cause in CAUSES_DE_REJET && <small className={styles.suiteDuRejet}>{tr(CAUSES_DE_REJET[cause as keyof typeof CAUSES_DE_REJET].suite)}</small>}
+          </span>
           {!published && (
             <span className={styles.reviewBox}>
               <input name="reviewNote" placeholder={tr(inReview ? "Ce qui reste à corriger…" : "À vérifier par le relecteur…")} aria-label={tr("Note de revue")} maxLength={300} />

@@ -423,6 +423,14 @@ export interface IntakeItem {
    * se range pas dans une phrase que l'on peut réécrire.
    */
   reviewBy?: string;
+  /**
+   * POURQUOI ELLE A ÉTÉ REJETÉE : la cause nommée, pas la phrase.
+   *
+   * « Rejeter » était la seule décision du desk sans motif. La cause se range
+   * ici (voir lib/desk/rejet), la précision libre va dans « notes », et les
+   * deux se relisent dans le journal.
+   */
+  rejectReason?: string;
 }
 
 /* ---------------- Documents ---------------- */

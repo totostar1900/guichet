@@ -431,6 +431,24 @@
   gap: 6px;
   align-items: center;
 }
+.reviewBox {
+  flex-wrap: wrap;
+}
+.reviewBox select {
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+/* Ce qui suit la cause choisie : une ligne sous le groupe, jamais une bulle. */
+.suiteDuRejet {
+  flex-basis: 100%;
+  color: var(--ink-3);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
 .reviewBox input {
   width: 220px;
   border: 1px solid var(--line-2);
