@@ -115,6 +115,30 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Le carnet, filtré sur les ordres confirmés : un versement programmé par virement attend l'argent du client, et celui dont la provision portait déjà le montant n'apparaît pas ici. Au-delà de cinq jours ouvrés, ce n'est plus un virement en route : appeler le client, ou lui proposer un mandat de prélèvement pour que le mois suivant se règle seul. Un ordre sans suite se clôt avec son motif.",
     docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
   },
+  tenue: {
+    label: "Clients en défaut",
+    href: "/desk/repertoire?cohorte=a_surveiller",
+    how: "Un ordre servi et jamais réglé au-delà de cinq jours ouvrés : la maison a soumissionné au nom du client et porte le papier. Ouvrir sa fiche, lire ses manquements, appeler. Si rien ne vient, la mesure « prépaiement » le met en règle pour la suite sans rien lui retirer : il garde ses titres, son argent et son accès au desk. La tenue ne décide rien : elle met la liste dans l'ordre.",
+    docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
+  },
+  mesures: {
+    label: "Mesures en cours",
+    href: "/desk/repertoire",
+    how: "Une mesure tombe d'elle-même à son terme, pour qu'aucun compte ne reste puni par oubli. L'inverse est l'autre oubli : la laisser tomber sans avoir regardé relâche un client dont rien n'a changé. Sept jours avant, ce point le dit. Ouvrir la fiche du client, lire sa tenue, et décider : reposer une mesure avec un nouveau terme, ou la laisser s'éteindre.",
+    docs: { href: "/desk/docs/relation", label: "La relation client" },
+  },
+  registre: {
+    label: "Registre des gestes",
+    href: "/desk/journal?registre=gestes",
+    how: "Le scripteur avale ses erreurs, et c'est voulu : un journal ne doit jamais casser le geste qu'il note. Le revers est qu'il peut s'arrêter sans un bruit, et ce point est la contrepartie de ce silence. Des ordres arrivent et le registre reste vide : regarder les journaux du serveur, lignes « journal : ». Tant qu'il est tombé, la tenue et l'activité vieillissent sans le dire.",
+    docs: { href: "/desk/docs/technique", label: "Comment c'est construit" },
+  },
+  bareme: {
+    label: "Barème de l'activité",
+    href: "/desk/referentiel/bareme",
+    how: "Un brouillon attend d'être publié. Les scores affichés restent ceux du barème en vigueur, ce qui est juste, mais un brouillon qui dort est une décision que personne n'a prise pendant que le desk croit l'avoir prise. Ouvrir l'écran, lire qui bouge, puis publier ou abandonner. Les cohortes commandent les envois : publier change qui reçoit les annonces de lignes.",
+    docs: { href: "/desk/docs/relation", label: "La relation client" },
+  },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",
     href: "/desk/approbations",

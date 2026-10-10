@@ -12,6 +12,9 @@ import { JOURS_AVANT_RELANCE } from "@/lib/domain/standing";
 import { addBusinessDays } from "@/lib/finance";
 import { ageDeLaRemise, sansNouvelle } from "@/lib/domain/prelevement";
 import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
+import { tenuesDeTous } from "@/lib/desk/tenue-data";
+import { baremeCourant, baremeEnBrouillon } from "@/lib/desk/activite-data";
+import { mesureVivante } from "@/lib/domain/mesure";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
@@ -527,6 +530,82 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     level: duMois.length > 3 ? "warn" : "ok",
     value: `${duMois.length}`,
     detail: duMois.length ? `sur trente jours · le dernier : ${duMois[0].reason ?? duMois[0].action}` : "chaque geste sensible a eu deux personnes, ou n'en avait pas besoin",
+  });
+
+  /* LES CLIENTS EN DÉFAUT.
+     Un ordre servi et jamais réglé est la créance la plus coûteuse de la
+     maison : elle a soumissionné au nom du client et porte le papier. La
+     tenue le sait déjà, mais la tenue se lit client par client, et personne
+     n'ouvre vingt-huit fiches le matin. */
+  const tenues = await tenuesDeTous(now).catch(() => new Map());
+  const enDefaut = [...tenues.entries()].filter(([id, t]) => !demo.has(id) && t.cran === "en_defaut");
+  const nomDe = new Map(contacts.map((c) => [c.id, c.name]));
+  out.push({
+    key: "tenue",
+    label: "Clients en défaut",
+    level: enDefaut.length >= 3 ? "crit" : enDefaut.length ? "warn" : "ok",
+    value: `${enDefaut.length} / ${tenues.size}`,
+    detail: enDefaut.length
+      ? enDefaut
+          .slice(0, 3)
+          .map(([id, t]) => `${nomDe.get(id) ?? id} : ${t.manquements[0]?.objet ?? t.manquements[0]?.phrase ?? ""}`)
+          .join(" · ")
+      : "aucun ordre servi n'attend son règlement au-delà du délai",
+  });
+
+  /* LES MESURES QUI ARRIVENT À LEUR TERME.
+     Une mesure tombe d'elle-même, et c'est voulu : un compte ne reste pas
+     puni par oubli. Mais tomber sans que personne n'ait regardé serait
+     l'autre oubli, celui qui relâche un client dont rien n'a changé. */
+  const sousMesure = contacts.filter((c) => !demo.has(c.id) && mesureVivante(c.mesure, now) !== "aucune");
+  const dans7 = new Date(now.getTime() + 7 * 86_400_000).toISOString().slice(0, 10);
+  const bientot = sousMesure.filter((c) => c.mesure?.jusquAu && c.mesure.jusquAu <= dans7);
+  out.push({
+    key: "mesures",
+    label: "Mesures en cours",
+    level: bientot.length ? "warn" : "ok",
+    value: `${sousMesure.length}`,
+    detail: bientot.length
+      ? `${bientot.length} arrive(nt) à terme sous sept jours : ${bientot.map((c) => `${c.name} le ${c.mesure!.jusquAu}`).join(" · ")}`
+      : sousMesure.length
+        ? "aucune n'arrive à terme cette semaine"
+        : "aucun compte sous mesure",
+  });
+
+  /* LE REGISTRE DES GESTES ÉCRIT-IL ENCORE ?
+     « noter » avale ses erreurs, et c'est voulu : un journal ne doit pas
+     casser le geste qu'il note. Le revers est qu'il peut s'arrêter sans un
+     bruit. Ce point est la contrepartie de ce silence : des clients qui
+     agissent et un registre vide, c'est que le scripteur est tombé. */
+  const gestes = await r.listClientActions({ limit: 1 }).catch(() => []);
+  const dernierGeste = gestes[0]?.at;
+  const ordresRecents = tousLesOrdres.filter((i) => i.createdAt >= new Date(now.getTime() - 7 * 86_400_000).toISOString()).length;
+  const registreMuet = ordresRecents > 0 && (!dernierGeste || dernierGeste < new Date(now.getTime() - 7 * 86_400_000).toISOString());
+  out.push({
+    key: "registre",
+    label: "Registre des gestes",
+    level: registreMuet ? "crit" : "ok",
+    value: dernierGeste ? `dernier le ${dernierGeste.slice(0, 10)}` : "vide",
+    detail: registreMuet
+      ? `${ordresRecents} ordre(s) reçus cette semaine et rien au registre : le scripteur est tombé`
+      : dernierGeste
+        ? "il écrit"
+        : "rien n'a encore été noté, et aucun ordre n'est arrivé",
+  });
+
+  /* UN BARÈME LAISSÉ EN BROUILLON.
+     Les scores continuent sur l'ancien, ce qui est juste ; mais un brouillon
+     qui dort un mois est une décision que personne n'a prise, et le desk
+     croit l'avoir prise. */
+  const brouillon = await baremeEnBrouillon().catch(() => undefined);
+  out.push({
+    key: "bareme",
+    label: "Barème de l'activité",
+    level: brouillon ? "warn" : "ok",
+    value: brouillon ? "brouillon en attente" : `v${(await baremeCourant().catch(() => ({ version: 1 }))).version}`,
+    detail: brouillon
+      ? "un barème attend d'être publié : les scores affichés sont encore ceux de la version en vigueur"
+      : "publié, et c'est lui que tous les scores citent",
   });
 
   return out;
