@@ -634,6 +634,26 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
         : "aucun dossier en cours n'accroche",
   });
 
+  /* UN ACCÈS ORPHELIN : QUELQU'UN QUI PEUT SE CONNECTER SANS ÊTRE DÉCLARÉ.
+     Retirer un signataire ferme son accès dans le même geste, donc ce point
+     devrait toujours valoir zéro. C'est précisément pour cela qu'il existe :
+     il ne surveille pas le cas ordinaire, il surveille que la règle tient.
+     Un accès qui survit à sa personne est un ancien administrateur qui passe
+     encore des ordres, et rien d'autre ne le dirait. */
+  const orphelins: string[] = [];
+  for (const f of dossiers.filter((x) => x.kind !== "physique")) {
+    const acces = await r.listAccesDuCompte(f.userId).catch(() => []);
+    const declares = new Set(f.persons.map((p) => p.name));
+    for (const a of acces) if (!a.revoqueLe && !declares.has(a.nom)) orphelins.push(`${a.nom} sur ${f.identity.name}`);
+  }
+  out.push({
+    key: "acces-orphelins",
+    label: "Accès sans personne déclarée",
+    level: orphelins.length ? "crit" : "ok",
+    value: `${orphelins.length}`,
+    detail: orphelins.length ? `${orphelins.join(" · ")} : se connecte(nt) encore sur un compte dont le dossier ne le(s) connaît plus` : "chaque accès vivant a sa personne au dossier",
+  });
+
   return out;
 }
 

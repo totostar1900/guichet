@@ -178,6 +178,22 @@ export const RELATION: DocPage = {
         },
         {
           type: "note",
+          kind: "warn",
+          text: l(
+            "QUI ÉCRIT LA LISTE DES PERSONNES COMMANDE QUI PEUT RECEVOIR UN ACCÈS, et c est pour cela que l ajout d un signataire est le geste le plus contrôlé du lot. Le client déclare ses personnes à l ouverture et n y touche plus après l approbation ; le desk le peut, parce qu un conseil change et qu un dossier ne doit pas geler avec lui, mais il lui faut une seconde personne et l acte qui désigne le nouveau venu. Un signataire ne s ajoute pas sur un appel téléphonique.",
+            "WHOEVER WRITES THE LIST OF PERSONS COMMANDS WHO MAY RECEIVE AN ACCESS, which is why adding a signatory is the most controlled move of the lot. The client declares their persons at opening and no longer touches them after approval; the desk may, because a board changes and a file must not freeze with it, but it needs a second person and the deed that appoints the newcomer. A signatory is not added on a phone call.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "RETIRER QUELQU UN FERME SON ACCÈS DANS LE MÊME GESTE, et c est tout le point. Les deux séparés laisseraient un ancien administrateur se connecter et passer des ordres sur un compte dont il ne répond plus : on ne peut pas compter sur le souvenir de faire le second. Un point de Santé compte les accès dont la personne n est plus déclarée ; il devrait toujours valoir zéro, et c est précisément pour cela qu il existe.",
+            "REMOVING SOMEONE CLOSES THEIR ACCESS IN THE SAME MOVE, and that is the whole point. The two apart would let a former director sign in and place orders on an account they no longer answer for: one cannot rely on remembering to do the second. A health point counts accesses whose person is no longer declared; it should always read zero, and that is precisely why it exists.",
+          ),
+        },
+        {
+          type: "note",
           kind: "info",
           text: l(
             "LE SECOND REGARD EST PLACÉ LÀ OÙ LA PLACE LE MET, et pas sur les ordres. Interactive Brokers n'impose pas deux personnes sur une transaction : il les impose sur l'ajout d'un utilisateur et sur le changement de ses droits. La raison est bonne, et nous la reprenons : un ordre est borné par un plafond, réversible et tracé ; donner à quelqu'un la main sur un compte ne l'est pas. Un ordre à deux signatures paralyserait le compte sans fermer le vrai risque.",

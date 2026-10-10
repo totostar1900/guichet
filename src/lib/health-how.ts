@@ -145,6 +145,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Un dossier en cours accroche une inscription du registre. Ouvrir le dossier : le bandeau au-dessus de la décision nomme la personne, ce sur quoi elle a accroché et ce que la maison avait écrit ce jour-là. Une correspondance de pièce est presque sûrement la même personne ; une ressemblance de nom et de date de naissance peut être un homonyme. Le registre ne refuse pas : il faut écrire dans « Notes internes » ce qui écarte la correspondance avant de pouvoir approuver, et cette phrase reste avec la décision. Un brouillon au registre n'écarte encore personne : il attend sa publication.",
     docs: { href: "/desk/docs/clientele#registre-ecartes", label: "Le registre des personnes écartées" },
   },
+  "acces-orphelins": {
+    label: "Accès sans personne déclarée",
+    href: "/desk/clients",
+    how: "Quelqu'un peut se connecter sur un compte dont le dossier ne le connaît plus : un ancien administrateur qui passe encore des ordres. Ce point devrait toujours valoir zéro, puisque retirer un signataire ferme son accès dans le même geste ; s'il monte, c'est que la règle a été contournée, ou qu'une reprise de données a laissé un accès derrière elle. Ouvrir le dossier du compte, fermer l'accès, puis chercher dans l'audit comment il a survécu.",
+    docs: { href: "/desk/docs/relation#donneur-d-ordres", label: "Un seul donneur d'ordres, et les comptes à plusieurs mains" },
+  },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",
     href: "/desk/approbations",

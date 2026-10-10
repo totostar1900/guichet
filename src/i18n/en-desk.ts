@@ -3273,4 +3273,19 @@ export const EN_MORE: Record<string, string> = {
   "Plafond propre": "Own cap",
   "celui du compte": "the account's",
   "aucun": "none",
+
+  /* Les personnes déclarées d'un dossier approuvé, et le point de Santé qui
+     veille à ce qu'aucun accès ne leur survive. */
+  "Les personnes déclarées": "The declared persons",
+  "Qui écrit cette liste commande qui peut recevoir un accès : l'ajout demande une seconde personne et s'appuie sur un acte. Retirer quelqu'un ferme son accès dans le même geste, pour qu'un ancien administrateur ne reste pas connectable.":
+    "Whoever writes this list commands who may receive an access: adding requires a second person and rests on a deed. Removing someone closes their access in the same move, so that a former director does not stay able to sign in.",
+  "a un accès": "has an access",
+  "a quitté le conseil le 3 octobre": "left the board on 3 October",
+  "N° de pièce": "Document no.",
+  "L'acte qui le désigne": "The deed that appoints them",
+  "PV du conseil du 3 octobre 2026": "Board minutes of 3 October 2026",
+  "Accès sans personne déclarée": "Access with no declared person",
+  "Quelqu'un peut se connecter sur un compte dont le dossier ne le connaît plus : un ancien administrateur qui passe encore des ordres. Ce point devrait toujours valoir zéro, puisque retirer un signataire ferme son accès dans le même geste ; s'il monte, c'est que la règle a été contournée, ou qu'une reprise de données a laissé un accès derrière elle. Ouvrir le dossier du compte, fermer l'accès, puis chercher dans l'audit comment il a survécu.":
+    "Someone can sign in on an account whose file no longer knows them: a former director still placing orders. This point should always read zero, since removing a signatory closes their access in the same move; if it rises, the rule was bypassed, or a data migration left an access behind. Open the account's file, close the access, then look in the audit for how it survived.",
+  "Un seul donneur d'ordres, et les comptes à plusieurs mains": "A single order-giver, and accounts with several hands",
 };

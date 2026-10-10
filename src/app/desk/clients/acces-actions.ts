@@ -6,6 +6,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { direLeGestePasseSeul, quatreYeux } from "@/lib/desk/quatre-yeux";
 import { clefDeCanal, peutRecevoirUnAcces, refusDAcces, ROLE_ACCES_LABEL, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
+import type { KycPerson } from "@/lib/domain/kyc";
 
 export type AccesResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -61,6 +62,90 @@ export async function accorderAccesAction(_p: AccesResult | null, form: FormData
   await r.logEvent({ kind: "desk", html: `<b>Accès nommé</b> accordé à ${nom} (${ROLE_ACCES_LABEL[personne.role as RoleQuiAgit].toLowerCase()}) sur le compte de ${f.identity.name} · ${clef} · par ${me.name}` });
   revalidatePath("/desk/clients");
   return { ok: true, message: `${nom} se connectera avec ${clef}. Son premier code reçu là liera son accès, et chaque geste portera son nom.` };
+}
+
+/**
+ * AJOUTER UN SIGNATAIRE SUR UN DOSSIER APPROUVÉ.
+ *
+ * Le client déclare ses personnes à l'ouverture et ne peut plus y toucher
+ * une fois le dossier approuvé : cette porte-là est fermée depuis
+ * toujours. Mais elle était fermée des DEUX côtés, et un conseil
+ * d'administration change. Une société dont le directeur général part se
+ * retrouvait avec un dossier gelé et personne pour agir.
+ *
+ * C'EST LE GESTE QUI MÉRITE LE PLUS LE SECOND REGARD de tout ce lot. Donner
+ * un accès à quelqu'un que le dossier déclare déjà est contrôlé ; mais qui
+ * peut écrire la liste des personnes déclarées commande cette liste. Sans
+ * deux regards ici, le contrôle de l'accès se contourne en une ligne.
+ *
+ * ET IL S'APPUIE SUR UN ACTE. Un signataire s'ajoute sur la foi d'un PV ou
+ * d'une décision du conseil, pas d'un appel téléphonique : la référence de
+ * l'acte est obligatoire, et elle reste avec la décision.
+ */
+export async function ajouterSignataireAction(_p: AccesResult | null, form: FormData): Promise<AccesResult> {
+  const me = await requireDesk("/desk/clients");
+  const fileId = String(form.get("fileId") ?? "");
+  const nom = String(form.get("nom") ?? "").trim();
+  const role = String(form.get("role") ?? "");
+  const naissance = String(form.get("birthDate") ?? "").trim();
+  const piece = String(form.get("idNumber") ?? "").trim() || undefined;
+  const acte = String(form.get("acte") ?? "").trim();
+
+  const r = repo();
+  const f = await r.getClientFile(fileId);
+  if (!f) return { ok: false, error: "Dossier introuvable." };
+  if (f.kind === "physique") return { ok: false, error: "Un compte de personne physique n'a qu'un donneur d'ordres : son titulaire." };
+  if (f.status !== "approuve") return { ok: false, error: "Tant que le dossier n'est pas approuvé, c'est le client qui déclare ses personnes depuis son espace." };
+  if (nom.length < 3) return { ok: false, error: "Indiquez le nom tel qu'il figure sur la pièce." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(naissance)) return { ok: false, error: "La date de naissance est obligatoire : c'est elle qui distingue la personne d'un homonyme au contrôle sanctions et au registre." };
+  if (role !== "representant" && role !== "cotitulaire" && role !== "beneficiaire_effectif") return { ok: false, error: "Rôle inconnu." };
+  if (acte.length < 4) return { ok: false, error: "Citez l'acte qui le désigne : un PV, une décision du conseil, une assemblée. Un signataire ne s'ajoute pas sur un appel téléphonique." };
+  if (f.persons.some((p) => p.name === nom)) return { ok: false, error: "Cette personne est déjà déclarée au dossier." };
+
+  const quoi = `Signataire ${nom} ajouté au dossier de ${f.identity.name}`;
+  const verdict = await quatreYeux(me, quoi);
+  if (verdict.quoi === "attend") return { ok: false, error: "Qui écrit la liste des personnes commande qui peut recevoir un accès : un second responsable doit confirmer. C'est proposé." };
+  if (verdict.quoi === "seul") await direLeGestePasseSeul(me, "Signataire ajouté à un dossier approuvé", f.id, verdict.raison ?? "", verdict.motif ?? "");
+
+  const persons = [...f.persons, { role: role as KycPerson["role"], name: nom, birthDate: naissance, idNumber: piece }];
+  await r.updateClientFile(f.id, { persons });
+  await audit("signataire.ajouter", "client_file", f.id, { after: { nom, role, naissance, piece }, reason: acte });
+  await r.logEvent({ kind: "desk", html: `<b>Signataire ajouté</b> au dossier de ${f.identity.name} : ${nom} · ${acte} · par ${me.name}` });
+  revalidatePath("/desk/clients");
+  return { ok: true, message: `${nom} est déclaré. Il lui reste à recevoir un accès pour agir, et le contrôle sanctions est à refaire avec son nom.` };
+}
+
+/**
+ * RETIRER UN SIGNATAIRE, ET SON ACCÈS AVEC LUI.
+ *
+ * C'EST LE POINT DE CE GESTE. Retirer quelqu'un du dossier sans fermer son
+ * accès laisserait un ancien administrateur se connecter et passer des
+ * ordres sur un compte dont il ne répond plus. Les deux vont ensemble, dans
+ * la même transaction de pensée : on ne peut pas se souvenir de faire le
+ * second.
+ *
+ * Comme toute restriction, il se fait d'une main.
+ */
+export async function retirerSignataireAction(_p: AccesResult | null, form: FormData): Promise<AccesResult> {
+  const me = await requireDesk("/desk/clients");
+  const fileId = String(form.get("fileId") ?? "");
+  const nom = String(form.get("nom") ?? "").trim();
+  const motif = String(form.get("motif") ?? "").trim();
+  const r = repo();
+  const f = await r.getClientFile(fileId);
+  if (!f) return { ok: false, error: "Dossier introuvable." };
+  if (f.status !== "approuve") return { ok: false, error: "Tant que le dossier n'est pas approuvé, c'est le client qui tient sa liste." };
+  if (!f.persons.some((p) => p.name === nom)) return { ok: false, error: "Cette personne n'est pas déclarée au dossier." };
+  if (motif.length < 4) return { ok: false, error: "Dites pourquoi : c'est ce que lira la personne suivante, et un départ se justifie." };
+
+  const vivants = (await r.listAccesDuCompte(f.userId)).filter((a) => a.nom === nom && !a.revoqueLe);
+  for (const a of vivants) await r.revoquerAcces(a.id, me.name, `Retiré du dossier : ${motif}`);
+
+  await r.updateClientFile(f.id, { persons: f.persons.filter((p) => p.name !== nom) });
+  await audit("signataire.retirer", "client_file", f.id, { before: { nom, acces: vivants.length }, reason: motif });
+  await r.logEvent({ kind: "desk", html: `<b>Signataire retiré</b> du dossier de ${f.identity.name} : ${nom}${vivants.length ? ` · ${vivants.length} accès fermé(s) avec lui` : ""} · ${motif} · par ${me.name}` });
+  revalidatePath("/desk/clients");
+  return { ok: true, message: vivants.length ? `${nom} est retiré, et son accès est fermé dans le même geste. Ce qu'il a fait reste à son nom.` : `${nom} est retiré. Il n'avait pas d'accès.` };
 }
 
 /**

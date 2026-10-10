@@ -12,6 +12,7 @@ import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LAB
 import { ReviewForm } from "./ReviewForm";
 import { RegistreBand } from "@/components/desk/RegistreBand";
 import { AccesNommes } from "./AccesNommes";
+import { Signataires } from "./Signataires";
 import { peutRecevoirUnAcces, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
 import { correspondancesDuDossier } from "@/lib/desk/registre-data";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
@@ -40,6 +41,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const docs = await r.listDocuments();
   const todo = files.filter((f) => f.status === "soumis" || f.status === "en_revue").length;
   const selected = files.find((f) => f.id === sp.file) ?? files.find((f) => f.status === "soumis" || f.status === "en_revue") ?? files[0];
+  /* Les accès du compte, lus UNE fois : la liste des signataires et le
+     tableau des accès les regardent tous les deux, et deux lectures
+     donneraient deux vérités à une seconde d intervalle. */
+  const accesDuCompte = selected && selected.kind !== "physique" ? await repo().listAccesDuCompte(selected.userId).catch(() => []) : [];
 
   // La colonne porte tout le monde : c'est « ouvre-moi untel » qu'on lui
   // demande le plus souvent, pas « qu'est-ce qui attend ». Une rangée tient en
@@ -183,11 +188,17 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     PLUSIEURS MAINS. L'écran ne paraît que là : proposer de
                     nommer d'autres accès sur le compte d'un particulier
                     rouvrirait la procuration par la porte de service. */}
+                {selected.kind !== "physique" && selected.status === "approuve" && (
+                  <Signataires
+                    fileId={selected.id}
+                    personnes={selected.persons.map((p) => ({ nom: p.name, role: ROLE[p.role] ?? p.role, aUnAcces: accesDuCompte.some((a) => a.nom === p.name && !a.revoqueLe) }))}
+                  />
+                )}
                 {selected.kind !== "physique" && (
                   <AccesNommes
                     fileId={selected.id}
                     candidats={selected.persons.filter((p) => peutRecevoirUnAcces(p.role)).map((p) => ({ nom: p.name, role: p.role as RoleQuiAgit }))}
-                    acces={await repo().listAccesDuCompte(selected.userId).catch(() => [])}
+                    acces={accesDuCompte}
                     plafondDuCompte={selected.identity.plafondParOrdre}
                   />
                 )}
