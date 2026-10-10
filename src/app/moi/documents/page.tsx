@@ -27,7 +27,7 @@ export async function generateMetadata() {
    ce que vous avez signé, ce qu'une opération a produit, un mouvement
    d'argent, une démarche. Un bulletin est un engagement avant d'être la pièce
    d'une opération : il monte donc au premier rayon, en nommant sa ligne. */
-const SIGNES: DocumentType[] = ["convention", "mandat", "prelevement", "bulletin", "cession"];
+const SIGNES: DocumentType[] = ["convention", "prelevement", "bulletin", "cession"];
 /* Les papiers de l argent : ceux qui s éditent, et les trois avis qui sont
    l avis d un mouvement (versement, garde, prélèvement). Ils sont nommés ici
    pour ne pas tomber dans le rayon des opérations, auxquelles ils

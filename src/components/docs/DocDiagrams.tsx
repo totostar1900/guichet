@@ -199,7 +199,7 @@ function CarteDocuments({ lang }: { lang: Lang }) {
           ),
         ];
       })}
-      {label(380, 262, T(lang, "* nouveau depuis le 21 septembre 2026 : mandat, avis de coupon / remboursement, réclamation, ordre de transfert / clôture.", "* new since 21 September 2026: mandate, coupon / redemption notice, complaint, transfer / closure order."), "f", { size: 9.5, weight: 500, fill: "var(--ink-3)" })}
+      {label(380, 262, T(lang, "* nouveau depuis le 21 septembre 2026 : avis de coupon / remboursement, réclamation, ordre de transfert / clôture.", "* new since 21 September 2026: mandate, coupon / redemption notice, complaint, transfer / closure order."), "f", { size: 9.5, weight: 500, fill: "var(--ink-3)" })}
     </svg>
   );
 }

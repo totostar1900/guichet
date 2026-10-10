@@ -390,7 +390,6 @@ export const EN_TEMPLATES: Record<string, string> = {
   "numéro de pièce d'identité": "identity document number",
   "RCCM / immatriculation": "RCCM / registration",
   "forme du groupement": "form of the group",
-  "au moins un représentant ou mandataire": "at least one representative or proxy",
   "Pièce d'identité : recto": "Identity document : front",
   "Pièce d'identité : verso": "Identity document : back",
   "Selfie (vérification du visage)": "Selfie (face check)",

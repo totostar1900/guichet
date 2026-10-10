@@ -210,19 +210,11 @@ export async function generateStatement(type: "releve" | "attestation", clientId
   return store({ type, number, registerNo, title: `${DOC_LABEL[type]} : ${contact.name} · ${now.toISOString().slice(0, 10)}`, clientName: contact.name, clientId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 
-/* ---------------- Actes et avis : mandat, coupon, réclamation, transfert ---------------- */
-import type { Closure, Mandate } from "@/lib/domain/kyc";
+/* ---------------- Actes et avis : coupon, réclamation, transfert ---------------- */
+import type { Closure } from "@/lib/domain/kyc";
 import type { Contact } from "@/lib/domain/types";
 import { addBusinessDays } from "@/lib/finance";
-import { AvisCouponPdf, MandatPdf, ReclamationPdf, TransfertPdf, type ComplaintCtx } from "./pdf/acts-templates";
-
-export async function generateMandate(file: ClientFile, mandate: Mandate, advisor?: string): Promise<GeneratedDocument> {
-  const now = new Date();
-  const { number, registerNo } = await nextNumbers("mandat", now);
-  const wording = await resolvePassages("mandat");
-  const pdf = await renderToBuffer(el(createElement(MandatPdf, { number, file, mandate, now, texts: wording.text })));
-  return store({ type: "mandat", number, registerNo, title: `${DOC_LABEL.mandat} : ${file.identity.name} → ${mandate.personName}`, clientName: file.identity.name, clientFileId: file.id, clientId: file.userId, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
-}
+import { AvisCouponPdf, ReclamationPdf, TransfertPdf, type ComplaintCtx } from "./pdf/acts-templates";
 
 /** The positions of a client, for the acts that list them. */
 export async function clientPositions(clientId: string) {
@@ -462,10 +454,9 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
     return renderToBuffer(el(createElement(DossierOuverture, { number, file, now, texts })));
   }
   if (type === "convention") return renderToBuffer(el(createElement(Convention, { number, now, texts })));
-  if (type === "mandat" || type === "coupon" || type === "reclamation" || type === "transfert") {
+  if (type === "coupon" || type === "reclamation" || type === "transfert") {
     const contact: Contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
     const file: ClientFile = { id: "apercu", userId: "apercu", kind: "physique", status: "approuve", identity: { name: contact.name, phone: contact.phone, email: contact.email, city: "Yaoundé", country: "Cameroun" }, persons: [], documents: [], funds: { pep: false, bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47" }, profile: { category: "non_professionnel" }, consents: {}, review: { custodianAccount: "0000-DEMO" }, createdAt: now.toISOString(), updatedAt: now.toISOString() };
-    if (type === "mandat") return renderToBuffer(el(createElement(MandatPdf, { number, file, mandate: { id: "apercu", personName: "Mandataire de démonstration", idNumber: "passeport 00AA 0000", relation: "frère", scope: { orders: true, notices: true, fundsOnly: false }, until: `${now.getFullYear() + 1}-12-31`, status: "prepare", createdAt: now.toISOString() }, now, texts })));
     if (type === "reclamation") return renderToBuffer(el(createElement(ReclamationPdf, { number, contact, operation: "PF-0000-000 · ligne de démonstration · 500 titres", facts: "Le coupon annoncé a été crédité treize jours après la date du relevé, sans avis.", ask: "Une explication du délai et la confirmation de la date du prochain coupon.", receivedVia: "Mon espace", signedBy: "code de signature sur WhatsApp", ackBy: now.toISOString().slice(0, 10), answerBy: now.toISOString().slice(0, 10), now, texts })));
     const offers = await repo().listOffers();
     const offer = offers.find((o) => (o.kind === "OTA" || o.kind === "APE") && !o.hidden) ?? offers[0];
@@ -539,7 +530,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
 
 /** The text of a passage as a document would print it, on the demonstration values (for the registry's list). */
 export function previewLine(type: DocumentType, key: string, text: string): string {
-  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom.", mandant: "Client de démonstration", mandataire: "Mandataire de démonstration", etendue: "passer des ordres sur tous instruments · recevoir les avis", fin: "31 déc. 2027", banque: "Banque de démonstration", rib: "0047", prochain: "coupon du 31 déc. 2026 (272 500 FCFA)", etablissement: "Société de bourse de démonstration · compte 0000-XX", delai_accuse: "deux jours ouvrés", delai_reponse: "trente jours", canal: "WhatsApp" };
+  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom.", banque: "Banque de démonstration", rib: "0047", prochain: "coupon du 31 déc. 2026 (272 500 FCFA)", etablissement: "Société de bourse de démonstration · compte 0000-XX", delai_accuse: "deux jours ouvrés", delai_reponse: "trente jours", canal: "WhatsApp" };
   void type;
   void key;
   return fill(text, vars);

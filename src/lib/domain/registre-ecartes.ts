@@ -109,8 +109,9 @@ const clefDeType = (type: string | undefined): string | undefined => (type ?? ""
  * ne se contredisent pas. Le type compte, parce que deux pays numérotent
  * leurs cartes de la même façon sans parler des mêmes gens. Mais un dossier
  * ne le donne pas toujours : il le porte pour le titulaire et pas pour un
- * mandataire. Exiger le type alors ferait un registre qui n'attrape jamais
- * l'homme qui revient comme mandataire, c'est à dire le cas même qu'on vise.
+ * représentant légal. Exiger le type alors ferait un registre qui n'attrape
+ * jamais celui qui revient en signant pour une société, c'est à dire le cas
+ * même qu'on vise.
  * Alors un type manquant ne contredit rien, et le numéro suffit.
  */
 export function memePiece(a: { pieceType?: string; pieceNumero?: string }, b: { pieceType?: string; pieceNumero?: string }): boolean {
@@ -133,7 +134,7 @@ export const clefDeNom = (nom: string | undefined): string =>
 
 /** Une personne telle qu'un dossier la présente : le titulaire, ou l'un de ceux qui agissent pour lui. */
 export interface PersonneDuDossier {
-  /** « le titulaire », « représentant », « mandataire », « bénéficiaire effectif ». */
+  /** « le titulaire », « représentant », « cotitulaire », « bénéficiaire effectif ». */
   role: string;
   nom: string;
   naissance?: string;

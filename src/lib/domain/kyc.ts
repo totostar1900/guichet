@@ -3,22 +3,23 @@
 export type ClientKind = "physique" | "morale" | "groupement" | "institutionnel";
 export type KycStatus = "brouillon" | "soumis" | "en_revue" | "complements" | "approuve" | "refuse" | "en_cloture" | "clos";
 
-/** A power given to a third party to pass orders: prepared by the desk, signed by the client and the mandatary. */
-export interface Mandate {
-  id: string;
-  personName: string;
-  idNumber?: string;
-  relation?: string;
-  scope: { orders: boolean; notices: boolean; fundsOnly: boolean };
-  until?: string; // YYYY-MM-DD
-  docId?: string;
-  docNumber?: string;
-  status: "prepare" | "signe" | "revoque";
-  createdAt: string;
-  createdBy?: string;
-  signedAt?: string;
-  revokedAt?: string;
-}
+/*
+ * LA PROCURATION N'EXISTE PLUS, ET C'EST UNE DÉCISION DE LA MAISON.
+ *
+ * Il y avait ici une `Mandate` : un pouvoir donné à un tiers de transmettre
+ * des ordres au nom du client, préparé par le desk, signé des deux. Retirée
+ * le 10 octobre 2026, parce que la règle de la maison est que le client est
+ * SEUL à passer ses transactions.
+ *
+ * Elle ne s'exerçait de toute façon jamais à l'écran : aucun mandataire n'a
+ * jamais pu se connecter, l'acte était de papier et l'ordre aurait transité
+ * par une personne du desk. Un acte réglementaire que le produit n'honore
+ * pas est une promesse qu'il ne tiendra pas le jour où on l'invoque.
+ *
+ * À ne pas confondre avec le mandat de PRÉLÈVEMENT (src/lib/domain/mandat.ts),
+ * qui reste : celui-là autorise la maison à tirer sur le compte en banque du
+ * client, il ne donne de pouvoir à personne sur ses titres.
+ */
 
 /** The end of the relationship: a transfer of positions and / or the closure of the account. */
 export interface Closure {
@@ -72,8 +73,20 @@ export interface KycDocument {
   verified?: boolean;
 }
 
+/**
+ * Les personnes d'un dossier, et ce que chacune peut.
+ *
+ * `representant` : le signataire légal d'une société ou d'une association,
+ * qui agit POUR le titulaire parce que le titulaire est une personne morale.
+ * `cotitulaire` : les deux ou trois désignés d'un groupement, qui sont le
+ * titulaire lui-même, en indivision. `beneficiaire_effectif` : celui qui
+ * détient plus de 25 %, et qui ne passe aucun ordre à ce titre.
+ *
+ * Aucune des trois n'est un tiers à qui le client aurait donné pouvoir : ce
+ * rôle-là, le mandataire, a été retiré le 10 octobre 2026 (voir plus haut).
+ */
 export interface KycPerson {
-  role: "representant" | "mandataire" | "beneficiaire_effectif";
+  role: "representant" | "cotitulaire" | "beneficiaire_effectif";
   name: string;
   idNumber?: string;
   share?: number; // % for beneficial owners
@@ -140,8 +153,8 @@ export interface ClientFile {
   };
   review: { risk?: RiskRating; notes?: string; reviewedBy?: string; reviewedAt?: string; nextReviewOn?: string; custodianAccount?: string; requestedItems?: string };
   /** Sanctions / PEP screening: the officer's attestation (mandatory) and the last automatic pre-check (optional). */
-  /** Acts on the file: mandates given, the closure in progress. */
-  acts?: { mandates?: Mandate[]; closure?: Closure };
+  /** Acts on the file: the closure in progress. */
+  acts?: { closure?: Closure };
   screening?: {
     attestedBy?: string;
     attestedAt?: string;

@@ -1,19 +1,17 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import type { Closure, Mandate } from "@/lib/domain/kyc";
-import { clientPositions, generateComplaint, generateCouponNotice, generateMandate, generateStatement, generateTransferOrder } from "@/lib/documents/generate";
+import type { Closure } from "@/lib/domain/kyc";
+import { clientPositions, generateComplaint, generateCouponNotice, generateStatement, generateTransferOrder } from "@/lib/documents/generate";
 import { notifyClientDocument } from "@/lib/notify/dispatch";
 import { positionsFrom } from "@/lib/positions";
 import { fmtDate } from "@/lib/format";
 
 /**
- * The acts and notices of a client file: the mandate given to a third party,
- * the coupon or redemption notices, the transfer / closure order, a
+ * The acts and notices of a client file: the coupon or redemption notices, the transfer / closure order, a
  * complaint the desk received. Each produces a numbered document, sends it
  * on the client's proven channel when there is one, and writes the journal.
  */
@@ -34,53 +32,15 @@ export async function preferredChannel(userId: string): Promise<"whatsapp" | "em
 
 const channelWord = (c: "whatsapp" | "email") => (c === "whatsapp" ? "WhatsApp" : "e-mail");
 
-/** Prepares the mandate for one declared mandatary (or a new one): the PDF goes to the client, who has it signed by both. */
-export async function mandateAction(_p: ActResult | null, form: FormData): Promise<ActResult> {
-  const desk = await requireDesk("/desk/clients");
-  const r = repo();
-  const f = await r.getClientFile(String(form.get("fileId") ?? ""));
-  if (!f) return { ok: false, error: "Dossier introuvable." };
-  if (f.status !== "approuve") return { ok: false, error: "Le mandat se donne sur un compte approuvé." };
-  const personName = String(form.get("personName") ?? "").trim();
-  if (personName.length < 3) return { ok: false, error: "Indiquez le nom du mandataire." };
-  const idNumber = String(form.get("idNumber") ?? "").trim() || undefined;
-  const relation = String(form.get("relation") ?? "").trim() || undefined;
-  const until = String(form.get("until") ?? "").trim();
-  if (until && !/^\d{4}-\d{2}-\d{2}$/.test(until)) return { ok: false, error: "Date de fin invalide." };
-  const scope = { orders: form.get("orders") === "on", notices: form.get("notices") === "on", fundsOnly: form.get("fundsOnly") === "on" };
-  if (!scope.orders && !scope.notices) return { ok: false, error: "Cochez au moins une étendue : passer des ordres, ou recevoir les avis." };
-  const mandate: Mandate = { id: randomUUID(), personName, idNumber, relation, scope, until: until || undefined, status: "prepare", createdAt: new Date().toISOString(), createdBy: desk.name };
-  const doc = await generateMandate(f, mandate, desk.name);
-  mandate.docId = doc.id;
-  mandate.docNumber = doc.number;
-  const persons = f.persons.some((p) => p.role === "mandataire" && p.name === personName) ? f.persons : [...f.persons, { role: "mandataire" as const, name: personName, idNumber }];
-  await r.updateClientFile(f.id, { persons, acts: { ...f.acts, mandates: [...(f.acts?.mandates ?? []), mandate] } });
-  await audit("client.mandate", "client_file", f.id, { after: mandate });
-  const contact = await r.getContact(f.userId);
-  const channel = await preferredChannel(f.userId);
-  if (contact && channel) await notifyClientDocument(doc, contact, channel);
-  await r.logEvent({ kind: "desk", html: `<b>Mandat</b> ${doc.number} préparé : ${f.identity.name} → ${personName} · ${channel ? `envoyé par ${channelWord(channel)}` : "gardé au dossier"} · par ${desk.name}` });
-  revalidatePath("/desk/clients");
-  return { ok: true, message: `Mandat ${doc.number} préparé${channel ? ` et envoyé par ${channelWord(channel)}` : ", gardé au dossier (aucun canal prouvé)"} : marquez « signé » à réception des deux signatures.`, docId: doc.id };
-}
-
-/** Marks the mandate signed (both signatures received) or revoked. */
-export async function mandateStatusAction(_p: ActResult | null, form: FormData): Promise<ActResult> {
-  const desk = await requireDesk("/desk/clients");
-  const r = repo();
-  const f = await r.getClientFile(String(form.get("fileId") ?? ""));
-  const id = String(form.get("mandateId") ?? "");
-  const status = String(form.get("status") ?? "");
-  if (!f || !f.acts?.mandates?.some((m) => m.id === id) || (status !== "signe" && status !== "revoque")) return { ok: false, error: "Mandat introuvable." };
-  const now = new Date().toISOString();
-  const mandates = f.acts.mandates.map((m) => (m.id === id ? { ...m, status: status as Mandate["status"], ...(status === "signe" ? { signedAt: now } : { revokedAt: now }) } : m));
-  await r.updateClientFile(f.id, { acts: { ...f.acts, mandates } });
-  const m = mandates.find((x) => x.id === id)!;
-  if (m.docId && status === "signe") await r.updateDocument(m.docId, { status: "signe", signedAt: now });
-  await r.logEvent({ kind: "desk", html: `<b>Mandat</b> ${m.docNumber ?? ""} ${status === "signe" ? "signé par les deux parties" : "révoqué"} : ${f.identity.name} → ${m.personName} · par ${desk.name}` });
-  revalidatePath("/desk/clients");
-  return { ok: true, message: status === "signe" ? `Mandat signé : ${m.personName} peut passer des ordres pour ${f.identity.name}.` : "Mandat révoqué." };
-}
+/*
+ * LA PROCURATION A ÉTÉ RETIRÉE LE 10 OCTOBRE 2026.
+ *
+ * Il y avait ici deux gestes : préparer un mandat donnant à un tiers le
+ * pouvoir de transmettre des ordres au nom du client, et marquer ce mandat
+ * signé ou révoqué. La règle de la maison est que le client est SEUL à
+ * passer ses transactions, et un acte réglementaire que le produit n'honore
+ * pas est une promesse qu'il ne tiendra pas le jour où on l'invoque.
+ */
 
 /** One coupon / redemption notice for one flow, against a recorded settlement date; sent on the client's channel. */
 export async function couponNoticeAction(_p: ActResult | null, form: FormData): Promise<ActResult> {

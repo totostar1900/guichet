@@ -27,7 +27,7 @@ import { removeClientDeviceAction, setAdvisorAction } from "./actions";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dossiers" };
 
-const ROLE = { representant: "Représentant", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
+const ROLE = { representant: "Représentant", cotitulaire: "Cotitulaire", beneficiaire_effectif: "Bénéficiaire effectif" };
 const ORDER: Record<ClientFile["status"], number> = { soumis: 0, en_revue: 1, complements: 2, brouillon: 3, approuve: 4, en_cloture: 5, refuse: 6, clos: 7 };
 
 export default async function ClientsPage({ searchParams }: { searchParams: Promise<{ file?: string; q?: string }> }) {
@@ -368,7 +368,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               <RegistreBand hits={await correspondancesDuDossier(selected)} t={t} />
               <ReviewForm file={selected} suggested={suggestedRisk(selected)} riskLabels={RISK_LABEL} screening={{ auto: screeningConfigured(), names: namesToScreen(selected), lists: MANUAL_LISTS.map((l) => ({ key: l.key, label: l.label, url: l.url(namesToScreen(selected)[0] ?? selected.identity.name) })) }} />
             </div>
-            <ClientActs fileId={selected.id} clientId={selected.userId} status={selected.status} mandataires={selected.persons.filter((p) => p.role === "mandataire").map((p) => ({ name: p.name, idNumber: p.idNumber }))} mandates={selected.acts?.mandates ?? []} closure={selected.acts?.closure} positions={actPositions} operations={operations} custodianAccount={selected.review.custodianAccount} />
+            <ClientActs fileId={selected.id} clientId={selected.userId} status={selected.status} closure={selected.acts?.closure} positions={actPositions} operations={operations} custodianAccount={selected.review.custodianAccount} />
           </div>
         )}
       </div>

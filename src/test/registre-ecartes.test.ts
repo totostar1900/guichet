@@ -136,7 +136,7 @@ describe("les mots qui passent par une variable sont traduits", () => {
     const { EN_MORE } = await import("@/i18n/en-desk");
     const manquants: string[] = [];
     for (const v of Object.values(MOTIFS_D_ECART)) if (!EN_MORE[v.libelle]) manquants.push(v.libelle);
-    for (const r of ["le titulaire", "représentant", "mandataire", "bénéficiaire effectif"]) if (!EN_MORE[r]) manquants.push(r);
+    for (const r of ["le titulaire", "représentant", "cotitulaire", "bénéficiaire effectif"]) if (!EN_MORE[r]) manquants.push(r);
     expect(manquants, `sans traduction :\n  ${manquants.join("\n  ")}`).toEqual([]);
   });
 

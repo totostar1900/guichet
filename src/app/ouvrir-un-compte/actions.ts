@@ -91,11 +91,11 @@ export async function saveIdentityAction(_p: StepResult | null, form: FormData):
   return { ok: true, message: "Identité enregistrée." };
 }
 
-/* ---------- 2b. Personnes (représentants, mandataires, bénéficiaires) ---------- */
+/* ---------- 2b. Personnes (représentants, cotitulaires, bénéficiaires) ---------- */
 export async function addPersonAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
   if (!editable(file)) return { ok: false, error: "Dossier non modifiable." };
-  const p = z.object({ role: z.enum(["representant", "mandataire", "beneficiaire_effectif"]), name: z.string().trim().min(2), idNumber: z.string().trim().optional(), share: z.coerce.number().min(0).max(100).optional(), pep: z.string().optional() }).safeParse(Object.fromEntries(form));
+  const p = z.object({ role: z.enum(["representant", "cotitulaire", "beneficiaire_effectif"]), name: z.string().trim().min(2), idNumber: z.string().trim().optional(), share: z.coerce.number().min(0).max(100).optional(), pep: z.string().optional() }).safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: "Nom et rôle sont obligatoires." };
   const person: KycPerson = { role: p.data.role, name: p.data.name, idNumber: p.data.idNumber || undefined, share: p.data.share || undefined, pep: p.data.pep === "on" };
   await repo().updateClientFile(file.id, { persons: [...file.persons, person] });

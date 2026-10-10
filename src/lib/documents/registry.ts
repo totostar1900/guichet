@@ -1,13 +1,12 @@
 import type { DocumentType, Intent, IntentState, IntentType } from "@/lib/domain/types";
 
 /** Documents that belong to one intent (everything but the grouped bordereau). */
-export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice" | "versement" | "garde" | "tirage">;
+export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice" | "versement" | "garde" | "tirage">;
 
 /** Three kinds of documents, each with its own rule for wording changes and its own audience. */
 export type DocumentKind = "signe" | "envoye" | "interne";
 export const DOC_KIND: Record<DocumentType, DocumentKind> = {
   convention: "signe",
-  mandat: "signe",
   prelevement: "signe",
   bulletin: "signe",
   cession: "signe",
@@ -30,11 +29,10 @@ export const DOC_KIND: Record<DocumentType, DocumentKind> = {
 export const DOC_KIND_LABEL: Record<DocumentKind, string> = { signe: "Signés par le client", envoye: "Envoyés au client", interne: "Transmis aux contreparties" };
 export const DOC_KIND_RULE: Record<DocumentKind, string> = { signe: "réglementaire : un responsable approuve chaque changement de texte", envoye: "relu : un autre membre du desk relit chaque changement", interne: "libre : en vigueur dès l'enregistrement ; jamais envoyé au client" };
 /** The order of the life of a relationship, for lists. */
-export const DOC_ORDER: DocumentType[] = ["convention", "mandat", "prelevement", "bulletin", "cession", "reclamation", "transfert", "fonds", "allocation", "non_allocation", "opere", "coupon", "tirage", "versement", "garde", "releve", "attestation", "note_indice", "dossier_svt", "bordereau"];
+export const DOC_ORDER: DocumentType[] = ["convention", "prelevement", "bulletin", "cession", "reclamation", "transfert", "fonds", "allocation", "non_allocation", "opere", "coupon", "tirage", "versement", "garde", "releve", "attestation", "note_indice", "dossier_svt", "bordereau"];
 /** When the lifecycle produces each document. */
 export const DOC_WHEN: Record<DocumentType, string> = {
   convention: "à l'ouverture du compte-titres ; le modèle vierge se lit avant l'acceptation",
-  mandat: "quand un mandataire est déclaré au dossier ; signé par le client et le mandataire",
   prelevement: "quand le client autorise la maison à débiter son compte bancaire ; signé par lui, par code",
   bulletin: "à la confirmation d'une intention (souscription, achat, vente)",
   cession: "à la confirmation d'une cession ou d'un rachat",
@@ -70,7 +68,6 @@ export const DOC_LABEL: Record<DocumentType, string> = {
   garde: "Avis de droits de garde",
   releve: "Relevé de position",
   attestation: "Attestation de détention",
-  mandat: "Mandat de gestion des ordres",
   prelevement: "Mandat de prélèvement",
   coupon: "Avis de coupon · de remboursement",
   reclamation: "Réclamation",
@@ -93,7 +90,6 @@ export const DOC_PREFIX: Record<DocumentType, string> = {
   garde: "GAR",
   releve: "REL",
   attestation: "ATT",
-  mandat: "MAN",
   prelevement: "PRE",
   coupon: "AC",
   reclamation: "REC",
@@ -149,7 +145,6 @@ const DOCS_PAGE = (type: DocumentType) => ({ href: `/desk/documents?type=${type}
 
 export const DOC_ROLES: Record<DocumentType, DocRole> = {
   convention: { moment: "ouverture", prepares: "Purpose, depuis le dossier", signs: "le client (code à usage unique, ou papier) et Purpose", receives: "le client (copie dans Mes documents)", find: DOCS_PAGE("convention"), born: { href: "/desk/clients", label: "Dossiers › approbation du dossier" } },
-  mandat: { moment: "ouverture", prepares: "le desk, depuis le dossier", signs: "le client (mandant) et le mandataire", receives: "le client, le mandataire, le dossier", find: DOCS_PAGE("mandat"), born: { href: "/desk/clients", label: "Dossiers › Actes et avis › Établir un mandat" } },
   prelevement: { moment: "ouverture", prepares: "le client, depuis sa page", signs: "le client, par code à usage unique", receives: "le client, sa banque, le dossier", find: DOCS_PAGE("prelevement"), born: { href: "/moi/prelevements", label: "Mon espace › Prélèvements" } },
   bulletin: { moment: "ordre", prepares: "Purpose, depuis l'intention", signs: "le client : « lu et approuvé »", receives: "le desk (signé), le client (copie)", find: DOCS_PAGE("bulletin"), born: { href: "/desk", label: "Carnet › confirmer l'intention" } },
   cession: { moment: "ordre", prepares: "Purpose, depuis l'intention", signs: "le client (cédant), avec l'attestation du cédant", receives: "le desk (signé), le client (copie)", find: DOCS_PAGE("cession"), born: { href: "/desk", label: "Carnet › confirmer l'intention" } },

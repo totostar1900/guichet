@@ -139,11 +139,16 @@ export function IdentitySection({ file, editable }: P) {
 export function PersonsSection({ file, editable }: P) {
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(addPersonAction, null);
-  const roleLabel = { representant: "Représentant légal", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
+  const roleLabel = { representant: "Représentant légal", cotitulaire: "Cotitulaire désigné", beneficiaire_effectif: "Bénéficiaire effectif" };
   return (
     <section className={styles.sec}>
-      <h2 className="display">{t("2b · Représentants, mandataires, bénéficiaires effectifs")}</h2>
-      <p className={styles.hint}>{file.kind === "groupement" ? "Les 2 ou 3 mandataires désignés par l'assemblée, et les membres détenant plus de 25 % de l'épargne." : "Qui peut passer ordre (avec la pièce à joindre), et qui détient plus de 25 % du capital ou en a le contrôle."}</p>
+      <h2 className="display">{t("2b · Représentants, cotitulaires, bénéficiaires effectifs")}</h2>
+      {/* LA MAISON N'ACCEPTE AUCUNE PROCURATION depuis le 10 octobre 2026 : le
+          titulaire est seul à donner ses ordres. Ce qui reste ici n'est pas un
+          tiers à qui il délègue, c'est le titulaire lui-même quand il n'est pas
+          une personne physique : l'organe qui signe pour une société, les deux
+          ou trois désignés d'une indivision. */}
+      <p className={styles.hint}>{file.kind === "groupement" ? "Les 2 ou 3 cotitulaires désignés par l'assemblée, et les membres détenant plus de 25 % de l'épargne." : "Le représentant légal, qui signe et donne les ordres au nom de la personne morale, et qui détient plus de 25 % du capital ou en a le contrôle. La maison n'accepte aucune procuration : personne ne passe d'ordre à la place du titulaire."}</p>
       {file.persons.length > 0 && (
         <table className="tbl">
           <tbody>
@@ -175,7 +180,7 @@ export function PersonsSection({ file, editable }: P) {
         <fieldset disabled={!editable} className={styles.grid}>
           <label className="field">
             {t("Rôle")}
-            <Select block name="role" value={file.kind === "groupement" ? "mandataire" : "representant"} options={[{ value: "representant", label: t("Représentant légal / signataire") }, { value: "mandataire", label: t("Mandataire") }, { value: "beneficiaire_effectif", label: t("Bénéficiaire effectif (> 25 %)") }]} />
+            <Select block name="role" value={file.kind === "groupement" ? "cotitulaire" : "representant"} options={file.kind === "groupement" ? [{ value: "cotitulaire", label: t("Cotitulaire désigné") }, { value: "beneficiaire_effectif", label: t("Bénéficiaire effectif (> 25 %)") }] : [{ value: "representant", label: t("Représentant légal / signataire") }, { value: "beneficiaire_effectif", label: t("Bénéficiaire effectif (> 25 %)") }]} />
           </label>
           <label className="field">
             Nom et prénom(s)

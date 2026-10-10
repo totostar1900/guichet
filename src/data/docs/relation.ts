@@ -8,7 +8,7 @@ export const RELATION: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-09-21",
+  checkedOn: "2026-10-10",
   owner: "Georges",
   chapters: [
     {
@@ -96,10 +96,65 @@ export const RELATION: DocPage = {
       ],
     },
     {
+      id: "donneur-d-ordres",
+      title: l("Un seul donneur d'ordres", "A single order-giver"),
+      blocks: [
+        {
+          type: "lead",
+          text: l(
+            "Le titulaire est SEUL à donner ses ordres. La maison n'accepte aucune procuration, n'en prépare aucune, et n'exécute l'ordre d'aucun tiers, quels que soient le lien de parenté, l'insistance ou le papier présenté.",
+            "The holder ALONE gives their orders. The firm accepts no power of attorney, prepares none, and executes no third party's order, whatever the family tie, the insistence or the paper produced.",
+          ),
+        },
+        {
+          type: "p",
+          text: l(
+            "Ce n'est pas une prudence, c'est la règle de la maison, arrêtée le 10 octobre 2026. Le produit l'honorait déjà sans le dire : aucun mandataire n'a jamais pu se connecter. Mais il offrait une procuration de papier, un acte réglementaire que rien à l'écran ne faisait vivre. Un acte que le produit n'honore pas est une promesse qu'il ne tiendra pas le jour où on l'invoque : la procuration a donc été retirée, et l'article 9 de la convention le dit maintenant au client.",
+            "This is not caution, it is the firm's rule, settled on 10 October 2026. The product already honoured it without saying so: no agent could ever sign in. But it offered a paper power of attorney, a regulated deed that nothing on screen brought to life. A deed the product does not honour is a promise it will not keep the day it is invoked: the power of attorney was therefore withdrawn, and article 9 of the agreement now says so to the client.",
+          ),
+        },
+        {
+          type: "table",
+          head: [l("Qui", "Who"), l("Peut-il donner un ordre ?", "May they give an order?")],
+          rows: [
+            [l("Le titulaire, personne physique", "The holder, a natural person"), l("oui, et lui seul", "yes, and they alone")],
+            [
+              l("Le représentant légal d'une société ou d'une association", "The legal representative of a company or association"),
+              l("oui, parce qu'il EST le titulaire qui agit : une personne morale n'a pas d'autres mains. Il doit être déclaré au dossier.", "yes, because they ARE the holder acting: a legal entity has no other hands. They must be declared in the file."),
+            ],
+            [
+              l("Les cotitulaires désignés d'un groupement", "The designated co-holders of a group"),
+              l("oui, dans la règle de décision que le PV a fixée : le compte est à eux, en indivision.", "yes, within the decision rule set by the minutes: the account is theirs, undivided."),
+            ],
+            [l("Un bénéficiaire effectif", "A beneficial owner"), l("non. Détenir plus de 25 % n'est pas agir.", "no. Holding more than 25 % is not acting.")],
+            [
+              l("Un proche, un conseiller, un gérant de fortune, qui que ce soit d'autre", "A relative, an adviser, a wealth manager, anyone else"),
+              l("non, sans exception et quel que soit le document produit.", "no, without exception and whatever document is produced."),
+            ],
+          ],
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "LA BONNE RÉPONSE AU TÉLÉPHONE EST LA MÊME POUR TOUS : « Je ne peux prendre un ordre que du titulaire lui-même. Demandez-lui de nous écrire ou de nous appeler, nous le rappelons dans l'heure. » Ne rien promettre de recontacter le tiers, ne rien dire du dossier, et proposer le rappel du titulaire : c'est la seule issue, et elle est rapide.",
+            "THE RIGHT ANSWER ON THE PHONE IS THE SAME FOR EVERYONE: « I can only take an order from the holder themselves. Ask them to write or call us, we call back within the hour. » Promise nothing about calling the third party back, say nothing about the file, and offer to call the holder: it is the only way through, and it is quick.",
+          ),
+        },
+        {
+          type: "p",
+          text: l(
+            "Le seul cas où la position cesse de dépendre du titulaire est son décès : elle est alors conservée jusqu'à instruction des ayants droit dûment justifiés, et c'est l'article 9 qui le règle, pas une procuration.",
+            "The only case where the position stops depending on the holder is their death: it is then kept until instructed by the duly evidenced heirs, and article 9 settles that, not a power of attorney.",
+          ),
+        },
+      ],
+    },
+    {
       id: "situations",
       title: l("Situations et conduite à tenir", "Situations and what to do"),
       blocks: [
-        { type: "p", text: l("Quatre actes ont leur document et leur circuit : le mandat quand un tiers passe les ordres (desk › Dossiers › Actes et avis, signé par le client et le mandataire), l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis Mon espace, signée par code ; accusé de réception sous deux jours ouvrés, réponse sous trente jours, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Four acts have their document and their circuit: the mandate when a third party places orders (desk › Files › Acts and notices, signed by the client and the agent), the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from My space, signed by code; acknowledgement within two business days, answer within thirty days, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
+        { type: "p", text: l("Trois actes ont leur document et leur circuit : l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis Mon espace, signée par code ; accusé de réception sous deux jours ouvrés, réponse sous trente jours, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Four acts have their document and their circuit: the mandate when a third party places orders (desk › Files › Acts and notices, signed by the client and the agent), the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from My space, signed by code; acknowledgement within two business days, answer within thirty days, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
         {
           type: "table",
           head: [l("Situation", "Situation"), l("Conduite", "What to do")],
@@ -110,7 +165,7 @@ export const RELATION: DocPage = {
             [l("Le client se plaint d'un résultat (servi en partie, prix)", "The client complains about a result (partly served, price)"), l("Reprendre l'avis de résultat et le bordereau ; expliquer l'adjudication avec l'éclairage ; si erreur du desk, le dire, corriger, journaliser ; le responsable est informé.", "Go back to the result notice and the slip; explain the auction with the insight; if the desk erred, say so, correct, log it; the manager is informed.")],
             [l("Un message arrive hors heures ouvrées", "A message arrives outside business hours"), l("Le robot accuse réception et donne l'heure de reprise ; l'opérateur reprend le fil à l'ouverture, dans l'ordre d'arrivée.", "The robot acknowledges and gives the resumption time; the operator picks up the thread at opening, in order of arrival.")],
             [l("Un client demande à être oublié", "A client asks to be forgotten"), l("Le responsable archive le dossier (jamais supprimé : obligations de conservation), coupe les envois, note la demande au journal, répond par écrit.", "The manager archives the file (never deleted: retention duties), stops sends, notes the request in the log, answers in writing.")],
-            [l("Un proche appelle pour le client", "A relative calls for the client"), l("On ne parle d'un dossier qu'au titulaire ou à son mandataire déclaré dans le dossier ; proposer que le client écrive lui-même.", "A file is discussed only with its holder or the representative declared in the file; suggest the client writes themself.")],
+            [l("Un proche appelle pour le client", "A relative calls for the client"), l("On ne parle d'un dossier qu'au titulaire, ou au représentant légal déclaré quand le titulaire est une personne morale. La maison n'accepte aucune procuration : il n'y a personne d'autre à qui parler. Proposer que le client écrive lui-même.", "A file is discussed only with its holder, or with the declared legal representative when the holder is a legal entity. The firm accepts no power of attorney: there is nobody else to speak to. Suggest the client writes themself.")],
           ],
         },
       ],

@@ -77,7 +77,7 @@ export const EN_CONVENTION: Record<string, string> = {
   "Article 6 · Tarifs": "Article 6 · Fees",
   "Article 7 · Communications": "Article 7 · Communications",
   "Article 8 · Données personnelles et LBC/FT": "Article 8 · Personal data and AML/CFT",
-  "Article 9 · Procurations et succession": "Article 9 · Powers of attorney and succession",
+  "Article 9 · Donneur d'ordres et succession": "Article 9 · Order-giver and succession",
   "Article 10 · Réclamations, durée, résiliation": "Article 10 · Complaints, term, termination",
 
   /* ---- la reprise ---- */
@@ -89,8 +89,8 @@ export const EN_CONVENTION: Record<string, string> = {
     "You now give us a mandate to open in your name the accounts needed for your orders: you will sign nothing more for that, and opening remains free.",
   /* La phrase de reprise du 10 octobre 2026 : l'article 8 dit désormais ce qui
      est enregistré des gestes du client, et ce qui ne l'est pas. */
-  "Vos gestes dans le Guichet sont enregistrés, et l'article 8 dit lesquels : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine.":
-    "Your moves in the Guichet are recorded, and article 8 says which: you read them yourself under « Your activity », the detail is kept for thirteen months, and no decision about you is taken by a machine.",
+  "Deux articles changent. L'article 8 dit quels gestes sont enregistrés dans le Guichet : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine. L'article 9 ferme la procuration : vous êtes seul à donner vos ordres, et la maison n'en exécute d'aucun tiers.":
+    "Two articles change. Article 8 says which moves are recorded in the Guichet: you read them yourself under « Your activity », the detail is kept for thirteen months, and no decision about you is taken by a machine. Article 9 closes the power of attorney: you alone give your orders, and the firm executes none from any third party.",
 
   /* ---- la signature ---- */
   "Reprendre ma convention": "Sign my agreement again",

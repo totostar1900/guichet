@@ -31,6 +31,15 @@ export const LEGAL_VERSION = "2026-09-20";
  * intérêt n'est dû sans stipulation. Les exemplaires signés le matin portent
  * encore la phrase. Laisser la même version sur les deux textes aurait fait
  * mentir le repère au premier litige, pour une suppression d'une ligne.
+ *
+ * LE 10 OCTOBRE, DEUX TEXTES PORTENT POURTANT LA MÊME DATE, et c'est permis
+ * par le même raisonnement, pas malgré lui. L'article 8 reçoit la clause
+ * d'enregistrement le matin, l'article 9 ferme la procuration le soir. La
+ * règle n'est pas « un texte, une version » : elle est qu'aucun exemplaire
+ * signé ne doit porter une version qui désigne un autre texte. Vérifié en
+ * base avant de l'écrire : personne n'avait encore accepté le texte du
+ * matin, donc aucun exemplaire du 10 octobre n'existe. Le jour où il en
+ * existera un, il faudra la lettre.
  */
 export const CONVENTION_VERSION = "2026-10-10";
 
@@ -49,7 +58,7 @@ export const CONVENTION_VERSION = "2026-10-10";
  */
 export const CONVENTION_CHANGE: { version: string; quoi: string; cote: "donne" | "devons" } = {
   version: CONVENTION_VERSION,
-  quoi: "Vos gestes dans le Guichet sont enregistrés, et l'article 8 dit lesquels : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine.",
+  quoi: "Deux articles changent. L'article 8 dit quels gestes sont enregistrés dans le Guichet : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine. L'article 9 ferme la procuration : vous êtes seul à donner vos ordres, et la maison n'en exécute d'aucun tiers.",
   cote: "devons",
 };
 

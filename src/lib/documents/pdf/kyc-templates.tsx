@@ -7,7 +7,7 @@ import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { DOC_LABEL, KIND_LABEL, RISK_LABEL } from "@/lib/kyc/checklist";
 import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
 
-const ROLE = { representant: "Représentant légal", mandataire: "Mandataire", beneficiaire_effectif: "Bénéficiaire effectif" };
+const ROLE = { representant: "Représentant légal", cotitulaire: "Cotitulaire désigné", beneficiaire_effectif: "Bénéficiaire effectif" };
 
 /**
  * Convention d'ouverture de compte-titres. Rendered blank as the model the

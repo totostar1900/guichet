@@ -1,7 +1,7 @@
 import { View } from "@react-pdf/renderer";
 import { passage } from "../passages-catalog";
 import { COMPANY } from "@/lib/config";
-import type { ClientFile, Closure, Mandate } from "@/lib/domain/kyc";
+import type { ClientFile, Closure } from "@/lib/domain/kyc";
 import type { Contact } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { KIND_LABEL } from "@/lib/kyc/checklist";
@@ -9,50 +9,12 @@ import type { Position } from "@/lib/positions";
 import { Addr, Letter, Sig, Table, Text, s } from "./primitives";
 
 /**
- * The four acts and notices around the life of a relationship: the mandate a
- * client gives, the coupon or redemption notice, the complaint, the transfer
- * / closure order. Same letterhead, numbering and foot as the rest; the
+ * The three acts and notices around the life of a relationship: the coupon
+ * or redemption notice, the complaint, the transfer / closure order. Same letterhead, numbering and foot as the rest; the
  * wording the desk may edit comes from the passages catalogue.
  */
 
 const who = (file: ClientFile) => [file.identity.name, KIND_LABEL[file.kind], [file.identity.address, file.identity.city, file.identity.country].filter(Boolean).join(", "), file.identity.phone ?? "", file.identity.email ?? ""];
-
-export function scopeText(m: Mandate): string {
-  const parts = [m.scope.orders ? (m.scope.fundsOnly ? "passer des ordres sur les fonds OPCVM seulement" : "passer des ordres sur tous instruments") : "", m.scope.notices ? "recevoir les avis et relevés" : ""].filter(Boolean);
-  return parts.join(" · ") || "aucune (mandat à compléter)";
-}
-
-export function MandatPdf({ number, file, mandate, now, texts }: { number: string; file: ClientFile; mandate: Mandate; now: Date; texts?: Record<string, string> }) {
-  const p = (key: string, vars: Record<string, string | undefined> = {}) => passage("mandat", key, texts, vars);
-  const compte = file.review.custodianAccount ?? "(en cours d'ouverture)";
-  return (
-    <Letter heading={`Mandat · ${number}`}>
-      <Text style={s.h1}>Mandat de gestion des ordres</Text>
-      <Text style={s.ref}>
-        {number} · établi le {fmtDate(localIso(now))} · compte-titres {compte}
-      </Text>
-      <Addr blocks={[["Le Mandant", who(file)], ["Le Mandataire", [mandate.personName, mandate.idNumber ? `Pièce : ${mandate.idNumber}` : "", mandate.relation ? `Lien : ${mandate.relation}` : ""].filter(Boolean)]]} />
-      <Table cols={[{ label: "Étendue du mandat", flex: 3 }, { label: "Jusqu'au", flex: 1.2 }]} rows={[[scopeText(mandate), mandate.until ? fmtDate(mandate.until) : "révocation"]]} />
-      <View style={{ marginBottom: 6 }}>
-        <Text style={s.b}>1. Objet</Text>
-        <Text style={s.p}>{p("objet", { mandant: file.identity.name, mandataire: mandate.personName, societe: COMPANY.legalName, compte, etendue: scopeText(mandate) })}</Text>
-      </View>
-      <View style={{ marginBottom: 6 }}>
-        <Text style={s.b}>2. Responsabilité</Text>
-        <Text style={s.p}>{p("responsabilite", { societe: COMPANY.legalName })}</Text>
-      </View>
-      <View style={{ marginBottom: 6 }}>
-        <Text style={s.b}>3. Durée et révocation</Text>
-        <Text style={s.p}>{p("duree", { fin: mandate.until ? fmtDate(mandate.until) : "sa révocation" })}</Text>
-      </View>
-      <Text style={s.small}>{p("signatures")}</Text>
-      <Sig left="Le Mandant : « bon pour mandat », date et signature" right="Le Mandataire : « bon pour acceptation », date et signature" />
-      <Text style={s.small}>
-        {COMPANY.legalName} · {COMPANY.licence} · Ce mandat est joint au dossier du client ; les fonds ne sortent que vers son compte de règlement.
-      </Text>
-    </Letter>
-  );
-}
 
 export interface CouponNoticeCtx {
   number: string;

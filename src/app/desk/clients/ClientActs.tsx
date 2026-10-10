@@ -3,9 +3,9 @@
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import type { Closure, Mandate } from "@/lib/domain/kyc";
+import type { Closure } from "@/lib/domain/kyc";
 import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
-import { closureStepAction, complaintDeskAction, couponNoticeAction, mandateAction, mandateStatusAction, transferAction, type ActResult } from "./acts-actions";
+import { closureStepAction, complaintDeskAction, couponNoticeAction, transferAction, type ActResult } from "./acts-actions";
 import styles from "./page.module.css";
 
 /** A position of the client, as the panel needs it: the line and its flows already due. */
@@ -24,7 +24,7 @@ export interface ActOperation {
   label: string;
 }
 
-type Open = "" | "mandat" | "coupon" | "transfert" | "recl";
+type Open = "" | "coupon" | "transfert" | "recl";
 
 function Msg({ state }: { state: ActResult | null }) {
   if (!state) return null;
@@ -44,39 +44,26 @@ function Msg({ state }: { state: ActResult | null }) {
 }
 
 /**
- * « Actes et avis » on a client file: the mandate given to a third party, the
- * coupon / redemption notices, the transfer or closure order, a complaint
+ * « Actes et avis » on a client file: the coupon / redemption notices, the transfer or closure order, a complaint
  * the desk received. Every act opens its own small form; each produces a
  * numbered document listed under « Documents émis ».
  */
-export function ClientActs({ fileId, clientId, status, mandataires, mandates, closure, positions, operations, custodianAccount }: { fileId: string; clientId: string; status: string; mandataires: { name: string; idNumber?: string }[]; mandates: Mandate[]; closure?: Closure; positions: ActPosition[]; operations: ActOperation[]; custodianAccount?: string }) {
+export function ClientActs({ fileId, clientId, status, closure, positions, operations, custodianAccount }: { fileId: string; clientId: string; status: string; closure?: Closure; positions: ActPosition[]; operations: ActOperation[]; custodianAccount?: string }) {
   const t = useT();
   const [open, setOpen] = useState<Open>("");
   const [flow, setFlow] = useState<{ isin: string; date: string } | null>(null);
-  const [mState, mAction, mPending] = useActionState<ActResult | null, FormData>(mandateAction, null);
-  const [msState, msAction] = useActionState<ActResult | null, FormData>(mandateStatusAction, null);
   const [cState, cAction, cPending] = useActionState<ActResult | null, FormData>(couponNoticeAction, null);
   const [tState, tAction, tPending] = useActionState<ActResult | null, FormData>(transferAction, null);
   const [csState, csAction, csPending] = useActionState<ActResult | null, FormData>(closureStepAction, null);
   const [rState, rAction, rPending] = useActionState<ActResult | null, FormData>(complaintDeskAction, null);
   const active = status === "approuve";
   const pendingFlows = positions.flatMap((p) => p.echus.filter((f) => !f.docNumber).map((f) => ({ ...f, isin: p.isin, title: p.title })));
-  const unsignedMandate = mandataires.filter((m) => !mandates.some((x) => x.personName === m.name && x.status !== "revoque"));
   const toggle = (k: Open) => setOpen((o) => (o === k ? "" : k));
   const chosen = flow ? pendingFlows.find((f) => f.isin === flow.isin && f.date === flow.date) : undefined;
   return (
     <div className={styles.acts}>
       <h3>{t("Actes et avis")}</h3>
       <div className={styles.actGrid}>
-        <div className={styles.act}>
-          <b>{t("Mandat")}</b>
-          <p>
-            {mandates.filter((m) => m.status === "signe").length > 0 ? t("{n} mandat(s) signé(s)", { n: String(mandates.filter((m) => m.status === "signe").length) }) : unsignedMandate.length > 0 ? t("{n} mandataire(s) déclaré(s) sans mandat signé : leurs ordres seraient refusés.", { n: String(unsignedMandate.length) }) : t("Un tiers qui passe les ordres du client doit tenir un mandat signé des deux.")}
-          </p>
-          <button type="button" className="btn sm primary" onClick={() => toggle("mandat")} disabled={!active}>
-            {t("Établir un mandat")}
-          </button>
-        </div>
         <div className={styles.act}>
           <b>{t("Avis de coupon · remboursement")}</b>
           <p>{pendingFlows.length ? t("{n} flux payé(s) sans avis.", { n: String(pendingFlows.length) }) : t("Tous les flux payés ont leur avis.")}</p>
@@ -99,86 +86,6 @@ export function ClientActs({ fileId, clientId, status, mandataires, mandates, cl
           </button>
         </div>
       </div>
-
-      {mandates.length > 0 && (
-        <ul className={styles.actList}>
-          {mandates.map((m) => (
-            <li key={m.id}>
-              <span>
-                <b>{m.personName}</b> · {m.docNumber} · {m.scope.orders ? (m.scope.fundsOnly ? t("ordres sur les fonds") : t("ordres")) : ""}
-                {m.scope.orders && m.scope.notices ? " · " : ""}
-                {m.scope.notices ? t("avis") : ""}
-                {m.until ? ` · ${t("jusqu'au")} ${fmtDate(m.until)}` : ""} · <span className={`st ${m.status === "signe" ? "reglee" : m.status === "revoque" ? "annulee" : "recue"}`}>{t(m.status === "signe" ? "signé" : m.status === "revoque" ? "révoqué" : "à signer")}</span>
-              </span>
-              {m.status !== "revoque" && (
-                <form action={msAction} className={styles.inline}>
-                  <input type="hidden" name="fileId" value={fileId} />
-                  <input type="hidden" name="mandateId" value={m.id} />
-                  {m.status === "prepare" && (
-                    <button type="submit" name="status" value="signe" className="btn sm">
-                      {t("Signé des deux parties")}
-                    </button>
-                  )}
-                  <button type="submit" name="status" value="revoque" className="btn sm ghost">
-                    {t("Révoquer")}
-                  </button>
-                </form>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      <Msg state={msState} />
-
-      {open === "mandat" && (
-        <form action={mAction} className={styles.actForm}>
-          <input type="hidden" name="fileId" value={fileId} />
-          <div className={styles.row3}>
-            <label>
-              <span>{t("Mandataire")}</span>
-              <input name="personName" list={`mand-${fileId}`} defaultValue={unsignedMandate[0]?.name ?? ""} required minLength={3} />
-              <datalist id={`mand-${fileId}`}>
-                {mandataires.map((m) => (
-                  <option key={m.name} value={m.name} />
-                ))}
-              </datalist>
-            </label>
-            <label>
-              <span>{t("Pièce d'identité (n°)")}</span>
-              <input name="idNumber" defaultValue={unsignedMandate[0]?.idNumber ?? ""} />
-            </label>
-            <label>
-              <span>{t("Lien avec le client")}</span>
-              <input name="relation" placeholder={t("frère, associé, gérant…")} />
-            </label>
-          </div>
-          <div className={styles.row3}>
-            <label className={styles.actCheck}>
-              <input type="checkbox" name="orders" defaultChecked /> {t("passer des ordres")}
-            </label>
-            <label className={styles.actCheck}>
-              <input type="checkbox" name="notices" defaultChecked /> {t("recevoir les avis et relevés")}
-            </label>
-            <label className={styles.actCheck}>
-              <input type="checkbox" name="fundsOnly" /> {t("limiter aux fonds OPCVM")}
-            </label>
-          </div>
-          <label>
-            <span>{t("Jusqu'au (vide : jusqu'à révocation)")}</span>
-            <input type="date" name="until" />
-          </label>
-          <p className="muted">{t("Les fonds ne sortent jamais vers le mandataire : produits et coupons vont au compte de règlement du client. Le mandat part au client par son canal ; marquez « signé » à réception des deux signatures.")}</p>
-          <div className={styles.actFoot}>
-            <button type="button" className="btn sm ghost" onClick={() => setOpen("")}>
-              {t("Annuler")}
-            </button>
-            <button type="submit" className="btn sm primary" disabled={mPending}>
-              {mPending ? "…" : t("Établir le mandat")}
-            </button>
-          </div>
-          <Msg state={mState} />
-        </form>
-      )}
 
       {open === "coupon" && (
         <form action={cAction} className={styles.actForm}>

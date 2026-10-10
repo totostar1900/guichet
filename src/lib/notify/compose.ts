@@ -138,7 +138,6 @@ export function documentSent(d: GeneratedDocument, o?: Offer): Message {
     non_allocation: "Vos fonds sont restitués sous deux jours ouvrés.",
     opere: "Il confirme l'inscription des titres à votre nom et votre échéancier.",
     coupon: "Le montant a été crédité sur votre compte de règlement ; l'avis en garde la trace.",
-    mandat: "Merci de le signer, ainsi que le mandataire, et de nous le retourner (photo ou scan suffit).",
     reclamation: "Nous en accusons réception ; la réponse vous parvient dans le délai indiqué.",
     transfert: "Merci de le signer et de nous le retourner ; le transfert part à réception.",
   };

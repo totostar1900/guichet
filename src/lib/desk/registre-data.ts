@@ -36,18 +36,22 @@ export async function registreEnBrouillon(): Promise<Ecarte[]> {
  * LES PERSONNES QU'UN DOSSIER PRÉSENTE, et pas seulement son titulaire.
  *
  * C'est le cas qui compte : quelqu'un d'écarté revient rarement en son nom
- * propre. Il revient comme représentant d'une société, comme mandataire sur
- * le compte d'un proche, ou comme bénéficiaire effectif d'un groupement. Ne
- * regarder que le titulaire laisserait passer les trois.
+ * propre. Il revient comme représentant légal d'une société, comme
+ * cotitulaire d'une indivision, ou comme bénéficiaire effectif. Ne regarder
+ * que le titulaire laisserait passer les trois.
+ *
+ * Le mandataire ne figure plus dans cette liste : la maison a retiré la
+ * procuration le 10 octobre 2026, et le titulaire est seul à donner ses
+ * ordres.
  */
 export function personnesDuDossier(f: ClientFile): PersonneDuDossier[] {
   const out: PersonneDuDossier[] = [
     { role: "le titulaire", nom: f.identity.name, naissance: f.identity.birthDate, pieceType: f.identity.idType, pieceNumero: f.identity.idNumber },
   ];
-  const ROLE: Record<string, string> = { representant: "représentant", mandataire: "mandataire", beneficiaire_effectif: "bénéficiaire effectif" };
-  /* Un mandataire ne donne que son numéro : le dossier ne lui demande ni sa
-     date de naissance ni le type de sa pièce. Il peut donc produire une
-     correspondance de numéro, jamais une ressemblance de nom. */
+  const ROLE: Record<string, string> = { representant: "représentant", cotitulaire: "cotitulaire", beneficiaire_effectif: "bénéficiaire effectif" };
+  /* Ces personnes-là ne donnent que leur numéro : le dossier ne leur demande
+     ni leur date de naissance ni le type de leur pièce. Elles peuvent donc
+     produire une correspondance de numéro, jamais une ressemblance de nom. */
   for (const p of f.persons) out.push({ role: ROLE[p.role] ?? p.role, nom: p.name, pieceNumero: p.idNumber });
   return out.filter((p) => p.nom);
 }

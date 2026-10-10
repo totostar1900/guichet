@@ -128,7 +128,7 @@ export function missingForApproval(f: ClientFile): string[] {
   if (f.kind === "physique" && !f.identity.idNumber) out.push("numéro de pièce d'identité");
   if ((f.kind === "morale" || f.kind === "institutionnel") && !f.identity.registration) out.push("RCCM / immatriculation");
   if (f.kind === "groupement" && !f.identity.legalForm) out.push("forme du groupement");
-  if (f.kind !== "physique" && f.persons.length === 0) out.push("au moins un représentant ou mandataire");
+  if (f.kind !== "physique" && f.persons.length === 0) out.push("au moins un représentant légal ou cotitulaire");
   const have = new Set(f.documents.map((d) => d.kind));
   requiredDocs(f.kind, f.identity.residentAbroad).forEach((k) => {
     if (!have.has(k)) out.push(DOC_LABEL[k].toLowerCase());

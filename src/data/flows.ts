@@ -46,7 +46,7 @@ export const FLOWS: Flow[] = [
     steps: [
       { actor: "client", who: "Client", title: "Ouvre son dossier dans Mon espace", state: "dossier : soumis", docs: [] },
       { actor: "desk", who: "Desk", title: "Revue KYC, sanctions / PPE, cotation du risque", state: "dossier : approuvé", docs: [{ type: "dossier_svt" }] },
-      { actor: "client", who: "Client", title: "Accepte la convention par code", state: "convention : acceptée", docs: [{ type: "convention" }, { type: "mandat", variant: "Mandat, si un tiers passe les ordres" }] },
+      { actor: "client", who: "Client", title: "Accepte la convention par code", state: "convention : acceptée", docs: [{ type: "convention" }] },
       { actor: "tiers", who: "Dépositaire", title: "Ouvre le compte-titres, le desk saisit son numéro", state: "compte : ouvert", docs: [] },
     ],
   },

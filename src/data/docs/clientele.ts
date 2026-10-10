@@ -330,8 +330,8 @@ export const CLIENTELE: DocPage = {
         {
           type: "p",
           text: l(
-            "Le registre regarde TOUTES les personnes d'un dossier, pas seulement son titulaire, parce que c'est le cas qui compte : quelqu'un d'écarté revient rarement en son nom propre. Il revient comme représentant d'une société, comme mandataire sur le compte d'un proche, ou comme bénéficiaire effectif d'un groupement.",
-            "The register looks at EVERY person in a file, not only its holder, because that is the case that matters: someone barred rarely comes back in their own name. They come back as a company's representative, as an agent on a relative's account, or as a group's beneficial owner.",
+            "Le registre regarde TOUTES les personnes d'un dossier, pas seulement son titulaire, parce que c'est le cas qui compte : quelqu'un d'écarté revient rarement en son nom propre. Il revient en signant pour une société dont il est le représentant légal, comme cotitulaire d'une indivision, ou comme bénéficiaire effectif. Il ne peut plus revenir comme mandataire : la maison n'accepte aucune procuration depuis le 10 octobre 2026, et le titulaire est seul à donner ses ordres.",
+            "The register looks at EVERY person in a file, not only its holder, because that is the case that matters: someone barred rarely comes back in their own name. They come back signing for a company as its legal representative, as a co-holder of an undivided account, or as a beneficial owner. They can no longer come back as an agent: the firm accepts no power of attorney since 10 October 2026, and the holder alone gives their orders.",
           ),
         },
         {
@@ -367,8 +367,8 @@ export const CLIENTELE: DocPage = {
           type: "note",
           kind: "warn",
           text: l(
-            "CE N'EST PAS UN MUR, C'EST UN FILET, et deux trous sont connus. Un chiffre inversé dans un numéro y passe : le registre attrape celui qui revient, pas celui qui se fabrique une identité. Et un mandataire ne donne au dossier que son numéro, ni sa date de naissance ni le type de sa pièce : il peut donc produire une correspondance de numéro, jamais une ressemblance de nom. Demander la date de naissance des mandataires fermerait ce second trou, et c'est un changement au formulaire du client.",
-            "IT IS NOT A WALL, IT IS A NET, and two holes are known. A transposed digit in a number goes through: the register catches the one who comes back, not the one who manufactures an identity. And an agent gives the file only their number, neither their date of birth nor their document type: they can therefore produce a number match, never a name resemblance. Asking agents for their date of birth would close that second hole, and that is a change to the client's own form.",
+            "CE N'EST PAS UN MUR, C'EST UN FILET, et deux trous sont connus. Un chiffre inversé dans un numéro y passe : le registre attrape celui qui revient, pas celui qui se fabrique une identité. Et un représentant légal ne donne au dossier que son numéro, ni sa date de naissance ni le type de sa pièce : il peut donc produire une correspondance de numéro, jamais une ressemblance de nom. Or c'est la ressemblance qui survit à une pièce neuve. Demander leur date de naissance fermerait ce second trou, et c'est un changement au formulaire du client.",
+            "IT IS NOT A WALL, IT IS A NET, and two holes are known. A transposed digit in a number goes through: the register catches the one who comes back, not the one who manufactures an identity. And a legal representative gives the file only their number, neither their date of birth nor their document type: they can therefore produce a number match, never a name resemblance. Yet resemblance is what survives a new document. Asking them for their date of birth would close that second hole, and that is a change to the client's own form.",
           ),
         },
       ],

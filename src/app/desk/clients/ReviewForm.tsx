@@ -138,7 +138,7 @@ export function ReviewForm({ file, suggested, riskLabels, screening }: { file: C
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           {t("Compléments à demander (si la décision est « compléments »)")}
-          <input name="requestedItems" defaultValue={file.review.requestedItems} disabled={closed} placeholder={t("Ex. justificatif de domicile lisible, pièce du second mandataire")} />
+          <input name="requestedItems" defaultValue={file.review.requestedItems} disabled={closed} placeholder={t("Ex. justificatif de domicile lisible, pièce du représentant légal")} />
         </label>
       </div>
       <ScreeningBlock file={file} closed={closed} />
