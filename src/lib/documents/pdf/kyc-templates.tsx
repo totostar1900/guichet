@@ -88,7 +88,7 @@ export function DossierOuverture({ number, file, now, texts }: { number: string;
         ]}
       />
       {file.persons.length > 0 && (
-        <Table cols={[{ label: "Rôle", flex: 1.4 }, { label: "Nom", flex: 2 }, { label: "Pièce", flex: 1.2, mono: true }, { label: "Part", right: true }, { label: "PPE" }]} rows={file.persons.map((p) => [ROLE[p.role], p.name, p.idNumber ?? "—", p.share ? `${p.share} %` : "—", p.pep ? "oui" : "non"])} />
+        <Table cols={[{ label: "Rôle", flex: 1.3 }, { label: "Nom", flex: 1.8 }, { label: "Né(e) le", flex: 1.1 }, { label: "Pièce", flex: 1.2, mono: true }, { label: "Part", right: true }, { label: "PPE" }]} rows={file.persons.map((p) => [ROLE[p.role], p.name, p.birthDate ? fmtDate(p.birthDate) : "—", p.idNumber ?? "—", p.share ? `${p.share} %` : "—", p.pep ? "oui" : "non"])} />
       )}
       <Text style={[s.p, s.b]}>Pièces vérifiées</Text>
       <Table cols={[{ label: "Pièce", flex: 2.5 }, { label: "Fichier", flex: 2 }, { label: "Reçue le", flex: 1.2 }, { label: "Vérifiée" }]} rows={file.documents.map((d) => [DOC_LABEL[d.kind], d.fileName, fmtDate(d.uploadedAt), d.verified ? "oui" : "—"])} />

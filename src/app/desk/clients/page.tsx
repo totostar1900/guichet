@@ -245,6 +245,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                             <td>{t(ROLE[p.role])}</td>
                             <td>
                               <b>{p.name}</b>
+                              {p.birthDate ? <small className="muted"> · né(e) le {p.birthDate}</small> : null}
                               {p.idNumber ? <small className="muted"> · {p.idNumber}</small> : null}
                             </td>
                             <td className="r">{p.share ? `${p.share} %` : ""}</td>

@@ -88,6 +88,19 @@ export interface KycDocument {
 export interface KycPerson {
   role: "representant" | "cotitulaire" | "beneficiaire_effectif";
   name: string;
+  /**
+   * LA DATE DE NAISSANCE, DEMANDÉE DEPUIS LE 10 OCTOBRE 2026.
+   *
+   * Elle manquait, et son absence coûtait aux deux endroits où un nom seul
+   * ne discrimine personne. Le contrôle sanctions reçoit le nom de chaque
+   * personne du dossier, et son propre champ de notes demande d'écarter
+   * l'homonymie « date de naissance comparée » : le desk ne l'avait pas
+   * sous les yeux. Et le registre des personnes écartées accroche par le
+   * numéro de pièce ou par le couple nom + date de naissance ; sans la
+   * date, un représentant légal ne pouvait produire qu'une correspondance
+   * de numéro, c'est à dire la seule prise que changer de pièce annule.
+   */
+  birthDate?: string;
   idNumber?: string;
   share?: number; // % for beneficial owners
   pep?: boolean;

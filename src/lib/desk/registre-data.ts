@@ -49,10 +49,12 @@ export function personnesDuDossier(f: ClientFile): PersonneDuDossier[] {
     { role: "le titulaire", nom: f.identity.name, naissance: f.identity.birthDate, pieceType: f.identity.idType, pieceNumero: f.identity.idNumber },
   ];
   const ROLE: Record<string, string> = { representant: "représentant", cotitulaire: "cotitulaire", beneficiaire_effectif: "bénéficiaire effectif" };
-  /* Ces personnes-là ne donnent que leur numéro : le dossier ne leur demande
-     ni leur date de naissance ni le type de leur pièce. Elles peuvent donc
-     produire une correspondance de numéro, jamais une ressemblance de nom. */
-  for (const p of f.persons) out.push({ role: ROLE[p.role] ?? p.role, nom: p.name, pieceNumero: p.idNumber });
+  /* Le dossier ne leur demande pas le TYPE de leur pièce, et c'est sans
+     conséquence : un type manquant ne contredit pas un numéro. La date de
+     naissance, elle, leur est demandée depuis le 10 octobre 2026, et c'est
+     elle qui permet la ressemblance, donc la seule prise qui survive à une
+     pièce neuve. */
+  for (const p of f.persons) out.push({ role: ROLE[p.role] ?? p.role, nom: p.name, naissance: p.birthDate, pieceNumero: p.idNumber });
   return out.filter((p) => p.nom);
 }
 

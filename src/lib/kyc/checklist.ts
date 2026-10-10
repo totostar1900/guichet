@@ -129,6 +129,12 @@ export function missingForApproval(f: ClientFile): string[] {
   if ((f.kind === "morale" || f.kind === "institutionnel") && !f.identity.registration) out.push("RCCM / immatriculation");
   if (f.kind === "groupement" && !f.identity.legalForm) out.push("forme du groupement");
   if (f.kind !== "physique" && f.persons.length === 0) out.push("au moins un représentant légal ou cotitulaire");
+  /* LA DATE DE NAISSANCE DE CHAQUE PERSONNE DÉCLARÉE, exigée du formulaire
+     depuis le 10 octobre 2026. Ce point la réclame aussi aux dossiers plus
+     anciens : sans elle, le contrôle sanctions ne sait pas écarter un
+     homonyme, et c'est précisément ce que son attestation affirme. */
+  const sansDate = f.persons.filter((p) => !p.birthDate).map((p) => p.name);
+  if (sansDate.length) out.push(`date de naissance de ${sansDate.join(", ")}`);
   const have = new Set(f.documents.map((d) => d.kind));
   requiredDocs(f.kind, f.identity.residentAbroad).forEach((k) => {
     if (!have.has(k)) out.push(DOC_LABEL[k].toLowerCase());

@@ -76,6 +76,7 @@ export const EN_REST: Record<string, string> = {
   "Groupe informel : compte en indivision au nom des mandataires (jusqu'à 25 M FCFA)": "Informal group : joint account in the agents' names (up to 25 M FCFA)",
   "Coopérative ou GIC": "Cooperative or common-initiative group",
   "Ex. justificatif de domicile lisible, pièce du représentant légal": "E.g. legible proof of address, the legal representative's ID",
+  "pièce {n}": "document {n}",
   "Règle de décision": "Decision rule",
   "Règle de décision pour passer un ordre": "Decision rule to place an order",
   "Ex. double signature, plafond 5 M FCFA par ordre": "E.g. two signatures, cap of 5 M FCFA per order",

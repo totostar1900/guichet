@@ -157,7 +157,9 @@ export function PersonsSection({ file, editable }: P) {
                 <td>{roleLabel[p.role]}</td>
                 <td>
                   <b>{p.name}</b>
-                  {p.idNumber && <small className="muted">{t(`· pièce ${p.idNumber}`)}</small>}
+                  {p.birthDate && <small className="muted"> · {p.birthDate}</small>}
+                  {/* La clef était interpolée, donc introuvable au dictionnaire : t(`· pièce 123456789`) ne peut correspondre à rien. Une clef à trou se traduit. */}
+                  {p.idNumber && <small className="muted"> · {t("pièce {n}", { n: p.idNumber })}</small>}
                 </td>
                 <td className="r">{p.share ? `${p.share} %` : ""}</td>
                 <td>{p.pep ? <span className="st recue">PPE</span> : null}</td>
@@ -185,6 +187,16 @@ export function PersonsSection({ file, editable }: P) {
           <label className="field">
             Nom et prénom(s)
             <input name="name" required minLength={2} />
+          </label>
+          {/* ELLE EST OBLIGATOIRE, et ce n'est pas une formalité de plus. Le
+              contrôle sanctions ne reçoit qu'un nom, et un nom seul rend
+              vingt homonymes qu'il faut écarter un par un ; le registre des
+              personnes écartées, lui, n'accroche par le nom que si la date
+              l'accompagne. Sans elle, ces deux contrôles tournent à vide sur
+              la personne même qui agit pour le titulaire. */}
+          <label className="field">
+            {t("Date de naissance")}
+            <input type="date" name="birthDate" required />
           </label>
           <label className="field">
             {t("N° de pièce d'identité")}

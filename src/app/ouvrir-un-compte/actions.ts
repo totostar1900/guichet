@@ -95,9 +95,12 @@ export async function saveIdentityAction(_p: StepResult | null, form: FormData):
 export async function addPersonAction(_p: StepResult | null, form: FormData): Promise<StepResult> {
   const { file } = await myFile();
   if (!editable(file)) return { ok: false, error: "Dossier non modifiable." };
-  const p = z.object({ role: z.enum(["representant", "cotitulaire", "beneficiaire_effectif"]), name: z.string().trim().min(2), idNumber: z.string().trim().optional(), share: z.coerce.number().min(0).max(100).optional(), pep: z.string().optional() }).safeParse(Object.fromEntries(form));
-  if (!p.success) return { ok: false, error: "Nom et rôle sont obligatoires." };
-  const person: KycPerson = { role: p.data.role, name: p.data.name, idNumber: p.data.idNumber || undefined, share: p.data.share || undefined, pep: p.data.pep === "on" };
+  const p = z.object({ role: z.enum(["representant", "cotitulaire", "beneficiaire_effectif"]), name: z.string().trim().min(2), birthDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/), idNumber: z.string().trim().optional(), share: z.coerce.number().min(0).max(100).optional(), pep: z.string().optional() }).safeParse(Object.fromEntries(form));
+  /* LE MESSAGE NOMME LE CHAMP MANQUANT. « Nom et rôle sont obligatoires »
+     laissait le client chercher ce qu'il avait raté le jour où la date de
+     naissance est devenue obligatoire elle aussi. */
+  if (!p.success) return { ok: false, error: "Le nom, le rôle et la date de naissance sont obligatoires : c'est la date qui distingue la personne d'un homonyme lors du contrôle réglementaire." };
+  const person: KycPerson = { role: p.data.role, name: p.data.name, birthDate: p.data.birthDate, idNumber: p.data.idNumber || undefined, share: p.data.share || undefined, pep: p.data.pep === "on" };
   await repo().updateClientFile(file.id, { persons: [...file.persons, person] });
   await noter("dossier.personne.ajoutee", { detail: p.data.role });
   revalidatePath(PATH);

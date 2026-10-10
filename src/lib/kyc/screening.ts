@@ -34,21 +34,54 @@ export const MANUAL_LISTS: { key: string; label: string; url: (name: string) => 
   { key: "ofac", label: "OFAC (États-Unis)", url: () => "https://sanctionssearch.ofac.treas.gov/" },
 ];
 
+/**
+ * LES PERSONNES À CONTRÔLER, AVEC CE QUI LES DISTINGUE D'UN HOMONYME.
+ *
+ * Le titulaire et toutes les personnes déclarées. La date de naissance part
+ * avec le nom quand le dossier la porte, et c'est elle qui fait le travail :
+ * une liste de sanctions rend vingt « Jean Nguema », et le champ de notes du
+ * contrôle demande au desk d'écarter l'homonymie « date de naissance
+ * comparée ». La lui envoyer dans la requête épargne vingt lectures et
+ * remonte un score qui veut dire quelque chose.
+ */
+export function personnesAScreener(f: ClientFile): { nom: string; naissance?: string }[] {
+  const tout = [{ nom: f.identity.name, naissance: f.identity.birthDate }, ...f.persons.map((p) => ({ nom: p.name, naissance: p.birthDate }))];
+  const vu = new Set<string>();
+  const out: { nom: string; naissance?: string }[] = [];
+  for (const p of tout) {
+    const nom = p.nom?.trim() ?? "";
+    if (nom.length <= 2 || vu.has(nom)) continue;
+    vu.add(nom);
+    out.push({ nom, naissance: p.naissance });
+  }
+  return out;
+}
+
 /** Names worth screening on a file: the holder and every person listed. */
 export function namesToScreen(f: ClientFile): string[] {
-  const names = [f.identity.name, ...f.persons.map((p) => p.name)].map((n) => n.trim()).filter((n) => n.length > 2);
-  return Array.from(new Set(names));
+  return personnesAScreener(f).map((p) => p.nom);
 }
 
 type OsMatch = { caption: string; score: number; datasets?: string[]; properties?: { topics?: string[] }; id: string };
 
 /** One /match call per name against the default (sanctions + PEP) collection. */
 export async function screenFile(f: ClientFile): Promise<ScreeningResult> {
-  const queries = namesToScreen(f);
+  const personnes = personnesAScreener(f);
+  const queries = personnes.map((p) => p.nom);
   const checkedAt = new Date().toISOString();
   if (!screeningConfigured()) return { provider: "none", checkedAt, queries, hits: [] };
   const schema = f.kind === "physique" ? "Person" : "LegalEntity";
-  const body = { queries: Object.fromEntries(queries.map((q, i) => [`q${i}`, { schema: i === 0 && f.kind !== "physique" ? schema : "Person", properties: { name: [q] } }])) };
+  /* UNE PERSONNE MORALE N'A PAS DE DATE DE NAISSANCE : la première requête
+     d'un dossier non physique porte sur l'entité elle-même, et `birthDate`
+     n'existe pas sur son schéma. Les suivantes sont des personnes. */
+  const body = {
+    queries: Object.fromEntries(
+      personnes.map((p, i) => {
+        const morale = i === 0 && f.kind !== "physique";
+        return [`q${i}`, { schema: morale ? schema : "Person", properties: { name: [p.nom], ...(!morale && p.naissance ? { birthDate: [p.naissance] } : {}) } }];
+      }),
+    ),
+  };
   try {
     const res = await fetch("https://api.opensanctions.org/match/default?threshold=0.7", {
       method: "POST",
