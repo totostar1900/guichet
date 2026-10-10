@@ -3,6 +3,8 @@ import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
+import { tenuesDeTous } from "@/lib/desk/tenue-data";
+import { CRAN_LABEL, type Tenue } from "@/lib/domain/tenue";
 import { parsePeopleQuery, peopleMatch } from "@/lib/search/people";
 import styles from "./page.module.css";
 
@@ -37,7 +39,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
-  const [contacts, files, intents] = await Promise.all([r.listContacts(), r.listClientFiles().catch(() => []), r.listIntents().catch(() => [])]);
+  const [contacts, files, intents, tenues] = await Promise.all([r.listContacts(), r.listClientFiles().catch(() => []), r.listIntents().catch(() => []), tenuesDeTous().catch(() => new Map())]);
   const withFile = new Set(files.map((f) => f.userId));
   const ordered = new Map<string, number>();
   for (const i of intents) if (i.clientId) ordered.set(i.clientId, (ordered.get(i.clientId) ?? 0) + 1);
@@ -131,6 +133,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
               <tr>
                 <th>{t("Nom")}</th>
                 <th>{t("Palier")}</th>
+                <th>{t("Tenue")}</th>
                 <th>{t("Coordonnées")}</th>
                 <th>{t("Informations")}</th>
                 <th className="r">{t("Ordres")}</th>
@@ -152,6 +155,28 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
                     <span className={`st ${c.tier === 2 ? "reglee" : c.tier === 0 ? "annulee" : "recue"}`} title={t(TIER[c.tier ?? 1].hint)}>
                       {t(TIER[c.tier ?? 1].label)}
                     </span>
+                  </td>
+                  {/* LA TENUE PORTE SA RAISON, OU ELLE N'EST QU'UNE ÉTIQUETTE.
+                      Un cran seul se lit comme un jugement de machine ; avec
+                      le manquement le plus grave écrit dessous, c'est un
+                      constat qu'on peut aller vérifier. */}
+                  <td>
+                    {(() => {
+                      const ten = (tenues as Map<string, Tenue>).get(c.id);
+                      if (!ten) return <span className="muted">—</span>;
+                      const pire = ten.manquements[0];
+                      return (
+                        <>
+                          <span className={`st ${ten.cran === "en_defaut" ? "annulee" : ten.cran === "a_surveiller" ? "recue" : "reglee"}`}>{t(CRAN_LABEL[ten.cran])}</span>
+                          {pire && (
+                            <>
+                              <br />
+                              <small className="muted">{t(pire.phrase, pire.vars)}</small>
+                            </>
+                          )}
+                        </>
+                      );
+                    })()}
                   </td>
                   <td className={styles.wrap}>
                     {c.email ?? "—"}

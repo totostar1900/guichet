@@ -3,6 +3,7 @@ import { isIncoming } from "@/lib/domain/cash";
 import { INTENT_LABEL } from "@/lib/domain/intent";
 import type { EventLog, Intent, IntentType, Offer } from "@/lib/domain/types";
 import { positionFor } from "@/lib/documents/position";
+import { enDefaut as enDefautTenue } from "@/lib/domain/tenue";
 import { transitions, type Period } from "@/lib/reporting";
 
 /**
@@ -196,7 +197,11 @@ export function operationsDuClient(userId: string, intents: Intent[], offers: Of
         ref: i.ref,
         date: jour(t.reglee ?? t.servie ?? i.createdAt),
         reglee,
-        enDefaut: i.state === "servie",
+        /* SERVI N'EST PAS EN DÉFAUT. Tout ordre resté en « servie » était
+           compté comme créance, y compris celui de la veille : la page
+           appelait « jamais réglé » un virement qui n'avait pas eu le temps
+           d'arriver. Le délai de cinq jours ouvrés se lit dans tenue.ts. */
+        enDefaut: enDefautTenue(t.servie, i.state),
         sens: estAchat(i.type) ? ("achat" as const) : ("cession" as const),
         nature: INTENT_LABEL[i.type],
         ligne: o?.title ?? i.offerId,

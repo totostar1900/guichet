@@ -3,6 +3,8 @@ import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import type { ClientFile } from "@/lib/domain/kyc";
 import { fmtDate, fmtDateTime } from "@/lib/format";
+import { tenueDe } from "@/lib/desk/tenue-data";
+import { CRAN_LABEL } from "@/lib/domain/tenue";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
@@ -40,7 +42,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const q = (sp.q ?? "").trim();
   const queue = clientDirectory(files, q);
   const attente = files.filter(waiting).length;
-  const [lang, fin, prefs, channels, devices, equipe, conseiller, compte] = await Promise.all([
+  const [lang, fin, prefs, channels, devices, equipe, conseiller, compte, maTenue] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
@@ -49,6 +51,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     r.listStaff().catch(() => []),
     selected ? r.findAdvisor(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getContact(selected.userId).catch(() => undefined) : undefined,
+    selected ? tenueDe(selected.userId).catch(() => ({ cran: "impeccable" as const, manquements: [] })) : { cran: "impeccable" as const, manquements: [] },
   ]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id || (d.clientId === selected.userId && (d.type === "coupon" || d.type === "reclamation" || d.type === "releve" || d.type === "attestation"))) : [];
   const now = new Date();
@@ -120,8 +123,28 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   {` · ${t("mis à jour")} ${fmtDateTime(selected.updatedAt)}`}
                 </div>
                 <ReachLine prefs={prefs} channels={channels} t={t} />
-                {/* Le dossier dit qui il est ; la vue quantitative dit ce
-                    qu'il a traité. Deux questions, deux écrans, un lien. */}
+                {/* LA TENUE SE LIT EN MANQUEMENTS, JAMAIS EN NOTE. Un cran se
+                    conteste ligne à ligne ; un chiffre sur cent ne se conteste
+                    pas, et c'est pourquoi il serait plus commode et moins
+                    juste. Elle n'autorise rien et n'interdit rien : une mesure
+                    se prend par une personne, avec un motif. */}
+                <div style={{ marginTop: "var(--s-5)" }}>
+                  <span className="eyebrow">{t("Tenue")}</span>{" "}
+                  <span className={`st ${maTenue.cran === "en_defaut" ? "annulee" : maTenue.cran === "a_surveiller" ? "recue" : "reglee"}`}>{t(CRAN_LABEL[maTenue.cran])}</span>
+                  {maTenue.manquements.length === 0 ? (
+                    <small className="muted"> {t("aucun manquement")}</small>
+                  ) : (
+                    <ul style={{ margin: "var(--s-3) 0 0", paddingLeft: "var(--s-7)", fontSize: ".82rem" }}>
+                      {maTenue.manquements.map((m) => (
+                        <li key={m.clef}>
+                          {t(m.phrase, m.vars)}
+                          {m.objet && <span className="muted"> · {m.objet}</span>}
+                          {m.quand && <span className="muted"> · {fmtDate(m.quand)}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>
                   {t("Ce qu'il a traité avec nous")}
                 </Link>

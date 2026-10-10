@@ -38,6 +38,21 @@ export const EN_JOURNAL: Record<string, string> = {
   "Cela sert à tenir votre dossier, à prouver ce que vous avez signé, à repérer un accès qui ne serait pas le vôtre, et à ne pas vous redemander ce que vous avez déjà donné.":
     "It serves to keep your file, to prove what you signed, to spot access that is not yours, and to avoid asking you again for what you have already given.",
 
+  /* La tenue : les quatre crans et les cinq manquements. */
+  Tenue: "Conduct",
+  "aucun manquement": "nothing to report",
+  Impeccable: "Spotless",
+  Correcte: "Sound",
+  "À surveiller": "To watch",
+  "En défaut": "In default",
+  "Ordre servi, jamais réglé": "Order allotted, never settled",
+  "Appétits sans suite : {n} sur {total}": "Appetites with no follow-up: {n} of {total}",
+  "Un prélèvement rejeté": "One direct debit rejected",
+  "{n} prélèvements rejetés": "{n} direct debits rejected",
+  "Un versement programmé non réglé": "One scheduled payment unsettled",
+  "{n} versements programmés non réglés": "{n} scheduled payments unsettled",
+  "{n} envois en échec : un canal ne répond plus": "{n} messages failed: a channel no longer answers",
+
   /* Les sept familles. */
   Ordre: "Order",
   Espèces: "Cash",
