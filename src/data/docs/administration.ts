@@ -60,6 +60,14 @@ export const ADMINISTRATION: DocPage = {
           ],
         },
         { type: "p", text: l("Décider : ouvrir la demande, lire le avant / après, approuver ou refuser avec une note. La décision est journalisée ; l'opérateur est prévenu dans le flux. Les bornes elles-mêmes se règlent dans Référentiel › Types de produits.", "Deciding: open the request, read the before / after, approve or refuse with a note. The decision is logged; the operator is told in the feed. The bounds themselves are set under Reference data › Product types.") },
+        {
+          type: "note",
+          kind: "rule",
+          text: l(
+            "Quatre yeux veut dire deux personnes, pas deux rôles : depuis le 10 octobre 2026, un responsable propose comme un opérateur, et c'est un autre responsable qui écrit. Quand la maison n'a qu'un seul responsable, le contrôle est impossible : le geste passe, et il se dit (journal du desk, audit, et le compteur « Gestes passés sans second regard » en Santé).",
+            "Four eyes means two people, not two roles: since 10 October 2026 a manager proposes like an operator, and another manager writes. When the firm has a single manager the control is impossible: the action goes through, and it says so (desk feed, audit, and the \"Actions passed without a second pair of eyes\" counter in Health).",
+          ),
+        },
       ],
     },
     {

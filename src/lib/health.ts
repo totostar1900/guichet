@@ -464,6 +464,22 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
         : "aucun tirage en attente de sort",
   });
 
+  /* LES GESTES PASSÉS SANS SECOND REGARD.
+     Quatre yeux veut dire deux personnes : quand la maison n'a qu'un
+     responsable, le contrôle est impossible, et le geste passe. Ce n'est pas
+     un trou tant que cela SE DIT : ici, on les compte. Zéro est le cas
+     normal d'un desk à deux responsables ; un chiffre qui monte dit soit
+     qu'il faut un second responsable, soit qu'on en a perdu un. */
+  const seuls = await r.listAudit({ entity: "quatre-yeux", limit: 200 }).catch(() => []);
+  const duMois = seuls.filter((a) => a.at >= new Date(now.getTime() - 30 * 86_400_000).toISOString());
+  out.push({
+    key: "quatre-yeux",
+    label: "Gestes passés sans second regard",
+    level: duMois.length > 3 ? "warn" : "ok",
+    value: `${duMois.length}`,
+    detail: duMois.length ? `sur trente jours · le dernier : ${duMois[0].reason ?? duMois[0].action}` : "chaque geste sensible a eu deux personnes, ou n'en avait pas besoin",
+  });
+
   return out;
 }
 

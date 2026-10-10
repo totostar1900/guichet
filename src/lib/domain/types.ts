@@ -413,6 +413,16 @@ export interface IntakeItem {
   /** Le modele qui a lu : comparer deux lectures ne veut rien dire sans lui. */
   readModel?: string; // seconds
   notes?: string;
+  /**
+   * QUI A DEMANDÉ LA RELECTURE, en clair et non dans une phrase.
+   *
+   * Le garde-fou des quatre yeux lisait ce nom dans « notes » avec une
+   * expression régulière qui attendait un tiret cadratin, pendant que la note
+   * s'écrivait avec deux points : le garde n'a jamais tiré, et une personne
+   * seule pouvait demander une relecture puis publier elle-même. Un fait ne
+   * se range pas dans une phrase que l'on peut réécrire.
+   */
+  reviewBy?: string;
 }
 
 /* ---------------- Documents ---------------- */

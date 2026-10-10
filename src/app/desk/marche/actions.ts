@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { approvalReason, loadPolicy } from "@/lib/policy";
 import { ConflictError } from "@/lib/domain/types";
-import { isResponsable } from "@/lib/auth/types";
 import { audit } from "@/lib/audit";
+import { direLeGestePasseSeul, quatreYeux } from "@/lib/desk/quatre-yeux";
 import { z } from "zod";
 import { requireDesk, requireResponsable } from "@/lib/auth";
 // Ce dont les deux gestes venus de Sante ont besoin, et rien de plus.
@@ -52,12 +52,14 @@ export async function updateQuoteAction(_p: MarketResult | null, form: FormData)
      changement. Un cours ressaisi à l'identique ne rajeunit pas le prix. */
   const next: typeof o = { ...o, lastPrice: p.data.lastPrice, bid: p.data.bid ?? o.bid, ask: p.data.ask ?? o.ask, lastPriceOn: lu, priceSince: o.lastPrice === p.data.lastPrice && o.priceSince ? o.priceSince : lu, pricedAt: now.toISOString(), priceSource: "desk", priceNote: `Cours saisi par le desk (${desk.name}).`, version: o.version + 1 };
   const reason = approvalReason(next, o, await loadPolicy());
-  if (reason && !isResponsable(desk)) {
-    const a = await r.createApproval({ kind: "offer_quote", entityId: o.id, title: o.title, payload: next, reason, requestedBy: desk.name });
-    await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason }, reason });
-    await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> proposé par ${desk.name}, en attente d'un responsable : ${reason}` });
+  const second = await quatreYeux(desk, reason);
+  if (second.quoi === "seul") await direLeGestePasseSeul(desk, `Cours de ${o.title}`, o.id, second.raison, second.motif);
+  if (second.quoi === "attend") {
+    const a = await r.createApproval({ kind: "offer_quote", entityId: o.id, title: o.title, payload: next, reason: second.raison, requestedBy: desk.name });
+    await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason: second.raison }, reason: second.raison });
+    await r.logEvent({ kind: "desk", offerId: o.id, html: `Cours <b>${o.title}</b> proposé par ${desk.name}, en attente d'un responsable : ${second.raison}` });
     revalidatePath("/desk/approbations");
-    return { ok: true, message: `Proposition transmise à un responsable : ${reason}.` };
+    return { ok: true, message: `Proposition transmise à un responsable : ${second.raison}.` };
   }
   try {
     await r.upsertOffer(next, { expectedVersion: o.version, by: desk.name, note: "Cours saisi" });
@@ -360,11 +362,13 @@ export async function updateFundTermsAction(_p: MarketResult | null, form: FormD
   const fund = { ...o.fund, distributed, entryFeePct: p.data.entryFeePct, exitFeePct: p.data.exitFeePct, managementFeePct: p.data.managementFeePct, trailerPct: p.data.trailerPct, minAmount: p.data.minAmount, cutoff: p.data.cutoff, agreementRef: p.data.agreementRef, settlementDays: p.data.settlementDays };
   const next: typeof o = { ...o, fund, hidden: !distributed, commissionPct: fund.entryFeePct, pricedAt: new Date().toISOString(), version: o.version + 1 };
   const reason = approvalReason(next, o, await loadPolicy());
-  if (reason && !isResponsable(desk)) {
-    const a = await r.createApproval({ kind: "offer_publish", entityId: o.id, title: o.title, payload: next, reason, requestedBy: desk.name });
-    await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason }, reason });
+  const second = await quatreYeux(desk, reason);
+  if (second.quoi === "seul") await direLeGestePasseSeul(desk, `Conditions du fonds ${o.title}`, o.id, second.raison, second.motif);
+  if (second.quoi === "attend") {
+    const a = await r.createApproval({ kind: "offer_publish", entityId: o.id, title: o.title, payload: next, reason: second.raison, requestedBy: desk.name });
+    await audit("approval.request", "approval", a.id, { after: { offerId: o.id, reason: second.raison }, reason: second.raison });
     revalidatePath("/desk/approbations");
-    return { ok: true, message: `Proposition transmise à un responsable : ${reason}.` };
+    return { ok: true, message: `Proposition transmise à un responsable : ${second.raison}.` };
   }
   try {
     await r.upsertOffer(next, { expectedVersion: o.version, by: desk.name, note: "Conditions du fonds" });

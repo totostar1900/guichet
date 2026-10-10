@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
+import { direLeGestePasseSeul, quatreYeux } from "@/lib/desk/quatre-yeux";
 import { requireDesk } from "@/lib/auth";
-import { isResponsable } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { ConflictError } from "@/lib/domain/types";
 import { approvalReason, loadPolicy } from "@/lib/policy";
@@ -48,7 +48,9 @@ export async function relistOfferAction(_p: RestoreResult | null, form: FormData
   if (cur.status !== "withdrawn") return { ok: false, error: "Cette ligne n'est pas retirée." };
   const next = { ...cur, status: "published" as const, hidden: cur.kind === "FONDS" ? !cur.fund?.distributed : false, version: cur.version + 1, pricedAt: new Date().toISOString() };
   const reason = approvalReason(next, cur, await loadPolicy());
-  if (reason && !isResponsable(desk)) {
+  const second = await quatreYeux(desk, reason);
+  if (second.quoi === "seul") await direLeGestePasseSeul(desk, `Remise en ligne de ${cur.title}`, cur.id, second.raison, second.motif);
+  if (second.quoi === "attend") {
     const a = await r.createApproval({ kind: "offer_publish", entityId: cur.id, title: cur.title, payload: next, reason: `Remise en ligne : ${reason}`, requestedBy: desk.name });
     await audit("approval.request", "approval", a.id, { after: { offerId: cur.id, relist: true }, reason: p.data.reason });
     revalidatePath("/desk/approbations");
@@ -81,7 +83,9 @@ export async function restoreVersionAction(_p: RestoreResult | null, form: FormD
   if (!v?.snapshot) return { ok: false, error: "Cette version n'a pas de fiche complète enregistrée (antérieure à l'historique)." };
   const next = { ...v.snapshot, id: cur.id, version: cur.version + 1, pricedAt: new Date().toISOString() };
   const reason = approvalReason(next, cur, await loadPolicy());
-  if (reason && !isResponsable(desk)) {
+  const second = await quatreYeux(desk, reason);
+  if (second.quoi === "seul") await direLeGestePasseSeul(desk, `Restauration de ${cur.title} en v${v.version}`, cur.id, second.raison, second.motif);
+  if (second.quoi === "attend") {
     const a = await r.createApproval({ kind: "offer_publish", entityId: cur.id, title: cur.title, payload: next, reason: `Restauration de la v${v.version} : ${reason}`, requestedBy: desk.name });
     await audit("approval.request", "approval", a.id, { after: { offerId: cur.id, restore: v.version }, reason: p.data.reason });
     revalidatePath("/desk/approbations");

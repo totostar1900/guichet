@@ -109,4 +109,10 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Le panneau « Remises en attente de sort », rangé par ancienneté. Un tirage remis depuis plus de dix jours sans encaissement ni rejet appelle la banque, pas le client : c'est elle qui sait si l'opération a été présentée. La réponse obtenue s'inscrit ici, « Encaissé » ou « Rejeté » avec sa cause, et la cause décide de la suite.",
     docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
   },
+  "quatre-yeux": {
+    label: "Gestes passés sans second regard",
+    href: "/desk/approbations",
+    how: "Un geste sensible attend une seconde personne : celle qui propose ne peut pas approuver, quel que soit son rôle. Quand la maison n'a qu'un seul responsable, le contrôle est impossible et le geste passe en le disant : c'est ce qui se compte ici. Un chiffre qui monte appelle une décision d'effectif, pas un réglage : nommer un second responsable dans Référentiel › Personnel, ou accepter que ces gestes-là restent à une paire d'yeux.",
+    docs: { href: "/desk/docs/administration#approbations", label: "Les approbations : qui propose, qui écrit" },
+  },
 };

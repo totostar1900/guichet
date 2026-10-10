@@ -1,0 +1,12 @@
+-- QUI A DEMANDÉ LA RELECTURE, DANS UN CHAMP ET NON DANS UNE PHRASE.
+--
+-- Le garde-fou des quatre yeux de l'entrée lisait ce nom dans « notes », avec
+-- une expression régulière qui attendait un tiret cadratin, pendant que la
+-- note s'écrivait avec deux points (la règle de maison « pas de tiret
+-- cadratin » avait été appliquée à la note et pas à l'expression qui la lit).
+-- Le garde n'a donc jamais tiré : une personne seule pouvait demander une
+-- relecture, puis publier elle-même. Audité le 26 septembre 2026, réparé le
+-- 10 octobre.
+--
+-- Un fait ne se range pas dans une phrase que l'on peut réécrire.
+alter table public.intake_items add column if not exists review_by text;

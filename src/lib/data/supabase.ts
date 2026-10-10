@@ -235,13 +235,13 @@ function toIntent(r: IntentRow): Intent {
 type IntakeRow = {
   id: string; source: IntakeItem["source"]; title: string; from_label: string; received_at: string; state: IntakeItem["state"];
   file_name: string | null; mime_type: string | null; raw_text: string | null; draft: IntakeItem["draft"]; offer_id: string | null;
-  published_at: string | null; extracted_in: number | null; notes: string | null;
+  published_at: string | null; extracted_in: number | null; notes: string | null; review_by?: string | null;
   read_at: string | null; read_model: string | null;
 };
 const toIntake = (r: IntakeRow): IntakeItem => ({
   id: r.id, source: r.source, title: r.title, fromLabel: r.from_label, receivedAt: r.received_at, state: r.state,
   fileName: u(r.file_name), mimeType: u(r.mime_type), rawText: u(r.raw_text), draft: r.draft, offerId: u(r.offer_id),
-  publishedAt: u(r.published_at), extractedIn: u(r.extracted_in), notes: u(r.notes),
+  publishedAt: u(r.published_at), extractedIn: u(r.extracted_in), notes: u(r.notes), reviewBy: u(r.review_by),
   readAt: u(r.read_at), readModel: u(r.read_model),
 });
 const fromIntake = (p: Partial<IntakeItem>): Partial<IntakeRow> => {
@@ -258,6 +258,7 @@ const fromIntake = (p: Partial<IntakeItem>): Partial<IntakeRow> => {
   if (p.offerId !== undefined) row.offer_id = p.offerId;
   if (p.publishedAt !== undefined) row.published_at = p.publishedAt;
   if (p.extractedIn !== undefined) row.extracted_in = p.extractedIn;
+  if (p.reviewBy !== undefined) row.review_by = p.reviewBy;
   if (p.readAt !== undefined) row.read_at = p.readAt;
   if (p.readModel !== undefined) row.read_model = p.readModel;
   if (p.notes !== undefined) row.notes = p.notes;

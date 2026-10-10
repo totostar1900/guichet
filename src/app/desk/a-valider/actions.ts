@@ -3,8 +3,9 @@
 import { loadRegistry } from "@/lib/reference";
 import { approvalReason, loadPolicy } from "@/lib/policy";
 import { ConflictError } from "@/lib/domain/types";
-import { isResponsable } from "@/lib/auth/types";
 import { audit } from "@/lib/audit";
+import { direLeGestePasseSeul, quatreYeux } from "@/lib/desk/quatre-yeux";
+import { demandeurDeLaRevue } from "@/lib/desk/revue";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -139,7 +140,13 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   // Save the desk's field edits first, so what is published is what is on screen.
   const draft = draftFromForm(form, item.draft);
   if (!draft.official) return { ok: false, error: "Source non officielle : joignez le communiqué (ou cochez « source officielle jointe ») avant de publier." };
-  if (item.state === "en_revue" && reviewRequester(item.notes) === desk.name) return { ok: false, error: "Ce brouillon est en revue : c'est au relecteur de publier (ou de le renvoyer), pas à la personne qui a demandé la relecture." };
+  /* QUATRE YEUX SUR L'ENTRÉE : le demandeur de la relecture ne publie pas.
+     Le nom se lit d'un CHAMP depuis le 10 octobre 2026. Il se lisait d'une
+     phrase, avec une expression qui attendait un tiret cadratin quand la
+     note s'écrivait avec deux points : le garde n'a jamais tiré, et une
+     personne seule pouvait demander une relecture puis publier elle-même.
+     Le repli sur l'ancienne phrase sert les brouillons d'avant le champ. */
+  if (item.state === "en_revue" && demandeurDeLaRevue(item) === desk.name) return { ok: false, error: "Ce brouillon est en revue : c'est au relecteur de publier (ou de le renvoyer), pas à la personne qui a demandé la relecture." };
   if (item.state === "rejete") return { ok: false, error: "Source rejetée : rouvrez-la d'abord (Enregistrer le brouillon)." };
   if (draft.kind === "BTA" && decision.precountRate == null) return { ok: false, error: "Indiquez le taux précompté indicatif." };
   if ((draft.kind === "OTA" || draft.kind === "APE") && decision.pricePct == null) return { ok: false, error: "Indiquez le prix Purpose." };
@@ -161,14 +168,19 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
     const offer = buildOffer({ ...item, draft }, { ...decision, channels }, existing);
     // Four-eyes: outside the delegated window, an opérateur's publication waits for a responsable.
     const reason = approvalReason(offer, existing, await loadPolicy());
-    if (reason && !isResponsable(desk)) {
-      const a = await r.createApproval({ kind: "offer_publish", entityId: offer.id, title: offer.title, payload: offer, reason: `${reason} · diffusion ${channels.join(", ") || "Guichet"} · ${decision.segment}`, requestedBy: desk.name });
+    /* QUATRE YEUX : DEUX PERSONNES, PAS DEUX RÔLES. Un responsable passait
+       toujours seul ; il propose désormais comme les autres, et seul le cas
+       « aucun autre responsable en poste » laisse passer, en le disant. */
+    const second = await quatreYeux(desk, reason);
+    if (second.quoi === "seul") await direLeGestePasseSeul(desk, `Publication de ${offer.title}`, offer.id, second.raison, second.motif);
+    if (second.quoi === "attend") {
+      const a = await r.createApproval({ kind: "offer_publish", entityId: offer.id, title: offer.title, payload: offer, reason: `${second.raison} · diffusion ${channels.join(", ") || "Guichet"} · ${decision.segment}`, requestedBy: desk.name });
       await r.updateIntake(itemId, { draft });
-      await audit("approval.request", "approval", a.id, { after: { offerId: offer.id, reason }, reason });
-      await r.logEvent({ kind: "desk", offerId: existing?.id, html: `<b>${offer.title}</b> : publication proposée par ${desk.name}, en attente d'un responsable : ${reason}` });
+      await audit("approval.request", "approval", a.id, { after: { offerId: offer.id, reason: second.raison }, reason: second.raison });
+      await r.logEvent({ kind: "desk", offerId: existing?.id, html: `<b>${offer.title}</b> : publication proposée par ${desk.name}, en attente d'un responsable : ${second.raison}` });
       revalidatePath("/desk/a-valider");
       revalidatePath("/desk/approbations");
-      return { ok: true, pending: reason };
+      return { ok: true, pending: second.raison };
     }
     await r.upsertOffer(offer, { expectedVersion: existing?.version, by: desk.name, note: existing ? "Republication" : "Publication" });
     await audit("offer.publish", "offer", offer.id, { before: existing, after: offer, reason: reason ?? undefined });
@@ -189,8 +201,6 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   return { ok: true };
 }
 
-const REVIEW_RE = /^Revue demandée par (.+?) —/;
-const reviewRequester = (notes?: string): string | undefined => notes?.match(REVIEW_RE)?.[1];
 
 /** An opérateur asks a colleague to re-read the draft before publication (draft → en revue). */
 export async function requestReviewAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
@@ -204,7 +214,7 @@ export async function requestReviewAction(_prev: IntakeResult | null, form: Form
   try {
     const draft = draftFromForm(form, item.draft);
     const notes = `Revue demandée par ${desk.name} : ${note}`;
-    await repo().updateIntake(id, { draft, state: "en_revue", notes });
+    await repo().updateIntake(id, { draft, state: "en_revue", notes, reviewBy: desk.name });
     await audit("intake.review", "intake", id, { before: { state: item.state }, after: { state: "en_revue" }, reason: note });
     await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : relecture demandée par ${desk.name} : ${note}` });
     revalidatePath("/desk/a-valider");

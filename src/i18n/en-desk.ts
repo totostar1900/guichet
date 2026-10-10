@@ -2844,6 +2844,9 @@ export const EN_MORE: Record<string, string> = {
   /* Le libellé d un point de Santé passe par t(variable) : le scanner des clefs
      ne le voit pas, et seul l écran le montre non traduit. Troisième fois. */
   "Virements reçus sans nom": "Transfers received with no name",
+  "Gestes passés sans second regard": "Actions passed without a second pair of eyes",
+  "Un geste sensible attend une seconde personne : celle qui propose ne peut pas approuver, quel que soit son rôle. Quand la maison n'a qu'un seul responsable, le contrôle est impossible et le geste passe en le disant : c'est ce qui se compte ici. Un chiffre qui monte appelle une décision d'effectif, pas un réglage : nommer un second responsable dans Référentiel › Personnel, ou accepter que ces gestes-là restent à une paire d'yeux.":
+    "A sensitive action waits for a second person: whoever proposes cannot approve, whatever their role. When the firm has a single manager the control is impossible and the action goes through saying so: that is what is counted here. A rising number calls for a staffing decision, not a setting: appoint a second manager under Reference data › Staff, or accept that those actions stay with one pair of eyes.",
   "Prélèvements remis sans nouvelle":
     "Direct debits handed over with no news",
   "Le panneau « Remises en attente de sort », rangé par ancienneté. Un tirage remis depuis plus de dix jours sans encaissement ni rejet appelle la banque, pas le client : c'est elle qui sait si l'opération a été présentée. La réponse obtenue s'inscrit ici, « Encaissé » ou « Rejeté » avec sa cause, et la cause décide de la suite.":
