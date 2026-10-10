@@ -1,0 +1,84 @@
+/* Le fil de l'activité du client : une journée, puis ses gestes. */
+
+.chapo {
+  max-width: 68ch;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.compteurs {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  margin: var(--s-7) 0;
+}
+
+.compteur {
+  flex: 1 1 9rem;
+  min-width: 0;
+  padding: var(--s-5) var(--s-6);
+  border-left: 1px solid var(--line);
+}
+
+.compteur:first-child {
+  border-left: 0;
+}
+
+.compteur b {
+  display: block;
+  margin-top: var(--s-2);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fil {
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-7);
+}
+
+.jour {
+  margin: 0;
+  padding: var(--s-4) var(--s-6);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.ligne {
+  display: flex;
+  gap: var(--s-5);
+  padding: var(--s-5) var(--s-6);
+  border-bottom: 1px solid var(--line);
+  align-items: baseline;
+}
+
+.ligne:last-child {
+  border-bottom: 0;
+}
+
+.heure {
+  width: 3rem;
+  flex: none;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.quoi {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.vide {
+  padding: var(--s-9) var(--s-6);
+  text-align: center;
+  color: var(--ink-2);
+}

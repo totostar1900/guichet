@@ -75,6 +75,7 @@ const D = {
   eye: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6zM12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0",
   profile: "M4 19V9M10 19V5M16 19v-8M22 19H2",
   pin: "M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM12 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3.5 2",
 };
 
 export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
@@ -277,6 +278,15 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                       <Icon d={D.book} />
                       <b>{t("Textes et conditions")}</b>
                       <small>{t("ce qui vaut pour tout le monde")}</small>
+                    </Link>
+                    {/* VOIR CE QUE NOUS VOYONS. Le registre des gestes existe
+                        d'abord pour la maison : c'est précisément pour cela
+                        qu'il se montre, et c'est aussi ainsi qu'un client
+                        repère un accès qui n'est pas le sien avant nous. */}
+                    <Link className={styles.tile} href="/moi/activite" onClick={close}>
+                      <Icon d={D.clock} />
+                      <b>{t("Votre activité")}</b>
+                      <small>{t("tout ce qui a été fait sur votre compte")}</small>
                     </Link>
                   </div>
                   <div className={styles.group}>{t("Couleurs")}</div>

@@ -7,6 +7,9 @@ import { repo } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { Gestes } from "./Gestes";
+import { comptesDemo } from "@/lib/domain/demo";
+import { GENRES, type Genre } from "@/lib/domain/journal-client";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Journal d'audit" };
@@ -40,10 +43,44 @@ const ENTITIES: [string, string][] = [
 const short = (v: unknown): string => (v == null ? "—" : typeof v === "object" ? JSON.stringify(v).slice(0, 60) : String(v));
 
 /** The structured audit trail: every business action with who / what / before → after / why / from where. */
-export default async function JournalPage({ searchParams }: { searchParams: Promise<{ entite?: string }> }) {
+export default async function JournalPage({ searchParams }: { searchParams: Promise<{ entite?: string; registre?: string; genre?: string; client?: string }> }) {
   const t = await getT();
   await requireDesk("/desk/journal");
-  const { entite = "" } = await searchParams;
+  const { entite = "", registre = "", genre = "", client } = await searchParams;
+
+  /* DEUX REGISTRES SOUS UNE SEULE ADRESSE. « Le journal » est un sujet : lui
+     donner deux pages ferait chercher laquelle ouvrir. Les décisions du desk
+     sont chaînées et prouvent ; les gestes des clients racontent. */
+  if (registre === "gestes") {
+    const [gestes, contacts] = await Promise.all([
+      repo().listClientActions({ userId: client, genre: (GENRES as readonly string[]).includes(genre) ? (genre as Genre) : undefined, limit: 300 }),
+      repo()
+        .listContacts()
+        .catch(() => []),
+    ]);
+    return (
+      <>
+        <DeskNav current="/desk/journal" />
+        <div className={styles.head}>
+          <div>
+            <h1>{t("Registre des gestes")}</h1>
+            <p className="muted">
+              {t(
+                "Ce que les clients font dans le Guichet : un ordre déposé, une pièce reçue, un mandat signé, un appareil enrôlé, une fiche consultée. Ce registre n'est pas chaîné et ne prouve rien : il raconte. Une consultation ne s'y écrit qu'une fois par jour et par objet, et ni la durée, ni le défilement, ni la souris n'y entrent.",
+              )}
+            </p>
+          </div>
+        </div>
+        <nav className={styles.tabs} aria-label={t("Registre")}>
+          <Link href="/desk/journal">{t("Décisions du desk")}</Link>
+          <Link href="/desk/journal?registre=gestes" aria-current="page">
+            {t("Gestes des clients")}
+          </Link>
+        </nav>
+        <Gestes rows={gestes} noms={new Map(contacts.map((c) => [c.id, c.name]))} demo={comptesDemo(contacts)} genre={genre} client={client} t={t} />
+      </>
+    );
+  }
   // Ce qu'on montre et ce qu'on vérifie sont deux choses. La chaîne ne se lit
   // que sur une suite continue : vérifier la liste filtrée revenait à comparer
   // des lignes qui ne se suivent pas, et à crier à la rupture sans raison.
@@ -75,6 +112,12 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
               : t("Chaîne intègre sur les {n} dernières lignes", { n: String(chain.checked) })}
         </span>
       </div>
+      <nav className={styles.tabs} aria-label={t("Registre")}>
+        <Link href="/desk/journal" aria-current="page">
+          {t("Décisions du desk")}
+        </Link>
+        <Link href="/desk/journal?registre=gestes">{t("Gestes des clients")}</Link>
+      </nav>
       <nav className={styles.tabs} aria-label={t("Filtre")}>
         {ENTITIES.map(([k, label0]) => (
           <Link key={k} href={k ? `/desk/journal?entite=${k}` : "/desk/journal"} aria-current={k === entite ? "page" : undefined}>

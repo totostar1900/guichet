@@ -214,3 +214,63 @@ describe("rien n'a été oublié dans les dossiers d'actions", () => {
     expect(trouves.sort()).toEqual([...FICHIERS].sort());
   });
 });
+
+/**
+ * L'ANGLE MORT DU SCANNER DE CLEFS, FERMÉ PAR UN CLIQUET.
+ *
+ * Les phrases du catalogue passent par « t(GESTES[x].phrase) » : le scanner
+ * ne lit que les littéraux, et un geste ajouté sans sa traduction sortirait
+ * en français dans la version anglaise sans que rien n'échoue. On compare
+ * donc le catalogue au dictionnaire, puisque c'est la seule façon de le voir.
+ */
+describe("les phrases du catalogue sont traduites", () => {
+  it("chacune a son entrée anglaise, dans les deux voix", async () => {
+    const { EN_JOURNAL } = await import("@/i18n/en-journal");
+    const { GENRE_LABEL: LAB } = await import("@/lib/domain/journal-client");
+    const manquantes: string[] = [];
+    for (const [nom, g] of Object.entries(GESTES)) {
+      if (!EN_JOURNAL[g.phrase]) manquantes.push(`${nom} · ${g.phrase}`);
+      if (!EN_JOURNAL[g.auDesk]) manquantes.push(`${nom} · ${g.auDesk}`);
+    }
+    for (const v of Object.values(LAB)) if (!EN_JOURNAL[v]) manquantes.push(`famille · ${v}`);
+    expect(manquantes, `sans traduction :\n  ${manquantes.join("\n  ")}`).toEqual([]);
+  });
+
+  it("et le dictionnaire est bien monté dans le noyau", () => {
+    expect(readFileSync(path.join(ROOT, "src/i18n/core.ts"), "utf8")).toMatch(/\.\.\.EN_JOURNAL,/);
+  });
+});
+
+/* Le magasin mémoire, exercé pour de bon : c'est lui qui sert la démonstration
+   et les captures du guide, et une écriture qui n'y marche pas ne se verrait
+   nulle part ailleurs. */
+describe("le registre, écrit et relu", () => {
+  it("garde un geste, et le rend au client qui l'a fait", async () => {
+    delete (globalThis as { __guichetStore?: unknown }).__guichetStore;
+    const { memoryRepository: m } = await import("@/lib/data/memory");
+    await m.logClientAction({ userId: "u1", geste: "ordre.depose", genre: "ordre", objet: "PF-0001", detail: "OTA 2031" });
+    await m.logClientAction({ userId: "u2", geste: "mandat.signe", genre: "especes", objet: "MP-0001" });
+    const siens = await m.listClientActions({ userId: "u1" });
+    expect(siens.map((x) => x.geste)).toEqual(["ordre.depose"]);
+    expect(siens[0]).toMatchObject({ objet: "PF-0001", detail: "OTA 2031" });
+    expect(await m.listClientActions({ genre: "especes" })).toHaveLength(1);
+  });
+
+  it("refuse une seconde consultation du même objet le même jour", async () => {
+    delete (globalThis as { __guichetStore?: unknown }).__guichetStore;
+    const { memoryRepository: m } = await import("@/lib/data/memory");
+    const clef = clefDuJour("u1", "vu.fiche", "o1", "2026-10-10");
+    await m.logClientAction({ userId: "u1", geste: "vu.fiche", genre: "consultation", objet: "o1", clefDuJour: clef });
+    await m.logClientAction({ userId: "u1", geste: "vu.fiche", genre: "consultation", objet: "o1", clefDuJour: clef });
+    await m.logClientAction({ userId: "u1", geste: "vu.fiche", genre: "consultation", objet: "o2", clefDuJour: clefDuJour("u1", "vu.fiche", "o2", "2026-10-10") });
+    expect(await m.listClientActions({ userId: "u1" })).toHaveLength(2);
+  });
+
+  it("et la clef ne sort jamais du registre", async () => {
+    // Elle sert à refuser un doublon, pas à être lue : rien ne l'affiche.
+    delete (globalThis as { __guichetStore?: unknown }).__guichetStore;
+    const { memoryRepository: m } = await import("@/lib/data/memory");
+    await m.logClientAction({ userId: "u1", geste: "vu.fiche", genre: "consultation", objet: "o1", clefDuJour: "x" });
+    expect(Object.keys((await m.listClientActions({ userId: "u1" }))[0])).not.toContain("clefDuJour");
+  });
+});
