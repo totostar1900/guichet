@@ -185,11 +185,21 @@ export const RELATION: DocPage = {
           ),
         },
         {
+          type: "table",
+          head: [l("Le plafond", "The cap"), l("Ce qu il fait", "What it does")],
+          rows: [
+            [l("Deux étages", "Two tiers"), l("celui du compte vient du PV ; une personne peut en porter un plus bas quand le PV donne des pouvoirs inégaux. Le plus bas gagne : une délégation ne dépasse jamais le mandat dont elle sort.", "the account s comes from the minutes; a person may carry a lower one where the minutes give unequal powers. The lower wins: a delegation never exceeds the mandate it comes from.")],
+            [l("Il ne regarde que ce qui engage", "It only looks at what commits"), l("vendre, racheter des parts et sortir ses espèces ne sont jamais bornés : les borner enfermerait le groupe dans son compte.", "selling, redeeming units and withdrawing cash are never capped: capping them would lock the group inside its account.")],
+            [l("Il se dit avant, pas au refus", "It is said beforehand, not at the refusal"), l("le client le lit en haut de son espace. Le découvrir en butant dessus au moment de signer est une panne muette : il a déjà réuni le groupe.", "the client reads it at the top of their space. Discovering it by bumping into it at signing time is a silent failure: they have already gathered the group.")],
+            [l("Relever demande deux regards", "Raising requires two pairs of eyes"), l("abaisser, non. Élargir ce qu une personne engage seule est le même geste que lui donner un accès ; le restreindre doit pouvoir se faire d une main.", "lowering does not. Widening what one person commits alone is the same move as granting them access; restricting it must take one hand.")],
+          ],
+        },
+        {
           type: "note",
           kind: "warn",
           text: l(
-            "CE QUI N'EST PAS ENCORE FAIT, et qu'il ne faut pas croire fait. Le plafond par ordre que le PV d'un groupement fixe N'EST APPLIQUÉ NULLE PART : le client l'écrit dans un champ libre à l'ouverture, le desk le lit sur la fiche, et aucun code ne le vérifie. L'accès nommé est le socle qui rendra ce contrôle possible, puisqu'il faut d'abord savoir qui agit pour lui opposer une limite. Tant qu'il n'est pas posé, la règle du groupe est l'affaire du groupe, et le dire vaut mieux que le laisser croire.",
-            "WHAT IS NOT YET DONE, and must not be believed done. The per-order cap set by a group's minutes IS ENFORCED NOWHERE: the client writes it in a free field at opening, the desk reads it on the file, and no code checks it. Named access is the foundation that will make that control possible, since you must first know who is acting before you can hold them to a limit. Until it is in place, the group's rule is the group's business, and saying so beats letting it be believed.",
+            "LE PLAFOND PAR ORDRE DU PV EST APPLIQUÉ depuis le 11 octobre 2026, et il faut dire comment : PAS par une double signature. Demander deux signatures sur un ordre obligerait deux personnes à être devant leur téléphone au moment où une adjudication se clôt, et la place ne le fait nulle part. Ce que le PV veut dire est qu'au-delà d'un montant, le groupe ne veut pas qu'une seule personne engage la caisse d'un geste. Nous le tenons autrement : au-delà du plafond, l'ordre QUITTE LE LIBRE-SERVICE et se passe avec un conseiller, qui parle au groupe. Rien n'est refusé ; un chemin plus lent est imposé, ce qui est exactement le but.",
+            "THE PER-ORDER CAP OF THE MINUTES IS ENFORCED since 11 October 2026, and it must be said how: NOT by a double signature. Requiring two signatures on an order would force two people to be at their phone when an auction closes, and the market does it nowhere. What the minutes mean is that beyond an amount, the group does not want one person committing the fund in a single move. We hold it otherwise: beyond the cap, the order LEAVES SELF-SERVICE and is placed with an adviser, who speaks to the group. Nothing is refused; a slower path is imposed, which is exactly the point.",
           ),
         },
       ],

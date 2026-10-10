@@ -2,7 +2,8 @@ import "server-only";
 import { repo } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { sensDeLIntention } from "@/lib/domain/intent";
-import { peutAgir, type GesteEngageant, type Verdict } from "@/lib/domain/mesure";
+import { peutAgir, SENS_PAR_DEFAUT, type GesteEngageant, type Verdict } from "@/lib/domain/mesure";
+import { depasseLePlafond, direLePlafond, type PlafondEffectif } from "@/lib/domain/plafond-du-compte";
 import type { IntentType } from "@/lib/domain/types";
 
 /**
@@ -36,7 +37,20 @@ export async function garde(geste: GesteEngageant, opts: { couvert?: boolean; mo
      différemment. Le montant lui, vient de l'appelant : lui seul le connaît. */
   const couvert = opts.couvert ?? (opts.montant != null ? await provisionCouvre(s.userId, opts.montant) : undefined);
   const sens = opts.type ? sensDeLIntention(opts.type) : undefined;
-  return peutAgir(geste, { mesure: contact?.mesure, kycStatus: s.kycStatus, couvert, sens }, new Date());
+  const verdict = peutAgir(geste, { mesure: contact?.mesure, kycStatus: s.kycStatus, couvert, sens }, new Date());
+  if (!verdict.ok) return verdict;
+
+  /* LE PLAFOND DU PV, APPLIQUÉ APRÈS LES MESURES ET PAS AVANT.
+     L'ordre des deux compte pour ce que le client lit : un compte suspendu
+     dont l'ordre dépasse aussi le plafond doit s'entendre dire qu'il est
+     suspendu, parce que c'est la raison qui l'arrêtera de toute façon.
+     Le plafond vient de la session, où le dossier et l'accès ont déjà été
+     lus : rien n'est relu ici. */
+  const plafond: PlafondEffectif = s.plafondParOrdre != null ? { montant: s.plafondParOrdre, source: s.plafondSource ?? "compte" } : { source: "aucun" };
+  if (depasseLePlafond({ plafond, montant: opts.montant, sens: sens ?? SENS_PAR_DEFAUT[geste] })) {
+    return { ok: false, raison: direLePlafond(plafond, (n) => n.toLocaleString("fr-FR")) };
+  }
+  return verdict;
 }
 
 /** Le disponible d'un client couvre-t-il ce montant ? Réservé et affecté ne comptent pas : ils sont déjà pris. */

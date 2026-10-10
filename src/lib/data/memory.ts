@@ -183,6 +183,7 @@ function seedClientFiles(): ClientFile[] {
         country: "Cameroun",
         legalForm: "indivision de mandataires",
         decisionRule: "Double signature au-delà de 5 M FCFA par ordre",
+        plafondParOrdre: 5_000_000,
       },
       persons: [
         { role: "cotitulaire", name: "Esther Mballa", birthDate: "1981-07-19", idNumber: "551234987" },
@@ -665,6 +666,10 @@ export const memoryRepository: Repository = {
       a.personneUserId = personneUserId;
       a.premiereConnexionLe = new Date().toISOString();
     }
+  },
+  async fixerPlafondAcces(id, plafond) {
+    const a = store().acces.find((x) => x.id === id);
+    if (a) a.plafondParOrdre = plafond;
   },
   async revoquerAcces(id, par, motif) {
     const a = store().acces.find((x) => x.id === id);

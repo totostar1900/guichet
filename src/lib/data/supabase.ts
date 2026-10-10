@@ -886,7 +886,7 @@ function fail(ctx: string, error: { message: string } | null): never {
 type RefRow = { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null; draft?: unknown; draft_by?: string | null; draft_at?: string | null };
 const toReferenceRow = (r: RefRow): ReferenceRow => ({ kind: r.kind, key: r.key, data: r.data ?? null, updatedAt: r.updated_at, updatedBy: u(r.updated_by), ...(r.draft ? { draft: r.draft as ReferenceDraft, draftBy: u(r.draft_by ?? null), draftAt: r.draft_at ?? undefined } : {}) });
 
-type AccesRow = { id: string; compte_user_id: string; nom: string; role: string; canal: string; canal_valeur: string; personne_user_id: string | null; premiere_connexion_le: string | null; accorde_par: string; accorde_le: string; revoque_le: string | null; revoque_par: string | null; revoque_motif: string | null };
+type AccesRow = { id: string; compte_user_id: string; nom: string; role: string; canal: string; canal_valeur: string; personne_user_id: string | null; premiere_connexion_le: string | null; plafond_par_ordre: number | null; accorde_par: string; accorde_le: string; revoque_le: string | null; revoque_par: string | null; revoque_motif: string | null };
 const acces = (r: unknown): AccesCompte => {
   const x = r as AccesRow;
   return {
@@ -898,6 +898,7 @@ const acces = (r: unknown): AccesCompte => {
     canalValeur: x.canal_valeur,
     personneUserId: u(x.personne_user_id),
     premiereConnexionLe: u(x.premiere_connexion_le),
+    plafondParOrdre: x.plafond_par_ordre ?? undefined,
     accordePar: x.accorde_par,
     accordeLe: x.accorde_le,
     revoqueLe: u(x.revoque_le),
@@ -1305,7 +1306,7 @@ export const supabaseRepository: Repository = {
   async accorderAcces(a) {
     const { data, error } = await db()
       .from("acces_compte")
-      .insert({ compte_user_id: a.compteUserId, nom: a.nom, role: a.role, canal: a.canal, canal_valeur: a.canalValeur, accorde_par: a.accordePar })
+      .insert({ compte_user_id: a.compteUserId, nom: a.nom, role: a.role, canal: a.canal, canal_valeur: a.canalValeur, plafond_par_ordre: a.plafondParOrdre ?? null, accorde_par: a.accordePar })
       .select("*")
       .single();
     if (error) fail("accorderAcces", error);
@@ -1314,6 +1315,10 @@ export const supabaseRepository: Repository = {
   async lierAcces(id, personneUserId) {
     const { error } = await db().from("acces_compte").update({ personne_user_id: personneUserId, premiere_connexion_le: new Date().toISOString() }).eq("id", id);
     if (error) fail("lierAcces", error);
+  },
+  async fixerPlafondAcces(id, plafond) {
+    const { error } = await db().from("acces_compte").update({ plafond_par_ordre: plafond ?? null }).eq("id", id);
+    if (error) fail("fixerPlafondAcces", error);
   },
   async revoquerAcces(id, par, motif) {
     const { error } = await db().from("acces_compte").update({ revoque_le: new Date().toISOString(), revoque_par: par, revoque_motif: motif }).eq("id", id);

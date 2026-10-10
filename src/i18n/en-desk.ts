@@ -3264,4 +3264,13 @@ export const EN_MORE: Record<string, string> = {
   "retiré le {d} par {q}": "withdrawn on {d} by {q}",
   "geste de {q}": "move by {q}",
   "Représentant légal": "Legal representative",
+  /* Le plafond par ordre du PV, appliqué. */
+  "Plafond par ordre du compte, en francs": "Per-order cap for the account, in francs",
+  "vide : aucun plafond": "blank: no cap",
+  "Fixer": "Set",
+  "Au-delà, l'ordre ne se passe pas tout seul : il passe par un conseiller, qui parle au groupe. C'est l'intention du PV, tenue par les moyens que nous avons. Relever demande une seconde personne ; abaisser, non.":
+    "Above it, the order does not go through by itself: it goes through an adviser, who speaks to the group. That is the intention of the minutes, held by the means we have. Raising it requires a second person; lowering it does not.",
+  "Plafond propre": "Own cap",
+  "celui du compte": "the account's",
+  "aucun": "none",
 };

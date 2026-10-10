@@ -7,6 +7,7 @@ import { arretables } from "@/lib/domain/preavis";
 import { Annonce } from "./Annonce";
 import { diteAuClient } from "@/lib/domain/mesure";
 import { direLAcces } from "@/lib/domain/acces-nomme";
+import { direLePlafond } from "@/lib/domain/plafond-du-compte";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
@@ -58,6 +59,10 @@ export async function Console({ session }: { session: Session }) {
      page évite la seule erreur qui compte vraiment ici, croire qu on est
      chez soi. */
   const accesDit = direLAcces(session.agissant?.role, session.name);
+  /* LE PLAFOND SE DIT AVANT, PAS AU REFUS. Le découvrir en butant dessus au
+     moment de signer est une panne muette : le client a déjà réuni le
+     groupe et rempli son ordre. */
+  const plafondDit = session.plafondParOrdre != null ? direLePlafond({ montant: session.plafondParOrdre, source: session.plafondSource ?? "compte" }, (n) => n.toLocaleString("fr-FR")) : undefined;
   const [ctx, intents, offers, cash, payouts, preavis, standing] = await Promise.all([
     contexteDuClient(session.userId),
     r.listIntents(),
@@ -139,6 +144,12 @@ export async function Console({ session }: { session: Session }) {
       {accesDit && (
         <p className="panel" style={{ borderLeft: "2px solid var(--gold)", padding: "var(--s-5) var(--s-6)" }}>
           {accesDit}
+        </p>
+      )}
+
+      {plafondDit && (
+        <p className="panel" style={{ borderLeft: "2px solid var(--line)", padding: "var(--s-5) var(--s-6)", fontSize: ".88rem" }}>
+          {plafondDit}
         </p>
       )}
 

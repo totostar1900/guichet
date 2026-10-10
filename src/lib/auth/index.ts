@@ -39,6 +39,15 @@ export const getSession = cache(async (): Promise<Session | null> => {
       s.tier = f.status === "approuve" && f.review.custodianAccount && s.conventionAccepted ? 2 : 1;
       s.kycStatus = f.status;
       if (f.identity.name) s.name = f.identity.name;
+      /* LE PLAFOND PAR ORDRE, CALCULÉ ICI OÙ LES DEUX ÉTAGES SONT SOUS LA
+         MAIN : le dossier vient d'être lu, et l'accès a déposé le sien
+         au-dessus. Le plus bas gagne, parce qu'une délégation ne dépasse
+         jamais le mandat dont elle sort. Le garde le lira sans rien
+         relire. */
+      const { plafondEffectif } = await import("@/lib/domain/plafond-du-compte");
+      const p = plafondEffectif(f.identity.plafondParOrdre, s.plafondParOrdre);
+      s.plafondParOrdre = p.montant;
+      s.plafondSource = p.source === "aucun" ? undefined : p.source;
     }
   }
   return s;
@@ -86,7 +95,7 @@ async function résoudreLAcces(s: Session): Promise<Session> {
       }
     }
     if (!acces || acces.revoqueLe || acces.personneUserId !== s.userId) return s;
-    return { ...s, userId: acces.compteUserId, agissant: { accesId: acces.id, nom: acces.nom, role: acces.role } };
+    return { ...s, userId: acces.compteUserId, agissant: { accesId: acces.id, nom: acces.nom, role: acces.role }, plafondParOrdre: acces.plafondParOrdre };
   } catch {
     /* UNE LECTURE QUI ÉCHOUE NE DOIT PAS DÉCONNECTER TOUT LE MONDE : sans
        accès, la session reste celle de la personne, et c'est le cas de

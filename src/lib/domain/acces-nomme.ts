@@ -49,6 +49,8 @@ export interface AccesCompte {
   /** Lié à la première connexion, et plus jamais après. */
   personneUserId?: string;
   premiereConnexionLe?: string;
+  /** Le plafond par ordre de CETTE personne, quand le PV donne des pouvoirs inégaux. */
+  plafondParOrdre?: number;
   accordePar: string;
   accordeLe: string;
   revoqueLe?: string;

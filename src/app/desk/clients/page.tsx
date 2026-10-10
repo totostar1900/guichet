@@ -188,6 +188,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     fileId={selected.id}
                     candidats={selected.persons.filter((p) => peutRecevoirUnAcces(p.role)).map((p) => ({ nom: p.name, role: p.role as RoleQuiAgit }))}
                     acces={await repo().listAccesDuCompte(selected.userId).catch(() => [])}
+                    plafondDuCompte={selected.identity.plafondParOrdre}
                   />
                 )}
                 <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>

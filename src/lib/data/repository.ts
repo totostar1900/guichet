@@ -124,6 +124,8 @@ export interface Repository {
   accorderAcces(a: Omit<AccesCompte, "id" | "accordeLe">): Promise<AccesCompte>;
   /** La liaison de la première connexion : le canal devient un identifiant, une fois. */
   lierAcces(id: string, personneUserId: string): Promise<void>;
+  /** Le plafond par ordre d une personne ; rien pour le retirer et revenir à celui du compte. */
+  fixerPlafondAcces(id: string, plafond: number | undefined): Promise<void>;
   revoquerAcces(id: string, par: string, motif: string): Promise<void>;
   /** Le consentement aux informations par courrier : le service n’en dépend pas. */
   setEmailOptIn(id: string, optIn: boolean): Promise<void>;

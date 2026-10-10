@@ -42,6 +42,16 @@ export interface Session {
    * Absent, c'est le titulaire lui-même : le cas de l'immense majorité.
    */
   agissant?: { accesId: string; nom: string; role: "representant" | "cotitulaire" };
+  /**
+   * LE PLAFOND PAR ORDRE QUI S APPLIQUE À CETTE SESSION.
+   *
+   * Calculé une fois ici, où le dossier et l accès sont déjà lus : le plus
+   * bas du plafond du compte et de celui de la personne. Le garde le lit
+   * sans rien relire. Absent, il n y a pas de plafond.
+   */
+  plafondParOrdre?: number;
+  /** D où il vient, pour que la phrase du refus dise la vérité. */
+  plafondSource?: "compte" | "personne";
   /** Which auth backed this session : useful in the header and for debugging. */
   provider: "supabase" | "dev";
   /** Second factor: a verified TOTP factor exists, and this session entered its code (aal2). */

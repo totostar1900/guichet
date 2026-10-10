@@ -5,7 +5,7 @@ import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { fmtDateTime } from "@/lib/format";
 import { accesVivant, ROLE_ACCES_LABEL, type AccesCompte, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
-import { accorderAccesAction, revoquerAccesAction, type AccesResult } from "./acces-actions";
+import { accorderAccesAction, fixerPlafondAction, revoquerAccesAction, type AccesResult } from "./acces-actions";
 
 /**
  * QUI PEUT SE CONNECTER SUR CE COMPTE.
@@ -17,10 +17,11 @@ import { accorderAccesAction, revoquerAccesAction, type AccesResult } from "./ac
  * On choisit DANS les personnes du dossier, jamais en tapant un nom : ce qui
  * n'est pas déclaré n'existe pas.
  */
-export function AccesNommes({ fileId, candidats, acces }: { fileId: string; candidats: { nom: string; role: RoleQuiAgit }[]; acces: AccesCompte[] }) {
+export function AccesNommes({ fileId, candidats, acces, plafondDuCompte }: { fileId: string; candidats: { nom: string; role: RoleQuiAgit }[]; acces: AccesCompte[]; plafondDuCompte?: number }) {
   const t = useT();
   const [pose, accorder, enCours] = useActionState<AccesResult | null, FormData>(accorderAccesAction, null);
   const [retrait, revoquer] = useActionState<AccesResult | null, FormData>(revoquerAccesAction, null);
+  const [plaf, fixerPlafond] = useActionState<AccesResult | null, FormData>(fixerPlafondAction, null);
   const vivants = acces.filter(accesVivant);
   const anciens = acces.filter((a) => !accesVivant(a));
   const libres = candidats.filter((c) => !vivants.some((a) => a.nom === c.nom));
@@ -35,6 +36,24 @@ export function AccesNommes({ fileId, candidats, acces }: { fileId: string; cand
         )}
       </p>
 
+      {/* LE PLAFOND DU PV, ENFIN APPLIQUÉ. Il vivait dans un champ libre que
+          le client tapait et que personne ne vérifiait : une règle affichée
+          et non tenue est pire qu'une règle absente. */}
+      <form action={fixerPlafond} style={{ display: "flex", gap: "var(--s-4)", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "var(--s-4)" }}>
+        <input type="hidden" name="fileId" value={fileId} />
+        <label className="field">
+          {t("Plafond par ordre du compte, en francs")}
+          <input name="plafond" inputMode="numeric" autoComplete="off" defaultValue={plafondDuCompte ?? ""} placeholder={t("vide : aucun plafond")} style={{ width: "10rem" }} />
+        </label>
+        <button className="btn sm" type="submit">
+          {t("Fixer")}
+        </button>
+        <span className="muted" style={{ fontSize: ".82rem", flex: "1 1 24ch" }}>
+          {t("Au-delà, l'ordre ne se passe pas tout seul : il passe par un conseiller, qui parle au groupe. C'est l'intention du PV, tenue par les moyens que nous avons. Relever demande une seconde personne ; abaisser, non.")}
+        </span>
+      </form>
+      {plaf && <p className={plaf.ok ? "good-ink" : "crit-ink"}>{plaf.ok ? plaf.message : plaf.error}</p>}
+
       {vivants.length > 0 && (
         <div className="scroll-x">
           <table className="tbl">
@@ -42,6 +61,7 @@ export function AccesNommes({ fileId, candidats, acces }: { fileId: string; cand
               <tr>
                 <th>{t("Personne")}</th>
                 <th>{t("Se connecte avec")}</th>
+                <th>{t("Plafond propre")}</th>
                 <th>{t("Accordé")}</th>
                 <th>{t("Retirer")}</th>
               </tr>
@@ -57,6 +77,18 @@ export function AccesNommes({ fileId, candidats, acces }: { fileId: string; cand
                     <span className="mono">{a.canalValeur}</span>
                     <br />
                     <small className="muted">{a.premiereConnexionLe ? t("lié le {d}", { d: fmtDateTime(a.premiereConnexionLe) }) : t("jamais connecté : le premier code reçu liera l'accès")}</small>
+                  </td>
+                  <td>
+                    <form action={fixerPlafond} style={{ display: "flex", gap: "var(--s-3)", alignItems: "flex-end" }}>
+                      <input type="hidden" name="fileId" value={fileId} />
+                      <input type="hidden" name="accesId" value={a.id} />
+                      <label className="field">
+                        <input name="plafond" inputMode="numeric" autoComplete="off" defaultValue={a.plafondParOrdre ?? ""} placeholder={plafondDuCompte ? t("celui du compte") : t("aucun")} style={{ width: "7rem" }} />
+                      </label>
+                      <button className="btn sm ghost" type="submit">
+                        {t("Fixer")}
+                      </button>
+                    </form>
                   </td>
                   <td>
                     <small className="muted">

@@ -128,7 +128,12 @@ export interface ClientFile {
     idExpiresOn?: string;
     registration?: string; // RCCM / récépissé
     legalForm?: string; // SARL, SA, association déclarée, indivision de mandataires…
+    /* La phrase du PV, telle que le groupe l a écrite : elle se lit, elle ne
+       s applique pas. Un fait qui doit être tenu vit dans un champ, jamais
+       dans une phrase qu on réécrit. */
     decisionRule?: string; // groupements: double signature, plafond…
+    /** Le plafond par ordre que le PV fixe, en francs : au-delà, l ordre passe par un conseiller. */
+    plafondParOrdre?: number;
   };
   persons: KycPerson[];
   documents: KycDocument[];
