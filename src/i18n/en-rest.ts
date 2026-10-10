@@ -1299,4 +1299,5 @@ export const EN_REST: Record<string, string> = {
   " : le code suivra celui que vous aurez prouvé.": ": the code will follow the one you have proven.",
   "Rien ne marche ? Écrivez-nous depuis vos messages : un conseiller vous rappelle et nous vous l'envoyons autrement.":
     "Nothing works? Write to us from your messages: an adviser will call you back and we will send it another way.",
+  "Numéro, pour entrer par un accès nommé": "Number, to enter through a named access",
 };

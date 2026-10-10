@@ -107,6 +107,10 @@ const devSchema = z.object({
   role: z.enum(["client", "desk", "responsable"]),
   name: z.string().trim().min(2).max(60),
   segment: z.string().trim().max(80).optional(),
+  /* Le numéro sert à une seule chose en développement : exercer un accès
+     nommé. Sans lui, la connexion d essai ne porte aucun canal, et le socle
+     du compte à plusieurs mains ne se teste qu en forgeant un cookie. */
+  phone: z.string().trim().max(30).optional(),
   next: z.string().optional(),
 });
 
@@ -114,13 +118,14 @@ export async function devLogin(form: FormData): Promise<void> {
   if (authMode() !== "dev") return;
   const p = devSchema.safeParse(Object.fromEntries(form));
   if (!p.success) return;
-  const { role, name, segment, next } = p.data;
+  const { role, name, segment, phone, next } = p.data;
   const s: Session = {
     userId: `dev-${role}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     role,
     name,
     segment: role !== "client" ? "Desk Purpose Capital" : segment || "Personne physique",
     tier: role !== "client" ? 2 : 1,
+    ...(role === "client" && phone ? { phone, phoneVerified: true } : {}),
     provider: "dev",
     mfaEnrolled: true,
     mfaVerified: true,

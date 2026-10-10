@@ -3242,4 +3242,26 @@ export const EN_MORE: Record<string, string> = {
   "Le registre des personnes écartées": "The register of barred persons",
 
   "ne se dit pas à la personne": "never told to the person",
+
+  /* L'ACCÈS NOMMÉ : qui agit sur le compte d'une personne morale, d'une
+     association ou d'une indivision. Les rôles passent par t() depuis une
+     variable, et un cliquet les tient. */
+  "Qui peut se connecter sur ce compte": "Who may sign in on this account",
+  "{n} accès": "{n} access",
+  "Le compte garde son identifiant ; chaque personne nommée se connecte avec le sien, et ses gestes portent son nom. Donner un accès demande une seconde personne ; le retirer, non : fermer une porte dans l'urgence doit se faire d'une main.":
+    "The account keeps its own identity; each named person signs in with theirs, and their moves carry their name. Granting access requires a second person; withdrawing it does not: closing a door in a hurry must take one hand.",
+  "Se connecte avec": "Signs in with",
+  "Accordé": "Granted",
+  "lié le {d}": "bound on {d}",
+  "jamais connecté : le premier code reçu liera l'accès": "never signed in: the first code received will bind the access",
+  "a quitté le conseil": "has left the board",
+  "Personne déclarée": "Declared person",
+  "Où le code partira": "Where the code will go",
+  "Accorder l'accès": "Grant access",
+  "Aucune personne du dossier ne peut agir : déclarez un représentant légal ou un cotitulaire désigné. Un bénéficiaire effectif ne passe pas d'ordre.":
+    "No person in the file may act: declare a legal representative or a designated co-holder. A beneficial owner gives no orders.",
+  "Toutes les personnes qui peuvent agir ont leur accès.": "Everyone who may act has their access.",
+  "retiré le {d} par {q}": "withdrawn on {d} by {q}",
+  "geste de {q}": "move by {q}",
+  "Représentant légal": "Legal representative",
 };

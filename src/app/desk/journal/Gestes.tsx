@@ -70,6 +70,15 @@ export function Gestes({
                   <td>
                     <Link href={`/desk/journal?registre=gestes&client=${a.userId}`}>{noms.get(a.userId) ?? a.userId}</Link>
                     {demo.has(a.userId) && <span className="st"> {t("démo")}</span>}
+                    {/* LEQUEL DES TROIS. Un compte de société ou d indivision est
+                        tenu par plusieurs mains ; sans ce nom, la colonne dit le
+                        compte et tait la personne. */}
+                    {a.agissant && (
+                      <>
+                        <br />
+                        <small className="muted">{t("geste de {q}", { q: a.agissant })}</small>
+                      </>
+                    )}
                   </td>
                   <td>
                     <b>{t(GESTES[a.geste]?.auDesk ?? a.geste)}</b>

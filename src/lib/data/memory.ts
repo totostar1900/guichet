@@ -8,6 +8,7 @@ import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
+import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
 import type { TourVu } from "@/lib/domain/robots";
@@ -129,6 +130,7 @@ function seedClientFiles(): ClientFile[] {
   const day = (d: number) => new Date(Date.now() - d * 86400e3).toISOString();
   const jpo = emptyClientFile("c-jpo", "physique", "J.-P. Onana", { phone: "+237600000017", email: "jp.onana@example.cm" });
   const am = emptyClientFile("c-am", "physique", "A. M.", { phone: "+237600000011", email: "a.m@example.com" });
+  const tontine = emptyClientFile("c-tontine", "groupement", "Tontine Essos Solidarité", { phone: "+237600000055", email: "tontine.essos@example.cm" });
   return [
     {
       ...jpo,
@@ -166,6 +168,41 @@ function seedClientFiles(): ClientFile[] {
       submittedAt: day(40),
       createdAt: day(41),
       updatedAt: day(38),
+    },
+    /* UN COMPTE À PLUSIEURS MAINS, parce que le jeu d'essai n'en avait aucun.
+       Une tontine en indivision : deux cotitulaires désignés par l'assemblée,
+       une règle de décision, et un compte approuvé. Sans lui, l'accès nommé
+       ne peut pas s'exercer en local, et on ne voit pas ce qu'on construit. */
+    {
+      ...tontine,
+      id: "kyc-tontine",
+      status: "approuve",
+      identity: {
+        ...tontine.identity,
+        city: "Yaoundé",
+        country: "Cameroun",
+        legalForm: "indivision de mandataires",
+        decisionRule: "Double signature au-delà de 5 M FCFA par ordre",
+      },
+      persons: [
+        { role: "cotitulaire", name: "Esther Mballa", birthDate: "1981-07-19", idNumber: "551234987" },
+        { role: "cotitulaire", name: "Pascal Nkodo", birthDate: "1976-02-04", idNumber: "448877213" },
+      ],
+      documents: [
+        { kind: "recepisse", fileKey: "demo/tontine-recepisse.pdf", fileName: "recepisse.pdf", mimeType: "application/pdf", uploadedAt: day(30), verified: true },
+        { kind: "pv_mandataires", fileKey: "demo/tontine-pv.pdf", fileName: "pv-assemblee.pdf", mimeType: "application/pdf", uploadedAt: day(30), verified: true },
+        { kind: "piece_identite_recto", fileKey: "demo/tontine-cni.jpg", fileName: "cni-mballa.jpg", mimeType: "image/jpeg", uploadedAt: day(30), verified: true },
+        { kind: "rib", fileKey: "demo/tontine-rib.pdf", fileName: "rib.pdf", mimeType: "application/pdf", uploadedAt: day(30), verified: true },
+        { kind: "liste_membres", fileKey: "demo/tontine-membres.pdf", fileName: "membres.pdf", mimeType: "application/pdf", uploadedAt: day(30), verified: true },
+      ],
+      funds: { pep: false, source: "Cotisations des membres", expectedAmount: "10 à 50 M FCFA", bankName: "Afriland First Bank", bankAccount: "CM21 10005 00009 55512345678 01", bankHolder: "Tontine Essos Solidarité" },
+      profile: { category: "non_professionnel", objectives: "Faire fructifier la caisse", horizon: "3 à 5 ans", experience: "Première opération de marché", riskTolerance: "faible", lossCapacity: "moins de 10 %" },
+      consents: { dataAt: day(31), whatsappAt: day(31), conventionAt: day(29), conventionMethod: "code WhatsApp" },
+      review: { risk: "moyen", notes: "PV de l'assemblée vérifié, deux cotitulaires désignés.", reviewedBy: "Georges", reviewedAt: day(28), nextReviewOn: new Date(Date.now() + 3 * 365 * 86400e3).toISOString().slice(0, 10), custodianAccount: "ECB-CT-2026-00091" },
+      screening: { attestedBy: "Georges", attestedAt: day(28), lists: "ONU, UE, OFAC ; PPE : recherche presse", outcome: "aucun" },
+      submittedAt: day(30),
+      createdAt: day(31),
+      updatedAt: day(28),
     },
   ] as ClientFile[];
 }
@@ -220,6 +257,8 @@ interface Store {
   approvals: Approval[];
   push: PushSubscription[];
   clientFiles: ClientFile[];
+  /** Qui agit sur le compte d une personne morale, d une association ou d une indivision. */
+  acces: AccesCompte[];
   bulletins: MarketBulletin[];
   quotes: Quote[];
   fundNavs: FundNav[];
@@ -279,6 +318,7 @@ function store(): Store {
       remises: [],
       tirages: [],
       payouts: [],
+      acces: [],
       rapprochements: [],
       temoignages: [],
       preavis: [],
@@ -600,6 +640,39 @@ export const memoryRepository: Repository = {
   async setMesure(userId, mes) {
     const c = store().contacts.find((x) => x.id === userId);
     if (c) c.mesure = structuredClone(mes);
+  },
+
+  /* ---------------- Accès nommés ---------------- */
+  async listAccesDuCompte(compteUserId) {
+    return store().acces.filter((a) => a.compteUserId === compteUserId).map((a) => structuredClone(a));
+  },
+  async accesParCanal(canalValeur) {
+    const a = store().acces.find((x) => x.canalValeur === canalValeur && !x.revoqueLe);
+    return a ? structuredClone(a) : undefined;
+  },
+  async accesDeLaPersonne(personneUserId) {
+    const a = store().acces.find((x) => x.personneUserId === personneUserId && !x.revoqueLe);
+    return a ? structuredClone(a) : undefined;
+  },
+  async accorderAcces(a) {
+    const row = { ...structuredClone(a), id: `acc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`, accordeLe: new Date().toISOString() };
+    store().acces.push(row);
+    return structuredClone(row);
+  },
+  async lierAcces(id, personneUserId) {
+    const a = store().acces.find((x) => x.id === id);
+    if (a) {
+      a.personneUserId = personneUserId;
+      a.premiereConnexionLe = new Date().toISOString();
+    }
+  },
+  async revoquerAcces(id, par, motif) {
+    const a = store().acces.find((x) => x.id === id);
+    if (a) {
+      a.revoqueLe = new Date().toISOString();
+      a.revoquePar = par;
+      a.revoqueMotif = motif;
+    }
   },
   async setContactOptIn(id, optIn) {
     const c = store().contacts.find((x) => x.id === id);

@@ -89,6 +89,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   {t("Segment")}
                   <Select block name="segment" value="Personne physique · Yaoundé" options={["Personne physique · Yaoundé", "Personne physique · Douala", "Diaspora · Paris", "Groupement · Yaoundé", "Entreprise · Bangui", "Institutionnel · Libreville"].map((v) => ({ value: v, label: t(v) }))} />
                 </label>
+                <label className="field">
+                  {t("Numéro, pour entrer par un accès nommé")}
+                  <input name="phone" placeholder="+237600000077" autoComplete="off" />
+                </label>
                 <button className="btn primary" type="submit">
                   {t("Entrer comme client")}
                 </button>

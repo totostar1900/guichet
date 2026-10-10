@@ -128,6 +128,8 @@ export interface ActionClient {
   /** Le détail court qui s'affiche à côté de la phrase. */
   detail?: string;
   canal?: string;
+  /** La personne qui a fait le geste, quand le compte est à plusieurs. Vide, c est le titulaire. */
+  agissant?: string;
   ip?: string;
   userAgent?: string;
 }

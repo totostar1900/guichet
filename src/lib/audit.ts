@@ -17,7 +17,10 @@ export async function audit(action: string, entity: string, entityId: string, de
   try {
     const s = await getSession();
     if (s) {
-      actor = detail.actor ?? s.email ?? s.name;
+      /* QUI A AGI, et non pas seulement sur quel compte. Un représentant
+         légal ou un cotitulaire désigné agit sur un compte qui n est pas le
+         sien : sans son nom, l audit dirait le compte et tairait la main. */
+      actor = detail.actor ?? s.agissant?.nom ?? s.email ?? s.name;
       actorId = s.provider === "supabase" ? s.userId : undefined;
     }
   } catch {

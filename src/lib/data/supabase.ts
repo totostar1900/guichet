@@ -1,5 +1,6 @@
 import type { ActionClient } from "@/lib/domain/journal-client";
 import type { MesurePosee } from "@/lib/domain/mesure";
+import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
@@ -326,8 +327,8 @@ const toContact = (r: ProfileRow): Contact => ({ id: r.id, name: r.display_name 
 type StaffRow = { id: string; display_name: string | null; email: string | null; phone: string | null; role: string; mfa_enrolled_at: string | null; role_set_by: string | null; role_set_at: string | null };
 const STAFF_COLS = "id, display_name, email, phone, role, mfa_enrolled_at, role_set_by, role_set_at";
 const toStaff = (r: StaffRow): StaffMember => ({ id: r.id, name: r.display_name ?? r.email ?? r.id, email: u(r.email), phone: u(r.phone), role: r.role === "responsable" ? "responsable" : "desk", mfaEnrolledAt: u(r.mfa_enrolled_at), roleSetBy: u(r.role_set_by), roleSetAt: u(r.role_set_at) });
-type ActionRow = { id: string; at: string; user_id: string; geste: string; genre: string; objet: string | null; detail: string | null; canal: string | null; ip: string | null; user_agent: string | null };
-const toAction = (r: ActionRow): ActionClient => ({ id: r.id, at: r.at, userId: r.user_id, geste: r.geste, genre: r.genre as ActionClient["genre"], objet: u(r.objet), detail: u(r.detail), canal: u(r.canal), ip: u(r.ip), userAgent: u(r.user_agent) });
+type ActionRow = { id: string; at: string; user_id: string; geste: string; genre: string; objet: string | null; detail: string | null; canal: string | null; agissant: string | null; ip: string | null; user_agent: string | null };
+const toAction = (r: ActionRow): ActionClient => ({ id: r.id, at: r.at, userId: r.user_id, geste: r.geste, genre: r.genre as ActionClient["genre"], objet: u(r.objet), detail: u(r.detail), canal: u(r.canal), agissant: u(r.agissant), ip: u(r.ip), userAgent: u(r.user_agent) });
 type PushRow = { id: string; user_id: string; endpoint: string; keys: { p256dh: string; auth: string }; user_agent: string | null; created_at: string; failures: number };
 type AuditRow = { id: number; at: string; actor: string; actor_id: string | null; action: string; entity: string; entity_id: string; before: unknown; after: unknown; reason: string | null; ip: string | null; user_agent: string | null; prev_hash: string | null; hash: string };
 const toAudit = (r: AuditRow): AuditEntry => ({ id: String(r.id), at: r.at, actor: r.actor, actorId: u(r.actor_id), action: r.action, entity: r.entity, entityId: r.entity_id, before: r.before ?? undefined, after: r.after ?? undefined, reason: u(r.reason), ip: u(r.ip), userAgent: u(r.user_agent), prevHash: u(r.prev_hash), hash: r.hash });
@@ -885,6 +886,26 @@ function fail(ctx: string, error: { message: string } | null): never {
 type RefRow = { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null; draft?: unknown; draft_by?: string | null; draft_at?: string | null };
 const toReferenceRow = (r: RefRow): ReferenceRow => ({ kind: r.kind, key: r.key, data: r.data ?? null, updatedAt: r.updated_at, updatedBy: u(r.updated_by), ...(r.draft ? { draft: r.draft as ReferenceDraft, draftBy: u(r.draft_by ?? null), draftAt: r.draft_at ?? undefined } : {}) });
 
+type AccesRow = { id: string; compte_user_id: string; nom: string; role: string; canal: string; canal_valeur: string; personne_user_id: string | null; premiere_connexion_le: string | null; accorde_par: string; accorde_le: string; revoque_le: string | null; revoque_par: string | null; revoque_motif: string | null };
+const acces = (r: unknown): AccesCompte => {
+  const x = r as AccesRow;
+  return {
+    id: x.id,
+    compteUserId: x.compte_user_id,
+    nom: x.nom,
+    role: x.role as AccesCompte["role"],
+    canal: x.canal as AccesCompte["canal"],
+    canalValeur: x.canal_valeur,
+    personneUserId: u(x.personne_user_id),
+    premiereConnexionLe: u(x.premiere_connexion_le),
+    accordePar: x.accorde_par,
+    accordeLe: x.accorde_le,
+    revoqueLe: u(x.revoque_le),
+    revoquePar: u(x.revoque_par),
+    revoqueMotif: u(x.revoque_motif),
+  };
+};
+
 export const supabaseRepository: Repository = {
   async listOffers() {
     const { data, error } = await db().from("offers").select("*").neq("status", "draft").order("deadline_at");
@@ -1163,7 +1184,7 @@ export const supabaseRepository: Repository = {
        normal, pas une panne. */
     const { error } = await db()
       .from("client_actions")
-      .insert({ user_id: e.userId, geste: e.geste, genre: e.genre, objet: e.objet ?? null, detail: e.detail ?? null, canal: e.canal ?? null, ip: e.ip ?? null, user_agent: e.userAgent ?? null, clef_du_jour: e.clefDuJour ?? null });
+      .insert({ user_id: e.userId, geste: e.geste, genre: e.genre, objet: e.objet ?? null, detail: e.detail ?? null, canal: e.canal ?? null, agissant: e.agissant ?? null, ip: e.ip ?? null, user_agent: e.userAgent ?? null, clef_du_jour: e.clefDuJour ?? null });
     if (error && error.code !== "23505") console.error("logClientAction", error.message);
   },
   async listClientActions(filter = {}) {
@@ -1264,6 +1285,39 @@ export const supabaseRepository: Repository = {
       .update({ mesure: m.mesure, mesure_motif: m.motif ?? null, mesure_par: m.par ?? null, mesure_le: m.le ?? null, mesure_jusqu_au: m.jusquAu ?? null })
       .eq("id", userId);
     if (error) fail("setMesure", error);
+  },
+  /* ---------------- Accès nommés ---------------- */
+  async listAccesDuCompte(compteUserId) {
+    const { data, error } = await db().from("acces_compte").select("*").eq("compte_user_id", compteUserId).order("accorde_le", { ascending: false });
+    if (error) fail("listAccesDuCompte", error);
+    return (data ?? []).map(acces);
+  },
+  async accesParCanal(canalValeur) {
+    const { data, error } = await db().from("acces_compte").select("*").eq("canal_valeur", canalValeur).is("revoque_le", null).maybeSingle();
+    if (error) fail("accesParCanal", error);
+    return data ? acces(data) : undefined;
+  },
+  async accesDeLaPersonne(personneUserId) {
+    const { data, error } = await db().from("acces_compte").select("*").eq("personne_user_id", personneUserId).is("revoque_le", null).maybeSingle();
+    if (error) fail("accesDeLaPersonne", error);
+    return data ? acces(data) : undefined;
+  },
+  async accorderAcces(a) {
+    const { data, error } = await db()
+      .from("acces_compte")
+      .insert({ compte_user_id: a.compteUserId, nom: a.nom, role: a.role, canal: a.canal, canal_valeur: a.canalValeur, accorde_par: a.accordePar })
+      .select("*")
+      .single();
+    if (error) fail("accorderAcces", error);
+    return acces(data);
+  },
+  async lierAcces(id, personneUserId) {
+    const { error } = await db().from("acces_compte").update({ personne_user_id: personneUserId, premiere_connexion_le: new Date().toISOString() }).eq("id", id);
+    if (error) fail("lierAcces", error);
+  },
+  async revoquerAcces(id, par, motif) {
+    const { error } = await db().from("acces_compte").update({ revoque_le: new Date().toISOString(), revoque_par: par, revoque_motif: motif }).eq("id", id);
+    if (error) fail("revoquerAcces", error);
   },
   async setContactOptIn(id, optIn) {
     const { error } = await db().from("profiles").update({ whatsapp_opt_in: optIn, whatsapp_opt_in_at: optIn ? new Date().toISOString() : null }).eq("id", id);

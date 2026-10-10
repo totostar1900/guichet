@@ -30,6 +30,18 @@ export interface Session {
    * ceci.
    */
   conventionAccepted?: boolean;
+  /**
+   * QUI AGIT, QUAND CE N'EST PAS LE COMPTE LUI-MÊME.
+   *
+   * `userId` reste le COMPTE : positions, espèces, ordres et documents y sont
+   * rangés, et rien dans le domaine n'a eu à changer. Ce champ dit la
+   * PERSONNE qui tient le clavier, quand un représentant légal ou un
+   * cotitulaire désigné se connecte sur le compte d'une société, d'une
+   * association ou d'une indivision.
+   *
+   * Absent, c'est le titulaire lui-même : le cas de l'immense majorité.
+   */
+  agissant?: { accesId: string; nom: string; role: "representant" | "cotitulaire" };
   /** Which auth backed this session : useful in the header and for debugging. */
   provider: "supabase" | "dev";
   /** Second factor: a verified TOTP factor exists, and this session entered its code (aal2). */

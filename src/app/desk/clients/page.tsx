@@ -11,6 +11,8 @@ import { INGREDIENT_LABEL } from "@/lib/domain/activite";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
 import { RegistreBand } from "@/components/desk/RegistreBand";
+import { AccesNommes } from "./AccesNommes";
+import { peutRecevoirUnAcces, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
 import { correspondancesDuDossier } from "@/lib/desk/registre-data";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
 import { ClientActs, type ActOperation, type ActPosition } from "./ClientActs";
@@ -177,6 +179,17 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   </div>
                 )}
                 <MesureForm userId={selected.userId} posee={compte?.mesure} />
+                {/* UN COMPTE QUI N'EST PAS UNE PERSONNE PHYSIQUE EST TENU PAR
+                    PLUSIEURS MAINS. L'écran ne paraît que là : proposer de
+                    nommer d'autres accès sur le compte d'un particulier
+                    rouvrirait la procuration par la porte de service. */}
+                {selected.kind !== "physique" && (
+                  <AccesNommes
+                    fileId={selected.id}
+                    candidats={selected.persons.filter((p) => peutRecevoirUnAcces(p.role)).map((p) => ({ nom: p.name, role: p.role as RoleQuiAgit }))}
+                    acces={await repo().listAccesDuCompte(selected.userId).catch(() => [])}
+                  />
+                )}
                 <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>
                   {t("Ce qu'il a traité avec nous")}
                 </Link>

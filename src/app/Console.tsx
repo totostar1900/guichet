@@ -6,6 +6,7 @@ import { cashPosition } from "@/lib/domain/cash";
 import { arretables } from "@/lib/domain/preavis";
 import { Annonce } from "./Annonce";
 import { diteAuClient } from "@/lib/domain/mesure";
+import { direLAcces } from "@/lib/domain/acces-nomme";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
@@ -52,6 +53,11 @@ export async function Console({ session }: { session: Session }) {
      React fait que cette page le lit sans le repayer. */
   const moi = await r.getContact(session.userId).catch(() => undefined);
   const mesureDite = diteAuClient(moi?.mesure);
+  /* SUR QUEL COMPTE J AGIS, et à quel titre. Un représentant légal qui se
+     connecte voit le portefeuille d une société : le lui dire en haut de
+     page évite la seule erreur qui compte vraiment ici, croire qu on est
+     chez soi. */
+  const accesDit = direLAcces(session.agissant?.role, session.name);
   const [ctx, intents, offers, cash, payouts, preavis, standing] = await Promise.all([
     contexteDuClient(session.userId),
     r.listIntents(),
@@ -130,6 +136,12 @@ export async function Console({ session }: { session: Session }) {
           découvre en butant dessus est une panne muette : il croit avoir mal
           cliqué. Le motif de conformité, lui, ne se dit jamais, et ce silence
           est la loi, pas une pudeur. */}
+      {accesDit && (
+        <p className="panel" style={{ borderLeft: "2px solid var(--gold)", padding: "var(--s-5) var(--s-6)" }}>
+          {accesDit}
+        </p>
+      )}
+
       {mesureDite && (
         <p className="panel" style={{ borderLeft: "2px solid var(--crit)", padding: "var(--s-5) var(--s-6)" }}>
           {mesureDite}

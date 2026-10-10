@@ -31,7 +31,8 @@ export async function noter(
       console.error(`journal : geste inconnu « ${geste} »`);
       return;
     }
-    const userId = detail.userId ?? (await getSession())?.userId;
+    const session = await getSession();
+    const userId = detail.userId ?? session?.userId;
     if (!userId) return; // un visiteur sans compte n'a pas de journal
 
     let ip: string | undefined;
@@ -51,6 +52,10 @@ export async function noter(
       objet: detail.objet,
       detail: detail.detail,
       canal: detail.canal,
+      /* QUI A FAIT LE GESTE, quand le compte est à plusieurs : sans ce nom,
+         « le compte a déposé un ordre » ne répond pas à la question que l on
+         pose toujours en premier, lequel des trois. */
+      agissant: detail.userId ? undefined : session?.agissant?.nom,
       ip,
       userAgent,
       clefDuJour: estQuotidien(geste) ? clefDuJour(userId, geste, detail.objet, new Date().toISOString().slice(0, 10)) : undefined,

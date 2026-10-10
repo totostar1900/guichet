@@ -74,6 +74,9 @@ describe("la procuration n'existe plus", () => {
        indivision sont des cotitulaires, jamais des tiers à qui l'on délègue. */
     const permis = new Set([
       "src/lib/kyc/checklist.ts",
+      // Le jeu d essai porte une tontine : « indivision de mandataires » est le
+      // nom de la forme, et « pv_mandataires » celui de l acte du groupe.
+      "src/lib/data/memory.ts",
       "src/data/docs/fonctionnement.ts",
       "src/data/docs/aide.ts",
       "src/data/docs/relation.ts",

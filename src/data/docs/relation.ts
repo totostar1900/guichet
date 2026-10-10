@@ -97,7 +97,7 @@ export const RELATION: DocPage = {
     },
     {
       id: "donneur-d-ordres",
-      title: l("Un seul donneur d'ordres", "A single order-giver"),
+      title: l("Un seul donneur d'ordres, et les comptes à plusieurs mains", "A single order-giver, and accounts with several hands"),
       blocks: [
         {
           type: "lead",
@@ -146,6 +146,50 @@ export const RELATION: DocPage = {
           text: l(
             "Le seul cas où la position cesse de dépendre du titulaire est son décès : elle est alors conservée jusqu'à instruction des ayants droit dûment justifiés, et c'est l'article 9 qui le règle, pas une procuration.",
             "The only case where the position stops depending on the holder is their death: it is then kept until instructed by the duly evidenced heirs, and article 9 settles that, not a power of attorney.",
+          ),
+        },
+        {
+          type: "lead",
+          text: l(
+            "QUAND LE TITULAIRE N'EST PAS UNE PERSONNE PHYSIQUE, IL A PLUSIEURS MAINS, et chacune a désormais sa clef. Un compte porte un identifiant, donc une connexion : pour une société, une association ou une indivision, deux ou trois personnes la partageaient. Le journal ne pouvait jamais dire laquelle avait agi, retirer quelqu'un du conseil obligeait à changer le code de tout le monde, et la règle de décision d'un PV ne pouvait pas exister derrière un seul jeu d'identifiants.",
+            "WHEN THE HOLDER IS NOT A NATURAL PERSON, IT HAS SEVERAL HANDS, and each now has its own key. An account carries one identity, hence one sign-in: for a company, an association or an undivided account, two or three people shared it. The log could never say which one had acted, removing someone from the board meant changing everyone's code, and the decision rule of a minute could not exist behind a single set of credentials.",
+          ),
+        },
+        {
+          type: "steps",
+          items: [
+            l(
+              "L'accès se donne depuis le dossier, à une personne DÉCLARÉE et qui peut agir : un représentant légal, un cotitulaire désigné. Un bénéficiaire effectif n'en reçoit pas, parce que détenir plus de 25 % n'est pas agir. Taper un nom libre reviendrait à recréer la procuration par la porte de service.",
+              "Access is granted from the file, to a DECLARED person who may act: a legal representative, a designated co-holder. A beneficial owner gets none, because holding more than 25 % is not acting. Typing a free name would recreate the power of attorney through the back door.",
+            ),
+            l(
+              "Il se donne à un NUMÉRO OU UNE ADRESSE, pas à un compte : le desk n'a de compte à créer pour personne. Le premier code reçu à ce canal lie l'accès à l'identité qui l'a reçu, une fois, et le canal cesse alors de suffire.",
+              "It is granted to a NUMBER OR AN ADDRESS, not to an account: the desk has no account to create for anybody. The first code received at that channel binds the access to the identity that received it, once, and the channel then stops being enough.",
+            ),
+            l(
+              "La personne se connecte avec son propre code et arrive sur le compte, que l'écran lui nomme en haut de page. Le compte reste le titulaire : les positions, les espèces et les documents ne bougent pas. Ce qui change est que CHAQUE GESTE PORTE LE NOM DE LA MAIN qui l'a fait, au registre des gestes comme à l'audit.",
+              "The person signs in with their own code and lands on the account, which the screen names at the top of the page. The account remains the holder: positions, cash and documents do not move. What changes is that EVERY MOVE CARRIES THE NAME OF THE HAND that made it, in the register of moves as in the audit.",
+            ),
+            l(
+              "Donner un accès demande une seconde personne ; le retirer, non. Fermer une porte dans l'urgence doit se faire d'une main ; c'est l'ouvrir qui mérite deux regards.",
+              "Granting access requires a second person; withdrawing it does not. Closing a door in a hurry must take one hand; it is opening it that deserves two pairs of eyes.",
+            ),
+          ],
+        },
+        {
+          type: "note",
+          kind: "info",
+          text: l(
+            "LE SECOND REGARD EST PLACÉ LÀ OÙ LA PLACE LE MET, et pas sur les ordres. Interactive Brokers n'impose pas deux personnes sur une transaction : il les impose sur l'ajout d'un utilisateur et sur le changement de ses droits. La raison est bonne, et nous la reprenons : un ordre est borné par un plafond, réversible et tracé ; donner à quelqu'un la main sur un compte ne l'est pas. Un ordre à deux signatures paralyserait le compte sans fermer le vrai risque.",
+            "THE SECOND PAIR OF EYES SITS WHERE THE MARKET PUTS IT, and not on orders. Interactive Brokers does not require two people on a trade: it requires them on adding a user and on changing their rights. The reason is sound, and we take it: an order is capped, reversible and traced; giving someone the keys to an account is not. A two-signature order would paralyse the account without closing the real risk.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "CE QUI N'EST PAS ENCORE FAIT, et qu'il ne faut pas croire fait. Le plafond par ordre que le PV d'un groupement fixe N'EST APPLIQUÉ NULLE PART : le client l'écrit dans un champ libre à l'ouverture, le desk le lit sur la fiche, et aucun code ne le vérifie. L'accès nommé est le socle qui rendra ce contrôle possible, puisqu'il faut d'abord savoir qui agit pour lui opposer une limite. Tant qu'il n'est pas posé, la règle du groupe est l'affaire du groupe, et le dire vaut mieux que le laisser croire.",
+            "WHAT IS NOT YET DONE, and must not be believed done. The per-order cap set by a group's minutes IS ENFORCED NOWHERE: the client writes it in a free field at opening, the desk reads it on the file, and no code checks it. Named access is the foundation that will make that control possible, since you must first know who is acting before you can hold them to a limit. Until it is in place, the group's rule is the group's business, and saying so beats letting it be believed.",
           ),
         },
       ],
