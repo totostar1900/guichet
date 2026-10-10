@@ -282,7 +282,8 @@ export async function generateTransferOrder(file: ClientFile, closure: Closure, 
 }
 
 /* ---------------- Rapport d'activité (COSUMAF) ---------------- */
-import { activity, clientRegister, orderJournal, sansLaDemo, type Period } from "@/lib/reporting";
+import { sansLaDemo } from "@/lib/domain/demo";
+import { activity, clientRegister, orderJournal, type Period } from "@/lib/reporting";
 import { RapportActivite } from "./pdf/report-templates";
 
 /** Periodic activity report, rendered on demand from the same rows as the reporting page (not stored: reproducible). */

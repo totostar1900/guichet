@@ -646,6 +646,8 @@ export const EN_REST: Record<string, string> = {
   "{c} compte(s) de démonstration sont écartés de cette page, du CSV et du PDF : {d} dossier(s) et {o} ordre(s).":
     "{c} demonstration account(s) are left out of this page, of the CSV and of the PDF: {d} file(s) and {o} order(s).",
   "Compte de démonstration : écarté du reporting réglementaire.": "Demonstration account: left out of regulatory reporting.",
+  "Compte de démonstration : écarté du reporting et de Santé.": "Demonstration account: left out of reporting and of Health.",
+  "dont {k} de démonstration, hors reporting et hors Santé": "of which {k} are demonstration ones, outside reporting and outside Health",
   "démo": "demo",
   "Comptes ouverts · encours": "Accounts opened · outstanding",
   "Positions en conservation": "Positions in custody",

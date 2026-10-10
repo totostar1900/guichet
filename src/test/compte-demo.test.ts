@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { clientRegister, orderJournal, sansLaDemo } from "@/lib/reporting";
+import { sansLaDemo } from "@/lib/domain/demo";
+import { clientRegister, orderJournal } from "@/lib/reporting";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { Intent } from "@/lib/domain/types";
 
@@ -113,5 +114,52 @@ describe("la règle s'applique aux trois pièces, et nulle part ailleurs", () =>
     expect(sb).toMatch(/const PROFILE_COLS = ".*, demo";/);
     expect(sb).toMatch(/demo: Boolean\(r\.demo\)/);
     expect(lire("supabase/migrations/0080_compte_de_demonstration.sql")).toMatch(/alter table profiles add column if not exists demo boolean not null default false/);
+  });
+});
+
+/**
+ * LA DISTINCTION QUI PORTE TOUT : COMPTER N'EST PAS TRAVAILLER.
+ *
+ * La règle a été étendue à Santé et au carnet le 10 octobre 2026. Mais un
+ * carnet qui écarterait les ordres de démonstration de sa FILE rendrait
+ * impossible de montrer le desk en train d'en traiter un, c'est-à-dire la
+ * seule raison d'avoir gardé ces comptes. Ce qui compte ou se rapporte les
+ * écarte ; ce qui se travaille les garde et les marque.
+ */
+describe("compter les écarte, travailler les garde", () => {
+  const lire = (f: string) => readFileSync(f, "utf8");
+
+  it("Santé ne relance pas un versement de démonstration", () => {
+    /* Sinon le point monterait sans que personne puisse l'éteindre : on
+       relancerait la maison elle-même. */
+    const h = lire("src/lib/health.ts");
+    expect(h).toMatch(/const ordres = tousLesOrdres\.filter\(\(i\) => !ordreDeDemo\(demo, i\.clientId\)\)/);
+    expect(h).toMatch(/ecartesDeDemo\(tousLesOrdres\.length - ordres\.length\)/);
+  });
+
+  it("et ne compte pas un détenteur de démonstration dans l'urgence d'une ligne", () => {
+    expect(lire("src/lib/health.ts")).toMatch(/const intents = tousLesOrdres\.filter\(\(i\) => !ordreDeDemo\(demo, i\.clientId\)\)/);
+  });
+
+  it("un point de Santé dit ce qu'il a laissé dehors", () => {
+    // Un écart silencieux et un point qui n'a rien vu se ressemblent.
+    expect(lire("src/lib/health.ts")).toMatch(/ligne\(s\) de comptes de démonstration écartées/);
+  });
+
+  it("le carnet garde l'ordre dans la file, et le marque", () => {
+    const c = lire("src/app/desk/page.tsx");
+    // Aucun filtrage de la liste : la file reste entière.
+    expect(c).not.toMatch(/intents\.filter\(\(i\) => !ordreDeDemo/);
+    expect(c).toMatch(/ordreDeDemo\(demo, i\.clientId\) && <span className="st"/);
+    expect(c).toMatch(/dont \{k\} de démonstration, hors reporting et hors Santé/);
+  });
+
+  it("et la règle a un seul domicile, le domaine", () => {
+    /* Quatre copies de « qu'est-ce qu'un compte de démonstration » finiraient
+       par ne pas dire pareil, et l'écart se lirait dans une pièce envoyée. */
+    for (const f of ["src/app/desk/reporting/page.tsx", "src/app/desk/reporting/export/route.ts", "src/lib/documents/generate.ts", "src/lib/health.ts", "src/app/desk/page.tsx"]) {
+      expect(lire(f), f).toMatch(/from "@\/lib\/domain\/demo"/);
+    }
+    expect(lire("src/lib/reporting.ts")).not.toMatch(/sansLaDemo/);
   });
 });

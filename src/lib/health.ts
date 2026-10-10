@@ -11,6 +11,7 @@ import { JOURS_AVANT_ALERTE } from "@/lib/domain/virement";
 import { JOURS_AVANT_RELANCE } from "@/lib/domain/standing";
 import { addBusinessDays } from "@/lib/finance";
 import { ageDeLaRemise, sansNouvelle } from "@/lib/domain/prelevement";
+import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
 import { joursDAttente, propositions, sansResultat } from "@/lib/results/depouillement";
@@ -165,7 +166,12 @@ export async function lineIssues(): Promise<LineIssue[]> {
   if (bulletins.length === 0) return [];
   const quotesByDate = new Map<string, Awaited<ReturnType<typeof r.quotesOn>>>();
   await Promise.all(bulletins.map(async (b) => quotesByDate.set(b.sessionDate, await r.quotesOn(b.sessionDate))));
-  const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
+  const [offers, tousLesOrdres, contacts] = await Promise.all([r.listOffers(), r.listIntents(), r.listContacts().catch(() => [])]);
+  /* Un compte de démonstration qui détient une ligne ne rend pas son écart
+     plus urgent : personne n'a d'argent dessus. La même règle qu'au
+     reporting, décidée le 10 octobre 2026. */
+  const demo = comptesDemo(contacts);
+  const intents = tousLesOrdres.filter((i) => !ordreDeDemo(demo, i.clientId));
   // qui détient encore la ligne : c'est ce qui décide de l'urgence, pas la ligne elle-même
   const holdersByOffer = new Map<string, number>();
   for (const p of positionsFrom(intents, offers)) {
@@ -174,6 +180,15 @@ export async function lineIssues(): Promise<LineIssue[]> {
   }
   return reconcileLines({ offers, bulletins, quotesByDate, holdersByOffer });
 }
+
+/**
+ * CE QU'UN POINT A LAISSÉ DEHORS, DIT EN BOUT DE PHRASE.
+ *
+ * Un point de Santé qui écarte des lignes sans le dire ressemble trait pour
+ * trait à un point qui ne les a jamais vues. La phrase est la même partout,
+ * et elle disparaît quand il n'y a rien à écarter.
+ */
+const ecartesDeDemo = (n: number): string => (n > 0 ? ` · ${n} ligne(s) de comptes de démonstration écartées` : "");
 
 /** Business days between two dates (Mon–Fri, holidays not known). */
 function businessDaysBetween(from: string, to: string): number {
@@ -473,7 +488,14 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
      mois, et un client qui ne vire jamais accumulait des ordres confirmés que
      rien ne relançait. Cinq jours ouvrés : le délai d'un virement de place
      plus un jour, au-delà duquel ce n'est plus un virement en route. */
-  const ordres = await r.listIntents().catch(() => []);
+  const [tousLesOrdres, contacts] = await Promise.all([r.listIntents().catch(() => []), r.listContacts().catch(() => [])]);
+  /* LES COMPTES DE DÉMONSTRATION NE SE RELANCENT PAS. Ils existent pour
+     montrer le service, et un versement d'essai jamais réglé ferait monter un
+     point que personne ne pourrait éteindre : on relancerait la maison
+     elle-même. La même règle qu'au reporting, décidée le 10 octobre 2026, et
+     le point dit qu'il l'applique. */
+  const demo = comptesDemo(contacts);
+  const ordres = tousLesOrdres.filter((i) => !ordreDeDemo(demo, i.clientId));
   const versements = ordres.filter((i) => i.standingId && i.state === "confirmee" && !i.coveredAt);
   const limite = addBusinessDays(now, -JOURS_AVANT_RELANCE).toISOString();
   const versementsEnRetard = versements.filter((i) => i.createdAt < limite);
@@ -483,11 +505,12 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     label: "Versements programmés non réglés",
     level: versementsEnRetard.length ? "warn" : "ok",
     value: `${versementsEnRetard.length} / ${versements.length}`,
-    detail: plusVieuxVersement
-      ? `le plus ancien attend depuis le ${plusVieuxVersement.createdAt.slice(0, 10)} : ${(plusVieuxVersement.amount ?? 0).toLocaleString("fr-FR")} FCFA, ${plusVieuxVersement.clientName}`
-      : versements.length
-        ? "tous attendent depuis moins de cinq jours ouvrés"
-        : "aucun versement programmé n'attend son règlement",
+    detail:
+      (plusVieuxVersement
+        ? `le plus ancien attend depuis le ${plusVieuxVersement.createdAt.slice(0, 10)} : ${(plusVieuxVersement.amount ?? 0).toLocaleString("fr-FR")} FCFA, ${plusVieuxVersement.clientName}`
+        : versements.length
+          ? "tous attendent depuis moins de cinq jours ouvrés"
+          : "aucun versement programmé n'attend son règlement") + ecartesDeDemo(tousLesOrdres.length - ordres.length),
   });
 
   /* LES GESTES PASSÉS SANS SECOND REGARD.

@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
-import { clientRegister, defaultPeriod, orderJournal, sansLaDemo, toCsv, type Period } from "@/lib/reporting";
+import { sansLaDemo } from "@/lib/domain/demo";
+import { clientRegister, defaultPeriod, orderJournal, toCsv, type Period } from "@/lib/reporting";
 
 /** CSV exports for the regulator and the auditors : desk only. */
 export async function GET(req: NextRequest) {

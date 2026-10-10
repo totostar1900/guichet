@@ -17,6 +17,7 @@ import { TodayPanel, type Tile } from "./today/TodayPanel";
 import { todayTiles } from "./today/today";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
+import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -30,7 +31,13 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
-  const [offers, intents, events, notifications, approvals] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20), r.listApprovals(true)]);
+  const [offers, intents, events, notifications, approvals, contacts] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20), r.listApprovals(true), r.listContacts().catch(() => [])]);
+  /* LE CARNET EST UNE FILE DE GESTES, PAS UN CHIFFRE : un ordre de
+     démonstration y RESTE, sinon on ne pourrait plus montrer le desk en train
+     de le traiter, ce qui est la seule raison de garder ces comptes. Il porte
+     sa marque, et le compte des intentions dit sa part. */
+  const demo = comptesDemo(contacts);
+  const deDemo = intents.filter((i) => ordreDeDemo(demo, i.clientId)).length;
   const now = new Date();
   const byId = new Map(offers.map((o) => [o.id, o]));
 
@@ -192,6 +199,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
             <h2>{t("Intentions reçues")}</h2>
             <span className="muted" style={{ fontSize: ".8rem" }}>
               {t("{n} au total · {m} à traiter", { n: intents.length, m: todo })}{shown.length !== intents.length ? ` · ${t(shown.length > 1 ? "{k} affichées" : "{k} affichée", { k: shown.length })}` : ""}
+              {/* Le chiffre dit sa part de démonstration, parce qu'un total
+                  qui mélange les deux sans le dire se cite ensuite ailleurs. */}
+              {deDemo > 0 ? ` · ${t("dont {k} de démonstration, hors reporting et hors Santé", { k: deDemo })}` : ""}
             </span>
           </div>
           <Toolbar
@@ -237,6 +247,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                       </td>
                       <td className="who">
                         {i.clientName}
+                        {ordreDeDemo(demo, i.clientId) && <span className="st" title={t("Compte de démonstration : écarté du reporting et de Santé.")}>{t("démo")}</span>}
                         <small>{i.clientSegment}</small>
                       </td>
                       <td>
