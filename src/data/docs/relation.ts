@@ -18,6 +18,12 @@ export const RELATION: DocPage = {
         { type: "lead", text: l("Un client passe par six moments : il découvre, il comprend, il déclare, il est rappelé, il est servi, il suit. Guichet porte les trois premiers et le dernier ; le desk porte les deux du milieu, et c'est là que la relation se fait.", "A client goes through six moments: they discover, they understand, they declare, they are called back, they are served, they follow. Guichet carries the first three and the last; the desk carries the two in the middle, and that is where the relationship is made.") },
         { type: "diagram", kind: "relation", caption: l("Les six moments ; en or, ceux où une personne du desk parle au client.", "The six moments; in gold, those where a desk person speaks to the client.") },
         {
+          type: "link",
+          href: "/desk/docs/clientele",
+          label: l("Connaître sa clientèle", "Knowing the clientele"),
+          hint: l("Cette page dit comment le desk parle au client ; l'autre dit ce que la maison sait de lui, ce qu'elle en déduit et ce qu'elle peut décider.", "This page says how the desk speaks to the client; the other says what the firm knows of them, what it infers and what it may decide."),
+        },
+        {
           type: "table",
           head: [l("Moment", "Moment"), l("Ce que fait Guichet", "What Guichet does"), l("Ce que fait le desk", "What the desk does"), l("Trace", "Trace")],
           rows: [
