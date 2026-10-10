@@ -18,6 +18,7 @@ import { todayTiles } from "./today/today";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
 import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
+import { cohortesDeTous } from "@/lib/desk/cohortes-data";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -37,6 +38,9 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
      de le traiter, ce qui est la seule raison de garder ces comptes. Il porte
      sa marque, et le compte des intentions dit sa part. */
   const demo = comptesDemo(contacts);
+  /* Les cohortes se comptent ici pour le choix du segment : écrire aux
+     « Fidèles » sans savoir combien ils sont, c est écrire à l aveugle. */
+  const cohortes = await cohortesDeTous().catch(() => ({ comptes: {}, parClient: new Map(), bareme: 0 }));
   const deDemo = intents.filter((i) => ordreDeDemo(demo, i.clientId)).length;
   const now = new Date();
   const byId = new Map(offers.map((o) => [o.id, o]));
@@ -192,7 +196,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         <TodayPanel tiles={[...today_.tiles, ...kpis]} bulletin={today_.bulletin} today={today_.today} />
 
         <div id="une" />
-        <FeaturePanel active={featActive} candidates={featCandidates} />
+        <FeaturePanel active={featActive} candidates={featCandidates} comptes={cohortes.comptes} />
 
         <div className="panel" id="intentions" data-coach="intents">
           <div className="panel-h">

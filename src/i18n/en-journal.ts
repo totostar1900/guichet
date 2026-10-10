@@ -88,6 +88,15 @@ export const EN_JOURNAL: Record<string, string> = {
   Barème: "Scale",
   retour: "back",
 
+  /* Les quatre cohortes, et ce qui les définit. */
+  Dormants: "Dormant",
+  Fidèles: "Loyal",
+  Tièdes: "Lukewarm",
+  "un manquement à regarder avant de leur écrire": "a lapse to look at before writing to them",
+  "plus un geste depuis six mois": "no move for six months",
+  "présents, et ils donnent suite": "present, and they follow through",
+  "ils regardent, ils concrétisent peu": "they look, they rarely follow through",
+
   /* Les sept familles. */
   Ordre: "Order",
   Espèces: "Cash",

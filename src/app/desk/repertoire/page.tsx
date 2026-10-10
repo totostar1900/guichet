@@ -5,6 +5,8 @@ import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { tenuesDeTous } from "@/lib/desk/tenue-data";
 import { activitesDeTous } from "@/lib/desk/activite-data";
+import { cohortesDeTous } from "@/lib/desk/cohortes-data";
+import { COHORTES, COHORTE_LABEL, COHORTE_QUOI, estCohorte } from "@/lib/domain/cohortes";
 import type { Activite } from "@/lib/domain/activite";
 import { CRAN_LABEL, type Tenue } from "@/lib/domain/tenue";
 import { parsePeopleQuery, peopleMatch } from "@/lib/search/people";
@@ -37,12 +39,13 @@ const TIER: Record<number, { label: string; hint: string }> = {
   2: { label: "Compte ouvert", hint: "compte-titres chez le dépositaire" },
 };
 
-export default async function RepertoirePage({ searchParams }: { searchParams: Promise<{ q?: string; palier?: string; canal?: string }> }) {
+export default async function RepertoirePage({ searchParams }: { searchParams: Promise<{ q?: string; palier?: string; canal?: string; cohorte?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const [contacts, files, intents, tenues] = await Promise.all([r.listContacts(), r.listClientFiles().catch(() => []), r.listIntents().catch(() => []), tenuesDeTous().catch(() => new Map())]);
   const activites = await activitesDeTous().catch(() => new Map());
+  const cohortes = await cohortesDeTous().catch(() => ({ parClient: new Map<string, string>(), comptes: {} as Record<string, number>, bareme: 0 }));
   const withFile = new Set(files.map((f) => f.userId));
   const ordered = new Map<string, number>();
   for (const i of intents) if (i.clientId) ordered.set(i.clientId, (ordered.get(i.clientId) ?? 0) + 1);
@@ -60,6 +63,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
         asked,
       ),
     )
+    .filter((c) => !estCohorte(sp.cohorte) || cohortes.parClient.get(c.id) === sp.cohorte)
     .filter((c) => !sp.palier || String(c.tier ?? 1) === sp.palier)
     .filter((c) => (sp.canal === "whatsapp" ? c.whatsappOptIn : sp.canal === "email" ? c.emailOptIn : sp.canal === "aucun" ? !c.whatsappOptIn && !c.emailOptIn : true))
     .sort((a, b) => (b.since ?? "").localeCompare(a.since ?? "") || a.name.localeCompare(b.name, "fr"));
@@ -109,7 +113,19 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
         {chip("canal", "whatsapp", t("WhatsApp ✓"))}
         {chip("canal", "email", t("E-mail ✓"))}
         {chip("canal", "aucun", t("Sans consentement"))}
-        {(sp.q || sp.palier || sp.canal) && (
+        {/* Une cohorte se regarde avant de lui écrire : le groupe porte son
+            compte, et l'écran dit ce qui le définit. */}
+        {COHORTES.map((co) => (
+          <Link
+            key={co}
+            className={`btn sm ${sp.cohorte === co ? "" : "ghost"}`}
+            title={t(COHORTE_QUOI[co])}
+            href={sp.cohorte === co ? "/desk/repertoire" : `/desk/repertoire?cohorte=${co}`}
+          >
+            {t(COHORTE_LABEL[co])} <span className="muted">{cohortes.comptes[co] ?? 0}</span>
+          </Link>
+        ))}
+        {(sp.q || sp.palier || sp.canal || sp.cohorte) && (
           <Link className={styles.clear} href="/desk/repertoire">
             {t("Tout voir")}
           </Link>

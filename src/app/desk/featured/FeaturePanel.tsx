@@ -2,6 +2,7 @@
 
 import { fold } from "@/lib/text";
 import { useT } from "@/i18n/client";
+import { COHORTES, COHORTE_LABEL, segmentDeCohorte } from "@/lib/domain/cohortes";
 import { Select } from "@/components/ui/Select";
 import { useActionState, useState, useId } from "react";
 import { FEATURE_REASONS } from "@/lib/domain/featured";
@@ -76,7 +77,7 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
 }
 
 /** Desk › carnet : what is « à la une » now, and the form to add one (max three, factual reason, expiry). */
-export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; candidates: FeatureRow[] }) {
+export function FeaturePanel({ active, candidates, comptes }: { active: FeatureRow[]; candidates: FeatureRow[]; comptes?: Record<string, number> }) {
   const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(featureOfferAction, null);
   const [pick, setPick] = useState("");
@@ -101,7 +102,7 @@ export function FeaturePanel({ active, candidates }: { active: FeatureRow[]; can
                 </small>
               </div>
               <div className={styles.rowActions}>
-                <BroadcastForm offerId={a.id} />
+                <BroadcastForm offerId={a.id} comptes={comptes} />
                 <form action={unfeatureOfferAction}>
                   <input type="hidden" name="offerId" value={a.id} />
                   <button className="btn sm ghost" type="submit">
@@ -152,7 +153,7 @@ const said = (r: FeatureResult): string => (r.ok ? r.message : "error" in r ? r.
  * demande de le recopier. La case à cocher d’avant pouvait être cochée avant
  * d’avoir vu le moindre chiffre.
  */
-function BroadcastForm({ offerId }: { offerId: string }) {
+function BroadcastForm({ offerId, comptes }: { offerId: string; comptes?: Record<string, number> }) {
   const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(broadcastOpportunityAction, null);
   const sendId = useId();
@@ -161,7 +162,19 @@ function BroadcastForm({ offerId }: { offerId: string }) {
     <div className={styles.bc}>
       <form action={action} className={styles.bc}>
         <input type="hidden" name="offerId" value={offerId} />
-        <Select compact name="segment" label={t("Segment")} value={plan?.segment ?? "Tous les clients"} options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v }))} />
+        {/* LES COHORTES SONT DES SEGMENTS, et elles portent leur compte :
+            choisir « Fidèles » sans savoir combien ils sont, c est écrire à
+            l aveugle. Le consentement, lui, se vérifie à l étape suivante. */}
+        <Select
+          compact
+          name="segment"
+          label={t("Segment")}
+          value={plan?.segment ?? "Tous les clients"}
+          options={[
+            ...["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements"].map((v) => ({ value: v, label: v })),
+            ...COHORTES.map((c) => ({ value: segmentDeCohorte(c), label: `${t(COHORTE_LABEL[c])} (${comptes?.[c] ?? 0})` })),
+          ]}
+        />
         <button className="btn sm" type="submit" disabled={pending}>
           {t(pending ? "…" : "Voir qui serait prévenu")}
         </button>

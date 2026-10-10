@@ -37,7 +37,7 @@ function matchesSegment(c: Contact, segment: string): boolean {
 }
 
 /** Who would receive it, before sending : the desk sees the count (and the four-eyes threshold applies). */
-export async function planBroadcast(o: Offer, segment: string): Promise<BroadcastPlan> {
+export async function planBroadcast(o: Offer, segment: string, cohorte?: Set<string>): Promise<BroadcastPlan> {
   const r = repo();
   const [contacts, watches, notifications] = await Promise.all([r.listContacts(), r.listWatches(), r.listNotifications(500)]);
   const followers = new Set(watches.filter((w) => w.offerId === o.id).map((w) => w.userId));
@@ -50,6 +50,10 @@ export async function planBroadcast(o: Offer, segment: string): Promise<Broadcas
   const pushed = new Set((await r.listPushSubscriptions(contacts.map((c) => c.id))).map((p) => p.userId));
   for (const c of contacts) {
     const follower = followers.has(c.id);
+    /* UNE COHORTE BORNE LA LISTE, Y COMPRIS POUR CEUX QUI SUIVENT LA LIGNE :
+       un suiveur hors du groupe choisi reste hors du groupe, sinon le desk
+       croirait écrire à vingt fidèles et en toucherait trente. */
+    if (cohorte && !cohorte.has(c.id)) continue;
     if (!follower && !matchesSegment(c, segment)) continue;
     // Compter quelqu'un qui n'a consenti sur aucun canal, c'est annoncer au
     // desk une portée qu'il n'a pas, et le laisser croire qu'il a prévenu.
@@ -82,9 +86,9 @@ function message(o: Offer, reason: string, firstName?: string): Message & { push
 }
 
 /** Sends (or queues, in quiet hours) the alert to the planned recipients on every configured channel. */
-export async function broadcastOpportunity(o: Offer, reason: string, segment: string, by: string): Promise<{ sent: number; queued: number; skipped: number; failed: number; recipients: number }> {
+export async function broadcastOpportunity(o: Offer, reason: string, segment: string, by: string, cohorte?: Set<string>): Promise<{ sent: number; queued: number; skipped: number; failed: number; recipients: number }> {
   const r = repo();
-  const plan = await planBroadcast(o, segment);
+  const plan = await planBroadcast(o, segment, cohorte);
   const tally = { sent: 0, queued: 0, skipped: 0, failed: 0, recipients: plan.recipients.length };
   const subs = await r.listPushSubscriptions(plan.recipients.map((x) => x.contact.id));
   const quiet = plan.quiet;

@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
+import { cohorteDuSegment } from "@/lib/domain/cohortes";
+import { cohortesDeTous } from "@/lib/desk/cohortes-data";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { ConflictError } from "@/lib/domain/types";
@@ -93,12 +95,17 @@ export async function broadcastOpportunityAction(_p: FeatureResult | null, form:
   if (!o || !o.featured) return { ok: false, error: "Mettez d'abord la ligne à la une : la raison affichée est celle du message." };
   const { planBroadcast, broadcastOpportunity } = await import("@/lib/notify/broadcast");
   const { isResponsable } = await import("@/lib/auth/types");
-  const plan = await planBroadcast(o, p.data.segment);
+  /* UNE COHORTE EST UN SEGMENT COMME UN AUTRE, du point de vue de l envoi :
+     elle borne la liste, et le reste (consentement, plafond du jour, heures
+     calmes, seuil des quatre yeux) ne change pas d un pouce. */
+  const co = cohorteDuSegment(p.data.segment);
+  const borne = co ? new Set([...(await cohortesDeTous()).parClient].filter(([, c]) => c === co).map(([id]) => id)) : undefined;
+  const plan = await planBroadcast(o, p.data.segment, borne);
   if (plan.recipients.length === 0) return { ok: false, error: `Personne à prévenir${plan.capped ? ` (${plan.capped} déjà alerté${plan.capped > 1 ? "s" : ""} aujourd'hui)` : ""}.` };
   if (plan.recipients.length > 50 && !isResponsable(desk)) return { ok: false, error: `${plan.recipients.length} destinataires : au-delà de 50, un responsable doit lancer la diffusion.` };
   if (!p.data.confirm)
     return { ok: false, plan: { recipients: plan.recipients.length, pushDevices: plan.pushDevices, capped: plan.capped ?? 0, quiet: Boolean(plan.quiet), segment: p.data.segment, title: o.title, reason: o.featured.reason } };
-  const tally = await broadcastOpportunity(o, o.featured.reason, p.data.segment, desk.name);
+  const tally = await broadcastOpportunity(o, o.featured.reason, p.data.segment, desk.name, borne);
   await audit("offer.broadcast", "offer", o.id, { after: { segment: p.data.segment, ...tally }, reason: o.featured.reason });
   revalidatePath("/desk");
   return { ok: true, message: `Diffusé à ${tally.recipients} client${tally.recipients > 1 ? "s" : ""} : ${tally.sent} envoyé${tally.sent > 1 ? "s" : ""}, ${tally.queued} différé${tally.queued > 1 ? "s" : ""}, ${tally.skipped} en attente de configuration, ${tally.failed} en échec.` };
