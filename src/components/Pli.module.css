@@ -1,0 +1,129 @@
+/* LES TROIS FILETS DE LA MAISON, du plus fort au plus discret : la bande d'un
+   rayon, le filet d'or d'un groupe, le filet nu d'une ligne (voir Ligne). */
+.rayon {
+  margin-top: var(--s-8);
+}
+.groupe {
+  margin-top: var(--s-5);
+}
+
+/* LA BANDE : le seul niveau qui a un fond. Elle colle en haut quand on
+   parcourt un long rayon, sous la barre de l'app. */
+.bande,
+.tete {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.bande {
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  position: sticky;
+  top: var(--barre-collante);
+  z-index: 2;
+}
+.bande:hover {
+  border-color: var(--line-2);
+}
+/* LE FILET D'OR, et pas une seconde boîte : le niveau se dit par un trait
+   plus discret et par le retrait des lignes. */
+.tete {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--gold-line);
+  padding: var(--s-5) 0;
+}
+
+.nom {
+  flex: 1;
+  min-width: 0;
+}
+.nom b {
+  display: block;
+  font-size: var(--t-4);
+}
+.tete .nom b {
+  font-size: var(--t-3);
+}
+.nom small {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  font-weight: 400;
+  margin-top: var(--s-1);
+}
+
+/* Ce qui attend un geste là-dedans : visible pli fermé, c'est tout l'objet. */
+.attend {
+  flex: none;
+  font-size: var(--t-1);
+  color: var(--warn);
+  border: 1px solid var(--warn);
+  border-radius: 999px;
+  padding: var(--s-1) var(--s-5);
+  white-space: nowrap;
+}
+.compte {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  white-space: nowrap;
+}
+.chev {
+  flex: none;
+  width: var(--s-7);
+  height: var(--s-7);
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2.2;
+  transition: transform 0.2s ease;
+}
+[data-ouvert="non"] > .bande .chev,
+[data-ouvert="non"] > .tete .chev {
+  transform: rotate(-90deg);
+}
+
+/* LE PLI : une grille de 1fr à 0fr, donc aucune hauteur à mesurer. */
+.corps {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.22s ease;
+}
+.corps > div {
+  overflow: hidden;
+  min-height: 0;
+}
+[data-ouvert="non"] > .corps {
+  grid-template-rows: 0fr;
+}
+@media (prefers-reduced-motion: reduce) {
+  .corps,
+  .chev {
+    transition: none;
+  }
+}
+
+.dedans {
+  padding: var(--s-3) var(--s-7) 0;
+}
+.retrait {
+  padding-left: var(--s-7);
+  margin-left: var(--s-3);
+  border-left: 1px solid var(--gold-line);
+}
+@media (max-width: 560px) {
+  .dedans {
+    padding-inline: var(--s-4);
+  }
+  .retrait {
+    padding-left: var(--s-5);
+    margin-left: 0;
+  }
+}

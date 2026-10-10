@@ -1,0 +1,75 @@
+/* LE FILET NU : le plus discret des trois séparateurs de la maison. Il sépare
+   sans découper ; la bande et le filet d'or portent déjà la structure. */
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--line);
+}
+.ligne:last-child {
+  border-bottom: 0;
+}
+.quoi {
+  flex: 1;
+  min-width: 0;
+}
+.quoi b {
+  display: block;
+  font-size: var(--t-3);
+  font-weight: 600;
+}
+.quoi small {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+.etat {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  white-space: nowrap;
+}
+.fait {
+  color: var(--good);
+}
+.attend {
+  color: var(--warn);
+}
+.geste {
+  flex: none;
+}
+
+.annee {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  margin-top: var(--s-6);
+  color: var(--ink-3);
+  font-size: var(--t-1);
+  letter-spacing: 0.1em;
+}
+.annee i {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Au téléphone la ligne devient une carte : le nom, puis l'état sous lui, et
+   le geste à droite. Rien ne se tronque. */
+@media (max-width: 720px) {
+  .ligne {
+    flex-wrap: wrap;
+    gap: var(--s-4) var(--s-6);
+  }
+  .etat {
+    order: 3;
+    width: 100%;
+    white-space: normal;
+  }
+  .geste {
+    order: 2;
+  }
+}

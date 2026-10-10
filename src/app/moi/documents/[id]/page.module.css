@@ -93,3 +93,45 @@
   background: var(--surface-2);
   color: var(--ink-2);
 }
+
+/* LIRE DEUX PIÈCES DE SUITE : l'ensemble est nommé, et les deux bouts sont
+   des liens ordinaires. Grisés aux extrémités plutôt qu'absents : la barre
+   garderait sinon une place qui danse d'une pièce à l'autre. */
+.voisins {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  margin-bottom: var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.voisins a {
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.voisins a:hover {
+  color: var(--ink);
+}
+.vide {
+  color: var(--line-2);
+  white-space: nowrap;
+}
+.rang {
+  text-align: center;
+}
+.rang b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.sorties {
+  display: flex;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  margin-top: var(--s-7);
+}

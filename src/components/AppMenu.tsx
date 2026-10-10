@@ -270,6 +270,14 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                       <b>{t("Mon profil")}</b>
                       <small>{t("deux minutes · à titre indicatif")}</small>
                     </Link>
+                    {/* LES TEXTES DE LA MAISON ont leur porte ici, et non dans
+                        les documents du client : ils n'ont pas de numéro, ils
+                        ont une version, et ils sont les mêmes pour tous. */}
+                    <Link className={styles.tile} href="/moi/textes" onClick={close}>
+                      <Icon d={D.book} />
+                      <b>{t("Textes et conditions")}</b>
+                      <small>{t("ce qui vaut pour tout le monde")}</small>
+                    </Link>
                   </div>
                   <div className={styles.group}>{t("Couleurs")}</div>
                   <PaletteSwitch lang={lang} />

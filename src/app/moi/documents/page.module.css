@@ -1,51 +1,147 @@
-/* La page des documents : une bande pour ce qui se fabrique, la liste pour ce
-   qui est arrivé. */
+/* Mes documents : quatre rayons, et rien d'autre que des filets pour les
+   séparer. La grammaire des plis vit dans components/Pli.module.css. */
 .page {
-  max-width: 1040px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: var(--s-9) var(--panel-inset, var(--s-7)) var(--s-11);
-  display: grid;
-  gap: var(--s-7);
+  padding: var(--s-9) var(--s-7) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
 }
 .back {
-  font-size: 0.8rem;
-  color: var(--ink-2);
+  color: var(--ink-3);
+  font-size: var(--t-2);
   text-decoration: none;
-  width: fit-content;
 }
 .back:hover {
   color: var(--ink);
 }
+.tete {
+  display: grid;
+  gap: var(--s-3);
+}
 .lead {
   margin: 0;
-  font-size: 0.86rem;
+  max-width: 64ch;
   color: var(--ink-2);
-  max-width: 62ch;
-  line-height: 1.55;
+  font-size: var(--t-4);
+  line-height: 1.5;
 }
-/* Le relevé se fabrique : sa bande se distingue de la liste de ce qui est
-   tombé tout seul. */
+
+.barre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  font-size: var(--t-2);
+}
+.tout {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-2);
+  cursor: pointer;
+}
+.tout:hover {
+  color: var(--ink-2);
+}
+.tout svg {
+  width: var(--s-6);
+  height: var(--s-6);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  transition: transform 0.18s ease;
+}
+.tout[data-plie="oui"] svg {
+  transform: rotate(-90deg);
+}
+
+/* CE QUI SE FABRIQUE : le seul papier qui n'existe pas encore quand on
+   arrive, donc le seul qui mérite le filet d'or. */
 .editer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--s-7);
   flex-wrap: wrap;
-  gap: var(--s-6);
   padding: var(--s-7);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  border: 1px solid var(--gold-line);
+  border-left: 3px solid var(--gold);
   border-radius: var(--radius);
+  background: var(--gold-soft);
 }
 .editer b {
   display: block;
-  font-size: 0.9rem;
+  font-size: var(--t-4);
 }
 .editer small {
   display: block;
-  margin-top: var(--s-2);
-  font-size: 0.78rem;
-  color: var(--ink-3);
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  margin-top: 2px;
+  max-width: 58ch;
 }
+
+/* La bascule du rayon des opérations : elle ne gouverne plus que lui. */
+.barreDuRayon {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--s-4) 0 var(--s-2);
+}
+.bascule {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.bascule button {
+  background: none;
+  border: 0;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-1);
+  padding: var(--s-3) var(--s-5);
+  cursor: pointer;
+}
+.bascule button:hover {
+  color: var(--ink-2);
+}
+.basculeOn {
+  background: var(--surface-2);
+  color: var(--ink) !important;
+}
+
 .pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  margin-top: var(--s-8);
+  padding: var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--t-3);
+}
+.pied b {
+  display: block;
+}
+.pied small {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  margin-top: 2px;
+  max-width: 62ch;
+}
+.version {
   margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-1);
 }
