@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useT } from "@/i18n/client";
-import { JOURS_DE_MESURE, MESURES, MESURE_LABEL, MESURE_QUOI, MOTIFS_DE_MESURE, mesureVivante, type MesurePosee } from "@/lib/domain/mesure";
+import { JOURS_DE_MESURE, MESURES, MESURE_LABEL, MESURE_QUOI, MESURE_TON, MOTIFS_DE_MESURE, mesureVivante, type MesurePosee } from "@/lib/domain/mesure";
 import { poserMesureAction, type MesureResult } from "./mesure-actions";
 
 /**
@@ -20,7 +20,7 @@ export function MesureForm({ userId, posee }: { userId: string; posee?: MesurePo
   return (
     <div style={{ marginTop: "var(--s-5)" }}>
       <span className="eyebrow">{t("Mesure")}</span>{" "}
-      <span className={`st ${vivante === "suspendu" ? "annulee" : vivante === "prepaiement" ? "recue" : "reglee"}`}>{t(MESURE_LABEL[vivante])}</span>
+      <span className={`st ${MESURE_TON[vivante]}`}>{t(MESURE_LABEL[vivante])}</span>
       {posee && vivante !== "aucune" && (
         <small className="muted">
           {" "}

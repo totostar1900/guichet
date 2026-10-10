@@ -11,6 +11,9 @@ import {
   mesureVivante,
   peutAgir,
 } from "@/lib/domain/mesure";
+import { sensDeLIntention } from "@/lib/domain/intent";
+import { rapporteAuLieuDeCouter } from "@/lib/domain/plafond";
+import { estAchat, estCession } from "@/lib/domain/quantitatif";
 
 /**
  * UNE MESURE EST LA SEULE CHOSE QUE LA PLATEFORME FASSE CONTRE UN CLIENT.
@@ -51,6 +54,92 @@ describe("ce qu'une mesure empêche", () => {
 
   it("sans mesure, tout passe", () => {
     for (const g of GESTES_ENGAGEANTS) expect(peutAgir(g, {}, MAINTENANT).ok, g).toBe(true);
+  });
+});
+
+/**
+ * LE CRAN DU MILIEU, ET LES TROIS PROMESSES QU'IL A FAIT TENIR.
+ *
+ * « Fermeture seule » ne regarde que le sens : il refuse tout ce qui
+ * augmente les lignes du client et laisse tout ce qui les réduit. En
+ * l'écrivant, le garde a dû apprendre à distinguer un achat d'une vente, et
+ * cette distinction a découvert deux refus que personne n'avait voulus.
+ */
+describe("fermeture seule", () => {
+  const FERMETURE = { mesure: { mesure: "fermeture_seule" as const } };
+
+  it("refuse ce qui augmente, laisse ce qui réduit", () => {
+    const achat = peutAgir("ordre.deposer", { ...FERMETURE, sens: "augmente" }, MAINTENANT);
+    expect(achat.ok).toBe(false);
+    expect(achat.raison).toContain("vendre");
+    expect(peutAgir("ordre.deposer", { ...FERMETURE, sens: "reduit" }, MAINTENANT).ok).toBe(true);
+    expect(peutAgir("ordre.signer", { ...FERMETURE, sens: "reduit" }, MAINTENANT).ok).toBe(true);
+    expect(peutAgir("ordre.accepter_contre", { ...FERMETURE, sens: "reduit" }, MAINTENANT).ok).toBe(true);
+  });
+
+  it("et les gestes qui n'ont qu'un sens sont refusés sans qu'on le dise", () => {
+    // Une épargne, un réinvestissement et un mandat font toujours grossir la
+    // relation : l'appelant n'a rien à préciser.
+    for (const g of ["epargne.creer", "epargne.modifier", "reinvestir", "mandat.creer", "mandat.signer"] as const) {
+      expect(peutAgir(g, FERMETURE, MAINTENANT).ok, g).toBe(false);
+    }
+  });
+
+  it("il est plus doux que la suspension, et c'est tout son intérêt", () => {
+    // Sous suspension le client ne vend plus lui-même ; sous fermeture seule si.
+    expect(peutAgir("ordre.deposer", { mesure: { mesure: "suspendu" }, sens: "reduit" }, MAINTENANT).ok).toBe(false);
+    expect(peutAgir("ordre.deposer", { ...FERMETURE, sens: "reduit" }, MAINTENANT).ok).toBe(true);
+  });
+});
+
+describe("les trois refus que personne n'avait voulus", () => {
+  it("vendre et acheter passaient par la même porte", () => {
+    /* La suspension refusait les deux, alors que son propre message disait au
+       client qu'il pouvait demander ses espèces et consulter ses lignes. Le
+       refus de vendre reste, mais il dit maintenant par où passer. */
+    const v = peutAgir("ordre.deposer", { mesure: { mesure: "suspendu" }, sens: "reduit" }, MAINTENANT);
+    expect(v.ok).toBe(false);
+    expect(v.raison).toContain("écrivez-nous");
+  });
+
+  it("poser une question n'est pas un engagement, sous aucune mesure", () => {
+    /* « Information » et « rappel » empruntent la porte des ordres : un compte
+       suspendu ne pouvait pas nous écrire, au moment précis où l'écran lui
+       disait de le faire. Une mesure ne coupe jamais le chemin vers nous. */
+    for (const m of MESURES) {
+      expect(peutAgir("ordre.deposer", { mesure: { mesure: m }, sens: "aucun" }, MAINTENANT).ok, m).toBe(true);
+    }
+    expect(peutAgir("ordre.deposer", { kycStatus: "clos", sens: "aucun" }, MAINTENANT).ok).toBe(true);
+    expect(peutAgir("ordre.deposer", { kycStatus: "en_cloture", sens: "aucun" }, MAINTENANT).ok).toBe(true);
+  });
+
+  it("un compte en clôture doit pouvoir solder ses lignes, sinon il ne se clôt jamais", () => {
+    expect(peutAgir("ordre.deposer", { kycStatus: "en_cloture", sens: "reduit" }, MAINTENANT).ok).toBe(true);
+    expect(peutAgir("ordre.deposer", { kycStatus: "en_cloture", sens: "augmente" }, MAINTENANT).ok).toBe(false);
+    // Clos, en revanche, il n'y a plus rien à solder : le refus le dit.
+    const v = peutAgir("ordre.deposer", { kycStatus: "clos", sens: "reduit" }, MAINTENANT);
+    expect(v.ok).toBe(false);
+    expect(v.raison).toContain("clos");
+  });
+
+  it("le sens se lit une seule fois, dans intent.ts", () => {
+    expect(sensDeLIntention("achat")).toBe("augmente");
+    expect(sensDeLIntention("appetit")).toBe("augmente");
+    expect(sensDeLIntention("souscription")).toBe("augmente");
+    expect(sensDeLIntention("vente")).toBe("reduit");
+    expect(sensDeLIntention("cession")).toBe("reduit");
+    expect(sensDeLIntention("rachat")).toBe("reduit");
+    expect(sensDeLIntention("info")).toBe("aucun");
+    expect(sensDeLIntention("rappel")).toBe("aucun");
+    /* LES DEUX AUTRES LECTEURS Y REVIENNENT. Trois listes posaient la même
+       question avant ce cran ; si l'une repart, ce cas tombe. */
+    expect(rapporteAuLieuDeCouter("vente")).toBe(true);
+    expect(rapporteAuLieuDeCouter("ferme")).toBe(false);
+    // Un appétit augmente, mais il n'a traité avec personne : la vue
+    // quantitative compte ce qui s'est fait, pas ce qui s'est dit.
+    expect(estAchat("appetit")).toBe(false);
+    expect(estAchat("ferme")).toBe(true);
+    expect(estCession("rachat")).toBe(true);
   });
 });
 
@@ -139,8 +228,8 @@ describe("ce qu'une mesure ne touchera jamais", () => {
 
   it("et refuser une contre-proposition reste ouvert", () => {
     const c = lire("src/app/moi/counter-actions.ts");
-    expect(c).toMatch(/const passe = await garde\("ordre\.accepter_contre"\)/);
-    const i = c.indexOf('await garde("ordre.accepter_contre")');
+    expect(c).toMatch(/const passe = await garde\("ordre\.accepter_contre", \{ type: it\.type \}\)/);
+    const i = c.indexOf('await garde("ordre.accepter_contre"');
     const j = c.indexOf('noter("ordre.contre.refusee")');
     expect(j, "le refus doit être noté AVANT le garde de l'acceptation").toBeLessThan(i);
   });

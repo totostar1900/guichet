@@ -48,6 +48,26 @@ export function allowedIntents(o: Offer, s: DisplayStatus): IntentType[] {
 /** Intents that become an order the desk transmits (bulletin, appel de fonds, bordereau). */
 export const FIRM_TYPES: IntentType[] = ["ferme", "cession", "achat", "vente", "souscription", "rachat"];
 
+/**
+ * LE SENS D'UNE INTENTION : elle augmente ce que le client détient chez nous,
+ * elle le réduit, ou elle ne l'engage à rien.
+ *
+ * Trois endroits posaient la même question avec leur propre liste : le
+ * plafond de signature, la vue quantitative, et maintenant les mesures. Elle
+ * se pose ici, une fois. La nuance qui justifie une fonction plutôt qu'une
+ * constante : un appétit AUGMENTE (c'est une intention d'acheter) sans être
+ * un ordre ferme, et « information » et « rappel » n'engagent rien du tout.
+ * C'est cette troisième valeur qui tient la promesse « une mesure ne coupe
+ * jamais le chemin vers nous » : poser une question se fait par la même
+ * porte qu'un ordre, et sans elle la porte se refermait sur les deux.
+ */
+export type SensDeLIntention = "augmente" | "reduit" | "aucun";
+
+const REDUISENT: IntentType[] = ["cession", "vente", "rachat"];
+const N_ENGAGENT_RIEN: IntentType[] = ["info", "rappel"];
+
+export const sensDeLIntention = (t: IntentType): SensDeLIntention => (REDUISENT.includes(t) ? "reduit" : N_ENGAGENT_RIEN.includes(t) ? "aucun" : "augmente");
+
 /** Legal next states from the desk's point of view. */
 export function nextStates(state: IntentState, type: IntentType): IntentState[] {
   const firm = FIRM_TYPES.includes(type);

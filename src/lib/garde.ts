@@ -1,7 +1,9 @@
 import "server-only";
 import { repo } from "@/lib/data";
 import { getSession } from "@/lib/auth";
+import { sensDeLIntention } from "@/lib/domain/intent";
 import { peutAgir, type GesteEngageant, type Verdict } from "@/lib/domain/mesure";
+import type { IntentType } from "@/lib/domain/types";
 
 /**
  * LE GARDE, APPELÉ AVANT TOUT GESTE ENGAGEANT.
@@ -19,8 +21,12 @@ import { peutAgir, type GesteEngageant, type Verdict } from "@/lib/domain/mesure
  *
  * `couvert` sert au seul cran « prépaiement » : l'appelant dit si la
  * provision couvre déjà l'opération, parce que lui seul connaît le montant.
+ *
+ * `type` est l'intention portée, quand le geste peut aller dans les deux
+ * sens : vendre et acheter passent par la même porte, et sans ce mot la
+ * porte se refermait sur les deux à la fois.
  */
-export async function garde(geste: GesteEngageant, opts: { couvert?: boolean; montant?: number } = {}): Promise<Verdict> {
+export async function garde(geste: GesteEngageant, opts: { couvert?: boolean; montant?: number; type?: IntentType } = {}): Promise<Verdict> {
   const s = await getSession();
   if (!s) return { ok: false, raison: "Connectez-vous d'abord." };
   const r = repo();
@@ -29,7 +35,8 @@ export async function garde(geste: GesteEngageant, opts: { couvert?: boolean; mo
      c'est la seule chose qui compte, et chaque appelant la calculerait un peu
      différemment. Le montant lui, vient de l'appelant : lui seul le connaît. */
   const couvert = opts.couvert ?? (opts.montant != null ? await provisionCouvre(s.userId, opts.montant) : undefined);
-  return peutAgir(geste, { mesure: contact?.mesure, kycStatus: s.kycStatus, couvert }, new Date());
+  const sens = opts.type ? sensDeLIntention(opts.type) : undefined;
+  return peutAgir(geste, { mesure: contact?.mesure, kycStatus: s.kycStatus, couvert, sens }, new Date());
 }
 
 /** Le disponible d'un client couvre-t-il ce montant ? Réservé et affecté ne comptent pas : ils sont déjà pris. */

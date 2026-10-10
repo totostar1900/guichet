@@ -1,4 +1,5 @@
 import { positionFor } from "@/lib/documents/position";
+import { sensDeLIntention } from "./intent";
 import type { Intent, IntentType, Offer } from "./types";
 
 /**
@@ -29,7 +30,7 @@ import type { Intent, IntentType, Offer } from "./types";
 export const seSigneAuPlafond = (t: IntentType): boolean => t === "ferme" || t === "achat";
 
 /** Les ordres qui rapportent au lieu de coûter : rien à borner, le produit se découvre. */
-export const rapporteAuLieuDeCouter = (t: IntentType): boolean => t === "vente" || t === "cession" || t === "rachat";
+export const rapporteAuLieuDeCouter = (t: IntentType): boolean => sensDeLIntention(t) === "reduit";
 
 /**
  * Le prix le plus cher que le client ait accepté, en pourcentage du nominal.

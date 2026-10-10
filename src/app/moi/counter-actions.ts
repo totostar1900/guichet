@@ -63,7 +63,7 @@ export async function answerCounter(form: FormData): Promise<void> {
   /* ACCEPTER UNE CONTRE-PROPOSITION ENGAGE, LA REFUSER NON : le garde ne
      tient que la première branche, sinon une mesure empêcherait un client de
      dire non, ce qui serait l inverse du but. */
-  const passe = await garde("ordre.accepter_contre");
+  const passe = await garde("ordre.accepter_contre", { type: it.type });
   if (!passe.ok) return;
   await noter("ordre.contre.acceptee", { objet: it.ref, detail: terms });
   await audit("intent.counter.accepted", "intent", intentId, { before: { amount: it.amount, limitPrice: it.limitPrice }, after: { amount: updated.amount, limitPrice: updated.limitPrice }, reason: terms });

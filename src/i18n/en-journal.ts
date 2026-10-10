@@ -98,9 +98,12 @@ export const EN_JOURNAL: Record<string, string> = {
   "jusqu'au {d}": "until {d}",
   "Aucune mesure": "No measure",
   "Prépaiement exigé": "Prepayment required",
+  "Fermeture seule": "Close only",
   "Compte suspendu": "Account suspended",
   "le compte fonctionne normalement": "the account works normally",
   "aucun ordre ferme sans provision disponible ; le reste normal": "no firm order without available funds; everything else normal",
+  "rien qui augmente ses lignes ; il vend, rachète et sort ses espèces lui-même":
+    "nothing that increases their holdings; they sell, redeem and withdraw their cash themselves",
   "aucun geste engageant ; lire, retirer son argent et nous écrire restent possibles":
     "no committing move; reading, withdrawing your money and writing to us remain possible",
   "Aucune mesure ne retient les espèces ni les titres du client, et aucune ne coupe son chemin vers le desk.":

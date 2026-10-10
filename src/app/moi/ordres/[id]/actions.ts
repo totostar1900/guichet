@@ -107,7 +107,7 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
   /* LA SIGNATURE EST L ENGAGEMENT LUI-MÊME : le garde pèse ici, au seul
      endroit que les trois façons de signer traversent, et la couverture qui
      vient d être calculée lui sert de réponse pour le prépaiement. */
-  const passe = await garde("ordre.signer", { couvert: du === 0 || couverture });
+  const passe = await garde("ordre.signer", { type: intent.type, couvert: du === 0 || couverture });
   if (!passe.ok) return { ok: false, error: passe.raison! };
   await r.updateIntent(intent.id, {
     signedAt: new Date().toISOString(),

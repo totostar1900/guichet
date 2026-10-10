@@ -105,7 +105,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   /* LE GARDE, ET NON UN TEST DE PLUS. La clôture était vérifiée ici et à un
      seul autre endroit sur quarante et un gestes ; les mesures passent
      désormais par la même porte, et le refus porte sa phrase. */
-  const passe = await garde("ordre.deposer", { montant: type === "souscription" || type === "ferme" ? (parseAmount(amount) ?? 0) : 0 });
+  const passe = await garde("ordre.deposer", { type, montant: type === "souscription" || type === "ferme" ? (parseAmount(amount) ?? 0) : 0 });
   if (!passe.ok) return { ok: false, error: passe.raison! };
 
   const amt = offer.kind === "FONDS" && type === "rachat" ? parseUnits(amount) : parseAmount(amount);

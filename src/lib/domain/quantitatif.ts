@@ -1,6 +1,6 @@
 import type { CashEntry } from "@/lib/domain/cash";
 import { isIncoming } from "@/lib/domain/cash";
-import { INTENT_LABEL } from "@/lib/domain/intent";
+import { FIRM_TYPES, INTENT_LABEL, sensDeLIntention } from "@/lib/domain/intent";
 import type { EventLog, Intent, IntentType, Offer } from "@/lib/domain/types";
 import { positionFor } from "@/lib/documents/position";
 import { enDefaut as enDefautTenue } from "@/lib/domain/tenue";
@@ -133,10 +133,11 @@ export function plageDeLaDuree(duree: DureeId, ouverture: string, aujourdHui: st
   return { plage: { from, to: aujourdHui }, rabotee: duree !== "tout" && debutVoulu < ouverture };
 }
 
-const ACHATS: IntentType[] = ["ferme", "achat", "souscription"];
-const CESSIONS: IntentType[] = ["cession", "vente", "rachat"];
-export const estAchat = (t: IntentType) => ACHATS.includes(t);
-export const estCession = (t: IntentType) => CESSIONS.includes(t);
+/* LE SENS SE LIT DANS intent.ts, ET LE CARACTÈRE FERME ICI. Un appétit
+   augmente lui aussi ce que le client voudrait détenir, mais il n'a traité
+   avec personne : cette vue compte ce qui s'est fait, pas ce qui s'est dit. */
+export const estAchat = (t: IntentType) => FIRM_TYPES.includes(t) && sensDeLIntention(t) === "augmente";
+export const estCession = (t: IntentType) => FIRM_TYPES.includes(t) && sensDeLIntention(t) === "reduit";
 
 export interface OperationQ {
   ref: string;

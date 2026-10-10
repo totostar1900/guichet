@@ -212,14 +212,46 @@ export const CLIENTELE: DocPage = {
       blocks: [
         {
           type: "table",
-          head: [l("Cran", "Level"), l("Ce qui reste possible", "What remains possible")],
+          head: [l("Cran", "Level"), l("Ce qu'il dit", "What it says"), l("Ce qui reste possible", "What remains possible")],
           rows: [
-            [l("Prépaiement exigé", "Prepayment required"), l("tout, sauf un ordre ferme dont la provision ne couvre pas le montant", "everything, except a firm order whose provision does not cover the amount")],
+            [
+              l("Prépaiement exigé", "Prepayment required"),
+              l("payez d'abord", "pay first"),
+              l("tout, sauf un ordre ferme dont la provision ne couvre pas le montant. Il ne retire rien, il déplace l'ordre du paiement.", "everything, except a firm order whose provision does not cover the amount. It takes nothing away, it moves the order of payment."),
+            ],
+            [
+              l("Fermeture seule", "Close only"),
+              l("plus rien de nouveau", "nothing new"),
+              l(
+                "vendre, racheter ses parts, sortir ses espèces, tout cela lui-même et quand il veut. Seul ce qui AUGMENTE ses lignes est refusé : ordre d'achat, souscription, appétit, épargne, réinvestissement, mandat.",
+                "selling, redeeming units, withdrawing cash, all of it themselves and whenever they want. Only what INCREASES their holdings is refused: buy order, subscription, appetite, savings plan, reinvestment, mandate.",
+              ),
+            ],
             [
               l("Compte suspendu", "Account suspended"),
-              l("lire son portefeuille, vendre, retirer son argent, écrire au desk, se plaindre, cesser de s'engager", "reading their portfolio, selling, withdrawing their money, writing to the desk, complaining, ceasing to commit"),
+              l("nous n'agissons plus de nous-mêmes sur ce compte", "we no longer act on this account by ourselves"),
+              l(
+                "lire son portefeuille, demander ses espèces, écrire au desk, se plaindre, cesser de s'engager. Sa sortie reste entière mais passe par une personne : pour vendre, il nous écrit et un conseiller passe l'ordre avec lui.",
+                "reading their portfolio, requesting their cash, writing to the desk, complaining, ceasing to commit. Their way out stays whole but goes through a person: to sell, they write to us and an adviser places the order with them.",
+              ),
             ],
           ],
+        },
+        {
+          type: "note",
+          kind: "info",
+          text: l(
+            "LE CRAN DU MILIEU EST CELUI QU'ON VOULAIT. Il ferme une relation sans punir personne : le client ne peut plus s'engager, et rien d'autre ne change. Son absence, jusqu'au 10 octobre 2026, poussait à suspendre des comptes qui ne méritaient que de ne plus grossir.",
+            "THE MIDDLE LEVEL IS THE ONE WE WANTED. It closes a relationship without punishing anybody: the client can no longer commit, and nothing else changes. Its absence, until 10 October 2026, pushed us to suspend accounts that deserved only to stop growing.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "CE CRAN A OBLIGÉ LE GARDE À REGARDER LE SENS DE L'INTENTION, et il a découvert deux promesses qui n'étaient pas tenues. Vendre et acheter empruntent la même porte : la suspension les refusait toutes les deux, alors que son propre message disait au client qu'il pouvait vendre. Poser une question empruntait aussi cette porte : un compte suspendu ne pouvait pas nous écrire, au moment précis où l'écran lui disait de le faire. Un compte en clôture ne pouvait pas non plus solder ses lignes, donc jamais se clore. Les trois sont réparés avec le cran.",
+            "THIS LEVEL FORCED THE GUARD TO LOOK AT THE DIRECTION OF THE INTENTION, and it uncovered two promises that were not kept. Selling and buying go through the same door: suspension refused both, while its own message told the client they could sell. Asking a question went through that door too: a suspended account could not write to us, at the very moment the screen told it to. An account being closed could not settle its lines either, hence never close. All three are fixed along with the level.",
+          ),
         },
         {
           type: "steps",
