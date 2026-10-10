@@ -120,6 +120,11 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   {` · ${t("mis à jour")} ${fmtDateTime(selected.updatedAt)}`}
                 </div>
                 <ReachLine prefs={prefs} channels={channels} t={t} />
+                {/* Le dossier dit qui il est ; la vue quantitative dit ce
+                    qu'il a traité. Deux questions, deux écrans, un lien. */}
+                <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>
+                  {t("Ce qu'il a traité avec nous")}
+                </Link>
               </div>
               <span className={`${styles.st} ${styles[`st_${selected.status}`]}`}>{t(STATUS_LABEL[selected.status])}</span>
             </div>

@@ -22,7 +22,7 @@ const FIRM: Intent["type"][] = ["ferme", "cession", "achat", "vente", "souscript
 const STATE_ORDER: IntentState[] = ["confirmee", "transmise", "servie", "non_servie", "reglee", "annulee"];
 
 /** Transition timestamps recovered from the desk's log lines (« : <b>Confirmée</b> »). */
-function transitions(intentId: string, events: EventLog[]): Partial<Record<IntentState, string>> {
+export function transitions(intentId: string, events: EventLog[]): Partial<Record<IntentState, string>> {
   const out: Partial<Record<IntentState, string>> = {};
   for (const e of events.filter((x) => x.intentId === intentId)) {
     for (const st of STATE_ORDER) {

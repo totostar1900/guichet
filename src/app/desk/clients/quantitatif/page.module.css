@@ -1,0 +1,167 @@
+/* La vue quantitative : compteurs, barres par tranche, chronologie. */
+
+/* Les filets entre compteurs sont des bordures, et non une grille à
+   « gap: 1px » : un pas d'un pixel sort de l'échelle d'espacement, et la
+   bordure dit la même chose sans l'entamer. */
+.compteurs {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-6);
+}
+
+.compteur {
+  flex: 1 1 11rem;
+  min-width: 0;
+  background: var(--surface);
+  padding: var(--s-5) var(--s-6);
+  border-left: 1px solid var(--line);
+}
+
+.compteur:first-child {
+  border-left: 0;
+}
+
+.compteur b {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: var(--s-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.commandes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-5);
+  margin-bottom: var(--s-6);
+}
+
+.groupe {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+}
+
+/* Un graphique : les barres, l'axe à droite, les libellés dessous. */
+.tracé {
+  display: flex;
+  gap: var(--s-5);
+  align-items: flex-start;
+}
+
+.aire {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.barres {
+  display: flex;
+  align-items: flex-end;
+  height: 10rem;
+  border-bottom: 1px solid var(--line-2);
+  background: repeating-linear-gradient(to top, transparent 0 calc(10rem / 3 - 1px), var(--line) calc(10rem / 3 - 1px) calc(10rem / 3));
+}
+
+.tranche {
+  flex: 1 1 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 100%;
+}
+
+.tranche span {
+  width: 1.25rem;
+  max-width: 2.5vw;
+  min-width: var(--s-2);
+}
+
+/* Deux séries de part et d'autre du zéro : les entrées au-dessus, les sorties dessous. */
+.deuxSens {
+  display: flex;
+}
+
+.colonne {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.haut {
+  height: 7rem;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bas {
+  height: 4rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.zero {
+  width: 100%;
+  border-top: 1px solid var(--line-2);
+}
+
+.libelles {
+  display: flex;
+  margin-top: var(--s-3);
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.libelles span {
+  flex: 1 1 0;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.axe {
+  width: 5rem;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.axeHaut {
+  height: 10rem;
+}
+
+.axeSens {
+  height: 11rem;
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-7);
+  margin-top: var(--s-5);
+}
+
+.pastille {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-right: var(--s-3);
+  vertical-align: baseline;
+}
+
+.vide {
+  padding: var(--s-7);
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
