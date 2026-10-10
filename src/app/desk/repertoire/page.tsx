@@ -4,6 +4,8 @@ import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { tenuesDeTous } from "@/lib/desk/tenue-data";
+import { activitesDeTous } from "@/lib/desk/activite-data";
+import type { Activite } from "@/lib/domain/activite";
 import { CRAN_LABEL, type Tenue } from "@/lib/domain/tenue";
 import { parsePeopleQuery, peopleMatch } from "@/lib/search/people";
 import styles from "./page.module.css";
@@ -40,6 +42,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
   const sp = await searchParams;
   const r = repo();
   const [contacts, files, intents, tenues] = await Promise.all([r.listContacts(), r.listClientFiles().catch(() => []), r.listIntents().catch(() => []), tenuesDeTous().catch(() => new Map())]);
+  const activites = await activitesDeTous().catch(() => new Map());
   const withFile = new Set(files.map((f) => f.userId));
   const ordered = new Map<string, number>();
   for (const i of intents) if (i.clientId) ordered.set(i.clientId, (ordered.get(i.clientId) ?? 0) + 1);
@@ -134,6 +137,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
                 <th>{t("Nom")}</th>
                 <th>{t("Palier")}</th>
                 <th>{t("Tenue")}</th>
+                <th className="r">{t("Activité")}</th>
                 <th>{t("Coordonnées")}</th>
                 <th>{t("Informations")}</th>
                 <th className="r">{t("Ordres")}</th>
@@ -174,6 +178,21 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
                               <small className="muted">{t(pire.phrase, pire.vars)}</small>
                             </>
                           )}
+                        </>
+                      );
+                    })()}
+                  </td>
+                  {/* Le score cite son barème : sans cela, deux chiffres pris
+                      à deux mois d'intervalle ne se compareraient pas. */}
+                  <td className="r num">
+                    {(() => {
+                      const a = (activites as Map<string, Activite>).get(c.id);
+                      if (!a) return <span className="muted">—</span>;
+                      return (
+                        <>
+                          {a.score}
+                          <br />
+                          <small className="muted">v{a.bareme}</small>
                         </>
                       );
                     })()}

@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import type { ClientFile } from "@/lib/domain/kyc";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { tenueDe } from "@/lib/desk/tenue-data";
 import { CRAN_LABEL } from "@/lib/domain/tenue";
+import { activiteDe } from "@/lib/desk/activite-data";
+import { INGREDIENT_LABEL } from "@/lib/domain/activite";
 import { autoChecks, DOC_LABEL, KIND_LABEL, requiredDocs, RISK_LABEL, STATUS_LABEL, suggestedRisk } from "@/lib/kyc/checklist";
 import { ReviewForm } from "./ReviewForm";
 import { MANUAL_LISTS, namesToScreen, screeningConfigured } from "@/lib/kyc/screening";
@@ -42,7 +45,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const q = (sp.q ?? "").trim();
   const queue = clientDirectory(files, q);
   const attente = files.filter(waiting).length;
-  const [lang, fin, prefs, channels, devices, equipe, conseiller, compte, maTenue] = await Promise.all([
+  const [lang, fin, prefs, channels, devices, equipe, conseiller, compte, maTenue, monActivite] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
@@ -52,6 +55,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     selected ? r.findAdvisor(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getContact(selected.userId).catch(() => undefined) : undefined,
     selected ? tenueDe(selected.userId).catch(() => ({ cran: "impeccable" as const, manquements: [] })) : { cran: "impeccable" as const, manquements: [] },
+    selected ? activiteDe(selected.userId).catch(() => undefined) : undefined,
   ]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id || (d.clientId === selected.userId && (d.type === "coupon" || d.type === "reclamation" || d.type === "releve" || d.type === "attestation"))) : [];
   const now = new Date();
@@ -145,6 +149,30 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     </ul>
                   )}
                 </div>
+                {/* L'ACTIVITÉ EST UN NOMBRE PARCE QU'ELLE N'ORDONNE QU'UNE
+                    LISTE, et ses cinq ingrédients s'affichent avec leurs
+                    poids, qui sont arbitraires : la discussion porte alors sur
+                    le poids, jamais sur le chiffre. */}
+                {monActivite && (
+                  <div style={{ marginTop: "var(--s-5)" }}>
+                    <span className="eyebrow">{t("Activité")}</span>{" "}
+                    <b style={{ fontVariantNumeric: "tabular-nums" }}>{monActivite.score}</b> <span className="muted">{t("sur 100")}</span>{" "}
+                    <Link className="muted" style={{ fontSize: ".8rem" }} href="/desk/referentiel/bareme">
+                      {t("barème v{n}", { n: String(monActivite.bareme) })}
+                    </Link>
+                    <dl style={{ margin: "var(--s-3) 0 0", display: "grid", gridTemplateColumns: "1fr auto auto", gap: "var(--s-2) var(--s-5)", fontSize: ".82rem", alignItems: "baseline" }}>
+                      {monActivite.parts.map((p) => (
+                        <Fragment key={p.clef}>
+                          <dt>{t(INGREDIENT_LABEL[p.clef])}</dt>
+                          <dd className="muted" style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>{p.brut}</dd>
+                          <dd style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
+                            {p.points} / {p.sur}
+                          </dd>
+                        </Fragment>
+                      ))}
+                    </dl>
+                  </div>
+                )}
                 <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>
                   {t("Ce qu'il a traité avec nous")}
                 </Link>

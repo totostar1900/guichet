@@ -53,6 +53,41 @@ export const EN_JOURNAL: Record<string, string> = {
   "{n} versements programmés non réglés": "{n} scheduled payments unsettled",
   "{n} envois en échec : un canal ne répond plus": "{n} messages failed: a channel no longer answers",
 
+  /* L'activité, son barème, et l'écran qui le règle. */
+  Activité: "Activity",
+  "sur 100": "out of 100",
+  "barème v{n}": "scale v{n}",
+  "Barème de l'activité": "Activity scale",
+  "Régler les poids": "Set the weights",
+  "brouillon en attente": "draft waiting",
+  "Ce qui change, en une phrase": "What changes, in one sentence",
+  "la suite aux appétits passe de 10 à 20": "follow-up on appetites goes from 10 to 20",
+  "Enregistrer en brouillon": "Save as a draft",
+  "Abandonner le brouillon": "Discard the draft",
+  "La somme doit faire 100.": "The sum must be 100.",
+  "Recopiez « publier » pour confirmer": "Retype « publier » to confirm",
+  "Publier le barème v{n}": "Publish scale v{n}",
+  "Les poids sont au desk, pas dans le code. Mais un score ne se compare qu'à barème égal : chaque barème porte un numéro et une date, tout score affiché dit duquel il sort, et les scores d'hier gardent le barème d'hier.":
+    "The weights belong to the desk, not to the code. But a score only compares at equal scale: every scale carries a number and a date, every score shown says which one it comes from, and yesterday's scores keep yesterday's scale.",
+  "Publié le {d} par {q}.": "Published on {d} by {q}.",
+  "Ce que la publication déplacerait": "What publishing would move",
+  "{n} client(s) hors démonstration": "{n} client(s), demonstration ones left out",
+  "Personne ne bouge d'un point. Le barème change, le classement non.": "Nobody moves by a point. The scale changes, the ranking does not.",
+  "Après publication": "After publishing",
+  "Un barème se publie en voyant qui bouge, jamais à l'aveugle : les cohortes commandent les envois, et un client qui change de groupe recevra, ou cessera de recevoir, les annonces de lignes.":
+    "A scale is published while seeing who moves, never blind: the cohorts drive the sends, and a client who changes group will receive, or stop receiving, the line announcements.",
+  "Les cinq ingrédients": "The five ingredients",
+  "somme : {n} sur 100": "sum: {n} out of 100",
+  "Une consultation ne pèse rien ici : elle nourrit la cadence et le fil des gestes. Sinon regarder vaudrait acheter, et le classement de la maison deviendrait un classement des curieux.":
+    "A consultation weighs nothing here: it feeds the rhythm and the thread of moves. Otherwise looking would be worth buying, and the firm's ranking would become a ranking of the curious.",
+  "Présence aux séances ouvertes": "Attendance at opened sessions",
+  "Volume réglé, à l'échelle de son palier": "Volume settled, at the scale of their tier",
+  "Suite donnée à ses appétits": "Follow-up on their appetites",
+  "Mois où il a agi, sur douze": "Months with a move, out of twelve",
+  "Dossier à jour, canaux prouvés": "File up to date, channels proven",
+  Barème: "Scale",
+  retour: "back",
+
   /* Les sept familles. */
   Ordre: "Order",
   Espèces: "Cash",
