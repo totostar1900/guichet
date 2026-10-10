@@ -1,7 +1,7 @@
 import type { DocumentType, Intent, IntentState, IntentType } from "@/lib/domain/types";
 
 /** Documents that belong to one intent (everything but the grouped bordereau). */
-export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice">;
+export type IntentDocumentType = Exclude<DocumentType, "bordereau" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice" | "versement" | "garde" | "tirage">;
 
 /** Three kinds of documents, each with its own rule for wording changes and its own audience. */
 export type DocumentKind = "signe" | "envoye" | "interne";
@@ -21,13 +21,16 @@ export const DOC_KIND: Record<DocumentType, DocumentKind> = {
   coupon: "envoye",
   releve: "envoye",
   attestation: "envoye",
+  versement: "envoye",
+  garde: "envoye",
+  tirage: "envoye",
   bordereau: "interne",
   dossier_svt: "interne",
 };
 export const DOC_KIND_LABEL: Record<DocumentKind, string> = { signe: "Signés par le client", envoye: "Envoyés au client", interne: "Transmis aux contreparties" };
 export const DOC_KIND_RULE: Record<DocumentKind, string> = { signe: "réglementaire : un responsable approuve chaque changement de texte", envoye: "relu : un autre membre du desk relit chaque changement", interne: "libre : en vigueur dès l'enregistrement ; jamais envoyé au client" };
 /** The order of the life of a relationship, for lists. */
-export const DOC_ORDER: DocumentType[] = ["convention", "mandat", "prelevement", "bulletin", "cession", "reclamation", "transfert", "fonds", "allocation", "non_allocation", "opere", "coupon", "releve", "attestation", "note_indice", "dossier_svt", "bordereau"];
+export const DOC_ORDER: DocumentType[] = ["convention", "mandat", "prelevement", "bulletin", "cession", "reclamation", "transfert", "fonds", "allocation", "non_allocation", "opere", "coupon", "tirage", "versement", "garde", "releve", "attestation", "note_indice", "dossier_svt", "bordereau"];
 /** When the lifecycle produces each document. */
 export const DOC_WHEN: Record<DocumentType, string> = {
   convention: "à l'ouverture du compte-titres ; le modèle vierge se lit avant l'acceptation",
@@ -43,6 +46,9 @@ export const DOC_WHEN: Record<DocumentType, string> = {
   non_allocation: "quand la ligne n'est pas servie ; les fonds sont restitués",
   opere: "au règlement",
   coupon: "quand un flux de l'échéancier est payé (Aujourd'hui, ou depuis le dossier)",
+  tirage: "au sort d un prélèvement présenté : encaissé ou rejeté, avec sa cause",
+  versement: "quand le desk vire le solde disponible du client vers sa banque",
+  garde: "à l arrêté trimestriel des droits de garde, un avis par client, même à zéro",
   releve: "à la demande du client ou du desk",
   attestation: "à la demande du client",
   dossier_svt: "à l'approbation du dossier client",
@@ -59,6 +65,9 @@ export const DOC_LABEL: Record<DocumentType, string> = {
   opere: "Avis d'opéré",
   convention: "Convention d'ouverture de compte-titres",
   dossier_svt: "Dossier d'ouverture de compte (SVT / dépositaire)",
+  tirage: "Avis de prélèvement",
+  versement: "Avis de versement",
+  garde: "Avis de droits de garde",
   releve: "Relevé de position",
   attestation: "Attestation de détention",
   mandat: "Mandat de gestion des ordres",
@@ -79,6 +88,9 @@ export const DOC_PREFIX: Record<DocumentType, string> = {
   opere: "AO",
   convention: "CONV",
   dossier_svt: "DOS",
+  tirage: "TIR",
+  versement: "VER",
+  garde: "GAR",
   releve: "REL",
   attestation: "ATT",
   mandat: "MAN",
@@ -148,6 +160,9 @@ export const DOC_ROLES: Record<DocumentType, DocRole> = {
   non_allocation: { moment: "execution", prepares: "Purpose, depuis le résultat saisi", signs: "personne", receives: "le client (fonds restitués)", find: DOCS_PAGE("non_allocation"), born: { href: "/desk/resultats", label: "Résultats › saisir l'adjudication" }, clock: "fonds restitués sous deux jours ouvrés" },
   opere: { moment: "reglement", prepares: "Purpose, au règlement", signs: "personne", receives: "le client", find: DOCS_PAGE("opere"), born: { href: "/desk/marche", label: "Cotes & VL › régler l'ordre" } },
   coupon: { moment: "vie", prepares: "Purpose, depuis l'échéancier", signs: "personne", receives: "le client, par son canal prouvé (sinon gardé au dossier)", find: DOCS_PAGE("coupon"), born: { href: "/desk", label: "Aujourd'hui › Coupons à aviser ; Dossiers › Actes et avis" } },
+  tirage: { moment: "vie", prepares: "Purpose, au sort du prélèvement", signs: "personne", receives: "le client", find: DOCS_PAGE("tirage"), born: { href: "/desk/prelevements", label: "Prélèvements › dire le sort d'un tirage" }, clock: "annoncé cinq jours avant la présentation ; l'avis suit le sort" },
+  versement: { moment: "vie", prepares: "Purpose, au virement du disponible", signs: "personne", receives: "le client", find: DOCS_PAGE("versement"), born: { href: "/desk/encaissements", label: "Encaissements › payer une demande de versement" }, clock: "soixante-douze heures ouvrables après la demande" },
+  garde: { moment: "vie", prepares: "Purpose, à l'arrêté du trimestre", signs: "personne", receives: "le client, même quand l'avis est à zéro", find: DOCS_PAGE("garde"), born: { href: "/desk/garde", label: "Garde › arrêter le trimestre" }, clock: "trimestriel" },
   releve: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "personne", receives: "le client", find: DOCS_PAGE("releve"), born: { href: "/moi", label: "Mon espace › Relevé de position ; le desk depuis le dossier" } },
   attestation: { moment: "vie", prepares: "Purpose, depuis les positions", signs: "Purpose (signature et cachet)", receives: "le client, pour un tiers", find: DOCS_PAGE("attestation"), born: { href: "/moi", label: "Mon espace › Attestation de détention" } },
   dossier_svt: { moment: "ouverture", prepares: "le desk, depuis le dossier KYC", signs: "Purpose", receives: "le SVT ou le dépositaire", find: DOCS_PAGE("dossier_svt"), born: { href: "/desk/clients", label: "Dossiers › approbation du dossier" } },

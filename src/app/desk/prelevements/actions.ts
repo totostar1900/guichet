@@ -151,6 +151,16 @@ export async function direLeSort(_p: PrelevementResult | null, form: FormData): 
   const mandat = mandats.find((m) => m.id === t.mandatId);
   if (!mandat) return { ok: false, error: "Le mandat de ce tirage est introuvable." };
   const quand = new Date().toISOString();
+  /* L AVIS SUIT LE SORT, ET SEULEMENT LUI : un prélèvement annoncé n a rien
+     prouvé tant qu il n est pas passé. Son échec ne retient pas le sort. */
+  const avisDuTirage = async () => {
+    try {
+      const { generateAvisTirage } = await import("@/lib/documents/generate");
+      await generateAvisTirage(id, desk.name);
+    } catch (e) {
+      await r.logEvent({ kind: "system", html: `Avis de prélèvement non produit pour ${t.ref} : ${e instanceof Error ? e.message : "erreur"}` });
+    }
+  };
 
   if (sort === "encaisse") {
     const entry = await r.addCash({
@@ -166,6 +176,7 @@ export async function direLeSort(_p: PrelevementResult | null, form: FormData): 
     /* Le compteur repart de zéro : deux rejets séparés par un encaissement ne
        sont pas deux rejets consécutifs, et c'est « consécutifs » qui suspend. */
     if (mandat.rejects) await r.updateMandat(mandat.id, { rejects: 0 });
+    await avisDuTirage();
     await audit("prelevement.encaisse", "client", t.userId, { after: { tirage: t.ref, amount: t.amount, entry: entry.id }, reason: `${fmt(t.amount)} FCFA prélevés et encaissés · mandat ${mandat.ref}` });
     await r.logEvent({ kind: "desk", html: `<b>${fmt(t.amount)} FCFA</b> encaissés par prélèvement · mandat ${escapeHtml(mandat.ref)} · échéance du ${t.dueOn} · par ${desk.name}` });
     revalidatePath("/desk/prelevements");
@@ -178,6 +189,7 @@ export async function direLeSort(_p: PrelevementResult | null, form: FormData): 
   const consecutifs = (mandat.rejects ?? 0) + 1;
   const suite = suiteDuRejet(motif, consecutifs, t.dueOn);
   await r.updateTirage(id, { state: "rejete", settledAt: quand, rejectCode: motif, rejectNote: note });
+  await avisDuTirage();
 
   if (suite.suite === "suspend") {
     await r.updateMandat(mandat.id, { state: "suspendu", rejects: consecutifs });

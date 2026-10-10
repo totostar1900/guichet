@@ -421,7 +421,7 @@ export interface IntakeItem {
    autorise la maison à débiter un compte bancaire. Deux autorisations
    différentes, deux pièces : les confondre ferait signer l'une en croyant
    signer l'autre. */
-export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice";
+export type DocumentType = "bulletin" | "fonds" | "cession" | "bordereau" | "allocation" | "non_allocation" | "opere" | "convention" | "dossier_svt" | "releve" | "attestation" | "mandat" | "prelevement" | "coupon" | "reclamation" | "transfert" | "note_indice" | "versement" | "garde" | "tirage";
 export type DocumentStatus = "genere" | "envoye" | "signe";
 
 export interface GeneratedDocument {
@@ -441,6 +441,12 @@ export interface GeneratedDocument {
   clientFileId?: string;
   /** For statements: the client (user id). */
   clientId?: string;
+  /**
+   * LA PIÈCE DONT CE DOCUMENT EST L AVIS : un versement, un avis de garde, un
+   * tirage. Sans elle, une ligne de la page des documents ne saurait pas
+   * quel papier elle a déjà, et le même mouvement paraîtrait deux fois.
+   */
+  sourceId?: string;
   fileKey: string; // storage key of the PDF
   status: DocumentStatus;
   sentVia?: string[];

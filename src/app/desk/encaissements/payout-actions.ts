@@ -42,6 +42,17 @@ export async function payerRestitution(_p: PayoutResult | null, form: FormData):
   const entry = await r.addCash({ userId: demande.userId, amount: montant, kind: "restitution", label: "Versement du disponible, à la demande du client", createdBy: desk.name });
   const ferme = await r.closePayout(id, { state: "payee", closedBy: desk.name, paidAmount: montant, cashEntry: entry.id });
   const ecart = ecartDeDemande(ferme);
+  /* L'AVIS SE PRODUIT MAINTENANT, parce que c'est maintenant que le virement
+     existe : un papier fabriqué avant porterait un montant qui n'est pas
+     encore parti. Même leçon que la convention et que l'ordre, quatrième
+     usage. Son échec ne retient pas le virement : l'argent est parti, et un
+     avis manquant se voit au journal. */
+  try {
+    const { generateAvisVersement } = await import("@/lib/documents/generate");
+    await generateAvisVersement(id, desk.name);
+  } catch (e) {
+    await r.logEvent({ kind: "system", html: `Avis de versement non produit pour la demande ${id} : ${e instanceof Error ? e.message : "erreur"}` });
+  }
 
   await audit("cash.restitution", "client", demande.userId, { before: { asked: demande.askedAmount }, after: { paid: montant, entry: entry.id, payout: id }, reason: `versement ${fmt(montant)} FCFA sur demande` });
   await r.logEvent({

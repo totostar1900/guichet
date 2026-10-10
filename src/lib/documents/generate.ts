@@ -1,5 +1,8 @@
 import "server-only";
 import { resolvePassages } from "./passages";
+import { localIso } from "@/lib/format";
+import type { AvisGarde } from "@/lib/domain/garde";
+import type { Tirage } from "@/lib/domain/prelevement";
 import { companyByMnemo, loadRegistry } from "@/lib/reference";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
@@ -470,6 +473,38 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
     if (type === "coupon") return renderToBuffer(el(createElement(AvisCouponPdf, { number, contact, position, flow: all[0] ?? { date: now.toISOString().slice(0, 10), amount: 0, label: "Coupon" }, paidOn: all[0]?.date ?? now.toISOString().slice(0, 10), bank: { name: "Banque de démonstration", ribEnd: "0047" }, next: all[1], now, texts })));
     return renderToBuffer(el(createElement(TransfertPdf, { number, file, closure: { scope: "tout", destination: "Société de bourse de démonstration", destinationAccount: "0000-XX", requestedAt: now.toISOString() }, positions: [position], now, texts })));
   }
+  /* LES TROIS AVIS D'ARGENT SE PRÉVISUALISENT COMME LES AUTRES : un modèle
+     qu'on ne peut pas voir est un modèle qu'on relit sur sa parole. */
+  if (type === "versement" || type === "tirage" || type === "garde") {
+    const contact: Contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
+    const jour = localIso(now).slice(0, 10);
+    if (type === "versement") {
+      return renderToBuffer(el(createElement(AvisVersementPdf, { number, contact, askedAmount: 500_000, askedAt: jour, paidAmount: 512_000, paidAt: jour, banque: { name: "Banque de démonstration", ribEnd: "0047" }, now, texts })));
+    }
+    if (type === "tirage") {
+      const tirage: Tirage = { id: "apercu", ref: "TR-000000-APER", mandatId: "apercu", userId: "apercu", dueOn: jour, amount: 50_000, state: "encaisse", announcedAt: jour, noticeSent: true, settledAt: jour, createdAt: now.toISOString() };
+      return renderToBuffer(el(createElement(AvisTiragePdf, { number, contact, tirage, mandat: { ref: "PM-0000-APER", maxAmount: 50_000, bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47" }, now, texts })));
+    }
+    const bareme = (await import("@/lib/domain/garde")).BAREME_FERME;
+    const avis: AvisGarde = {
+      id: "apercu",
+      ref: "GAR-APER",
+      userId: "apercu",
+      clientName: contact.name,
+      period: "2026T3",
+      periodFrom: `${now.getFullYear()}-07-01`,
+      periodTo: `${now.getFullYear()}-09-30`,
+      bareme,
+      lignes: [{ intentId: "apercu", titre: "Ligne de démonstration · OTA 6,50 %", nature: "obligation", depuis: `${now.getFullYear()}-07-01`, assiette: 5_000_000, origine: "nominal", jours: 92, brut: 0, exoneree: false }],
+      assietteMoyenne: 5_000_000,
+      brut: 0,
+      du: 0,
+      plancher: false,
+      issuedAt: now.toISOString(),
+      issuedBy: "Aperçu",
+    };
+    return renderToBuffer(el(createElement(AvisGardePdf, { number, contact, avis, now, texts })));
+  }
   if (type === "releve" || type === "attestation") {
     const contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
     const el2 = type === "releve" ? createElement(RelevePosition, { number, contact, positions: [], now, texts }) : createElement(AttestationDetention, { number, contact, positions: [], now, texts });
@@ -526,4 +561,80 @@ export async function generateMandat(mandatId: string): Promise<GeneratedDocumen
   const { number, registerNo } = await nextNumbers("prelevement", now);
   const pdf = await renderToBuffer(el(createElement(MandatPrelevementDoc, { number, mandat, now })));
   return store({ type: "prelevement", number, registerNo, title: `Mandat de prélèvement : ${mandat.accountHolder}`, clientId: mandat.userId, clientName: mandat.accountHolder }, pdf, now);
+}
+
+/* ---------------- Les trois avis d'argent ---------------- */
+import { AvisGardePdf, AvisTiragePdf, AvisVersementPdf } from "./pdf/cash-templates";
+import { fmt } from "@/lib/format";
+
+/**
+ * LES TROIS MOUVEMENTS QUI N'AVAIENT PAS DE PAPIER.
+ *
+ * La convention promet « un avis d'opéré par opération, un relevé de
+ * position ». Un versement reçu, un prélèvement présenté et un trimestre de
+ * droits de garde n'avaient, eux, aucune pièce à citer : le client les voyait
+ * passer à son journal, et c'est tout. Un frais qu'on ne peut pas contester
+ * sur un papier numéroté est un frais qu'on subit.
+ *
+ * Chacun porte `sourceId` : la ligne de la page des documents sait ainsi
+ * quel papier existe déjà, et le même mouvement ne paraît jamais deux fois.
+ */
+
+/** L'avis du versement d'un disponible, produit au virement. */
+export async function generateAvisVersement(payoutId: string, advisor?: string): Promise<GeneratedDocument> {
+  const r = repo();
+  const payout = (await r.listPayouts()).find((p) => p.id === payoutId);
+  if (!payout) throw new Error("Demande de versement introuvable");
+  if (payout.state !== "payee") throw new Error("Un avis de versement ne se produit qu'une fois le virement fait.");
+  const contact = await r.getContact(payout.userId);
+  if (!contact) throw new Error("Client introuvable");
+  const file = await r.getClientFileByUser(payout.userId).catch(() => undefined);
+  const now = new Date();
+  const { number, registerNo } = await nextNumbers("versement", now);
+  const wording = await resolvePassages("versement");
+  const pdf = await renderToBuffer(
+    el(
+      createElement(AvisVersementPdf, {
+        number,
+        contact,
+        askedAmount: payout.askedAmount,
+        askedAt: payout.askedAt,
+        paidAmount: payout.paidAmount ?? payout.askedAmount,
+        paidAt: payout.closedAt ?? now.toISOString(),
+        banque: { name: file?.funds.bankName, ribEnd: file?.funds.bankAccount?.replace(/\s/g, "").slice(-4) },
+        now,
+        texts: wording.text,
+      }),
+    ),
+  );
+  return store({ type: "versement", number, registerNo, title: `${DOC_LABEL.versement} : ${contact.name} · ${fmt(Math.round(payout.paidAmount ?? payout.askedAmount))} FCFA`, clientId: payout.userId, clientName: contact.name, sourceId: payout.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+}
+
+/** L'avis d'un prélèvement, produit à son sort : encaissé ou rejeté. */
+export async function generateAvisTirage(tirageId: string, advisor?: string): Promise<GeneratedDocument> {
+  const r = repo();
+  const tirage = (await r.listTirages()).find((t) => t.id === tirageId);
+  if (!tirage) throw new Error("Tirage introuvable");
+  if (tirage.state !== "encaisse" && tirage.state !== "rejete") throw new Error("L'avis d'un prélèvement se produit à son sort, pas avant.");
+  const [mandat, contact] = await Promise.all([r.listMandats(tirage.userId).then((m) => m.find((x) => x.id === tirage.mandatId)), r.getContact(tirage.userId)]);
+  if (!mandat) throw new Error("Mandat introuvable");
+  if (!contact) throw new Error("Client introuvable");
+  const now = new Date();
+  const { number, registerNo } = await nextNumbers("tirage", now);
+  const wording = await resolvePassages("tirage");
+  const pdf = await renderToBuffer(el(createElement(AvisTiragePdf, { number, contact, tirage, mandat: { ref: mandat.ref, maxAmount: mandat.maxAmount, bankName: mandat.bankName, bankAccount: mandat.bankAccount }, now, texts: wording.text })));
+  return store({ type: "tirage", number, registerNo, title: `${DOC_LABEL.tirage} : ${contact.name} · ${fmt(Math.round(tirage.amount))} FCFA · ${tirage.state === "rejete" ? "rejeté" : "encaissé"}`, clientId: tirage.userId, clientName: contact.name, sourceId: tirage.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
+}
+
+/** L'avis des droits de garde d'une période, produit à l'arrêté. */
+export async function generateAvisGarde(avisId: string, advisor?: string): Promise<GeneratedDocument> {
+  const r = repo();
+  const avis = (await r.listCustodyNotices()).find((a) => a.id === avisId);
+  if (!avis) throw new Error("Avis de garde introuvable");
+  const contact = (await r.getContact(avis.userId)) ?? { id: avis.userId, name: avis.clientName, segment: "", whatsappOptIn: false };
+  const now = new Date();
+  const { number, registerNo } = await nextNumbers("garde", now);
+  const wording = await resolvePassages("garde");
+  const pdf = await renderToBuffer(el(createElement(AvisGardePdf, { number, contact, avis, now, texts: wording.text })));
+  return store({ type: "garde", number, registerNo, title: `${DOC_LABEL.garde} ${avis.period} : ${avis.clientName} · ${avis.du > 0 ? `${fmt(Math.round(avis.du))} FCFA` : "sans frais"}`, clientId: avis.userId, clientName: avis.clientName, sourceId: avis.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }

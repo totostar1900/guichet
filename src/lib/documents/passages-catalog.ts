@@ -126,6 +126,42 @@ export const PASSAGES: Partial<Record<TemplateScope, PassageDef[]>> = {
     P("valeurs", "Valeurs indicatives et réclamations", "la note au pied du relevé", "reglementaire", ["societe"], "Valeurs indicatives : dernier cours de clôture publié par la BVMAC ou dernière valeur liquidative publiée par la société de gestion ; lignes du marché primaire non cotées valorisées au nominal. Ce relevé reflète les ordres réglés enregistrés par {societe}. Les coupons et remboursements sont payés par l'émetteur aux dates indiquées, sur le compte de règlement du titulaire. Toute réclamation dans les trente jours.", "Indicative values: last closing price published by the BVMAC or last net asset value published by the management company; unlisted primary-market lines valued at nominal. This statement reflects the settled orders recorded by {societe}. Coupons and redemptions are paid by the issuer on the dates shown, to the holder's settlement account. Any claim within thirty days.", ["societe"]),
     P("vide", "Relevé sans position", "quand le client ne détient rien", "libre", [], "Aucune position en portefeuille à cette date.", "No position in the portfolio at this date."),
   ],
+  /* LES TROIS AVIS D'ARGENT (10 octobre 2026) : ce qui sort, ce qui est
+     prélevé, ce que la garde coûte. Chacun porte une phrase de portée que le
+     desk peut reformuler ; les chiffres, eux, restent au code. */
+  versement: [
+    P(
+      "portee",
+      "Phrase de portée de l'avis de versement",
+      "la phrase de fin",
+      "reglementaire",
+      ["compte"],
+      "Ce versement est allé sur le compte bancaire déclaré à l'ouverture, {compte}, et sur lui seul. Il solde la demande ci-dessus ; votre solde disponible après ce mouvement figure à votre journal des espèces.",
+      "This payout went to the bank account declared at opening, {compte}, and to that account only. It closes the request above; your available balance after this entry appears in your cash journal.",
+    ),
+  ],
+  tirage: [
+    P(
+      "portee",
+      "Phrase de portée de l'avis de prélèvement",
+      "la phrase de fin",
+      "reglementaire",
+      [],
+      "Ce prélèvement a été annoncé avant d'être présenté, et son montant n'excède pas le plafond du mandat que vous avez signé. Toute contestation se fait auprès de nous, en citant la référence ci-dessus.",
+      "This debit was announced before being presented, and its amount does not exceed the ceiling of the mandate you signed. Any dispute is raised with us, quoting the reference above.",
+    ),
+  ],
+  garde: [
+    P(
+      "portee",
+      "Phrase de portée de l'avis de droits de garde",
+      "la phrase de fin",
+      "reglementaire",
+      [],
+      "Les droits de garde se calculent ligne par ligne, au prorata des jours réellement gardés dans la période. Un avis sans frais paraît comme les autres : il dit que la conservation a été calculée et qu'elle n'a rien coûté.",
+      "Custody fees are computed line by line, prorated over the days actually held in the period. A notice with no fee appears like the others: it says custody was computed and cost nothing.",
+    ),
+  ],
   attestation: [
     P("valoir", "Portée de l'attestation", "la phrase de fin", "reglementaire", [], "La présente attestation est délivrée à la demande du titulaire pour servir et valoir ce que de droit. Elle ne vaut ni évaluation ni engagement de rachat.", "This certificate is issued at the holder's request for all legal purposes. It is neither a valuation nor a buyback commitment."),
   ],

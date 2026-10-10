@@ -126,6 +126,16 @@ export async function emettreAvis(_p: GardeResult | null, form: FormData): Promi
       cashId,
       issuedBy: me.name,
     });
+    /* L'AVIS DEVIENT UN PAPIER NUMÉROTÉ : un frais qu'on ne voit qu'en ligne
+       est un frais qu'on subit ; celui qu'on peut citer dans une réclamation
+       est un frais qu'on vérifie. Son échec n'arrête pas l'arrêté : les
+       droits sont calculés, et un avis manquant se voit au journal. */
+    try {
+      const { generateAvisGarde } = await import("@/lib/documents/generate");
+      await generateAvisGarde(avis.id, me.name);
+    } catch (e) {
+      await r.logEvent({ kind: "system", html: `Avis de garde ${avis.ref} non produit en PDF : ${e instanceof Error ? e.message : "erreur"}` });
+    }
     await audit("garde.avis", "client", c.clientId, { after: { ref: avis.ref, period: periode.cle, du: d.du }, reason: `avis de garde ${periode.cle} · ${fmt(Math.round(d.du))} FCFA` });
     emis += 1;
   }

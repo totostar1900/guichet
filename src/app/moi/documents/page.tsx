@@ -28,7 +28,11 @@ export async function generateMetadata() {
    d'argent, une démarche. Un bulletin est un engagement avant d'être la pièce
    d'une opération : il monte donc au premier rayon, en nommant sa ligne. */
 const SIGNES: DocumentType[] = ["convention", "mandat", "prelevement", "bulletin", "cession"];
-const ARGENT: DocumentType[] = ["releve", "attestation"];
+/* Les papiers de l argent : ceux qui s éditent, et les trois avis qui sont
+   l avis d un mouvement (versement, garde, prélèvement). Ils sont nommés ici
+   pour ne pas tomber dans le rayon des opérations, auxquelles ils
+   n appartiennent pas. */
+const ARGENT: DocumentType[] = ["releve", "attestation", "versement", "garde", "tirage"];
 const DEMARCHES: DocumentType[] = ["reclamation", "transfert"];
 
 /**
@@ -141,9 +145,17 @@ export default async function DocumentsPage() {
      votre solde, les prélèvements présentés avec leur préavis, et les avis
      de droits de garde. Un mouvement d'argent sans trace consultable est la
      seule chose que la convention promet et que la page ne donnait pas. */
+  /* LE PAPIER PASSE DEVANT LA LIGNE : quand l avis existe, le geste l ouvre.
+     Les mouvements d avant le 10 octobre 2026 n en ont pas, et leur ligne
+     reste ce qu elle était : un avis ne se fabrique pas rétroactivement. */
+  const avisDe = new Map(miens.filter((d) => d.sourceId).map((d) => [d.sourceId as string, d]));
+  const ouvrirLAvis = (source: string, sinon: { label: string; href: string }) => {
+    const doc = avisDe.get(source);
+    return doc ? { label: t("Ouvrir"), href: versLaPiece(doc.id) } : sinon;
+  };
   const argent = [
     ...miens
-      .filter((d) => ARGENT.includes(d.type))
+      .filter((d) => d.type === "releve" || d.type === "attestation")
       .map((d) => ({
         clef: `doc-${d.id}`,
         at: d.createdAt,
@@ -162,7 +174,7 @@ export default async function DocumentsPage() {
         sous: t("{m} FCFA vers votre compte bancaire", { m: fmt(Math.round(p.paidAmount ?? p.askedAmount)) }),
         etat: t("payé le {d}", { d: fmtDate(p.closedAt ?? p.askedAt, false) }),
         ton: "fait" as const,
-        geste: { label: t("Le journal"), href: "/moi/performance#operations" },
+        geste: ouvrirLAvis(p.id, { label: t("Le journal"), href: "/moi/performance#operations" }),
       })),
     /* UN TIRAGE NE PARAÎT QUE S'IL A ÉTÉ DIT OU PRÉSENTÉ : une échéance
        seulement préparée, ou écartée avant la remise, n'a rien demandé au
@@ -176,7 +188,7 @@ export default async function DocumentsPage() {
         sous: `${t("{m} FCFA le {d}", { m: fmt(x.amount), d: fmtDate(x.dueOn, false) })} · ${x.ref}`,
         etat: x.state === "encaisse" ? t("encaissé le {d}", { d: fmtDate(x.settledAt ?? x.dueOn, false) }) : x.state === "rejete" ? t("rejeté par votre banque") : t("annoncé le {d}", { d: fmtDate(x.announcedAt ?? x.createdAt, false) }),
         ton: (x.state === "encaisse" ? "fait" : x.state === "rejete" ? "attend" : undefined) as "fait" | "attend" | undefined,
-        geste: { label: t("Mes prélèvements"), href: "/moi/prelevements" },
+        geste: ouvrirLAvis(x.id, { label: t("Mes prélèvements"), href: "/moi/prelevements" }),
       })),
     ...garde.map((a) => ({
       clef: `garde-${a.id}`,
@@ -187,7 +199,7 @@ export default async function DocumentsPage() {
       ton: undefined as "fait" | "attend" | undefined,
       /* UN FRAIS SE CONTESTE SUR UN PAPIER : le geste est ici, à côté du
          montant, et non trois pages plus loin. */
-      geste: { label: t("Contester"), href: "/moi/reclamation" },
+      geste: ouvrirLAvis(a.id, { label: t("Contester"), href: "/moi/reclamation" }),
     })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 
