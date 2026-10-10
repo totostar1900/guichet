@@ -32,6 +32,16 @@ import type { Offer } from "./types";
  * décider à sa place.
  */
 
+/**
+ * Au-delà de combien de jours ouvrés un versement programmé non réglé cesse
+ * d'être « un virement en route ».
+ *
+ * Cinq : le délai d'un virement de place dans la zone, plus un jour. En deçà,
+ * relancer un client qui a déjà viré serait du bruit ; au-delà, personne ne
+ * regardait, et le robot en ajoutait un chaque mois.
+ */
+export const JOURS_AVANT_RELANCE = 5;
+
 export type StandingState = "active" | "suspendue" | "terminee" | "annulee" | "remplacee";
 export type OnBlocked = "passer" | "arreter";
 

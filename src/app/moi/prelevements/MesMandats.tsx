@@ -43,6 +43,7 @@ function Msg({ state }: { state: MandatResult | null }) {
 export function MesMandats({
   mandats,
   instructions,
+  instructionDemandee,
   titulaireParDefaut,
   banqueParDefaut,
   compteParDefaut,
@@ -64,16 +65,19 @@ export function MesMandats({
   injoignable: boolean;
   jourMin: number;
   jourMax: number;
+  /** L'instruction qu'on vient de signer, quand on arrive de là. */
+  instructionDemandee?: string;
 }) {
   const t = useT();
   const [creer, creerAct, creation] = useActionState<MandatResult | null, FormData>(creerMandatAction, null);
   const [envoi, envoiAct, envoyant] = useActionState<MandatResult | null, FormData>(envoyerCodeMandatAction, null);
   const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
   const [revoc, revocAct, revoquant] = useActionState<MandatResult | null, FormData>(revoquerMandatAction, null);
-  const [objet, setObjet] = useState<"provision" | "instruction">("provision");
-  const [ouvert, setOuvert] = useState(false);
+  const connue = instructions.some((i) => i.id === instructionDemandee);
+  const [objet, setObjet] = useState<"provision" | "instruction">(connue ? "instruction" : "provision");
+  const [ouvert, setOuvert] = useState(connue);
   const [aRevoquer, setARevoquer] = useState<string | null>(null);
-  const [quelle, setQuelle] = useState(instructions[0]?.id ?? "");
+  const [quelle, setQuelle] = useState((connue && instructionDemandee) || instructions[0]?.id || "");
   /* Contrôlés, parce que le regroupement replace le curseur après chaque
      touche : un champ non contrôlé renverrait le curseur au bout. */
   const [montant, setMontant] = useState("");

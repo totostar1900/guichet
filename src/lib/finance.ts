@@ -258,9 +258,13 @@ export function amortCalc(b: AmortInput, nominalAmount: number, pricePct: number
  */
 export function addBusinessDays(from: Date, n: number): Date {
   const d = new Date(from.getTime());
-  let left = n;
+  /* ELLE RECULE AUSSI, depuis le 10 octobre 2026 : « il y a cinq jours
+     ouvrés » est la même question que « dans cinq jours ouvrés », et deux
+     fonctions pour un même calendrier finiraient par ne pas dire pareil. */
+  const pas = n < 0 ? -1 : 1;
+  let left = Math.abs(n);
   while (left > 0) {
-    d.setUTCDate(d.getUTCDate() + 1);
+    d.setUTCDate(d.getUTCDate() + pas);
     if (d.getUTCDay() >= 1 && d.getUTCDay() <= 5) left--;
   }
   return d;

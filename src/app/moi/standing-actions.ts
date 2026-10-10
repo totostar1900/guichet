@@ -8,7 +8,7 @@ import { audit } from "@/lib/audit";
 import { fmt, localIso, parseAmount } from "@/lib/format";
 import { standingBlock } from "@/lib/domain/standing";
 
-export type StandingResult = { ok: true; message: string } | { ok: false; error: string };
+export type StandingResult = { ok: true; message: string; versLeMandat?: string } | { ok: false; error: string };
 
 /* Les montants arrivent GROUPÉS, « 10 000 » et non « 10000 » : ils se lisent
    comme ceux de l'intention, en chaîne puis par parseAmount, qui retire tout ce
@@ -20,6 +20,13 @@ const schema = z.object({
   dayOfMonth: z.coerce.number().int().min(1).max(28),
   endsOn: z.string().optional(),
   onBlocked: z.enum(["passer", "arreter"]).default("passer"),
+  /* COMMENT L'ARGENT ARRIVERA, demandé à la signature et non six mois plus
+     tard. On programmait un versement mensuel sans jamais poser la question :
+     le client repartait avec « versement programmé », et découvrait au premier
+     mois qu'il devait virer lui-même. La convention interdit d'imposer un
+     prélèvement (article 3), donc les deux chemins restent ouverts ; ce qui
+     change, c'est qu'il en choisit un. */
+  reglement: z.enum(["virement", "prelevement"]).default("virement"),
 });
 
 /**
@@ -76,7 +83,12 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
   });
   await audit("standing.create", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, amount: s.amount, dayOfMonth: s.dayOfMonth, endsOn: s.endsOn } });
   revalidatePath("/");
-  return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}.` };
+  /* Le prélèvement ne se met pas en place ici : il se SIGNE, par un code, sur
+     sa propre page. On y mène, l'instruction déjà choisie, plutôt que de
+     laisser le client la retrouver dans une liste. */
+  const versLeMandat = p.data.reglement === "prelevement" ? `/moi/prelevements?instruction=${s.id}` : undefined;
+  const comment = p.data.reglement === "prelevement" ? "Il reste à signer le mandat de prélèvement : sans lui, rien ne sera prélevé." : `Chaque mois, virez ${fmt(s.amount)} FCFA en citant la référence de l'appel de fonds que vous recevrez.`;
+  return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}. ${comment}`, versLeMandat };
 }
 
 const reinvestSchema = z.object({

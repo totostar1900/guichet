@@ -39,6 +39,11 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
     return (
       <div className={styles.done}>
         <b>{state.message}</b>
+        {state.versLeMandat ? (
+          <Link className="btn primary sm" href={state.versLeMandat}>
+            {t("Signer le mandat de prélèvement")}
+          </Link>
+        ) : null}
         <Link href="/">{t("Voir mes versements programmés")} →</Link>
       </div>
     );
@@ -81,6 +86,27 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
           />
         </label>
       </div>
+      {/* COMMENT L'ARGENT ARRIVERA. On programmait un versement mensuel sans
+          jamais poser la question : le client découvrait au premier mois qu'il
+          devait virer lui-même. La convention interdit d'imposer un
+          prélèvement, donc les deux chemins restent, mais il en choisit un. */}
+      <fieldset className={styles.reglement}>
+        <legend>{t("Comment l'argent arrivera")}</legend>
+        <label>
+          <input type="radio" name="reglement" value="virement" defaultChecked />
+          <span>
+            <b>{t("Je vire moi-même, chaque mois")}</b>
+            <small>{t("Vous recevez un appel de fonds avec les coordonnées et la référence à citer.")}</small>
+          </span>
+        </label>
+        <label>
+          <input type="radio" name="reglement" value="prelevement" />
+          <span>
+            <b>{t("Prélevez-moi sur mon compte bancaire")}</b>
+            <small>{t("Un mandat à signer une fois, par code. Chaque prélèvement vous est annoncé cinq jours avant.")}</small>
+          </span>
+        </label>
+      </fieldset>
       <button className="btn" type="submit" disabled={pending}>
         {t(pending ? "…" : "Programmer ce versement")}
       </button>

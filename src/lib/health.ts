@@ -8,6 +8,8 @@ import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
 import { rythmeObserve } from "@/lib/domain/fund-perf";
 import { JOURS_AVANT_ALERTE } from "@/lib/domain/virement";
+import { JOURS_AVANT_RELANCE } from "@/lib/domain/standing";
+import { addBusinessDays } from "@/lib/finance";
 import { ageDeLaRemise, sansNouvelle } from "@/lib/domain/prelevement";
 import { indexCheck } from "@/lib/market/index";
 import { ingestBoc } from "@/lib/market/boc";
@@ -462,6 +464,30 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
       : remis.length
         ? "tous remis depuis moins de dix jours"
         : "aucun tirage en attente de sort",
+  });
+
+  /* LES VERSEMENTS PROGRAMMÉS QUI ATTENDENT LEUR ARGENT.
+     Un versement par virement crée un ordre que le client doit régler ; celui
+     dont la provision portait déjà le montant est couvert et ne compte pas
+     ici. Personne ne regardait de ce côté : le robot en ajoutait un chaque
+     mois, et un client qui ne vire jamais accumulait des ordres confirmés que
+     rien ne relançait. Cinq jours ouvrés : le délai d'un virement de place
+     plus un jour, au-delà duquel ce n'est plus un virement en route. */
+  const ordres = await r.listIntents().catch(() => []);
+  const versements = ordres.filter((i) => i.standingId && i.state === "confirmee" && !i.coveredAt);
+  const limite = addBusinessDays(now, -JOURS_AVANT_RELANCE).toISOString();
+  const versementsEnRetard = versements.filter((i) => i.createdAt < limite);
+  const plusVieuxVersement = [...versementsEnRetard].sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
+  out.push({
+    key: "versements",
+    label: "Versements programmés non réglés",
+    level: versementsEnRetard.length ? "warn" : "ok",
+    value: `${versementsEnRetard.length} / ${versements.length}`,
+    detail: plusVieuxVersement
+      ? `le plus ancien attend depuis le ${plusVieuxVersement.createdAt.slice(0, 10)} : ${(plusVieuxVersement.amount ?? 0).toLocaleString("fr-FR")} FCFA, ${plusVieuxVersement.clientName}`
+      : versements.length
+        ? "tous attendent depuis moins de cinq jours ouvrés"
+        : "aucun versement programmé n'attend son règlement",
   });
 
   /* LES GESTES PASSÉS SANS SECOND REGARD.

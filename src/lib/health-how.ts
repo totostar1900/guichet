@@ -109,6 +109,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Le panneau « Remises en attente de sort », rangé par ancienneté. Un tirage remis depuis plus de dix jours sans encaissement ni rejet appelle la banque, pas le client : c'est elle qui sait si l'opération a été présentée. La réponse obtenue s'inscrit ici, « Encaissé » ou « Rejeté » avec sa cause, et la cause décide de la suite.",
     docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
   },
+  versements: {
+    label: "Versements programmés non réglés",
+    href: "/desk",
+    how: "Le carnet, filtré sur les ordres confirmés : un versement programmé par virement attend l'argent du client, et celui dont la provision portait déjà le montant n'apparaît pas ici. Au-delà de cinq jours ouvrés, ce n'est plus un virement en route : appeler le client, ou lui proposer un mandat de prélèvement pour que le mois suivant se règle seul. Un ordre sans suite se clôt avec son motif.",
+    docs: { href: "/desk/docs/operations#especes", label: "Les espèces : provision, rémunération, soixante-douze heures" },
+  },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",
     href: "/desk/approbations",

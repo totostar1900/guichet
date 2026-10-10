@@ -87,8 +87,17 @@ function cancelText(i: Intent): string {
 export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?: string): Message {
   const lines: Record<IntentState, string> = {
     recue: "Votre intention est enregistrée.",
-    confirmee:
-      i.type === "ferme"
+    confirmee: i.standingId
+      ? /* UN VERSEMENT PROGRAMMÉ N'EST PAS UN ORDRE DE PLUS À SIGNER.
+           Le client a signé son instruction une fois, et il a reçu le préavis :
+           il ne reste que l'argent. Le message disait pourtant « le bulletin à
+           signer et l'appel de fonds suivent dans ce fil », ce qui demandait
+           une signature déjà donnée et promettait une pièce que le robot ne
+           produisait pas. Deux phrases désormais, selon que l'argent est là. */
+        i.coveredAt
+        ? `Votre versement programmé ${i.ref} est parti : ${fmt(i.amount ?? 0)} FCFA sur ${o.title}, couverts par votre provision. Rien à faire de votre côté.`
+        : `Votre versement programmé ${i.ref} est enregistré : ${fmt(i.amount ?? 0)} FCFA sur ${o.title}. Virez ce montant en citant ${i.ref} ; l'appel de fonds, dans vos documents, porte les coordonnées.`
+      : i.type === "ferme"
         ? `Votre prise ferme est confirmée${advisor ? ` par ${advisor}` : ""}. Le bulletin à signer et l'appel de fonds suivent dans ce fil.`
         : /* UN ORDRE DÉJÀ SIGNÉ NE SE FAIT PAS SIGNER DEUX FOIS.
              Le message annonçait « le bulletin à signer suit dans ce fil » :

@@ -5,6 +5,8 @@ import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { instalmentLabel, isDue, reinvestLabel, reinvestissementDu, standingBlock } from "@/lib/domain/standing";
 import { cashPosition } from "@/lib/domain/cash";
+import { aCouvrirPour } from "@/lib/domain/plafond";
+import { generateForIntent } from "@/lib/documents/generate";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 import { envoyerPreavis } from "@/lib/notify/preavis";
 import { arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
@@ -82,6 +84,9 @@ export async function GET(req: NextRequest) {
     const parInstruction = new Map<string, Preavis[]>();
     for (const x of enCours) parInstruction.set(x.standingId, [...(parInstruction.get(x.standingId) ?? []), x]);
     let placed = 0;
+    /* Combien de versements n'ont rien demandé au client : sa provision les
+       portait déjà. C'est la mesure du mandat qui sert. */
+    let couverts = 0;
     let skipped = 0;
     let ended = 0;
     let reinvested = 0;
@@ -184,6 +189,38 @@ export async function GET(req: NextRequest) {
                  second passage de replacer la même somme. */
               await r.addCash({ userId: s.userId, amount: lot.montant, kind: "souscription", label: libelle, intentId: intent.id, createdBy: "robot" });
             }
+            /* L'ARGENT EST-IL DÉJÀ LÀ, OU FAUT-IL LE DEMANDER ?
+               La provision paie si elle peut, exactement comme à la signature
+               d'un ordre : c'est le cas du client qui a donné un mandat, dont
+               le prélèvement est arrivé cinq jours plus tôt. Rien ne bouge au
+               journal, la somme est réservée et ne sortira qu'au règlement.
+
+               Sinon, et seulement sinon, l'APPEL DE FONDS part. Le message au
+               client promettait depuis toujours qu'il « suit dans ce fil », et
+               il ne suivait pas : le robot écrit l'état directement, et seule
+               l'action du desk produisait les pièces d'un passage en
+               « confirmée ». Le client lisait une promesse de coordonnées
+               bancaires et n'avait ni motif ni référence à citer. */
+            if (s.source !== "encaissements") {
+              const du = aCouvrirPour(confirmed, dest);
+              const poche2 = await disponible(s.userId);
+              if (du > 0 && poche2 >= du) {
+                await r.updateIntent(intent.id, { coveredAt: new Date().toISOString(), coveredAmount: du });
+                disponibles.set(s.userId, poche2 - du);
+                couverts += 1;
+                await r.logEvent({ kind: "intent", intentId: intent.id, html: `${intent.ref} (${s.clientName}) : <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés) · rien à virer` });
+              } else {
+                try {
+                  const appel = await generateForIntent("fonds", intent.id);
+                  await r.logEvent({ kind: "document", intentId: intent.id, html: `<b>Appel de fonds</b> ${appel.number} pour ${s.clientName} · ${fmt(lot.montant)} FCFA · ${s.ref}` });
+                } catch (e) {
+                  /* Un appel de fonds qui ne sort pas laisse le client sans
+                     coordonnées : ça se dit, et le desk le produit à la main
+                     depuis le carnet. */
+                  await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>appel de fonds non produit</b> pour ${intent.ref} · ${e instanceof Error ? e.message : "erreur"}` });
+                }
+              }
+            }
             sortis.push(intent.id);
             await r.logEvent({
               kind: "intent",
@@ -270,6 +307,6 @@ export async function GET(req: NextRequest) {
       }
     }
   
-    return ({ ok: true, day: today, placed, reinvested, annonces, muets, skipped, ended, considered: orders.length });
+    return ({ ok: true, day: today, placed, couverts, reinvested, annonces, muets, skipped, ended, considered: orders.length });
   });
 }

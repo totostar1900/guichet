@@ -15,6 +15,41 @@
     grid-template-columns: 1fr;
   }
 }
+/* COMMENT L'ARGENT ARRIVERA : deux chemins, lisibles d'un coup d'œil, et ce
+   que chacun engage dit sous son nom. */
+.reglement {
+  display: grid;
+  gap: var(--s-5);
+  margin: 0;
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.reglement legend {
+  padding: 0 var(--s-4);
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.reglement label {
+  display: flex;
+  gap: var(--s-5);
+  align-items: flex-start;
+  cursor: pointer;
+}
+.reglement b {
+  display: block;
+  font-size: var(--t-3);
+}
+.reglement small {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  line-height: 1.45;
+  margin-top: var(--s-1);
+}
 .done {
   display: flex;
   flex-direction: column;

@@ -26,7 +26,11 @@ export async function generateMetadata() {
  * Deux décisions de la maison s'y lisent sans être expliquées : un mandat par
  * usage, et un calendrier, jamais un tirage à la demande.
  */
-export default async function PrelevementsPage() {
+export default async function PrelevementsPage({ searchParams }: { searchParams: Promise<{ instruction?: string }> }) {
+  /* On arrive parfois d'une épargne programmée qu'on vient de signer, en ayant
+     choisi « prélevez-moi » : le formulaire s'ouvre sur elle, au lieu de la
+     faire retrouver dans une liste. */
+  const demandee = (await searchParams).instruction;
   const t = await getT();
   const s = await requireSession("/moi/prelevements");
   const r = repo();
@@ -60,6 +64,7 @@ export default async function PrelevementsPage() {
           et c'est elle qui empêche la plateforme de servir à déplacer
           l'argent d'un compte vers un autre. */}
       <MesMandats
+        instructionDemandee={demandee}
         mandats={mandats.map((m) => ({
           id: m.id,
           ref: m.ref,

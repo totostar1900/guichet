@@ -901,6 +901,14 @@ export const EN_REST: Record<string, string> = {
   "passer ce versement et continuer": "skip that instalment and carry on",
   "arrêter le versement programmé": "stop the standing instalment",
   "Programmer ce versement": "Set up this instalment",
+  /* COMMENT L'ARGENT ARRIVERA : la question posée à la signature de
+     l'instruction, depuis le 10 octobre 2026. */
+  "Comment l'argent arrivera": "How the money will arrive",
+  "Je vire moi-même, chaque mois": "I transfer it myself, every month",
+  "Vous recevez un appel de fonds avec les coordonnées et la référence à citer.": "You receive a call for funds with the bank details and the reference to quote.",
+  "Prélevez-moi sur mon compte bancaire": "Take it from my bank account",
+  "Un mandat à signer une fois, par code. Chaque prélèvement vous est annoncé cinq jours avant.": "A mandate signed once, by code. Every debit is announced to you five days ahead.",
+  "Signer le mandat de prélèvement": "Sign the direct debit mandate",
   "Voir mes versements programmés": "See my standing instalments",
   "Vos versements programmés": "Your standing instalments",
   "Arrêter": "Stop",
