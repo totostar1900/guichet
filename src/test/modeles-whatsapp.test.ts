@@ -1,6 +1,18 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parametreDeModele } from "@/lib/notify/providers";
+import { LANGUES, lesSixCharges, lireLesModeles } from "../../scripts/modeles-whatsapp.mjs";
+
+/** Les deux formes que le script rend, nommées une fois pour toutes. */
+type Bouton = { type: string; text: string; url?: string };
+type Modele = { nom: string; categorie: string; entete: Record<string, string>; corps: Record<string, string>; pied: Record<string, string>; boutons: Bouton[]; exemples: string[] };
+type Composant = { type: string; text: string; format?: string; example?: { body_text: string[][] } };
+type Charge = { name: string; language: string; category: string; components: Composant[] };
+
+const lesModeles = (): Modele[] => lireLesModeles() as unknown as Modele[];
+const lesCharges = (): Charge[] => lesSixCharges() as unknown as Charge[];
+const parNom = (): Record<string, Modele> => Object.fromEntries(lesModeles().map((m) => [m.nom, m]));
+const codes = (): string[] => (LANGUES as unknown as { code: string }[]).map((l) => l.code);
 
 /**
  * LE MODÈLE SOUMIS À META ET L'ENVOI DOIVENT COMPTER PAREIL.
@@ -135,5 +147,134 @@ describe("un paramètre part propre, parce que Meta refuse le reste", () => {
     expect(long.length).toBe(900);
     expect(long.endsWith("…")).toBe(true);
     expect(parametreDeModele("court")).toBe("court");
+  });
+});
+
+/**
+ * LES SIX CHARGES, TELLES QU'ELLES PARTENT CHEZ META.
+ *
+ * Trois modèles, deux langues : six saisies à la main, et une virgule
+ * déplacée ne se verrait pas. Le modèle serait approuvé tel qu'il a été tapé,
+ * et c'est l'envoi qui échouerait ensuite. `scripts/modeles-whatsapp.mjs` lit
+ * donc le document et bâtit les charges ; ce cliquet importe le même lecteur,
+ * de sorte qu'une dérive du document se dit ici et non chez un examinateur
+ * dans trois jours.
+ */
+describe("les charges soumises à Meta", () => {
+  const charges = lesCharges();
+  const modeles = parNom();
+
+  it("sont six : trois modèles, deux langues", () => {
+    expect(charges.map((c) => `${c.name} ${c.language}`)).toEqual([
+      "guichet_prelevement fr",
+      "guichet_prelevement en",
+      "guichet_maj fr",
+      "guichet_maj en",
+      "guichet_offre fr",
+      "guichet_offre en",
+    ]);
+    expect(codes()).toEqual(["fr", "en"]);
+  });
+
+  it("portent la catégorie assumée, et jamais allow_category_change", () => {
+    /* Ce drapeau évite un refus en laissant Meta reclasser le modèle, donc
+       changer son tarif, sans que personne ne l'ait décidé. Un refus se lit
+       et se répond ; une requalification se découvre sur la facture. */
+    expect(charges.filter((c) => c.category === "UTILITY")).toHaveLength(4);
+    expect(charges.filter((c) => c.category === "MARKETING")).toHaveLength(2);
+    for (const c of charges) expect(c).not.toHaveProperty("allow_category_change");
+  });
+
+  it("donnent un exemple par variable, ni plus ni moins", () => {
+    // Un modèle sans exemple est refusé, et le motif ne nomme pas la colonne.
+    for (const c of charges) {
+      const body = c.components.find((x) => x.type === "BODY")!;
+      const exemples = body.example!.body_text[0];
+      expect(exemples, `${c.name} ${c.language}`).toHaveLength(variables(body.text).length);
+      expect(exemples.every((x) => x.length > 0)).toBe(true);
+    }
+  });
+
+  it("traduisent aussi l'en-tête et le pied, pas seulement le corps", () => {
+    /* Meta examine le modèle entier. Un modèle soumis en anglais dont
+       l'en-tête reste français est mi-traduit, et c'est le genre de détail
+       qui fait revenir l'examinateur. */
+    for (const [nom, m] of Object.entries(modeles)) {
+      expect(m.entete.fr, nom).not.toBe(m.entete.en);
+      expect(m.pied.fr, nom).not.toBe(m.pied.en);
+    }
+  });
+
+  it("gardent un seul pied de page pour les trois, dans chaque langue", () => {
+    // La mention de la maison ne varie pas selon le message ; trois copies dérivent.
+    for (const code of codes()) {
+      expect(new Set(Object.values(modeles).map((m) => m.pied[code])).size, code).toBe(1);
+    }
+  });
+
+  it("tiennent les bornes d'en-tête et de pied dans les deux langues", () => {
+    for (const c of charges) {
+      for (const t of ["HEADER", "FOOTER"]) {
+        const x = c.components.find((y) => y.type === t)!;
+        expect(x.text.length, `${c.name} ${c.language} ${t}`).toBeLessThanOrEqual(60);
+      }
+    }
+  });
+});
+
+describe("les boutons des modèles", () => {
+  const modeles = parNom();
+
+  it("sont ceux qu'on a décidés, et le marketing porte sa sortie", () => {
+    expect(modeles.guichet_prelevement.boutons).toEqual([
+      { type: "URL", text: "Voir mes prélèvements", url: "https://guichet.purposecapital.africa/moi/prelevements" },
+    ]);
+    expect(modeles.guichet_maj.boutons).toEqual([{ type: "URL", text: "Ouvrir le Guichet", url: "https://guichet.purposecapital.africa/" }]);
+    /* Un modèle marketing sans sortie se fait signaler par les
+       destinataires, ce qui abîme la qualité du numéro pour TOUS les envois,
+       utilitaires compris. */
+    expect(modeles.guichet_offre.boutons).toEqual([{ type: "QUICK_REPLY", text: "Stop" }]);
+  });
+
+  it("mènent à des adresses qui existent encore", () => {
+    /* UN MODÈLE APPROUVÉ VIT DES ANNÉES, UNE ADRESSE NON. « Ouvrir le
+       Guichet » pointait sur /moi, qui ne fait plus que rediriger depuis la
+       refonte du 1er octobre 2026 ; personne ne l'avait vu, parce que rien ne
+       relie un document à un dossier de routes. */
+    for (const m of Object.values(modeles)) {
+      for (const b of m.boutons) {
+        if (b.type !== "URL") continue;
+        const chemin = new URL(b.url!).pathname.replace(/^\/|\/$/g, "");
+        const page = chemin ? `src/app/${chemin}/page.tsx` : "src/app/page.tsx";
+        expect(() => readFileSync(page), `${b.url} : ${page} introuvable`).not.toThrow();
+      }
+    }
+  });
+
+  it("et STOP est vraiment honoré à l'entrée", () => {
+    // Le bouton promet une sortie ; la promesse se tient dans le webhook.
+    const w = readFileSync("src/app/api/whatsapp/webhook/route.ts", "utf8");
+    expect(w).toMatch(/\["stop", "arret", "arrêt", "désabonner", "desabonner"\]\.includes/);
+  });
+});
+
+describe("la langue, telle qu'elle est", () => {
+  it("part sur « fr », et le document le dit", () => {
+    /* Rien n'envoie encore l'anglais : le composeur écrit en français et
+       personne ne passe de langue. La version anglaise est soumise quand
+       même, parce qu'un modèle dont une seule langue existe fait échouer tout
+       envoi dans l'autre. Si ce défaut devenait « en », les envois
+       tomberaient en silence jusqu'à ce qu'un client s'en plaigne. */
+    expect(readFileSync("src/lib/notify/providers.ts", "utf8")).toMatch(/lang = "fr"/);
+    expect(doc()).toContain("Rien n'envoie encore la version anglaise");
+  });
+});
+
+describe("le script qui soumet", () => {
+  it("ne soumet rien quand on l'importe", () => {
+    /* Ce cliquet l'importe pour son lecteur. Sans cette garde, lancer la
+       suite de tests avec un jeton dans l'environnement soumettrait six
+       modèles à Meta. */
+    expect(readFileSync("scripts/modeles-whatsapp.mjs", "utf8")).toMatch(/import\.meta\.url === pathToFileURL\(process\.argv\[1\]\)\.href/);
   });
 });
