@@ -6,6 +6,7 @@ import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
 import { LineIdentity } from "@/components/LineIdentity";
+import { Vu } from "@/components/Vu";
 import { FichePanes, StickyAction } from "@/components/mobile/FichePanes";
 import { SwipePager } from "@/components/mobile/SwipePager";
 import { FicheReading, loadFiche } from "./FicheReading";
@@ -99,6 +100,9 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
   return (
     <div className={styles.page}>
+      {/* Une fiche regardée se note, une fiche préchargée non : c'est le
+          navigateur qui le dit, une fois par jour et par ligne. */}
+      {session && <Vu geste="vu.fiche" objet={o.id} detail={o.title} />}
       <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
       <FichePanes className={styles.main}>
         <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />

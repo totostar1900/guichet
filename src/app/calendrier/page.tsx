@@ -1,5 +1,6 @@
 import { repo } from "@/lib/data";
 import { getSession } from "@/lib/auth";
+import { Vu } from "@/components/Vu";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
@@ -55,6 +56,9 @@ export default async function CalendrierPage() {
 
   return (
     <div className={styles.page}>
+      {/* Qui suit les séances sans jamais y déposer : c'est le signal que la
+          tenue regardera, et il n'existe que si on le note. */}
+      {session && <Vu geste="vu.seance" objet="adjudications" />}
       <OngletsMarche />
       <div className={styles.head}>
         <h1 className="display">{t("Adjudications")}</h1>

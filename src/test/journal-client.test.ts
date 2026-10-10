@@ -274,3 +274,47 @@ describe("le registre, écrit et relu", () => {
     expect(Object.keys((await m.listClientActions({ userId: "u1" }))[0])).not.toContain("clefDuJour");
   });
 });
+
+/**
+ * UNE CONSULTATION SE NOTE DEPUIS LE NAVIGATEUR, JAMAIS AU RENDU.
+ *
+ * Trois raisons, et chacune ferait mentir le registre. Les listes préchargent
+ * la fiche voisine avant tout clic : un rendu qui noterait son passage
+ * inscrirait des fiches survolées. Un onglet ouvert en arrière-plan n'est pas
+ * une consultation. Et un composant serveur peut se rendre deux fois pour une
+ * seule visite ; le registre n'a pas à compter les rendus.
+ */
+describe("ce qui note les consultations", () => {
+  const lire = (f: string) => readFileSync(path.join(ROOT, f), "utf8");
+  const PAGES: [string, string][] = [
+    ["src/app/offres/[id]/page.tsx", "vu.fiche"],
+    ["src/app/page.tsx", "vu.portefeuille"],
+    ["src/app/moi/documents/[id]/page.tsx", "vu.document"],
+    ["src/app/calendrier/page.tsx", "vu.seance"],
+  ];
+
+  it.each(PAGES)("%s pose le témoin, et ne note pas au rendu", (f, geste) => {
+    const src = lire(f);
+    expect(src).toContain(`geste="${geste}"`);
+    expect(src).toMatch(/import \{ Vu \} from "@\/components\/Vu"/);
+    // La page ne doit jamais appeler le scripteur elle-même.
+    expect(src).not.toMatch(/await noter\(/);
+  });
+
+  it("le témoin attend que la page soit visible, et ne note qu'une fois", () => {
+    const src = lire("src/components/Vu.tsx");
+    expect(src).toMatch(/"use client"/);
+    expect(src).toMatch(/document\.visibilityState !== "visible"/);
+    expect(src).toMatch(/if \(fait\.current\) return;/);
+    // Rien n'est attendu : une ligne de registre ne vaut pas qu'on interrompe une lecture.
+    expect(src).toMatch(/\.catch\(\(\) => \{\}\)/);
+  });
+
+  it("et l'action ouverte au client n'accepte que des consultations", () => {
+    /* Elle est appelable depuis le navigateur : sans ce garde, n'importe qui
+       écrirait « a signé un ordre » dans le registre. */
+    const src = lire("src/app/journal-actions.ts");
+    expect(src).toMatch(/genreDe\(geste\) !== "consultation"/);
+    expect(src).toMatch(/objet\.slice\(0, 120\)/);
+  });
+});

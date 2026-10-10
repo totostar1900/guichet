@@ -1,6 +1,7 @@
 import { Accueil } from "./Accueil";
 import { Console } from "./Console";
 import { getSession } from "@/lib/auth";
+import { Vu } from "@/components/Vu";
 
 export const dynamic = "force-dynamic";
 
@@ -18,5 +19,13 @@ export const dynamic = "force-dynamic";
  */
 export default async function RacinePage() {
   const session = await getSession();
-  return session ? <Console session={session} /> : <Accueil />;
+  if (!session) return <Accueil />;
+  return (
+    <>
+      {/* Le passage du client, une ligne par jour : c'est ce qui sépare un
+          compte actif d'un compte dormant, et rien d'autre ne le dit. */}
+      <Vu geste="vu.portefeuille" objet="portefeuille" />
+      <Console session={session} />
+    </>
+  );
 }

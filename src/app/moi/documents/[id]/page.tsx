@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { Vu } from "@/components/Vu";
 import { peutLireLeDocument } from "@/lib/documents/acces";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { INTENT_LABEL } from "@/lib/domain/intent";
@@ -75,6 +76,9 @@ export default async function DocumentPage({ params, searchParams }: { params: P
 
   return (
     <div className={styles.wrap}>
+      {/* Un document ouvert se note : c'est la preuve qu'il a été lu, et
+          c'est la seule que la maison puisse avoir. */}
+      <Vu geste="vu.document" objet={doc.number} detail={t(DOC_LABEL[doc.type])} />
       <Link href={retour} className={styles.back}>
         ← {retour === "/moi/documents" ? t("Mes documents") : intent ? t("Votre ordre {r}", { r: intent.ref }) : t("Retour")}
       </Link>
