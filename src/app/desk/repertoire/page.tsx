@@ -143,6 +143,9 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
                 <tr key={c.id}>
                   <td className="who">
                     {c.name}
+                    {/* La marque suit le nom partout où une personne pourrait
+                        prendre un compte d'essai pour un client. */}
+                    {c.demo && <span className="st" title={t("Compte de démonstration : écarté du reporting réglementaire.")}>{t("démo")}</span>}
                     <small className="muted">{c.segment || "—"}</small>
                   </td>
                   <td>

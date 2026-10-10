@@ -494,6 +494,13 @@ export interface Contact {
   tier?: 0 | 1 | 2;
   /** Première connexion : la ligne du profil naît là. */
   since?: string;
+  /**
+   * Compte de démonstration : il sert à montrer le service, et n'est jamais un
+   * client réel. Décidé le 10 octobre 2026 pour les trois comptes d'essai de
+   * la maison. Le fait vit sur le compte, parce que tout ce qui en découle
+   * (dossier, ordres, positions) est de la démonstration par son propriétaire.
+   */
+  demo?: boolean;
 }
 
 /** One line of the audit trail: who did what to which record, before/after, why, from where. Hash-chained, never edited. */

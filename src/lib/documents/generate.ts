@@ -282,13 +282,16 @@ export async function generateTransferOrder(file: ClientFile, closure: Closure, 
 }
 
 /* ---------------- Rapport d'activité (COSUMAF) ---------------- */
-import { activity, clientRegister, orderJournal, type Period } from "@/lib/reporting";
+import { activity, clientRegister, orderJournal, sansLaDemo, type Period } from "@/lib/reporting";
 import { RapportActivite } from "./pdf/report-templates";
 
 /** Periodic activity report, rendered on demand from the same rows as the reporting page (not stored: reproducible). */
 export async function renderActivityReport(period: Period): Promise<{ pdf: Buffer; number: string }> {
   const r = repo();
-  const [offers, intents, events, files, docs, notifs, bulletins] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listDocuments(), r.listNotifications(5000), r.listBulletins(400)]);
+  const [offers, tousLesOrdres, events, tousLesDossiers, docs, notifs, bulletins, contacts] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listDocuments(), r.listNotifications(5000), r.listBulletins(400), r.listContacts()]);
+  /* Le rapport d activite se montre au regulateur : les comptes de
+     demonstration en sortent par la meme regle que la page et le CSV. */
+  const { files, intents } = sansLaDemo(contacts, tousLesDossiers, tousLesOrdres);
   const now = new Date();
   const number = `PC-RAP-${period.from.replace(/-/g, "")}-${period.to.replace(/-/g, "")}`;
   const ctx = {

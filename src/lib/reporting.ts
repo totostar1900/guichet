@@ -110,6 +110,31 @@ export interface ClientRow {
   screening: string;
 }
 
+/**
+ * CE QUE LE REPORTING NE COMPTE PAS : LES COMPTES DE DÉMONSTRATION.
+ *
+ * Trois comptes d'essai de la maison vivent en production, et la décision du
+ * 10 octobre 2026 est de les garder pour montrer le service. Gardés sans
+ * règle, ils comptaient comme des clients réels : leurs dossiers au registre
+ * des clients, leurs ordres au journal des ordres, c'est-à-dire dans les deux
+ * pièces qui se montrent au régulateur.
+ *
+ * L'écart se fait ICI, en un seul endroit traversé par la page, le CSV et le
+ * PDF, et il se DIT à l'écran : un retrait silencieux et un oubli ont la même
+ * apparence, et personne ne saurait lequel des deux il regarde.
+ */
+export function sansLaDemo(
+  contacts: { id: string; demo?: boolean }[],
+  files: ClientFile[],
+  intents: Intent[],
+): { files: ClientFile[]; intents: Intent[]; dossiers: number; ordres: number; comptes: number } {
+  const demo = new Set(contacts.filter((c) => c.demo).map((c) => c.id));
+  if (demo.size === 0) return { files, intents, dossiers: 0, ordres: 0, comptes: 0 };
+  const gardes = files.filter((f) => !demo.has(f.userId));
+  const ordres = intents.filter((i) => !i.clientId || !demo.has(i.clientId));
+  return { files: gardes, intents: ordres, dossiers: files.length - gardes.length, ordres: intents.length - ordres.length, comptes: demo.size };
+}
+
 export function clientRegister(files: ClientFile[], p?: Period): ClientRow[] {
   return files
     .filter((f) => !p || inPeriod(f.createdAt, p) || (f.review.reviewedAt && inPeriod(f.review.reviewedAt, p)))

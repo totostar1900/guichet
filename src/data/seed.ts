@@ -826,5 +826,8 @@ export const SEED_CONTACTS: Contact[] = [
   { id: "c-tontine", name: "Tontine Espoir", segment: "Groupement · Yaoundé", phone: "+237600000012", whatsappOptIn: true },
   { id: "c-mbaiki", name: "Groupe Mbaïki SARL", segment: "Entreprise · Bangui", phone: "+236700000016", email: "dg@mbaiki.example.com", whatsappOptIn: true },
   { id: "c-jpo", name: "J.-P. O.", segment: "Personne physique · Yaoundé", phone: "+237600000017", whatsappOptIn: true },
-  { id: "dev-client-g-nitcheu", name: "G. Nitcheu", segment: "Personne physique · Yaoundé", phone: "+237687676767", email: "georges.nitcheu@gmail.com", whatsappOptIn: true },
+  /* Le compte de la maison, dans le jeu d'essai comme en production : marqué,
+     donc écarté du reporting et signalé sur le desk. C'est lui qui fait
+     traverser ce chemin en local, sinon il ne se verrait qu'une fois posé. */
+  { id: "dev-client-g-nitcheu", name: "G. Nitcheu", segment: "Personne physique · Yaoundé", phone: "+237687676767", email: "georges.nitcheu@gmail.com", whatsappOptIn: true, demo: true },
 ];

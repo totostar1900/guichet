@@ -2,7 +2,7 @@ import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, fmtDateTime, fmtMillions } from "@/lib/format";
-import { activity, clientRegister, defaultPeriod, orderJournal, type Period } from "@/lib/reporting";
+import { activity, clientRegister, defaultPeriod, orderJournal, sansLaDemo, type Period } from "@/lib/reporting";
 import { positionsFrom } from "@/lib/positions";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -18,7 +18,10 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
   const d = defaultPeriod();
   const p: Period = { from: sp.from && /^\d{4}-\d{2}-\d{2}$/.test(sp.from) ? sp.from : d.from, to: sp.to && /^\d{4}-\d{2}-\d{2}$/.test(sp.to) ? sp.to : d.to };
   const r = repo();
-  const [offers, intents, events, files, docs, notifs] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listDocuments(), r.listNotifications(5000)]);
+  const [offers, tousLesOrdres, events, tousLesDossiers, docs, notifs, contacts] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listDocuments(), r.listNotifications(5000), r.listContacts()]);
+  /* Les comptes de démonstration sortent d'ici, donc des trois pièces à la
+     fois, et la bande au-dessus du registre dit combien sont écartés. */
+  const { files, intents, dossiers: dossiersDemo, ordres: ordresDemo, comptes: comptesDemo } = sansLaDemo(contacts, tousLesDossiers, tousLesOrdres);
   const journalAll = orderJournal(intents, offers, events, p);
   const vue = sp.vue === "fermes" || sp.vue === "executes" ? sp.vue : "";
   const journal = vue === "fermes" ? journalAll.filter((o) => o.confirmedAt) : vue === "executes" ? journalAll.filter((o) => o.executedAt) : journalAll;
@@ -50,6 +53,14 @@ export default async function ReportingPage({ searchParams }: { searchParams: Pr
         </a>
         <span className="muted" style={{ fontSize: ".78rem" }}>
           {t("Tout est recalculé depuis les lignes du registre : rien n'est saisi à la main, tout est reproductible.")}
+          {comptesDemo > 0 && (
+            /* Un retrait silencieux et un oubli se ressemblent trait pour
+               trait : la page dit ce qu'elle a laissé dehors, et combien. */
+            <>
+              {" "}
+              <b>{t("{c} compte(s) de démonstration sont écartés de cette page, du CSV et du PDF : {d} dossier(s) et {o} ordre(s).", { c: String(comptesDemo), d: String(dossiersDemo), o: String(ordresDemo) })}</b>
+            </>
+          )}
         </span>
       </form>
 

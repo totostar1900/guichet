@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
-import { clientRegister, defaultPeriod, orderJournal, toCsv, type Period } from "@/lib/reporting";
+import { clientRegister, defaultPeriod, orderJournal, sansLaDemo, toCsv, type Period } from "@/lib/reporting";
 
 /** CSV exports for the regulator and the auditors : desk only. */
 export async function GET(req: NextRequest) {
@@ -14,7 +14,10 @@ export async function GET(req: NextRequest) {
   const d = defaultPeriod();
   const p: Period = { from: sp.get("from") ?? d.from, to: sp.get("to") ?? d.to };
   const r = repo();
-  const [offers, intents, events, files] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles()]);
+  const [offers, tousLesOrdres, events, tousLesDossiers, contacts] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(5000), r.listClientFiles(), r.listContacts()]);
+  /* Le CSV part chez le régulateur et chez les auditeurs : les comptes de
+     démonstration en sortent par la même règle que la page. */
+  const { files, intents } = sansLaDemo(contacts, tousLesDossiers, tousLesOrdres);
 
   let csv = "";
   let name = "";

@@ -40,7 +40,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const q = (sp.q ?? "").trim();
   const queue = clientDirectory(files, q);
   const attente = files.filter(waiting).length;
-  const [lang, fin, prefs, channels, devices, equipe, conseiller] = await Promise.all([
+  const [lang, fin, prefs, channels, devices, equipe, conseiller, compte] = await Promise.all([
     getLang(),
     selected ? r.getFinancialProfile(selected.userId).catch(() => undefined) : undefined,
     selected ? r.getPrefs(selected.userId).catch(() => undefined) : undefined,
@@ -48,6 +48,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     selected ? r.listDevices(selected.userId).catch(() => []) : [],
     r.listStaff().catch(() => []),
     selected ? r.findAdvisor(selected.userId).catch(() => undefined) : undefined,
+    selected ? r.getContact(selected.userId).catch(() => undefined) : undefined,
   ]);
   const kycDocs = selected ? docs.filter((d) => d.clientFileId === selected.id || (d.clientId === selected.userId && (d.type === "coupon" || d.type === "reclamation" || d.type === "releve" || d.type === "attestation"))) : [];
   const now = new Date();
@@ -105,7 +106,11 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
             <div className={styles.dHead}>
               <div>
                 <div className="eyebrow">{t(KIND_LABEL[selected.kind])}</div>
-                <h2 className="display">{selected.identity.name || "(sans nom)"}</h2>
+                <h2 className="display">
+                  {selected.identity.name || "(sans nom)"}
+                  {/* Un dossier d essai ouvert sur le desk ressemble a un vrai : la marque suit le nom. */}
+                  {compte?.demo && <span className="st" style={{ marginLeft: "var(--s-3)", verticalAlign: "middle" }} title={t("Compte de démonstration : écarté du reporting réglementaire.")}>{t("démo")}</span>}
+                </h2>
                 <div className="muted" style={{ fontSize: ".8rem" }}>
                   {[selected.identity.phone, selected.identity.email, selected.identity.city, selected.identity.country].filter(Boolean).join(" · ")}
                   {selected.submittedAt ? ` · ${t("soumis le")} ${fmtDateTime(selected.submittedAt)}` : ""}
