@@ -126,6 +126,24 @@ export const REPRISE: DocPage = {
       title: l("Les transferts, dans l'ordre", "The transfers, in order"),
       blocks: [
         {
+          type: "table",
+          head: [l("Service", "Service"), l("Ce qu'il faut viser, exactement", "What to aim at, exactly"), l("État au 11 octobre 2026", "State on 11 October 2026")],
+          rows: [
+            [l("Vercel", "Vercel"), l("Équipe « purpose-capital » (team_O5Ega6rWjIBTKbJGTHGPrmh7), projet « guichet » (prj_EFgGpWSFp9O1oC9zGTZT92JuUgHC)", "Team « purpose-capital » (team_O5Ega6rWjIBTKbJGTHGPrmh7), project « guichet » (prj_EFgGpWSFp9O1oC9zGTZT92JuUgHC)"), l("Compte georges.nitcheu@gmail.com, pseudo totostar1900. PLAN HOBBY, alors que la documentation le dit obligatoire en Pro.", "Account georges.nitcheu@gmail.com, handle totostar1900. HOBBY PLAN, while the documentation calls Pro mandatory.")],
+            [l("Supabase", "Supabase"), l("Organisation « Purpose Capital » (puwfhhaudrbrnrqawbvp), projet « Guichet » (sernniidkjkwqromvmqu), région eu-west-1", "Organisation « Purpose Capital » (puwfhhaudrbrnrqawbvp), project « Guichet » (sernniidkjkwqromvmqu), region eu-west-1"), l("Base saine. PLAN GRATUIT, alors que la documentation le dit obligatoire en Pro : le projet se met en pause après une semaine sans trafic.", "Database healthy. FREE PLAN, while the documentation calls Pro mandatory: the project pauses after a week without traffic.")],
+            [l("GitHub", "GitHub"), l("Dépôt totostar1900/guichet, branche master", "Repository totostar1900/guichet, branch master"), l("Aucune organisation n'existe encore : c'est le premier geste du transfert, et non une étape préalable.", "No organisation exists yet: that is the first move of the transfer, not a preliminary step.")],
+            [l("Domaines à ne pas casser", "Domains not to break"), l("guichet.purposecapital.africa et desk.purposecapital.africa, tous deux servis par le projet Vercel", "guichet.purposecapital.africa and desk.purposecapital.africa, both served by the Vercel project"), l("Actifs. Ce sont eux qui disent si un transfert a mal tourné : les ouvrir après chaque étape.", "Live. They are what tells you a transfer went wrong: open them after each step.")],
+          ],
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "LES DEUX ABONNEMENTS QUE LA DOCUMENTATION DIT OBLIGATOIRES NE SONT PAS PRIS, et le transfert ne les prendra pas à votre place : Vercel est en Hobby et Supabase en gratuit. Vérifié le 11 octobre, les treize tâches planifiées tournent quand même, donc rien n'est en panne aujourd'hui ; mais le plan Hobby est réservé par Vercel à l'usage non commercial, et le plan gratuit de Supabase met un projet en pause après une semaine sans trafic. C'est une décision à prendre à part, et de préférence AVANT les transferts : changer de plan sur un compte qu'on vient de déplacer mélange deux sources de panne.",
+            "THE TWO SUBSCRIPTIONS THE DOCUMENTATION CALLS MANDATORY ARE NOT TAKEN, and the transfer will not take them for you: Vercel is on Hobby and Supabase on free. Checked on 11 October, the thirteen scheduled tasks run all the same, so nothing is broken today; but Vercel reserves the Hobby plan for non-commercial use, and Supabase's free plan pauses a project after a week without traffic. This is a separate decision, and preferably BEFORE the transfers: changing plan on an account you have just moved mixes two sources of failure.",
+          ),
+        },
+        {
           type: "p",
           text: l(
             "Chaque étape est réversible et ne coupe rien si elle est faite dans cet ordre. Compter une soirée pour l'ensemble. À chaque ligne, ce qui casse si on l'oublie.",
