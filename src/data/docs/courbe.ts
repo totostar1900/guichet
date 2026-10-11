@@ -29,7 +29,7 @@ export const COURBE: DocPage = {
   visibility: "desk",
   audience: ["desk", "client", "admin", "tech"],
   order: 5,
-  checkedOn: "2026-10-08",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
@@ -174,8 +174,8 @@ export const COURBE: DocPage = {
           type: "note",
           kind: "info",
           text: l(
-            "La figure ouvre sur la fenêtre la plus courte qui montre quelque chose. Mesuré à la date du jour : quatre-vingt-dix jours et un an donnent les mêmes points, une vingtaine, la zone ayant peu émis récemment ; une trentaine à deux ans, une soixantaine à cinq, dont les deux tiers gabonais. À une date passée, la fenêtre courte est souvent vide quand la suivante est garnie. Un Trésor qui n'apporte pas deux durées distinctes n'est pas tracé du tout.",
-            "The figure opens on the shortest window that shows something. Measured at today's date: ninety days and one year give the same points, about twenty, the zone having issued little recently; about thirty at two years, about sixty at five, two thirds of them Gabonese. At a past date, the short window is often empty when the next one is full. A Treasury that does not bring two distinct maturities is not drawn at all.",
+            "La figure ouvre sur la fenêtre la plus courte qui montre quelque chose. Mesuré au 8 octobre 2026 : quatre-vingt-dix jours et un an donnent les mêmes points, une vingtaine, la zone ayant peu émis récemment ; une trentaine à deux ans, une soixantaine à cinq, dont les deux tiers gabonais. À une date passée, la fenêtre courte est souvent vide quand la suivante est garnie. Un Trésor qui n'apporte pas deux durées distinctes n'est pas tracé du tout.",
+            "The figure opens on the shortest window that shows something. Measured on 8 October 2026: ninety days and one year give the same points, about twenty, the zone having issued little recently; about thirty at two years, about sixty at five, two thirds of them Gabonese. At a past date, the short window is often empty when the next one is full. A Treasury that does not bring two distinct maturities is not drawn at all.",
           ),
         },
         {
@@ -197,9 +197,9 @@ export const COURBE: DocPage = {
           type: "table",
           head: [l("Réglage", "Setting"), l("Tranche retenue", "Slice kept"), l("Ce qu'on y lit", "What it shows")],
           rows: [
-            [l("Aujourd'hui, 1 an", "Today, 1 year"), l("8 oct. 2025 → 8 oct. 2026", "8 Oct 2025 → 8 Oct 2026"), l("Le coût de l'argent tel qu'il se paie en ce moment.", "The cost of money as it is paid right now.")],
-            [l("Il y a 5 ans, 1 an", "5 years ago, 1 year"), l("8 oct. 2020 → 8 oct. 2021", "8 Oct 2020 → 8 Oct 2021"), l("La même figure refaite à cette date : rien de 2022-2026 n'y entre.", "The same figure rebuilt at that date: nothing from 2022-2026 enters it.")],
-            [l("Il y a 5 ans, 5 ans", "5 years ago, 5 years"), l("8 oct. 2016 → 8 oct. 2021", "8 Oct 2016 → 8 Oct 2021"), l("Cinq années de séances, toutes antérieures à 2021 : la profondeur n'allonge que vers le passé.", "Five years of sessions, all before 2021: depth only lengthens towards the past.")],
+            [l("Observé le 8 oct. 2026, profondeur 1 an", "Observed 8 Oct 2026, depth 1 year"), l("8 oct. 2025 → 8 oct. 2026", "8 Oct 2025 → 8 Oct 2026"), l("Le coût de l'argent tel qu'il se paie en ce moment.", "The cost of money as it is paid right now.")],
+            [l("Cinq ans plus tôt, profondeur 1 an", "Five years earlier, depth 1 year"), l("8 oct. 2020 → 8 oct. 2021", "8 Oct 2020 → 8 Oct 2021"), l("La même figure refaite à cette date : rien de 2022-2026 n'y entre.", "The same figure rebuilt at that date: nothing from 2022-2026 enters it.")],
+            [l("Cinq ans plus tôt, profondeur 5 ans", "Five years earlier, depth 5 years"), l("8 oct. 2016 → 8 oct. 2021", "8 Oct 2016 → 8 Oct 2021"), l("Cinq années de séances, toutes antérieures à 2021 : la profondeur n'allonge que vers le passé.", "Five years of sessions, all before 2021: depth only lengthens towards the past.")],
           ],
         },
         {

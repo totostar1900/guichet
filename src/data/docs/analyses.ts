@@ -15,7 +15,7 @@ export const ANALYSES: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 4,
-  checkedOn: "2026-09-27",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
@@ -305,8 +305,8 @@ export const ANALYSES: DocPage = {
               "The index weighting. The BVMAC methodology note is still to obtain; freshness is therefore counted in components.",
             ),
             l(
-              "La couverture de la série. Les deux cent quarante-neuf communiqués des six Trésors sont ingérés et lus ; cent quatre-vingt-treize portent un taux ou un prix dont on peut tirer un rendement, les autres ne publient qu'une fourchette ou étaient des adjudications désertes. Seules les séances relues entrent dans la courbe.",
-              "The coverage of the series. All 249 communiqués from the six Treasuries are ingested and read; 193 carry a rate or a price a yield can be built from, the rest publish only a range or were deserted auctions. Only reviewed sessions enter the curve.",
+              "La couverture de la série. Au 11 octobre 2026, les deux cent quarante-neuf communiqués des six Trésors sont ingérés et lus ; cent quatre-vingt-quinze portent un taux ou un prix dont on peut tirer un rendement, les autres ne publient qu'une fourchette ou étaient des adjudications désertes. Seules les séances relues entrent dans la courbe.",
+              "The coverage of the series. As of 11 October 2026, all 249 communiqués from the six Treasuries are ingested and read; 195 carry a rate or a price a yield can be built from, the rest publish only a range or were deserted auctions. Only reviewed sessions enter the curve.",
             ),
             l(
               "Ce qu'une lecture a rapporté se marque sur la séance elle-même (« read_at », « read_model »), et non au fil des horodatages. Le déduire d'une mise à jour était faux : le robot d'ingestion réécrit chaque ligne à chacun de ses passages, et cent vingt-sept communiqués parfaitement lisibles sont ainsi passés pour déjà tentés sans avoir jamais été ouverts.",

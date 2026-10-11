@@ -8,7 +8,7 @@ export const RELATION: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-10",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {

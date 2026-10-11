@@ -26,7 +26,7 @@ export const OPERATIONS: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-09",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
