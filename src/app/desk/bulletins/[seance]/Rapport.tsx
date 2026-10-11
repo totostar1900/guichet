@@ -9,6 +9,19 @@ import { comparer, juger, verdict, type Ecart } from "@/lib/market/comparer";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { couvre } from "@/lib/domain/jugement-bulletin";
+import { Juger } from "./Juger";
+
+/**
+ * Depuis quand la bourse publie ce que ces familles réclament.
+ *
+ * TROIS FAMILLES NE SONT PAS DES DÉFAUTS DE LECTURE : elles reprochent au
+ * passé de ne pas être le présent. Mesuré le 11 octobre 2026 : 112 séances
+ * sur 112 pour l'indice, 59 sur 59 et 58 sur 58 pour la table OPCVM, zéro
+ * après la borne. Les proposer d'un coup est le seul moyen de fermer 229
+ * remarques sans demander 229 gestes.
+ */
+const DEPUIS_QUE_LA_BOURSE_PUBLIE: Record<string, string> = { A: "2023-12-11", B: "2023-08-03", C: "2023-08-03" };
 
 
 /**
@@ -127,6 +140,12 @@ export async function Rapport({ seance }: { seance: string }) {
   const durables = ecart?.partis.filter((x) => !x.retour) ?? [];
 
   const enBase = remarques(b);
+  /* LES NOTES DE LA LECTURE ENREGISTRÉE D'ABORD, celles de l'essai à blanc
+     ensuite. Les premières sont ce que la base garde depuis le 11 octobre
+     2026 ; les secondes n'existent que le temps d'une ouverture de page, et
+     une séance lue avant cette date n'a que celles-là. */
+  const notes = b.notes?.length ? b.notes : (frais?.notes ?? []);
+  const jugements = await r.listJugementsBulletin().catch(() => []);
   const statutFrais = frais ? (frais.anomalies.length || frais.notes.length ? "partiel" : "ok") : undefined;
   /* Le seul chiffre qui décide : le lecteur d'aujourd'hui ferait-il mieux ? */
   const gagnerait = frais ? frais.actions > (b.counts?.equities ?? 0) || frais.obligations > (b.counts?.bonds ?? 0) || frais.opcvm > (b.counts?.funds ?? 0) : false;
@@ -204,15 +223,21 @@ export async function Rapport({ seance }: { seance: string }) {
           <div className={styles.remarques}>
             {enBase.map((x, i) => {
               const f = famille(x.code);
+              /* La note porte la page : « il est en page 3 » ne se dit pas
+                 sans elle, et c'est elle qui fait d'une plainte une question. */
+              const note = notes.find((n) => n.message === x.texte);
+              const vu = jugements.find((j) => couvre(j, seance, x.texte, classer));
               return (
-                <div key={i} className={`${styles.rem} ${x.genre === "anomalie" ? styles.remA : styles.remW}`}>
+                <div key={i} className={`${styles.rem} ${x.genre === "anomalie" ? styles.remA : styles.remW} ${vu ? styles.remVu : ""}`}>
                   <span className={`${styles.code} ${x.genre === "anomalie" ? styles.codeA : styles.codeW}`}>{x.code}</span>
                   <div>
                     <small>
                       {f ? t(f.libelle) : t("famille inconnue")} · {t(x.genre)}
+                      {note?.page != null ? ` · ${t("page {n} du document", { n: note.page })}` : ""}
                     </small>
                     <p>{x.texte}</p>
                     {f && <small className={styles.conseil}>{t(f.quoiFaire)}</small>}
+                    <Juger seance={seance} code={x.code} texte={x.texte} jugement={vu && !vu.retireLe ? { id: vu.id, motif: vu.motif, portee: vu.portee, note: vu.note, at: vu.at } : undefined} bornes={DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] ? { jusquau: DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] } : undefined} />
                   </div>
                 </div>
               );
@@ -223,22 +248,27 @@ export async function Rapport({ seance }: { seance: string }) {
 
       {/* CE QUE LA BASE NE PEUT PAS DIRE, et que seule la relecture rend : le
           texte exact sur lequel le lecteur a buté. */}
-      {frais && frais.notes.some((n) => n.brut) && (
+      {notes.some((n) => n.brut || n.attendu) && (
         <section className="panel">
           <div className="panel-h">
             <h2>{t("Sur quoi le lecteur a buté")}</h2>
-            <span className="muted">{t("le texte du PDF, tel qu'il l'a vu, et ce qu'il y cherchait")}</span>
+            <span className="muted">
+              {b.notes?.length
+                ? t("le texte du PDF tel qu'il l'a vu, ce qu'il y cherchait, et la page : gardé à la lecture")
+                : t("le texte du PDF tel qu'il l'a vu, et ce qu'il y cherchait : retrouvé à l'instant, la lecture d'origine ne le gardait pas")}
+            </span>
           </div>
           <div className={styles.bruts}>
-            {frais.notes
-              .filter((n) => n.brut)
+            {notes
+              .filter((n) => n.brut || n.attendu)
               .map((n, i) => (
                 <div key={i} className={styles.brut}>
                   <div className={styles.brutTete}>
                     <span className={`${styles.code} ${famille(classer(n.message))?.genre === "anomalie" ? styles.codeA : styles.codeW}`}>{classer(n.message)}</span>
                     <b>{n.message}</b>
+                    {n.page != null && <span className={styles.page}>{t("page {n}", { n: n.page })}</span>}
                   </div>
-                  <code>{n.brut}</code>
+                  {n.brut && <code>{n.brut}</code>}
                   {n.attendu && <small>{t("attendu")} : {n.attendu}</small>}
                 </div>
               ))}

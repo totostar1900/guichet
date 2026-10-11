@@ -1,4 +1,5 @@
 import type { FundNav, MarketBulletin, Quote } from "@/lib/domain/market";
+import { VERSION_DU_LECTEUR } from "@/lib/market/lecteur-version";
 import { REF_OFFERS } from "./reference";
 import { SEED_OFFERS } from "./seed";
 
@@ -352,19 +353,36 @@ export function coteDEssai(): CoteDEssai {
       }
     }
 
+    /* UNE SÉANCE EN DIFFICULTÉ DANS LE JEU D'ESSAI, et il en manquait une.
+       Les 262 séances semées étaient toutes impeccables, donc l'écran qui
+       montre les remarques du lecteur et le geste qui y répond n'étaient
+       exerçables sur aucune donnée de démonstration : on ne pouvait les voir
+       qu'en production. Celle-ci porte les deux défauts les plus fréquents du
+       dépôt réel, avec la matière première que le lecteur garde depuis le
+       11 octobre 2026 : le texte brut, ce qu'il y cherchait, et la page. */
+    const enDifficulte = i === 3;
     bulletins.push({
       id: date,
       number: bulletinNo,
       sessionDate: date,
       ingestedAt: `${date}T17:30:00.000Z`,
       ingestedBy: "cron",
-      status: "ok",
+      status: enDifficulte ? "partiel" : "ok",
       indexValue: niveau,
       indexVariationPct: i === 0 ? 0 : variation,
-      counts: { equities: LIGNES.length, bonds: lignesObligataires.length, funds: nbFonds },
-      warnings: [],
-      anomalies: [],
+      counts: { equities: LIGNES.length, bonds: lignesObligataires.length - (enDifficulte ? 2 : 0), funds: nbFonds },
+      warnings: enDifficulte
+        ? ["Obligation CM0000020115 : ligne de cours non reconnue.", "Obligation CG0000020261 : prix / nominal ambigus (« 3 166,670,000 »)."]
+        : [],
+      anomalies: enDifficulte ? [`Seulement ${lignesObligataires.length - 2} obligation(s) lue(s) contre ${lignesObligataires.length} la séance précédente : la section semble incomplète.`] : [],
       notices: [],
+      notes: enDifficulte
+        ? [
+            { message: "Obligation CM0000020115 : ligne de cours non reconnue.", brut: "CM0000020115 | ECMR 5,60% net 2018-2023 | 24/09 | 100,00 | 25 000 000 | 1 234,56 | NC", attendu: "cours précédent, date, pourcentage, prix et nominal, coupon couru", page: 3 },
+            { message: "Obligation CG0000020261 : prix / nominal ambigus (« 3 166,670,000 »).", brut: "CG0000020261 | ECG 6,50% net 2021-2026 | 3 166,670,000 | NC", attendu: "deux nombres séparables : le prix en pourcentage, puis le nominal restant", page: 3 },
+          ]
+        : [],
+      readerVersion: VERSION_DU_LECTEUR,
     });
     precedent = niveau;
   });

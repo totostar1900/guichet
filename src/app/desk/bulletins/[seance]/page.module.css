@@ -234,3 +234,62 @@
   color: var(--good);
   border-color: var(--good);
 }
+
+/* ── Le geste qui répond à une remarque ────────────────────────────────── */
+
+/* Jugée : la remarque reste lisible et cesse d'appeler. Elle ne s'efface pas,
+   parce qu'un jugement ne corrige pas la lecture, il la commente. */
+.remVu {
+  opacity: 0.72;
+}
+.juge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.juge small {
+  color: var(--good);
+}
+.jugerForm {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.jugerForm label {
+  display: grid;
+  gap: 4px;
+  font-size: var(--t-3);
+}
+.jugerForm select,
+.jugerForm input[type="text"],
+.jugerForm input:not([type]) {
+  width: 100%;
+}
+/* La portée : deux lignes, et la seconde dit son effet en clair. */
+.portee {
+  display: grid;
+  gap: 4px;
+  padding: var(--s-2);
+  border-left: 2px solid var(--line);
+}
+.portee label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--t-3);
+}
+.jugerPied {
+  display: flex;
+  gap: var(--s-2);
+}
+.page {
+  font-size: var(--t-3);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 0 6px;
+}

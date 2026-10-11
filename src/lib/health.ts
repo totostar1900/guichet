@@ -16,6 +16,9 @@ import { tenuesDeTous } from "@/lib/desk/tenue-data";
 import { baremeCourant, baremeEnBrouillon } from "@/lib/desk/activite-data";
 import { mesureVivante } from "@/lib/domain/mesure";
 import { enGo, enMo, lireLeStockage, niveauDuStockage, PLAFOND_STOCKAGE } from "@/lib/domain/stockage";
+import { attendEncore, remarquesNonJugees } from "@/lib/domain/jugement-bulletin";
+import { classer } from "@/lib/market/remarques";
+import { lectureAncienne } from "@/lib/market/lecteur-version";
 import { registreEnBrouillon, registrePublie, personnesDuDossier } from "@/lib/desk/registre-data";
 import { correspondances, ecartVivant } from "@/lib/domain/registre-ecartes";
 import { indexCheck } from "@/lib/market/index";
@@ -45,7 +48,29 @@ export interface HealthCheck {
  * relecture referme. Un lecteur corrigé ne rattrape pas le passé tout seul,
  * et ces séances manquantes faussent la lecture de l'indice.
  */
+/**
+ * LA FILE, APRÈS CE QU'UNE PERSONNE A JUGÉ.
+ *
+ * Le filtre ne regardait que le verdict du lecteur, donc une remarque était
+ * immortelle : le desk pouvait la lire cent fois, il n'avait aucun moyen de
+ * dire qu'il avait regardé, et la séance reparaissait le lendemain identique.
+ * Pire, le point ne pouvait pas devenir vert : 38 des 212 séances du
+ * 11 octobre 2026 réclament un indice ou une table OPCVM que la bourse ne
+ * publiait pas encore, et un point rouge quoi qu'on fasse finit par ne plus
+ * être lu.
+ *
+ * LE STATUT DU LECTEUR N'EST PAS RÉÉCRIT POUR AUTANT : il reste « partiel »
+ * et se lit tel quel sur la page. Seule l'attente bouge, et c'est la seule
+ * chose qu'un jugement doit pouvoir déplacer.
+ */
 export async function bulletinsToReread(): Promise<MarketBulletin[]> {
+  const r = repo();
+  const [all, jugements] = await Promise.all([r.listBulletins(2000), r.listJugementsBulletin().catch(() => [])]);
+  return all.filter((b) => attendEncore(b, jugements, classer)).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+}
+
+/** La file telle que le lecteur l'a laissée, sans tenir compte des jugements. */
+export async function bulletinsSansJugement(): Promise<MarketBulletin[]> {
   const all = await repo().listBulletins(2000);
   return all.filter((b) => b.status !== "ok" || !b.counts?.equities).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
 }
@@ -251,16 +276,36 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
   });
 
   // 2 bis. The whole backlog, not just the last 30: incomplete readings distort the index.
-  const arriere = await bulletinsToReread();
+  /* TROIS CHIFFRES, ET LES CONFONDRE A COÛTÉ LA CRÉDIBILITÉ DU POINT.
+     Ce qu'une personne doit encore regarder n'est pas ce que le lecteur a
+     laissé en plan, et ni l'un ni l'autre n'est ce qu'une relecture
+     rendrait. Le point annonçait le deuxième, qui ne descend jamais sous 38
+     parce que ces séances réclament ce que la bourse ne publiait pas encore,
+     et un rouge perpétuel cesse d'être lu. Il annonce désormais le premier,
+     qui peut atteindre zéro, et dit les deux autres à côté. */
+  const [arriere, sansJugement, jugements] = await Promise.all([bulletinsToReread(), bulletinsSansJugement(), r.listJugementsBulletin().catch(() => [])]);
   const sansCours = arriere.filter((b) => !b.counts?.equities).length;
+  const juges = sansJugement.length - arriere.length;
+  const vus = jugements.filter((j) => !j.retireLe).length;
+  const aRelire = arriere.filter((b) => lectureAncienne(b.readerVersion)).length;
   out.push({
     key: "relire",
-    label: "Bulletins à relire",
+    label: "Bulletins à regarder",
     level: sansCours ? "crit" : arriere.length ? "warn" : "ok",
     value: `${arriere.length} séance${arriere.length > 1 ? "s" : ""}`,
     detail: arriere.length
-      ? `${sansCours ? `${sansCours} sans aucun cours d'action · ` : ""}du ${arriere[0].sessionDate} au ${arriere[arriere.length - 1].sessionDate} · relisibles depuis leur adresse d'origine`
-      : "chaque séance lue est complète",
+      ? [
+          sansCours ? `${sansCours} sans aucun cours d'action` : "",
+          `du ${arriere[0].sessionDate} au ${arriere[arriere.length - 1].sessionDate}`,
+          /* « Relire » ne sert que là où le LECTEUR a changé depuis : mesuré
+             le 11 octobre 2026, une relecture des 212 séances ne rendait rien
+             du tout, et le bouton passait pourtant pour la conduite à tenir. */
+          aRelire ? `${aRelire} lue(s) par un lecteur plus ancien, donc à relire` : "aucune relecture à attendre : toutes lues par le lecteur courant",
+          juges > 0 ? `${juges} fermée(s) par un jugement du desk (${vus} jugement${vus > 1 ? "s" : ""})` : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "chaque séance a été lue ou jugée",
   });
 
   // 2 ter. Every published listed line against the bulletin, both ways.

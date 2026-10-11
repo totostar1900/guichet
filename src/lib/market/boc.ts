@@ -1,12 +1,13 @@
 import "server-only";
 import type { Country, Offer } from "@/lib/domain/types";
-import { fundKey, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
+import { fundKey, type BulletinNote, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { completerObligations } from "./boc-geometrie";
+import { VERSION_DU_LECTEUR } from "./lecteur-version";
 import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
 import { loadCompanies, loadRegistry } from "@/lib/reference";
@@ -396,7 +397,20 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   if (fileKey && opts.keepPdf !== false) await saveSource(fileKey, bytes, "application/pdf");
 
   if (!parsed.bulletinNo) {
-    const bulletin: MarketBulletin = { id: sessionDate, number: 0, sessionDate, sourceUrl, fileKey, ingestedAt: new Date().toISOString(), ingestedBy: opts.by, status: "echec", counts: { equities: 0, bonds: 0, funds: 0 }, warnings: parsed.warnings, anomalies: ["En-tête du bulletin non reconnu : aucun cours n'a été retenu."], notices: [] };
+    /* CE QUI EST JETÉ ICI SE DIT, et c'est le cas du 4 janvier 2023 : six
+       actions et neuf obligations parfaitement lues, toutes écartées parce
+       que l'en-tête ne correspond à aucun motif connu. Le bulletin s'écrivait
+       « 0 action » sans que rien ne dise qu'il y en avait eu six, et on a donc
+       relu cette séance pendant des mois en croyant que le lecteur n'y
+       trouvait rien. */
+    const jete = parsed.equities.length + parsed.bonds.length + parsed.funds.length;
+    const notes: BulletinNote[] = [
+      ...parsed.notes,
+      ...(jete
+        ? [{ message: `Lecture écartée faute d'en-tête : ${parsed.equities.length} action(s), ${parsed.bonds.length} obligation(s) et ${parsed.funds.length} OPCVM avaient pourtant été lus.`, attendu: "BULLETIN OFFICIEL DE LA COTE N° <numéro> DU <jj/mm/aaaa>" }]
+        : []),
+    ];
+    const bulletin: MarketBulletin = { id: sessionDate, number: 0, sessionDate, sourceUrl, fileKey, ingestedAt: new Date().toISOString(), ingestedBy: opts.by, status: "echec", counts: { equities: 0, bonds: 0, funds: 0 }, warnings: parsed.warnings, anomalies: ["En-tête du bulletin non reconnu : aucun cours n'a été retenu."], notices: [], notes, readerVersion: VERSION_DU_LECTEUR };
     await r.upsertBulletin(bulletin);
     await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC</b> du ${fmtDate(sessionDate)} : lecture impossible : cours non mis à jour, vérifier le PDF dans Marché.` });
     return { found: true, bulletin, created: [], refreshed: [], error: "En-tête non reconnu" };
@@ -487,6 +501,14 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     warnings: parsed.warnings,
     anomalies,
     notices: parsed.notices,
+    /* LA MATIÈRE PREMIÈRE DU DIALOGUE. Le lecteur gardait déjà, pour chaque
+       difficulté, le texte du PDF qu'il n'a pas su lire, ce qu'il y cherchait
+       et sa page ; cette ligne cesse de les jeter. Sans elles le desk lit une
+       plainte, avec elles il lit une question à laquelle il peut répondre.
+       Les anomalies sortent de la validation et non du lecteur : elles n'ont
+       pas de texte brut, donc elles n'ont pas de note. */
+    notes: parsed.notes,
+    readerVersion: VERSION_DU_LECTEUR,
   };
   await r.upsertBulletin(bulletin);
 

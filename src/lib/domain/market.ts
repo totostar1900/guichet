@@ -19,6 +19,29 @@ export interface MarketBulletin {
   warnings: string[]; // parser: what could not be read
   anomalies: string[]; // validation: what was read but looks wrong
   notices: string[]; // avis (amortissements, paiements d'intérêts, résultats d'APE…)
+  /**
+   * Ce que le lecteur a dit de ses difficultés, avec sa matière première.
+   *
+   * `warnings` porte les mêmes phrases, et une phrase ne se répond pas :
+   * « Obligation CM0000020115 : ligne de cours non reconnue » ne dit ni
+   * quelle ligne du PDF, ni ce que le lecteur y cherchait, ni où regarder.
+   * Les notes portent les trois, et c'est ce qui transforme une plainte en
+   * question. Absentes des 812 lectures d'avant le 11 octobre 2026.
+   */
+  notes?: BulletinNote[];
+  /** Quel lecteur a produit cette lecture. Absent : un lecteur ancien. */
+  readerVersion?: number;
+}
+
+/** Une difficulté du lecteur, avec de quoi aller voir. */
+export interface BulletinNote {
+  message: string;
+  /** Le texte du PDF que le lecteur n'a pas su lire, tel quel (400 caractères au plus). */
+  brut?: string;
+  /** Ce qu'il y cherchait, en clair. */
+  attendu?: string;
+  /** La page du PDF, quand on a su retrouver le texte brut dans le document. */
+  page?: number;
 }
 
 /**

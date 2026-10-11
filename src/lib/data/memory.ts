@@ -18,6 +18,7 @@ import type { AvisGarde } from "@/lib/domain/garde";
 import { CONVENTION_VERSION } from "@/data/legal";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
@@ -261,6 +262,8 @@ interface Store {
   /** Qui agit sur le compte d une personne morale, d une association ou d une indivision. */
   acces: AccesCompte[];
   bulletins: MarketBulletin[];
+  /** Les réponses du desk aux remarques du lecteur. Absentes du jeu d'essai : rien à juger tant que rien n'a été lu de travers. */
+  jugementsBulletin?: JugementBulletin[];
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
@@ -1232,6 +1235,23 @@ export const memoryRepository: Repository = {
     if (i >= 0) s.bulletins[i] = structuredClone(b);
     else s.bulletins.push(structuredClone(b));
     return structuredClone(b);
+  },
+  async listJugementsBulletin() {
+    return structuredClone(store().jugementsBulletin ?? []);
+  },
+  async ajouterJugementBulletin(j) {
+    const s = store();
+    s.jugementsBulletin ??= [];
+    const cree = { ...j, id: `jug-${s.jugementsBulletin.length + 1}`, at: new Date().toISOString() };
+    s.jugementsBulletin.unshift(structuredClone(cree));
+    return structuredClone(cree);
+  },
+  async retirerJugementBulletin(id, par) {
+    const j = (store().jugementsBulletin ?? []).find((x) => x.id === id);
+    if (j && !j.retireLe) {
+      j.retireLe = new Date().toISOString();
+      j.retirePar = par;
+    }
   },
   async upsertQuotes(quotes) {
     const s = store();

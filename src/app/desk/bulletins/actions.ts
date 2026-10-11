@@ -17,8 +17,13 @@ import { repo } from "@/lib/data";
 import { ARRIERE_PAR_TOUR, bulletinsToReread, REREAD_BATCH, rereadOrder } from "@/lib/health";
 import { ingestBoc } from "@/lib/market/boc";
 import type { RereadResult } from "@/lib/desk/reprise";
+import { MOTIFS, MOTIFS_DE_JUGEMENT, motifSurUnePeriode, porteeDUnJugement, type JugementBulletin, type MotifDeJugement } from "@/lib/domain/jugement-bulletin";
+import { classer } from "@/lib/market/remarques";
 
 export type { RereadResult } from "@/lib/desk/reprise";
+
+/** Ce qu'un jugement rend à l'écran : une phrase, jamais un silence. */
+export type JugementResult = { ok?: string; error?: string };
 
 /**
  * Relit des bulletins laissés incomplets, depuis l'adresse d'origine gardée
@@ -129,4 +134,76 @@ export async function lancerArriereAction(_prev: RereadResult | null): Promise<R
   revalidatePath("/desk/bulletins");
   revalidatePath("/desk/sante");
   return { ok: `${n} séances confiées au robot. Il travaille à part, environ quatre secondes par bulletin : rafraîchissez dans quelques minutes, le compte en attente aura baissé.` };
+}
+
+/**
+ * LE DESK RÉPOND À UNE REMARQUE DU LECTEUR.
+ *
+ * Elle n'écrit ni cours, ni VL, ni statut : la lecture de la machine reste
+ * intacte et relisible. C'est pour cela que cette action n'a pas de second
+ * regard, qu'un opérateur suffit, et qu'elle se retire d'un geste.
+ */
+export async function jugerAction(_prev: JugementResult | null, form: FormData): Promise<JugementResult> {
+  const desk = await requireDesk();
+  const motif = String(form.get("motif") ?? "") as MotifDeJugement;
+  if (!MOTIFS.includes(motif)) return { error: "Motif inconnu." };
+  const note = String(form.get("note") ?? "").trim() || undefined;
+  const seance = String(form.get("seance") ?? "");
+  const portee = String(form.get("portee") ?? "seance") === "periode" ? "periode" : "seance";
+
+  if (portee === "periode") {
+    /* La règle vit dans le domaine, dans la base, et ici : un jugement de
+       période affirme quelque chose sur l'histoire de la place, qu'on peut
+       tenir sans ouvrir un document. Les autres motifs affirment quelque
+       chose sur UN document, et personne ne lit cent douze PDF. */
+    if (!motifSurUnePeriode(motif)) return { error: "Ce motif ne vaut que pour une séance : il dit ce qu'une personne a vu dans un document précis." };
+    const famille = String(form.get("famille") ?? "");
+    if (!famille) return { error: "Famille manquante." };
+    const depuis = String(form.get("depuis") ?? "") || undefined;
+    const jusquau = String(form.get("jusquau") ?? "") || undefined;
+    if (!depuis && !jusquau) return { error: "Une période a besoin d'au moins une borne." };
+    const j = await repo().ajouterJugementBulletin({ portee: "periode", motif, famille, depuis, jusquau, note, par: desk.userId });
+    const quoi = await porteeDeLaFamille(j);
+    await repo().logEvent({ kind: "desk", html: `<b>Remarques jugées</b> : famille ${famille}${depuis ? ` depuis le ${depuis}` : ""}${jusquau ? ` jusqu'au ${jusquau}` : ""} · ${MOTIFS_DE_JUGEMENT[motif].libelle.toLowerCase()} · ${quoi.remarques} remarque(s) sur ${quoi.seances} séance(s), par ${desk.name}` });
+    revalidatePath("/desk/bulletins");
+    revalidatePath("/desk/sante");
+    return { ok: `${quoi.remarques} remarque(s) sur ${quoi.seances} séance(s) ne demandent plus rien à personne.` };
+  }
+
+  const cible = String(form.get("cible") ?? "");
+  if (!seance || !cible) return { error: "Remarque introuvable." };
+  await repo().ajouterJugementBulletin({ portee: "seance", motif, seance, cible, note, par: desk.userId });
+  await repo().logEvent({ kind: "desk", html: `<b>Remarque jugée</b> (séance du ${seance}) : ${MOTIFS_DE_JUGEMENT[motif].libelle.toLowerCase()} · « ${cible.slice(0, 120)} » · par ${desk.name}` });
+  /* « layout » et non la page : le rapport est rendu deux fois, en page
+     entière et en tiroir par la route interceptée @rapport. Rafraîchir la
+     seule page laissait le tiroir sur sa copie, donc le desk cliquait et ne
+     voyait rien changer, ce qui est pire que pas de bouton. */
+  revalidatePath("/desk/bulletins", "layout");
+  revalidatePath("/desk/sante");
+  return { ok: "Noté. Cette remarque ne demande plus rien à personne." };
+}
+
+/** Ce qu'un jugement de période ferme, compté sur les bulletins en base. */
+async function porteeDeLaFamille(j: JugementBulletin) {
+  return porteeDUnJugement(j, await repo().listBulletins(2000), classer);
+}
+
+/**
+ * Retirer un jugement : il se masque, il ne se supprime pas.
+ *
+ * Tout ce qu'il fermait revient de lui-même, puisque le domaine ne compte que
+ * les jugements vivants. Un jugement faux doit laisser sa trace, sinon
+ * personne ne pourra expliquer pourquoi une séance a quitté la file pendant
+ * trois mois.
+ */
+export async function retirerJugementAction(_prev: JugementResult | null, form: FormData): Promise<JugementResult> {
+  const desk = await requireDesk();
+  const id = String(form.get("id") ?? "");
+  const seance = String(form.get("seance") ?? "");
+  if (!id) return { error: "Jugement introuvable." };
+  await repo().retirerJugementBulletin(id, desk.userId);
+  await repo().logEvent({ kind: "desk", html: `<b>Jugement retiré</b>${seance ? ` (séance du ${seance})` : ""} : la remarque revient dans la file, par ${desk.name}` });
+  revalidatePath("/desk/bulletins", "layout");
+  revalidatePath("/desk/sante");
+  return { ok: "Retiré. La remarque revient, et le jugement garde sa trace." };
 }

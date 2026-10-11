@@ -16,6 +16,7 @@ import type { NewVirement, VirementRecu } from "@/lib/domain/virement";
 import type { NewTirage, RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -341,6 +342,15 @@ export interface Repository {
   listBulletins(limit?: number): Promise<MarketBulletin[]>;
   getBulletin(sessionDate: string): Promise<MarketBulletin | undefined>;
   upsertBulletin(b: MarketBulletin): Promise<MarketBulletin>;
+  /**
+   * Ce qu'une personne a répondu aux remarques du lecteur.
+   *
+   * Les retirés viennent avec : un jugement faux doit laisser sa trace, et
+   * c'est le domaine qui décide de ne plus les faire compter.
+   */
+  listJugementsBulletin(): Promise<JugementBulletin[]>;
+  ajouterJugementBulletin(j: Omit<JugementBulletin, "id" | "at">): Promise<JugementBulletin>;
+  retirerJugementBulletin(id: string, par: string): Promise<void>;
   /** Idempotent on (isin, sessionDate). */
   upsertQuotes(quotes: Quote[]): Promise<void>;
   /** History of one line, most recent first. */

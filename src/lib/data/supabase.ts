@@ -13,7 +13,8 @@ import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { BulletinNote, FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -657,14 +658,30 @@ const toTemplateText = (r: TemplateTextRow): TemplateText => ({ id: r.id, docTyp
 type BulletinRow = {
   session_date: string; number: number; source_url: string | null; file_key: string | null; ingested_at: string; ingested_by: MarketBulletin["ingestedBy"]; status: MarketBulletin["status"];
   index_value: string | null; index_variation_pct: string | null; counts: MarketBulletin["counts"]; warnings: string[]; anomalies: string[]; notices: string[];
+  notes: BulletinNote[] | null; reader_version: number | null;
 };
 const toBulletin = (r: BulletinRow): MarketBulletin => ({
   id: r.session_date, number: r.number, sessionDate: r.session_date, sourceUrl: u(r.source_url), fileKey: u(r.file_key), ingestedAt: r.ingested_at, ingestedBy: r.ingested_by, status: r.status,
   indexValue: nn(r.index_value), indexVariationPct: nn(r.index_variation_pct), counts: r.counts, warnings: r.warnings ?? [], anomalies: r.anomalies ?? [], notices: r.notices ?? [],
+  /* Une liste vide et une absence ne disent pas la même chose : « lue sans
+     difficulté » contre « lue par un lecteur qui ne gardait pas ses notes ».
+     Les aplatir en tableau vide perdrait la seule chose que la colonne
+     apprend des 812 lectures d'avant. */
+  notes: r.notes ?? undefined, readerVersion: u(r.reader_version),
+});
+type JugementRow = {
+  id: string; portee: JugementBulletin["portee"]; motif: JugementBulletin["motif"]; seance: string | null; cible: string | null;
+  famille: string | null; depuis: string | null; jusquau: string | null; note: string | null; par: string; at: string;
+  retire_le: string | null; retire_par: string | null;
+};
+const toJugement = (r: JugementRow): JugementBulletin => ({
+  id: r.id, portee: r.portee, motif: r.motif, seance: u(r.seance), cible: u(r.cible), famille: u(r.famille),
+  depuis: u(r.depuis), jusquau: u(r.jusquau), note: u(r.note), par: r.par, at: r.at, retireLe: u(r.retire_le), retirePar: u(r.retire_par),
 });
 const fromBulletin = (b: MarketBulletin): BulletinRow => ({
   session_date: b.sessionDate, number: b.number, source_url: b.sourceUrl ?? null, file_key: b.fileKey ?? null, ingested_at: b.ingestedAt, ingested_by: b.ingestedBy, status: b.status,
   index_value: b.indexValue != null ? String(b.indexValue) : null, index_variation_pct: b.indexVariationPct != null ? String(b.indexVariationPct) : null, counts: b.counts, warnings: b.warnings, anomalies: b.anomalies, notices: b.notices,
+  notes: b.notes ?? null, reader_version: b.readerVersion ?? null,
 });
 type QuoteRow = {
   isin: string; session_date: string; bulletin_no: number; instrument: Quote["instrument"]; mnemo: string; issuer: string; designation: string; segment: Quote["segment"] | null;
@@ -2176,6 +2193,34 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("market_bulletins").upsert(fromBulletin(b), { onConflict: "session_date" }).select("*").single();
     if (error) fail("upsertBulletin", error);
     return toBulletin(data as BulletinRow);
+  },
+  async listJugementsBulletin() {
+    /* On ne rend que l'identifiant de l'auteur. Le nom se résout au-dessus,
+       depuis listStaff() que la page du desk charge déjà : une jointure ici
+       aurait recopié une règle de nommage qui vit ailleurs. */
+    const { data, error } = await db().from("bulletin_jugements").select("*").order("at", { ascending: false });
+    if (error) {
+      // Migration 0092 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/bulletin_jugements/.test(error.message)) return [];
+      fail("listJugementsBulletin", error);
+    }
+    return (data ?? []).map((r) => toJugement(r as JugementRow));
+  },
+  async ajouterJugementBulletin(j) {
+    const { data, error } = await db()
+      .from("bulletin_jugements")
+      .insert({ portee: j.portee, motif: j.motif, seance: j.seance ?? null, cible: j.cible ?? null, famille: j.famille ?? null, depuis: j.depuis ?? null, jusquau: j.jusquau ?? null, note: j.note ?? null, par: j.par })
+      .select("*")
+      .single();
+    if (error) fail("ajouterJugementBulletin", error);
+    return toJugement(data as JugementRow);
+  },
+  async retirerJugementBulletin(id, par) {
+    /* Retiré, jamais supprimé : un jugement faux doit laisser sa trace, et
+       tout ce qu'il fermait revient de lui-même puisque le domaine ne compte
+       que les vivants. */
+    const { error } = await db().from("bulletin_jugements").update({ retire_le: new Date().toISOString(), retire_par: par }).eq("id", id).is("retire_le", null);
+    if (error) fail("retirerJugementBulletin", error);
   },
   async upsertQuotes(quotes) {
     if (!quotes.length) return;

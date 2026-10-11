@@ -1,0 +1,48 @@
+/**
+ * LA VERSION DU LECTEUR, INSCRITE SUR CHAQUE LECTURE.
+ *
+ * Elle ne protège rien. Elle sert à SAVOIR, et ce manque a coûté une matinée
+ * le 11 octobre 2026 : pour répondre à « la relecture des 212 bulletins
+ * changerait-elle quelque chose ? », il a fallu reprendre les 212 PDF et les
+ * repasser au lecteur, quinze minutes de machine, parce que rien en base ne
+ * disait quel lecteur avait produit quelle lecture. La réponse était pourtant
+ * déductible : une séance lue par le lecteur courant n'a rien à gagner.
+ *
+ * Avec cette colonne, « quelles séances méritent une relecture » devient une
+ * requête. C'est le seul but, et il suffit.
+ *
+ * ELLE SE CHANGE À LA MAIN, et un cliquet le rappelle : src/test/
+ * lecteur-version.test.ts garde l'empreinte des fichiers du lecteur et
+ * refuse qu'ils bougent sans que le numéro bouge. Un numéro qui suivrait
+ * automatiquement le contenu ne dirait plus rien d'intentionnel, et un numéro
+ * qu'on oublie de lever est pire que pas de numéro : il ferait croire qu'une
+ * séance est à jour.
+ */
+
+/**
+ * Le lecteur du Bulletin Officiel de la Cote.
+ *
+ *   1  (jusqu'au 2026-10-05)  texte aplati, motifs par section.
+ *   2  (2026-10-06, 02564bf)  lecture géométrique des obligations : pdfjs
+ *                             rend les abscisses, 650 lignes rattrapées sur
+ *                             141 séances.
+ *   3  (2026-10-11)           le lecteur garde ses notes : le texte brut
+ *                             qu'il n'a pas su lire, ce qu'il y cherchait, et
+ *                             la page où il se trouve. Rien ne change dans ce
+ *                             qu'il lit ; tout change dans ce qu'il sait dire
+ *                             de ce qu'il n'a pas lu.
+ */
+export const VERSION_DU_LECTEUR = 3;
+
+/** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
+export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];
+
+/**
+ * Une lecture d'un lecteur plus ancien a peut-être quelque chose à gagner ;
+ * une lecture du lecteur courant n'a rien à gagner, c'est certain.
+ *
+ * L'absence de numéro vaut « ancienne » : les 812 séances lues avant le
+ * 11 octobre 2026 n'en portent pas, et les traiter comme à jour serait la
+ * seule façon de rendre cette colonne menteuse dès sa naissance.
+ */
+export const lectureAncienne = (version?: number): boolean => (version ?? 0) < VERSION_DU_LECTEUR;

@@ -121,6 +121,17 @@ export interface Note {
   brut?: string;
   /** Ce qu'il y cherchait, en clair. */
   attendu?: string;
+  /**
+   * La page du PDF où ce texte se trouve, quand on a su la retrouver.
+   *
+   * ELLE NE SORT PAS DU LECTEUR APLATI, qui ne connaît pas les pages :
+   * `pdfText` rend un seul bloc. Elle est posée après coup en retrouvant le
+   * texte brut dans les rangées géométriques, qui portent une page et des
+   * abscisses. Sans elle, le desk lit « ligne de cours non reconnue » et n'a
+   * aucun moyen d'aller voir de quelle ligne du document on parle, ce qui
+   * rend la question impossible à répondre.
+   */
+  page?: number;
 }
 
 /**

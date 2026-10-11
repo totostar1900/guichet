@@ -484,6 +484,67 @@ export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet): Boc
   return out;
 }
 
+/* ---------------- Situer une note dans le document ---------------- */
+
+/**
+ * Tout ce qui n'est ni lettre ni chiffre s'en va.
+ *
+ * Le texte brut d'une note arrive assemblé par le lecteur aplati, avec ses
+ * propres séparateurs (« | » entre des cellules, des espaces fines dans un
+ * montant). Les rangées portent le même texte découpé autrement. Comparer
+ * les deux exige donc d'effacer d'abord la ponctuation d'assemblage, qui est
+ * justement ce qui diffère : sans cela aucune des deux formes ne se
+ * reconnaît dans l'autre.
+ */
+const nu = (s: string): string => s.replace(/[^0-9A-Za-zÀ-ÿ]/g, "").toUpperCase();
+
+/**
+ * Assez de caractères pour que la rencontre ne soit pas un hasard, assez peu
+ * pour survivre à un découpage différent. Une ligne de cote en fait environ
+ * cent cinquante une fois nue ; soixante en tiennent la moitié.
+ */
+const EMPREINTE = 60;
+
+/**
+ * La page où se trouve le texte brut d'une note, quand on sait la retrouver.
+ *
+ * ON NE DEVINE PAS. Si l'empreinte ne se retrouve nulle part, la page reste
+ * absente, et c'est la bonne réponse : une page approchée serait pire que pas
+ * de page du tout, puisque le desk irait regarder au mauvais endroit et
+ * conclurait que la donnée n'y est pas.
+ */
+export function situer(brut: string, rangees: Rangee[]): number | undefined {
+  const cible = nu(brut).slice(0, EMPREINTE);
+  if (cible.length < 12) return undefined; // trop court pour désigner quoi que ce soit
+  for (const r of rangees) {
+    /* Le texte d'une rangée se recolle dans l'ordre des abscisses, qui est
+       l'ordre de lecture ; les cellules n'arrivent pas triées. */
+    const texte = nu([...r.cellules].sort((a, b) => a.x - b.x).map((c) => c.texte).join(""));
+    if (!texte) continue;
+    if (texte.includes(cible)) return r.page;
+    /* L'inverse arrive quand le lecteur aplati a gardé plus de texte que la
+       rangée (une ligne de cote coupée en deux rangées par le PDF) : la
+       rangée se reconnaît alors DANS l'empreinte. Vingt caractères au moins,
+       sinon « 2 500 » se retrouverait dans n'importe quoi. */
+    if (texte.length >= 20 && cible.includes(texte)) return r.page;
+  }
+  return undefined;
+}
+
+/** Pose la page sur chaque note qui porte un texte brut et n'en a pas encore. */
+export function situerLesNotes(notes: { brut?: string; page?: number }[], rangees: Rangee[]): number {
+  let poses = 0;
+  for (const n of notes) {
+    if (!n.brut || n.page !== undefined) continue;
+    const p = situer(n.brut, rangees);
+    if (p !== undefined) {
+      n.page = p;
+      poses += 1;
+    }
+  }
+  return poses;
+}
+
 /* ---------------- Le rattrapage ---------------- */
 
 /** Les remarques que la lecture géométrique peut rendre caduques. */
@@ -518,11 +579,12 @@ const PERDUE = /^Obligation ([A-Z]{2}\d{10}) : (ligne de cours non reconnue|prix
  */
 export async function completerObligations(parsed: BocParsed, bytes: Uint8Array): Promise<string[]> {
   const manquantes = new Set(parsed.warnings.map((w) => w.match(PERDUE)?.[1]).filter((x): x is string => !!x));
-  if (manquantes.size === 0) return [];
+  const aSituer = parsed.notes.some((n) => n.brut && n.page === undefined);
+  if (manquantes.size === 0 && !aSituer) return [];
 
-  let geo: BocBond[];
+  let rangees: Rangee[];
   try {
-    geo = obligationsGeometriques(await rangeesDuPdf(bytes));
+    rangees = await rangeesDuPdf(bytes);
   } catch (e) {
     /* Un échec se dit : une lecture de secours muette serait pire que pas de
        lecture de secours du tout, puisque personne ne saurait qu'elle a
@@ -533,6 +595,14 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array)
     return [];
   }
 
+  /* SITUER AVANT DE COMPLÉTER, et avec les MÊMES rangées : pdfjs prend la
+     propriété du tampon et le détache, donc un second appel lirait du vide en
+     silence. Le piège est documenté plus haut dans ce fichier, il a déjà
+     coûté un balayage entier rendu à zéro ligne. */
+  situerLesNotes(parsed.notes, rangees);
+  if (manquantes.size === 0) return [];
+
+  const geo = obligationsGeometriques(rangees);
   const deja = new Set(parsed.bonds.map((b) => b.isin));
   const rattrapees = geo.filter((b) => !deja.has(b.isin) && manquantes.has(b.isin));
   if (rattrapees.length === 0) return [];

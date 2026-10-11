@@ -6,6 +6,7 @@ import { ISSUERS } from "@/data/issuers";
 import { HEALTH_HOW } from "@/lib/health-how";
 import { DESK_GROUPS } from "@/components/DeskNav";
 import { FAMILLES, VUES } from "@/lib/market/remarques";
+import { MOTIFS, MOTIFS_DE_JUGEMENT } from "@/lib/domain/jugement-bulletin";
 
 /**
  * LES DONNÉES LIVRÉES PASSENT EN ANGLAIS, ELLES AUSSI.
@@ -129,5 +130,24 @@ describe("les mots du dépôt des bulletins passent en anglais", () => {
     // Une table vidée passerait les deux tests précédents sans rien couvrir.
     expect(FAMILLES.length).toBeGreaterThanOrEqual(18);
     expect(VUES.length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+/**
+ * LES MOTIFS D'UN JUGEMENT PASSENT EN ANGLAIS.
+ *
+ * Quatrième table de mots affichés, quatrième cliquet : `libelle` et `dit`
+ * traversent tous deux `t()` sous forme de variable, donc le scanner de clefs
+ * ne les voit pas. Un motif choisi dans une liste déroulante en français au
+ * milieu d'une interface anglaise est précisément le défaut que ces cliquets
+ * existent pour fermer.
+ */
+describe("les motifs d'un jugement de bulletin passent en anglais", () => {
+  it("chaque motif : son libellé et ce qu'il affirme", () => {
+    vide("motifs de jugement", inventaire(MOTIFS.flatMap((m) => [MOTIFS_DE_JUGEMENT[m].libelle, MOTIFS_DE_JUGEMENT[m].dit])));
+  });
+
+  it("et la table regarde bien quelque chose", () => {
+    expect(MOTIFS.length).toBe(5);
   });
 });
