@@ -369,6 +369,45 @@ const COUNTRY_OF_DEPOSITARY = (d: string): { country: Country; name: string } =>
 
 /* ---------------- ingestion ---------------- */
 
+/**
+ * Le dernier nominal NON NUL de chaque obligation, avant une séance donnée.
+ *
+ * C'est la seconde identité du lecteur, et elle ne sert qu'aux lignes
+ * amortissables : sur elles le prix reste rapporté au nominal qui courait
+ * avant le remboursement du capital, et le bulletin finit par imprimer zéro.
+ *
+ * NON NUL, parce qu'un zéro n'apprend rien et effacerait la seule référence
+ * utile : la première version prenait simplement la dernière lecture, et sur
+ * une ligne arrivée au bout elle ramenait le zéro que le lecteur venait de
+ * ne pas savoir couper.
+ *
+ * Une seule requête : la dernière cotation connue de chaque ligne suffit à
+ * presque tout, et l'historique d'une ligne n'est repris que si elle y porte
+ * un nominal nul.
+ */
+async function nominauxConnus(avant: string): Promise<Map<string, number>> {
+  const r = repo();
+  const out = new Map<string, number>();
+  const dernieres = await r.latestQuotes().catch(() => []);
+  for (const q of dernieres) {
+    if (q.instrument !== "obligation") continue;
+    if (q.sessionDate >= avant) continue;
+    if (q.nominalRemaining != null && q.nominalRemaining > 0) out.set(q.isin, q.nominalRemaining);
+  }
+  /* Les lignes dont la dernière lecture porte un nominal nul, ou dont la
+     dernière lecture est postérieure à la séance qu'on relit : elles
+     réclament leur propre historique, et elles sont peu nombreuses. */
+  for (const q of dernieres) {
+    if (q.instrument !== "obligation" || out.has(q.isin)) continue;
+    const hist = await r.listQuotes(q.isin, 2000).catch(() => []);
+    const ref = hist
+      .filter((x) => x.sessionDate < avant && x.nominalRemaining != null && x.nominalRemaining > 0)
+      .sort((x, y) => y.sessionDate.localeCompare(x.sessionDate))[0];
+    if (ref?.nominalRemaining != null) out.set(q.isin, ref.nominalRemaining);
+  }
+  return out;
+}
+
 export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array; sourceUrl?: string; by: MarketBulletin["ingestedBy"]; keepPdf?: boolean }): Promise<IngestResult> {
   const r = repo();
   let bytes = opts.bytes;
@@ -381,7 +420,19 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   }
 
   const text = await pdfText(bytes);
-  const parsed = parseBoc(text);
+  /* LE DERNIER NOMINAL NON NUL DE CHAQUE LIGNE, avant de lire.
+     Sur une obligation amortissable, le prix n'est pas rapporté au nominal du
+     jour mais à celui qui courait avant le remboursement du capital, et deux
+     lignes sur trois impriment même un nominal nul. Le lecteur ne trouvait
+     alors aucune découpe (« prix / nominal ambigus », 78 remarques sur 66
+     séances) alors que le nombre qui lui manquait dormait en base depuis le
+     premier jour.
+     LA DERNIÈRE LECTURE DE LA LIGNE, PAS LA VEILLE DU CALENDRIER : quand une
+     ligne échoue un jour, elle n'a plus de référence le lendemain, donc elle
+     échoue encore, et la panne se propage toute seule. Mesuré : quatre cas
+     sur neuf se perdaient ainsi. */
+  const nominauxDeReference = await nominauxConnus(opts.sessionDate);
+  const parsed = parseBoc(text, nominauxDeReference);
   const rattrapees = await completerObligations(parsed, bytes);
   const sessionDate = parsed.sessionDate || opts.sessionDate;
   /* « NE PAS GARDER » N EST PAS « OUBLIER ». Cette ligne écrivait undefined

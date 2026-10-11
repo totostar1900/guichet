@@ -31,6 +31,25 @@ const { parseBoc } = await import("../src/lib/market/boc-parse.ts");
 const { completerObligations } = await import("../src/lib/market/boc-geometrie.ts");
 const { repo } = await import("../src/lib/data/index.ts");
 
+/* Le dernier nominal non nul de chaque obligation avant une séance : la
+   seconde identité du lecteur, recopiée ici pour que l'essai juge exactement
+   ce que l'ingestion fera. */
+const cacheHist = new Map();
+async function nominauxDeReference(avant) {
+  const out = new Map();
+  for (const q of await repo().latestQuotes().catch(() => [])) {
+    if (q.instrument !== "obligation") continue;
+    if (q.sessionDate < avant && q.nominalRemaining > 0) {
+      out.set(q.isin, q.nominalRemaining);
+      continue;
+    }
+    if (!cacheHist.has(q.isin)) cacheHist.set(q.isin, await repo().listQuotes(q.isin, 2000).catch(() => []));
+    const ref = cacheHist.get(q.isin).filter((x) => x.sessionDate < avant && x.nominalRemaining > 0).sort((x, y) => y.sessionDate.localeCompare(x.sessionDate))[0];
+    if (ref) out.set(q.isin, ref.nominalRemaining);
+  }
+  return out;
+}
+
 const combien = Number(process.argv[2]) || 1e9;
 const depuis = process.argv.includes("--depuis") ? process.argv[process.argv.indexOf("--depuis") + 1] : undefined;
 
@@ -80,7 +99,10 @@ for (const b of lot) {
   }
 
   try {
-    const parsed = parseBoc(await pdfText(bytes));
+    /* AVEC LES NOMINAUX DE RÉFÉRENCE, comme l'ingestion les fournit : sans
+       eux l'essai jugerait un autre lecteur que celui qui tourne, et c'est
+       la seule façon de rendre un essai à blanc menteur. */
+    const parsed = parseBoc(await pdfText(bytes), await nominauxDeReference(b.sessionDate));
     const rattrapees = await completerObligations(parsed, bytes);
     bilan.lu += 1;
     const av = { a: b.counts?.equities ?? 0, o: b.counts?.bonds ?? 0, f: b.counts?.funds ?? 0 };

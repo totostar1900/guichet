@@ -31,8 +31,14 @@
  *                             la page où il se trouve. Rien ne change dans ce
  *                             qu'il lit ; tout change dans ce qu'il sait dire
  *                             de ce qu'il n'a pas lu.
+ *   4  (2026-10-11)           seconde identité pour les lignes amortissables :
+ *                             le prix y est rapporté au DERNIER NOMINAL NON
+ *                             NUL de la ligne et non à celui du jour, que le
+ *                             bulletin imprime parfois à zéro. 78 remarques
+ *                             sur 66 séances tenaient à ce seul nombre, qui
+ *                             dormait en base depuis le premier jour.
  */
-export const VERSION_DU_LECTEUR = 3;
+export const VERSION_DU_LECTEUR = 4;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];

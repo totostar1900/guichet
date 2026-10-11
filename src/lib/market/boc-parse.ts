@@ -158,7 +158,7 @@ export class Carnet {
   }
 }
 
-export function parseBoc(text: string): BocParsed {
+export function parseBoc(text: string, nominauxDeReference?: Map<string, number>): BocParsed {
   const lines = text.split(/\r?\n/).map((l) => l.replace(/ /g, " ").trim());
   const warnings = new Carnet();
 
@@ -180,7 +180,7 @@ export function parseBoc(text: string): BocParsed {
   } else warnings.push("Indice BVMAC ALL SHARE introuvable.");
 
   const equities = parseEquities(lines, warnings);
-  const bonds = parseBonds(lines, warnings);
+  const bonds = parseBonds(lines, warnings, nominauxDeReference);
   const funds = parseFunds(lines, warnings);
   const capitalisation = parseCapitalisation(lines, warnings);
   const notices = lines.filter((l) => /^«.*»\s*$/.test(l)).map((l) => l.replace(/[«»]/g, "").trim());
@@ -416,18 +416,61 @@ function parseEquities(lines: string[], warnings: Carnet): BocEquity[] {
 /* ---------------- Obligations ---------------- */
 const BOND_HEAD = /^(.*?)([A-Z]{2}\d{10})([A-Z][A-Z0-9]{3,5}?)(\d{2}\/\d{2}\/\d{4}.*)?$/;
 
-/** Splits "<prix FCFA><nominal,ddd>" where the price may lack decimals: keeps the split consistent with price ≈ pct × nominal / 100. */
-function splitPriceNominal(mid: string, pct: number): { price: number; nominal: number } | undefined {
+/**
+ * Splits "<prix FCFA><nominal,ddd>" where the price may lack decimals.
+ *
+ * DEUX IDENTITÉS, ET LA SECONDE A ÉTÉ MESURÉE LE 11 OCTOBRE 2026.
+ *
+ * La première est celle d'origine : le prix vaut le pourcentage du nominal
+ * IMPRIMÉ. Elle tranche la plupart des lignes et ne bouge pas.
+ *
+ * Elle ne peut pas tenir sur une ligne AMORTISSABLE, et c'est la cause de la
+ * famille « prix / nominal ambigus » : 78 remarques sur 66 séances. Relevé
+ * sur le texte brut de trois lignes, que la base ne gardait pas avant
+ * aujourd'hui :
+ *
+ *   CM0000020354   98,40 %   prix 9 840,00    nominal imprimé 0,000
+ *   GA0000020248   99,50 %   prix 2 487,50    nominal imprimé 0,000
+ *   CM0000020362  100,00 %   prix 10 000,00   nominal imprimé 5 000,000
+ *
+ * Le prix n'est donc pas rapporté au nominal du jour : il est rapporté au
+ * DERNIER NOMINAL NON NUL de la ligne, celui qui courait avant que le capital
+ * ne soit remboursé. Les deux premières lignes impriment même un nominal nul,
+ * ce que la première identité rejette de toute façon (« nominal <= 0 »).
+ *
+ * D'où la seconde identité, essayée seulement quand la première a renoncé :
+ * le prix vaut le pourcentage d'un nominal de RÉFÉRENCE que l'appelant
+ * fournit, pris dans la dernière lecture de cette ligne. L'information
+ * dormait en base depuis le premier jour, et le lecteur ne la regardait pas.
+ *
+ * Ce n'est pas une permission : c'est une seconde identité, aussi stricte que
+ * la première, et le nominal nul n'est accepté QUE sous son contrôle. Sans
+ * référence, le comportement d'avant, mot pour mot.
+ */
+export function splitPriceNominal(mid: string, pct: number, nominalRef?: number): { price: number; nominal: number } | undefined {
   const clean = mid.replace(/ /g, "");
   const m = clean.match(/^(.*?),(\d{3})$/);
   const body = m ? m[1] : clean; // "<price><nominal-int>" with optional ",dd" in price; nominal decimals optional
+  const attendu = nominalRef != null && nominalRef > 0 ? (pct * nominalRef) / 100 : undefined;
+  let parLaReference: { price: number; nominal: number; ecart: number } | undefined;
   for (let cut = 1; cut < body.length; cut++) {
     const price = num(body.slice(0, cut));
     const nominal = num(m ? `${body.slice(cut)},${m[2]}` : body.slice(cut));
-    if (!Number.isFinite(price) || !Number.isFinite(nominal) || nominal <= 0) continue;
-    if (Math.abs(price - (pct * nominal) / 100) < 1.5) return { price, nominal };
+    if (!Number.isFinite(price) || !Number.isFinite(nominal) || nominal < 0) continue;
+    if (nominal > 0 && Math.abs(price - (pct * nominal) / 100) < 1.5) return { price, nominal };
+    /* LA PREMIÈRE IDENTITÉ GARDE LA PRIORITÉ : on retient la meilleure
+       découpe de la référence et on ne la rend qu'une fois la boucle épuisée.
+       LA MEILLEURE, ET NON LA PREMIÈRE, parce que la tolérance d'un franc et
+       demi laisse passer une découpe antérieure et fausse : sur
+       « 2487,500,000 » à 99,5 % de 2 500, le prix attendu est 2 487,50, et
+       couper à « 2487 » laisse un écart de cinquante centimes qui tient dans
+       la fenêtre. Le lecteur aurait rendu un prix de 2 487 et un nominal de
+       500, tous les deux faux, au lieu de 2 487,50 et zéro. */
+    if (attendu === undefined) continue;
+    const ecart = Math.abs(price - attendu);
+    if (ecart < 1.5 && (!parLaReference || ecart < parLaReference.ecart)) parLaReference = { price, nominal, ecart };
   }
-  return undefined;
+  return parLaReference ? { price: parLaReference.price, nominal: parLaReference.nominal } : undefined;
 }
 
 /** Issuers whose name is glued to the title in the dense layout ("ETAT DU CAMEROUNECMR 6.25% …"). */
@@ -455,17 +498,17 @@ const DENSE = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(.+?,\d{3})(\d{1,4},\d{2})([
 const DENSE_OLD = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(\d{6,16}),(\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
 
 /** Old layout: "<price><nominal><accrued-int>" glued, then ",dd" : pick the accrued length that makes price ≈ pct × nominal. */
-function splitOld(digits: string, dec: string, pct: number): { price: number; nominal: number; accrued: number } | undefined {
+function splitOld(digits: string, dec: string, pct: number, nominalRef?: number): { price: number; nominal: number; accrued: number } | undefined {
   for (let n = 1; n <= 4; n++) {
     if (digits.length - n < 2) break;
-    const pn = splitPriceNominal(digits.slice(0, -n), pct);
+    const pn = splitPriceNominal(digits.slice(0, -n), pct, nominalRef);
     const accrued = num(`${digits.slice(-n)},${dec}`);
     if (pn && accrued < pn.nominal * 0.15) return { ...pn, accrued };
   }
   return undefined;
 }
 
-function parseBonds(lines: string[], warnings: Carnet): BocBond[] {
+function parseBonds(lines: string[], warnings: Carnet, nominauxDeReference?: Map<string, number>): BocBond[] {
   const out: BocBond[] = [];
   const start = lines.findIndex((l) => /^MARCHE DES OBLIGATIONS/.test(l));
   const end = lines.findIndex((l, i) => i > start && /^CAPITALISATION BOURSIERE/.test(l));
@@ -499,7 +542,11 @@ function parseBonds(lines: string[], warnings: Carnet): BocBond[] {
         continue;
       }
       const pct = num(m0[2]);
-      const pn = r ? splitPriceNominal(r[3], pct) : splitOld(old![3], old![4], pct);
+      /* Le dernier nominal non nul de CETTE ligne, quand on le connaît : il
+         sert de seconde identité quand la première renonce, et il n'a aucun
+         effet tant qu'elle suffit. */
+      const ref = nominauxDeReference?.get(isin);
+      const pn = r ? splitPriceNominal(r[3], pct, ref) : splitOld(old![3], old![4], pct, ref);
       if (!pn) {
         warnings.sur(`Obligation ${isin} : prix / nominal ambigus (« ${m0[3]} »).`, cand, "deux nombres séparables : le prix en pourcentage, puis le nominal restant");
         continue;
