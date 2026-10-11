@@ -183,7 +183,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     </dl>
                   </div>
                 )}
-                <MesureForm userId={selected.userId} posee={compte?.mesure} />
+                <MesureForm userId={selected.userId} posee={compte?.mesure} plusieursMains={selected.kind !== "physique"} />
                 {/* UN COMPTE QUI N'EST PAS UNE PERSONNE PHYSIQUE EST TENU PAR
                     PLUSIEURS MAINS. L'écran ne paraît que là : proposer de
                     nommer d'autres accès sur le compte d'un particulier

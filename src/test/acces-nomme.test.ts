@@ -93,7 +93,12 @@ describe("la session change de compte, jamais en silence", () => {
   it("et un accès révoqué n'ouvre plus rien", () => {
     expect(accesVivant(acces())).toBe(true);
     expect(accesVivant(acces({ revoqueLe: "2026-10-11T10:00:00.000Z" }))).toBe(false);
-    expect(lire("src/lib/auth/index.ts")).toContain("if (!acces || acces.revoqueLe || acces.personneUserId !== s.userId) return s;");
+    const a = lire("src/lib/auth/index.ts");
+    expect(a).toContain("if (!acces || acces.personneUserId !== s.userId) return s;");
+    /* Un accès révoqué ne bascule plus le compte, MAIS il ne se tait pas :
+       la personne lit pourquoi, sinon elle croit à une panne. */
+    expect(a).toContain("if (acces.revoqueLe) {");
+    expect(a).toContain("accesRetire:");
   });
 
   it("une lecture qui échoue ne déconnecte personne", () => {

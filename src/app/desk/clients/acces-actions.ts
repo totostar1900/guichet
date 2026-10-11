@@ -5,7 +5,7 @@ import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { direLeGestePasseSeul, quatreYeux } from "@/lib/desk/quatre-yeux";
-import { clefDeCanal, peutRecevoirUnAcces, refusDAcces, ROLE_ACCES_LABEL, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
+import { clefDeCanal, estCauseDeRetrait, peutRecevoirUnAcces, refusDAcces, ROLE_ACCES_LABEL, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
 import type { KycPerson } from "@/lib/domain/kyc";
 
 export type AccesResult = { ok: true; message: string } | { ok: false; error: string };
@@ -139,7 +139,7 @@ export async function retirerSignataireAction(_p: AccesResult | null, form: Form
   if (motif.length < 4) return { ok: false, error: "Dites pourquoi : c'est ce que lira la personne suivante, et un départ se justifie." };
 
   const vivants = (await r.listAccesDuCompte(f.userId)).filter((a) => a.nom === nom && !a.revoqueLe);
-  for (const a of vivants) await r.revoquerAcces(a.id, me.name, `Retiré du dossier : ${motif}`);
+  for (const a of vivants) await r.revoquerAcces(a.id, me.name, `Retiré du dossier : ${motif}`, "quitte");
 
   await r.updateClientFile(f.id, { persons: f.persons.filter((p) => p.name !== nom) });
   await audit("signataire.retirer", "client_file", f.id, { before: { nom, acces: vivants.length }, reason: motif });
@@ -214,9 +214,14 @@ export async function revoquerAccesAction(_p: AccesResult | null, form: FormData
   const me = await requireDesk("/desk/clients");
   const id = String(form.get("accesId") ?? "");
   const motif = String(form.get("motif") ?? "").trim();
+  const cause = String(form.get("cause") ?? "");
   const fileId = String(form.get("fileId") ?? "");
   if (!id) return { ok: false, error: "Accès introuvable." };
-  if (motif.length < 4) return { ok: false, error: "Dites pourquoi vous le retirez : c'est ce que lira la personne suivante." };
+  /* LA CAUSE VIENT D'UNE LISTE FERMÉE, comme le motif d'une mesure : une
+     cause qui se réécrit n'est pas contestable. Et c'est elle qui décide de
+     ce que la personne lira, le soupçon ne disant jamais son nom. */
+  if (!estCauseDeRetrait(cause)) return { ok: false, error: "Choisissez la cause dans la liste : c'est elle qui décide de ce que la personne lira, et une cause qui se réécrit n'est pas contestable." };
+  if (motif.length < 4) return { ok: false, error: "Ajoutez la note pour la personne suivante : la cause dit le genre, la note dit le cas." };
   const r = repo();
   const f = await r.getClientFile(fileId);
   if (!f) return { ok: false, error: "Dossier introuvable." };
@@ -226,8 +231,8 @@ export async function revoquerAccesAction(_p: AccesResult | null, form: FormData
   /* RETIRER NE DEMANDE PAS DE SECOND REGARD, et c'est voulu : fermer une
      porte dans l'urgence doit se faire d'une main. C'est l'ouvrir qui en
      demande deux. */
-  await r.revoquerAcces(id, me.name, motif.slice(0, 300));
-  await audit("acces.revoquer", "client_file", f.id, { before: { nom: acces.nom, canal: acces.canalValeur }, reason: motif });
+  await r.revoquerAcces(id, me.name, motif.slice(0, 300), cause);
+  await audit("acces.revoquer", "client_file", f.id, { before: { nom: acces.nom, canal: acces.canalValeur }, after: { cause }, reason: motif });
   await r.logEvent({ kind: "desk", html: `<b>Accès nommé retiré</b> à ${acces.nom} sur le compte de ${f.identity.name} · ${motif} · par ${me.name}` });
   revalidatePath("/desk/clients");
   return { ok: true, message: `${acces.nom} ne peut plus se connecter sur ce compte. Les gestes qu'il a faits restent à son nom.` };

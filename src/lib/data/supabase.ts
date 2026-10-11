@@ -886,7 +886,7 @@ function fail(ctx: string, error: { message: string } | null): never {
 type RefRow = { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null; draft?: unknown; draft_by?: string | null; draft_at?: string | null };
 const toReferenceRow = (r: RefRow): ReferenceRow => ({ kind: r.kind, key: r.key, data: r.data ?? null, updatedAt: r.updated_at, updatedBy: u(r.updated_by), ...(r.draft ? { draft: r.draft as ReferenceDraft, draftBy: u(r.draft_by ?? null), draftAt: r.draft_at ?? undefined } : {}) });
 
-type AccesRow = { id: string; compte_user_id: string; nom: string; role: string; canal: string; canal_valeur: string; personne_user_id: string | null; premiere_connexion_le: string | null; plafond_par_ordre: number | null; accorde_par: string; accorde_le: string; revoque_le: string | null; revoque_par: string | null; revoque_motif: string | null };
+type AccesRow = { id: string; compte_user_id: string; nom: string; role: string; canal: string; canal_valeur: string; personne_user_id: string | null; premiere_connexion_le: string | null; plafond_par_ordre: number | null; accorde_par: string; accorde_le: string; revoque_le: string | null; revoque_par: string | null; revoque_cause: string | null; revoque_motif: string | null };
 const acces = (r: unknown): AccesCompte => {
   const x = r as AccesRow;
   return {
@@ -903,6 +903,7 @@ const acces = (r: unknown): AccesCompte => {
     accordeLe: x.accorde_le,
     revoqueLe: u(x.revoque_le),
     revoquePar: u(x.revoque_par),
+    revoqueCause: (u(x.revoque_cause) as AccesCompte["revoqueCause"]) ?? undefined,
     revoqueMotif: u(x.revoque_motif),
   };
 };
@@ -1299,7 +1300,10 @@ export const supabaseRepository: Repository = {
     return data ? acces(data) : undefined;
   },
   async accesDeLaPersonne(personneUserId) {
-    const { data, error } = await db().from("acces_compte").select("*").eq("personne_user_id", personneUserId).is("revoque_le", null).maybeSingle();
+    /* PAS DE FILTRE SUR LES VIVANTS : le retrait doit se dire. Même lecture,
+       et la session décide ensuite. L index unique ne porte que sur les
+       vivants, donc on prend le plus récent. */
+    const { data, error } = await db().from("acces_compte").select("*").eq("personne_user_id", personneUserId).order("accorde_le", { ascending: false }).limit(1).maybeSingle();
     if (error) fail("accesDeLaPersonne", error);
     return data ? acces(data) : undefined;
   },
@@ -1320,8 +1324,8 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("acces_compte").update({ plafond_par_ordre: plafond ?? null }).eq("id", id);
     if (error) fail("fixerPlafondAcces", error);
   },
-  async revoquerAcces(id, par, motif) {
-    const { error } = await db().from("acces_compte").update({ revoque_le: new Date().toISOString(), revoque_par: par, revoque_motif: motif }).eq("id", id);
+  async revoquerAcces(id, par, motif, cause) {
+    const { error } = await db().from("acces_compte").update({ revoque_le: new Date().toISOString(), revoque_par: par, revoque_motif: motif, revoque_cause: cause ?? null }).eq("id", id);
     if (error) fail("revoquerAcces", error);
   },
   async setContactOptIn(id, optIn) {

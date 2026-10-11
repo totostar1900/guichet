@@ -652,7 +652,7 @@ export const memoryRepository: Repository = {
     return a ? structuredClone(a) : undefined;
   },
   async accesDeLaPersonne(personneUserId) {
-    const a = store().acces.find((x) => x.personneUserId === personneUserId && !x.revoqueLe);
+    const a = [...store().acces].reverse().find((x) => x.personneUserId === personneUserId);
     return a ? structuredClone(a) : undefined;
   },
   async accorderAcces(a) {
@@ -671,12 +671,13 @@ export const memoryRepository: Repository = {
     const a = store().acces.find((x) => x.id === id);
     if (a) a.plafondParOrdre = plafond;
   },
-  async revoquerAcces(id, par, motif) {
+  async revoquerAcces(id, par, motif, cause) {
     const a = store().acces.find((x) => x.id === id);
     if (a) {
       a.revoqueLe = new Date().toISOString();
       a.revoquePar = par;
       a.revoqueMotif = motif;
+      a.revoqueCause = cause;
     }
   },
   async setContactOptIn(id, optIn) {

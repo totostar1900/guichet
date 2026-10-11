@@ -55,7 +55,48 @@ export interface AccesCompte {
   accordeLe: string;
   revoqueLe?: string;
   revoquePar?: string;
+  /** La cause, prise dans la liste fermée : c est elle qui décide de ce que la personne lit. */
+  revoqueCause?: CauseDeRetrait;
+  /** La note libre du desk ; jamais lue par l intéressé. */
   revoqueMotif?: string;
+}
+
+/**
+ * POURQUOI UN ACCÈS EST RETIRÉ, PRIS DANS UNE LISTE FERMÉE.
+ *
+ * Une mesure vit sur le COMPTE, et c'est juste : les manquements qu'elle
+ * sanctionne sont des faits du compte, un ordre non réglé, des appétits
+ * sans suite. Mais sur un compte à plusieurs mains, elle les frappe toutes.
+ * Quand le problème est UNE personne, suspendre le compte punit deux
+ * innocents et, pire, leur apprend qu'il se passe quelque chose : c'est
+ * exactement ce que le silence de la conformité cherche à éviter.
+ *
+ * Le retrait d'un accès est donc l'outil par personne, et il mérite la même
+ * rigueur qu'une mesure : une cause qui se réécrit n'est pas contestable.
+ * `auxAutres` est ce que la personne lit ; il est vide pour le soupçon, et
+ * ce vide est la loi.
+ */
+export const CAUSES_DE_RETRAIT = {
+  quitte: { libelle: "A quitté ses fonctions", dit: "Vos fonctions ont pris fin : votre accès à ce compte est clos.", conformite: false },
+  remplace: { libelle: "Remplacé par une autre personne", dit: "Une autre personne a été désignée sur ce compte.", conformite: false },
+  demande_du_titulaire: { libelle: "À la demande du titulaire", dit: "Le titulaire du compte a demandé le retrait de votre accès.", conformite: false },
+  verification: { libelle: "Vérification de conformité", dit: "", conformite: true },
+} as const;
+export type CauseDeRetrait = keyof typeof CAUSES_DE_RETRAIT;
+export const estCauseDeRetrait = (s: string | undefined): s is CauseDeRetrait => Boolean(s && s in CAUSES_DE_RETRAIT);
+
+/**
+ * CE QUE LIT LA PERSONNE DONT L'ACCÈS A ÉTÉ RETIRÉ.
+ *
+ * Sans cette phrase, elle se connecte, n'arrive sur rien, et croit à une
+ * panne : c'est la panne muette appliquée à quelqu'un qui ne peut même pas
+ * se plaindre, puisqu'il n'a plus de compte où écrire. La cause de
+ * conformité, elle, ne se dit jamais, et c'est la loi.
+ */
+export function direLeRetrait(cause: CauseDeRetrait | undefined, nomDuCompte: string, le: string): string {
+  const c = cause ? CAUSES_DE_RETRAIT[cause] : undefined;
+  const pourquoi = c && !c.conformite && c.dit ? ` ${c.dit}` : "";
+  return `Votre accès au compte de ${nomDuCompte} a été retiré le ${le.slice(0, 10)}.${pourquoi} Pour toute question, écrivez-nous.`;
 }
 
 /** Un accès révoqué n'ouvre plus rien. */

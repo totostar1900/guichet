@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { fmtDateTime } from "@/lib/format";
-import { accesVivant, ROLE_ACCES_LABEL, type AccesCompte, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
+import { accesVivant, CAUSES_DE_RETRAIT, ROLE_ACCES_LABEL, type AccesCompte, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
 import { accorderAccesAction, fixerPlafondAction, revoquerAccesAction, type AccesResult } from "./acces-actions";
 
 /**
@@ -99,6 +99,12 @@ export function AccesNommes({ fileId, candidats, acces, plafondDuCompte }: { fil
                     <form action={revoquer} style={{ display: "flex", gap: "var(--s-3)", alignItems: "flex-end", flexWrap: "wrap" }}>
                       <input type="hidden" name="accesId" value={a.id} />
                       <input type="hidden" name="fileId" value={fileId} />
+                      {/* LA CAUSE DÉCIDE DE CE QUE LA PERSONNE LIRA. La note
+                          libre, elle, ne lui parvient jamais : elle est pour
+                          la personne suivante au desk. */}
+                      <label className="field" style={{ minWidth: "9rem" }}>
+                        <Select block name="cause" value="quitte" options={Object.entries(CAUSES_DE_RETRAIT).map(([k, v]) => ({ value: k, label: t(v.libelle) }))} />
+                      </label>
                       <label className="field" style={{ minWidth: "11rem" }}>
                         <input name="motif" maxLength={300} autoComplete="off" placeholder={t("a quitté le conseil")} />
                       </label>

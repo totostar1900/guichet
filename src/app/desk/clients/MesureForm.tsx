@@ -12,7 +12,7 @@ import { poserMesureAction, type MesureResult } from "./mesure-actions";
  * avoir à se souvenir : « suspendu » n'empêche ni de retirer son argent, ni
  * de nous écrire, et s'il fallait le deviner on finirait par croire que si.
  */
-export function MesureForm({ userId, posee }: { userId: string; posee?: MesurePosee }) {
+export function MesureForm({ userId, posee, plusieursMains }: { userId: string; posee?: MesurePosee; plusieursMains?: boolean }) {
   const t = useT();
   const [state, action, pending] = useActionState<MesureResult | null, FormData>(poserMesureAction, null);
   const vivante = mesureVivante(posee);
@@ -70,6 +70,18 @@ export function MesureForm({ userId, posee }: { userId: string; posee?: MesurePo
         ))}
         <li>{t("Aucune mesure ne retient les espèces ni les titres du client, et aucune ne coupe son chemin vers le desk.")}</li>
       </ul>
+      {/* UNE MESURE VIT SUR LE COMPTE, DONC ELLE FRAPPE TOUTES LES MAINS.
+          C'est juste pour un manquement du compte, et faux quand le problème
+          est une personne : suspendre punirait deux innocents et leur
+          apprendrait qu'il se passe quelque chose, ce que le silence de la
+          conformité cherche précisément à éviter. */}
+      {plusieursMains && (
+        <p className="muted" style={{ fontSize: ".8rem", margin: "var(--s-3) 0 0", borderLeft: "2px solid var(--warn)", paddingLeft: "var(--s-4)" }}>
+          {t(
+            "Ce compte est tenu par plusieurs personnes : une mesure posée ici les arrête toutes, et toutes la lisent. Si le problème ne concerne qu'une personne, retirez son accès plus bas plutôt que de suspendre le compte.",
+          )}
+        </p>
+      )}
       {state && <p className={state.ok ? "good-ink" : "crit-ink"}>{state.ok ? state.message : state.error}</p>}
     </div>
   );

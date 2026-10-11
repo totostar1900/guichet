@@ -1,7 +1,7 @@
 import type { FinancialProfile } from "@/data/profile";
 import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/journal-client";
 import type { MesurePosee } from "@/lib/domain/mesure";
-import type { AccesCompte } from "@/lib/domain/acces-nomme";
+import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -120,13 +120,15 @@ export interface Repository {
   /** L'accès vivant posé sur ce canal, s'il y en a un : c'est ce que la connexion interroge. */
   accesParCanal(canalValeur: string): Promise<AccesCompte | undefined>;
   /** L'accès vivant d'une personne déjà liée : la session s'en sert à chaque requête. */
+  /** Le DERNIER accès d une personne, vivant ou retiré : un retrait doit se dire, pas se taire. */
   accesDeLaPersonne(personneUserId: string): Promise<AccesCompte | undefined>;
   accorderAcces(a: Omit<AccesCompte, "id" | "accordeLe">): Promise<AccesCompte>;
   /** La liaison de la première connexion : le canal devient un identifiant, une fois. */
   lierAcces(id: string, personneUserId: string): Promise<void>;
   /** Le plafond par ordre d une personne ; rien pour le retirer et revenir à celui du compte. */
   fixerPlafondAcces(id: string, plafond: number | undefined): Promise<void>;
-  revoquerAcces(id: string, par: string, motif: string): Promise<void>;
+  /** La cause vient de la liste fermée et décide de ce que la personne lit ; le motif est la note libre du desk. */
+  revoquerAcces(id: string, par: string, motif: string, cause?: CauseDeRetrait): Promise<void>;
   /** Le consentement aux informations par courrier : le service n’en dépend pas. */
   setEmailOptIn(id: string, optIn: boolean): Promise<void>;
   /** Desk team: who has desk access, at which level, with MFA or not. */

@@ -94,7 +94,15 @@ async function résoudreLAcces(s: Session): Promise<Session> {
         }
       }
     }
-    if (!acces || acces.revoqueLe || acces.personneUserId !== s.userId) return s;
+    if (!acces || acces.personneUserId !== s.userId) return s;
+    /* UN RETRAIT SE DIT. Sans cette branche, la personne se connectait,
+       n'arrivait sur rien, et croyait à une panne : la panne muette appliquée
+       à quelqu'un qui n'a même plus de compte où se plaindre. Le compte NE
+       bascule PAS : elle reste chez elle, avec une phrase. */
+    if (acces.revoqueLe) {
+      const f = await r.getClientFileByUser(acces.compteUserId).catch(() => undefined);
+      return { ...s, accesRetire: { nomDuCompte: f?.identity.name ?? "ce compte", le: acces.revoqueLe, cause: acces.revoqueCause } };
+    }
     return { ...s, userId: acces.compteUserId, agissant: { accesId: acces.id, nom: acces.nom, role: acces.role }, plafondParOrdre: acces.plafondParOrdre };
   } catch {
     /* UNE LECTURE QUI ÉCHOUE NE DOIT PAS DÉCONNECTER TOUT LE MONDE : sans

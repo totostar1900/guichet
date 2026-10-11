@@ -3288,4 +3288,10 @@ export const EN_MORE: Record<string, string> = {
   "Quelqu'un peut se connecter sur un compte dont le dossier ne le connaît plus : un ancien administrateur qui passe encore des ordres. Ce point devrait toujours valoir zéro, puisque retirer un signataire ferme son accès dans le même geste ; s'il monte, c'est que la règle a été contournée, ou qu'une reprise de données a laissé un accès derrière elle. Ouvrir le dossier du compte, fermer l'accès, puis chercher dans l'audit comment il a survécu.":
     "Someone can sign in on an account whose file no longer knows them: a former director still placing orders. This point should always read zero, since removing a signatory closes their access in the same move; if it rises, the rule was bypassed, or a data migration left an access behind. Open the account's file, close the access, then look in the audit for how it survived.",
   "Un seul donneur d'ordres, et les comptes à plusieurs mains": "A single order-giver, and accounts with several hands",
+  /* Les mesures sur un compte à plusieurs mains, et le retrait par personne. */
+  "Ce compte est tenu par plusieurs personnes : une mesure posée ici les arrête toutes, et toutes la lisent. Si le problème ne concerne qu'une personne, retirez son accès plus bas plutôt que de suspendre le compte.":
+    "This account is held by several people: a measure set here stops them all, and they all read it. If the problem concerns only one person, withdraw their access below rather than suspending the account.",
+  "A quitté ses fonctions": "Has left their office",
+  "Remplacé par une autre personne": "Replaced by another person",
+  "À la demande du titulaire": "At the holder's request",
 };

@@ -4,6 +4,8 @@
  * responsable : desk + team management, approvals, four-eyes on money terms.
  * (The « système » actor is not a user: crons and the robot hold CRON_SECRET / the service key.)
  */
+import type { CauseDeRetrait } from "@/lib/domain/acces-nomme";
+
 export type Role = "client" | "desk" | "responsable";
 
 /** Level of relationship : see onboarding notes. 0 visitor, 1 identified, 2 account open. */
@@ -52,6 +54,15 @@ export interface Session {
   plafondParOrdre?: number;
   /** D où il vient, pour que la phrase du refus dise la vérité. */
   plafondSource?: "compte" | "personne";
+  /**
+   * L ACCÈS QUI A ÉTÉ RETIRÉ À CETTE PERSONNE.
+   *
+   * Elle se connecte, n arrive sur rien, et croirait à une panne : la panne
+   * muette appliquée à quelqu un qui n a même plus de compte où se plaindre.
+   * Le compte ne bascule pas pour autant ; elle reste chez elle, avec une
+   * phrase. La cause de conformité n en dit jamais le pourquoi.
+   */
+  accesRetire?: { nomDuCompte: string; le: string; cause?: CauseDeRetrait };
   /** Which auth backed this session : useful in the header and for debugging. */
   provider: "supabase" | "dev";
   /** Second factor: a verified TOTP factor exists, and this session entered its code (aal2). */

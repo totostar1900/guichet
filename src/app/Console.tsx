@@ -6,7 +6,7 @@ import { cashPosition } from "@/lib/domain/cash";
 import { arretables } from "@/lib/domain/preavis";
 import { Annonce } from "./Annonce";
 import { diteAuClient } from "@/lib/domain/mesure";
-import { direLAcces } from "@/lib/domain/acces-nomme";
+import { direLAcces, direLeRetrait } from "@/lib/domain/acces-nomme";
 import { direLePlafond } from "@/lib/domain/plafond-du-compte";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
@@ -59,6 +59,9 @@ export async function Console({ session }: { session: Session }) {
      page évite la seule erreur qui compte vraiment ici, croire qu on est
      chez soi. */
   const accesDit = direLAcces(session.agissant?.role, session.name);
+  /* ET CE QUE LIT CELLE À QUI ON L A RETIRÉ : sans cette phrase, elle
+     croit à une panne, et elle n a plus de compte où se plaindre. */
+  const retraitDit = session.accesRetire ? direLeRetrait(session.accesRetire.cause, session.accesRetire.nomDuCompte, session.accesRetire.le) : undefined;
   /* LE PLAFOND SE DIT AVANT, PAS AU REFUS. Le découvrir en butant dessus au
      moment de signer est une panne muette : le client a déjà réuni le
      groupe et rempli son ordre. */
@@ -141,6 +144,12 @@ export async function Console({ session }: { session: Session }) {
           découvre en butant dessus est une panne muette : il croit avoir mal
           cliqué. Le motif de conformité, lui, ne se dit jamais, et ce silence
           est la loi, pas une pudeur. */}
+      {retraitDit && (
+        <p className="panel" style={{ borderLeft: "2px solid var(--warn)", padding: "var(--s-5) var(--s-6)" }}>
+          {retraitDit}
+        </p>
+      )}
+
       {accesDit && (
         <p className="panel" style={{ borderLeft: "2px solid var(--gold)", padding: "var(--s-5) var(--s-6)" }}>
           {accesDit}

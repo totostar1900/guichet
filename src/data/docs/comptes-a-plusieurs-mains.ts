@@ -199,6 +199,52 @@ export const COMPTES_A_PLUSIEURS_MAINS: DocPage = {
       ],
     },
     {
+      id: "mesures",
+      title: l("Les mesures sur un compte à plusieurs mains", "Measures on an account with several hands"),
+      blocks: [
+        {
+          type: "lead",
+          text: l(
+            "UNE MESURE VIT SUR LE COMPTE, DONC ELLE FRAPPE TOUTES LES MAINS. C est juste quand le manquement est un fait du compte : un ordre servi et jamais réglé est un manquement de la tontine, pas d un de ses trois membres, et les trois doivent le savoir. C est faux quand le problème est UNE personne.",
+            "A MEASURE LIVES ON THE ACCOUNT, SO IT STRIKES EVERY HAND. That is right when the lapse is a fact of the account: an order allotted and never settled is the group s lapse, not one member s, and all three must know. It is wrong when the problem is ONE person.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
+            "NE SUSPENDEZ PAS UN COMPTE POUR UNE SEULE PERSONNE. Vous puniriez deux innocents, et vous leur apprendriez qu il se passe quelque chose : c est exactement ce que le silence de la conformité cherche à éviter, et c est irrattrapable. L outil par personne est le retrait de son accès, et il est juste à côté sur le même écran.",
+            "DO NOT SUSPEND AN ACCOUNT FOR ONE PERSON. You would punish two innocents, and teach them something is going on: exactly what the silence of compliance seeks to avoid, and it cannot be taken back. The per-person tool is withdrawing their access, and it sits right beside it on the same screen.",
+          ),
+        },
+        {
+          type: "table",
+          head: [l("Le problème", "The problem"), l("L outil", "The tool")],
+          rows: [
+            [l("Un ordre du compte non réglé, des appétits sans suite, des prélèvements rejetés", "An unsettled order of the account, appetites with no follow-up, rejected debits"), l("une mesure sur le compte : le manquement est au compte, et toutes les mains en répondent.", "a measure on the account: the lapse belongs to the account, and every hand answers for it.")],
+            [l("Une personne a quitté ses fonctions, est remplacée, ou le titulaire la retire", "A person has left office, is replaced, or the holder withdraws them"), l("retirer son accès, avec la cause qui convient. Elle lit pourquoi.", "withdraw their access, with the fitting cause. They read why.")],
+            [l("Un soupçon pèse sur UNE personne", "A suspicion weighs on ONE person"), l("retirer son accès avec la cause « vérification de conformité » : l accès se ferme, et ni elle ni les autres n apprennent pourquoi.", "withdraw their access with the « compliance check » cause: the access closes, and neither they nor the others learn why.")],
+            [l("Un soupçon pèse sur le compte lui-même", "A suspicion weighs on the account itself"), l("une mesure, avec le même silence. Les mains sont le client, et c est le client qui est en cause.", "a measure, with the same silence. The hands are the client, and it is the client who is in question.")],
+          ],
+        },
+        {
+          type: "p",
+          text: l(
+            "Le retrait d un accès a la même rigueur qu une mesure, et pour la même raison : sa cause vient d une liste fermée, parce qu une cause qui se réécrit n est pas contestable. La note libre que vous ajoutez reste au desk, pour la personne suivante ; c est la CAUSE, et elle seule, qui décide de ce que l intéressé lira.",
+            "Withdrawing an access carries the same rigour as a measure, and for the same reason: its cause comes from a closed list, because a cause that can be rewritten cannot be disputed. The free note you add stays at the desk, for the next person; it is the CAUSE, and it alone, that decides what the person concerned will read.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "info",
+          text: l(
+            "ET LA PERSONNE L APPREND. Sans cette phrase, elle se connectait, n arrivait sur rien et croyait à une panne : la panne muette appliquée à quelqu un qui n a même plus de compte où se plaindre. Elle lit maintenant, sur son propre espace, que son accès a été retiré, quand, et pourquoi quand la cause se dit.",
+            "AND THE PERSON LEARNS IT. Without that sentence, they signed in, landed on nothing and thought it was a failure: the silent failure applied to someone who no longer even has an account to complain from. They now read, in their own space, that their access was withdrawn, when, and why when the cause can be said.",
+          ),
+        },
+      ],
+    },
+    {
       id: "situations",
       title: l("Quatre situations, pas à pas", "Four situations, step by step"),
       blocks: [
@@ -276,6 +322,7 @@ export const COMPTES_A_PLUSIEURS_MAINS: DocPage = {
             [l("Les personnes déclarées, les accès, les plafonds", "The declared persons, the accesses, the caps"), l("Dossiers › le client (comptes non physiques seulement)", "Files › the client (non-natural-person accounts only)")],
             [l("Qui a fait quoi sur un compte à plusieurs", "Who did what on a shared account"), l("Journal › Gestes des clients, colonne « Qui »", "Journal › Client moves, « Who » column")],
             [l("Un accès qui aurait survécu à sa personne", "An access that outlived its person"), l("Santé › Accès sans personne déclarée", "Health › Access with no declared person")],
+            [l("Arrêter une seule personne sans toucher aux autres", "Stopping one person without touching the others"), l("Dossiers › le client › retirer son accès, avec sa cause", "Files › the client › withdraw their access, with its cause")],
             [l("Ce que le client lit de son côté", "What the client reads on their side"), l("Son espace : le compte sur lequel il agit, et son plafond", "Their space: the account they act on, and their cap")],
             [l("La règle écrite au client", "The rule as written to the client"), l("Convention, article 9", "Agreement, article 9")],
           ],
