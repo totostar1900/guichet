@@ -3,7 +3,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { requireResponsable } from "@/lib/auth";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
-import { registreEnBrouillon, registrePublie } from "@/lib/desk/registre-data";
+import { chercherAuRegistre, dossiersQuiAccrochent, registreEnBrouillon, registrePublie } from "@/lib/desk/registre-data";
 import { ecartVivant, MOTIFS_D_ECART } from "@/lib/domain/registre-ecartes";
 import { InscrireForm, LeverForm, PublierForm } from "./RegistreForms";
 
@@ -18,13 +18,19 @@ export const metadata = { title: "Registre des personnes écartées" };
  * endroit du produit où tout le travail de la tenue et des mesures s'annule
  * d'un geste. Ce registre vit à côté des comptes.
  */
-export default async function RegistrePage() {
+export default async function RegistrePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requireResponsable("/desk/referentiel/registre");
   const t = await getT();
+  const q = ((await searchParams).q ?? "").trim();
   const [publies, brouillons] = await Promise.all([registrePublie(), registreEnBrouillon()]);
   const enBrouillon = new Set(brouillons.map((b) => b.id));
   const now = new Date();
   const vivants = publies.filter((e) => ecartVivant(e, now));
+  /* CE QUE LA PUBLICATION TOUCHERAIT : on inscrit quelqu un parce que
+     quelque chose s est passé, donc il est le plus souvent déjà client.
+     Publier sans regarder laisserait son compte tourner. */
+  const touches = await dossiersQuiAccrochent(brouillons.filter((b) => !b.leveeLe), now);
+  const trouves = q ? await chercherAuRegistre(q) : [];
   const eteints = publies.filter((e) => !ecartVivant(e, now));
 
   return (
@@ -53,6 +59,41 @@ export default async function RegistrePage() {
             "Il ne refuse jamais tout seul : une correspondance lève un drapeau sur le dossier, et une personne nommée tranche en disant pourquoi. C'est un filet, pas un mur : il attrape celui qui revient, pas celui qui se fabrique une identité.",
           )}
         </p>
+      </div>
+
+      {/* CHERCHER SANS DOSSIER SOUS LA MAIN. Le bandeau ne se lève que sur un
+          dossier, et le moment le plus utile est AVANT qu'il existe :
+          quelqu'un appelle, donne un nom, et on voudrait savoir. */}
+      <div className="panel">
+        <div className="panel-h">
+          <h2>{t("Ce nom est-il au registre ?")}</h2>
+        </div>
+        <form method="get" style={{ display: "flex", gap: "var(--s-4)", alignItems: "flex-end", flexWrap: "wrap", padding: "0 var(--s-6) var(--s-5)" }}>
+          <label className="field" style={{ minWidth: "16rem", flexGrow: 1 }}>
+            {t("Un nom, ou un numéro de pièce")}
+            <input name="q" defaultValue={q} autoComplete="off" placeholder={t("Onana, ou 123456789")} />
+          </label>
+          <button className="btn sm" type="submit">
+            {t("Chercher")}
+          </button>
+        </form>
+        {q && (
+          <ul style={{ margin: 0, padding: "0 var(--s-6) var(--s-5) var(--s-9)", lineHeight: 1.7 }}>
+            {trouves.length === 0 ? (
+              <li className="muted">{t("Rien à ce nom ni à ce numéro. Le registre ne connaît pas cette personne.")}</li>
+            ) : (
+              trouves.map((e) => (
+                <li key={e.id}>
+                  <b>{e.nom}</b>
+                  {e.naissance ? <span className="muted"> · {e.naissance}</span> : null}
+                  {e.pieceNumero ? <span className="muted"> · {e.pieceType ?? t("pièce")} {e.pieceNumero}</span> : null}
+                  <span className="muted"> · {t(MOTIFS_D_ECART[e.motif].libelle)}</span>{" "}
+                  {ecartVivant(e, now) ? <span className="st annulee">{t("écarté")}</span> : <span className="st">{e.leveeLe ? t("levée") : t("échue")}</span>}
+                </li>
+              ))
+            )}
+          </ul>
+        )}
       </div>
 
       <div className="panel">
@@ -86,6 +127,32 @@ export default async function RegistrePage() {
               </li>
             ))}
           </ul>
+          {/* ET QUI ELLE TOUCHERAIT. Le barème montre qui bouge avant de
+              publier ; une inscription mérite autant, parce que la personne
+              qu'on écarte est le plus souvent déjà cliente et que son compte
+              continuerait de tourner. */}
+          {touches.length > 0 && (
+            <div style={{ padding: "0 var(--s-6) var(--s-5)" }}>
+              <span className="eyebrow">{t("Ce que la publication toucherait")}</span>
+              <ul style={{ margin: "var(--s-3) 0 0", paddingLeft: "var(--s-7)", lineHeight: 1.7 }}>
+                {touches.map(({ f, hits }) => (
+                  <li key={f.id}>
+                    <Link href={`/desk/clients?file=${f.id}`}>{f.identity.name}</Link>{" "}
+                    {f.status === "approuve" ? <span className="st annulee">{t("compte ouvert")}</span> : <span className="st recue">{t("dossier en cours")}</span>}
+                    <span className="muted">
+                      {" "}
+                      · {hits[0].personne.nom} ({t(hits[0].personne.role)}) · {hits[0].niveau === "correspondance" ? t("même pièce") : t("même nom et même date de naissance")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="muted" style={{ fontSize: ".82rem", marginTop: "var(--s-3)" }}>
+                {t(
+                  "Un compte ouvert qui accroche ne se règle pas par l'inscription : elle ferme la porte d'entrée, pas celle qui est déjà franchie. Posez aussi la mesure qui convient sur ce compte, ou retirez l'accès de la personne.",
+                )}
+              </p>
+            </div>
+          )}
           <PublierForm n={brouillons.length} />
         </div>
       )}

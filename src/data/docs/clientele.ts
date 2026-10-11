@@ -373,6 +373,21 @@ export const CLIENTELE: DocPage = {
           type: "note",
           kind: "warn",
           text: l(
+            "L INSCRIPTION FERME LA PORTE D ENTRÉE, PAS CELLE QUI EST DÉJÀ FRANCHIE. On écarte quelqu un parce que quelque chose s est passé, donc il est le plus souvent DÉJÀ CLIENT : publier sans regarder laisserait son compte tourner. L écran dit avant de publier quels dossiers l inscription toucherait, et marque ceux dont le compte est OUVERT. Sur ceux-là, il faut en plus la mesure qui convient, ou le retrait de l accès de la personne. Santé les compte, et il les met devant les dossiers en cours : un dossier en cours attend une décision qu on n a pas prise, un compte ouvert passe des ordres pendant qu on lit.",
+            "THE ENTRY CLOSES THE FRONT DOOR, NOT THE ONE ALREADY CROSSED. Someone is barred because something happened, so they are most often ALREADY A CLIENT: publishing without looking would let their account run on. Before publishing, the screen says which files the entry would touch, and marks those whose account is OPEN. On those, the fitting measure is also needed, or the withdrawal of the person s access. Health counts them, and puts them ahead of files under way: a file under way awaits a decision we have not taken, an open account places orders while we read.",
+          ),
+        },
+        {
+          type: "p",
+          text: l(
+            "Et l on peut chercher un nom au registre sans ouvrir de dossier, par le nom ou par le numéro de pièce : le bandeau ne se lève que sur un dossier, alors que le moment le plus utile est avant qu il existe, quand quelqu un appelle et donne un nom. La recherche montre aussi les inscriptions éteintes, parce que « il a été écarté l an dernier, puis levé » est une réponse utile.",
+            "And a name can be searched on the register without opening a file, by name or by document number: the band only rises on a file, whereas the most useful moment is before one exists, when someone calls and gives a name. The search also shows extinguished entries, because « they were barred last year, then lifted » is a useful answer.",
+          ),
+        },
+        {
+          type: "note",
+          kind: "warn",
+          text: l(
             "CE N'EST PAS UN MUR, C'EST UN FILET, et il reste un trou. Un chiffre inversé dans un numéro y passe : le registre attrape celui qui revient, pas celui qui se fabrique une identité. Le second trou, lui, est fermé depuis le 10 octobre 2026 : le dossier ne demandait pas la date de naissance des personnes déclarées, et un représentant légal ne pouvait donc produire qu'une correspondance de numéro, c'est à dire la seule prise que changer de pièce annule. Elle est maintenant obligatoire, et elle sert deux fois : ici, et dans la requête du contrôle sanctions, dont le champ de notes demandait déjà d'écarter l'homonymie « date de naissance comparée » sans que le desk l'ait sous les yeux.",
             "IT IS NOT A WALL, IT IS A NET, and one hole remains. A transposed digit in a number goes through: the register catches the one who comes back, not the one who manufactures an identity. The second hole was closed on 10 October 2026: the file did not ask for the declared persons' date of birth, so a legal representative could only produce a number match, that is the one grip a new document annuls. It is now required, and it serves twice: here, and in the sanctions screening query, whose notes field already asked the desk to rule out namesakes by « date of birth compared » without having it in front of them.",
           ),

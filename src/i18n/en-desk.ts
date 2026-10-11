@@ -3294,4 +3294,18 @@ export const EN_MORE: Record<string, string> = {
   "A quitté ses fonctions": "Has left their office",
   "Remplacé par une autre personne": "Replaced by another person",
   "À la demande du titulaire": "At the holder's request",
+  /* Le registre côté desk : chercher un nom, et voir qui une publication toucherait. */
+  "Ce nom est-il au registre ?": "Is this name on the register?",
+  "Un nom, ou un numéro de pièce": "A name, or a document number",
+  "Onana, ou 123456789": "Onana, or 123456789",
+  "Rien à ce nom ni à ce numéro. Le registre ne connaît pas cette personne.": "Nothing under that name or number. The register does not know this person.",
+  "écarté": "barred",
+  "levée": "lifted",
+  "Ce que la publication toucherait": "What publishing would touch",
+  "compte ouvert": "account open",
+  "dossier en cours": "file under way",
+  "Un compte ouvert qui accroche ne se règle pas par l'inscription : elle ferme la porte d'entrée, pas celle qui est déjà franchie. Posez aussi la mesure qui convient sur ce compte, ou retirez l'accès de la personne.":
+    "An open account that catches is not settled by the entry: it closes the front door, not the one already crossed. Also set the fitting measure on that account, or withdraw the person's access.",
+  "Un dossier accroche une inscription du registre. Un COMPTE OUVERT passe devant un dossier en cours : le premier passe des ordres pendant qu on lit, le second attend une décision qu on n a pas prise. Ouvrir le dossier : le bandeau au-dessus de la décision nomme la personne, ce sur quoi elle a accroché et ce que la maison avait écrit ce jour-là. Une correspondance de pièce est presque sûrement la même personne ; une ressemblance de nom et de date de naissance peut être un homonyme. Sur un dossier en cours, le registre ne refuse pas : il faut écrire dans « Notes internes » ce qui écarte la correspondance avant de pouvoir approuver. Sur un compte déjà ouvert, l inscription ne suffit pas : posez la mesure qui convient, ou retirez l accès de la personne. Un brouillon au registre n écarte encore personne.":
+    "A file catches an entry on the register. An OPEN ACCOUNT comes before a file under way: the first places orders while we read, the second awaits a decision we have not taken. Open the file: the band above the decision names the person, what they caught on, and what the firm wrote that day. A document match is almost certainly the same person; a resemblance of name and date of birth may be a namesake. On a file under way, the register does not refuse: you must write in « Internal notes » what rules the match out before you can approve. On an already open account, the entry is not enough: set the fitting measure, or withdraw the person's access. A draft on the register bars nobody yet.",
 };

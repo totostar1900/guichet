@@ -618,20 +618,31 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
      par la même raison que le barème : il n'écarte encore personne, et le
      desk croit l'avoir posé. */
   const [registre, enAttenteRegistre, dossiers] = await Promise.all([registrePublie().catch(() => []), registreEnBrouillon().catch(() => []), r.listClientFiles().catch(() => [])]);
-  const soumis = dossiers.filter((f) => f.status === "soumis" || f.status === "en_revue" || f.status === "complements");
-  const accroches = soumis
+  /* ET LES DOSSIERS DÉJÀ APPROUVÉS, qui manquaient. Ce point ne regardait
+     que les dossiers en cours, c'est à dire le cas le moins probable : on
+     inscrit quelqu'un au registre PARCE QUE quelque chose s'est passé, et
+     ce quelqu'un est le plus souvent déjà client. Écarter un client en
+     activité ne déclenchait donc rien, et son compte continuait de tourner. */
+  const accroches = dossiers
     .map((f) => ({ f, hits: correspondances(registre, personnesDuDossier(f), now) }))
     .filter((x) => x.hits.length > 0);
+  const enCours = accroches.filter((x) => x.f.status === "soumis" || x.f.status === "en_revue" || x.f.status === "complements");
+  const ouverts = accroches.filter((x) => x.f.status === "approuve");
   out.push({
     key: "registre-ecartes",
     label: "Registre des personnes écartées",
     level: accroches.length ? "crit" : enAttenteRegistre.length ? "warn" : "ok",
     value: accroches.length ? `${accroches.length} dossier(s)` : `${registre.filter((e) => ecartVivant(e, now)).length} inscription(s)`,
-    detail: accroches.length
-      ? `${accroches.map((x) => `${x.f.identity.name} (${x.hits[0].niveau})`).join(" · ")} : à trancher avant toute approbation`
-      : enAttenteRegistre.length
-        ? `${enAttenteRegistre.length} changement(s) en brouillon : ils n'écartent encore personne`
-        : "aucun dossier en cours n'accroche",
+    /* LE COMPTE OUVERT PASSE DEVANT : un dossier en cours attend une
+       décision qu'on n'a pas encore prise, un compte ouvert passe des
+       ordres pendant qu'on lit. */
+    detail: ouverts.length
+      ? `${ouverts.map((x) => x.f.identity.name).join(" · ")} : compte(s) OUVERT(S) accrochant le registre, à trancher tout de suite${enCours.length ? ` · et ${enCours.length} dossier(s) en cours` : ""}`
+      : enCours.length
+        ? `${enCours.map((x) => `${x.f.identity.name} (${x.hits[0].niveau})`).join(" · ")} : à trancher avant toute approbation`
+        : enAttenteRegistre.length
+          ? `${enAttenteRegistre.length} changement(s) en brouillon : ils n'écartent encore personne`
+          : "aucun dossier n'accroche",
   });
 
   /* UN ACCÈS ORPHELIN : QUELQU'UN QUI PEUT SE CONNECTER SANS ÊTRE DÉCLARÉ.

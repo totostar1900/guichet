@@ -2,7 +2,7 @@ import "server-only";
 import { repo } from "@/lib/data";
 import { REF } from "@/lib/reference";
 import type { ClientFile } from "@/lib/domain/kyc";
-import { correspondances, parForce, type Correspondance, type Ecarte, type PersonneDuDossier } from "@/lib/domain/registre-ecartes";
+import { clefDeNom, correspondances, parForce, type Correspondance, type Ecarte, type PersonneDuDossier } from "@/lib/domain/registre-ecartes";
 
 /**
  * LE REGISTRE VIT AU RÉFÉRENTIEL, avec ses brouillons et sa publication.
@@ -61,4 +61,45 @@ export function personnesDuDossier(f: ClientFile): PersonneDuDossier[] {
 /** Ce que le registre a à dire sur un dossier, la correspondance la plus forte en tête. */
 export async function correspondancesDuDossier(f: ClientFile, now = new Date()): Promise<Correspondance[]> {
   return correspondances(await registrePublie(), personnesDuDossier(f), now).sort(parForce);
+}
+
+/**
+ * QUI, PARMI LES DOSSIERS QUI EXISTENT, ACCROCHE CES INSCRIPTIONS.
+ *
+ * Sert à deux moments, et c'est la même question. Avant de publier : on
+ * inscrit quelqu'un PARCE QUE quelque chose s'est passé, et ce quelqu'un
+ * est le plus souvent déjà client ; publier à l'aveugle laisserait son
+ * compte tourner. Et pour chercher un nom sans ouvrir de dossier, quand
+ * quelqu'un appelle avant même qu'un dossier existe.
+ *
+ * Le statut remonte avec le dossier : un compte OUVERT qui accroche est
+ * plus pressant qu'un dossier qui attend encore sa décision.
+ */
+export async function dossiersQuiAccrochent(inscriptions: Ecarte[], now = new Date()): Promise<{ f: ClientFile; hits: Correspondance[] }[]> {
+  if (inscriptions.length === 0) return [];
+  const dossiers = await repo().listClientFiles().catch(() => []);
+  return dossiers
+    .map((f) => ({ f, hits: correspondances(inscriptions, personnesDuDossier(f), now).sort(parForce) }))
+    .filter((x) => x.hits.length > 0)
+    .sort((a, b) => Number(b.f.status === "approuve") - Number(a.f.status === "approuve"));
+}
+
+/**
+ * Chercher un nom au registre, sans dossier sous la main.
+ *
+ * Le bandeau ne se lève que sur un dossier, et le moment le plus utile est
+ * AVANT qu'il existe : quelqu'un appelle, donne un nom, et on voudrait
+ * savoir. La recherche porte sur le nom et sur le numéro de pièce, et elle
+ * montre aussi les inscriptions éteintes, parce que « il a été écarté
+ * l'an dernier, puis levé » est une réponse utile.
+ */
+export async function chercherAuRegistre(q: string): Promise<Ecarte[]> {
+  const terme = clefDeNom(q);
+  const chiffres = (q ?? "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  if (terme.length < 2 && chiffres.length < 3) return [];
+  return (await registrePublie()).filter((e) => {
+    const nom = clefDeNom(e.nom);
+    const piece = (e.pieceNumero ?? "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    return (terme.length >= 2 && nom.includes(terme)) || (chiffres.length >= 3 && piece.length > 0 && piece.includes(chiffres));
+  });
 }

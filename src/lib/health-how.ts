@@ -142,7 +142,7 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
   "registre-ecartes": {
     label: "Registre des personnes écartées",
     href: "/desk/clients",
-    how: "Un dossier en cours accroche une inscription du registre. Ouvrir le dossier : le bandeau au-dessus de la décision nomme la personne, ce sur quoi elle a accroché et ce que la maison avait écrit ce jour-là. Une correspondance de pièce est presque sûrement la même personne ; une ressemblance de nom et de date de naissance peut être un homonyme. Le registre ne refuse pas : il faut écrire dans « Notes internes » ce qui écarte la correspondance avant de pouvoir approuver, et cette phrase reste avec la décision. Un brouillon au registre n'écarte encore personne : il attend sa publication.",
+    how: "Un dossier accroche une inscription du registre. Un COMPTE OUVERT passe devant un dossier en cours : le premier passe des ordres pendant qu on lit, le second attend une décision qu on n a pas prise. Ouvrir le dossier : le bandeau au-dessus de la décision nomme la personne, ce sur quoi elle a accroché et ce que la maison avait écrit ce jour-là. Une correspondance de pièce est presque sûrement la même personne ; une ressemblance de nom et de date de naissance peut être un homonyme. Sur un dossier en cours, le registre ne refuse pas : il faut écrire dans « Notes internes » ce qui écarte la correspondance avant de pouvoir approuver. Sur un compte déjà ouvert, l inscription ne suffit pas : posez la mesure qui convient, ou retirez l accès de la personne. Un brouillon au registre n écarte encore personne.",
     docs: { href: "/desk/docs/clientele#registre-ecartes", label: "Le registre des personnes écartées" },
   },
   "acces-orphelins": {
